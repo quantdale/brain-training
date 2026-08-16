@@ -34,7 +34,7 @@ Provisional identity (branding still deferred): app name "Brain Training", slug 
 
 - Games implement against the SDK; registry is generated (orchestrator-owned script) to avoid shared-file hotspots.
 - CI runs `npm ci` + typecheck + jest + web export inside `apps/mobile`.
-- The template's `expo-env.d.ts` / `.expo/types` are generated locally and gitignored; typecheck requires running an expo command first (documented in CI).
+- The template's `expo-env.d.ts` / `.expo/types` are normally generated and gitignored; this repo commits a stable `expo-env.d.ts` (static `expo/types` reference) so CI and fresh agents typecheck without a dev-server run. `npx expo export` does NOT generate it in SDK 57.
 - `better-sqlite3` is dev-only and never ships in the app bundle.
 
 ## Validation / rollback

@@ -1,32 +1,35 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
+/**
+ * Native tab bar (Android/iOS) built on expo-router NativeTabs.
+ *
+ * Rendered from `TAB_DEFINITIONS` (src/constants/tabs.ts) so testIDs, labels
+ * and icons stay in sync with the web tab bar. Icons: SF Symbols on iOS,
+ * Material symbols on Android (both rendered by the native tab host).
+ */
 
-import { Colors } from '@/constants/theme';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+
+import { TAB_DEFINITIONS } from '@/constants/tabs';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const colors = useTheme();
 
   return (
     <NativeTabs
       backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      indicatorColor={colors.accent}
+      iconColor={colors.textSecondary}
+      labelStyle={{ selected: { color: colors.accent } }}>
+      {TAB_DEFINITIONS.map((tab) => (
+        <NativeTabs.Trigger
+          key={tab.name}
+          name={tab.name}
+          testID={tab.testID}
+          accessibilityLabel={tab.label}>
+          <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon sf={tab.sf} md={tab.md} />
+        </NativeTabs.Trigger>
+      ))}
     </NativeTabs>
   );
 }

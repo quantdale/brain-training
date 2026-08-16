@@ -1,10 +1,22 @@
 import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
-import { Fonts, ThemeColor } from '@/constants/theme';
+import { Fonts, ThemeColor, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
-  type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
+  type?:
+    | 'default'
+    | 'caption'
+    | 'small'
+    | 'smallBold'
+    | 'bodyLarge'
+    | 'subtitle'
+    | 'headline'
+    | 'title'
+    | 'display'
+    | 'link'
+    | 'linkPrimary'
+    | 'code';
   themeColor?: ThemeColor;
 };
 
@@ -16,10 +28,14 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
       style={[
         { color: theme[themeColor ?? 'text'] },
         type === 'default' && styles.default,
-        type === 'title' && styles.title,
+        type === 'caption' && styles.caption,
         type === 'small' && styles.small,
         type === 'smallBold' && styles.smallBold,
+        type === 'bodyLarge' && styles.bodyLarge,
         type === 'subtitle' && styles.subtitle,
+        type === 'headline' && styles.subtitle,
+        type === 'title' && styles.title,
+        type === 'display' && styles.display,
         type === 'link' && styles.link,
         type === 'linkPrimary' && styles.linkPrimary,
         type === 'code' && styles.code,
@@ -31,43 +47,57 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 }
 
 const styles = StyleSheet.create({
+  caption: {
+    fontSize: Typography.caption.size,
+    lineHeight: Typography.caption.lineHeight,
+    fontWeight: Typography.caption.weight,
+  },
   small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
+    fontSize: Typography.bodySmall.size,
+    lineHeight: Typography.bodySmall.lineHeight,
+    fontWeight: Typography.bodySmall.weight,
   },
   smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
+    fontSize: Typography.bodySmall.size,
+    lineHeight: Typography.bodySmall.lineHeight,
+    fontWeight: '700',
   },
   default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
+    fontSize: Typography.body.size,
+    lineHeight: Typography.body.lineHeight,
+    fontWeight: Typography.body.weight,
   },
-  title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+  bodyLarge: {
+    fontSize: Typography.bodyLarge.size,
+    lineHeight: Typography.bodyLarge.lineHeight,
+    fontWeight: Typography.bodyLarge.weight,
   },
   subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
+    fontSize: Typography.headline.size,
+    lineHeight: Typography.headline.lineHeight,
+    fontWeight: Typography.headline.weight,
+  },
+  title: {
+    fontSize: Typography.title.size,
+    lineHeight: Typography.title.lineHeight,
+    fontWeight: Typography.title.weight,
+  },
+  display: {
+    fontSize: Typography.display.size,
+    lineHeight: Typography.display.lineHeight,
+    fontWeight: Typography.display.weight,
   },
   link: {
-    lineHeight: 30,
-    fontSize: 14,
+    fontSize: Typography.bodySmall.size,
+    lineHeight: Typography.bodySmall.lineHeight,
   },
   linkPrimary: {
-    lineHeight: 30,
-    fontSize: 14,
-    color: '#3c87f7',
+    fontSize: Typography.bodySmall.size,
+    lineHeight: Typography.bodySmall.lineHeight,
   },
   code: {
     fontFamily: Fonts.mono,
     fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
+    fontSize: Typography.caption.size,
   },
 });

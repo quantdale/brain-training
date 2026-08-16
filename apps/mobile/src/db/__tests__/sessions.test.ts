@@ -1,0 +1,207 @@
+import { beforeEach, describe, expect, it } from '@jest/globals';
+import type { SQLiteAdapter } from '../adapter';
+import { LedgerRepository } from '../ledger';
+import { ProfileRepository } from '../profile';
+import { SessionRepository } from '../sessions';
+import type { CompleteSessionInput, GameSessionRecord } from '../types';
+import { createMigratedDb } from './helpers';
+
+const T0 = 1_700_000_000_000;
+
+function makeSession(overrides: Partial<GameSessionRecord> = {}): GameSessionRecord {
+  return {
+    id: 'session-1',
+    gameId: 'game-memoria',
+    gameVersion: 1,
+    generatorVersion: 2,
+    scoringVersion: 1,
+    seed: 42,
+    difficulty: { mode: 'normal' },
+    rawResult: { score: 120, accuracy: 0.87 },
+    normalizedResult: 0.75,
+    xp: 50,
+    startedAt: T0,
+    completedAt: T0 + 90_000,
+    durationMs: 90_000,
+    ...overrides,
+  };
+}
+
+describe('completeSession', () => {
+  it('commits session + ledger + profile touch atomically', async () => {
+    const adapter = await createMigratedDb();
+    let now = T0;
+    const sessions = new SessionRepository(adapter, () => now);
+    const profile = new ProfileRepository(adapter, () => now);
+    const ledger = new LedgerRepository(adapter, () => now);
+    await profile.ensureExists();
+
+    const input: CompleteSessionInput = {
+      session: makeSession(),
+      currency: { amount: 25, reason: 'session_reward' },
+    };
+    now = T0 + 90_000 + 5_000; // profile touch happens after completion
+    const result = await sessions.completeSession(input);
+
+    // Session row persisted with JSON round-trip intact.
+    const stored = await sessions.getById('session-1');
+    expect(stored).toEqual(input.session);
+    expect(stored?.difficulty).toEqual({ mode: 'normal' });
+    expect(stored?.rawResult).toEqual({ score: 120, accuracy: 0.87 });
+
+    // Ledger entry references the session and is timestamped with completion.
+    expect(result.ledgerEntry).toEqual({
+      id: 1,
+      amount: 25,
+      reason: 'session_reward',
+      sessionId: 'session-1',
+      createdAt: T0 + 90_000,
+    });
+    expect(await ledger.list()).toHaveLength(1);
+    expect(result.balance).toBe(25);
+    expect(await ledger.getBalance()).toBe(25);
+
+    // Profile touched with the injectable clock.
+    expect((await profile.get())?.updatedAt).toBe(T0 + 95_000);
+  });
+
+  it('works without a currency entry (session + profile touch only)', async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+    const ledger = new LedgerRepository(adapter);
+    const profile = new ProfileRepository(adapter, () => T0);
+
+    const result = await sessions.completeSession({ session: makeSession() });
+
+    expect(result.ledgerEntry).toBeNull();
+    expect(result.balance).toBe(0);
+    expect(await ledger.list()).toHaveLength(0);
+    // Profile row was created by the touch even though it never existed.
+    expect((await profile.get())?.updatedAt).toBe(T0);
+  });
+
+  it('rolls back everything when the transaction fails mid-way', async () => {
+    const adapter = await createMigratedDb();
+    let now = T0;
+    const sessions = new SessionRepository(adapter, () => now);
+    const ledger = new LedgerRepository(adapter, () => now);
+    const profile = new ProfileRepository(adapter, () => now);
+    await profile.ensureExists();
+    const updatedAtBefore = (await profile.get())?.updatedAt;
+
+    const invalid = makeSession({ completedAt: T0 - 1 }); // violates CHECK
+    await expect(
+      sessions.completeSession({
+        session: invalid,
+        currency: { amount: 100, reason: 'should never persist' },
+      }),
+    ).rejects.toThrow(/completedAt/);
+
+    // No partial session, no ledger entry, balance untouched, profile untouched.
+    expect(await sessions.getById('session-1')).toBeNull();
+    expect(await ledger.list()).toHaveLength(0);
+    expect(await ledger.getBalance()).toBe(0);
+    expect((await profile.get())?.updatedAt).toBe(updatedAtBefore);
+
+    // The database is still fully usable afterwards.
+    const ok = await sessions.completeSession({
+      session: makeSession({ id: 'session-2' }),
+      currency: { amount: 10, reason: 'session_reward' },
+    });
+    expect(ok.balance).toBe(10);
+    expect(await sessions.getById('session-2')).not.toBeNull();
+  });
+
+  it('rolls back a partially-written transaction on a mid-transaction failure', async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+    const ledger = new LedgerRepository(adapter, () => T0);
+    const profile = new ProfileRepository(adapter, () => T0);
+    await profile.ensureExists();
+    const updatedAtBefore = (await profile.get())?.updatedAt;
+
+    // Inject a failure AFTER the session INSERT succeeds: any ledger INSERT
+    // aborts, forcing a mid-transaction error like a crash would.
+    await adapter.exec(
+      'CREATE TRIGGER trg_test_block_ledger BEFORE INSERT ON currency_ledger ' +
+        "BEGIN SELECT RAISE(ABORT, 'test block'); END",
+    );
+
+    await expect(
+      sessions.completeSession({
+        session: makeSession(),
+        currency: { amount: 25, reason: 'session_reward' },
+      }),
+    ).rejects.toThrow(/test block/);
+
+    // The session row written earlier in the same transaction is gone too.
+    expect(await sessions.getById('session-1')).toBeNull();
+    expect(await ledger.list()).toHaveLength(0);
+    expect(await ledger.getBalance()).toBe(0);
+    expect((await profile.get())?.updatedAt).toBe(updatedAtBefore);
+  });
+
+  it('rejects duplicate session ids and keeps the original row', async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter);
+    await sessions.completeSession({ session: makeSession() });
+
+    await expect(
+      sessions.completeSession({ session: makeSession(), currency: { amount: 5, reason: 'dup' } }),
+    ).rejects.toThrow();
+
+    const stored = await sessions.getById('session-1');
+    expect(stored?.xp).toBe(50); // original, not overwritten
+    expect((await adapter.all('SELECT * FROM currency_ledger'))).toHaveLength(0);
+  });
+});
+
+describe('session queries', () => {
+  let adapter: SQLiteAdapter;
+  let sessions: SessionRepository;
+
+  beforeEach(async () => {
+    adapter = await createMigratedDb();
+    sessions = new SessionRepository(adapter);
+  });
+
+  it('getTotalXp sums all completed sessions', async () => {
+    expect(await sessions.getTotalXp()).toBe(0);
+    await sessions.completeSession({ session: makeSession({ id: 'a', xp: 50 }) });
+    await sessions.completeSession({ session: makeSession({ id: 'b', xp: 80 }) });
+    await sessions.completeSession({ session: makeSession({ id: 'c', xp: 30 }) });
+    expect(await sessions.getTotalXp()).toBe(160);
+  });
+
+  it('listByGame returns newest-first sessions for one game only', async () => {
+    await sessions.completeSession({
+      session: makeSession({ id: 'a', gameId: 'g1', completedAt: T0 + 1_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: 'b', gameId: 'g1', completedAt: T0 + 2_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: 'c', gameId: 'g2', completedAt: T0 + 3_000 }),
+    });
+
+    const g1 = await sessions.listByGame('g1');
+    expect(g1.map((s) => s.id)).toEqual(['b', 'a']);
+    const g2 = await sessions.listByGame('g2');
+    expect(g2.map((s) => s.id)).toEqual(['c']);
+  });
+});
+
+describe('ledger queries', () => {
+  it('balance matches the sum of all entries, including debits', async () => {
+    const adapter = await createMigratedDb();
+    const ledger = new LedgerRepository(adapter, () => T0);
+    await ledger.append({ amount: 10, reason: 'reward' });
+    await ledger.append({ amount: -3, reason: 'reroll' });
+    await ledger.append({ amount: 5, reason: 'quest' });
+
+    expect(await ledger.getBalance()).toBe(12);
+    const entries = await ledger.list();
+    expect(entries.map((e) => e.id)).toEqual([1, 2, 3]);
+    expect(entries[1].amount).toBe(-3);
+  });
+});

@@ -1,0 +1,55 @@
+name: App CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app-checks:
+    name: Mobile app build/typecheck/tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Validate durable repository state
+        working-directory: ${{ github.workspace }}
+        run: node scripts/validate-repo-state.mjs
+
+      - name: Install dependencies
+        run: npm ci
+
+      # NOTE: `expo export` below does not generate `.expo/types` (typed routes
+      # are produced by `expo start`), so plain `tsc --noEmit` is the CI
+      # typecheck. If typed-route types become required, add a
+      # type-generation step before typecheck.
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests (jest, CI mode)
+        run: npm run test:ci
+
+      - name: Web export build smoke
+        run: npx expo export --platform web
+
+      - name: Expo doctor
+        run: npx expo-doctor
