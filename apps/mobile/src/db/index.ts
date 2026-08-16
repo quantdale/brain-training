@@ -7,14 +7,17 @@
  * only through this facade's typed repositories.
  */
 import type { SQLiteAdapter } from './adapter';
+import { AchievementRepository } from './achievements';
 import { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 import { FavoritesRepository } from './favorites';
 import { LedgerRepository } from './ledger';
 import { initializeConnection, runMigrations } from './migrate';
 import { ProfileRepository } from './profile';
+import { QuestRepository } from './quests';
 import { RatingRepository } from './rating';
 import { SessionRepository } from './sessions';
 import type { RatingService } from './types';
+import { XpAwardsRepository } from './xp-awards';
 
 export type { SQLiteAdapter, SQLiteRunResult } from './adapter';
 export type {
@@ -27,7 +30,6 @@ export type {
   RatingService,
   SQLiteValue,
 } from './types';
-export type { GameAggregate } from './sessions';
 export { SCHEMA_VERSION, SQL, MIGRATIONS } from './schema';
 export type { Migration } from './schema';
 export { runMigrations, getSchemaVersion, initializeConnection } from './migrate';
@@ -36,8 +38,19 @@ export { LedgerRepository } from './ledger';
 export { RatingRepository, INITIAL_RATING, MIN_RATING, isRatingStale } from './rating';
 export type { DomainRating, RatingHistoryEntry } from './rating';
 export { FavoritesRepository } from './favorites';
+export { QuestRepository } from './quests';
+export type {
+  QuestDefinition,
+  QuestKind,
+  QuestProgress,
+  QuestProgressUpdate,
+} from './quests';
+export { AchievementRepository } from './achievements';
+export type { AchievementDefinition, AchievementUnlock } from './achievements';
+export { XpAwardsRepository } from './xp-awards';
+export type { XpAward } from './xp-awards';
 export { SessionRepository } from './sessions';
-export type { CompleteSessionResult } from './sessions';
+export type { CompleteSessionResult, GameAggregate } from './sessions';
 export { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 
 /** On-device database file name. */
@@ -50,13 +63,16 @@ export interface AppDatabaseOptions {
   rating?: RatingService;
 }
 
-/** Typed facade over the four repositories, bound to one connection. */
+/** Typed facade over the seven repositories, bound to one connection. */
 export class AppDatabase {
   readonly profile: ProfileRepository;
   readonly sessions: SessionRepository;
   readonly ledger: LedgerRepository;
   readonly ratings: RatingRepository;
   readonly favorites: FavoritesRepository;
+  readonly quests: QuestRepository;
+  readonly achievements: AchievementRepository;
+  readonly xpAwards: XpAwardsRepository;
 
   constructor(adapter: SQLiteAdapter, options: AppDatabaseOptions = {}) {
     const now = options.now;
@@ -65,6 +81,9 @@ export class AppDatabase {
     this.ledger = new LedgerRepository(adapter, now);
     this.ratings = new RatingRepository(adapter, now);
     this.favorites = new FavoritesRepository(adapter, now);
+    this.quests = new QuestRepository(adapter, now);
+    this.achievements = new AchievementRepository(adapter, now);
+    this.xpAwards = new XpAwardsRepository(adapter, now);
   }
 }
 

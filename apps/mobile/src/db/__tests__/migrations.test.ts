@@ -29,17 +29,50 @@ describe('migrations', () => {
         'table:domain_ratings',
         'table:rating_history',
         'table:game_favorites',
+        'table:xp_awards',
+        'table:quests',
+        'table:quest_progress',
+        'table:achievements',
+        'table:achievement_unlocks',
         'view:currency_balance',
         'index:idx_game_sessions_game_id',
         'index:idx_currency_ledger_created_at',
         'index:idx_rating_history_domain',
         'index:idx_rating_history_session',
+        'index:idx_xp_awards_created_at',
         'trigger:trg_currency_ledger_no_update',
         'trigger:trg_currency_ledger_no_delete',
         'trigger:trg_rating_history_no_update',
         'trigger:trg_rating_history_no_delete',
+        'trigger:trg_xp_awards_no_update',
+        'trigger:trg_xp_awards_no_delete',
       ]),
     );
+  });
+
+  it('upgrades a v2 database to v3 preserving existing rows', async () => {
+    const adapter = createNodeSqliteAdapter(':memory:');
+    await runMigrations(adapter, { targetVersion: 2 });
+    expect(await getSchemaVersion(adapter)).toBe(2);
+
+    await adapter.run(
+      'INSERT INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      ['local', 'tester', '{}', 1000, 2000],
+    );
+    await adapter.run(
+      'INSERT INTO domain_ratings (domain, rating, sessions, updated_at) VALUES (?, ?, ?, ?)',
+      ['Math', 1010, 2, 2000],
+    );
+
+    await runMigrations(adapter);
+    expect(await getSchemaVersion(adapter)).toBe(SCHEMA_VERSION);
+
+    const rating = await adapter.get<{ rating: number }>('SELECT rating FROM domain_ratings');
+    expect(rating?.rating).toBe(1010);
+
+    expect(await adapter.all('SELECT * FROM xp_awards')).toHaveLength(0);
+    expect(await adapter.all('SELECT * FROM quests')).toHaveLength(0);
+    expect(await adapter.all('SELECT * FROM achievements')).toHaveLength(0);
   });
 
   it('upgrades a v1 database to v2 preserving existing rows', async () => {

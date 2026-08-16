@@ -7,7 +7,7 @@
  * common dialect shared by expo-sqlite and better-sqlite3.
  */
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -160,6 +160,94 @@ export const SQL = {
       created_at INTEGER NOT NULL
     );
   `,
+
+  /**
+   * XP earned outside sessions (constitution §17: one global level driven by
+   * XP; quests/achievements award XP). Append-only like the currency ledger —
+   * rewards are never mutated or deleted once granted.
+   */
+  createXpAwards: `
+    CREATE TABLE IF NOT EXISTS xp_awards (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      amount     INTEGER NOT NULL CHECK (amount > 0),
+      reason     TEXT    NOT NULL,
+      source     TEXT    NOT NULL,
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_xp_awards_created_at
+      ON xp_awards (created_at);
+
+    CREATE TRIGGER IF NOT EXISTS trg_xp_awards_no_update
+    BEFORE UPDATE ON xp_awards
+    BEGIN
+      SELECT RAISE(ABORT, 'xp_awards is append-only: UPDATE forbidden');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_xp_awards_no_delete
+    BEFORE DELETE ON xp_awards
+    BEGIN
+      SELECT RAISE(ABORT, 'xp_awards is append-only: DELETE forbidden');
+    END;
+  `,
+
+  /**
+   * Quest definitions (constitution §18: daily/weekly quests). Seeded by the
+   * app from a versioned definition module (`src/quests/definitions.ts`);
+   * `criteria_json` is an opaque versioned criteria document owned by the
+   * quest engine.
+   */
+  createQuests: `
+    CREATE TABLE IF NOT EXISTS quests (
+      id              TEXT    PRIMARY KEY,
+      kind            TEXT    NOT NULL CHECK (kind IN ('daily', 'weekly', 'longterm')),
+      title           TEXT    NOT NULL,
+      description     TEXT    NOT NULL,
+      criteria_json   TEXT    NOT NULL,
+      reward_xp       INTEGER NOT NULL CHECK (reward_xp >= 0),
+      reward_currency INTEGER NOT NULL CHECK (reward_currency >= 0),
+      version         INTEGER NOT NULL
+    );
+  `,
+
+  /**
+   * Quest progress per period (daily -> local date, weekly -> ISO week key).
+   * `progress` is the raw criteria count (0..target); `completed_at` is set
+   * when the target is reached; `claimed_at` marks the reward as claimed.
+   */
+  createQuestProgress: `
+    CREATE TABLE IF NOT EXISTS quest_progress (
+      quest_id     TEXT    NOT NULL,
+      period       TEXT    NOT NULL,
+      progress     REAL    NOT NULL DEFAULT 0,
+      completed_at INTEGER,
+      claimed_at   INTEGER,
+      PRIMARY KEY (quest_id, period),
+      FOREIGN KEY (quest_id) REFERENCES quests (id)
+    );
+  `,
+
+  /** Long-term achievement definitions (constitution §18). */
+  createAchievements: `
+    CREATE TABLE IF NOT EXISTS achievements (
+      id              TEXT    PRIMARY KEY,
+      title           TEXT    NOT NULL,
+      description     TEXT    NOT NULL,
+      criteria_json   TEXT    NOT NULL,
+      reward_xp       INTEGER NOT NULL CHECK (reward_xp >= 0),
+      reward_currency INTEGER NOT NULL CHECK (reward_currency >= 0),
+      version         INTEGER NOT NULL
+    );
+  `,
+
+  /** Unlocked achievements (once per achievement; claimed_at marks reward). */
+  createAchievementUnlocks: `
+    CREATE TABLE IF NOT EXISTS achievement_unlocks (
+      achievement_id TEXT    PRIMARY KEY,
+      unlocked_at    INTEGER NOT NULL,
+      claimed_at     INTEGER,
+      FOREIGN KEY (achievement_id) REFERENCES achievements (id)
+    );
+  `,
 };
 
 /** Ordered migrations from version 0 to SCHEMA_VERSION. Never reorder/patch old entries. */
@@ -179,6 +267,16 @@ export const MIGRATIONS: readonly Migration[] = [
       await exec(SQL.createDomainRatings);
       await exec(SQL.createRatingHistory);
       await exec(SQL.createGameFavorites);
+    },
+  },
+  {
+    version: 3,
+    up: async (exec) => {
+      await exec(SQL.createXpAwards);
+      await exec(SQL.createQuests);
+      await exec(SQL.createQuestProgress);
+      await exec(SQL.createAchievements);
+      await exec(SQL.createAchievementUnlocks);
     },
   },
 ];
