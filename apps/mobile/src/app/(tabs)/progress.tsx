@@ -112,6 +112,19 @@ export default function ProgressScreen() {
         </ThemedText>
       </ThemedView>
 
+      <Link href="/progress-detail" asChild>
+        <Pressable testID="progress-detail-link" accessibilityRole="button">
+          <ThemedView type="surface" style={styles.card}>
+            <ThemedText type="smallBold" themeColor="accent">
+              Full history ›
+            </ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Per-domain trends, game records and recent sessions.
+            </ThemedText>
+          </ThemedView>
+        </Pressable>
+      </Link>
+
       <ThemedView type="surface" style={styles.card} testID="progress-domains">
         <ThemedText type="subtitle">Domain ratings</ThemedText>
         <View style={styles.rows}>
