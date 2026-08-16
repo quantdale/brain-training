@@ -87,8 +87,7 @@ function parseGameJson(file, raw) {
     fail(file, 'hasTutorial must be a boolean');
   }
 
-  const { id: _id, ...rest } = raw;
-  return rest;
+  return raw;
 }
 
 function collectGameIds() {

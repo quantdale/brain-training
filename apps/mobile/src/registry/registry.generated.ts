@@ -9,7 +9,19 @@ import type { ComponentType } from 'react';
 import type { GameDefinition } from '@/sdk';
 
 export const registry: readonly GameDefinition[] = [
-
+  {
+    id: "memory",
+    name: "Memory",
+    primaryCategory: "Memory",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Watch the tiles light up in sequence, then repeat the pattern from memory.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
 ];
 
 /**
@@ -18,5 +30,5 @@ export const registry: readonly GameDefinition[] = [
  * through this map; games never hand-edit this file.
  */
 export const gameScreenLoaders: Record<string, () => Promise<{ default: ComponentType }>> = {
-
+  'memory': () => import('@/games/memory'),
 };
