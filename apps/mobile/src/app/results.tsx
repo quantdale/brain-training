@@ -8,7 +8,8 @@
  * recent sessions to switch between.
  */
 
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -45,7 +46,16 @@ const EMPTY: ResultsData = { session: null, recent: [], ratingHistory: [] };
 
 export default function ResultsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { data } = useDbData((db) => loadResults(db, id), [id], EMPTY);
+
+  // Reload whenever the screen regains focus (a session may have just landed).
+  const [refreshKey, setRefreshKey] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((k) => k + 1);
+    }, []),
+  );
+
+  const { data } = useDbData((db) => loadResults(db, id), [id, refreshKey], EMPTY);
   const { session, recent, ratingHistory } = data;
 
   const game = session ? getGameDefinition(session.gameId) : undefined;

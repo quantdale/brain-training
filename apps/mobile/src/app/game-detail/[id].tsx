@@ -7,8 +7,8 @@
  * game route. Back navigation returns to the library.
  */
 
-import { Link, router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -42,12 +42,21 @@ export default function GameDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const game = getGameDefinition(id ?? '');
 
+  // Reload persisted data whenever the screen regains focus (e.g. after a
+  // played session pops back from the game route).
+  const [refreshKey, setRefreshKey] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((k) => k + 1);
+    }, []),
+  );
+
   const { data, loaded } = useDbData(
     (db) => loadDetail(db, id ?? ''),
-    [id],
+    [id, refreshKey],
     EMPTY_DETAIL,
   );
-  const [favorite, setFavorite] = useState(false);
+  const [favoriteOverride, setFavoriteOverride] = useState<boolean | null>(null);
   const [toggleError, setToggleError] = useState(false);
 
   if (!game) {
@@ -64,21 +73,22 @@ export default function GameDetailScreen() {
     );
   }
 
-  const currentFavorite = loaded ? data.favorite : favorite;
+  const currentFavorite = favoriteOverride ?? (loaded ? data.favorite : false);
 
   const onToggleFavorite = async () => {
     try {
       const db = getDb();
       const next = !currentFavorite;
-      setFavorite(next);
+      setFavoriteOverride(next);
       if (next) {
         await db.favorites.setFavorite(game.id);
       } else {
         await db.favorites.removeFavorite(game.id);
       }
       setToggleError(false);
+      setRefreshKey((k) => k + 1); // resync the db-backed favorite state
     } catch (error) {
-      setFavorite(currentFavorite);
+      setFavoriteOverride(null);
       setToggleError(true);
     }
   };

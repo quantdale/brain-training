@@ -11,7 +11,8 @@
  * contract).
  */
 
-import { Link } from 'expo-router';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -68,7 +69,15 @@ const EMPTY: ProgressData = {
 };
 
 export default function ProgressScreen() {
-  const { data } = useDbData(loadProgress, [], EMPTY);
+  // Reload whenever the tab regains focus (a session may have just landed).
+  const [refreshKey, setRefreshKey] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((k) => k + 1);
+    }, []),
+  );
+
+  const { data } = useDbData(loadProgress, [refreshKey], EMPTY);
   const level = levelForXp(data.totalXp);
 
   const ratingsByDomain = new Map(data.domainRatings.map((r) => [r.domain, r]));

@@ -11,8 +11,8 @@
  * when filters match nothing.
  */
 
-import { Link } from 'expo-router';
-import { useState } from 'react';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -31,9 +31,19 @@ export default function GamesScreen() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [favOnly, setFavOnly] = useState(false);
+
+  // Reload favorites whenever the tab regains focus (favorites are toggled
+  // on the detail screen and must appear here without a remount).
+  const [refreshKey, setRefreshKey] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((k) => k + 1);
+    }, []),
+  );
+
   const { data: favorites } = useDbData(
     (db) => db.favorites.listFavoriteGameIds(),
-    [],
+    [refreshKey],
     [] as string[],
   );
   const favoriteSet = new Set(favorites);
