@@ -1,7 +1,7 @@
 # Task Packet 003-c — Content-Pack Registry + Storage Seam (WP-3C)
 
 Campaign: 003-platform-integration
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

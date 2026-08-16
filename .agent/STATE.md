@@ -1,44 +1,58 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-16 (Campaign 002 COMPLETED)
+**Last update:** 2026-08-17 (Campaign 003 COMPLETED; §32 gate PASS)
 **Canonical branch:** `main`
-**Active campaign:** `003-platform-integration` (Phase 3 — staged; next continuation goal executes it)
+**Active campaign:** `004-parallel-catalog-expansion` (Phase 4 — staged; next continuation goal executes it)
 
 ## Current status
 
-**Campaign 002 (Eight Representative Games, Phase 2) is COMPLETED.** All exit
-criteria verified on the dedicated AVD `braintraining35` and in CI
-(see `.agent/checkpoints/002-eight-representative-games-complete.md` and
-`.agent/VALIDATION.md`). Deliverables:
+**Campaign 003 (Platform Integration + Autonomy/Platform Gate, Phase 3) is
+COMPLETED.** All Phase-3 items implemented to a basic-but-real standard and
+the constitution §32 mass-expansion gate PASSED (checklist in
+`.agent/checkpoints/003-platform-integration-complete.md`). Deliverables:
 
-- Seven new game modules (attention-visual-search, speed-reaction-time,
-  math-fast-math, language-word-match with versioned 72-item content pack,
-  logic-next-sequence with solver-validated puzzles, flexibility-card-sort
-  rule-switching state machine, spatial-mental-rotation) — each with SDK
-  lifecycle/timing/pause/tutorial/QA-hooks/normalization/session persistence,
-  semantic testIDs, deterministic tests (684 game tests).
-- Rating engine (`src/rating/`): XP = (10 + 40·normalized)·difficulty
-  multiplier; per-domain delta = k·(normalized − expected-by-difficulty),
-  capped ±15/session, secondary domains at half weight; level curve
-  50·L·(L−1) cumulative XP, no cap; 1 coin per 5 XP via the append-only
-  ledger; stale-marking (no decay).
-- DB schema v2: `domain_ratings`, append-only `rating_history` (FK +
-  UPDATE/DELETE triggers), `game_favorites`; v1→v2 upgrade preserves rows;
-  `RatingService` seam applied atomically inside `completeSession`.
-- Shared platform UI: `/results` (session summary + rating movement +
-  recent sessions), `/game-detail/[id]` (records, favorites, versions,
-  Play CTA), Games library search + category chips + favorites-only filter,
-  Progress analytics (level/XP/coins, 8 domain ratings with staleness,
-  per-game aggregates, recent sessions).
-- Today's Workout: deterministic daily 4-game selection with
-  same-game-consecutive-day avoidance by construction and a free reroll.
-- On-device QA: full loop played (tutorial skip → start → QA force-win →
-  results → persistence) and verified in the pulled db: xp 50/session,
-  Math 1020/Speed 1010 after 2 sessions, 2× +10 gameplay coins,
-  favorites persisted; legacy campaign-001 session row preserved intact.
-  Focus-refresh fix applied after QA findings (stale screens on navigation
-  return).
+- **DB schema v3** (`c2680a2`): append-only `xp_awards` (UPDATE/DELETE
+  triggers), `quests`, `quest_progress` (monotonic-MAX, once-claim),
+  `achievements`, `achievement_unlocks` (once-unlock/claim); v2→v3 migration
+  preserves rows; 7 repositories on the `AppDatabase` facade.
+- **Quests engine** (`8d7dbe6`): versioned daily/weekly/longterm definitions,
+  ISO-week/daily/longterm period keys, pure evaluation over session
+  snapshots, once-only rewards (XP award + ledger entry).
+- **Streaks model**: pure reconstruction (leap-aware, at-risk flag),
+  Freeze/Shield/Recovery costs 100/150/200 with monthly freeze cap and
+  recovery restore cap; inventory in profile `settings_json`.
+- **Achievements engine**: 4 long-term definitions, pure evaluation,
+  once-only unlock/claim rewards.
+- **Workout personalization** (`4b3b4c4` convergence): weak-domain balancing,
+  recency avoidance, reroll economics (first free, then 25× escalating, cap
+  5/day) — Home CTA wired with ledger-debited rerolls and live
+  streak/XP/level stats.
+- **Progress detail** (`/progress-detail`): per-domain history with deltas,
+  per-game records, recent sessions; lifetime XP = sessions + xp_awards.
+- **Theme registry seam**: system/light/dark persisted in profile settings,
+  live switching; Profile selector.
+- **Content-pack/storage seam**: registry fed by the language pack with
+  deterministic size estimates + storage scaffold no-ops.
+- **Offline boundary proof**: jest suite with network throwers +
+  `scripts/validate-offline.mjs` (223 files scanned, CLEAN).
+- **Visual baselines**: 4 deterministic shell-screen snapshots.
+- **Perf/timing audit**: gameplay durations use the SDK monotonic clock;
+  `Date.now()` only for wall-clock stamps/nonces.
+- **iOS compatibility**: static audit PASS; real build NOT VALIDATED
+  (Windows host, no Xcode) — recorded honestly in VALIDATION.md.
+
+On-device QA (`braintraining35`, Metro-served JS): personalized workout +
+reroll economics verified, quests evaluated live (3/3, 100/100), qd3 claim →
+Claimed, achievements section, Dark theme switch live, Progress summary +
+Full history → progress-detail. Evidence: `qa-artifacts/20260817-campaign003-smoke/`.
+
+## Completed campaign 003 (commits)
+
+- `c2680a2` wave1: db schema v3 (xp_awards, quests, quest_progress, achievements) + repositories
+- `d46a46d` wave2-packets: 6 task packets (quests, streaks, content, offline, workout, progress-detail)
+- `8d7dbe6` wave2: swarm deliverables (quests engine, streaks, content seam, offline proof, personalization, progress detail)
+- `4b3b4c4` wave3: convergence (Home CTA + reroll economics, Profile quests/achievements/streaks/theme UI, progression seeding/sync, total-XP wiring, visual baselines)
 
 ## Completed campaign 002 (commits)
 
@@ -50,13 +64,10 @@ criteria verified on the dedicated AVD `braintraining35` and in CI
 
 ## Next required action
 
-Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 003 (Platform Integration +
-Autonomy/Platform Gate, Phase 3): Today's Workout personalization/reroll
-economics, quests/achievements, streaks + freeze/recovery, stronger Progress
-dashboard, themes/cosmetics seams, content-pack/storage seams, offline
-boundary tests, visual-regression baselines, performance/timing checks, first
-iOS compatibility build, then run the constitution §32 gate. Do NOT enter
-mass catalog expansion (Phase 4) before the gate is satisfied.
+Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 004 (Parallel Catalog
+Expansion, Phase 4): swarm waves adding a second game per cognitive domain
+toward the parity matrix, keeping shared-file contention minimal and
+validation moderate. No hardening unless the owner requests it.
 
 ## Important invariants
 

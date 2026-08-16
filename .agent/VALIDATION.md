@@ -167,3 +167,71 @@ CI status at completion: App CI + Repository Integrity green on `d380699`
 
 All PASS — full table in
 `.agent/checkpoints/002-eight-representative-games-complete.md`.
+
+## Campaign 003 (2026-08-17, commits `c2680a2`…`4b3b4c4`)
+
+### Wave 1 (db schema v3, `c2680a2`)
+
+- typecheck PASS; jest PASS — 78 suites / 922 tests (43 db tests incl.
+  v2→v3 migration preserving rows, xp_awards append-only triggers,
+  monotonic quest progress, once-only claims/unlocks).
+- GitHub Actions on `c2680a2`: App CI PASS, Repository Integrity PASS.
+
+### Wave 2 (swarm, `d46a46d` → `8d7dbe6`)
+
+- 6 parallel coder packets landed with disjoint write surfaces; no shared
+  hotspots touched.
+- typecheck PASS (whole tree); jest PASS — 90 suites / 1055 tests (quests
+  30, streaks 51, content 9, offline-boundary 9, workout 41, progress-detail
+  3 + all pre-existing).
+- `node scripts/validate-offline.mjs`: PASS — 214 files scanned, CLEAN
+  (negative-probed: URL-bearing fetch, XHR, axios, WebSocket all caught;
+  comment/string-literal heuristics documented).
+- `node scripts/generate-game-registry.mjs --check`: PASS (up to date).
+- GitHub Actions on `8d7dbe6`: App CI PASS, Repository Integrity PASS.
+
+### Wave 3 (convergence, `4b3b4c4`)
+
+- typecheck PASS; jest PASS — 94 suites / 1072 tests / 4 snapshots.
+- Visual baseline snapshots (Home/Games/Progress/Profile first-run states):
+  PASS, stable across reruns (bare-route renders avoid NativeTabs random
+  screenIds; no date strings in snapshots — verified).
+- `node scripts/validate-offline.mjs`: PASS — 223 files scanned, CLEAN.
+- `node scripts/validate-repo-state.mjs`: PASS.
+- GitHub Actions on `4b3b4c4`: App CI PASS, Repository Integrity PASS.
+
+### Emulator QA (AVD `braintraining35`, Metro-served JS, 2026-08-17)
+
+- **Home**: PASS — personalized workout renders 4 games (Memory, Visual
+  Search, Next in Sequence, Card Sort); live stats (Streak 1 days, XP 100,
+  Level 2); reroll tap → new 4-game set + second reroll correctly blocked
+  ("Need 25 coins", hint "Not enough coins for another reroll").
+- **Profile**: PASS — streak card (Current 1/Longest 1/Items 0, buy pills
+  100/150/200 coins); quests live (Play Three Games 3/3, Daily XP 100/100,
+  Memory Week 1/10); qd3 claim tap → "3/3 · Claimed" (XP award + ledger
+  verified indirectly: no re-claim possible); achievements section (First
+  Steps claim button, Century Club, XP Voyager); theme: Dark tap → Dark row
+  shows "Active" (live switch).
+- **Progress + detail**: PASS — summary (Level 2, "20 / 200 XP to level 3",
+  domains incl. Math/Speed), Full history link → `/progress-detail` with
+  domain history entries ("1010 (+10)" etc.), back button.
+- Artifacts: `qa-artifacts/20260817-campaign003-smoke/progress-detail.xml`.
+
+### Performance/timing audit (2026-08-17)
+
+- All 8 games: gameplay durations via SDK monotonic clock
+  (`SessionLifecycle` with injectable `systemClock`); `Date.now()` appears
+  ONLY for wall-clock stamps (`completedAtMs`, `startedAtMs`) and
+  session-id nonces — no gameplay timing on wall clock. PASS (no 60/120 Hz
+  fairness hazard found).
+
+### iOS compatibility (2026-08-17)
+
+- Static audit: PASS — `Platform.OS` used only for web branches; dependency
+  set all cross-platform Expo SDK 57 modules (expo-sqlite, expo-router,
+  NativeTabs, expo-glass-effect, expo-symbols are iOS-capable);
+  `app.json` ios section valid (bundleIdentifier `com.braintraining.app`,
+  icon `assets/expo.icon` present).
+- Real iOS build (`expo run:ios`-equivalent): **NOT VALIDATED** — Windows
+  host has no Xcode/macOS; recorded honestly per evidence policy. A future
+  macOS host or CI runner can execute it.

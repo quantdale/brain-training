@@ -1,7 +1,7 @@
 # Task Packet 003-e — Workout Personalization (WP-3E)
 
 Campaign: 003-platform-integration
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

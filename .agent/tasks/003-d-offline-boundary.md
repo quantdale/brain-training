@@ -1,7 +1,7 @@
 # Task Packet 003-d — Offline/Network Boundary Tests (WP-3D)
 
 Campaign: 003-platform-integration
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

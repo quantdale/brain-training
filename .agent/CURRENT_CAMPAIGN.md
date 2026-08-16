@@ -1,84 +1,72 @@
-# Campaign 003 — Platform Integration + Autonomy/Platform Gate (Phase 3)
+# Campaign 004 — Parallel Catalog Expansion (Phase 4)
 
 **Status:** ACTIVE (staged; work begins on the next continuation goal)
 **Campaign type:** implementation
-**Hardening:** NO — light/risk-based validation only (gate runs at the end)
-**Parent plan:** `docs/MASTER_PLAN.md` Phase 3
+**Hardening:** NO — moderate risk-based validation only
+**Parent plan:** `docs/MASTER_PLAN.md` Phase 4
 
 ## Context
 
-Campaign 002 (Eight Representative Games, Phase 2) is COMPLETED
-(`.agent/checkpoints/002-eight-representative-games-complete.md`): eight
-games, rating engine, schema v2, results/detail/library/progress UI, Today's
-Workout basics — all verified on the dedicated AVD `braintraining35` and in
-CI. Phase 4 (mass catalog expansion) MUST NOT start before the constitution
-§32 gate is satisfied.
+Campaign 003 (Platform Integration) is COMPLETED and the constitution §32
+mass-expansion gate PASSED (`.agent/checkpoints/003-platform-integration-complete.md`).
+Phase 4 — Parallel Catalog Expansion — is now eligible. The parity matrix
+(`docs/PARITY_MATRIX.md`) tracks the target catalog; each cognitive domain
+currently has exactly one representative game from Phase 2.
 
 ## Objective
 
-Finish the platform integration work of Phase 3 and then run the
-Autonomy + Platform Gate:
+Expand the game catalog toward the parity matrix using campaign-sized swarm
+waves. Concretely, this campaign adds **one additional game per cognitive
+domain** (Attention, Speed, Memory, Math, Language, Logic & Problem Solving,
+Flexibility, Spatial) so every domain has at least two games, plus light
+catalog-health work where it is cheap and safe:
 
-1. **Today's Workout personalization** — reroll economics (first free, then
-   coins), weak/declining-domain balancing inputs (from ratings + session
-   history), recency avoidance, deterministic date-derived seeds (exists;
-   extend).
-2. **Quests/achievements foundations** — daily/weekly quest data model,
-   long-term achievement definitions, XP/currency rewards (constitution §18).
-3. **Streaks + freeze/recovery data model** — streak reconstruction from
-   activity history, Freeze/Shield + Recovery with defined costs/limits
-   (constitution §18); UI on Home streak slot.
-4. **Stronger Progress dashboard** — deeper per-game analytics one tap away,
-   overall/domain history views, records list (constitution §21).
-5. **Themes/cosmetic architecture seams** — theme registry seam (no full
-   cosmetics store), avatar/background seams without gameplay impact
-   (constitution §20, §33 boundaries).
-6. **Content-pack versioning/storage management seam** — pack version
-   registry + storage management scaffold (constitution §24).
-7. **Offline/network boundary tests** — prove core flows never touch the
-   network and degrade gracefully (offline-first, constitution §5).
-8. **Visual-regression seed baselines** — deterministic seed baselines for
-   key screens (canary set), light, not a full hardening campaign.
-9. **Performance/timing checks** — timing-sensitive games fair across
-   60/120 Hz (audit), startup/perf sanity checks (constitution §20).
-10. **First iOS compatibility build** — `expo run:ios`-equivalent
-    verification or documented build; fix what is cheaply fixable; record
-    findings (iOS is a compatibility campaign, not full iOS QA).
+1. **8 new game modules** (one per domain), each:
+   - self-contained under `apps/mobile/src/games/<id>/`, plugging into the
+     Game SDK (same contracts as the Phase-2 games: lifecycle, monotonic
+     timing, pause, tutorial, QA hooks, normalization, session persistence);
+   - a distinct mechanic from the Phase-2 representative in the same domain
+     (no near-copies);
+   - deterministic seeded generation, versioned scoring, full jest coverage
+     (logic/reducer/scoring/session/screen smoke), semantic testIDs;
+   - `game.json` valid per the registry generator contract.
+2. **Registry + catalog health**: regenerate `registry.generated.ts`
+   (orchestrator), confirm library search/filter and Home workout selection
+   handle 16 games, extend workout tests to 16-game catalogs.
+3. **Content packs**: add a second curated versioned pack for Language
+   (e.g. reading/grammar tier) only if the new Language game needs one;
+   otherwise defer to a later wave.
+4. **Moderate validation**: repo validator + tsc + full jest + registry
+   `--check` + web export smoke + targeted emulator smoke (games render and
+   are playable via QA hooks on `braintraining35`).
+5. **Parity matrix update** at the end (catalog rows → IMPLEMENTED).
 
-Then run the **Autonomy + Platform Gate** (constitution §32): fresh-agent
-recovery, swarm partitioning/convergence, no host-input interference,
-autonomous emulator control, QA diagnostics, eight games function, Game SDK
-survives all mechanics, persistence + Today's Workout work, light
-validation/canary suite, CI green, no unresolved Critical/High defects,
-committed docs/state match reality, clean `main` pushed. Record gate results
-in a checkpoint; do NOT enter Phase 4 until every gate item is satisfied or
-explicitly waived by the owner.
-
-## Shared-file ownership rule
+## Shared-file ownership rule (unchanged)
 
 Orchestrator owns navigation, db schema/migrations, theme tokens, generated
-artifacts, package manifests, and any new shared seams (quest/streak/theme
-registries). Parallel coders may own isolated new modules (quests, streaks,
-achievements, storage management) with explicit write surfaces only.
+artifacts, package manifests, and any new shared seams. Coders own their game
+module directories only. Registry regeneration + full validation happen in
+orchestrator convergence waves between swarm launches.
 
 ## Light validation required
 
 - repository-state validator; typecheck + jest (whole tree)
-- web export smoke; registry generator `--check`
-- targeted emulator smoke for changed surfaces (one AVD)
-- offline-boundary test evidence (no network calls during core flows)
-- iOS compatibility build evidence or recorded blocker
-- no host-input proof maintained
+- registry generator `--check` + web export smoke
+- targeted emulator smoke for the new games (one AVD)
+- CI green on every pushed wave
+- no host-input interference maintained
 
 ## Exit criteria
 
-- all Phase-3 items above implemented to basic-but-real standard
-- gate checklist recorded with PASS/NOT VALIDATED per item (never fake green)
+- 8 new games merged, registered, tested (each with deterministic full-session
+  coverage), playable on the emulator
+- 16-game catalog verified end-to-end (library, workout selection, game play)
 - no unresolved Critical/High defect
-- committed docs/state match repository reality; clean `main` pushed
+- parity matrix updated; committed docs/state match repository reality;
+  clean `main` pushed
 
 ## On completion
 
-Archive checkpoint; the Phase 4 campaign (Parallel Catalog Expansion) becomes
-eligible only after the gate is satisfied or explicitly waived; otherwise
-report the gate gaps and stop.
+Archive checkpoint; the next campaign is selected by the owner (further
+catalog expansion, or a hardening campaign only if the owner explicitly
+starts one).

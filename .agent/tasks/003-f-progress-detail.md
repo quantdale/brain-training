@@ -1,7 +1,7 @@
 # Task Packet 003-f — Progress Detail Screen (WP-3F)
 
 Campaign: 003-platform-integration
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 NOTE: You are the ONLY agent allowed to write in `apps/mobile/src/app/**` this wave.
 

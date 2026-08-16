@@ -1,7 +1,7 @@
 # Task Packet 003-b — Streaks + Freeze/Recovery Model (WP-3B)
 
 Campaign: 003-platform-integration
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

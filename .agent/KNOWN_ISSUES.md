@@ -2,7 +2,36 @@
 
 ## Current blockers
 
-None. Campaign 002 is complete.
+None. Campaign 003 complete; §32 gate PASS; campaign 004 staged.
+
+## Open debt (tracked, non-blocking)
+
+- **iOS build unverifiable on this host (NOT VALIDATED)**: Windows host has
+  no Xcode/macOS, so `expo run:ios`-equivalent cannot run. Static audit
+  PASS (see VALIDATION.md). A macOS host/CI runner is required for the real
+  build; not a product defect.
+- **REROLL-ATTEMPTS-NOT-PERSISTED (Low)**: Home's `rerollAttempt` resets on
+  app restart (daily reroll budget is in-memory only). Constitution §14
+  economics still enforced within a session; persistence (per-date
+  attemptsUsed) is a later-wave improvement.
+- **Settings sensory toggles in-memory (Low, pre-existing)**: SFX/music/
+  haptics toggles reset on restart; profile `settings_json` exists but the
+  provider is not wired to it. Theme selection IS persisted (separate path).
+- **CLAIMED-BUT-UNREWARDED WINDOW (Low, documented)**: quest/achievement
+  claim is the once-only commit point; a crash between claim and the XP
+  award + ledger append leaves claimed-but-unrewarded (never double
+  reward). Detectable via `claimedAt` vs `xp_awards`; auto-heal is future
+  work.
+- **Achievements sync scope (Low)**: quest/achievement evaluation scans up
+  to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); far above realistic
+  foundations-phase history, but a documented cap.
+- **NativeTabs snapshot instability (tooling)**: router-tree snapshots
+  contain per-render random `screenId`s; visual baselines render bare
+  routes to stay deterministic (see visual-baselines test header).
+
+## Resolved during Campaign 003
+
+- None beyond the above debt (no Critical/High findings).
 
 ## Resolved during Campaign 002
 
@@ -28,34 +57,3 @@ None. Campaign 002 is complete.
 - `@types/jest` gap: wave-0 typecheck failure fixed in wave-1 convergence.
 - Registry generator dropped the game `id` (fixed wave 2).
 - Root README had a UTF-16 tail (fixed wave 0); remote history also fixed it.
-- `.gitignore` vs committed `expo-env.d.ts` conflict (ADR 0004): resolved.
-
-## Environment risks (host-dependent, not product defects)
-
-- **Emulator instability (emulator 37.1.11 + WHPX on this host)**: the guest
-  wedges (adb offline) under host memory pressure — observed twice during
-  campaign-001 QA. Mitigations: stop gradle daemons after builds
-  (`./gradlew --stop`), cold-boot with `-memory 3072`, use `avd.sh boot
-  --retry 3`. Watch item for future campaigns.
-- **Screencap black frames**: under `-no-window -gpu swiftshader_indirect`,
-  `screencap`/`screenrecord` return black/empty for GPU-composited app
-  content on the ATD image. uiautomator hierarchy dumps work and are the
-  visual evidence. Try `-gpu host` if pixel screenshots become a hard QA
-  requirement.
-- **google_apis API 35 image** is unstable on this host (segfaults/freezes);
-  the dedicated AVD `braintraining35` uses `aosp_atd` (documented in
-  `docs/ANDROID_AUTOMATION.md`).
-
-## Durable debt / polish (non-blocking, for later campaigns)
-
-- Pause overlay is fully opaque but does not yet use a real blur backdrop;
-  `expo-blur` is not installed. Optional polish when visual work begins.
-- `use-theme.ts` has a latent `Colors[null]` edge if `useColorScheme()`
-  returns null (harmless in practice).
-- Shell test for route reachability (game route outside tabs) could not be
-  written with the current router testing library; revisit with RNTL updates.
-- Home streak/XP/level stat slots still show placeholder values (real data
-  lands with Campaign 003 streaks work).
-- Games in-session result phases are game-owned inline screens; they do not
-  yet deep-link to the shared `/results` route (shared screens are reachable
-  from Progress/library). Optional polish.

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "003-platform-integration",
+  "activeCampaign": "004-parallel-catalog-expansion",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true
