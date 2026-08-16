@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "canonicalBranch": "main",
+  "activeCampaign": "001-autonomous-foundation",
+  "hardening": {
+    "automaticFullHardening": false,
+    "criticalHighRepairRequired": true
+  },
+  "swarm": {
+    "defaultMaxCoderAgents": 7,
+    "sharedFileEditsOwnedByOrchestrator": true,
+    "explicitWriteOwnershipRequired": true
+  },
+  "runtimeQa": {
+    "defaultAndroidEmulators": 1,
+    "hostMouseKeyboardAutomationAllowed": false,
+    "preferBackgroundOrHeadless": true
+  },
+  "git": {
+    "pushMainFrequently": true,
+    "autonomousForcePushMainAllowed": false,
+    "temporaryWorktreesAllowed": true,
+    "cleanupTemporaryBranchesAndWorktrees": true
+  },
+  "modes": {
+    "default": "day",
+    "userMustSelectNight": true
+  }
+}

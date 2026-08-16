@@ -1,0 +1,39 @@
+# Dependencies / builds
+node_modules/
+.expo/
+dist/
+build/
+coverage/
+*.log
+
+# Native/IDE local state
+android/.gradle/
+android/local.properties
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+.idea/
+.vscode/*.log
+
+# Kimi local/session state
+.kimi-code/local.toml
+.kimi-code/sessions/
+.kimi-code/logs/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# QA artifacts generated locally
+artifacts/
+qa-artifacts/
+test-results/
+playwright-report/
