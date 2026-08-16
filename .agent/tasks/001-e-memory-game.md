@@ -1,7 +1,7 @@
 # Task Packet 001-e — Representative Memory Game (WP-E)
 
 Campaign: 001-autonomous-foundation
-Status: PENDING (wave 2; depends on 001-c Game SDK + 001-a shell)
+Status: READY (wave 2; SDK, persistence, shell, registry generator all landed on `main` @ 2816ea7)
 Owner role: coder agent
 
 ## Objective
@@ -51,6 +51,8 @@ Build one production-quality Memory game as a self-contained module under `apps/
 ## Integration notes for orchestrator
 
 - Orchestrator runs the registry generator to register the game and validates the end-to-end route.
+- MODULE CONVENTION (required): the game module entry (`src/games/memory/index.ts`) must export a default React component — the game screen — because the generated `gameScreenLoaders` does `() => import('@/games/memory')` and the route renders `mod.default`. Also export a frozen `gameDefinition` (via SDK `defineGame`) from the module. The game must NOT edit `registry.generated.ts` or any shared file; its `game.json` is the only registration artifact.
+- The `app/game/[id].tsx` route already lazy-loads and wraps the screen in Suspense; the screen receives no props — it must manage its own state.
 
 ## Result/evidence
 

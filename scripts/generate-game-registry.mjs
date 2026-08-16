@@ -133,6 +133,13 @@ function generate() {
     })
     .join('\n');
 
+  // Each game directory is expected to export a default React component (the
+  // game screen) from its index/module entry; the dynamic-import paths below
+  // are static literals so Metro can resolve them at build time.
+  const loaders = games
+    .map((game) => `  '${game.id}': () => import('@/games/${game.id}'),`)
+    .join('\n');
+
   return [
     '/**',
     ' * GENERATED FILE — do not edit by hand. Regenerate with:',
@@ -141,15 +148,23 @@ function generate() {
     ' * Sources: game.json files under apps/mobile/src/games/<id>/.',
     ` * Generator version: ${GENERATOR_VERSION}. Deterministic output.`,
     ' */',
+    'import type { ComponentType } from \'react\';',
     'import type { GameDefinition } from \'@/sdk\';',
     '',
     'export const registry: readonly GameDefinition[] = [',
     body,
     '];',
     '',
-  ]
-    .filter((line) => line !== '')
-    .join('\n') + '\n';
+    '/**',
+    ' * Lazy loaders from game id to the module that exports the game screen as',
+    ' * its default export. The `app/game/[id].tsx` route resolves the screen',
+    ' * through this map; games never hand-edit this file.',
+    ' */',
+    'export const gameScreenLoaders: Record<string, () => Promise<{ default: ComponentType }>> = {',
+    loaders,
+    '};',
+    '',
+  ].join('\n');
 }
 
 const checkOnly = process.argv.includes('--check');
