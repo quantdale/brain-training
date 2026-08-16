@@ -16,7 +16,7 @@
 // Jest globals imported explicitly (repo has no @types/jest; see orchestrator report).
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { router } from 'expo-router';
-import { act, renderRouter, screen } from 'expo-router/testing-library';
+import { act, renderRouter, screen, within } from 'expo-router/testing-library';
 
 import GameScreen from '@/app/game/[id]';
 import AppTabsWeb from '@/components/app-tabs.web';
@@ -93,7 +93,8 @@ describe('app shell', () => {
 
     expect(screen.getByTestId('games-grid')).toBeOnTheScreen();
     expect(screen.getByTestId('game-card-memory-match')).toBeOnTheScreen();
-    expect(screen.getByText('Memory Match')).toBeOnTheScreen();
+    // Scoped: the Home tab (also mounted) renders the game in Today's Workout.
+    expect(within(screen.getByTestId('games-grid')).getByText('Memory Match')).toBeOnTheScreen();
   });
 
   it('renders the NotReady fallback for an unknown game id', async () => {
