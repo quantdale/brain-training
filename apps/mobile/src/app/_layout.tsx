@@ -69,6 +69,8 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="game/[id]" />
+          <Stack.Screen name="game-detail/[id]" />
+          <Stack.Screen name="results" />
         </Stack>
       </SettingsProvider>
     </ThemeProvider>

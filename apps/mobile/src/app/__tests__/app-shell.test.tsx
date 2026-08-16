@@ -104,6 +104,22 @@ describe('app shell', () => {
     expect(screen.getByTestId('game-not-ready-not-found')).toBeOnTheScreen();
   });
 
+  it('renders the game detail fallback for an unknown game id', async () => {
+    const result = renderShell('/game-detail/nope');
+    await result;
+
+    expect(screen.getByTestId('game-detail-title')).toBeOnTheScreen();
+    expect(screen.getByTestId('game-detail-back')).toBeOnTheScreen();
+  });
+
+  it('renders the results empty state without persisted sessions', async () => {
+    const result = renderShell('/results');
+    await result;
+
+    expect(screen.getByTestId('results-title')).toBeOnTheScreen();
+    expect(screen.getByTestId('results-empty')).toBeOnTheScreen();
+  });
+
   it('renders a registered game with a not-implemented fallback', async () => {
     registerGameDefinitions([
       {

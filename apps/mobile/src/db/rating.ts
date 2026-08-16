@@ -58,6 +58,8 @@ const SELECT_ALL = 'SELECT domain, rating, sessions, updated_at FROM domain_rati
 const SELECT_ONE = 'SELECT domain, rating, sessions, updated_at FROM domain_ratings WHERE domain = ?';
 const SELECT_HISTORY =
   'SELECT id, session_id, domain, delta, rating_after, created_at FROM rating_history ORDER BY id DESC LIMIT ?';
+const SELECT_HISTORY_BY_SESSION =
+  'SELECT id, session_id, domain, delta, rating_after, created_at FROM rating_history WHERE session_id = ? ORDER BY id ASC';
 
 function mapRatingRow(row: DomainRatingRow): DomainRating {
   return { domain: row.domain, rating: row.rating, sessions: row.sessions, updatedAt: row.updated_at };
@@ -146,6 +148,12 @@ export class RatingRepository {
   /** Most recent rating movements, newest first. */
   async getHistory(limit = 100): Promise<RatingHistoryEntry[]> {
     const rows = await this.adapter.all<RatingHistoryRow>(SELECT_HISTORY, [limit]);
+    return rows.map(mapHistoryRow);
+  }
+
+  /** One session's rating movements, in application order (oldest first). */
+  async getHistoryForSession(sessionId: string): Promise<RatingHistoryEntry[]> {
+    const rows = await this.adapter.all<RatingHistoryRow>(SELECT_HISTORY_BY_SESSION, [sessionId]);
     return rows.map(mapHistoryRow);
   }
 }

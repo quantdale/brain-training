@@ -305,6 +305,53 @@ describe('session queries', () => {
     const g2 = await sessions.listByGame('g2');
     expect(g2.map((s) => s.id)).toEqual(['c']);
   });
+
+  it('listRecent returns newest-first sessions across games', async () => {
+    await sessions.completeSession({
+      session: makeSession({ id: 'a', gameId: 'g1', completedAt: T0 + 1_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: 'b', gameId: 'g1', completedAt: T0 + 2_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: 'c', gameId: 'g2', completedAt: T0 + 3_000 }),
+    });
+
+    expect((await sessions.listRecent()).map((s) => s.id)).toEqual(['c', 'b', 'a']);
+    expect((await sessions.listRecent(2)).map((s) => s.id)).toEqual(['c', 'b']);
+  });
+
+  it('getAggregates summarizes per-game analytics', async () => {
+    await sessions.completeSession({
+      session: makeSession({ id: 'a', gameId: 'g1', normalizedResult: 0.5, completedAt: T0 + 1_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: 'b', gameId: 'g1', normalizedResult: 0.8, completedAt: T0 + 2_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: 'c', gameId: 'g2', normalizedResult: 0.9, completedAt: T0 + 3_000 }),
+    });
+
+    const aggregates = await sessions.getAggregates();
+    expect(aggregates).toHaveLength(2);
+    expect(aggregates[0]).toEqual({
+      gameId: 'g2',
+      count: 1,
+      avgNormalized: 0.9,
+      bestNormalized: 0.9,
+      lastCompletedAt: T0 + 3_000,
+    });
+    expect(aggregates[1]).toEqual({
+      gameId: 'g1',
+      count: 2,
+      avgNormalized: 0.65,
+      bestNormalized: 0.8,
+      lastCompletedAt: T0 + 2_000,
+    });
+
+    expect(await sessions.getGameAggregate('g1')).toEqual(aggregates[1]);
+    expect(await sessions.getGameAggregate('never-played')).toBeNull();
+  });
 });
 
 describe('ledger queries', () => {

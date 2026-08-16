@@ -27,6 +27,7 @@ export type {
   RatingService,
   SQLiteValue,
 } from './types';
+export type { GameAggregate } from './sessions';
 export { SCHEMA_VERSION, SQL, MIGRATIONS } from './schema';
 export type { Migration } from './schema';
 export { runMigrations, getSchemaVersion, initializeConnection } from './migrate';

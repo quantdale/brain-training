@@ -43,7 +43,21 @@ const INSERT_SESSION = `INSERT INTO game_sessions (
 const SELECT_SESSION_BY_ID = 'SELECT * FROM game_sessions WHERE id = ?';
 const SELECT_SESSIONS_BY_GAME =
   'SELECT * FROM game_sessions WHERE game_id = ? ORDER BY completed_at DESC LIMIT ?';
+const SELECT_SESSIONS_RECENT =
+  'SELECT * FROM game_sessions ORDER BY completed_at DESC LIMIT ?';
 const SELECT_TOTAL_XP = 'SELECT COALESCE(SUM(xp), 0) AS total FROM game_sessions';
+const SELECT_AGGREGATES = `
+  SELECT game_id AS gameId, COUNT(*) AS count,
+         AVG(normalized_result) AS avgNormalized,
+         MAX(normalized_result) AS bestNormalized,
+         MAX(completed_at) AS lastCompletedAt
+  FROM game_sessions GROUP BY game_id ORDER BY lastCompletedAt DESC`;
+const SELECT_AGGREGATE_BY_GAME = `
+  SELECT game_id AS gameId, COUNT(*) AS count,
+         AVG(normalized_result) AS avgNormalized,
+         MAX(normalized_result) AS bestNormalized,
+         MAX(completed_at) AS lastCompletedAt
+  FROM game_sessions WHERE game_id = ? GROUP BY game_id`;
 const SELECT_BALANCE = 'SELECT balance FROM currency_balance';
 const INSERT_LEDGER_ENTRY =
   'INSERT INTO currency_ledger (amount, reason, session_id, created_at) VALUES (?, ?, ?, ?)';
@@ -227,9 +241,59 @@ export class SessionRepository {
     return rows.map(mapRow);
   }
 
+  /** Most recent sessions across all games, newest first. */
+  async listRecent(limit = 50): Promise<GameSessionRecord[]> {
+    const rows = await this.adapter.all<SessionRow>(SELECT_SESSIONS_RECENT, [limit]);
+    return rows.map(mapRow);
+  }
+
   /** Lifetime XP across all completed sessions (constitution §17). */
   async getTotalXp(): Promise<number> {
     const row = await this.adapter.get<{ total: number }>(SELECT_TOTAL_XP);
     return row?.total ?? 0;
   }
+
+  /**
+   * Per-game aggregates (constitution §21: per-game analytics). `avgNormalized`
+   * and `bestNormalized` are on the shared 0..1 normalized scale.
+   */
+  async getAggregates(): Promise<GameAggregate[]> {
+    const rows = await this.adapter.all<GameAggregateRow>(SELECT_AGGREGATES);
+    return rows.map(mapAggregateRow);
+  }
+
+  /** Aggregate for one game, or null when it has no sessions yet. */
+  async getGameAggregate(gameId: string): Promise<GameAggregate | null> {
+    const row = await this.adapter.get<GameAggregateRow>(SELECT_AGGREGATE_BY_GAME, [gameId]);
+    return row ? mapAggregateRow(row) : null;
+  }
+}
+
+export interface GameAggregate {
+  gameId: string;
+  count: number;
+  /** Mean normalized performance (0..1) across the game's sessions. */
+  avgNormalized: number;
+  /** Best normalized performance (0..1). */
+  bestNormalized: number;
+  /** Unix epoch ms of the most recent session. */
+  lastCompletedAt: number;
+}
+
+interface GameAggregateRow {
+  gameId: string;
+  count: number;
+  avgNormalized: number | null;
+  bestNormalized: number | null;
+  lastCompletedAt: number | null;
+}
+
+function mapAggregateRow(row: GameAggregateRow): GameAggregate {
+  return {
+    gameId: row.gameId,
+    count: row.count,
+    avgNormalized: row.avgNormalized ?? 0,
+    bestNormalized: row.bestNormalized ?? 0,
+    lastCompletedAt: row.lastCompletedAt ?? 0,
+  };
 }

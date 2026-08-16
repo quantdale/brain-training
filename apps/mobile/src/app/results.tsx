@@ -1,0 +1,164 @@
+/**
+ * Results — `/results`.
+ *
+ * Session result surface (WP-2H; constitution §16: headline + meaningful
+ * metrics — score, accuracy, reaction, difficulty, rating movement, XP,
+ * personal records). Shows one session (by `?id=` search param, else the most
+ * recent) plus rating movement from the append-only history, and a list of
+ * recent sessions to switch between.
+ */
+
+import { Link, router, useLocalSearchParams } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
+
+import { ScreenShell } from '@/components/screen-shell';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Radii, Spacing } from '@/constants/theme';
+import type { AppDatabase, GameSessionRecord } from '@/db';
+import { useDbData } from '@/hooks/use-db-data';
+import { getGameDefinition } from '@/registry/registry';
+
+interface ResultsData {
+  session: GameSessionRecord | null;
+  recent: GameSessionRecord[];
+  ratingHistory: readonly {
+    sessionId: string;
+    domain: string;
+    delta: number;
+    ratingAfter: number;
+  }[];
+}
+
+function loadResults(db: AppDatabase, id: string | undefined): Promise<ResultsData> {
+  return (async () => {
+    const [session, recent, history] = await Promise.all([
+      id ? db.sessions.getById(id) : (await db.sessions.listRecent(1))[0] ?? null,
+      db.sessions.listRecent(20),
+      db.ratings.getHistory(50),
+    ]);
+    return { session, recent, ratingHistory: history };
+  })();
+}
+
+const EMPTY: ResultsData = { session: null, recent: [], ratingHistory: [] };
+
+export default function ResultsScreen() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { data } = useDbData((db) => loadResults(db, id), [id], EMPTY);
+  const { session, recent, ratingHistory } = data;
+
+  const game = session ? getGameDefinition(session.gameId) : undefined;
+  const historyForSession = session
+    ? ratingHistory.filter((h) => h.sessionId === session.id)
+    : [];
+
+  return (
+    <ScreenShell>
+      <Pressable testID="results-back" accessibilityRole="button" onPress={() => router.back()}>
+        <ThemedText type="smallBold" themeColor="accent">
+          ‹ Back
+        </ThemedText>
+      </Pressable>
+
+      <ThemedText type="title" testID="results-title">
+        Results
+      </ThemedText>
+
+      {session ? (
+        <>
+          <ThemedView type="surface" style={styles.card} testID="results-summary">
+            <ThemedText type="headline" themeColor="accent" testID="results-score">
+              {Math.round(session.normalizedResult * 100)}%
+            </ThemedText>
+            <ThemedText type="subtitle" testID="results-game">
+              {game?.name ?? session.gameId}
+            </ThemedText>
+            <View style={styles.rows}>
+              <ResultRow label="Difficulty" value={String((session.difficulty as { level?: string } | null)?.level ?? '—')} />
+              <ResultRow label="XP earned" value={`+${session.xp}`} />
+              <ResultRow label="Duration" value={`${Math.round(session.durationMs / 1000)}s`} />
+              <ResultRow label="Date" value={new Date(session.completedAt).toLocaleDateString()} />
+            </View>
+          </ThemedView>
+
+          <ThemedView type="surface" style={styles.card} testID="results-rating">
+            <ThemedText type="subtitle">Rating movement</ThemedText>
+            {historyForSession.length > 0 ? (
+              <View style={styles.rows}>
+                {historyForSession.map((h) => (
+                  <ResultRow
+                    key={h.domain}
+                    label={h.domain}
+                    value={`${h.delta >= 0 ? '+' : ''}${h.delta} → ${h.ratingAfter}`}
+                  />
+                ))}
+              </View>
+            ) : (
+              <ThemedText type="small" themeColor="textSecondary">
+                No rating movement recorded for this session.
+              </ThemedText>
+            )}
+          </ThemedView>
+
+          <ThemedView type="surface" style={styles.card} testID="results-recent">
+            <ThemedText type="subtitle">Recent sessions</ThemedText>
+            <View style={styles.rows}>
+              {recent.slice(0, 10).map((s) => (
+                <Link key={s.id} href={`/results?id=${s.id}`} asChild>
+                  <Pressable
+                    testID={`results-session-${s.id}`}
+                    accessibilityRole="button"
+                    style={[styles.row, s.id === session.id && styles.rowActive]}>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {getGameDefinition(s.gameId)?.name ?? s.gameId} · {new Date(s.completedAt).toLocaleDateString()}
+                    </ThemedText>
+                    <ThemedText type="smallBold">{Math.round(s.normalizedResult * 100)}%</ThemedText>
+                  </Pressable>
+                </Link>
+              ))}
+            </View>
+          </ThemedView>
+        </>
+      ) : (
+        <ThemedView type="surface" style={styles.card} testID="results-empty">
+          <ThemedText type="subtitle">No sessions yet</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            Play a game to see your results here.
+          </ThemedText>
+        </ThemedView>
+      )}
+    </ScreenShell>
+  );
+}
+
+function ResultRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.row}>
+      <ThemedText type="small" themeColor="textSecondary">
+        {label}
+      </ThemedText>
+      <ThemedText type="smallBold">{value}</ThemedText>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: Radii.large,
+    padding: Spacing.four,
+    gap: Spacing.two,
+  },
+  rows: {
+    gap: Spacing.two,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  rowActive: {
+    opacity: 0.6,
+  },
+});

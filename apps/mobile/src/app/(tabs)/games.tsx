@@ -1,22 +1,60 @@
 /**
- * Games — library screen.
+ * Games — library screen (WP-2H).
  *
  * Renders the generated game registry (via `@/registry/registry`) as a card
- * grid. Until games register, shows the empty state. Each card links to the
- * dynamic `app/game/[id].tsx` route.
+ * grid with discovery basics (constitution §21): text search over name and
+ * description, primary-category filter chips, and a favorites-only toggle
+ * backed by the db favorites repository. Each card links to the game detail
+ * screen (`/game-detail/[id]`), which hosts the Play CTA.
+ *
+ * Empty states: `games-empty` when nothing is registered; `games-no-results`
+ * when filters match nothing.
  */
 
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
+import { useDbData } from '@/hooks/use-db-data';
+import { useTheme } from '@/hooks/use-theme';
 import { getAllGameDefinitions } from '@/registry/registry';
+import { GAME_CATEGORIES } from '@/sdk';
 
 export default function GamesScreen() {
   const games = getAllGameDefinitions();
+  const theme = useTheme();
+
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<string | null>(null);
+  const [favOnly, setFavOnly] = useState(false);
+  const { data: favorites } = useDbData(
+    (db) => db.favorites.listFavoriteGameIds(),
+    [],
+    [] as string[],
+  );
+  const favoriteSet = new Set(favorites);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const visible = games.filter((game) => {
+    if (category && game.primaryCategory !== category) {
+      return false;
+    }
+    if (favOnly && !favoriteSet.has(game.id)) {
+      return false;
+    }
+    if (normalizedQuery.length === 0) {
+      return true;
+    }
+    return (
+      game.name.toLowerCase().includes(normalizedQuery) ||
+      (game.description ?? '').toLowerCase().includes(normalizedQuery) ||
+      game.primaryCategory.toLowerCase().includes(normalizedQuery)
+    );
+  });
 
   return (
     <ScreenShell>
@@ -36,34 +74,105 @@ export default function GamesScreen() {
           </ThemedText>
         </ThemedView>
       ) : (
-        <View style={styles.grid} testID="games-grid">
-          {games.map((game) => (
-            <Link key={game.id} href={`/game/${game.id}`} asChild>
-              <Pressable
-                testID={`game-card-${game.id}`}
-                accessibilityRole="button"
-                style={({ pressed }) => pressed && styles.pressed}>
-                <ThemedView type="surface" style={styles.card}>
-                  <ThemedText type="subtitle" numberOfLines={1}>
-                    {game.name}
-                  </ThemedText>
-                  <ThemedView type="accentSoft" style={styles.categoryPill}>
-                    <ThemedText type="caption" themeColor="accent">
-                      {game.primaryCategory}
-                    </ThemedText>
-                  </ThemedView>
-                  {game.description ? (
-                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={3}>
-                      {game.description}
-                    </ThemedText>
-                  ) : null}
-                </ThemedView>
-              </Pressable>
-            </Link>
-          ))}
-        </View>
+        <>
+          <TextInput
+            testID="games-search"
+            placeholder="Search games…"
+            placeholderTextColor={theme.textSecondary}
+            value={query}
+            onChangeText={setQuery}
+            style={[styles.searchInput, { color: theme.text }]}
+          />
+
+          <View style={styles.filterRow} testID="games-filters">
+            <FilterChip
+              testID="games-filter-all"
+              label="All"
+              active={category === null}
+              onPress={() => setCategory(null)}
+            />
+            {GAME_CATEGORIES.map((c) => (
+              <FilterChip
+                key={c}
+                testID={`games-filter-${c.toLowerCase().replace(/[^a-z]/g, '')}`}
+                label={c}
+                active={category === c}
+                onPress={() => setCategory(category === c ? null : c)}
+              />
+            ))}
+            <FilterChip
+              testID="games-filter-favorites"
+              label="★ Favorites"
+              active={favOnly}
+              onPress={() => setFavOnly(!favOnly)}
+            />
+          </View>
+
+          {visible.length === 0 ? (
+            <ThemedView type="surface" style={styles.emptyCard} testID="games-no-results">
+              <ThemedText type="subtitle">No matches</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Try a different search or filter.
+              </ThemedText>
+            </ThemedView>
+          ) : (
+            <View style={styles.grid} testID="games-grid">
+              {visible.map((game) => (
+                <Link key={game.id} href={`/game-detail/${game.id}`} asChild>
+                  <Pressable
+                    testID={`game-card-${game.id}`}
+                    accessibilityRole="button"
+                    style={({ pressed }) => pressed && styles.pressed}>
+                    <ThemedView type="surface" style={styles.card}>
+                      <ThemedText type="subtitle" numberOfLines={1}>
+                        {game.name}
+                      </ThemedText>
+                      <ThemedView type="accentSoft" style={styles.categoryPill}>
+                        <ThemedText type="caption" themeColor="accent">
+                          {game.primaryCategory}
+                        </ThemedText>
+                      </ThemedView>
+                      {game.description ? (
+                        <ThemedText type="small" themeColor="textSecondary" numberOfLines={3}>
+                          {game.description}
+                        </ThemedText>
+                      ) : null}
+                      {favoriteSet.has(game.id) ? (
+                        <ThemedText type="caption" themeColor="accent">
+                          ★
+                        </ThemedText>
+                      ) : null}
+                    </ThemedView>
+                  </Pressable>
+                </Link>
+              ))}
+            </View>
+          )}
+        </>
       )}
     </ScreenShell>
+  );
+}
+
+function FilterChip({
+  testID,
+  label,
+  active,
+  onPress,
+}: {
+  testID: string;
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable testID={testID} accessibilityRole="button" onPress={onPress}>
+      <ThemedView type={active ? 'accentSoft' : 'surface'} style={styles.chip}>
+        <ThemedText type="caption" themeColor={active ? 'accent' : 'textSecondary'}>
+          {label}
+        </ThemedText>
+      </ThemedView>
+    </Pressable>
   );
 }
 
@@ -72,6 +181,23 @@ const styles = StyleSheet.create({
     borderRadius: Radii.large,
     padding: Spacing.four,
     gap: Spacing.two,
+  },
+  searchInput: {
+    borderRadius: Radii.medium,
+    borderWidth: 1,
+    borderColor: 'rgba(128,128,128,0.4)',
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  chip: {
+    borderRadius: Radii.pill,
+    paddingVertical: Spacing.half,
+    paddingHorizontal: Spacing.twoHalf,
   },
   grid: {
     flexDirection: 'row',
