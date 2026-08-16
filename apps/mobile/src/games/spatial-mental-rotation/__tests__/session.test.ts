@@ -180,6 +180,7 @@ describe('persistSpatialSession', () => {
       session: record,
       ledgerEntry: null,
       balance: 0,
+      rating: null,
     }));
     const persister: SessionPersistence = { completeSession };
     const outcome = await persistSpatialSession(record, persister);

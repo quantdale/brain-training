@@ -15,10 +15,11 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { createRatingPipeline } from '@/rating';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { initDatabase } from '@/db';
 import { registry } from '@/registry/registry.generated';
-import { registerGameDefinitions } from '@/registry/registry';
+import { registerGameDefinitions, getGameDefinition } from '@/registry/registry';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -28,7 +29,20 @@ export default function RootLayout() {
     let cancelled = false;
     (async () => {
       try {
-        await initDatabase();
+        // Rating pipeline: per-domain XP/rating/currency applied atomically
+        // with every completed session. Primary category moves at full
+        // weight, secondary domains at half (see src/rating/pipeline.ts).
+        await initDatabase({
+          rating: createRatingPipeline({
+            getDomains: (gameId) => {
+              const definition = getGameDefinition(gameId);
+              if (!definition) {
+                return [];
+              }
+              return [definition.primaryCategory, ...(definition.secondaryDomains ?? [])];
+            },
+          }),
+        });
         registerGameDefinitions(registry);
       } catch (error) {
         // Never brick startup on an initialization failure: log it and keep

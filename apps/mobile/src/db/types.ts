@@ -60,9 +60,39 @@ export interface CompleteSessionInput {
   /**
    * Optional currency ledger entry committed atomically with the session.
    * When omitted, only the session row and the profile touch are written.
+   * When a rating service is configured, its own currency award is appended
+   * in addition to this entry.
    */
   currency?: {
     amount: number;
     reason: string;
   };
+}
+
+/** One domain's rating movement for a completed session. */
+export interface RatingDelta {
+  /** Cognitive domain (a GameCategory string; see SDK `GAME_CATEGORIES`). */
+  domain: string;
+  /** Signed rating points applied to the domain. */
+  delta: number;
+}
+
+/** What a rating service computed for one completed session. */
+export interface RatingOutcome {
+  /** Authoritative XP award for the session (overrides the game-reported value). */
+  xp: number;
+  /** Currency amount appended to the ledger for this session (>= 0). */
+  currency: number;
+  /** Rating movement per domain; empty = no movement. */
+  deltas: readonly RatingDelta[];
+}
+
+/**
+ * Optional rating seam consumed by `completeSession`. The implementation is
+ * app-owned (`src/rating/pipeline.ts`); the db layer only applies the
+ * outcome inside the session transaction so XP/currency/ratings are always
+ * atomic with the session row.
+ */
+export interface RatingService {
+  compute(input: { session: GameSessionRecord }): Promise<RatingOutcome>;
 }

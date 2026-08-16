@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
 import { LedgerRepository } from '../ledger';
 import { ProfileRepository } from '../profile';
+import { INITIAL_RATING, RatingRepository } from '../rating';
 import { SessionRepository } from '../sessions';
 import type { CompleteSessionInput, GameSessionRecord } from '../types';
 import { createMigratedDb } from './helpers';
@@ -153,6 +154,121 @@ describe('completeSession', () => {
     const stored = await sessions.getById('session-1');
     expect(stored?.xp).toBe(50); // original, not overwritten
     expect((await adapter.all('SELECT * FROM currency_ledger'))).toHaveLength(0);
+  });
+});
+
+describe('completeSession with rating service', () => {
+  const ratingService = {
+    async compute() {
+      return {
+        xp: 77,
+        currency: 15,
+        deltas: [
+          { domain: 'Memory', delta: 6 },
+          { domain: 'Attention', delta: 3 },
+        ],
+      };
+    },
+  };
+
+  it('applies the outcome atomically: xp override, currency award, rating history', async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0, ratingService);
+    const ratings = new RatingRepository(adapter, () => T0);
+    const ledger = new LedgerRepository(adapter, () => T0);
+
+    const result = await sessions.completeSession({ session: makeSession() });
+
+    // XP is the rating service's authoritative value, not the game-reported 50.
+    expect(result.session.xp).toBe(77);
+    expect(result.rating).toEqual({
+      xp: 77,
+      currency: 15,
+      deltas: [
+        { domain: 'Memory', delta: 6 },
+        { domain: 'Attention', delta: 3 },
+      ],
+      balance: 15,
+    });
+    expect((await sessions.getById('session-1'))?.xp).toBe(77);
+
+    // Currency award appended with the session's completion timestamp.
+    expect(result.ledgerEntry).toEqual({
+      id: 1,
+      amount: 15,
+      reason: 'gameplay',
+      sessionId: 'session-1',
+      createdAt: T0 + 90_000,
+    });
+    expect(await ledger.getBalance()).toBe(15);
+
+    // Domain ratings moved and history recorded per delta.
+    expect(await ratings.getRating('Memory')).toMatchObject({
+      domain: 'Memory',
+      rating: INITIAL_RATING + 6,
+      sessions: 1,
+    });
+    expect(await ratings.getRating('Attention')).toMatchObject({
+      domain: 'Attention',
+      rating: INITIAL_RATING + 3,
+      sessions: 1,
+    });
+    const history = await ratings.getHistory();
+    expect(history.map((h) => ({ domain: h.domain, delta: h.delta }))).toEqual([
+      { domain: 'Attention', delta: 3 },
+      { domain: 'Memory', delta: 6 },
+    ]);
+  });
+
+  it('appends both an explicit entry and the rating award when both are present', async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0, ratingService);
+    const ledger = new LedgerRepository(adapter, () => T0);
+
+    const result = await sessions.completeSession({
+      session: makeSession(),
+      currency: { amount: 5, reason: 'quest' },
+    });
+
+    const entries = await ledger.list();
+    expect(entries.map((e) => ({ amount: e.amount, reason: e.reason }))).toEqual([
+      { amount: 5, reason: 'quest' },
+      { amount: 15, reason: 'gameplay' },
+    ]);
+    expect(await ledger.getBalance()).toBe(20);
+    expect(result.ledgerEntry).toMatchObject({ amount: 15, reason: 'gameplay' });
+  });
+
+  it('rolls back everything when the rating service throws', async () => {
+    const adapter = await createMigratedDb();
+    const failing = {
+      async compute() {
+        throw new Error('rating boom');
+      },
+    };
+    const sessions = new SessionRepository(adapter, () => T0, failing);
+    const ledger = new LedgerRepository(adapter, () => T0);
+    const ratings = new RatingRepository(adapter, () => T0);
+
+    await expect(sessions.completeSession({ session: makeSession() })).rejects.toThrow(
+      'rating boom',
+    );
+
+    expect(await sessions.getById('session-1')).toBeNull();
+    expect(await ledger.getBalance()).toBe(0);
+    expect(await adapter.all('SELECT * FROM rating_history')).toHaveLength(0);
+    expect(await adapter.all('SELECT * FROM domain_ratings')).toHaveLength(0);
+    expect(await ratings.getHistory()).toHaveLength(0);
+  });
+
+  it('reports rating null and keeps the game xp without a rating service', async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+
+    const result = await sessions.completeSession({ session: makeSession() });
+    expect(result.rating).toBeNull();
+    expect(result.session.xp).toBe(50);
+    expect(await adapter.all('SELECT * FROM rating_history')).toHaveLength(0);
   });
 });
 

@@ -26,13 +26,61 @@ describe('migrations', () => {
         'table:profile',
         'table:game_sessions',
         'table:currency_ledger',
+        'table:domain_ratings',
+        'table:rating_history',
+        'table:game_favorites',
         'view:currency_balance',
         'index:idx_game_sessions_game_id',
         'index:idx_currency_ledger_created_at',
+        'index:idx_rating_history_domain',
+        'index:idx_rating_history_session',
         'trigger:trg_currency_ledger_no_update',
         'trigger:trg_currency_ledger_no_delete',
+        'trigger:trg_rating_history_no_update',
+        'trigger:trg_rating_history_no_delete',
       ]),
     );
+  });
+
+  it('upgrades a v1 database to v2 preserving existing rows', async () => {
+    const adapter = createNodeSqliteAdapter(':memory:');
+    await runMigrations(adapter, { targetVersion: 1 });
+    expect(await getSchemaVersion(adapter)).toBe(1);
+
+    // v1 data: profile row, one session, one ledger entry.
+    await adapter.run(
+      'INSERT INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+      ['local', 'tester', '{}', 1000, 2000],
+    );
+    await adapter.run(
+      `INSERT INTO game_sessions (
+        id, game_id, game_version, generator_version, scoring_version, seed,
+        difficulty_json, raw_result_json, normalized_result, xp,
+        started_at, completed_at, duration_ms
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ['s1', 'memory', 1, 1, 1, 42, '{}', '{}', 0.5, 30, 1000, 2000, 1000],
+    );
+    await adapter.run(
+      'INSERT INTO currency_ledger (amount, reason, session_id, created_at) VALUES (?, ?, ?, ?)',
+      [10, 'reward', 's1', 2000],
+    );
+
+    // Migrate to v2: existing data must survive; new tables start empty.
+    await runMigrations(adapter);
+    expect(await getSchemaVersion(adapter)).toBe(SCHEMA_VERSION);
+
+    const profile = await adapter.get<{ display_name: string }>('SELECT display_name FROM profile');
+    expect(profile?.display_name).toBe('tester');
+    const session = await adapter.get<{ id: string; xp: number }>(
+      'SELECT id, xp FROM game_sessions',
+    );
+    expect(session).toEqual({ id: 's1', xp: 30 });
+    const ledger = await adapter.get<{ amount: number }>('SELECT amount FROM currency_ledger');
+    expect(ledger?.amount).toBe(10);
+
+    expect(await adapter.all('SELECT * FROM domain_ratings')).toHaveLength(0);
+    expect(await adapter.all('SELECT * FROM rating_history')).toHaveLength(0);
+    expect(await adapter.all('SELECT * FROM game_favorites')).toHaveLength(0);
   });
 
   it('re-running migrations on a migrated database is a no-op', async () => {

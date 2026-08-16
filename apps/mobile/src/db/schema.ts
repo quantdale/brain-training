@@ -7,7 +7,7 @@
  * common dialect shared by expo-sqlite and better-sqlite3.
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -103,6 +103,63 @@ export const SQL = {
     CREATE VIEW IF NOT EXISTS currency_balance AS
       SELECT COALESCE(SUM(amount), 0) AS balance FROM currency_ledger;
   `,
+
+  /**
+   * Current rating per cognitive domain (constitution §15: separate domain
+   * ratings + overall composite; §15 "Inactivity should not directly decay
+   * ratings; instead reduce confidence/mark stale" — staleness is computed on
+   * read from `updated_at`, never decayed here). `sessions` counts how many
+   * completed sessions contributed, so consumers can weight confidence.
+   */
+  createDomainRatings: `
+    CREATE TABLE IF NOT EXISTS domain_ratings (
+      domain     TEXT    PRIMARY KEY,
+      rating     INTEGER NOT NULL,
+      sessions   INTEGER NOT NULL DEFAULT 0,
+      updated_at INTEGER NOT NULL
+    );
+  `,
+
+  /**
+   * Append-only per-session rating movement (constitution §15: ratings move
+   * gradually; history keeps the evidence chain). Every completed session
+   * that moved a domain appends one row; triggers reject UPDATE/DELETE.
+   */
+  createRatingHistory: `
+    CREATE TABLE IF NOT EXISTS rating_history (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id   TEXT    NOT NULL,
+      domain       TEXT    NOT NULL,
+      delta        INTEGER NOT NULL,
+      rating_after INTEGER NOT NULL,
+      created_at   INTEGER NOT NULL,
+      FOREIGN KEY (session_id) REFERENCES game_sessions (id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_rating_history_domain
+      ON rating_history (domain, created_at);
+    CREATE INDEX IF NOT EXISTS idx_rating_history_session
+      ON rating_history (session_id);
+
+    CREATE TRIGGER IF NOT EXISTS trg_rating_history_no_update
+    BEFORE UPDATE ON rating_history
+    BEGIN
+      SELECT RAISE(ABORT, 'rating_history is append-only: UPDATE forbidden');
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_rating_history_no_delete
+    BEFORE DELETE ON rating_history
+    BEGIN
+      SELECT RAISE(ABORT, 'rating_history is append-only: DELETE forbidden');
+    END;
+  `,
+
+  /** User favorites (constitution §21: support favorites in discovery). */
+  createGameFavorites: `
+    CREATE TABLE IF NOT EXISTS game_favorites (
+      game_id    TEXT    PRIMARY KEY,
+      created_at INTEGER NOT NULL
+    );
+  `,
 };
 
 /** Ordered migrations from version 0 to SCHEMA_VERSION. Never reorder/patch old entries. */
@@ -114,6 +171,14 @@ export const MIGRATIONS: readonly Migration[] = [
       await exec(SQL.createGameSessions);
       await exec(SQL.createCurrencyLedger);
       await exec(SQL.createCurrencyBalanceView);
+    },
+  },
+  {
+    version: 2,
+    up: async (exec) => {
+      await exec(SQL.createDomainRatings);
+      await exec(SQL.createRatingHistory);
+      await exec(SQL.createGameFavorites);
     },
   },
 ];

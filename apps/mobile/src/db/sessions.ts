@@ -1,13 +1,21 @@
 import type { SQLiteAdapter } from './adapter';
 import { LOCAL_PROFILE_ID } from './profile';
-import type { CompleteSessionInput, GameSessionRecord, LedgerEntry } from './types';
+import { RatingRepository } from './rating';
+import type {
+  CompleteSessionInput,
+  GameSessionRecord,
+  LedgerEntry,
+  RatingDelta,
+  RatingService,
+} from './types';
 
 /**
  * Completed game sessions (constitution §9: "Completed sessions persist
  * atomically"). `completeSession` is the single write path: session row +
- * optional currency ledger entry + profile activity touch, all in one
- * transaction. A failure anywhere rolls everything back — no partial
- * session, no orphaned ledger entry.
+ * optional currency ledger entry + optional rating outcome (XP override,
+ * currency award, per-domain rating history) + profile activity touch, all
+ * in one transaction. A failure anywhere rolls everything back — no partial
+ * session, no orphaned ledger entry or rating movement.
  */
 
 interface SessionRow {
@@ -80,16 +88,34 @@ export interface CompleteSessionResult {
   ledgerEntry: LedgerEntry | null;
   /** Balance after this completion. */
   balance: number;
+  /**
+   * Rating outcome applied by the configured rating service, or null when no
+   * service is configured. `session.xp` reflects the outcome's authoritative
+   * XP when present.
+   */
+  rating: {
+    xp: number;
+    currency: number;
+    deltas: readonly RatingDelta[];
+    balance: number;
+  } | null;
 }
 
 export class SessionRepository {
   /**
    * @param now Injectable clock (Unix epoch ms) so tests are deterministic.
+   * @param rating Optional rating service (see `RatingService`): its outcome
+   *   is applied atomically with the session row.
    */
   constructor(
     private readonly adapter: SQLiteAdapter,
     private readonly now: () => number = () => Date.now(),
-  ) {}
+    private readonly rating?: RatingService,
+  ) {
+    this.ratingRepository = new RatingRepository(adapter, now);
+  }
+
+  private readonly ratingRepository: RatingRepository;
 
   /**
    * Persist a completed session atomically: session row, optional currency
@@ -111,6 +137,12 @@ export class SessionRepository {
     }
 
     return this.adapter.transaction(async (txn) => {
+      // When a rating service is configured, its outcome is authoritative for
+      // XP/currency/ratings and must be computed before the session row exists
+      // (the history rows reference the session id).
+      const outcome = this.rating ? await this.rating.compute({ session: s }) : null;
+      const xp = outcome ? outcome.xp : s.xp;
+
       await txn.run(INSERT_SESSION, [
         s.id,
         s.gameId,
@@ -121,7 +153,7 @@ export class SessionRepository {
         toJson(s.difficulty),
         toJson(s.rawResult),
         s.normalizedResult,
-        s.xp,
+        xp,
         s.startedAt,
         s.completedAt,
         s.durationMs,
@@ -143,6 +175,28 @@ export class SessionRepository {
           createdAt: s.completedAt,
         };
       }
+      // The rating service's gameplay award takes precedence in the returned
+      // entry (both entries are still appended to the ledger).
+      if (outcome && outcome.currency > 0) {
+        const result = await txn.run(INSERT_LEDGER_ENTRY, [
+          outcome.currency,
+          'gameplay',
+          s.id,
+          s.completedAt,
+        ]);
+        ledgerEntry = {
+          id: result.lastInsertRowId,
+          amount: outcome.currency,
+          reason: 'gameplay',
+          sessionId: s.id,
+          createdAt: s.completedAt,
+        };
+      }
+
+      const deltas: readonly RatingDelta[] = outcome ? outcome.deltas : [];
+      if (deltas.length > 0) {
+        await this.ratingRepository.applyDeltas(txn, s.id, deltas, s.completedAt);
+      }
 
       // Profile touch: record activity so consumers can detect "last active".
       const touchAt = this.now();
@@ -150,7 +204,15 @@ export class SessionRepository {
       await txn.run(PROFILE_TOUCH, [touchAt, LOCAL_PROFILE_ID]);
 
       const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
-      return { session: { ...s }, ledgerEntry, balance: balanceRow?.balance ?? 0 };
+      const stored = { ...s, xp };
+      return {
+        session: stored,
+        ledgerEntry,
+        balance: balanceRow?.balance ?? 0,
+        rating: outcome
+          ? { xp: outcome.xp, currency: outcome.currency, deltas, balance: balanceRow?.balance ?? 0 }
+          : null,
+      };
     });
   }
 
