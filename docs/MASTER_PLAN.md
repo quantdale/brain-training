@@ -109,6 +109,12 @@ All of the following:
 - coherent progress is committed/pushed to main
 - no unresolved Critical/High defect
 
+**Phase 1 status: COMPLETED on 2026-08-16** (Campaign 001; evidence in
+`.agent/checkpoints/001-autonomous-foundation-complete.md` and
+`.agent/VALIDATION.md`). One High regression was found and fixed during
+emulator QA (game route trapped in the NativeTabs navigator → `(tabs)` group +
+root Stack). The next campaign is Campaign 002 (this plan's Phase 2).
+
 ## Phase 2 — Eight Representative Games
 
 Expand to exactly one strong representative per top-level category before mass catalog expansion:

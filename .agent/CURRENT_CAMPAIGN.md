@@ -1,104 +1,78 @@
-# Campaign 001 — Autonomous Foundation
+# Campaign 002 — Eight Representative Games (Phase 2)
 
-**Status:** ACTIVE  
-**Campaign type:** implementation foundation  
-**Hardening:** NO — light/risk-based validation only  
-**Primary mode:** user-selected Day or Night  
-**Parent plan:** `docs/MASTER_PLAN.md` Phase 1
+**Status:** ACTIVE (staged; work begins on the next continuation goal)
+**Campaign type:** implementation
+**Hardening:** NO — light/risk-based validation only
+**Parent plan:** `docs/MASTER_PLAN.md` Phase 2
+
+## Context
+
+Campaign 001 (Autonomous Foundation) is COMPLETED
+(`.agent/checkpoints/001-autonomous-foundation-complete.md`). The platform
+exists: four-tab shell, SQLite persistence, Game SDK, generated registry,
+ADB/uiautomator harness, CI, recovery drill, and one representative Memory
+game — all verified on the dedicated AVD `braintraining35`.
 
 ## Objective
 
-Prove that this repository can be developed autonomously and non-interferingly before large feature expansion. Establish the real Expo/React Native application, local persistence, Game SDK skeleton, Android emulator control, QA diagnostics, CI, and one representative production-quality Memory game.
+Expand the catalog to exactly one strong representative game per top-level
+category (constitution §8, MASTER_PLAN Phase 2) before any mass expansion:
 
-## Preconditions
+1. **Memory** — `memory` (exists, campaign 001)
+2. **Attention** — rapid visual selection/distractor mechanics
+3. **Speed** — precision reaction timing
+4. **Math** — validated procedural arithmetic
+5. **Language** — curated/versioned content-pack path
+6. **Logic & Problem Solving** — procedural puzzle with solver/validation
+7. **Flexibility** — rule-switching state machine
+8. **Spatial** — richer visual/spatial rendering (Skia only if justified)
 
-Before changes:
+Each new game is a self-contained module under `apps/mobile/src/games/<id>/`
+with its own `game.json` (registered via `node scripts/generate-game-registry.mjs`),
+unit tests, semantic testIDs, tutorial, result normalization, persistence via
+`@/db`, and dev-only QA force-state hooks.
 
-1. Follow the startup protocol in `AGENTS.md`.
-2. Reconfirm current official Expo/React Native and chosen Android automation-tool support at execution time; record any consequential stack/version choice as an ADR.
-3. Inspect host toolchain and document missing prerequisites.
-4. Partition work so parallel agents do not concurrently edit shared package/config/schema/SDK hotspots.
+## Work packages (orchestrator splits into `.agent/tasks/` packets before swarm)
 
-## Work packages
-
-The orchestrator may split/refine these into `.agent/tasks/` packets before swarm execution.
-
-### WP-A — App scaffold and navigation
-
-Own the initial Expo/React Native TypeScript scaffold, app entry, root project scripts, basic design tokens, and four-tab shell: Home, Games, Progress, Profile/More.
-
-### WP-B — SQLite and persistent local profile
-
-Establish versioned schema/migration infrastructure, one persistent local profile, session-history foundations, and transaction-ledger foundation. Keep gameplay writes local-first.
-
-### WP-C — Game SDK skeleton
-
-Establish versioned interfaces/services for metadata, categories/domains, difficulty, seeded RNG, monotonic timing, lifecycle, pause, results/normalization, XP/rating hooks, tutorials, audio/haptics, QA semantics, and diagnostics.
-
-### WP-D — Android autonomous runtime harness
-
-Document/create dedicated AVD workflow; implement CLI/ADB install/launch/reset/input/screenshot/log pathways; integrate the chosen UI automation layer; prove no host mouse/keyboard is needed.
-
-### WP-E — First representative Memory game
-
-Build one real Memory game exercising deterministic generation, named/adaptive difficulty plumbing, pause obscuring, result normalization, persistence, tutorial, semantic IDs, and force-state QA hooks.
-
-### WP-F — Validation/CI/recovery proof
-
-Expand repository integrity CI into the available build/typecheck/unit/static checks. Create risk-based affected-area validation entrypoint and structured failure artifacts. Demonstrate fresh-session recovery and one safely partitioned swarm/convergence exercise.
+- WP-2A — Attention game
+- WP-2B — Speed game
+- WP-2C — Math game
+- WP-2D — Language game (+ bundled content pack v1 with version metadata)
+- WP-2E — Logic game (+ solver/validation)
+- WP-2F — Flexibility game
+- WP-2G — Spatial game
+- WP-2H — shared platform: normalized scoring, domain ratings + overall score,
+  XP/player level, currency ledger UI, results screens, game detail screens,
+  favorites/search/filter basics, basic Progress analytics
 
 ## Shared-file ownership rule
 
-The orchestrator owns shared package manifests/lockfiles, root configuration, navigation registries, database schema coordination, shared SDK contract integration, and generated registry/index convergence. Parallel coders must not race on these files.
+Same as campaign 001: orchestrator owns package manifests/lockfiles, root
+config, navigation registries, DB schema coordination, SDK contract
+integration, generated registry/index convergence. Parallel coders never race
+on those.
 
-## Light validation required during campaign
-
-As infrastructure becomes available:
+## Light validation required
 
 - repository-state validator
-- dependency install integrity
-- typecheck
-- relevant lint/static checks
-- unit/contract tests for changed foundations
-- app build/start smoke
-- one-emulator launch/navigation/game smoke
-- screenshot/log capture on runtime failures
-- no host-input interaction proof
-
-Do not run a full whole-app hardening campaign.
-
-## Critical/High blocker examples
-
-- app cannot build/start after a coherent wave
-- SQLite migration/persistence corrupts state
-- completed game result cannot persist atomically
-- host mouse/keyboard is required for routine QA
-- autonomous runtime cannot produce diagnostics for a failure
-- shared SDK design demonstrably prevents independent game modules
-
-Fix these before continuing or durably record a genuine external blocker.
+- typecheck + jest (whole tree)
+- web export smoke
+- registry generator `--check`
+- per-game targeted emulator smoke (orchestrator-owned runtime QA, one AVD)
+- no host-input proof maintained
 
 ## Exit criteria
 
-Campaign completes only when all are true:
-
-- Expo/React Native app exists and builds on the documented development host
-- four-tab shell exists
-- dedicated Android emulator workflow is documented and autonomously controllable
-- install/launch/reset/emulator-local input/screenshot/log workflow works without host mouse/keyboard
-- SQLite versioning/migrations and persistent local profile exist
-- Game SDK skeleton exists with deterministic/timing/QA contracts
-- one representative Memory game is playable end-to-end
-- QA can deterministically force or reproduce important game states
-- completed session persistence works
-- repository light validation and GitHub Actions are operational
-- day/night execution guidance is usable
-- fresh-session repository-only recovery has been demonstrated/documented
-- at least one parallel swarm packet/convergence exercise has been demonstrated safely
+- all eight representative games function (playable end-to-end on the emulator)
+- Game SDK survives all represented mechanics (canary coverage)
+- scoring/rating/XP/currency/progress persistence and Today's Workout work
+- results screens + game detail screens + favorites/search basics exist
+- light validation/canary suite works; CI green
 - no unresolved Critical/High defect
-- durable state/validation docs are updated
-- `main` is clean, committed, and pushed to the configured GitHub remote
+- committed docs/state match repository reality; clean `main` pushed
 
 ## On completion
 
-Update `.agent/STATE.md`, `.agent/VALIDATION.md`, and `docs/MASTER_PLAN.md` evidence; archive campaign completion checkpoint; set the next active campaign for Phase 2 rather than starting mass catalog expansion prematurely.
+Archive checkpoint; set the Phase 3 campaign (Platform Integration +
+Autonomy/Platform Gate) per MASTER_PLAN; do NOT enter mass catalog expansion
+(Phase 4) before the gate is satisfied.

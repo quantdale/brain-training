@@ -52,7 +52,7 @@ if (governance) {
 const state = fs.existsSync(path.join(root, '.agent/STATE.md')) ? fs.readFileSync(path.join(root, '.agent/STATE.md'), 'utf8') : '';
 const campaign = fs.existsSync(path.join(root, '.agent/CURRENT_CAMPAIGN.md')) ? fs.readFileSync(path.join(root, '.agent/CURRENT_CAMPAIGN.md'), 'utf8') : '';
 if (governance?.activeCampaign && !state.includes(governance.activeCampaign)) errors.push('STATE.md does not reference governance activeCampaign');
-if (governance?.activeCampaign && !campaign.toLowerCase().includes('campaign 001')) errors.push('CURRENT_CAMPAIGN.md does not appear to match active campaign 001');
+if (governance?.activeCampaign && !campaign.toLowerCase().includes('campaign 002')) errors.push('CURRENT_CAMPAIGN.md does not appear to match active campaign 002');
 
 if (errors.length) {
   console.error('Repository state validation FAILED:\n');

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "001-autonomous-foundation",
+  "activeCampaign": "002-eight-representative-games",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

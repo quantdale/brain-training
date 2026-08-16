@@ -63,8 +63,42 @@ unavailable checks into PASS.
 - Evidence: `docs/RECOVERY_DRILL.md` (procedure + this drill + wave-1/2
   convergence records).
 
-## Emulator QA (pending — this section will be filled with the run results)
+## Emulator QA (2026-08-16, commits `d886ce3` + fix `d380699`, AVD `braintraining35`)
 
-- Android debug APK build (`expo run:android`): IN PROGRESS.
-- Install/launch/navigation/memory-game/pause/force-win/session-persistence
-  smoke on `braintraining35`: NOT VALIDATED yet.
+Android debug APK (`app-debug.apk`, `expo run:android`, assembleDebug 11m02s):
+**PASS**. Install/launch (with `adb reverse tcp:8081` for the Metro bundle), four-tab
+shell, Games library with registered Memory game, `/game/memory` route, tutorial
+auto-open + QA skip, difficulty selector, Round 1/5 reveal + input phase, pause
+overlay (opaque, timers frozen — verified via persisted `pausedDurationMs`),
+QA force-win → results screen (Score 750, Accuracy 100%, 5/5, forced badge).
+Session persistence verified on-device: `files/SQLite/brain-training.db` pulled
+via `run-as`; `user_version=1`; `game_sessions` row with full
+versions/seed/difficulty/raw+normalized result/diagnostics; `profile` row
+created and touched; `currency_ledger` empty (no currency in Phase 1).
+
+Run artifacts: `qa-artifacts/20260816-memory-game-smoke/` (run.json, exit codes,
+hierarchy dumps, logcat, device-db.sqlite).
+
+**High regression found & fixed during QA**: `/game/[id]` was unreachable (tap +
+deep link) because the route lived inside the NativeTabs navigator (only
+declared triggers are navigable). Fixed by restructuring tab screens into the
+`app/(tabs)/` group and making the root layout a Stack — commit `d380699`;
+re-verified on-device after the fix. Typecheck + 183/183 tests + web export
+green post-fix.
+
+Known environment limitations (recorded, not product defects):
+- `screencap`/`screenrecord` return black/empty frames for GPU-composited app
+  content under `-gpu swiftshader_indirect` headless; uiautomator hierarchy
+  dumps are the working visual evidence. Verify with `-gpu host` in a future
+  campaign if screenshots become mandatory.
+- Emulator 37.1.11 (WHPX) wedges under host memory pressure; mitigate by
+  stopping gradle daemons after builds and cold-booting with `-memory 3072`.
+- Expo SDK 57 template `expo-env.d.ts` is committed (ADR 0004); `expo export`
+  does not regenerate it.
+
+## Campaign 001 exit-criteria evidence (2026-08-16)
+
+All exit criteria verified; see `.agent/CURRENT_CAMPAIGN.md` (COMPLETED) and
+`.agent/checkpoints/001-autonomous-foundation-complete.md` for the full table.
+CI status at completion: App CI + Repository Integrity green on `d380699`
+(GitHub Actions).

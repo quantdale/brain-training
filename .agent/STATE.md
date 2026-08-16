@@ -1,52 +1,51 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-16 (wave 2 + convergence)
+**Last update:** 2026-08-16 (Campaign 001 COMPLETED)
 **Canonical branch:** `main`
-**Active campaign:** `001-autonomous-foundation` (Phase 1 — Autonomous Foundation)
+**Active campaign:** `002-eight-representative-games` (Phase 2 — staged; next continuation goal executes it)
 
 ## Current status
 
-Campaign 001 is in its final validation wave. All six work packets are code-complete:
+**Campaign 001 (Autonomous Foundation) is COMPLETED.** All exit criteria are
+verified (see `.agent/checkpoints/001-autonomous-foundation-complete.md` and
+`.agent/VALIDATION.md`). The platform is production-shaped and was verified
+end-to-end on the dedicated AVD:
 
-- WP-A app shell (four-tab shell + design tokens + registry consumer) — DONE
-- WP-B SQLite persistence (migrations, profile, atomic sessions, ledger) — DONE
-- WP-C Game SDK skeleton (versioned contracts + reference implementations) — DONE
-- WP-D Android autonomous runtime harness (pure ADB/uiautomator) — DONE
-- WP-E Memory game (sequence recall, production quality) — DONE
-- WP-F Validation/CI/recovery proof (app CI green, drills recorded) — DONE
+- Expo SDK 57 app (`apps/mobile`) — four-tab shell, design tokens, dynamic
+  `/game/[id]` route (root Stack + `(tabs)` group).
+- SQLite persistence (`src/db`) — versioned migrations, local profile,
+  atomic `completeSession`, append-only currency ledger; verified on-device
+  (`files/SQLite/brain-training.db`, `user_version=1`, session row present).
+- Game SDK (`src/sdk`) — versioned contracts + reference implementations
+  (RNG, lifecycle, timing, difficulty, pause, normalization, XP/rating hooks,
+  tutorial, audio/haptics, testIDs, diagnostics, QA force-state).
+- Android harness (`scripts/android/`) — dedicated AVD `braintraining35`
+  (API 35, aosp_atd), install/launch/reset/input/hierarchy/screenshot/logs,
+  no host mouse/keyboard; documented in `docs/ANDROID_AUTOMATION.md`.
+- One representative Memory game (`src/games/memory`) — playable end-to-end
+  on the emulator; persistence proven.
+- CI green (App CI + Repository Integrity) on every pushed commit.
 
-Remaining before campaign completion: Android debug APK build + one-emulator
-end-to-end smoke (install/launch/navigation/memory game/pause/force-win/
-session persistence), then close-out (STATE/VALIDATION update, checkpoint,
-campaign archive → Phase 2 campaign file).
+## Completed campaign 001
 
-## Completed (committed on `main`)
+- `ea7488c` wave0 scaffold · `2816ea7` wave1 (5 packets + convergence) ·
+  `cc543fc` registry loaders · `d886ce3` memory game · `d380699` navigation
+  fix + emulator QA evidence (High regression fixed: game route trapped in
+  NativeTabs → `(tabs)` group + root Stack).
 
-- `ea7488c` wave0 — Expo SDK 57 scaffold (`apps/mobile`), test infra
-  (jest-expo + better-sqlite3 test backend), provisional identity
-  (`com.braintraining.app`), ADR-0004 (stack + pure-ADB automation decision),
-  six campaign task packets, root README encoding repair.
-- `2816ea7` wave1 — five parallel packets merged + orchestrator convergence:
-  shell, persistence, SDK, harness, CI; registry generator + startup wiring;
-  SDK category aligned to constitution; `@types/jest`; metro wasm fix.
-  Validation: typecheck PASS, jest 104/104, web export PASS, CI green.
-- `cc543fc` converge — lazy game-screen loaders in registry generator;
-  `/game/[id]` renders via Suspense; GameDefinition gains `description`.
-- `d886ce3` wave2 — Memory game module (deterministic generation, adaptive
-  difficulty, lifecycle pause, normalization, persistence, tutorial, QA
-  force-state hooks; 79 tests). Validation: typecheck PASS, jest 183/183,
-  web export PASS, App CI + Repository Integrity green.
+## Next required action
 
-## Validation evidence
-
-See `.agent/VALIDATION.md` for the full evidence log (waves 0–2 + recovery
-drill + emulator QA rows).
+Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 002 (Eight Representative
+Games, Phase 2): seven new game modules (Attention, Speed, Math, Language,
+Logic, Flexibility, Spatial) plus shared platform surfaces (scoring/ratings/
+XP/currency UI, results, game detail, favorites/search, Progress analytics).
+Mass catalog expansion (Phase 4) must wait for the Phase 3 gate.
 
 ## Important invariants
 
 - Android-first autonomous QA; iOS later compatibility campaign.
-- One emulator by default (dedicated AVD `braintraining35`, API 35, aosp_atd).
+- One emulator by default (dedicated AVD `braintraining35`).
 - No host mouse/keyboard automation.
 - Up to ~7 coder agents where work is safely partitioned.
 - No autonomous full hardening.
@@ -58,4 +57,5 @@ drill + emulator QA rows).
 A fresh agent should not require the chat that created this repository. Read
 `AGENTS.md`, the constitution, governance JSON, current campaign, state,
 validation, and recent Git history before working. Recovery is demonstrated —
-see `docs/RECOVERY_DRILL.md`.
+see `docs/RECOVERY_DRILL.md`. Environment watch items (emulator stability,
+screencap black frames) are in `.agent/KNOWN_ISSUES.md`.
