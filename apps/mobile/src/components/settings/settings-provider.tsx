@@ -20,6 +20,8 @@ import {
   type ReactNode,
 } from 'react';
 
+import { DEFAULT_THEME_ID } from '@/theme/registry';
+
 /** Sensory setting keys exposed toggles for. */
 export type SettingKey = 'sfx' | 'music' | 'haptics';
 
@@ -35,18 +37,32 @@ interface SettingsContextValue {
   settings: Settings;
   /** Set one toggle; other toggles are preserved. */
   setSetting: (key: SettingKey, value: boolean) => void;
+  /** Selected theme id (see `src/theme/registry.ts`). */
+  themeId: string;
+  setThemeId: (id: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
 
-export function SettingsProvider({ children }: { children: ReactNode }) {
+export function SettingsProvider({
+  children,
+  initialThemeId = DEFAULT_THEME_ID,
+}: {
+  children: ReactNode;
+  /** Persisted theme id read from profile settings at startup. */
+  initialThemeId?: string;
+}) {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [themeId, setThemeId] = useState<string>(initialThemeId);
 
   const setSetting = useCallback((key: SettingKey, value: boolean) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const value = useMemo(() => ({ settings, setSetting }), [settings, setSetting]);
+  const value = useMemo(
+    () => ({ settings, setSetting, themeId, setThemeId }),
+    [settings, setSetting, themeId],
+  );
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }

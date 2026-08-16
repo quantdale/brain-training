@@ -1,11 +1,13 @@
 /**
- * Home — dashboard (Wave 1 shell + WP-2H Today's Workout).
+ * Home — dashboard (Wave 1 shell + WP-2H + campaign 003 personalization).
  *
  * Static slots per PROJECT_CONSTITUTION §13, in first-viewport order:
  * Today's Workout CTA, streak/XP/level stats, recent games. The workout is a
- * deterministic daily 4-game selection (src/workout/today.ts) with one free
- * reroll; streak/XP stats stay placeholders until Phase 3. Slot testIDs are
- * the stable QA contract.
+ * deterministic daily 4-game selection personalized with weak-domain
+ * balancing + recency avoidance (src/workout/personalize.ts); rerolls follow
+ * §14 economics — first free, then escalating coin costs (ledger-debited).
+ * Streak/XP/level read real persisted data when the db is available and
+ * degrade to placeholders otherwise. Slot testIDs are the stable QA contract.
  */
 
 import { Link } from 'expo-router';
@@ -16,14 +18,97 @@ import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
+import type { AppDatabase, DomainRating } from '@/db';
+import { getDb } from '@/db';
+import { useDbData } from '@/hooks/use-db-data';
+import { levelForXp } from '@/rating';
 import { getAllGameDefinitions } from '@/registry/registry';
-import { dailyWorkout, localDateString } from '@/workout/today';
+import { effectiveCurrent, reconstructStreak } from '@/streaks';
+import { localDateString } from '@/workout/today';
+import { personalizedWorkout } from '@/workout/personalize';
+import { canAffordReroll, MAX_REROLLS_PER_DAY, rerollCost } from '@/workout/reroll';
+
+interface HomeData {
+  domainRatings: DomainRating[];
+  recentGameIds: string[];
+  /** Local YYYY-MM-DD of each recent session (for streak reconstruction). */
+  activityDates: string[];
+  balance: number;
+  totalXp: number;
+}
+
+const EMPTY_HOME: HomeData = {
+  domainRatings: [],
+  recentGameIds: [],
+  activityDates: [],
+  balance: 0,
+  totalXp: 0,
+};
+
+async function loadHome(db: AppDatabase): Promise<HomeData> {
+  const [domainRatings, recent, balance, sessionXp, awardsXp] = await Promise.all([
+    db.ratings.getRatings(),
+    db.sessions.listRecent(30),
+    db.ledger.getBalance(),
+    db.sessions.getTotalXp(),
+    db.xpAwards.getTotalAwardedXp(),
+  ]);
+  return {
+    domainRatings,
+    recentGameIds: recent.map((session) => session.gameId),
+    activityDates: recent.map((session) => localDateString(new Date(session.completedAt))),
+    balance,
+    totalXp: sessionXp + awardsXp,
+  };
+}
 
 export default function HomeScreen() {
   const games = getAllGameDefinitions();
+  const today = localDateString();
   const [rerollAttempt, setRerollAttempt] = useState(0);
-  const workout = dailyWorkout(games, localDateString(), rerollAttempt);
+  const { data, loaded } = useDbData(loadHome, [rerollAttempt], EMPTY_HOME);
+
+  const workout = personalizedWorkout(
+    games,
+    today,
+    data.domainRatings,
+    data.recentGameIds,
+    rerollAttempt,
+  );
+  const nextRerollCost = rerollCost(rerollAttempt);
+  const rerollAffordable = canAffordReroll(data.balance, rerollAttempt);
   const rerollUsed = rerollAttempt >= 1;
+  const rerollExhausted = rerollAttempt >= MAX_REROLLS_PER_DAY;
+
+  const streak = reconstructStreak(data.activityDates, today);
+  const currentStreak = effectiveCurrent(streak, today);
+  const level = levelForXp(data.totalXp);
+
+  const onReroll = async () => {
+    if (!rerollAffordable || rerollExhausted) {
+      return;
+    }
+    try {
+      // First reroll per day is free; later rerolls debit the coin ledger
+      // (constitution §14 economics).
+      if (nextRerollCost > 0) {
+        await getDb().ledger.append({ amount: -nextRerollCost, reason: 'workout-reroll' });
+      }
+      setRerollAttempt((attempt) => attempt + 1);
+    } catch (error) {
+      // Persistence unavailable: surface nothing and stay put rather than
+      // granting a paid reroll that was never debited.
+      console.error('[home] reroll failed', error);
+    }
+  };
+
+  const rerollLabel = rerollExhausted
+    ? 'No rerolls left'
+    : nextRerollCost === 0
+      ? 'Reroll workout (free)'
+      : rerollAffordable
+        ? `Reroll workout (${nextRerollCost} coins)`
+        : `Need ${nextRerollCost} coins`;
 
   return (
     <ScreenShell>
@@ -40,8 +125,9 @@ export default function HomeScreen() {
         {workout.length > 0 ? (
           <>
             <ThemedText type="small" themeColor="textSecondary">
-              Your daily {workout.length}-game training plan. Play any game to
-              earn XP and train your ratings.
+              Your daily {workout.length}-game training plan, balanced toward
+              your weakest domains. Play any game to earn XP and train your
+              ratings.
             </ThemedText>
             <View style={styles.workoutList} testID="home-workout-list">
               {workout.map((game, index) => (
@@ -64,14 +150,23 @@ export default function HomeScreen() {
             <Pressable
               testID="home-workout-reroll"
               accessibilityRole="button"
-              disabled={rerollUsed}
-              onPress={() => setRerollAttempt(rerollAttempt + 1)}>
-              <ThemedView type={rerollUsed ? 'surface' : 'accentSoft'} style={styles.ctaPill}>
+              disabled={!rerollAffordable || rerollExhausted}
+              onPress={onReroll}>
+              <ThemedView
+                type={rerollExhausted || !rerollAffordable ? 'surface' : 'accentSoft'}
+                style={styles.ctaPill}>
                 <ThemedText type="smallBold" themeColor="accent">
-                  {rerollUsed ? 'Reroll used' : 'Reroll workout (free)'}
+                  {rerollLabel}
                 </ThemedText>
               </ThemedView>
             </Pressable>
+            {rerollUsed && !rerollExhausted && (
+              <ThemedText type="caption" themeColor="textSecondary" testID="home-reroll-hint">
+                {rerollAffordable
+                  ? `${MAX_REROLLS_PER_DAY - rerollAttempt} reroll${MAX_REROLLS_PER_DAY - rerollAttempt === 1 ? '' : 's'} left today`
+                  : 'Not enough coins for another reroll'}
+              </ThemedText>
+            )}
           </>
         ) : (
           <ThemedText type="small" themeColor="textSecondary">
@@ -81,12 +176,17 @@ export default function HomeScreen() {
         )}
       </ThemedView>
 
-      {/* Streak / XP / level slot — static placeholder values. */}
+      {/* Streak / XP / level slot — real values when the db is available. */}
       <View style={styles.statsRow}>
-        <StatCard testID="home-stat-streak" label="Streak" value="0 days" />
-        <StatCard testID="home-stat-xp" label="XP" value="0" />
-        <StatCard testID="home-stat-level" label="Level" value="1" />
+        <StatCard testID="home-stat-streak" label="Streak" value={`${currentStreak} days`} />
+        <StatCard testID="home-stat-xp" label="XP" value={`${data.totalXp}`} />
+        <StatCard testID="home-stat-level" label="Level" value={`${level}`} />
       </View>
+      {loaded && streak.atRisk && (
+        <ThemedText type="caption" themeColor="warning" testID="home-streak-at-risk">
+          Play today to keep your streak alive.
+        </ThemedText>
+      )}
 
       {/* Recent games slot — empty until sessions are persisted. */}
       <ThemedView type="surface" style={styles.recentCard} testID="home-recent-games">

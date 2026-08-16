@@ -1,0 +1,1270 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "black",
+        "flex": 1,
+        "justifyContent": "center",
+        "padding": 24,
+        "paddingBottom": 64,
+      }
+    }
+    testID="expo-router-unmatched"
+  >
+    <Image
+      source={
+        {
+          "testUri": "../../expo-router/assets/unmatched.png",
+        }
+      }
+      style={
+        {
+          "height": 168,
+          "marginBottom": 28,
+          "resizeMode": "contain",
+          "width": 270,
+        }
+      }
+    />
+    <Text
+      aria-level={1}
+      role="heading"
+      style={
+        {
+          "color": "#fff",
+          "fontSize": 56,
+          "fontWeight": "800",
+          "lineHeight": 56,
+          "textAlign": "center",
+        }
+      }
+    >
+      Unmatched Route
+    </Text>
+    <Text
+      aria-level={2}
+      role="heading"
+      style={
+        [
+          {
+            "fontSize": 34,
+            "fontWeight": "200",
+            "marginBottom": 12,
+            "marginTop": 4,
+            "textAlign": "center",
+          },
+          {
+            "color": "#9ba1a6",
+          },
+        ]
+      }
+    >
+      Page could not be found.
+    </Text>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      href="/games"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      role="link"
+    >
+      <Text
+        style={
+          [
+            {
+              "minHeight": 20,
+            },
+            {
+              "color": "#9ba1a6",
+            },
+            undefined,
+            undefined,
+            false,
+          ]
+        }
+      >
+        yourscheme:///games
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 12,
+          "marginTop": 28,
+        }
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <Text
+          onPress={[Function]}
+          style={
+            [
+              {
+                "color": "#52a9ff",
+                "fontSize": 20,
+                "textAlign": "center",
+              },
+              undefined,
+              undefined,
+              false,
+            ]
+          }
+        >
+          Go back
+        </Text>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 20,
+            },
+            {
+              "color": "#9ba1a6",
+            },
+          ]
+        }
+      >
+        •
+      </Text>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        href="/_sitemap"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        role="link"
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#52a9ff",
+                "fontSize": 20,
+                "textAlign": "center",
+              },
+              undefined,
+              undefined,
+              false,
+            ]
+          }
+        >
+          Sitemap
+        </Text>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaProvider>
+`;
+
+exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <RNCSafeAreaView
+    edges={
+      {
+        "bottom": "additive",
+        "left": "additive",
+        "right": "additive",
+        "top": "additive",
+      }
+    }
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <RNCSafeAreaView
+      edges={
+        {
+          "bottom": "off",
+          "left": "additive",
+          "right": "additive",
+          "top": "additive",
+        }
+      }
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RCTScrollView
+        contentContainerStyle={
+          [
+            {
+              "flexDirection": "row",
+              "justifyContent": "center",
+            },
+            {
+              "paddingBottom": 24,
+            },
+          ]
+        }
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <View>
+          <View
+            style={
+              {
+                "flexGrow": 1,
+                "gap": 16,
+                "maxWidth": 800,
+                "paddingHorizontal": 24,
+                "paddingTop": 24,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#4F6BFF",
+                  },
+                  false,
+                  {
+                    "fontSize": 12,
+                    "fontWeight": "500",
+                    "lineHeight": 16,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+              testID="home-brand"
+            >
+              BRAIN TRAINING
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#161A26",
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  {
+                    "fontSize": 28,
+                    "fontWeight": "600",
+                    "lineHeight": 36,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+              testID="home-title"
+            >
+              Home
+            </Text>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 8,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="home-workout-cta"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Today's Workout
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    false,
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 20,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Your daily 4-game training plan will appear here once games are registered.
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "gap": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#FFFFFF",
+                    },
+                    {
+                      "borderRadius": 12,
+                      "flex": 1,
+                      "gap": 2,
+                      "padding": 16,
+                    },
+                  ]
+                }
+                testID="home-stat-streak"
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#4F6BFF",
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 22,
+                        "fontWeight": "600",
+                        "lineHeight": 30,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  0 days
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#5D6474",
+                      },
+                      false,
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "lineHeight": 16,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Streak
+                </Text>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#FFFFFF",
+                    },
+                    {
+                      "borderRadius": 12,
+                      "flex": 1,
+                      "gap": 2,
+                      "padding": 16,
+                    },
+                  ]
+                }
+                testID="home-stat-xp"
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#4F6BFF",
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 22,
+                        "fontWeight": "600",
+                        "lineHeight": 30,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  0
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#5D6474",
+                      },
+                      false,
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "lineHeight": 16,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  XP
+                </Text>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#FFFFFF",
+                    },
+                    {
+                      "borderRadius": 12,
+                      "flex": 1,
+                      "gap": 2,
+                      "padding": 16,
+                    },
+                  ]
+                }
+                testID="home-stat-level"
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#4F6BFF",
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 22,
+                        "fontWeight": "600",
+                        "lineHeight": 30,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  1
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#5D6474",
+                      },
+                      false,
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "lineHeight": 16,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Level
+                </Text>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 8,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="home-recent-games"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Recent games
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    false,
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 20,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Your latest sessions will show up here after your first workout.
+              </Text>
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+    </RNCSafeAreaView>
+  </RNCSafeAreaView>
+</RNCSafeAreaProvider>
+`;
+
+exports[`visual baselines (canary set) Profile — db-unavailable fallback snapshot 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "black",
+        "flex": 1,
+        "justifyContent": "center",
+        "padding": 24,
+        "paddingBottom": 64,
+      }
+    }
+    testID="expo-router-unmatched"
+  >
+    <Image
+      source={
+        {
+          "testUri": "../../expo-router/assets/unmatched.png",
+        }
+      }
+      style={
+        {
+          "height": 168,
+          "marginBottom": 28,
+          "resizeMode": "contain",
+          "width": 270,
+        }
+      }
+    />
+    <Text
+      aria-level={1}
+      role="heading"
+      style={
+        {
+          "color": "#fff",
+          "fontSize": 56,
+          "fontWeight": "800",
+          "lineHeight": 56,
+          "textAlign": "center",
+        }
+      }
+    >
+      Unmatched Route
+    </Text>
+    <Text
+      aria-level={2}
+      role="heading"
+      style={
+        [
+          {
+            "fontSize": 34,
+            "fontWeight": "200",
+            "marginBottom": 12,
+            "marginTop": 4,
+            "textAlign": "center",
+          },
+          {
+            "color": "#9ba1a6",
+          },
+        ]
+      }
+    >
+      Page could not be found.
+    </Text>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      href="/profile"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      role="link"
+    >
+      <Text
+        style={
+          [
+            {
+              "minHeight": 20,
+            },
+            {
+              "color": "#9ba1a6",
+            },
+            undefined,
+            undefined,
+            false,
+          ]
+        }
+      >
+        yourscheme:///profile
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 12,
+          "marginTop": 28,
+        }
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <Text
+          onPress={[Function]}
+          style={
+            [
+              {
+                "color": "#52a9ff",
+                "fontSize": 20,
+                "textAlign": "center",
+              },
+              undefined,
+              undefined,
+              false,
+            ]
+          }
+        >
+          Go back
+        </Text>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 20,
+            },
+            {
+              "color": "#9ba1a6",
+            },
+          ]
+        }
+      >
+        •
+      </Text>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        href="/_sitemap"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        role="link"
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#52a9ff",
+                "fontSize": 20,
+                "textAlign": "center",
+              },
+              undefined,
+              undefined,
+              false,
+            ]
+          }
+        >
+          Sitemap
+        </Text>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaProvider>
+`;
+
+exports[`visual baselines (canary set) Progress — db-unavailable fallback snapshot 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "black",
+        "flex": 1,
+        "justifyContent": "center",
+        "padding": 24,
+        "paddingBottom": 64,
+      }
+    }
+    testID="expo-router-unmatched"
+  >
+    <Image
+      source={
+        {
+          "testUri": "../../expo-router/assets/unmatched.png",
+        }
+      }
+      style={
+        {
+          "height": 168,
+          "marginBottom": 28,
+          "resizeMode": "contain",
+          "width": 270,
+        }
+      }
+    />
+    <Text
+      aria-level={1}
+      role="heading"
+      style={
+        {
+          "color": "#fff",
+          "fontSize": 56,
+          "fontWeight": "800",
+          "lineHeight": 56,
+          "textAlign": "center",
+        }
+      }
+    >
+      Unmatched Route
+    </Text>
+    <Text
+      aria-level={2}
+      role="heading"
+      style={
+        [
+          {
+            "fontSize": 34,
+            "fontWeight": "200",
+            "marginBottom": 12,
+            "marginTop": 4,
+            "textAlign": "center",
+          },
+          {
+            "color": "#9ba1a6",
+          },
+        ]
+      }
+    >
+      Page could not be found.
+    </Text>
+    <View
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      href="/progress"
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      role="link"
+    >
+      <Text
+        style={
+          [
+            {
+              "minHeight": 20,
+            },
+            {
+              "color": "#9ba1a6",
+            },
+            undefined,
+            undefined,
+            false,
+          ]
+        }
+      >
+        yourscheme:///progress
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "gap": 12,
+          "marginTop": 28,
+        }
+      }
+    >
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <Text
+          onPress={[Function]}
+          style={
+            [
+              {
+                "color": "#52a9ff",
+                "fontSize": 20,
+                "textAlign": "center",
+              },
+              undefined,
+              undefined,
+              false,
+            ]
+          }
+        >
+          Go back
+        </Text>
+      </View>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 20,
+            },
+            {
+              "color": "#9ba1a6",
+            },
+          ]
+        }
+      >
+        •
+      </Text>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        href="/_sitemap"
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        role="link"
+      >
+        <Text
+          style={
+            [
+              {
+                "color": "#52a9ff",
+                "fontSize": 20,
+                "textAlign": "center",
+              },
+              undefined,
+              undefined,
+              false,
+            ]
+          }
+        >
+          Sitemap
+        </Text>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaProvider>
+`;

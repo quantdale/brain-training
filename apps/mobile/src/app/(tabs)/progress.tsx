@@ -42,15 +42,18 @@ interface ProgressData {
 }
 
 async function loadProgress(db: AppDatabase): Promise<ProgressData> {
-  const [totalXp, balance, aggregates, domainRatings, recent] = await Promise.all([
+  // Lifetime XP = session XP + reward awards (quests/achievements flow
+  // through xp_awards, so the sum is never double-counted).
+  const [sessionXp, awardXp, balance, aggregates, domainRatings, recent] = await Promise.all([
     db.sessions.getTotalXp(),
+    db.xpAwards.getTotalAwardedXp(),
     db.ledger.getBalance(),
     db.sessions.getAggregates(),
     db.ratings.getRatings(),
     db.sessions.listRecent(10),
   ]);
   return {
-    totalXp,
+    totalXp: sessionXp + awardXp,
     balance,
     sessionCount: aggregates.reduce((sum, a) => sum + a.count, 0),
     domainRatings,

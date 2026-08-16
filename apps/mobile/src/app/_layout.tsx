@@ -2,8 +2,11 @@
  * Root layout — app-level providers + navigation stack.
  *
  * - Initializes SQLite (`initDatabase`) and the generated game registry
- *   (`registerGameDefinitions`) before first render.
+ *   (`registerGameDefinitions`) before first render; seeds the versioned
+ *   quest/achievement definitions and syncs progression (`initializeProgression`).
  * - Theme + settings providers wrap everything, including the game route.
+ *   The selected theme id (profile settings, default 'system') is resolved
+ *   against the OS scheme by `RootNavigator` so theme changes apply live.
  * - Navigation structure: `(tabs)` group (Home/Games/Progress/Profile) plus
  *   the `game/[id]` route OUTSIDE the tab navigator (NativeTabs only handles
  *   its declared triggers; the game screen must not live inside the tab
@@ -15,15 +18,18 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { SettingsProvider, useSettings } from '@/components/settings/settings-provider';
 import { createRatingPipeline } from '@/rating';
-import { SettingsProvider } from '@/components/settings/settings-provider';
 import { initDatabase } from '@/db';
+import { getDb } from '@/db';
+import { initializeProgression } from '@/progression';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions, getGameDefinition } from '@/registry/registry';
+import { THEME_SETTINGS_KEY, resolveThemeMode } from '@/theme/registry';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [ready, setReady] = useState(false);
+  const [initialThemeId, setInitialThemeId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +50,16 @@ export default function RootLayout() {
           }),
         });
         registerGameDefinitions(registry);
+        // Seed versioned quest/achievement definitions and sync progression
+        // (idempotent; failures must not brick startup — caught below).
+        await initializeProgression(getDb(), new Date());
+        // Persisted theme selection (profile settings), applied via the
+        // SettingsProvider initial value.
+        const profile = await getDb().profile.get();
+        const theme = profile?.settings?.[THEME_SETTINGS_KEY];
+        if (!cancelled && typeof theme === 'string') {
+          setInitialThemeId(theme);
+        }
       } catch (error) {
         // Never brick startup on an initialization failure: log it and keep
         // rendering. Per-surface errors surface at the point of use.
@@ -64,15 +80,31 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <SettingsProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="game/[id]" />
-          <Stack.Screen name="game-detail/[id]" />
-          <Stack.Screen name="results" />
-        </Stack>
-      </SettingsProvider>
+    <SettingsProvider initialThemeId={initialThemeId}>
+      <RootNavigator />
+    </SettingsProvider>
+  );
+}
+
+/**
+ * Navigation + theme wiring. Lives under SettingsProvider so the selected
+ * theme id re-renders the ThemeProvider value live on change.
+ */
+function RootNavigator() {
+  const colorScheme = useColorScheme();
+  const { themeId } = useSettings();
+  // 'unspecified' (iOS) and null behave like the light scheme for resolution.
+  const mode = resolveThemeMode(themeId, colorScheme === 'dark' ? 'dark' : 'light');
+
+  return (
+    <ThemeProvider value={mode === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="game/[id]" />
+        <Stack.Screen name="game-detail/[id]" />
+        <Stack.Screen name="results" />
+        <Stack.Screen name="progress-detail" />
+      </Stack>
     </ThemeProvider>
   );
 }
