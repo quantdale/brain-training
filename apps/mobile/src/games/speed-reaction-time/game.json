@@ -1,0 +1,13 @@
+{
+  "id": "speed-reaction-time",
+  "name": "Reaction Time",
+  "primaryCategory": "Speed",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Watch for the signal and tap as fast as you can — how quick is your reaction?",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}

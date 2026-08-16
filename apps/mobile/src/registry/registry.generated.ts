@@ -10,6 +10,68 @@ import type { GameDefinition } from '@/sdk';
 
 export const registry: readonly GameDefinition[] = [
   {
+    id: "attention-visual-search",
+    name: "Visual Search",
+    primaryCategory: "Attention",
+    secondaryDomains: [
+    "Speed"
+  ],
+    description: "Find the odd tile and tap it — fast, before the clock runs out.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "flexibility-card-sort",
+    name: "Card Sort",
+    primaryCategory: "Flexibility",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Match cards by the active rule — the rule keeps switching, so stay flexible.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "language-word-match",
+    name: "Word Match",
+    primaryCategory: "Language",
+    description: "Pick the word that means the same as the prompt — four options, one perfect match.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: null,
+    hasTutorial: true,
+  },
+  {
+    id: "logic-next-sequence",
+    name: "Next in Sequence",
+    primaryCategory: "Logic & Problem Solving",
+    secondaryDomains: [
+    "Math"
+  ],
+    description: "Spot the pattern in a number sequence, then pick the next term.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "math-fast-math",
+    name: "Fast Math",
+    primaryCategory: "Math",
+    secondaryDomains: [
+    "Speed"
+  ],
+    description: "Solve arithmetic problems against the clock — every problem is validated to have an exact, non-negative answer.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "memory",
     name: "Memory",
     primaryCategory: "Memory",
@@ -17,6 +79,32 @@ export const registry: readonly GameDefinition[] = [
     "Attention"
   ],
     description: "Watch the tiles light up in sequence, then repeat the pattern from memory.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "spatial-mental-rotation",
+    name: "Mental Rotation",
+    primaryCategory: "Spatial",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Decide whether the candidate shape is a rotated copy of the target — or a different shape.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "speed-reaction-time",
+    name: "Reaction Time",
+    primaryCategory: "Speed",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Watch for the signal and tap as fast as you can — how quick is your reaction?",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
@@ -30,5 +118,12 @@ export const registry: readonly GameDefinition[] = [
  * through this map; games never hand-edit this file.
  */
 export const gameScreenLoaders: Record<string, () => Promise<{ default: ComponentType }>> = {
+  'attention-visual-search': () => import('@/games/attention-visual-search'),
+  'flexibility-card-sort': () => import('@/games/flexibility-card-sort'),
+  'language-word-match': () => import('@/games/language-word-match'),
+  'logic-next-sequence': () => import('@/games/logic-next-sequence'),
+  'math-fast-math': () => import('@/games/math-fast-math'),
   'memory': () => import('@/games/memory'),
+  'spatial-mental-rotation': () => import('@/games/spatial-mental-rotation'),
+  'speed-reaction-time': () => import('@/games/speed-reaction-time'),
 };

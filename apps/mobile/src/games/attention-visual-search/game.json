@@ -1,0 +1,13 @@
+{
+  "id": "attention-visual-search",
+  "name": "Visual Search",
+  "primaryCategory": "Attention",
+  "secondaryDomains": [
+    "Speed"
+  ],
+  "description": "Find the odd tile and tap it — fast, before the clock runs out.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}

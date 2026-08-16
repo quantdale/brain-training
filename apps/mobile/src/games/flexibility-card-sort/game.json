@@ -1,0 +1,13 @@
+{
+  "id": "flexibility-card-sort",
+  "name": "Card Sort",
+  "primaryCategory": "Flexibility",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Match cards by the active rule — the rule keeps switching, so stay flexible.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}

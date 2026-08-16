@@ -1,0 +1,10 @@
+{
+  "id": "language-word-match",
+  "name": "Word Match",
+  "primaryCategory": "Language",
+  "description": "Pick the word that means the same as the prompt — four options, one perfect match.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": null,
+  "hasTutorial": true
+}
