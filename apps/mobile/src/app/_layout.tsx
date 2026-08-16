@@ -1,27 +1,26 @@
 /**
- * Root layout — theme provider + tab shell + app-level providers.
+ * Root layout — app-level providers + navigation stack.
  *
- * The template's animated Expo splash overlay is removed: expo-splash-screen
- * now auto-hides when the app is ready (native splash config lives in
- * app.json, which the orchestrator owns).
- *
- * Startup wiring (orchestrator convergence):
- * - `initDatabase()` opens/migrates SQLite and ensures the local profile.
- * - `registerGameDefinitions(registry)` validates and loads the generated
- *   game catalog from `src/registry/registry.generated.ts`.
+ * - Initializes SQLite (`initDatabase`) and the generated game registry
+ *   (`registerGameDefinitions`) before first render.
+ * - Theme + settings providers wrap everything, including the game route.
+ * - Navigation structure: `(tabs)` group (Home/Games/Progress/Profile) plus
+ *   the `game/[id]` route OUTSIDE the tab navigator (NativeTabs only handles
+ *   its declared triggers; the game screen must not live inside the tab
+ *   navigator — see docs/RECOVERY_DRILL.md wave-2 convergence note).
  */
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
-import AppTabs from '@/components/app-tabs';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { initDatabase } from '@/db';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions } from '@/registry/registry';
 
-export default function TabLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [ready, setReady] = useState(false);
 
@@ -53,7 +52,10 @@ export default function TabLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <SettingsProvider>
-        <AppTabs />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="game/[id]" />
+        </Stack>
       </SettingsProvider>
     </ThemeProvider>
   );

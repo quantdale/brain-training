@@ -1,7 +1,7 @@
 # Task Packet 001-e — Representative Memory Game (WP-E)
 
 Campaign: 001-autonomous-foundation
-Status: READY (wave 2; SDK, persistence, shell, registry generator all landed on `main` @ 2816ea7)
+Status: DONE
 Owner role: coder agent
 
 ## Objective

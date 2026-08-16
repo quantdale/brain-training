@@ -1,7 +1,7 @@
 # Task Packet 001-a — App Shell and Navigation (WP-A)
 
 Campaign: 001-autonomous-foundation
-Status: READY
+Status: DONE
 Owner role: coder agent
 
 ## Objective

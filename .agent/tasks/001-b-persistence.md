@@ -1,7 +1,7 @@
 # Task Packet 001-b — SQLite Persistence Layer (WP-B)
 
 Campaign: 001-autonomous-foundation
-Status: READY
+Status: DONE
 Owner role: coder agent
 
 ## Objective

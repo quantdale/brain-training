@@ -72,13 +72,14 @@ Install one first (aosp_atd is preferred for headless automation):
 # Headless flags applied to every boot. --no-window keeps the emulator off the
 # host desktop; swiftshader_indirect renders in software (no host GPU needed).
 #
-# NOTE: with google_apis images on emulator 37.1.x + Windows, the netsim WiFi
-# daemon handshake can segfault or hang the emulator; the aosp_atd image used
-# by default is unaffected. If you ever switch to google_apis and see crashes
-# right after launch, set BT_EMULATOR_NO_WIFI=1 to pass `-feature -Wifi`.
+# `-feature -Wifi` disables the netsim WiFi daemon: on this host, emulator
+# 37.1.x + WHPX, the netsim WiFi channel ("Netsim Wifi ... gone due to
+# CANCELLED") intermittently segfaults the emulator with both aosp_atd and
+# google_apis images. The app is offline-first, so emulator WiFi is never
+# needed. Set BT_EMULATOR_NO_WIFI=0 to re-enable.
 bt_boot_flags() {
   local flags=(-no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-metrics)
-  if [ "${BT_EMULATOR_NO_WIFI:-0}" = "1" ]; then
+  if [ "${BT_EMULATOR_NO_WIFI:-1}" = "1" ]; then
     flags+=(-feature -Wifi)
   fi
   printf '%s\n' "${flags[@]}"

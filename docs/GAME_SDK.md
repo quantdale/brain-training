@@ -1,6 +1,6 @@
 # Game SDK Contract — Bootstrap Requirements
 
-**Status:** design requirements; concrete TypeScript API is Phase 1 work.
+**Status:** implemented as Phase 1 skeleton — see "Concrete TypeScript API — Phase 1 Skeleton" below for the live contracts (`apps/mobile/src/sdk/`). The requirements in this section remain binding.
 
 Every production game must integrate through the shared SDK rather than reinventing cross-cutting infrastructure.
 

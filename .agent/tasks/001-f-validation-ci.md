@@ -1,7 +1,7 @@
 # Task Packet 001-f — Validation/CI/Recovery Proof (WP-F)
 
 Campaign: 001-autonomous-foundation
-Status: READY
+Status: DONE
 Owner role: coder agent
 
 ## Objective

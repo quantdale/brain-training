@@ -53,11 +53,11 @@ cold boots are unstable (emulator 37.1.x segfaults/hangs during the netsim
 WiFi handshake); `aosp_atd` is stable. The harness therefore defaults to
 `aosp_atd`.
 
-First cold boot of a fresh AVD is slow — expect **15–20 minutes** to
+First cold boot of a fresh AVD is slow — expect **8–20 minutes** to
 `sys.boot_completed` on a busy dev machine (qemu prints "Boot completed" after
 ~30 s, but that is only the first boot stage; dexopt and service startup take
 much longer). The wait loop logs progress every 30 s. Later boots are fast via
-the quickboot snapshot (`fastboot.forceFastBoot=yes` is set on the AVD).
+the quickboot snapshot (`fastboot.forceFastBoot=yes` is set on the AVD) — ~30 s.
 
 ### Missing system image (fallback)
 
@@ -253,7 +253,7 @@ runs `-no-window`, so nothing is even rendered on the host display.
 |---|---|---|
 | `No device connected. Boot the AVD first` | AVD not running | `scripts/android/avd.sh boot` |
 | Emulator exits immediately | Acceleration unavailable | `emulator -accel-check`; enable WHPX (Windows optional feature), then reboot |
-| Emulator segfaults right after launch (Windows + google_apis) | netsim WiFi daemon handshake crash (emulator 37.1.x) | Use the default `aosp_atd` image (stable on this host); with google_apis set `BT_EMULATOR_NO_WIFI=1` (`-feature -Wifi`) to reduce crashes |
+| Emulator segfaults at any point (log shows "Netsim Wifi ... gone due to CANCELLED") | netsim WiFi daemon instability (emulator 37.1.x + WHPX on this host; affects aosp_atd and google_apis) | The harness disables netsim WiFi by default (`-feature -Wifi`, `BT_EMULATOR_NO_WIFI=1`) — the app is offline-first so this costs nothing; re-enable with `BT_EMULATOR_NO_WIFI=0` |
 | `adb shell` hangs / device goes `offline` | Guest still booting (first boot takes 8–20 min), or a killed adb client left the transport half-open | Wait for `avd.sh wait` to report booted; `adb kill-server && adb start-server`; if still offline, `avd.sh reset`. All harness commands carry hard `timeout` guards so a slow guest cannot block forever |
 | Device paths like `/sdcard/x` get mangled ("C:/Program Files/Git/sdcard/x") | MSYS/Git Bash path conversion rewrites slash-paths before adb sees them | Harness handles it (`MSYS_NO_PATHCONV=1` + `cygpath` in `common.sh`); when running adb manually from Git Bash, prefix `MSYS_NO_PATHCONV=1` for guest paths |
 | Emulator crashes intermittently (segfault) at any point | emulator 37.1.x + WHPX instability on this host (worst with google_apis; aosp_atd is stable enough) | `avd.sh boot --retry 3`; keep host RAM free (guest needs ~2.5 GB); see the `--retry` option |

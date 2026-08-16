@@ -1,7 +1,7 @@
 # Task Packet 001-c — Game SDK Skeleton (WP-C)
 
 Campaign: 001-autonomous-foundation
-Status: READY
+Status: DONE
 Owner role: coder agent
 
 ## Objective
