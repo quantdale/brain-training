@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "002-eight-representative-games",
+  "activeCampaign": "003-platform-integration",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true
