@@ -1,7 +1,7 @@
 # Task Packet 002-c — Math Game (WP-2C)
 
 Campaign: 002-eight-representative-games
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

@@ -2,7 +2,20 @@
 
 ## Current blockers
 
-None. Campaign 001 is complete.
+None. Campaign 002 is complete.
+
+## Resolved during Campaign 002
+
+- **STALE-DB-SCREENS (Medium, fixed `0a16f68`)**: game-detail/results/Progress/
+  Games rendered stale data after returning to an already-mounted screen
+  (React Navigation keeps screens mounted; no refetch on focus). Fixed with
+  `useFocusEffect`-driven refresh keys in `useDbData` consumers + optimistic
+  favorite override. Re-verified on-device.
+- **Typed-routes local staleness**: `.expo/types/router.d.ts` is generated
+  only by `expo start` (not `expo export`); a stale local copy rejected new
+  routes in `tsc`. `.expo/` is gitignored and CI typechecks without the file
+  (loose href typing, consistent with CI). If a dev runs `expo start`, the
+  file regenerates with correct routes and everything still typechecks.
 
 ## Resolved during Campaign 001
 
@@ -41,3 +54,8 @@ None. Campaign 001 is complete.
   returns null (harmless in practice).
 - Shell test for route reachability (game route outside tabs) could not be
   written with the current router testing library; revisit with RNTL updates.
+- Home streak/XP/level stat slots still show placeholder values (real data
+  lands with Campaign 003 streaks work).
+- Games in-session result phases are game-owned inline screens; they do not
+  yet deep-link to the shared `/results` route (shared screens are reachable
+  from Progress/library). Optional polish.

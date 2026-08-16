@@ -102,3 +102,68 @@ All exit criteria verified; see `.agent/CURRENT_CAMPAIGN.md` (COMPLETED) and
 `.agent/checkpoints/001-autonomous-foundation-complete.md` for the full table.
 CI status at completion: App CI + Repository Integrity green on `d380699`
 (GitHub Actions).
+
+## Campaign 002 — Eight Representative Games (2026-08-16, commits `d0ff355`…`0a16f68`)
+
+### Wave 1 (games, `d0ff355`)
+
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `apps/mobile` typecheck: PASS (0 errors).
+- jest: PASS — 72 suites / 867 tests (7 new game modules, 50 new suites /
+  684 tests: attention 89, speed 92, math 103, language 112, logic 95,
+  flexibility 91, spatial 102).
+- `npx expo export --platform web`: PASS (all 8 game routes bundle).
+- Registry generator: `--check` PASS (8 games registered).
+- GitHub Actions on `d0ff355`: App CI PASS, Repository Integrity PASS.
+
+### Wave 2 (rating engine + schema v2, `0c7690d`)
+
+- typecheck PASS; jest PASS — 76 suites / 902 tests (db v2 migration +
+  rating/favorites repositories + pipeline/levels engine, 55 new tests).
+- v1→v2 upgrade preserves existing rows (tested); rating_history
+  append-only triggers tested; `completeSession` rollback on rating failure
+  tested.
+- GitHub Actions on `0c7690d`: App CI PASS, Repository Integrity PASS.
+
+### Wave 3 (shared platform UI, `2e439c5`)
+
+- typecheck PASS; jest PASS — 76 suites / 906 tests (results, game detail,
+  library search/filter, Progress analytics; session aggregate queries).
+- Web export PASS (routes `/results`, `/game-detail/[id]`).
+- Note: `.expo/types/router.d.ts` (typed routes) is generated only by
+  `expo start`; stale local copy removed for CI parity (see KNOWN_ISSUES).
+- GitHub Actions on `2e439c5`: App CI PASS, Repository Integrity PASS.
+
+### Wave 4 (Today's Workout, `f5d8e01`)
+
+- typecheck PASS; jest PASS — 77 suites / 916 tests (workout determinism,
+  distinctness, consecutive-day avoidance ≤ 1, reroll, leap-year edge cases).
+- GitHub Actions on `f5d8e01`: App CI PASS, Repository Integrity PASS.
+
+### Wave 5 (QA findings fix, `0a16f68`) + emulator QA (AVD `braintraining35`)
+
+- typecheck PASS; jest PASS — 77 suites / 916 tests.
+- **On-device end-to-end QA: PASS** (artifacts:
+  `qa-artifacts/20260816-campaign002-smoke/` — device-db.sqlite, hierarchy
+  dumps, logcat):
+  - schema v2 live (`user_version=2`); Home Today's Workout renders 4
+    deterministic games; Games library shows 8 cards; search + category
+    chips + favorites-only filter verified (only favorited game shown).
+  - game-detail: records/recent empty states, Play CTA; full play loop
+    (tutorial QA-skip → Start → QA force-win → results 750 / 5/5 / 100% /
+    forced badge).
+  - Persistence verified in pulled db: 2× math sessions xp 50 (authoritative
+    pipeline value), `domain_ratings` Math 1020 / Speed 1010 (2 sessions),
+    `rating_history` 4 rows, `currency_ledger` 2× +10 gameplay, favorites
+    row present, legacy memory session (xp 0, pre-pipeline) intact.
+  - Progress tab: Level 2, XP 100, 3 sessions, 20 coins, 0/200 level bar,
+    per-game stats (Memory 1×, Fast Math 2×), 8 domain rows.
+  - Focus-refresh verified: quit back to the same detail instance shows the
+    new session without remount.
+- GitHub Actions on `0a16f68`: Repository Integrity PASS; App CI PASS (see
+  run 31945905312).
+
+### Campaign 002 exit-criteria evidence
+
+All PASS — full table in
+`.agent/checkpoints/002-eight-representative-games-complete.md`.

@@ -1,7 +1,7 @@
 # Task Packet 002-e — Logic Game (WP-2E)
 
 Campaign: 002-eight-representative-games
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

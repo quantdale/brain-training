@@ -1,7 +1,7 @@
 # Task Packet 002-h — Shared Platform (WP-2H)
 
 Campaign: 002-eight-representative-games
-Status: ACTIVE
+Status: DONE
 Owner role: orchestrator (shared surfaces; not delegated to parallel coders)
 
 ## Objective

@@ -1,7 +1,7 @@
 # Task Packet 002-g — Spatial Game (WP-2G)
 
 Campaign: 002-eight-representative-games
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

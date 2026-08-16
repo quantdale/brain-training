@@ -1,7 +1,7 @@
 # Task Packet 002-d — Language Game (WP-2D)
 
 Campaign: 002-eight-representative-games
-Status: ACTIVE
+Status: DONE
 Owner role: coder agent
 
 ## Objective

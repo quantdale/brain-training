@@ -1,46 +1,62 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-16 (Campaign 001 COMPLETED)
+**Last update:** 2026-08-16 (Campaign 002 COMPLETED)
 **Canonical branch:** `main`
-**Active campaign:** `002-eight-representative-games` (Phase 2 — staged; next continuation goal executes it)
+**Active campaign:** `003-platform-integration` (Phase 3 — staged; next continuation goal executes it)
 
 ## Current status
 
-**Campaign 001 (Autonomous Foundation) is COMPLETED.** All exit criteria are
-verified (see `.agent/checkpoints/001-autonomous-foundation-complete.md` and
-`.agent/VALIDATION.md`). The platform is production-shaped and was verified
-end-to-end on the dedicated AVD:
+**Campaign 002 (Eight Representative Games, Phase 2) is COMPLETED.** All exit
+criteria verified on the dedicated AVD `braintraining35` and in CI
+(see `.agent/checkpoints/002-eight-representative-games-complete.md` and
+`.agent/VALIDATION.md`). Deliverables:
 
-- Expo SDK 57 app (`apps/mobile`) — four-tab shell, design tokens, dynamic
-  `/game/[id]` route (root Stack + `(tabs)` group).
-- SQLite persistence (`src/db`) — versioned migrations, local profile,
-  atomic `completeSession`, append-only currency ledger; verified on-device
-  (`files/SQLite/brain-training.db`, `user_version=1`, session row present).
-- Game SDK (`src/sdk`) — versioned contracts + reference implementations
-  (RNG, lifecycle, timing, difficulty, pause, normalization, XP/rating hooks,
-  tutorial, audio/haptics, testIDs, diagnostics, QA force-state).
-- Android harness (`scripts/android/`) — dedicated AVD `braintraining35`
-  (API 35, aosp_atd), install/launch/reset/input/hierarchy/screenshot/logs,
-  no host mouse/keyboard; documented in `docs/ANDROID_AUTOMATION.md`.
-- One representative Memory game (`src/games/memory`) — playable end-to-end
-  on the emulator; persistence proven.
-- CI green (App CI + Repository Integrity) on every pushed commit.
+- Seven new game modules (attention-visual-search, speed-reaction-time,
+  math-fast-math, language-word-match with versioned 72-item content pack,
+  logic-next-sequence with solver-validated puzzles, flexibility-card-sort
+  rule-switching state machine, spatial-mental-rotation) — each with SDK
+  lifecycle/timing/pause/tutorial/QA-hooks/normalization/session persistence,
+  semantic testIDs, deterministic tests (684 game tests).
+- Rating engine (`src/rating/`): XP = (10 + 40·normalized)·difficulty
+  multiplier; per-domain delta = k·(normalized − expected-by-difficulty),
+  capped ±15/session, secondary domains at half weight; level curve
+  50·L·(L−1) cumulative XP, no cap; 1 coin per 5 XP via the append-only
+  ledger; stale-marking (no decay).
+- DB schema v2: `domain_ratings`, append-only `rating_history` (FK +
+  UPDATE/DELETE triggers), `game_favorites`; v1→v2 upgrade preserves rows;
+  `RatingService` seam applied atomically inside `completeSession`.
+- Shared platform UI: `/results` (session summary + rating movement +
+  recent sessions), `/game-detail/[id]` (records, favorites, versions,
+  Play CTA), Games library search + category chips + favorites-only filter,
+  Progress analytics (level/XP/coins, 8 domain ratings with staleness,
+  per-game aggregates, recent sessions).
+- Today's Workout: deterministic daily 4-game selection with
+  same-game-consecutive-day avoidance by construction and a free reroll.
+- On-device QA: full loop played (tutorial skip → start → QA force-win →
+  results → persistence) and verified in the pulled db: xp 50/session,
+  Math 1020/Speed 1010 after 2 sessions, 2× +10 gameplay coins,
+  favorites persisted; legacy campaign-001 session row preserved intact.
+  Focus-refresh fix applied after QA findings (stale screens on navigation
+  return).
 
-## Completed campaign 001
+## Completed campaign 002 (commits)
 
-- `ea7488c` wave0 scaffold · `2816ea7` wave1 (5 packets + convergence) ·
-  `cc543fc` registry loaders · `d886ce3` memory game · `d380699` navigation
-  fix + emulator QA evidence (High regression fixed: game route trapped in
-  NativeTabs → `(tabs)` group + root Stack).
+- `d0ff355` wave1: seven game modules + registry (8 games registered)
+- `0c7690d` wave2: rating engine + db schema v2 + RatingService seam
+- `2e439c5` wave3: shared platform UI (results, detail, search/filter, progress)
+- `f5d8e01` wave4: Today's Workout (deterministic daily + free reroll)
+- `0a16f68` wave5: focus-refresh for db-backed screens (QA findings)
 
 ## Next required action
 
-Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 002 (Eight Representative
-Games, Phase 2): seven new game modules (Attention, Speed, Math, Language,
-Logic, Flexibility, Spatial) plus shared platform surfaces (scoring/ratings/
-XP/currency UI, results, game detail, favorites/search, Progress analytics).
-Mass catalog expansion (Phase 4) must wait for the Phase 3 gate.
+Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 003 (Platform Integration +
+Autonomy/Platform Gate, Phase 3): Today's Workout personalization/reroll
+economics, quests/achievements, streaks + freeze/recovery, stronger Progress
+dashboard, themes/cosmetics seams, content-pack/storage seams, offline
+boundary tests, visual-regression baselines, performance/timing checks, first
+iOS compatibility build, then run the constitution §32 gate. Do NOT enter
+mass catalog expansion (Phase 4) before the gate is satisfied.
 
 ## Important invariants
 
@@ -58,4 +74,5 @@ A fresh agent should not require the chat that created this repository. Read
 `AGENTS.md`, the constitution, governance JSON, current campaign, state,
 validation, and recent Git history before working. Recovery is demonstrated —
 see `docs/RECOVERY_DRILL.md`. Environment watch items (emulator stability,
-screencap black frames) are in `.agent/KNOWN_ISSUES.md`.
+screencap black frames, typed-routes regeneration) are in
+`.agent/KNOWN_ISSUES.md`.
