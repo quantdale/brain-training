@@ -2,7 +2,7 @@
 
 **Status:** LOCKED / DECISION FREEZE  
 **Implementation:** not yet started at repository bootstrap  
-**Working repository name:** `brain-training-app` (branding intentionally deferred)
+**Repository:** `quantdale/brain-training` (product branding intentionally deferred)
 
 This document is the authoritative set of locked product and development decisions. Agents must not casually reopen these decisions. Intentionally deferred items are listed near the end.
 
