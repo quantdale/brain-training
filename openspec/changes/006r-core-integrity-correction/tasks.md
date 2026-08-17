@@ -94,7 +94,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 9.4 Results loads exact rating history for selected session rather than filtering only the latest global 50 movements.
 - [x] 9.5 Implement transparent overall cognitive/performance composite from domain ratings with documented handling of unseen/stale domains.
 - [x] 9.6 Home Recent Games renders real recent session/game data rather than unconditional placeholder.
-- [ ] 9.7 Cross-screen tests prove Home/Profile streak agreement under high-density play (many sessions/day), Progress/Results rating agreement, and stale behavior.
+- [x] 9.7 Cross-screen tests prove Home/Profile streak agreement under high-density play (many sessions/day), Progress/Results rating agreement, and stale behavior.
 
 ## 10. Game-platform convergence
 
