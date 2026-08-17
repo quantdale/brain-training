@@ -86,9 +86,9 @@ describe('RatingRepository', () => {
     const rating = await ratings.getRating('Math');
     expect(rating?.rating).toBe(MIN_RATING);
     expect(rating?.sessions).toBe(1);
-    // History still records the true delta and the clamped rating after.
+    // History records the actual applied delta after floor/cap, not the requested delta.
     const history = await ratings.getHistory();
-    expect(history[0]).toMatchObject({ domain: 'Math', delta: -1001, ratingAfter: MIN_RATING });
+    expect(history[0]).toMatchObject({ domain: 'Math', delta: -1000, ratingAfter: MIN_RATING });
   });
 
   it('returns null for a domain that was never played', async () => {

@@ -116,7 +116,10 @@ export class RatingRepository {
 
     for (const delta of deltas) {
       const current = await txn.get<DomainRatingRow>(SELECT_ONE, [delta.domain]);
-      const ratingAfter = Math.max(MIN_RATING, (current?.rating ?? INITIAL_RATING) + delta.delta);
+      const previousRating = current?.rating ?? INITIAL_RATING;
+      const ratingAfter = Math.max(MIN_RATING, previousRating + delta.delta);
+      // Task 9.1: Store actual applied delta, not requested delta
+      const appliedDelta = ratingAfter - previousRating;
       const sessions = (current?.sessions ?? 0) + 1;
 
       await txn.run(
@@ -131,12 +134,12 @@ export class RatingRepository {
       await txn.run(
         `INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at)
          VALUES (?, ?, ?, ?, ?)`,
-        [sessionId, delta.domain, delta.delta, ratingAfter, eventAtMs],
+        [sessionId, delta.domain, appliedDelta, ratingAfter, eventAtMs],
       );
 
       applied.push({
         domain: delta.domain,
-        delta: delta.delta,
+        delta: appliedDelta,
         ratingAfter,
       });
     }

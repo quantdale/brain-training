@@ -88,7 +88,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 9. Rating/progress correctness
 
-- [ ] 9.1 Persist actual applied rating delta after floor/cap, not requested delta if they differ.
+- [x] 9.1 Persist actual applied rating delta after floor/cap, not requested delta if they differ.
 - [ ] 9.2 Rating evidence freshness uses contributing session event time; processing/import time may be stored separately but must not make old evidence look fresh.
 - [ ] 9.3 Replace Home's arbitrary 30-session streak input with distinct activity dates/canonical activity query.
 - [ ] 9.4 Results loads exact rating history for selected session rather than filtering only the latest global 50 movements.
