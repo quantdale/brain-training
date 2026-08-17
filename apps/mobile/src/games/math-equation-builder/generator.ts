@@ -149,7 +149,9 @@ export function generatePuzzle(input: GeneratePuzzleInput): GeneratedPuzzle {
     (t) =>
       t.numbers.length === numbersCount &&
       t.target >= targetMin &&
-      t.target <= targetMax,
+      t.target <= targetMax &&
+      // Verify solvability under the active difficulty's allowed operators
+      sharedCanSolve(t.target, t.numbers, operators),
   );
 
   if (compatibleTemplates.length > 0) {
