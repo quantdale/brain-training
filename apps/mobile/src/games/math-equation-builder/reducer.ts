@@ -13,6 +13,7 @@
 import { createRng, isDifficultyLevel } from '@/sdk';
 import type { DifficultyProfile } from '@/sdk';
 
+import { evaluateEquation } from './evaluator';
 import {
   mathEquationBuilderParamsFromProfile,
   nextAdaptiveParams,
@@ -43,67 +44,9 @@ export { createInitialMathEquationBuilderState };
  *   expr → factor (op factor)*
  *   factor → number | '(' expr ')'
  */
-export function evaluateEquationTokens(tokens: readonly EquationToken[]): number | null {
-  let pos = 0;
 
-  function parseFactor(): number | null {
-    if (pos >= tokens.length) return null;
-    const token = tokens[pos];
-
-    if (typeof token === 'number') {
-      pos += 1;
-      return token;
-    }
-
-    if (token === '(') {
-      pos += 1; // skip '('
-      const result = parseExpr();
-      if (pos < tokens.length && tokens[pos] === ')') {
-        pos += 1; // skip ')'
-      }
-      return result;
-    }
-
-    return null; // unexpected token
-  }
-
-  function parseExpr(): number | null {
-    let value = parseFactor();
-    if (value === null) return null;
-
-    while (pos < tokens.length && typeof tokens[pos] === 'string' && tokens[pos] !== '(' && tokens[pos] !== ')') {
-      const op = tokens[pos] as Operator;
-      pos += 1; // skip operator
-      const right = parseFactor();
-      if (right === null) return null;
-
-      switch (op) {
-        case '+':
-          value = value + right;
-          break;
-        case '-':
-          value = value - right;
-          break;
-        case '×':
-          value = value * right;
-          break;
-        case '÷':
-          if (right === 0) return null;
-          value = value / right;
-          break;
-        default:
-          return null;
-      }
-    }
-
-    return value;
-  }
-
-  const result = parseExpr();
-  // Ensure we consumed all tokens.
-  if (pos !== tokens.length) return null;
-  return result;
-}
+/** Re-export from shared evaluator for backward compatibility. */
+export { evaluateEquation as evaluateEquationTokens } from './evaluator';
 
 /**
  * Validate that the equation tokens form a valid alternating sequence:
@@ -338,7 +281,7 @@ export function mathEquationBuilderGameReducer(
       if (state.usedNumberIndices.length !== state.availableNumbers.length) return state;
 
       // Evaluate the equation.
-      const result = evaluateEquationTokens(state.equationTokens);
+      const result = evaluateEquation(state.equationTokens);
       if (result === null) return state;
 
       const isCorrect = Math.abs(result - state.target) < 1e-9;

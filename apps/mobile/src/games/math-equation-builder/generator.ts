@@ -12,6 +12,7 @@
  */
 import type { Rng } from '@/sdk';
 
+import { canSolve as sharedCanSolve, getAchievableTargets } from './evaluator';
 import type { MathEquationBuilderDifficultyParams, Operator } from './types';
 
 /* -------------------------------------------------------------------------- */
@@ -119,40 +120,7 @@ export function evaluateAllResults(
   numbers: readonly number[],
   operators: readonly Operator[],
 ): Set<number> {
-  const results = new Set<number>();
-
-  if (numbers.length === 1) {
-    results.add(numbers[0]);
-    return results;
-  }
-
-  if (numbers.length === 0 || operators.length === 0) {
-    return results;
-  }
-
-  // Try splitting the numbers into two non-empty groups at every possible point.
-  for (let split = 1; split < numbers.length; split += 1) {
-    const leftNumbers = numbers.slice(0, split);
-    const rightNumbers = numbers.slice(split);
-
-    // Try every allowed operator as the connector at this split point.
-    for (const op of operators) {
-      // Try every left result × right result combination.
-      const leftResults = evaluateAllResults(leftNumbers, operators);
-      const rightResults = evaluateAllResults(rightNumbers, operators);
-
-      for (const left of leftResults) {
-        for (const right of rightResults) {
-          const result = applyOperator(left, op, right);
-          if (result !== null) {
-            results.add(result);
-          }
-        }
-      }
-    }
-  }
-
-  return results;
+  return getAchievableTargets(numbers, operators);
 }
 
 /**
@@ -163,8 +131,7 @@ export function canSolve(
   numbers: readonly number[],
   operators: readonly Operator[],
 ): boolean {
-  const results = evaluateAllResults(numbers, operators);
-  return results.has(target);
+  return sharedCanSolve(target, numbers, operators);
 }
 
 /**

@@ -150,7 +150,7 @@ describe('validateContentPack rejection cases', () => {
     const pack = clonePack();
     // Put the prompt at a non-correct position to trigger the prompt-in-options check
     const item = pack.items[0];
-    const nonCorrectIndex = item.options.findIndex((_, i) => i !== item.correctIndex);
+    const nonCorrectIndex = item.options.findIndex((_: unknown, i: number) => i !== item.correctIndex);
     pack.items[0].options[nonCorrectIndex] = pack.items[0].prompt;
     expect(() => validateContentPack(pack)).toThrow(/must not appear among the options/);
   });
@@ -176,7 +176,7 @@ describe('validateContentPack rejection cases', () => {
     const item = twoSynonyms.items[0];
     const familyWords = twoSynonyms.families[item.family];
     // Add a second word from the same family as an option
-    const secondSynonym = familyWords.find(w => w !== item.prompt && w !== item.options[item.correctIndex]);
+    const secondSynonym = familyWords.find((w: string) => w !== item.prompt && w !== item.options[item.correctIndex]);
     if (secondSynonym) {
       twoSynonyms.items[0].options[3] = secondSynonym;
       expect(() => validateContentPack(twoSynonyms)).toThrow(/exactly 1 option must be a synonym/);
@@ -197,7 +197,7 @@ describe('validateContentPack rejection cases', () => {
     const familyWords = pack.families[item.family];
     
     // Verify current item has exactly one synonym
-    const synonymCount = item.options.filter(o => familyWords.includes(o)).length;
+    const synonymCount = item.options.filter((o: string) => familyWords.includes(o)).length;
     expect(synonymCount).toBe(1);
     
     // Verify correct answer is the synonym

@@ -19,7 +19,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 1.5 Remove production reliance on per-game no-op XP for displayed result. Local game result/workout result must render the authoritative outcome after successful persistence.
 - [x] 1.6 Add cross-subsystem tests using real canonical lowercase difficulty values for Easy/Normal/Hard/Expert/Adaptive.
 - [x] 1.7 Prove Easy cannot inflate rating at trivial expected performance, while higher challenge changes expected performance appropriately.
-- [ ] 1.8 Inventory historical session evidence; implement an explicit idempotent derived-rating rebuild/cutover strategy, or document evidence gaps and an auditable cutover. Never alter raw completed-session evidence.
+- [x] 1.8 Inventory historical session evidence; implement an explicit idempotent derived-rating rebuild/cutover strategy, or document evidence gaps and an auditable cutover. Never alter raw completed-session evidence.
 
 ## 2. Content/generator provenance — BLOCKING prerequisite for 3/4
 
@@ -41,7 +41,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 4. Equation Builder solvability — BLOCKING
 
-- [ ] 4.1 Define one evaluator/grammar contract shared conceptually by UI, solver, tutorial, and generator validation.
+- [x] 4.1 Define one evaluator/grammar contract shared conceptually by UI, solver, tutorial, and generator validation.
 - [ ] 4.2 Every returned puzzle path—curated, procedural, fallback—must run the final solvability validator using the active difficulty's allowed operators and exact UI rules.
 - [ ] 4.3 Remove/repair any curated template that is invalid for a difficulty instead of trusting target/count range alone.
 - [ ] 4.4 Property-sweep every named difficulty across a large deterministic seed set; assert valid number count/range, allowed operators, solvability, finite result, no illegal division, and no duplicate/near-duplicate violation required by the game.
