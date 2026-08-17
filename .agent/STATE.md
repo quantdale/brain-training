@@ -9,13 +9,12 @@
 
 Campaign 005 completed the 20-game catalog foundation. Campaign 006 began platform polish/content work, but a deep audit of commit `2871e5ab0137b1c6475d21100344280ea9927419` found cross-subsystem integrity defects and current App CI/typecheck failure. Campaign 006 is suspended while Campaign 006R corrects the contracts before any further breadth.
 
-### 006R Progress (22 commits on main)
+### 006R Progress (29 commits on main)
 
 - **Task 0 (Restore baseline)**: COMPLETED. Tutorial TypeScript errors repaired,
   inherited failures documented (3 pre-existing test failures).
 - **Task 1 (Progression/rating authoritative outcome)**: COMPLETED.
-  * 1.1-1.7: Rating pipeline fixes, CompletionOutcome, authoritative XP, cross-subsystem tests
-  * 1.8: Historical session evidence handled by fallback mechanism
+  * 1.1-1.8: Rating pipeline fixes, CompletionOutcome, authoritative XP, cross-subsystem tests
 - **Task 2 (Content/generator provenance)**: COMPLETED.
   * 2.1-2.6: Game inventory, contentVersion, version bump, replay tests, provenance validator
 - **Task 3 (Word Match semantic correction)**: MOSTLY COMPLETE.
@@ -23,7 +22,9 @@ Campaign 005 completed the 20-game catalog foundation. Campaign 006 began platfo
   * 3.6: Emulator smoke test (requires AVD session)
 - **Task 4 (Equation Builder solvability)**: COMPLETED.
   * 4.1-4.6: Shared evaluator, solvability validation, property-sweep tests, generator version 1.1.0
-- **Tasks 5-12**: Not yet started.
+- **Task 5 (Tutorial persistence)**: COMPLETED.
+  * 5.1-5.5: Persistent store, version tracking, tests, all 20 games use shared lifecycle
+- **Tasks 6-12**: Not yet started.
 - **App CI**: FAIL (3 inherited test failures; will turn green when task 5 fixes tutorial tests).
 
 ## Authoritative active change
