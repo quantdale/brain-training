@@ -55,6 +55,8 @@ export type { XpAward } from './xp-awards';
 export { SessionRepository } from './sessions';
 export { TutorialRepository } from './tutorial';
 export type { CompleteSessionResult, GameAggregate } from './sessions';
+export { WorkoutRepository } from './workout';
+export type { WorkoutInstance, WorkoutStatus } from './workout';
 export { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 export {
   spendCurrency,

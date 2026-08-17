@@ -58,13 +58,13 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 6. Real Daily Workout + personalization — BLOCKING product loop
 
-- [ ] 6.1 Add persistent daily workout instance keyed by local date with ordered four-game selection, status, current index, reroll attempt, seed/selection version, and timestamps.
+- [x] 6.1 Add persistent daily workout instance keyed by local date with ordered four-game selection, status, current index, reroll attempt, seed/selection version, and timestamps.
 - [ ] 6.2 Starting a workout enters workout context; successful game persistence advances to compact result then `Next Game`; game four completes workout.
-- [ ] 6.3 Kill/relaunch or navigation interruption resumes the durable workout without duplicating completed games/rewards.
-- [ ] 6.4 Personalization selects from the full eligible catalog using weakness, neglected domains, recency, previous-day overlap, domain diversity, seeded randomness, and occasional strength variety; it may not merely reorder an already fixed four.
-- [ ] 6.5 Persist reroll attempts by date. First reroll free; later rerolls are transactional currency operations; restart never restores the free reroll.
-- [ ] 6.6 Define how reroll treats already-completed workout positions (prefer immutable completed prefix; reroll only future slots).
-- [ ] 6.7 Add deterministic tests for same-input selection, different reroll attempt, neglected-domain surfacing, recency avoidance, diversity, and catalog sizes near/below four.
+- [x] 6.3 Kill/relaunch or navigation interruption resumes the durable workout without duplicating completed games/rewards.
+- [x] 6.4 Personalization selects from the full eligible catalog using weakness, neglected domains, recency, previous-day overlap, domain diversity, seeded randomness, and occasional strength variety; it may not merely reorder an already fixed four.
+- [x] 6.5 Persist reroll attempts by date. First reroll free; later rerolls are transactional currency operations; restart never restores the free reroll.
+- [x] 6.6 Define how reroll treats already-completed workout positions (prefer immutable completed prefix; reroll only future slots).
+- [x] 6.7 Add deterministic tests for same-input selection, different reroll attempt, neglected-domain surfacing, recency avoidance, diversity, and catalog sizes near/below four.
 - [ ] 6.8 AVD journey: workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 -> completion.
 
 ## 7. Economy transactionality

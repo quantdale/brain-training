@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from './adapter';
 
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -263,6 +263,29 @@ export const SQL = {
     );
   `,
 
+  /**
+   * Persistent daily workout instance (constitution §14; 006R task 6.1). One
+   * row per local calendar date. `game_ids_json` is the ordered four-game
+   * selection; `current_index` is the next game to play (resume point);
+   * `status` is 'active' until the fourth game is durably completed;
+   * `reroll_attempt` counts rerolls applied today (0 = base, persisted for
+   * 006R task 6.5); `seed_version` records the selector/profile version for
+   * provenance. Existing completed positions are immutable across rerolls
+   * (006R task 6.6).
+   */
+  createWorkoutInstances: `
+    CREATE TABLE IF NOT EXISTS workout_instances (
+      date           TEXT    PRIMARY KEY,
+      game_ids_json  TEXT    NOT NULL,
+      status         TEXT    NOT NULL DEFAULT 'active',
+      current_index  INTEGER NOT NULL DEFAULT 0,
+      reroll_attempt INTEGER NOT NULL DEFAULT 0,
+      seed_version   INTEGER NOT NULL DEFAULT 0,
+      created_at     INTEGER NOT NULL,
+      updated_at     INTEGER NOT NULL
+    );
+  `,
+
   /** CHECK constraints for data integrity (task 8.1). */
   addCheckConstraints: `
     -- Ensure normalized_result is in [0, 1]
@@ -362,6 +385,12 @@ export const MIGRATIONS: readonly Migration[] = [
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_currency_ledger_operation_id ' +
           'ON currency_ledger (operation_id) WHERE operation_id IS NOT NULL',
       );
+    },
+  },
+  {
+    version: 7,
+    up: async (txn) => {
+      await txn.exec(SQL.createWorkoutInstances);
     },
   },
 ];

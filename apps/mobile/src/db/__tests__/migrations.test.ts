@@ -34,6 +34,7 @@ describe('migrations', () => {
         'table:quest_progress',
         'table:achievements',
         'table:achievement_unlocks',
+        'table:workout_instances',
         'view:currency_balance',
         'index:idx_game_sessions_game_id',
         'index:idx_currency_ledger_created_at',
