@@ -25,3 +25,7 @@ export {
   xpForNextLevel,
   xpIntoLevel,
 } from './levels';
+export {
+  computeComposite,
+} from './composite';
+export type { CompositeResult, DomainRatingWithStaleness } from './composite';
