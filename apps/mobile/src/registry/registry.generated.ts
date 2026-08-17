@@ -49,6 +49,20 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "flexibility-color-stroop",
+    name: "Color Stroop",
+    primaryCategory: "Flexibility",
+    secondaryDomains: [
+    "Attention",
+    "Speed"
+  ],
+    description: "Identify the ink color of color words, tracking rule flips between 'ink' and 'word' modes.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "language-word-match",
     name: "Word Match",
     primaryCategory: "Language",
@@ -56,6 +70,32 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: null,
+    hasTutorial: true,
+  },
+  {
+    id: "language-word-scramble",
+    name: "Word Scramble",
+    primaryCategory: "Language",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Unscramble the letters to form the correct word using the category hint.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "logic-code-cracker",
+    name: "Code Cracker",
+    primaryCategory: "Logic & Problem Solving",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Crack a hidden color code using logic and deduction. Get feedback on each guess to narrow down the solution.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
     hasTutorial: true,
   },
   {
@@ -137,6 +177,19 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "spatial-transform-match",
+    name: "Transform Match",
+    primaryCategory: "Spatial",
+    secondaryDomains: [
+    "Logic & Problem Solving"
+  ],
+    description: "A grid pattern is transformed — pick the correct rotated or mirrored version from the options.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "speed-reaction-time",
     name: "Reaction Time",
     primaryCategory: "Speed",
@@ -173,13 +226,17 @@ export const gameScreenLoaders: Record<string, () => Promise<{ default: Componen
   'attention-odd-one-out': () => import('@/games/attention-odd-one-out'),
   'attention-visual-search': () => import('@/games/attention-visual-search'),
   'flexibility-card-sort': () => import('@/games/flexibility-card-sort'),
+  'flexibility-color-stroop': () => import('@/games/flexibility-color-stroop'),
   'language-word-match': () => import('@/games/language-word-match'),
+  'language-word-scramble': () => import('@/games/language-word-scramble'),
+  'logic-code-cracker': () => import('@/games/logic-code-cracker'),
   'logic-next-sequence': () => import('@/games/logic-next-sequence'),
   'math-fast-math': () => import('@/games/math-fast-math'),
   'math-missing-operator': () => import('@/games/math-missing-operator'),
   'memory': () => import('@/games/memory'),
   'memory-sequence-memory': () => import('@/games/memory-sequence-memory'),
   'spatial-mental-rotation': () => import('@/games/spatial-mental-rotation'),
+  'spatial-transform-match': () => import('@/games/spatial-transform-match'),
   'speed-reaction-time': () => import('@/games/speed-reaction-time'),
   'speed-tap-rush': () => import('@/games/speed-tap-rush'),
 };

@@ -1,0 +1,11 @@
+{
+  "id": "spatial-transform-match",
+  "name": "Transform Match",
+  "primaryCategory": "Spatial",
+  "secondaryDomains": ["Logic & Problem Solving"],
+  "description": "A grid pattern is transformed — pick the correct rotated or mirrored version from the options.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}

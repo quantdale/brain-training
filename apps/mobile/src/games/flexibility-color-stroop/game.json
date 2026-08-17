@@ -1,0 +1,11 @@
+{
+  "id": "flexibility-color-stroop",
+  "name": "Color Stroop",
+  "primaryCategory": "Flexibility",
+  "secondaryDomains": ["Attention", "Speed"],
+  "description": "Identify the ink color of color words, tracking rule flips between 'ink' and 'word' modes.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}
