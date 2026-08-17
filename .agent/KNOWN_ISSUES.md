@@ -2,7 +2,7 @@
 
 ## Current blockers
 
-None. Campaign 003 complete; §32 gate PASS; campaign 004 staged.
+None. Campaign 004 complete; 16-game catalog; campaign 005 staged.
 
 ## Open debt (tracked, non-blocking)
 

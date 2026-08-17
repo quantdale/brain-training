@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "004-parallel-catalog-expansion",
+  "activeCampaign": "005-catalog-depth-and-ux-polish",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

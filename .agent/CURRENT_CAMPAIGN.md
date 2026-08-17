@@ -1,45 +1,47 @@
-# Campaign 004 — Parallel Catalog Expansion (Phase 4)
+# Campaign 005 — Catalog Depth and UX Polish (Phase 5)
 
 **Status:** ACTIVE (staged; work begins on the next continuation goal)
 **Campaign type:** implementation
 **Hardening:** NO — moderate risk-based validation only
-**Parent plan:** `docs/MASTER_PLAN.md` Phase 4
+**Parent plan:** `docs/MASTER_PLAN.md` Phase 5 (later phases)
 
 ## Context
 
-Campaign 003 (Platform Integration) is COMPLETED and the constitution §32
-mass-expansion gate PASSED (`.agent/checkpoints/003-platform-integration-complete.md`).
-Phase 4 — Parallel Catalog Expansion — is now eligible. The parity matrix
-(`docs/PARITY_MATRIX.md`) tracks the target catalog; each cognitive domain
-currently has exactly one representative game from Phase 2.
+Campaign 004 (Parallel Catalog Expansion) is COMPLETED — 16-game catalog
+with 2 games per cognitive domain, all registered, tested, and verified on
+emulator. The catalog now has sufficient breadth; this campaign adds depth
+to the most-used domains and polishes the UX across the existing catalog.
 
 ## Objective
 
-Expand the game catalog toward the parity matrix using campaign-sized swarm
-waves. Concretely, this campaign adds **one additional game per cognitive
-domain** (Attention, Speed, Memory, Math, Language, Logic & Problem Solving,
-Flexibility, Spatial) so every domain has at least two games, plus light
-catalog-health work where it is cheap and safe:
+Expand catalog depth in high-traffic domains and polish the user experience:
 
-1. **8 new game modules** (one per domain), each:
+1. **4 new game modules** (one per high-traffic domain: Memory, Speed, Math,
+   Language), each:
    - self-contained under `apps/mobile/src/games/<id>/`, plugging into the
-     Game SDK (same contracts as the Phase-2 games: lifecycle, monotonic
-     timing, pause, tutorial, QA hooks, normalization, session persistence);
-   - a distinct mechanic from the Phase-2 representative in the same domain
-     (no near-copies);
-   - deterministic seeded generation, versioned scoring, full jest coverage
-     (logic/reducer/scoring/session/screen smoke), semantic testIDs;
+     Game SDK (same contracts as existing games);
+   - a distinct mechanic from the existing two games in the same domain;
+   - deterministic seeded generation, versioned scoring, full jest coverage,
+     semantic testIDs;
    - `game.json` valid per the registry generator contract.
-2. **Registry + catalog health**: regenerate `registry.generated.ts`
-   (orchestrator), confirm library search/filter and Home workout selection
-   handle 16 games, extend workout tests to 16-game catalogs.
-3. **Content packs**: add a second curated versioned pack for Language
-   (e.g. reading/grammar tier) only if the new Language game needs one;
-   otherwise defer to a later wave.
+2. **Content expansion**: add curated content packs where needed (word banks
+   for Language games, equation templates for Math games).
+3. **UX polish**:
+   - improve tutorial flow consistency across all 20 games;
+   - add game-description text to game.json for the library detail view;
+   - ensure all games have consistent pause-overlay styling.
 4. **Moderate validation**: repo validator + tsc + full jest + registry
-   `--check` + web export smoke + targeted emulator smoke (games render and
-   are playable via QA hooks on `braintraining35`).
-5. **Parity matrix update** at the end (catalog rows → IMPLEMENTED).
+   `--check` + targeted emulator smoke.
+5. **Parity matrix update** at the end.
+
+## Proposed games (4 new, 3 per domain for 4 domains)
+
+| Domain | New Game | Mechanic |
+|--------|----------|----------|
+| Memory | pattern-tap-back | Observe a pattern on a grid, tap it back from memory |
+| Speed | speed-color-match | Match the color word to its swatch under time pressure |
+| Math | math-equation-builder | Build equations from given numbers and operators to reach a target |
+| Language | language-sentence-builder | Arrange words into a grammatically correct sentence |
 
 ## Shared-file ownership rule (unchanged)
 
@@ -51,16 +53,17 @@ orchestrator convergence waves between swarm launches.
 ## Light validation required
 
 - repository-state validator; typecheck + jest (whole tree)
-- registry generator `--check` + web export smoke
+- registry generator `--check`
 - targeted emulator smoke for the new games (one AVD)
 - CI green on every pushed wave
 - no host-input interference maintained
 
 ## Exit criteria
 
-- 8 new games merged, registered, tested (each with deterministic full-session
-  coverage), playable on the emulator
-- 16-game catalog verified end-to-end (library, workout selection, game play)
+- 4 new games merged, registered, tested, playable on the emulator
+- 20-game catalog verified end-to-end (library, workout selection, game play)
+- content packs expanded where needed
+- UX polish items completed
 - no unresolved Critical/High defect
 - parity matrix updated; committed docs/state match repository reality;
   clean `main` pushed
@@ -68,5 +71,4 @@ orchestrator convergence waves between swarm launches.
 ## On completion
 
 Archive checkpoint; the next campaign is selected by the owner (further
-catalog expansion, or a hardening campaign only if the owner explicitly
-starts one).
+expansion, hardening, or a later-phase system).

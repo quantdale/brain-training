@@ -1,51 +1,35 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-17 (Campaign 003 COMPLETED; §32 gate PASS)
+**Last update:** 2026-08-17 (Campaign 004 COMPLETED; 16-game catalog)
 **Canonical branch:** `main`
-**Active campaign:** `004-parallel-catalog-expansion` (Phase 4 — staged; next continuation goal executes it)
+**Active campaign:** `005-catalog-depth-and-ux-polish` (Phase 5 — staged; next continuation goal executes it)
 
 ## Current status
 
-**Campaign 003 (Platform Integration + Autonomy/Platform Gate, Phase 3) is
-COMPLETED.** All Phase-3 items implemented to a basic-but-real standard and
-the constitution §32 mass-expansion gate PASSED (checklist in
-`.agent/checkpoints/003-platform-integration-complete.md`). Deliverables:
+**Campaign 004 (Parallel Catalog Expansion, Phase 4) is COMPLETED.** 8 new
+game modules added (one per cognitive domain), 16-game catalog verified
+end-to-end. Checkpoint:
+`.agent/checkpoints/004-parallel-catalog-expansion-complete.md`.
 
-- **DB schema v3** (`c2680a2`): append-only `xp_awards` (UPDATE/DELETE
-  triggers), `quests`, `quest_progress` (monotonic-MAX, once-claim),
-  `achievements`, `achievement_unlocks` (once-unlock/claim); v2→v3 migration
-  preserves rows; 7 repositories on the `AppDatabase` facade.
-- **Quests engine** (`8d7dbe6`): versioned daily/weekly/longterm definitions,
-  ISO-week/daily/longterm period keys, pure evaluation over session
-  snapshots, once-only rewards (XP award + ledger entry).
-- **Streaks model**: pure reconstruction (leap-aware, at-risk flag),
-  Freeze/Shield/Recovery costs 100/150/200 with monthly freeze cap and
-  recovery restore cap; inventory in profile `settings_json`.
-- **Achievements engine**: 4 long-term definitions, pure evaluation,
-  once-only unlock/claim rewards.
-- **Workout personalization** (`4b3b4c4` convergence): weak-domain balancing,
-  recency avoidance, reroll economics (first free, then 25× escalating, cap
-  5/day) — Home CTA wired with ledger-debited rerolls and live
-  streak/XP/level stats.
-- **Progress detail** (`/progress-detail`): per-domain history with deltas,
-  per-game records, recent sessions; lifetime XP = sessions + xp_awards.
-- **Theme registry seam**: system/light/dark persisted in profile settings,
-  live switching; Profile selector.
-- **Content-pack/storage seam**: registry fed by the language pack with
-  deterministic size estimates + storage scaffold no-ops.
-- **Offline boundary proof**: jest suite with network throwers +
-  `scripts/validate-offline.mjs` (223 files scanned, CLEAN).
-- **Visual baselines**: 4 deterministic shell-screen snapshots.
-- **Perf/timing audit**: gameplay durations use the SDK monotonic clock;
-  `Date.now()` only for wall-clock stamps/nonces.
-- **iOS compatibility**: static audit PASS; real build NOT VALIDATED
-  (Windows host, no Xcode) — recorded honestly in VALIDATION.md.
+- **8 new games** (commits `90a2da9` + `69fc2f5`):
+  - attention-odd-one-out (Attention) — 90 tests
+  - speed-tap-rush (Speed) — 88 tests
+  - memory-sequence-memory (Memory) — 90 tests
+  - math-missing-operator (Math) — 72 tests
+  - language-word-scramble (Language) — 82 tests
+  - logic-code-cracker (Logic & Problem Solving) — 91 tests
+  - flexibility-color-stroop (Flexibility) — 74 tests
+  - spatial-transform-match (Spatial) — 96 tests
+- **Registry regenerated**: 16 games, categories validated.
+- **Convergence**: tsc clean, 149 suites / 1755 tests all green.
+- **Emulator smoke**: workout picks from expanded catalog; game screens
+  render correctly with all testIDs.
 
-On-device QA (`braintraining35`, Metro-served JS): personalized workout +
-reroll economics verified, quests evaluated live (3/3, 100/100), qd3 claim →
-Claimed, achievements section, Dark theme switch live, Progress summary +
-Full history → progress-detail. Evidence: `qa-artifacts/20260817-campaign003-smoke/`.
+## Completed campaign 004 (commits)
+
+- `90a2da9` wave1: 4 games (odd-one-out, tap-rush, sequence-memory, missing-operator) + registry
+- `69fc2f5` wave2: 4 games (word-scramble, code-cracker, color-stroop, transform-match) + registry
 
 ## Completed campaign 003 (commits)
 
@@ -64,10 +48,9 @@ Full history → progress-detail. Evidence: `qa-artifacts/20260817-campaign003-s
 
 ## Next required action
 
-Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 004 (Parallel Catalog
-Expansion, Phase 4): swarm waves adding a second game per cognitive domain
-toward the parity matrix, keeping shared-file contention minimal and
-validation moderate. No hardening unless the owner requests it.
+Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 005 (Catalog Depth and UX
+Polish, Phase 5): further catalog expansion and UX improvements. No
+hardening unless the owner requests it.
 
 ## Important invariants
 

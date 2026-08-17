@@ -235,3 +235,43 @@ All PASS — full table in
 - Real iOS build (`expo run:ios`-equivalent): **NOT VALIDATED** — Windows
   host has no Xcode/macOS; recorded honestly per evidence policy. A future
   macOS host or CI runner can execute it.
+
+## Campaign 004 (2026-08-17, commits `90a2da9`…`69fc2f5`)
+
+### Wave 1 (4 games, `90a2da9`)
+
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `apps/mobile` typecheck: PASS (0 errors; fixed visual-baselines arrow wrapper).
+- `apps/mobile` jest: PASS — 123 suites / 1412 tests (4 new game modules,
+  29 new suites / 342 tests: attention-odd-one-out 90, speed-tap-rush 88,
+  memory-sequence-memory 90, math-missing-operator 72).
+- Registry generator: PASS (12 games after wave 1).
+- On-device smoke: NOT VALIDATED (wave 1 only).
+
+### Wave 2 (4 games, `69fc2f5`)
+
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `apps/mobile` typecheck: PASS (0 errors).
+- `apps/mobile` jest: PASS — 149 suites / 1755 tests (4 more game modules,
+  26 new suites / 341 tests: language-word-scramble 82, logic-code-cracker 91,
+  flexibility-color-stroop 74, spatial-transform-match 96).
+- Registry generator: PASS (16 games, categories validated).
+
+### Emulator QA (AVD `braintraining35`, Metro-served JS, 2026-08-17)
+
+- **Home workout**: PASS — renders 4 games from expanded 16-game catalog
+  (Card Sort, Transform Match, Tap Rush, Missing Operator — all campaign-004
+  games). Workout personalization correctly picks from the expanded catalog.
+- **Game screen**: PASS — Tap Rush game screen loads with all expected
+  testIDs (intro, difficulty selectors easy/normal/hard/expert/adaptive,
+  start, help, QA panel toggle, tutorial overlay).
+- Artifacts: `qa-artifacts/20260817-campaign004-smoke/` (hierarchy dumps).
+
+### Convergence issues fixed
+
+1. **visual-baselines tsc error** (pre-existing from campaign 003): wrapped
+   `renderRouter({ index: Screen })` as `index: () => <Screen />`.
+2. **speed-tap-rush Playfield width reset**: Playfield unmounts during
+   roundResult and remounts with width=0; test now re-fires layout each round.
+3. **speed-tap-rush score assertion**: Fixed to expect accumulated hit points
+   (1350) instead of 0 after a round with wrong+hit taps.
