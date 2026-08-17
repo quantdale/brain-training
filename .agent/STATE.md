@@ -1,13 +1,25 @@
 # Durable Project State
 
 **State schema:** 1  
-**Last update:** 2026-08-17 (Campaign 006R converted to repository-resident OpenSpec execution)  
+**Last update:** 2026-08-17 (006R baseline restored + rating pipeline canonical difficulty fix committed)  
 **Canonical branch:** `main`  
 **Active campaign:** `006r-core-integrity-correction`
 
 ## Current status
 
 Campaign 005 completed the 20-game catalog foundation. Campaign 006 began platform polish/content work, but a deep audit of commit `2871e5ab0137b1c6475d21100344280ea9927419` found cross-subsystem integrity defects and current App CI/typecheck failure. Campaign 006 is suspended while Campaign 006R corrects the contracts before any further breadth.
+
+### 006R Progress (commits `1d83efb`, `385824d`, `dc56ea6`)
+
+- **Task 0 (Restore baseline)**: COMPLETED. Tutorial TypeScript errors repaired,
+  inherited failures documented (3 pre-existing test failures: math-equation-builder
+  tutorial step mismatch, speed-color-match same, content-pack registry stale count).
+- **Task 1.1–1.3 (Rating pipeline canonical difficulty)**: COMPLETED. Lowercase
+  difficulty keys, `expectedPerformanceFromChallenge()` continuous mapping, `challengeRatingOf`
+  extraction, 18/18 pipeline tests pass.
+- **Task 1.4–1.6**: Not yet started.
+- **Tasks 2–12**: Not yet started.
+- **App CI**: FAIL (3 inherited test failures; will turn green when tasks 3 and 5 fix them).
 
 ## Authoritative active change
 
@@ -37,11 +49,11 @@ The change contains proposal, design, machine-readable metadata, audit map, norm
 
 ## Next required action
 
-Execute the first unchecked task in:
+Task 0 (restore baseline) and tasks 1.1–1.3 (rating pipeline canonical difficulty)
+are completed. The next unchecked task is:
 
-`openspec/changes/006r-core-integrity-correction/tasks.md`
-
-The first wave restores local/CI green before semantic fixes. Do not skip forward to catalog exit validation.
+`openspec/changes/006r-core-integrity-correction/tasks.md` → **Task 1.4**:
+Define `CompletionOutcome` returned by the authoritative session-completion boundary.
 
 ## Important invariants
 
