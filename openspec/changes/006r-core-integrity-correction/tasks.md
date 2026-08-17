@@ -18,7 +18,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 1.4 Define `CompletionOutcome` returned by the authoritative session-completion boundary: persisted session, XP, currency award, per-domain applied deltas/resulting ratings, balance, records if available.
 - [x] 1.5 Remove production reliance on per-game no-op XP for displayed result. Local game result/workout result must render the authoritative outcome after successful persistence.
 - [x] 1.6 Add cross-subsystem tests using real canonical lowercase difficulty values for Easy/Normal/Hard/Expert/Adaptive.
-- [ ] 1.7 Prove Easy cannot inflate rating at trivial expected performance, while higher challenge changes expected performance appropriately.
+- [x] 1.7 Prove Easy cannot inflate rating at trivial expected performance, while higher challenge changes expected performance appropriately.
 - [ ] 1.8 Inventory historical session evidence; implement an explicit idempotent derived-rating rebuild/cutover strategy, or document evidence gaps and an auditable cutover. Never alter raw completed-session evidence.
 
 ## 2. Content/generator provenance — BLOCKING prerequisite for 3/4
