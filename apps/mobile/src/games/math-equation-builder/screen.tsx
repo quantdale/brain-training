@@ -202,11 +202,21 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     });
     dispatch({ type: 'persistence-started' });
     void persistMathEquationBuilderSession(record, persistSession).then((outcome) => {
-      dispatch(
-        outcome.ok
-          ? { type: 'persistence-succeeded' }
-          : { type: 'persistence-failed', message: String(outcome.error) },
-      );
+      if (outcome.ok) {
+        dispatch({ type: 'persistence-succeeded' });
+        // Use the authoritative outcome from the rating pipeline for display.
+        const co = outcome.result.completionOutcome;
+        if (co) {
+          dispatch({
+            type: 'completion-outcome-received',
+            xp: co.xp,
+            currency: co.currency,
+            deltas: co.deltas,
+          });
+        }
+      } else {
+        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+      }
     });
   }, [
     state.phase,
@@ -535,7 +545,11 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
               value={String(state.stats.bestStreak)}
               testID={testId(GAME_ID, 'best-streak')}
             />
-            <StatRow label="XP" value={String(state.xp)} testID={testId(GAME_ID, 'xp')} />
+            <StatRow
+              label="XP"
+              value={String(state.authoritativeXp ?? state.xp)}
+              testID={testId(GAME_ID, 'xp')}
+            />
 
             {state.persistState === 'failed' ? (
               <ThemedText

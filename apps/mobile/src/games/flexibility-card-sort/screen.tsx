@@ -225,11 +225,20 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistFlexibilitySession(record, persistSession).then((outcome) => {
-      dispatch(
-        outcome.ok
-          ? { type: 'persistence-succeeded' }
-          : { type: 'persistence-failed', message: String(outcome.error) },
-      );
+      if (outcome.ok) {
+        dispatch({ type: 'persistence-succeeded' });
+        const co = outcome.result.completionOutcome;
+        if (co) {
+          dispatch({
+            type: 'completion-outcome-received',
+            xp: co.xp,
+            currency: co.currency,
+            deltas: co.deltas,
+          });
+        }
+      } else {
+        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+      }
     });
   }, [
     state.phase,
@@ -544,7 +553,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
               value={String(state.stats.mistakes)}
               testID={testId(GAME_ID, 'mistakes')}
             />
-            <StatRow label="XP" value={String(state.xp)} testID={testId(GAME_ID, 'xp')} />
+            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
 
             {state.persistState === 'failed' ? (
               <ThemedText

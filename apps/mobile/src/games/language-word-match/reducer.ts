@@ -314,6 +314,15 @@ export function languageGameReducer(
       return { ...state, persistState: 'failed', lastError: action.message };
     }
 
+    case 'completion-outcome-received': {
+      return {
+        ...state,
+        authoritativeXp: action.xp,
+        authoritativeCurrency: action.currency,
+        authoritativeDeltas: action.deltas,
+      };
+    }
+
     case 'qa/force-win': {
       // Dev-only entry point (screen gates it); the reducer only shapes state.
       if (state.phase === 'results' || state.phase === 'intro' || state.params === null) {

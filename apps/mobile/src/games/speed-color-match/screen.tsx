@@ -209,11 +209,20 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     });
     dispatch({ type: 'persistence-started' });
     void persistSpeedColorMatchSession(record, persistSession).then((outcome) => {
-      dispatch(
-        outcome.ok
-          ? { type: 'persistence-succeeded' }
-          : { type: 'persistence-failed', message: String(outcome.error) },
-      );
+      if (outcome.ok) {
+        dispatch({ type: 'persistence-succeeded' });
+        const co = outcome.result.completionOutcome;
+        if (co) {
+          dispatch({
+            type: 'completion-outcome-received',
+            xp: co.xp,
+            currency: co.currency,
+            deltas: co.deltas,
+          });
+        }
+      } else {
+        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+      }
     });
   }, [
     state.phase,
@@ -482,7 +491,7 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
               }
               testID={testId(GAME_ID, 'avg-reaction')}
             />
-            <StatRow label="XP" value={String(state.xp)} testID={testId(GAME_ID, 'xp')} />
+            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
 
             {state.persistState === 'failed' ? (
               <ThemedText

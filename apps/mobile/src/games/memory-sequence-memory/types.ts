@@ -130,6 +130,12 @@ export type SequenceMemoryAction =
   | { type: 'persistence-started' }
   | { type: 'persistence-succeeded' }
   | { type: 'persistence-failed'; message: string }
+  | {
+      type: 'completion-outcome-received';
+      xp: number;
+      currency: number;
+      deltas: readonly { domain: string; delta: number; ratingAfter: number }[];
+    }
   /** End the session; the in-flight round counts as passed. */
   | { type: 'qa/force-win' }
   /** End the session; the in-flight round counts as failed. */
@@ -180,6 +186,12 @@ export interface SequenceMemoryGameState {
   persistState: 'idle' | 'started' | 'succeeded' | 'failed';
   /** Persistence failure detail (shown on the results screen). */
   lastError: string | null;
+  /** Authoritative XP from the rating pipeline (null until persistence succeeds). */
+  authoritativeXp: number | null;
+  /** Authoritative currency from the rating pipeline (null until persistence succeeds). */
+  authoritativeCurrency: number | null;
+  /** Authoritative rating deltas with resulting ratings (empty until persistence succeeds). */
+  authoritativeDeltas: readonly { domain: string; delta: number; ratingAfter: number }[];
   tutorialOpen: boolean;
 }
 
@@ -211,6 +223,9 @@ export function createInitialSequenceMemoryState(): SequenceMemoryGameState {
     normalized: null,
     persistState: 'idle',
     lastError: null,
+    authoritativeXp: null,
+    authoritativeCurrency: null,
+    authoritativeDeltas: [],
     tutorialOpen: false,
   };
 }

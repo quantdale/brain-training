@@ -208,11 +208,20 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistTapRushSession(record, persistSession).then((outcome) => {
-      dispatch(
-        outcome.ok
-          ? { type: 'persistence-succeeded' }
-          : { type: 'persistence-failed', message: String(outcome.error) },
-      );
+      if (outcome.ok) {
+        dispatch({ type: 'persistence-succeeded' });
+        const co = outcome.result.completionOutcome;
+        if (co) {
+          dispatch({
+            type: 'completion-outcome-received',
+            xp: co.xp,
+            currency: co.currency,
+            deltas: co.deltas,
+          });
+        }
+      } else {
+        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+      }
     });
   }, [
     state.phase,
@@ -504,7 +513,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
               }
               testID={testId(GAME_ID, 'best-reaction')}
             />
-            <StatRow label="XP" value={String(state.xp)} testID={testId(GAME_ID, 'xp')} />
+            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
 
             {state.persistState === 'failed' ? (
               <ThemedText

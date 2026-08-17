@@ -396,3 +396,19 @@ Recorded as BLOCKED with exact reproduction above.
 - **Validation**:
   * `apps/mobile` typecheck: PASS (0 errors).
   * No regressions introduced.
+
+## Campaign 006R Wave 3 — Authoritative XP display across all 20 games (2026-08-17, commit TBD)
+
+### Task 1.5 — Remove per-game no-op XP, use authoritative outcome
+
+- **Changes** (applied to all 20 games):
+  * `types.ts`: Added `authoritativeXp`, `authoritativeCurrency`, `authoritativeDeltas` fields to game state; added `completion-outcome-received` action type.
+  * `reducer.ts`: Added `completion-outcome-received` case that stores the authoritative outcome in state.
+  * `screen.tsx`: Updated persistence callback to dispatch `completion-outcome-received` from `completionOutcome` when persistence succeeds; updated XP `StatRow` to display `authoritativeXp ?? state.xp`.
+
+- **Games updated**: attention-odd-one-out, attention-visual-search, flexibility-card-sort, flexibility-color-stroop, language-sentence-builder, language-word-match, language-word-scramble, logic-code-cracker, logic-next-sequence, math-equation-builder, math-fast-math, math-missing-operator, memory, memory-pattern-tap-back, memory-sequence-memory, spatial-mental-rotation, spatial-transform-match, speed-color-match, speed-reaction-time, speed-tap-rush.
+
+- **Validation**:
+  * `apps/mobile` typecheck: PASS (0 errors).
+  * Full test suite: 174/177 suites pass (3 inherited failures unchanged).
+  * No regressions introduced.

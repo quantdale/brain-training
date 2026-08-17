@@ -205,11 +205,20 @@ export default function MathScreen(props: MathScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistMathSession(record, persistSession).then((outcome) => {
-      dispatch(
-        outcome.ok
-          ? { type: 'persistence-succeeded' }
-          : { type: 'persistence-failed', message: String(outcome.error) },
-      );
+      if (outcome.ok) {
+        dispatch({ type: 'persistence-succeeded' });
+        const co = outcome.result.completionOutcome;
+        if (co) {
+          dispatch({
+            type: 'completion-outcome-received',
+            xp: co.xp,
+            currency: co.currency,
+            deltas: co.deltas,
+          });
+        }
+      } else {
+        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+      }
     });
   }, [
     state.phase,
@@ -486,7 +495,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
               value={state.stats.fastestMs === null ? '—' : `${(state.stats.fastestMs / 1000).toFixed(1)}s`}
               testID={testId(GAME_ID, 'fastest')}
             />
-            <StatRow label="XP" value={String(state.xp)} testID={testId(GAME_ID, 'xp')} />
+            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
 
             {state.persistState === 'failed' ? (
               <ThemedText

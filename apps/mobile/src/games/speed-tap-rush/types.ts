@@ -183,6 +183,12 @@ export type TapRushAction =
   | { type: 'persistence-started' }
   | { type: 'persistence-succeeded' }
   | { type: 'persistence-failed'; message: string }
+  | {
+      type: 'completion-outcome-received';
+      xp: number;
+      currency: number;
+      deltas: readonly { domain: string; delta: number; ratingAfter: number }[];
+    }
   | { type: 'qa/force-win' }
   | { type: 'qa/force-lose' }
   | { type: 'qa/force-state'; patch: QaForceStatePatch };
@@ -231,6 +237,12 @@ export interface TapRushGameState {
   persistState: 'idle' | 'started' | 'succeeded' | 'failed';
   /** Persistence failure detail (shown on the results screen). */
   lastError: string | null;
+  /** Authoritative XP from the rating pipeline (null until persistence succeeds). */
+  authoritativeXp: number | null;
+  /** Authoritative currency from the rating pipeline (null until persistence succeeds). */
+  authoritativeCurrency: number | null;
+  /** Authoritative rating deltas with resulting ratings (empty until persistence succeeds). */
+  authoritativeDeltas: readonly { domain: string; delta: number; ratingAfter: number }[];
   tutorialOpen: boolean;
 }
 
@@ -264,6 +276,9 @@ export function createInitialTapRushState(): TapRushGameState {
     normalized: null,
     persistState: 'idle',
     lastError: null,
+    authoritativeXp: null,
+    authoritativeCurrency: null,
+    authoritativeDeltas: [],
     tutorialOpen: false,
   };
 }
