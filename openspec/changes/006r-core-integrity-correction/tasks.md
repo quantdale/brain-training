@@ -44,7 +44,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 4.1 Define one evaluator/grammar contract shared conceptually by UI, solver, tutorial, and generator validation.
 - [x] 4.2 Every returned puzzle path—curated, procedural, fallback—must run the final solvability validator using the active difficulty's allowed operators and exact UI rules.
 - [x] 4.3 Remove/repair any curated template that is invalid for a difficulty instead of trusting target/count range alone.
-- [ ] 4.4 Property-sweep every named difficulty across a large deterministic seed set; assert valid number count/range, allowed operators, solvability, finite result, no illegal division, and no duplicate/near-duplicate violation required by the game.
+- [x] 4.4 Property-sweep every named difficulty across a large deterministic seed set; assert valid number count/range, allowed operators, solvability, finite result, no illegal division, and no duplicate/near-duplicate violation required by the game.
 - [ ] 4.5 Tutorial demo must use the same legal grammar/evaluator and compile without type suppression.
 - [ ] 4.6 Advance generator version when challenge mapping changes.
 
