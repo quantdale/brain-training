@@ -63,6 +63,20 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "language-sentence-builder",
+    name: "Sentence Builder",
+    primaryCategory: "Language",
+    secondaryDomains: [
+    "Attention",
+    "Speed"
+  ],
+    description: "Rebuild scrambled sentences by tapping words in the correct order.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "language-word-match",
     name: "Word Match",
     primaryCategory: "Language",
@@ -112,6 +126,19 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "math-equation-builder",
+    name: "Equation Builder",
+    primaryCategory: "Math",
+    secondaryDomains: [
+    "Logic & Problem Solving"
+  ],
+    description: "Build an equation using all the given numbers and operators to reach the target number.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "math-fast-math",
     name: "Fast Math",
     primaryCategory: "Math",
@@ -145,6 +172,19 @@ export const registry: readonly GameDefinition[] = [
     "Attention"
   ],
     description: "Watch the tiles light up in sequence, then repeat the pattern from memory.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "memory-pattern-tap-back",
+    name: "Pattern Tap Back",
+    primaryCategory: "Memory",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Watch tiles light up in a sequence, then tap them back in the same order.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
@@ -190,6 +230,19 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "speed-color-match",
+    name: "Color Match",
+    primaryCategory: "Speed",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Tap the button matching the swatch color (not the text color) as fast as possible.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "speed-reaction-time",
     name: "Reaction Time",
     primaryCategory: "Speed",
@@ -227,16 +280,20 @@ export const gameScreenLoaders: Record<string, () => Promise<{ default: Componen
   'attention-visual-search': () => import('@/games/attention-visual-search'),
   'flexibility-card-sort': () => import('@/games/flexibility-card-sort'),
   'flexibility-color-stroop': () => import('@/games/flexibility-color-stroop'),
+  'language-sentence-builder': () => import('@/games/language-sentence-builder'),
   'language-word-match': () => import('@/games/language-word-match'),
   'language-word-scramble': () => import('@/games/language-word-scramble'),
   'logic-code-cracker': () => import('@/games/logic-code-cracker'),
   'logic-next-sequence': () => import('@/games/logic-next-sequence'),
+  'math-equation-builder': () => import('@/games/math-equation-builder'),
   'math-fast-math': () => import('@/games/math-fast-math'),
   'math-missing-operator': () => import('@/games/math-missing-operator'),
   'memory': () => import('@/games/memory'),
+  'memory-pattern-tap-back': () => import('@/games/memory-pattern-tap-back'),
   'memory-sequence-memory': () => import('@/games/memory-sequence-memory'),
   'spatial-mental-rotation': () => import('@/games/spatial-mental-rotation'),
   'spatial-transform-match': () => import('@/games/spatial-transform-match'),
+  'speed-color-match': () => import('@/games/speed-color-match'),
   'speed-reaction-time': () => import('@/games/speed-reaction-time'),
   'speed-tap-rush': () => import('@/games/speed-tap-rush'),
 };

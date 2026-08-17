@@ -1,0 +1,11 @@
+{
+  "id": "math-equation-builder",
+  "name": "Equation Builder",
+  "primaryCategory": "Math",
+  "secondaryDomains": ["Logic & Problem Solving"],
+  "description": "Build an equation using all the given numbers and operators to reach the target number.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}
