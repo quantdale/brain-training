@@ -348,3 +348,28 @@ Recorded as BLOCKED with exact reproduction above.
 - App CI: FAIL (unit tests fail due to the three inherited test failures above).
   Expected; CI will turn green when tasks 3 and 5 fix the underlying test expectations.
   No new regressions introduced by baseline repair.
+
+## Campaign 006R Wave 1 — Rating pipeline canonical difficulty fix (2026-08-17, commit TBD)
+
+### Task 1.1–1.3 — Rating pipeline lowercase keys + challengeRating expected performance
+
+- **Changes**: `src/rating/pipeline.ts`:
+  * `DIFFICULTY_XP_MULTIPLIER` and `DIFFICULTY_EXPECTED_PERFORMANCE` maps changed from capitalized to lowercase keys (`Easy`→`easy`, etc.).
+  * Added `expectedPerformanceFromChallenge(challengeRating)` function that maps continuous challenge rating to expected performance via piecewise linear interpolation between four anchor points (easy/normal/hard/expert).
+  * Updated `computeRatingDelta` to accept optional `challengeRating` parameter; when provided, uses `expectedPerformanceFromChallenge` instead of named-level lookup.
+  * Updated `computeRatingOutcome` to extract `challengeRating` from session difficulty profile and pass to rating delta computation.
+  * Changed default difficulty level from `'Normal'` to `'normal'` (lowercase) in `difficultyLevelOf`.
+  * Added `challengeRatingOf` helper that returns `undefined` when challengeRating not present in difficulty profile.
+
+- **Tests**: `src/rating/__tests__/pipeline.test.ts`:
+  * Updated all difficulty string literals from capitalized to lowercase.
+  * Updated map property accesses to lowercase.
+  * Added 5 new tests for `expectedPerformanceFromChallenge` covering anchor points, interpolation, extrapolation, and clamping.
+  * All 18 pipeline tests pass.
+
+- **Validation**:
+  * `apps/mobile` typecheck: PASS (0 errors).
+  * `apps/mobile` rating pipeline tests: 18/18 PASS.
+  * `apps/mobile` db rating tests: 7/7 PASS.
+  * Full test suite: 174/177 suites pass (3 inherited failures unchanged).
+  * No regressions introduced.

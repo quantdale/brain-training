@@ -12,9 +12,9 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 1. Progression/rating authoritative outcome — BLOCKING
 
-- [ ] 1.1 Replace capitalized rating/XP difficulty keys with the canonical typed lowercase `DifficultyLevel` contract.
-- [ ] 1.2 Define and test expected-performance calculation from resolved continuous challenge; named modes provide defaults, adaptive uses final challenge evidence.
-- [ ] 1.3 Ensure persisted difficulty/challenge data captures the actual session challenge used by the rating algorithm.
+- [x] 1.1 Replace capitalized rating/XP difficulty keys with the canonical typed lowercase `DifficultyLevel` contract.
+- [x] 1.2 Define and test expected-performance calculation from resolved continuous challenge; named modes provide defaults, adaptive uses final challenge evidence.
+- [x] 1.3 Ensure persisted difficulty/challenge data captures the actual session challenge used by the rating algorithm.
 - [ ] 1.4 Define `CompletionOutcome` returned by the authoritative session-completion boundary: persisted session, XP, currency award, per-domain applied deltas/resulting ratings, balance, records if available.
 - [ ] 1.5 Remove production reliance on per-game no-op XP for displayed result. Local game result/workout result must render the authoritative outcome after successful persistence.
 - [ ] 1.6 Add cross-subsystem tests using real canonical lowercase difficulty values for Easy/Normal/Hard/Expert/Adaptive.
