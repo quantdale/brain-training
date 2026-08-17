@@ -64,12 +64,14 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
 
 export default function HomeScreen() {
   const games = getAllGameDefinitions();
+  // Freeze Word Match from workout selection until semantic correction (006R task 3.1)
+  const eligibleGames = games.filter((g) => g.id !== 'language-word-match');
   const today = localDateString();
   const [rerollAttempt, setRerollAttempt] = useState(0);
   const { data, loaded } = useDbData(loadHome, [rerollAttempt], EMPTY_HOME);
 
   const workout = personalizedWorkout(
-    games,
+    eligibleGames,
     today,
     data.domainRatings,
     data.recentGameIds,

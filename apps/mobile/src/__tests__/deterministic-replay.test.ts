@@ -18,7 +18,7 @@ import { generateRoundSequence } from '@/games/memory/generator';
 
 // Curated: language-word-match
 import { selectRound } from '@/games/language-word-match/generator';
-import type { PackItem } from '@/games/language-word-match/types';
+import type { PackItem } from '@/games/language-word-match/content-validation';
 
 // Hybrid: math-equation-builder
 import { generatePuzzle } from '@/games/math-equation-builder/generator';
@@ -77,8 +77,8 @@ describe('Deterministic replay — curated (language-word-match)', () => {
     const seed = 'word-match-test-seed-1';
     const rng = createRng(seed);
     const pack: readonly PackItem[] = [
-      { id: 'w1', prompt: 'happy', options: ['joyful', 'sad', 'angry', 'tired'], correctIndex: 0, tier: 1 },
-      { id: 'w2', prompt: 'fast', options: ['quick', 'slow', 'lazy', 'heavy'], correctIndex: 0, tier: 1 },
+      { id: 'w1', prompt: 'happy', options: ['joyful', 'sad', 'angry', 'tired'], correctIndex: 0, correctWord: 'joyful', tier: 't1', family: 'emotion' },
+      { id: 'w2', prompt: 'fast', options: ['quick', 'slow', 'lazy', 'heavy'], correctIndex: 0, correctWord: 'quick', tier: 't1', family: 'speed' },
     ];
 
     const result1 = selectRound({
