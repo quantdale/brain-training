@@ -51,6 +51,6 @@ describe('createSpeedTutorialLifecycle', () => {
   it('supports the QA skip path', () => {
     const tutorial = createSpeedTutorialLifecycle();
     tutorial.skipForQa(GAME_ID);
-    expect(tutorial.getState(GAME_ID)).toEqual({ completed: true, replayRequested: false });
+    expect(tutorial.getState(GAME_ID)).toEqual({ completed: true, replayRequested: false, version: '1.0.0' });
   });
 });

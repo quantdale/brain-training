@@ -30,7 +30,7 @@ describe('TutorialLifecycle', () => {
   it('skipForQa bypasses the tutorial in dev builds', () => {
     const tutorial = createTutorialLifecycle();
     tutorial.skipForQa('game-b');
-    expect(tutorial.getState('game-b')).toEqual({ completed: true, replayRequested: false });
+    expect(tutorial.getState('game-b')).toEqual({ completed: true, replayRequested: false, version: '1.0.0' });
     expect(tutorial.shouldShowTutorial('game-b')).toBe(false);
   });
 
@@ -43,19 +43,19 @@ describe('TutorialLifecycle', () => {
     const tutorial = createTutorialLifecycle(store);
     tutorial.complete('game-c');
     expect(writes).toEqual([
-      { gameId: 'game-c', state: { completed: true, replayRequested: false } },
+      { gameId: 'game-c', state: { completed: true, replayRequested: false, version: '1.0.0' } },
     ]);
   });
 
   it('defaults a never-seen game to not-completed', () => {
     const tutorial = createTutorialLifecycle();
-    expect(tutorial.getState('never-seen')).toEqual({ completed: false, replayRequested: false });
+    expect(tutorial.getState('never-seen')).toEqual({ completed: false, replayRequested: false, version: null });
   });
 
   it('in-memory store round-trips state', () => {
     const store = createInMemoryTutorialStore();
-    store.setTutorialState('x', { completed: true, replayRequested: true });
-    expect(store.getTutorialState('x')).toEqual({ completed: true, replayRequested: true });
+    store.setTutorialState('x', { completed: true, replayRequested: true, version: '1.0.0' });
+    expect(store.getTutorialState('x')).toEqual({ completed: true, replayRequested: true, version: '1.0.0' });
     expect(store.getTutorialState('y')).toBeNull();
   });
 });

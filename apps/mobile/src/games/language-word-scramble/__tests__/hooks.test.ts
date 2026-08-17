@@ -47,6 +47,6 @@ describe('createWordScrambleTutorialLifecycle', () => {
   it('supports the QA skip path', () => {
     const tutorial = createWordScrambleTutorialLifecycle();
     tutorial.skipForQa(GAME_ID);
-    expect(tutorial.getState(GAME_ID)).toEqual({ completed: true, replayRequested: false });
+    expect(tutorial.getState(GAME_ID)).toEqual({ completed: true, replayRequested: false, version: '1.0.0' });
   });
 });

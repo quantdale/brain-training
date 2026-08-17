@@ -14,6 +14,8 @@ export interface TutorialState {
   readonly completed: boolean;
   /** Player requested a replay from help/info. */
   readonly replayRequested: boolean;
+  /** Tutorial version for content tracking (null = not yet seen). */
+  readonly version: string | null;
 }
 
 /** Minimal persistence seam; the db layer implements this in Phase 1+. */
@@ -42,36 +44,37 @@ export function createInMemoryTutorialStore(): TutorialStore {
   return {
     getTutorialState: (gameId) => states.get(gameId) ?? null,
     setTutorialState: (gameId, state) => {
-      states.set(gameId, { completed: state.completed, replayRequested: state.replayRequested });
+      states.set(gameId, { completed: state.completed, replayRequested: state.replayRequested, version: state.version });
     },
   };
 }
 
-const NOT_SEEN: TutorialState = Object.freeze({ completed: false, replayRequested: false });
+const NOT_SEEN: TutorialState = Object.freeze({ completed: false, replayRequested: false, version: null });
 
 /** Reference `TutorialLifecycle` over any `TutorialStore`. */
-export function createTutorialLifecycle(store: TutorialStore = createInMemoryTutorialStore()): TutorialLifecycle {
+export function createTutorialLifecycle(store: TutorialStore = createInMemoryTutorialStore(), tutorialVersion: string = '1.0.0'): TutorialLifecycle {
   const stateFor = (gameId: string): TutorialState => store.getTutorialState(gameId) ?? NOT_SEEN;
 
   return {
     shouldShowTutorial: (gameId) => {
       const state = stateFor(gameId);
-      return !state.completed || state.replayRequested;
+      // Show if never seen, or if version changed (new tutorial content), or replay requested
+      return !state.completed || state.version !== tutorialVersion || state.replayRequested;
     },
     complete: (gameId) => {
-      store.setTutorialState(gameId, { completed: true, replayRequested: false });
+      store.setTutorialState(gameId, { completed: true, replayRequested: false, version: tutorialVersion });
     },
     requestReplay: (gameId) => {
       const state = stateFor(gameId);
-      store.setTutorialState(gameId, { completed: state.completed, replayRequested: true });
+      store.setTutorialState(gameId, { completed: state.completed, replayRequested: true, version: state.version });
     },
     clearReplay: (gameId) => {
       const state = stateFor(gameId);
-      store.setTutorialState(gameId, { completed: state.completed, replayRequested: false });
+      store.setTutorialState(gameId, { completed: state.completed, replayRequested: false, version: state.version });
     },
     skipForQa: (gameId) => {
       assertDevOnly();
-      store.setTutorialState(gameId, { completed: true, replayRequested: false });
+      store.setTutorialState(gameId, { completed: true, replayRequested: false, version: tutorialVersion });
     },
     getState: stateFor,
   };

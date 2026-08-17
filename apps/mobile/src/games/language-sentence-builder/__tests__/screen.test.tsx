@@ -28,7 +28,7 @@ const TIME_BUDGET_MS = 25_000;
 /** Tutorial store that already completed the tutorial. */
 function completedStore() {
   const store = createInMemoryTutorialStore();
-  store.setTutorialState(GAME_ID, { completed: true, replayRequested: false });
+  store.setTutorialState(GAME_ID, { completed: true, replayRequested: false, version: '1.0.0' });
   return store;
 }
 

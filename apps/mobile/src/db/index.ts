@@ -16,6 +16,7 @@ import { ProfileRepository } from './profile';
 import { QuestRepository } from './quests';
 import { RatingRepository } from './rating';
 import { SessionRepository } from './sessions';
+import { TutorialRepository } from './tutorial';
 import type { RatingService } from './types';
 import { XpAwardsRepository } from './xp-awards';
 
@@ -52,6 +53,7 @@ export type { AchievementDefinition, AchievementUnlock } from './achievements';
 export { XpAwardsRepository } from './xp-awards';
 export type { XpAward } from './xp-awards';
 export { SessionRepository } from './sessions';
+export { TutorialRepository } from './tutorial';
 export type { CompleteSessionResult, GameAggregate } from './sessions';
 export { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 
@@ -75,6 +77,7 @@ export class AppDatabase {
   readonly quests: QuestRepository;
   readonly achievements: AchievementRepository;
   readonly xpAwards: XpAwardsRepository;
+  readonly tutorials: TutorialRepository;
 
   constructor(adapter: SQLiteAdapter, options: AppDatabaseOptions = {}) {
     const now = options.now;
@@ -86,6 +89,7 @@ export class AppDatabase {
     this.quests = new QuestRepository(adapter, now);
     this.achievements = new AchievementRepository(adapter, now);
     this.xpAwards = new XpAwardsRepository(adapter, now);
+    this.tutorials = new TutorialRepository(adapter, now);
   }
 }
 

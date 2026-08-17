@@ -31,7 +31,7 @@ const NORMAL = SPEED_DIFFICULTY_PARAMS.normal;
 /** Tutorial store that already completed the tutorial (skips first-play). */
 function completedStore() {
   const store = createInMemoryTutorialStore();
-  store.setTutorialState(GAME_ID, { completed: true, replayRequested: false });
+  store.setTutorialState(GAME_ID, { completed: true, replayRequested: false, version: '1.0.0' });
   return store;
 }
 

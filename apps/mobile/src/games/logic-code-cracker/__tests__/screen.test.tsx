@@ -14,7 +14,7 @@ jest.mock('expo-router', () => ({
 function completedStore() {
   const { createInMemoryTutorialStore } = require('@/sdk');
   const store = createInMemoryTutorialStore();
-  store.setTutorialState(GAME_ID, { completed: true, replayRequested: false });
+  store.setTutorialState(GAME_ID, { completed: true, replayRequested: false, version: '1.0.0' });
   return store;
 }
 

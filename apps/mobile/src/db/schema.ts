@@ -7,7 +7,7 @@
  * common dialect shared by expo-sqlite and better-sqlite3.
  */
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -248,6 +248,17 @@ export const SQL = {
       FOREIGN KEY (achievement_id) REFERENCES achievements (id)
     );
   `,
+
+  /** Tutorial completion state keyed by game ID. */
+  createTutorialState: `
+    CREATE TABLE IF NOT EXISTS tutorial_state (
+      game_id        TEXT    PRIMARY KEY,
+      completed      INTEGER NOT NULL DEFAULT 0,
+      replay_requested INTEGER NOT NULL DEFAULT 0,
+      version        TEXT,
+      updated_at     INTEGER NOT NULL
+    );
+  `,
 };
 
 /** Ordered migrations from version 0 to SCHEMA_VERSION. Never reorder/patch old entries. */
@@ -277,6 +288,12 @@ export const MIGRATIONS: readonly Migration[] = [
       await exec(SQL.createQuestProgress);
       await exec(SQL.createAchievements);
       await exec(SQL.createAchievementUnlocks);
+    },
+  },
+  {
+    version: 4,
+    up: async (exec) => {
+      await exec(SQL.createTutorialState);
     },
   },
 ];
