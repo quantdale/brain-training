@@ -50,9 +50,10 @@ describe('RatingRepository', () => {
     expect(entries[1]).toMatchObject({ domain: 'Attention', delta: -5, ratingAfter: INITIAL_RATING - 5 });
 
     const all = await ratings.getRatings();
+    // Task 9.2: updatedAt uses session event time (T0 + 90_000), not processing time
     expect(all).toEqual([
-      { domain: 'Attention', rating: INITIAL_RATING - 5, sessions: 1, updatedAt: T0 },
-      { domain: 'Memory', rating: INITIAL_RATING + 10, sessions: 1, updatedAt: T0 },
+      { domain: 'Attention', rating: INITIAL_RATING - 5, sessions: 1, updatedAt: T0 + 90_000 },
+      { domain: 'Memory', rating: INITIAL_RATING + 10, sessions: 1, updatedAt: T0 + 90_000 },
     ]);
 
     const history = await ratings.getHistory();
@@ -70,7 +71,8 @@ describe('RatingRepository', () => {
     await adapter.transaction((txn) => ratings.applyDeltas(txn, 's2', deltas, T0 + 1000));
 
     const rating = await ratings.getRating('Speed');
-    expect(rating).toEqual({ domain: 'Speed', rating: INITIAL_RATING + 8, sessions: 2, updatedAt: T0 });
+    // Task 9.2: updatedAt uses session event time, not processing time
+    expect(rating).toEqual({ domain: 'Speed', rating: INITIAL_RATING + 8, sessions: 2, updatedAt: T0 + 1000 });
     expect(await ratings.getHistory(100)).toHaveLength(2);
   });
 

@@ -111,7 +111,6 @@ export class RatingRepository {
     deltas: readonly RatingDelta[],
     eventAtMs: number,
   ): Promise<AppliedRatingDelta[]> {
-    const appliedAt = this.now();
     const applied: AppliedRatingDelta[] = [];
 
     for (const delta of deltas) {
@@ -122,13 +121,15 @@ export class RatingRepository {
       const appliedDelta = ratingAfter - previousRating;
       const sessions = (current?.sessions ?? 0) + 1;
 
+      // Task 9.2: Use session event time for freshness, not processing time
+      // This ensures old evidence doesn't look fresh when processed later
       await txn.run(
         `INSERT INTO domain_ratings (domain, rating, sessions, updated_at) VALUES (?, ?, ?, ?)
          ON CONFLICT (domain) DO UPDATE SET
            rating = excluded.rating,
            sessions = excluded.sessions,
            updated_at = excluded.updated_at`,
-        [delta.domain, ratingAfter, sessions, appliedAt],
+        [delta.domain, ratingAfter, sessions, eventAtMs],
       );
 
       await txn.run(
