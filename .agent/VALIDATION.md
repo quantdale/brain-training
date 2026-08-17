@@ -412,3 +412,30 @@ Recorded as BLOCKED with exact reproduction above.
   * `apps/mobile` typecheck: PASS (0 errors).
   * Full test suite: 174/177 suites pass (3 inherited failures unchanged).
   * No regressions introduced.
+
+## Campaign 006R Wave 4 — Cross-subsystem rating tests (2026-08-17, commit TBD)
+
+### Task 1.6 — Cross-subsystem tests with real lowercase difficulties
+
+- **Changes**: Added `src/__tests__/cross-subsystem-rating.test.ts` with 10 tests:
+  * Canonical lowercase difficulty values (easy/normal/hard/expert/adaptive): verifies XP multiplier, expected performance, and rating deltas for each.
+  * Easy farming protection: verifies trivial easy play produces minimal/no rating gain.
+  * Completion outcome structure: verifies session, xp, currency, deltas with ratingAfter, balance.
+  * Secondary domain half weight: verifies primary gains more than secondary.
+  * Persistence failure: verifies completionOutcome is null without rating service.
+
+- **Validation**:
+  * `apps/mobile` typecheck: PASS (0 errors).
+  * Cross-subsystem tests: 10/10 PASS.
+  * Full test suite: 175/178 suites pass (3 inherited failures unchanged).
+  * No regressions introduced.
+
+### Task 1 — Progression/rating authoritative outcome: COMPLETE
+
+All subtasks 1.1–1.6 completed:
+- 1.1: Lowercase difficulty keys ✅
+- 1.2: expectedPerformanceFromChallenge ✅
+- 1.3: Persisted challengeRating ✅
+- 1.4: CompletionOutcome type ✅
+- 1.5: Authoritative XP display ✅
+- 1.6: Cross-subsystem tests ✅
