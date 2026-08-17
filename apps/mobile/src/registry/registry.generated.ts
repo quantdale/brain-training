@@ -144,7 +144,7 @@ export const registry: readonly GameDefinition[] = [
     description: "Build an equation using all the given numbers and operators to reach the target number.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
-    generatorVersion: "1.0.0",
+    generatorVersion: "1.1.0",
     contentVersion: null,
     hasTutorial: true,
   },
