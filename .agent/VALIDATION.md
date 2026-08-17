@@ -341,3 +341,10 @@ before our tutorial type repair.
 **Classification**: P1/P2 — inherited from upstream; will be repaired as part of
 tasks 3 (Word Match redesign) and 5 (tutorial persistence) in the 006R change.
 Recorded as BLOCKED with exact reproduction above.
+
+### GitHub CI status (commit `1d83efb`)
+
+- Repository Integrity: PASS.
+- App CI: FAIL (unit tests fail due to the three inherited test failures above).
+  Expected; CI will turn green when tasks 3 and 5 fix the underlying test expectations.
+  No new regressions introduced by baseline repair.
