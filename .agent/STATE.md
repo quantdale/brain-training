@@ -1,69 +1,101 @@
 # Durable Project State
 
-**State schema:** 1
-**Last update:** 2026-08-17 (Campaign 005 COMPLETED; 20-game catalog)
-**Canonical branch:** `main`
-**Active campaign:** `006-platform-hardening-and-polish` (Phase 6 — staged; next continuation goal executes it)
+**State schema:** 1  
+**Last update:** 2026-08-17 (deep audit completed; Campaign 006R corrective gate staged)  
+**Canonical branch:** `main`  
+**Active campaign:** `006r-core-integrity-correction`
 
 ## Current status
 
-**Campaign 005 (Catalog Depth and UX Polish, Phase 5) is COMPLETED.** 4 new
-game modules added (one per high-traffic domain), 20-game catalog verified.
+**Campaign 005 (Catalog Depth and UX Polish, Phase 5) is COMPLETED.** The repository reached a 20-game catalog and previously demonstrated strong autonomous development, SQLite persistence, Android AVD automation, rating/progression foundations, quests, streaks, Today's Workout selection, and platform QA infrastructure.
+
+**Campaign 006 (Platform Hardening and Polish) STARTED but is now SUSPENDED.** The audited checkpoint `2871e5ab0137b1c6475d21100344280ea9927419` (`ongoing campaign 6`) introduced useful work but App CI/typecheck was red and a deep source-level audit found cross-subsystem semantic defects that must be corrected before more catalog/content expansion.
+
+The owner explicitly requested a very detailed repository-persisted corrective master plan that autonomous agents can execute. That plan is now the source of truth:
+
+`.agent/specs/006r-core-integrity-correction/README.md`
+
+and numbered specs `001` through `013` in the same directory.
+
+## Why 006R blocks further breadth
+
+The audit found important defects/risks including:
+
+- canonical lowercase difficulty values mismatching capitalized shared rating/XP lookup keys;
+- final adaptive challenge not consistently authoritative in persisted difficulty;
+- game result UI able to show no-op `0 XP` while DB awards real XP;
+- Word Match content allowing several legitimate synonyms but scoring only one arbitrary option;
+- Equation Builder curated/fallback paths not proving solvability under every active operator/difficulty rule;
+- content/generator candidate pools changing without enforceable provenance/version bumps;
+- tutorial completion defaulting to transient in-memory lifecycle state;
+- Today's Workout being four independent links rather than a durable four-game session flow;
+- personalization reordering an already-selected set instead of selecting from the full eligible catalog;
+- reroll/purchase/claim operations with durability/atomicity/idempotency gaps;
+- DB integrity/version-compatibility gaps;
+- streak/history queries whose arbitrary limits can produce incorrect player-visible values;
+- task packet ownership overlaps and insufficient semantic CI gates.
+
+These are documented in detail in the 006R specs. Do not rely on this summary as the implementation specification.
+
+## Completed campaign 005
+
+- `4434d33` — four additional games + registry (Memory/Speed/Math/Language expansion)
+- `d13dd59` — Campaign 005 completion checkpoint/state/parity update; Campaign 006 staged
+- 20 registered games at the completion boundary
+- prior convergence evidence: TypeScript clean, 177 suites / 2097 tests green before Campaign 006 work
+
 Checkpoint: `.agent/checkpoints/005-catalog-depth-and-ux-polish-complete.md`.
 
-- **4 new games** (commit `4434d33`):
-  - memory-pattern-tap-back (Memory) — 87 tests
-  - speed-color-match (Speed) — 82 tests
-  - math-equation-builder (Math) — 90 tests
-  - language-sentence-builder (Language) — 83 tests
-- **Registry regenerated**: 20 games, categories validated.
-- **Convergence**: tsc clean, 177 suites / 2097 tests all green.
+## Completed campaign 004
 
-## Completed campaign 005 (commit)
+- `90a2da9` wave1: odd-one-out, tap-rush, sequence-memory, missing-operator + registry
+- `69fc2f5` wave2: word-scramble, code-cracker, color-stroop, transform-match + registry
+- `48efbd0` completion checkpoint/state/parity update
 
-- `4434d33` wave1: 4 games (pattern-tap-back, color-match, equation-builder, sentence-builder) + registry
+## Completed campaign 003
 
-## Completed campaign 004 (commits)
+- `c2680a2` wave1: DB schema v3 + progression repositories
+- `d46a46d` task packets
+- `8d7dbe6` swarm deliverables
+- `4b3b4c4` convergence
+- `bcde66a` completion gate/checkpoint
 
-- `90a2da9` wave1: 4 games (odd-one-out, tap-rush, sequence-memory, missing-operator) + registry
-- `69fc2f5` wave2: 4 games (word-scramble, code-cracker, color-stroop, transform-match) + registry
-
-## Completed campaign 003 (commits)
-
-- `c2680a2` wave1: db schema v3 (xp_awards, quests, quest_progress, achievements) + repositories
-- `d46a46d` wave2-packets: 6 task packets (quests, streaks, content, offline, workout, progress-detail)
-- `8d7dbe6` wave2: swarm deliverables (quests engine, streaks, content seam, offline proof, personalization, progress detail)
-- `4b3b4c4` wave3: convergence (Home CTA + reroll economics, Profile quests/achievements/streaks/theme UI, progression seeding/sync, total-XP wiring, visual baselines)
-
-## Completed campaign 002 (commits)
-
-- `d0ff355` wave1: seven game modules + registry (8 games registered)
-- `0c7690d` wave2: rating engine + db schema v2 + RatingService seam
-- `2e439c5` wave3: shared platform UI (results, detail, search/filter, progress)
-- `f5d8e01` wave4: Today's Workout (deterministic daily + free reroll)
-- `0a16f68` wave5: focus-refresh for db-backed screens (QA findings)
+Campaign 003 proved the autonomous/platform gate but several semantics from later expansion now require the 006R correction.
 
 ## Next required action
 
-Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 006 (Platform Hardening
-and Polish, Phase 6): platform improvements and polish. No full hardening
-unless the owner requests it.
+Execute **Spec 001 only**:
+
+`.agent/specs/006r-core-integrity-correction/001-restore-green-main.md`
+
+Restore a verified green local baseline from canonical `main`, fix current TypeScript/CI break without suppression shortcuts, freeze breadth/content-count expansion, record validation evidence, commit/push the coherent repair, and verify CI when available.
+
+After Spec 001 passes, continue numerically according to `.agent/CURRENT_CAMPAIGN.md` and the 006R master spec.
 
 ## Important invariants
 
-- Android-first autonomous QA; iOS later compatibility campaign.
-- One emulator by default (dedicated AVD `braintraining35`).
-- No host mouse/keyboard automation.
-- Up to ~7 coder agents where work is safely partitioned.
-- No autonomous full hardening.
+- Android-first autonomous QA; one dedicated AVD by default.
+- No host physical mouse/keyboard automation.
+- Up to 7 coder agents only with explicit disjoint write ownership.
+- Shared DB/navigation/registry/Game SDK/CI/package/durable-state files are orchestrator convergence surfaces.
+- No autonomous full hardening unrelated to this owner-authorized corrective gate.
 - No autonomous force-push to `main`.
-- GitHub `main` is canonical (remote: quantdale/brain-training).
+- GitHub `main` is canonical.
+- No new game modules or raw content-count expansion until 006R exit gate passes.
+- Historical completed sessions are evidence and must not be silently rewritten/deleted.
+- Unavailable validation is `NOT VALIDATED`/`BLOCKED`, never PASS.
 
 ## Recovery note
 
-A fresh agent should not require the chat that created this repository. Read
-`AGENTS.md`, the constitution, governance JSON, current campaign, state,
-validation, and recent Git history before working. Recovery is demonstrated —
-see `docs/RECOVERY_DRILL.md`. Environment watch items (emulator stability,
-screencap black frames, typed-routes regeneration) are in
-`.agent/KNOWN_ISSUES.md`.
+A fresh agent should read, in order:
+
+1. `AGENTS.md`
+2. `docs/PROJECT_CONSTITUTION.md`
+3. `.agent/GOVERNANCE.json`
+4. `.agent/STATE.md`
+5. `.agent/CURRENT_CAMPAIGN.md`
+6. `.agent/specs/006r-core-integrity-correction/README.md`
+7. the current numbered 006R spec
+8. `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, relevant ADRs, and recent Git history
+
+Do not require chat history to recover the correction campaign.

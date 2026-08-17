@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "006-platform-hardening-and-polish",
+  "activeCampaign": "006r-core-integrity-correction",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

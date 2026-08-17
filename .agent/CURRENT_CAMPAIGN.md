@@ -1,76 +1,85 @@
-# Campaign 006 — Platform Hardening and Polish (Phase 6)
+# Campaign 006R — Core Integrity Correction
 
-**Status:** ACTIVE (staged; work begins on the next continuation goal)
-**Campaign type:** implementation
-**Hardening:** NO — moderate risk-based validation only (owner must explicitly start hardening)
-**Parent plan:** `docs/MASTER_PLAN.md` Phase 6 (later phases)
+**Status:** ACTIVE — corrective gate staged from deep audit  
+**Campaign type:** corrective convergence / integrity repair  
+**Campaign id:** `006r-core-integrity-correction`  
+**Hardening:** focused integrity validation explicitly authorized by owner; this is not unrelated full-production hardening  
+**Parent:** Campaign 006 Platform Hardening and Polish is SUSPENDED until 006R passes  
+**Master spec:** `.agent/specs/006r-core-integrity-correction/README.md`
 
-## Context
+## Why this campaign is active
 
-Campaign 005 (Catalog Depth and UX Polish) is COMPLETED — 20-game catalog
-with 3 games in Memory/Speed/Math/Language and 2 games in
-Attention/Logic/Flexibility/Spatial. The catalog is now substantial; this
-campaign focuses on platform quality and polish.
+A deep source-level audit of the current 20-game repository found several cross-subsystem semantic defects that are not adequately represented by the existing test count. The important blockers affect rating difficulty semantics, authoritative XP/result display, content ambiguity/provenance, Equation Builder solvability, tutorial persistence, Today's Workout semantics, and transactional progression/economy.
 
-## Objective
+Campaign 006 breadth/polish work must not continue on top of those defects. New games and content-count expansion are frozen until this corrective gate passes.
 
-Improve platform quality, accessibility, and performance:
+## Execution rule
 
-1. **Accessibility audit and improvements**:
-   - Add `accessibilityLabel` to all interactive elements across 20 games.
-   - Ensure consistent `accessibilityRole` usage (button, image, text).
-   - Add `accessibilityState` for disabled/selected states.
-   - Test with TalkBack (Android screen reader) — basic smoke only.
+Read the master spec and execute the numbered specs in order:
 
-2. **Performance optimizations**:
-   - Add `React.memo` to frequently re-rendered game components (tiles, buttons, grids).
-   - Lazy-load game screens via `React.lazy` + `Suspense` in the registry.
-   - Profile and optimize generator performance for large content banks.
+1. `001-restore-green-main.md`
+2. `002-rating-and-authoritative-outcomes.md`
+3. `003-content-generator-provenance.md`
+4. `004-word-match-semantic-correctness.md`
+5. `005-equation-builder-solvability.md`
+6. `006-tutorial-persistence.md`
+7. `007-daily-workout-and-personalization.md`
+8. `008-economy-transactionality.md`
+9. `009-database-integrity.md`
+10. `010-rating-progress-correctness.md`
+11. `011-game-platform-convergence.md`
+12. `012-swarm-ci-semantic-gates.md`
+13. `013-full-catalog-exit-gate.md`
 
-3. **Error handling improvements**:
-   - Add error boundaries around game screens.
-   - Improve persistence error handling (retry logic for transient failures).
-   - Add structured logging for QA diagnostics.
+Do not jump directly to Spec 013. P1 acceptance criteria in earlier specs are blocking.
 
-4. **Tutorial consistency pass**:
-   - Audit all 20 games for tutorial flow consistency.
-   - Ensure all tutorials have: intro → demo → done (3 steps minimum).
-   - Standardize tutorial styling across games.
+## First required action
 
-5. **Content pack expansion**:
-   - Add 50 more sentences to language-sentence-builder (150 total).
-   - Add 20 more equation templates to math-equation-builder.
-   - Add 30 more word pairs to language-word-match.
+Execute Spec 001 only: restore a verified green local baseline from canonical `main`, repair the current Campaign 006 TypeScript/CI break without type-suppression shortcuts, freeze breadth work, run the required baseline checks, update validation evidence, commit/push the coherent repair, and verify CI when available.
 
-6. **Moderate validation**: repo validator + tsc + full jest + emulator smoke.
+After Spec 001 is green, proceed to Spec 002 unless blocked.
 
-## Shared-file ownership rule (unchanged)
+## Swarm policy
 
-Orchestrator owns navigation, db schema/migrations, theme tokens, generated
-artifacts, package manifests, and any new shared seams. Coders own their game
-module directories only. Registry regeneration + full validation happen in
-orchestrator convergence waves between swarm launches.
+- Up to 7 coder agents may be used only after explicit disjoint write ownership is assigned.
+- One Android emulator remains the default runtime-QA resource.
+- Shared DB schema/migrations, navigation, registry generator, Game SDK/shared platform services, CI, package manifests, and durable state are orchestrator-owned convergence surfaces.
+- Specs 004 and 005 may run in parallel after Spec 003's provenance contract is established because they own separate game modules.
+- Other parallelization must be justified by non-overlapping ownership.
+- Host mouse/keyboard automation remains forbidden.
 
-## Light validation required
+## Mandatory campaign constraints
 
-- repository-state validator; typecheck + jest (whole tree)
-- registry generator `--check`
-- targeted emulator smoke for accessibility improvements (one AVD)
-- CI green on every pushed wave
-- no host-input interference maintained
+- No new game modules.
+- No content-count expansion merely for breadth.
+- No fake green: unavailable tooling is `NOT VALIDATED`/`BLOCKED`, never PASS.
+- No routine force-push to `main`.
+- No silent rewrite/delete of historical completed sessions.
+- No disabling tests or adding arbitrary retries/sleeps to manufacture green.
+- Generated files are updated through generators.
+- Each coherent pushed wave should build/typecheck locally before push.
 
 ## Exit criteria
 
-- Accessibility audit complete with improvements applied
-- Performance optimizations applied (memo, lazy-loading)
-- Error boundaries around game screens
-- Tutorial consistency verified across 20 games
-- Content packs expanded
-- no unresolved Critical/High defect
-- parity matrix updated if needed; committed docs/state match reality;
-  clean `main` pushed
+Campaign 006R completes only when Spec 013 passes in full, including:
 
-## On completion
+- repaired rating difficulty/adaptive policy;
+- authoritative result XP/rating display;
+- corrected Word Match semantic uniqueness;
+- Equation Builder all-difficulty solvability;
+- machine-enforced content/generator provenance/versioning;
+- durable tutorial completion/replay;
+- persisted four-game Today's Workout + resume + transactional rerolls;
+- atomic/idempotent spends/claims/purchases;
+- DB integrity/future-version protection;
+- correct rating history/evidence time/streak queries;
+- stable lazy loading/shared game-platform seams;
+- machine-validated swarm ownership + semantic CI contracts;
+- full 20-game contract convergence and one-AVD journeys;
+- no unresolved Critical/High defect;
+- final pushed SHA green in App CI + Repository Integrity when available;
+- durable docs/state/checkpoint match reality.
 
-Archive checkpoint; the next campaign is selected by the owner (iOS
-compatibility, account/auth, cloud sync, or further expansion).
+## After completion
+
+Archive `.agent/checkpoints/006r-core-integrity-correction-complete.md`, then rescope and resume Campaign 006 Platform Hardening and Polish. Do not automatically restore its old raw content-expansion packets; they must satisfy the new integrity/provenance contracts first.
