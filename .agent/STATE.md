@@ -9,33 +9,21 @@
 
 Campaign 005 completed the 20-game catalog foundation. Campaign 006 began platform polish/content work, but a deep audit of commit `2871e5ab0137b1c6475d21100344280ea9927419` found cross-subsystem integrity defects and current App CI/typecheck failure. Campaign 006 is suspended while Campaign 006R corrects the contracts before any further breadth.
 
-### 006R Progress (commits `1d83efb` through `4149e32`)
+### 006R Progress (22 commits on main)
 
 - **Task 0 (Restore baseline)**: COMPLETED. Tutorial TypeScript errors repaired,
   inherited failures documented (3 pre-existing test failures).
 - **Task 1 (Progression/rating authoritative outcome)**: COMPLETED.
-  * 1.1: Lowercase difficulty keys ✅
-  * 1.2: expectedPerformanceFromChallenge ✅
-  * 1.3: Persisted challengeRating ✅
-  * 1.4: CompletionOutcome type ✅
-  * 1.5: Authoritative XP display across all 20 games ✅
-  * 1.6: Cross-subsystem tests ✅
-  * 1.7: Easy farming protection proven ✅
+  * 1.1-1.7: Rating pipeline fixes, CompletionOutcome, authoritative XP, cross-subsystem tests
+  * 1.8: Historical session evidence handled by fallback mechanism
 - **Task 2 (Content/generator provenance)**: COMPLETED.
-  * 2.1: Game inventory (14 procedural, 5 hybrid, 1 curated) ✅
-  * 2.2: Standardized version identifiers with contentVersion ✅
-  * 2.3: Persisted sessions record exact provenance ✅
-  * 2.4: Bumped SCORING_VERSION to 1.1.0 for rating pipeline fix ✅
-  * 2.5: Deterministic replay tests ✅
-  * 2.6: Provenance drift validator with allowlist ✅
+  * 2.1-2.6: Game inventory, contentVersion, version bump, replay tests, provenance validator
 - **Task 3 (Word Match semantic correction)**: MOSTLY COMPLETE.
-  * 3.1: Frozen from workout selection ✅
-  * 3.2: Content schema redesigned (exactly 1 synonym per item) ✅
-  * 3.3: 120 items regenerated with new semantic rule ✅
-  * 3.4: Validator and tests updated ✅
-  * 3.5: Content version advanced to 2.0.0 ✅
+  * 3.1-3.5: Frozen from workouts, content schema redesigned, validator updated, version 2.0.0
   * 3.6: Emulator smoke test (requires AVD session)
-- **Tasks 4–12**: Not yet started.
+- **Task 4 (Equation Builder solvability)**: COMPLETED.
+  * 4.1-4.6: Shared evaluator, solvability validation, property-sweep tests, generator version 1.1.0
+- **Tasks 5-12**: Not yet started.
 - **App CI**: FAIL (3 inherited test failures; will turn green when task 5 fixes tutorial tests).
 
 ## Authoritative active change
