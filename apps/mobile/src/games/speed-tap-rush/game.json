@@ -1,0 +1,13 @@
+{
+  "id": "speed-tap-rush",
+  "name": "Tap Rush",
+  "primaryCategory": "Speed",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Targets pop up one at a time — tap each one before its window closes to keep the streak alive.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}

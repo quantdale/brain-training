@@ -31,7 +31,7 @@ import { registerGameDefinitions } from '@/registry/registry';
 
 /** Render one screen as a bare route so no tab host enters the tree. */
 function renderBare(Screen: ComponentType, initialUrl: string) {
-  return renderRouter({ index: Screen }, { initialUrl });
+  return renderRouter({ index: () => <Screen /> }, { initialUrl });
 }
 
 describe('visual baselines (canary set)', () => {

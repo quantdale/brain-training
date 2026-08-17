@@ -10,6 +10,19 @@ import type { GameDefinition } from '@/sdk';
 
 export const registry: readonly GameDefinition[] = [
   {
+    id: "attention-odd-one-out",
+    name: "Odd One Out",
+    primaryCategory: "Attention",
+    secondaryDomains: [
+    "Speed"
+  ],
+    description: "Every board hides exactly one odd item — find it and tap it before the timer runs out.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "attention-visual-search",
     name: "Visual Search",
     primaryCategory: "Attention",
@@ -72,6 +85,19 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "math-missing-operator",
+    name: "Missing Operator",
+    primaryCategory: "Math",
+    secondaryDomains: [
+    "Logic & Problem Solving"
+  ],
+    description: "Find the operator that makes the equation true — the numbers grow and the clock shrinks.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
     id: "memory",
     name: "Memory",
     primaryCategory: "Memory",
@@ -79,6 +105,19 @@ export const registry: readonly GameDefinition[] = [
     "Attention"
   ],
     description: "Watch the tiles light up in sequence, then repeat the pattern from memory.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
+  {
+    id: "memory-sequence-memory",
+    name: "Sequence Memory",
+    primaryCategory: "Memory",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Simon-style score attack: watch the pads light up, then repeat the pattern before the clock runs out.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
@@ -110,6 +149,19 @@ export const registry: readonly GameDefinition[] = [
     generatorVersion: "1.0.0",
     hasTutorial: true,
   },
+  {
+    id: "speed-tap-rush",
+    name: "Tap Rush",
+    primaryCategory: "Speed",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Targets pop up one at a time — tap each one before its window closes to keep the streak alive.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    hasTutorial: true,
+  },
 ];
 
 /**
@@ -118,12 +170,16 @@ export const registry: readonly GameDefinition[] = [
  * through this map; games never hand-edit this file.
  */
 export const gameScreenLoaders: Record<string, () => Promise<{ default: ComponentType }>> = {
+  'attention-odd-one-out': () => import('@/games/attention-odd-one-out'),
   'attention-visual-search': () => import('@/games/attention-visual-search'),
   'flexibility-card-sort': () => import('@/games/flexibility-card-sort'),
   'language-word-match': () => import('@/games/language-word-match'),
   'logic-next-sequence': () => import('@/games/logic-next-sequence'),
   'math-fast-math': () => import('@/games/math-fast-math'),
+  'math-missing-operator': () => import('@/games/math-missing-operator'),
   'memory': () => import('@/games/memory'),
+  'memory-sequence-memory': () => import('@/games/memory-sequence-memory'),
   'spatial-mental-rotation': () => import('@/games/spatial-mental-rotation'),
   'speed-reaction-time': () => import('@/games/speed-reaction-time'),
+  'speed-tap-rush': () => import('@/games/speed-tap-rush'),
 };

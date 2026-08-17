@@ -1,0 +1,13 @@
+{
+  "id": "memory-sequence-memory",
+  "name": "Sequence Memory",
+  "primaryCategory": "Memory",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Simon-style score attack: watch the pads light up, then repeat the pattern before the clock runs out.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "hasTutorial": true
+}
