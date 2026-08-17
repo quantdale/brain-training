@@ -439,3 +439,29 @@ All subtasks 1.1–1.6 completed:
 - 1.4: CompletionOutcome type ✅
 - 1.5: Authoritative XP display ✅
 - 1.6: Cross-subsystem tests ✅
+
+## Campaign 006R Wave 5 — Content/generator provenance versioning (2026-08-17, commit `34989a0`)
+
+### Task 2.1 — Game inventory
+
+- Inventory completed: 14 procedural, 5 hybrid, 1 curated games identified.
+- Only `language-word-match` has a `content-validation.ts` file.
+- All games have uniform versions (1.0.0) at baseline.
+
+### Task 2.2 — Standardize version identifiers
+
+- **Changes**:
+  * `src/sdk/types/game-definition.ts`: Added `contentVersion: string | null` field to `GameDefinition` interface.
+  * Updated `defineGame` and `parseGameDefinitionJson` to validate and include `contentVersion`.
+  * `scripts/generate-game-registry.mjs`: Added validation for `contentVersion`.
+  * All 20 `game.json` files updated with `contentVersion`:
+    - `language-word-match`, `language-sentence-builder`, `language-word-scramble`: `"1.0.0"`
+    - All other games: `null`
+  * Regenerated `registry.generated.ts` with `contentVersion`.
+  * Fixed 11 `GameDefinition` objects in 7 test files.
+
+- **Validation**:
+  * `apps/mobile` typecheck: PASS (0 errors).
+  * `node scripts/generate-game-registry.mjs --check`: PASS.
+  * Full test suite: 175/178 suites pass (3 inherited failures unchanged).
+  * No regressions introduced.

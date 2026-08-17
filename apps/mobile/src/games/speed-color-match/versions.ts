@@ -7,7 +7,7 @@
  */
 
 /** Scoring/normalization version — bump when `normalizeSpeedColorMatchResult` changes. */
-export const SCORING_VERSION = '1.0.0';
+export const SCORING_VERSION = '1.1.0';
 
 /**
  * Map a semantic version string to the integer recorded in the db
