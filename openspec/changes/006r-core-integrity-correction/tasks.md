@@ -27,7 +27,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 2.2 Standardize full semantic version identifiers for game/scoring/generator/content provenance and define which fields are required per game type.
 - [x] 2.3 Ensure persisted sessions record exact provenance needed to explain/replay challenges.
 - [x] 2.4 Bump versions for Campaign 006 changes that altered candidate pools/algorithms; do not retroactively label changed content as unchanged `1.0.0`.
-- [ ] 2.5 Add deterministic replay/snapshot tests for representative procedural, curated, and hybrid games.
+- [x] 2.5 Add deterministic replay/snapshot tests for representative procedural, curated, and hybrid games.
 - [ ] 2.6 Add CI/validator that detects sensitive generator/content changes without the required version bump, with an explicit documented allowlist/override mechanism for non-semantic edits.
 
 ## 3. Word Match semantic correction — BLOCKING
