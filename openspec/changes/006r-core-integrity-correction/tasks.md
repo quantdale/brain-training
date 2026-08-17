@@ -52,7 +52,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 - [x] 5.1 Add persistent tutorial storage keyed by game ID + tutorial version.
 - [x] 5.2 Complete/QA-skip persists; replay request is explicit and does not erase completion semantics.
-- [ ] 5.3 Route/game construction injects the persistent store by default in production; in-memory store remains test utility only.
+- [x] 5.3 Route/game construction injects the persistent store by default in production; in-memory store remains test utility only.
 - [ ] 5.4 Add migration and tests for first play -> complete -> unmount -> remount -> app restart simulation.
 - [ ] 5.5 Verify all 20 games use the shared lifecycle contract.
 
