@@ -33,12 +33,13 @@ interface ResultsData {
 
 function loadResults(db: AppDatabase, id: string | undefined): Promise<ResultsData> {
   return (async () => {
-    const [session, recent, history] = await Promise.all([
-      id ? db.sessions.getById(id) : (await db.sessions.listRecent(1))[0] ?? null,
-      db.sessions.listRecent(20),
-      db.ratings.getHistory(50),
-    ]);
-    return { session, recent, ratingHistory: history };
+    const session = id ? await db.sessions.getById(id) : (await db.sessions.listRecent(1))[0] ?? null;
+    const recent = await db.sessions.listRecent(20);
+    // Task 9.4: Load exact rating history for selected session
+    const ratingHistory = session
+      ? await db.ratings.getHistoryForSession(session.id)
+      : [];
+    return { session, recent, ratingHistory };
   })();
 }
 
@@ -59,9 +60,7 @@ export default function ResultsScreen() {
   const { session, recent, ratingHistory } = data;
 
   const game = session ? getGameDefinition(session.gameId) : undefined;
-  const historyForSession = session
-    ? ratingHistory.filter((h) => h.sessionId === session.id)
-    : [];
+  // Task 9.4: ratingHistory is already filtered to the selected session
 
   return (
     <ScreenShell>
@@ -94,9 +93,9 @@ export default function ResultsScreen() {
 
           <ThemedView type="surface" style={styles.card} testID="results-rating">
             <ThemedText type="subtitle">Rating movement</ThemedText>
-            {historyForSession.length > 0 ? (
+            {ratingHistory.length > 0 ? (
               <View style={styles.rows}>
-                {historyForSession.map((h) => (
+                {ratingHistory.map((h) => (
                   <ResultRow
                     key={h.domain}
                     label={h.domain}
