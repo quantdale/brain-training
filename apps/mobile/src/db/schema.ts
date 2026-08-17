@@ -7,7 +7,7 @@
  * common dialect shared by expo-sqlite and better-sqlite3.
  */
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -259,6 +259,48 @@ export const SQL = {
       updated_at     INTEGER NOT NULL
     );
   `,
+
+  /** CHECK constraints for data integrity (task 8.1). */
+  addCheckConstraints: `
+    -- Ensure normalized_result is in [0, 1]
+    CREATE TRIGGER IF NOT EXISTS trg_game_sessions_normalized_check
+    BEFORE INSERT ON game_sessions
+    BEGIN
+      SELECT CASE
+        WHEN NEW.normalized_result < 0 OR NEW.normalized_result > 1 THEN
+          RAISE(ABORT, 'normalized_result must be in [0, 1]')
+      END;
+    END;
+
+    -- Ensure xp is nonnegative
+    CREATE TRIGGER IF NOT EXISTS trg_game_sessions_xp_check
+    BEFORE INSERT ON game_sessions
+    BEGIN
+      SELECT CASE
+        WHEN NEW.xp < 0 THEN
+          RAISE(ABORT, 'xp must be nonnegative')
+      END;
+    END;
+
+    -- Ensure rating is nonnegative
+    CREATE TRIGGER IF NOT EXISTS trg_domain_ratings_rating_check
+    BEFORE INSERT ON domain_ratings
+    BEGIN
+      SELECT CASE
+        WHEN NEW.rating < 0 THEN
+          RAISE(ABORT, 'rating must be nonnegative')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_domain_ratings_rating_update_check
+    BEFORE UPDATE ON domain_ratings
+    BEGIN
+      SELECT CASE
+        WHEN NEW.rating < 0 THEN
+          RAISE(ABORT, 'rating must be nonnegative')
+      END;
+    END;
+  `,
 };
 
 /** Ordered migrations from version 0 to SCHEMA_VERSION. Never reorder/patch old entries. */
@@ -294,6 +336,12 @@ export const MIGRATIONS: readonly Migration[] = [
     version: 4,
     up: async (exec) => {
       await exec(SQL.createTutorialState);
+    },
+  },
+  {
+    version: 5,
+    up: async (exec) => {
+      await exec(SQL.addCheckConstraints);
     },
   },
 ];
