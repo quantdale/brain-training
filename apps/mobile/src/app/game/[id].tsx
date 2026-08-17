@@ -9,10 +9,13 @@
  * Note: Tutorial persistence is available via getDb().tutorials (see task 5.1).
  * Games use the in-memory store by default; the persistent store can be injected
  * via the tutorialStore prop when the component types are updated to accept it.
+ *
+ * Task 10.1: Lazy-loaded game components are cached outside route render
+ * to prevent unnecessary remounts from component identity changes.
  */
 
 import { useLocalSearchParams } from 'expo-router';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -24,9 +27,33 @@ import { Radii, Spacing } from '@/constants/theme';
 import { getGameDefinition } from '@/registry/registry';
 import { gameScreenLoaders } from '@/registry/registry.generated';
 
+/** Cache lazy-loaded game components to prevent unnecessary remounts */
+const lazyComponentCache = new Map<string, React.ComponentType>();
+
+function getLazyGameComponent(gameId: string): React.ComponentType | undefined {
+  if (lazyComponentCache.has(gameId)) {
+    return lazyComponentCache.get(gameId);
+  }
+  
+  const loader = gameScreenLoaders[gameId];
+  if (loader === undefined) {
+    return undefined;
+  }
+  
+  const LazyComponent = lazy(loader);
+  lazyComponentCache.set(gameId, LazyComponent);
+  return LazyComponent;
+}
+
 export default function GameScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const game = getGameDefinition(id ?? '');
+  
+  // Task 10.1: Cache the lazy component identity outside render
+  const GameScreenComponent = useMemo(
+    () => (game ? getLazyGameComponent(game.id) : undefined),
+    [game?.id],
+  );
 
   if (!game) {
     return (
@@ -38,9 +65,6 @@ export default function GameScreen() {
       </ScreenShell>
     );
   }
-
-  const loader = gameScreenLoaders[game.id];
-  const GameScreenComponent = loader !== undefined ? lazy(loader) : undefined;
 
   return (
     <ScreenShell>

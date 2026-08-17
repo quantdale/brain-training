@@ -98,7 +98,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 10. Game-platform convergence
 
-- [ ] 10.1 Cache lazy-loaded game component identity outside route render; registry generator remains source of generated loader code.
+- [x] 10.1 Cache lazy-loaded game component identity outside route render; registry generator remains source of generated loader code.
 - [ ] 10.2 Build shared generic Game UI primitives where repeated copies cause cross-catalog drift (at minimum evaluate button, pause overlay/frame, tutorial frame, QA panel shell, result row, difficulty selector/session header).
 - [ ] 10.3 Migrate incrementally without centralizing game mechanics; prove representative canary games still work.
 - [ ] 10.4 Wire production audio/haptics service or explicitly classify seam as deferred; settings that claim persistence must actually persist. Do not present no-op functionality as implemented.
