@@ -81,7 +81,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 - [x] 8.1 Add migration-backed CHECK constraints or equivalent enforced invariants for normalized result `[0,1]`, nonnegative XP, nonnegative rating, and other cheap canonical constraints.
 - [x] 8.2 Reject startup/write operation when `PRAGMA user_version` is newer than supported schema; expose explicit compatibility state.
-- [ ] 8.3 Store full semantic version information needed for game/generator/scoring/content provenance; preserve legacy fields only when migration compatibility requires them.
+- [x] 8.3 Store full semantic version information needed for game/generator/scoring/content provenance; preserve legacy fields only when migration compatibility requires them.
 - [ ] 8.4 On canonical DB initialization failure, show recoverable storage-unavailable UI rather than silently rendering an apparently healthy persistent app.
 - [ ] 8.5 Test migration from the pre-006R schema with realistic historical sessions, ratings, ledger, quests, achievements, and profile settings.
 - [ ] 8.6 Test migration rollback and repeated/idempotent initialization.
