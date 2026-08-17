@@ -35,7 +35,7 @@ const DEMO_PARAMS = {
   targetMax: 30,
   operators: ['+', '-'] as readonly Operator[],
   rounds: 1,
-  timeBudgetMs: null,
+  timeBudgetMs: 60_000, // 60 seconds, unused in tutorial but must satisfy type
 };
 
 type TutorialStep = 'intro' | 'demo' | 'done';
@@ -161,6 +161,10 @@ function DemoPuzzle({ attempt, onWrong, onDone, onSkip }: DemoPuzzleProps) {
           }
           op = null;
         }
+      } else if (token === '(' || token === ')') {
+        // Parentheses are not used in this simplified left-to-right demo evaluation.
+        // Skip them to maintain type safety without suppressing the compiler.
+        continue;
       } else {
         op = token;
       }

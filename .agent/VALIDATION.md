@@ -292,3 +292,52 @@ All PASS — full table in
 
 - **Home workout**: PASS — renders 4 games from 20-game catalog.
 - Artifacts: `qa-artifacts/20260817-campaign005-smoke/` (hierarchy dumps).
+
+## Campaign 006R Baseline Repair (2026-08-17, baseline commit `37bbc7c`)
+
+### Task 0.1 — Sync and baseline recording
+
+- Starting SHA: `37bbc7c63a912f42353897edc2b090bbec9cbf3a`.
+- Working tree: clean, on `main`, up to date with `origin/main`.
+- `node scripts/validate-repo-state.mjs`: PASS.
+
+### Task 0.2 — TypeScript error repair
+
+- **Repair**: Fixed two TS errors in `math-equation-builder/components/tutorial.tsx`:
+  1. `DEMO_PARAMS.timeBudgetMs: null` → `60_000` (type requires `number`).
+  2. `handleSubmit` token loop: added parentheses guard to satisfy `EquationToken` union narrowing.
+- `apps/mobile` typecheck: PASS (0 errors).
+
+### Task 0.3 — Full validation
+
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `apps/mobile` typecheck: PASS (0 errors).
+- `apps/mobile` jest: **174 passed / 3 failed** — 2094 tests pass, 3 inherited failures (see below).
+- `node scripts/generate-game-registry.mjs --check`: PASS.
+- `npx expo export --platform web`: PASS (14 routes).
+- `npx expo-doctor`: PASS (21/21 checks).
+
+### Task 0.5 — Inherited failures (BLOCKED / NOT VALIDATED)
+
+Three pre-existing test failures inherited from upstream commits `bd4a1ec` + `37bbc7c`
+(OpenSpec documentation-only changes). These failures existed at the audited baseline
+before our tutorial type repair.
+
+1. **math-equation-builder screen test** (`screen.test.tsx:103`):
+   Test "opens the tutorial on first play, completes it" presses `tutorial-done`
+   directly, but the tutorial now has three steps (intro → demo → done).
+   The `tutorial-done` button is only rendered in the final "done" step.
+   Reproduction: `npx jest src/games/math-equation-builder/__tests__/screen.test.tsx`.
+
+2. **speed-color-match screen test** (`screen.test.tsx:94`):
+   Same pattern — test expects `tutorial-done` without solving the demo step.
+   Reproduction: `npx jest src/games/speed-color-match/__tests__/screen.test.tsx`.
+
+3. **content-pack registry test** (`registry.test.ts:58`):
+   Hardcoded `itemCount` expectation of 72 for language-word-match pack,
+   but the pack now contains 120 items (expanded in a prior campaign).
+   Reproduction: `npx jest src/content/__tests__/registry.test.ts`.
+
+**Classification**: P1/P2 — inherited from upstream; will be repaired as part of
+tasks 3 (Word Match redesign) and 5 (tutorial persistence) in the 006R change.
+Recorded as BLOCKED with exact reproduction above.

@@ -4,11 +4,11 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 0. Restore trustworthy baseline — BLOCKING
 
-- [ ] 0.1 Sync canonical `main`; record starting SHA and working-tree status without discarding user changes.
-- [ ] 0.2 Repair current Campaign 006 TypeScript errors in Equation Builder tutorial by correcting types/logic, not using `any`, `@ts-ignore`, disabled checks, or assertion-only casts that hide invalid state.
-- [ ] 0.3 Run repository-state validator, typecheck, full Jest, registry `--check`, web export, and Expo Doctor as available.
+- [x] 0.1 Sync canonical `main`; record starting SHA and working-tree status without discarding user changes.
+- [x] 0.2 Repair current Campaign 006 TypeScript errors in Equation Builder tutorial by correcting types/logic, not using `any`, `@ts-ignore`, disabled checks, or assertion-only casts that hide invalid state.
+- [x] 0.3 Run repository-state validator, typecheck, full Jest, registry `--check`, web export, and Expo Doctor as available.
 - [ ] 0.4 Do not push the repair until local typecheck is green; then commit/push a coherent baseline repair and verify GitHub CI.
-- [ ] 0.5 Record any inherited failing test/environment condition as BLOCKED/NOT VALIDATED with exact reproduction.
+- [x] 0.5 Record any inherited failing test/environment condition as BLOCKED/NOT VALIDATED with exact reproduction.
 
 ## 1. Progression/rating authoritative outcome — BLOCKING
 
