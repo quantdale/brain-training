@@ -23,6 +23,7 @@ const SAMPLE_GAMES: GameDefinition[] = [
     sdkVersion: '0.1.0',
     gameVersion: '1.0.0',
     generatorVersion: '1',
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -32,6 +33,7 @@ const SAMPLE_GAMES: GameDefinition[] = [
     sdkVersion: '0.1.0',
     gameVersion: '1.0.0',
     generatorVersion: '1',
+    contentVersion: null,
     hasTutorial: false,
   },
 ];
@@ -70,6 +72,7 @@ describe('game registry', () => {
         sdkVersion: '0.1.0',
         gameVersion: '1.0.0',
         generatorVersion: null,
+        contentVersion: null,
         hasTutorial: false,
       },
     ]);

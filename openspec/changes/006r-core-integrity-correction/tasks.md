@@ -23,8 +23,8 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 2. Content/generator provenance — BLOCKING prerequisite for 3/4
 
-- [ ] 2.1 Inventory all 20 games: procedural generator, curated pack, hybrid; identify files that affect challenge identity.
-- [ ] 2.2 Standardize full semantic version identifiers for game/scoring/generator/content provenance and define which fields are required per game type.
+- [x] 2.1 Inventory all 20 games: procedural generator, curated pack, hybrid; identify files that affect challenge identity.
+- [x] 2.2 Standardize full semantic version identifiers for game/scoring/generator/content provenance and define which fields are required per game type.
 - [ ] 2.3 Ensure persisted sessions record exact provenance needed to explain/replay challenges.
 - [ ] 2.4 Bump versions for Campaign 006 changes that altered candidate pools/algorithms; do not retroactively label changed content as unchanged `1.0.0`.
 - [ ] 2.5 Add deterministic replay/snapshot tests for representative procedural, curated, and hybrid games.

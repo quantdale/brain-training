@@ -28,6 +28,7 @@ function makeGames(count: number): GameDefinition[] {
     sdkVersion: '0.1.0',
     gameVersion: '1.0.0',
     generatorVersion: null,
+    contentVersion: null,
     hasTutorial: false,
   }));
 }

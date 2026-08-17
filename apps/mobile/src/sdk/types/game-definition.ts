@@ -49,6 +49,14 @@ export interface GameDefinition {
    * validated templates). Bump whenever generated challenges may change.
    */
   generatorVersion: string | null;
+  /**
+   * Content bank version, or `null` for games without external content packs.
+   * Bump when the content bank (word lists, sentence banks, pack.json) changes
+   * in a way that affects challenge identity. For curated games, this is the
+   * primary version tracking challenge changes. For hybrid games, this tracks
+   * content bank changes while generatorVersion tracks algorithm changes.
+   */
+  contentVersion: string | null;
   /** Whether the game ships a first-play tutorial (see `tutorial.ts`). */
   hasTutorial: boolean;
 }
@@ -69,7 +77,7 @@ function requireString(value: unknown, field: string): string {
  * Games call this (directly or via their `game.json` loader) at module load.
  */
 export function defineGame(definition: GameDefinition): Readonly<GameDefinition> {
-  const { id, name, primaryCategory, sdkVersion, gameVersion, generatorVersion, hasTutorial } =
+  const { id, name, primaryCategory, sdkVersion, gameVersion, generatorVersion, contentVersion, hasTutorial } =
     definition;
 
   if (typeof id !== 'string' || !GAME_ID_PATTERN.test(id)) {
@@ -83,6 +91,9 @@ export function defineGame(definition: GameDefinition): Readonly<GameDefinition>
   }
   if (generatorVersion !== null && (typeof generatorVersion !== 'string' || generatorVersion.length === 0)) {
     fail('field "generatorVersion" must be a non-empty string or null');
+  }
+  if (contentVersion !== null && (typeof contentVersion !== 'string' || contentVersion.length === 0)) {
+    fail('field "contentVersion" must be a non-empty string or null');
   }
   if (typeof hasTutorial !== 'boolean') {
     fail('field "hasTutorial" must be a boolean');
@@ -116,6 +127,7 @@ export function defineGame(definition: GameDefinition): Readonly<GameDefinition>
     sdkVersion,
     gameVersion,
     generatorVersion,
+    contentVersion,
     hasTutorial,
   });
 }
@@ -147,6 +159,11 @@ export function parseGameDefinitionJson(json: unknown): GameDefinition {
     fail('field "generatorVersion" must be a string or null');
   }
 
+  const contentVersion = raw.contentVersion;
+  if (contentVersion !== null && contentVersion !== undefined && typeof contentVersion !== 'string') {
+    fail('field "contentVersion" must be a string, null, or undefined');
+  }
+
   const description = raw.description;
   if (description !== undefined && (typeof description !== 'string' || description.length === 0)) {
     fail('field "description" must be a non-empty string or undefined');
@@ -161,6 +178,7 @@ export function parseGameDefinitionJson(json: unknown): GameDefinition {
     sdkVersion: requireString(raw.sdkVersion, 'sdkVersion'),
     gameVersion: requireString(raw.gameVersion, 'gameVersion'),
     generatorVersion: generatorVersion as string | null,
+    contentVersion: (contentVersion as string | null) ?? null,
     hasTutorial: raw.hasTutorial as boolean,
   });
 }

@@ -10,6 +10,7 @@ const VALID: GameDefinition = {
   sdkVersion: '0.1.0',
   gameVersion: '1.0.0',
   generatorVersion: '1.0.0',
+  contentVersion: null,
   hasTutorial: true,
 };
 
@@ -75,6 +76,7 @@ describe('parseGameDefinitionJson (registry generator input)', () => {
       sdkVersion: '0.1.0',
       gameVersion: '1.0.0',
       generatorVersion: '1.0.0',
+      contentVersion: null,
       hasTutorial: true,
       secondaryDomains: ['Attention'],
     };

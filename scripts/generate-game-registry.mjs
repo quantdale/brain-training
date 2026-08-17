@@ -83,6 +83,9 @@ function parseGameJson(file, raw) {
   if (raw.generatorVersion !== null && typeof raw.generatorVersion !== 'string') {
     fail(file, 'generatorVersion must be a non-empty string or null');
   }
+  if (raw.contentVersion !== null && raw.contentVersion !== undefined && typeof raw.contentVersion !== 'string') {
+    fail(file, 'contentVersion must be a string, null, or undefined');
+  }
   if (typeof raw.hasTutorial !== 'boolean') {
     fail(file, 'hasTutorial must be a boolean');
   }

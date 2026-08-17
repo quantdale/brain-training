@@ -86,6 +86,7 @@ describe('app shell', () => {
         sdkVersion: '0.1.0',
         gameVersion: '1.0.0',
         generatorVersion: '1',
+        contentVersion: null,
         hasTutorial: true,
       },
     ]);
@@ -131,6 +132,7 @@ describe('app shell', () => {
         sdkVersion: '0.1.0',
         gameVersion: '1.0.0',
         generatorVersion: '1',
+        contentVersion: null,
         hasTutorial: true,
       },
     ]);

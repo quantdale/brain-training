@@ -20,6 +20,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -33,6 +34,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -46,6 +48,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -60,6 +63,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -74,6 +78,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: "1.0.0",
     hasTutorial: true,
   },
   {
@@ -84,6 +89,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: null,
+    contentVersion: "1.0.0",
     hasTutorial: true,
   },
   {
@@ -97,6 +103,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: "1.0.0",
     hasTutorial: true,
   },
   {
@@ -110,6 +117,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -123,6 +131,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -136,6 +145,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -149,6 +159,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -162,6 +173,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -175,6 +187,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -188,6 +201,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -201,6 +215,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -214,6 +229,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -227,6 +243,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -240,6 +257,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -253,6 +271,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
   {
@@ -266,6 +285,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
+    contentVersion: null,
     hasTutorial: true,
   },
 ];
