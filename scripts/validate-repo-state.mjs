@@ -23,7 +23,9 @@ const required = [
   '.agent/modes/DAY.md',
   '.agent/modes/NIGHT.md',
   '.agents/skills/continue-development/SKILL.md',
-  '.agents/skills/harden/SKILL.md'
+  '.agents/skills/harden/SKILL.md',
+  'openspec/README.md',
+  'openspec/project.md'
 ];
 
 const errors = [];
@@ -52,11 +54,40 @@ if (governance) {
 const state = fs.existsSync(path.join(root, '.agent/STATE.md')) ? fs.readFileSync(path.join(root, '.agent/STATE.md'), 'utf8') : '';
 const campaign = fs.existsSync(path.join(root, '.agent/CURRENT_CAMPAIGN.md')) ? fs.readFileSync(path.join(root, '.agent/CURRENT_CAMPAIGN.md'), 'utf8') : '';
 if (governance?.activeCampaign && !state.includes(governance.activeCampaign)) errors.push('STATE.md does not reference governance activeCampaign');
-// CURRENT_CAMPAIGN.md must reference the governance-active campaign number
-// (e.g. "Campaign 004 — ..."), not a hardcoded id.
 const activeNumber = governance?.activeCampaign?.match(/^(\d+)/)?.[1];
 if (governance?.activeCampaign && activeNumber && !campaign.toLowerCase().includes(`campaign ${activeNumber}`)) {
   errors.push(`CURRENT_CAMPAIGN.md does not appear to match active campaign ${activeNumber}`);
+}
+
+// Spec-driven campaign integrity. When an active campaign has a matching
+// OpenSpec change directory, require its complete execution surface.
+if (governance?.activeCampaign) {
+  const changeDir = path.join(root, 'openspec', 'changes', governance.activeCampaign);
+  if (fs.existsSync(changeDir)) {
+    const changeRequired = ['change.json', 'proposal.md', 'design.md', 'tasks.md', 'EXECUTION.md', 'audit-map.md'];
+    for (const rel of changeRequired) {
+      const p = path.join(changeDir, rel);
+      if (!fs.existsSync(p) || fs.statSync(p).size === 0) {
+        errors.push(`Active OpenSpec change missing/empty: openspec/changes/${governance.activeCampaign}/${rel}`);
+      }
+    }
+    try {
+      const meta = JSON.parse(fs.readFileSync(path.join(changeDir, 'change.json'), 'utf8'));
+      if (meta.id !== governance.activeCampaign) errors.push('OpenSpec change id does not match governance activeCampaign');
+      if (meta.status !== 'ACTIVE') errors.push('Active OpenSpec change metadata status must be ACTIVE');
+      if (!Array.isArray(meta.specOrder) || meta.specOrder.length === 0) errors.push('Active OpenSpec change specOrder must be non-empty');
+      for (const spec of meta.specOrder ?? []) {
+        const specPath = path.join(changeDir, 'specs', spec, 'spec.md');
+        if (!fs.existsSync(specPath) || fs.statSync(specPath).size === 0) {
+          errors.push(`Active OpenSpec normative spec missing/empty: ${spec}`);
+        }
+      }
+    } catch (error) {
+      errors.push(`Invalid active OpenSpec change.json: ${error.message}`);
+    }
+  } else if (governance.activeCampaign === '006r-core-integrity-correction') {
+    errors.push(`Missing active OpenSpec change directory: openspec/changes/${governance.activeCampaign}`);
+  }
 }
 
 if (errors.length) {

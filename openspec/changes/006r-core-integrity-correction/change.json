@@ -1,0 +1,31 @@
+{
+  "id": "006r-core-integrity-correction",
+  "status": "ACTIVE",
+  "baselineAuditCommit": "2871e5ab0137b1c6475d21100344280ea9927419",
+  "parentCampaign": "006-platform-hardening-and-polish",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "progression-rating",
+    "content-provenance",
+    "language-word-match",
+    "math-equation-builder",
+    "tutorial-lifecycle",
+    "daily-workout",
+    "economy-transactions",
+    "database-integrity",
+    "progress-analytics",
+    "game-platform",
+    "autonomous-governance",
+    "full-catalog-gate"
+  ],
+  "parallelAfterPrerequisites": [
+    ["language-word-match", "math-equation-builder"]
+  ],
+  "breadthFrozen": true,
+  "newGameModulesAllowed": false,
+  "fullHardening": false
+}

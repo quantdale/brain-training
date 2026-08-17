@@ -1,85 +1,39 @@
 # Campaign 006R — Core Integrity Correction
 
-**Status:** ACTIVE — corrective gate staged from deep audit  
-**Campaign type:** corrective convergence / integrity repair  
+**Status:** ACTIVE — spec-driven corrective gate  
 **Campaign id:** `006r-core-integrity-correction`  
-**Hardening:** focused integrity validation explicitly authorized by owner; this is not unrelated full-production hardening  
-**Parent:** Campaign 006 Platform Hardening and Polish is SUSPENDED until 006R passes  
-**Master spec:** `.agent/specs/006r-core-integrity-correction/README.md`
+**OpenSpec change:** `openspec/changes/006r-core-integrity-correction/`  
+**Execution entry:** `openspec/changes/006r-core-integrity-correction/EXECUTION.md`  
+**Parent:** Campaign 006 Platform Hardening and Polish is SUSPENDED until 006R validates.
 
-## Why this campaign is active
+## Source of truth
 
-A deep source-level audit of the current 20-game repository found several cross-subsystem semantic defects that are not adequately represented by the existing test count. The important blockers affect rating difficulty semantics, authoritative XP/result display, content ambiguity/provenance, Equation Builder solvability, tutorial persistence, Today's Workout semantics, and transactional progression/economy.
+The active OpenSpec change is the authoritative implementation contract for 006R:
 
-Campaign 006 breadth/polish work must not continue on top of those defects. New games and content-count expansion are frozen until this corrective gate passes.
+1. `proposal.md` — scope and success definition
+2. `design.md` — architecture/invariants
+3. `specs/**/spec.md` — normative requirements/scenarios
+4. `tasks.md` — ordered executable checklist
+5. `EXECUTION.md` — fresh-agent recovery/execution protocol
 
-## Execution rule
+The older `.agent/specs/006r-core-integrity-correction/**` files are retained as deep-audit working papers and supporting detail, but if wording conflicts, the OpenSpec change wins (below the Project Constitution).
 
-Read the master spec and execute the numbered specs in order:
+## Immediate action
 
-1. `001-restore-green-main.md`
-2. `002-rating-and-authoritative-outcomes.md`
-3. `003-content-generator-provenance.md`
-4. `004-word-match-semantic-correctness.md`
-5. `005-equation-builder-solvability.md`
-6. `006-tutorial-persistence.md`
-7. `007-daily-workout-and-personalization.md`
-8. `008-economy-transactionality.md`
-9. `009-database-integrity.md`
-10. `010-rating-progress-correctness.md`
-11. `011-game-platform-convergence.md`
-12. `012-swarm-ci-semantic-gates.md`
-13. `013-full-catalog-exit-gate.md`
+Sync canonical `main`, read the OpenSpec change, then execute the first unchecked task in `tasks.md`. The initial blocking objective is to restore a trustworthy green baseline before implementing the semantic repairs.
 
-Do not jump directly to Spec 013. P1 acceptance criteria in earlier specs are blocking.
-
-## First required action
-
-Execute Spec 001 only: restore a verified green local baseline from canonical `main`, repair the current Campaign 006 TypeScript/CI break without type-suppression shortcuts, freeze breadth work, run the required baseline checks, update validation evidence, commit/push the coherent repair, and verify CI when available.
-
-After Spec 001 is green, proceed to Spec 002 unless blocked.
-
-## Swarm policy
-
-- Up to 7 coder agents may be used only after explicit disjoint write ownership is assigned.
-- One Android emulator remains the default runtime-QA resource.
-- Shared DB schema/migrations, navigation, registry generator, Game SDK/shared platform services, CI, package manifests, and durable state are orchestrator-owned convergence surfaces.
-- Specs 004 and 005 may run in parallel after Spec 003's provenance contract is established because they own separate game modules.
-- Other parallelization must be justified by non-overlapping ownership.
-- Host mouse/keyboard automation remains forbidden.
-
-## Mandatory campaign constraints
+## Campaign constraints
 
 - No new game modules.
-- No content-count expansion merely for breadth.
-- No fake green: unavailable tooling is `NOT VALIDATED`/`BLOCKED`, never PASS.
-- No routine force-push to `main`.
-- No silent rewrite/delete of historical completed sessions.
-- No disabling tests or adding arbitrary retries/sleeps to manufacture green.
-- Generated files are updated through generators.
-- Each coherent pushed wave should build/typecheck locally before push.
+- No content expansion merely to increase counts.
+- No fake green; unavailable validation is NOT VALIDATED/BLOCKED.
+- Preserve historical completed-session evidence.
+- No routine force-push.
+- One Android emulator by default; no host mouse/keyboard automation.
+- Up to 7 coder agents only with explicit disjoint write ownership.
+- Shared DB/navigation/registry generator/Game SDK/CI/package/durable-state files are orchestrator convergence surfaces.
+- Every coherent normal push must be locally typecheck-clean and pass its required risk-based checks.
 
-## Exit criteria
+## Exit
 
-Campaign 006R completes only when Spec 013 passes in full, including:
-
-- repaired rating difficulty/adaptive policy;
-- authoritative result XP/rating display;
-- corrected Word Match semantic uniqueness;
-- Equation Builder all-difficulty solvability;
-- machine-enforced content/generator provenance/versioning;
-- durable tutorial completion/replay;
-- persisted four-game Today's Workout + resume + transactional rerolls;
-- atomic/idempotent spends/claims/purchases;
-- DB integrity/future-version protection;
-- correct rating history/evidence time/streak queries;
-- stable lazy loading/shared game-platform seams;
-- machine-validated swarm ownership + semantic CI contracts;
-- full 20-game contract convergence and one-AVD journeys;
-- no unresolved Critical/High defect;
-- final pushed SHA green in App CI + Repository Integrity when available;
-- durable docs/state/checkpoint match reality.
-
-## After completion
-
-Archive `.agent/checkpoints/006r-core-integrity-correction-complete.md`, then rescope and resume Campaign 006 Platform Hardening and Polish. Do not automatically restore its old raw content-expansion packets; they must satisfy the new integrity/provenance contracts first.
+Campaign 006R is complete only when every normative OpenSpec requirement and task is validated, the full-catalog exit gate passes, no Critical/High defect remains, final CI is green when available, durable state/checkpoint matches reality, and clean `main` is pushed.
