@@ -176,6 +176,7 @@ describe('persistMemorySession', () => {
       ledgerEntry: null,
       balance: 0,
       rating: null,
+      completionOutcome: null,
     }));
     const persister: SessionPersistence = { completeSession };
     const outcome = await persistMemorySession(record, persister);

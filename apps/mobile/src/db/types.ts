@@ -77,6 +77,16 @@ export interface RatingDelta {
   delta: number;
 }
 
+/**
+ * A rating delta after being applied to the database, including the domain's
+ * resulting rating. This is the authoritative per-domain outcome returned by
+ * the session-completion boundary.
+ */
+export interface AppliedRatingDelta extends RatingDelta {
+  /** Domain rating after applying this delta. */
+  ratingAfter: number;
+}
+
 /** What a rating service computed for one completed session. */
 export interface RatingOutcome {
   /** Authoritative XP award for the session (overrides the game-reported value). */
@@ -85,6 +95,25 @@ export interface RatingOutcome {
   currency: number;
   /** Rating movement per domain; empty = no movement. */
   deltas: readonly RatingDelta[];
+}
+
+/**
+ * The authoritative completion outcome returned by the session-completion
+ * boundary (constitution §15). Contains everything the UI needs to display
+ * the result: persisted session, XP, currency, per-domain rating movements
+ * with resulting ratings, and post-completion balance.
+ */
+export interface CompletionOutcome {
+  /** The persisted session record (xp reflects authoritative rating pipeline value). */
+  session: GameSessionRecord;
+  /** Authoritative XP for this session. */
+  xp: number;
+  /** Currency awarded for this session. */
+  currency: number;
+  /** Per-domain applied deltas with resulting ratings. */
+  deltas: readonly AppliedRatingDelta[];
+  /** Currency balance after this completion. */
+  balance: number;
 }
 
 /**

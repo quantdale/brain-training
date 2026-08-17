@@ -1,5 +1,5 @@
 import type { SQLiteAdapter } from './adapter';
-import type { RatingDelta } from './types';
+import type { AppliedRatingDelta, RatingDelta } from './types';
 
 /**
  * Per-domain ratings and the append-only rating history (constitution §15).
@@ -102,15 +102,17 @@ export class RatingRepository {
    * caller's transaction adapter so it is atomic with the session insert.
    * `eventAtMs` is the session's own completion time (historical timestamps
    * stay consistent with the ledger convention).
+   *
+   * Returns the applied deltas with resulting ratings for each domain.
    */
   async applyDeltas(
     txn: SQLiteAdapter,
     sessionId: string,
     deltas: readonly RatingDelta[],
     eventAtMs: number,
-  ): Promise<RatingHistoryEntry[]> {
+  ): Promise<AppliedRatingDelta[]> {
     const appliedAt = this.now();
-    const entries: RatingHistoryEntry[] = [];
+    const applied: AppliedRatingDelta[] = [];
 
     for (const delta of deltas) {
       const current = await txn.get<DomainRatingRow>(SELECT_ONE, [delta.domain]);
@@ -126,23 +128,20 @@ export class RatingRepository {
         [delta.domain, ratingAfter, sessions, appliedAt],
       );
 
-      const result = await txn.run(
+      await txn.run(
         `INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at)
          VALUES (?, ?, ?, ?, ?)`,
         [sessionId, delta.domain, delta.delta, ratingAfter, eventAtMs],
       );
 
-      entries.push({
-        id: result.lastInsertRowId,
-        sessionId,
+      applied.push({
         domain: delta.domain,
         delta: delta.delta,
         ratingAfter,
-        createdAt: eventAtMs,
       });
     }
 
-    return entries;
+    return applied;
   }
 
   /** Most recent rating movements, newest first. */

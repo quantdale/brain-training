@@ -21,7 +21,9 @@ import { XpAwardsRepository } from './xp-awards';
 
 export type { SQLiteAdapter, SQLiteRunResult } from './adapter';
 export type {
+  AppliedRatingDelta,
   CompleteSessionInput,
+  CompletionOutcome,
   GameSessionRecord,
   LedgerEntry,
   Profile,

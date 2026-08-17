@@ -2,7 +2,9 @@ import type { SQLiteAdapter } from './adapter';
 import { LOCAL_PROFILE_ID } from './profile';
 import { RatingRepository } from './rating';
 import type {
+  AppliedRatingDelta,
   CompleteSessionInput,
+  CompletionOutcome,
   GameSessionRecord,
   LedgerEntry,
   RatingDelta,
@@ -113,6 +115,15 @@ export interface CompleteSessionResult {
     deltas: readonly RatingDelta[];
     balance: number;
   } | null;
+  /**
+   * The authoritative completion outcome (constitution §15). Present when a
+   * rating service is configured. Contains the persisted session with
+   * authoritative XP, per-domain applied deltas with resulting ratings,
+   * and the post-completion balance. This is the single source of truth for
+   * the result UI; game screens should render from this rather than their own
+   * no-op XP hooks.
+   */
+  completionOutcome: CompletionOutcome | null;
 }
 
 export class SessionRepository {
@@ -208,8 +219,9 @@ export class SessionRepository {
       }
 
       const deltas: readonly RatingDelta[] = outcome ? outcome.deltas : [];
+      let appliedDeltas: readonly AppliedRatingDelta[] = [];
       if (deltas.length > 0) {
-        await this.ratingRepository.applyDeltas(txn, s.id, deltas, s.completedAt);
+        appliedDeltas = await this.ratingRepository.applyDeltas(txn, s.id, deltas, s.completedAt);
       }
 
       // Profile touch: record activity so consumers can detect "last active".
@@ -218,14 +230,31 @@ export class SessionRepository {
       await txn.run(PROFILE_TOUCH, [touchAt, LOCAL_PROFILE_ID]);
 
       const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
+      const balance = balanceRow?.balance ?? 0;
       const stored = { ...s, xp };
+
+      // Build the authoritative completion outcome when a rating service is
+      // configured (constitution §15). This is the single source of truth for
+      // result UI; game screens should render from this rather than their own
+      // no-op XP hooks.
+      const completionOutcome: CompletionOutcome | null = outcome
+        ? {
+            session: stored,
+            xp: outcome.xp,
+            currency: outcome.currency,
+            deltas: appliedDeltas,
+            balance,
+          }
+        : null;
+
       return {
         session: stored,
         ledgerEntry,
-        balance: balanceRow?.balance ?? 0,
+        balance,
         rating: outcome
-          ? { xp: outcome.xp, currency: outcome.currency, deltas, balance: balanceRow?.balance ?? 0 }
+          ? { xp: outcome.xp, currency: outcome.currency, deltas, balance }
           : null,
+        completionOutcome,
       };
     });
   }

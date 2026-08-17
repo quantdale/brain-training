@@ -178,6 +178,7 @@ describe('persistColorStroopSession', () => {
       ledgerEntry: null,
       balance: 0,
       rating: null,
+      completionOutcome: null,
     }));
     const persister: SessionPersistence = { completeSession };
     const outcome = await persistColorStroopSession(record, persister);

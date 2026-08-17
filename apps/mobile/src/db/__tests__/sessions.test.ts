@@ -218,6 +218,18 @@ describe('completeSession with rating service', () => {
       { domain: 'Attention', delta: 3 },
       { domain: 'Memory', delta: 6 },
     ]);
+
+    // completionOutcome contains the authoritative result for UI rendering.
+    expect(result.completionOutcome).toEqual({
+      session: result.session,
+      xp: 77,
+      currency: 15,
+      deltas: [
+        { domain: 'Memory', delta: 6, ratingAfter: INITIAL_RATING + 6 },
+        { domain: 'Attention', delta: 3, ratingAfter: INITIAL_RATING + 3 },
+      ],
+      balance: 15,
+    });
   });
 
   it('appends both an explicit entry and the rating award when both are present', async () => {

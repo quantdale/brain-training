@@ -46,8 +46,8 @@ describe('RatingRepository', () => {
     );
 
     expect(entries).toHaveLength(2);
-    expect(entries[0]).toMatchObject({ sessionId: 'session-1', domain: 'Memory', delta: 10, ratingAfter: INITIAL_RATING + 10 });
-    expect(entries[0].createdAt).toBe(T0 + 90_000);
+    expect(entries[0]).toMatchObject({ domain: 'Memory', delta: 10, ratingAfter: INITIAL_RATING + 10 });
+    expect(entries[1]).toMatchObject({ domain: 'Attention', delta: -5, ratingAfter: INITIAL_RATING - 5 });
 
     const all = await ratings.getRatings();
     expect(all).toEqual([

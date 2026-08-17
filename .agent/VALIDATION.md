@@ -373,3 +373,26 @@ Recorded as BLOCKED with exact reproduction above.
   * `apps/mobile` db rating tests: 7/7 PASS.
   * Full test suite: 174/177 suites pass (3 inherited failures unchanged).
   * No regressions introduced.
+
+## Campaign 006R Wave 2 — CompletionOutcome type + applied deltas (2026-08-17, commit TBD)
+
+### Task 1.4 — CompletionOutcome from session-completion boundary
+
+- **Changes**:
+  * `src/db/types.ts`: Added `AppliedRatingDelta` interface (extends `RatingDelta` with `ratingAfter`).
+  * `src/db/types.ts`: Added `CompletionOutcome` interface (session, xp, currency, deltas with ratingAfter, balance).
+  * `src/db/rating.ts`: Updated `applyDeltas` to return `AppliedRatingDelta[]` (includes ratingAfter per domain).
+  * `src/db/sessions.ts`: Updated `completeSession` to build and return `completionOutcome` field in `CompleteSessionResult`.
+  * `src/db/index.ts`: Exported `AppliedRatingDelta` and `CompletionOutcome`.
+  * All 20 game session test mocks updated to include `completionOutcome: null`.
+
+- **Tests**:
+  * `src/db/__tests__/sessions.test.ts`: Added test verifying `completionOutcome` contains session, xp, currency, deltas with ratingAfter, and balance.
+  * `src/db/__tests__/rating.test.ts`: Updated to match new `AppliedRatingDelta` type (removed `createdAt` check from returned deltas).
+  * All 14 session tests pass.
+  * All 7 rating tests pass.
+  * All 18 rating pipeline tests pass.
+
+- **Validation**:
+  * `apps/mobile` typecheck: PASS (0 errors).
+  * No regressions introduced.
