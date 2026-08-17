@@ -19,6 +19,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
 
+import { evaluateEquation } from '../evaluator';
 import { generatePuzzle } from '../generator';
 import { GAME_ID } from '../types';
 import type { Operator, EquationToken } from '../types';
@@ -145,35 +146,12 @@ function DemoPuzzle({ attempt, onWrong, onDone, onSkip }: DemoPuzzleProps) {
   const handleSubmit = () => {
     if (equationTokens.length === 0 || submitted) return;
 
-    // Simple left-to-right evaluation for the demo
-    let current = 0;
-    let op: Operator | null = null;
-    for (const token of equationTokens) {
-      if (typeof token === 'number') {
-        if (op === null) {
-          current = token;
-        } else {
-          switch (op) {
-            case '+': current += token; break;
-            case '-': current -= token; break;
-            case '×': current *= token; break;
-            case '÷': current = token !== 0 ? current / token : 0; break;
-          }
-          op = null;
-        }
-      } else if (token === '(' || token === ')') {
-        // Parentheses are not used in this simplified left-to-right demo evaluation.
-        // Skip them to maintain type safety without suppressing the compiler.
-        continue;
-      } else {
-        op = token;
-      }
-    }
-
-    const correct = current === puzzle.target;
+    // Use the shared evaluator for consistent evaluation
+    const result = evaluateEquation(equationTokens);
+    const correct = result === puzzle.target;
     setSubmitted(true);
     setIsCorrect(correct);
-    setResult(current);
+    setResult(result);
 
     if (correct) {
       onDone();
