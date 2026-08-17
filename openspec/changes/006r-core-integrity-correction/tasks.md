@@ -33,8 +33,8 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 ## 3. Word Match semantic correction — BLOCKING
 
 - [x] 3.1 Freeze Word Match from rating-bearing workout selection until corrected, unless the repair is completed atomically in the same wave.
-- [ ] 3.2 Redesign content schema so exactly one option satisfies the scored relation.
-- [ ] 3.3 Replace ambiguous items; no question may mark one arbitrary answer correct when multiple displayed choices are legitimate synonyms under the stated instruction.
+- [x] 3.2 Redesign content schema so exactly one option satisfies the scored relation.
+- [x] 3.3 Replace ambiguous items; no question may mark one arbitrary answer correct when multiple displayed choices are legitimate synonyms under the stated instruction.
 - [ ] 3.4 Update validator and tests for uniqueness, malformed references, duplicate options, prompt leakage, tier validity, and semantic contract.
 - [ ] 3.5 Advance content version and prove old/new provenance are distinguishable.
 - [ ] 3.6 Emulator-smoke at least several rounds and difficulty tiers.

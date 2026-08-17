@@ -202,8 +202,8 @@ export function validateContentPack(json: unknown): ContentPack {
     }
     const correctWord = options[raw.correctIndex];
 
-    // The author's mapping: the correct answer is a real synonym, so it must
-    // differ from the prompt, and the prompt must never appear as an option.
+    // The correct answer must be a real synonym (member of the item's family),
+    // and must differ from the prompt. The prompt must never appear as an option.
     if (norm(correctWord) === promptNorm) {
       fail(`${where}: correct answer "${correctWord}" must differ from the prompt`);
     }
@@ -211,12 +211,21 @@ export function validateContentPack(json: unknown): ContentPack {
       fail(`${where}: the prompt "${prompt}" must not appear among the options`);
     }
 
-    // Every word of the item must be a member of the item's semantic family —
-    // this is the mechanical confusability guarantee for the distractors.
-    for (const word of [prompt, ...options]) {
-      if (!familyWords.has(norm(word))) {
-        fail(`${where}: word "${word}" is not a member of family "${raw.family}"`);
+    // Semantic correctness: exactly one option must be a synonym (member of the
+    // item's family). The other three must be plausible distractors from DIFFERENT
+    // families. This ensures exactly one defensible correct answer per round.
+    let synonymCount = 0;
+    for (const option of options) {
+      if (familyWords.has(norm(option))) {
+        synonymCount += 1;
       }
+    }
+    if (synonymCount !== 1) {
+      fail(`${where}: exactly 1 option must be a synonym (found ${synonymCount} from family "${raw.family}")`);
+    }
+    // The correct answer must be the synonym
+    if (!familyWords.has(norm(correctWord))) {
+      fail(`${where}: correct answer "${correctWord}" must be a synonym from family "${raw.family}"`);
     }
 
     items.push(

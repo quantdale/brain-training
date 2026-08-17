@@ -17,7 +17,7 @@ describe('bundled content pack', () => {
   it('validates and is the expected curated pack', () => {
     const pack = loadContentPack();
     expect(pack.packId).toBe('language-word-match-core-v1');
-    expect(pack.packVersion).toBe('1.0.0');
+    expect(pack.packVersion).toBe('2.0.0');
     expect(pack.itemCount).toBe(pack.items.length);
   });
 
@@ -58,7 +58,7 @@ describe('bundled content pack', () => {
     expect(owner.size).toBe(Object.values(pack.families).flat().length);
   });
 
-  it('every item: 4 distinct options, valid correctIndex, words from its family', () => {
+  it('every item: 4 distinct options, valid correctIndex, exactly one synonym from its family', () => {
     const pack = loadContentPack();
     for (const item of pack.items) {
       expect(item.options).toHaveLength(4);
@@ -69,21 +69,24 @@ describe('bundled content pack', () => {
       expect(item.correctWord).not.toBe(item.prompt);
       expect(item.options).not.toContain(item.prompt);
       const familyWords = new Set(pack.families[item.family]);
-      for (const word of [item.prompt, ...item.options]) {
-        expect(familyWords.has(word)).toBe(true);
-      }
+      // Exactly one option must be a synonym (from the family)
+      const synonymCount = item.options.filter(o => familyWords.has(o)).length;
+      expect(synonymCount).toBe(1);
+      // The correct answer must be the synonym
+      expect(familyWords.has(item.correctWord)).toBe(true);
       expect(TIERS).toContain(item.tier);
     }
   });
 
-  it('distractors are genuine semantic neighbors, never the correct word', () => {
+  it('distractors are from different families, never the correct word', () => {
     const pack = loadContentPack();
     for (const item of pack.items) {
       const distractors = item.options.filter((_, index) => index !== item.correctIndex);
       expect(distractors).toHaveLength(3);
-      // Same family guarantees same part of speech / semantic neighborhood.
+      const familyWords = new Set(pack.families[item.family]);
+      // Distractors must NOT be from the same family (they're from different families)
       for (const distractor of distractors) {
-        expect(pack.families[item.family]).toContain(distractor);
+        expect(familyWords.has(distractor)).toBe(false);
         expect(distractor).not.toBe(item.correctWord);
       }
     }
@@ -145,7 +148,10 @@ describe('validateContentPack rejection cases', () => {
 
   it('rejects the prompt appearing among the options', () => {
     const pack = clonePack();
-    pack.items[0].options[2] = pack.items[0].prompt;
+    // Put the prompt at a non-correct position to trigger the prompt-in-options check
+    const item = pack.items[0];
+    const nonCorrectIndex = item.options.findIndex((_, i) => i !== item.correctIndex);
+    pack.items[0].options[nonCorrectIndex] = pack.items[0].prompt;
     expect(() => validateContentPack(pack)).toThrow(/must not appear among the options/);
   });
 
@@ -158,16 +164,23 @@ describe('validateContentPack rejection cases', () => {
     expect(() => validateContentPack(pack)).toThrow(/must differ from the prompt/);
   });
 
-  it('rejects unknown tiers, unknown families, and words outside the family', () => {
+  it('rejects unknown tiers, unknown families, and invalid synonym counts', () => {
     const badTier = clonePack();
     badTier.items[0].tier = 't4';
     expect(() => validateContentPack(badTier)).toThrow(/tier/);
     const unknownFamily = clonePack();
     unknownFamily.items[0].family = 'nope';
     expect(() => validateContentPack(unknownFamily)).toThrow(/family/);
-    const foreignWord = clonePack();
-    foreignWord.items[0].options[3] = 'unrelated';
-    expect(() => validateContentPack(foreignWord)).toThrow(/not a member of family/);
+    // With new rules: exactly 1 option must be a synonym; adding a second synonym should fail
+    const twoSynonyms = clonePack();
+    const item = twoSynonyms.items[0];
+    const familyWords = twoSynonyms.families[item.family];
+    // Add a second word from the same family as an option
+    const secondSynonym = familyWords.find(w => w !== item.prompt && w !== item.options[item.correctIndex]);
+    if (secondSynonym) {
+      twoSynonyms.items[0].options[3] = secondSynonym;
+      expect(() => validateContentPack(twoSynonyms)).toThrow(/exactly 1 option must be a synonym/);
+    }
   });
 
   it('rejects families with fewer than 5 words and words shared across families', () => {
@@ -176,6 +189,22 @@ describe('validateContentPack rejection cases', () => {
     tinyFamily.items = [];
     tinyFamily.itemCount = 0;
     expect(() => validateContentPack(tinyFamily)).toThrow(/at least 5 words/);
+  });
+
+  it('enforces exactly one synonym per item (new semantic rule)', () => {
+    const pack = clonePack();
+    const item = pack.items[0];
+    const familyWords = pack.families[item.family];
+    
+    // Verify current item has exactly one synonym
+    const synonymCount = item.options.filter(o => familyWords.includes(o)).length;
+    expect(synonymCount).toBe(1);
+    
+    // Verify correct answer is the synonym
+    expect(familyWords).toContain(item.options[item.correctIndex]);
+  });
+
+  it('rejects shared words across families', () => {
     const shared = clonePack();
     shared.families.happiness.push('sad');
     expect(() => validateContentPack(shared)).toThrow(/both family/);
