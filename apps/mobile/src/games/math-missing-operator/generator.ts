@@ -27,6 +27,61 @@ import { aMaxForRound } from './difficulty';
 import type { Equation, MathMissingOperatorDifficultyParams, Operator } from './types';
 import { OPERATORS } from './types';
 
+/* -------------------------------------------------------------------------- */
+/*  Content-pack: curated equation templates                                   */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A pre-verified equation template.  `numbers` is [a, b]; `operators` holds
+ * the single correct operator; `result` is `a op b`.  Each template is
+ * exhaustively verified to have exactly one solution among all four operators.
+ */
+export interface EquationTemplate {
+  readonly numbers: readonly number[];
+  readonly operators: readonly string[];
+  readonly result: number;
+}
+
+/**
+ * Curated equation templates guaranteed to have a unique solution.
+ * The generator picks from these when compatible with the active difficulty
+ * params, supplementing procedural generation with hand-crafted variety.
+ *
+ * Invariants maintained by construction:
+ * - a ≥ 4, b ≥ 2 (satisfies minA / minB for all shipped levels)
+ * - no trivial ×1 / ÷1 (b ≥ 2, quotient ≥ 2)
+ * - no ambiguous pair (4,2) for − / ÷
+ * - division always exact
+ * - exactly one of {+, −, *, /} produces the stated result
+ */
+export const EQUATION_TEMPLATES: readonly EquationTemplate[] = [
+  // Small operands (easy / normal compatible)
+  { numbers: [8, 2], operators: ['*'], result: 16 },   // 8 × 2 = 16
+  { numbers: [7, 3], operators: ['*'], result: 21 },   // 7 × 3 = 21
+  { numbers: [9, 4], operators: ['*'], result: 36 },   // 9 × 4 = 36
+  { numbers: [6, 4], operators: ['+'], result: 10 },    // 6 + 4 = 10
+  { numbers: [11, 5], operators: ['+'], result: 16 },   // 11 + 5 = 16
+  { numbers: [14, 6], operators: ['-'], result: 8 },    // 14 − 6 = 8
+  { numbers: [20, 8], operators: ['-'], result: 12 },   // 20 − 8 = 12
+  { numbers: [8, 6], operators: ['+'], result: 14 },    // 8 + 6 = 14
+  { numbers: [9, 5], operators: ['*'], result: 45 },    // 9 × 5 = 45
+  { numbers: [7, 2], operators: ['*'], result: 14 },    // 7 × 2 = 14
+  { numbers: [5, 3], operators: ['+'], result: 8 },     // 5 + 3 = 8
+  // Medium operands (normal / hard / expert compatible)
+  { numbers: [12, 3], operators: ['/'], result: 4 },    // 12 ÷ 3 = 4
+  { numbers: [15, 5], operators: ['/'], result: 3 },    // 15 ÷ 5 = 3
+  { numbers: [16, 4], operators: ['/'], result: 4 },    // 16 ÷ 4 = 4
+  { numbers: [18, 6], operators: ['/'], result: 3 },    // 18 ÷ 6 = 3
+  { numbers: [13, 4], operators: ['-'], result: 9 },    // 13 − 4 = 9
+  { numbers: [10, 2], operators: ['*'], result: 20 },   // 10 × 2 = 20
+  { numbers: [24, 8], operators: ['/'], result: 3 },    // 24 ÷ 8 = 3
+  { numbers: [10, 7], operators: ['+'], result: 17 },   // 10 + 7 = 17
+  { numbers: [12, 4], operators: ['/'], result: 3 },    // 12 ÷ 4 = 3
+  // Large operands (hard / expert compatible — covers all 4 operators)
+  { numbers: [14, 3], operators: ['*'], result: 42 },   // 14 × 3 = 42
+  { numbers: [16, 5], operators: ['+'], result: 21 },   // 16 + 5 = 21
+];
+
 /** Upper bound on re-draw attempts per round before the fallback is used. */
 export const MAX_EQUATION_ATTEMPTS = 16;
 
@@ -75,6 +130,35 @@ export function generateEquation(input: GenerateEquationInput): Equation {
   const { rng, roundIndex, params, level, rating = 0.5 } = input;
   const aMax = aMaxForRound(params, roundIndex, level, rating);
 
+  // ---- Content-pack: try curated templates first ----
+  const compatibleTemplates = EQUATION_TEMPLATES.filter((t) => {
+    const [a, b] = t.numbers;
+    return (
+      a >= params.minA &&
+      a <= aMax &&
+      b >= params.minB &&
+      b <= params.maxB &&
+      params.operators.includes(t.operators[0] as Operator)
+    );
+  });
+
+  if (compatibleTemplates.length > 0) {
+    const fork = rng.fork(`templates:round:${roundIndex}`);
+    const shuffled = fork.shuffle([...compatibleTemplates]);
+    for (const template of shuffled) {
+      const [a, b] = template.numbers;
+      if (isUniqueSolution(a, b, template.result)) {
+        return {
+          a,
+          b,
+          c: template.result,
+          answerOperator: template.operators[0] as Operator,
+        };
+      }
+    }
+  }
+
+  // ---- Procedural fallback (original algorithm) ----
   for (let attempt = 0; attempt < MAX_EQUATION_ATTEMPTS; attempt += 1) {
     const equation = attemptEquation(
       rng.fork(`round:${roundIndex}:attempt:${attempt}`),

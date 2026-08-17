@@ -14,6 +14,58 @@ import type { Rng } from '@/sdk';
 
 import type { MathEquationBuilderDifficultyParams, Operator } from './types';
 
+/* -------------------------------------------------------------------------- */
+/*  Content-pack: curated puzzle templates                                     */
+/* -------------------------------------------------------------------------- */
+
+/** A pre-verified puzzle template: numbers (range 2–20, 3–5 count) + target. */
+export interface PuzzleTemplate {
+  readonly numbers: readonly number[];
+  readonly target: number;
+}
+
+/**
+ * Curated puzzle templates guaranteed solvable by the brute-force solver
+ * (`evaluateAllResults`).  The generator picks from these when compatible
+ * with the active difficulty params, supplementing procedural generation
+ * with hand-crafted variety.
+ *
+ * Invariants maintained by construction:
+ * - all targets achievable via some parenthesisation of the numbers
+ * - numbers in [2, 20], count in [3, 5], all distinct within a set
+ * - no duplicate targets across the 20 templates
+ */
+export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
+  // 3-number sets (easy / normal / hard compatible)
+  { numbers: [3, 5, 7], target: 15 },   // 3 + 5 + 7
+  { numbers: [4, 6, 2], target: 12 },   // 4 + 6 + 2
+  { numbers: [5, 8, 3], target: 16 },   // 5 + 8 + 3
+  { numbers: [7, 4, 2], target: 13 },   // 7 + 4 + 2
+  { numbers: [9, 3, 5], target: 17 },   // 9 + 3 + 5
+  { numbers: [6, 2, 3], target: 11 },   // 6 + 2 + 3
+  { numbers: [8, 4, 5], target: 9 },    // 8 − 4 + 5
+  { numbers: [10, 3, 4], target: 26 },  // (10 × 3) − 4
+  { numbers: [12, 5, 3], target: 20 },  // 12 + 5 + 3
+  { numbers: [14, 6, 2], target: 22 },  // 14 + 6 + 2
+  { numbers: [11, 4, 3], target: 18 },  // 11 + 4 + 3
+  { numbers: [15, 2, 3], target: 14 },  // 15 + 2 − 3
+  // 4-number sets (normal / hard / expert compatible)
+  { numbers: [3, 4, 2, 5], target: 30 },  // 3 × (4 − 2) × 5
+  { numbers: [5, 3, 2, 4], target: 40 },  // (5 + 3 + 2) × 4
+  { numbers: [6, 2, 3, 4], target: 28 },  // (6 − 2) × (3 + 4)
+  { numbers: [8, 2, 3, 5], target: 48 },  // (8 − 2) × (3 + 5)
+  { numbers: [7, 3, 2, 4], target: 32 },  // (7 + 3 − 2) × 4
+  { numbers: [4, 7, 2, 3], target: 34 },  // (4 × 7) + (2 × 3)
+  // 3-number sets (hard / expert compatible — higher targets)
+  { numbers: [8, 7, 3], target: 53 },   // (8 × 7) − 3
+  { numbers: [6, 5, 4], target: 54 },   // 6 × (5 + 4)
+  { numbers: [9, 4, 2], target: 38 },   // (9 × 4) + 2
+  { numbers: [7, 6, 3], target: 45 },   // (7 × 6) + 3
+  { numbers: [10, 5, 2], target: 52 },  // (10 × 5) + 2
+  { numbers: [8, 6, 4], target: 44 },   // (8 × 6) − 4
+  { numbers: [13, 2, 5], target: 31 },  // (13 × 2) + 5
+];
+
 export interface GeneratePuzzleInput {
   readonly rng: Rng;
   /** 0-based round index; part of the fork salt. */
@@ -125,6 +177,32 @@ export function generatePuzzle(input: GeneratePuzzleInput): GeneratedPuzzle {
   const { rng, roundIndex, params, prevTarget } = input;
   const { numbersCount, targetMin, targetMax, operators } = params;
 
+  // ---- Content-pack: try curated templates first ----
+  const compatibleTemplates = PUZZLE_TEMPLATES.filter(
+    (t) =>
+      t.numbers.length === numbersCount &&
+      t.target >= targetMin &&
+      t.target <= targetMax,
+  );
+
+  if (compatibleTemplates.length > 0) {
+    const fork = rng.fork(`templates:round:${roundIndex}`);
+    const shuffled = fork.shuffle([...compatibleTemplates]);
+    for (const template of shuffled) {
+      // Near-duplicate avoidance: skip template if its target matches prevTarget.
+      if (prevTarget === null || template.target !== prevTarget) {
+        return { target: template.target, numbers: template.numbers, operators };
+      }
+    }
+    // All compatible templates share prevTarget – use the first anyway.
+    return {
+      target: shuffled[0].target,
+      numbers: shuffled[0].numbers,
+      operators,
+    };
+  }
+
+  // ---- Procedural fallback (original algorithm) ----
   for (let attempt = 0; attempt < MAX_PUZZLE_ATTEMPTS; attempt += 1) {
     const fork = rng.fork(`round:${roundIndex}:attempt:${attempt}`);
 

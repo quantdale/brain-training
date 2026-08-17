@@ -2,6 +2,7 @@
  * GameButton — shared pressable used across the Spatial Transform Match screens.
  * Variants: `primary` (accent fill), `secondary` (outline), `danger` (error fill).
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -17,7 +18,7 @@ export interface GameButtonProps {
   disabled?: boolean;
 }
 
-export function GameButton({
+export const GameButton = memo(function GameButton({
   label,
   testID,
   onPress,
@@ -52,7 +53,7 @@ export function GameButton({
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   button: {

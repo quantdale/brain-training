@@ -36,6 +36,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'pebble', category: 'Nature' },
   { word: 'harvest', category: 'Nature' },
   { word: 'dewdrop', category: 'Nature' },
+  { word: 'cascade', category: 'Nature' },
+  { word: 'foliage', category: 'Nature' },
+  { word: 'summit', category: 'Nature' },
+  { word: 'prairie', category: 'Nature' },
+  { word: 'horizon', category: 'Nature' },
 
   // Food & Drink
   { word: 'recipe', category: 'Food & Drink' },
@@ -53,6 +58,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'parsley', category: 'Food & Drink' },
   { word: 'coconut', category: 'Food & Drink' },
   { word: 'cherry', category: 'Food & Drink' },
+  { word: 'avocado', category: 'Food & Drink' },
+  { word: 'quinoa', category: 'Food & Drink' },
+  { word: 'cinnamon', category: 'Food & Drink' },
+  { word: 'mango', category: 'Food & Drink' },
+  { word: 'almond', category: 'Food & Drink' },
 
   // Music & Sound
   { word: 'melody', category: 'Music & Sound' },
@@ -68,6 +78,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'timpani', category: 'Music & Sound' },
   { word: 'cymbal', category: 'Music & Sound' },
   { word: 'sonata', category: 'Music & Sound' },
+  { word: 'cadence', category: 'Music & Sound' },
+  { word: 'acoustics', category: 'Music & Sound' },
+  { word: 'ensemble', category: 'Music & Sound' },
+  { word: 'fugue', category: 'Music & Sound' },
+  { word: 'oboe', category: 'Music & Sound' },
 
   // Travel & Places
   { word: 'voyage', category: 'Travel & Places' },
@@ -82,6 +97,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'cottage', category: 'Travel & Places' },
   { word: 'lantern', category: 'Travel & Places' },
   { word: 'compass', category: 'Travel & Places' },
+  { word: 'pier', category: 'Travel & Places' },
+  { word: 'boulevard', category: 'Travel & Places' },
+  { word: 'caravan', category: 'Travel & Places' },
+  { word: 'embassy', category: 'Travel & Places' },
+  { word: 'lagoon', category: 'Travel & Places' },
 
   // Tools & Objects
   { word: 'hammer', category: 'Tools & Objects' },
@@ -96,6 +116,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'pliers', category: 'Tools & Objects' },
   { word: 'chisel', category: 'Tools & Objects' },
   { word: 'beacon', category: 'Tools & Objects' },
+  { word: 'caliper', category: 'Tools & Objects' },
+  { word: 'hatchet', category: 'Tools & Objects' },
+  { word: 'pulley', category: 'Tools & Objects' },
+  { word: 'anvil', category: 'Tools & Objects' },
+  { word: 'sprocket', category: 'Tools & Objects' },
 
   // Animals
   { word: 'falcon', category: 'Animals' },
@@ -112,6 +137,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'cricket', category: 'Animals' },
   { word: 'pelican', category: 'Animals' },
   { word: 'sparrow', category: 'Animals' },
+  { word: 'penguin', category: 'Animals' },
+  { word: 'octopus', category: 'Animals' },
+  { word: 'antelope', category: 'Animals' },
+  { word: 'flamingo', category: 'Animals' },
+  { word: 'chameleon', category: 'Animals' },
 
   // Emotions & Traits
   { word: 'courage', category: 'Emotions & Traits' },
@@ -128,6 +158,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'witty', category: 'Emotions & Traits' },
   { word: 'nimble', category: 'Emotions & Traits' },
   { word: 'jolly', category: 'Emotions & Traits' },
+  { word: 'empathy', category: 'Emotions & Traits' },
+  { word: 'resilient', category: 'Emotions & Traits' },
+  { word: 'ambitious', category: 'Emotions & Traits' },
+  { word: 'compassion', category: 'Emotions & Traits' },
+  { word: 'stoic', category: 'Emotions & Traits' },
 
   // Science & Ideas
   { word: 'equation', category: 'Science & Ideas' },
@@ -142,6 +177,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'crystal', category: 'Science & Ideas' },
   { word: 'theorem', category: 'Science & Ideas' },
   { word: 'catalyst', category: 'Science & Ideas' },
+  { word: 'hypothesis', category: 'Science & Ideas' },
+  { word: 'algorithm', category: 'Science & Ideas' },
+  { word: 'spectrum', category: 'Science & Ideas' },
+  { word: 'synthesis', category: 'Science & Ideas' },
+  { word: 'paradigm', category: 'Science & Ideas' },
 
   // Colors & Shapes
   { word: 'scarlet', category: 'Colors & Shapes' },
@@ -156,6 +196,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'octagon', category: 'Colors & Shapes' },
   { word: 'pyramid', category: 'Colors & Shapes' },
   { word: 'maroon', category: 'Colors & Shapes' },
+  { word: 'lavender', category: 'Colors & Shapes' },
+  { word: 'hexagon', category: 'Colors & Shapes' },
+  { word: 'mauve', category: 'Colors & Shapes' },
+  { word: 'trapezoid', category: 'Colors & Shapes' },
+  { word: 'ochre', category: 'Colors & Shapes' },
 
   // Activities & Sports
   { word: 'archery', category: 'Activities & Sports' },
@@ -168,6 +213,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'bowling', category: 'Activities & Sports' },
   { word: 'paddle', category: 'Activities & Sports' },
   { word: 'stroll', category: 'Activities & Sports' },
+  { word: 'canoeing', category: 'Activities & Sports' },
+  { word: 'gymnastics', category: 'Activities & Sports' },
+  { word: 'badminton', category: 'Activities & Sports' },
+  { word: 'lacrosse', category: 'Activities & Sports' },
+  { word: 'squash', category: 'Activities & Sports' },
 
   // Professions
   { word: 'surgeon', category: 'Professions' },
@@ -182,6 +232,11 @@ export const WORD_BANK: readonly WordEntry[] = [
   { word: 'gardener', category: 'Professions' },
   { word: 'librarian', category: 'Professions' },
   { word: 'mechanic', category: 'Professions' },
+  { word: 'optician', category: 'Professions' },
+  { word: 'geologist', category: 'Professions' },
+  { word: 'botanist', category: 'Professions' },
+  { word: 'physicist', category: 'Professions' },
+  { word: 'cartographer', category: 'Professions' },
 ] as const;
 
 /**

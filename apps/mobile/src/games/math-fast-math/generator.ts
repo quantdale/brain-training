@@ -30,6 +30,55 @@ import type { Rng } from '@/sdk';
 
 import type { MathDifficultyParams, MathProblem, Operator } from './types';
 
+/* -------------------------------------------------------------------------- */
+/*  Content-pack: curated problem templates                                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A pre-verified problem template.  Covers all difficulty levels:
+ * easy (+), normal (+,−), hard (+,−,×,÷), expert (+,−,×,÷).
+ * All operands and answers are integers; answers ≥ 0; no division by zero;
+ * no trivial ×0/×1/÷1; division always exact.
+ */
+export interface ProblemTemplate {
+  readonly a: number;
+  readonly b: number;
+  readonly operator: string;
+  readonly result: number;
+}
+
+/**
+ * Curated problem templates guaranteed valid.  The generator picks from these
+ * when compatible with the active difficulty params, supplementing procedural
+ * generation with hand-crafted variety.
+ */
+export const PROBLEM_TEMPLATES: readonly ProblemTemplate[] = [
+  // Easy (+ only): maxLeft=10, maxRight=10
+  { a: 3, b: 5, operator: '+', result: 8 },
+  { a: 7, b: 4, operator: '+', result: 11 },
+  { a: 9, b: 6, operator: '+', result: 15 },
+  { a: 8, b: 2, operator: '+', result: 10 },
+  { a: 6, b: 3, operator: '+', result: 9 },
+  // Normal (+, −, ×): maxLeft=12, maxRight=12 for +/−; maxLeft=9, maxRight=9 for ×
+  { a: 11, b: 5, operator: '−', result: 6 },
+  { a: 10, b: 6, operator: '+', result: 16 },
+  { a: 12, b: 7, operator: '−', result: 5 },
+  { a: 8, b: 4, operator: '×', result: 32 },
+  { a: 9, b: 3, operator: '×', result: 27 },
+  // Hard (+, −, ×, ÷): maxLeft=20, maxRight=20 for +/−; maxLeft=12, maxRight=12 for ×; maxLeft=100, maxRight=10 for ÷
+  { a: 18, b: 7, operator: '−', result: 11 },
+  { a: 15, b: 8, operator: '+', result: 23 },
+  { a: 12, b: 9, operator: '×', result: 108 },
+  { a: 10, b: 5, operator: '÷', result: 2 },
+  { a: 20, b: 4, operator: '÷', result: 5 },
+  // Expert (+, −, ×, ÷): maxLeft=30, maxRight=30 for +/−; maxLeft=15, maxRight=15 for ×; maxLeft=169, maxRight=13 for ÷
+  { a: 12, b: 7, operator: '×', result: 84 },
+  { a: 56, b: 8, operator: '÷', result: 7 },
+  { a: 9, b: 6, operator: '×', result: 54 },
+  { a: 72, b: 9, operator: '÷', result: 8 },
+  { a: 15, b: 4, operator: '×', result: 60 },
+];
+
 /** Upper bound on re-draw attempts before the last candidate is accepted. */
 export const MAX_PROBLEM_ATTEMPTS = 20;
 
@@ -45,6 +94,32 @@ export interface GenerateProblemInput {
 /** Generate one validated problem (see module docs for the invariants). */
 export function generateProblem(input: GenerateProblemInput): MathProblem {
   const { rng, problemIndex, params, prevProblem } = input;
+
+  // ---- Content-pack: try curated templates first ----
+  const compatibleTemplates = PROBLEM_TEMPLATES.filter((t) => {
+    const op = t.operator as Operator;
+    if (!params.operators.includes(op)) return false;
+    const range = params.ranges[op];
+    return t.a >= 1 && t.a <= range.maxLeft && t.b >= 1 && t.b <= range.maxRight;
+  });
+
+  if (compatibleTemplates.length > 0) {
+    const fork = rng.fork(`templates:problem:${problemIndex}`);
+    const shuffled = fork.shuffle([...compatibleTemplates]);
+    for (const template of shuffled) {
+      const problem: MathProblem = {
+        operator: template.operator as Operator,
+        left: template.a,
+        right: template.b,
+        answer: template.result,
+      };
+      if (!isNearDuplicate(problem, prevProblem)) {
+        return problem;
+      }
+    }
+  }
+
+  // ---- Procedural fallback (original algorithm) ----
   let last: MathProblem | null = null;
   for (let attempt = 0; attempt < MAX_PROBLEM_ATTEMPTS; attempt += 1) {
     last = drawProblem(rng.fork(`problem:${problemIndex}:attempt:${attempt}`), params);

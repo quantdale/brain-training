@@ -11,6 +11,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { lazy, Suspense } from 'react';
 import { StyleSheet } from 'react-native';
 
+import { ErrorBoundary } from '@/components/error-boundary';
 import { GameNotReady } from '@/components/game-not-ready';
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
@@ -53,9 +54,24 @@ export default function GameScreen() {
         </ThemedText>
       ) : null}
       {GameScreenComponent ? (
-        <Suspense fallback={<GameNotReady variant="loading" />}>
-          <GameScreenComponent />
-        </Suspense>
+        <ErrorBoundary
+          onError={(error, info) => {
+            console.error(
+              JSON.stringify({
+                level: 'error',
+                component: 'game-route',
+                gameId: game.id,
+                message: error.message,
+                stack: error.stack,
+                componentStack: info.componentStack,
+              }),
+            );
+          }}
+        >
+          <Suspense fallback={<GameNotReady variant="loading" />}>
+            <GameScreenComponent />
+          </Suspense>
+        </ErrorBoundary>
       ) : (
         <GameNotReady variant="not-implemented" />
       )}

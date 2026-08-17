@@ -2,6 +2,7 @@
  * Game button component — shared across game modules.
  * Duplicated here to avoid cross-module imports.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -17,7 +18,7 @@ interface GameButtonProps {
   disabled?: boolean;
 }
 
-export function GameButton({
+export const GameButton = memo(function GameButton({
   label,
   testID,
   onPress,
@@ -61,7 +62,7 @@ export function GameButton({
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   button: {
