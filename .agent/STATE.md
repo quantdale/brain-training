@@ -1,30 +1,27 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-17 (Campaign 004 COMPLETED; 16-game catalog)
+**Last update:** 2026-08-17 (Campaign 005 COMPLETED; 20-game catalog)
 **Canonical branch:** `main`
-**Active campaign:** `005-catalog-depth-and-ux-polish` (Phase 5 — staged; next continuation goal executes it)
+**Active campaign:** `006-platform-hardening-and-polish` (Phase 6 — staged; next continuation goal executes it)
 
 ## Current status
 
-**Campaign 004 (Parallel Catalog Expansion, Phase 4) is COMPLETED.** 8 new
-game modules added (one per cognitive domain), 16-game catalog verified
-end-to-end. Checkpoint:
-`.agent/checkpoints/004-parallel-catalog-expansion-complete.md`.
+**Campaign 005 (Catalog Depth and UX Polish, Phase 5) is COMPLETED.** 4 new
+game modules added (one per high-traffic domain), 20-game catalog verified.
+Checkpoint: `.agent/checkpoints/005-catalog-depth-and-ux-polish-complete.md`.
 
-- **8 new games** (commits `90a2da9` + `69fc2f5`):
-  - attention-odd-one-out (Attention) — 90 tests
-  - speed-tap-rush (Speed) — 88 tests
-  - memory-sequence-memory (Memory) — 90 tests
-  - math-missing-operator (Math) — 72 tests
-  - language-word-scramble (Language) — 82 tests
-  - logic-code-cracker (Logic & Problem Solving) — 91 tests
-  - flexibility-color-stroop (Flexibility) — 74 tests
-  - spatial-transform-match (Spatial) — 96 tests
-- **Registry regenerated**: 16 games, categories validated.
-- **Convergence**: tsc clean, 149 suites / 1755 tests all green.
-- **Emulator smoke**: workout picks from expanded catalog; game screens
-  render correctly with all testIDs.
+- **4 new games** (commit `4434d33`):
+  - memory-pattern-tap-back (Memory) — 87 tests
+  - speed-color-match (Speed) — 82 tests
+  - math-equation-builder (Math) — 90 tests
+  - language-sentence-builder (Language) — 83 tests
+- **Registry regenerated**: 20 games, categories validated.
+- **Convergence**: tsc clean, 177 suites / 2097 tests all green.
+
+## Completed campaign 005 (commit)
+
+- `4434d33` wave1: 4 games (pattern-tap-back, color-match, equation-builder, sentence-builder) + registry
 
 ## Completed campaign 004 (commits)
 
@@ -48,9 +45,9 @@ end-to-end. Checkpoint:
 
 ## Next required action
 
-Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 005 (Catalog Depth and UX
-Polish, Phase 5): further catalog expansion and UX improvements. No
-hardening unless the owner requests it.
+Execute `.agent/CURRENT_CAMPAIGN.md` — Campaign 006 (Platform Hardening
+and Polish, Phase 6): platform improvements and polish. No full hardening
+unless the owner requests it.
 
 ## Important invariants
 

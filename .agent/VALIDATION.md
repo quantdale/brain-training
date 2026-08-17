@@ -275,3 +275,20 @@ All PASS — full table in
    roundResult and remounts with width=0; test now re-fires layout each round.
 3. **speed-tap-rush score assertion**: Fixed to expect accumulated hit points
    (1350) instead of 0 after a round with wrong+hit taps.
+
+## Campaign 005 (2026-08-17, commit `4434d33`)
+
+### Wave 1 (4 games)
+
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `apps/mobile` typecheck: PASS (0 errors).
+- `apps/mobile` jest: PASS — 177 suites / 2097 tests (4 new game modules,
+  28 new suites / 342 tests: memory-pattern-tap-back 87, speed-color-match 82,
+  math-equation-builder 90, language-sentence-builder 83).
+- Registry generator: PASS (20 games, categories validated).
+- Convergence: fixed missing `index.ts` barrel export for speed-color-match.
+
+### Emulator QA (AVD `braintraining35`, Metro-served JS, 2026-08-17)
+
+- **Home workout**: PASS — renders 4 games from 20-game catalog.
+- Artifacts: `qa-artifacts/20260817-campaign005-smoke/` (hierarchy dumps).

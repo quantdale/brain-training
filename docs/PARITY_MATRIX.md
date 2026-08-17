@@ -13,11 +13,11 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 | Training | Adaptive difficulty | IMPLEMENTED | Hidden continuous rating + named modes |
 | Training | Manual difficulty | IMPLEMENTED | Easy/Normal/Hard/Expert/Adaptive |
 | Training | Personalized recommendations | IMPLEMENTED | Weak-domain balancing + recency avoidance + reroll economics |
-| Games | Memory catalog | IMPLEMENTED | Memory (Phase 2) + Sequence Memory (Phase 4) — 2 games |
+| Games | Memory catalog | IMPLEMENTED | Memory (Phase 2) + Sequence Memory (Phase 4) + Pattern Tap Back (Phase 5) — 3 games |
 | Games | Attention catalog | IMPLEMENTED | Visual Search (Phase 2) + Odd One Out (Phase 4) — 2 games |
-| Games | Speed catalog | IMPLEMENTED | Reaction Time (Phase 2) + Tap Rush (Phase 4) — 2 games |
-| Games | Math catalog | IMPLEMENTED | Fast Math (Phase 2) + Missing Operator (Phase 4) — 2 games |
-| Games | Language catalog | IMPLEMENTED | Word Match (Phase 2) + Word Scramble (Phase 4) + versioned 72-item content pack — 2 games |
+| Games | Speed catalog | IMPLEMENTED | Reaction Time (Phase 2) + Tap Rush (Phase 4) + Color Match (Phase 5) — 3 games |
+| Games | Math catalog | IMPLEMENTED | Fast Math (Phase 2) + Missing Operator (Phase 4) + Equation Builder (Phase 5) — 3 games |
+| Games | Language catalog | IMPLEMENTED | Word Match (Phase 2) + Word Scramble (Phase 4) + Sentence Builder (Phase 5) + versioned content packs — 3 games |
 | Games | Logic & Problem Solving catalog | IMPLEMENTED | Next in Sequence (Phase 2) + Code Cracker (Phase 4) — 2 games |
 | Games | Flexibility catalog | IMPLEMENTED | Card Sort (Phase 2) + Color Stroop (Phase 4) — 2 games |
 | Games | Spatial catalog | IMPLEMENTED | Mental Rotation (Phase 2) + Transform Match (Phase 4) — 2 games |

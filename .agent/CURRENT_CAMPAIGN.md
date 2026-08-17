@@ -1,47 +1,48 @@
-# Campaign 005 — Catalog Depth and UX Polish (Phase 5)
+# Campaign 006 — Platform Hardening and Polish (Phase 6)
 
 **Status:** ACTIVE (staged; work begins on the next continuation goal)
 **Campaign type:** implementation
-**Hardening:** NO — moderate risk-based validation only
-**Parent plan:** `docs/MASTER_PLAN.md` Phase 5 (later phases)
+**Hardening:** NO — moderate risk-based validation only (owner must explicitly start hardening)
+**Parent plan:** `docs/MASTER_PLAN.md` Phase 6 (later phases)
 
 ## Context
 
-Campaign 004 (Parallel Catalog Expansion) is COMPLETED — 16-game catalog
-with 2 games per cognitive domain, all registered, tested, and verified on
-emulator. The catalog now has sufficient breadth; this campaign adds depth
-to the most-used domains and polishes the UX across the existing catalog.
+Campaign 005 (Catalog Depth and UX Polish) is COMPLETED — 20-game catalog
+with 3 games in Memory/Speed/Math/Language and 2 games in
+Attention/Logic/Flexibility/Spatial. The catalog is now substantial; this
+campaign focuses on platform quality and polish.
 
 ## Objective
 
-Expand catalog depth in high-traffic domains and polish the user experience:
+Improve platform quality, accessibility, and performance:
 
-1. **4 new game modules** (one per high-traffic domain: Memory, Speed, Math,
-   Language), each:
-   - self-contained under `apps/mobile/src/games/<id>/`, plugging into the
-     Game SDK (same contracts as existing games);
-   - a distinct mechanic from the existing two games in the same domain;
-   - deterministic seeded generation, versioned scoring, full jest coverage,
-     semantic testIDs;
-   - `game.json` valid per the registry generator contract.
-2. **Content expansion**: add curated content packs where needed (word banks
-   for Language games, equation templates for Math games).
-3. **UX polish**:
-   - improve tutorial flow consistency across all 20 games;
-   - add game-description text to game.json for the library detail view;
-   - ensure all games have consistent pause-overlay styling.
-4. **Moderate validation**: repo validator + tsc + full jest + registry
-   `--check` + targeted emulator smoke.
-5. **Parity matrix update** at the end.
+1. **Accessibility audit and improvements**:
+   - Add `accessibilityLabel` to all interactive elements across 20 games.
+   - Ensure consistent `accessibilityRole` usage (button, image, text).
+   - Add `accessibilityState` for disabled/selected states.
+   - Test with TalkBack (Android screen reader) — basic smoke only.
 
-## Proposed games (4 new, 3 per domain for 4 domains)
+2. **Performance optimizations**:
+   - Add `React.memo` to frequently re-rendered game components (tiles, buttons, grids).
+   - Lazy-load game screens via `React.lazy` + `Suspense` in the registry.
+   - Profile and optimize generator performance for large content banks.
 
-| Domain | New Game | Mechanic |
-|--------|----------|----------|
-| Memory | pattern-tap-back | Observe a pattern on a grid, tap it back from memory |
-| Speed | speed-color-match | Match the color word to its swatch under time pressure |
-| Math | math-equation-builder | Build equations from given numbers and operators to reach a target |
-| Language | language-sentence-builder | Arrange words into a grammatically correct sentence |
+3. **Error handling improvements**:
+   - Add error boundaries around game screens.
+   - Improve persistence error handling (retry logic for transient failures).
+   - Add structured logging for QA diagnostics.
+
+4. **Tutorial consistency pass**:
+   - Audit all 20 games for tutorial flow consistency.
+   - Ensure all tutorials have: intro → demo → done (3 steps minimum).
+   - Standardize tutorial styling across games.
+
+5. **Content pack expansion**:
+   - Add 50 more sentences to language-sentence-builder (150 total).
+   - Add 20 more equation templates to math-equation-builder.
+   - Add 30 more word pairs to language-word-match.
+
+6. **Moderate validation**: repo validator + tsc + full jest + emulator smoke.
 
 ## Shared-file ownership rule (unchanged)
 
@@ -54,21 +55,22 @@ orchestrator convergence waves between swarm launches.
 
 - repository-state validator; typecheck + jest (whole tree)
 - registry generator `--check`
-- targeted emulator smoke for the new games (one AVD)
+- targeted emulator smoke for accessibility improvements (one AVD)
 - CI green on every pushed wave
 - no host-input interference maintained
 
 ## Exit criteria
 
-- 4 new games merged, registered, tested, playable on the emulator
-- 20-game catalog verified end-to-end (library, workout selection, game play)
-- content packs expanded where needed
-- UX polish items completed
+- Accessibility audit complete with improvements applied
+- Performance optimizations applied (memo, lazy-loading)
+- Error boundaries around game screens
+- Tutorial consistency verified across 20 games
+- Content packs expanded
 - no unresolved Critical/High defect
-- parity matrix updated; committed docs/state match repository reality;
+- parity matrix updated if needed; committed docs/state match reality;
   clean `main` pushed
 
 ## On completion
 
-Archive checkpoint; the next campaign is selected by the owner (further
-expansion, hardening, or a later-phase system).
+Archive checkpoint; the next campaign is selected by the owner (iOS
+compatibility, account/auth, cloud sync, or further expansion).
