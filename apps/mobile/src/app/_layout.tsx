@@ -15,7 +15,7 @@
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { SettingsProvider, useSettings } from '@/components/settings/settings-provider';
@@ -25,57 +25,86 @@ import { getDb } from '@/db';
 import { initializeProgression } from '@/progression';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions, getGameDefinition } from '@/registry/registry';
+import StorageUnavailable from '@/app/storage-unavailable';
 import { THEME_SETTINGS_KEY, resolveThemeMode } from '@/theme/registry';
 
 export default function RootLayout() {
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [initError, setInitError] = useState<Error | null>(null);
   const [initialThemeId, setInitialThemeId] = useState<string | undefined>(undefined);
+  const cancelledRef = useRef(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        // Rating pipeline: per-domain XP/rating/currency applied atomically
-        // with every completed session. Primary category moves at full
-        // weight, secondary domains at half (see src/rating/pipeline.ts).
-        await initDatabase({
-          rating: createRatingPipeline({
-            getDomains: (gameId) => {
-              const definition = getGameDefinition(gameId);
-              if (!definition) {
-                return [];
-              }
-              return [definition.primaryCategory, ...(definition.secondaryDomains ?? [])];
-            },
-          }),
-        });
-        registerGameDefinitions(registry);
-        // Seed versioned quest/achievement definitions and sync progression
-        // (idempotent; failures must not brick startup — caught below).
-        await initializeProgression(getDb(), new Date());
-        // Persisted theme selection (profile settings), applied via the
-        // SettingsProvider initial value.
-        const profile = await getDb().profile.get();
-        const theme = profile?.settings?.[THEME_SETTINGS_KEY];
-        if (!cancelled && typeof theme === 'string') {
-          setInitialThemeId(theme);
-        }
-      } catch (error) {
-        // Never brick startup on an initialization failure: log it and keep
-        // rendering. Per-surface errors surface at the point of use.
-        console.error('[startup] initialization failed', error);
-      } finally {
-        if (!cancelled) {
-          setReady(true);
-        }
+  /**
+   * Bootstrap the app. Database initialization is the one storage-critical
+   * step: a failure here means the local store cannot be opened, so we surface
+   * the recoverable storage-unavailable screen (task 8.4) instead of a
+   * silently broken app. Post-init steps (registry registration, progression
+   * seeding, profile read) are non-fatal — a failure must not brick startup.
+   */
+  const bootstrap = useCallback(async () => {
+    setStatus('loading');
+
+    // Storage-critical: a failed open/migrate means the canonical local DB is
+    // unavailable, so show the recoverable storage-unavailable screen.
+    try {
+      // Rating pipeline: per-domain XP/rating/currency applied atomically
+      // with every completed session. Primary category moves at full
+      // weight, secondary domains at half (see src/rating/pipeline.ts).
+      await initDatabase({
+        rating: createRatingPipeline({
+          getDomains: (gameId) => {
+            const definition = getGameDefinition(gameId);
+            if (!definition) {
+              return [];
+            }
+            return [definition.primaryCategory, ...(definition.secondaryDomains ?? [])];
+          },
+        }),
+      });
+    } catch (error) {
+      if (!cancelledRef.current) {
+        setInitError(error instanceof Error ? error : new Error(String(error)));
+        setStatus('error');
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+      return;
+    }
+
+    // Non-fatal post-init work: registry registration, progression seeding,
+    // and the persisted theme read. Any failure is logged but must not brick
+    // startup (original design intent).
+    try {
+      registerGameDefinitions(registry);
+      // Seed versioned quest/achievement definitions and sync progression
+      // (idempotent).
+      await initializeProgression(getDb(), new Date());
+      // Persisted theme selection (profile settings), applied via the
+      // SettingsProvider initial value.
+      const profile = await getDb().profile.get();
+      const theme = profile?.settings?.[THEME_SETTINGS_KEY];
+      if (!cancelledRef.current && typeof theme === 'string') {
+        setInitialThemeId(theme);
+      }
+    } catch (error) {
+      console.error('[startup] post-initialization step failed', error);
+    }
+
+    if (!cancelledRef.current) {
+      setStatus('ready');
+    }
   }, []);
 
-  if (!ready) {
+  useEffect(() => {
+    cancelledRef.current = false;
+    bootstrap();
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, [bootstrap]);
+
+  if (status === 'error') {
+    return <StorageUnavailable error={initError} onRetry={bootstrap} />;
+  }
+  if (status === 'loading') {
     return null;
   }
 

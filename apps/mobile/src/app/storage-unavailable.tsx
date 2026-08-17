@@ -1,0 +1,76 @@
+/**
+ * Recoverable storage-unavailable screen (006R task 8.4).
+ *
+ * Shown when the canonical local database fails to initialize at startup.
+ * Per the Database Integrity spec, a storage-init failure MUST surface a
+ * recoverable state with retry/diagnostic options rather than silently
+ * rendering the normal app (which would later fail only on first save).
+ */
+import { Pressable, Text, View } from 'react-native';
+
+export interface StorageUnavailableProps {
+  /** The initialization error, surfaced as a diagnostic detail. */
+  error: Error | null;
+  /** Re-attempts database initialization. */
+  onRetry: () => void;
+}
+
+export default function StorageUnavailable({ error, onRetry }: StorageUnavailableProps) {
+  return (
+    <View testID="storage-unavailable" style={styles.container}>
+      <Text testID="storage-unavailable-title" style={styles.title}>
+        Storage Unavailable
+      </Text>
+      <Text testID="storage-unavailable-message" style={styles.message}>
+        Your local data store could not be opened. Until this is resolved, progress cannot be
+        saved. Your data is not lost — retry to reconnect to the local store.
+      </Text>
+      {error ? (
+        <Text testID="storage-unavailable-detail" style={styles.detail}>
+          {error.message}
+        </Text>
+      ) : null}
+      <Pressable
+        testID="storage-unavailable-retry"
+        onPress={onRetry}
+        accessibilityRole="button"
+        style={({ pressed }) => [styles.retry, pressed && styles.retryPressed]}
+      >
+        <Text style={styles.retryText}>Retry</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = {
+  container: {
+    flex: 1,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    padding: 24,
+    backgroundColor: '#0b0d12',
+  },
+  title: { fontSize: 22, fontWeight: '700' as const, color: '#ffffff', marginBottom: 12 },
+  message: {
+    fontSize: 15,
+    color: '#c7ccd6',
+    textAlign: 'center' as const,
+    marginBottom: 16,
+    maxWidth: 320,
+  },
+  detail: {
+    fontSize: 13,
+    color: '#ff8a80',
+    textAlign: 'center' as const,
+    marginBottom: 20,
+    maxWidth: 320,
+  },
+  retry: {
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    borderRadius: 10,
+    backgroundColor: '#3b82f6',
+  },
+  retryPressed: { opacity: 0.7 },
+  retryText: { fontSize: 16, fontWeight: '600' as const, color: '#ffffff' },
+};

@@ -70,32 +70,23 @@ describe('app shell', () => {
     expect(screen.getByTestId('tab-profile')).toBeOnTheScreen();
   });
 
-  it('shows the games empty state until games register', async () => {
+  it('renders the registered game library as a grid at startup', async () => {
     await renderShell('/games');
 
-    expect(screen.getByTestId('games-empty')).toBeOnTheScreen();
+    // The root layout registers the generated game registry during bootstrap,
+    // so the library renders as a grid of cards rather than the empty state.
+    expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
+    expect(screen.getByTestId('game-card-memory')).toBeOnTheScreen();
   });
 
-  it('renders registered games as library cards', async () => {
-    registerGameDefinitions([
-      {
-        id: 'memory-match',
-        name: 'Memory Match',
-        primaryCategory: 'Memory',
-        description: 'A memory game',
-        sdkVersion: '0.1.0',
-        gameVersion: '1.0.0',
-        generatorVersion: '1',
-        contentVersion: null,
-        hasTutorial: true,
-      },
-    ]);
+  it('renders the full library UI with registered games', async () => {
     await renderShell('/games');
 
-    expect(screen.getByTestId('games-grid')).toBeOnTheScreen();
-    expect(screen.getByTestId('game-card-memory-match')).toBeOnTheScreen();
-    // Scoped: the Home tab (also mounted) renders the game in Today's Workout.
-    expect(within(screen.getByTestId('games-grid')).getByText('Memory Match')).toBeOnTheScreen();
+    // The generated registry is registered at startup, so the library shows the
+    // search/filter controls and game cards (not the empty state).
+    expect(await screen.findByTestId('games-search')).toBeOnTheScreen();
+    expect(screen.getByTestId('games-filter-all')).toBeOnTheScreen();
+    expect(screen.getByTestId('game-card-attention-odd-one-out')).toBeOnTheScreen();
   });
 
   it('renders the NotReady fallback for an unknown game id', async () => {
@@ -167,7 +158,8 @@ describe('app shell', () => {
     await act(async () => {
       router.navigate('/games');
     });
-    expect(screen.getByTestId('games-empty')).toBeOnTheScreen();
+    // The games tab renders the registered library grid (not the empty state).
+    expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
     expect(result.getPathname()).toBe('/games');
   });
 });

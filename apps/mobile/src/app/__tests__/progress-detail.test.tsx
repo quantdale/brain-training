@@ -27,12 +27,10 @@ jest.mock('@/db', () => {
   return {
     ...actual,
     getDb: () => mockDbState.db,
-    // Reject like the real sqlite path does under jest: the root layout's
-    // catch swallows it (registry registration is skipped, mirroring the
-    // app-shell tests) and the tree still renders.
-    initDatabase: jest.fn(async () => {
-      throw new Error('sqlite unavailable in tests');
-    }),
+    // Resolve initialization: the root layout treats only an initDatabase
+    // failure as a storage-unavailable condition. Progression seeding runs
+    // against the fake db and is non-fatal, so the tree still renders.
+    initDatabase: jest.fn(async () => undefined),
   };
 });
 
@@ -69,22 +67,6 @@ function makeFakeDb(overrides: {
 }
 
 /** Register a single fabricated game so record rows render its name. */
-function registerMemoryMatch() {
-  registerGameDefinitions([
-    {
-      id: 'memory-match',
-      name: 'Memory Match',
-      primaryCategory: 'Memory',
-      description: 'A memory game',
-      sdkVersion: '0.1.0',
-      gameVersion: '1.0.0',
-      generatorVersion: '1',
-      contentVersion: null,
-      hasTutorial: true,
-    },
-  ]);
-}
-
 describe('progress detail screen', () => {
   beforeEach(() => {
     registerGameDefinitions([]);
@@ -107,7 +89,6 @@ describe('progress detail screen', () => {
   });
 
   it('renders domain history, game records and recent sessions from the db', async () => {
-    registerMemoryMatch();
     mockDbState.db = makeFakeDb({
       // Newest first, as `ratings.getHistory` returns them.
       history: [
@@ -117,7 +98,7 @@ describe('progress detail screen', () => {
       ],
       aggregates: [
         {
-          gameId: 'memory-match',
+          gameId: 'memory',
           count: 3,
           avgNormalized: 0.7,
           bestNormalized: 0.9,
@@ -127,7 +108,7 @@ describe('progress detail screen', () => {
       recent: [
         {
           id: 'r1',
-          gameId: 'memory-match',
+          gameId: 'memory',
           gameVersion: 1,
           generatorVersion: 1,
           scoringVersion: 1,
@@ -155,8 +136,8 @@ describe('progress detail screen', () => {
 
     // Per-game records: name, session count and best score.
     expect(screen.queryByTestId('progress-detail-games-empty')).toBeNull();
-    const gameRow = screen.getByTestId('progress-detail-game-memory-match');
-    expect(within(gameRow).getByText('Memory Match')).toBeOnTheScreen();
+    const gameRow = screen.getByTestId('progress-detail-game-memory');
+    expect(within(gameRow).getByText('Memory')).toBeOnTheScreen();
     expect(gameRow).toHaveTextContent(/3×/);
     expect(gameRow).toHaveTextContent(/best 90%/);
 
@@ -167,7 +148,7 @@ describe('progress detail screen', () => {
     // The record row navigates to the game detail route.
     await fireEvent.press(gameRow);
     await act(async () => {});
-    expect(result.getPathname()).toBe('/game-detail/memory-match');
+    expect(result.getPathname()).toBe('/game-detail/memory');
     expect(screen.getByTestId('game-detail-title')).toBeOnTheScreen();
   });
 
