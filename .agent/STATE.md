@@ -28,11 +28,15 @@ Campaign 005 completed the 20-game catalog foundation. Campaign 006 began platfo
   * 2.4: Bumped SCORING_VERSION to 1.1.0 for rating pipeline fix ✅
   * 2.5: Deterministic replay tests ✅
   * 2.6: Provenance drift validator with allowlist ✅
-- **Task 3 (Word Match semantic correction)**: IN PROGRESS.
+- **Task 3 (Word Match semantic correction)**: MOSTLY COMPLETE.
   * 3.1: Frozen from workout selection ✅
-  * 3.2–3.6: Not yet started.
+  * 3.2: Content schema redesigned (exactly 1 synonym per item) ✅
+  * 3.3: 120 items regenerated with new semantic rule ✅
+  * 3.4: Validator and tests updated ✅
+  * 3.5: Content version advanced to 2.0.0 ✅
+  * 3.6: Emulator smoke test (requires AVD session)
 - **Tasks 4–12**: Not yet started.
-- **App CI**: FAIL (3 inherited test failures; will turn green when tasks 3 and 5 fix them).
+- **App CI**: FAIL (3 inherited test failures; will turn green when task 5 fixes tutorial tests).
 
 ## Authoritative active change
 
