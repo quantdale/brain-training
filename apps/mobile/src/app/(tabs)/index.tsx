@@ -35,6 +35,14 @@ interface HomeData {
   activityDates: string[];
   balance: number;
   totalXp: number;
+  /** Task 9.6: Recent sessions with game details for display */
+  recentSessions: readonly {
+    id: string;
+    gameId: string;
+    gameName: string;
+    normalizedResult: number;
+    completedAt: number;
+  }[];
 }
 
 const EMPTY_HOME: HomeData = {
@@ -43,6 +51,7 @@ const EMPTY_HOME: HomeData = {
   activityDates: [],
   balance: 0,
   totalXp: 0,
+  recentSessions: [],
 };
 
 async function loadHome(db: AppDatabase): Promise<HomeData> {
@@ -55,12 +64,24 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
     // Task 9.3: Use distinct activity dates for streak calculation
     db.sessions.getDistinctActivityDates(),
   ]);
+  
+  // Task 9.6: Build recent sessions with game names
+  const { getGameDefinition } = await import('@/registry/registry');
+  const recentSessions = recent.slice(0, 5).map((session) => ({
+    id: session.id,
+    gameId: session.gameId,
+    gameName: getGameDefinition(session.gameId)?.name ?? session.gameId,
+    normalizedResult: session.normalizedResult,
+    completedAt: session.completedAt,
+  }));
+  
   return {
     domainRatings,
     recentGameIds: recent.map((session) => session.gameId),
     activityDates,
     balance,
     totalXp: sessionXp + awardsXp,
+    recentSessions,
   };
 }
 
@@ -192,12 +213,32 @@ export default function HomeScreen() {
         </ThemedText>
       )}
 
-      {/* Recent games slot — empty until sessions are persisted. */}
+      {/* Recent games slot — task 9.6: real recent session/game data */}
       <ThemedView type="surface" style={styles.recentCard} testID="home-recent-games">
         <ThemedText type="subtitle">Recent games</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          Your latest sessions will show up here after your first workout.
-        </ThemedText>
+        {data.recentSessions.length > 0 ? (
+          <View style={styles.recentList}>
+            {data.recentSessions.map((session) => (
+              <Link key={session.id} href={`/results?id=${session.id}`} asChild>
+                <Pressable
+                  testID={`home-recent-game-${session.id}`}
+                  accessibilityRole="button"
+                  style={styles.recentRow}>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {session.gameName}
+                  </ThemedText>
+                  <ThemedText type="smallBold">
+                    {Math.round(session.normalizedResult * 100)}%
+                  </ThemedText>
+                </Pressable>
+              </Link>
+            ))}
+          </View>
+        ) : (
+          <ThemedText type="small" themeColor="textSecondary">
+            Your latest sessions will show up here after your first workout.
+          </ThemedText>
+        )}
       </ThemedView>
     </ScreenShell>
   );
@@ -260,5 +301,13 @@ const styles = StyleSheet.create({
     borderRadius: Radii.large,
     padding: Spacing.four,
     gap: Spacing.two,
+  },
+  recentList: {
+    gap: Spacing.two,
+  },
+  recentRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });
