@@ -102,8 +102,8 @@ export class AchievementRepository {
     return result.changes > 0;
   }
 
-  async getUnlock(achievementId: string): Promise<AchievementUnlock | null> {
-    const row = await this.adapter.get<UnlockRow>(SELECT_UNLOCK, [achievementId]);
+  async getUnlock(achievementId: string, txn?: SQLiteAdapter): Promise<AchievementUnlock | null> {
+    const row = await (txn ?? this.adapter).get<UnlockRow>(SELECT_UNLOCK, [achievementId]);
     return row ? mapUnlockRow(row) : null;
   }
 
@@ -113,9 +113,9 @@ export class AchievementRepository {
     return rows.map(mapUnlockRow);
   }
 
-  /** Mark an unlocked achievement's reward as claimed. */
-  async claim(achievementId: string): Promise<boolean> {
-    const result = await this.adapter.run(CLAIM_UNLOCK, [this.now(), achievementId]);
+  /** Mark an unlocked achievement's reward as claimed. `txn` runs it inside a transaction (task 7.3). */
+  async claim(achievementId: string, txn?: SQLiteAdapter): Promise<boolean> {
+    const result = await (txn ?? this.adapter).run(CLAIM_UNLOCK, [this.now(), achievementId]);
     return result.changes > 0;
   }
 }

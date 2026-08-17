@@ -69,13 +69,13 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 7. Economy transactionality
 
-- [ ] 7.1 Implement transactional `spendCurrency` that checks current balance and appends debit in the same transaction; balance cannot go below zero through supported commands.
-- [ ] 7.2 Implement atomic streak-item purchase: balance validation + debit + inventory grant in one transaction/idempotent operation.
-- [ ] 7.3 Make quest and achievement claims atomic/idempotent: claimed marker and all XP/currency rewards commit together.
-- [ ] 7.4 Make paid workout reroll atomic with its persisted workout state transition.
-- [ ] 7.5 Add globally stable operation IDs/idempotency keys suitable for future merge/sync; keep local sequence IDs only as optional ordering metadata.
-- [ ] 7.6 Prevent gameplay session completion API from double-awarding currency through ambiguous caller + rating-service reward ownership.
-- [ ] 7.7 Failure-injection tests at every transaction step prove all-or-nothing behavior and safe retry.
+- [x] 7.1 Implement transactional `spendCurrency` that checks current balance and appends debit in the same transaction; balance cannot go below zero through supported commands.
+- [x] 7.2 Implement atomic streak-item purchase: balance validation + debit + inventory grant in one transaction/idempotent operation.
+- [x] 7.3 Make quest and achievement claims atomic/idempotent: claimed marker and all XP/currency rewards commit together.
+- [x] 7.4 Make paid workout reroll atomic with its persisted workout state transition.
+- [x] 7.5 Add globally stable operation IDs/idempotency keys suitable for future merge/sync; keep local sequence IDs only as optional ordering metadata.
+- [x] 7.6 Prevent gameplay session completion API from double-awarding currency through ambiguous caller + rating-service reward ownership.
+- [x] 7.7 Failure-injection tests at every transaction step prove all-or-nothing behavior and safe retry.
 
 ## 8. Database integrity
 

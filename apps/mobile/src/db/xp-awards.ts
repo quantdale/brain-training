@@ -39,12 +39,13 @@ export class XpAwardsRepository {
     private readonly now: () => number = () => Date.now(),
   ) {}
 
-  /** Append one award. Returns the persisted row. */
-  async award(amount: number, reason: string, source: string): Promise<XpAward> {
+  /** Append one award. Returns the persisted row. `txn` runs it inside a transaction (task 7.3). */
+  async award(amount: number, reason: string, source: string, txn?: SQLiteAdapter): Promise<XpAward> {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new Error(`xp award amount must be a positive integer, got ${amount}`);
     }
-    const result = await this.adapter.run(INSERT, [amount, reason, source, this.now()]);
+    const a = txn ?? this.adapter;
+    const result = await a.run(INSERT, [amount, reason, source, this.now()]);
     return { id: result.lastInsertRowId, amount, reason, source, createdAt: this.now() };
   }
 

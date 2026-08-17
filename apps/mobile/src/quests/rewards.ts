@@ -45,34 +45,38 @@ export async function applyQuestReward(
   definition: QuestDefinition,
   periodKey: string,
 ): Promise<QuestRewardResult> {
-  const rows = await db.quests.listProgressForPeriod(periodKey);
-  const row = rows.find((r) => r.questId === definition.id);
-  if (!row || row.completedAt === null || row.progress < definition.criteria.goal) {
-    throw new QuestNotCompleteError(definition.id, periodKey);
-  }
-  if (row.claimedAt !== null) {
-    return { status: 'already-claimed', progress: row.progress };
-  }
+  // All reads/claims/awards run inside one transaction (task 7.3): the claim
+  // marker, the XP award, and the currency ledger entry commit together or roll
+  // back as one, so a crash can never leave a partial reward.
+  return db.transaction(async (txn) => {
+    const rows = await db.quests.listProgressForPeriod(periodKey, txn);
+    const row = rows.find((r) => r.questId === definition.id);
+    if (!row || row.completedAt === null || row.progress < definition.criteria.goal) {
+      throw new QuestNotCompleteError(definition.id, periodKey);
+    }
+    if (row.claimedAt !== null) {
+      return { status: 'already-claimed', progress: row.progress };
+    }
 
-  // Re-record the completed state (no-op when already recorded: progress is
-  // monotonic-MAX and completedAt sticks).
-  await db.quests.recordProgress({
-    questId: definition.id,
-    period: periodKey,
-    progress: row.progress,
-    completedAt: row.completedAt,
+    // The claim is the once-only commit point — rewards only after it succeeds.
+    const claimed = await db.quests.claim(definition.id, periodKey, txn);
+    if (!claimed) {
+      // Claimed between the read above and this call: someone else owns it.
+      return { status: 'already-claimed', progress: row.progress };
+    }
+
+    const xpAward = await db.xpAwards.award(
+      definition.reward.xp,
+      'quest',
+      `quest:${definition.id}`,
+      txn,
+    );
+    const ledgerEntry = await db.ledger.append(
+      { amount: definition.reward.coins, reason: 'quest' },
+      txn,
+    );
+    return { status: 'claimed', progress: row.progress, xpAward, ledgerEntry };
   });
-
-  // The claim is the once-only commit point — rewards only after it succeeds.
-  const claimed = await db.quests.claim(definition.id, periodKey);
-  if (!claimed) {
-    // Claimed between the read above and this call: someone else owns it.
-    return { status: 'already-claimed', progress: row.progress };
-  }
-
-  const xpAward = await db.xpAwards.award(definition.reward.xp, 'quest', `quest:${definition.id}`);
-  const ledgerEntry = await db.ledger.append({ amount: definition.reward.coins, reason: 'quest' });
-  return { status: 'claimed', progress: row.progress, xpAward, ledgerEntry };
 }
 
 /** Map an engine definition onto the db row shape (for seeding at startup). */

@@ -55,7 +55,7 @@ export async function runMigrations(
 
   for (const migration of pending) {
     await adapter.transaction(async (txn) => {
-      await migration.up((sql) => txn.exec(sql));
+      await migration.up(txn);
       // user_version lives in the database header, so the bump is part of the
       // same transaction as the DDL and rolls back with it.
       await txn.exec(`PRAGMA user_version = ${migration.version}`);

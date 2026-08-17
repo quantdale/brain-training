@@ -40,19 +40,24 @@ export async function claimAchievementReward(
   db: AppDatabase,
   definition: AchievementDef,
 ): Promise<AchievementClaimResult> {
-  const unlock = await db.achievements.getUnlock(definition.id);
-  if (!unlock) {
-    return { status: 'not-unlocked' };
-  }
-  if (unlock.claimedAt !== null) {
-    return { status: 'already-claimed' };
-  }
-  const claimed = await db.achievements.claim(definition.id);
-  if (!claimed) {
-    // Claimed between the read and the update — someone else owns it.
-    return { status: 'already-claimed' };
-  }
-  await db.xpAwards.award(definition.rewardXp, 'achievement', `achievement:${definition.id}`);
-  await db.ledger.append({ amount: definition.rewardCurrency, reason: 'achievement' });
-  return { status: 'claimed' };
+  // All reads/claims/awards run inside one transaction (task 7.3): the claim
+  // marker, the XP award, and the currency ledger entry commit together or roll
+  // back as one, so a crash can never leave a partial reward.
+  return db.transaction(async (txn) => {
+    const unlock = await db.achievements.getUnlock(definition.id, txn);
+    if (!unlock) {
+      return { status: 'not-unlocked' };
+    }
+    if (unlock.claimedAt !== null) {
+      return { status: 'already-claimed' };
+    }
+    const claimed = await db.achievements.claim(definition.id, txn);
+    if (!claimed) {
+      // Claimed between the read and the update — someone else owns it.
+      return { status: 'already-claimed' };
+    }
+    await db.xpAwards.award(definition.rewardXp, 'achievement', `achievement:${definition.id}`, txn);
+    await db.ledger.append({ amount: definition.rewardCurrency, reason: 'achievement' }, txn);
+    return { status: 'claimed' };
+  });
 }

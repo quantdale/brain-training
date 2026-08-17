@@ -154,18 +154,19 @@ export class QuestRepository {
     return mapProgressRow(row);
   }
 
-  /** Progress for all quests in one period. */
-  async listProgressForPeriod(period: string): Promise<QuestProgress[]> {
-    const rows = await this.adapter.all<QuestProgressRow>(SELECT_PERIOD_PROGRESS, [period]);
+  /** Progress for all quests in one period. `txn` reads inside a transaction (task 7.3). */
+  async listProgressForPeriod(period: string, txn?: SQLiteAdapter): Promise<QuestProgress[]> {
+    const rows = await (txn ?? this.adapter).all<QuestProgressRow>(SELECT_PERIOD_PROGRESS, [period]);
     return rows.map(mapProgressRow);
   }
 
   /**
    * Mark a completed quest's reward as claimed. Returns true when this call
-   * performed the claim (the row was not already claimed).
+   * performed the claim (the row was not already claimed). `txn` runs it inside
+   * a transaction (task 7.3).
    */
-  async claim(questId: string, period: string): Promise<boolean> {
-    const result = await this.adapter.run(CLAIM_PROGRESS, [this.now(), questId, period]);
+  async claim(questId: string, period: string, txn?: SQLiteAdapter): Promise<boolean> {
+    const result = await (txn ?? this.adapter).run(CLAIM_PROGRESS, [this.now(), questId, period]);
     return result.changes > 0;
   }
 }

@@ -232,7 +232,7 @@ describe('completeSession with rating service', () => {
     });
   });
 
-  it('appends both an explicit entry and the rating award when both are present', async () => {
+  it('ignores ambiguous caller currency when a rating service awards currency (task 7.6)', async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter, () => T0, ratingService);
     const ledger = new LedgerRepository(adapter, () => T0);
@@ -242,12 +242,14 @@ describe('completeSession with rating service', () => {
       currency: { amount: 5, reason: 'quest' },
     });
 
+    // Ownership is unambiguous: with a rating service present it owns the
+    // gameplay currency award and the caller-supplied entry is ignored, so the
+    // same completion event is never double-awarded.
     const entries = await ledger.list();
     expect(entries.map((e) => ({ amount: e.amount, reason: e.reason }))).toEqual([
-      { amount: 5, reason: 'quest' },
       { amount: 15, reason: 'gameplay' },
     ]);
-    expect(await ledger.getBalance()).toBe(20);
+    expect(await ledger.getBalance()).toBe(15);
     expect(result.ledgerEntry).toMatchObject({ amount: 15, reason: 'gameplay' });
   });
 

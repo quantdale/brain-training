@@ -15,13 +15,16 @@ interface LedgerRow {
   reason: string;
   session_id: string | null;
   created_at: number;
+  operation_id: string | null;
 }
 
-const SELECT_ORDERED = `SELECT id, amount, reason, session_id, created_at
+const SELECT_ORDERED = `SELECT id, amount, reason, session_id, created_at, operation_id
   FROM currency_ledger ORDER BY id ASC LIMIT ?`;
 const SELECT_BALANCE = 'SELECT balance FROM currency_balance';
+const SELECT_BY_OPERATION =
+  'SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE operation_id = ?';
 const INSERT_ENTRY =
-  'INSERT INTO currency_ledger (amount, reason, session_id, created_at) VALUES (?, ?, ?, ?)';
+  'INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)';
 
 function mapRow(row: LedgerRow): LedgerEntry {
   return {
@@ -45,19 +48,45 @@ export class LedgerRepository {
   /**
    * Append one entry. `createdAt` defaults to the injectable clock; callers
    * that append on behalf of a historical event (e.g. a completed session)
-   * should pass the event's own timestamp for consistency.
+   * should pass the event's own timestamp for consistency. `operationId` is an
+   * optional idempotency key (task 7.5): when supplied, an entry already
+   * committed under the same key is returned instead of a duplicate, so a
+   * retried caller cannot double-award. `txn` runs the insert on a transaction
+   * connection (used by the economy service for atomic multi-step ops).
    */
-  async append(entry: { amount: number; reason: string; sessionId?: string | null; createdAt?: number }): Promise<LedgerEntry> {
+  async append(
+    entry: { amount: number; reason: string; sessionId?: string | null; createdAt?: number; operationId?: string | null },
+    txn?: SQLiteAdapter,
+  ): Promise<LedgerEntry> {
+    const a = txn ?? this.adapter;
     const createdAt = entry.createdAt ?? this.now();
     const sessionId = entry.sessionId ?? null;
-    const result = await this.adapter.run(INSERT_ENTRY, [entry.amount, entry.reason, sessionId, createdAt]);
+    const operationId = entry.operationId ?? null;
+    if (operationId !== null) {
+      const existing = await a.get<LedgerRow>(SELECT_BY_OPERATION, [operationId]);
+      if (existing) {
+        return mapRow(existing);
+      }
+    }
+    const result = await a.run(INSERT_ENTRY, [entry.amount, entry.reason, sessionId, createdAt, operationId]);
     return { id: result.lastInsertRowId, amount: entry.amount, reason: entry.reason, sessionId, createdAt };
   }
 
   /** Current balance derived from the whole ledger (0 when empty). */
-  async getBalance(): Promise<number> {
-    const row = await this.adapter.get<{ balance: number }>(SELECT_BALANCE);
+  async getBalance(txn?: SQLiteAdapter): Promise<number> {
+    const row = await (txn ?? this.adapter).get<{ balance: number }>(SELECT_BALANCE);
     return row?.balance ?? 0;
+  }
+
+  /**
+   * Look up an entry by its idempotency key (task 7.5). Returns null when no
+   * entry carries that `operation_id`. Used by the economy service to make a
+   * retried spend/claim/reroll return the original entry instead of
+   * double-applying.
+   */
+  async getByOperation(operationId: string, txn?: SQLiteAdapter): Promise<LedgerEntry | null> {
+    const row = await (txn ?? this.adapter).get<LedgerRow>(SELECT_BY_OPERATION, [operationId]);
+    return row ? mapRow(row) : null;
   }
 
   /** Entries in ledger order (append order). */

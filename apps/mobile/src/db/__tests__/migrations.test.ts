@@ -133,8 +133,8 @@ describe('migrations', () => {
     const failing = [
       {
         version: 1,
-        up: async (exec: (sql: string) => Promise<void>) => {
-          await exec('CREATE TABLE partial_side_effect (id INTEGER)');
+        up: async (txn: SQLiteAdapter) => {
+          await txn.exec('CREATE TABLE partial_side_effect (id INTEGER)');
           throw new Error('boom');
         },
       },
@@ -160,14 +160,14 @@ describe('migrations', () => {
     const migrations = [
       {
         version: 1,
-        up: async (exec: (sql: string) => Promise<void>) => {
-          await exec('CREATE TABLE migration_v1_ok (id INTEGER)');
+        up: async (txn: SQLiteAdapter) => {
+          await txn.exec('CREATE TABLE migration_v1_ok (id INTEGER)');
         },
       },
       {
         version: 2,
-        up: async (exec: (sql: string) => Promise<void>) => {
-          await exec('CREATE TABLE migration_v2_boom (id INTEGER)');
+        up: async (txn: SQLiteAdapter) => {
+          await txn.exec('CREATE TABLE migration_v2_boom (id INTEGER)');
           throw new Error('boom v2');
         },
       },

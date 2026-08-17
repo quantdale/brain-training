@@ -59,9 +59,9 @@ export interface CompleteSessionInput {
   session: GameSessionRecord;
   /**
    * Optional currency ledger entry committed atomically with the session.
-   * When omitted, only the session row and the profile touch are written.
-   * When a rating service is configured, its own currency award is appended
-   * in addition to this entry.
+   * Applies ONLY when no rating service is configured; when a rating service
+   * is present it owns the gameplay currency award and this field is ignored
+   * (task 7.6) so the same completion event is never double-awarded.
    */
   currency?: {
     amount: number;

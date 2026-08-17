@@ -63,21 +63,26 @@ export class ProfileRepository {
     return mapRow(row);
   }
 
-  /** Read the profile, or null before it has been created. */
-  async get(): Promise<Profile | null> {
-    const row = await this.adapter.get<ProfileRow>(SELECT_BY_ID, [LOCAL_PROFILE_ID]);
+  /** Read the profile, or null before it has been created. `txn` reads inside a transaction (task 7.2). */
+  async get(txn?: SQLiteAdapter): Promise<Profile | null> {
+    const row = await (txn ?? this.adapter).get<ProfileRow>(SELECT_BY_ID, [LOCAL_PROFILE_ID]);
     return row ? mapRow(row) : null;
   }
 
   /**
    * Update display name and/or merge settings. Creates the row if absent.
    * The read-merge-write happens inside one transaction so concurrent updates
-   * cannot clobber each other's settings.
+   * cannot clobber each other's settings. When `txn` is supplied the writes run
+   * on that connection directly (no nested transaction — the adapter forbids
+   * nesting); otherwise they are wrapped in `this.adapter.transaction`.
    */
-  async update(updates: { displayName?: string; settings?: Record<string, unknown> } = {}): Promise<Profile> {
-    return this.adapter.transaction(async (txn) => {
-      await txn.run(INSERT_IF_ABSENT, [LOCAL_PROFILE_ID, '', '{}', this.now(), this.now()]);
-      const row = await txn.get<ProfileRow>(SELECT_BY_ID, [LOCAL_PROFILE_ID]);
+  async update(
+    updates: { displayName?: string; settings?: Record<string, unknown> } = {},
+    txn?: SQLiteAdapter,
+  ): Promise<Profile> {
+    const write = async (a: SQLiteAdapter): Promise<Profile> => {
+      await a.run(INSERT_IF_ABSENT, [LOCAL_PROFILE_ID, '', '{}', this.now(), this.now()]);
+      const row = await a.get<ProfileRow>(SELECT_BY_ID, [LOCAL_PROFILE_ID]);
       if (!row) {
         throw new Error('profile row missing after upsert'); // unreachable
       }
@@ -86,7 +91,7 @@ export class ProfileRepository {
         : parseSettings(row.settings_json);
       const displayName = updates.displayName ?? row.display_name;
       const updatedAt = this.now();
-      await txn.run(UPDATE_ROW, [displayName, JSON.stringify(settings), updatedAt, LOCAL_PROFILE_ID]);
+      await a.run(UPDATE_ROW, [displayName, JSON.stringify(settings), updatedAt, LOCAL_PROFILE_ID]);
       return {
         id: LOCAL_PROFILE_ID,
         displayName,
@@ -94,6 +99,7 @@ export class ProfileRepository {
         createdAt: row.created_at,
         updatedAt,
       };
-    });
+    };
+    return txn ? write(txn) : this.adapter.transaction(write);
   }
 }

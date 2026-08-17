@@ -250,7 +250,10 @@ describe('offline runtime flows', () => {
     expect(result.session.xp).toBe(expected.xp);
     expect(result.rating?.currency).toBe(expected.currency);
     expect(result.rating?.deltas).toEqual(expected.deltas);
-    expect(result.balance).toBe(5 + expected.currency);
+    // Task 7.6: with a rating service present it owns the gameplay currency
+    // award, so the caller-supplied entry is ignored (no double-award for the
+    // same completion event).
+    expect(result.balance).toBe(expected.currency);
 
     // Rating history rows were applied atomically with the session row.
     const history = await app.ratings.getHistory();

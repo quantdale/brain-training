@@ -7,16 +7,19 @@
  * common dialect shared by expo-sqlite and better-sqlite3.
  */
 
-export const SCHEMA_VERSION = 5;
+import type { SQLiteAdapter } from './adapter';
+
+export const SCHEMA_VERSION = 6;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
   version: number;
   /**
-   * Apply the migration. `exec` runs one or more statements on the
-   * transaction connection; no parameter binding is available (DDL only).
+   * Apply the migration. `txn` is the transaction connection: it exposes
+   * `exec` for DDL plus `get`/`all`/`run` so a migration can inspect schema
+   * state (e.g. add a column only when it is missing) and stay replay-safe.
    */
-  up: (exec: (sql: string) => Promise<void>) => Promise<void>;
+  up: (txn: SQLiteAdapter) => Promise<void>;
 }
 
 /** SQL statement chunks shared by migrations and the runner. */
@@ -307,41 +310,58 @@ export const SQL = {
 export const MIGRATIONS: readonly Migration[] = [
   {
     version: 1,
-    up: async (exec) => {
-      await exec(SQL.createProfile);
-      await exec(SQL.createGameSessions);
-      await exec(SQL.createCurrencyLedger);
-      await exec(SQL.createCurrencyBalanceView);
+    up: async (txn) => {
+      await txn.exec(SQL.createProfile);
+      await txn.exec(SQL.createGameSessions);
+      await txn.exec(SQL.createCurrencyLedger);
+      await txn.exec(SQL.createCurrencyBalanceView);
     },
   },
   {
     version: 2,
-    up: async (exec) => {
-      await exec(SQL.createDomainRatings);
-      await exec(SQL.createRatingHistory);
-      await exec(SQL.createGameFavorites);
+    up: async (txn) => {
+      await txn.exec(SQL.createDomainRatings);
+      await txn.exec(SQL.createRatingHistory);
+      await txn.exec(SQL.createGameFavorites);
     },
   },
   {
     version: 3,
-    up: async (exec) => {
-      await exec(SQL.createXpAwards);
-      await exec(SQL.createQuests);
-      await exec(SQL.createQuestProgress);
-      await exec(SQL.createAchievements);
-      await exec(SQL.createAchievementUnlocks);
+    up: async (txn) => {
+      await txn.exec(SQL.createXpAwards);
+      await txn.exec(SQL.createQuests);
+      await txn.exec(SQL.createQuestProgress);
+      await txn.exec(SQL.createAchievements);
+      await txn.exec(SQL.createAchievementUnlocks);
     },
   },
   {
     version: 4,
-    up: async (exec) => {
-      await exec(SQL.createTutorialState);
+    up: async (txn) => {
+      await txn.exec(SQL.createTutorialState);
     },
   },
   {
     version: 5,
-    up: async (exec) => {
-      await exec(SQL.addCheckConstraints);
+    up: async (txn) => {
+      await txn.exec(SQL.addCheckConstraints);
+    },
+  },
+  {
+    version: 6,
+    up: async (txn) => {
+      // `ALTER TABLE ... ADD COLUMN` is not idempotent in SQLite, so guard it
+      // against a column that already exists (e.g. a database replayed after a
+      // downgrade, or migrations re-run after a partial apply). The unique
+      // index is already guarded with IF NOT EXISTS.
+      const cols = await txn.all<{ name: string }>('PRAGMA table_info(currency_ledger)');
+      if (!cols.some((c) => c.name === 'operation_id')) {
+        await txn.exec('ALTER TABLE currency_ledger ADD COLUMN operation_id TEXT');
+      }
+      await txn.exec(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_currency_ledger_operation_id ' +
+          'ON currency_ledger (operation_id) WHERE operation_id IS NOT NULL',
+      );
     },
   },
 ];

@@ -184,24 +184,11 @@ export class SessionRepository {
         s.durationMs,
       ]);
 
+      // Ownership (task 7.6): when a rating service is configured it owns the
+      // gameplay currency award; a caller-supplied `input.currency` is ignored
+      // so the same completion event is never double-awarded. When no rating
+      // service is present the caller entry is the single owner.
       let ledgerEntry: LedgerEntry | null = null;
-      if (input.currency) {
-        const result = await txn.run(INSERT_LEDGER_ENTRY, [
-          input.currency.amount,
-          input.currency.reason,
-          s.id,
-          s.completedAt,
-        ]);
-        ledgerEntry = {
-          id: result.lastInsertRowId,
-          amount: input.currency.amount,
-          reason: input.currency.reason,
-          sessionId: s.id,
-          createdAt: s.completedAt,
-        };
-      }
-      // The rating service's gameplay award takes precedence in the returned
-      // entry (both entries are still appended to the ledger).
       if (outcome && outcome.currency > 0) {
         const result = await txn.run(INSERT_LEDGER_ENTRY, [
           outcome.currency,
@@ -213,6 +200,20 @@ export class SessionRepository {
           id: result.lastInsertRowId,
           amount: outcome.currency,
           reason: 'gameplay',
+          sessionId: s.id,
+          createdAt: s.completedAt,
+        };
+      } else if (!outcome && input.currency) {
+        const result = await txn.run(INSERT_LEDGER_ENTRY, [
+          input.currency.amount,
+          input.currency.reason,
+          s.id,
+          s.completedAt,
+        ]);
+        ledgerEntry = {
+          id: result.lastInsertRowId,
+          amount: input.currency.amount,
+          reason: input.currency.reason,
           sessionId: s.id,
           createdAt: s.completedAt,
         };

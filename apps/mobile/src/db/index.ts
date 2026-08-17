@@ -56,6 +56,13 @@ export { SessionRepository } from './sessions';
 export { TutorialRepository } from './tutorial';
 export type { CompleteSessionResult, GameAggregate } from './sessions';
 export { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
+export {
+  spendCurrency,
+  purchaseStreakItem,
+  paidReroll,
+  InsufficientFundsError,
+} from './economy';
+export type { SpendInput, PurchaseStreakItemInput, PaidRerollInput } from './economy';
 
 /** On-device database file name. */
 export const APP_DATABASE_NAME = 'brain-training.db';
@@ -69,6 +76,7 @@ export interface AppDatabaseOptions {
 
 /** Typed facade over the seven repositories, bound to one connection. */
 export class AppDatabase {
+  private readonly adapter: SQLiteAdapter;
   readonly profile: ProfileRepository;
   readonly sessions: SessionRepository;
   readonly ledger: LedgerRepository;
@@ -81,6 +89,7 @@ export class AppDatabase {
 
   constructor(adapter: SQLiteAdapter, options: AppDatabaseOptions = {}) {
     const now = options.now;
+    this.adapter = adapter;
     this.profile = new ProfileRepository(adapter, now);
     this.sessions = new SessionRepository(adapter, now, options.rating);
     this.ledger = new LedgerRepository(adapter, now);
@@ -90,6 +99,17 @@ export class AppDatabase {
     this.achievements = new AchievementRepository(adapter, now);
     this.xpAwards = new XpAwardsRepository(adapter, now);
     this.tutorials = new TutorialRepository(adapter, now);
+  }
+
+  /**
+   * Run `fn` inside a single write transaction (task 7.1–7.4). `fn` receives the
+   * transaction connection, which every economy/claim repository call must use
+   * so all steps commit together or roll back as one. The adapter forbids
+   * nesting, so callers must pass `txn` into repositories rather than opening a
+   * nested transaction.
+   */
+  transaction<T>(fn: (txn: SQLiteAdapter) => Promise<T>): Promise<T> {
+    return this.adapter.transaction(fn);
   }
 }
 
