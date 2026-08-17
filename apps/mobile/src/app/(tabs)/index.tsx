@@ -46,17 +46,19 @@ const EMPTY_HOME: HomeData = {
 };
 
 async function loadHome(db: AppDatabase): Promise<HomeData> {
-  const [domainRatings, recent, balance, sessionXp, awardsXp] = await Promise.all([
+  const [domainRatings, recent, balance, sessionXp, awardsXp, activityDates] = await Promise.all([
     db.ratings.getRatings(),
     db.sessions.listRecent(30),
     db.ledger.getBalance(),
     db.sessions.getTotalXp(),
     db.xpAwards.getTotalAwardedXp(),
+    // Task 9.3: Use distinct activity dates for streak calculation
+    db.sessions.getDistinctActivityDates(),
   ]);
   return {
     domainRatings,
     recentGameIds: recent.map((session) => session.gameId),
-    activityDates: recent.map((session) => localDateString(new Date(session.completedAt))),
+    activityDates,
     balance,
     totalXp: sessionXp + awardsXp,
   };

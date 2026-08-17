@@ -283,6 +283,20 @@ export class SessionRepository {
   }
 
   /**
+   * Task 9.3: Get distinct activity dates for streak calculation.
+   * Returns dates in YYYY-MM-DD format, most recent first.
+   * Uses canonical activity query instead of arbitrary session limit.
+   */
+  async getDistinctActivityDates(): Promise<string[]> {
+    const rows = await this.adapter.all<{ date: string }>(
+      `SELECT DISTINCT DATE(completed_at / 1000, 'unixepoch') as date
+       FROM game_sessions
+       ORDER BY date DESC`
+    );
+    return rows.map((row) => row.date);
+  }
+
+  /**
    * Per-game aggregates (constitution §21: per-game analytics). `avgNormalized`
    * and `bestNormalized` are on the shared 0..1 normalized scale.
    */
