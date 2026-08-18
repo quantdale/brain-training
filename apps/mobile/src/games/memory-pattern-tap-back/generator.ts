@@ -1,11 +1,18 @@
 /**
  * Deterministic sequence generation for the Pattern Tap Back game.
  *
- * Each round's sequence is a random walk on the grid:
- * - No immediate backtracking (no tile lit twice consecutively).
- * - No tile lit twice in the same sequence.
- * - Starts from a position derived from the previous round's end (or the
- *   first tile in the grid for round 0).
+ * Each round's sequence is a non-repeating traversal of distinct grid tiles:
+ * - No tile lit twice in the same sequence (a permutation slice of the grid).
+ * - Starts from a position derived from the previous round's end (or a
+ *   uniformly-drawn start for round 0).
+ *
+ * IMPORTANT (task 10.6 audit): this generator does NOT constrain steps to
+ * grid adjacency. It picks uniformly from unvisited tiles, so it is a
+ * distinct-span sequence (the same family as the Memory game) rather than a
+ * grid-path/random-walk. Earlier comments claimed an adjacency-constrained
+ * "random walk"; that documentation misdescribed the implementation and was
+ * corrected. See `docs/adr/0005-memory-variant-review.md` for the deliberate
+ * variant decision.
  *
  * Near-duplicate avoidance: consecutive rounds that differ by only one tile
  * are confusable, so a candidate is re-drawn with an incremented attempt salt
@@ -13,6 +20,7 @@
  * `MIN_SEQUENCE_HAMMING_DISTANCE` (or the budget is exhausted). Every step is
  * deterministic — the same seed always yields the same session.
  */
+
 import type { Rng } from '@/sdk';
 
 /** Minimum distance between a round's sequence and the previous round's. */
@@ -32,15 +40,17 @@ export interface GenerateRoundInput {
 }
 
 /**
- * Generate a round's sequence as a random walk on the grid.
+ * Generate a round's sequence of distinct tiles.
  *
- * The walk starts from a position derived from the previous round's last
- * tile (to avoid trivial repetition), and builds the sequence by repeatedly
- * picking a random neighbor that hasn't been visited yet.
+ * The sequence starts from a position derived from the previous round's last
+ * tile (to avoid trivial repetition), then repeatedly picks a uniform random
+ * unvisited tile. It does NOT constrain steps to grid adjacency (a true
+ * adjacent-path generator is a documented future differentiation; see
+ * `docs/adr/0005-memory-variant-review.md`).
  *
  * Determinism: `rng.fork` produces a child stream per attempt, and the
  * shuffle-then-pick logic is the same as the memory game's permutation
- * approach but adapted for random walk constraints.
+ * approach.
  */
 export function generateRoundSequence(input: GenerateRoundInput): number[] {
   const { rng, roundIndex, length, gridSize, prevSequence } = input;
@@ -67,12 +77,14 @@ export function generateRoundSequence(input: GenerateRoundInput): number[] {
 }
 
 /**
- * Build a random walk of `length` distinct tiles on a grid of `gridSize`.
+ * Build a distinct-span sequence of `length` tiles over `gridSize` cells.
  *
- * The walk starts from a seed position (the last tile of the previous
- * sequence, or a random position for round 0). At each step, we pick
- * uniformly from unvisited tiles — this is simpler and more robust than
- * adjacency-based moves (which can deadlock on small grids).
+ * The sequence starts from a seed position (the last tile of the previous
+ * sequence, or a random position for round 0). At each step we pick uniformly
+ * from unvisited tiles. NOTE: steps are NOT constrained to grid adjacency —
+ * this is a permutation-style distinct-span sequence, not a grid path. (The
+ * function keeps its historical `buildRandomWalk` name; see the file header
+ * and `docs/adr/0005-memory-variant-review.md`.)
  *
  * Invariant: no tile appears twice in the sequence.
  */

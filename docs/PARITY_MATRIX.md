@@ -33,7 +33,7 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 | UX | Favorites | IMPLEMENTED | Library quick access + filters |
 | UX | Search/filter | IMPLEMENTED | Required for large catalog |
 | UX | Interactive tutorials | IMPLEMENTED | Replayable, QA bypass |
-| UX | Audio/haptics | IMPLEMENTED | Muteable via settings toggles (in-memory) |
+| UX | Audio/haptics | DEFERRED | Feedback seam is a documented no-op (`noopAudioHaptics`); sfx/music/haptics toggles are in-memory prefs (not persisted, no real sound/vibration service wired). Theme selection IS persisted. See `docs/DEFERRED_DECISIONS.md` and `.agent/KNOWN_ISSUES.md`. |
 | Content | Deterministic procedural generation | IMPLEMENTED | Seeded per game, versioned |
 | Content | Curated versioned packs | IMPLEMENTED | Language pack + pack registry seam |
 | Data | Manual backup/export/import | DEFERRED | Preserve seams now |
