@@ -37,7 +37,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 3.3 Replace ambiguous items; no question may mark one arbitrary answer correct when multiple displayed choices are legitimate synonyms under the stated instruction.
 - [x] 3.4 Update validator and tests for uniqueness, malformed references, duplicate options, prompt leakage, tier validity, and semantic contract.
 - [x] 3.5 Advance content version and prove old/new provenance are distinguishable.
-- [ ] 3.6 Emulator-smoke at least several rounds and difficulty tiers.
+- [ ] 3.6 Emulator-smoke at least several rounds and difficulty tiers. — NOT VALIDATED (no AVD/emulator on host).
 
 ## 4. Equation Builder solvability — BLOCKING
 
@@ -65,7 +65,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 6.5 Persist reroll attempts by date. First reroll free; later rerolls are transactional currency operations; restart never restores the free reroll.
 - [x] 6.6 Define how reroll treats already-completed workout positions (prefer immutable completed prefix; reroll only future slots).
 - [x] 6.7 Add deterministic tests for same-input selection, different reroll attempt, neglected-domain surfacing, recency avoidance, diversity, and catalog sizes near/below four.
-- [ ] 6.8 AVD journey: workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 -> completion.
+- [ ] 6.8 AVD journey: workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 -> completion. — NOT VALIDATED (no AVD/emulator on host).
 
 ## 7. Economy transactionality
 
@@ -99,11 +99,11 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 ## 10. Game-platform convergence
 
 - [x] 10.1 Cache lazy-loaded game component identity outside route render; registry generator remains source of generated loader code.
-- [ ] 10.2 Build shared generic Game UI primitives where repeated copies cause cross-catalog drift (at minimum evaluate button, pause overlay/frame, tutorial frame, QA panel shell, result row, difficulty selector/session header).
-- [ ] 10.3 Migrate incrementally without centralizing game mechanics; prove representative canary games still work.
-- [ ] 10.4 Wire production audio/haptics service or explicitly classify seam as deferred; settings that claim persistence must actually persist. Do not present no-op functionality as implemented.
-- [ ] 10.5 Error boundary retry must reset the crashed game subtree safely and preserve diagnostic context.
-- [ ] 10.6 Audit duplicate Memory mechanics; either materially differentiate Pattern Tap Back/Sequence Memory/Memory or document a deliberate variant consolidation plan. Fix documentation that claims random-walk adjacency when implementation does not do it.
+- [ ] 10.2 Build shared generic Game UI primitives where repeated copies cause cross-catalog drift (at minimum evaluate button, pause overlay/frame, tutorial frame, QA panel shell, result row, difficulty selector/session header). — REMAINING (see STATE.md/KNOWN_ISSUES): games keep per-module copies; a shared-primitive pass was drafted and reverted as unwired. Tracked for a later focused wave.
+- [ ] 10.3 Migrate incrementally without centralizing game mechanics; prove representative canary games still work. — REMAINING (depends on 10.2).
+- [x] 10.4 Wire production audio/haptics service or explicitly classify seam as deferred; settings that claim persistence must actually persist. Do not present no-op functionality as implemented. — Sensory seam classified DEFERRED in `docs/DEFERRED_DECISIONS.md` and PARITY_MATRIX (was falsely IMPLEMENTED); theme persists; toggles honest (in-memory prefs).
+- [x] 10.5 Error boundary retry must reset the crashed game subtree safely and preserve diagnostic context. — `resetKey` remount + test (`src/components/error-boundary.tsx` + `__tests__/error-boundary.test.tsx`).
+- [x] 10.6 Audit duplicate Memory mechanics; either materially differentiate Pattern Tap Back/Sequence Memory/Memory or document a deliberate variant consolidation plan. Fix documentation that claims random-walk adjacency when implementation does not do it. — Audited (docs/adr/0005): Pattern Tap Back generator does NOT enforce adjacency (was falsely documented as random-walk); corrected comments; variant decision documented. Sequence Memory distinct; Memory + Pattern Tap Back consolidated as distinct-span variants.
 
 ## 11. Autonomous governance + CI semantic gates
 
@@ -116,16 +116,16 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 ## 12. Full 20-game exit gate — FINAL
 
-- [ ] 12.1 Registry contains exactly expected existing catalog; no unauthorized new games/content breadth slipped in.
-- [ ] 12.2 Every game passes metadata/version/provenance contract.
-- [ ] 12.3 Every procedural/hybrid generator passes all named difficulties over deterministic seed sweep; every curated pack passes structural/content-specific validators.
-- [ ] 12.4 Every game can start, pause/background where applicable, finish/force finish in QA, persist exactly one session, and surface authoritative result.
-- [ ] 12.5 Tutorial completion persists across restart for every game contract.
-- [ ] 12.6 Economy failure-injection suite green; no supported operation yields negative balance or partial reward/item state.
-- [ ] 12.7 Daily Workout full AVD journey and restart/resume journey green.
-- [ ] 12.8 DB newer-schema and initialization-failure UX tests green.
-- [ ] 12.9 One-AVD smoke across category canaries plus targeted Word Match/Equation Builder/workout/progression journeys; capture logs/hierarchy/screenshots when supported.
-- [ ] 12.10 Repository validator, OpenSpec validation, ownership/provenance checks, lint, typecheck, full Jest, registry check, web export, Expo Doctor all green.
-- [ ] 12.11 GitHub App CI + Repository Integrity green on final SHA.
-- [ ] 12.12 No unresolved Critical/High issue; Medium/Low debt recorded with closure criteria.
-- [ ] 12.13 `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, parity/docs, and completion checkpoint match actual code/CI.
+- [x] 12.1 Registry contains exactly expected existing catalog; no unauthorized new games/content breadth slipped in. — 20 games, registry `--check` up to date, matches `src/games/*/`.
+- [x] 12.2 Every game passes metadata/version/provenance contract. — generated registry has per-game sdk/game/generator/content version; `validate-provenance.mjs --check` no drift.
+- [x] 12.3 Every procedural/hybrid generator passes all named difficulties over deterministic seed sweep; every curated pack passes structural/content-specific validators. — generator/difficulty tests sweep all difficulties over deterministic seed sets and content-validation ran green in the full suite.
+- [ ] 12.4 Every game can start, pause/background where applicable, finish/force finish in QA, persist exactly one session, and surface authoritative result. — NOT VALIDATED (no AVD/emulator on host for the required on-device pass; per-game screen tests cover screen-level flows in Jest).
+- [x] 12.5 Tutorial completion persists across restart for every game contract. — durable tutorial store + per-game remount tests green.
+- [x] 12.6 Economy failure-injection suite green; no supported operation yields negative balance or partial reward/item state. — `economy.test.ts` FaultInjectingAdapter rollback/idempotency green.
+- [ ] 12.7 Daily Workout full AVD journey and restart/resume journey green. — NOT VALIDATED (no AVD/emulator).
+- [x] 12.8 DB newer-schema and initialization-failure UX tests green. — migration rollback/newer-schema (`migrations.test.ts`) + storage-unavailable init-fail UI tests green.
+- [ ] 12.9 One-AVD smoke across category canaries plus targeted journeys; capture logs/hierarchy/screenshots when supported. — NOT VALIDATED (no AVD/emulator).
+- [x] 12.10 Repository validator, OpenSpec validation, ownership/provenance checks, lint, typecheck, full Jest, registry check, web export, Expo Doctor all green. — repo-state PASS; `openspec validate` valid; task-ownership PASS; provenance PASS; lint PASS; tsc clean; Jest 2272 PASS; registry up-to-date; `expo export --platform web` PASS; `expo-doctor` 21/21.
+- [ ] 12.11 GitHub App CI + Repository Integrity green on final SHA. — CI auto-runs on push to `main`; result is not locally observable on this host and must be confirmed from the GitHub Actions UI.
+- [x] 12.12 No unresolved Critical/High issue; Medium/Low debt recorded with closure criteria. — no Critical/High; debt recorded in `.agent/KNOWN_ISSUES.md` (see there); the emulator validation gap is a NOT VALIDATED blocker, not a product defect.
+- [x] 12.13 `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, parity/docs, and completion checkpoint match actual code/CI. — reconciled in STATE/VALIDATION/KNOWN_ISSUES/tasks; see the VALIDATION/STATE notes for the AVD-blocked exit-gate status. Completion checkpoint recorded only if/when the change is genuinely VALIDATED.

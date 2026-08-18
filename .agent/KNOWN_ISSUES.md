@@ -2,32 +2,57 @@
 
 ## Current blockers
 
-None. Campaign 005 complete; 20-game catalog; campaign 006 staged.
+- **AVD/emulator validation gap (NOT VALIDATED, environment blocker)**: this
+  Windows host has no bootable Android emulator/AVD, so the emulator-gated
+  exit-gate tasks cannot run here — `3.6` (Word Match emulator smoke), `6.8`
+  (Daily Workout AVD journey), `12.4`, `12.7`, `12.9` (One-AVD smoke /
+  journeys). Recorded as NOT VALIDATED (never faked green); requires an AVD
+  session / CI emulator runner. This is a validation gap, not a product
+  defect.
+- **12.11 CI confirmation pending**: GitHub App CI + Repository Integrity auto-run
+  on push to `main`; their result is only observable from the GitHub Actions UI.
 
 ## Open debt (tracked, non-blocking)
 
+- **Shared generic game UI primitives (Medium, task 10.2/10.3 remaining)**:
+  games keep per-module copies (buttons, pause frames, QA panels, result rows,
+  difficulty selectors, session headers). A shared-primitive draft was created
+  and reverted because nothing was wired to it. Closure criterion: build shared
+  `game-ui` primitives, migrate 2-3 canary games, keep their screen tests green.
+- **Pattern Tap Back true path mechanics (Low, task 10.6 follow-up)**: the game
+  is a distinct-span variant (not an adjacency-constrained path); its docs were
+  corrected to match. Closure criterion: if a true adjacent-path generator is
+  wanted, implement it deterministically and pass its generator tests.
 - **iOS build unverifiable on this host (NOT VALIDATED)**: Windows host has
   no Xcode/macOS, so `expo run:ios`-equivalent cannot run. Static audit
   PASS (see VALIDATION.md). A macOS host/CI runner is required for the real
   build; not a product defect.
-- **REROLL-ATTEMPTS-NOT-PERSISTED (Low)**: Home's `rerollAttempt` resets on
-  app restart (daily reroll budget is in-memory only). Constitution §14
-  economics still enforced within a session; persistence (per-date
-  attemptsUsed) is a later-wave improvement.
-- **Settings sensory toggles in-memory (Low, pre-existing)**: SFX/music/
-  haptics toggles reset on restart; profile `settings_json` exists but the
-  provider is not wired to it. Theme selection IS persisted (separate path).
-- **CLAIMED-BUT-UNREWARDED WINDOW (Low, documented)**: quest/achievement
-  claim is the once-only commit point; a crash between claim and the XP
-  award + ledger append leaves claimed-but-unrewarded (never double
-  reward). Detectable via `claimedAt` vs `xp_awards`; auto-heal is future
-  work.
+- **Settings sensory feedback seam deferred (Low, task 10.4 classified)**: the
+  production audio/haptics service is a documented no-op; sfx/music/haptics
+  toggles are in-memory prefs (not persisted, no real sound/vibration wired).
+  Parity matrix and `docs/DEFERRED_DECISIONS.md` now state this honestly
+  (previously the matrix claimed IMPLEMENTED). Theme selection IS persisted.
 - **Achievements sync scope (Low)**: quest/achievement evaluation scans up
   to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); far above realistic
   foundations-phase history, but a documented cap.
 - **NativeTabs snapshot instability (tooling)**: router-tree snapshots
   contain per-render random `screenId`s; visual baselines render bare
   routes to stay deterministic (see visual-baselines test header).
+
+## Resolved during 006R
+
+- **REROLL-ATTEMPTS-NOT-PERSISTED (Low)**: daily workout reroll attempts are
+  now persisted per date in `workout_instances.reroll_attempt`; the Workout
+  repository applies rerolls transactionally and restart does not restore the
+  free reroll (tasks 6.1/6.5/7.4).
+- **CLAIMED-BUT-UNREWARDED WINDOW (Low)**: quest/achievement claims are now
+  atomic/idempotent with a shared operation id — claimed marker and all
+  XP/currency rewards commit together and roll back on failure (task 7.3).
+- **3 inherited test failures (blocking full-Jest green)**: repaired as stale
+  tests — content registry item-count pin (72→120) and two game tutorial tests
+  that did not drive the current 3-step tutorial. Suite is now fully green.
+- **Sensory toggles falsely marked IMPLEMENTED**: parity matrix corrected to
+  DEFERRED (see open debt above / task 10.4).
 
 ## Resolved during Campaign 003
 

@@ -465,3 +465,56 @@ All subtasks 1.1–1.6 completed:
   * `node scripts/generate-game-registry.mjs --check`: PASS.
   * Full test suite: 175/178 suites pass (3 inherited failures unchanged).
   * No regressions introduced.
+---
+
+## Wave: 006R exit-gate + task-10 convergence (2026-08-18)
+
+Commits pushed to `origin/main`: `677424e` (full-Jest green + Expo Doctor),
+`35f9050` (OpenSpec change validatable), `1c622f4` (10.5 error-boundary
+remount), `59533c1` (10.4 sensory-seam classification + 10.6 Memory-variant
+audit). Final wave (state/tasks reconciliation) follows locally.
+
+Checks actually run across these waves (all on `apps/mobile` unless noted):
+
+- Full Jest suite: **PASS** — 190 suites / 2272 tests, 4 snapshots.
+  (Baseline was 3 inherited failures; diagnosed and fixed as stale tests:
+  content registry item-count pin 72→120, and speed-color-match +
+  math-equation-builder tutorial tests that pressed `tutorial-done` without
+  driving the 3-step tutorial. Products were correct; tests were updated.)
+- `tsc --noEmit`: **PASS** (0 errors).
+- `expo lint`: **PASS**.
+- `npx expo export --platform web`: **PASS**.
+- `npx expo-doctor`: **PASS** 21/21 (after aligning expo patch versions
+  `~57.0.14` etc. to SDK expectations — a same-SDK patch bump, not a forced
+  major upgrade).
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `node scripts/generate-game-registry.mjs --check`: PASS (20 games, up to date).
+- `node scripts/validate-provenance.mjs --check`: PASS (no drift).
+- `node scripts/validate-task-ownership.cjs`: PASS.
+- `node scripts/validate-offline.mjs --check`: PASS (CLEAN).
+- `npx --no-install openspec validate 006r-core-integrity-correction`: PASS
+  ("Change is valid") after adding a `#### Scenario` block to every
+  `### Requirement:` across the 12 capability specs (70 added) plus two
+  minimal MUST/SHOULD keyword corrections required by the validator.
+
+Task-10 specifics:
+
+- 10.5 error boundary: retry now bumps a `resetKey` remounting the crashed
+  subtree (fresh component identity) instead of re-rendering the same
+  crashing component; diagnostics preserved via `onError`. New test
+  `src/components/__tests__/error-boundary.test.tsx`.
+- 10.4 sensory seam: reclassified Audio/haptics from IMPLEMENTED to DEFERRED
+  in `docs/PARITY_MATRIX.md` (the service is `noopAudioHaptics`); documented
+  the deferred seam in `docs/DEFERRED_DECISIONS.md`.
+- 10.6 Memory audit: verified Pattern Tap Back generator does NOT enforce
+  grid adjacency (was falsely documented as a random walk); corrected the
+  generator comments and recorded the audited mechanics + deliberate variant
+  decision in `docs/adr/0005-memory-variant-review.md`.
+
+NOT VALIDATED (no AVD/emulator on this host — external condition):
+
+- 3.6 Word Match emulator smoke; 6.8 Daily Workout AVD journey; 12.4, 12.7,
+  12.9 (One-AVD smoke / journeys). These are recorded as NOT VALIDATED, never
+  faked green.
+- 12.11 GitHub App CI + Repository Integrity on the final SHA: pushed; the
+  result is only observable from the GitHub Actions UI, not locally.
