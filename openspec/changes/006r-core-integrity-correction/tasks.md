@@ -109,10 +109,10 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 
 - [x] 11.1 Define machine-readable task packet ownership (exact paths/globs, shared surfaces, dependencies).
 - [x] 11.2 Validator rejects overlapping parallel write surfaces, undeclared writes when detectable, direct generated-file edits, and coder ownership of orchestrator-only surfaces.
-- [ ] 11.3 App CI includes lint, repo-state/OpenSpec integrity, registry `--check`, provenance/version check, task-ownership check, typecheck, tests, web export, Expo Doctor; offline-boundary validator if stable.
+- [x] 11.3 App CI includes lint, repo-state/OpenSpec integrity, registry `--check`, provenance/version check, task-ownership check, typecheck, tests, web export, Expo Doctor; offline-boundary validator if stable.
 - [x] 11.4 Add cross-subsystem contract suite exercising real lowercase difficulties, real session completion, real DB, authoritative outcome, rating history, currency and presentation adapter.
-- [ ] 11.5 Triage dependency audit findings into production-reachable vs dev/transitive; no blind forced upgrade. Record accepted debt with rationale.
-- [ ] 11.6 Add green-main rule to continuation workflow: coherent push requires local typecheck and risk-based required checks unless explicitly BLOCKED with documented reason.
+- [x] 11.5 Triage dependency audit findings into production-reachable vs dev/transitive; no blind forced upgrade. Record accepted debt with rationale.
+- [x] 11.6 Add green-main rule to continuation workflow: coherent push requires local typecheck and risk-based required checks unless explicitly BLOCKED with documented reason.
 
 ## 12. Full 20-game exit gate — FINAL
 

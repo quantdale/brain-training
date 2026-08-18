@@ -22,6 +22,12 @@
     "temporaryWorktreesAllowed": true,
     "cleanupTemporaryBranchesAndWorktrees": true
   },
+  "greenMain": {
+    "rule": "coherent push to main requires local typecheck and risk-based required checks to pass; a known-failing required check may be pushed only as an explicitly documented blocker/recovery checkpoint, never labeled green.",
+    "requiredLocalChecks": ["typecheck", "test"],
+    "riskBasedChecks": ["lint", "registry-generated-check", "provenance-drift-check", "task-ownership-check", "repo-state-integrity"],
+    "blockedException": "only when a required check is EXPECTED to fail (e.g. emulator/AVD gate unavailable in this environment) and the exception is recorded with rationale in the commit/PR and .agent/STATE.md"
+  },
   "modes": {
     "default": "day",
     "userMustSelectNight": true

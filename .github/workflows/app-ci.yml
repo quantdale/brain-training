@@ -35,6 +35,21 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: node scripts/validate-repo-state.mjs
 
+      # Registry generation must be reproducible (task 11.3: registry --check).
+      - name: Registry generation check
+        working-directory: ${{ github.workspace }}
+        run: node scripts/generate-game-registry.mjs --check
+
+      # Provenance/version drift must be detected (task 2.6 / 11.3).
+      - name: Provenance/version drift check
+        working-directory: ${{ github.workspace }}
+        run: node scripts/validate-provenance.mjs --check
+
+      # Parallel task-packet ownership must be non-overlapping (task 11.2).
+      - name: Task-ownership check
+        working-directory: ${{ github.workspace }}
+        run: node scripts/validate-task-ownership.cjs
+
       - name: Install dependencies
         run: npm ci
 
@@ -44,6 +59,9 @@ jobs:
       # type-generation step before typecheck.
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
 
       - name: Unit tests (jest, CI mode)
         run: npm run test:ci
