@@ -19,21 +19,31 @@ export interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  /** Incremented on retry so the crashed subtree remounts fresh (task 10.5). */
+  resetKey: number;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false };
+  state: ErrorBoundaryState = { hasError: false, resetKey: 0 };
 
   static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
+    return { hasError: true, resetKey: 0 };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    // Preserve diagnostic context for the consumer (e.g. game id, stack,
+    // component stack) so retry never silently discards the failure.
     this.props.onError?.(error, info);
   }
 
+  /**
+   * Retry resets the error state AND bumps the reset key. The key forces a
+   * fresh mount of the previously-crashed subtree (a new key = a new
+   * component identity) rather than re-rendering the same still-mounted
+   * crashing component. Persisted progression is untouched.
+   */
   private handleReset = () => {
-    this.setState({ hasError: false });
+    this.setState((prev) => ({ hasError: false, resetKey: prev.resetKey + 1 }));
   };
 
   render() {
@@ -66,11 +76,20 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       );
     }
 
-    return this.props.children;
+    // Key the wrapper so a retry remounts the subtree instead of reusing the
+    // crashed component instance. `flex: 1` keeps the wrapper layout-neutral.
+    return (
+      <View key={this.state.resetKey} style={styles.container}>
+        {this.props.children}
+      </View>
+    );
   }
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   card: {
     borderRadius: Radii.large,
     padding: Spacing.four,
