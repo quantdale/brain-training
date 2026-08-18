@@ -8,14 +8,17 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { createFakeClock, createInMemoryTutorialStore, testId } from '@/sdk';
+import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 
 import MathEquationBuilderScreen from '../screen';
+import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
+import { generatePuzzle } from '../generator';
+import { evaluateEquation } from '../evaluator';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
-import type { MathEquationBuilderRawResult } from '../types';
+import type { MathEquationBuilderRawResult, Operator } from '../types';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -99,9 +102,73 @@ describe('MathEquationBuilderScreen', () => {
     const store = createInMemoryTutorialStore();
     await renderScreen({ seed: 'tut', store });
 
+    // The tutorial auto-opens at the intro step.
     expect(screen.getByTestId(testId(GAME_ID, 'tutorial'))).toBeOnTheScreen();
-    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-done')));
 
+    // Advance intro → demo. Reproduce the deterministic demo puzzle from the
+    // fixed seed and solve it with the shared evaluator so we can drive the
+    // exact taps the component expects (3 numbers, 2 operators, left-to-right).
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-next')));
+
+    const puzzle = generatePuzzle({
+      rng: createRng(TUTORIAL_DEMO_SEED),
+      roundIndex: 0,
+      params: {
+        numbersCount: 3,
+        targetMin: 10,
+        targetMax: 30,
+        operators: ['+', '-'],
+        rounds: 1,
+        timeBudgetMs: 60_000, // unused in the tutorial; mirrors the component
+      },
+      prevTarget: null,
+    });
+
+    // Brute-force a valid ordering of the three numbers and the two operator
+    // slots, matching the evaluator's left-to-right semantics.
+    const indices = [0, 1, 2];
+    let order: number[] | null = null;
+    let ops: Operator[] | null = null;
+    outer: for (const a of indices) {
+      for (const b of indices) {
+        if (b === a) continue;
+        for (const c of indices) {
+          if (c === a || c === b) continue;
+          for (const o1 of puzzle.operators) {
+            for (const o2 of puzzle.operators) {
+              const candidate: (Operator | number)[] = [
+                puzzle.numbers[a],
+                o1,
+                puzzle.numbers[b],
+                o2,
+                puzzle.numbers[c],
+              ];
+              if (evaluateEquation(candidate) === puzzle.target) {
+                order = [a, b, c];
+                ops = [o1, o2];
+                break outer;
+              }
+            }
+          }
+        }
+      }
+    }
+    expect(order).not.toBeNull();
+    expect(ops).not.toBeNull();
+
+    const [n0, n1, n2] = order as number[];
+    const [o0, o1] = ops as Operator[];
+    for (const [i, n] of [n0, n1, n2].entries()) {
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'number', String(n))));
+      if (i < 2) {
+        await fireEvent.press(
+          screen.getByTestId(testId(GAME_ID, 'operator', i === 0 ? o0 : o1)),
+        );
+      }
+    }
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-submit')));
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-done')));
     expect(screen.getByTestId(testId(GAME_ID, 'start'))).toBeOnTheScreen();
   });
 

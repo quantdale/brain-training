@@ -12,6 +12,7 @@ import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from 
 import type { CompleteSessionInput } from '@/db';
 
 import { generateTrials } from '../generator';
+import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import SpeedColorMatchScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
@@ -90,9 +91,32 @@ describe('SpeedColorMatchScreen', () => {
     const store = createInMemoryTutorialStore();
     await renderScreen({ seed: 'tut', store });
 
+    // The tutorial auto-opens at the intro step.
     expect(screen.getByTestId(testId(GAME_ID, 'tutorial'))).toBeOnTheScreen();
-    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-done')));
 
+    // Advance intro → deterministic demo (3 trials) → done. The demo board
+    // and its trials are reproducible from the fixed demo seed, so we
+    // regenerate them here and tap the swatch-matching color on each trial.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-next')));
+
+    const trials = generateTrials({
+      rng: createRng(TUTORIAL_DEMO_SEED),
+      totalTrials: 3,
+      incongruentCount: 2,
+    });
+    for (let i = 0; i < trials.length; i += 1) {
+      await fireEvent.press(
+        screen.getByTestId(testId(GAME_ID, 'color-btn', trials[i].swatchColor)),
+      );
+      if (i < trials.length - 1) {
+        // The demo advances to the next trial on an 800ms timer.
+        await act(async () => {
+          jest.advanceTimersByTime(800);
+        });
+      }
+    }
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-done')));
     expect(screen.getByTestId(testId(GAME_ID, 'start'))).toBeOnTheScreen();
   });
 

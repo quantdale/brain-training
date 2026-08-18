@@ -55,7 +55,7 @@ describe('content-pack registry', () => {
     expect(info.packId).toBe(pack.packId);
     expect(info.packVersion).toBe(pack.packVersion);
     expect(info.itemCount).toBe(pack.itemCount);
-    expect(info.itemCount).toBe(72); // pinned to the shipped pack
+    expect(info.itemCount).toBe(120); // pinned to the shipped pack
     expect(info.sourceGameId).toBe('language-word-match');
     expect(info.source).toBe('bundled');
   });
