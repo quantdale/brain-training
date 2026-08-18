@@ -86,7 +86,9 @@ export class WorkoutRepository {
   /**
    * Get the existing instance for `date`, or create and persist a base
    * instance from `seed` (the selector's output) when none exists. Returns
-   * the persisted instance. Idempotent per date.
+   * the persisted instance. Idempotent per date — `INSERT OR IGNORE` plus a
+   * re-read makes concurrent/retried creates safe (e.g. React StrictMode's
+   * double-invoked effect).
    */
   async getOrCreate(
     date: string,
@@ -97,32 +99,30 @@ export class WorkoutRepository {
       return existing;
     }
     const now = this.now();
-    const instance: WorkoutInstance = {
+    const gameIds = seed.gameIds.slice();
+    const seedVersion = seed.seedVersion ?? 0;
+    await this.adapter.run(
+      `INSERT OR IGNORE INTO workout_instances
+        (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [date, JSON.stringify(gameIds), 'active', 0, 0, seedVersion, now, now],
+    );
+    const persisted = await this.getByDate(date);
+    if (persisted) {
+      return persisted;
+    }
+    // Extremely unlikely (IGNORE should have inserted or found a concurrent row);
+    // reconstruct from seed as a last resort.
+    return {
       date,
-      gameIds: seed.gameIds.slice(),
+      gameIds,
       status: 'active',
       currentIndex: 0,
       rerollAttempt: 0,
-      seedVersion: seed.seedVersion ?? 0,
+      seedVersion,
       createdAt: now,
       updatedAt: now,
     };
-    await this.adapter.run(
-      `INSERT INTO workout_instances
-        (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        date,
-        JSON.stringify(instance.gameIds),
-        instance.status,
-        instance.currentIndex,
-        instance.rerollAttempt,
-        instance.seedVersion,
-        now,
-        now,
-      ],
-    );
-    return instance;
   }
 
   /**

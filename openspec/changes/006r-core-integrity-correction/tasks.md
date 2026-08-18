@@ -59,7 +59,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 ## 6. Real Daily Workout + personalization — BLOCKING product loop
 
 - [x] 6.1 Add persistent daily workout instance keyed by local date with ordered four-game selection, status, current index, reroll attempt, seed/selection version, and timestamps.
-- [ ] 6.2 Starting a workout enters workout context; successful game persistence advances to compact result then `Next Game`; game four completes workout.
+- [x] 6.2 Starting a workout enters workout context; successful game persistence advances to compact result then `Next Game`; game four completes workout.
 - [x] 6.3 Kill/relaunch or navigation interruption resumes the durable workout without duplicating completed games/rewards.
 - [x] 6.4 Personalization selects from the full eligible catalog using weakness, neglected domains, recency, previous-day overlap, domain diversity, seeded randomness, and occasional strength variety; it may not merely reorder an already fixed four.
 - [x] 6.5 Persist reroll attempts by date. First reroll free; later rerolls are transactional currency operations; restart never restores the free reroll.

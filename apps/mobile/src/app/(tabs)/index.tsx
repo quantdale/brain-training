@@ -11,7 +11,6 @@
  */
 
 import { Link } from 'expo-router';
-import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -19,7 +18,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase, DomainRating } from '@/db';
-import { getDb } from '@/db';
+import type { GameDefinition } from '@/sdk';
 import { useDbData } from '@/hooks/use-db-data';
 import { levelForXp } from '@/rating';
 import { getAllGameDefinitions } from '@/registry/registry';
@@ -27,6 +26,7 @@ import { effectiveCurrent, reconstructStreak } from '@/streaks';
 import { localDateString } from '@/workout/today';
 import { personalizedWorkout } from '@/workout/personalize';
 import { canAffordReroll, MAX_REROLLS_PER_DAY, rerollCost } from '@/workout/reroll';
+import { useWorkout } from '@/workout/use-workout';
 
 interface HomeData {
   domainRatings: DomainRating[];
@@ -90,42 +90,35 @@ export default function HomeScreen() {
   // Freeze Word Match from workout selection until semantic correction (006R task 3.1)
   const eligibleGames = games.filter((g) => g.id !== 'language-word-match');
   const today = localDateString();
-  const [rerollAttempt, setRerollAttempt] = useState(0);
-  const { data, loaded } = useDbData(loadHome, [rerollAttempt], EMPTY_HOME);
+  const { data, loaded } = useDbData(loadHome, [], EMPTY_HOME);
 
-  const workout = personalizedWorkout(
-    eligibleGames,
-    today,
-    data.domainRatings,
-    data.recentGameIds,
-    rerollAttempt,
-  );
-  const nextRerollCost = rerollCost(rerollAttempt);
+  // Durable workout context: loads/creates today's persisted instance and owns
+  // reroll (persisted attempt + transactional currency debit). The displayed
+  // selection reflects the persisted reroll attempt (006R tasks 6.2/6.5).
+  const workoutFlow = useWorkout({
+    domainRatings: data.domainRatings,
+    recentGameIds: data.recentGameIds,
+    balance: data.balance,
+  });
+  const rerollAttempt = workoutFlow.instance?.rerollAttempt ?? 0;
+  const nextRerollCost = workoutFlow.rerollCostNow;
   const rerollAffordable = canAffordReroll(data.balance, rerollAttempt);
   const rerollUsed = rerollAttempt >= 1;
   const rerollExhausted = rerollAttempt >= MAX_REROLLS_PER_DAY;
+
+  // Displayed selection reflects the persisted workout instance (so rerolls and
+  // resume state stay in sync with what is stored).
+  const workout: GameDefinition[] = workoutFlow.instance
+    ? (workoutFlow.instance.gameIds
+        .map((id) => getAllGameDefinitions().find((g) => g.id === id))
+        .filter((g): g is GameDefinition => g !== undefined))
+    : [];
 
   const streak = reconstructStreak(data.activityDates, today);
   const currentStreak = effectiveCurrent(streak, today);
   const level = levelForXp(data.totalXp);
 
-  const onReroll = async () => {
-    if (!rerollAffordable || rerollExhausted) {
-      return;
-    }
-    try {
-      // First reroll per day is free; later rerolls debit the coin ledger
-      // (constitution §14 economics).
-      if (nextRerollCost > 0) {
-        await getDb().ledger.append({ amount: -nextRerollCost, reason: 'workout-reroll' });
-      }
-      setRerollAttempt((attempt) => attempt + 1);
-    } catch (error) {
-      // Persistence unavailable: surface nothing and stay put rather than
-      // granting a paid reroll that was never debited.
-      console.error('[home] reroll failed', error);
-    }
-  };
+  const onReroll = workoutFlow.reroll;
 
   const rerollLabel = rerollExhausted
     ? 'No rerolls left'

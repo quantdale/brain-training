@@ -18,6 +18,7 @@ import { RatingRepository } from './rating';
 import { SessionRepository } from './sessions';
 import { TutorialRepository } from './tutorial';
 import type { RatingService } from './types';
+import { WorkoutRepository } from './workout';
 import { XpAwardsRepository } from './xp-awards';
 
 export type { SQLiteAdapter, SQLiteRunResult } from './adapter';
@@ -87,6 +88,7 @@ export class AppDatabase {
   readonly quests: QuestRepository;
   readonly achievements: AchievementRepository;
   readonly xpAwards: XpAwardsRepository;
+  readonly workouts: WorkoutRepository;
   readonly tutorials: TutorialRepository;
 
   constructor(adapter: SQLiteAdapter, options: AppDatabaseOptions = {}) {
@@ -100,6 +102,7 @@ export class AppDatabase {
     this.quests = new QuestRepository(adapter, now);
     this.achievements = new AchievementRepository(adapter, now);
     this.xpAwards = new XpAwardsRepository(adapter, now);
+    this.workouts = new WorkoutRepository(adapter, now);
     this.tutorials = new TutorialRepository(adapter, now);
   }
 
