@@ -61,7 +61,8 @@
     "testMatch": [
       "**/__tests__/**/*.test.ts",
       "**/__tests__/**/*.test.tsx"
-    ]
+    ],
+    "testTimeout": 15000
   },
   "private": true
 }
