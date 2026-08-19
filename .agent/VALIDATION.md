@@ -540,6 +540,25 @@ Checks actually run on local working state:
 - `npx expo export --platform web`: PASS (15 routes).
 - `npx expo-doctor`: PASS (21/21) — verified in prior wave; no dependency change in this wave.
 
-Remaining catalog debt: 14 games still carry per-module copies (tracked as Low follow-up in `.agent/KNOWN_ISSUES.md`); not blocking.
+Remaining catalog debt: none — all 20 games now use the shared `game-ui` primitives (the 6 canaries + the language batch + the final 7-game batch). No per-module `GameButton`/`StatRow` copies remain (verified by grep).
 
 Emulator-gated gates still NOT VALIDATED (no AVD on this host) — same as prior wave; honestly recorded, never faked green.
+
+## Wave: 006R 10.3 — full 20-game game-ui convergence (2026-08-20, pushed)
+
+All remaining per-module UI copies migrated to `apps/mobile/src/components/game-ui/*`, completing task 10.3 across the entire catalog:
+
+- Language batch (`language-word-match`, `language-sentence-builder`, `language-word-scramble`) committed first (`9bd7da5`), then the final 7 games (`logic-code-cracker`, `logic-next-sequence`, `math-equation-builder`, `math-missing-operator`, `memory-pattern-tap-back`, `spatial-transform-match`, `speed-tap-rush`) committed as `7353250`.
+- Each game's `components/{button}.tsx` is a re-export adapter of `GameButton`; `pause-overlay.tsx`/`qa-panel.tsx` thin-wrap shared `PauseOverlay`/`QaPanelShell` (injecting `GAME_ID`); `tutorial.tsx` wraps content in `TutorialFrame`; `screen.tsx` uses shared `DifficultySelector`/`SessionHeader`/`StatRow` (local `StatRow` copies deleted). Per-game mechanics and QA `extraActions` stay local.
+- Tutorial JSX entity escapes (`&apos;`/`&quot;`) applied to 4 tutorial files so all migrated games are lint-clean (matching the canaries). 11 pre-existing `react/no-unescaped-entities` warnings resolved.
+
+Checks actually run on local working state (after convergence):
+
+- `tsc --noEmit` (apps/mobile): **PASS** (0 errors).
+- Full Jest: **PASS** 190 suites / 2272 tests / 4 snapshots.
+- `eslint` over all 7 newly migrated games: **0 errors** (only pre-existing unused-var warnings remain).
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `node scripts/validate-task-ownership.cjs`: PASS.
+- `npx --no-install openspec validate 006r-core-integrity-correction`: PASS (prior wave; no OpenSpec change in this wave).
+
+Emulator-gated gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11 (GitHub CI) still NOT VALIDATED on this host — honestly recorded.

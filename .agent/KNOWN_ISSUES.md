@@ -14,7 +14,7 @@
 
 ## Open debt (tracked, non-blocking)
 
-- **Shared game UI primitives — remaining catalog (Low, follow-up to 10.2/10.3)**: 6 canaries now use `apps/mobile/src/components/game-ui/*` (GameButton, PauseOverlay, TutorialFrame, QaPanelShell with `extraActions`, ResultRow/StatRow, SessionHeader, DifficultySelector) with tsc clean and Jest 190/190 green. The other 14 games still keep per-module copies; they are tracked as optional follow-up migration, not a blocking defect.
+- **Shared game UI primitives — full catalog migrated (RESOLVED, 2026-08-20)**: all 20 games now use `apps/mobile/src/components/game-ui/*` (GameButton, PauseOverlay, TutorialFrame, QaPanelShell with `extraActions`, ResultRow/StatRow, SessionHeader, DifficultySelector) with tsc clean, lint clean, and Jest 190 suites / 2272 tests green. No per-module `GameButton`/`StatRow` copies remain. This closes the 10.2/10.3 convergence; recorded in `VALIDATION.md` (Wave: 006R 10.3 — full 20-game game-ui convergence).
 - **Pattern Tap Back true path mechanics (Low, task 10.6 follow-up)**: the game
   is a distinct-span variant (not an adjacency-constrained path); its docs were
   corrected to match. Closure criterion: if a true adjacent-path generator is

@@ -1,7 +1,7 @@
 # Durable Project State
 
 **State schema:** 1  
-**Last update:** 2026-08-19 (006R core-integrity tasks 1-9, 10.1-10.6, 11, 12.1/12.2/12.3/12.5/12.6/12.8/12.10 complete incl. 10.2/10.3 shared game-ui canaries; emulator-gated gates NOT VALIDATED)  
+**Last update:** 2026-08-20 (006R core-integrity tasks 1-9, 10.1-10.6, 11, 12.1/12.2/12.3/12.5/12.6/12.8/12.10 complete; 10.2/10.3 shared game-ui migrated to ALL 20 games; emulator-gated gates NOT VALIDATED)  
 **Canonical branch:** `main`  
 **Active campaign:** `006r-core-integrity-correction`
 
@@ -11,7 +11,7 @@ Campaign 005 completed the 20-game catalog foundation. Campaign 006 began platfo
 
 ### 006R Progress (green waves committed/pushed on `main`)
 
-All of tasks 0-9, 10.1-10.6, 11, and exit-gate 12.1/12.2/12.3/12.5/12.6/12.8/12.10 are **complete and verified green locally** (full Jest suite 190 suites / 2272 tests, tsc clean, lint, OpenSpec valid, registry/provenance/repo-state/ownership validators all PASS, web export + Expo Doctor 21/21). The three inherited test failures reported earlier were diagnosed as stale tests (a registry item-count pin and two tutorial tests that did not drive the current 3-step tutorial) and repaired, so the suite is now fully green. Task 10.2/10.3 shared game-ui primitives were completed via 6 migrated canaries (memory, memory-sequence-memory, speed-reaction-time, speed-color-match, math-fast-math, spatial-mental-rotation) with `QaPanelShell.extraActions` slot for per-game QA.
+All of tasks 0-9, 10.1-10.6, 11, and exit-gate 12.1/12.2/12.3/12.5/12.6/12.8/12.10 are **complete and verified green locally** (full Jest suite 190 suites / 2272 tests, tsc clean, lint, OpenSpec valid, registry/provenance/repo-state/ownership validators all PASS, web export + Expo Doctor 21/21). The three inherited test failures reported earlier were diagnosed as stale tests (a registry item-count pin and two tutorial tests that did not drive the current 3-step tutorial) and repaired, so the suite is now fully green. Task 10.2/10.3 shared game-ui primitives are migrated across ALL 20 games: per-game `button.tsx` is a `GameButton` re-export adapter; `pause-overlay.tsx`/`qa-panel.tsx` are thin `PauseOverlay`/`QaPanelShell` adapters (injecting `GAME_ID`); `tutorial.tsx` wraps content in `TutorialFrame`; `screen.tsx` uses shared `DifficultySelector`/`SessionHeader`/`StatRow`. Three migration batches committed (6 canaries; 3 language games; final 7 games). `QaPanelShell.extraActions` keeps per-game QA local.
 
 **IMPORTANT blockers / remaining work:**
 - **Emulator-gated gates cannot be validated on this host** (no AVD/emulator): tasks 3.6 (Word Match emulator smoke), 6.8 (Daily Workout AVD journey), 12.4, 12.7, 12.9 (One-AVD smoke). These are `NOT VALIDATED` (an external condition), never faked green.
@@ -47,11 +47,12 @@ The change contains proposal, design, machine-readable metadata, audit map, norm
 
 ## Next required action
 
-Tasks 0-11 are complete (including 10.2/10.3 canary migration). Remaining unchecked
-items in `openspec/changes/006r-core-integrity-correction/tasks.md` are the
-emulator-gated `NOT VALIDATED` gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11 (CI
-result confirmation). All other tasks are green locally; no further code work
-is required on this host until an AVD/CI environment is available.
+Tasks 0-11 are complete, including 10.2/10.3 game-ui migration now covering all 20
+games. Remaining unchecked items in `openspec/changes/006r-core-integrity-correction/tasks.md`
+are the emulator-gated `NOT VALIDATED` gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11
+(CI result confirmation). All other tasks are green locally (full Jest 2272 tests, tsc
+clean, lint clean across all games, repo-state/ownership/provenance validators PASS);
+no further code work is required on this host until an AVD/CI environment is available.
 
 ## Important invariants
 
