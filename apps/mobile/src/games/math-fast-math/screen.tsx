@@ -19,7 +19,6 @@ import { AppState, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  DIFFICULTY_LABELS,
   SessionLifecycle,
   isDevBuild,
   noopAudioHaptics,
@@ -31,11 +30,16 @@ import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk'
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  DifficultySelector,
+  GameButton,
+  PauseOverlay,
+  SessionHeader,
+  StatRow,
+} from '@/components/game-ui';
 
 import { FeedbackPanel } from './components/feedback';
-import { GameButton } from './components/button';
 import { NumberPad } from './components/number-pad';
-import { PauseOverlay } from './components/pause-overlay';
 import { ProblemDisplay } from './components/problem';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
@@ -366,21 +370,11 @@ export default function MathScreen(props: MathScreenProps = {}) {
             <ThemedText type="caption" themeColor="textSecondary">
               Difficulty
             </ThemedText>
-            <View style={styles.difficultyRow}>
-              {Object.entries(DIFFICULTY_LABELS).map(([level, label]) => {
-                const selected = state.difficulty === level;
-                return (
-                  <GameButton
-                    key={level}
-                    small
-                    testID={testId(GAME_ID, 'difficulty', level)}
-                    label={label}
-                    variant={selected ? 'primary' : 'secondary'}
-                    onPress={() => dispatch({ type: 'select-difficulty', level: level as DifficultyLevel })}
-                  />
-                );
-              })}
-            </View>
+            <DifficultySelector
+              gameId={GAME_ID}
+              selected={state.difficulty}
+              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
+            />
 
             <View style={styles.buttonRow}>
               <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
@@ -400,7 +394,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
 
         {inSession ? (
           <View style={styles.section}>
-            <View style={styles.sessionHeader}>
+            <SessionHeader>
               <ThemedText
                 type="subtitle"
                 testID={testId(GAME_ID, 'problem-label', String(state.problemIndex + 1))}>
@@ -416,7 +410,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
                 label="Pause"
                 onPress={pauseSession}
               />
-            </View>
+            </SessionHeader>
 
             {state.phase === 'problem' && state.problem !== null ? (
               <View
@@ -528,7 +522,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
       </View>
 
       {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+        <PauseOverlay gameId={GAME_ID} onResume={resumeSession} onQuit={quitToLibrary} />
       ) : null}
 
       {state.tutorialOpen ? (
@@ -569,28 +563,6 @@ function TimerBar({
   );
 }
 
-/** One label/value row on the results screen. */
-function StatRow({
-  label,
-  value,
-  testID,
-}: {
-  label: string;
-  value: string;
-  testID: string;
-}) {
-  return (
-    <View style={styles.statRow}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="bodyLarge" testID={testID}>
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -602,18 +574,7 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
   },
-  sessionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
-  difficultyRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
+
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -632,12 +593,5 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: Radii.pill,
   },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Radii.medium,
-  },
+
 });

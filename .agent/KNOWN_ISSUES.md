@@ -14,11 +14,7 @@
 
 ## Open debt (tracked, non-blocking)
 
-- **Shared generic game UI primitives (Medium, task 10.2/10.3 remaining)**:
-  games keep per-module copies (buttons, pause frames, QA panels, result rows,
-  difficulty selectors, session headers). A shared-primitive draft was created
-  and reverted because nothing was wired to it. Closure criterion: build shared
-  `game-ui` primitives, migrate 2-3 canary games, keep their screen tests green.
+- **Shared game UI primitives — remaining catalog (Low, follow-up to 10.2/10.3)**: 6 canaries now use `apps/mobile/src/components/game-ui/*` (GameButton, PauseOverlay, TutorialFrame, QaPanelShell with `extraActions`, ResultRow/StatRow, SessionHeader, DifficultySelector) with tsc clean and Jest 190/190 green. The other 14 games still keep per-module copies; they are tracked as optional follow-up migration, not a blocking defect.
 - **Pattern Tap Back true path mechanics (Low, task 10.6 follow-up)**: the game
   is a distinct-span variant (not an adjacency-constrained path); its docs were
   corrected to match. Closure criterion: if a true adjacent-path generator is

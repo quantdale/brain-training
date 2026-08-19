@@ -1,25 +1,21 @@
 /**
- * Tutorial — first-play interactive tutorial for the Fast Math game.
+ * Tutorial — first-play interactive tutorial for the Fast Math game (canary C migration).
  *
- * Three steps: a short explanation, a live demo on the real problem/number
- * pad (two deterministic addition problems the player must answer; a wrong
- * answer clears the input and asks to retry), and a completion screen.
- * Completion marks the tutorial done via the tutorial lifecycle; a dev-only
- * skip button (rendered by the parent only in dev builds) uses the QA skip
- * path.
+ * Mechanics stay here; the card shell is the shared `TutorialFrame` and all
+ * per-game buttons are the shared `GameButton`. The per-game `problem`/`num-pad`
+ * mechanics remain local.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
 
 import { generateSessionProblems } from '../generator';
 import { GAME_ID } from '../types';
 import type { MathDifficultyParams, MathProblem } from '../types';
-import { GameButton } from './button';
 import { NumberPad } from './number-pad';
 import { ProblemDisplay } from './problem';
 
@@ -51,20 +47,15 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>('intro');
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Solve each arithmetic problem with the number pad — answer before the bar
-            runs out to earn a speed bonus. Every problem is exact: division always
-            divides evenly, so trust the math.
+            Solve each arithmetic problem with the number pad — answer before the bar runs out to earn a
+            speed bonus. Every problem is exact: division always divides evenly, so trust the math.
           </ThemedText>
-          <GameButton
-            testID={testId(GAME_ID, 'tutorial-next')}
-            label="Try a demo"
-            onPress={() => setStep('demo')}
-          />
+          <GameButton testID={testId(GAME_ID, 'tutorial-next')} label="Try a demo" onPress={() => setStep('demo')} />
           {onSkip !== undefined ? (
             <GameButton
               testID={testId(GAME_ID, 'tutorial-skip')}
@@ -76,28 +67,18 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         </View>
       ) : null}
 
-      {step === 'demo' ? (
-        <Demo
-          onDone={() => setStep('done')}
-          onSkip={onSkip}
-        />
-      ) : null}
+      {step === 'demo' ? <Demo onDone={() => setStep('done')} onSkip={onSkip} /> : null}
 
       {step === 'done' ? (
         <View style={styles.body}>
           <ThemedText type="headline">You’ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Ready to play for real — keep an eye on the timer, and remember the
-            challenge hides while paused.
+            Ready to play for real — keep an eye on the timer, and remember the challenge hides while paused.
           </ThemedText>
-          <GameButton
-            testID={testId(GAME_ID, 'tutorial-done')}
-            label="Got it"
-            onPress={onComplete}
-          />
+          <GameButton testID={testId(GAME_ID, 'tutorial-done')} label="Got it" onPress={onComplete} />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -125,17 +106,12 @@ function Demo({ onDone, onSkip }: DemoProps) {
   const handleBackspace = () => setInput((value) => value.slice(0, -1));
 
   const handleSubmit = () => {
-    if (input.length === 0) {
-      return;
-    }
+    if (input.length === 0) return;
     if (Number(input) === problem.answer) {
       setInput('');
       setWrong(false);
-      if (problemIndex + 1 >= problems.length) {
-        onDone();
-      } else {
-        setProblemIndex((index) => index + 1);
-      }
+      if (problemIndex + 1 >= problems.length) onDone();
+      else setProblemIndex((index) => index + 1);
     } else {
       setInput('');
       setWrong(true);
@@ -168,11 +144,5 @@ function Demo({ onDone, onSkip }: DemoProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
-  body: {
-    gap: Spacing.three,
-  },
+  body: { gap: Spacing.three },
 });

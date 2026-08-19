@@ -20,9 +20,11 @@ export interface QaPanelShellProps {
   gameId: string;
   onForceWin: () => void;
   onForceLose: () => void;
+  /** Optional per-game extra dev actions (e.g. force-timeout / force-perfect). Kept generic so game mechanics stay local. */
+  extraActions?: React.ReactNode;
 }
 
-export function QaPanelShell({ gameId, onForceWin, onForceLose }: QaPanelShellProps) {
+export function QaPanelShell({ gameId, onForceWin, onForceLose, extraActions }: QaPanelShellProps) {
   const [open, setOpen] = useState(false);
   const theme = useTheme();
 
@@ -50,6 +52,7 @@ export function QaPanelShell({ gameId, onForceWin, onForceLose }: QaPanelShellPr
               label="Force lose"
               onPress={onForceLose}
             />
+            {extraActions}
           </View>
         </View>
       ) : null}
@@ -69,6 +72,7 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.two,
   },
 });

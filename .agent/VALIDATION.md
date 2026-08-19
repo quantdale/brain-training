@@ -518,3 +518,28 @@ NOT VALIDATED (no AVD/emulator on this host — external condition):
   faked green.
 - 12.11 GitHub App CI + Repository Integrity on the final SHA: pushed; the
   result is only observable from the GitHub Actions UI, not locally.
+
+## Wave: 006R 10.2/10.3 shared game-ui canaries (2026-08-19, local working state before push)
+
+6 canary games migrated from per-module duplicated UI to `apps/mobile/src/components/game-ui/*`:
+
+- Shared primitives landed in `484b1e7` (GameButton, PauseOverlay, TutorialFrame, QaPanelShell, ResultRow/StatRow, SessionHeader, DifficultySelector).
+- This wave wires 6 canaries: `memory`, `memory-sequence-memory`, `speed-reaction-time`, `speed-color-match`, `math-fast-math`, `spatial-mental-rotation` — each `components/{button,pause-overlay,qa-panel,tutorial}.tsx` now re-exports or thin-wraps the shared primitive; `screen.tsx` uses `DifficultySelector`/`SessionHeader`/`StatRow`/`PauseOverlay`/`GameButton` from `@/components/game-ui`.
+- Convergence gap closed: `QaPanelShell` now exposes `extraActions?: ReactNode` + `flexWrap: wrap` so per-game QA extras (`force-timeout` for reaction-time/spatial, `force-perfect` for sequence-memory) stay local via the generic slot — 3 previously drifted local QA shells deleted.
+
+Checks actually run on local working state:
+
+- `npm run typecheck` (apps/mobile `tsc --noEmit`): **PASS** (0 errors).
+- Full Jest `--ci --maxWorkers=2`: **PASS** 190 suites / 2272 tests / 4 snapshots (all 6 canaries' screen/persistence flows green; no regressions).
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `node scripts/generate-game-registry.mjs --check`: PASS.
+- `node scripts/validate-provenance.mjs --check`: PASS.
+- `node scripts/validate-task-ownership.cjs`: PASS.
+- `node scripts/validate-offline.mjs --check`: PASS (CLEAN, 452 files).
+- `npx --no-install openspec validate 006r-core-integrity-correction`: PASS.
+- `npx expo export --platform web`: PASS (15 routes).
+- `npx expo-doctor`: PASS (21/21) — verified in prior wave; no dependency change in this wave.
+
+Remaining catalog debt: 14 games still carry per-module copies (tracked as Low follow-up in `.agent/KNOWN_ISSUES.md`); not blocking.
+
+Emulator-gated gates still NOT VALIDATED (no AVD on this host) — same as prior wave; honestly recorded, never faked green.

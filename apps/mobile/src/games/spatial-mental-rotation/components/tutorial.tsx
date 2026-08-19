@@ -1,28 +1,22 @@
 /**
- * Tutorial — first-play interactive tutorial for the Mental Rotation game.
+ * Tutorial — first-play interactive tutorial for the Mental Rotation game (canary C migration).
  *
- * Three steps: a short explanation, a live demo on the real shape board (two
- * fixed rounds — one SAME, one DIFFERENT — generated deterministically from
- * `TUTORIAL_DEMO_SEED`; a wrong answer shows the explanation and replays the
- * round via a remount with a new `key`, which resets the demo's internal
- * state), and a completion screen. Completion marks the tutorial done via the
- * tutorial lifecycle; a dev-only skip button (rendered by the parent only in
- * dev builds) uses the QA skip path.
+ * Mechanics stay here; the card shell is the shared `TutorialFrame` and all
+ * generic buttons are the shared `GameButton`. Per-game `BlockShape` boards stay local.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
 
 import { generateRound } from '../generator';
 import type { RotationRound } from '../generator';
 import { GAME_ID } from '../types';
 import type { RoundKind, SpatialDifficultyParams } from '../types';
 import { BlockShape } from './block-shape';
-import { GameButton } from './button';
 
 /** Deterministic demo seed so the tutorial board is identical on every device. */
 export const TUTORIAL_DEMO_SEED = 'spatial-tutorial-demo-v1';
@@ -48,11 +42,8 @@ export function buildDemoRound(seed: string, salt: string, wantedKind: RoundKind
       params: DEMO_PARAMS,
       prevTarget: null,
     });
-    if (round.kind === wantedKind) {
-      return round;
-    }
+    if (round.kind === wantedKind) return round;
   }
-  // Deterministic fallback (kinds are ~50/50, so this is unreachable in practice).
   return generateRound({
     rng: createRng(seed).fork(`demo:${salt}:final`),
     roundIndex: 0,
@@ -77,20 +68,16 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   ]);
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Compare the two shapes. If the candidate is the target rotated in your mind’s eye —
-            every block and its color in the same arrangement — answer “Same”. If it is mirrored
-            or has a block changed, answer “Different”. Answer before the timer runs out.
+            Compare the two shapes. If the candidate is the target rotated in your mind’s eye — every block and
+            its color in the same arrangement — answer “Same”. If it is mirrored or has a block changed, answer
+            “Different”. Answer before the timer runs out.
           </ThemedText>
-          <GameButton
-            testID={testId(GAME_ID, 'tutorial-next')}
-            label="Try an example"
-            onPress={() => setStep('demo')}
-          />
+          <GameButton testID={testId(GAME_ID, 'tutorial-next')} label="Try an example" onPress={() => setStep('demo')} />
           {onSkip !== undefined ? (
             <GameButton
               testID={testId(GAME_ID, 'tutorial-skip')}
@@ -109,11 +96,8 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           roundNumber={demoIndex + 1}
           roundCount={rounds.length}
           onCorrect={() => {
-            if (demoIndex + 1 >= rounds.length) {
-              setStep('done');
-            } else {
-              setDemoIndex((index) => index + 1);
-            }
+            if (demoIndex + 1 >= rounds.length) setStep('done');
+            else setDemoIndex((index) => index + 1);
           }}
           onWrong={() => setAttempt((value) => value + 1)}
           onSkip={onSkip}
@@ -124,17 +108,13 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">You’ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Rotations keep every block and color. Mirrored or altered shapes are different — and
-            the shapes hide while the game is paused.
+            Rotations keep every block and color. Mirrored or altered shapes are different — and the shapes hide
+            while the game is paused.
           </ThemedText>
-          <GameButton
-            testID={testId(GAME_ID, 'tutorial-done')}
-            label="Got it"
-            onPress={onComplete}
-          />
+          <GameButton testID={testId(GAME_ID, 'tutorial-done')} label="Got it" onPress={onComplete} />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -147,28 +127,21 @@ interface DemoCardProps {
   onSkip?: () => void;
 }
 
-/** One demo round: shapes + Same/Different answers, with retry on a wrong answer. */
 function DemoCard({ round, roundNumber, roundCount, onCorrect, onWrong, onSkip }: DemoCardProps) {
   const [wrongAnswer, setWrongAnswer] = useState<RoundKind | null>(null);
 
   const handleAnswer = (answer: RoundKind) => {
-    if (wrongAnswer !== null) {
-      return;
-    }
-    if (answer === round.kind) {
-      onCorrect();
-    } else {
-      setWrongAnswer(answer);
-    }
+    if (wrongAnswer !== null) return;
+    if (answer === round.kind) onCorrect();
+    else setWrongAnswer(answer);
   };
 
   return (
     <View style={styles.body}>
-      <ThemedText type="headline">Example {roundNumber} of {roundCount}</ThemedText>
-      <ThemedText
-        type="small"
-        themeColor="textSecondary"
-        testID={testId(GAME_ID, 'tutorial-demo-status')}>
+      <ThemedText type="headline">
+        Example {roundNumber} of {roundCount}
+      </ThemedText>
+      <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'tutorial-demo-status')}>
         Same = an exact rotated copy (colors move with the blocks).
       </ThemedText>
       <View style={styles.shapesRow}>
@@ -187,10 +160,7 @@ function DemoCard({ round, roundNumber, roundCount, onCorrect, onWrong, onSkip }
       </View>
 
       {wrongAnswer !== null ? (
-        <ThemedText
-          type="small"
-          themeColor="warning"
-          testID={testId(GAME_ID, 'tutorial-wrong')}>
+        <ThemedText type="small" themeColor="warning" testID={testId(GAME_ID, 'tutorial-wrong')}>
           {round.kind === 'same'
             ? 'Not quite — the candidate IS the target rotated. Compare block positions and colors.'
             : 'Not quite — the candidate is NOT a rotation (it is mirrored or has a changed block).'}
@@ -198,11 +168,7 @@ function DemoCard({ round, roundNumber, roundCount, onCorrect, onWrong, onSkip }
       ) : null}
 
       <View style={styles.actions}>
-        <GameButton
-          testID={testId(GAME_ID, 'tutorial-same')}
-          label="Same"
-          onPress={() => handleAnswer('same')}
-        />
+        <GameButton testID={testId(GAME_ID, 'tutorial-same')} label="Same" onPress={() => handleAnswer('same')} />
         <GameButton
           testID={testId(GAME_ID, 'tutorial-different')}
           label="Different"
@@ -231,13 +197,7 @@ function DemoCard({ round, roundNumber, roundCount, onCorrect, onWrong, onSkip }
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
-  body: {
-    gap: Spacing.three,
-  },
+  body: { gap: Spacing.three },
   shapesRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -245,12 +205,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.three,
   },
-  shapeSlot: {
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
+  shapeSlot: { alignItems: 'center', gap: Spacing.two },
+  actions: { flexDirection: 'row', gap: Spacing.two },
 });
