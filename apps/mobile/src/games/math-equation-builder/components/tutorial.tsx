@@ -16,8 +16,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { TutorialFrame } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 
 import { evaluateEquation } from '../evaluator';
 import { generatePuzzle } from '../generator';
@@ -52,7 +52,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
@@ -90,10 +90,10 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 
       {step === 'done' ? (
         <View style={styles.body}>
-          <ThemedText type="headline">You've got it</ThemedText>
+          <ThemedText type="headline">You&apos;ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Ready to play for real — the timer keeps ticking, so think fast and submit
-            when you're confident!
+            when you&apos;re confident!
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-done')}
@@ -102,7 +102,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -210,10 +210,6 @@ function DemoPuzzle({ attempt, onWrong, onDone, onSkip }: DemoPuzzleProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },

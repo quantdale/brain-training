@@ -18,7 +18,6 @@ import { AppState, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  DIFFICULTY_LABELS,
   SessionLifecycle,
   isDevBuild,
   noopAudioHaptics,
@@ -28,7 +27,8 @@ import {
 } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { ColorPicker } from './components/color-picker';
@@ -338,21 +338,11 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
             <ThemedText type="caption" themeColor="textSecondary">
               Difficulty
             </ThemedText>
-            <View style={styles.difficultyRow}>
-              {Object.entries(DIFFICULTY_LABELS).map(([level, label]) => {
-                const selected = state.difficulty === level;
-                return (
-                  <GameButton
-                    key={level}
-                    small
-                    testID={testId(GAME_ID, 'difficulty', level)}
-                    label={label}
-                    variant={selected ? 'primary' : 'secondary'}
-                    onPress={() => dispatch({ type: 'select-difficulty', level: level as DifficultyLevel })}
-                  />
-                );
-              })}
-            </View>
+            <DifficultySelector
+              gameId={GAME_ID}
+              selected={state.difficulty}
+              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
+            />
 
             <View style={styles.buttonRow}>
               <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
@@ -372,7 +362,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
 
         {state.phase === 'roundReveal' ? (
           <View style={styles.section} testID={testId(GAME_ID, 'round-reveal')}>
-            <View style={styles.sessionHeader}>
+            <SessionHeader>
               <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
                 Round {state.roundIndex + 1}/{rounds}
               </ThemedText>
@@ -383,7 +373,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
                 label="Pause"
                 onPress={pauseSession}
               />
-            </View>
+            </SessionHeader>
             <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal-status')}>
               Get ready to crack the code…
             </ThemedText>
@@ -397,7 +387,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
 
         {state.phase === 'input' ? (
           <View style={styles.section} testID={testId(GAME_ID, 'input')}>
-            <View style={styles.sessionHeader}>
+            <SessionHeader>
               <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
                 Round {state.roundIndex + 1}/{rounds}
               </ThemedText>
@@ -411,7 +401,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
                 label="Pause"
                 onPress={pauseSession}
               />
-            </View>
+            </SessionHeader>
 
             <CurrentGuess
               currentGuess={state.currentGuess}
@@ -549,28 +539,6 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
   );
 }
 
-/** One label/value row on the results screen. */
-function StatRow({
-  label,
-  value,
-  testID,
-}: {
-  label: string;
-  value: string;
-  testID: string;
-}) {
-  return (
-    <View style={styles.statRow}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="bodyLarge" testID={testID}>
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -582,29 +550,9 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
   },
-  sessionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
-  difficultyRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Radii.medium,
   },
 });

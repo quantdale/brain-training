@@ -8,14 +8,17 @@
  *
  * The demo is remounted with a new `key` on every replay attempt, which
  * resets its internal state without any setState-in-effect cascades.
+ *
+ * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R task 10.3);
+ * mechanics stay local.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { TutorialFrame } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 
 import { applyTransform, generateSourcePattern } from '../generator';
 import { GAME_ID, TRANSFORM_LABELS } from '../types';
@@ -43,12 +46,12 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            You'll see a grid pattern, then a transform label (like "Rotate 90° clockwise").
+            You&apos;ll see a grid pattern, then a transform label (like &quot;Rotate 90° clockwise&quot;).
             Pick the option that matches the transformed version of the pattern.
           </ThemedText>
           <GameButton
@@ -79,7 +82,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 
       {step === 'done' ? (
         <View style={styles.body}>
-          <ThemedText type="headline">You've got it</ThemedText>
+          <ThemedText type="headline">You&apos;ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Ready to play for real — the source pattern hides after a brief reveal, so stay focused.
           </ThemedText>
@@ -90,7 +93,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -127,7 +130,7 @@ function DemoRound({ attempt, onCorrect, onWrong, onSkip }: DemoRoundProps) {
     <View style={styles.body}>
       <ThemedText type="headline">Demo</ThemedText>
       <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'tutorial-demo-status')}>
-        Apply "{TRANSFORM_LABELS[DEMO_TRANSFORM]}" and pick the correct result.
+        Apply &quot;{TRANSFORM_LABELS[DEMO_TRANSFORM]}&quot; and pick the correct result.
       </ThemedText>
       <PatternGrid
         gridSize={DEMO_GRID_SIZE}
@@ -162,10 +165,6 @@ function DemoRound({ attempt, onCorrect, onWrong, onSkip }: DemoRoundProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },

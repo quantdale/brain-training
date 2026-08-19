@@ -4,18 +4,22 @@
  * Three steps: a short explanation, a live demo with a small code, and a
  * completion screen. The demo lets the player guess a simple 3-color code
  * to understand the feedback mechanics.
+ *
+ * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R task 10.3);
+ * mechanics stay local. The outer `TutorialFrame` provides the card shell and
+ * the `testId(GAME_ID, 'tutorial')` wrapper previously owned by the local
+ * `ThemedView`, so existing testIDs and content are preserved.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 
 import { computeFeedback, generateSecretCode } from '../generator';
 import { GAME_ID } from '../types';
-import { GameButton } from './button';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
 import { ColorPicker, COLOR_PALETTE, COLOR_NAMES } from './color-picker';
 import { CurrentGuess } from './current-guess';
 import { FeedbackPegs } from './feedback-pegs';
@@ -38,13 +42,13 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>('intro');
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             A secret code of colors is hidden. Tap colors to build a guess, then
-            submit it. You'll get feedback: black pegs mean correct color in the
+            submit it. You&apos;ll get feedback: black pegs mean correct color in the
             right spot, white pegs mean correct color in the wrong spot. Use
             logic to crack the code!
           </ThemedText>
@@ -70,7 +74,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 
       {step === 'done' ? (
         <View style={styles.body}>
-          <ThemedText type="headline">You've got it</ThemedText>
+          <ThemedText type="headline">You&apos;ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Ready to play for real — fewer guesses means a higher score!
           </ThemedText>
@@ -81,7 +85,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -185,10 +189,6 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },
