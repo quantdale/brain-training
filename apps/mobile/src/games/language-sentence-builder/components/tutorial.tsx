@@ -9,13 +9,12 @@ import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
 
 import { generateRound } from '../generator';
 import { SENTENCE_BANK } from '../content/sentence-bank';
 import { GAME_ID } from '../types';
-import { GameButton } from './button';
 import { WordChips } from './word-grid';
 
 /** Deterministic demo seed so the tutorial is identical on every device. */
@@ -32,7 +31,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [step, setStep] = useState<TutorialStep>('intro');
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
@@ -76,7 +75,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -152,10 +151,6 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },

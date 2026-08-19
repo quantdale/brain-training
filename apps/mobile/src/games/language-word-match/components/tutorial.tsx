@@ -1,5 +1,5 @@
 /**
- * Tutorial — first-play interactive tutorial for the Word Match game.
+ * Tutorial — first-play interactive tutorial for the Word Match game (campaign 006R).
  *
  * Three steps: a short explanation, a live demo on a real pack item (a
  * deterministic t1 selection the player must answer; a wrong pick reveals the
@@ -10,19 +10,20 @@
  * The demo is remounted with a new `key` on every retry, which resets its
  * internal answer state without any setState-in-effect cascades; each attempt
  * draws a fresh deterministic selection (per-attempt RNG fork).
+ *
+ * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R); mechanics stay local.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 
 import { loadContentPack } from '../content-validation';
 import { filterByTiers, selectRound } from '../generator';
 import { GAME_ID } from '../types';
-import { GameButton } from './button';
 import { Option } from './option';
 import type { OptionVisualState } from './option';
 
@@ -42,7 +43,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
@@ -90,7 +91,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -179,10 +180,6 @@ function DemoRound({ attempt, onRetry, onDone, onSkip }: DemoRoundProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },

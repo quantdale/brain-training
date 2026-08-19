@@ -18,18 +18,11 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import {
-  DIFFICULTY_LABELS,
-  SessionLifecycle,
-  isDevBuild,
-  noopAudioHaptics,
-  noopXpRatingHook,
-  systemClock,
-  testId,
-} from '@/sdk';
+import { SessionLifecycle, isDevBuild, noopAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GameButton } from './components/button';
@@ -364,24 +357,11 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
               {gameDefinition.description}
             </ThemedText>
 
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <View style={styles.difficultyRow}>
-              {Object.entries(DIFFICULTY_LABELS).map(([level, label]) => {
-                const selected = state.difficulty === level;
-                return (
-                  <GameButton
-                    key={level}
-                    small
-                    testID={testId(GAME_ID, 'difficulty', level)}
-                    label={label}
-                    variant={selected ? 'primary' : 'secondary'}
-                    onPress={() => dispatch({ type: 'select-difficulty', level: level as DifficultyLevel })}
-                  />
-                );
-              })}
-            </View>
+            <DifficultySelector
+              gameId={GAME_ID}
+              selected={state.difficulty}
+              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
+            />
 
             <View style={styles.buttonRow}>
               <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
@@ -405,7 +385,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
 
         {inSession ? (
           <View style={styles.section}>
-            <View style={styles.sessionHeader}>
+            <SessionHeader>
               <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
                 Round {state.roundIndex + 1}/{rounds}
               </ThemedText>
@@ -419,7 +399,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
                 label="Pause"
                 onPress={pauseSession}
               />
-            </View>
+            </SessionHeader>
 
             {state.phase === 'question' && state.round !== null ? (
               <View style={styles.section}>
@@ -590,28 +570,6 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
   );
 }
 
-/** One label/value row on the results screen. */
-function StatRow({
-  label,
-  value,
-  testID,
-}: {
-  label: string;
-  value: string;
-  testID: string;
-}) {
-  return (
-    <View style={styles.statRow}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="bodyLarge" testID={testID}>
-        {value}
-      </ThemedText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -623,18 +581,6 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
   },
-  sessionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
-  difficultyRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
   buttonRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -642,13 +588,5 @@ const styles = StyleSheet.create({
   },
   options: {
     gap: Spacing.two,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Radii.medium,
   },
 });
