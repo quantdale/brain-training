@@ -1,52 +1,17 @@
 /**
- * Pause overlay — opaque overlay shown when the game is paused.
- * Duplicated here to avoid cross-module imports.
+ * Per-game adapter — migrated to shared `PauseOverlay` (campaign 006R canary A).
+ * Injects the gameId so the screen's existing `<PauseOverlay onResume onQuit />`
+ * call sites stay stable; generic pause surface only.
  */
-import { StyleSheet, View } from 'react-native';
+import { PauseOverlay as SharedPauseOverlay } from '@/components/game-ui';
 
-import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { GAME_ID } from '../types';
 
-import { GameButton } from './button';
-
-interface PauseOverlayProps {
+export interface PauseOverlayProps {
   onResume: () => void;
   onQuit: () => void;
 }
 
 export function PauseOverlay({ onResume, onQuit }: PauseOverlayProps) {
-  const theme = useTheme();
-
-  return (
-    <View
-      style={[styles.overlay, { backgroundColor: theme.background }]}
-      testID="pause-overlay"
-      accessibilityLabel="Game paused">
-      <View style={styles.content}>
-        <ThemedText type="title">Paused</ThemedText>
-        <View style={styles.buttons}>
-          <GameButton testID="resume" label="Resume" onPress={onResume} />
-          <GameButton testID="quit" label="Quit" variant="secondary" onPress={onQuit} />
-        </View>
-      </View>
-    </View>
-  );
+  return <SharedPauseOverlay gameId={GAME_ID} onResume={onResume} onQuit={onQuit} />;
 }
-
-const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 200,
-  },
-  content: {
-    alignItems: 'center',
-    gap: Spacing.four,
-  },
-  buttons: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-});

@@ -9,18 +9,20 @@
  *
  * The demo is remounted with a new `key` on every replay attempt, which
  * resets its internal state without any setState-in-effect cascades.
+ *
+ * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R);
+ * mechanics stay local.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 
 import { generateRoundTarget } from '../generator';
 import { GAME_ID } from '../types';
-import { GameButton } from './button';
 import { TileGrid } from './grid';
 import type { TileVisualState } from './tile';
 
@@ -41,7 +43,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
@@ -88,7 +90,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -157,10 +159,6 @@ function DemoGrid({ attempt, onWrong, onDone, onSkip }: DemoGridProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },

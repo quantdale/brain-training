@@ -1,6 +1,10 @@
 /**
- * Tutorial overlay — explains the Color Stroop game mechanics.
- * Duplicated here to avoid cross-module imports.
+ * Tutorial — explains the Color Stroop game mechanics (campaign 006R canary A).
+ *
+ * Multi-step card: welcome, the INK rule, rule-change flips, and speed. The
+ * local board/demo pieces stay here; the consistent card shell + testID are
+ * provided by the shared `TutorialFrame` so per-game copies don't each
+ * reinvent the same surface. `GameButton` is the shared primitive.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -8,12 +12,9 @@ import { StyleSheet, View } from 'react-native';
 import { testId, isDevBuild } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
 
-import { GAME_ID, STROOP_COLOR_HEX, STROOP_COLORS } from '../types';
-import type { StroopColor } from '../types';
-
-import { GameButton } from './button';
+import { GAME_ID, STROOP_COLOR_HEX } from '../types';
 
 /** Fixed seed for the tutorial demo trial. */
 export const TUTORIAL_DEMO_SEED = 'tutorial-demo';
@@ -24,7 +25,6 @@ interface TutorialProps {
 }
 
 export function Tutorial({ onComplete, onSkip }: TutorialProps) {
-  const theme = useTheme();
   const [step, setStep] = useState(0);
 
   const steps = [
@@ -50,7 +50,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const isLast = step === steps.length - 1;
 
   return (
-    <View style={[styles.overlay, { backgroundColor: theme.background }]} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       <View style={styles.content}>
         <ThemedText type="title" style={styles.title}>
           {currentStep.title}
@@ -106,21 +106,13 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           )}
         </View>
       </View>
-    </View>
+    </TutorialFrame>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 100,
-  },
   content: {
     maxWidth: 400,
-    padding: Spacing.four,
-    borderRadius: Radii.large,
     gap: Spacing.three,
     alignItems: 'center',
   },

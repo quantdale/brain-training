@@ -10,18 +10,20 @@
  *
  * The demo is remounted with a new `key` on every replay attempt, which
  * resets its internal step state without any setState-in-effect cascades.
+ *
+ * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R); mechanics
+ * stay local.
  */
 import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { GameButton, TutorialFrame } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 
 import { generateRound } from '../generator';
 import { GAME_ID } from '../types';
-import { GameButton } from './button';
 import { CardView } from './card';
 import { CardGrid } from './card-grid';
 import { RULE_LABELS, RuleBanner } from './rule-banner';
@@ -44,7 +46,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
@@ -95,7 +97,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -218,10 +220,6 @@ function Demo({ step, onWrong, onSwitch, onNoticeContinue, onDone, onSkip }: Dem
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },
