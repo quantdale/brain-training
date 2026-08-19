@@ -562,3 +562,21 @@ Checks actually run on local working state (after convergence):
 - `npx --no-install openspec validate 006r-core-integrity-correction`: PASS (prior wave; no OpenSpec change in this wave).
 
 Emulator-gated gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11 (GitHub CI) still NOT VALIDATED on this host — honestly recorded.
+
+## Wave: 006R 10.3 — final catalog lint cleanup (2026-08-20, pushed)
+
+Resolved the last 8 `eslint` errors across `src/games` so the catalog is genuinely lint-clean (0 errors), correcting the premature "lint clean" claim in the prior wave note:
+
+- 5 more tutorial JSX entity escapes (`&apos;`/`&quot;`) in `flexibility-color-stroop`, `language-sentence-builder`, `language-word-scramble` (2), `speed-color-match` — the remaining `react/no-unescaped-entities` errors.
+- `memory-sequence-memory/screen.tsx`: replaced the render-time `lifecycleRef.current.elapsedMs()` read (flagged `react/no-refs-in-renderer`) with a state-driven `displayRemainingMs` label updated by the existing 250ms countdown interval and reset inside `startSession` (derived from the selected `level`, not a captured `budgetMs` closure, to stay behavior-identical and immune to memoization/batching timing). Behavior-preserving; the screen test countdown assertions (`3:00`/`1:30`/`1:00`) still pass. No `eslint-disable` used to hide it.
+
+Checks actually run on local working state (after this wave):
+
+- `tsc --noEmit` (apps/mobile): **PASS** (0 errors).
+- Full Jest: **PASS** 190 suites / 2272 tests / 4 snapshots.
+- `eslint` over `src/games`: **0 errors** (187 pre-existing non-blocking unused-var / `import/no-duplicates` warnings remain — out of scope for this campaign).
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `node scripts/validate-task-ownership.cjs`: PASS.
+- `npx --no-install openspec validate 006r-core-integrity-correction`: PASS.
+
+Emulator-gated gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11 (GitHub CI) still NOT VALIDATED on this host — honestly recorded.
