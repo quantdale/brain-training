@@ -64,7 +64,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 
       {step === 'done' ? (
         <View style={styles.body}>
-          <ThemedText type="headline">You've got it</ThemedText>
+          <ThemedText type="headline">You&apos;ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             The timer pauses when you pause the game, so take your time.
           </ThemedText>

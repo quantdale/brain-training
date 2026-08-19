@@ -79,7 +79,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 
       {step === 'done' ? (
         <View style={styles.body}>
-          <ThemedText type="headline">You've got it</ThemedText>
+          <ThemedText type="headline">You&apos;ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Ready to play for real — remember: match the swatch color, ignore the
             text. Faster is better!

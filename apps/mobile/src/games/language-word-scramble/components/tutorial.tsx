@@ -48,7 +48,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            You'll see a scrambled word and a category hint. Pick the correct
+            You&apos;ll see a scrambled word and a category hint. Pick the correct
             unscrambled word from the options below. Faster correct answers
             earn bonus points!
           </ThemedText>
@@ -80,7 +80,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
 
       {step === 'done' ? (
         <View style={styles.body}>
-          <ThemedText type="headline">You've got it</ThemedText>
+          <ThemedText type="headline">You&apos;ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Ready to play for real — answer quickly, the rounds expire on their
             own. The challenge is hidden while paused.

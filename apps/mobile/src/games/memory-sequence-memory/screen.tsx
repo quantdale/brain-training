@@ -20,7 +20,7 @@
  * (reveal/input/round-result) and freezes while paused; a round still being
  * performed when time expires counts as failed.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -37,7 +37,11 @@ import type { PadTileVisualState } from './components/tile';
 import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
-import { sequenceMemoryParamsFromProfile, sessionChallengeRating } from './difficulty';
+import {
+  resolveSequenceMemoryDifficulty,
+  sequenceMemoryParamsFromProfile,
+  sessionChallengeRating,
+} from './difficulty';
 import { gameDefinition } from './game-definition';
 import {
   createSequenceMemoryQaForceStateHooks,
@@ -134,6 +138,11 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const revealMs = params?.revealMs ?? 900;
   const tileCount = params?.tileCount ?? 4;
   const budgetMs = (params?.sessionSeconds ?? 90) * 1000;
+  // Countdown label is state-driven (not a direct ref read during render) so
+  // the screen stays rule-clean under concurrent rendering; the countdown
+  // interval below keeps it in lockstep with `lifecycleRef.current.elapsedMs()`.
+  // Reset on (re)start so a changed budget is reflected before the first tick.
+  const [displayRemainingMs, setDisplayRemainingMs] = useState(budgetMs);
   const inSession =
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
 
@@ -160,12 +169,14 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
       if (elapsedMs >= budgetMs) {
         // Record the exact expiry instant once, then stop the ticker; the
         // self-clear keeps batched timer runs (tests) from re-dispatching.
+        setDisplayRemainingMs(0);
         if (timeUpElapsedMsRef.current === null) {
           timeUpElapsedMsRef.current = elapsedMs;
         }
         clearInterval(interval);
         dispatch({ type: 'time-up' });
       } else {
+        setDisplayRemainingMs(Math.max(0, budgetMs - elapsedMs));
         tick();
       }
     }, COUNTDOWN_TICK_MS);
@@ -289,6 +300,15 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
       timeUpElapsedMsRef.current = null;
       lifecycleRef.current = new SessionLifecycle({ clock });
       lifecycleRef.current.start();
+      // Reset the countdown label before the first ticker tick so a restarted
+      // session (e.g. "Play again") starts from the full budget, not the
+      // previous run's leftover value. Derived from `level` (not the captured
+      // `budgetMs` closure) so it matches exactly what the render computes for
+      // the selected difficulty and is immune to memoization/batching timing.
+      const startBudgetMs =
+        (sequenceMemoryParamsFromProfile(resolveSequenceMemoryDifficulty(level))?.sessionSeconds ??
+          90) * 1000;
+      setDisplayRemainingMs(startBudgetMs);
       dispatch({
         type: 'start-session',
         seed,
@@ -394,11 +414,9 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
     return 'idle';
   };
 
-  // Remaining budget label; 0 before the lifecycle starts (intro).
-  const remainingMs =
-    inSession && lifecycleRef.current !== null
-      ? Math.max(0, budgetMs - lifecycleRef.current.elapsedMs())
-      : budgetMs;
+  // Remaining budget label; driven by `displayRemainingMs` (state) so the ref
+  // is not read during render. Equals `budgetMs` before the lifecycle starts.
+  const remainingMs = displayRemainingMs;
 
   return (
     <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>

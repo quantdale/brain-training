@@ -65,7 +65,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
               RED
             </ThemedText>
             <ThemedText type="caption" style={styles.demoLabel}>
-              Word says RED, but it's written in red ink → Answer: red
+              Word says RED, but it&apos;s written in red ink → Answer: red
             </ThemedText>
           </View>
         )}
