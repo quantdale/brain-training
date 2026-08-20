@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
           cache: npm
           cache-dependency-path: apps/mobile/package-lock.json
 
@@ -49,6 +49,16 @@ jobs:
       - name: Task-ownership check
         working-directory: ${{ github.workspace }}
         run: node scripts/validate-task-ownership.cjs
+
+      # Offline-first app must not ship network deps (GOVERNANCE offline boundary).
+      - name: Offline boundary check
+        working-directory: ${{ github.workspace }}
+        run: node scripts/validate-offline.mjs --check
+
+      # QA harness self-test runs offline (no emulator) and guards regressions.
+      - name: QA harness self-test
+        working-directory: ${{ github.workspace }}
+        run: node scripts/qa/autobot.mjs --self-test
 
       - name: Install dependencies
         run: npm ci
