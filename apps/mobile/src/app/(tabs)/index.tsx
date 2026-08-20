@@ -106,6 +106,13 @@ export default function HomeScreen() {
   const rerollUsed = rerollAttempt >= 1;
   const rerollExhausted = rerollAttempt >= MAX_REROLLS_PER_DAY;
 
+  // Durable workout progress markers (006R hardening): reflect the persisted
+  // current index so completed/current positions are visually distinct. The
+  // instance refreshes on focus (see `useWorkout`), so leaving results after a
+  // game advances the workout and Home re-renders with the new index.
+  const workoutIndex = workoutFlow.instance?.currentIndex ?? 0;
+  const workoutStatus = workoutFlow.instance?.status ?? 'active';
+
   // Displayed selection reflects the persisted workout instance (so rerolls and
   // resume state stay in sync with what is stored).
   const workout: GameDefinition[] = workoutFlow.instance
@@ -148,22 +155,33 @@ export default function HomeScreen() {
               ratings.
             </ThemedText>
             <View style={styles.workoutList} testID="home-workout-list">
-              {workout.map((game, index) => (
-                <Link key={game.id} href={`/game/${game.id}`} asChild>
-                  <Pressable
-                    testID={`home-workout-game-${game.id}`}
-                    accessibilityRole="button"
-                    style={styles.workoutRow}>
-                    <ThemedText type="smallBold" themeColor="accent">
-                      {index + 1}.
-                    </ThemedText>
-                    <ThemedText type="small">{game.name}</ThemedText>
-                    <ThemedText type="caption" themeColor="textSecondary">
-                      {game.primaryCategory}
-                    </ThemedText>
-                  </Pressable>
-                </Link>
-              ))}
+              {workout.map((game, index) => {
+                const isCompleted = workoutStatus === 'completed' || index < workoutIndex;
+                const isCurrent = workoutStatus === 'active' && index === workoutIndex;
+                return (
+                  <Link key={game.id} href={`/game/${game.id}`} asChild>
+                    <Pressable
+                      testID={`home-workout-game-${game.id}`}
+                      accessibilityRole="button"
+                      style={
+                        isCurrent
+                          ? StyleSheet.flatten([styles.workoutRow, styles.workoutRowCurrent])
+                          : styles.workoutRow
+                      }>
+                      <ThemedText type="smallBold" themeColor="accent">
+                        {index + 1}.
+                      </ThemedText>
+                      <ThemedText type="small">{game.name}</ThemedText>
+                      <ThemedText
+                        type="caption"
+                        themeColor="textSecondary"
+                        testID={`home-workout-game-status-${game.id}`}>
+                        {isCompleted ? 'Done' : isCurrent ? 'Now' : 'Up next'}
+                      </ThemedText>
+                    </Pressable>
+                  </Link>
+                );
+              })}
             </View>
             <Pressable
               testID="home-workout-reroll"
@@ -279,6 +297,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
+  },
+  workoutRowCurrent: {
+    borderRadius: Radii.medium,
+    paddingHorizontal: Spacing.two,
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
   },
   statsRow: {
     flexDirection: 'row',

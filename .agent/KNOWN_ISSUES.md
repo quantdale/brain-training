@@ -33,6 +33,17 @@
 
 ## Resolved during 006R
 
+- **WORKOUT-ADVANCE-UNWIRED (High, resolved 006R hardening wave)**: the durable
+  daily workout's `WorkoutRepository.advance()` was implemented and unit-tested
+  (task 6.2/6.3) but no screen ever invoked it, so on-device `current_index`
+  stayed at 0, `home-workout-game-*` rows never marked current/completed, and
+  kill/relaunch always resumed at game 1. Fixed by wiring `useWorkoutResultAdvance`
+  into `results.tsx` (advances a freshly-completed current-game session exactly
+  once, idempotent via the `completedAt > updatedAt` guard in `shouldAdvanceWorkout`),
+  adding `Next Game` / `Workout complete` CTAs, and reflecting progress on Home
+  via a router-free workout-change event (`@/workout/events`). Covered by
+  `src/workout/__tests__/advance.test.ts` (guard + real `WorkoutRepository`). The
+  4/4 AVD journey (6.8) is still NOT VALIDATED pending the on-device probe.
 - **REROLL-ATTEMPTS-NOT-PERSISTED (Low)**: daily workout reroll attempts are
   now persisted per date in `workout_instances.reroll_attempt`; the Workout
   repository applies rerolls transactionally and restart does not restore the

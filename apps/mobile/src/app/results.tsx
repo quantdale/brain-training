@@ -19,6 +19,7 @@ import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { getGameDefinition } from '@/registry/registry';
+import { useWorkoutResultAdvance } from '@/workout/use-workout-result-advance';
 
 interface ResultsData {
   session: GameSessionRecord | null;
@@ -59,6 +60,10 @@ export default function ResultsScreen() {
   const { data } = useDbData((db) => loadResults(db, id), [id, refreshKey], EMPTY);
   const { session, recent, ratingHistory } = data;
 
+  // Cross-feature wiring (006R hardening): advance the durable workout when this
+  // session finished the current game, and surface the next game / completion.
+  const { nextGameId, completed: workoutCompleted } = useWorkoutResultAdvance(session);
+
   const game = session ? getGameDefinition(session.gameId) : undefined;
   // Task 9.4: ratingHistory is already filtered to the selected session
 
@@ -90,6 +95,27 @@ export default function ResultsScreen() {
               <ResultRow label="Date" value={new Date(session.completedAt).toLocaleDateString()} />
             </View>
           </ThemedView>
+
+          {/* Workout progress (006R hardening): after finishing the current
+              workout game, surface the next game or the completion state. */}
+          {workoutCompleted ? (
+            <ThemedView type="accentSoft" style={styles.card} testID="results-workout-complete">
+              <ThemedText type="subtitle" themeColor="accent">
+                Workout complete
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                You finished all four games today. Nice work!
+              </ThemedText>
+            </ThemedView>
+          ) : nextGameId ? (
+            <Link href={`/game/${nextGameId}`} asChild>
+              <Pressable testID="results-next-game" accessibilityRole="button" style={styles.nextGame}>
+                <ThemedText type="smallBold" themeColor="accent">
+                  Next Game →
+                </ThemedText>
+              </Pressable>
+            </Link>
+          ) : null}
 
           <ThemedView type="surface" style={styles.card} testID="results-rating">
             <ThemedText type="subtitle">Rating movement</ThemedText>
@@ -169,5 +195,12 @@ const styles = StyleSheet.create({
   },
   rowActive: {
     opacity: 0.6,
+  },
+  nextGame: {
+    alignSelf: 'flex-start',
+    borderRadius: Radii.pill,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    backgroundColor: 'rgba(0, 122, 255, 0.12)',
   },
 });

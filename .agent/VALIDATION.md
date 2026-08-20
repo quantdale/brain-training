@@ -597,3 +597,43 @@ On-device proof (all via emulator-local `adb` / `uiautomator` / `screencap`, no 
 - Daily Workout on-device (6.8 probe, fresh `CRBABot_API_36`): `workout_instances` date `2026-08-20` with 4 `game_ids_json` (`logic-next-sequence` etc.), `reroll_attempt 0` `current_index 0` `seed_version 1`; yesterday `2026-08-19` sibling row present; Home `home-workout-game-*` list renders those 4 `testID`s plus `home-workout-reroll` `free` label; `Tap Home` → `Games` tab → `home-workout-game-memory` verified. Persist probe via host `sqlite3` polling (binary-safe `exec-out run-as cat` pull): `ok`, today's `game_ids_json` matches `personalizedWorkout` output for `20` games.
 
 Treatment of progression: `Memory`-pattern-tap-back` dedup / random-walk audit etc. were Black paths — handled per-game via SDK canaries + allowlist, not via the catalog lint wave above. See `KNOWN_ISSUES.md` open debt for the remaining emulator-gated `testIDs` (3.6, 6.8, 12.4, 12.7, 12.9).
+
+## Wave: 006R — workout advance cross-feature wiring (2026-08-20, local, hardening)
+
+Closes the HIGH gap the 7-agent hardening swarm surfaced: `WorkoutRepository.advance()`
+was implemented + unit-tested (tasks 6.2/6.3) but no screen invoked it, so on-device
+`current_index` stayed 0 and `home-workout-game-*` never marked current/completed.
+
+Changes (all in `apps/mobile`):
+
+- `src/workout/advance.ts` (new): pure `shouldAdvanceWorkout(session, instance)` guard
+  (advances only when the completed game is the current `active` position AND
+  `completedAt > instance.updatedAt` — idempotent across re-views/relaunch, blocks
+  false advances on historical results) + `nextWorkoutGameId`.
+- `src/workout/use-workout-result-advance.ts` (new hook): loads today's instance,
+  advances once via `getDb().workouts.advance` when the guard holds, exposes
+  `nextGameId` / `completed`. `advancingRef` guards StrictMode double-invoke.
+- `src/app/results.tsx`: uses the hook; renders `Next Game →` (links to the next
+  game) or `Workout complete` after the current game finishes.
+- `src/app/(tabs)/index.tsx`: marks each workout row `Done` / `Now` / `Up next`
+  from the persisted `currentIndex`; `Now` row highlighted.
+- `src/workout/events.ts` (new) + `src/workout/use-workout.ts`: a router-free
+  `workoutChanged` event so Home re-reads the instance when the result screen
+  advances it (no router-dependent focus hook, which broke unit tests). `advance`
+  and `reroll` emit.
+- `src/workout/__tests__/advance.test.ts` (new): guard gates + real
+  `WorkoutRepository` advance/idempotency (the exact decision+mutation the effect
+  uses). No fragile full-screen render needed.
+
+Checks actually run:
+
+- `tsc --noEmit`: PASS (0 errors).
+- Full Jest: PASS — 191 suites / 2287 tests (was 2275; +12 from `advance.test.ts`).
+- `node scripts/validate-repo-state.mjs`: PASS.
+- `node scripts/validate-provenance.mjs --check`: PASS (no drift).
+- `node scripts/validate-task-ownership.cjs`: PASS.
+- `npx --no-install openspec validate 006r-core-integrity-correction`: PASS.
+
+Not yet validated on-device: the 4/4 Daily Workout AVD journey (6.8) — the trigger
+is implemented and unit-covered; an on-device probe remains to confirm the full
+reroll → game → result → next → 4/4 → completion + kill/relaunch resume loop.

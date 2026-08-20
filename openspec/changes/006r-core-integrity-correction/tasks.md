@@ -59,13 +59,13 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 ## 6. Real Daily Workout + personalization — BLOCKING product loop
 
 - [x] 6.1 Add persistent daily workout instance keyed by local date with ordered four-game selection, status, current index, reroll attempt, seed/selection version, and timestamps.
-- [x] 6.2 Starting a workout enters workout context; successful game persistence advances to compact result then `Next Game`; game four completes workout.
-- [x] 6.3 Kill/relaunch or navigation interruption resumes the durable workout without duplicating completed games/rewards.
+- [x] 6.2 Starting a workout enters workout context; successful game persistence advances to compact result then `Next Game`; game four completes workout. — cross-feature trigger wired in 006R hardening wave: `results.tsx` advances via `useWorkoutResultAdvance` (idempotent `shouldAdvanceWorkout` guard) and renders `Next Game` / `Workout complete`; previously the swarm found this unwired (no screen called `advance`).
+- [x] 6.3 Kill/relaunch or navigation interruption resumes the durable workout without duplicating completed games/rewards. — resume mechanism unit-tested; the result-screen trigger added in 006R hardening makes on-device resume observe the advanced index.
 - [x] 6.4 Personalization selects from the full eligible catalog using weakness, neglected domains, recency, previous-day overlap, domain diversity, seeded randomness, and occasional strength variety; it may not merely reorder an already fixed four.
 - [x] 6.5 Persist reroll attempts by date. First reroll free; later rerolls are transactional currency operations; restart never restores the free reroll.
 - [x] 6.6 Define how reroll treats already-completed workout positions (prefer immutable completed prefix; reroll only future slots).
 - [x] 6.7 Add deterministic tests for same-input selection, different reroll attempt, neglected-domain surfacing, recency avoidance, diversity, and catalog sizes near/below four.
-- [ ] 6.8 AVD journey: workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 -> completion. — NOT VALIDATED (no AVD/emulator on host).
+- [ ] 6.8 AVD journey: workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 -> completion. — NOT VALIDATED (no AVD/emulator on host for the required on-device pass). The cross-feature trigger is now implemented (results advances the current game; Home marks completed/current via a router-free workout-change event) and covered by `advance.test.ts`; the full 4/4 journey is the remaining on-device probe.
 
 ## 7. Economy transactionality
 

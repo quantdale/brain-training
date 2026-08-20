@@ -10,8 +10,9 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { SQLiteAdapter } from '@/db/adapter';
-import { getDb, WorkoutRepository, type WorkoutInstance } from '@/db';
+import { getDb, type AppDatabase, WorkoutRepository, type WorkoutInstance } from '@/db';
 import { paidReroll } from '@/db/economy';
+import { emitWorkoutChanged, onWorkoutChanged } from './events';
 import { personalizedWorkout, type DomainRating } from '@/workout/personalize';
 import { getAllGameDefinitions } from '@/registry/registry';
 import { localDateString } from '@/workout/today';
@@ -41,6 +42,8 @@ export interface UseWorkoutResult {
   reroll: () => Promise<void>;
   /** Advance to the next game after a durably persisted session. */
   advance: () => Promise<void>;
+  /** Re-read the persisted instance (call when the screen regains focus). */
+  refresh: () => void;
 }
 
 export function useWorkout(args: {
@@ -78,6 +81,29 @@ export function useWorkout(args: {
     return () => {
       cancelled = true;
     };
+  }, [date]);
+
+  // Re-read the instance on demand (e.g. when the owning screen regains focus)
+  // so an advance made on another screen (the result screen) is reflected
+  // without a remount. The caller wires this to focus; kept router-free here so
+  // the hook stays usable outside navigation (006R hardening).
+  const refresh = useCallback(() => {
+    let db: AppDatabase;
+    try {
+      db = getDb();
+    } catch {
+      return;
+    }
+    db.workouts
+      .getByDate(date)
+      .then((inst) => {
+        if (inst) {
+          setInstance(inst);
+        }
+      })
+      .catch(() => {
+        /* db unavailable: keep the last known instance */
+      });
   }, [date]);
 
   const rerollAttempt = instance?.rerollAttempt ?? 0;
@@ -123,12 +149,19 @@ export function useWorkout(args: {
     }
     const updated = await db.workouts.getByDate(date);
     if (updated) setInstance(updated);
+    emitWorkoutChanged();
   }, [date]);
+
+  // Re-read the instance when another screen changes it (e.g. the result screen
+  // advances the workout after a completed session). Router-free + synchronous so
+  // it is safe under unit tests; keeps Home's completed/current markers accurate.
+  useEffect(() => onWorkoutChanged(refresh), [refresh]);
 
   const advance = useCallback(async () => {
     const db = getDb();
     const updated = await db.workouts.advance(date);
     setInstance(updated);
+    emitWorkoutChanged();
   }, [date]);
 
   return {
@@ -144,5 +177,6 @@ export function useWorkout(args: {
     rerollExhausted,
     reroll,
     advance,
+    refresh,
   };
 }
