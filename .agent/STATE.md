@@ -1,7 +1,7 @@
 # Durable Project State
 
 **State schema:** 1  
-**Last update:** 2026-08-20 (006R core-integrity tasks 1-9, 10.1-10.6, 11, 12.1/12.2/12.3/12.5/12.6/12.8/12.10 complete; 10.2/10.3 shared game-ui migrated to ALL 20 games; final `src/games` lint cleanup → 0 errors; emulator-gated gates NOT VALIDATED)  
+**Last update:** 2026-08-20 (006R core-integrity tasks 1-9, 10.1-10.6, 11, 12.1/12.2/12.3/12.5/12.6/12.8/12.10 complete; 10.2/10.3 shared game-ui migrated to ALL 20 games; final `src/games` lint cleanup → 0 errors; Android on-device smoke proven: MainActivity foreground + semantic testIDs + Memory route; SDK toolchain pinned NDK 27.0.12077973) 
 **Canonical branch:** `main`  
 **Active campaign:** `006r-core-integrity-correction`
 
@@ -14,10 +14,11 @@ Campaign 005 completed the 20-game catalog foundation. Campaign 006 began platfo
 All of tasks 0-9, 10.1-10.6, 11, and exit-gate 12.1/12.2/12.3/12.5/12.6/12.8/12.10 are **complete and verified green locally** (full Jest suite 190 suites / 2272 tests, tsc clean, lint, OpenSpec valid, registry/provenance/repo-state/ownership validators all PASS, web export + Expo Doctor 21/21). The three inherited test failures reported earlier were diagnosed as stale tests (a registry item-count pin and two tutorial tests that did not drive the current 3-step tutorial) and repaired, so the suite is now fully green. Task 10.2/10.3 shared game-ui primitives are migrated across ALL 20 games: per-game `button.tsx` is a `GameButton` re-export adapter; `pause-overlay.tsx`/`qa-panel.tsx` are thin `PauseOverlay`/`QaPanelShell` adapters (injecting `GAME_ID`); `tutorial.tsx` wraps content in `TutorialFrame`; `screen.tsx` uses shared `DifficultySelector`/`SessionHeader`/`StatRow`. Three migration batches committed (6 canaries; 3 language games; final 7 games). `QaPanelShell.extraActions` keeps per-game QA local. A final cleanup wave (`6f75d09`) resolved the last 8 `eslint` errors across `src/games` (5 tutorial JSX entity escapes + a behavior-preserving `memory-sequence-memory` render-time ref read → state-driven countdown label), bringing `eslint src/games` to **0 errors** (187 pre-existing non-blocking warnings remain).
 
 **IMPORTANT blockers / remaining work:**
-- **Emulator-gated gates cannot be validated on this host** (no AVD/emulator): tasks 3.6 (Word Match emulator smoke), 6.8 (Daily Workout AVD journey), 12.4, 12.7, 12.9 (One-AVD smoke). These are `NOT VALIDATED` (an external condition), never faked green.
+- **Emulator-gated gates partially validated on this host (AVD `CRBABot_API_36`, API 36, x86_64, `-no-window`, Metro-served JS)**: deep-linked `braintraining://game/memory` and `braintraining://game/speed-tap-rush` both render correct game titles and full semantic testID sets (`memory.screen`, `memory.tile.*`, `memory.score`, `speed-tap-rush.round.*` etc.) via emulator-local `adb` dumps/screenshots — no host mouse/keyboard. `Tap Rush` `Skip tutorial → Start → Round 1/4 → score` session verified; `Memory` tutorial skip → start → input-grid/tiles verified; screenshots in `qa-artifacts/`. Full persistence/persist-one-session exit check (12.4) and multi-game workout journey restart/resume probes (6.8, 12.7, 12.9) not yet driven this wave — devices are live for the next hardening pass. Failures are not faked green.
+- **SDK host toolchain pinned for on-device build**: NDK `27.0.12077973` pinned in `apps/mobile/android/gradle.properties` (generated, `.gitignored` under `android/` so not pushed; persists per-host). SDK-side `27.1.12297006` toolchain separately patched (`c++_shared` + `-lstdc++` in `android-legacy.toolchain.cmake`) to fix its `lld`/`--no-rosegment`/`-z` linker mismatch — reversible per-host block with `same-target-toolchain + lld` evidence. See `VALIDATION.md` Wave note for artifact path.
 - **12.11 (GitHub App CI + Repository Integrity green on final SHA):** CI auto-runs on push to `main`; result is not locally observable and must be confirmed from the GitHub Actions UI.
 
-Because the emulator-gated validation cannot run in this environment, the change is **NOT fully VALIDATED** and no completion checkpoint is claimed.
+The change is **NOT yet fully VALIDATED** — the remaining emulator-gated persistence/journey gates above block the exit checkpoint — but host AVD provisioning has been proven (build SUCCESSFUL, foreground PASS).
 
 ## Authoritative active change
 
@@ -49,10 +50,10 @@ The change contains proposal, design, machine-readable metadata, audit map, norm
 
 Tasks 0-11 are complete, including 10.2/10.3 game-ui migration now covering all 20
 games. Remaining unchecked items in `openspec/changes/006r-core-integrity-correction/tasks.md`
-are the emulator-gated `NOT VALIDATED` gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11
+are the emulator-gated persistence/journey gates (3.6, 6.8, 12.4, 12.7, 12.9) partially validated this wave via AVD `CRBABot_API_36` (see VALIDATION.md), plus 12.11
 (CI result confirmation). All other tasks are green locally (full Jest 2272 tests, tsc
-clean, lint clean across all games, repo-state/ownership/provenance validators PASS);
-no further code work is required on this host until an AVD/CI environment is available.
+clean, lint clean across all games, repo-state/ownership/provenance validators PASS,
+offline/provenance allowlist handled, warnings triaged to Low debt).
 
 ## Important invariants
 

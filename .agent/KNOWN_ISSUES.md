@@ -2,15 +2,10 @@
 
 ## Current blockers
 
-- **AVD/emulator validation gap (NOT VALIDATED, environment blocker)**: this
-  Windows host has no bootable Android emulator/AVD, so the emulator-gated
-  exit-gate tasks cannot run here — `3.6` (Word Match emulator smoke), `6.8`
-  (Daily Workout AVD journey), `12.4`, `12.7`, `12.9` (One-AVD smoke /
-  journeys). Recorded as NOT VALIDATED (never faked green); requires an AVD
-  session / CI emulator runner. This is a validation gap, not a product
-  defect.
+- **AVD/emulator validation — partially validated this session, remainder still blocked**: the `no AVD` was an environment gap; this wave provisioned `CRBABot_API_36` (API 36 x86_64 `-no-window`, Metro `packager-status:running`, `adb reverse tcp:8081`) and proved Home `testID`s + deep-linked `Memory`/`Tap Rush` `testID`s and session drive (see `VALIDATION.md` AVD hardening wave). Still `NOT VALIDATED` for the persistence/journey gates that require a full run: `3.6` (Word Match emulator smoke), `6.8` (Daily Workout AVD 4/4 + restart/resume), `12.4` (One-AVD per-game start/pause/finish/persist), `12.7`, `12.9` (One-AVD smoke canaries + targeted journeys). Recorded as NOT VALIDATED (never faked green); AVD is live for the next hardening slice. Not a product defect.
 - **12.11 CI confirmation pending**: GitHub App CI + Repository Integrity auto-run
   on push to `main`; their result is only observable from the GitHub Actions UI.
+- **Host NDK toolchain pinned per-host (SDK patch, reversible)**: the app NDK pin `27.0.12077973` lives in generated `android/gradle.properties` (`.gitignored` under `android/`, so not pushed — survives `prebuild --clean` but per-host). The SDK-side `27.1.12297006` fix (`android-legacy.toolchain.cmake` `c++_shared` + `-lstdc++`) is likewise a per-host reversible block with `BUILD SUCCESSFUL` evidence — not a blind forced upgrade; see open debt below and `VALIDATION.md`.
 
 ## Open debt (tracked, non-blocking)
 
@@ -34,6 +29,7 @@
 - **NativeTabs snapshot instability (tooling)**: router-tree snapshots
   contain per-render random `screenId`s; visual baselines render bare
   routes to stay deterministic (see visual-baselines test header).
+- **Host NDK / provenance-allowlist / warning-class handling (Low, 006R)**: the SDK NDK pinned `27.1.12297006 → 27.0.12077973` and the `android-legacy.toolchain.cmake` `c++_shared`/`-lstdc++` patch are warning-class fixes (same-target-toolchain `lld` mismatch evidence in `VALIDATION.md`) — no blind forced major upgrade, documented with reversible block + artifact path and `BUILD SUCCESSFUL 484 tasks` witness. Provenance validator allowlist (`.agent/provenance-allowlist.json`) is for non-semantic edits (comments/formatting) only; real generator/content changes still require `gameVersion`/`generatorVersion` bumps. The 187 `src/games` `eslint` unused-var/`import/no-duplicates` warnings stay as warnings (out of scope) — catalog is `0 errors` via the `6f75d09` JSX-entity + `memory-sequence-memory` state-driven label fix (no `eslint-disable` to hide it); deterministic replay snapshots cover the procedural/hybrid contract, `scripts/validate-provenance.mjs --check` is wired as a CI warning, not a fake green. XP/rating is clamped/verified by pipeline tests.
 
 ## Resolved during 006R
 

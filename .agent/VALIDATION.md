@@ -578,5 +578,20 @@ Checks actually run on local working state (after this wave):
 - `node scripts/validate-repo-state.mjs`: PASS.
 - `node scripts/validate-task-ownership.cjs`: PASS.
 - `npx --no-install openspec validate 006r-core-integrity-correction`: PASS.
+- Treatment of warnings/drift: the 187 `eslint` warnings and provenance allowlist are handled as warning-class (see the AVD hardening Wave below) — not promoted to errors, no blind version bump; documented in STATE/KNOWN_ISSUES per `.agent/VALIDATION.md` policy.
 
-Emulator-gated gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11 (GitHub CI) still NOT VALIDATED on this host — honestly recorded.
+Emulator-gated gates (3.6, 6.8, 12.4, 12.7, 12.9) and 12.11 (GitHub CI) still NOT VALIDATED on this host before the AVD wave below — honestly recorded.
+
+## Wave: 006R — AVD hardening (2026-08-20, on-device, AVD `CRBABot_API_36` / API 36 / x86_64 `-no-window`, Metro `packager-status:running`, `adb reverse tcp:8081` via `host-16`)
+
+Host toolchain: NDK `27.1.12297006` had a same-target-toolchain + `lld` mismatch — its `android-legacy.toolchain.cmake` emitted `--no-rosegment`/`-z` flags that its own bundled `lld` rejected (`BUILD FAILED` at `:react-native-screens:configureCMakeDebug[arm64-v8a]`). Fixed per-host with a reversible block: pinned `ndkVersion=27.0.12077973` in `apps/mobile/android/gradle.properties` (generated file, `.gitignored` under `android/`, so not pushed; survives `expo prebuild` clean) and patched `C:/.../Sdk/ndk/27.0.12077973/build/cmake/android-legacy.toolchain.cmake` to default `ANDROID_STL c++_shared` + force `-lstdc++` for `c++_shared` (plus same fix on `27.0.12077973` where the prefab cmake left the runtime unlinked — see nested `BT-METRO-NOW.LOG` / `gradle4` artifacts). `BUILD SUCCESSFUL in 9m 22s, 484 tasks (425 executed)`, `app-debug.apk 236340163 B`.
+
+On-device proof (all via emulator-local `adb` / `uiautomator` / `screencap`, no host mouse/keyboard):
+
+- `smoke-app.sh` fixed: `REPO_ROOT` → `${BT_REPO_ROOT:-${REPO_ROOT:-$PWD}}` + hierarchy via `bt_shell … uiautomator dump` / `bt_pull …` (the old `bt_adb shell`/`bt_adb pull` silently failed under Git Bash path translation / `CRBABot_API_36` name quirk) — committed `1108bed`.
+- Foreground: `mCurrentFocus=Window{... com.braintraining.app.MainActivity}` PASS.
+- Home: `home-brand`, `home-workout-game-*`, `home-workout-reroll` etc. PASS (Home `testID`s exposed after `Running "main"`).
+- Games detail → Game route: deep links `braintraining://game/memory` and `braintraining://game/speed-tap-rush` (scheme from `app.json`) → `game-title` correct (`Memory` / `Tap Rush`) + full `memory.screen` / `speed-tap-rush.intro` sets: `memory.difficulty.*`, `memory.start`, `memory.tile.*`, `speed-tap-rush.difficulty.*`, `speed-tap-rush.tutorial*`, `game-detail-play` etc. Screenshots: `qa-artifacts/memory-deeplink*.png`, `memory-after-skip.png`, `memory-in-session.png` (~32K hierarchy), `tap-rush-intro.png`, `tap-rush-in-session2.png` PASS.
+- Session drive: `Memory` `Skip tutorial (QA)` → `Start` → `input-grid` / `memory.tile.0..8` / `memory.score` / `memory.input-status` rendered; `QA toggle → force-win/lose → round-result / next-round` and `Round 1/5 → Next → Round 2` cycle driven; `Tap Rush` `Skip → Start → Round 1/4` driven; pause/round `testID`s verified. Round-level persistence / full 5-round exit / workout 4/4 journey (12.4, 6.8, 12.7, 12.9) not yet driven this session — AVD is live for the next hardening slice.
+
+Treatment of progression: `Memory`-pattern-tap-back` dedup / random-walk audit etc. were Black paths — handled per-game via SDK canaries + allowlist, not via the catalog lint wave above. See `KNOWN_ISSUES.md` open debt for the remaining emulator-gated `testIDs` (3.6, 6.8, 12.4, 12.7, 12.9).
