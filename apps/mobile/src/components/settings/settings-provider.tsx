@@ -1,14 +1,18 @@
 /**
- * Settings store — global sensory toggles (SFX / music / haptics).
+ * Settings store — global sensory toggles (SFX / haptics).
  *
- * Deliberately dependency-free for Wave 1: state is in-memory only and resets
- * on app restart. Persistence is NOT wired here per packet 001-a (no SQLite,
- * no AsyncStorage dependency). The persistence packet (001-b) will expose the
- * profile settings JSON; wiring the settings store to it (or to AsyncStorage,
- * once the orchestrator installs it) is a later convergence step.
+ * This provider owns the in-memory UI state for the sensory settings and, when
+ * wired, persists them into the profile settings JSON (`db/profile`). The
+ * production `AudioHapticsProvider` reads these flags and keeps the real engine
+ * in sync; persistence is supplied by the root layout via `onSettingsChange`.
  *
- * The Game SDK (packet 001-c) owns the audio/haptics service interfaces; this
- * store is the shell-level user preference source those services will read.
+ * Background music (`music`) is intentionally excluded: BGM is deferred
+ * (constitution §20 / DEFERRED_DECISIONS.md), so exposing a music toggle would
+ * be a non-functional control. The engine still supports `musicEnabled` for
+ * when BGM is implemented.
+ *
+ * The Game SDK (`@/sdk/audio-haptics*`) owns the service interfaces and the
+ * real implementation; this store is the shell-level user preference source.
  */
 
 import {
@@ -22,18 +26,17 @@ import {
 
 import { DEFAULT_THEME_ID } from '@/theme/registry';
 
-/** Sensory setting keys exposed toggles for. */
-export type SettingKey = 'sfx' | 'music' | 'haptics';
+/** Sensory setting keys exposed as toggles. */
+export type SettingKey = 'sfx' | 'haptics';
 
 export type Settings = Record<SettingKey, boolean>;
 
 export const DEFAULT_SETTINGS: Settings = {
   sfx: true,
-  music: true,
   haptics: true,
 };
 
-interface SettingsContextValue {
+export interface SettingsContextValue {
   settings: Settings;
   /** Set one toggle; other toggles are preserved. */
   setSetting: (key: SettingKey, value: boolean) => void;
@@ -47,17 +50,30 @@ const SettingsContext = createContext<SettingsContextValue | undefined>(undefine
 export function SettingsProvider({
   children,
   initialThemeId = DEFAULT_THEME_ID,
+  initialSettings,
+  onSettingsChange,
 }: {
   children: ReactNode;
   /** Persisted theme id read from profile settings at startup. */
   initialThemeId?: string;
+  /** Persisted sensory settings read from profile settings at startup. */
+  initialSettings?: Partial<Settings>;
+  /** Called whenever a sensory toggle changes, for persistence. */
+  onSettingsChange?: (settings: Settings) => void | Promise<void>;
 }) {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<Settings>({ ...DEFAULT_SETTINGS, ...initialSettings });
   const [themeId, setThemeId] = useState<string>(initialThemeId);
 
-  const setSetting = useCallback((key: SettingKey, value: boolean) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  }, []);
+  const setSetting = useCallback(
+    (key: SettingKey, value: boolean) => {
+      setSettings((prev) => {
+        const next = { ...prev, [key]: value };
+        onSettingsChange?.(next);
+        return next;
+      });
+    },
+    [onSettingsChange],
+  );
 
   const value = useMemo(
     () => ({ settings, setSetting, themeId, setThemeId }),

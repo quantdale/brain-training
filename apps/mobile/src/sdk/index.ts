@@ -21,9 +21,21 @@ export { testId } from './testid';
 export {
   createNoopAudioHaptics,
   noopAudioHaptics,
+  liveAudioHaptics,
+  getAudioHaptics,
+  setLiveAudioHaptics,
   DEFAULT_AUDIO_HAPTICS_SETTINGS,
+  FEEDBACK_EVENTS,
+  FEEDBACK_EVENT_MAP,
+  SFX_ALIASES,
 } from './audio-haptics';
-export type { AudioHapticsService, AudioHapticsSettings, HapticType, SfxName } from './audio-haptics';
+export type {
+  AudioHapticsService,
+  AudioHapticsSettings,
+  HapticType,
+  SfxName,
+  FeedbackEvent,
+} from './audio-haptics';
 export {
   createTutorialLifecycle,
   createInMemoryTutorialStore,

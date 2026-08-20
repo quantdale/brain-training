@@ -4,12 +4,16 @@ These are intentionally unresolved. Their absence is not permission for an agent
 
 ## Deferred implementation seams (classified, task 10.4)
 
-- Production audio/haptics feedback service: currently a documented no-op
-  (`noopAudioHaptics`). The sfx/music/haptics settings toggles are in-memory
-  user preferences only — they do not yet drive real sound/vibration and are
-  not persisted across restart (theme selection IS persisted). UI and parity
-  matrix reflect this; the seam is intentionally deferred, not presented as
-  functional completion.
+- Production audio/haptics feedback service: **implemented** (Wave
+  `parallel-wave-01/06-sensory-feedback`). The `AudioHapticsService` SDK seam
+  now has a real `expo-audio` + `expo-haptics` engine (`createAudioHaptics`),
+  a canonical feedback-event vocabulary, deterministic no-op + recording
+  test doubles, and dependency-free interfaces in `apps/mobile/src/sdk/
+  audio-haptics.ts`. sfx + haptics toggles persist into the profile settings
+  JSON; global/per-channel disable and asset lifecycle are handled. Music
+  (BGM) remains **deferred**: the engine supports `musicEnabled` but no
+  background-music control is exposed in the UI (a silent toggle would
+  misrepresent reality). Theme selection IS persisted.
 
 ## Product decisions deferred
 

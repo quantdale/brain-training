@@ -146,7 +146,6 @@ describe('app shell', () => {
 
     expect(screen.getByTestId('profile-identity')).toBeOnTheScreen();
     expect(screen.getByTestId('settings-sfx')).toBeOnTheScreen();
-    expect(screen.getByTestId('settings-music')).toBeOnTheScreen();
     expect(screen.getByTestId('settings-haptics')).toBeOnTheScreen();
   });
 
