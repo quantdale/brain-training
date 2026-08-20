@@ -1,23 +1,25 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
-import type { SQLiteAdapter } from '../adapter';
-import { LedgerRepository } from '../ledger';
-import { ProfileRepository } from '../profile';
-import { INITIAL_RATING, RatingRepository } from '../rating';
-import { SessionRepository } from '../sessions';
-import type { CompleteSessionInput, GameSessionRecord } from '../types';
-import { createMigratedDb } from './helpers';
+import { beforeEach, describe, expect, it } from "@jest/globals";
+import type { SQLiteAdapter } from "../adapter";
+import { LedgerRepository } from "../ledger";
+import { ProfileRepository } from "../profile";
+import { INITIAL_RATING, RatingRepository } from "../rating";
+import { SessionRepository } from "../sessions";
+import type { CompleteSessionInput, GameSessionRecord } from "../types";
+import { createMigratedDb } from "./helpers";
 
 const T0 = 1_700_000_000_000;
 
-function makeSession(overrides: Partial<GameSessionRecord> = {}): GameSessionRecord {
+function makeSession(
+  overrides: Partial<GameSessionRecord> = {},
+): GameSessionRecord {
   return {
-    id: 'session-1',
-    gameId: 'game-memoria',
+    id: "session-1",
+    gameId: "game-memoria",
     gameVersion: 1000000,
     generatorVersion: 2,
     scoringVersion: 1000000,
     seed: 42,
-    difficulty: { mode: 'normal' },
+    difficulty: { mode: "normal" },
     rawResult: { score: 120, accuracy: 0.87 },
     normalizedResult: 0.75,
     xp: 50,
@@ -28,8 +30,8 @@ function makeSession(overrides: Partial<GameSessionRecord> = {}): GameSessionRec
   };
 }
 
-describe('completeSession', () => {
-  it('commits session + ledger + profile touch atomically', async () => {
+describe("completeSession", () => {
+  it("commits session + ledger + profile touch atomically", async () => {
     const adapter = await createMigratedDb();
     let now = T0;
     const sessions = new SessionRepository(adapter, () => now);
@@ -39,23 +41,23 @@ describe('completeSession', () => {
 
     const input: CompleteSessionInput = {
       session: makeSession(),
-      currency: { amount: 25, reason: 'session_reward' },
+      currency: { amount: 25, reason: "session_reward" },
     };
     now = T0 + 90_000 + 5_000; // profile touch happens after completion
     const result = await sessions.completeSession(input);
 
     // Session row persisted with JSON round-trip intact.
-    const stored = await sessions.getById('session-1');
+    const stored = await sessions.getById("session-1");
     expect(stored).toEqual(input.session);
-    expect(stored?.difficulty).toEqual({ mode: 'normal' });
+    expect(stored?.difficulty).toEqual({ mode: "normal" });
     expect(stored?.rawResult).toEqual({ score: 120, accuracy: 0.87 });
 
     // Ledger entry references the session and is timestamped with completion.
     expect(result.ledgerEntry).toEqual({
       id: 1,
       amount: 25,
-      reason: 'session_reward',
-      sessionId: 'session-1',
+      reason: "session_reward",
+      sessionId: "session-1",
       createdAt: T0 + 90_000,
     });
     expect(await ledger.list()).toHaveLength(1);
@@ -66,7 +68,7 @@ describe('completeSession', () => {
     expect((await profile.get())?.updatedAt).toBe(T0 + 95_000);
   });
 
-  it('works without a currency entry (session + profile touch only)', async () => {
+  it("works without a currency entry (session + profile touch only)", async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter, () => T0);
     const ledger = new LedgerRepository(adapter);
@@ -81,7 +83,7 @@ describe('completeSession', () => {
     expect((await profile.get())?.updatedAt).toBe(T0);
   });
 
-  it('rolls back everything when the transaction fails mid-way', async () => {
+  it("rolls back everything when the transaction fails mid-way", async () => {
     const adapter = await createMigratedDb();
     let now = T0;
     const sessions = new SessionRepository(adapter, () => now);
@@ -94,26 +96,26 @@ describe('completeSession', () => {
     await expect(
       sessions.completeSession({
         session: invalid,
-        currency: { amount: 100, reason: 'should never persist' },
+        currency: { amount: 100, reason: "should never persist" },
       }),
     ).rejects.toThrow(/completedAt/);
 
     // No partial session, no ledger entry, balance untouched, profile untouched.
-    expect(await sessions.getById('session-1')).toBeNull();
+    expect(await sessions.getById("session-1")).toBeNull();
     expect(await ledger.list()).toHaveLength(0);
     expect(await ledger.getBalance()).toBe(0);
     expect((await profile.get())?.updatedAt).toBe(updatedAtBefore);
 
     // The database is still fully usable afterwards.
     const ok = await sessions.completeSession({
-      session: makeSession({ id: 'session-2' }),
-      currency: { amount: 10, reason: 'session_reward' },
+      session: makeSession({ id: "session-2" }),
+      currency: { amount: 10, reason: "session_reward" },
     });
     expect(ok.balance).toBe(10);
-    expect(await sessions.getById('session-2')).not.toBeNull();
+    expect(await sessions.getById("session-2")).not.toBeNull();
   });
 
-  it('rolls back a partially-written transaction on a mid-transaction failure', async () => {
+  it("rolls back a partially-written transaction on a mid-transaction failure", async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter, () => T0);
     const ledger = new LedgerRepository(adapter, () => T0);
@@ -124,54 +126,84 @@ describe('completeSession', () => {
     // Inject a failure AFTER the session INSERT succeeds: any ledger INSERT
     // aborts, forcing a mid-transaction error like a crash would.
     await adapter.exec(
-      'CREATE TRIGGER trg_test_block_ledger BEFORE INSERT ON currency_ledger ' +
+      "CREATE TRIGGER trg_test_block_ledger BEFORE INSERT ON currency_ledger " +
         "BEGIN SELECT RAISE(ABORT, 'test block'); END",
     );
 
     await expect(
       sessions.completeSession({
         session: makeSession(),
-        currency: { amount: 25, reason: 'session_reward' },
+        currency: { amount: 25, reason: "session_reward" },
       }),
     ).rejects.toThrow(/test block/);
 
     // The session row written earlier in the same transaction is gone too.
-    expect(await sessions.getById('session-1')).toBeNull();
+    expect(await sessions.getById("session-1")).toBeNull();
     expect(await ledger.list()).toHaveLength(0);
     expect(await ledger.getBalance()).toBe(0);
     expect((await profile.get())?.updatedAt).toBe(updatedAtBefore);
   });
 
-  it('rejects duplicate session ids and keeps the original row', async () => {
+  it("is idempotent for duplicate session ids: returns the original row, awards nothing extra", async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter);
-    await sessions.completeSession({ session: makeSession() });
+    const first = await sessions.completeSession({ session: makeSession() });
+    const balanceAfterFirst = first.balance;
+    const ledgerCountAfterFirst = (
+      await adapter.all("SELECT * FROM currency_ledger")
+    ).length;
 
-    await expect(
-      sessions.completeSession({ session: makeSession(), currency: { amount: 5, reason: 'dup' } }),
-    ).rejects.toThrow();
+    // A retried/replayed completion of the same session id must NOT throw,
+    // must NOT re-award currency or ratings, and must return the stored row.
+    const second = await sessions.completeSession({
+      session: makeSession(),
+      currency: { amount: 5, reason: "dup" },
+    });
+    expect(second.session.id).toBe("session-1");
+    expect(second.session.xp).toBe(50); // original, not overwritten
+    expect(second.completionOutcome).toBeNull(); // nothing freshly applied
+    expect(second.balance).toBe(balanceAfterFirst);
 
-    const stored = await sessions.getById('session-1');
+    const stored = await sessions.getById("session-1");
     expect(stored?.xp).toBe(50); // original, not overwritten
-    expect((await adapter.all('SELECT * FROM currency_ledger'))).toHaveLength(0);
+    // No extra ledger entry and no extra session row from the replay.
+    expect(await adapter.all("SELECT * FROM currency_ledger")).toHaveLength(
+      ledgerCountAfterFirst,
+    );
+    expect(await adapter.all("SELECT * FROM game_sessions")).toHaveLength(1);
+    expect(await adapter.all("SELECT * FROM rating_history")).toHaveLength(0);
+  });
+
+  it("stamps the gameplay currency award with a stable operation_id for idempotent import", async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter);
+    await sessions.completeSession({
+      session: makeSession(),
+      currency: { amount: 5, reason: "session_reward" },
+    });
+    const row = await adapter.get<{ operation_id: string | null }>(
+      "SELECT operation_id FROM currency_ledger WHERE session_id = ?",
+      ["session-1"],
+    );
+    expect(row?.operation_id).toBe("gameplay:session-1");
   });
 });
 
-describe('completeSession with rating service', () => {
+describe("completeSession with rating service", () => {
   const ratingService = {
     async compute() {
       return {
         xp: 77,
         currency: 15,
         deltas: [
-          { domain: 'Memory', delta: 6 },
-          { domain: 'Attention', delta: 3 },
+          { domain: "Memory", delta: 6 },
+          { domain: "Attention", delta: 3 },
         ],
       };
     },
   };
 
-  it('applies the outcome atomically: xp override, currency award, rating history', async () => {
+  it("applies the outcome atomically: xp override, currency award, rating history", async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter, () => T0, ratingService);
     const ratings = new RatingRepository(adapter, () => T0);
@@ -185,38 +217,38 @@ describe('completeSession with rating service', () => {
       xp: 77,
       currency: 15,
       deltas: [
-        { domain: 'Memory', delta: 6 },
-        { domain: 'Attention', delta: 3 },
+        { domain: "Memory", delta: 6 },
+        { domain: "Attention", delta: 3 },
       ],
       balance: 15,
     });
-    expect((await sessions.getById('session-1'))?.xp).toBe(77);
+    expect((await sessions.getById("session-1"))?.xp).toBe(77);
 
     // Currency award appended with the session's completion timestamp.
     expect(result.ledgerEntry).toEqual({
       id: 1,
       amount: 15,
-      reason: 'gameplay',
-      sessionId: 'session-1',
+      reason: "gameplay",
+      sessionId: "session-1",
       createdAt: T0 + 90_000,
     });
     expect(await ledger.getBalance()).toBe(15);
 
     // Domain ratings moved and history recorded per delta.
-    expect(await ratings.getRating('Memory')).toMatchObject({
-      domain: 'Memory',
+    expect(await ratings.getRating("Memory")).toMatchObject({
+      domain: "Memory",
       rating: INITIAL_RATING + 6,
       sessions: 1,
     });
-    expect(await ratings.getRating('Attention')).toMatchObject({
-      domain: 'Attention',
+    expect(await ratings.getRating("Attention")).toMatchObject({
+      domain: "Attention",
       rating: INITIAL_RATING + 3,
       sessions: 1,
     });
     const history = await ratings.getHistory();
     expect(history.map((h) => ({ domain: h.domain, delta: h.delta }))).toEqual([
-      { domain: 'Attention', delta: 3 },
-      { domain: 'Memory', delta: 6 },
+      { domain: "Attention", delta: 3 },
+      { domain: "Memory", delta: 6 },
     ]);
 
     // completionOutcome contains the authoritative result for UI rendering.
@@ -225,68 +257,71 @@ describe('completeSession with rating service', () => {
       xp: 77,
       currency: 15,
       deltas: [
-        { domain: 'Memory', delta: 6, ratingAfter: INITIAL_RATING + 6 },
-        { domain: 'Attention', delta: 3, ratingAfter: INITIAL_RATING + 3 },
+        { domain: "Memory", delta: 6, ratingAfter: INITIAL_RATING + 6 },
+        { domain: "Attention", delta: 3, ratingAfter: INITIAL_RATING + 3 },
       ],
       balance: 15,
     });
   });
 
-  it('ignores ambiguous caller currency when a rating service awards currency (task 7.6)', async () => {
+  it("ignores ambiguous caller currency when a rating service awards currency (task 7.6)", async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter, () => T0, ratingService);
     const ledger = new LedgerRepository(adapter, () => T0);
 
     const result = await sessions.completeSession({
       session: makeSession(),
-      currency: { amount: 5, reason: 'quest' },
+      currency: { amount: 5, reason: "quest" },
     });
 
     // Ownership is unambiguous: with a rating service present it owns the
     // gameplay currency award and the caller-supplied entry is ignored, so the
     // same completion event is never double-awarded.
     const entries = await ledger.list();
-    expect(entries.map((e) => ({ amount: e.amount, reason: e.reason }))).toEqual([
-      { amount: 15, reason: 'gameplay' },
-    ]);
+    expect(
+      entries.map((e) => ({ amount: e.amount, reason: e.reason })),
+    ).toEqual([{ amount: 15, reason: "gameplay" }]);
     expect(await ledger.getBalance()).toBe(15);
-    expect(result.ledgerEntry).toMatchObject({ amount: 15, reason: 'gameplay' });
+    expect(result.ledgerEntry).toMatchObject({
+      amount: 15,
+      reason: "gameplay",
+    });
   });
 
-  it('rolls back everything when the rating service throws', async () => {
+  it("rolls back everything when the rating service throws", async () => {
     const adapter = await createMigratedDb();
     const failing = {
       async compute() {
-        throw new Error('rating boom');
+        throw new Error("rating boom");
       },
     };
     const sessions = new SessionRepository(adapter, () => T0, failing);
     const ledger = new LedgerRepository(adapter, () => T0);
     const ratings = new RatingRepository(adapter, () => T0);
 
-    await expect(sessions.completeSession({ session: makeSession() })).rejects.toThrow(
-      'rating boom',
-    );
+    await expect(
+      sessions.completeSession({ session: makeSession() }),
+    ).rejects.toThrow("rating boom");
 
-    expect(await sessions.getById('session-1')).toBeNull();
+    expect(await sessions.getById("session-1")).toBeNull();
     expect(await ledger.getBalance()).toBe(0);
-    expect(await adapter.all('SELECT * FROM rating_history')).toHaveLength(0);
-    expect(await adapter.all('SELECT * FROM domain_ratings')).toHaveLength(0);
+    expect(await adapter.all("SELECT * FROM rating_history")).toHaveLength(0);
+    expect(await adapter.all("SELECT * FROM domain_ratings")).toHaveLength(0);
     expect(await ratings.getHistory()).toHaveLength(0);
   });
 
-  it('reports rating null and keeps the game xp without a rating service', async () => {
+  it("reports rating null and keeps the game xp without a rating service", async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter, () => T0);
 
     const result = await sessions.completeSession({ session: makeSession() });
     expect(result.rating).toBeNull();
     expect(result.session.xp).toBe(50);
-    expect(await adapter.all('SELECT * FROM rating_history')).toHaveLength(0);
+    expect(await adapter.all("SELECT * FROM rating_history")).toHaveLength(0);
   });
 });
 
-describe('session queries', () => {
+describe("session queries", () => {
   let adapter: SQLiteAdapter;
   let sessions: SessionRepository;
 
@@ -295,86 +330,111 @@ describe('session queries', () => {
     sessions = new SessionRepository(adapter);
   });
 
-  it('getTotalXp sums all completed sessions', async () => {
+  it("getTotalXp sums all completed sessions", async () => {
     expect(await sessions.getTotalXp()).toBe(0);
-    await sessions.completeSession({ session: makeSession({ id: 'a', xp: 50 }) });
-    await sessions.completeSession({ session: makeSession({ id: 'b', xp: 80 }) });
-    await sessions.completeSession({ session: makeSession({ id: 'c', xp: 30 }) });
+    await sessions.completeSession({
+      session: makeSession({ id: "a", xp: 50 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: "b", xp: 80 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: "c", xp: 30 }),
+    });
     expect(await sessions.getTotalXp()).toBe(160);
   });
 
-  it('listByGame returns newest-first sessions for one game only', async () => {
+  it("listByGame returns newest-first sessions for one game only", async () => {
     await sessions.completeSession({
-      session: makeSession({ id: 'a', gameId: 'g1', completedAt: T0 + 1_000 }),
+      session: makeSession({ id: "a", gameId: "g1", completedAt: T0 + 1_000 }),
     });
     await sessions.completeSession({
-      session: makeSession({ id: 'b', gameId: 'g1', completedAt: T0 + 2_000 }),
+      session: makeSession({ id: "b", gameId: "g1", completedAt: T0 + 2_000 }),
     });
     await sessions.completeSession({
-      session: makeSession({ id: 'c', gameId: 'g2', completedAt: T0 + 3_000 }),
+      session: makeSession({ id: "c", gameId: "g2", completedAt: T0 + 3_000 }),
     });
 
-    const g1 = await sessions.listByGame('g1');
-    expect(g1.map((s) => s.id)).toEqual(['b', 'a']);
-    const g2 = await sessions.listByGame('g2');
-    expect(g2.map((s) => s.id)).toEqual(['c']);
+    const g1 = await sessions.listByGame("g1");
+    expect(g1.map((s) => s.id)).toEqual(["b", "a"]);
+    const g2 = await sessions.listByGame("g2");
+    expect(g2.map((s) => s.id)).toEqual(["c"]);
   });
 
-  it('listRecent returns newest-first sessions across games', async () => {
+  it("listRecent returns newest-first sessions across games", async () => {
     await sessions.completeSession({
-      session: makeSession({ id: 'a', gameId: 'g1', completedAt: T0 + 1_000 }),
+      session: makeSession({ id: "a", gameId: "g1", completedAt: T0 + 1_000 }),
     });
     await sessions.completeSession({
-      session: makeSession({ id: 'b', gameId: 'g1', completedAt: T0 + 2_000 }),
+      session: makeSession({ id: "b", gameId: "g1", completedAt: T0 + 2_000 }),
     });
     await sessions.completeSession({
-      session: makeSession({ id: 'c', gameId: 'g2', completedAt: T0 + 3_000 }),
+      session: makeSession({ id: "c", gameId: "g2", completedAt: T0 + 3_000 }),
     });
 
-    expect((await sessions.listRecent()).map((s) => s.id)).toEqual(['c', 'b', 'a']);
-    expect((await sessions.listRecent(2)).map((s) => s.id)).toEqual(['c', 'b']);
+    expect((await sessions.listRecent()).map((s) => s.id)).toEqual([
+      "c",
+      "b",
+      "a",
+    ]);
+    expect((await sessions.listRecent(2)).map((s) => s.id)).toEqual(["c", "b"]);
   });
 
-  it('getAggregates summarizes per-game analytics', async () => {
+  it("getAggregates summarizes per-game analytics", async () => {
     await sessions.completeSession({
-      session: makeSession({ id: 'a', gameId: 'g1', normalizedResult: 0.5, completedAt: T0 + 1_000 }),
+      session: makeSession({
+        id: "a",
+        gameId: "g1",
+        normalizedResult: 0.5,
+        completedAt: T0 + 1_000,
+      }),
     });
     await sessions.completeSession({
-      session: makeSession({ id: 'b', gameId: 'g1', normalizedResult: 0.8, completedAt: T0 + 2_000 }),
+      session: makeSession({
+        id: "b",
+        gameId: "g1",
+        normalizedResult: 0.8,
+        completedAt: T0 + 2_000,
+      }),
     });
     await sessions.completeSession({
-      session: makeSession({ id: 'c', gameId: 'g2', normalizedResult: 0.9, completedAt: T0 + 3_000 }),
+      session: makeSession({
+        id: "c",
+        gameId: "g2",
+        normalizedResult: 0.9,
+        completedAt: T0 + 3_000,
+      }),
     });
 
     const aggregates = await sessions.getAggregates();
     expect(aggregates).toHaveLength(2);
     expect(aggregates[0]).toEqual({
-      gameId: 'g2',
+      gameId: "g2",
       count: 1,
       avgNormalized: 0.9,
       bestNormalized: 0.9,
       lastCompletedAt: T0 + 3_000,
     });
     expect(aggregates[1]).toEqual({
-      gameId: 'g1',
+      gameId: "g1",
       count: 2,
       avgNormalized: 0.65,
       bestNormalized: 0.8,
       lastCompletedAt: T0 + 2_000,
     });
 
-    expect(await sessions.getGameAggregate('g1')).toEqual(aggregates[1]);
-    expect(await sessions.getGameAggregate('never-played')).toBeNull();
+    expect(await sessions.getGameAggregate("g1")).toEqual(aggregates[1]);
+    expect(await sessions.getGameAggregate("never-played")).toBeNull();
   });
 });
 
-describe('ledger queries', () => {
-  it('balance matches the sum of all entries, including debits', async () => {
+describe("ledger queries", () => {
+  it("balance matches the sum of all entries, including debits", async () => {
     const adapter = await createMigratedDb();
     const ledger = new LedgerRepository(adapter, () => T0);
-    await ledger.append({ amount: 10, reason: 'reward' });
-    await ledger.append({ amount: -3, reason: 'reroll' });
-    await ledger.append({ amount: 5, reason: 'quest' });
+    await ledger.append({ amount: 10, reason: "reward" });
+    await ledger.append({ amount: -3, reason: "reroll" });
+    await ledger.append({ amount: 5, reason: "quest" });
 
     expect(await ledger.getBalance()).toBe(12);
     const entries = await ledger.list();

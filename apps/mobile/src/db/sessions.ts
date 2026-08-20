@@ -1,6 +1,6 @@
-import type { SQLiteAdapter } from './adapter';
-import { LOCAL_PROFILE_ID } from './profile';
-import { RatingRepository } from './rating';
+import type { SQLiteAdapter } from "./adapter";
+import { LOCAL_PROFILE_ID } from "./profile";
+import { RatingRepository } from "./rating";
 import type {
   AppliedRatingDelta,
   CompleteSessionInput,
@@ -9,7 +9,7 @@ import type {
   LedgerEntry,
   RatingDelta,
   RatingService,
-} from './types';
+} from "./types";
 
 /**
  * Completed game sessions (constitution §9: "Completed sessions persist
@@ -36,18 +36,37 @@ interface SessionRow {
   duration_ms: number;
 }
 
-const INSERT_SESSION = `INSERT INTO game_sessions (
+const INSERT_SESSION = `INSERT OR IGNORE INTO game_sessions (
     id, game_id, game_version, generator_version, scoring_version, seed,
     difficulty_json, raw_result_json, normalized_result, xp,
     started_at, completed_at, duration_ms
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-const SELECT_SESSION_BY_ID = 'SELECT * FROM game_sessions WHERE id = ?';
+const SELECT_SESSION_BY_ID = "SELECT * FROM game_sessions WHERE id = ?";
+const SELECT_LEDGER_FOR_SESSION =
+  "SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE session_id = ? ORDER BY id ASC LIMIT 1";
+/** Stable idempotency key for a session's gameplay currency award. */
+const gameplayOperationId = (sessionId: string): string =>
+  `gameplay:${sessionId}`;
 const SELECT_SESSIONS_BY_GAME =
-  'SELECT * FROM game_sessions WHERE game_id = ? ORDER BY completed_at DESC LIMIT ?';
+  "SELECT * FROM game_sessions WHERE game_id = ? ORDER BY completed_at DESC LIMIT ?";
 const SELECT_SESSIONS_RECENT =
-  'SELECT * FROM game_sessions ORDER BY completed_at DESC LIMIT ?';
-const SELECT_TOTAL_XP = 'SELECT COALESCE(SUM(xp), 0) AS total FROM game_sessions';
+  "SELECT * FROM game_sessions ORDER BY completed_at DESC LIMIT ?";
+const SELECT_TOTAL_XP =
+  "SELECT COALESCE(SUM(xp), 0) AS total FROM game_sessions";
+const SELECT_COUNT = "SELECT COUNT(*) AS n FROM game_sessions";
+const SELECT_DISTINCT_GAME_COUNT =
+  "SELECT COUNT(DISTINCT game_id) AS n FROM game_sessions";
+const SELECT_DISTINCT_ACTIVITY_DATE_COUNT =
+  "SELECT COUNT(DISTINCT DATE(completed_at / 1000, 'unixepoch')) AS n FROM game_sessions";
+const SELECT_ACCURACY_SESSION_COUNT =
+  "SELECT COUNT(*) AS n FROM game_sessions WHERE normalized_result >= ?";
+const SELECT_BEST_NORMALIZED =
+  "SELECT COALESCE(MAX(normalized_result), 0) AS n FROM game_sessions";
+const SELECT_GAME_ID_COUNTS =
+  "SELECT game_id AS gameId, COUNT(*) AS n FROM game_sessions GROUP BY game_id";
+const SELECT_LIGHTWEIGHT =
+  "SELECT game_id AS gameId, xp, completed_at AS completedAt FROM game_sessions ORDER BY completed_at DESC LIMIT ?";
 const SELECT_AGGREGATES = `
   SELECT game_id AS gameId, COUNT(*) AS count,
          AVG(normalized_result) AS avgNormalized,
@@ -60,12 +79,14 @@ const SELECT_AGGREGATE_BY_GAME = `
          MAX(normalized_result) AS bestNormalized,
          MAX(completed_at) AS lastCompletedAt
   FROM game_sessions WHERE game_id = ? GROUP BY game_id`;
-const SELECT_BALANCE = 'SELECT balance FROM currency_balance';
+const SELECT_BALANCE = "SELECT balance FROM currency_balance";
 const INSERT_LEDGER_ENTRY =
-  'INSERT INTO currency_ledger (amount, reason, session_id, created_at) VALUES (?, ?, ?, ?)';
+  "INSERT INTO currency_ledger (amount, reason, session_id, created_at) VALUES (?, ?, ?, ?)";
+const INSERT_LEDGER_ENTRY_OP =
+  "INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)";
 const PROFILE_INSERT_IF_ABSENT =
-  'INSERT OR IGNORE INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)';
-const PROFILE_TOUCH = 'UPDATE profile SET updated_at = ? WHERE id = ?';
+  "INSERT OR IGNORE INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
+const PROFILE_TOUCH = "UPDATE profile SET updated_at = ? WHERE id = ?";
 
 /** JSON columns are always stored as JSON documents, never undefined. */
 function toJson(value: unknown): string {
@@ -88,8 +109,8 @@ function mapRow(row: SessionRow): GameSessionRecord {
     generatorVersion: row.generator_version,
     scoringVersion: row.scoring_version,
     seed: row.seed,
-    difficulty: fromJson(row.difficulty_json, 'difficulty_json', row.id),
-    rawResult: fromJson(row.raw_result_json, 'raw_result_json', row.id),
+    difficulty: fromJson(row.difficulty_json, "difficulty_json", row.id),
+    rawResult: fromJson(row.raw_result_json, "raw_result_json", row.id),
     normalizedResult: row.normalized_result,
     xp: row.xp,
     startedAt: row.started_at,
@@ -147,28 +168,40 @@ export class SessionRepository {
    * ledger entry (timestamped with the session's own completion time), and a
    * profile activity touch. Rolls back entirely on any failure.
    */
-  async completeSession(input: CompleteSessionInput): Promise<CompleteSessionResult> {
+  async completeSession(
+    input: CompleteSessionInput,
+  ): Promise<CompleteSessionResult> {
     const s = input.session;
 
     // Friendly validation up front; DB CHECK constraints back this up.
     if (!s.id) {
-      throw new Error('completeSession: session.id is required');
+      throw new Error("completeSession: session.id is required");
     }
     if (s.completedAt < s.startedAt) {
-      throw new Error('completeSession: completedAt must be >= startedAt');
+      throw new Error("completeSession: completedAt must be >= startedAt");
     }
     if (s.durationMs < 0) {
-      throw new Error('completeSession: durationMs must be >= 0');
+      throw new Error("completeSession: durationMs must be >= 0");
     }
 
     return this.adapter.transaction(async (txn) => {
       // When a rating service is configured, its outcome is authoritative for
       // XP/currency/ratings and must be computed before the session row exists
       // (the history rows reference the session id).
-      const outcome = this.rating ? await this.rating.compute({ session: s }) : null;
+      const outcome = this.rating
+        ? await this.rating.compute({ session: s })
+        : null;
       const xp = outcome ? outcome.xp : s.xp;
 
-      await txn.run(INSERT_SESSION, [
+      // Idempotent by session id (data-integrity requirement A/H: a retried or
+      // replayed completion of the same `session.id` must never award currency
+      // or ratings twice, and must not crash on the primary-key collision).
+      // `INSERT OR IGNORE` leaves an already-present row untouched and reports
+      // `changes === 0`; we only commit the gameplay currency award and rating
+      // deltas for a freshly inserted row. A replay is otherwise harmless (the
+      // profile touch below is idempotent) and the caller observes the
+      // already-persisted row via the result.
+      const insert = await txn.run(INSERT_SESSION, [
         s.id,
         s.gameId,
         s.gameVersion,
@@ -183,32 +216,36 @@ export class SessionRepository {
         s.completedAt,
         s.durationMs,
       ]);
+      const isNew = insert.changes > 0;
 
       // Ownership (task 7.6): when a rating service is configured it owns the
       // gameplay currency award; a caller-supplied `input.currency` is ignored
       // so the same completion event is never double-awarded. When no rating
-      // service is present the caller entry is the single owner.
+      // service is present the caller entry is the single owner. Rewards are
+      // only granted on the first (new) completion; replays are no-ops.
       let ledgerEntry: LedgerEntry | null = null;
-      if (outcome && outcome.currency > 0) {
-        const result = await txn.run(INSERT_LEDGER_ENTRY, [
+      if (isNew && outcome && outcome.currency > 0) {
+        const result = await txn.run(INSERT_LEDGER_ENTRY_OP, [
           outcome.currency,
-          'gameplay',
+          "gameplay",
           s.id,
           s.completedAt,
+          gameplayOperationId(s.id),
         ]);
         ledgerEntry = {
           id: result.lastInsertRowId,
           amount: outcome.currency,
-          reason: 'gameplay',
+          reason: "gameplay",
           sessionId: s.id,
           createdAt: s.completedAt,
         };
-      } else if (!outcome && input.currency) {
-        const result = await txn.run(INSERT_LEDGER_ENTRY, [
+      } else if (isNew && !outcome && input.currency) {
+        const result = await txn.run(INSERT_LEDGER_ENTRY_OP, [
           input.currency.amount,
           input.currency.reason,
           s.id,
           s.completedAt,
+          gameplayOperationId(s.id),
         ]);
         ledgerEntry = {
           id: result.lastInsertRowId,
@@ -221,40 +258,70 @@ export class SessionRepository {
 
       const deltas: readonly RatingDelta[] = outcome ? outcome.deltas : [];
       let appliedDeltas: readonly AppliedRatingDelta[] = [];
-      if (deltas.length > 0) {
-        appliedDeltas = await this.ratingRepository.applyDeltas(txn, s.id, deltas, s.completedAt);
+      if (isNew && deltas.length > 0) {
+        appliedDeltas = await this.ratingRepository.applyDeltas(
+          txn,
+          s.id,
+          deltas,
+          s.completedAt,
+        );
+      }
+
+      // On a duplicate completion we reflect the already-persisted row rather
+      // than re-awarding; no ledger entry or rating deltas are produced here.
+      let existing: SessionRow | null = null;
+      if (!isNew) {
+        existing = await txn.get<SessionRow>(SELECT_SESSION_BY_ID, [s.id]);
+        if (!existing) {
+          // Unreachable: INSERT OR IGNORE only skips on a primary-key conflict.
+          throw new Error(
+            `completeSession: missing existing row for duplicate id ${s.id}`,
+          );
+        }
       }
 
       // Profile touch: record activity so consumers can detect "last active".
       const touchAt = this.now();
-      await txn.run(PROFILE_INSERT_IF_ABSENT, [LOCAL_PROFILE_ID, '', '{}', touchAt, touchAt]);
+      await txn.run(PROFILE_INSERT_IF_ABSENT, [
+        LOCAL_PROFILE_ID,
+        "",
+        "{}",
+        touchAt,
+        touchAt,
+      ]);
       await txn.run(PROFILE_TOUCH, [touchAt, LOCAL_PROFILE_ID]);
 
       const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
       const balance = balanceRow?.balance ?? 0;
-      const stored = { ...s, xp };
+      // `existing` is non-null only on the duplicate path (the re-read above
+      // throws if it somehow missed), so the non-null assertion is safe.
+      const stored: GameSessionRecord = isNew
+        ? { ...s, xp }
+        : mapRow(existing!);
 
       // Build the authoritative completion outcome when a rating service is
-      // configured (constitution §15). This is the single source of truth for
-      // result UI; game screens should render from this rather than their own
-      // no-op XP hooks.
-      const completionOutcome: CompletionOutcome | null = outcome
-        ? {
-            session: stored,
-            xp: outcome.xp,
-            currency: outcome.currency,
-            deltas: appliedDeltas,
-            balance,
-          }
-        : null;
+      // configured and this is a fresh completion (constitution §15). On a
+      // duplicate replay we report no freshly-applied outcome (the persisted
+      // state is unchanged) but still surface the existing balance.
+      const completionOutcome: CompletionOutcome | null =
+        isNew && outcome
+          ? {
+              session: stored,
+              xp: outcome.xp,
+              currency: outcome.currency,
+              deltas: appliedDeltas,
+              balance,
+            }
+          : null;
 
       return {
         session: stored,
         ledgerEntry,
         balance,
-        rating: outcome
-          ? { xp: outcome.xp, currency: outcome.currency, deltas, balance }
-          : null,
+        rating:
+          isNew && outcome
+            ? { xp: outcome.xp, currency: outcome.currency, deltas, balance }
+            : null,
         completionOutcome,
       };
     });
@@ -267,13 +334,18 @@ export class SessionRepository {
 
   /** Most recent sessions for one game, newest first. */
   async listByGame(gameId: string, limit = 50): Promise<GameSessionRecord[]> {
-    const rows = await this.adapter.all<SessionRow>(SELECT_SESSIONS_BY_GAME, [gameId, limit]);
+    const rows = await this.adapter.all<SessionRow>(SELECT_SESSIONS_BY_GAME, [
+      gameId,
+      limit,
+    ]);
     return rows.map(mapRow);
   }
 
   /** Most recent sessions across all games, newest first. */
   async listRecent(limit = 50): Promise<GameSessionRecord[]> {
-    const rows = await this.adapter.all<SessionRow>(SELECT_SESSIONS_RECENT, [limit]);
+    const rows = await this.adapter.all<SessionRow>(SELECT_SESSIONS_RECENT, [
+      limit,
+    ]);
     return rows.map(mapRow);
   }
 
@@ -281,6 +353,72 @@ export class SessionRepository {
   async getTotalXp(): Promise<number> {
     const row = await this.adapter.get<{ total: number }>(SELECT_TOTAL_XP);
     return row?.total ?? 0;
+  }
+
+  /** Total completed sessions (O(1) aggregate; constitution §17). */
+  async getCount(): Promise<number> {
+    const row = await this.adapter.get<{ n: number }>(SELECT_COUNT);
+    return row?.n ?? 0;
+  }
+
+  /** Number of distinct games ever played (breadth, §B). */
+  async getDistinctGameCount(): Promise<number> {
+    const row = await this.adapter.get<{ n: number }>(
+      SELECT_DISTINCT_GAME_COUNT,
+    );
+    return row?.n ?? 0;
+  }
+
+  /** Number of distinct local calendar days with at least one session (consistency, §B). */
+  async getDistinctActivityDateCount(): Promise<number> {
+    const row = await this.adapter.get<{ n: number }>(
+      SELECT_DISTINCT_ACTIVITY_DATE_COUNT,
+    );
+    return row?.n ?? 0;
+  }
+
+  /** Count of sessions whose normalized performance reached `threshold` (accuracy, §B). */
+  async getAccuracySessionCount(threshold: number): Promise<number> {
+    const row = await this.adapter.get<{ n: number }>(
+      SELECT_ACCURACY_SESSION_COUNT,
+      [threshold],
+    );
+    return row?.n ?? 0;
+  }
+
+  /** Best single-session normalized performance ever reached (0..1, personal best, §B). */
+  async getBestNormalized(): Promise<number> {
+    const row = await this.adapter.get<{ n: number }>(SELECT_BEST_NORMALIZED);
+    return row?.n ?? 0;
+  }
+
+  /** Per-game session counts (at most one row per game; cheap for the catalog). */
+  async getGameIdCounts(): Promise<Record<string, number>> {
+    const rows = await this.adapter.all<{ gameId: string; n: number }>(
+      SELECT_GAME_ID_COUNTS,
+    );
+    const out: Record<string, number> = {};
+    for (const row of rows) {
+      out[row.gameId] = row.n;
+    }
+    return out;
+  }
+
+  /**
+   * Lightweight session projection for quest/achievement evaluation: only the
+   * columns those engines need (game id, xp, completion time) — no JSON blobs.
+   * Replaces `listRecent` for evaluation so large histories don't materialize
+   * every heavy row (scalability, §F). `completedAt` is the local completion
+   * epoch ms; callers map `gameId` → domain via the registry.
+   */
+  async listLightweight(
+    limit = 5000,
+  ): Promise<{ gameId: string; xp: number; completedAt: number }[]> {
+    return this.adapter.all<{
+      gameId: string;
+      xp: number;
+      completedAt: number;
+    }>(SELECT_LIGHTWEIGHT, [limit]);
   }
 
   /**
@@ -292,7 +430,7 @@ export class SessionRepository {
     const rows = await this.adapter.all<{ date: string }>(
       `SELECT DISTINCT DATE(completed_at / 1000, 'unixepoch') as date
        FROM game_sessions
-       ORDER BY date DESC`
+       ORDER BY date DESC`,
     );
     return rows.map((row) => row.date);
   }
@@ -308,7 +446,10 @@ export class SessionRepository {
 
   /** Aggregate for one game, or null when it has no sessions yet. */
   async getGameAggregate(gameId: string): Promise<GameAggregate | null> {
-    const row = await this.adapter.get<GameAggregateRow>(SELECT_AGGREGATE_BY_GAME, [gameId]);
+    const row = await this.adapter.get<GameAggregateRow>(
+      SELECT_AGGREGATE_BY_GAME,
+      [gameId],
+    );
     return row ? mapAggregateRow(row) : null;
   }
 }
