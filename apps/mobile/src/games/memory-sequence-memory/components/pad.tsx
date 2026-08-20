@@ -5,6 +5,7 @@
  * or 3×3); cell padding keeps the aspect-ratio tiles flush without
  * overflowing the row.
  */
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
@@ -21,7 +22,7 @@ export interface SequencePadProps {
   onPressTile: (index: number) => void;
 }
 
-export function SequencePad({
+export const SequencePad = memo(function SequencePad({
   tileCount,
   testID,
   visualFor,
@@ -37,13 +38,13 @@ export function SequencePad({
             index={index}
             visual={visualFor(index)}
             disabled={disabled}
-            onPress={() => onPressTile(index)}
+            onPressTile={onPressTile}
           />
         </View>
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   pad: {

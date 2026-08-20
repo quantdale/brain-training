@@ -433,7 +433,7 @@ export default function SpatialTransformMatchScreen(
                       pattern={opt}
                       selected={false}
                       correct={false}
-                      onPress={() => handleSelectOption(i)}
+                      onPressOption={handleSelectOption}
                     />
                   ))}
                 </View>

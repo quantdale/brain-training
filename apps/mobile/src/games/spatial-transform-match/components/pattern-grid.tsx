@@ -8,6 +8,7 @@
  * sizing instead of onLayout-measured pixel widths (see packet warning about
  * the memory game's width-reset bug).
  */
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -26,7 +27,7 @@ export interface PatternGridProps {
   accessibilityLabel?: string;
 }
 
-export function PatternGrid({
+export const PatternGrid = memo(function PatternGrid({
   gridSize,
   pattern,
   testID,
@@ -57,7 +58,7 @@ export function PatternGrid({
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   grid: {

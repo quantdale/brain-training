@@ -4,6 +4,7 @@
  * Each button represents one of the 6 palette colors. The player must tap
  * the button matching the swatch color (not the text color).
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -15,12 +16,18 @@ import { COLOR_HEX, GAME_ID, type ColorName } from '../types';
 
 export interface ColorButtonProps {
   color: ColorName;
+  /** Stable tap handler; receives the tapped color so memoized buttons skip re-renders. */
   onPress: (color: ColorName) => void;
   disabled?: boolean;
   testID?: string;
 }
 
-export function ColorButton({ color, onPress, disabled = false, testID }: ColorButtonProps) {
+export const ColorButton = memo(function ColorButton({
+  color,
+  onPress,
+  disabled = false,
+  testID,
+}: ColorButtonProps) {
   const theme = useTheme();
 
   return (
@@ -43,28 +50,28 @@ export function ColorButton({ color, onPress, disabled = false, testID }: ColorB
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 export interface ColorButtonGridProps {
   colors: readonly ColorName[];
+  /** Stable tap handler passed straight through to each memoized button. */
   onPress: (color: ColorName) => void;
   disabled?: boolean;
 }
 
-export function ColorButtonGrid({ colors, onPress, disabled }: ColorButtonGridProps) {
+export const ColorButtonGrid = memo(function ColorButtonGrid({
+  colors,
+  onPress,
+  disabled,
+}: ColorButtonGridProps) {
   return (
     <View style={styles.grid} testID={testId(GAME_ID, 'color-grid')}>
       {colors.map((color) => (
-        <ColorButton
-          key={color}
-          color={color}
-          onPress={onPress}
-          disabled={disabled}
-        />
+        <ColorButton key={color} color={color} onPress={onPress} disabled={disabled} />
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   grid: {

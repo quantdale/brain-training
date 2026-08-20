@@ -320,22 +320,27 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Option visuals (see OptionVisualState).
-  const visualFor = (index: number): OptionVisualState => {
-    if (state.phase === 'question' || state.round === null) {
-      return 'idle';
-    }
-    if (state.roundOutcome === 'correct') {
-      return index === state.lastAnswerIndex ? 'correct' : 'muted';
-    }
-    if (index === state.round.correctIndex) {
-      return 'correct';
-    }
-    if (index === state.lastAnswerIndex) {
-      return 'wrong';
-    }
-    return 'muted';
-  };
+  // ---- Option visuals (see OptionVisualState). Stable across re-renders:
+  // depends only on round-transition state, never on per-tick timers (the round
+  // expiry uses a one-shot timeout, so there is no per-tick re-render here).
+  const visualFor = useCallback(
+    (index: number): OptionVisualState => {
+      if (state.phase === 'question' || state.round === null) {
+        return 'idle';
+      }
+      if (state.roundOutcome === 'correct') {
+        return index === state.lastAnswerIndex ? 'correct' : 'muted';
+      }
+      if (index === state.round.correctIndex) {
+        return 'correct';
+      }
+      if (index === state.lastAnswerIndex) {
+        return 'wrong';
+      }
+      return 'muted';
+    },
+    [state.phase, state.round?.correctIndex, state.roundOutcome, state.lastAnswerIndex],
+  );
 
   const roundResultMessage =
     state.roundOutcome === 'correct'
@@ -422,7 +427,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
                       index={index}
                       label={word}
                       visual={visualFor(index)}
-                      onPress={() => handleAnswer(index)}
+                      onPressOption={handleAnswer}
                     />
                   ))}
                 </View>
@@ -466,7 +471,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
                       label={word}
                       visual={visualFor(index)}
                       disabled
-                      onPress={() => handleAnswer(index)}
+                      onPressOption={handleAnswer}
                     />
                   ))}
                 </View>

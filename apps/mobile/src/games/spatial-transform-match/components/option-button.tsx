@@ -5,6 +5,7 @@
  * of the source pattern. The selected state is highlighted via the theme's
  * accent color border.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -27,17 +28,21 @@ export interface OptionButtonProps {
   correct: boolean;
   /** Whether the option is disabled (e.g. after selection). */
   disabled?: boolean;
-  onPress?: () => void;
+  /**
+   * Stable tap handler supplied by the parent (avoid per-render closures so
+   * the memoized button skips re-renders). Receives this option's index.
+   */
+  onPressOption?: (index: number) => void;
 }
 
-export function OptionButton({
+export const OptionButton = memo(function OptionButton({
   index,
   gridSize,
   pattern,
   selected,
   correct,
   disabled = false,
-  onPress,
+  onPressOption,
 }: OptionButtonProps) {
   const theme = useTheme();
 
@@ -57,7 +62,7 @@ export function OptionButton({
       accessibilityLabel={`Option ${index + 1}`}
       accessibilityState={{ disabled, selected }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressOption ? () => onPressOption(index) : undefined}
       style={({ pressed }) => [
         styles.container,
         {
@@ -73,7 +78,7 @@ export function OptionButton({
       />
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

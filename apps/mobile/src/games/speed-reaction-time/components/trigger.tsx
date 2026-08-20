@@ -7,6 +7,7 @@
  * the screen captures the monotonic clock reading at the exact render where
  * `active` turns true (see screen.tsx `goAtMs`).
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -17,12 +18,13 @@ export interface TriggerButtonProps {
   /** True when the GO signal is displayed (accent fill + "GO!" label). */
   active: boolean;
   disabled?: boolean;
+  /** Stable tap handler (memoized button skips re-renders). */
   onPress: () => void;
   /** Semantic testID of the trigger surface. */
   testID: string;
 }
 
-export function TriggerButton({
+export const TriggerButton = memo(function TriggerButton({
   active,
   disabled = false,
   onPress,
@@ -53,7 +55,7 @@ export function TriggerButton({
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   trigger: {

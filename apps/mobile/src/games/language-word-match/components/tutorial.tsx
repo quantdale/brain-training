@@ -13,7 +13,7 @@
  *
  * Migrated to shared `TutorialFrame` + `GameButton` (campaign 006R); mechanics stay local.
  */
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -127,15 +127,18 @@ function DemoRound({ attempt, onRetry, onDone, onSkip }: DemoRoundProps) {
     return index === pickedIndex ? 'wrong' : 'muted';
   };
 
-  const handlePick = (index: number) => {
-    if (answered) {
-      return;
-    }
-    setPickedIndex(index);
-    if (index === round.correctIndex) {
-      onDone();
-    }
-  };
+  const handlePick = useCallback(
+    (index: number) => {
+      if (answered) {
+        return;
+      }
+      setPickedIndex(index);
+      if (index === round.correctIndex) {
+        onDone();
+      }
+    },
+    [answered, round.correctIndex, onDone],
+  );
 
   return (
     <View style={styles.body}>
@@ -156,7 +159,7 @@ function DemoRound({ attempt, onRetry, onDone, onSkip }: DemoRoundProps) {
             label={word}
             visual={visualFor(index)}
             disabled={answered}
-            onPress={() => handlePick(index)}
+            onPressOption={handlePick}
           />
         ))}
       </View>

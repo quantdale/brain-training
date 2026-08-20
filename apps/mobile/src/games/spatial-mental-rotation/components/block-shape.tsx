@@ -10,6 +10,7 @@
  * records `colorIndex` (see `BLOCK_COLOR_COUNT`), so light/dark mode changes
  * never affect puzzle determinism.
  */
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -39,7 +40,7 @@ export interface BlockShapeProps {
   size?: number;
 }
 
-export function BlockShape({ blocks, kind, size = SHAPE_CANVAS }: BlockShapeProps) {
+export const BlockShape = memo(function BlockShape({ blocks, kind, size = SHAPE_CANVAS }: BlockShapeProps) {
   const theme = useTheme();
 
   let minX = 0;
@@ -81,7 +82,7 @@ export function BlockShape({ blocks, kind, size = SHAPE_CANVAS }: BlockShapeProp
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   canvas: {

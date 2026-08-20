@@ -9,7 +9,7 @@
  */
 
 import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -69,7 +69,11 @@ export default function ResultsScreen() {
 
   return (
     <ScreenShell>
-      <Pressable testID="results-back" accessibilityRole="button" onPress={() => router.back()}>
+      <Pressable
+        testID="results-back"
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        onPress={() => router.back()}>
         <ThemedText type="smallBold" themeColor="accent">
           ‹ Back
         </ThemedText>

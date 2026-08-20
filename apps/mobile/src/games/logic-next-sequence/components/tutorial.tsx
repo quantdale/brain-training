@@ -143,7 +143,7 @@ function DemoPuzzle({ attempt, onWrong, onDone, onSkip }: DemoPuzzleProps) {
             index={index}
             label={String(value)}
             visual={wrongIndex !== null && index === wrongIndex ? 'wrong' : 'idle'}
-            onPress={() => handleTap(index)}
+            onPressOption={handleTap}
           />
         ))}
       </View>

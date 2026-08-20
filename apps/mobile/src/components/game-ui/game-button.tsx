@@ -19,6 +19,10 @@ export interface GameButtonProps {
   variant?: 'primary' | 'secondary' | 'danger';
   small?: boolean;
   disabled?: boolean;
+  /** Marks the control as the active/selected choice (e.g. a chosen difficulty). */
+  selected?: boolean;
+  /** Optional screen-reader hint describing the action's result. */
+  hint?: string;
 }
 
 export const GameButton = memo(function GameButton({
@@ -28,6 +32,8 @@ export const GameButton = memo(function GameButton({
   variant = 'primary',
   small = false,
   disabled = false,
+  selected = false,
+  hint,
 }: GameButtonProps) {
   const theme = useTheme();
   const filled = variant !== 'secondary';
@@ -39,7 +45,8 @@ export const GameButton = memo(function GameButton({
     <Pressable
       testID={testID}
       accessibilityRole="button"
-      accessibilityState={{ disabled, busy: false }}
+      accessibilityState={{ disabled, selected, busy: false }}
+      accessibilityHint={hint}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -54,6 +61,9 @@ export const GameButton = memo(function GameButton({
   );
 });
 
+// Minimum recommended touch target (44pt) per platform accessibility guidance.
+const HIT_TARGET_MIN = 44;
+
 const styles = StyleSheet.create({
   button: {
     alignSelf: 'flex-start',
@@ -62,10 +72,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.twoHalf,
     paddingHorizontal: Spacing.four,
     minWidth: 120,
+    minHeight: HIT_TARGET_MIN,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   small: {
     minWidth: 96,
+    minHeight: HIT_TARGET_MIN,
     paddingVertical: Spacing.oneHalf,
     paddingHorizontal: Spacing.three,
   },

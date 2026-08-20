@@ -309,21 +309,25 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Option visual state for the current round.
-  const optionVisualFor = (index: number): 'idle' | 'selected' | 'correct' | 'wrong' => {
-    if (state.phase === 'play') {
-      return index === state.selectedIndex ? 'selected' : 'idle';
-    }
-    if (state.phase === 'roundResult' && state.currentRound !== null) {
-      if (index === state.currentRound.correctIndex) {
-        return 'correct';
+  // ---- Option visual state for the current round. Stable across re-renders:
+  // depends only on round-transition state (no per-tick timer drives this screen).
+  const optionVisualFor = useCallback(
+    (index: number): 'idle' | 'selected' | 'correct' | 'wrong' => {
+      if (state.phase === 'play') {
+        return index === state.selectedIndex ? 'selected' : 'idle';
       }
-      if (index === state.selectedIndex && state.roundOutcome === 'failed') {
-        return 'wrong';
+      if (state.phase === 'roundResult' && state.currentRound !== null) {
+        if (index === state.currentRound.correctIndex) {
+          return 'correct';
+        }
+        if (index === state.selectedIndex && state.roundOutcome === 'failed') {
+          return 'wrong';
+        }
       }
-    }
-    return 'idle';
-  };
+      return 'idle';
+    },
+    [state.phase, state.selectedIndex, state.roundOutcome, state.currentRound?.correctIndex],
+  );
 
   return (
     <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
@@ -391,7 +395,7 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
                       index={i}
                       label={option}
                       visual={optionVisualFor(i)}
-                      onPress={() => handleSelectOption(i)}
+                      onPressOption={handleSelectOption}
                     />
                   ))}
                 </View>
@@ -423,7 +427,7 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
                       label={option}
                       visual={optionVisualFor(i)}
                       disabled
-                      onPress={() => {}}
+                      onPressOption={handleSelectOption}
                     />
                   ))}
                 </View>

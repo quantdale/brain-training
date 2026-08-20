@@ -362,21 +362,27 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Round card visuals (see CardVisualState).
-  const visualFor = (index: number): CardVisualState => {
-    if (state.round === null) {
+  // ---- Round card visuals (see CardVisualState). Depends only on
+  // round-transition state; the screen has no per-tick re-render here, but
+  // memoizing keeps the grid + cards from needless re-renders on unrelated
+  // state changes.
+  const visualFor = useCallback(
+    (index: number): CardVisualState => {
+      if (state.round === null) {
+        return 'idle';
+      }
+      if (state.phase === 'roundResult') {
+        if (index === state.round.correctIndex) {
+          return 'selected';
+        }
+        if (state.roundOutcome === 'wrong' && index === state.lastPickIndex) {
+          return 'error';
+        }
+      }
       return 'idle';
-    }
-    if (state.phase === 'roundResult') {
-      if (index === state.round.correctIndex) {
-        return 'selected';
-      }
-      if (state.roundOutcome === 'wrong' && index === state.lastPickIndex) {
-        return 'error';
-      }
-    }
-    return 'idle';
-  };
+    },
+    [state.round, state.phase, state.roundOutcome, state.lastPickIndex],
+  );
 
   return (
     <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
@@ -436,6 +442,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
                 <RuleBanner rule={state.round.rule} />
                 <View style={styles.targetRow} testID={testId(GAME_ID, 'target')}>
                   <CardView
+                    index={-1}
                     card={state.round.target}
                     testID={testId(GAME_ID, 'target-card')}
                     disabled

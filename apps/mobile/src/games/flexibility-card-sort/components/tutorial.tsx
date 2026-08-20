@@ -199,7 +199,7 @@ function Demo({ step, onWrong, onSwitch, onNoticeContinue, onDone, onSkip }: Dem
       </ThemedText>
       <RuleBanner rule={round.rule} />
       <View style={styles.targetRow} testID={testId(GAME_ID, 'tutorial-target')}>
-        <CardView card={round.target} testID={testId(GAME_ID, 'tutorial-target-card')} disabled />
+        <CardView index={-1} card={round.target} testID={testId(GAME_ID, 'tutorial-target-card')} disabled />
       </View>
       <CardGrid
         candidates={round.candidates}

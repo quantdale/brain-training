@@ -5,29 +5,37 @@
  * parent passes a highlight: `correct` fills the button with the accent color
  * and `wrong` with the danger color. Buttons are disabled once the round is
  * resolved.
+ *
+ * The button is `memo`ized and takes a stable `onPressOperator` (value-based)
+ * so the round-resolution highlight flips without re-creating closures. The
+ * row container is also `memo`ized so it skips re-renders when unrelated
+ * state changes.
  */
-import { Pressable, StyleSheet } from 'react-native';
+import { memo } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { testId } from '@/sdk';
 
-import { OPERATOR_GLYPHS } from '../types';
+import { OPERATOR_GLYPHS, GAME_ID } from '../types';
 import type { Operator } from '../types';
 
 export interface OperatorButtonProps {
   operator: Operator;
   testID: string;
-  onPress: () => void;
+  /** Stable tap handler supplied by the row (avoids per-render closures). */
+  onPressOperator?: (operator: Operator) => void;
   disabled?: boolean;
   /** Round-resolution highlight; null while the round is open. */
   highlight?: 'correct' | 'wrong' | null;
 }
 
-export function OperatorButton({
+export const OperatorButton = memo(function OperatorButton({
   operator,
   testID,
-  onPress,
+  onPressOperator,
   disabled = false,
   highlight = null,
 }: OperatorButtonProps) {
@@ -45,10 +53,11 @@ export function OperatorButton({
     <Pressable
       testID={testID}
       accessibilityRole="button"
+      // Neutral label — the operator symbol is a choice, not the secret answer.
       accessibilityLabel={`Operator ${OPERATOR_GLYPHS[operator]}`}
-      accessibilityState={{ disabled, busy: false }}
+      accessibilityState={{ disabled, selected: highlight === 'correct' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressOperator ? () => onPressOperator(operator) : undefined}
       style={({ pressed }) => [
         styles.button,
         {
@@ -62,7 +71,38 @@ export function OperatorButton({
       </ThemedText>
     </Pressable>
   );
+});
+
+export interface OperatorRowProps {
+  operators: readonly Operator[];
+  disabled?: boolean;
+  /** Stable visual resolver (depends only on round-resolution state). */
+  highlightFor: (operator: Operator) => 'correct' | 'wrong' | null;
+  /** Stable tap handler; passed through so memoized buttons skip re-renders. */
+  onPressOperator: (operator: Operator) => void;
 }
+
+export const OperatorRow = memo(function OperatorRow({
+  operators,
+  disabled = false,
+  highlightFor,
+  onPressOperator,
+}: OperatorRowProps) {
+  return (
+    <View style={styles.row} testID={testId(GAME_ID, 'operators')}>
+      {operators.map((operator) => (
+        <OperatorButton
+          key={operator}
+          operator={operator}
+          testID={testId(GAME_ID, 'op', operator)}
+          disabled={disabled}
+          highlight={highlightFor(operator)}
+          onPressOperator={onPressOperator}
+        />
+      ))}
+    </View>
+  );
+});
 
 const styles = StyleSheet.create({
   button: {
@@ -73,5 +113,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.three,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    paddingVertical: Spacing.two,
   },
 });

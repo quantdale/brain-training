@@ -398,21 +398,35 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Pad visuals (see PadTileVisualState).
-  const visualFor = (index: number): PadTileVisualState => {
-    if (state.phase === 'reveal') {
-      return index === state.revealedIndex ? 'revealed' : 'idle';
-    }
-    if (state.phase === 'input' || state.phase === 'roundResult') {
-      if (state.sequence.slice(0, state.inputIndex).includes(index)) {
-        return 'selected';
+  // ---- Pad visuals (see PadTileVisualState). Stable across the per-tick
+  // countdown re-renders: depends only on round-transition state, never on
+  // the display-remaining tick, so the memoized pad skips re-rendering tiles
+  // whose visual is unchanged.
+  const visualFor = useCallback(
+    (index: number): PadTileVisualState => {
+      if (state.phase === 'reveal') {
+        return index === state.revealedIndex ? 'revealed' : 'idle';
       }
-      if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
-        return 'error';
+      if (state.phase === 'input' || state.phase === 'roundResult') {
+        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
+          return 'selected';
+        }
+        if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
+          return 'error';
+        }
       }
-    }
-    return 'idle';
-  };
+      return 'idle';
+    },
+    [
+      state.phase,
+      state.revealedIndex,
+      state.sequence,
+      state.inputIndex,
+      state.roundOutcome,
+      state.taps,
+      state.length,
+    ],
+  );
 
   // Remaining budget label; driven by `displayRemainingMs` (state) so the ref
   // is not read during render. Equals `budgetMs` before the lifecycle starts.

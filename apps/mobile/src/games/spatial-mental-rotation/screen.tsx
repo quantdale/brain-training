@@ -40,6 +40,7 @@ import {
 } from '@/components/game-ui';
 
 import { BlockShape } from './components/block-shape';
+import { AnswerButton } from './components/button';
 import { QaPanel } from './components/qa-panel';
 import { TimerBar } from './components/timer-bar';
 import { Tutorial } from './components/tutorial';
@@ -433,16 +434,18 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
                   </View>
                 </View>
                 <View style={styles.answerRow}>
-                  <GameButton
+                  <AnswerButton
                     testID={testId(GAME_ID, 'same')}
                     label="Same"
-                    onPress={() => handleAnswer('same')}
+                    answer="same"
+                    onPressAnswer={handleAnswer}
                   />
-                  <GameButton
+                  <AnswerButton
                     testID={testId(GAME_ID, 'different')}
                     label="Different"
                     variant="secondary"
-                    onPress={() => handleAnswer('different')}
+                    answer="different"
+                    onPressAnswer={handleAnswer}
                   />
                 </View>
               </>

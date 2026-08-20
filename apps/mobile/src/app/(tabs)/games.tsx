@@ -12,7 +12,7 @@
  */
 
 import { Link, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -87,6 +87,7 @@ export default function GamesScreen() {
         <>
           <TextInput
             testID="games-search"
+            accessibilityLabel="Search games"
             placeholder="Search games…"
             placeholderTextColor={theme.textSecondary}
             value={query}
@@ -128,33 +129,11 @@ export default function GamesScreen() {
           ) : (
             <View style={styles.grid} testID="games-grid">
               {visible.map((game) => (
-                <Link key={game.id} href={`/game-detail/${game.id}`} asChild>
-                  <Pressable
-                    testID={`game-card-${game.id}`}
-                    accessibilityRole="button"
-                    style={({ pressed }) => pressed && styles.pressed}>
-                    <ThemedView type="surface" style={styles.card}>
-                      <ThemedText type="subtitle" numberOfLines={1}>
-                        {game.name}
-                      </ThemedText>
-                      <ThemedView type="accentSoft" style={styles.categoryPill}>
-                        <ThemedText type="caption" themeColor="accent">
-                          {game.primaryCategory}
-                        </ThemedText>
-                      </ThemedView>
-                      {game.description ? (
-                        <ThemedText type="small" themeColor="textSecondary" numberOfLines={3}>
-                          {game.description}
-                        </ThemedText>
-                      ) : null}
-                      {favoriteSet.has(game.id) ? (
-                        <ThemedText type="caption" themeColor="accent">
-                          ★
-                        </ThemedText>
-                      ) : null}
-                    </ThemedView>
-                  </Pressable>
-                </Link>
+                <GameCard
+                  key={game.id}
+                  game={game}
+                  isFavorite={favoriteSet.has(game.id)}
+                />
               ))}
             </View>
           )}
@@ -176,7 +155,12 @@ function FilterChip({
   onPress: () => void;
 }) {
   return (
-    <Pressable testID={testID} accessibilityRole="button" onPress={onPress}>
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      onPress={onPress}>
       <ThemedView type={active ? 'accentSoft' : 'surface'} style={styles.chip}>
         <ThemedText type="caption" themeColor={active ? 'accent' : 'textSecondary'}>
           {label}
@@ -185,6 +169,52 @@ function FilterChip({
     </Pressable>
   );
 }
+
+/**
+ * Memoized game card. `game` and `isFavorite` are stable per render of the list
+ * (the registry object never changes, favorites is a boolean), so memoizing
+ * keeps unchanged cards from re-rendering when the search box or another card's
+ * favorite state changes. The internal `Link`/`Pressable` is recreated only when
+ * this card's own props change.
+ */
+const GameCard = memo(function GameCard({
+  game,
+  isFavorite,
+}: {
+  game: { id: string; name: string; primaryCategory: string; description?: string };
+  isFavorite: boolean;
+}) {
+  return (
+    <Link key={game.id} href={`/game-detail/${game.id}`} asChild>
+      <Pressable
+        testID={`game-card-${game.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={`${game.name}, ${game.primaryCategory} game${isFavorite ? ', favorited' : ''}`}
+        style={({ pressed }) => pressed && styles.pressed}>
+        <ThemedView type="surface" style={styles.card}>
+          <ThemedText type="subtitle" numberOfLines={1}>
+            {game.name}
+          </ThemedText>
+          <ThemedView type="accentSoft" style={styles.categoryPill}>
+            <ThemedText type="caption" themeColor="accent">
+              {game.primaryCategory}
+            </ThemedText>
+          </ThemedView>
+          {game.description ? (
+            <ThemedText type="small" themeColor="textSecondary" numberOfLines={3}>
+              {game.description}
+            </ThemedText>
+          ) : null}
+          {isFavorite ? (
+            <ThemedText type="caption" themeColor="accent">
+              ★
+            </ThemedText>
+          ) : null}
+        </ThemedView>
+      </Pressable>
+    </Link>
+  );
+});
 
 const styles = StyleSheet.create({
   emptyCard: {

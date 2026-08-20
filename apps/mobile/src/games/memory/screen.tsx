@@ -311,21 +311,26 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Tile visuals (see TileVisualState).
-  const visualFor = (index: number): TileVisualState => {
-    if (state.phase === 'reveal') {
-      return index === state.revealedIndex ? 'revealed' : 'idle';
-    }
-    if (state.phase === 'input' || state.phase === 'roundResult') {
-      if (state.sequence.slice(0, state.inputIndex).includes(index)) {
-        return 'selected';
+  // ---- Tile visuals (see TileVisualState). Stable across the per-round
+  // re-renders: depends only on round-transition state, never on any tick,
+  // so the memoized grid skips re-rendering tiles whose visual is unchanged.
+  const visualFor = useCallback(
+    (index: number): TileVisualState => {
+      if (state.phase === 'reveal') {
+        return index === state.revealedIndex ? 'revealed' : 'idle';
       }
-      if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
-        return 'error';
+      if (state.phase === 'input' || state.phase === 'roundResult') {
+        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
+          return 'selected';
+        }
+        if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
+          return 'error';
+        }
       }
-    }
-    return 'idle';
-  };
+      return 'idle';
+    },
+    [state.phase, state.revealedIndex, state.sequence, state.inputIndex, state.roundOutcome, state.taps, state.length],
+  );
 
   return (
     <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>

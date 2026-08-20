@@ -29,3 +29,5 @@ export type { SessionHeaderProps } from './session-header';
 
 export { DifficultySelector } from './difficulty-selector';
 export type { DifficultySelectorProps } from './difficulty-selector';
+
+export { usePrefersReducedMotion } from './use-reduced-motion';

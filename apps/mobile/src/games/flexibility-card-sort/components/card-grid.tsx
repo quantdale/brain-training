@@ -1,6 +1,7 @@
 /**
  * CardGrid — 2×2 grid hosting the four candidate cards of a round.
  */
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
@@ -18,7 +19,7 @@ export interface CardGridProps {
   onPressCard: (index: number) => void;
 }
 
-export function CardGrid({
+export const CardGrid = memo(function CardGrid({
   candidates,
   testID,
   visualFor,
@@ -30,17 +31,18 @@ export function CardGrid({
       {candidates.map((card, index) => (
         <View key={index} style={styles.cell}>
           <CardView
+            index={index}
             card={card}
             testID={`${testID}.card.${index}`}
             visual={visualFor(index)}
             disabled={disabled}
-            onPress={() => onPressCard(index)}
+            onPressCard={onPressCard}
           />
         </View>
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   grid: {

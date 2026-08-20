@@ -34,7 +34,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GameButton } from './components/button';
-import { Option } from './components/option';
+import { OptionList } from './components/option';
 import type { OptionVisualState } from './components/option';
 import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
@@ -326,16 +326,22 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Option visuals on the round result (see OptionVisualState).
-  const visualFor = (index: number): OptionVisualState => {
-    if (state.puzzle === null) {
-      return 'dim';
-    }
-    if (index === state.puzzle.answerIndex) {
-      return 'correct';
-    }
-    return index === state.selection ? 'wrong' : 'dim';
-  };
+  // ---- Option visuals. Two stable resolvers; neither depends on per-tick
+  // state (this game has no tick timer during question/roundResult), so the
+  // memoized option list skips re-rendering when unrelated state changes.
+  const idleVisualFor = useCallback((): OptionVisualState => 'idle', []);
+  const visualFor = useCallback(
+    (index: number): OptionVisualState => {
+      if (state.puzzle === null) {
+        return 'dim';
+      }
+      if (index === state.puzzle.answerIndex) {
+        return 'correct';
+      }
+      return index === state.selection ? 'wrong' : 'dim';
+    },
+    [state.puzzle, state.selection],
+  );
 
   const puzzle = state.puzzle;
 
@@ -406,15 +412,11 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
                   testID={testId(GAME_ID, 'sequence')}
                 />
                 <View style={styles.options}>
-                  {puzzle.options.map((value, index) => (
-                    <Option
-                      key={index}
-                      index={index}
-                      label={String(value)}
-                      visual="idle"
-                      onPress={() => handleAnswer(index)}
-                    />
-                  ))}
+                  <OptionList
+                    options={puzzle.options}
+                    visualFor={idleVisualFor}
+                    onPressOption={handleAnswer}
+                  />
                 </View>
               </View>
             ) : null}
@@ -439,15 +441,12 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
                   The next term is {puzzle.answer} — {describePattern(puzzle.family, puzzle.params)}
                 </ThemedText>
                 <View style={styles.options}>
-                  {puzzle.options.map((value, index) => (
-                    <Option
-                      key={index}
-                      index={index}
-                      label={String(value)}
-                      visual={visualFor(index)}
-                      disabled
-                    />
-                  ))}
+                  <OptionList
+                    options={puzzle.options}
+                    visualFor={visualFor}
+                    disabled
+                    onPressOption={handleAnswer}
+                  />
                 </View>
                 <GameButton
                   testID={testId(GAME_ID, 'next-round')}

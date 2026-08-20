@@ -31,6 +31,8 @@ export function DifficultySelector({ gameId, selected, onSelect }: DifficultySel
             testID={testId(gameId, 'difficulty', level)}
             label={label}
             variant={isSelected ? 'primary' : 'secondary'}
+            selected={isSelected}
+            hint={isSelected ? `Selected difficulty: ${label}` : `Set difficulty to ${label}`}
             onPress={() => onSelect(level as DifficultyLevel)}
           />
         );

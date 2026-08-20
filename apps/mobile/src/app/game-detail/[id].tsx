@@ -8,7 +8,7 @@
  */
 
 import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
@@ -75,7 +75,7 @@ export default function GameDetailScreen() {
 
   const currentFavorite = favoriteOverride ?? (loaded ? data.favorite : false);
 
-  const onToggleFavorite = async () => {
+  const onToggleFavorite = useCallback(async () => {
     try {
       const db = getDb();
       const next = !currentFavorite;
@@ -91,7 +91,7 @@ export default function GameDetailScreen() {
       setFavoriteOverride(null);
       setToggleError(true);
     }
-  };
+  }, [currentFavorite, game?.id]);
 
   return (
     <ScreenShell>
@@ -114,6 +114,8 @@ export default function GameDetailScreen() {
       <Pressable
         testID="game-detail-favorite"
         accessibilityRole="button"
+        accessibilityLabel={currentFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        accessibilityState={{ checked: currentFavorite }}
         onPress={onToggleFavorite}
         disabled={!loaded}>
         <ThemedView type="surface" style={styles.actionRow}>
@@ -127,7 +129,11 @@ export default function GameDetailScreen() {
       ) : null}
 
       <Link href={`/game/${game.id}`} asChild>
-        <Pressable testID="game-detail-play" accessibilityRole="button" style={styles.playButton}>
+        <Pressable
+          testID="game-detail-play"
+          accessibilityRole="button"
+          accessibilityLabel={`Play ${game.name}`}
+          style={styles.playButton}>
           <ThemedText type="smallBold" themeColor="accent">
             Play {game.name}
           </ThemedText>
@@ -174,7 +180,11 @@ export default function GameDetailScreen() {
 
 function BackLink() {
   return (
-    <Pressable testID="game-detail-back" accessibilityRole="button" onPress={() => router.back()}>
+    <Pressable
+      testID="game-detail-back"
+      accessibilityRole="button"
+      accessibilityLabel="Back to Games"
+      onPress={() => router.back()}>
       <ThemedText type="smallBold" themeColor="accent">
         ‹ Back
       </ThemedText>
@@ -182,7 +192,7 @@ function BackLink() {
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+const DetailRow = memo(function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.row}>
       <ThemedText type="small" themeColor="textSecondary">
@@ -191,9 +201,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <ThemedText type="smallBold">{value}</ThemedText>
     </View>
   );
-}
+});
 
-function SessionRow({ session }: { session: unknown }) {
+const SessionRow = memo(function SessionRow({ session }: { session: unknown }) {
   const s = session as {
     id: string;
     normalizedResult: number;
@@ -203,7 +213,11 @@ function SessionRow({ session }: { session: unknown }) {
   };
   return (
     <Link href={`/results?id=${s.id}`} asChild>
-      <Pressable testID={`game-detail-session-${s.id}`} accessibilityRole="button" style={styles.row}>
+      <Pressable
+        testID={`game-detail-session-${s.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={`Open result from ${new Date(s.completedAt).toLocaleDateString()}`}
+        style={styles.row}>
         <ThemedText type="small" themeColor="textSecondary">
           {new Date(s.completedAt).toLocaleDateString()} · {s.difficulty?.level ?? '?'}
         </ThemedText>
@@ -213,7 +227,7 @@ function SessionRow({ session }: { session: unknown }) {
       </Pressable>
     </Link>
   );
-}
+});
 
 const styles = StyleSheet.create({
   pill: {

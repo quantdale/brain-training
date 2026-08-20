@@ -333,24 +333,29 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Tile visuals (see TileVisualState).
-  const visualFor = (index: number): TileVisualState => {
-    if (state.phase === 'playing') {
-      return index === state.targetIndex ? 'target' : 'idle';
-    }
-    if (state.phase === 'roundResult') {
-      if (state.roundOutcome === 'passed') {
-        return index === state.targetIndex ? 'selected' : 'idle';
+  // ---- Tile visuals (see TileVisualState). Stable across the per-tick
+  // re-renders: depends only on round-transition state, never on `nowMs`, so
+  // the memoized grid skips re-rendering tiles whose visual is unchanged.
+  const visualFor = useCallback(
+    (index: number): TileVisualState => {
+      if (state.phase === 'playing') {
+        return index === state.targetIndex ? 'target' : 'idle';
       }
-      // Failed rounds reveal the odd tile; the wrongly tapped tile is marked.
-      return index === state.targetIndex
-        ? 'target'
-        : index === state.lastTapIndex
-          ? 'error'
-          : 'idle';
-    }
-    return 'idle';
-  };
+      if (state.phase === 'roundResult') {
+        if (state.roundOutcome === 'passed') {
+          return index === state.targetIndex ? 'selected' : 'idle';
+        }
+        // Failed rounds reveal the odd tile; the wrongly tapped tile is marked.
+        return index === state.targetIndex
+          ? 'target'
+          : index === state.lastTapIndex
+            ? 'error'
+            : 'idle';
+      }
+      return 'idle';
+    },
+    [state.phase, state.targetIndex, state.roundOutcome, state.lastTapIndex],
+  );
 
   return (
     <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>

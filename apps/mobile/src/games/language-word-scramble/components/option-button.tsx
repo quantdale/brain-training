@@ -1,7 +1,12 @@
 /**
  * OptionButton — a single option in the word scramble choices.
  * Shows the option text and visual feedback for selected/correct/wrong state.
+ *
+ * Memoized so unchanged options skip re-renders. The stable
+ * `onPressOption(index)` handler is invoked internally, avoiding a fresh
+ * closure per option per render.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -19,10 +24,17 @@ export interface OptionButtonProps {
   label: string;
   visual: OptionVisualState;
   disabled?: boolean;
-  onPress?: () => void;
+  /** Stable tap handler supplied by the parent (avoids per-render closures). */
+  onPressOption?: (index: number) => void;
 }
 
-export function OptionButton({ index, label, visual, disabled = false, onPress }: OptionButtonProps) {
+export const OptionButton = memo(function OptionButton({
+  index,
+  label,
+  visual,
+  disabled = false,
+  onPressOption,
+}: OptionButtonProps) {
   const theme = useTheme();
   const backgroundColor =
     visual === 'correct'
@@ -43,7 +55,7 @@ export function OptionButton({ index, label, visual, disabled = false, onPress }
       accessibilityLabel={label}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressOption ? () => onPressOption(index) : undefined}
       style={({ pressed }) => [
         styles.option,
         {
@@ -57,7 +69,7 @@ export function OptionButton({ index, label, visual, disabled = false, onPress }
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   option: {
