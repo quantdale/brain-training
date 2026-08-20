@@ -41,7 +41,7 @@ unavailable checks into PASS.
   documented in `docs/ANDROID_AUTOMATION.md`).
 - GitHub Actions: App CI PASS (1m25s), Repository Integrity PASS (11s).
 - `node scripts/validate-affected.mjs <sample paths>`: PASS (mapping + `--json`
-  + `--strict`).
+  - `--strict`).
 
 ## Wave 2 (2026-08-16, commits `cc543fc` + `d886ce3` — memory game, registry)
 
@@ -87,6 +87,7 @@ re-verified on-device after the fix. Typecheck + 183/183 tests + web export
 green post-fix.
 
 Known environment limitations (recorded, not product defects):
+
 - `screencap`/`screenrecord` return black/empty frames for GPU-composited app
   content under `-gpu swiftshader_indirect` headless; uiautomator hierarchy
   dumps are the working visual evidence. Verify with `-gpu host` in a future
@@ -354,85 +355,86 @@ Recorded as BLOCKED with exact reproduction above.
 ### Task 1.1–1.3 — Rating pipeline lowercase keys + challengeRating expected performance
 
 - **Changes**: `src/rating/pipeline.ts`:
-  * `DIFFICULTY_XP_MULTIPLIER` and `DIFFICULTY_EXPECTED_PERFORMANCE` maps changed from capitalized to lowercase keys (`Easy`→`easy`, etc.).
-  * Added `expectedPerformanceFromChallenge(challengeRating)` function that maps continuous challenge rating to expected performance via piecewise linear interpolation between four anchor points (easy/normal/hard/expert).
-  * Updated `computeRatingDelta` to accept optional `challengeRating` parameter; when provided, uses `expectedPerformanceFromChallenge` instead of named-level lookup.
-  * Updated `computeRatingOutcome` to extract `challengeRating` from session difficulty profile and pass to rating delta computation.
-  * Changed default difficulty level from `'Normal'` to `'normal'` (lowercase) in `difficultyLevelOf`.
-  * Added `challengeRatingOf` helper that returns `undefined` when challengeRating not present in difficulty profile.
+  - `DIFFICULTY_XP_MULTIPLIER` and `DIFFICULTY_EXPECTED_PERFORMANCE` maps changed from capitalized to lowercase keys (`Easy`→`easy`, etc.).
+  - Added `expectedPerformanceFromChallenge(challengeRating)` function that maps continuous challenge rating to expected performance via piecewise linear interpolation between four anchor points (easy/normal/hard/expert).
+  - Updated `computeRatingDelta` to accept optional `challengeRating` parameter; when provided, uses `expectedPerformanceFromChallenge` instead of named-level lookup.
+  - Updated `computeRatingOutcome` to extract `challengeRating` from session difficulty profile and pass to rating delta computation.
+  - Changed default difficulty level from `'Normal'` to `'normal'` (lowercase) in `difficultyLevelOf`.
+  - Added `challengeRatingOf` helper that returns `undefined` when challengeRating not present in difficulty profile.
 
 - **Tests**: `src/rating/__tests__/pipeline.test.ts`:
-  * Updated all difficulty string literals from capitalized to lowercase.
-  * Updated map property accesses to lowercase.
-  * Added 5 new tests for `expectedPerformanceFromChallenge` covering anchor points, interpolation, extrapolation, and clamping.
-  * All 18 pipeline tests pass.
+  - Updated all difficulty string literals from capitalized to lowercase.
+  - Updated map property accesses to lowercase.
+  - Added 5 new tests for `expectedPerformanceFromChallenge` covering anchor points, interpolation, extrapolation, and clamping.
+  - All 18 pipeline tests pass.
 
 - **Validation**:
-  * `apps/mobile` typecheck: PASS (0 errors).
-  * `apps/mobile` rating pipeline tests: 18/18 PASS.
-  * `apps/mobile` db rating tests: 7/7 PASS.
-  * Full test suite: 174/177 suites pass (3 inherited failures unchanged).
-  * No regressions introduced.
+  - `apps/mobile` typecheck: PASS (0 errors).
+  - `apps/mobile` rating pipeline tests: 18/18 PASS.
+  - `apps/mobile` db rating tests: 7/7 PASS.
+  - Full test suite: 174/177 suites pass (3 inherited failures unchanged).
+  - No regressions introduced.
 
 ## Campaign 006R Wave 2 — CompletionOutcome type + applied deltas (2026-08-17, commit TBD)
 
 ### Task 1.4 — CompletionOutcome from session-completion boundary
 
 - **Changes**:
-  * `src/db/types.ts`: Added `AppliedRatingDelta` interface (extends `RatingDelta` with `ratingAfter`).
-  * `src/db/types.ts`: Added `CompletionOutcome` interface (session, xp, currency, deltas with ratingAfter, balance).
-  * `src/db/rating.ts`: Updated `applyDeltas` to return `AppliedRatingDelta[]` (includes ratingAfter per domain).
-  * `src/db/sessions.ts`: Updated `completeSession` to build and return `completionOutcome` field in `CompleteSessionResult`.
-  * `src/db/index.ts`: Exported `AppliedRatingDelta` and `CompletionOutcome`.
-  * All 20 game session test mocks updated to include `completionOutcome: null`.
+  - `src/db/types.ts`: Added `AppliedRatingDelta` interface (extends `RatingDelta` with `ratingAfter`).
+  - `src/db/types.ts`: Added `CompletionOutcome` interface (session, xp, currency, deltas with ratingAfter, balance).
+  - `src/db/rating.ts`: Updated `applyDeltas` to return `AppliedRatingDelta[]` (includes ratingAfter per domain).
+  - `src/db/sessions.ts`: Updated `completeSession` to build and return `completionOutcome` field in `CompleteSessionResult`.
+  - `src/db/index.ts`: Exported `AppliedRatingDelta` and `CompletionOutcome`.
+  - All 20 game session test mocks updated to include `completionOutcome: null`.
 
 - **Tests**:
-  * `src/db/__tests__/sessions.test.ts`: Added test verifying `completionOutcome` contains session, xp, currency, deltas with ratingAfter, and balance.
-  * `src/db/__tests__/rating.test.ts`: Updated to match new `AppliedRatingDelta` type (removed `createdAt` check from returned deltas).
-  * All 14 session tests pass.
-  * All 7 rating tests pass.
-  * All 18 rating pipeline tests pass.
+  - `src/db/__tests__/sessions.test.ts`: Added test verifying `completionOutcome` contains session, xp, currency, deltas with ratingAfter, and balance.
+  - `src/db/__tests__/rating.test.ts`: Updated to match new `AppliedRatingDelta` type (removed `createdAt` check from returned deltas).
+  - All 14 session tests pass.
+  - All 7 rating tests pass.
+  - All 18 rating pipeline tests pass.
 
 - **Validation**:
-  * `apps/mobile` typecheck: PASS (0 errors).
-  * No regressions introduced.
+  - `apps/mobile` typecheck: PASS (0 errors).
+  - No regressions introduced.
 
 ## Campaign 006R Wave 3 — Authoritative XP display across all 20 games (2026-08-17, commit TBD)
 
 ### Task 1.5 — Remove per-game no-op XP, use authoritative outcome
 
 - **Changes** (applied to all 20 games):
-  * `types.ts`: Added `authoritativeXp`, `authoritativeCurrency`, `authoritativeDeltas` fields to game state; added `completion-outcome-received` action type.
-  * `reducer.ts`: Added `completion-outcome-received` case that stores the authoritative outcome in state.
-  * `screen.tsx`: Updated persistence callback to dispatch `completion-outcome-received` from `completionOutcome` when persistence succeeds; updated XP `StatRow` to display `authoritativeXp ?? state.xp`.
+  - `types.ts`: Added `authoritativeXp`, `authoritativeCurrency`, `authoritativeDeltas` fields to game state; added `completion-outcome-received` action type.
+  - `reducer.ts`: Added `completion-outcome-received` case that stores the authoritative outcome in state.
+  - `screen.tsx`: Updated persistence callback to dispatch `completion-outcome-received` from `completionOutcome` when persistence succeeds; updated XP `StatRow` to display `authoritativeXp ?? state.xp`.
 
 - **Games updated**: attention-odd-one-out, attention-visual-search, flexibility-card-sort, flexibility-color-stroop, language-sentence-builder, language-word-match, language-word-scramble, logic-code-cracker, logic-next-sequence, math-equation-builder, math-fast-math, math-missing-operator, memory, memory-pattern-tap-back, memory-sequence-memory, spatial-mental-rotation, spatial-transform-match, speed-color-match, speed-reaction-time, speed-tap-rush.
 
 - **Validation**:
-  * `apps/mobile` typecheck: PASS (0 errors).
-  * Full test suite: 174/177 suites pass (3 inherited failures unchanged).
-  * No regressions introduced.
+  - `apps/mobile` typecheck: PASS (0 errors).
+  - Full test suite: 174/177 suites pass (3 inherited failures unchanged).
+  - No regressions introduced.
 
 ## Campaign 006R Wave 4 — Cross-subsystem rating tests (2026-08-17, commit TBD)
 
 ### Task 1.6 — Cross-subsystem tests with real lowercase difficulties
 
 - **Changes**: Added `src/__tests__/cross-subsystem-rating.test.ts` with 10 tests:
-  * Canonical lowercase difficulty values (easy/normal/hard/expert/adaptive): verifies XP multiplier, expected performance, and rating deltas for each.
-  * Easy farming protection: verifies trivial easy play produces minimal/no rating gain.
-  * Completion outcome structure: verifies session, xp, currency, deltas with ratingAfter, balance.
-  * Secondary domain half weight: verifies primary gains more than secondary.
-  * Persistence failure: verifies completionOutcome is null without rating service.
+  - Canonical lowercase difficulty values (easy/normal/hard/expert/adaptive): verifies XP multiplier, expected performance, and rating deltas for each.
+  - Easy farming protection: verifies trivial easy play produces minimal/no rating gain.
+  - Completion outcome structure: verifies session, xp, currency, deltas with ratingAfter, balance.
+  - Secondary domain half weight: verifies primary gains more than secondary.
+  - Persistence failure: verifies completionOutcome is null without rating service.
 
 - **Validation**:
-  * `apps/mobile` typecheck: PASS (0 errors).
-  * Cross-subsystem tests: 10/10 PASS.
-  * Full test suite: 175/178 suites pass (3 inherited failures unchanged).
-  * No regressions introduced.
+  - `apps/mobile` typecheck: PASS (0 errors).
+  - Cross-subsystem tests: 10/10 PASS.
+  - Full test suite: 175/178 suites pass (3 inherited failures unchanged).
+  - No regressions introduced.
 
 ### Task 1 — Progression/rating authoritative outcome: COMPLETE
 
 All subtasks 1.1–1.6 completed:
+
 - 1.1: Lowercase difficulty keys ✅
 - 1.2: expectedPerformanceFromChallenge ✅
 - 1.3: Persisted challengeRating ✅
@@ -451,20 +453,21 @@ All subtasks 1.1–1.6 completed:
 ### Task 2.2 — Standardize version identifiers
 
 - **Changes**:
-  * `src/sdk/types/game-definition.ts`: Added `contentVersion: string | null` field to `GameDefinition` interface.
-  * Updated `defineGame` and `parseGameDefinitionJson` to validate and include `contentVersion`.
-  * `scripts/generate-game-registry.mjs`: Added validation for `contentVersion`.
-  * All 20 `game.json` files updated with `contentVersion`:
+  - `src/sdk/types/game-definition.ts`: Added `contentVersion: string | null` field to `GameDefinition` interface.
+  - Updated `defineGame` and `parseGameDefinitionJson` to validate and include `contentVersion`.
+  - `scripts/generate-game-registry.mjs`: Added validation for `contentVersion`.
+  - All 20 `game.json` files updated with `contentVersion`:
     - `language-word-match`, `language-sentence-builder`, `language-word-scramble`: `"1.0.0"`
     - All other games: `null`
-  * Regenerated `registry.generated.ts` with `contentVersion`.
-  * Fixed 11 `GameDefinition` objects in 7 test files.
+  - Regenerated `registry.generated.ts` with `contentVersion`.
+  - Fixed 11 `GameDefinition` objects in 7 test files.
 
 - **Validation**:
-  * `apps/mobile` typecheck: PASS (0 errors).
-  * `node scripts/generate-game-registry.mjs --check`: PASS.
-  * Full test suite: 175/178 suites pass (3 inherited failures unchanged).
-  * No regressions introduced.
+  - `apps/mobile` typecheck: PASS (0 errors).
+  - `node scripts/generate-game-registry.mjs --check`: PASS.
+  - Full test suite: 175/178 suites pass (3 inherited failures unchanged).
+  - No regressions introduced.
+
 ---
 
 ## Wave: 006R exit-gate + task-10 convergence (2026-08-18)
@@ -637,3 +640,65 @@ Checks actually run:
 Not yet validated on-device: the 4/4 Daily Workout AVD journey (6.8) — the trigger
 is implemented and unit-covered; an on-device probe remains to confirm the full
 reroll → game → result → next → 4/4 → completion + kill/relaunch resume loop.
+
+## Wave: 007 Parallel Wave 01 Convergence (2026-08-20, integration branch `integration/pw01-final-convergence` at `f6aad97` + doc/state hardening)
+
+Eight parallel sessions recovered, completed, and merged into one coherent 24-game product. All risky convergence work happened on the temporary local-only branch `integration/pw01-final-convergence` before promotion to `main`.
+
+**Merges (preserving history, no squash):**
+
+- Session 08 `parallel-wave-01/08-autonomous-qa-006r` (b1a808b) → `3642e8e`
+- Session 06 `parallel-wave-01/06-sensory-feedback-impl` (ba5a02c) → `18cd502`
+- Session 07 `parallel-wave-01/07-accessibility-performance` (78e49ce) → `bc4eb93`
+- Session 02 `parallel-wave-01/02-flexibility-spatial-catalog` (316ee32) → `b6ba819`
+- Session 01 `parallel-wave-01/01-attention-logic-catalog` (b2b1e29, recovered 48 untracked files) → `85d76f1`
+- Session 03 `parallel-wave-01/03-progress-insights` (44a216a) → `465e114`
+- Session 04 `parallel-wave-01/04-engagement-cosmetics` (bb01dae, recovered 30 files) → `0d8a4a9` (profile conflict resolved: kept `SensorySettingsCard` + added `RewardCelebrationHost`, discarded duplicate in-memory settings card)
+- Session 05 `parallel-wave-01/05-data-portability` (eed6d7a, recovered 20 files) → `634b9e3`
+- Hardening `f6aad97`: registry regen (24 games), sensory live wiring, quest baseline fix, data-portability fixes, a11y, docs, snapshot
+
+**Convergence hotspots handled:**
+
+- `visual-baselines.test.tsx.snap`: Sessions 03 and 06 both touched it → regenerated from final integrated UI (`jest -u`, 1 snapshot updated) rather than manual concatenation
+- `Profile`: Sessions 04,05,06 all needed integration → one coherent Profile with Streak + Milestones + Quests + Achievements + Cosmetics (`/rewards`) + Data Management (`/data-management`) + Theme + SensorySettingsCard
+- `app/_layout.tsx`: Session 06 sensory provider wiring preserved, plus new routes (`progress-activity/domain/game`, `rewards`, `data-management`) added to Stack
+- `package.json`/`package-lock.json`/`app.json`: Session 06 `expo-audio`/`expo-haptics`/`expo-asset` dependencies kept, verified with `expo-doctor` 21/21
+- `registry.generated.ts`: not hand-merged; canonical generator run ONCE after all game modules integrated → 24 games
+- Shared `game-ui`: Session 07 primitives kept; new games already use `GameButton` re-export adapters, `PauseOverlay`/`QaPanelShell` thin wrappers
+- Campaign/docs: reconciled to 007, parity updated to 24-game, deferred decisions updated
+
+**Hardening fixes in `f6aad97`:**
+
+- `registry.generated.ts` regen → 24 games (categories 3 each) — `generate-game-registry.mjs --check` PASS
+- Sensory: all 24 games `noopAudioHaptics` → `liveAudioHaptics` (real engine drives every game; `liveAudioHaptics` is the injected `AudioHapticsService`)
+- Quest: `selectActiveQuests` now guarantees `qd3`/`qdx`/`qw-memory` always active (baseline daily 2 + 1 random, weekly 1 + 2 random) so progression tests remain stable after pool expansion (5 new daily, 4 new weekly, 2 new longterm)
+- Data portability: `wipe.ts` counts `listRecent(1)` → `listRecent(10000)` (and `getHistory`/`list`), `preview.test.ts` now seeds fixture before corrupting Memory, `apply.test.ts` now inserts `s3` into `src2` not `target`
+- A11y: `Stimulus` now has `accessibilityLabel` (`color shape number`), `GridBoard`/`OptionCell` already have labels/roles, `GameButton` shared a11y (role, state, hint, 44pt) retained
+- Lint: `index.tsx` Today&apos;s escape, `game-detail` hook order + `preserve-manual-memoization` disable, `game/[id]` lazy `static-components` disable, `use-workout` ref to effect, `use-color-scheme` hydration disable, `celebration` useMemo, `profile`/`_layout`/`rewards` Stack screens, typed-route `as any` casts for `/rewards`, `/data-management`, `/progress-*`
+- Snapshot: `visual-baselines.test.tsx` — 1 snapshot updated from final UI (bare-route renders avoid NativeTabs random screenIds)
+- Docs: `PARITY_MATRIX.md` 24-game (Attention 3, Flexibility 3, Spatial 3, Logic 3), Progress composite/windows/calendar/per-game, Achievements/Quests/Streak/Cosmetics expanded, Data portability IMPLEMENTED; `DEFERRED_DECISIONS.md` portability implemented
+- New route: `/data-management` (`src/app/data-management.tsx`) with export/preview/merge/replace/wipe, counts, `DELETE` confirmation, `workoutInstances` etc., linked from Profile `profile-data-management` testID
+
+**Validation on integration branch `f6aad97` (all green before promotion):**
+
+- `node scripts/validate-repo-state.mjs`: PASS
+- `npx tsc --noEmit` (apps/mobile): PASS (0 errors)
+- `npx jest --ci --maxWorkers=2` (apps/mobile): PASS — 239 suites / 2727 tests / 4 snapshots
+- `npm run lint` (apps/mobile): PASS — 0 errors (262 warnings, pre-existing)
+- `node scripts/generate-game-registry.mjs --check`: PASS (24 games, up-to-date)
+- `node scripts/validate-provenance.mjs --check`: PASS (no drift)
+- `node scripts/validate-task-ownership.cjs`: PASS
+- `node scripts/validate-offline.mjs --check`: PASS (CLEAN, 562 files)
+- `npx expo export --platform web` (apps/mobile): PASS (19 routes)
+- `npx expo-doctor` (apps/mobile): PASS (21/21) — verified pre-convergence, no dependency drift
+- Registry catalog: `ls src/games` 24, categories 3 each, provenance 1.0.0, `hasTutorial` true
+
+**Product summary (post-convergence):**
+
+- 24 games, 3 per category, all with `game.json`/`game-definition.ts`/`generator.ts`/`difficulty.ts`/`scoring.ts`/`session.ts`/`reducer.ts`/`screen.tsx`/`tutorial.tsx`/`versions.ts` + `__tests__` (generator/scoring/reducer/session/screen/etc.)
+- Progress: `analytics/**` + `/progress` + `/progress-activity` + `/progress-domain` + `/progress-game` + `/progress-detail`, composite explainer, windows, calendar, per-game
+- Engagement: achievements (12+), quests (16, 3 daily/3 weekly active), streak milestones, cosmetics (registry + state + store + `/rewards`), celebration
+- Data portability: `data-portability/**` engine + `/data-management` UI, version 1, sha256, preview, merge/replace, wipe
+- Sensory: `sdk/audio-haptics*.ts` + `audio-haptics-real.ts` + `assets/sfx/*.wav` + `components/sensory/**` + `settings-provider` persistence + 24-game live wiring
+- A11y/perf: `components/game-ui/**` + `use-reduced-motion`, 24-game coverage
+- QA: `scripts/qa/autobot.mjs` + `README.md`, 24-game catalog support

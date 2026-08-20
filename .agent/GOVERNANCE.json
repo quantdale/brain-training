@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "006r-core-integrity-correction",
+  "activeCampaign": "007-parallel-wave-01-convergence",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

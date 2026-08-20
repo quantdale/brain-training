@@ -2,14 +2,13 @@
 
 ## Current blockers
 
-- **AVD/emulator validation — partially validated this session, remainder still blocked**: the `no AVD` was an environment gap; this wave provisioned `CRBABot_API_36` (API 36 x86_64 `-no-window`, Metro `packager-status:running`, `adb reverse tcp:8081`) and proved Home `testID`s + deep-linked `Memory`/`Tap Rush` `testID`s and session drive (see `VALIDATION.md` AVD hardening wave). Still `NOT VALIDATED` for the persistence/journey gates that require a full run: `3.6` (Word Match emulator smoke), `6.8` (Daily Workout AVD 4/4 + restart/resume), `12.4` (One-AVD per-game start/pause/finish/persist), `12.7`, `12.9` (One-AVD smoke canaries + targeted journeys). Recorded as NOT VALIDATED (never faked green); AVD is live for the next hardening slice. Not a product defect.
-- **12.11 CI confirmation pending**: GitHub App CI + Repository Integrity auto-run
-  on push to `main`; their result is only observable from the GitHub Actions UI.
+- **AVD/emulator validation — harness merged, full journeys still NOT VALIDATED**: `scripts/qa/autobot.mjs` (Session 08) is now merged and supports 24-game smoke, workout, wordmatch, persistence validation via ADB + hierarchy + testIDs (no host input). Host previously proved `CRBABot_API_36` foreground + `Memory`/`Tap Rush` testIDs + session drive (see `VALIDATION.md` 006R AVD wave). Full AVD journeys still NOT VALIDATED this wave (require live AVD + Metro + debug APK + `autobot.mjs --mode all --pause` and `--mode workout` with logs/hierarchy/screenshots + DB `game_sessions` exactly-one check). Recorded as NOT VALIDATED, never faked green; AVD is live for next hardening pass. Not a product defect.
+- **12.11 / 007 CI confirmation pending**: GitHub App CI + Repository Integrity auto-run on push to `main`; final `f6aad97`-based SHA must be confirmed from GitHub Actions UI after promotion.
 - **Host NDK toolchain pinned per-host (SDK patch, reversible)**: the app NDK pin `27.0.12077973` lives in generated `android/gradle.properties` (`.gitignored` under `android/`, so not pushed — survives `prebuild --clean` but per-host). The SDK-side `27.1.12297006` fix (`android-legacy.toolchain.cmake` `c++_shared` + `-lstdc++`) is likewise a per-host reversible block with `BUILD SUCCESSFUL` evidence — not a blind forced upgrade; see open debt below and `VALIDATION.md`.
 
 ## Open debt (tracked, non-blocking)
 
-- **Shared game UI primitives — full catalog migrated (RESOLVED, 2026-08-20)**: all 20 games now use `apps/mobile/src/components/game-ui/*` (GameButton, PauseOverlay, TutorialFrame, QaPanelShell with `extraActions`, ResultRow/StatRow, SessionHeader, DifficultySelector) with tsc clean, lint clean, and Jest 190 suites / 2272 tests green. No per-module `GameButton`/`StatRow` copies remain. This closes the 10.2/10.3 convergence; recorded in `VALIDATION.md` (Wave: 006R 10.3 — full 20-game game-ui convergence).
+- **Shared game UI primitives — full 24-game catalog migrated (RESOLVED, 2026-08-20)**: all 24 games now use `apps/mobile/src/components/game-ui/*` (GameButton, PauseOverlay, TutorialFrame, QaPanelShell with `extraActions`, ResultRow/StatRow, SessionHeader, DifficultySelector) with tsc clean, lint 0 errors, and Jest 239 suites / 2727 tests green. No per-module `GameButton`/`StatRow` copies remain. This closes the 10.2/10.3 convergence (20-game) plus Wave 01 4-game extension; recorded in `VALIDATION.md` (Wave: 007 convergence).
 - **Pattern Tap Back true path mechanics (Low, task 10.6 follow-up)**: the game
   is a distinct-span variant (not an adjacency-constrained path); its docs were
   corrected to match. Closure criterion: if a true adjacent-path generator is
@@ -18,11 +17,7 @@
   no Xcode/macOS, so `expo run:ios`-equivalent cannot run. Static audit
   PASS (see VALIDATION.md). A macOS host/CI runner is required for the real
   build; not a product defect.
-- **Settings sensory feedback seam deferred (Low, task 10.4 classified)**: the
-  production audio/haptics service is a documented no-op; sfx/music/haptics
-  toggles are in-memory prefs (not persisted, no real sound/vibration wired).
-  Parity matrix and `docs/DEFERRED_DECISIONS.md` now state this honestly
-  (previously the matrix claimed IMPLEMENTED). Theme selection IS persisted.
+- **Settings sensory feedback seam — RESOLVED in 007 (Low, task 10.4)**: the production audio/haptics service is now a real `expo-audio` + `expo-haptics` engine (`audio-haptics-real.ts`, SFX assets, `liveAudioHaptics` across all 24 games, `SensorySettingsCard`, persisted `sfx`/`haptics` in profile JSON). Music (BGM) remains deferred (no non-functional toggle). Previously the seam was classified DEFERRED in 006R; now IMPLEMENTED, parity/deferred docs updated.
 - **Achievements sync scope (Low)**: quest/achievement evaluation scans up
   to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); far above realistic
   foundations-phase history, but a documented cap.
