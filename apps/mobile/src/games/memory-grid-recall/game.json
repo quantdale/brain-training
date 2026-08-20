@@ -1,0 +1,14 @@
+{
+  "id": "memory-grid-recall",
+  "name": "Grid Recall",
+  "primaryCategory": "Memory",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Study a pattern of highlighted cells, then rebuild it from memory after the board is hidden. More cells and bigger grids as you improve.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}
