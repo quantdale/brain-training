@@ -21,6 +21,7 @@ import {
   noopXpRatingHook,
   systemClock,
   testId,
+  assertDevOnly,
 } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -305,6 +306,11 @@ export default function SpatialGridNavScreen(
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
+  const forceTimeout = useCallback(() => {
+    assertDevOnly();
+    dispatch({ type: 'qa/force-timeout' });
+  }, [dispatch]);
+
   // Auto-pause when the app leaves the foreground (constitution §11).
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -370,12 +376,15 @@ export default function SpatialGridNavScreen(
             </View>
 
             {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+                onForceTimeout={forceTimeout}
+              />
             ) : null}
           </View>
         ) : null}
 
-        {/* ---- In-session (trialActive / trialResult) ---- */}
         {inSession ? (
           <View style={styles.section}>
             <SessionHeader>
@@ -444,12 +453,15 @@ export default function SpatialGridNavScreen(
             ) : null}
 
             {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+                onForceTimeout={forceTimeout}
+              />
             ) : null}
           </View>
         ) : null}
 
-        {/* ---- Results phase ---- */}
         {state.phase === 'results' ? (
           <View style={styles.section} testID={testId(GAME_ID, 'results')}>
             <ThemedText type="title">Session complete</ThemedText>

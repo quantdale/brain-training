@@ -28,6 +28,7 @@ import {
   noopXpRatingHook,
   systemClock,
   testId,
+  assertDevOnly,
 } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -336,6 +337,11 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
+  const forceTimeout = useCallback(() => {
+    assertDevOnly();
+    dispatch({ type: 'qa/force-timeout' });
+  }, [dispatch]);
+
   // ---- Auto-pause when the app leaves the foreground (constitution §11).
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -394,7 +400,11 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
             </View>
 
             {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+                onForceTimeout={forceTimeout}
+              />
             ) : null}
           </View>
         ) : null}
@@ -491,7 +501,11 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
             ) : null}
 
             {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+                onForceTimeout={forceTimeout}
+              />
             ) : null}
           </View>
         ) : null}

@@ -224,7 +224,8 @@ export type FlexibilityCueAction =
     }
   | { type: 'qa/force-win' }
   | { type: 'qa/force-lose' }
-  | { type: 'qa/force-state'; patch: QaForceStatePatch };
+  | { type: 'qa/force-state'; patch: QaForceStatePatch }
+  | { type: 'qa/force-timeout' };
 
 /** Complete game state; the screen renders this and dispatches actions. */
 export interface FlexibilityCueGameState {

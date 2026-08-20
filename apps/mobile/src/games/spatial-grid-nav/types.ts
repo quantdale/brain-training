@@ -226,7 +226,8 @@ export type SpatialGridNavAction =
     }
   | { type: 'qa/force-win' }
   | { type: 'qa/force-lose' }
-  | { type: 'qa/force-state'; patch: QaForceStatePatch };
+  | { type: 'qa/force-state'; patch: QaForceStatePatch }
+  | { type: 'qa/force-timeout' };
 
 // ---------------------------------------------------------------------------
 // Game state

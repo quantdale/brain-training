@@ -257,6 +257,25 @@ export function gameReducer(
       };
     }
 
+    case 'qa/force-timeout': {
+      // Dev-only entry point (screen gates it behind isDevBuild). Ends the
+      // session with whatever was achieved so far — the clock "expired" mid-run
+      // so the in-flight round is NOT scored and no penalty is added. Unplayed
+      // remaining rounds are simply omitted, mirroring a real timeout.
+      if (state.phase === 'results' || state.phase === 'intro' || state.profile === null) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: 'results',
+        paused: false,
+        roundOutcome: null,
+        selectedOptionIndex: null,
+        round: null,
+        forced: true,
+      };
+    }
+
     case 'qa/force-state': {
       if (state.phase !== 'intro') {
         return state;
