@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from './adapter';
 
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -286,6 +286,37 @@ export const SQL = {
     );
   `,
 
+  /**
+   * Performance index for the most common read paths (task G): recent-session
+   * lists, per-game history, aggregate `lastCompletedAt`, and the distinct
+   * activity-date scan used by streak calculation. All order by / filter on
+   * `completed_at`, which had no dedicated index before v8.
+   */
+  createGameSessionsCompletedAtIndex: `
+    CREATE INDEX IF NOT EXISTS idx_game_sessions_completed_at
+      ON game_sessions (completed_at);
+  `,
+
+  /**
+   * Backfill a stable idempotency key onto legacy gameplay currency rows that
+   * predate v8 (task A/idempotency). Newer rows already carry
+   * `gameplay:<sessionId>` from `completeSession`. The `NOT EXISTS` guard keeps
+   * the backfill conflict-free with the partial unique index on `operation_id`
+   * (it skips any row whose derived key would collide with an existing one),
+   * so the migration can never fail on historical data.
+   */
+  backfillGameplayOperationIds: `
+    UPDATE currency_ledger
+    SET operation_id = 'gameplay:' || session_id
+    WHERE session_id IS NOT NULL
+      AND operation_id IS NULL
+      AND reason = 'gameplay'
+      AND NOT EXISTS (
+        SELECT 1 FROM currency_ledger AS other
+        WHERE other.operation_id = 'gameplay:' || currency_ledger.session_id
+      );
+  `,
+
   /** CHECK constraints for data integrity (task 8.1). */
   addCheckConstraints: `
     -- Ensure normalized_result is in [0, 1]
@@ -391,6 +422,15 @@ export const MIGRATIONS: readonly Migration[] = [
     version: 7,
     up: async (txn) => {
       await txn.exec(SQL.createWorkoutInstances);
+    },
+  },
+  {
+    version: 8,
+    up: async (txn) => {
+      // Index for scale (recent lists / aggregates / activity-date scan).
+      await txn.exec(SQL.createGameSessionsCompletedAtIndex);
+      // Backfill idempotency keys on legacy gameplay currency rows.
+      await txn.exec(SQL.backfillGameplayOperationIds);
     },
   },
 ];

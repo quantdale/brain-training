@@ -59,14 +59,36 @@ function parseJson(text: string | null | undefined, fallback: unknown): unknown 
   }
 }
 
-async function clearAllUserTables(txn: SQLiteAdapter): Promise<void> {
-  // Triggers are already dropped at the connection level by the caller (the
-  // legacy `PRAGMA triggers` is removed from modern SQLite and a no-op inside a
-  // transaction), so a plain DELETE is allowed here.
-  for (const table of FK_DELETE_ORDER) {
-    await txn.exec(`DELETE FROM ${table}`);
+/**
+ * Drop within-backup duplicate rows keyed by a stable natural key, keeping the
+ * FIRST occurrence. Used to make import resilient to a slightly-corrupt backup
+ * (e.g. accidental duplicate entries) and to prevent a replace import from
+ * tripping the partial unique index on `currency_ledger.operation_id`.
+ *
+ * Rows whose key is `null` are always preserved (we never collapse distinct
+ * rows that merely share a nullable field), so legitimate data is never
+ * over-deduped.
+ */
+function dedupeNonNullKey<T>(items: readonly T[], key: (item: T) => string | null): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const item of items) {
+    const k = key(item);
+    if (k !== null) {
+      if (seen.has(k)) {
+        continue;
+      }
+      seen.add(k);
+    }
+    out.push(item);
   }
+  return out;
 }
+
+/** Composite key helper (entries are kept distinct unless every field matches). */
+const composite =
+  (...parts: (string | number | null)[]): string =>
+  parts.join('\u0000');
 
 async function writeProfile(
   txn: SQLiteAdapter,
@@ -476,16 +498,41 @@ export async function applyData(
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
+  // Defensive within-backup dedup (task C): a corrupt backup may contain
+  // accidental duplicate rows. Collapsing them by natural key before insert
+  // keeps a replace import from tripping the partial unique index on
+  // `currency_ledger.operation_id` and prevents self-collision on the primary
+  // keys of the other tables. Well-formed backups are unaffected (no dups).
+  const gameSessions = dedupeNonNullKey(data.gameSessions, (s) => s.id);
+  const domainRatings = dedupeNonNullKey(data.domainRatings, (d) => d.domain);
+  const ratingHistory = dedupeNonNullKey(
+    data.ratingHistory,
+    (r) => composite(r.sessionId, r.domain),
+  );
+  const currencyLedger = dedupeNonNullKey(data.currencyLedger, (e) => e.operationId);
+  const gameFavorites = dedupeNonNullKey(data.gameFavorites, (f) => f.gameId);
+  const tutorialState = dedupeNonNullKey(data.tutorialState, (t) => t.gameId);
+  const workoutInstances = dedupeNonNullKey(data.workoutInstances, (w) => w.date);
+  const questDefinitions = dedupeNonNullKey(data.questDefinitions, (q) => q.id);
+  const questProgress = dedupeNonNullKey(
+    data.questProgress,
+    (q) => composite(q.questId, q.period),
+  );
+  const achievementDefinitions = dedupeNonNullKey(data.achievementDefinitions, (a) => a.id);
+  const achievementUnlocks = dedupeNonNullKey(data.achievementUnlocks, (a) => a.achievementId);
+  // `xp_awards` has no stable natural key (two legit awards can coincide), so it
+  // is intentionally NOT deduped here.
+  const xpAwards = data.xpAwards;
+
   if (mode === 'replace') {
-    // Disable the append-only DELETE triggers for the clear only, then restore
-    // them (the outer transaction still rolls the data back on any failure).
-    await txn.exec('PRAGMA triggers = OFF');
-    try {
-      for (const table of FK_DELETE_ORDER) {
-        await txn.exec(`DELETE FROM ${table}`);
-      }
-    } finally {
-      await txn.exec('PRAGMA triggers = ON');
+    // The append-only DELETE triggers are dropped at the CONNECTION level by the
+    // caller (`applyImport` / `clearTablesIgnoringTriggers`) before this
+    // transaction opens — `PRAGMA triggers = OFF` is a removed/no-op pragma in
+    // modern SQLite and cannot be used inside a transaction, so we rely solely
+    // on the connection-level drop. The clear runs in this same transaction, so
+    // any failure rolls it back and the caller re-creates the triggers.
+    for (const table of FK_DELETE_ORDER) {
+      await txn.exec(`DELETE FROM ${table}`);
     }
   }
 
