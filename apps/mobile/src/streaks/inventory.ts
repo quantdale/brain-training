@@ -83,3 +83,65 @@ export function consumeItem(
     },
   };
 }
+
+/**
+ * Tolerant read of the `streaks.coveredDates` list (dates a Freeze/Recovery
+ * has retroactively counted as active). Missing/garbage → [].
+ */
+export function readCoveredDates(settings: Record<string, unknown>): string[] {
+  const block = settings.streaks;
+  if (!block || typeof block !== 'object') {
+    return [];
+  }
+  const raw = (block as Record<string, unknown>).coveredDates;
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const dates: string[] = [];
+  for (const value of raw) {
+    if (typeof value === 'string' && DATE_RE.test(value)) {
+      dates.push(value);
+    }
+  }
+  return dates;
+}
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Add covered dates (a Freeze/Recovery application) and return the next
+ * settings object. Duplicates and malformed entries are ignored; unrelated
+ * settings keys and the item-count/`freezeUsed` sub-keys are preserved. The
+ * input object is not mutated.
+ */
+export function addCoveredDates(
+  settings: Record<string, unknown>,
+  dates: readonly string[],
+): Record<string, unknown> {
+  const block = readStreaksBlock(settings);
+  const existing = new Set(readCoveredDates(settings));
+  for (const date of dates) {
+    if (typeof date === 'string' && DATE_RE.test(date)) {
+      existing.add(date);
+    }
+  }
+  return {
+    ...settings,
+    streaks: {
+      ...block,
+      coveredDates: [...existing],
+    },
+  };
+}
+
+/** Remove all covered dates (e.g. when a streak is intentionally reset). */
+export function clearCoveredDates(settings: Record<string, unknown>): Record<string, unknown> {
+  const block = readStreaksBlock(settings);
+  return {
+    ...settings,
+    streaks: {
+      ...block,
+      coveredDates: [],
+    },
+  };
+}

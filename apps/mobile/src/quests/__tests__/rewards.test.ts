@@ -145,8 +145,8 @@ describe('toDbQuestDefinition', () => {
     }
     const stored = await db.quests.listDefinitions();
     expect(stored).toHaveLength(QUEST_DEFINITIONS_V1.length);
-    expect(stored[0]).toMatchObject({ id: 'qd3', rewardXp: 20, rewardCurrency: 5 });
     // Repo lists definitions ordered by id, so look up by id, not index.
+    expect(stored.find((d) => d.id === 'qd3')).toMatchObject({ id: 'qd3', rewardXp: 20, rewardCurrency: 5 });
     const memory = stored.find((d) => d.id === 'qw-memory');
     expect(memory?.criteria).toEqual({ type: 'domain-sessions', domain: 'Memory', goal: 10 });
   });

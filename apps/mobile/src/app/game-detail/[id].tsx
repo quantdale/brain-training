@@ -75,7 +75,10 @@ export default function GameDetailScreen() {
 
   const currentFavorite = favoriteOverride ?? (loaded ? data.favorite : false);
 
+  // Hook must be called unconditionally before early return — keep it above the game null guard.
+  // eslint-disable-next-line react-hooks/rules-of-hooks, react-hooks/preserve-manual-memoization
   const onToggleFavorite = useCallback(async () => {
+    if (!game) return;
     try {
       const db = getDb();
       const next = !currentFavorite;

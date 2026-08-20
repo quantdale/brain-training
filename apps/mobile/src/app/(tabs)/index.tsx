@@ -146,7 +146,7 @@ export default function HomeScreen() {
 
       {/* Today's Workout CTA slot (constitution §13: primary CTA). */}
       <ThemedView type="surface" style={styles.ctaCard} testID="home-workout-cta">
-        <ThemedText type="subtitle">Today's Workout</ThemedText>
+        <ThemedText type="subtitle">Today&apos;s Workout</ThemedText>
         {workout.length > 0 ? (
           <>
             <ThemedText type="small" themeColor="textSecondary">

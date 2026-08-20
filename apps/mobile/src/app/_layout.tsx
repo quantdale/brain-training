@@ -123,6 +123,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     cancelledRef.current = false;
+    // Initial app bootstrap must set loading/ready/error state on mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     bootstrap();
     return () => {
       cancelledRef.current = true;
@@ -167,6 +169,10 @@ function RootNavigator() {
         <Stack.Screen name="game-detail/[id]" />
         <Stack.Screen name="results" />
         <Stack.Screen name="progress-detail" />
+        <Stack.Screen name="progress-activity" />
+        <Stack.Screen name="progress-domain" />
+        <Stack.Screen name="progress-game" />
+        <Stack.Screen name="rewards" />
       </Stack>
     </ThemeProvider>
   );

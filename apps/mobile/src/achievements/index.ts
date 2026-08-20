@@ -4,10 +4,13 @@
  */
 export type {
   AchievementCriteria,
+  AchievementCategory,
+  AchievementTier,
   AchievementDef,
   AchievementSnapshot,
+  AchievementProgress,
 } from './types';
 export { ACHIEVEMENT_DEFINITIONS_V1 } from './definitions';
-export { evaluateAchievements } from './evaluate';
+export { evaluateAchievements, evaluateAchievementProgress } from './evaluate';
 export { claimAchievementReward, toDbAchievementDefinition } from './rewards';
 export type { AchievementClaimResult } from './rewards';

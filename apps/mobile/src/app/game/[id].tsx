@@ -49,7 +49,8 @@ export default function GameScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const game = getGameDefinition(id ?? '');
   
-  // Task 10.1: Cache the lazy component identity outside render
+  // Task 10.1: Cache the lazy component identity outside render (lazy creation is intentionally memoized).
+  // eslint-disable-next-line react-hooks/static-components
   const GameScreenComponent = useMemo(
     () => (game ? getLazyGameComponent(game.id) : undefined),
     [game?.id],
@@ -97,6 +98,7 @@ export default function GameScreen() {
           }}
         >
           <Suspense fallback={<GameNotReady variant="loading" />}>
+            {/* eslint-disable-next-line react-hooks/static-components */}
             <GameScreenComponent />
           </Suspense>
         </ErrorBoundary>

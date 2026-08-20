@@ -57,7 +57,9 @@ export function useWorkout(args: {
   // Latest args without retriggering the load effect on every render (the caller
   // may pass fresh array literals each render, which would otherwise loop).
   const argsRef = useRef(args);
-  argsRef.current = args;
+  useEffect(() => {
+    argsRef.current = args;
+  }, [args]);
 
   useEffect(() => {
     let cancelled = false;
