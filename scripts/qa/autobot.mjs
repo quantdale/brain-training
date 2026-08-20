@@ -214,11 +214,11 @@ async function flowGame(id, opts = {}) {
     if (px) {
       tapTestId(`${id}.pause`, px);
       await sleep(800);
-      const paused = await waitFor('pause-overlay', 4000, tag) || await waitFor(`${id}.paused`, 4000, tag);
+      const paused = await waitFor(`${id}.pause-overlay`, 5000, tag);
       log(paused ? 'paused + overlay shown' : 'paused (overlay testID not matched)');
-      // resume: tap a resume control if present, else back to running via pause toggle
-      tapTestId('pause-resume', readFileSyncSafe(dumpHierarchy(`${tag}-paused`)));
-      await sleep(800);
+      // resume so QA controls stay tappable (the opaque pause overlay otherwise covers them)
+      const rp = await waitFor(`${id}.resume`, 4000, tag);
+      if (rp) { tapTestId(`${id}.resume`, rp); await sleep(800); log('resumed'); }
     } else { log('no pause control (not applicable)'); }
   }
 
