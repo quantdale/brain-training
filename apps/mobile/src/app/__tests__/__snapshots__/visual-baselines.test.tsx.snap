@@ -12,244 +12,200 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
     ]
   }
 >
-  <View
-    style={
+  <RNCSafeAreaView
+    edges={
       {
-        "alignItems": "center",
-        "backgroundColor": "black",
-        "flex": 1,
-        "justifyContent": "center",
-        "padding": 24,
-        "paddingBottom": 64,
+        "bottom": "additive",
+        "left": "additive",
+        "right": "additive",
+        "top": "additive",
       }
     }
-    testID="expo-router-unmatched"
+    style={
+      {
+        "flex": 1,
+      }
+    }
   >
-    <Image
-      source={
+    <RNCSafeAreaView
+      edges={
         {
-          "testUri": "../../expo-router/assets/unmatched.png",
+          "bottom": "off",
+          "left": "additive",
+          "right": "additive",
+          "top": "additive",
         }
       }
       style={
         {
-          "height": 168,
-          "marginBottom": 28,
-          "resizeMode": "contain",
-          "width": 270,
-        }
-      }
-    />
-    <Text
-      aria-level={1}
-      role="heading"
-      style={
-        {
-          "color": "#fff",
-          "fontSize": 56,
-          "fontWeight": "800",
-          "lineHeight": 56,
-          "textAlign": "center",
+          "flex": 1,
         }
       }
     >
-      Unmatched Route
-    </Text>
-    <Text
-      aria-level={2}
-      role="heading"
-      style={
-        [
-          {
-            "fontSize": 34,
-            "fontWeight": "200",
-            "marginBottom": 12,
-            "marginTop": 4,
-            "textAlign": "center",
-          },
-          {
-            "color": "#9ba1a6",
-          },
-        ]
-      }
-    >
-      Page could not be found.
-    </Text>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      href="/games"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      role="link"
-    >
-      <Text
-        style={
+      <RCTScrollView
+        contentContainerStyle={
           [
             {
-              "minHeight": 20,
+              "flexDirection": "row",
+              "justifyContent": "center",
             },
             {
-              "color": "#9ba1a6",
-            },
-            undefined,
-            undefined,
-            false,
-          ]
-        }
-      >
-        yourscheme:///games
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "gap": 12,
-          "marginTop": 28,
-        }
-      }
-    >
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-      >
-        <Text
-          onPress={[Function]}
-          style={
-            [
-              {
-                "color": "#52a9ff",
-                "fontSize": 20,
-                "textAlign": "center",
-              },
-              undefined,
-              undefined,
-              false,
-            ]
-          }
-        >
-          Go back
-        </Text>
-      </View>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 20,
-            },
-            {
-              "color": "#9ba1a6",
+              "paddingBottom": 24,
             },
           ]
         }
-      >
-        •
-      </Text>
-      <View
-        accessibilityState={
+        style={
           {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
+            "flex": 1,
           }
         }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        href="/_sitemap"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        role="link"
       >
-        <Text
-          style={
-            [
+        <View>
+          <View
+            style={
               {
-                "color": "#52a9ff",
-                "fontSize": 20,
-                "textAlign": "center",
-              },
-              undefined,
-              undefined,
-              false,
-            ]
-          }
-        >
-          Sitemap
-        </Text>
-      </View>
-    </View>
-  </View>
+                "flexGrow": 1,
+                "gap": 16,
+                "maxWidth": 800,
+                "paddingHorizontal": 24,
+                "paddingTop": 24,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#161A26",
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  {
+                    "fontSize": 28,
+                    "fontWeight": "600",
+                    "lineHeight": 36,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+              testID="games-title"
+            >
+              Games
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#5D6474",
+                  },
+                  false,
+                  false,
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 20,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+            >
+              Pick a game to train a skill. New games appear here as they are added.
+            </Text>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 8,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="games-empty"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                No games yet
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    false,
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 20,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                The game library is being built. Games appear here as they are registered by the Game SDK.
+              </Text>
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+    </RNCSafeAreaView>
+  </RNCSafeAreaView>
 </RNCSafeAreaProvider>
 `;
 
@@ -775,244 +731,2095 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
     ]
   }
 >
-  <View
-    style={
+  <RNCSafeAreaView
+    edges={
       {
-        "alignItems": "center",
-        "backgroundColor": "black",
-        "flex": 1,
-        "justifyContent": "center",
-        "padding": 24,
-        "paddingBottom": 64,
+        "bottom": "additive",
+        "left": "additive",
+        "right": "additive",
+        "top": "additive",
       }
     }
-    testID="expo-router-unmatched"
+    style={
+      {
+        "flex": 1,
+      }
+    }
   >
-    <Image
-      source={
+    <RNCSafeAreaView
+      edges={
         {
-          "testUri": "../../expo-router/assets/unmatched.png",
+          "bottom": "off",
+          "left": "additive",
+          "right": "additive",
+          "top": "additive",
         }
       }
       style={
         {
-          "height": 168,
-          "marginBottom": 28,
-          "resizeMode": "contain",
-          "width": 270,
-        }
-      }
-    />
-    <Text
-      aria-level={1}
-      role="heading"
-      style={
-        {
-          "color": "#fff",
-          "fontSize": 56,
-          "fontWeight": "800",
-          "lineHeight": 56,
-          "textAlign": "center",
+          "flex": 1,
         }
       }
     >
-      Unmatched Route
-    </Text>
-    <Text
-      aria-level={2}
-      role="heading"
-      style={
-        [
-          {
-            "fontSize": 34,
-            "fontWeight": "200",
-            "marginBottom": 12,
-            "marginTop": 4,
-            "textAlign": "center",
-          },
-          {
-            "color": "#9ba1a6",
-          },
-        ]
-      }
-    >
-      Page could not be found.
-    </Text>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      href="/profile"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      role="link"
-    >
-      <Text
-        style={
+      <RCTScrollView
+        contentContainerStyle={
           [
             {
-              "minHeight": 20,
+              "flexDirection": "row",
+              "justifyContent": "center",
             },
             {
-              "color": "#9ba1a6",
-            },
-            undefined,
-            undefined,
-            false,
-          ]
-        }
-      >
-        yourscheme:///profile
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "gap": 12,
-          "marginTop": 28,
-        }
-      }
-    >
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-      >
-        <Text
-          onPress={[Function]}
-          style={
-            [
-              {
-                "color": "#52a9ff",
-                "fontSize": 20,
-                "textAlign": "center",
-              },
-              undefined,
-              undefined,
-              false,
-            ]
-          }
-        >
-          Go back
-        </Text>
-      </View>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 20,
-            },
-            {
-              "color": "#9ba1a6",
+              "paddingBottom": 24,
             },
           ]
         }
-      >
-        •
-      </Text>
-      <View
-        accessibilityState={
+        style={
           {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
+            "flex": 1,
           }
         }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        href="/_sitemap"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        role="link"
       >
-        <Text
-          style={
-            [
+        <View>
+          <View
+            style={
               {
-                "color": "#52a9ff",
-                "fontSize": 20,
-                "textAlign": "center",
-              },
-              undefined,
-              undefined,
-              false,
-            ]
-          }
-        >
-          Sitemap
-        </Text>
-      </View>
-    </View>
-  </View>
+                "flexGrow": 1,
+                "gap": 16,
+                "maxWidth": 800,
+                "paddingHorizontal": 24,
+                "paddingTop": 24,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#161A26",
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  {
+                    "fontSize": 28,
+                    "fontWeight": "600",
+                    "lineHeight": 36,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+              testID="profile-title"
+            >
+              Profile
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#5D6474",
+                  },
+                  false,
+                  false,
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 20,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+            >
+              Identity, achievements and settings.
+            </Text>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 16,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="profile-identity"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#E9ECFF",
+                    },
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 999,
+                      "height": 56,
+                      "justifyContent": "center",
+                      "width": 56,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#4F6BFF",
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 22,
+                        "fontWeight": "600",
+                        "lineHeight": 30,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  P
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "gap": 2,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#161A26",
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 18,
+                        "fontWeight": "500",
+                        "lineHeight": 26,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Local player
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#5D6474",
+                      },
+                      false,
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "lineHeight": 16,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Profile name and avatar customization arrive in a later wave.
+                </Text>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 16,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="profile-streak"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Streak
+              </Text>
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    0
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Current
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    0
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Longest
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    0
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Items
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                        "gap": 2,
+                      }
+                    }
+                  >
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#161A26",
+                          },
+                          false,
+                          false,
+                          false,
+                          {
+                            "fontSize": 14,
+                            "fontWeight": "700",
+                            "lineHeight": 20,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Freeze
+                       × 
+                      0
+                    </Text>
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#5D6474",
+                          },
+                          false,
+                          {
+                            "fontSize": 12,
+                            "fontWeight": "500",
+                            "lineHeight": 16,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Protects your streak for one missed day
+                    </Text>
+                  </View>
+                  <View
+                    accessibilityRole="button"
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": true,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    testID="streak-buy-freeze"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#E9ECFF",
+                          },
+                          {
+                            "alignSelf": "flex-start",
+                            "borderRadius": 999,
+                            "paddingHorizontal": 16,
+                            "paddingVertical": 4,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#4F6BFF",
+                            },
+                            false,
+                            false,
+                            false,
+                            {
+                              "fontSize": 14,
+                              "fontWeight": "700",
+                              "lineHeight": 20,
+                            },
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            undefined,
+                          ]
+                        }
+                      >
+                        100
+                         coins
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                        "gap": 2,
+                      }
+                    }
+                  >
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#161A26",
+                          },
+                          false,
+                          false,
+                          false,
+                          {
+                            "fontSize": 14,
+                            "fontWeight": "700",
+                            "lineHeight": 20,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Shield
+                       × 
+                      0
+                    </Text>
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#5D6474",
+                          },
+                          false,
+                          {
+                            "fontSize": 12,
+                            "fontWeight": "500",
+                            "lineHeight": 16,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Proactive streak protection
+                    </Text>
+                  </View>
+                  <View
+                    accessibilityRole="button"
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": true,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    testID="streak-buy-shield"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#E9ECFF",
+                          },
+                          {
+                            "alignSelf": "flex-start",
+                            "borderRadius": 999,
+                            "paddingHorizontal": 16,
+                            "paddingVertical": 4,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#4F6BFF",
+                            },
+                            false,
+                            false,
+                            false,
+                            {
+                              "fontSize": 14,
+                              "fontWeight": "700",
+                              "lineHeight": 20,
+                            },
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            undefined,
+                          ]
+                        }
+                      >
+                        150
+                         coins
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                        "gap": 2,
+                      }
+                    }
+                  >
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#161A26",
+                          },
+                          false,
+                          false,
+                          false,
+                          {
+                            "fontSize": 14,
+                            "fontWeight": "700",
+                            "lineHeight": 20,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Recovery
+                       × 
+                      0
+                    </Text>
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#5D6474",
+                          },
+                          false,
+                          {
+                            "fontSize": 12,
+                            "fontWeight": "500",
+                            "lineHeight": 16,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Restores up to 3 lost streak days
+                    </Text>
+                  </View>
+                  <View
+                    accessibilityRole="button"
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": true,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessibilityValue={
+                      {
+                        "max": undefined,
+                        "min": undefined,
+                        "now": undefined,
+                        "text": undefined,
+                      }
+                    }
+                    accessible={true}
+                    collapsable={false}
+                    focusable={true}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onFocus={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
+                    testID="streak-buy-recovery"
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#E9ECFF",
+                          },
+                          {
+                            "alignSelf": "flex-start",
+                            "borderRadius": 999,
+                            "paddingHorizontal": 16,
+                            "paddingVertical": 4,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          [
+                            {
+                              "color": "#4F6BFF",
+                            },
+                            false,
+                            false,
+                            false,
+                            {
+                              "fontSize": 14,
+                              "fontWeight": "700",
+                              "lineHeight": 20,
+                            },
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            undefined,
+                          ]
+                        }
+                      >
+                        200
+                         coins
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 16,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="profile-quests"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Quests
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    false,
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 20,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                No quests yet.
+              </Text>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 16,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="profile-achievements"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Achievements
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    First Steps
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete your first training session.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Getting Regular
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 25 sessions in total.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Century Club
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 100 sessions in total.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    XP Voyager
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Earn 5,000 lifetime XP.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 16,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="theme-card"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Theme
+              </Text>
+              <View
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                testID="theme-option-system"
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "#E9ECFF",
+                      },
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 12,
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "paddingHorizontal": 16,
+                        "paddingVertical": 8,
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    System
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Active
+                  </Text>
+                </View>
+              </View>
+              <View
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                testID="theme-option-light"
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 12,
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "paddingHorizontal": 16,
+                        "paddingVertical": 8,
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Light
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    light
+                  </Text>
+                </View>
+              </View>
+              <View
+                accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                testID="theme-option-dark"
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "#FFFFFF",
+                      },
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 12,
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                        "paddingHorizontal": 16,
+                        "paddingVertical": 8,
+                      },
+                    ]
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Dark
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    dark
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 16,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="settings-card"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Settings
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sound effects
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Gameplay and UI sounds
+                  </Text>
+                </View>
+                <RCTSwitch
+                  accessibilityLabel="Sound effects toggle"
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignSelf": "flex-start",
+                    }
+                  }
+                  testID="settings-sfx"
+                  value={true}
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Music
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Background music
+                  </Text>
+                </View>
+                <RCTSwitch
+                  accessibilityLabel="Music toggle"
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignSelf": "flex-start",
+                    }
+                  }
+                  testID="settings-music"
+                  value={true}
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Haptics
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Vibration feedback
+                  </Text>
+                </View>
+                <RCTSwitch
+                  accessibilityLabel="Haptics toggle"
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignSelf": "flex-start",
+                    }
+                  }
+                  testID="settings-haptics"
+                  value={true}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+    </RNCSafeAreaView>
+  </RNCSafeAreaView>
 </RNCSafeAreaProvider>
 `;
 
@@ -1028,243 +2835,1373 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
     ]
   }
 >
-  <View
-    style={
+  <RNCSafeAreaView
+    edges={
       {
-        "alignItems": "center",
-        "backgroundColor": "black",
-        "flex": 1,
-        "justifyContent": "center",
-        "padding": 24,
-        "paddingBottom": 64,
+        "bottom": "additive",
+        "left": "additive",
+        "right": "additive",
+        "top": "additive",
       }
     }
-    testID="expo-router-unmatched"
+    style={
+      {
+        "flex": 1,
+      }
+    }
   >
-    <Image
-      source={
+    <RNCSafeAreaView
+      edges={
         {
-          "testUri": "../../expo-router/assets/unmatched.png",
+          "bottom": "off",
+          "left": "additive",
+          "right": "additive",
+          "top": "additive",
         }
       }
       style={
         {
-          "height": 168,
-          "marginBottom": 28,
-          "resizeMode": "contain",
-          "width": 270,
-        }
-      }
-    />
-    <Text
-      aria-level={1}
-      role="heading"
-      style={
-        {
-          "color": "#fff",
-          "fontSize": 56,
-          "fontWeight": "800",
-          "lineHeight": 56,
-          "textAlign": "center",
+          "flex": 1,
         }
       }
     >
-      Unmatched Route
-    </Text>
-    <Text
-      aria-level={2}
-      role="heading"
-      style={
-        [
-          {
-            "fontSize": 34,
-            "fontWeight": "200",
-            "marginBottom": 12,
-            "marginTop": 4,
-            "textAlign": "center",
-          },
-          {
-            "color": "#9ba1a6",
-          },
-        ]
-      }
-    >
-      Page could not be found.
-    </Text>
-    <View
-      accessibilityState={
-        {
-          "busy": undefined,
-          "checked": undefined,
-          "disabled": undefined,
-          "expanded": undefined,
-          "selected": undefined,
-        }
-      }
-      accessibilityValue={
-        {
-          "max": undefined,
-          "min": undefined,
-          "now": undefined,
-          "text": undefined,
-        }
-      }
-      accessible={true}
-      collapsable={false}
-      focusable={true}
-      href="/progress"
-      onBlur={[Function]}
-      onClick={[Function]}
-      onFocus={[Function]}
-      onResponderGrant={[Function]}
-      onResponderMove={[Function]}
-      onResponderRelease={[Function]}
-      onResponderTerminate={[Function]}
-      onResponderTerminationRequest={[Function]}
-      onStartShouldSetResponder={[Function]}
-      role="link"
-    >
-      <Text
-        style={
+      <RCTScrollView
+        contentContainerStyle={
           [
             {
-              "minHeight": 20,
+              "flexDirection": "row",
+              "justifyContent": "center",
             },
             {
-              "color": "#9ba1a6",
-            },
-            undefined,
-            undefined,
-            false,
-          ]
-        }
-      >
-        yourscheme:///progress
-      </Text>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "gap": 12,
-          "marginTop": 28,
-        }
-      }
-    >
-      <View
-        accessibilityState={
-          {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
-          }
-        }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-      >
-        <Text
-          onPress={[Function]}
-          style={
-            [
-              {
-                "color": "#52a9ff",
-                "fontSize": 20,
-                "textAlign": "center",
-              },
-              undefined,
-              undefined,
-              false,
-            ]
-          }
-        >
-          Go back
-        </Text>
-      </View>
-      <Text
-        style={
-          [
-            {
-              "fontSize": 20,
-            },
-            {
-              "color": "#9ba1a6",
+              "paddingBottom": 24,
             },
           ]
         }
-      >
-        •
-      </Text>
-      <View
-        accessibilityState={
+        style={
           {
-            "busy": undefined,
-            "checked": undefined,
-            "disabled": undefined,
-            "expanded": undefined,
-            "selected": undefined,
+            "flex": 1,
           }
         }
-        accessibilityValue={
-          {
-            "max": undefined,
-            "min": undefined,
-            "now": undefined,
-            "text": undefined,
-          }
-        }
-        accessible={true}
-        collapsable={false}
-        focusable={true}
-        href="/_sitemap"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onFocus={[Function]}
-        onResponderGrant={[Function]}
-        onResponderMove={[Function]}
-        onResponderRelease={[Function]}
-        onResponderTerminate={[Function]}
-        onResponderTerminationRequest={[Function]}
-        onStartShouldSetResponder={[Function]}
-        role="link"
       >
-        <Text
-          style={
-            [
+        <View>
+          <View
+            style={
               {
-                "color": "#52a9ff",
-                "fontSize": 20,
-                "textAlign": "center",
-              },
-              undefined,
-              undefined,
-              false,
-            ]
-          }
-        >
-          Sitemap
-        </Text>
-      </View>
-    </View>
-  </View>
+                "flexGrow": 1,
+                "gap": 16,
+                "maxWidth": 800,
+                "paddingHorizontal": 24,
+                "paddingTop": 24,
+              }
+            }
+          >
+            <Text
+              style={
+                [
+                  {
+                    "color": "#161A26",
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  {
+                    "fontSize": 28,
+                    "fontWeight": "600",
+                    "lineHeight": 36,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+              testID="progress-title"
+            >
+              Progress
+            </Text>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#5D6474",
+                  },
+                  false,
+                  false,
+                  {
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "lineHeight": 20,
+                  },
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  false,
+                  undefined,
+                ]
+              }
+            >
+              Your training history, ratings and records.
+            </Text>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 8,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="progress-summary"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Summary
+              </Text>
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    1
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Level
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    0
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    XP
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    0
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sessions
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#4F6BFF",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    0
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Coins
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "backgroundColor": "rgba(128,128,128,0.25)",
+                    "borderRadius": 999,
+                    "height": 8,
+                    "overflow": "hidden",
+                  }
+                }
+                testID="progress-level-bar"
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "backgroundColor": "rgba(120,120,255,0.8)",
+                        "borderRadius": 999,
+                        "height": "100%",
+                      },
+                      {
+                        "width": "0%",
+                      },
+                    ]
+                  }
+                />
+              </View>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "lineHeight": 16,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                0
+                 / 
+                100
+                 XP to level 
+                2
+              </Text>
+            </View>
+            <View
+              accessibilityRole="button"
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              href="/progress-detail"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              role="link"
+              testID="progress-detail-link"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#FFFFFF",
+                    },
+                    {
+                      "borderRadius": 20,
+                      "gap": 8,
+                      "padding": 24,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#4F6BFF",
+                      },
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "700",
+                        "lineHeight": 20,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Full history ›
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#5D6474",
+                      },
+                      false,
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "lineHeight": 16,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Per-domain trends, game records and recent sessions.
+                </Text>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 8,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="progress-domains"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Domain ratings
+              </Text>
+              <View
+                style={
+                  {
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-memory"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Memory
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-attention"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Attention
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-speed"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Speed
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-math"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Math
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-language"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Language
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-logicproblemsolving"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Logic & Problem Solving
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-flexibility"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Flexibility
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                      "justifyContent": "space-between",
+                    }
+                  }
+                  testID="progress-rating-spatial"
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Spatial
+                  </Text>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    —
+                  </Text>
+                </View>
+              </View>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    {
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "lineHeight": 16,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Ratings never decay from inactivity — stale ratings are marked and refresh when you train that domain again.
+              </Text>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 8,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="progress-game-stats"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Per game
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    false,
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 20,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                No games played yet.
+              </Text>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 8,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="progress-recent-sessions"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Recent sessions
+              </Text>
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#5D6474",
+                    },
+                    false,
+                    false,
+                    {
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "lineHeight": 20,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Your latest sessions will show up here.
+              </Text>
+            </View>
+          </View>
+        </View>
+      </RCTScrollView>
+    </RNCSafeAreaView>
+  </RNCSafeAreaView>
 </RNCSafeAreaProvider>
 `;

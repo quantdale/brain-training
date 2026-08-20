@@ -104,10 +104,16 @@ export function useWorkout(args: {
     const cost = rerollCost(current.rerollAttempt);
 
     if (cost > 0) {
-      // Atomic: debit + workout transition in one transaction.
+      // Atomic: debit + workout transition in one transaction, deduplicated by
+      // a stable per-(date,attempt) operationId so a "committed-but-unconfirmed"
+      // retry at the same attempt cannot re-debit (F1, task 7.5). After a
+      // successful reroll nextAttempt advances, so a later attempt gets a
+      // different id — this is intentional; a post-advance lost-confirmation
+      // is a known small edge (advance already durable).
       await paidReroll(db, {
         cost,
         reason: 'workout-reroll',
+        operationId: `workout-reroll:${date}:${nextAttempt}`,
         mutateWorkout: async (txn: SQLiteAdapter) => {
           await new WorkoutRepository(txn).applyReroll(date, ids, nextAttempt);
         },

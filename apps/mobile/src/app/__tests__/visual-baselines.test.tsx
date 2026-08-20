@@ -31,7 +31,13 @@ import { registerGameDefinitions } from '@/registry/registry';
 
 /** Render one screen as a bare route so no tab host enters the tree. */
 function renderBare(Screen: ComponentType, initialUrl: string) {
-  return renderRouter({ index: () => <Screen /> }, { initialUrl });
+  // Register the screen under the requested URL — otherwise non-"/" URLs
+  // ("/games", "/progress", "/profile") fall through to the "Unmatched Route"
+  // fallback and the snapshot pins that fallback instead of the real screen.
+  const routeKey = initialUrl.replace(/^\//, '') || 'index';
+  return renderRouter({ [routeKey]: () => <Screen /> } as Record<string, ComponentType>, {
+    initialUrl,
+  });
 }
 
 describe('visual baselines (canary set)', () => {

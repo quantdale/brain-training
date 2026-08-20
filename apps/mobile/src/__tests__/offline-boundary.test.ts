@@ -109,6 +109,20 @@ async function createMigratedAdapter(): Promise<SQLiteAdapter> {
   return adapter;
 }
 
+// import at top-level so the jest mock applies (dynamic import needs --experimental-vm-modules)
+import { createExpoSqliteAdapter as expoCreateExpoSqliteAdapter } from '@/db/adapters/expo';
+
+/** Fresh in-memory database via the Expo adapter path (jest mocks it to the Node adapter — proves the app bundle path is offline). */
+async function createMigratedExpoAdapter(): Promise<SQLiteAdapter> {
+  // jest/setup.js replaces this with createNodeSqliteAdapter(':memory:'); the
+  // call below therefore never reaches the native module — it just proves the
+  // app's import graph for the Expo path is wired and stays offline.
+  const adapter = (expoCreateExpoSqliteAdapter as unknown as (db: unknown) => SQLiteAdapter)({} as unknown);
+  await initializeConnection(adapter);
+  await runMigrations(adapter);
+  return adapter;
+}
+
 const NETWORK_GLOBALS = ['fetch', 'XMLHttpRequest', 'WebSocket'] as const;
 
 /**
@@ -227,6 +241,15 @@ describe('offline runtime flows', () => {
     const profile = await app.profile.ensureExists();
     expect(profile.id).toBe('local');
     expect(await app.profile.get()).toMatchObject({ id: 'local', displayName: '' });
+  });
+
+  it('constructs AppDatabase via the Expo adapter path without network access', async () => {
+    const adapter = await createMigratedExpoAdapter();
+    const app = new AppDatabase(adapter, { now: () => T0 });
+    const profile = await app.profile.ensureExists();
+    expect(profile.id).toBe('local');
+    // Prove the Expo import graph itself is offline (no fetch/WebSocket/XHR).
+    expect(await app.ledger.getBalance()).toBe(0);
   });
 
   it('completes a session through the rating pipeline without network access', async () => {

@@ -254,7 +254,7 @@ describe('paidReroll', () => {
   });
 });
 
-describe('atomic quest claim', () => {
+describe('atomic quest claim (fault at first mutation)', () => {
   it('rolls back the whole claim on a mid-transaction failure', async () => {
     const real = await createMigratedDb();
     await new ProfileRepository(real, () => T0).ensureExists();
@@ -279,7 +279,7 @@ describe('atomic quest claim', () => {
   });
 });
 
-describe('atomic achievement claim', () => {
+describe('atomic achievement claim (fault at first mutation)', () => {
   it('rolls back the whole claim on a mid-transaction failure', async () => {
     const real = await createMigratedDb();
     await new ProfileRepository(real, () => T0).ensureExists();
@@ -295,5 +295,52 @@ describe('atomic achievement claim', () => {
     expect(unlock?.claimedAt).toBeNull();
     expect(await new XpAwardsRepository(real).list()).toHaveLength(0);
     expect(await new LedgerRepository(real).getBalance()).toBe(100);
+  });
+});
+
+describe('atomic quest/achievement — fault at later mutation (F2 fix)', () => {
+  it('rolls back quest claim when the XP award after the claim marker faults (faulted(1))', async () => {
+    const real = await createMigratedDb();
+    await new ProfileRepository(real, () => T0).ensureExists();
+    await new LedgerRepository(real, () => T0).append({ amount: 100, reason: 'seed' });
+    const def = QUEST_DEFINITIONS_V1[0]; // qd3: goal 3, 20 xp, 5 coins
+    await new QuestRepository(real).upsertDefinition(toDbQuestDefinition(def));
+    await new QuestRepository(real).recordProgress({
+      questId: def.id,
+      period: PERIOD,
+      progress: 3,
+      completedAt: T0,
+    });
+
+    // fault at the XP award (claim marker already succeeded -> must roll back)
+    const db = new AppDatabase(new FaultInjectingAdapter(real, 1), { now: () => T0 });
+    await expect(applyQuestReward(db, def, PERIOD)).rejects.toThrow(/injected fault/);
+
+    const progress = (await new QuestRepository(real).listProgressForPeriod(PERIOD))[0];
+    expect(progress.claimedAt).toBeNull(); // rolled back
+    expect(await new XpAwardsRepository(real).list()).toHaveLength(0);
+    expect(await new LedgerRepository(real).getBalance()).toBe(100);
+  });
+
+  it('rolls back paid reroll when the ledger debit after the workout mutation faults (faulted(1))', async () => {
+    const real = await createMigratedDb();
+    await new ProfileRepository(real, () => T0).ensureExists();
+    if (true) await new LedgerRepository(real, () => T0).append({ amount: 100, reason: 'seed' });
+    const db = new AppDatabase(new FaultInjectingAdapter(real, 1), { now: () => T0 });
+    await expect(
+      paidReroll(db, {
+        cost: 10,
+        mutateWorkout: async (txn) => {
+          // a real write so faulted(1) hits the debit, not this mutation
+          await txn.run('CREATE TABLE IF NOT EXISTS _probe_mutate (x TEXT)');
+          await txn.run("INSERT INTO _probe_mutate VALUES ('mutated')");
+        },
+      }),
+    ).rejects.toThrow(/injected fault/);
+    expect(await db.ledger.getBalance()).toBe(100);
+    expect(await db.ledger.list()).toHaveLength(1);
+    // workout mutation rolled back — _probe_mutate not durable
+    // Transaction rolled back, so _probe_mutate was never durably created — query fails
+    await expect(new FaultInjectingAdapter(real, 999).all<{ x: string }>('SELECT * FROM _probe_mutate')).rejects.toThrow(/no such table/);
   });
 });
