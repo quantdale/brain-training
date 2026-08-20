@@ -96,8 +96,14 @@ export function effectiveCurrent(state: StreakState, today: string): number {
  *   may contain duplicates, may contain future dates (ignored) and malformed
  *   entries (ignored).
  * @param today Local `YYYY-MM-DD` reference date.
+ * @param coveredDates Optional `YYYY-MM-DD` dates a Freeze/Recovery has
+ *   retroactively counted as active (persisted in profile settings).
  */
-export function reconstructStreak(activityDates: readonly string[], today: string): StreakState {
+export function reconstructStreak(
+  activityDates: readonly string[],
+  today: string,
+  coveredDates?: readonly string[],
+): StreakState {
   const todayParsed = toUtcDate(today);
   if (!todayParsed) {
     // Defensive: an invalid `today` cannot anchor a streak; empty state.
@@ -111,6 +117,15 @@ export function reconstructStreak(activityDates: readonly string[], today: strin
     const parsed = toUtcDate(dateStr);
     if (parsed !== null && parsed.getTime() <= todayTime) {
       active.add(dateStr);
+    }
+  }
+  // Covered dates (Freeze/Recovery) count as active too, but never as "future".
+  if (coveredDates) {
+    for (const dateStr of coveredDates) {
+      const parsed = toUtcDate(dateStr);
+      if (parsed !== null && parsed.getTime() <= todayTime) {
+        active.add(dateStr);
+      }
     }
   }
   // `YYYY-MM-DD` sorts lexicographically == chronologically.

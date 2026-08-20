@@ -905,7 +905,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     ]
                   }
                 >
-                  P
+                  🟦
                 </Text>
               </View>
               <View
@@ -1306,82 +1306,91 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     </Text>
                   </View>
                   <View
-                    accessibilityRole="button"
-                    accessibilityState={
+                    style={
                       {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": true,
-                        "expanded": undefined,
-                        "selected": undefined,
+                        "flexDirection": "row",
+                        "gap": 8,
                       }
                     }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    testID="streak-buy-freeze"
                   >
                     <View
-                      style={
-                        [
-                          {
-                            "backgroundColor": "#E9ECFF",
-                          },
-                          {
-                            "alignSelf": "flex-start",
-                            "borderRadius": 999,
-                            "paddingHorizontal": 16,
-                            "paddingVertical": 4,
-                          },
-                        ]
+                      accessibilityRole="button"
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": true,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
                       }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      testID="streak-buy-freeze"
                     >
-                      <Text
+                      <View
                         style={
                           [
                             {
-                              "color": "#4F6BFF",
+                              "backgroundColor": "#E9ECFF",
                             },
-                            false,
-                            false,
-                            false,
                             {
-                              "fontSize": 14,
-                              "fontWeight": "700",
-                              "lineHeight": 20,
+                              "alignSelf": "flex-start",
+                              "borderRadius": 999,
+                              "paddingHorizontal": 16,
+                              "paddingVertical": 4,
                             },
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            undefined,
                           ]
                         }
                       >
-                        100
-                         coins
-                      </Text>
+                        <Text
+                          style={
+                            [
+                              {
+                                "color": "#4F6BFF",
+                              },
+                              false,
+                              false,
+                              false,
+                              {
+                                "fontSize": 14,
+                                "fontWeight": "700",
+                                "lineHeight": 20,
+                              },
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              undefined,
+                            ]
+                          }
+                        >
+                          100
+                           coins
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1459,86 +1468,95 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                         ]
                       }
                     >
-                      Proactive streak protection
+                      Proactive streak protection (freeze or recovery)
                     </Text>
                   </View>
                   <View
-                    accessibilityRole="button"
-                    accessibilityState={
+                    style={
                       {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": true,
-                        "expanded": undefined,
-                        "selected": undefined,
+                        "flexDirection": "row",
+                        "gap": 8,
                       }
                     }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    testID="streak-buy-shield"
                   >
                     <View
-                      style={
-                        [
-                          {
-                            "backgroundColor": "#E9ECFF",
-                          },
-                          {
-                            "alignSelf": "flex-start",
-                            "borderRadius": 999,
-                            "paddingHorizontal": 16,
-                            "paddingVertical": 4,
-                          },
-                        ]
+                      accessibilityRole="button"
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": true,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
                       }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      testID="streak-buy-shield"
                     >
-                      <Text
+                      <View
                         style={
                           [
                             {
-                              "color": "#4F6BFF",
+                              "backgroundColor": "#E9ECFF",
                             },
-                            false,
-                            false,
-                            false,
                             {
-                              "fontSize": 14,
-                              "fontWeight": "700",
-                              "lineHeight": 20,
+                              "alignSelf": "flex-start",
+                              "borderRadius": 999,
+                              "paddingHorizontal": 16,
+                              "paddingVertical": 4,
                             },
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            undefined,
                           ]
                         }
                       >
-                        150
-                         coins
-                      </Text>
+                        <Text
+                          style={
+                            [
+                              {
+                                "color": "#4F6BFF",
+                              },
+                              false,
+                              false,
+                              false,
+                              {
+                                "fontSize": 14,
+                                "fontWeight": "700",
+                                "lineHeight": 20,
+                              },
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              undefined,
+                            ]
+                          }
+                        >
+                          150
+                           coins
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1620,86 +1638,139 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     </Text>
                   </View>
                   <View
-                    accessibilityRole="button"
-                    accessibilityState={
+                    style={
                       {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": true,
-                        "expanded": undefined,
-                        "selected": undefined,
+                        "flexDirection": "row",
+                        "gap": 8,
                       }
                     }
-                    accessibilityValue={
-                      {
-                        "max": undefined,
-                        "min": undefined,
-                        "now": undefined,
-                        "text": undefined,
-                      }
-                    }
-                    accessible={true}
-                    collapsable={false}
-                    focusable={true}
-                    onBlur={[Function]}
-                    onClick={[Function]}
-                    onFocus={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    testID="streak-buy-recovery"
                   >
                     <View
-                      style={
-                        [
-                          {
-                            "backgroundColor": "#E9ECFF",
-                          },
-                          {
-                            "alignSelf": "flex-start",
-                            "borderRadius": 999,
-                            "paddingHorizontal": 16,
-                            "paddingVertical": 4,
-                          },
-                        ]
+                      accessibilityRole="button"
+                      accessibilityState={
+                        {
+                          "busy": undefined,
+                          "checked": undefined,
+                          "disabled": true,
+                          "expanded": undefined,
+                          "selected": undefined,
+                        }
                       }
+                      accessibilityValue={
+                        {
+                          "max": undefined,
+                          "min": undefined,
+                          "now": undefined,
+                          "text": undefined,
+                        }
+                      }
+                      accessible={true}
+                      collapsable={false}
+                      focusable={true}
+                      onBlur={[Function]}
+                      onClick={[Function]}
+                      onFocus={[Function]}
+                      onResponderGrant={[Function]}
+                      onResponderMove={[Function]}
+                      onResponderRelease={[Function]}
+                      onResponderTerminate={[Function]}
+                      onResponderTerminationRequest={[Function]}
+                      onStartShouldSetResponder={[Function]}
+                      testID="streak-buy-recovery"
                     >
-                      <Text
+                      <View
                         style={
                           [
                             {
-                              "color": "#4F6BFF",
+                              "backgroundColor": "#E9ECFF",
                             },
-                            false,
-                            false,
-                            false,
                             {
-                              "fontSize": 14,
-                              "fontWeight": "700",
-                              "lineHeight": 20,
+                              "alignSelf": "flex-start",
+                              "borderRadius": 999,
+                              "paddingHorizontal": 16,
+                              "paddingVertical": 4,
                             },
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            undefined,
                           ]
                         }
                       >
-                        200
-                         coins
-                      </Text>
+                        <Text
+                          style={
+                            [
+                              {
+                                "color": "#4F6BFF",
+                              },
+                              false,
+                              false,
+                              false,
+                              {
+                                "fontSize": 14,
+                                "fontWeight": "700",
+                                "lineHeight": 20,
+                              },
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              false,
+                              undefined,
+                            ]
+                          }
+                        >
+                          200
+                           coins
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "gap": 16,
+                    "padding": 24,
+                  },
+                ]
+              }
+              testID="profile-milestones"
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#161A26",
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    {
+                      "fontSize": 22,
+                      "fontWeight": "600",
+                      "lineHeight": 30,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
+                }
+              >
+                Streak Milestones
+              </Text>
             </View>
             <View
               style={
@@ -1862,6 +1933,30 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   >
                     First Steps
                   </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
                   <Text
                     style={
                       [
@@ -1941,6 +2036,30 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   >
                     Getting Regular
                   </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
                   <Text
                     style={
                       [
@@ -2020,6 +2139,30 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   >
                     Century Club
                   </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
                   <Text
                     style={
                       [
@@ -2099,6 +2242,30 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   >
                     XP Voyager
                   </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
                   <Text
                     style={
                       [
@@ -2131,6 +2298,1867 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     Locked
                   </Text>
                 </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Dedicated Mind
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 250 sessions in total.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Training Sage
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 500 sessions in total.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    XP Navigator
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Earn 25,000 lifetime XP.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    XP Luminary
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Earn 75,000 lifetime XP.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Week Strong
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Reach a 7-day streak.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Monthly Devotion
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Reach a 30-day streak.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Unbreakable
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Reach a 100-day streak.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Sharp Shooter
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 10 sessions at 90%+ performance.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Flawless
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 sessions at 90%+ performance.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Memory Keeper
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Memory sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Focused
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Attention sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Quick Thinker
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Speed sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Number Cruncher
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Math sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Wordsmith
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Language sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Problem Solver
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Logic & Problem Solving sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Adaptable
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Flexibility sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 16,
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "700",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Spatial Thinker
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "backgroundColor": "rgba(120,120,140,0.25)",
+                        "borderRadius": 3,
+                        "height": 6,
+                        "overflow": "hidden",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#4F6BFF",
+                            "height": 6,
+                          },
+                          {
+                            "width": "0%",
+                          },
+                        ]
+                      }
+                    />
+                  </View>
+                  <Text
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Complete 50 Spatial sessions.
+                     ·
+                     
+                    Locked
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              href="/rewards"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              role="link"
+              testID="profile-cosmetics"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#FFFFFF",
+                    },
+                    {
+                      "borderRadius": 20,
+                      "gap": 16,
+                      "padding": 24,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#161A26",
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 22,
+                        "fontWeight": "600",
+                        "lineHeight": 30,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Cosmetics
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#5D6474",
+                      },
+                      false,
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "lineHeight": 16,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Frame: 
+                  🟦
+                   · Accent: 
+                  Indigo
+                   — manage your cosmetics →
+                </Text>
               </View>
             </View>
             <View

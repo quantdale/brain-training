@@ -20,8 +20,8 @@
  */
 
 import type { StreakFreezeUsage, StreakInventory, StreakItemKind, StreakState } from './types';
-import { readInventory } from './inventory';
-import { daysBetween, previousDate } from './reconstruct';
+import { addCoveredDates, consumeItem, readInventory } from './inventory';
+import { daysBetween, nextDate, previousDate } from './reconstruct';
 
 /** Cost of one Freeze (coins, see rationale above). */
 export const FREEZE_COST_COINS = 100;
@@ -195,4 +195,124 @@ export function applyRecovery(state: StreakState, maxRestoreDays: number, today:
     atRisk: false,
     frozenDays: state.frozenDays + missedDays,
   };
+}
+
+/**
+ * Can a Recovery be applied right now? Requires the streak to be BROKEN
+ * (last active day older than yesterday — Recovery is post-miss only), a
+ * gap within `maxRestoreDays` (use `RECOVERY_MAX_STREAK_RESTORE_DAYS`), and at
+ * least one Recovery owned.
+ */
+export function canApplyRecovery(
+  state: StreakState,
+  settings: Record<string, unknown>,
+  now: Date,
+): boolean {
+  if (state.lastActiveDate === null) {
+    return false;
+  }
+  const today = localDateOf(now);
+  if (state.lastActiveDate === today || state.lastActiveDate === previousDate(today)) {
+    return false; // alive or at risk — recovery is post-miss only
+  }
+  const missedDays = daysBetween(today, state.lastActiveDate) - 1;
+  if (missedDays < 1 || missedDays > RECOVERY_MAX_STREAK_RESTORE_DAYS) {
+    return false;
+  }
+  const inventory: StreakInventory = readInventory(settings);
+  return inventory.recovery >= 1;
+}
+
+/** Local `YYYY-MM-DD` key for a clock date (repo local-calendar convention). */
+function localDateOf(now: Date): string {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * PURE settings transform: apply an owned Freeze for `now`'s day. Consumes one
+ * Freeze, records monthly usage, and persists `today` as a covered date so the
+ * reconstructed streak treats it active. Precondition — checked by the caller
+ * via `canApplyFreeze` — is that the streak is at risk, a Freeze is owned, and
+ * the monthly cap is not exhausted.
+ */
+export function applyFreezeToSettings(
+  settings: Record<string, unknown>,
+  now: Date,
+): Record<string, unknown> {
+  const today = localDateOf(now);
+  const consumed = consumeItem(settings, 'freeze');
+  const withUsage = recordFreezeUse(consumed, now);
+  return addCoveredDates(withUsage, [today]);
+}
+
+/**
+ * PURE settings transform: apply an owned Recovery for `now`. Consumes one
+ * Recovery and persists the missed days (last active + 1 .. today, inclusive)
+ * as covered dates so the reconstructed streak is restored (up to
+ * `RECOVERY_MAX_STREAK_RESTORE_DAYS`). Precondition — checked by the caller
+ * via `canApplyRecovery` — is that the streak is broken, a Recovery is owned,
+ * and the gap is within the restore cap.
+ */
+export function applyRecoveryToSettings(
+  settings: Record<string, unknown>,
+  state: StreakState,
+  now: Date,
+): Record<string, unknown> {
+  if (state.lastActiveDate === null) {
+    return settings; // nothing to restore
+  }
+  const today = localDateOf(now);
+  const missed = missedDateRange(state.lastActiveDate, today);
+  const consumed = consumeItem(settings, 'recovery');
+  return addCoveredDates(consumed, missed);
+}
+
+/** Inclusive date range from `start + 1` through `end` (both `YYYY-MM-DD`). */
+function missedDateRange(start: string, end: string): string[] {
+  const dates: string[] = [];
+  let cursor = nextDate(start);
+  while (cursor <= end) {
+    dates.push(cursor);
+    cursor = nextDate(cursor);
+  }
+  return dates;
+}
+
+/**
+ * Can a Shield be applied right now? The Shield is a broader protection that
+ * works in either the at-risk window (acts like a Freeze) or the broken window
+ * (acts like a Recovery), provided at least one Shield is owned.
+ */
+export function canApplyShield(
+  state: StreakState,
+  settings: Record<string, unknown>,
+  now: Date,
+): boolean {
+  const inventory: StreakInventory = readInventory(settings);
+  if (inventory.shield < 1) {
+    return false;
+  }
+  return canApplyFreeze(state, settings, now) || canApplyRecovery(state, settings, now);
+}
+
+/**
+ * PURE settings transform: apply an owned Shield. Degrades to a Recovery when
+ * the streak is broken, otherwise to a Freeze when at risk. No-op when neither
+ * window applies. Consumes exactly one Shield.
+ */
+export function applyShieldToSettings(
+  settings: Record<string, unknown>,
+  state: StreakState,
+  now: Date,
+): Record<string, unknown> {
+  if (canApplyRecovery(state, settings, now)) {
+    return applyRecoveryToSettings(settings, state, now);
+  }
+  if (canApplyFreeze(state, settings, now)) {
+    return applyFreezeToSettings(settings, now);
+  }
+  return settings;
 }

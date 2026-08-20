@@ -38,20 +38,16 @@ const byId = (definitions: readonly QuestDefinition[], id: string): QuestDefinit
   definitions.find((d) => d.id === id)!;
 
 describe('evaluateQuests', () => {
-  it('evaluates every definition in order with matching period keys', () => {
+  it('evaluates the baseline quests with their correct period keys', () => {
     const results = evaluateQuests(QUEST_DEFINITIONS_V1, SNAPSHOT, NOW);
-    expect(results.map((r) => r.questId)).toEqual([
-      'qd3',
-      'qdx',
-      'qw-memory',
-      'qt100',
-    ]);
-    expect(results.map((r) => r.periodKey)).toEqual([
-      '2026-08-16',
-      '2026-08-16',
-      '2026-W33',
-      'all',
-    ]);
+    const byId = new Map(results.map((r) => [r.questId, r]));
+    // The original four baseline quests keep their exact criteria + period keys.
+    expect(byId.get('qd3')?.periodKey).toBe('2026-08-16');
+    expect(byId.get('qdx')?.periodKey).toBe('2026-08-16');
+    expect(byId.get('qw-memory')?.periodKey).toBe('2026-W33');
+    expect(byId.get('qt100')?.periodKey).toBe('all');
+    // The catalog has grown beyond the baseline four.
+    expect(results.length).toBeGreaterThanOrEqual(4);
   });
 
   it('daily quest counts only sessions on the same local date', () => {

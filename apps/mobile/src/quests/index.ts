@@ -27,5 +27,11 @@ export {
 export type { IsoWeek } from './period';
 export { evaluateQuests, evaluateQuest } from './evaluate';
 export type { QuestSnapshot, QuestSessionSample } from './evaluate';
+export {
+  selectActiveQuests,
+  pickStable,
+  DAILY_QUEST_SLOTS,
+  WEEKLY_QUEST_SLOTS,
+} from './active';
 export { applyQuestReward, toDbQuestDefinition, QuestNotCompleteError } from './rewards';
 export type { QuestRewardResult } from './rewards';
