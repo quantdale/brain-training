@@ -120,7 +120,7 @@ export default function ProgressDomainScreen() {
         <ThemedText type="small" themeColor="textSecondary" testID="progress-domain-missing">
           No domain selected.
         </ThemedText>
-        <Link href="/progress" asChild>
+        <Link href={"/progress" as any} asChild>
           <Pressable accessibilityRole="button" testID="progress-domain-back-link">
             <ThemedText type="smallBold" themeColor="accent">
               ‹ Back to Progress
@@ -232,7 +232,7 @@ export default function ProgressDomainScreen() {
             {byGame.map(([gameId, count]) => (
               <Link
                 key={gameId}
-                href={{ pathname: '/progress-game', params: { gameId } }}
+                href={{ pathname: '/progress-game' as any, params: { gameId } }}
                 asChild>
                 <Pressable
                   style={styles.row}

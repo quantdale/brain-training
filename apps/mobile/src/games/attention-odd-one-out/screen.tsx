@@ -27,7 +27,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -299,11 +299,11 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
         return;
       }
       if (current.board !== null && index === current.board.oddIndex) {
-        noopAudioHaptics.playSfx('odd-one-out-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('odd-one-out-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('odd-one-out-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('odd-one-out-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'tap-tile', index, nowMs: clock.now() });
     },

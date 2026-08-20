@@ -15,6 +15,15 @@ These are intentionally unresolved. Their absence is not permission for an agent
   background-music control is exposed in the UI (a silent toggle would
   misrepresent reality). Theme selection IS persisted.
 
+- Local data portability (backup/export/import + deletion): **implemented**
+  (Wave `parallel-wave-01/05-data-portability` + convergence hardening). The
+  engine provides a versioned, checksummed envelope, canonical JSON, integrity
+  + future-version validation, preview/dry-run, merge/replace with dedupe and
+  idempotency, atomic application + rollback, and a Data Management UI
+  (`/data-management` linked from Profile) with export, import (merge/replace)
+  and wipe (DELETE confirmation). No cloud/Supabase coupling; transport is
+  UI-level JSON (file/share can be layered later).
+
 ## Product decisions deferred
 
 - final app name and branding

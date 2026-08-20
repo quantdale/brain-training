@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -279,8 +279,8 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       if (current.phase !== 'showGrid' || current.paused) {
         return;
       }
-      noopAudioHaptics.playSfx('memory-tile-correct');
-      noopAudioHaptics.haptic('light');
+      liveAudioHaptics.playSfx('memory-tile-correct');
+      liveAudioHaptics.haptic('light');
       dispatch({
         type: 'answer',
         selectedValue: value,

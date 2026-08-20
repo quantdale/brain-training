@@ -606,6 +606,18 @@ export default function ProfileScreen() {
         </Pressable>
       </Link>
 
+      {/* Data portability — export / import / wipe (Session 05). */}
+      <Link href={"/data-management" as any} asChild>
+        <Pressable testID="profile-data-management">
+          <ThemedView type="surface" style={styles.card}>
+            <ThemedText type="subtitle">Data Management</ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Backup, restore, and delete your local training data →
+            </ThemedText>
+          </ThemedView>
+        </Pressable>
+      </Link>
+
       {/* Theme selection (theme registry seam). */}
       <ThemedView type="surface" style={styles.card} testID="theme-card">
         <ThemedText type="subtitle">Theme</ThemedText>

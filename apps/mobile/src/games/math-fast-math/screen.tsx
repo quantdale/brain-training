@@ -21,7 +21,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -302,11 +302,11 @@ export default function MathScreen(props: MathScreenProps = {}) {
     const problem = current.problem;
     const correct = problem !== null && Number(current.input) === problem.answer;
     if (correct) {
-      noopAudioHaptics.playSfx('math-fast-math-correct');
-      noopAudioHaptics.haptic('success');
+      liveAudioHaptics.playSfx('math-fast-math-correct');
+      liveAudioHaptics.haptic('success');
     } else {
-      noopAudioHaptics.playSfx('math-fast-math-wrong');
-      noopAudioHaptics.haptic('warning');
+      liveAudioHaptics.playSfx('math-fast-math-wrong');
+      liveAudioHaptics.haptic('warning');
     }
     const activeMs = lifecycleRef.current?.elapsedMs() ?? 0;
     dispatch({ type: 'submit-answer', atActiveMs: activeMs });

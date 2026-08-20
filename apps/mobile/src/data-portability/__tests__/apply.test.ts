@@ -82,7 +82,7 @@ describe('merge import', () => {
     // A second device backup that adds a new session s3 (different id).
     const src2 = await makeDb();
     await seedFixture(src2);
-    await target.transaction(async (txn) => {
+    await src2.transaction(async (txn) => {
       await txn.run(
         `INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,

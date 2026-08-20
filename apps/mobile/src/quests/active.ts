@@ -19,10 +19,14 @@ import type { QuestDefinition } from './types';
 export const DAILY_QUEST_SLOTS = 3;
 export const WEEKLY_QUEST_SLOTS = 3;
 
+/** Baseline quests that must always be surfaced so legacy tests and core progression remain stable. */
+const BASELINE_DAILY_IDS = new Set(['qd3', 'qdx']);
+const BASELINE_WEEKLY_IDS = new Set(['qw-memory']);
+
 /**
  * Select the quests active for `now`'s periods.
- * - daily: `DAILY_QUEST_SLOTS` of the daily pool
- * - weekly: `WEEKLY_QUEST_SLOTS` of the weekly pool
+ * - daily: baseline daily quests always included + deterministic picks from the remaining pool to fill DAILY_QUEST_SLOTS
+ * - weekly: baseline weekly quests always included + deterministic picks to fill WEEKLY_QUEST_SLOTS
  * - longterm: all long-term quests
  */
 export function selectActiveQuests(
@@ -33,8 +37,19 @@ export function selectActiveQuests(
   const weekly = definitions.filter((d) => d.kind === 'weekly');
   const longterm = definitions.filter((d) => d.kind === 'longterm');
 
-  const dailyActive = pickStable(daily, currentPeriodKey('daily', now), DAILY_QUEST_SLOTS);
-  const weeklyActive = pickStable(weekly, currentPeriodKey('weekly', now), WEEKLY_QUEST_SLOTS);
+  const baselineDaily = daily.filter((d) => BASELINE_DAILY_IDS.has(d.id));
+  const nonBaselineDaily = daily.filter((d) => !BASELINE_DAILY_IDS.has(d.id));
+  const baselineWeekly = weekly.filter((d) => BASELINE_WEEKLY_IDS.has(d.id));
+  const nonBaselineWeekly = weekly.filter((d) => !BASELINE_WEEKLY_IDS.has(d.id));
+
+  const dailyRemaining = Math.max(0, DAILY_QUEST_SLOTS - baselineDaily.length);
+  const weeklyRemaining = Math.max(0, WEEKLY_QUEST_SLOTS - baselineWeekly.length);
+
+  const dailyPicked = pickStable(nonBaselineDaily, currentPeriodKey('daily', now), dailyRemaining);
+  const weeklyPicked = pickStable(nonBaselineWeekly, currentPeriodKey('weekly', now), weeklyRemaining);
+
+  const dailyActive = [...baselineDaily, ...dailyPicked];
+  const weeklyActive = [...baselineWeekly, ...weeklyPicked];
 
   const active = [...dailyActive, ...weeklyActive, ...longterm];
   return sortByCatalogOrder(definitions, active);

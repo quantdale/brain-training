@@ -25,7 +25,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -288,7 +288,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
         return;
       }
       // Play haptic feedback.
-      noopAudioHaptics.haptic('light');
+      liveAudioHaptics.haptic('light');
       dispatch({ type: 'tap-word', index: scrambledIndex });
     },
     [dispatch],

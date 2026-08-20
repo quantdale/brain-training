@@ -24,7 +24,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -301,11 +301,11 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
       }
       const responseMs = Math.max(0, clock.now() - trialStartRef.current);
       if (index === current.round.correctIndex) {
-        noopAudioHaptics.playSfx('flexibility-cue-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('flexibility-cue-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('flexibility-cue-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('flexibility-cue-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'pick-card', index, responseMs });
     },

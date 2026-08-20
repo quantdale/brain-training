@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { SessionLifecycle, isDevBuild, noopAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import { SessionLifecycle, isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
@@ -265,11 +265,11 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
         return;
       }
       if (index === current.sequence[current.inputIndex]) {
-        noopAudioHaptics.playSfx('memory-tile-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('memory-tile-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('memory-tile-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('memory-tile-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'tap-tile', index });
     },

@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -267,8 +267,8 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
       if (current.phase !== 'input' || current.paused) {
         return;
       }
-      noopAudioHaptics.playSfx('memory-tile-correct');
-      noopAudioHaptics.haptic('light');
+      liveAudioHaptics.playSfx('memory-tile-correct');
+      liveAudioHaptics.haptic('light');
       dispatch({ type: 'select-color', colorIndex });
     },
     [dispatch],
@@ -283,7 +283,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
     if (current.phase !== 'input' || current.paused) {
       return;
     }
-    noopAudioHaptics.playSfx('memory-tile-correct');
+    liveAudioHaptics.playSfx('memory-tile-correct');
     dispatch({ type: 'submit-guess' });
   }, [dispatch]);
 

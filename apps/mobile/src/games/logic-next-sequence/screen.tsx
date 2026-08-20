@@ -22,7 +22,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -280,11 +280,11 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
           : 0;
       const correct = current.puzzle?.answerIndex === index;
       if (correct) {
-        noopAudioHaptics.playSfx('logic-option-correct');
-        noopAudioHaptics.haptic('success');
+        liveAudioHaptics.playSfx('logic-option-correct');
+        liveAudioHaptics.haptic('success');
       } else {
-        noopAudioHaptics.playSfx('logic-option-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('logic-option-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'answer-option', index, responseMs });
     },

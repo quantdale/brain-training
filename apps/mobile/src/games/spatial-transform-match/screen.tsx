@@ -25,7 +25,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -287,11 +287,11 @@ export default function SpatialTransformMatchScreen(
       }
       const answerMs = clock.now() - choiceStartedAtRef.current;
       if (index === current.correctOptionIndex) {
-        noopAudioHaptics.playSfx('memory-tile-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('memory-tile-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('memory-tile-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('memory-tile-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'select-option', index, answerMs });
     },

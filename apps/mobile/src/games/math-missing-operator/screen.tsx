@@ -24,7 +24,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -310,11 +310,11 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
       }
       const responseMs = current.roundElapsedMs + (clock.now() - current.roundStartedAtMs);
       if (operator === current.equation.answerOperator) {
-        noopAudioHaptics.playSfx('math-missing-operator-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('math-missing-operator-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('math-missing-operator-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('math-missing-operator-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'answer-round', operator, responseMs });
     },

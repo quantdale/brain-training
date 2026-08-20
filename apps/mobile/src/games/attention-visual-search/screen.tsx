@@ -27,7 +27,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -286,11 +286,11 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
         return;
       }
       if (index === current.targetIndex) {
-        noopAudioHaptics.playSfx('visual-search-hit');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('visual-search-hit');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('visual-search-miss');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('visual-search-miss');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'tap-tile', index, nowMs: clock.now() });
     },

@@ -165,7 +165,7 @@ export default function ProgressScreen() {
           {domainInsights.map((d) => (
             <Link
               key={d.domain}
-              href={{ pathname: '/progress-domain', params: { domain: d.domain } }}
+              href={{ pathname: '/progress-domain' as any, params: { domain: d.domain } }}
               asChild>
               <Pressable
                 style={styles.row}
@@ -204,7 +204,7 @@ export default function ProgressScreen() {
       <ThemedView type="surface" style={styles.card} testID="progress-activity">
         <View style={styles.cardHeader}>
           <ThemedText type="subtitle">Activity</ThemedText>
-          <Link href="/progress-activity" asChild>
+          <Link href={"/progress-activity" as any} asChild>
             <Pressable accessibilityRole="button" testID="progress-activity-link">
               <ThemedText type="smallBold" themeColor="accent">
                 Full calendar ›
@@ -245,7 +245,7 @@ export default function ProgressScreen() {
             {data.aggregates.map((a) => (
               <Link
                 key={a.gameId}
-                href={{ pathname: '/progress-game', params: { gameId: a.gameId } }}
+                href={{ pathname: '/progress-game' as any, params: { gameId: a.gameId } }}
                 asChild>
                 <Pressable
                   style={styles.row}

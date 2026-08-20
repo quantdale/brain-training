@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -273,8 +273,8 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     (index: number) => {
       const current = stateRef.current;
       if (current.phase !== 'playing' || current.paused) return;
-      noopAudioHaptics.playSfx('memory-tile-correct');
-      noopAudioHaptics.haptic('light');
+      liveAudioHaptics.playSfx('memory-tile-correct');
+      liveAudioHaptics.haptic('light');
       dispatch({ type: 'add-number', numberIndex: index });
     },
     [dispatch],
@@ -284,8 +284,8 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     (operator: Operator) => {
       const current = stateRef.current;
       if (current.phase !== 'playing' || current.paused) return;
-      noopAudioHaptics.playSfx('memory-tile-correct');
-      noopAudioHaptics.haptic('light');
+      liveAudioHaptics.playSfx('memory-tile-correct');
+      liveAudioHaptics.haptic('light');
       dispatch({ type: 'add-operator', operator });
     },
     [dispatch],

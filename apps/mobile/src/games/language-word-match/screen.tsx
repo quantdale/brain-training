@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { SessionLifecycle, isDevBuild, noopAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import { SessionLifecycle, isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
@@ -274,11 +274,11 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
       }
       const correct = index === current.round?.correctIndex;
       if (correct) {
-        noopAudioHaptics.playSfx('language-word-match-correct');
-        noopAudioHaptics.haptic('success');
+        liveAudioHaptics.playSfx('language-word-match-correct');
+        liveAudioHaptics.haptic('success');
       } else {
-        noopAudioHaptics.playSfx('language-word-match-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('language-word-match-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'answer-option', index, nowMs });
     },

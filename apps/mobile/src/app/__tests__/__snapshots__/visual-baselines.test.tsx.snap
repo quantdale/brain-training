@@ -4162,6 +4162,112 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               </View>
             </View>
             <View
+              accessibilityState={
+                {
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": undefined,
+                  "expanded": undefined,
+                  "selected": undefined,
+                }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              href="/data-management"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              role="link"
+              testID="profile-data-management"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "backgroundColor": "#FFFFFF",
+                    },
+                    {
+                      "borderRadius": 20,
+                      "gap": 16,
+                      "padding": 24,
+                    },
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#161A26",
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "fontSize": 22,
+                        "fontWeight": "600",
+                        "lineHeight": 30,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Data Management
+                </Text>
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#5D6474",
+                      },
+                      false,
+                      {
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "lineHeight": 16,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Backup, restore, and delete your local training data →
+                </Text>
+              </View>
+            </View>
+            <View
               style={
                 [
                   {

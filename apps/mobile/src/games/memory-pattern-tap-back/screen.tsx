@@ -18,7 +18,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -289,11 +289,11 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
         return;
       }
       if (index === current.sequence[current.inputIndex]) {
-        noopAudioHaptics.playSfx('memory-tile-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('memory-tile-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('memory-tile-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('memory-tile-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'tap-tile', index });
     },

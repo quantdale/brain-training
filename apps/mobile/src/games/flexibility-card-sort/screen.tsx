@@ -23,7 +23,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -316,11 +316,11 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
       }
       const responseMs = Math.max(0, clock.now() - roundStartRef.current);
       if (index === current.round.correctIndex) {
-        noopAudioHaptics.playSfx('flexibility-card-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('flexibility-card-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('flexibility-card-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('flexibility-card-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'pick-card', index, responseMs });
     },

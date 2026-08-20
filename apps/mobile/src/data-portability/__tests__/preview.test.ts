@@ -36,11 +36,12 @@ describe('previewImport', () => {
   });
 
   it('returns valid:false with the rejection reason for a corrupt backup', async () => {
+    const src = await makeDb();
+    await seedFixture(src);
     const target = await makeDb();
-    const corrupt = serializeBackup(await exportLocalData(target, { now: () => T0 + 1 })).replace(
-      '"Memory"',
-      '"MemoryX"',
-    );
+    const original = serializeBackup(await exportLocalData(src, { now: () => T0 + 1 }));
+    // Corrupt the payload (Memory -> MemoryX) while keeping the original checksum, so validation must fail.
+    const corrupt = original.replace('"Memory"', '"MemoryX"');
     const preview = await previewImport(target, corrupt, 'merge');
     expect(preview.valid).toBe(false);
     expect(preview.error?.kind).toBe('checksum');

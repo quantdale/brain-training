@@ -22,7 +22,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -286,11 +286,11 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
         return;
       }
       if (answer === current.kind) {
-        noopAudioHaptics.playSfx('spatial-answer-correct');
-        noopAudioHaptics.haptic('success');
+        liveAudioHaptics.playSfx('spatial-answer-correct');
+        liveAudioHaptics.haptic('success');
       } else {
-        noopAudioHaptics.playSfx('spatial-answer-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('spatial-answer-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'answer', answer });
     },

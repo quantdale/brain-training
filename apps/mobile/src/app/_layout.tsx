@@ -173,6 +173,7 @@ function RootNavigator() {
         <Stack.Screen name="progress-domain" />
         <Stack.Screen name="progress-game" />
         <Stack.Screen name="rewards" />
+        <Stack.Screen name="data-management" />
       </Stack>
     </ThemeProvider>
   );

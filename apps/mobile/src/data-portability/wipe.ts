@@ -64,12 +64,12 @@ export async function countLocalData(db: AppDatabase): Promise<LocalDataCounts> 
   const profile = await db.profile.get();
 
   return {
-    gameSessions: (await db.sessions.listRecent(1)).length,
+    gameSessions: (await db.sessions.listRecent(10000)).length,
     domainRatings: (await db.ratings.getRatings()).length,
-    ratingHistory: (await db.ratings.getHistory(1)).length,
-    currencyLedger: (await db.ledger.list(1)).length,
+    ratingHistory: (await db.ratings.getHistory(10000)).length,
+    currencyLedger: (await db.ledger.list(10000)).length,
     gameFavorites: (await db.favorites.listFavoriteGameIds()).length,
-    xpAwards: (await db.xpAwards.list(1)).length,
+    xpAwards: (await db.xpAwards.list(10000)).length,
     tutorialState: tutorial[0]?.c ?? 0,
     workoutInstances: workouts[0]?.c ?? 0,
     questDefinitions: questDefs[0]?.c ?? 0,

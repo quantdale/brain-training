@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -270,11 +270,11 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
 
       const trial = current.trials[current.trialIndex];
       if (answer === trial.correctAnswer) {
-        noopAudioHaptics.playSfx('memory-tile-correct');
-        noopAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx('memory-tile-correct');
+        liveAudioHaptics.haptic('light');
       } else {
-        noopAudioHaptics.playSfx('memory-tile-wrong');
-        noopAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx('memory-tile-wrong');
+        liveAudioHaptics.haptic('warning');
       }
       dispatch({ type: 'submit-answer', answer, responseTimeMs: estimatedResponseMs });
     },

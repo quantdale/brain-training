@@ -24,6 +24,20 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "attention-target-count",
+    name: "Target Count",
+    primaryCategory: "Attention",
+    secondaryDomains: [
+    "Speed"
+  ],
+    description: "A grid briefly shows a mix of symbols. Quickly count how many of the highlighted target symbol appear, then pick the right number. Trains selective attention and numerosity under time pressure.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
     id: "attention-visual-search",
     name: "Visual Search",
     primaryCategory: "Attention",
@@ -60,6 +74,20 @@ export const registry: readonly GameDefinition[] = [
     "Speed"
   ],
     description: "Identify the ink color of color words, tracking rule flips between 'ink' and 'word' modes.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
+    id: "flexibility-cue-shift",
+    name: "Cue Shift",
+    primaryCategory: "Flexibility",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "A rule cue changes every trial — read it, then match the target by color, shape, or number.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
@@ -128,6 +156,20 @@ export const registry: readonly GameDefinition[] = [
     "Math"
   ],
     description: "Spot the pattern in a number sequence, then pick the next term.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
+    id: "logic-rule-grid",
+    name: "Rule Grid",
+    primaryCategory: "Logic & Problem Solving",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "A grid of symbols follows one rule: every row and column contains each symbol exactly once. One cell is blank — deduce the only symbol that can fit. Pure constraint-logic inference.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
@@ -219,6 +261,20 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "spatial-grid-nav",
+    name: "Grid Navigator",
+    primaryCategory: "Spatial",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "A marker sits on a grid facing a direction. Read the move/turn commands and tap the cell where the marker ends up.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
     id: "spatial-mental-rotation",
     name: "Mental Rotation",
     primaryCategory: "Spatial",
@@ -297,20 +353,24 @@ export const registry: readonly GameDefinition[] = [
  */
 export const gameScreenLoaders: Record<string, () => Promise<{ default: ComponentType }>> = {
   'attention-odd-one-out': () => import('@/games/attention-odd-one-out'),
+  'attention-target-count': () => import('@/games/attention-target-count'),
   'attention-visual-search': () => import('@/games/attention-visual-search'),
   'flexibility-card-sort': () => import('@/games/flexibility-card-sort'),
   'flexibility-color-stroop': () => import('@/games/flexibility-color-stroop'),
+  'flexibility-cue-shift': () => import('@/games/flexibility-cue-shift'),
   'language-sentence-builder': () => import('@/games/language-sentence-builder'),
   'language-word-match': () => import('@/games/language-word-match'),
   'language-word-scramble': () => import('@/games/language-word-scramble'),
   'logic-code-cracker': () => import('@/games/logic-code-cracker'),
   'logic-next-sequence': () => import('@/games/logic-next-sequence'),
+  'logic-rule-grid': () => import('@/games/logic-rule-grid'),
   'math-equation-builder': () => import('@/games/math-equation-builder'),
   'math-fast-math': () => import('@/games/math-fast-math'),
   'math-missing-operator': () => import('@/games/math-missing-operator'),
   'memory': () => import('@/games/memory'),
   'memory-pattern-tap-back': () => import('@/games/memory-pattern-tap-back'),
   'memory-sequence-memory': () => import('@/games/memory-sequence-memory'),
+  'spatial-grid-nav': () => import('@/games/spatial-grid-nav'),
   'spatial-mental-rotation': () => import('@/games/spatial-mental-rotation'),
   'spatial-transform-match': () => import('@/games/spatial-transform-match'),
   'speed-color-match': () => import('@/games/speed-color-match'),

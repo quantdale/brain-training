@@ -104,10 +104,12 @@ export const Stimulus = memo(function Stimulus({
     return <View testID={testID}>{content}</View>;
   }
 
+  const a11yLabel = `${card.color} ${card.shape} ${card.number}`;
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
       accessibilityState={{ disabled, busy: false }}
       disabled={disabled}
       onPress={onPress}

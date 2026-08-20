@@ -31,7 +31,7 @@ import { useRouter } from 'expo-router';
 import {
   SessionLifecycle,
   isDevBuild,
-  noopAudioHaptics,
+  liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
@@ -301,8 +301,8 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
     }
     if (current.phase === 'wait') {
       // False start: tapped before the GO signal.
-      noopAudioHaptics.playSfx('speed-false-start');
-      noopAudioHaptics.haptic('warning');
+      liveAudioHaptics.playSfx('speed-false-start');
+      liveAudioHaptics.haptic('warning');
       dispatch({ type: 'false-start' });
     } else if (current.phase === 'go' && current.goAtMs !== null) {
       // Valid reaction, measured with the monotonic clock against the moment
@@ -311,8 +311,8 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
       if (rtMs < 0) {
         return; // monotonic-clock invariant; never negative in practice
       }
-      noopAudioHaptics.playSfx('speed-trigger');
-      noopAudioHaptics.haptic(rtMs <= (params?.passMs ?? 600) ? 'success' : 'warning');
+      liveAudioHaptics.playSfx('speed-trigger');
+      liveAudioHaptics.haptic(rtMs <= (params?.passMs ?? 600) ? 'success' : 'warning');
       dispatch({ type: 'tap', rtMs });
     }
   }, [clock, dispatch, params]);
