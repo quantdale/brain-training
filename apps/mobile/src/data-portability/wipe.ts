@@ -6,23 +6,23 @@
  * only performs the irreversible clear once asked.
  */
 
-import type { AppDatabase } from '@/db';
-import { clearTablesIgnoringTriggers } from './triggers';
+import type { AppDatabase } from "@/db";
+import { clearTablesIgnoringTriggers } from "./triggers";
 
 const WIPE_ORDER = [
-  'rating_history',
-  'currency_ledger',
-  'quest_progress',
-  'achievement_unlocks',
-  'xp_awards',
-  'game_favorites',
-  'tutorial_state',
-  'workout_instances',
-  'domain_ratings',
-  'game_sessions',
-  'quests',
-  'achievements',
-  'profile',
+  "rating_history",
+  "currency_ledger",
+  "quest_progress",
+  "achievement_unlocks",
+  "xp_awards",
+  "game_favorites",
+  "tutorial_state",
+  "workout_instances",
+  "domain_ratings",
+  "game_sessions",
+  "quests",
+  "achievements",
+  "profile",
 ];
 
 export interface LocalDataCounts {
@@ -42,24 +42,26 @@ export interface LocalDataCounts {
 }
 
 /** Count everything that `wipeLocalData` would remove (for confirmation UI). */
-export async function countLocalData(db: AppDatabase): Promise<LocalDataCounts> {
+export async function countLocalData(
+  db: AppDatabase,
+): Promise<LocalDataCounts> {
   const tutorial = await db.transaction((txn) =>
-    txn.all<{ c: number }>('SELECT COUNT(*) AS c FROM tutorial_state'),
+    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM tutorial_state"),
   );
   const workouts = await db.transaction((txn) =>
-    txn.all<{ c: number }>('SELECT COUNT(*) AS c FROM workout_instances'),
+    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM workout_instances"),
   );
   const questDefs = await db.transaction((txn) =>
-    txn.all<{ c: number }>('SELECT COUNT(*) AS c FROM quests'),
+    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM quests"),
   );
   const questProg = await db.transaction((txn) =>
-    txn.all<{ c: number }>('SELECT COUNT(*) AS c FROM quest_progress'),
+    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM quest_progress"),
   );
   const achDefs = await db.transaction((txn) =>
-    txn.all<{ c: number }>('SELECT COUNT(*) AS c FROM achievements'),
+    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM achievements"),
   );
   const achUnlocks = await db.transaction((txn) =>
-    txn.all<{ c: number }>('SELECT COUNT(*) AS c FROM achievement_unlocks'),
+    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM achievement_unlocks"),
   );
   const profile = await db.profile.get();
 

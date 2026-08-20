@@ -10,28 +10,28 @@
  * emit a non-blocking celebration. Everything degrades gracefully when the db
  * is unavailable.
  */
-import { Link } from 'expo-router';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Link } from "expo-router";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { ScreenShell } from '@/components/screen-shell';
-import { useSettings } from '@/components/settings/settings-provider';
-import { SensorySettingsCard } from '@/components/sensory/sensory-settings-card';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
-import type { AppDatabase, QuestProgress } from '@/db';
-import { getDb, InsufficientFundsError, purchaseStreakItem } from '@/db';
-import { useDbData } from '@/hooks/use-db-data';
+import { ScreenShell } from "@/components/screen-shell";
+import { useSettings } from "@/components/settings/settings-provider";
+import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Radii, Spacing } from "@/constants/theme";
+import type { AppDatabase, QuestProgress } from "@/db";
+import { getDb, InsufficientFundsError, purchaseStreakItem } from "@/db";
+import { useDbData } from "@/hooks/use-db-data";
 import {
   ACHIEVEMENT_DEFINITIONS_V1,
   claimAchievementReward,
   evaluateAchievementProgress,
   type AchievementDef,
-} from '@/achievements';
-import { syncAchievements, syncQuestProgress } from '@/progression';
-import { getGameDefinition } from '@/registry/registry';
+} from "@/achievements";
+import { syncAchievements, syncQuestProgress } from "@/progression";
+import { getGameDefinition } from "@/registry/registry";
 import {
   evaluateQuests,
   currentPeriodKey,
@@ -41,7 +41,7 @@ import {
   type QuestDefinition,
   type QuestEvaluation,
   type QuestSessionSample,
-} from '@/quests';
+} from "@/quests";
 import {
   canApplyFreeze,
   canApplyRecovery,
@@ -58,26 +58,39 @@ import {
   applyOwnedStreakItem,
   claimStreakMilestoneReward,
   type StreakMilestone,
-} from '@/streaks';
-import { readInventory } from '@/streaks/inventory';
+} from "@/streaks";
+import { readInventory } from "@/streaks/inventory";
 import {
   COSMETIC_DEFINITIONS,
   resolveEquipped,
   type CosmeticProgression,
-} from '@/cosmetics';
-import { RewardCelebrationHost, celebrateReward } from '@/rewards/celebration';
+} from "@/cosmetics";
+import { RewardCelebrationHost, celebrateReward } from "@/rewards/celebration";
 import {
   THEME_OPTIONS,
   THEME_SETTINGS_KEY,
   type ThemeOption,
-} from '@/theme/registry';
-import { localDateString } from '@/workout/today';
+} from "@/theme/registry";
+import { localDateString } from "@/workout/today";
 
-const STREAK_ITEMS: { kind: StreakItemKind; label: string; caption: string }[] = [
-  { kind: 'freeze', label: 'Freeze', caption: 'Protects your streak for one missed day' },
-  { kind: 'shield', label: 'Shield', caption: 'Proactive streak protection (freeze or recovery)' },
-  { kind: 'recovery', label: 'Recovery', caption: 'Restores up to 3 lost streak days' },
-];
+const STREAK_ITEMS: { kind: StreakItemKind; label: string; caption: string }[] =
+  [
+    {
+      kind: "freeze",
+      label: "Freeze",
+      caption: "Protects your streak for one missed day",
+    },
+    {
+      kind: "shield",
+      label: "Shield",
+      caption: "Proactive streak protection (freeze or recovery)",
+    },
+    {
+      kind: "recovery",
+      label: "Recovery",
+      caption: "Restores up to 3 lost streak days",
+    },
+  ];
 
 interface ProfileData {
   balance: number;
@@ -90,7 +103,11 @@ interface ProfileData {
   longestStreak: number;
   atRisk: boolean;
   streakState: StreakState;
-  milestoneRows: { milestone: StreakMilestone; reached: boolean; claimed: boolean }[];
+  milestoneRows: {
+    milestone: StreakMilestone;
+    reached: boolean;
+    claimed: boolean;
+  }[];
   cosmeticProgression: CosmeticProgression;
   achievementRatios: Map<string, number>;
   equippedFrameEmoji: string;
@@ -121,27 +138,31 @@ const EMPTY_PROFILE: ProfileData = {
     longestStreak: 0,
   },
   achievementRatios: new Map(),
-  equippedFrameEmoji: '🟦',
-  equippedAccentName: 'Indigo',
+  equippedFrameEmoji: "🟦",
+  equippedAccentName: "Indigo",
 };
 
-async function loadProfile(db: AppDatabase, now = new Date()): Promise<ProfileData> {
+async function loadProfile(
+  db: AppDatabase,
+  now = new Date(),
+): Promise<ProfileData> {
   // Re-evaluate quests/achievements from persisted sessions first so the
   // screen reflects sessions completed since the last visit.
   await syncQuestProgress(db, now);
   await syncAchievements(db, now);
 
-  const [balance, profile, achievements, unlockRows, progressRows] = await Promise.all([
-    db.ledger.getBalance(),
-    db.profile.get(),
-    db.achievements.listDefinitions(),
-    db.achievements.listUnlocks(),
-    Promise.all(
-      selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>
-        db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
+  const [balance, profile, achievements, unlockRows, progressRows] =
+    await Promise.all([
+      db.ledger.getBalance(),
+      db.profile.get(),
+      db.achievements.listDefinitions(),
+      db.achievements.listUnlocks(),
+      Promise.all(
+        selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>
+          db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
+        ),
       ),
-    ),
-  ]);
+    ]);
 
   const profileSettings = profile?.settings ?? {};
   const inventory = readInventory(profileSettings);
@@ -150,7 +171,7 @@ async function loadProfile(db: AppDatabase, now = new Date()): Promise<ProfileDa
   const samples: QuestSessionSample[] = sessions.map((session) => ({
     completedAt: session.completedAt,
     gameId: session.gameId,
-    domain: getGameDefinition(session.gameId)?.primaryCategory ?? 'Unknown',
+    domain: getGameDefinition(session.gameId)?.primaryCategory ?? "Unknown",
     xp: session.xp,
   }));
   const questEvals = evaluateQuests(
@@ -166,22 +187,34 @@ async function loadProfile(db: AppDatabase, now = new Date()): Promise<ProfileDa
     }
   }
 
-  const unlocks = new Map<string, { unlockedAt: number; claimedAt: number | null }>();
+  const unlocks = new Map<
+    string,
+    { unlockedAt: number; claimedAt: number | null }
+  >();
   for (const row of unlockRows) {
-    unlocks.set(row.achievementId, { unlockedAt: row.unlockedAt, claimedAt: row.claimedAt });
+    unlocks.set(row.achievementId, {
+      unlockedAt: row.unlockedAt,
+      claimedAt: row.claimedAt,
+    });
   }
 
   const today = localDateString(now);
-  const activityDates = sessions.map((session) => localDateString(new Date(session.completedAt)));
+  const activityDates = sessions.map((session) =>
+    localDateString(new Date(session.completedAt)),
+  );
   const coveredDates = readCoveredDates(profileSettings);
   const streakState = reconstructStreak(activityDates, today, coveredDates);
   const longestStreak = streakState.longest;
 
   const claimedMilestones = new Set<string>(
-    Array.isArray((profileSettings.streaks as Record<string, unknown> | undefined)?.claimedMilestones)
-      ? ((profileSettings.streaks as Record<string, unknown>).claimedMilestones as unknown[]).filter(
-          (v): v is string => typeof v === 'string',
-        )
+    Array.isArray(
+      (profileSettings.streaks as Record<string, unknown> | undefined)
+        ?.claimedMilestones,
+    )
+      ? (
+          (profileSettings.streaks as Record<string, unknown>)
+            .claimedMilestones as unknown[]
+        ).filter((v): v is string => typeof v === "string")
       : [],
   );
 
@@ -217,7 +250,9 @@ async function loadProfile(db: AppDatabase, now = new Date()): Promise<ProfileDa
   }
   const achievementSnapshot = {
     sessionCount: sessions.length,
-    totalXp: sessions.reduce((sum, s) => sum + s.xp, 0) + (await db.xpAwards.getTotalAwardedXp()),
+    totalXp:
+      sessions.reduce((sum, s) => sum + s.xp, 0) +
+      (await db.xpAwards.getTotalAwardedXp()),
     domainSessions,
     longestStreak,
     perfectSessions,
@@ -229,7 +264,11 @@ async function loadProfile(db: AppDatabase, now = new Date()): Promise<ProfileDa
     ]),
   );
 
-  const equipped = resolveEquipped(COSMETIC_DEFINITIONS, profileSettings, cosmeticProgression);
+  const equipped = resolveEquipped(
+    COSMETIC_DEFINITIONS,
+    profileSettings,
+    cosmeticProgression,
+  );
 
   return {
     balance,
@@ -249,8 +288,8 @@ async function loadProfile(db: AppDatabase, now = new Date()): Promise<ProfileDa
     })),
     cosmeticProgression,
     achievementRatios,
-    equippedFrameEmoji: equipped.avatarFrame?.preview.emoji ?? '🟦',
-    equippedAccentName: equipped.accent?.name ?? 'Indigo',
+    equippedFrameEmoji: equipped.avatarFrame?.preview.emoji ?? "🟦",
+    equippedAccentName: equipped.accent?.name ?? "Indigo",
   };
 }
 
@@ -283,27 +322,32 @@ export default function ProfileScreen() {
         reason: `streak-item-${kind}`,
       });
       refresh();
-      celebrateReward({ title: `${kind} purchased`, coins: -cost, emoji: '🛡️' });
+      celebrateReward({ title: `${kind} purchased`, coins: -cost, emoji: "🛡️" });
     } catch (error) {
       if (error instanceof InsufficientFundsError) {
-        celebrateReward({ title: 'Not enough coins', emoji: '⚠️' });
+        celebrateReward({ title: "Not enough coins", emoji: "⚠️" });
       } else {
-        console.error('[profile] streak item purchase failed', error);
+        console.error("[profile] streak item purchase failed", error);
       }
     }
   };
 
   const onApplyStreakItem = async (kind: StreakItemKind) => {
     try {
-      const result = await applyOwnedStreakItem(getDb(), kind, data.streakState, new Date());
-      if (result === 'applied') {
+      const result = await applyOwnedStreakItem(
+        getDb(),
+        kind,
+        data.streakState,
+        new Date(),
+      );
+      if (result === "applied") {
         refresh();
-        celebrateReward({ title: 'Streak protected!', emoji: '🛡️' });
-      } else if (result === 'no-item') {
-        celebrateReward({ title: 'No item to apply', emoji: '⚠️' });
+        celebrateReward({ title: "Streak protected!", emoji: "🛡️" });
+      } else if (result === "no-item") {
+        celebrateReward({ title: "No item to apply", emoji: "⚠️" });
       }
     } catch (error) {
-      console.error('[profile] streak item apply failed', error);
+      console.error("[profile] streak item apply failed", error);
     }
   };
 
@@ -315,51 +359,55 @@ export default function ProfileScreen() {
         data.longestStreak,
         new Date(),
       );
-      if (result === 'claimed') {
+      if (result === "claimed") {
         refresh();
         celebrateReward({
           title: `${milestone.label} reached!`,
           xp: milestone.rewardXp,
           coins: milestone.rewardCurrency,
-          emoji: '🔥',
+          emoji: "🔥",
         });
       }
     } catch (error) {
-      console.error('[profile] milestone claim failed', error);
+      console.error("[profile] milestone claim failed", error);
     }
   };
 
   const onClaimQuest = async (definition: QuestDefinition) => {
     try {
-      const result = await applyQuestReward(getDb(), definition, currentPeriodKey(definition.kind, new Date()));
-      if (result.status === 'claimed') {
+      const result = await applyQuestReward(
+        getDb(),
+        definition,
+        currentPeriodKey(definition.kind, new Date()),
+      );
+      if (result.status === "claimed") {
         refresh();
         celebrateReward({
-          title: 'Quest reward',
+          title: "Quest reward",
           xp: definition.reward.xp,
           coins: definition.reward.coins,
-          emoji: '🏆',
+          emoji: "🏆",
         });
       }
     } catch (error) {
-      console.error('[profile] quest claim failed', error);
+      console.error("[profile] quest claim failed", error);
     }
   };
 
   const onClaimAchievement = async (definition: AchievementDef) => {
     try {
       const result = await claimAchievementReward(getDb(), definition);
-      if (result.status === 'claimed') {
+      if (result.status === "claimed") {
         refresh();
         celebrateReward({
-          title: 'Achievement reward',
+          title: "Achievement reward",
           xp: definition.rewardXp,
           coins: definition.rewardCurrency,
-          emoji: '🏅',
+          emoji: "🏅",
         });
       }
     } catch (error) {
-      console.error('[profile] achievement claim failed', error);
+      console.error("[profile] achievement claim failed", error);
     }
   };
 
@@ -369,10 +417,10 @@ export default function ProfileScreen() {
       void getDb()
         .profile.update({ settings: { [THEME_SETTINGS_KEY]: option.id } })
         .catch((error: unknown) => {
-          console.error('[profile] theme persist failed', error);
+          console.error("[profile] theme persist failed", error);
         });
     } catch (error) {
-      console.error('[profile] theme persist failed', error);
+      console.error("[profile] theme persist failed", error);
     }
   };
 
@@ -411,18 +459,34 @@ export default function ProfileScreen() {
           />
         </View>
         {data.atRisk && (
-          <ThemedText type="caption" themeColor="warning" testID="profile-streak-at-risk">
+          <ThemedText
+            type="caption"
+            themeColor="warning"
+            testID="profile-streak-at-risk"
+          >
             Your streak is at risk — play today to keep it alive.
           </ThemedText>
         )}
         <View style={styles.itemList}>
           {STREAK_ITEMS.map((item) => {
             const canApply =
-              item.kind === 'freeze'
-                ? canApplyFreeze(data.streakState, data.profileSettings, new Date())
-                : item.kind === 'recovery'
-                  ? canApplyRecovery(data.streakState, data.profileSettings, new Date())
-                  : canApplyShield(data.streakState, data.profileSettings, new Date());
+              item.kind === "freeze"
+                ? canApplyFreeze(
+                    data.streakState,
+                    data.profileSettings,
+                    new Date(),
+                  )
+                : item.kind === "recovery"
+                  ? canApplyRecovery(
+                      data.streakState,
+                      data.profileSettings,
+                      new Date(),
+                    )
+                  : canApplyShield(
+                      data.streakState,
+                      data.profileSettings,
+                      new Date(),
+                    );
             return (
               <View key={item.kind} style={styles.itemRow}>
                 <View style={styles.itemText}>
@@ -438,7 +502,8 @@ export default function ProfileScreen() {
                     <Pressable
                       testID={`streak-apply-${item.kind}`}
                       accessibilityRole="button"
-                      onPress={() => onApplyStreakItem(item.kind)}>
+                      onPress={() => onApplyStreakItem(item.kind)}
+                    >
                       <ThemedView type="accentSoft" style={styles.buyPill}>
                         <ThemedText type="smallBold" themeColor="accent">
                           Apply
@@ -449,8 +514,16 @@ export default function ProfileScreen() {
                   <Pressable
                     testID={`streak-buy-${item.kind}`}
                     accessibilityRole="button"
-                    disabled={!canPurchase(data.balance, item.kind, data.profileSettings, new Date())}
-                    onPress={() => onBuyStreakItem(item.kind)}>
+                    disabled={
+                      !canPurchase(
+                        data.balance,
+                        item.kind,
+                        data.profileSettings,
+                        new Date(),
+                      )
+                    }
+                    onPress={() => onBuyStreakItem(item.kind)}
+                  >
                     <ThemedView type="accentSoft" style={styles.buyPill}>
                       <ThemedText type="smallBold" themeColor="accent">
                         {ITEM_COSTS[item.kind]} coins
@@ -465,27 +538,32 @@ export default function ProfileScreen() {
       </ThemedView>
 
       {/* Streak milestones: progress + one-time claim. */}
-      <ThemedView type="surface" style={styles.card} testID="profile-milestones">
+      <ThemedView
+        type="surface"
+        style={styles.card}
+        testID="profile-milestones"
+      >
         <ThemedText type="subtitle">Streak Milestones</ThemedText>
         {data.milestoneRows.map(({ milestone, reached, claimed }) => (
           <View key={milestone.id} style={styles.itemRow}>
             <View style={styles.itemText}>
               <ThemedText type="smallBold">
                 {milestone.label}
-                {reached ? ' ✓' : ''}
+                {reached ? " ✓" : ""}
               </ThemedText>
               <ThemedText type="caption" themeColor="textSecondary">
                 {milestone.description}
                 {milestone.rewardXp || milestone.rewardCurrency
                   ? ` · +${milestone.rewardXp ?? 0} XP / +${milestone.rewardCurrency ?? 0} coins`
-                  : ''}
+                  : ""}
               </ThemedText>
             </View>
             {reached && !claimed && (
               <Pressable
                 testID={`milestone-claim-${milestone.id}`}
                 accessibilityRole="button"
-                onPress={() => onClaimMilestone(milestone)}>
+                onPress={() => onClaimMilestone(milestone)}
+              >
                 <ThemedView type="accentSoft" style={styles.buyPill}>
                   <ThemedText type="smallBold" themeColor="accent">
                     Claim
@@ -509,7 +587,9 @@ export default function ProfileScreen() {
             const row = data.questRows.get(evaluation.questId);
             const claimed = row?.claimedAt != null;
             const completed = evaluation.completed || row?.completedAt != null;
-            const definition = QUEST_DEFINITIONS_V1.find((d) => d.id === evaluation.questId);
+            const definition = QUEST_DEFINITIONS_V1.find(
+              (d) => d.id === evaluation.questId,
+            );
             const progress =
               evaluation.goal <= 0
                 ? evaluation.completed
@@ -524,23 +604,28 @@ export default function ProfileScreen() {
                   </ThemedText>
                   <View style={styles.progressTrack}>
                     <View
-                      style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]}
+                      style={[
+                        styles.progressFill,
+                        { width: `${Math.round(progress * 100)}%` },
+                      ]}
                     />
                   </View>
                   <ThemedText type="caption" themeColor="textSecondary">
-                    {Math.min(evaluation.progress, evaluation.goal)}/{evaluation.goal} ·{' '}
+                    {Math.min(evaluation.progress, evaluation.goal)}/
+                    {evaluation.goal} ·{" "}
                     {claimed
-                      ? 'Claimed'
+                      ? "Claimed"
                       : completed
-                        ? 'Complete — claim your reward'
-                        : 'In progress'}
+                        ? "Complete — claim your reward"
+                        : "In progress"}
                   </ThemedText>
                 </View>
                 {completed && !claimed && definition && (
                   <Pressable
                     testID={`quest-claim-${evaluation.questId}`}
                     accessibilityRole="button"
-                    onPress={() => onClaimQuest(definition)}>
+                    onPress={() => onClaimQuest(definition)}
+                  >
                     <ThemedView type="accentSoft" style={styles.buyPill}>
                       <ThemedText type="smallBold" themeColor="accent">
                         Claim
@@ -555,32 +640,45 @@ export default function ProfileScreen() {
       </ThemedView>
 
       {/* Achievements — unlocks + once-only claims, grouped by progress. */}
-      <ThemedView type="surface" style={styles.card} testID="profile-achievements">
+      <ThemedView
+        type="surface"
+        style={styles.card}
+        testID="profile-achievements"
+      >
         <ThemedText type="subtitle">Achievements</ThemedText>
         {ACHIEVEMENT_DEFINITIONS_V1.map((definition) => {
           const unlock = data.unlocks.get(definition.id);
           const claimed = unlock?.claimedAt != null;
           const unlocked = unlock != null;
-          const progress = data.achievementRatios.get(definition.id) ?? (unlocked ? 1 : 0);
+          const progress =
+            data.achievementRatios.get(definition.id) ?? (unlocked ? 1 : 0);
           return (
             <View key={definition.id} style={styles.questRow}>
               <View style={styles.itemText}>
                 <ThemedText type="smallBold">{definition.title}</ThemedText>
                 <View style={styles.progressTrack}>
                   <View
-                    style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]}
+                    style={[
+                      styles.progressFill,
+                      { width: `${Math.round(progress * 100)}%` },
+                    ]}
                   />
                 </View>
                 <ThemedText type="caption" themeColor="textSecondary">
-                  {definition.description} ·{' '}
-                  {claimed ? 'Claimed' : unlocked ? 'Unlocked — claim' : 'Locked'}
+                  {definition.description} ·{" "}
+                  {claimed
+                    ? "Claimed"
+                    : unlocked
+                      ? "Unlocked — claim"
+                      : "Locked"}
                 </ThemedText>
               </View>
               {unlocked && !claimed && (
                 <Pressable
                   testID={`achievement-claim-${definition.id}`}
                   accessibilityRole="button"
-                  onPress={() => onClaimAchievement(definition)}>
+                  onPress={() => onClaimAchievement(definition)}
+                >
                   <ThemedView type="accentSoft" style={styles.buyPill}>
                     <ThemedText type="smallBold" themeColor="accent">
                       Claim
@@ -599,8 +697,8 @@ export default function ProfileScreen() {
           <ThemedView type="surface" style={styles.card}>
             <ThemedText type="subtitle">Cosmetics</ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
-              Frame: {data.equippedFrameEmoji} · Accent: {data.equippedAccentName} — manage your
-              cosmetics →
+              Frame: {data.equippedFrameEmoji} · Accent:{" "}
+              {data.equippedAccentName} — manage your cosmetics →
             </ThemedText>
           </ThemedView>
         </Pressable>
@@ -628,13 +726,20 @@ export default function ProfileScreen() {
               key={option.id}
               testID={`theme-option-${option.id}`}
               accessibilityRole="button"
-              onPress={() => onSelectTheme(option)}>
-              <ThemedView type={selected ? 'accentSoft' : 'surface'} style={styles.themeRow}>
-                <ThemedText type="smallBold" themeColor={selected ? 'accent' : 'text'}>
+              onPress={() => onSelectTheme(option)}
+            >
+              <ThemedView
+                type={selected ? "accentSoft" : "surface"}
+                style={styles.themeRow}
+              >
+                <ThemedText
+                  type="smallBold"
+                  themeColor={selected ? "accent" : "text"}
+                >
                   {option.label}
                 </ThemedText>
                 <ThemedText type="caption" themeColor="textSecondary">
-                  {selected ? 'Active' : option.mode}
+                  {selected ? "Active" : option.mode}
                 </ThemedText>
               </ThemedView>
             </Pressable>
@@ -672,15 +777,15 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: Radii.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   identityText: {
     flex: 1,
     gap: Spacing.half,
   },
   streakRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.two,
   },
   stat: {
@@ -691,9 +796,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.three,
   },
   itemText: {
@@ -701,11 +806,11 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   itemActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.two,
   },
   buyPill: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: Radii.pill,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
@@ -713,31 +818,31 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(120,120,140,0.25)',
-    overflow: 'hidden',
+    backgroundColor: "rgba(120,120,140,0.25)",
+    overflow: "hidden",
   },
   progressFill: {
     height: 6,
-    backgroundColor: '#4F6BFF',
+    backgroundColor: "#4F6BFF",
   },
   questRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.three,
   },
   themeRow: {
     borderRadius: Radii.medium,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.three,
   },
   settingText: {

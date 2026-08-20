@@ -14,18 +14,18 @@
  * to prevent unnecessary remounts from component identity changes.
  */
 
-import { useLocalSearchParams } from 'expo-router';
-import { lazy, Suspense, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import { useLocalSearchParams } from "expo-router";
+import { lazy, Suspense, useMemo } from "react";
+import { StyleSheet } from "react-native";
 
-import { ErrorBoundary } from '@/components/error-boundary';
-import { GameNotReady } from '@/components/game-not-ready';
-import { ScreenShell } from '@/components/screen-shell';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
-import { getGameDefinition } from '@/registry/registry';
-import { gameScreenLoaders } from '@/registry/registry.generated';
+import { ErrorBoundary } from "@/components/error-boundary";
+import { GameNotReady } from "@/components/game-not-ready";
+import { ScreenShell } from "@/components/screen-shell";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Radii, Spacing } from "@/constants/theme";
+import { getGameDefinition } from "@/registry/registry";
+import { gameScreenLoaders } from "@/registry/registry.generated";
 
 /** Cache lazy-loaded game components to prevent unnecessary remounts */
 const lazyComponentCache = new Map<string, React.ComponentType>();
@@ -34,12 +34,12 @@ function getLazyGameComponent(gameId: string): React.ComponentType | undefined {
   if (lazyComponentCache.has(gameId)) {
     return lazyComponentCache.get(gameId);
   }
-  
+
   const loader = gameScreenLoaders[gameId];
   if (loader === undefined) {
     return undefined;
   }
-  
+
   const LazyComponent = lazy(loader);
   lazyComponentCache.set(gameId, LazyComponent);
   return LazyComponent;
@@ -47,8 +47,8 @@ function getLazyGameComponent(gameId: string): React.ComponentType | undefined {
 
 export default function GameScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const game = getGameDefinition(id ?? '');
-  
+  const game = getGameDefinition(id ?? "");
+
   // Task 10.1: Cache the lazy component identity outside render (lazy creation is intentionally memoized).
   // eslint-disable-next-line react-hooks/static-components
   const GameScreenComponent = useMemo(
@@ -72,13 +72,21 @@ export default function GameScreen() {
       <ThemedText type="title" testID="game-title">
         {game.name}
       </ThemedText>
-      <ThemedView type="accentSoft" style={styles.categoryPill} testID="game-category">
+      <ThemedView
+        type="accentSoft"
+        style={styles.categoryPill}
+        testID="game-category"
+      >
         <ThemedText type="caption" themeColor="accent">
           {game.primaryCategory}
         </ThemedText>
       </ThemedView>
       {game.description ? (
-        <ThemedText type="small" themeColor="textSecondary" testID="game-description">
+        <ThemedText
+          type="small"
+          themeColor="textSecondary"
+          testID="game-description"
+        >
           {game.description}
         </ThemedText>
       ) : null}
@@ -87,8 +95,8 @@ export default function GameScreen() {
           onError={(error, info) => {
             console.error(
               JSON.stringify({
-                level: 'error',
-                component: 'game-route',
+                level: "error",
+                component: "game-route",
                 gameId: game.id,
                 message: error.message,
                 stack: error.stack,
@@ -111,7 +119,7 @@ export default function GameScreen() {
 
 const styles = StyleSheet.create({
   categoryPill: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: Radii.pill,
     paddingVertical: Spacing.half,
     paddingHorizontal: Spacing.twoHalf,

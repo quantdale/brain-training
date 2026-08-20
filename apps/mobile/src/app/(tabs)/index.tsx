@@ -10,23 +10,27 @@
  * degrade to placeholders otherwise. Slot testIDs are the stable QA contract.
  */
 
-import { Link } from 'expo-router';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Link } from "expo-router";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { ScreenShell } from '@/components/screen-shell';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
-import type { AppDatabase, DomainRating } from '@/db';
-import type { GameDefinition } from '@/sdk';
-import { useDbData } from '@/hooks/use-db-data';
-import { levelForXp } from '@/rating';
-import { getAllGameDefinitions } from '@/registry/registry';
-import { effectiveCurrent, reconstructStreak } from '@/streaks';
-import { localDateString } from '@/workout/today';
-import { personalizedWorkout } from '@/workout/personalize';
-import { canAffordReroll, MAX_REROLLS_PER_DAY, rerollCost } from '@/workout/reroll';
-import { useWorkout } from '@/workout/use-workout';
+import { ScreenShell } from "@/components/screen-shell";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Radii, Spacing } from "@/constants/theme";
+import type { AppDatabase, DomainRating } from "@/db";
+import type { GameDefinition } from "@/sdk";
+import { useDbData } from "@/hooks/use-db-data";
+import { levelForXp } from "@/rating";
+import { getAllGameDefinitions } from "@/registry/registry";
+import { effectiveCurrent, reconstructStreak } from "@/streaks";
+import { localDateString } from "@/workout/today";
+import { personalizedWorkout } from "@/workout/personalize";
+import {
+  canAffordReroll,
+  MAX_REROLLS_PER_DAY,
+  rerollCost,
+} from "@/workout/reroll";
+import { useWorkout } from "@/workout/use-workout";
 
 interface HomeData {
   domainRatings: DomainRating[];
@@ -55,18 +59,19 @@ const EMPTY_HOME: HomeData = {
 };
 
 async function loadHome(db: AppDatabase): Promise<HomeData> {
-  const [domainRatings, recent, balance, sessionXp, awardsXp, activityDates] = await Promise.all([
-    db.ratings.getRatings(),
-    db.sessions.listRecent(30),
-    db.ledger.getBalance(),
-    db.sessions.getTotalXp(),
-    db.xpAwards.getTotalAwardedXp(),
-    // Task 9.3: Use distinct activity dates for streak calculation
-    db.sessions.getDistinctActivityDates(),
-  ]);
-  
+  const [domainRatings, recent, balance, sessionXp, awardsXp, activityDates] =
+    await Promise.all([
+      db.ratings.getRatings(),
+      db.sessions.listRecent(30),
+      db.ledger.getBalance(),
+      db.sessions.getTotalXp(),
+      db.xpAwards.getTotalAwardedXp(),
+      // Task 9.3: Use distinct activity dates for streak calculation
+      db.sessions.getDistinctActivityDates(),
+    ]);
+
   // Task 9.6: Build recent sessions with game names
-  const { getGameDefinition } = await import('@/registry/registry');
+  const { getGameDefinition } = await import("@/registry/registry");
   const recentSessions = recent.slice(0, 5).map((session) => ({
     id: session.id,
     gameId: session.gameId,
@@ -74,7 +79,7 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
     normalizedResult: session.normalizedResult,
     completedAt: session.completedAt,
   }));
-  
+
   return {
     domainRatings,
     recentGameIds: recent.map((session) => session.gameId),
@@ -88,7 +93,7 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
 export default function HomeScreen() {
   const games = getAllGameDefinitions();
   // Freeze Word Match from workout selection until semantic correction (006R task 3.1)
-  const eligibleGames = games.filter((g) => g.id !== 'language-word-match');
+  const eligibleGames = games.filter((g) => g.id !== "language-word-match");
   const today = localDateString();
   const { data, loaded } = useDbData(loadHome, [], EMPTY_HOME);
 
@@ -111,14 +116,14 @@ export default function HomeScreen() {
   // instance refreshes on focus (see `useWorkout`), so leaving results after a
   // game advances the workout and Home re-renders with the new index.
   const workoutIndex = workoutFlow.instance?.currentIndex ?? 0;
-  const workoutStatus = workoutFlow.instance?.status ?? 'active';
+  const workoutStatus = workoutFlow.instance?.status ?? "active";
 
   // Displayed selection reflects the persisted workout instance (so rerolls and
   // resume state stay in sync with what is stored).
   const workout: GameDefinition[] = workoutFlow.instance
-    ? (workoutFlow.instance.gameIds
+    ? workoutFlow.instance.gameIds
         .map((id) => getAllGameDefinitions().find((g) => g.id === id))
-        .filter((g): g is GameDefinition => g !== undefined))
+        .filter((g): g is GameDefinition => g !== undefined)
     : [];
 
   const streak = reconstructStreak(data.activityDates, today);
@@ -128,9 +133,9 @@ export default function HomeScreen() {
   const onReroll = workoutFlow.reroll;
 
   const rerollLabel = rerollExhausted
-    ? 'No rerolls left'
+    ? "No rerolls left"
     : nextRerollCost === 0
-      ? 'Reroll workout (free)'
+      ? "Reroll workout (free)"
       : rerollAffordable
         ? `Reroll workout (${nextRerollCost} coins)`
         : `Need ${nextRerollCost} coins`;
@@ -145,7 +150,11 @@ export default function HomeScreen() {
       </ThemedText>
 
       {/* Today's Workout CTA slot (constitution §13: primary CTA). */}
-      <ThemedView type="surface" style={styles.ctaCard} testID="home-workout-cta">
+      <ThemedView
+        type="surface"
+        style={styles.ctaCard}
+        testID="home-workout-cta"
+      >
         <ThemedText type="subtitle">Today&apos;s Workout</ThemedText>
         {workout.length > 0 ? (
           <>
@@ -156,8 +165,10 @@ export default function HomeScreen() {
             </ThemedText>
             <View style={styles.workoutList} testID="home-workout-list">
               {workout.map((game, index) => {
-                const isCompleted = workoutStatus === 'completed' || index < workoutIndex;
-                const isCurrent = workoutStatus === 'active' && index === workoutIndex;
+                const isCompleted =
+                  workoutStatus === "completed" || index < workoutIndex;
+                const isCurrent =
+                  workoutStatus === "active" && index === workoutIndex;
                 return (
                   <Link key={game.id} href={`/game/${game.id}`} asChild>
                     <Pressable
@@ -165,9 +176,13 @@ export default function HomeScreen() {
                       accessibilityRole="button"
                       style={
                         isCurrent
-                          ? StyleSheet.flatten([styles.workoutRow, styles.workoutRowCurrent])
+                          ? StyleSheet.flatten([
+                              styles.workoutRow,
+                              styles.workoutRowCurrent,
+                            ])
                           : styles.workoutRow
-                      }>
+                      }
+                    >
                       <ThemedText type="smallBold" themeColor="accent">
                         {index + 1}.
                       </ThemedText>
@@ -175,8 +190,9 @@ export default function HomeScreen() {
                       <ThemedText
                         type="caption"
                         themeColor="textSecondary"
-                        testID={`home-workout-game-status-${game.id}`}>
-                        {isCompleted ? 'Done' : isCurrent ? 'Now' : 'Up next'}
+                        testID={`home-workout-game-status-${game.id}`}
+                      >
+                        {isCompleted ? "Done" : isCurrent ? "Now" : "Up next"}
                       </ThemedText>
                     </Pressable>
                   </Link>
@@ -187,20 +203,30 @@ export default function HomeScreen() {
               testID="home-workout-reroll"
               accessibilityRole="button"
               disabled={!rerollAffordable || rerollExhausted}
-              onPress={onReroll}>
+              onPress={onReroll}
+            >
               <ThemedView
-                type={rerollExhausted || !rerollAffordable ? 'surface' : 'accentSoft'}
-                style={styles.ctaPill}>
+                type={
+                  rerollExhausted || !rerollAffordable
+                    ? "surface"
+                    : "accentSoft"
+                }
+                style={styles.ctaPill}
+              >
                 <ThemedText type="smallBold" themeColor="accent">
                   {rerollLabel}
                 </ThemedText>
               </ThemedView>
             </Pressable>
             {rerollUsed && !rerollExhausted && (
-              <ThemedText type="caption" themeColor="textSecondary" testID="home-reroll-hint">
+              <ThemedText
+                type="caption"
+                themeColor="textSecondary"
+                testID="home-reroll-hint"
+              >
                 {rerollAffordable
-                  ? `${MAX_REROLLS_PER_DAY - rerollAttempt} reroll${MAX_REROLLS_PER_DAY - rerollAttempt === 1 ? '' : 's'} left today`
-                  : 'Not enough coins for another reroll'}
+                  ? `${MAX_REROLLS_PER_DAY - rerollAttempt} reroll${MAX_REROLLS_PER_DAY - rerollAttempt === 1 ? "" : "s"} left today`
+                  : "Not enough coins for another reroll"}
               </ThemedText>
             )}
           </>
@@ -214,18 +240,30 @@ export default function HomeScreen() {
 
       {/* Streak / XP / level slot — real values when the db is available. */}
       <View style={styles.statsRow}>
-        <StatCard testID="home-stat-streak" label="Streak" value={`${currentStreak} days`} />
+        <StatCard
+          testID="home-stat-streak"
+          label="Streak"
+          value={`${currentStreak} days`}
+        />
         <StatCard testID="home-stat-xp" label="XP" value={`${data.totalXp}`} />
         <StatCard testID="home-stat-level" label="Level" value={`${level}`} />
       </View>
       {loaded && streak.atRisk && (
-        <ThemedText type="caption" themeColor="warning" testID="home-streak-at-risk">
+        <ThemedText
+          type="caption"
+          themeColor="warning"
+          testID="home-streak-at-risk"
+        >
           Play today to keep your streak alive.
         </ThemedText>
       )}
 
       {/* Recent games slot — task 9.6: real recent session/game data */}
-      <ThemedView type="surface" style={styles.recentCard} testID="home-recent-games">
+      <ThemedView
+        type="surface"
+        style={styles.recentCard}
+        testID="home-recent-games"
+      >
         <ThemedText type="subtitle">Recent games</ThemedText>
         {data.recentSessions.length > 0 ? (
           <View style={styles.recentList}>
@@ -234,7 +272,8 @@ export default function HomeScreen() {
                 <Pressable
                   testID={`home-recent-game-${session.id}`}
                   accessibilityRole="button"
-                  style={styles.recentRow}>
+                  style={styles.recentRow}
+                >
                   <ThemedText type="small" themeColor="textSecondary">
                     {session.gameName}
                   </ThemedText>
@@ -283,7 +322,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   ctaPill: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: Radii.pill,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
@@ -294,17 +333,17 @@ const styles = StyleSheet.create({
     marginTop: Spacing.two,
   },
   workoutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
   },
   workoutRowCurrent: {
     borderRadius: Radii.medium,
     paddingHorizontal: Spacing.two,
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
+    backgroundColor: "rgba(0, 122, 255, 0.12)",
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.two,
   },
   statCard: {
@@ -322,8 +361,8 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   recentRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });

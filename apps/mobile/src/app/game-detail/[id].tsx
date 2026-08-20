@@ -7,21 +7,31 @@
  * game route. Back navigation returns to the library.
  */
 
-import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { memo, useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import {
+  Link,
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
+import { memo, useCallback, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { ScreenShell } from '@/components/screen-shell';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
-import { getDb, type AppDatabase } from '@/db';
-import { useDbData } from '@/hooks/use-db-data';
-import { getGameDefinition } from '@/registry/registry';
+import { ScreenShell } from "@/components/screen-shell";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Radii, Spacing } from "@/constants/theme";
+import { getDb, type AppDatabase } from "@/db";
+import { useDbData } from "@/hooks/use-db-data";
+import { getGameDefinition } from "@/registry/registry";
 
 interface DetailData {
   favorite: boolean;
-  aggregate: { count: number; avgNormalized: number; bestNormalized: number; lastCompletedAt: number } | null;
+  aggregate: {
+    count: number;
+    avgNormalized: number;
+    bestNormalized: number;
+    lastCompletedAt: number;
+  } | null;
   recent: readonly unknown[];
 }
 
@@ -36,11 +46,15 @@ function loadDetail(db: AppDatabase, id: string): Promise<DetailData> {
   })();
 }
 
-const EMPTY_DETAIL: DetailData = { favorite: false, aggregate: null, recent: [] };
+const EMPTY_DETAIL: DetailData = {
+  favorite: false,
+  aggregate: null,
+  recent: [],
+};
 
 export default function GameDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const game = getGameDefinition(id ?? '');
+  const game = getGameDefinition(id ?? "");
 
   // Reload persisted data whenever the screen regains focus (e.g. after a
   // played session pops back from the game route).
@@ -52,11 +66,13 @@ export default function GameDetailScreen() {
   );
 
   const { data, loaded } = useDbData(
-    (db) => loadDetail(db, id ?? ''),
+    (db) => loadDetail(db, id ?? ""),
     [id, refreshKey],
     EMPTY_DETAIL,
   );
-  const [favoriteOverride, setFavoriteOverride] = useState<boolean | null>(null);
+  const [favoriteOverride, setFavoriteOverride] = useState<boolean | null>(
+    null,
+  );
   const [toggleError, setToggleError] = useState(false);
 
   if (!game) {
@@ -103,13 +119,21 @@ export default function GameDetailScreen() {
       <ThemedText type="title" testID="game-detail-title">
         {game.name}
       </ThemedText>
-      <ThemedView type="accentSoft" style={styles.pill} testID="game-detail-category">
+      <ThemedView
+        type="accentSoft"
+        style={styles.pill}
+        testID="game-detail-category"
+      >
         <ThemedText type="caption" themeColor="accent">
           {game.primaryCategory}
         </ThemedText>
       </ThemedView>
       {game.description ? (
-        <ThemedText type="small" themeColor="textSecondary" testID="game-detail-description">
+        <ThemedText
+          type="small"
+          themeColor="textSecondary"
+          testID="game-detail-description"
+        >
           {game.description}
         </ThemedText>
       ) : null}
@@ -117,16 +141,25 @@ export default function GameDetailScreen() {
       <Pressable
         testID="game-detail-favorite"
         accessibilityRole="button"
-        accessibilityLabel={currentFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        accessibilityLabel={
+          currentFavorite ? "Remove from favorites" : "Add to favorites"
+        }
         accessibilityState={{ checked: currentFavorite }}
         onPress={onToggleFavorite}
-        disabled={!loaded}>
+        disabled={!loaded}
+      >
         <ThemedView type="surface" style={styles.actionRow}>
-          <ThemedText type="subtitle">{currentFavorite ? '★ Favorited' : '☆ Add to favorites'}</ThemedText>
+          <ThemedText type="subtitle">
+            {currentFavorite ? "★ Favorited" : "☆ Add to favorites"}
+          </ThemedText>
         </ThemedView>
       </Pressable>
       {toggleError ? (
-        <ThemedText type="caption" themeColor="danger" testID="game-detail-fav-error">
+        <ThemedText
+          type="caption"
+          themeColor="danger"
+          testID="game-detail-fav-error"
+        >
           Could not update favorites.
         </ThemedText>
       ) : null}
@@ -136,20 +169,31 @@ export default function GameDetailScreen() {
           testID="game-detail-play"
           accessibilityRole="button"
           accessibilityLabel={`Play ${game.name}`}
-          style={styles.playButton}>
+          style={styles.playButton}
+        >
           <ThemedText type="smallBold" themeColor="accent">
             Play {game.name}
           </ThemedText>
         </Pressable>
       </Link>
 
-      <ThemedView type="surface" style={styles.card} testID="game-detail-records">
+      <ThemedView
+        type="surface"
+        style={styles.card}
+        testID="game-detail-records"
+      >
         <ThemedText type="subtitle">Records</ThemedText>
         {data.aggregate ? (
           <View style={styles.rows}>
             <DetailRow label="Sessions" value={String(data.aggregate.count)} />
-            <DetailRow label="Best" value={`${Math.round(data.aggregate.bestNormalized * 100)}%`} />
-            <DetailRow label="Average" value={`${Math.round(data.aggregate.avgNormalized * 100)}%`} />
+            <DetailRow
+              label="Best"
+              value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
+            />
+            <DetailRow
+              label="Average"
+              value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
+            />
           </View>
         ) : (
           <ThemedText type="small" themeColor="textSecondary">
@@ -158,12 +202,19 @@ export default function GameDetailScreen() {
         )}
       </ThemedView>
 
-      <ThemedView type="surface" style={styles.card} testID="game-detail-recent">
+      <ThemedView
+        type="surface"
+        style={styles.card}
+        testID="game-detail-recent"
+      >
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         {data.recent.length > 0 ? (
           <View style={styles.rows}>
             {data.recent.map((session) => (
-              <SessionRow key={(session as { id: string }).id} session={session} />
+              <SessionRow
+                key={(session as { id: string }).id}
+                session={session}
+              />
             ))}
           </View>
         ) : (
@@ -173,9 +224,15 @@ export default function GameDetailScreen() {
         )}
       </ThemedView>
 
-      <ThemedText type="caption" themeColor="textSecondary" testID="game-detail-versions">
+      <ThemedText
+        type="caption"
+        themeColor="textSecondary"
+        testID="game-detail-versions"
+      >
         game v{game.gameVersion} · sdk {game.sdkVersion}
-        {game.generatorVersion ? ` · generator v${game.generatorVersion}` : ' · curated content'}
+        {game.generatorVersion
+          ? ` · generator v${game.generatorVersion}`
+          : " · curated content"}
       </ThemedText>
     </ScreenShell>
   );
@@ -187,7 +244,8 @@ function BackLink() {
       testID="game-detail-back"
       accessibilityRole="button"
       accessibilityLabel="Back to Games"
-      onPress={() => router.back()}>
+      onPress={() => router.back()}
+    >
       <ThemedText type="smallBold" themeColor="accent">
         ‹ Back
       </ThemedText>
@@ -195,7 +253,13 @@ function BackLink() {
   );
 }
 
-const DetailRow = memo(function DetailRow({ label, value }: { label: string; value: string }) {
+const DetailRow = memo(function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <View style={styles.row}>
       <ThemedText type="small" themeColor="textSecondary">
@@ -220,9 +284,11 @@ const SessionRow = memo(function SessionRow({ session }: { session: unknown }) {
         testID={`game-detail-session-${s.id}`}
         accessibilityRole="button"
         accessibilityLabel={`Open result from ${new Date(s.completedAt).toLocaleDateString()}`}
-        style={styles.row}>
+        style={styles.row}
+      >
         <ThemedText type="small" themeColor="textSecondary">
-          {new Date(s.completedAt).toLocaleDateString()} · {s.difficulty?.level ?? '?'}
+          {new Date(s.completedAt).toLocaleDateString()} ·{" "}
+          {s.difficulty?.level ?? "?"}
         </ThemedText>
         <ThemedText type="smallBold">
           {Math.round(s.normalizedResult * 100)}% · +{s.xp} XP
@@ -234,7 +300,7 @@ const SessionRow = memo(function SessionRow({ session }: { session: unknown }) {
 
 const styles = StyleSheet.create({
   pill: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: Radii.pill,
     paddingVertical: Spacing.half,
     paddingHorizontal: Spacing.twoHalf,
@@ -251,18 +317,18 @@ const styles = StyleSheet.create({
   playButton: {
     borderRadius: Radii.large,
     borderWidth: 1,
-    borderColor: 'transparent',
-    backgroundColor: 'transparent',
-    alignItems: 'center',
+    borderColor: "transparent",
+    backgroundColor: "transparent",
+    alignItems: "center",
     paddingVertical: Spacing.three,
   },
   rows: {
     gap: Spacing.two,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     gap: Spacing.two,
   },
 });

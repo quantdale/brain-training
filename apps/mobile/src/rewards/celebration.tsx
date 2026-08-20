@@ -10,10 +10,10 @@
  * This is purely presentational; the authoritative reward is the ledger/XP
  * entry recorded by the economy layer. The celebration never grants anything.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 
-import { Spacing } from '@/constants/theme';
+import { Spacing } from "@/constants/theme";
 
 export interface RewardCelebrationPayload {
   /** Stable-ish unique id (auto-assigned if omitted). */
@@ -25,7 +25,9 @@ export interface RewardCelebrationPayload {
   emoji?: string;
 }
 
-type CelebrationListener = (payload: Required<RewardCelebrationPayload>) => void;
+type CelebrationListener = (
+  payload: Required<RewardCelebrationPayload>,
+) => void;
 
 const listeners = new Set<CelebrationListener>();
 
@@ -38,15 +40,16 @@ export function celebrateReward(payload: RewardCelebrationPayload): void {
     title: payload.title,
     xp: payload.xp ?? 0,
     coins: payload.coins ?? 0,
-    cosmeticName: payload.cosmeticName ?? '',
-    emoji: payload.emoji ?? '🎉',
+    cosmeticName: payload.cosmeticName ?? "",
+    emoji: payload.emoji ?? "🎉",
   };
   listeners.forEach((listener) => listener(full));
 }
 
 /** Render this once (e.g. at the top of a screen) to show celebrations. */
 export function RewardCelebrationHost() {
-  const [current, setCurrent] = useState<Required<RewardCelebrationPayload> | null>(null);
+  const [current, setCurrent] =
+    useState<Required<RewardCelebrationPayload> | null>(null);
   const opacity = useMemo(() => new Animated.Value(0), []);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -91,11 +94,17 @@ export function RewardCelebrationHost() {
   ].filter(Boolean);
 
   return (
-    <Animated.View style={[styles.overlay, { opacity }]} pointerEvents="none" testID="reward-celebration">
+    <Animated.View
+      style={[styles.overlay, { opacity }]}
+      pointerEvents="none"
+      testID="reward-celebration"
+    >
       <View style={styles.card}>
         <Text style={styles.emoji}>{current.emoji}</Text>
         <Text style={styles.title}>{current.title}</Text>
-        {rewardBits.length > 0 && <Text style={styles.sub}>{rewardBits.join('   ')}</Text>}
+        {rewardBits.length > 0 && (
+          <Text style={styles.sub}>{rewardBits.join("   ")}</Text>
+        )}
       </View>
     </Animated.View>
   );
@@ -103,37 +112,37 @@ export function RewardCelebrationHost() {
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     zIndex: 100,
-    alignItems: 'center',
+    alignItems: "center",
     paddingTop: Spacing.three,
   },
   card: {
-    backgroundColor: 'rgba(20, 22, 34, 0.92)',
+    backgroundColor: "rgba(20, 22, 34, 0.92)",
     borderRadius: 16,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
   },
   emoji: {
     fontSize: 28,
-    color: '#fff',
+    color: "#fff",
   },
   title: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: 2,
   },
   sub: {
-    color: '#D9DCE8',
+    color: "#D9DCE8",
     fontSize: 12,
     marginTop: 2,
   },

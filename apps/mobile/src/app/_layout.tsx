@@ -13,26 +13,37 @@
  *   navigator — see docs/RECOVERY_DRILL.md wave-2 convergence note).
  */
 
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import { Stack } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
+import { Stack } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useColorScheme } from "react-native";
 
-import { SettingsProvider, useSettings, type Settings } from '@/components/settings/settings-provider';
-import { AudioHapticsProvider } from '@/components/sensory/audio-haptics-provider';
-import { createRatingPipeline } from '@/rating';
-import { initDatabase } from '@/db';
-import { getDb } from '@/db';
-import { initializeProgression } from '@/progression';
-import { registry } from '@/registry/registry.generated';
-import { registerGameDefinitions, getGameDefinition } from '@/registry/registry';
-import StorageUnavailable from '@/app/storage-unavailable';
-import { THEME_SETTINGS_KEY, resolveThemeMode } from '@/theme/registry';
+import {
+  SettingsProvider,
+  useSettings,
+  type Settings,
+} from "@/components/settings/settings-provider";
+import { AudioHapticsProvider } from "@/components/sensory/audio-haptics-provider";
+import { createRatingPipeline } from "@/rating";
+import { initDatabase } from "@/db";
+import { getDb } from "@/db";
+import { initializeProgression } from "@/progression";
+import { registry } from "@/registry/registry.generated";
+import {
+  registerGameDefinitions,
+  getGameDefinition,
+} from "@/registry/registry";
+import StorageUnavailable from "@/app/storage-unavailable";
+import { THEME_SETTINGS_KEY, resolveThemeMode } from "@/theme/registry";
 
 export default function RootLayout() {
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [initError, setInitError] = useState<Error | null>(null);
-  const [initialThemeId, setInitialThemeId] = useState<string | undefined>(undefined);
+  const [initialThemeId, setInitialThemeId] = useState<string | undefined>(
+    undefined,
+  );
   const [initialAudioSettings, setInitialAudioSettings] = useState<
     Partial<Settings> | undefined
   >(undefined);
@@ -45,12 +56,14 @@ export default function RootLayout() {
   const persistSettings = useCallback((settings: Settings) => {
     try {
       void getDb()
-        .profile.update({ settings: { sfx: settings.sfx, haptics: settings.haptics } })
+        .profile.update({
+          settings: { sfx: settings.sfx, haptics: settings.haptics },
+        })
         .catch((error: unknown) => {
-          console.error('[startup] failed to persist sensory settings', error);
+          console.error("[startup] failed to persist sensory settings", error);
         });
     } catch (error) {
-      console.error('[startup] failed to persist sensory settings', error);
+      console.error("[startup] failed to persist sensory settings", error);
     }
   }, []);
 
@@ -62,7 +75,7 @@ export default function RootLayout() {
    * seeding, profile read) are non-fatal — a failure must not brick startup.
    */
   const bootstrap = useCallback(async () => {
-    setStatus('loading');
+    setStatus("loading");
 
     // Storage-critical: a failed open/migrate means the canonical local DB is
     // unavailable, so show the recoverable storage-unavailable screen.
@@ -77,14 +90,17 @@ export default function RootLayout() {
             if (!definition) {
               return [];
             }
-            return [definition.primaryCategory, ...(definition.secondaryDomains ?? [])];
+            return [
+              definition.primaryCategory,
+              ...(definition.secondaryDomains ?? []),
+            ];
           },
         }),
       });
     } catch (error) {
       if (!cancelledRef.current) {
         setInitError(error instanceof Error ? error : new Error(String(error)));
-        setStatus('error');
+        setStatus("error");
       }
       return;
     }
@@ -101,23 +117,26 @@ export default function RootLayout() {
       // SettingsProvider initial value.
       const profile = await getDb().profile.get();
       const theme = profile?.settings?.[THEME_SETTINGS_KEY];
-      if (!cancelledRef.current && typeof theme === 'string') {
+      if (!cancelledRef.current && typeof theme === "string") {
         setInitialThemeId(theme);
       }
       const sfx = profile?.settings?.sfx;
       const haptics = profile?.settings?.haptics;
-      if (!cancelledRef.current && (typeof sfx === 'boolean' || typeof haptics === 'boolean')) {
+      if (
+        !cancelledRef.current &&
+        (typeof sfx === "boolean" || typeof haptics === "boolean")
+      ) {
         setInitialAudioSettings({
-          ...(typeof sfx === 'boolean' ? { sfx } : {}),
-          ...(typeof haptics === 'boolean' ? { haptics } : {}),
+          ...(typeof sfx === "boolean" ? { sfx } : {}),
+          ...(typeof haptics === "boolean" ? { haptics } : {}),
         });
       }
     } catch (error) {
-      console.error('[startup] post-initialization step failed', error);
+      console.error("[startup] post-initialization step failed", error);
     }
 
     if (!cancelledRef.current) {
-      setStatus('ready');
+      setStatus("ready");
     }
   }, []);
 
@@ -131,10 +150,10 @@ export default function RootLayout() {
     };
   }, [bootstrap]);
 
-  if (status === 'error') {
+  if (status === "error") {
     return <StorageUnavailable error={initError} onRetry={bootstrap} />;
   }
-  if (status === 'loading') {
+  if (status === "loading") {
     return null;
   }
 
@@ -159,10 +178,13 @@ function RootNavigator() {
   const colorScheme = useColorScheme();
   const { themeId } = useSettings();
   // 'unspecified' (iOS) and null behave like the light scheme for resolution.
-  const mode = resolveThemeMode(themeId, colorScheme === 'dark' ? 'dark' : 'light');
+  const mode = resolveThemeMode(
+    themeId,
+    colorScheme === "dark" ? "dark" : "light",
+  );
 
   return (
-    <ThemeProvider value={mode === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={mode === "dark" ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="game/[id]" />

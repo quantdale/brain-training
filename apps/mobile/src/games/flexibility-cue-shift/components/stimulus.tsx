@@ -7,24 +7,24 @@
  * Visual states mirror the card-sort semantics: `idle`, `selected` (the
  * correct pick during feedback), and `error` (the wrong pick during feedback).
  */
-import { memo } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { memo } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { ThemedText } from "@/components/themed-text";
+import { Radii, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
-import type { Card, ColorId, ShapeId } from '../types';
+import type { Card, ColorId, ShapeId } from "../types";
 
 /** Stable color palette for the stimulus (hex strings, theme-independent). */
 export const STIMULUS_COLORS: Readonly<Record<ColorId, string>> = {
-  red: '#e5484d',
-  blue: '#3b82f6',
-  green: '#30a46c',
-  yellow: '#f5d90a',
+  red: "#e5484d",
+  blue: "#3b82f6",
+  green: "#30a46c",
+  yellow: "#f5d90a",
 };
 
-export type StimulusVisualState = 'idle' | 'selected' | 'error';
+export type StimulusVisualState = "idle" | "selected" | "error";
 
 export interface StimulusProps {
   card: Card;
@@ -37,21 +37,61 @@ export interface StimulusProps {
   size?: number;
 }
 
-const STAR_GLYPH = '★';
+const STAR_GLYPH = "★";
 
-function ShapeGlyph({ shape, color, size }: { shape: ShapeId; color: string; size: number }) {
-  if (shape === 'circle') {
-    return <View style={[styles.shape, { width: size, height: size, borderRadius: size / 2, backgroundColor: color }]} />;
-  }
-  if (shape === 'square') {
+function ShapeGlyph({
+  shape,
+  color,
+  size,
+}: {
+  shape: ShapeId;
+  color: string;
+  size: number;
+}) {
+  if (shape === "circle") {
     return (
-      <View style={[styles.shape, { width: size, height: size, borderRadius: Radii.medium, backgroundColor: color }]} />
+      <View
+        style={[
+          styles.shape,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: color,
+          },
+        ]}
+      />
     );
   }
-  if (shape === 'triangle') {
+  if (shape === "square") {
+    return (
+      <View
+        style={[
+          styles.shape,
+          {
+            width: size,
+            height: size,
+            borderRadius: Radii.medium,
+            backgroundColor: color,
+          },
+        ]}
+      />
+    );
+  }
+  if (shape === "triangle") {
     // Up-pointing triangle via the CSS border trick.
     return (
-      <View style={[styles.shape, { width: size, height: size, alignItems: 'center', justifyContent: 'flex-end' }]}>
+      <View
+        style={[
+          styles.shape,
+          {
+            width: size,
+            height: size,
+            alignItems: "center",
+            justifyContent: "flex-end",
+          },
+        ]}
+      >
         <View
           style={{
             width: 0,
@@ -59,8 +99,8 @@ function ShapeGlyph({ shape, color, size }: { shape: ShapeId; color: string; siz
             borderLeftWidth: size / 2,
             borderRightWidth: size / 2,
             borderBottomWidth: size,
-            borderLeftColor: 'transparent',
-            borderRightColor: 'transparent',
+            borderLeftColor: "transparent",
+            borderRightColor: "transparent",
             borderBottomColor: color,
           }}
         />
@@ -69,8 +109,22 @@ function ShapeGlyph({ shape, color, size }: { shape: ShapeId; color: string; siz
   }
   // star: a bold glyph in the shape's color.
   return (
-    <View style={[styles.shape, { width: size, height: size, alignItems: 'center', justifyContent: 'center' }]}>
-      <ThemedText style={[{ color, fontSize: size * 0.72, lineHeight: size * 0.72 }]}>{STAR_GLYPH}</ThemedText>
+    <View
+      style={[
+        styles.shape,
+        {
+          width: size,
+          height: size,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+      ]}
+    >
+      <ThemedText
+        style={[{ color, fontSize: size * 0.72, lineHeight: size * 0.72 }]}
+      >
+        {STAR_GLYPH}
+      </ThemedText>
     </View>
   );
 }
@@ -80,19 +134,30 @@ export const Stimulus = memo(function Stimulus({
   testID,
   onPress,
   disabled = false,
-  state = 'idle',
+  state = "idle",
   size = 96,
 }: StimulusProps) {
   const theme = useTheme();
   const color = STIMULUS_COLORS[card.color];
 
   const borderColor =
-    state === 'selected' ? theme.success : state === 'error' ? theme.danger : theme.border;
+    state === "selected"
+      ? theme.success
+      : state === "error"
+        ? theme.danger
+        : theme.border;
 
   const content = (
-    <View style={[styles.container, { width: size, height: size, borderColor }]}>
+    <View
+      style={[styles.container, { width: size, height: size, borderColor }]}
+    >
       <ShapeGlyph shape={card.shape} color={color} size={size * 0.66} />
-      <View style={[styles.badge, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View
+        style={[
+          styles.badge,
+          { backgroundColor: theme.surface, borderColor: theme.border },
+        ]}
+      >
         <ThemedText type="caption" style={{ color: theme.text }}>
           {card.number}
         </ThemedText>
@@ -113,7 +178,8 @@ export const Stimulus = memo(function Stimulus({
       accessibilityState={{ disabled, busy: false }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => ({ opacity: pressed || disabled ? 0.6 : 1 })}>
+      style={({ pressed }) => ({ opacity: pressed || disabled ? 0.6 : 1 })}
+    >
       {content}
     </Pressable>
   );
@@ -121,19 +187,19 @@ export const Stimulus = memo(function Stimulus({
 
 const styles = StyleSheet.create({
   container: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: Radii.medium,
     borderWidth: 2,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   shape: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -Spacing.one,
     right: -Spacing.one,
     minWidth: 24,
@@ -141,7 +207,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.one,
     borderRadius: 12,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

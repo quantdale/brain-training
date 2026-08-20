@@ -12,16 +12,16 @@
  * via a stable string hash; the first N entries are chosen, then re-sorted to
  * their original catalog order so the UI presentation is also stable.
  */
-import { currentPeriodKey } from './period';
-import type { QuestDefinition } from './types';
+import { currentPeriodKey } from "./period";
+import type { QuestDefinition } from "./types";
 
 /** How many daily/weekly quests are surfaced per period. */
 export const DAILY_QUEST_SLOTS = 3;
 export const WEEKLY_QUEST_SLOTS = 3;
 
 /** Baseline quests that must always be surfaced so legacy tests and core progression remain stable. */
-const BASELINE_DAILY_IDS = new Set(['qd3', 'qdx']);
-const BASELINE_WEEKLY_IDS = new Set(['qw-memory']);
+const BASELINE_DAILY_IDS = new Set(["qd3", "qdx"]);
+const BASELINE_WEEKLY_IDS = new Set(["qw-memory"]);
 
 /**
  * Select the quests active for `now`'s periods.
@@ -30,29 +30,40 @@ const BASELINE_WEEKLY_IDS = new Set(['qw-memory']);
  * - longterm: all long-term quests
  */
 export function selectActiveQuests(
-  definitions: readonly QuestDefinition[],
-  now: Date,
+ definitions: readonly QuestDefinition[],
+ now: Date,
 ): QuestDefinition[] {
-  const daily = definitions.filter((d) => d.kind === 'daily');
-  const weekly = definitions.filter((d) => d.kind === 'weekly');
-  const longterm = definitions.filter((d) => d.kind === 'longterm');
+ const daily = definitions.filter((d) => d.kind === "daily");
+ const weekly = definitions.filter((d) => d.kind === "weekly");
+ const longterm = definitions.filter((d) => d.kind === "longterm");
 
-  const baselineDaily = daily.filter((d) => BASELINE_DAILY_IDS.has(d.id));
-  const nonBaselineDaily = daily.filter((d) => !BASELINE_DAILY_IDS.has(d.id));
-  const baselineWeekly = weekly.filter((d) => BASELINE_WEEKLY_IDS.has(d.id));
-  const nonBaselineWeekly = weekly.filter((d) => !BASELINE_WEEKLY_IDS.has(d.id));
+ const baselineDaily = daily.filter((d) => BASELINE_DAILY_IDS.has(d.id));
+ const nonBaselineDaily = daily.filter((d) => !BASELINE_DAILY_IDS.has(d.id));
+ const baselineWeekly = weekly.filter((d) => BASELINE_WEEKLY_IDS.has(d.id));
+ const nonBaselineWeekly = weekly.filter((d) => !BASELINE_WEEKLY_IDS.has(d.id));
 
-  const dailyRemaining = Math.max(0, DAILY_QUEST_SLOTS - baselineDaily.length);
-  const weeklyRemaining = Math.max(0, WEEKLY_QUEST_SLOTS - baselineWeekly.length);
+ const dailyRemaining = Math.max(0, DAILY_QUEST_SLOTS - baselineDaily.length);
+ const weeklyRemaining = Math.max(
+  0,
+  WEEKLY_QUEST_SLOTS - baselineWeekly.length,
+ );
 
-  const dailyPicked = pickStable(nonBaselineDaily, currentPeriodKey('daily', now), dailyRemaining);
-  const weeklyPicked = pickStable(nonBaselineWeekly, currentPeriodKey('weekly', now), weeklyRemaining);
+ const dailyPicked = pickStable(
+  nonBaselineDaily,
+  currentPeriodKey("daily", now),
+  dailyRemaining,
+ );
+ const weeklyPicked = pickStable(
+  nonBaselineWeekly,
+  currentPeriodKey("weekly", now),
+  weeklyRemaining,
+ );
 
-  const dailyActive = [...baselineDaily, ...dailyPicked];
-  const weeklyActive = [...baselineWeekly, ...weeklyPicked];
+ const dailyActive = [...baselineDaily, ...dailyPicked];
+ const weeklyActive = [...baselineWeekly, ...weeklyPicked];
 
-  const active = [...dailyActive, ...weeklyActive, ...longterm];
-  return sortByCatalogOrder(definitions, active);
+ const active = [...dailyActive, ...weeklyActive, ...longterm];
+ return sortByCatalogOrder(definitions, active);
 }
 
 /**
@@ -61,29 +72,31 @@ export function selectActiveQuests(
  * identical selection across runs and players.
  */
 export function pickStable<T extends { id: string }>(
-  pool: readonly T[],
-  seed: string,
-  count: number,
+ pool: readonly T[],
+ seed: string,
+ count: number,
 ): T[] {
-  if (pool.length <= count) {
-    return [...pool];
-  }
-  const scored = pool.map((item, index) => ({
-    item,
-    index,
-    score: hashScore(`${seed} ${item.id}`),
-  }));
-  scored.sort((a, b) => a.score - b.score || a.index - b.index);
-  return scored.slice(0, count).map((s) => s.item);
+ if (pool.length <= count) {
+  return [...pool];
+ }
+ const scored = pool.map((item, index) => ({
+  item,
+  index,
+  score: hashScore(`${seed} ${item.id}`),
+ }));
+ scored.sort((a, b) => a.score - b.score || a.index - b.index);
+ return scored.slice(0, count).map((s) => s.item);
 }
 
 /** Re-sort a selected subset into its original catalog order. */
 function sortByCatalogOrder<T extends { id: string }>(
-  catalog: readonly T[],
-  selected: readonly T[],
+ catalog: readonly T[],
+ selected: readonly T[],
 ): T[] {
-  const order = new Map(catalog.map((item, index) => [item.id, index]));
-  return [...selected].sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+ const order = new Map(catalog.map((item, index) => [item.id, index]));
+ return [...selected].sort(
+  (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
+ );
 }
 
 /**
@@ -91,11 +104,11 @@ function sortByCatalogOrder<T extends { id: string }>(
  * cryptographic — only used to permute a small pool deterministically.
  */
 function hashScore(input: string): number {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  // Non-negative so subtraction-based sorting is well-defined.
-  return hash >>> 0;
+ let hash = 0x811c9dc5;
+ for (let i = 0; i < input.length; i++) {
+  hash ^= input.charCodeAt(i);
+  hash = Math.imul(hash, 0x01000193);
+ }
+ // Non-negative so subtraction-based sorting is well-defined.
+ return hash >>> 0;
 }

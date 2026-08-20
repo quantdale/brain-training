@@ -5,7 +5,7 @@
 Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED`.
 
 | Area | Capability | Status | Notes |
-|---|---|---:|---|
+| --- | --- | ---: | --- |
 | Core | Offline-first gameplay | IMPLEMENTED | Offline-boundary suite + `scripts/validate-offline.mjs` (223 files clean) |
 | Core | Optional account | DEFERRED | Local profile first |
 | Core | Cross-device sync | DEFERRED | Local-first future Supabase direction |
