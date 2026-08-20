@@ -180,3 +180,50 @@ describe('generateRound', () => {
     }
   });
 });
+
+// Regression: the answer index must always point at the answer, even when the
+// distractor pool is smaller than optionsCount (the previous code could place
+// the answer past the end of a short option list). Options must also be
+// distinct and never present the scrambled anagram.
+describe('correctIndex validity (audit regression)', () => {
+  const optionCounts = [3, 4, 5];
+  const seeds = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+  for (const optionsCount of optionCounts) {
+    it(`options[optionsCount].correctIndex points at the answer (count=${optionsCount})`, () => {
+      for (const seed of seeds) {
+        const rounds = fullSession(seed, 12, optionsCount, 4, 10);
+        for (const round of rounds) {
+          expect(round.options[round.correctIndex]).toBe(round.answer);
+          expect(new Set(round.options).size).toBe(round.options.length);
+          expect(round.options.length).toBeGreaterThanOrEqual(2);
+          for (const o of round.options) {
+            expect(o.toLowerCase()).not.toBe(round.scrambled.toLowerCase());
+          }
+        }
+      }
+    });
+  }
+});
+
+// Regression: the curated bank must have no duplicate words and no anagram
+// collisions, either of which would let a distractor unscramble to the answer.
+describe('WORD_BANK integrity (audit regression)', () => {
+  it('has no duplicate words and no anagram collisions', () => {
+    const words = WORD_BANK.map((e) => e.word);
+    expect(new Set(words).size).toBe(words.length);
+    const key = (w: string) => w.split('').sort().join('');
+    const groups = new Map<string, string[]>();
+    for (const w of words) {
+      const k = key(w);
+      const list = groups.get(k);
+      if (list === undefined) {
+        groups.set(k, [w]);
+      } else {
+        list.push(w);
+      }
+    }
+    for (const g of groups.values()) {
+      expect(g).toHaveLength(1);
+    }
+  });
+});

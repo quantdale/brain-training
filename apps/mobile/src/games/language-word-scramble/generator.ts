@@ -12,10 +12,10 @@
  * original word. Distractors are drawn from words of similar length to
  * keep the difficulty consistent.
  */
-import type { Rng } from '@/sdk';
+import type { Rng } from "@/sdk";
 
-import { categoryForWord, WORD_BANK, WORD_LIST } from './content/word-bank';
-import type { WordScrambleRound } from './types';
+import { categoryForWord, WORD_BANK, WORD_LIST } from "./content/word-bank";
+import type { WordScrambleRound } from "./types";
 
 /** Upper bound on re-draw attempts before the last candidate is accepted. */
 export const MAX_WORD_ATTEMPTS = 12;
@@ -40,12 +40,10 @@ export interface GenerateRoundInput {
  * to ensure the scrambled version is different.
  */
 export function scrambleWord(word: string, rng: Rng): string {
-  const letters = word.split('');
+  const letters = word.split("");
   for (let attempt = 0; attempt < MAX_WORD_ATTEMPTS; attempt += 1) {
-    const shuffled = rng
-      .fork(`scramble:${attempt}`)
-      .shuffle(letters);
-    const result = shuffled.join('');
+    const shuffled = rng.fork(`scramble:${attempt}`).shuffle(letters);
+    const result = shuffled.join("");
     if (result !== word) {
       return result;
     }
@@ -56,7 +54,7 @@ export function scrambleWord(word: string, rng: Rng): string {
     const temp = swapped[0];
     swapped[0] = swapped[1];
     swapped[1] = temp;
-    return swapped.join('');
+    return swapped.join("");
   }
   return word;
 }
@@ -90,7 +88,14 @@ export function selectDistractors(
  * The answer is placed at a random position in the options array.
  */
 export function generateRound(input: GenerateRoundInput): WordScrambleRound {
-  const { rng, roundIndex, optionsCount, minWordLength, maxWordLength, prevAnswer } = input;
+  const {
+    rng,
+    roundIndex,
+    optionsCount,
+    minWordLength,
+    maxWordLength,
+    prevAnswer,
+  } = input;
 
   // Step 1: Build the eligible word pool (length filter + near-duplicate avoidance).
   const pool = WORD_BANK.filter((e) => {

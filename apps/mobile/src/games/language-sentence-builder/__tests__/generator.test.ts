@@ -7,6 +7,7 @@ import {
   MAX_SCRAMBLE_ATTEMPTS,
   categoryDistance,
   generateRound,
+  hasNoDuplicateWords,
   scrambleWords,
 } from '../generator';
 import type { ScrambledSentence } from '../types';
@@ -121,4 +122,51 @@ describe('categoryDistance', () => {
   it('returns 1 for different categories', () => {
     expect(categoryDistance('past', 'present')).toBe(1);
   });
+});
+
+describe('hasNoDuplicateWords', () => {
+  it('detects repeated word tokens', () => {
+    expect(hasNoDuplicateWords({ text: 'The cat sat on the mat', category: 'x', wordCount: 7 })).toBe(false);
+    expect(hasNoDuplicateWords({ text: 'He ate lunch at noon', category: 'x', wordCount: 5 })).toBe(true);
+  });
+});
+
+// Regression: sentences with repeated words (e.g. two "the"s) make the
+// scrambled reconstruction ambiguous, so generation must only select
+// sentences whose words are all distinct — across every difficulty tier.
+describe('sentence uniqueness (audit regression)', () => {
+  const tiers: ReadonlyArray<readonly [number, number]> = [
+    [4, 5],
+    [5, 7],
+    [6, 9],
+    [7, 12],
+  ];
+  for (const [lo, hi] of tiers) {
+    it(`only selects distinct-word sentences for range [${lo}, ${hi}]`, () => {
+      for (let s = 0; s < 40; s += 1) {
+        const rng = createRng(`uniq-${lo}-${hi}-${s}`);
+        let prev: string | null = null;
+        for (let r = 0; r < 6; r += 1) {
+          const { sentence } = generateRound({
+            rng,
+            roundIndex: r,
+            bank: SENTENCE_BANK,
+            minWords: lo,
+            maxWords: hi,
+            prevCategory: prev,
+            usedCategories: prev !== null ? [prev] : [],
+          });
+          const _ok = hasNoDuplicateWords(sentence);
+          if (!_ok) {
+            // eslint-disable-next-line no-console
+            console.log('DUP', lo, hi, JSON.stringify(sentence.text), 'wc', sentence.wordCount);
+          }
+          expect(_ok).toBe(true);
+          expect(sentence.wordCount).toBeGreaterThanOrEqual(lo);
+          expect(sentence.wordCount).toBeLessThanOrEqual(hi);
+          prev = sentence.category;
+        }
+      }
+    });
+  }
 });
