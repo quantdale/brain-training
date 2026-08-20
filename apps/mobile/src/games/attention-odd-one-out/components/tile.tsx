@@ -8,6 +8,7 @@
  * disclosed through the accessibility label while the round is live — the
  * reveal (`found`) only happens after the round ended.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -31,17 +32,18 @@ export interface ItemTileProps {
   /** Glyph font size (the grid scales it down on larger boards). */
   glyphSize: number;
   disabled?: boolean;
-  onPress?: () => void;
+  /** Stable tap handler supplied by the grid (avoids per-render closures). */
+  onPressTile?: (index: number) => void;
 }
 
-export function ItemTile({
+export const ItemTile = memo(function ItemTile({
   index,
   deviation,
   isOdd,
   visual,
   glyphSize,
   disabled = false,
-  onPress,
+  onPressTile,
 }: ItemTileProps) {
   const theme = useTheme();
   const spec = renderSpecFor(deviation, isOdd);
@@ -64,7 +66,7 @@ export function ItemTile({
       }
       accessibilityState={{ disabled, selected: visual === 'found' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressTile ? () => onPressTile(index) : undefined}
       style={({ pressed }) => [
         styles.tile,
         { backgroundColor, borderColor, borderWidth },
@@ -80,7 +82,7 @@ export function ItemTile({
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   tile: {

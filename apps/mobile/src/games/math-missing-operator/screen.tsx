@@ -36,7 +36,7 @@ import { Spacing } from '@/constants/theme';
 
 import { GameButton } from './components/button';
 import { EquationDisplay } from './components/equation-display';
-import { OperatorButton } from './components/operator-button';
+import { OperatorRow } from './components/operator-button';
 import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
@@ -368,15 +368,21 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
         ? (state.equation?.answerOperator ?? null)
         : null;
 
-  const highlightFor = (operator: Operator): 'correct' | 'wrong' | null => {
-    if (state.phase !== 'roundResult') {
-      return null;
-    }
-    if (operator === state.equation?.answerOperator) {
-      return 'correct';
-    }
-    return operator === state.lastAnsweredOperator ? 'wrong' : null;
-  };
+  // Stable highlight resolver — depends only on round-resolution state, never
+  // on any per-tick value (this game uses a one-shot round timeout, not a tick
+  // timer), so the memoized operator row skips re-renders on unrelated changes.
+  const highlightFor = useCallback(
+    (operator: Operator): 'correct' | 'wrong' | null => {
+      if (state.phase !== 'roundResult') {
+        return null;
+      }
+      if (operator === state.equation?.answerOperator) {
+        return 'correct';
+      }
+      return operator === state.lastAnsweredOperator ? 'wrong' : null;
+    },
+    [state.phase, state.equation?.answerOperator, state.lastAnsweredOperator],
+  );
 
   return (
     <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
@@ -443,16 +449,7 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
                   Pick the missing operator
                 </ThemedText>
                 <EquationDisplay equation={state.equation} />
-                <View style={styles.operators}>
-                  {OPERATORS.map((operator) => (
-                    <OperatorButton
-                      key={operator}
-                      operator={operator}
-                      testID={testId(GAME_ID, 'op', operator)}
-                      onPress={() => handleAnswer(operator)}
-                    />
-                  ))}
-                </View>
+                <OperatorRow operators={OPERATORS} onPressOperator={handleAnswer} highlightFor={highlightFor} />
               </>
             ) : null}
 
@@ -493,18 +490,7 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
                     The answer is {OPERATOR_GLYPHS[state.equation.answerOperator]}.
                   </ThemedText>
                 ) : null}
-                <View style={styles.operators}>
-                  {OPERATORS.map((operator) => (
-                    <OperatorButton
-                      key={operator}
-                      operator={operator}
-                      testID={testId(GAME_ID, 'op', operator)}
-                      disabled
-                      highlight={highlightFor(operator)}
-                      onPress={() => handleAnswer(operator)}
-                    />
-                  ))}
-                </View>
+                <OperatorRow disabled operators={OPERATORS} onPressOperator={handleAnswer} highlightFor={highlightFor} />
                 <GameButton
                   testID={testId(GAME_ID, 'next-round')}
                   label={isLastRound ? 'See results' : 'Next round'}

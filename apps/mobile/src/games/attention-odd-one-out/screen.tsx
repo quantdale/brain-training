@@ -347,18 +347,24 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
 
   // ---- Item visuals (see TileVisualState): only the most recent wrong tap
   // is marked during play; the odd item is revealed after the round ended.
-  const visualFor = (index: number): TileVisualState => {
-    if (state.phase === 'playing') {
-      return index === state.lastWrongIndex ? 'error' : 'idle';
-    }
-    if (state.phase === 'roundResult') {
-      if (state.board !== null && index === state.board.oddIndex) {
-        return 'found';
+  // Stable across the per-tick countdown re-renders (depends on round
+  // transition state, never on `remainingMs`), so the memoized grid skips
+  // re-rendering items whose visual is unchanged.
+  const visualFor = useCallback(
+    (index: number): TileVisualState => {
+      if (state.phase === 'playing') {
+        return index === state.lastWrongIndex ? 'error' : 'idle';
       }
-      return index === state.lastWrongIndex ? 'error' : 'idle';
-    }
-    return 'idle';
-  };
+      if (state.phase === 'roundResult') {
+        if (state.board !== null && index === state.board.oddIndex) {
+          return 'found';
+        }
+        return index === state.lastWrongIndex ? 'error' : 'idle';
+      }
+      return 'idle';
+    },
+    [state.phase, state.lastWrongIndex, state.board, state.roundOutcome],
+  );
 
   const timeLeftText = `${(state.remainingMs / 1000).toFixed(1)}s`;
 

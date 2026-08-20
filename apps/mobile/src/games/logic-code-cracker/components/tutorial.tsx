@@ -10,7 +10,7 @@
  * the `testId(GAME_ID, 'tutorial')` wrapper previously owned by the local
  * `ThemedView`, so existing testIDs and content are preserved.
  */
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -108,12 +108,15 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
   const [guesses, setGuesses] = useState<{ guess: number[]; feedback: { exact: number; colorOnly: number } }[]>([]);
   const [currentGuess, setCurrentGuess] = useState<number[]>([]);
 
-  const handleSelectColor = (colorIndex: number) => {
-    if (currentGuess.length >= DEMO_CODE_LENGTH) {
-      return;
-    }
-    setCurrentGuess([...currentGuess, colorIndex]);
-  };
+  const handleSelectColor = useCallback(
+    (colorIndex: number) => {
+      if (currentGuess.length >= DEMO_CODE_LENGTH) {
+        return;
+      }
+      setCurrentGuess([...currentGuess, colorIndex]);
+    },
+    [currentGuess, DEMO_CODE_LENGTH],
+  );
 
   const handleSubmit = () => {
     if (currentGuess.length !== DEMO_CODE_LENGTH) {

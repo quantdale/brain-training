@@ -7,6 +7,7 @@
  * pad reads like a classic Simon game in both light and dark themes. Idle
  * tiles render their color dimmed; revealed/selected tiles are fully lit.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -31,10 +32,11 @@ export interface PadTileProps {
   index: number;
   visual: PadTileVisualState;
   disabled?: boolean;
-  onPress?: () => void;
+  /** Stable tap handler supplied by the pad (avoids per-render closures). */
+  onPressTile?: (index: number) => void;
 }
 
-export function PadTile({ index, visual, disabled = false, onPress }: PadTileProps) {
+export const PadTile = memo(function PadTile({ index, visual, disabled = false, onPressTile }: PadTileProps) {
   const theme = useTheme();
   const color = padColorFor(theme, index);
   const lit = visual === 'revealed' || visual === 'selected';
@@ -47,7 +49,7 @@ export function PadTile({ index, visual, disabled = false, onPress }: PadTilePro
       accessibilityLabel={`Pad ${index + 1}`}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressTile ? () => onPressTile(index) : undefined}
       style={({ pressed }) => [
         styles.tile,
         { backgroundColor, borderColor: theme.border },
@@ -57,7 +59,7 @@ export function PadTile({ index, visual, disabled = false, onPress }: PadTilePro
       ]}
     />
   );
-}
+});
 
 const styles = StyleSheet.create({
   tile: {

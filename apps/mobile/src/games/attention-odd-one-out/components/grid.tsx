@@ -5,6 +5,7 @@
  * padding keeps the aspect-ratio tiles flush without overflowing the row.
  * Glyph size scales down on larger boards so all items stay visible.
  */
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
@@ -24,7 +25,7 @@ export interface ItemGridProps {
   onPressTile: (index: number) => void;
 }
 
-export function ItemGrid({
+export const ItemGrid = memo(function ItemGrid({
   gridSize,
   testID,
   board,
@@ -45,13 +46,13 @@ export function ItemGrid({
             visual={visualFor(index)}
             glyphSize={glyphSize}
             disabled={disabled}
-            onPress={() => onPressTile(index)}
+            onPressTile={onPressTile}
           />
         </View>
       ))}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   grid: {

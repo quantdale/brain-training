@@ -335,24 +335,36 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
     return () => subscription.remove();
   }, [pauseSession]);
 
-  // ---- Tile visuals (see TileVisualState).
-  const visualFor = (index: number): TileVisualState => {
-    if (state.phase === 'observe') {
-      return index === state.observeIndex ? 'observed' : 'idle';
-    }
-    if (state.phase === 'recall' || state.phase === 'roundResult') {
-      if (state.recallHighlight && state.sequence[state.inputIndex - 1] === index) {
-        return 'selected';
+  // ---- Tile visuals (see TileVisualState). Stable across the per-tick
+  // re-renders: depends only on round-transition state, never on the
+  // recall auto-highlight tick (redundant with the matched-set branch and
+  // not changing any tile's output), so the memoized grid skips
+  // re-rendering tiles whose visual is unchanged.
+  const visualFor = useCallback(
+    (index: number): TileVisualState => {
+      if (state.phase === 'observe') {
+        return index === state.observeIndex ? 'observed' : 'idle';
       }
-      if (state.sequence.slice(0, state.inputIndex).includes(index)) {
-        return 'selected';
+      if (state.phase === 'recall' || state.phase === 'roundResult') {
+        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
+          return 'selected';
+        }
+        if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
+          return 'error';
+        }
       }
-      if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
-        return 'error';
-      }
-    }
-    return 'idle';
-  };
+      return 'idle';
+    },
+    [
+      state.phase,
+      state.observeIndex,
+      state.sequence,
+      state.inputIndex,
+      state.roundOutcome,
+      state.taps,
+      state.length,
+    ],
+  );
 
   return (
     <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>

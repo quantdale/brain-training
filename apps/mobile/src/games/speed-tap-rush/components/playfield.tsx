@@ -9,7 +9,7 @@
  * The target circle is positioned with percentage offsets and translated to
  * center on its point; its size is `2 * radius` of the field width.
  */
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -29,11 +29,11 @@ export interface PlayfieldProps {
   testID: string;
   /** Semantic testID of the target circle (defaults to `GAME_ID.target`). */
   targetTestID?: string;
-  /** Tap reported in normalized field coordinates (both axes 0..1). */
+  /** Stable tap handler (memoized field skips re-renders). */
   onTap: (x: number, y: number) => void;
 }
 
-export function Playfield({
+export const Playfield = memo(function Playfield({
   target,
   radius,
   disabled = false,
@@ -91,7 +91,7 @@ export function Playfield({
       ) : null}
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   field: {

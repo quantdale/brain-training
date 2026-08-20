@@ -6,6 +6,7 @@
  * deterministic palette (game content, not theme tokens) so the color rule is
  * identical across light/dark themes and devices.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -33,18 +34,22 @@ export const SHAPE_GLYPHS: Readonly<Record<ShapeId, string>> = {
 export type CardVisualState = 'idle' | 'selected' | 'error';
 
 export interface CardViewProps {
+  /** 0-based card index; also supplied to the stable tap handler. */
+  index: number;
   card: Card;
   /** Semantic testID of the card surface. */
   testID: string;
-  onPress?: () => void;
+  /** Stable tap handler supplied by the grid (avoids per-render closures). */
+  onPressCard?: (index: number) => void;
   disabled?: boolean;
   visual?: CardVisualState;
 }
 
-export function CardView({
+export const CardView = memo(function CardView({
+  index,
   card,
   testID,
-  onPress,
+  onPressCard,
   disabled = false,
   visual = 'idle',
 }: CardViewProps) {
@@ -61,7 +66,7 @@ export function CardView({
       accessibilityLabel={`${card.color} ${card.shape}`}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressCard ? () => onPressCard(index) : undefined}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: background, borderColor },
@@ -75,7 +80,7 @@ export function CardView({
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

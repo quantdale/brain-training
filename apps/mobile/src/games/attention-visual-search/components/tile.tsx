@@ -6,6 +6,7 @@
  * target tile is the only distinct cell: every other tile is an identical
  * distractor surface.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -21,10 +22,11 @@ export interface TileProps {
   index: number;
   visual: TileVisualState;
   disabled?: boolean;
-  onPress?: () => void;
+  /** Stable tap handler supplied by the grid (avoids per-render closures). */
+  onPressTile?: (index: number) => void;
 }
 
-export function Tile({ index, visual, disabled = false, onPress }: TileProps) {
+export const Tile = memo(function Tile({ index, visual, disabled = false, onPressTile }: TileProps) {
   const theme = useTheme();
   const backgroundColor =
     visual === 'target'
@@ -34,16 +36,18 @@ export function Tile({ index, visual, disabled = false, onPress }: TileProps) {
         : visual === 'selected'
           ? theme.accentSoft
           : theme.surface;
-  const isTarget = visual === 'target';
 
   return (
     <Pressable
       testID={testId(GAME_ID, 'tile', String(index))}
       accessibilityRole="button"
-      accessibilityLabel={isTarget ? `Tile ${index + 1}, the odd one` : `Tile ${index + 1}`}
+      // Neutral label only — never disclose whether this tile is the target,
+      // which would leak the answer to screen-reader users. Correctness is
+      // conveyed via `accessibilityState` after a tap (selected / error).
+      accessibilityLabel={`Tile ${index + 1}`}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressTile ? () => onPressTile(index) : undefined}
       style={({ pressed }) => [
         styles.tile,
         { backgroundColor, borderColor: theme.border },
@@ -51,7 +55,7 @@ export function Tile({ index, visual, disabled = false, onPress }: TileProps) {
       ]}
     />
   );
-}
+});
 
 const styles = StyleSheet.create({
   tile: {

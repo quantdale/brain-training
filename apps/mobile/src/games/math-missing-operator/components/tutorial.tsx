@@ -139,7 +139,7 @@ function DemoEquation({ attempt, onWrong, onDone, onSkip }: DemoEquationProps) {
             key={operator}
             operator={operator}
             testID={testId(GAME_ID, 'tutorial-op', operator)}
-            onPress={() => handlePick(operator)}
+            onPressOperator={handlePick}
           />
         ))}
       </View>

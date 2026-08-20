@@ -5,6 +5,7 @@
  * round result), `wrong` (the option the player picked when it was not
  * correct), `dim` (remaining options after the round is scored).
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -22,10 +23,17 @@ export interface OptionProps {
   label: string;
   visual: OptionVisualState;
   disabled?: boolean;
-  onPress?: () => void;
+  /** Stable tap handler supplied by the list (avoids per-render closures). */
+  onPressOption?: (index: number) => void;
 }
 
-export function Option({ index, label, visual, disabled = false, onPress }: OptionProps) {
+export const Option = memo(function Option({
+  index,
+  label,
+  visual,
+  disabled = false,
+  onPressOption,
+}: OptionProps) {
   const theme = useTheme();
   const backgroundColor =
     visual === 'correct'
@@ -48,7 +56,7 @@ export function Option({ index, label, visual, disabled = false, onPress }: Opti
       accessibilityLabel={`Option ${index + 1}: ${label}`}
       accessibilityState={{ disabled, selected: visual === 'correct' || visual === 'wrong' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressOption ? () => onPressOption(index) : undefined}
       style={({ pressed }) => [
         styles.option,
         { backgroundColor, borderColor, opacity: pressed ? 0.7 : visual === 'dim' ? 0.5 : 1 },
@@ -58,7 +66,38 @@ export function Option({ index, label, visual, disabled = false, onPress }: Opti
       </ThemedText>
     </Pressable>
   );
+});
+
+export interface OptionListProps {
+  options: readonly number[];
+  /** Stable visual resolver (depends only on round-resolution state). */
+  visualFor: (index: number) => OptionVisualState;
+  disabled?: boolean;
+  /** Stable tap handler; passed through so memoized options skip re-renders. */
+  onPressOption: (index: number) => void;
 }
+
+export const OptionList = memo(function OptionList({
+  options,
+  visualFor,
+  disabled = false,
+  onPressOption,
+}: OptionListProps) {
+  return (
+    <>
+      {options.map((value, index) => (
+        <Option
+          key={index}
+          index={index}
+          label={String(value)}
+          visual={visualFor(index)}
+          disabled={disabled}
+          onPressOption={onPressOption}
+        />
+      ))}
+    </>
+  );
+});
 
 const styles = StyleSheet.create({
   option: {

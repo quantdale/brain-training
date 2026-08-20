@@ -5,6 +5,7 @@
  * tapped), `error` (wrong tap). Tiles are plain surfaces: the sequence is
  * positional memory, so no per-tile glyphs are rendered.
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -20,10 +21,11 @@ export interface TileProps {
   index: number;
   visual: TileVisualState;
   disabled?: boolean;
-  onPress?: () => void;
+  /** Stable tap handler supplied by the grid (avoids per-render closures). */
+  onPressTile?: (index: number) => void;
 }
 
-export function Tile({ index, visual, disabled = false, onPress }: TileProps) {
+export const Tile = memo(function Tile({ index, visual, disabled = false, onPressTile }: TileProps) {
   const theme = useTheme();
   const backgroundColor =
     visual === 'observed'
@@ -41,7 +43,7 @@ export function Tile({ index, visual, disabled = false, onPress }: TileProps) {
       accessibilityLabel={`Tile ${index + 1}`}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
-      onPress={onPress}
+      onPress={onPressTile ? () => onPressTile(index) : undefined}
       style={({ pressed }) => [
         styles.tile,
         { backgroundColor, borderColor: theme.border },
@@ -49,7 +51,7 @@ export function Tile({ index, visual, disabled = false, onPress }: TileProps) {
       ]}
     />
   );
-}
+});
 
 const styles = StyleSheet.create({
   tile: {

@@ -5,7 +5,12 @@
  * testID target: `math-fast-math.digit.<d>`, `math-fast-math.backspace`,
  * `math-fast-math.submit`. The parent renders it only while a problem is
  * active and enabled, so no disabled state is needed here.
+ *
+ * The pad and each `Key` are `memo`ized; the screen keeps `onDigit`,
+ * `onBackspace`, `onSubmit` stable across the 100 ms budget ticks, so the
+ * keypad does not re-render on every tick (only when the problem changes).
  */
+import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
@@ -28,7 +33,7 @@ const ROWS: readonly (readonly (number | 'backspace' | 'submit')[])[] = [
   ['backspace', 0, 'submit'],
 ];
 
-export function NumberPad({ onDigit, onBackspace, onSubmit }: NumberPadProps) {
+export const NumberPad = memo(function NumberPad({ onDigit, onBackspace, onSubmit }: NumberPadProps) {
   const theme = useTheme();
   return (
     <View style={styles.pad} testID={testId(GAME_ID, 'number-pad')} accessible={false}>
@@ -66,7 +71,8 @@ export function NumberPad({ onDigit, onBackspace, onSubmit }: NumberPadProps) {
                 label={String(key)}
                 accessibilityLabel={`Digit ${key}`}
                 testID={testId(GAME_ID, 'digit', String(key))}
-                onPress={() => onDigit(key)}
+                onPressDigit={onDigit}
+                digit={key}
                 theme={theme}
               />
             );
@@ -75,29 +81,41 @@ export function NumberPad({ onDigit, onBackspace, onSubmit }: NumberPadProps) {
       ))}
     </View>
   );
+});
+
+export interface KeyProps {
+  label: string;
+  accessibilityLabel: string;
+  testID: string;
+  /** Provided for backspace/submit (no extra payload). */
+  onPress?: () => void;
+  /** Provided for digit keys (carries the digit value). */
+  onPressDigit?: (digit: number) => void;
+  digit?: number;
+  theme: ReturnType<typeof useTheme>;
+  accent?: boolean;
 }
 
-function Key({
+export const Key = memo(function Key({
   label,
   accessibilityLabel,
   testID,
   onPress,
+  onPressDigit,
+  digit,
   theme,
   accent = false,
-}: {
-  label: string;
-  accessibilityLabel: string;
-  testID: string;
-  onPress: () => void;
-  theme: ReturnType<typeof useTheme>;
-  accent?: boolean;
-}) {
+}: KeyProps) {
+  const handlePress = onPressDigit !== undefined && digit !== undefined
+    ? () => onPressDigit(digit)
+    : onPress;
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      onPress={onPress}
+      accessibilityState={{ disabled: false }}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.key,
         { backgroundColor: accent ? theme.accent : theme.surface, borderColor: theme.border },
@@ -108,7 +126,7 @@ function Key({
       </ThemedText>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   pad: {
