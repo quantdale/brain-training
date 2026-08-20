@@ -169,20 +169,32 @@ function initRunDir(mode) {
   for (const d of Object.values(ART)) mkdirSync(d, { recursive: true });
   return runId;
 }
+// uiautomator occasionally returns an empty/error dump during animations or
+// while the device is not idle ("ERROR: could not get idle state",
+// "null root node returned by UiTestAutomationBridge"). Treat those as
+// transient: retry the dump and skip empty/error content so a stale or blank
+// file is never mistaken for "element absent".
+const DUMP_ERROR_RE = /ERROR:|null root node|UiTestAutomationBridge/i;
+function dumpIsUsable(xml) { return !!xml && xml.includes('<node') && !DUMP_ERROR_RE.test(xml); }
 function dumpHierarchy(tag) {
   const local = join(ART.hierarchy, `${tag}.xml`);
-  try {
-    adbRetry(['shell', 'uiautomator', 'dump', '/sdcard/qa-hier.xml'], { tries: 2 });
-    adbRetry(['pull', '/sdcard/qa-hier.xml', local], { tries: 2 });
-    return local;
-  } catch (e) {
-    trace('hierarchy.dump', tag, false, String(e).slice(0, 120));
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const xml = adb(['exec-out', 'uiautomator', 'dump', '/dev/tty']);
-      writeFileSync(local, xml);
-      return local;
-    } catch { return local; }
+      adbRetry(['shell', 'uiautomator', 'dump', '/sdcard/qa-hier.xml'], { tries: 2 });
+      adbRetry(['pull', '/sdcard/qa-hier.xml', local], { tries: 2 });
+      const xml = readFileSyncSafe(local);
+      if (dumpIsUsable(xml)) return local;
+    } catch (e) {
+      trace('hierarchy.dump', tag, false, String(e).slice(0, 80));
+    }
+    sleep(400);
   }
+  // Fallback: stream straight to stdout (no intermediate device file).
+  try {
+    const xml = adb(['exec-out', 'uiautomator', 'dump', '/dev/tty']);
+    if (dumpIsUsable(xml)) { writeFileSync(local, xml); return local; }
+  } catch { /* ignore */ }
+  return local; // may be empty/error; callers still verify content
 }
 function screenshot(tag) {
   const local = join(ART.screenshots, `${tag}.png`);
@@ -245,7 +257,9 @@ async function waitFor(id, timeoutMs = 20000, tag = 'wait') {
   while (Date.now() < end) {
     const p = dumpHierarchy(`${tag}-${Date.now() % 100000}`);
     const xml = readFileSyncSafe(p);
-    if (xml && hasTestId(xml, id)) return xml;
+    // Skip transient/empty dumps (animation, not-idle) rather than concluding
+    // the element is absent from a stale file.
+    if (xml && !DUMP_ERROR_RE.test(xml) && hasTestId(xml, id)) return xml;
     await sleep(750);
   }
   return null;
@@ -255,7 +269,7 @@ async function waitForAny(ids, timeoutMs = 20000, tag = 'waitAny') {
   while (Date.now() < end) {
     const p = dumpHierarchy(`${tag}-${Date.now() % 100000}`);
     const xml = readFileSyncSafe(p);
-    if (xml) {
+    if (xml && !DUMP_ERROR_RE.test(xml)) {
       for (const id of ids) if (hasTestId(xml, id)) return { id, xml };
     }
     await sleep(750);
@@ -268,7 +282,7 @@ async function waitForHome(timeoutMs = 40000) {
   while (Date.now() < end) {
     const p = dumpHierarchy('home-warm');
     const xml = readFileSyncSafe(p);
-    if (xml && HOME_READY_IDS.some((id) => hasTestId(xml, id))) return xml;
+    if (xml && !DUMP_ERROR_RE.test(xml) && HOME_READY_IDS.some((id) => hasTestId(xml, id))) return xml;
     await sleep(1000);
   }
   return null;
@@ -277,8 +291,21 @@ async function waitForHome(timeoutMs = 40000) {
 // ---------------------------------------------------------------------------
 // Device lifecycle
 // ---------------------------------------------------------------------------
+// Disable system animations so `uiautomator dump` does not block waiting for
+// the UI to go idle. Heavily-animated games (e.g. speed/spatial/attention)
+// otherwise keep the accessibility service from ever reporting idle, causing
+// every hierarchy dump to error ("could not get idle state") during gameplay
+// and hiding perfectly-present semantic nodes from the harness. This mirrors
+// Espresso's DisableAnimationsRule and is emulator-local + reversible on
+// reboot.
+function disableAnimations() {
+  for (const key of ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']) {
+    try { adb(['shell', 'settings', 'put', 'global', key, '0']); } catch { /* ignore */ }
+  }
+}
 function launch() { adb(['shell', 'am', 'start', '-n', `${PKG}/.MainActivity`]); }
 function reset() {
+  disableAnimations();
   adb(['shell', 'am', 'force-stop', PKG]);
   sleep(500);
   try { adb(['shell', 'pm', 'clear', PKG]); } catch { /* ignore */ }
@@ -347,7 +374,7 @@ async function flowGame(id, opts = {}) {
     }
   }
   log('started');
-  await sleep(1200);
+  await sleep(400);
 
   // Optional pause/resume probe.
   if (opts.pause) {
@@ -362,19 +389,12 @@ async function flowGame(id, opts = {}) {
     } else { log('no pause control (not applicable)'); }
   }
 
-  // Open QA panel, force win.
-  const qa = await waitFor(`${id}.qa-toggle`, 8000, tag);
-  if (!qa) { captureAll(tag); return fail(id, 'qa-toggle not found (not a dev build?)', steps, t0, tag); }
-  tapTestId(`${id}.qa-toggle`, qa);
-  await sleep(500);
-  const panel = await waitFor(`${id}.qa-panel`, 5000, tag);
-  if (!panel) { captureAll(tag); return fail(id, 'qa-panel did not open', steps, t0, tag); }
-  tapTestId(`${id}.force-win`, panel);
-  log('force-win pressed');
-
-  // Wait for results (in-game or app /results route) — state-based, no blind sleep.
-  const results = await waitForAny(['results-title', `${id}.results`, 'results-score'], 15000, tag);
-  if (!results) { captureAll(tag); return fail(id, 'results not reached', steps, t0, tag); }
+  // Open QA panel and force win. Some games only expose the QA toggle during
+  // a specific in-session phase (e.g. a brief "study" phase before the choice
+  // phase unmounts the panel), so poll the toggle→panel→force-win sequence in
+  // a loop until results appear rather than assuming a single fixed wait.
+  const results = await driveForceWin(id, tag);
+  if (!results) { captureAll(tag); return fail(id, 'qa-toggle/force-win not reachable (qa panel may be phase-gated)', steps, t0, tag); }
   log(`results reached via ${results.id}`);
   screenshot(`${tag}-results`);
 
@@ -392,6 +412,38 @@ async function flowGame(id, opts = {}) {
   };
 }
 function log(_s) { /* steps are recorded via trace; keep a local echo for clarity */ }
+
+// Poll the QA toggle → panel → force-win sequence until results appear.
+// Returns the matching results node (with `.id`) or null on timeout. This is
+// resilient to games whose QA panel is only mounted during certain play
+// phases: it taps force-win the moment the toggle is observable.
+// One best-effort attempt at toggle → panel → force-win. Returns true if the
+// force-win tap was issued (panel opened), false if the toggle was not
+// currently reachable (e.g. the QA panel is phase-gated this frame).
+async function tapForceWinOnce(id, tag) {
+  const qa = await waitFor(`${id}.qa-toggle`, 3000, `${tag}-fw`);
+  if (!qa) return false;
+  tapTestId(`${id}.qa-toggle`, qa);
+  await sleep(400);
+  const panel = await waitFor(`${id}.qa-panel`, 3000, `${tag}-fw`);
+  if (!panel) return false;
+  tapTestId(`${id}.force-win`, panel);
+  log('force-win pressed');
+  return true;
+}
+// Poll the QA toggle → panel → force-win sequence until results appear.
+async function driveForceWin(id, tag) {
+  const end = Date.now() + 15000;
+  while (Date.now() < end) {
+    if (tapForceWinOnce(id, tag)) {
+      await sleep(800);
+      const res = await waitForAny(['results-title', `${id}.results`, 'results-score'], 4000, `${tag}-fw`);
+      if (res) return res;
+    }
+    await sleep(500);
+  }
+  return null;
+}
 
 function fail(id, reason, steps, t0, tag) {
   return { id, passed: false, reason, steps, ms: traceMs(t0), artifacts: captureAll(tag), trace: traceSlice() };
@@ -429,13 +481,7 @@ async function flowWordMatch() {
     await sleep(1200);
     let rounds = 0;
     for (let r = 0; r < 3; r++) {
-      const qa = await waitFor(`${id}.qa-toggle`, 8000, `wm-${tier}-r${r}`);
-      if (!qa) break;
-      tapTestId(`${id}.qa-toggle`, qa);
-      await sleep(500);
-      const panel = await waitFor(`${id}.qa-panel`, 4000, `wm-${tier}-r${r}`);
-      if (!panel) break;
-      tapTestId(`${id}.force-win`, panel);
+      if (!tapForceWinOnce(id, `wm-${tier}-r${r}`)) break;
       await sleep(1400);
       rounds++;
       const cont = readFileSyncSafe(dumpHierarchy(`wm-${tier}-c${r}`));
@@ -488,13 +534,7 @@ async function flowWorkout() {
     await sleep(700);
     tapTestId(`${gameId}.start`, readFileSyncSafe(dumpHierarchy(`wk-g${i}-s`)));
     await sleep(1200);
-    const qa = await waitFor(`${gameId}.qa-toggle`, 8000, `wk-g${i}-q`);
-    if (!qa) return { id: 'daily-workout', passed: false, reason: `qa-toggle missing for ${gameId}`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
-    tapTestId(`${gameId}.qa-toggle`, qa);
-    await sleep(500);
-    const panel = await waitFor(`${gameId}.qa-panel`, 4000, `wk-g${i}-p`);
-    if (!panel) return { id: 'daily-workout', passed: false, reason: `qa-panel missing for ${gameId}`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
-    tapTestId(`${gameId}.force-win`, panel);
+    if (!tapForceWinOnce(gameId, `wk-g${i}`)) return { id: 'daily-workout', passed: false, reason: `qa-toggle/force-win not reachable for ${gameId}`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
     const res = await waitFor(i < 3 ? 'results-next-game' : 'results-workout-complete', 15000, `wk-g${i}-res`);
     if (!res) return { id: 'daily-workout', passed: false, reason: `results not reached for game ${i} (${gameId})`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
     log.push(`completed ${gameId} (${i + 1}/4)`);
@@ -599,6 +639,8 @@ async function main() {
   const exitNonZero = args.includes('--exit-nonzero-on-fail') || !args.includes('--exit-zero');
 
   if (self) { process.exit(selfTest() ? 0 : 1); }
+  // Animation-disabled dumps are reliable across every game (see disableAnimations).
+  disableAnimations();
   if (listGames) {
     console.log(GAMES.join('\n'));
     if (category) console.log(`\nCategory ${category}: ${(CATEGORIES[category] || []).join(', ')}`);
