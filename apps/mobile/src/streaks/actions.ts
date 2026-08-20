@@ -44,29 +44,36 @@ export async function applyOwnedStreakItem(
   state: StreakState,
   now: Date,
 ): Promise<StreakApplyResult> {
-  const settings0 = (await db.profile.get())?.settings ?? {};
-  const inventory = readInventory(settings0);
+  // Run the read-precondition-check + transform + write inside one transaction
+  // so a concurrent apply (or any interleaved settings write) cannot race the
+  // read against the write and silently lose a freeze/coverage update. The
+  // precondition is re-evaluated against the fresh in-transaction settings, so
+  // the outcome is deterministic regardless of concurrent callers.
+  return db.transaction(async (txn) => {
+    const settings0 = (await db.profile.get(txn))?.settings ?? {};
+    const inventory = readInventory(settings0);
 
-  const allowed =
-    kind === 'freeze'
-      ? canApplyFreeze(state, settings0, now)
-      : kind === 'recovery'
-        ? canApplyRecovery(state, settings0, now)
-        : canApplyShield(state, settings0, now);
-  if (!allowed) {
-    const hasItem = inventory[kind] >= 1;
-    return hasItem ? 'not-allowed' : 'no-item';
-  }
+    const allowed =
+      kind === 'freeze'
+        ? canApplyFreeze(state, settings0, now)
+        : kind === 'recovery'
+          ? canApplyRecovery(state, settings0, now)
+          : canApplyShield(state, settings0, now);
+    if (!allowed) {
+      const hasItem = inventory[kind] >= 1;
+      return hasItem ? 'not-allowed' : 'no-item';
+    }
 
-  const nextSettings =
-    kind === 'freeze'
-      ? applyFreezeToSettings(settings0, now)
-      : kind === 'recovery'
-        ? applyRecoveryToSettings(settings0, state, now)
-        : applyShieldToSettings(settings0, state, now);
+    const nextSettings =
+      kind === 'freeze'
+        ? applyFreezeToSettings(settings0, now)
+        : kind === 'recovery'
+          ? applyRecoveryToSettings(settings0, state, now)
+          : applyShieldToSettings(settings0, state, now);
 
-  await db.profile.update({ settings: nextSettings });
-  return 'applied';
+    await db.profile.update({ settings: nextSettings }, txn);
+    return 'applied' as const;
+  });
 }
 
 export type MilestoneClaimStatus = 'claimed' | 'already-claimed' | 'not-reached' | 'no-reward';

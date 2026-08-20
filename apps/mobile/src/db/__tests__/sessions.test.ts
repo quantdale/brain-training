@@ -142,18 +142,39 @@ describe('completeSession', () => {
     expect((await profile.get())?.updatedAt).toBe(updatedAtBefore);
   });
 
-  it('rejects duplicate session ids and keeps the original row', async () => {
+  it('is idempotent by session id: a replay keeps the original row and grants nothing extra', async () => {
     const adapter = await createMigratedDb();
     const sessions = new SessionRepository(adapter);
-    await sessions.completeSession({ session: makeSession() });
+    const first = await sessions.completeSession({
+      session: makeSession(),
+      currency: { amount: 25, reason: 'first' },
+    });
+    expect(first.ledgerEntry?.amount).toBe(25);
+    expect(first.balance).toBe(25);
 
-    await expect(
-      sessions.completeSession({ session: makeSession(), currency: { amount: 5, reason: 'dup' } }),
-    ).rejects.toThrow();
+    // A crash/retry that replays the SAME session id must not double-award
+    // currency or create a second row (economy correctness, §A).
+    const second = await sessions.completeSession({
+      session: makeSession(),
+      currency: { amount: 5, reason: 'dup' },
+    });
+    expect(second.ledgerEntry).toBeNull();
+    expect(second.balance).toBe(25); // unchanged
+    expect(second.session.xp).toBe(50); // original row reflected
 
     const stored = await sessions.getById('session-1');
     expect(stored?.xp).toBe(50); // original, not overwritten
-    expect((await adapter.all('SELECT * FROM currency_ledger'))).toHaveLength(0);
+    expect((await adapter.all('SELECT * FROM currency_ledger'))).toHaveLength(1); // only the first
+  });
+
+  it('is idempotent for a replayed session even without a currency entry', async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter);
+    await sessions.completeSession({ session: makeSession() });
+    const replay = await sessions.completeSession({ session: makeSession() });
+    expect(replay.ledgerEntry).toBeNull();
+    expect(replay.session.id).toBe('session-1');
+    expect(await sessions.getById('session-1')).not.toBeNull();
   });
 });
 

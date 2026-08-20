@@ -36,7 +36,7 @@ interface SessionRow {
   duration_ms: number;
 }
 
-const INSERT_SESSION = `INSERT INTO game_sessions (
+const INSERT_SESSION = `INSERT OR IGNORE INTO game_sessions (
     id, game_id, game_version, generator_version, scoring_version, seed,
     difficulty_json, raw_result_json, normalized_result, xp,
     started_at, completed_at, duration_ms
@@ -168,7 +168,14 @@ export class SessionRepository {
       const outcome = this.rating ? await this.rating.compute({ session: s }) : null;
       const xp = outcome ? outcome.xp : s.xp;
 
-      await txn.run(INSERT_SESSION, [
+      // Idempotent by session id (economy correctness, §A): a crash/retry or a
+      // duplicate tap that replays the same `session.id` must never award the
+      // currency/rating twice. `INSERT OR IGNORE` leaves the existing row
+      // untouched when the id already exists and reports `changes === 0`, so we
+      // only commit the gameplay currency award and rating deltas for a freshly
+      // inserted row. A replay is otherwise harmless (profile touch below is
+      // idempotent) and the caller observes the persisted row via the result.
+      const insert = await txn.run(INSERT_SESSION, [
         s.id,
         s.gameId,
         s.gameVersion,
@@ -183,13 +190,15 @@ export class SessionRepository {
         s.completedAt,
         s.durationMs,
       ]);
+      const isNew = insert.changes > 0;
 
       // Ownership (task 7.6): when a rating service is configured it owns the
       // gameplay currency award; a caller-supplied `input.currency` is ignored
       // so the same completion event is never double-awarded. When no rating
-      // service is present the caller entry is the single owner.
+      // service is present the caller entry is the single owner. Rewards are
+      // only granted on the first (new) completion.
       let ledgerEntry: LedgerEntry | null = null;
-      if (outcome && outcome.currency > 0) {
+      if (isNew && outcome && outcome.currency > 0) {
         const result = await txn.run(INSERT_LEDGER_ENTRY, [
           outcome.currency,
           'gameplay',
@@ -203,7 +212,7 @@ export class SessionRepository {
           sessionId: s.id,
           createdAt: s.completedAt,
         };
-      } else if (!outcome && input.currency) {
+      } else if (isNew && !outcome && input.currency) {
         const result = await txn.run(INSERT_LEDGER_ENTRY, [
           input.currency.amount,
           input.currency.reason,
@@ -221,8 +230,19 @@ export class SessionRepository {
 
       const deltas: readonly RatingDelta[] = outcome ? outcome.deltas : [];
       let appliedDeltas: readonly AppliedRatingDelta[] = [];
-      if (deltas.length > 0) {
+      if (isNew && deltas.length > 0) {
         appliedDeltas = await this.ratingRepository.applyDeltas(txn, s.id, deltas, s.completedAt);
+      }
+
+      // On a duplicate completion we reflect the already-persisted row rather
+      // than re-awarding; no ledger entry or rating deltas are produced.
+      let existing: SessionRow | null = null;
+      if (!isNew) {
+        existing = await txn.get<SessionRow>(SELECT_SESSION_BY_ID, [s.id]);
+        if (!existing) {
+          // Should be unreachable: INSERT OR IGNORE only skips on a conflict.
+          throw new Error(`completeSession: missing existing row for duplicate id ${s.id}`);
+        }
       }
 
       // Profile touch: record activity so consumers can detect "last active".
@@ -232,27 +252,30 @@ export class SessionRepository {
 
       const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
       const balance = balanceRow?.balance ?? 0;
-      const stored = { ...s, xp };
+      // `existing` is non-null here: the `!isNew` branch above threw if the
+      // re-read missed. We only reach here with a valid persisted row.
+      const stored: GameSessionRecord = isNew ? { ...s, xp } : mapRow(existing!);
 
       // Build the authoritative completion outcome when a rating service is
       // configured (constitution §15). This is the single source of truth for
       // result UI; game screens should render from this rather than their own
-      // no-op XP hooks.
-      const completionOutcome: CompletionOutcome | null = outcome
-        ? {
-            session: stored,
-            xp: outcome.xp,
-            currency: outcome.currency,
-            deltas: appliedDeltas,
-            balance,
-          }
-        : null;
+      // no-op XP hooks. On a replay we report no outcome (nothing was applied).
+      const completionOutcome: CompletionOutcome | null =
+        isNew && outcome
+          ? {
+              session: stored,
+              xp: outcome.xp,
+              currency: outcome.currency,
+              deltas: appliedDeltas,
+              balance,
+            }
+          : null;
 
       return {
         session: stored,
         ledgerEntry,
         balance,
-        rating: outcome
+        rating: isNew && outcome
           ? { xp: outcome.xp, currency: outcome.currency, deltas, balance }
           : null,
         completionOutcome,
