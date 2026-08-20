@@ -127,9 +127,9 @@ describe("targetSetDistance / isNearDuplicateSet", () => {
   });
 
   it("flags only confusable (too-similar) sets as near-duplicates", () => {
-    expect(isNearDuplicateSet([1, 2, 3], [1, 2, 4])).toBe(true); // distance 2 < MIN 2? no -> 2 is not < 2
+    expect(isNearDuplicateSet([1, 2, 3], [1, 2, 4])).toBe(false); // distance 2 is >= MIN 2, not confusable
     expect(isNearDuplicateSet([1, 2, 3], [1, 2, 3])).toBe(true); // identical
-    expect(isNearDuplicateSet([1, 2, 3], [1, 2, 5])).toBe(true); // distance 2 -> not < 2 -> false
+    expect(isNearDuplicateSet([1, 2, 3], [1, 2, 5])).toBe(false); // distance 2 is >= MIN 2, not confusable
     expect(isNearDuplicateSet([1, 2, 3], [4, 5, 6])).toBe(false);
     expect(isNearDuplicateSet([1, 2], null)).toBe(false);
     expect(isNearDuplicateSet([1], [2])).toBe(false); // prev length < 2

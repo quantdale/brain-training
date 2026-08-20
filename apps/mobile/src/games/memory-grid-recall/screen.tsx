@@ -146,20 +146,26 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
     }
   }, [state.phase, state.roundIndex]);
 
-  // Study pacing with freeze-and-continue: a single window of `studyMs` of
-  // ACTIVE (non-paused) time. Pausing cancels the timer; resuming schedules the
-  // remaining window rather than restarting it, so the board stays obscured for
-  // exactly the time the player has not yet studied.
+  // Study pacing with freeze-and-continue: a window of `studyMs` of ACTIVE
+  // (non-paused) time, accumulated in 100ms steps. While paused, the interval is
+  // cleared so no time accrues; on resume it continues from where it left off,
+  // so the board stays obscured for exactly the time the player has not yet
+  // studied (mirrors memory's reveal-tick freeze semantics).
   useEffect(() => {
     if (state.phase !== "study" || state.paused) {
       return undefined;
     }
-    const remaining = Math.max(0, studyMs - studyElapsedRef.current);
-    const timer = setTimeout(() => {
-      studyElapsedRef.current = studyMs;
-      dispatch({ type: "study-tick" });
-    }, remaining);
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      studyElapsedRef.current = Math.min(
+        studyMs,
+        studyElapsedRef.current + 100,
+      );
+      if (studyElapsedRef.current >= studyMs) {
+        clearInterval(interval);
+        dispatch({ type: "study-tick" });
+      }
+    }, 100);
+    return () => clearInterval(interval);
   }, [state.phase, state.paused, studyMs, dispatch]);
 
   // ---- First play: open the tutorial automatically.

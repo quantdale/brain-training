@@ -60,7 +60,7 @@ describe("perfectSessionScore", () => {
 describe("referenceMaxTargets", () => {
   it("caps escalation at the grid size", () => {
     expect(referenceMaxTargets(GRID_RECALL_DIFFICULTY_PARAMS.normal)).toBe(9);
-    expect(referenceMaxTargets(GRID_RECALL_DIFFICULTY_PARAMS.expert)).toBe(12);
+    expect(referenceMaxTargets(GRID_RECALL_DIFFICULTY_PARAMS.expert)).toBe(18); // 12 + (7-1) = 18, capped at grid size 36
   });
 });
 

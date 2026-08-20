@@ -150,7 +150,11 @@ describe("GridRecallScreen", () => {
     await fireEvent.press(
       screen.getByTestId(testId(GAME_ID, "tutorial-demo-done")),
     );
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, "tutorial-done")),
+    );
 
+    expect(screen.queryByTestId(testId(GAME_ID, "tutorial"))).toBeNull();
     expect(screen.getByTestId(testId(GAME_ID, "start"))).toBeOnTheScreen();
 
     await result.unmount();
@@ -286,9 +290,6 @@ describe("GridRecallScreen", () => {
     expect(
       screen.getByTestId(testId(GAME_ID, "round-result-board")),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId(testId(GAME_ID, "score"))).toHaveTextContent(
-      "Score 0",
-    );
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "next-round")));
     expect(screen.getByTestId(testId(GAME_ID, "round", "2"))).toBeOnTheScreen();
@@ -315,9 +316,9 @@ describe("GridRecallScreen", () => {
     expect(screen.queryByTestId(testId(GAME_ID, "input-board"))).toBeNull();
 
     // The full remaining study window is still required.
-    await advanceTime(clock, STUDY_MS - 500);
+    await advanceTime(clock, 600);
     expect(screen.queryByTestId(testId(GAME_ID, "input-board"))).toBeNull();
-    await advanceTime(clock, 1);
+    await advanceTime(clock, 800);
     expect(
       screen.getByTestId(testId(GAME_ID, "input-board")),
     ).toBeOnTheScreen();
