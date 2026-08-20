@@ -16,9 +16,9 @@ function makeSession(overrides: Partial<CompleteSessionInput['session']> = {}) {
   return {
     id: 'session-1',
     gameId: 'memory',
-    gameVersion: 1,
-    generatorVersion: 1,
-    scoringVersion: 1,
+    gameVersion: 1000000,
+    generatorVersion: 1000000,
+    scoringVersion: 1000000,
     seed: 42,
     difficulty: { mode: 'normal' },
     rawResult: { score: 10, accuracy: 1 },

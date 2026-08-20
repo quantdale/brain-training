@@ -12,9 +12,9 @@ async function seedSession(adapter: SQLiteAdapter, id: string): Promise<void> {
   const session: GameSessionRecord = {
     id,
     gameId: 'memory',
-    gameVersion: 1,
-    generatorVersion: 1,
-    scoringVersion: 1,
+    gameVersion: 1000000,
+    generatorVersion: 1000000,
+    scoringVersion: 1000000,
     seed: 1,
     difficulty: {},
     rawResult: {},

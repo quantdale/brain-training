@@ -212,25 +212,36 @@ export function generatePuzzle(input: GeneratePuzzleInput): GeneratedPuzzle {
   }
 
   // Fallback: construct a guaranteed-solvable puzzle deterministically.
-  // Pick numbers that trivially add up to a target in range.
-  const a = rng.nextIntRange(2, 11);
-  const b = rng.nextIntRange(2, 11);
-  const target = a + b;
-  const numbers = [a, b];
-  // Add filler numbers that cancel out (e.g., +5 and -5).
-  for (let i = 2; i < numbersCount; i += 1) {
-    const fill = rng.nextIntRange(1, 10);
-    numbers.push(fill);
-    // We'll include the filler with operators that can produce the target.
-    // For simplicity, the fallback uses only addition/subtraction.
+  // The filler approach would emit an unproven puzzle for numbersCount > 2
+  // (spec: fallback MUST be subjected to the same final invariant checks).
+  // Instead, reuse the same solvable-search loop but widen the attempt
+  // budget — or throw if we truly cannot produce a valid puzzle.
+  const fallbackNumbers: number[] = [];
+  const fallbackUsed = new Set<number>();
+  for (let i = 0; i < numbersCount; i += 1) {
+    let n: number;
+    let nAttempts = 0;
+    do {
+      n = rng.nextIntRange(2, 21);
+      nAttempts += 1;
+    } while (fallbackUsed.has(n) && nAttempts < 100);
+    fallbackUsed.add(n);
+    fallbackNumbers.push(n);
   }
-
-  // Ensure target is in range.
-  const clampedTarget = Math.max(targetMin, Math.min(targetMax, target));
-
-  return {
-    target: clampedTarget,
-    numbers,
-    operators: operators.filter((op) => op === '+' || op === '-'),
-  };
+  const fallbackResults = evaluateAllResults(fallbackNumbers, operators);
+  const fallbackTargets = Array.from(fallbackResults).filter(
+    (t) => t >= targetMin && t <= targetMax && Number.isInteger(t),
+  );
+  if (fallbackTargets.length > 0) {
+    const target =
+      prevTarget !== null && fallbackTargets.length > 1
+        ? (fallbackTargets.find((t) => t !== prevTarget) ?? fallbackTargets[0])
+        : fallbackTargets[0];
+    if (sharedCanSolve(target, fallbackNumbers, operators)) {
+      return { target, numbers: fallbackNumbers, operators };
+    }
+  }
+  throw new Error(
+    `generatePuzzle: fallback failed to produce a solvable puzzle after ${MAX_PUZZLE_ATTEMPTS} attempts (params=${JSON.stringify(params)})`,
+  );
 }

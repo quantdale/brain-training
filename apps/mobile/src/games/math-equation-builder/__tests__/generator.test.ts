@@ -104,15 +104,16 @@ describe('generatePuzzle', () => {
   });
 
   it('every generated puzzle is solvable', () => {
-    const params = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.normal;
-    for (let seed = 1; seed <= 30; seed += 1) {
-      const puzzle = generatePuzzle({
-        rng: createRng(String(seed)),
-        roundIndex: 0,
-        params,
-        prevTarget: null,
-      });
-      expect(canSolve(puzzle.target, puzzle.numbers, puzzle.operators)).toBe(true);
+    for (const [level, params] of Object.entries(MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS)) {
+      for (let seed = 1; seed <= 30; seed += 1) {
+        const puzzle = generatePuzzle({
+          rng: createRng(`${level}-${seed}`),
+          roundIndex: 0,
+          params,
+          prevTarget: null,
+        });
+        expect(canSolve(puzzle.target, puzzle.numbers, puzzle.operators)).toBe(true);
+      }
     }
   });
 

@@ -133,9 +133,9 @@ describe('buildSessionRecord', () => {
     expect(record).toEqual({
       id: 'language-x1',
       gameId: 'language-word-match',
-      gameVersion: 1,
+      gameVersion: 1000000,
       generatorVersion: 0, // generatorVersion null → 0
-      scoringVersion: 1,
+      scoringVersion: 1000000,
       seed: 42,
       difficulty: expect.objectContaining({ level: 'normal', challengeRating: 0.5 }),
       rawResult: raw,
@@ -168,9 +168,9 @@ describe('persistLanguageSession', () => {
   const record: GameSessionRecord = {
     id: 'language-p1',
     gameId: 'language-word-match',
-    gameVersion: 1,
+    gameVersion: 1000000,
     generatorVersion: 0,
-    scoringVersion: 1,
+    scoringVersion: 1000000,
     seed: 42,
     difficulty: { level: 'normal', challengeRating: 0.5, parameters: {} },
     rawResult: buildRaw(),

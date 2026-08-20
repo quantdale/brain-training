@@ -1,90 +1,90 @@
 {
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\attention-odd-one-out\\generator.ts": {
+  "apps/mobile/src/games/attention-odd-one-out/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.139Z"
+    "addedAt": "2026-08-20T02:36:44.932Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\attention-visual-search\\generator.ts": {
+  "apps/mobile/src/games/attention-visual-search/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.140Z"
+    "addedAt": "2026-08-20T02:36:44.933Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\flexibility-card-sort\\generator.ts": {
+  "apps/mobile/src/games/flexibility-card-sort/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.140Z"
+    "addedAt": "2026-08-20T02:36:44.933Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\flexibility-color-stroop\\generator.ts": {
+  "apps/mobile/src/games/flexibility-color-stroop/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.140Z"
+    "addedAt": "2026-08-20T02:36:44.933Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\language-sentence-builder\\generator.ts": {
+  "apps/mobile/src/games/language-sentence-builder/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.933Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\language-word-match\\generator.ts": {
+  "apps/mobile/src/games/language-word-match/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.934Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\language-word-match\\content\\pack.json": {
+  "apps/mobile/src/games/language-word-match/content/pack.json": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.934Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\language-word-match\\content-validation.ts": {
+  "apps/mobile/src/games/language-word-match/content-validation.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.934Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\language-word-scramble\\generator.ts": {
+  "apps/mobile/src/games/language-word-scramble/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.934Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\logic-code-cracker\\generator.ts": {
+  "apps/mobile/src/games/logic-code-cracker/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.934Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\logic-next-sequence\\generator.ts": {
+  "apps/mobile/src/games/logic-next-sequence/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.935Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\math-equation-builder\\generator.ts": {
+  "apps/mobile/src/games/math-equation-builder/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.935Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\math-fast-math\\generator.ts": {
+  "apps/mobile/src/games/math-fast-math/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.935Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\math-missing-operator\\generator.ts": {
+  "apps/mobile/src/games/math-missing-operator/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.935Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\memory\\generator.ts": {
+  "apps/mobile/src/games/memory/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.935Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\memory-pattern-tap-back\\generator.ts": {
+  "apps/mobile/src/games/memory-pattern-tap-back/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.141Z"
+    "addedAt": "2026-08-20T02:36:44.936Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\memory-sequence-memory\\generator.ts": {
+  "apps/mobile/src/games/memory-sequence-memory/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.142Z"
+    "addedAt": "2026-08-20T02:36:44.936Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\spatial-mental-rotation\\generator.ts": {
+  "apps/mobile/src/games/spatial-mental-rotation/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.144Z"
+    "addedAt": "2026-08-20T02:36:44.936Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\spatial-transform-match\\generator.ts": {
+  "apps/mobile/src/games/spatial-transform-match/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.144Z"
+    "addedAt": "2026-08-20T02:36:44.936Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\speed-color-match\\generator.ts": {
+  "apps/mobile/src/games/speed-color-match/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.144Z"
+    "addedAt": "2026-08-20T02:36:44.936Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\speed-reaction-time\\generator.ts": {
+  "apps/mobile/src/games/speed-reaction-time/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.144Z"
+    "addedAt": "2026-08-20T02:36:44.937Z"
   },
-  "D:\\Documents\\tryPython\\brain-training\\apps\\mobile\\src\\games\\speed-tap-rush\\generator.ts": {
+  "apps/mobile/src/games/speed-tap-rush/generator.ts": {
     "reason": "Initial version baseline",
-    "addedAt": "2026-08-17T06:57:26.144Z"
+    "addedAt": "2026-08-20T02:36:44.937Z"
   }
 }

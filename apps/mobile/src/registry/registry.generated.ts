@@ -89,7 +89,7 @@ export const registry: readonly GameDefinition[] = [
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: null,
-    contentVersion: "1.0.0",
+    contentVersion: "2.0.0",
     hasTutorial: true,
   },
   {

@@ -14,7 +14,7 @@
  * from drift detection (for non-semantic edits like comments, formatting).
  */
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
-import { join, resolve, dirname } from 'node:path';
+import { join, resolve, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 
@@ -208,7 +208,8 @@ function generateAllowlist() {
     
     for (const file of files) {
       if (existsSync(file)) {
-        const relativePath = file.replace(REPO_ROOT + '/', '');
+        // Repo-relative forward-slash key so it matches git's relative paths on both Windows and Unix
+        const relativePath = relative(REPO_ROOT, file).split(sep).join('/');
         allowlist[relativePath] = {
           reason: 'Initial version baseline',
           addedAt: new Date().toISOString(),

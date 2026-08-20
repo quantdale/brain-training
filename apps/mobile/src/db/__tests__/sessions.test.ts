@@ -13,9 +13,9 @@ function makeSession(overrides: Partial<GameSessionRecord> = {}): GameSessionRec
   return {
     id: 'session-1',
     gameId: 'game-memoria',
-    gameVersion: 1,
+    gameVersion: 1000000,
     generatorVersion: 2,
-    scoringVersion: 1,
+    scoringVersion: 1000000,
     seed: 42,
     difficulty: { mode: 'normal' },
     rawResult: { score: 120, accuracy: 0.87 },

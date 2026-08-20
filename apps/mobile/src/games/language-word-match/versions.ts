@@ -21,11 +21,11 @@ export const CONTENT_PACK_VERSION: string = loadContentPack().packVersion;
 
 /**
  * Map a semantic version string to the integer recorded in the db
- * (`game_sessions.game_version` etc.): the numeric major component. The full
- * string versions always travel with the raw result / diagnostic metadata, so
- * no information is lost. `null` (non-procedural games) maps to `0`, which
- * documents that no procedural generator produced the challenge — unlike the
- * Memory game, Word Match ships curated content (`generatorVersion: null`).
+ * (`game_sessions.game_version` etc.): `major*1e6 + minor*1e3 + patch` so
+ * `1.1.0` and `1.0.0` are distinguishable (spec requires not collapsing to
+ * major-only). The full string versions still travel in the raw result, but
+ * the integer column now faithfully represents the semver for provenance
+ * queries. `null` (non-procedural games) maps to `0`.
  */
 export function versionToNumber(version: string | null): number {
   if (version === null) {
@@ -35,5 +35,9 @@ export function versionToNumber(version: string | null): number {
   if (match === null) {
     throw new Error(`versionToNumber: "${version}" has no numeric major component`);
   }
-  return Number(match[1]);
+  const parts = (version ?? '').split('.');
+  const ma = Number(parts[0] ?? 0);
+  const mi = Number(parts[1] ?? 0);
+  const pa = Number(parts[2] ?? 0);
+  return ma * 1_000_000 + mi * 1_000 + pa;
 }
