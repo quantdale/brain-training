@@ -59,7 +59,7 @@ This section supersedes the bootstrap requirements above with the concrete contr
 | `timing.ts` | `systemClock`, `createFakeClock(initialMs)`, `Stopwatch`, `Clock`, `FakeClock` | ms monotonic; `performance.now()` preferred |
 | `lifecycle.ts` | `SessionLifecycle`, `IllegalTransitionError`, `SessionStatus` | `created → active → paused ⇄ active → completed \| abandoned`; pause freezes the active timer |
 | `pause.ts` | `createPauseOverlaySpec(gameId)`, `PauseOverlaySpec` | Behavior spec: opaque, strong blur, challenge hidden |
-| `audio-haptics.ts` | `noopAudioHaptics`, `createNoopAudioHaptics(initial)`, `AudioHapticsService` | Working no-op; global sfx/music/haptics mute flags |
+| `audio-haptics.ts` | `liveAudioHaptics`, `getAudioHaptics`, `setLiveAudioHaptics`, `createNoopAudioHaptics`, `noopAudioHaptics`, `AudioHapticsService`, `FeedbackEvent`, `FEEDBACK_EVENTS`, `FEEDBACK_EVENT_MAP`, `SFX_ALIASES` | Dependency-free interface + no-op test double + live-service injection; `audio-haptics-real.ts` holds the real `expo-audio`/`expo-haptics` engine (`createAudioHaptics`) |
 | `tutorial.ts` | `createTutorialLifecycle(store?)`, `createInMemoryTutorialStore()`, `TutorialLifecycle` | First-play/completion/replay/QA-skip; pluggable `TutorialStore` |
 | `testid.ts` | `testId(gameId, ...elements)` | Stable semantic IDs, e.g. `memory-sequence.tile.3` |
 | `types/game-definition.ts` | `GameDefinition`, `defineGame()`, `parseGameDefinitionJson()`, `GAME_CATEGORIES` | `game.json` → validated frozen `GameDefinition` (registry generator input) |

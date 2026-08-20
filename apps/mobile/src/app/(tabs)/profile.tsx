@@ -13,10 +13,11 @@
 
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
-import { useSettings, type SettingKey } from '@/components/settings/settings-provider';
+import { useSettings } from '@/components/settings/settings-provider';
+import { SensorySettingsCard } from '@/components/sensory/sensory-settings-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
@@ -53,12 +54,6 @@ import {
   type ThemeOption,
 } from '@/theme/registry';
 import { localDateString } from '@/workout/today';
-
-const SETTING_ROWS: { key: SettingKey; label: string; caption: string }[] = [
-  { key: 'sfx', label: 'Sound effects', caption: 'Gameplay and UI sounds' },
-  { key: 'music', label: 'Music', caption: 'Background music' },
-  { key: 'haptics', label: 'Haptics', caption: 'Vibration feedback' },
-];
 
 const STREAK_ITEMS: { kind: StreakItemKind; label: string; caption: string }[] = [
   { kind: 'freeze', label: 'Freeze', caption: 'Protects your streak for one missed day' },
@@ -151,7 +146,7 @@ async function loadProfile(db: AppDatabase, now = new Date()): Promise<ProfileDa
 }
 
 export default function ProfileScreen() {
-  const { settings, setSetting, themeId, setThemeId } = useSettings();
+  const { themeId, setThemeId } = useSettings();
   const [refreshKey, setRefreshKey] = useState(0);
   const { data } = useDbData(loadProfile, [refreshKey], EMPTY_PROFILE);
 
@@ -387,25 +382,7 @@ export default function ProfileScreen() {
         })}
       </ThemedView>
 
-      <ThemedView type="surface" style={styles.card} testID="settings-card">
-        <ThemedText type="subtitle">Settings</ThemedText>
-        {SETTING_ROWS.map((row) => (
-          <View key={row.key} style={styles.settingRow}>
-            <View style={styles.settingText}>
-              <ThemedText type="smallBold">{row.label}</ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                {row.caption}
-              </ThemedText>
-            </View>
-            <Switch
-              testID={`settings-${row.key}`}
-              value={settings[row.key]}
-              onValueChange={(value) => setSetting(row.key, value)}
-              accessibilityLabel={`${row.label} toggle`}
-            />
-          </View>
-        ))}
-      </ThemedView>
+      <SensorySettingsCard />
     </ScreenShell>
   );
 }

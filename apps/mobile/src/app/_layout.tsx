@@ -18,7 +18,8 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { SettingsProvider, useSettings } from '@/components/settings/settings-provider';
+import { SettingsProvider, useSettings, type Settings } from '@/components/settings/settings-provider';
+import { AudioHapticsProvider } from '@/components/sensory/audio-haptics-provider';
 import { createRatingPipeline } from '@/rating';
 import { initDatabase } from '@/db';
 import { getDb } from '@/db';
@@ -32,7 +33,26 @@ export default function RootLayout() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [initError, setInitError] = useState<Error | null>(null);
   const [initialThemeId, setInitialThemeId] = useState<string | undefined>(undefined);
+  const [initialAudioSettings, setInitialAudioSettings] = useState<
+    Partial<Settings> | undefined
+  >(undefined);
   const cancelledRef = useRef(false);
+
+  /**
+   * Persist the sensory toggles into the profile settings JSON. Fire-and-forget:
+   * a persistence failure must not break the toggle interaction.
+   */
+  const persistSettings = useCallback((settings: Settings) => {
+    try {
+      void getDb()
+        .profile.update({ settings: { sfx: settings.sfx, haptics: settings.haptics } })
+        .catch((error: unknown) => {
+          console.error('[startup] failed to persist sensory settings', error);
+        });
+    } catch (error) {
+      console.error('[startup] failed to persist sensory settings', error);
+    }
+  }, []);
 
   /**
    * Bootstrap the app. Database initialization is the one storage-critical
@@ -84,6 +104,14 @@ export default function RootLayout() {
       if (!cancelledRef.current && typeof theme === 'string') {
         setInitialThemeId(theme);
       }
+      const sfx = profile?.settings?.sfx;
+      const haptics = profile?.settings?.haptics;
+      if (!cancelledRef.current && (typeof sfx === 'boolean' || typeof haptics === 'boolean')) {
+        setInitialAudioSettings({
+          ...(typeof sfx === 'boolean' ? { sfx } : {}),
+          ...(typeof haptics === 'boolean' ? { haptics } : {}),
+        });
+      }
     } catch (error) {
       console.error('[startup] post-initialization step failed', error);
     }
@@ -109,8 +137,14 @@ export default function RootLayout() {
   }
 
   return (
-    <SettingsProvider initialThemeId={initialThemeId}>
-      <RootNavigator />
+    <SettingsProvider
+      initialThemeId={initialThemeId}
+      initialSettings={initialAudioSettings}
+      onSettingsChange={persistSettings}
+    >
+      <AudioHapticsProvider>
+        <RootNavigator />
+      </AudioHapticsProvider>
     </SettingsProvider>
   );
 }
