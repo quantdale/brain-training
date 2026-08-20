@@ -1,0 +1,12 @@
+{
+  "id": "logic-rule-grid",
+  "name": "Rule Grid",
+  "primaryCategory": "Logic & Problem Solving",
+  "secondaryDomains": ["Attention"],
+  "description": "A grid of symbols follows one rule: every row and column contains each symbol exactly once. One cell is blank — deduce the only symbol that can fit. Pure constraint-logic inference.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}
