@@ -1,0 +1,12 @@
+{
+  "id": "spatial-grid-nav",
+  "name": "Grid Navigator",
+  "primaryCategory": "Spatial",
+  "secondaryDomains": ["Attention"],
+  "description": "A marker sits on a grid facing a direction. Read the move/turn commands and tap the cell where the marker ends up.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}
