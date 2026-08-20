@@ -34,7 +34,7 @@ const REPO_ROOT = resolve(__dirname, '..', '..');
 const PKG = process.env.QA_PKG || 'com.braintraining.app';
 const SCHEME = process.env.QA_SCHEME || 'braintraining';
 const OUT = process.env.QA_OUT || join(REPO_ROOT, 'qa-artifacts');
-const SERIAL = process.env.QA_DEVICE || firstEmulator();
+const SERIAL = (process.env.QA_DEVICE || firstEmulator()).trim();
 const SQLITE = process.env.QA_SQLITE || join(process.env.ANDROID_HOME || '', 'platform-tools', 'sqlite3.exe');
 const GAMES = [
   'attention-odd-one-out', 'attention-visual-search',
