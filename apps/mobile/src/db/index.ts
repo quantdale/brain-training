@@ -116,6 +116,18 @@ export class AppDatabase {
   transaction<T>(fn: (txn: SQLiteAdapter) => Promise<T>): Promise<T> {
     return this.adapter.transaction(fn);
   }
+
+  /**
+   * Run a single statement directly on the underlying connection, OUTSIDE any
+   * transaction. Used by the data-portability reset/restore path to toggle
+   * connection-level pragmas (e.g. `PRAGMA triggers = OFF`) that are intentionally
+   * no-ops when changed *inside* a transaction — the append-only DELETE triggers
+   * must be disabled at the connection level before a replace/wipe transaction
+   * begins. Added as an isolated, intentional core-DB API convenience.
+   */
+  rawExec(sql: string): Promise<void> {
+    return this.adapter.exec(sql);
+  }
 }
 
 let instance: AppDatabase | null = null;
