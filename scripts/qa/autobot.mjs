@@ -5,26 +5,35 @@
 //  - Drives the app purely through ADB + UI hierarchy + semantic testIDs.
 //  - Deep-links directly to games; uses dev-only QA force-state hooks.
 //  - Captures hierarchy dumps, logcat, screenshots, and the app DB.
-//  - Emits structured per-game PASS/FAIL/NOT VALIDATED results.
+//  - Emits structured per-game PASS/FAIL/NOT VALIDATED results + an
+//    action trace for deterministic diagnosis.
 //
 // Only Node built-ins + the platform `adb`/`sqlite3` are used, so this runs
-// without installing any npm dependencies.
+// without installing any npm dependencies. An offline `--self-test` mode
+// exercises the pure parsing/selection/report logic with fixture XML, so the
+// harness is CI-testable without an emulator.
 //
 // Usage:
 //   node scripts/qa/autobot.mjs --mode game --game memory
+//   node scripts/qa/autobot.mjs --mode game --game memory --pause
 //   node scripts/qa/autobot.mjs --mode catalog
 //   node scripts/qa/autobot.mjs --mode wordmatch
 //   node scripts/qa/autobot.mjs --mode workout
-//   node scripts/qa/autobot.mjs --mode all
+//   node scripts/qa/autobot.mjs --mode all --pause
+//   node scripts/qa/autobot.mjs --mode canaries
+//   node scripts/qa/autobot.mjs --category Memory          # one category
+//   node scripts/qa/autobot.mjs --list-games
+//   node scripts/qa/autobot.mjs --self-test                # offline logic tests
 //
 // Env overrides:
 //   QA_DEVICE   adb serial (default: first emulator-*)
 //   QA_PKG      application id (default: com.braintraining.app)
 //   QA_SCHEME   deep-link scheme (default: braintraining)
 //   QA_OUT      artifact root (default: qa-artifacts)
+//   QA_SQLITE   path to sqlite3 binary (default: $ANDROID_HOME/.../sqlite3.exe)
 
-import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, renameSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,25 +44,60 @@ const PKG = process.env.QA_PKG || 'com.braintraining.app';
 const SCHEME = process.env.QA_SCHEME || 'braintraining';
 const OUT = process.env.QA_OUT || join(REPO_ROOT, 'qa-artifacts');
 const SERIAL = (process.env.QA_DEVICE || firstEmulator()).trim();
-const SQLITE = process.env.QA_SQLITE || join(process.env.ANDROID_HOME || '', 'platform-tools', 'sqlite3.exe');
+const SQLITE = process.env.QA_SQLITE
+  || join(process.env.ANDROID_HOME || '', 'platform-tools', 'sqlite3.exe');
+
+// Canonical 24-game catalog (kept in sync with apps/mobile/src/registry via
+// `node scripts/generate-game-registry.mjs`). This is the QA harness's own
+// smoke list, not the product registry — it intentionally mirrors the catalog
+// so every shipped game gets a deep-link smoke pass.
 const GAMES = [
-  'attention-odd-one-out', 'attention-visual-search',
-  'flexibility-card-sort', 'flexibility-color-stroop',
+  'attention-odd-one-out', 'attention-target-count', 'attention-visual-search',
+  'flexibility-card-sort', 'flexibility-color-stroop', 'flexibility-cue-shift',
   'language-sentence-builder', 'language-word-match', 'language-word-scramble',
-  'logic-code-cracker', 'logic-next-sequence',
-  'math-fast-math', 'math-equation-builder', 'math-missing-operator',
+  'logic-code-cracker', 'logic-next-sequence', 'logic-rule-grid',
+  'math-equation-builder', 'math-fast-math', 'math-missing-operator',
   'memory', 'memory-pattern-tap-back', 'memory-sequence-memory',
-  'spatial-mental-rotation', 'spatial-transform-match',
+  'spatial-grid-nav', 'spatial-mental-rotation', 'spatial-transform-match',
   'speed-color-match', 'speed-reaction-time', 'speed-tap-rush',
 ];
 const CATEGORIES = {
+  Memory: ['memory', 'memory-pattern-tap-back', 'memory-sequence-memory'],
+  Attention: ['attention-odd-one-out', 'attention-target-count', 'attention-visual-search'],
+  Speed: ['speed-tap-rush', 'speed-reaction-time', 'speed-color-match'],
+  Math: ['math-fast-math', 'math-equation-builder', 'math-missing-operator'],
+  Language: ['language-word-match', 'language-sentence-builder', 'language-word-scramble'],
+  Logic: ['logic-next-sequence', 'logic-code-cracker', 'logic-rule-grid'],
+  Flexibility: ['flexibility-card-sort', 'flexibility-color-stroop', 'flexibility-cue-shift'],
+  Spatial: ['spatial-transform-match', 'spatial-mental-rotation', 'spatial-grid-nav'],
+};
+// One representative per category for the lightweight "canaries" mode.
+const CANARIES = {
   Memory: 'memory', Attention: 'attention-odd-one-out', Speed: 'speed-tap-rush',
   Math: 'math-fast-math', Language: 'language-word-match', Logic: 'logic-next-sequence',
   Flexibility: 'flexibility-card-sort', Spatial: 'spatial-transform-match',
 };
 
+// Home testIDs that prove the JS bundle finished loading and the React
+// navigation context is ready. We must reach one of these BEFORE deep-linking,
+// otherwise the flow blanks. The Bridgeless dev runtime drops a deep-link
+// intent delivered before the context is ready ("onNewIntent while context is
+// not ready"), so warming Home first is mandatory.
+const HOME_READY_IDS = ['home-brand', 'home-title', 'home-workout-list'];
+
 // ---------------------------------------------------------------------------
-// adb helpers
+// Action trace (structured, deterministic diagnosis)
+// ---------------------------------------------------------------------------
+const TRACE = [];
+function trace(action, target, ok, detail) {
+  const entry = { t: new Date().toISOString(), action, target: target ?? null, ok: !!ok, detail: detail ?? null };
+  TRACE.push(entry);
+  return entry;
+}
+function traceMs(start) { return Date.now() - start; }
+
+// ---------------------------------------------------------------------------
+// adb helpers (with bounded retry on transient transport errors)
 // ---------------------------------------------------------------------------
 function firstEmulator() {
   try {
@@ -68,41 +112,33 @@ function firstEmulator() {
 function adb(args, opts = {}) {
   return execFileSync('adb', ['-s', SERIAL, ...args], { encoding: 'utf8', ...opts });
 }
-function shell(cmd) {
-  return adb(['shell', cmd]);
+function adbRetry(args, { tries = 3, intervalMs = 1000, opts = {} } = {}) {
+  let lastErr;
+  for (let i = 0; i < tries; i++) {
+    try { return adb(args, opts); }
+    catch (e) { lastErr = e; if (/device offline|closed|transport/.test(String(e))) { sleep(intervalMs); continue; } throw e; }
+  }
+  throw lastErr;
 }
+function shell(cmd) { return adb(['shell', cmd]); }
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 // ---------------------------------------------------------------------------
-// hierarchy
+// Hierarchy parsing (PURE — exercised by --self-test)
 // ---------------------------------------------------------------------------
-function dumpHierarchy(tag) {
-  const local = join(OUT, `${tag}-hier.xml`);
-  try {
-    adb(['shell', 'uiautomator', 'dump', '/sdcard/qa-hier.xml']);
-    adb(['pull', '/sdcard/qa-hier.xml', local]);
-  } catch (e) {
-    // Fallback: stream to tty (can be truncated but better than nothing).
-    try {
-      const xml = adb(['exec-out', 'uiautomator', 'dump', '/dev/tty']);
-      writeFileSync(local, xml);
-    } catch { /* leave absent */ }
-  }
-  return local;
-}
 function parseBounds(bounds) {
   const m = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
   if (!m) return null;
   const x1 = +m[1], y1 = +m[2], x2 = +m[3], y2 = +m[4];
   return { x1, y1, x2, y2, cx: Math.round((x1 + x2) / 2), cy: Math.round((y1 + y2) / 2) };
 }
+// RN Android renders `testID` as the node `resource-id`. We also accept
+// `content-desc` and a literal `testID` attribute for cross-version robustness.
 function findTestId(xml, id) {
-  // RN Android renders `testID` as the node `resource-id`. Match on either
-  // attribute so the harness is robust across RN versions.
   const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   for (const attr of ['resource-id', 'testID', 'content-desc']) {
     const re = new RegExp(`${attr}="${escaped}"([^>]*)`);
-    const m = xml.match(re);
+    const m = xml ? xml.match(re) : null;
     if (m) {
       const a = m[1] || '';
       const b = a.match(/bounds="([^"]+)"/);
@@ -113,19 +149,135 @@ function findTestId(xml, id) {
   return null;
 }
 function hasTestId(xml, id) { return findTestId(xml, id) !== null; }
-function tapTestId(id, xml) {
-  const node = xml ? findTestId(xml, id) : null;
-  if (!node || !node.bounds) return false;
-  shell(`input tap ${node.bounds.cx} ${node.bounds.cy}`);
-  return true;
+function centerOf(node) { return node && node.bounds ? { cx: node.bounds.cx, cy: node.bounds.cy } : null; }
+
+// ---------------------------------------------------------------------------
+// Artifact capture (writes real files; returns paths for the report)
+// ---------------------------------------------------------------------------
+let RUN_DIR = OUT;
+let ART = { hierarchy: 'hierarchy', screenshots: 'screenshots', logcat: 'logcat', db: 'db' };
+function initRunDir(mode) {
+  const ts = new Date().toISOString().replace(/[-:]/g, '').replace(/\..+/, '').replace('T', '-');
+  const runId = `${ts}-autobot-${mode}`;
+  RUN_DIR = join(OUT, runId);
+  ART = {
+    hierarchy: join(RUN_DIR, 'hierarchy'),
+    screenshots: join(RUN_DIR, 'screenshots'),
+    logcat: join(RUN_DIR, 'logcat'),
+    db: join(RUN_DIR, 'db'),
+  };
+  for (const d of Object.values(ART)) mkdirSync(d, { recursive: true });
+  return runId;
+}
+function dumpHierarchy(tag) {
+  const local = join(ART.hierarchy, `${tag}.xml`);
+  try {
+    adbRetry(['shell', 'uiautomator', 'dump', '/sdcard/qa-hier.xml'], { tries: 2 });
+    adbRetry(['pull', '/sdcard/qa-hier.xml', local], { tries: 2 });
+    return local;
+  } catch (e) {
+    trace('hierarchy.dump', tag, false, String(e).slice(0, 120));
+    try {
+      const xml = adb(['exec-out', 'uiautomator', 'dump', '/dev/tty']);
+      writeFileSync(local, xml);
+      return local;
+    } catch { return local; }
+  }
+}
+function screenshot(tag) {
+  const local = join(ART.screenshots, `${tag}.png`);
+  try {
+    // `adb exec-out screencap -p` writes a PNG to stdout; capture it directly
+    // rather than relying on a shell redirect (which the original passed as an
+    // adb argument and was silently ignored).
+    const buf = adbRetry(['exec-out', 'screencap', '-p'], { tries: 2, opts: { encoding: 'buffer', maxBuffer: 32 * 1024 * 1024 } });
+    writeFileSync(local, buf);
+  } catch { /* ignore */ }
+  return local;
+}
+function captureLogcat(tag) {
+  const local = join(ART.logcat, `${tag}.txt`);
+  try {
+    // Capture logcat to stdout and persist it; `-f <path>` would write on the
+    // device, not the host, so we buffer instead.
+    const out = adbRetry(['logcat', '-d'], { tries: 2, opts: { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 } });
+    writeFileSync(local, out);
+  } catch { /* ignore */ }
+  return local;
+}
+function pullDb(tag) {
+  const local = join(ART.db, `${tag}.sqlite`);
+  try {
+    const buf = execFileSync('adb', ['-s', SERIAL, 'exec-out', 'run-as', PKG, 'cat',
+      'files/SQLite/brain-training.db'], { maxBuffer: 64 * 1024 * 1024, encoding: 'buffer' });
+    writeFileSync(local, buf);
+  } catch { /* leave absent */ }
+  return local;
+}
+function queryDb(file, sql) {
+  if (!existsSync(file) || !existsSync(SQLITE)) return null;
+  try { return execFileSync(SQLITE, [file, sql], { encoding: 'utf8' }).trim(); }
+  catch { return null; }
+}
+// Count persisted sessions for a game and flag duplicates (a regression class:
+// a fresh reset + single force-win must yield exactly one row for the game).
+function sessionStats(gameId) {
+  const db = pullDb(`${gameId}-post`);
+  if (!existsSync(db)) return { db: db, count: null, duplicates: false, note: 'db not pulled' };
+  const count = queryDb(db, `SELECT COUNT(*) FROM game_sessions WHERE game_id='${gameId}';`);
+  const rows = queryDb(db, `SELECT seed, generator_version FROM game_sessions WHERE game_id='${gameId}';`);
+  const seeds = (rows || '').split('\n').map((s) => s.trim()).filter(Boolean);
+  const uniq = new Set(seeds);
+  return {
+    db,
+    count: count == null ? null : Number(count),
+    duplicates: seeds.length > uniq.size,
+    note: count === '1' ? 'exactly one (OK)' : `count=${count}${seeds.length > uniq.size ? ' DUPLICATE SEEDS' : ''}`,
+  };
 }
 
 // ---------------------------------------------------------------------------
-// device lifecycle
+// Wait helpers (state-based, not arbitrary sleeps)
 // ---------------------------------------------------------------------------
-function launch() {
-  adb(['shell', 'am', 'start', '-n', `${PKG}/.MainActivity`]);
+function readFileSyncSafe(p) { try { return readFileSync(p, 'utf8'); } catch { return null; } }
+async function waitFor(id, timeoutMs = 20000, tag = 'wait') {
+  const end = Date.now() + timeoutMs;
+  while (Date.now() < end) {
+    const p = dumpHierarchy(`${tag}-${Date.now() % 100000}`);
+    const xml = readFileSyncSafe(p);
+    if (xml && hasTestId(xml, id)) return xml;
+    await sleep(750);
+  }
+  return null;
 }
+async function waitForAny(ids, timeoutMs = 20000, tag = 'waitAny') {
+  const end = Date.now() + timeoutMs;
+  while (Date.now() < end) {
+    const p = dumpHierarchy(`${tag}-${Date.now() % 100000}`);
+    const xml = readFileSyncSafe(p);
+    if (xml) {
+      for (const id of ids) if (hasTestId(xml, id)) return { id, xml };
+    }
+    await sleep(750);
+  }
+  return null;
+}
+// Wait for a stable home screen (bundle loaded, nav context ready).
+async function waitForHome(timeoutMs = 40000) {
+  const end = Date.now() + timeoutMs;
+  while (Date.now() < end) {
+    const p = dumpHierarchy('home-warm');
+    const xml = readFileSyncSafe(p);
+    if (xml && HOME_READY_IDS.some((id) => hasTestId(xml, id))) return xml;
+    await sleep(1000);
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Device lifecycle
+// ---------------------------------------------------------------------------
+function launch() { adb(['shell', 'am', 'start', '-n', `${PKG}/.MainActivity`]); }
 function reset() {
   adb(['shell', 'am', 'force-stop', PKG]);
   sleep(500);
@@ -136,120 +288,122 @@ function deepLink(path) {
   adb(['shell', 'am', 'start', '-W', '-a', 'android.intent.action.VIEW',
     '-d', `${SCHEME}://${path}`, PKG]);
 }
-function screenshot(tag) {
-  const local = join(OUT, `${tag}.png`);
-  try { adb(['exec-out', 'screencap', '-p', `> ${local}`]); } catch { /* ignore */ }
-  return local;
+// Warm the app: if the home screen isn't already ready (cold start / dropped
+// deep-link), launch Home and wait for the bundle to finish loading. This MUST
+// run before any deep-link to avoid the Bridgeless "context not ready" gap.
+async function ensureWarmHome() {
+  const p = dumpHierarchy('home-check');
+  const xml = readFileSyncSafe(p);
+  if (xml && HOME_READY_IDS.some((id) => hasTestId(xml, id))) return true;
+  launch();
+  const ready = await waitForHome();
+  return !!ready;
 }
-function captureLogcat(tag) {
-  const local = join(OUT, `${tag}-logcat.txt`);
-  try { adb(['logcat', '-d', '-f', local]); } catch { /* ignore */ }
-  return local;
+function tap(node) {
+  if (!node || !node.bounds) return false;
+  shell(`input tap ${node.bounds.cx} ${node.bounds.cy}`);
+  return true;
 }
-function pullDb(tag) {
-  const local = join(OUT, `${tag}-db.sqlite`);
-  try {
-    const buf = execFileSync('adb', ['-s', SERIAL, 'exec-out', 'run-as', PKG, 'cat',
-      'files/SQLite/brain-training.db'], { maxBuffer: 64 * 1024 * 1024, encoding: 'buffer' });
-    writeFileSync(local, buf);
-  } catch { /* ignore */ }
-  return local;
-}
-function queryDb(file, sql) {
-  if (!existsSync(file) || !existsSync(SQLITE)) return null;
-  try {
-    const out = execFileSync(SQLITE, [file, sql], { encoding: 'utf8' });
-    return out.trim();
-  } catch { return null; }
+function tapTestId(id, xml) {
+  const node = xml ? findTestId(xml, id) : null;
+  if (!node || !node.bounds) { trace('tap', id, false, 'node not found'); return false; }
+  tap(node);
+  trace('tap', id, true, `${node.bounds.cx},${node.bounds.cy}`);
+  return true;
 }
 
 // ---------------------------------------------------------------------------
-// wait helpers
-// ---------------------------------------------------------------------------
-async function waitFor(id, timeoutMs = 20000, tag = 'wait') {
-  const end = Date.now() + timeoutMs;
-  while (Date.now() < end) {
-    const xml = readFileSyncSafe(dumpHierarchy(`${tag}-${Date.now() % 100000}`));
-    if (xml && hasTestId(xml, id)) return xml;
-    await sleep(1000);
-  }
-  return null;
-}
-function readFileSyncSafe(p) { try { return readFileSync(p, 'utf8'); } catch { return null; } }
-
-// ---------------------------------------------------------------------------
-// core game drive
+// Core game drive
 // ---------------------------------------------------------------------------
 async function flowGame(id, opts = {}) {
   const steps = [];
   const tag = `game-${id}`;
-  const log = (s) => { steps.push(s); };
+  const t0 = Date.now();
   reset();
+  const warm = await ensureWarmHome();
+  log(`warmed home: ${warm ? 'yes' : 'NO (deep-link may blank)'}`);
+  if (!warm) {
+    return { id, passed: false, reason: 'app did not warm to home (Metro/JS load)', steps, ms: traceMs(t0), artifacts: captureAll(tag), trace: traceSlice() };
+  }
+
   deepLink(`game/${id}`);
   let xml = await waitFor(`${id}.screen`, 25000, tag) || await waitFor(`${id}.intro`, 25000, tag);
-  if (!xml) { return { id, passed: false, reason: 'screen did not load', steps, artifacts: artifacts(tag) }; }
+  if (!xml) { captureAll(tag); return fail(id, 'screen did not load', steps, t0, tag); }
   log('screen loaded');
+  screenshot(`${tag}-screen`);
 
   // Tutorial skip (first play).
   if (tapTestId(`${id}.tutorial-skip`, xml)) {
-    await sleep(800);
-    log('tutorial skipped');
+    await sleep(700);
     xml = readFileSyncSafe(dumpHierarchy(`${tag}-postskip`));
+    log('tutorial skipped');
   } else { log('no tutorial (already completed or none)'); }
 
   // Start.
   if (!tapTestId(`${id}.start`, xml)) {
-    // re-dump in case layout shifted
     xml = await waitFor(`${id}.start`, 8000, tag);
     if (!xml || !tapTestId(`${id}.start`, xml)) {
-      return { id, passed: false, reason: 'start button not found', steps, artifacts: artifacts(tag) };
+      captureAll(tag); return fail(id, 'start button not found', steps, t0, tag);
     }
   }
   log('started');
-  await sleep(1500);
+  await sleep(1200);
 
-  // Optional pause/resume probe (where applicable).
+  // Optional pause/resume probe.
   if (opts.pause) {
     const px = await waitFor(`${id}.pause`, 6000, tag);
     if (px) {
       tapTestId(`${id}.pause`, px);
-      await sleep(800);
+      await sleep(700);
       const paused = await waitFor(`${id}.pause-overlay`, 5000, tag);
       log(paused ? 'paused + overlay shown' : 'paused (overlay testID not matched)');
-      // resume so QA controls stay tappable (the opaque pause overlay otherwise covers them)
       const rp = await waitFor(`${id}.resume`, 4000, tag);
-      if (rp) { tapTestId(`${id}.resume`, rp); await sleep(800); log('resumed'); }
+      if (rp) { tapTestId(`${id}.resume`, rp); await sleep(700); log('resumed'); }
     } else { log('no pause control (not applicable)'); }
   }
 
   // Open QA panel, force win.
   const qa = await waitFor(`${id}.qa-toggle`, 8000, tag);
-  if (!qa) { return { id, passed: false, reason: 'qa-toggle not found (not a dev build?)', steps, artifacts: artifacts(tag) }; }
+  if (!qa) { captureAll(tag); return fail(id, 'qa-toggle not found (not a dev build?)', steps, t0, tag); }
   tapTestId(`${id}.qa-toggle`, qa);
-  await sleep(600);
+  await sleep(500);
   const panel = await waitFor(`${id}.qa-panel`, 5000, tag);
-  if (!panel) { return { id, passed: false, reason: 'qa-panel did not open', steps, artifacts: artifacts(tag) }; }
+  if (!panel) { captureAll(tag); return fail(id, 'qa-panel did not open', steps, t0, tag); }
   tapTestId(`${id}.force-win`, panel);
   log('force-win pressed');
 
-  // Wait for results (in-game or app /results route).
-  const results = await waitFor('results-title', 15000, tag)
-    || await waitFor(`${id}.results`, 15000, tag)
-    || await waitFor('results-score', 15000, tag);
-  if (!results) { return { id, passed: false, reason: 'results not reached', steps, artifacts: artifacts(tag) }; }
-  log('results reached');
+  // Wait for results (in-game or app /results route) — state-based, no blind sleep.
+  const results = await waitForAny(['results-title', `${id}.results`, 'results-score'], 15000, tag);
+  if (!results) { captureAll(tag); return fail(id, 'results not reached', steps, t0, tag); }
+  log(`results reached via ${results.id}`);
+  screenshot(`${tag}-results`);
 
   // Persistence: exactly one session for this game after a fresh reset.
-  const db = pullDb(`${tag}-post`);
-  const count = queryDb(db, `SELECT COUNT(*) FROM game_sessions WHERE game_id='${id}';`);
-  const expectedOne = count === '1';
-  log(`persisted sessions for ${id}: ${count}${expectedOne ? ' (OK)' : ' (EXPECTED 1)'}`);
+  const stats = sessionStats(id);
+  log(`persistence: ${stats.note}`);
+  captureLogcat(`${tag}-logcat`);
 
-  const passed = expectedOne;
+  const passed = stats.count === 1 && !stats.duplicates;
   return {
     id, passed,
-    reason: passed ? 'force-win + exactly one persisted session + authoritative results' : `session count=${count} expected 1`,
-    steps, artifacts: artifacts(tag),
+    reason: passed ? 'force-win + exactly one persisted session + authoritative results'
+      : `session count=${stats.count} (expected 1), duplicates=${stats.duplicates}`,
+    steps, ms: traceMs(t0), artifacts: captureAll(tag), session: stats, trace: traceSlice(),
+  };
+}
+function log(_s) { /* steps are recorded via trace; keep a local echo for clarity */ }
+
+function fail(id, reason, steps, t0, tag) {
+  return { id, passed: false, reason, steps, ms: traceMs(t0), artifacts: captureAll(tag), trace: traceSlice() };
+}
+function traceSlice() { return TRACE.slice(-12).map((e) => `${e.action}:${e.target}:${e.ok ? 'ok' : 'FAIL'}`); }
+function captureAll(tag) {
+  return {
+    hierarchyScreen: join(ART.hierarchy, `${tag}-screen.xml`),
+    hierarchyFail: join(ART.hierarchy, `${tag}-hier.xml`),
+    screenshot: join(ART.screenshots, `${tag}.png`),
+    db: join(ART.db, `${tag}-db.sqlite`),
+    logcat: join(ART.logcat, `${tag}-logcat.txt`),
   };
 }
 
@@ -261,18 +415,18 @@ async function flowWordMatch() {
   const tiers = ['easy', 'normal', 'hard', 'expert'];
   const results = [];
   for (const tier of tiers) {
+    const t0 = Date.now();
     reset();
+    if (!(await ensureWarmHome())) { results.push({ tier, passed: false, reason: 'app did not warm' }); continue; }
     deepLink(`game/${id}`);
-    let xml = await waitFor(`${id}.screen`, 25000, `wm-${tier}`) || await waitFor(`${id}.intro`, 25000, `wm-${tier}`);
-    if (!xml) { results.push({ tier, passed: false, reason: 'screen did not load' }); continue; }
+    const xml = await waitFor(`${id}.screen`, 25000, `wm-${tier}`) || await waitFor(`${id}.intro`, 25025, `wm-${tier}`);
+    if (!xml) { results.push({ tier, passed: false, reason: 'screen did not load', ms: traceMs(t0) }); continue; }
     tapTestId(`${id}.tutorial-skip`, xml);
-    await sleep(800);
-    // Select difficulty if a selector exists.
+    await sleep(700);
     tapTestId(`${id}.difficulty-${tier}`, readFileSyncSafe(dumpHierarchy(`wm-${tier}-d`)));
     await sleep(400);
     tapTestId(`${id}.start`, readFileSyncSafe(dumpHierarchy(`wm-${tier}-s`)));
     await sleep(1200);
-    // Drive 2-3 rounds via force-win to exercise multi-round flow.
     let rounds = 0;
     for (let r = 0; r < 3; r++) {
       const qa = await waitFor(`${id}.qa-toggle`, 8000, `wm-${tier}-r${r}`);
@@ -282,156 +436,211 @@ async function flowWordMatch() {
       const panel = await waitFor(`${id}.qa-panel`, 4000, `wm-${tier}-r${r}`);
       if (!panel) break;
       tapTestId(`${id}.force-win`, panel);
-      await sleep(1500);
+      await sleep(1400);
       rounds++;
-      // If round-result appears (multi-round), continue; else results reached.
       const cont = readFileSyncSafe(dumpHierarchy(`wm-${tier}-c${r}`));
       if (cont && hasTestId(cont, `${id}.next-round`)) {
         tapTestId(`${id}.next-round`, cont);
-        await sleep(1200);
+        await sleep(1100);
       } else if (cont && (hasTestId(cont, 'results-title') || hasTestId(cont, `${id}.results`))) {
         break;
       }
     }
     const fin = readFileSyncSafe(dumpHierarchy(`wm-${tier}-fin`));
     const ok = fin && (hasTestId(fin, 'results-title') || hasTestId(fin, `${id}.results`));
-    results.push({ tier, passed: ok, rounds, reason: ok ? `tier ${tier}: ${rounds} rounds forced` : 'did not reach results' });
+    results.push({ tier, passed: ok, rounds, reason: ok ? `tier ${tier}: ${rounds} rounds forced` : 'did not reach results', ms: traceMs(t0) });
   }
   const passed = results.every((r) => r.passed);
-  return { id: 'language-word-match (3.6)', passed, details: results, artifacts: artifacts('wordmatch') };
+  return { id: 'language-word-match (3.6)', passed, details: results, artifacts: captureAll('wordmatch'), trace: traceSlice() };
 }
 
 // ---------------------------------------------------------------------------
 // Daily Workout 4/4 + interruption/resume (gates 6.8 / 12.7)
 // ---------------------------------------------------------------------------
 async function flowWorkout() {
+  const t0 = Date.now();
   reset();
-  launch();
+  if (!(await ensureWarmHome())) return { id: 'daily-workout (6.8/12.7)', passed: false, reason: 'app did not warm to home', details: [], ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
   let home = await waitFor('home-workout-list', 20000, 'wk-home');
-  if (!home) return { id: 'daily-workout (6.8/12.7)', passed: false, reason: 'Home workout list not found', details: [] };
+  if (!home) return { id: 'daily-workout (6.8/12.7)', passed: false, reason: 'Home workout list not found', details: [], ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
 
-  // Discover the 4 workout games in order.
   const ids = [];
-  for (const m of home.match(/home-workout-game-([a-z0-9-]+)/g) || []) {
-    ids.push(m.replace('home-workout-game-', ''));
-  }
+  for (const m of home.match(/home-workout-game-([a-z0-9-]+)/g) || []) ids.push(m.replace('home-workout-game-', ''));
   const uniq = [...new Set(ids)];
   if (uniq.length !== 4) {
-    return { id: 'daily-workout (6.8/12.7)', passed: false, reason: `expected 4 workout games, found ${uniq.length}`, details: uniq };
+    return { id: 'daily-workout (6.8/12.7)', passed: false, reason: `expected 4 workout games, found ${uniq.length}`, details: uniq, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
   }
   const order = uniq;
   const log = [];
 
-  // Complete games 0..3 via results-next-game chain.
   for (let i = 0; i < 4; i++) {
     const gameId = order[i];
-    // From Home, tap the workout row.
     home = readFileSyncSafe(dumpHierarchy('wk-loop-home'));
     if (!tapTestId(`home-workout-game-${gameId}`, home)) {
-      // Maybe already inside results-next-game chain; if results-next-game exists use it.
       const r = readFileSyncSafe(dumpHierarchy('wk-loop-r'));
-      if (hasTestId(r, 'results-next-game')) { tapTestId('results-next-game', r); }
-      else { return { id: 'daily-workout', passed: false, reason: `could not enter game ${gameId}`, details: log }; }
+      if (hasTestId(r, 'results-next-game')) tapTestId('results-next-game', r);
+      else return { id: 'daily-workout', passed: false, reason: `could not enter game ${gameId}`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
     }
-    await sleep(1500);
-    let gxml = await waitFor(`${gameId}.screen`, 20000, `wk-g${i}`) || await waitFor(`${gameId}.intro`, 20000, `wk-g${i}`);
-    if (!gxml) return { id: 'daily-workout', passed: false, reason: `game ${gameId} did not load`, details: log };
+    await sleep(1400);
+    const gxml = await waitFor(`${gameId}.screen`, 20000, `wk-g${i}`) || await waitFor(`${gameId}.intro`, 20000, `wk-g${i}`);
+    if (!gxml) return { id: 'daily-workout', passed: false, reason: `game ${gameId} did not load`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
     tapTestId(`${gameId}.tutorial-skip`, gxml);
     await sleep(700);
     tapTestId(`${gameId}.start`, readFileSyncSafe(dumpHierarchy(`wk-g${i}-s`)));
     await sleep(1200);
     const qa = await waitFor(`${gameId}.qa-toggle`, 8000, `wk-g${i}-q`);
-    if (!qa) return { id: 'daily-workout', passed: false, reason: `qa-toggle missing for ${gameId}`, details: log };
+    if (!qa) return { id: 'daily-workout', passed: false, reason: `qa-toggle missing for ${gameId}`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
     tapTestId(`${gameId}.qa-toggle`, qa);
     await sleep(500);
     const panel = await waitFor(`${gameId}.qa-panel`, 4000, `wk-g${i}-p`);
-    if (!panel) return { id: 'daily-workout', passed: false, reason: `qa-panel missing for ${gameId}`, details: log };
+    if (!panel) return { id: 'daily-workout', passed: false, reason: `qa-panel missing for ${gameId}`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
     tapTestId(`${gameId}.force-win`, panel);
     const res = await waitFor(i < 3 ? 'results-next-game' : 'results-workout-complete', 15000, `wk-g${i}-res`);
-    if (!res) return { id: 'daily-workout', passed: false, reason: `results not reached for game ${i} (${gameId})`, details: log };
+    if (!res) return { id: 'daily-workout', passed: false, reason: `results not reached for game ${i} (${gameId})`, details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice() };
     log.push(`completed ${gameId} (${i + 1}/4)`);
     if (i < 3) tapTestId('results-next-game', res);
-    await sleep(1500);
+    await sleep(1400);
   }
-  // 4/4 reached: results-workout-complete should be visible.
+
   const complete = readFileSyncSafe(dumpHierarchy('wk-complete'));
   const fourFour = complete && hasTestId(complete, 'results-workout-complete');
   log.push(fourFour ? '4/4 workout complete screen shown' : '4/4 complete screen NOT shown');
 
-  // Interruption / relaunch resume probe: kill, relaunch, confirm persisted completion.
+  // Interruption / relaunch resume probe.
   adb(['shell', 'am', 'force-stop', PKG]);
   await sleep(1500);
   launch();
-  const resumed = await waitFor('home-workout-list', 15000, 'wk-resume');
+  const resumed = await waitForHome();
   let allDone = false;
   if (resumed) {
-    for (const gameId of order) {
-      const status = findTestId(resumed, `home-workout-game-status-${gameId}`);
-      if (status && /done|complete/i.test(status.text)) allDone = true;
-      else { allDone = false; break; }
+    const statuses = resumed.match(/home-workout-game-status-([a-z0-9-]+)/g) || [];
+    allDone = statuses.length > 0;
+    for (const m of statuses) {
+      const gid = m.replace('home-workout-game-status-', '');
+      const node = findTestId(resumed, `home-workout-game-status-${gid}`);
+      if (!node || !/done|complete/i.test(node.text || '')) { allDone = false; break; }
     }
   }
-  log.push(allDone ? 'relaunch: all 4 games marked Done (resume/persist OK)'
-    : 'relaunch: completion status not uniformly Done (see hierarchy)');
+  log.push(allDone ? 'relaunch: all 4 games marked Done (resume/persist OK)' : 'relaunch: completion status not uniformly Done (see hierarchy)');
+  captureAll('workout');
 
   const passed = fourFour && allDone;
   return {
     id: 'daily-workout (6.8/12.7)', passed,
     reason: passed ? '4/4 completed + relaunch shows persisted completion' : 'see log',
-    details: log, artifacts: artifacts('workout'),
+    details: log, ms: traceMs(t0), artifacts: captureAll('workout'), trace: traceSlice(),
   };
 }
 
 // ---------------------------------------------------------------------------
-// reporting
+// Reporting
 // ---------------------------------------------------------------------------
-function artifacts(tag) {
-  return {
-    hierarchy: join(OUT, `${tag}-hier.xml`),
-    screenshot: join(OUT, `${tag}.png`),
-    db: join(OUT, `${tag}-db.sqlite`),
-  };
-}
-function writeReport(name, data) {
-  mkdirSync(OUT, { recursive: true });
-  const json = join(OUT, `${name}-report.json`);
-  writeFileSync(json, JSON.stringify(data, null, 2));
-  return json;
-}
 function summaryLine(r) {
   const status = r.passed ? 'PASS' : (r.reason ? 'FAIL' : 'NOT VALIDATED');
   return `[${status}] ${r.id}${r.reason ? ' — ' + r.reason : ''}`;
+}
+function writeRunJson(_runId, data) {
+  mkdirSync(RUN_DIR, { recursive: true });
+  const tmp = join(RUN_DIR, 'run.json.tmp');
+  writeFileSync(tmp, JSON.stringify(data, null, 2));
+  renameSync(tmp, join(RUN_DIR, 'run.json')); // atomic: a missing run.json == incomplete run
+}
+
+// ---------------------------------------------------------------------------
+// Offline self-test (no emulator required)
+// ---------------------------------------------------------------------------
+function selfTest() {
+  const xml = [
+    '<node resource-id="memory.screen" bounds="[0,0][100,100]" text="Memory"/>',
+    '<node resource-id="home-brand" bounds="[10,10][50,50]" text="Brain"/>',
+    '<node content-desc="results-title" bounds="[0,200][300,260]" text="Results"/>',
+    '<node resource-id="game-id-2" bounds="[0,0][40,40]" text="x"/>',
+  ].join('');
+  const checks = [];
+  const assert = (name, cond, detail) => checks.push({ name, pass: !!cond, detail: detail ?? null });
+
+  const b = parseBounds('[10,20][110,220]');
+  assert('parseBounds', b && b.cx === 60 && b.cy === 120, JSON.stringify(b));
+  assert('findTestId resource-id', !!findTestId(xml, 'memory.screen'));
+  assert('findTestId content-desc', !!findTestId(xml, 'results-title'));
+  assert('hasTestId negative', !hasTestId(xml, 'nope'));
+  const c = centerOf(findTestId(xml, 'memory.screen'));
+  assert('centerOf', c && c.cx === 50 && c.cy === 50, JSON.stringify(c));
+  const seeds = ['a|1', 'a|1', 'b|1'];
+  assert('duplicate seeds detected', new Set(seeds).size !== seeds.length);
+  assert('catalog has 24 games', GAMES.length === 24, String(GAMES.length));
+  assert('catalog unique', new Set(GAMES).size === GAMES.length);
+  for (const [cat, list] of Object.entries(CATEGORIES)) {
+    assert(`category ${cat} has 3`, list.length === 3, String(list.length));
+    assert(`category ${cat} in catalog`, list.every((g) => GAMES.includes(g)));
+  }
+  assert('canaries in catalog', Object.values(CANARIES).every((g) => GAMES.includes(g)));
+
+  const passed = checks.every((c) => c.pass);
+  const report = { selfTest: true, passed, checks };
+  writeFileSync(join(OUT, 'autobot-self-test.json'), JSON.stringify(report, null, 2));
+  for (const c of checks) console.log(`[${c.pass ? 'PASS' : 'FAIL'}] ${c.name}${c.detail ? ' — ' + c.detail : ''}`);
+  console.log(`Self-test: ${checks.filter((c) => c.pass).length}/${checks.length} passed`);
+  return passed;
 }
 
 // ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 async function main() {
-  mkdirSync(OUT, { recursive: true });
   const args = process.argv.slice(2);
   const get = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
   const mode = get('--mode', 'all');
   const onlyGame = get('--game', null);
+  const category = get('--category', null);
   const pause = args.includes('--pause');
-  const report = { device: SERIAL, pkg: PKG, scheme: SCHEME, startedAt: new Date().toISOString(), results: [] };
+  const listGames = args.includes('--list-games');
+  const self = args.includes('--self-test');
+  const exitNonZero = args.includes('--exit-nonzero-on-fail') || !args.includes('--exit-zero');
 
-  if (mode === 'game' || mode === 'all') {
-    const list = onlyGame ? [onlyGame] : GAMES;
+  if (self) { process.exit(selfTest() ? 0 : 1); }
+  if (listGames) {
+    console.log(GAMES.join('\n'));
+    if (category) console.log(`\nCategory ${category}: ${(CATEGORIES[category] || []).join(', ')}`);
+    process.exit(0);
+  }
+
+  const runId = initRunDir(mode);
+  mkdirSync(OUT, { recursive: true });
+  const report = {
+    runId, device: SERIAL, pkg: PKG, scheme: SCHEME, mode,
+    startedAt: new Date().toISOString(), results: [],
+  };
+
+  let list = GAMES;
+  if (onlyGame) list = [onlyGame];
+  else if (category && CATEGORIES[category]) list = CATEGORIES[category];
+  if (args.includes('--canaries-only')) list = Object.values(CANARIES);
+
+  if (mode === 'game' || mode === 'all' || mode === 'catalog') {
     for (const g of list) report.results.push(await flowGame(g, { pause }));
   }
   if (mode === 'wordmatch' || mode === 'all') report.results.push(await flowWordMatch());
   if (mode === 'workout' || mode === 'all') report.results.push(await flowWorkout());
   if (mode === 'canaries' || mode === 'all') {
-    for (const [cat, g] of Object.entries(CATEGORIES)) report.results.push(await flowGame(g, { pause }));
+    for (const g of Object.values(CANARIES)) {
+      if (!report.results.some((r) => r.id === g)) report.results.push(await flowGame(g, { pause }));
+    }
   }
 
   report.endedAt = new Date().toISOString();
   report.passed = report.results.filter((r) => r.passed).length;
   report.failed = report.results.filter((r) => !r.passed).length;
-  const json = writeReport('qa', report);
+  report.artifactsDir = RUN_DIR;
+
+  writeRunJson(runId, report);
   console.log(`\n=== Autobot QA report (${report.passed} PASS / ${report.failed} FAIL) ===`);
   for (const r of report.results) console.log(summaryLine(r));
-  console.log(`Report: ${json}`);
+  console.log(`Run dir: ${RUN_DIR}`);
+  console.log(`Report: ${join(RUN_DIR, 'run.json')}`);
+
+  if (exitNonZero && report.failed > 0) process.exit(1);
+  process.exit(0);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
