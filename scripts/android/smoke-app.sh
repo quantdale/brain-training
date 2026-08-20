@@ -17,7 +17,7 @@ APP_ID="${BT_APP_ID:-com.braintraining.app}"
 ACTIVITY="${BT_APP_ACTIVITY:-.MainActivity}"
 
 RUN_ID="$(date -u +%Y%m%d-%H%M%S)-${PURPOSE}"
-RUN_DIR="$REPO_ROOT/qa-artifacts/$RUN_ID"
+RUN_DIR="${BT_REPO_ROOT:-${REPO_ROOT:-$PWD}}/qa-artifacts/$RUN_ID"
 mkdir -p "$RUN_DIR/screenshots" "$RUN_DIR/logcat" "$RUN_DIR/hierarchy"
 
 bt_log "run id: $RUN_ID (dir: $RUN_DIR)"
@@ -69,9 +69,13 @@ sleep 8
 bt_adb exec-out screencap -p > "$RUN_DIR/screenshots/home-01.png"
 step "screenshot-home" "PASS" 0
 
-bt_adb shell uiautomator dump /sdcard/smoke-home.xml >/dev/null 2>&1
-bt_adb pull /sdcard/smoke-home.xml "$RUN_DIR/hierarchy/home-hierarchy.xml" >/dev/null 2>&1
-step "hierarchy-home" "PASS" 0
+bt_shell "$(bt_require_device)" 120 uiautomator dump /sdcard/smoke-home.xml >/dev/null 2>&1
+bt_pull "$(bt_require_device)" /sdcard/smoke-home.xml "$RUN_DIR/hierarchy/home-hierarchy.xml" >/dev/null 2>&1
+if [ -s "$RUN_DIR/hierarchy/home-hierarchy.xml" ]; then
+  step "hierarchy-home" "PASS" 0
+else
+  step "hierarchy-home" "FAIL" 1
+fi
 
 bt_adb logcat -d > "$RUN_DIR/logcat/logcat.txt"
 bt_adb logcat -d -v brief "*:W" > "$RUN_DIR/logcat/logcat-filtered.txt" 2>/dev/null || true
