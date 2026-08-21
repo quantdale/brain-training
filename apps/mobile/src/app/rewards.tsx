@@ -1,17 +1,17 @@
 /**
- * Rewards — cosmetics hub (engagement-cosmetics wave).
+ * Rewards — engagement hub (engagement V2, campaign 010 / W12).
  *
- * A standalone Expo Router route (no central navigation change needed): the
- * Profile links here. Surfaces the expanded cosmetic registry with an
- * earn/unlock/equip model:
- * - defaults are always owned;
- * - achievement/quest/streak-milestone cosmetics unlock when their condition
- *   is met (ownership is DERIVED, never stored, so it can't desync);
- * - purchase cosmetics are bought with normal earned currency only — never
- *   real money, never pay-to-win — through the idempotent economy.
+ * One coherent surface over the whole engagement layer:
+ * - balance card (append-only ledger derived);
+ * - CLAIMABLE INBOX: unlocked achievements / completed quests / reached
+ *   streak milestones with per-item claims and an idempotent Claim-all
+ *   (each underlying claim is once-only, so retries can never double-grant);
+ * - COLLECTION PROGRESS: owned/total cosmetic coverage per slot;
+ * - the full cosmetic registry with earn/unlock/equip/buy (unchanged model:
+ *   earned ownership is derived, purchases spend normal earned currency only);
+ * - RECENT REWARDS: newest-first projection of xp_awards + currency ledger.
  *
- * Equipping is free and persists to profile settings. Reward moments emit a
- * non-blocking celebration.
+ * Reward moments emit a non-blocking celebration; nothing here blocks play.
  */
 import { Link } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -27,6 +27,7 @@ import { useDbData } from "@/hooks/use-db-data";
 import {
   COSMETIC_DEFINITIONS,
   COSMETIC_SLOTS,
+  collectionProgress,
   equipCosmeticPersisted,
   isCosmeticOwned,
   purchaseCosmetic,
@@ -35,6 +36,16 @@ import {
   type CosmeticProgression,
   type CosmeticSlot,
 } from "@/cosmetics";
+import {
+  claimAllRewards,
+  claimReward,
+  collectClaimableRewards,
+  type RewardInboxItem,
+} from "@/rewards/inbox";
+import {
+  loadRewardHistory,
+  type RewardHistoryEntry,
+} from "@/rewards/history";
 import { celebrateReward, RewardCelebrationHost } from "@/rewards/celebration";
 import { reconstructStreak, readCoveredDates } from "@/streaks";
 import {
@@ -55,6 +66,8 @@ interface RewardsData {
   profileSettings: Record<string, unknown>;
   cosmeticProgression: CosmeticProgression;
   equippedIds: Partial<Record<CosmeticSlot, string>>;
+  inbox: RewardInboxItem[];
+  history: RewardHistoryEntry[];
 }
 
 const EMPTY_REWARDS: RewardsData = {
@@ -66,13 +79,15 @@ const EMPTY_REWARDS: RewardsData = {
     longestStreak: 0,
   },
   equippedIds: {},
+  inbox: [],
+  history: [],
 };
 
 async function loadRewards(
   db: AppDatabase,
   now = new Date(),
 ): Promise<RewardsData> {
-  const [balance, profile, unlockRows, questProgressAll, sessions] =
+  const [balance, profile, unlockRows, questProgressAll, sessions, inbox, history] =
     await Promise.all([
       db.ledger.getBalance(),
       db.profile.get(),
@@ -86,6 +101,8 @@ async function loadRewards(
       // completion timestamps, not every session's JSON blobs (large
       // histories stay cheap to load on this screen).
       db.sessions.listLightweight(5000),
+      collectClaimableRewards(db, now),
+      loadRewardHistory(db, 8),
     ]);
 
   const profileSettings = profile?.settings ?? {};
@@ -133,7 +150,14 @@ async function loadRewards(
     }
   }
 
-  return { balance, profileSettings, cosmeticProgression, equippedIds };
+  return {
+    balance,
+    profileSettings,
+    cosmeticProgression,
+    equippedIds,
+    inbox,
+    history,
+  };
 }
 
 function unlockHint(def: CosmeticDef): string {
@@ -151,13 +175,18 @@ function unlockHint(def: CosmeticDef): string {
   }
 }
 
+/** Stable testID fragment for an inbox item (keys contain `:`/period text). */
+function inboxTestId(item: RewardInboxItem): string {
+  return item.key.replace(/[^a-zA-Z0-9]+/g, "-");
+}
+
 export default function RewardsScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
   const { data } = useDbData(loadRewards, [refreshKey], EMPTY_REWARDS);
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
-  // In-flight guard: a double tap must not fire a second purchase/equip while
-  // the first is still running. The economy layer is idempotent regardless;
-  // this keeps the UI from spamming duplicate transactions/celebrations.
+  // In-flight guard: a double tap must not fire a second purchase/equip/claim
+  // while the first is still running. The economy layer is idempotent
+  // regardless; this keeps the UI from spamming duplicate celebrations.
   const busyRef = useRef(false);
 
   const onBuy = async (def: CosmeticDef) => {
@@ -219,6 +248,67 @@ export default function RewardsScreen() {
     }
   };
 
+  const onClaim = async (item: RewardInboxItem) => {
+    if (busyRef.current) {
+      return;
+    }
+    busyRef.current = true;
+    try {
+      const outcome = await claimReward(getDb(), item, new Date());
+      if (outcome.status === "claimed") {
+        refresh();
+        celebrateReward({
+          title: item.title,
+          xp: outcome.xp,
+          coins: outcome.coins,
+          emoji: item.kind === "milestone" ? "🔥" : "🏆",
+        });
+      } else if (outcome.status === "unavailable") {
+        // Stale inbox entry (e.g. the period rolled over) — drop it from view.
+        refresh();
+      }
+    } catch (error) {
+      console.error("[rewards] claim failed", error);
+    } finally {
+      busyRef.current = false;
+    }
+  };
+
+  const onClaimAll = async () => {
+    if (busyRef.current) {
+      return;
+    }
+    busyRef.current = true;
+    try {
+      const result = await claimAllRewards(getDb(), new Date());
+      if (result.claimedCount > 0) {
+        refresh();
+        celebrateReward({
+          title: `Claimed ${result.claimedCount} reward${
+            result.claimedCount === 1 ? "" : "s"
+          }`,
+          xp: result.totalXp,
+          coins: result.totalCoins,
+          emoji: "🎁",
+        });
+      } else {
+        // Nothing left (or everything was already claimed by a concurrent
+        // pass) — resync so stale rows disappear.
+        refresh();
+      }
+    } catch (error) {
+      console.error("[rewards] claim-all failed", error);
+    } finally {
+      busyRef.current = false;
+    }
+  };
+
+  const collection = collectionProgress(
+    COSMETIC_DEFINITIONS,
+    data.cosmeticProgression,
+    data.profileSettings,
+  );
+
   return (
     <ScreenShell>
       <ThemedText type="title" testID="rewards-title">
@@ -236,6 +326,96 @@ export default function RewardsScreen() {
           Earn coins from play, quests and achievements. Spend only on safe
           cosmetics.
         </ThemedText>
+      </ThemedView>
+
+      {/* Claimable inbox: achievements + quests + milestones, one tap each or all at once. */}
+      <ThemedView type="surface" style={styles.card} testID="rewards-inbox">
+        <View style={styles.sectionHeader}>
+          <ThemedText type="subtitle">Ready to claim</ThemedText>
+          {data.inbox.length > 1 && (
+            <Pressable
+              testID="rewards-claim-all"
+              accessibilityRole="button"
+              accessibilityLabel="Claim all available rewards"
+              onPress={() => void onClaimAll()}
+            >
+              <ThemedView type="accentSoft" style={styles.pill}>
+                <ThemedText type="smallBold" themeColor="accent">
+                  Claim all
+                </ThemedText>
+              </ThemedView>
+            </Pressable>
+          )}
+        </View>
+        {data.inbox.length === 0 ? (
+          <ThemedText
+            type="caption"
+            themeColor="textSecondary"
+            testID="rewards-inbox-empty"
+          >
+            You&apos;re all caught up — earn more rewards by playing, completing
+            quests and keeping your streak alive.
+          </ThemedText>
+        ) : (
+          data.inbox.map((item) => (
+            <View key={item.key} style={styles.itemRow}>
+              <View style={styles.itemText}>
+                <ThemedText type="smallBold">{item.title}</ThemedText>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  {item.description} · +{item.rewardXp} XP / +
+                  {item.rewardCurrency} coins
+                </ThemedText>
+              </View>
+              <Pressable
+                testID={`reward-claim-${inboxTestId(item)}`}
+                accessibilityRole="button"
+                accessibilityLabel={`Claim ${item.title} reward`}
+                onPress={() => void onClaim(item)}
+              >
+                <ThemedView type="accentSoft" style={styles.pill}>
+                  <ThemedText type="smallBold" themeColor="accent">
+                    Claim
+                  </ThemedText>
+                </ThemedView>
+              </Pressable>
+            </View>
+          ))
+        )}
+      </ThemedView>
+
+      {/* Collection progress across the cosmetic catalog. */}
+      <ThemedView
+        type="surface"
+        style={styles.card}
+        testID="rewards-collection"
+      >
+        <ThemedText type="subtitle">Collection</ThemedText>
+        <ThemedText type="caption" themeColor="textSecondary">
+          {collection.ownedTotal}/{collection.total} cosmetics collected (
+          {Math.round(collection.ratio * 100)}%)
+        </ThemedText>
+        {collection.slots.map((slot) => (
+          <View
+            key={slot.slot}
+            style={styles.collectionRow}
+            testID={`rewards-collection-slot-${slot.slot}`}
+          >
+            <ThemedText type="small">{SLOT_LABELS[slot.slot]}</ThemedText>
+            <View style={styles.collectionMeta}>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.round(slot.ratio * 100)}%` },
+                  ]}
+                />
+              </View>
+              <ThemedText type="caption" themeColor="textSecondary">
+                {slot.owned}/{slot.total}
+              </ThemedText>
+            </View>
+          </View>
+        ))}
       </ThemedView>
 
       {COSMETIC_SLOTS.map((slot) => {
@@ -303,6 +483,39 @@ export default function RewardsScreen() {
         );
       })}
 
+      {/* Recent rewards: unified xp_awards + ledger feed (newest first). */}
+      <ThemedView type="surface" style={styles.card} testID="rewards-history">
+        <ThemedText type="subtitle">Recent rewards</ThemedText>
+        {data.history.length === 0 ? (
+          <ThemedText
+            type="caption"
+            themeColor="textSecondary"
+            testID="rewards-history-empty"
+          >
+            No rewards yet — complete a session to earn your first XP and
+            coins.
+          </ThemedText>
+        ) : (
+          data.history.map((entry) => (
+            <View key={entry.id} style={styles.itemRow}>
+              <View style={styles.itemText}>
+                <ThemedText type="smallBold">{entry.label}</ThemedText>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  {formatHistoryDate(entry.at)}
+                  {entry.detail ? ` · ${entry.detail}` : ""}
+                </ThemedText>
+              </View>
+              <ThemedText
+                type="smallBold"
+                themeColor={(entry.xp ?? 0) > 0 || (entry.coins ?? 0) >= 0 ? "accent" : "text"}
+              >
+                {formatHistoryAmount(entry)}
+              </ThemedText>
+            </View>
+          ))
+        )}
+      </ThemedView>
+
       <Link href={"/(tabs)/profile" as any} asChild>
         <Pressable testID="rewards-done">
           <ThemedView type="accentSoft" style={styles.donePill}>
@@ -318,6 +531,25 @@ export default function RewardsScreen() {
   );
 }
 
+/** Short local date for history rows (display only). */
+function formatHistoryDate(at: number): string {
+  const date = new Date(at);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+}
+
+/** "+10 XP" / "+25 coins" / "-150 coins" summary for one history row. */
+function formatHistoryAmount(entry: RewardHistoryEntry): string {
+  if (entry.xp != null && entry.xp !== 0) {
+    return `+${entry.xp} XP`;
+  }
+  if (entry.coins != null) {
+    return `${entry.coins >= 0 ? "+" : ""}${entry.coins} coins`;
+  }
+  return "";
+}
+
 const styles = StyleSheet.create({
   balanceCard: {
     borderRadius: Radii.large,
@@ -327,6 +559,12 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Radii.large,
     padding: Spacing.four,
+    gap: Spacing.two,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.two,
   },
   itemRow: {
@@ -342,6 +580,25 @@ const styles = StyleSheet.create({
   itemActions: {
     flexDirection: "row",
     gap: Spacing.two,
+  },
+  collectionRow: {
+    gap: Spacing.half,
+  },
+  collectionMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(120,120,140,0.25)",
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: 6,
+    backgroundColor: "#4F6BFF",
   },
   pill: {
     alignSelf: "flex-start",

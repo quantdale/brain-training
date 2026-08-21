@@ -85,6 +85,10 @@ const CLAIM_PROGRESS =
   'UPDATE quest_progress SET claimed_at = ? WHERE quest_id = ? AND period = ? AND claimed_at IS NULL';
 const SELECT_PERIOD_PROGRESS =
   'SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress WHERE period = ? ORDER BY quest_id';
+const SELECT_QUEST_PROGRESS =
+  'SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress WHERE quest_id = ? ORDER BY period';
+const SELECT_ALL_PROGRESS =
+  'SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress ORDER BY quest_id, period';
 
 export class QuestRepository {
   /**
@@ -160,6 +164,22 @@ export class QuestRepository {
   /** Progress for all quests in one period. `txn` reads inside a transaction (task 7.3). */
   async listProgressForPeriod(period: string, txn?: SQLiteAdapter): Promise<QuestProgress[]> {
     const rows = await (txn ?? this.adapter).all<QuestProgressRow>(SELECT_PERIOD_PROGRESS, [period]);
+    return rows.map(mapProgressRow);
+  }
+
+  /**
+   * Progress history for ONE quest across every period it has rows for
+   * (engagement V2: quest history). Ordered by period ascending. Additive —
+   * existing callers are unaffected.
+   */
+  async listProgressForQuest(questId: string): Promise<QuestProgress[]> {
+    const rows = await this.adapter.all<QuestProgressRow>(SELECT_QUEST_PROGRESS, [questId]);
+    return rows.map(mapProgressRow);
+  }
+
+  /** Every progress row ever written (history projection source), period-ascending per quest. */
+  async listAllProgress(): Promise<QuestProgress[]> {
+    const rows = await this.adapter.all<QuestProgressRow>(SELECT_ALL_PROGRESS);
     return rows.map(mapProgressRow);
   }
 

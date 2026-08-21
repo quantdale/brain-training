@@ -21,3 +21,14 @@ export {
 } from './state';
 export { purchaseCosmetic, equipCosmeticPersisted } from './store';
 export type { PurchaseCosmeticResult } from './store';
+// Engagement V2 (campaign 010 / W12): collection progress + unlock provenance.
+export {
+  collectionProgress,
+  cosmeticProvenance,
+} from './collection';
+export type {
+  CollectionSlotProgress,
+  CollectionSummary,
+  ProvenanceEvidence,
+  CosmeticProvenance,
+} from './collection';

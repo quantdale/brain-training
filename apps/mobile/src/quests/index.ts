@@ -35,3 +35,7 @@ export {
 } from './active';
 export { applyQuestReward, toDbQuestDefinition, QuestNotCompleteError } from './rewards';
 export type { QuestRewardResult } from './rewards';
+// Engagement V2 (campaign 010 / W12): refresh timing + history summaries.
+export { nextRefreshAt, msUntilRefresh } from './refresh';
+export { summarizeQuestHistory } from './history';
+export type { QuestHistorySummary } from './history';

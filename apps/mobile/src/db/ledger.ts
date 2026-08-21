@@ -20,6 +20,8 @@ interface LedgerRow {
 
 const SELECT_ORDERED = `SELECT id, amount, reason, session_id, created_at, operation_id
   FROM currency_ledger ORDER BY id ASC LIMIT ?`;
+const SELECT_RECENT = `SELECT id, amount, reason, session_id, created_at, operation_id
+  FROM currency_ledger ORDER BY id DESC LIMIT ?`;
 const SELECT_BALANCE = 'SELECT balance FROM currency_balance';
 const SELECT_BY_OPERATION =
   'SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE operation_id = ?';
@@ -92,6 +94,15 @@ export class LedgerRepository {
   /** Entries in ledger order (append order). */
   async list(limit = 100): Promise<LedgerEntry[]> {
     const rows = await this.adapter.all<LedgerRow>(SELECT_ORDERED, [limit]);
+    return rows.map(mapRow);
+  }
+
+  /**
+   * Most recent entries first (engagement V2 reward-history feed). Additive —
+   * `list` keeps its append-order contract for existing callers.
+   */
+  async listRecent(limit = 100): Promise<LedgerEntry[]> {
+    const rows = await this.adapter.all<LedgerRow>(SELECT_RECENT, [limit]);
     return rows.map(mapRow);
   }
 }
