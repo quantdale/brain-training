@@ -78,8 +78,11 @@ describe("pickWorkoutGames exclude (reroll after partial completion)", () => {
     const games = makeGames(WORKOUT_SIZE + 1);
     const exclude = games.slice(0, WORKOUT_SIZE - 1).map((g) => g.id);
     const picked = pickWorkoutGames(games, "2026-08-16", [], 0, exclude);
-    // Falls back to all games rather than producing a too-small workout.
-    expect(picked.length).toBe(WORKOUT_SIZE + 1);
+    // The exclusion is relaxed (never a too-small workout), but the workout
+    // stays exactly WORKOUT_SIZE: drawn from all games, so at least one
+    // excluded id must appear.
+    expect(picked).toHaveLength(WORKOUT_SIZE);
+    expect(picked.some((g) => exclude.includes(g.id))).toBe(true);
   });
 });
 

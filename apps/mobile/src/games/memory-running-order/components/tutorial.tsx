@@ -94,9 +94,13 @@ interface DemoStreamProps {
 /** One demo run: flashes the fixed stream, then validates the last-two recall. */
 function DemoStream({ onDone, onSkip }: DemoStreamProps) {
   const [revealedIndex, setRevealedIndex] = useState(0);
-  const [phase, setPhase] = useState<"reveal" | "input">("reveal");
   const [answer, setAnswer] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<string>("");
+
+  // Derived rather than stored: "input" begins exactly when the reveal
+  // stream has finished flashing (avoids a cascading setState in an effect).
+  const phase: "reveal" | "input" =
+    revealedIndex >= TUTORIAL_DEMO_STREAM.length ? "input" : "reveal";
 
   const revealing =
     revealedIndex >= 0 && revealedIndex < TUTORIAL_DEMO_STREAM.length;
@@ -111,12 +115,6 @@ function DemoStream({ onDone, onSkip }: DemoStreamProps) {
     );
     return () => clearTimeout(timer);
   }, [revealing, revealedIndex]);
-
-  useEffect(() => {
-    if (revealedIndex >= TUTORIAL_DEMO_STREAM.length) {
-      setPhase("input");
-    }
-  }, [revealedIndex]);
 
   const target = TUTORIAL_DEMO_STREAM.slice(
     TUTORIAL_DEMO_STREAM.length - TUTORIAL_DEMO_RECALL,

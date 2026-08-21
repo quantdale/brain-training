@@ -118,6 +118,8 @@ describe('QuickCompareScreen', () => {
       }
     }
 
+    // last round answered -> feedback; advance to results
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next')));
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'accuracy'))).toHaveTextContent('100%');
     expect(screen.getByTestId(testId(GAME_ID, 'correct'))).toHaveTextContent(`${ROUNDS}/${ROUNDS}`);

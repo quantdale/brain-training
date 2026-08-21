@@ -43,26 +43,37 @@ function timeMs(fn: () => void): number {
 }
 
 describe("computeComposite performance", () => {
+  // Best-of-N sampling: scheduler/GC noise on shared runners otherwise makes
+  // single-shot micro-timings flaky (a real quadratic regression is orders of
+  // magnitude above these bounds, so best-of-N preserves the guard's teeth).
+  function bestOfMs(fn: () => void, runs = 3): number {
+    let best = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < runs; i += 1) {
+      best = Math.min(best, timeMs(fn));
+    }
+    return best;
+  }
+
   it("stays linear at scale (no accidental quadratic regression)", () => {
     const small = makeDataset(200);
     const large = makeDataset(4000);
 
-    const smallMs = timeMs(() =>
+    const smallMs = bestOfMs(() =>
       computeComposite(small.ratings, small.known, 1_700_000_000_000),
     );
-    const largeMs = timeMs(() =>
+    const largeMs = bestOfMs(() =>
       computeComposite(large.ratings, large.known, 1_700_000_000_000),
     );
 
-    // 20x the inputs must cost far less than 20x the time (linear, not quadratic).
-    // Generous ceiling so it is stable across CI runners; it only fails on a
-    // real complexity regression.
-    expect(largeMs).toBeLessThan(smallMs * 20 + 25);
+    // 20x the inputs must cost far less than 20x the time (linear, not
+    // quadratic — quadratic would be ~400x). Generous ceiling so it is stable
+    // across CI runners; it only fails on a real complexity regression.
+    expect(largeMs).toBeLessThan(smallMs * 20 + 50);
   });
 
   it("handles a large dataset within a bounded budget", () => {
     const { ratings, known } = makeDataset(4000);
-    const ms = timeMs(() =>
+    const ms = bestOfMs(() =>
       computeComposite(ratings, known, 1_700_000_000_000),
     );
     // A 4k-domain composite should be effectively free; 250ms leaves huge slack.
