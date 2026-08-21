@@ -133,7 +133,7 @@ export const Typography = {
 } as const;
 
 /** Bottom inset reserved for the floating web tab bar. */
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 64 }) ?? 0;
 
 /** Max content width for tablet/web layouts; screens center within it. */
 export const MaxContentWidth = 800;

@@ -282,9 +282,38 @@ function missedDateRange(start: string, end: string): string[] {
 }
 
 /**
+ * PURE window predicates shared by the Shield logic. The Shield acts like a
+ * Freeze in the at-risk window and like a Recovery in the broken window; the
+ * WINDOWS are about streak timing only — the Shield itself satisfies the item
+ * requirement, so these must not re-check Freeze/Recovery inventory.
+ */
+function inFreezeWindow(state: StreakState, now: Date): boolean {
+  if (state.lastActiveDate === null) {
+    return false;
+  }
+  return state.lastActiveDate === previousDate(localDateOf(now));
+}
+
+function inRecoveryWindow(state: StreakState, now: Date): boolean {
+  if (state.lastActiveDate === null) {
+    return false;
+  }
+  const today = localDateOf(now);
+  if (state.lastActiveDate === today || state.lastActiveDate === previousDate(today)) {
+    return false; // alive or at risk — recovery is post-miss only
+  }
+  const missedDays = daysBetween(today, state.lastActiveDate) - 1;
+  return missedDays >= 1 && missedDays <= RECOVERY_MAX_STREAK_RESTORE_DAYS;
+}
+
+/**
  * Can a Shield be applied right now? The Shield is a broader protection that
  * works in either the at-risk window (acts like a Freeze) or the broken window
- * (acts like a Recovery), provided at least one Shield is owned.
+ * (acts like a Recovery), provided at least one Shield is owned. Ownership of
+ * a Freeze or Recovery is NOT required — the consumed item is the Shield.
+ * In the freeze-like window the monthly Freeze usage cap still applies (the
+ * Shield provides the same protection class); the recovery-like window has no
+ * monthly cap.
  */
 export function canApplyShield(
   state: StreakState,
@@ -295,24 +324,34 @@ export function canApplyShield(
   if (inventory.shield < 1) {
     return false;
   }
-  return canApplyFreeze(state, settings, now) || canApplyRecovery(state, settings, now);
+  if (inRecoveryWindow(state, now)) {
+    return true;
+  }
+  return (
+    inFreezeWindow(state, now) &&
+    freezeUsedThisPeriod(settings, now) < FREEZE_MAX_PER_PERIOD
+  );
 }
 
 /**
  * PURE settings transform: apply an owned Shield. Degrades to a Recovery when
  * the streak is broken, otherwise to a Freeze when at risk. No-op when neither
- * window applies. Consumes exactly one Shield.
+ * window applies. Consumes exactly ONE SHIELD (never a Freeze/Recovery) and,
+ * in the freeze-like window, records monthly Freeze usage for the shared cap.
  */
 export function applyShieldToSettings(
   settings: Record<string, unknown>,
   state: StreakState,
   now: Date,
 ): Record<string, unknown> {
-  if (canApplyRecovery(state, settings, now)) {
-    return applyRecoveryToSettings(settings, state, now);
+  const lastActive = state.lastActiveDate;
+  if (inRecoveryWindow(state, now)) {
+    const missed = missedDateRange(lastActive as string, localDateOf(now));
+    return addCoveredDates(consumeItem(settings, 'shield'), missed);
   }
-  if (canApplyFreeze(state, settings, now)) {
-    return applyFreezeToSettings(settings, now);
+  if (inFreezeWindow(state, now)) {
+    const withUsage = recordFreezeUse(consumeItem(settings, 'shield'), now);
+    return addCoveredDates(withUsage, [localDateOf(now)]);
   }
   return settings;
 }

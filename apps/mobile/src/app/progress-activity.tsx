@@ -14,6 +14,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import {
   activityFrequencyBuckets,
   buildActivityCalendar,
+  daysSinceLastSession,
   loadProgressSnapshot,
   type ProgressSnapshot,
 } from '@/analytics';
@@ -58,6 +59,10 @@ export default function ProgressActivityScreen() {
     [data.sessions, nowMs],
   );
   const buckets = useMemo(() => activityFrequencyBuckets(calendar), [calendar]);
+  const daysSinceLast = useMemo(
+    () => daysSinceLastSession(data.sessions, nowMs),
+    [data.sessions, nowMs],
+  );
 
   const maxCount = calendar.busiest?.count ?? 0;
   const weeks: number[][] = [];
@@ -89,6 +94,12 @@ export default function ProgressActivityScreen() {
             label="Avg / active day"
             value={calendar.avgPerActiveDay > 0 ? calendar.avgPerActiveDay.toFixed(1) : '—'}
           />
+          <SummaryStat
+            label="Days since last"
+            value={
+              daysSinceLast === null ? '—' : daysSinceLast === 0 ? 'Today' : `${daysSinceLast}d`
+            }
+          />
         </View>
         {calendar.busiest ? (
           <ThemedText type="caption" themeColor="textSecondary">
@@ -96,6 +107,10 @@ export default function ProgressActivityScreen() {
             {calendar.busiest.count} sessions).
           </ThemedText>
         ) : null}
+        <ThemedText type="caption" themeColor="textSecondary" testID="progress-activity-share">
+          {calendar.activeDays} of {CALENDAR_DAYS} days active (
+          {Math.round((calendar.activeDays / CALENDAR_DAYS) * 100)}%).
+        </ThemedText>
       </ThemedView>
 
       <ThemedView type="surface" style={styles.card} testID="progress-activity-heatmap">

@@ -6,7 +6,10 @@
  * (`claimed_at IS NULL`) is the commit point; XP award + currency ledger
  * entry are appended only after a successful claim, so a crash between the
  * two never grants a double reward (worst case: claimed-but-unrewarded,
- * detectable via `claimedAt` vs `xp_awards`).
+ * detectable via `claimedAt` vs `xp_awards`). The ledger entry additionally
+ * carries a stable `operationId` (`achievement:<id>`), enforced unique by the
+ * schema's partial index, so a retried import/merge or replayed claim can
+ * never create a second currency entry for the same achievement.
  */
 import type { AppDatabase, AchievementDefinition as DbAchievementDefinition } from '@/db';
 import type { AchievementDef } from './types';
@@ -57,7 +60,16 @@ export async function claimAchievementReward(
       return { status: 'already-claimed' };
     }
     await db.xpAwards.award(definition.rewardXp, 'achievement', `achievement:${definition.id}`, txn);
-    await db.ledger.append({ amount: definition.rewardCurrency, reason: 'achievement' }, txn);
+    await db.ledger.append(
+      {
+        amount: definition.rewardCurrency,
+        reason: 'achievement',
+        // Stable idempotency key (unique partial index in the schema): a
+        // retried claim/import can never append a second entry for this id.
+        operationId: `achievement:${definition.id}`,
+      },
+      txn,
+    );
     return { status: 'claimed' };
   });
 }

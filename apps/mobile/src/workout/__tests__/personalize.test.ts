@@ -1,12 +1,14 @@
 import { describe, expect, it } from '@jest/globals';
 import { createRng } from '@/sdk';
 import type { GameDefinition } from '@/sdk';
-import { INITIAL_RATING } from '@/db/rating';
-import { dailyWorkout } from '../today';
+import { INITIAL_RATING, isRatingStale } from '@/db/rating';
+import { dailyWorkout, WORKOUT_SIZE } from '../today';
 import {
+  explainPersonalizedWorkout,
   personalizedWorkout,
   rankByRecency,
   reorderByWeakDomains,
+  STALE_DOMAIN_DAYS,
   WEAK_DOMAIN_RATING_THRESHOLD,
 } from '../personalize';
 import type { DomainRating } from '../personalize';
@@ -42,6 +44,22 @@ function makeRatings(overrides: Record<string, number> = {}): DomainRating[] {
     rating: overrides[domain] ?? INITIAL_RATING,
     sessions: 1,
     updatedAt: 1_700_000_000_000,
+  }));
+}
+
+/**
+ * Ratings with per-domain rating AND timestamp overrides, anchored to a fixed
+ * "now" so staleness tests are fully deterministic.
+ */
+const NOW_MS = 1_700_000_000_000;
+function makeRatingsWithMeta(
+  overrides: Record<string, { rating?: number; updatedAt?: number }> = {},
+): DomainRating[] {
+  return CATEGORIES.map((domain) => ({
+    domain,
+    rating: overrides[domain]?.rating ?? INITIAL_RATING,
+    sessions: 1,
+    updatedAt: overrides[domain]?.updatedAt ?? NOW_MS,
   }));
 }
 
@@ -258,5 +276,228 @@ describe('personalizedWorkout', () => {
         // ratingOf(r) < ratingOf(f): weak recent game first — intended.
       }
     }
+  });
+});
+
+describe('staleness tier (constitution §15: inactivity marks ratings stale)', () => {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const games = makeGames(8); // game-0 Memory, game-3 Math, game-2 Speed, ...
+
+  it('pins STALE_DOMAIN_DAYS to the isRatingStale default horizon', () => {
+    // Both live in the repo; the personalization staleness horizon must stay
+    // aligned with the rating engine's staleness definition. If either
+    // changes, this test fails and both must be re-aligned consciously.
+    expect(STALE_DOMAIN_DAYS).toBe(30);
+    expect(isRatingStale(NOW_MS - 31 * DAY_MS, NOW_MS)).toBe(true);
+    expect(isRatingStale(NOW_MS - 29 * DAY_MS, NOW_MS)).toBe(false);
+  });
+
+  it('matches isRatingStale semantics exactly across a boundary sweep', () => {
+    for (let ageDays = 28; ageDays <= 32; ageDays += 1) {
+      for (const extraMs of [0, 1, -1]) {
+        const updatedAt = NOW_MS - ageDays * DAY_MS + extraMs;
+        const expected = isRatingStale(updatedAt, NOW_MS, STALE_DOMAIN_DAYS);
+        // Probe through the public reorder API: a single-game catalog whose
+        // only domain is Speed — if stale it surfaces via the stale tier even
+        // with a HIGH rating; if fresh it stays in input position among
+        // equally-rated games (stable sort keeps it first anyway), so instead
+        // compare against a fresh-rating control to detect tier movement.
+        const speedGames = makeGames(8).filter((g) => g.primaryCategory === 'Speed');
+        const highRating = makeRatingsWithMeta({
+          Speed: { rating: 1400, updatedAt },
+        });
+        const withClock = reorderByWeakDomains(
+          makeGames(8),
+          highRating,
+          createRng('parity'),
+          { nowMs: NOW_MS },
+        );
+        const surfaced = withClock.slice(0, speedGames.length).some((g) => g.primaryCategory === 'Speed');
+        // A 1400-rated Speed domain only leaves the tail tier when stale.
+        expect(surfaced).toBe(expected);
+      }
+    }
+  });
+
+  it('orders weak → stale → rest when a clock is provided', () => {
+    const ratings = makeRatingsWithMeta({
+      Memory: { rating: 900, updatedAt: NOW_MS }, // weak, fresh
+      Speed: { rating: 1200, updatedAt: NOW_MS - 40 * DAY_MS }, // stale, strong
+      Math: { rating: 1100, updatedAt: NOW_MS }, // fresh, strong
+    });
+    const reordered = reorderByWeakDomains(games, ratings, createRng('tiers'), {
+      nowMs: NOW_MS,
+    });
+    const indexOf = (id: string) => reordered.findIndex((g) => g.id === id);
+    const weak = indexOf('game-0'); // Memory
+    const stale = indexOf('game-2'); // Speed
+    const rest = indexOf('game-3'); // Math (fresh strong)
+    expect(weak).toBeLessThan(stale);
+    expect(stale).toBeLessThan(rest);
+  });
+
+  it('keeps the pre-staleness ordering when no clock is passed (opt-in)', () => {
+    const ratings = makeRatingsWithMeta({
+      Speed: { rating: 1200, updatedAt: NOW_MS - 400 * DAY_MS }, // very stale
+    });
+    const withoutOptions = reorderByWeakDomains(games, ratings, createRng('off'));
+    // Without nowMs there is no stale tier: Speed (1200) is an ordinary
+    // tail-tier member, rating-sorted AFTER the initial-rating games.
+    expect(withoutOptions[withoutOptions.length - 1]?.id).toBe('game-2');
+    // With the clock the same inputs surface Speed via the stale tier instead.
+    const withClock = reorderByWeakDomains(games, ratings, createRng('on'), {
+      nowMs: NOW_MS,
+    });
+    expect(withClock[0]?.id).toBe('game-2');
+  });
+
+  it('treats exactly maxAgeDays as NOT stale and one ms more as stale', () => {
+    const boundary = makeRatingsWithMeta({
+      Speed: { rating: 1200, updatedAt: NOW_MS - 30 * DAY_MS },
+    });
+    const atBoundary = reorderByWeakDomains(games, boundary, createRng('b0'), {
+      nowMs: NOW_MS,
+    });
+    // Not stale ⇒ ordinary tail-tier member, rating-sorted last.
+    expect(atBoundary[atBoundary.length - 1]?.id).toBe('game-2');
+
+    const past = makeRatingsWithMeta({
+      Speed: { rating: 1200, updatedAt: NOW_MS - 30 * DAY_MS - 1 },
+    });
+    const justPast = reorderByWeakDomains(games, past, createRng('b1'), {
+      nowMs: NOW_MS,
+    });
+    expect(justPast[0]?.id).toBe('game-2'); // Speed surfaces as stale
+  });
+
+  it('never marks domains without a timestamp stale (even with a clock)', () => {
+    const ratings: DomainRating[] = [
+      { domain: 'Speed', rating: 1200, sessions: 3 }, // no updatedAt field value
+    ];
+    const reordered = reorderByWeakDomains(games, ratings, createRng('no-ts'), {
+      nowMs: NOW_MS,
+    });
+    // Absent timestamp ⇒ never the stale tier; Speed stays an ordinary
+    // tail-tier member (rating-sorted after the threshold-rated rest).
+    expect(reordered[reordered.length - 1]?.id).toBe('game-2');
+  });
+
+  it('honors the staleDays override', () => {
+    const ratings = makeRatingsWithMeta({
+      Speed: { rating: 1200, updatedAt: NOW_MS - 8 * DAY_MS },
+    });
+    const defaultHorizon = reorderByWeakDomains(games, ratings, createRng('d'), {
+      nowMs: NOW_MS,
+    });
+    // 8 days < default 30 ⇒ not stale ⇒ tail-tier, rating-sorted last.
+    expect(defaultHorizon[defaultHorizon.length - 1]?.id).toBe('game-2');
+    const shortHorizon = reorderByWeakDomains(games, ratings, createRng('s'), {
+      nowMs: NOW_MS,
+      staleDays: 7,
+    });
+    expect(shortHorizon[0]?.id).toBe('game-2');
+  });
+
+  it('flows through personalizedWorkout deterministically', () => {
+    // A 4-game catalog (Memory, Attention, Speed, Math) so the base selection
+    // returns the whole pool and every tier is guaranteed represented.
+    const four = makeGames(4);
+    const ratings = makeRatingsWithMeta({
+      Memory: { rating: 900, updatedAt: NOW_MS }, // weak
+      Speed: { rating: 1300, updatedAt: NOW_MS - 90 * DAY_MS }, // stale
+      Attention: { rating: 1100, updatedAt: NOW_MS }, // fresh strong
+      Math: { rating: 1050, updatedAt: NOW_MS }, // fresh strong
+    });
+    const a = personalizedWorkout(four, '2026-08-16', ratings, [], 0, [], {
+      nowMs: NOW_MS,
+    });
+    const b = personalizedWorkout(four, '2026-08-16', ratings, [], 0, [], {
+      nowMs: NOW_MS,
+    });
+    expect(a.map((g) => g.id)).toEqual(b.map((g) => g.id));
+    const pos = new Map(a.map((g, i) => [g.id, i]));
+    expect(pos.get('game-0')).toBeLessThan(pos.get('game-2') ?? Infinity); // weak before stale
+    expect(pos.get('game-2')).toBeLessThan(pos.get('game-1') ?? Infinity); // stale before fresh strong
+    expect(pos.get('game-2')).toBeLessThan(pos.get('game-3') ?? Infinity);
+  });
+});
+
+describe('new-player behavior (empty authoritative history)', () => {
+  const games = makeGames(8);
+
+  it('with empty ratings and recency, returns the balanced base selection in order', () => {
+    const date = '2026-08-16';
+    const workout = personalizedWorkout(games, date, [], []);
+    // No weak/stale/recency signals exist yet: the stable reorder must be a
+    // no-op over the deterministic base selection.
+    expect(workout.map((g) => g.id)).toEqual(dailyWorkout(games, date).map((g) => g.id));
+    expect(workout).toHaveLength(WORKOUT_SIZE);
+    expect(new Set(workout.map((g) => g.id)).size).toBe(WORKOUT_SIZE);
+  });
+
+  it('every game is explained as plainly selected for a new player', () => {
+    const reasons = explainPersonalizedWorkout(games, '2026-08-16', [], []);
+    expect(reasons.map((r) => r.kind)).toEqual(
+      Array.from({ length: reasons.length }, () => 'selected'),
+    );
+  });
+
+  it('partial history (only some domains rated) never fabricates weakness', () => {
+    // One strong, recently-played domain; everything else unrated. Unrated
+    // domains sit AT the threshold: neither weak nor stale, and the rated
+    // 1150 domain must not surface ahead of them either.
+    const ratings: DomainRating[] = [
+      { domain: 'Memory', rating: 1150, sessions: 4, updatedAt: NOW_MS },
+    ];
+    const reordered = reorderByWeakDomains(games, ratings, createRng('partial'), {
+      nowMs: NOW_MS,
+    });
+    expect(reordered[0]?.id).not.toBe('game-0');
+  });
+});
+
+describe('explainPersonalizedWorkout', () => {
+  const games = makeGames(8);
+
+  it('labels weak, stale, recency-avoided and selected games with reasons', () => {
+    // A 4-game catalog (Memory, Attention, Speed, Math) so the whole pool is
+    // the selection and every signal kind is guaranteed reachable.
+    const four = makeGames(4);
+    const ratings = makeRatingsWithMeta({
+      Memory: { rating: 850, updatedAt: NOW_MS }, // weak
+      Speed: { rating: 1250, updatedAt: NOW_MS - 60 * 24 * 60 * 60 * 1000 }, // stale
+      Attention: { rating: 1000, updatedAt: NOW_MS },
+      Math: { rating: 1000, updatedAt: NOW_MS },
+    });
+    const reasons = explainPersonalizedWorkout(
+      four,
+      '2026-08-16',
+      ratings,
+      ['game-1'], // Attention played recently
+      0,
+      [],
+      { nowMs: NOW_MS },
+    );
+    const byId = new Map(reasons.map((r) => [r.gameId, r]));
+    expect(byId.get('game-0')?.kind).toBe('weak-domain');
+    expect(byId.get('game-0')?.detail).toContain('Memory');
+    expect(byId.get('game-2')?.kind).toBe('stale-domain');
+    expect(byId.get('game-2')?.detail).toContain('not played for');
+    expect(byId.get('game-1')?.kind).toBe('recency-avoided');
+    expect(byId.get('game-3')?.kind).toBe('selected');
+  });
+
+  it('is deterministic: same inputs yield the same reasons', () => {
+    const ratings = makeRatings({ Memory: 900, Math: 950 });
+    const a = explainPersonalizedWorkout(games, '2026-08-16', ratings, ['game-2']);
+    const b = explainPersonalizedWorkout(games, '2026-08-16', ratings, ['game-2']);
+    expect(a).toEqual(b);
+  });
+
+  it('marks relaxed-exclusion survivors as excluded (tiny catalogs)', () => {
+    const small = makeGames(WORKOUT_SIZE + 1);
+    const exclude = small.slice(0, WORKOUT_SIZE - 1).map((g) => g.id);
+    const reasons = explainPersonalizedWorkout(small, '2026-08-16', [], [], 0, exclude);
+    expect(reasons.some((r) => r.kind === 'excluded')).toBe(true);
   });
 });

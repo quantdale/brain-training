@@ -6,8 +6,11 @@ import {
   buildActivityCalendar,
   buildDomainInsights,
   buildGameInsight,
+  buildTrainingBalance,
   compareRecentVsLifetime,
+  daysSinceLastSession,
   explainComposite,
+  explainMetric,
   extractAccuracy,
   extractDifficultyRating,
   extractReactionMs,
@@ -173,6 +176,43 @@ describe('buildDomainInsights', () => {
     expect(out[0].windowMovement).toBe(-30);
     expect(out[0].direction).toBe('down');
   });
+
+  it('builds an in-window chronological series for sparklines', () => {
+    const out = buildDomainInsights(ratings, known, ratingHistory, T0, '30d');
+    const memory = out.find((d) => d.domain === 'Memory')!;
+    // Both Memory entries are inside 30d; ascending by time.
+    expect(memory.windowSeries).toEqual([
+      { t: T0 - 12 * DAY, value: 1010 },
+      { t: T0 - 2 * DAY, value: 1020 },
+    ]);
+    const speed = out.find((d) => d.domain === 'Speed')!;
+    // Speed's only entry is outside the 30d window -> empty in-window series.
+    expect(speed.windowSeries).toEqual([]);
+  });
+
+  it('derives the all-time personal best rating from stored evidence', () => {
+    const peakHistory = [
+      history({ id: 1, domain: 'Memory', ratingAfter: 1050, createdAt: T0 - 20 * DAY }),
+      history({ id: 2, domain: 'Memory', ratingAfter: 1010, createdAt: T0 - 10 * DAY }),
+      history({ id: 3, domain: 'Memory', ratingAfter: 1030, createdAt: T0 - 1 * DAY }),
+    ];
+    const out = buildDomainInsights(
+      [domainRating({ domain: 'Memory', rating: 1030, updatedAt: T0 - 1 * DAY })],
+      ['Memory'],
+      peakHistory,
+      T0,
+      'all',
+    );
+    const memory = out[0];
+    // Best ever was 1050 (20 days ago), even though current rating is lower.
+    expect(memory.bestRating).toBe(1050);
+    expect(memory.bestRatingAt).toBe(T0 - 20 * DAY);
+
+    // Unseen domains have no personal best.
+    const unseen = buildDomainInsights([], ['Attention'], [], T0, 'all');
+    expect(unseen[0].bestRating).toBeNull();
+    expect(unseen[0].bestRatingAt).toBeNull();
+  });
 });
 
 describe('explainComposite (canonical calculation, no second score)', () => {
@@ -303,6 +343,22 @@ describe('buildGameInsight', () => {
     expect(insight.series.score).toHaveLength(0);
     expect(insight.bestScore).toBeNull();
   });
+
+  it('computes recent form over the last five sessions', () => {
+    // Sessions built oldest-first; s6 is the most recent.
+    const many = [1, 2, 3, 4, 5, 6, 7].map((i) =>
+      mk(`f${i}`, i * 1000, { normalizedResult: i / 10 }),
+    );
+    const insight = buildGameInsight('g-form', many)!;
+    // Last five are f3..f7 -> (0.3+0.4+0.5+0.6+0.7)/5 = 0.5.
+    expect(insight.recentFormCount).toBe(5);
+    expect(insight.recentFormNormalized).toBeCloseTo(0.5, 5);
+
+    // Fewer than five sessions: average over what exists.
+    const few = buildGameInsight('g-few', sessions)!;
+    expect(few.recentFormCount).toBe(3);
+    expect(few.recentFormNormalized).toBeCloseTo(0.7, 5);
+  });
 });
 
 describe('compareRecentVsLifetime', () => {
@@ -334,5 +390,140 @@ describe('compareRecentVsLifetime', () => {
     expect(cmp.recentCount).toBe(0);
     expect(cmp.recentAvgNormalized).toBeNull();
     expect(cmp.deltaAvgNormalized).toBeNull();
+  });
+
+  it('compares accuracy / reaction / difficulty only when persisted', () => {
+    const withMetrics = [
+      session({
+        id: 'old',
+        completedAt: T0 - 40 * DAY,
+        normalizedResult: 0.5,
+        rawResult: { accuracy: 0.6, avgResponseMs: 500 },
+        difficulty: { challengeRating: 0.4 },
+      }),
+      session({
+        id: 'new',
+        completedAt: T0 - 1 * DAY,
+        normalizedResult: 0.8,
+        rawResult: { accuracy: 0.8, avgResponseMs: 400 },
+        difficulty: { challengeRating: 0.6 },
+      }),
+    ];
+    const cmp = compareRecentVsLifetime(withMetrics, '30d', T0);
+    // Only the "new" session is inside the 30d window.
+    expect(cmp.lifetimeAvgAccuracy).toBeCloseTo(0.7, 5);
+    expect(cmp.recentAvgAccuracy).toBeCloseTo(0.8, 5);
+    expect(cmp.deltaAvgAccuracy).toBeCloseTo(0.1, 5);
+    expect(cmp.lifetimeAvgReactionMs).toBe(450);
+    expect(cmp.recentAvgReactionMs).toBe(400);
+    // Negative reaction delta = faster = improvement.
+    expect(cmp.deltaAvgReactionMs).toBe(-50);
+    expect(cmp.lifetimeAvgDifficulty).toBeCloseTo(0.5, 5);
+    expect(cmp.deltaAvgDifficulty).toBeCloseTo(0.1, 5);
+  });
+
+  it('returns null metric comparisons when no session carries the metric', () => {
+    const cmp = compareRecentVsLifetime(
+      [
+        session({ id: 'a', completedAt: T0 - 1 * DAY }),
+        session({ id: 'b', completedAt: T0 - 2 * DAY }),
+      ],
+      '30d',
+      T0,
+    );
+    expect(cmp.recentAvgAccuracy).toBeNull();
+    expect(cmp.lifetimeAvgAccuracy).toBeNull();
+    expect(cmp.deltaAvgAccuracy).toBeNull();
+    expect(cmp.recentAvgReactionMs).toBeNull();
+    expect(cmp.lifetimeAvgReactionMs).toBeNull();
+    expect(cmp.deltaAvgReactionMs).toBeNull();
+    expect(cmp.recentAvgDifficulty).toBeNull();
+    expect(cmp.lifetimeAvgDifficulty).toBeNull();
+    expect(cmp.deltaAvgDifficulty).toBeNull();
+  });
+});
+
+describe('daysSinceLastSession', () => {
+  it('counts whole days back from the most recent session', () => {
+    const sessions = [
+      session({ id: 'a', completedAt: T0 - 3 * DAY }),
+      session({ id: 'b', completedAt: T0 - 10 * DAY }),
+      session({ id: 'c', completedAt: T0 - 2 * DAY - 1000 }),
+    ];
+    // Most recent is 2 days + 1000ms ago -> floor = 2.
+    expect(daysSinceLastSession(sessions, T0)).toBe(2);
+    // A session today -> 0.
+    expect(daysSinceLastSession([session({ completedAt: T0 })], T0)).toBe(0);
+  });
+
+  it('returns null when there are no sessions', () => {
+    expect(daysSinceLastSession([], T0)).toBeNull();
+  });
+});
+
+describe('buildTrainingBalance', () => {
+  const known = ['Memory', 'Attention', 'Speed'] as const;
+  const resolve = (gameId: string) =>
+    ({ mem: 'Memory', att: 'Attention' })[gameId] ?? null;
+
+  it('distributes window sessions across primary domains with shares', () => {
+    const sessions = [
+      session({ id: '1', gameId: 'mem', completedAt: T0 - 1 * DAY }),
+      session({ id: '2', gameId: 'mem', completedAt: T0 - 2 * DAY }),
+      session({ id: '3', gameId: 'att', completedAt: T0 - 3 * DAY }),
+      // Outside the 7d window: must not count.
+      session({ id: '4', gameId: 'mem', completedAt: T0 - 30 * DAY }),
+    ];
+    const balance = buildTrainingBalance(sessions, resolve, known, T0, '7d');
+    expect(balance.windowSessions).toBe(3);
+    expect(balance.mappedSessions).toBe(3);
+    expect(balance.unmappedSessions).toBe(0);
+    expect(balance.perDomain).toEqual([
+      { domain: 'Memory', sessions: 2, share: 2 / 3 },
+      { domain: 'Attention', sessions: 1, share: 1 / 3 },
+      { domain: 'Speed', sessions: 0, share: 0 },
+    ]);
+    expect(balance.trainedDomains).toBe(2);
+    expect(balance.untrainedDomains).toEqual(['Speed']);
+    expect(balance.topDomain).toBe('Memory');
+    expect(balance.topDomainShare).toBeCloseTo(2 / 3, 5);
+  });
+
+  it('reports unmapped sessions instead of dropping them silently', () => {
+    const sessions = [
+      session({ id: '1', gameId: 'unknown-game', completedAt: T0 - 1 * DAY }),
+      session({ id: '2', gameId: 'mem', completedAt: T0 - 1 * DAY }),
+    ];
+    const balance = buildTrainingBalance(sessions, resolve, known, T0, '30d');
+    expect(balance.windowSessions).toBe(2);
+    expect(balance.mappedSessions).toBe(1);
+    expect(balance.unmappedSessions).toBe(1);
+    // Shares are relative to mapped sessions only.
+    expect(balance.perDomain.find((d) => d.domain === 'Memory')!.share).toBe(1);
+  });
+
+  it('handles an empty window with explicit zero state', () => {
+    const balance = buildTrainingBalance(
+      [session({ completedAt: T0 - 400 * DAY })],
+      resolve,
+      known,
+      T0,
+      '30d',
+    );
+    expect(balance.windowSessions).toBe(0);
+    expect(balance.topDomain).toBeNull();
+    expect(balance.topDomainShare).toBeNull();
+    expect(balance.untrainedDomains).toEqual([...known]);
+    expect(balance.perDomain.every((d) => d.share === 0)).toBe(true);
+  });
+});
+
+describe('explainMetric', () => {
+  it('returns a fixed derivation sentence per metric key', () => {
+    expect(explainMetric('composite')).toContain('average');
+    expect(explainMetric('balance')).toContain('primary domain');
+    expect(explainMetric('reaction')).toContain('lower is faster');
+    // Deterministic: same key always yields the same sentence.
+    expect(explainMetric('recency')).toBe(explainMetric('recency'));
   });
 });

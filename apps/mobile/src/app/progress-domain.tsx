@@ -2,8 +2,12 @@
  * Per-domain drill-down — `/progress-domain?domain=...`.
  *
  * Shows one cognitive domain's rating history and the games that contribute to
- * it, all derived from stored evidence. Unseen domains render an explanatory
- * state (no fabricated rating). Neutral wording throughout.
+ * it, all derived from stored evidence: current rating with freshness, the
+ * all-time personal best rating, window-scoped session/average/best stats, an
+ * in-window rating trend (falling back to all-time when the window holds fewer
+ * than two updates), per-game contribution counts with best results, and the
+ * domain's recent sessions. Unseen domains render an explanatory state (no
+ * fabricated rating). Neutral wording throughout.
  */
 
 import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -13,6 +17,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import {
   buildActivityCalendar,
   buildDomainInsights,
+  filterByWindow,
+  isWithinWindow,
   loadProgressSnapshot,
   type ProgressSnapshot,
   type TimeWindowKey,
@@ -84,6 +90,28 @@ export default function ProgressDomainScreen() {
     [data.sessions, domain],
   );
 
+  const windowedDomainSessions = useMemo(
+    () => filterByWindow(domainSessions, nowMs, windowKey),
+    [domainSessions, nowMs, windowKey],
+  );
+
+  // Window average + lifetime best of the stored normalized results.
+  const windowAvg = useMemo(
+    () =>
+      windowedDomainSessions.length === 0
+        ? null
+        : windowedDomainSessions.reduce((s, x) => s + x.normalizedResult, 0) /
+          windowedDomainSessions.length,
+    [windowedDomainSessions],
+  );
+  const lifetimeBest = useMemo(
+    () =>
+      domainSessions.length === 0
+        ? null
+        : domainSessions.reduce((m, x) => Math.max(m, x.normalizedResult), -Infinity),
+    [domainSessions],
+  );
+
   const insight = useMemo(() => {
     const list = buildDomainInsights(data.ratings, [domain], data.ratingHistory, nowMs, windowKey);
     return list[0];
@@ -98,6 +126,24 @@ export default function ProgressDomainScreen() {
         .map((h) => h.ratingAfter),
     [data.ratingHistory, domain],
   );
+
+  // Prefer the in-window slice for the trend; fall back to all-time when the
+  // window holds fewer than two updates (a single point has no shape).
+  const windowHistoryValues = useMemo(
+    () =>
+      data.ratingHistory
+        .filter((h: RatingHistoryEntry) => h.domain === domain)
+        .slice()
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .filter((h) => isWithinWindow(h.createdAt, nowMs, windowKey))
+        .map((h) => h.ratingAfter),
+    [data.ratingHistory, domain, nowMs, windowKey],
+  );
+  const chartValues = windowHistoryValues.length >= 2 ? windowHistoryValues : historySeries;
+  const chartCaption =
+    windowHistoryValues.length >= 2
+      ? `${windowHistoryValues.length} rating updates in this window.`
+      : `${historySeries.length} recorded updates — all-time shown (fewer than 2 in this window).`;
 
   const calendarDays = windowKey === 'all' ? 84 : (WINDOW_DAYS[windowKey] ?? 84);
   const calendar = useMemo(
@@ -189,19 +235,41 @@ export default function ProgressDomainScreen() {
               : `Fresh — trained ${insight?.daysSinceUpdate} days ago.`}{' '}
             {insight?.sessions ?? 0} sessions · {insight?.windowEntries ?? 0} updates in this window.
           </ThemedText>
+          {insight?.bestRating !== null ? (
+            <ThemedText
+              type="caption"
+              themeColor="textSecondary"
+              testID="progress-domain-best">
+              Personal best {insight.bestRating}
+              {insight.bestRatingAt !== null ? ` · set ${formatDayLabel(insight.bestRatingAt)}` : ''}
+            </ThemedText>
+          ) : null}
+          <View style={styles.summaryRow} testID="progress-domain-stats">
+            <DomainStat
+              label={`Sessions (${WINDOW_LABELS[windowKey]})`}
+              value={String(windowedDomainSessions.length)}
+            />
+            <DomainStat
+              label={`Avg (${WINDOW_LABELS[windowKey]})`}
+              value={windowAvg === null ? '—' : formatPercent(windowAvg)}
+            />
+            <DomainStat
+              label="Best ever"
+              value={lifetimeBest === null ? '—' : formatPercent(lifetimeBest)}
+            />
+          </View>
         </ThemedView>
       )}
 
       <ThemedView type="surface" style={styles.card} testID="progress-domain-history">
         <ThemedText type="subtitle">Rating over time</ThemedText>
         <MiniBarChart
-          values={historySeries}
+          values={chartValues}
           testID="progress-domain-history-chart"
           emptyLabel="No rating updates in this window"
         />
         <ThemedText type="caption" themeColor="textSecondary">
-          {historySeries.length} recorded updates (all-time shown regardless of window when
-          the series is short).
+          {chartCaption}
         </ThemedText>
       </ThemedView>
 
@@ -229,22 +297,28 @@ export default function ProgressDomainScreen() {
         <ThemedText type="subtitle">Games in this domain</ThemedText>
         {byGame.length > 0 ? (
           <View style={styles.rows}>
-            {byGame.map(([gameId, count]) => (
-              <Link
-                key={gameId}
-                href={{ pathname: '/progress-game' as any, params: { gameId } }}
-                asChild>
-                <Pressable
-                  style={styles.row}
-                  accessibilityRole="button"
-                  testID={`progress-domain-game-${gameId}`}>
-                  <ThemedText type="small">
-                    {getGameDefinition(gameId)?.name ?? gameId}
-                  </ThemedText>
-                  <ThemedText type="smallBold">{count}×</ThemedText>
-                </Pressable>
-              </Link>
-            ))}
+            {byGame.map(([gameId, count]) => {
+              const aggregate = data.aggregates.find((a) => a.gameId === gameId);
+              return (
+                <Link
+                  key={gameId}
+                  href={{ pathname: '/progress-game' as any, params: { gameId } }}
+                  asChild>
+                  <Pressable
+                    style={styles.row}
+                    accessibilityRole="button"
+                    testID={`progress-domain-game-${gameId}`}>
+                    <ThemedText type="small">
+                      {getGameDefinition(gameId)?.name ?? gameId}
+                    </ThemedText>
+                    <ThemedText type="smallBold">
+                      {count}×
+                      {aggregate ? ` · best ${Math.round(aggregate.bestNormalized * 100)}%` : ''}
+                    </ThemedText>
+                  </Pressable>
+                </Link>
+              );
+            })}
           </View>
         ) : (
           <ThemedText type="small" themeColor="textSecondary">
@@ -278,6 +352,18 @@ export default function ProgressDomainScreen() {
   );
 }
 
+/** Small labeled stat used in the domain summary row. */
+function DomainStat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.stat}>
+      <ThemedText type="smallBold">{value}</ThemedText>
+      <ThemedText type="caption" themeColor="textSecondary">
+        {label}
+      </ThemedText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   card: {
     borderRadius: Radii.large,
@@ -291,6 +377,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.three,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  stat: {
+    flex: 1,
+    gap: Spacing.half,
   },
   rows: {
     gap: Spacing.two,

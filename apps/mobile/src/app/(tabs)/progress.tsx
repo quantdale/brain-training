@@ -7,13 +7,17 @@
  *    second score is invented) with a transparent, itemized explanation;
  *  - per-domain cards showing rating, freshness (stale / unseen), net movement
  *    inside the selected window, and recent direction;
+ *  - a training-balance card: each session counts toward its game's primary
+ *    domain, with per-domain shares and untrained domains called out;
  *  - a time-window selector (7d / 30d / 90d / all) that drives the activity
  *    calendar, domain movement and recent-vs-lifetime comparisons;
  *  - an activity-frequency calendar (no streaks/engagement scores);
- *  - per-game records and a recent-vs-lifetime summary.
+ *  - per-game records with a recent-vs-lifetime direction arrow, plus a
+ *    "days since last session" staleness indicator.
  *
  * All aggregation runs through the pure functions in `@/analytics`; this screen
- * only fetches already-persisted rows and renders them. Wording is kept neutral:
+ * only fetches already-persisted rows and renders them. Every number carries an
+ * explainability caption (`explainMetric`). Wording is kept neutral:
  * this is a record of training activity, not a medical or scientific claim.
  *
  * Degrades to an explanatory empty state when the db is unavailable.
@@ -26,8 +30,11 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import {
   buildActivityCalendar,
   buildDomainInsights,
+  buildTrainingBalance,
   compareRecentVsLifetime,
+  daysSinceLastSession,
   explainComposite,
+  explainMetric,
   filterByWindow,
   loadProgressSnapshot,
   type ProgressSnapshot,
@@ -39,14 +46,14 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { SegmentedControl, HeatmapRow } from '@/components/progress-charts';
+import { SegmentedControl, HeatmapRow, StackedShareBar } from '@/components/progress-charts';
 import { Radii, Spacing } from '@/constants/theme';
-import type { AppDatabase } from '@/db';
+import type { AppDatabase, GameSessionRecord } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { GAME_CATEGORIES as DOMAINS } from '@/sdk';
 import { levelForXp, levelProgress, xpIntoLevel, xpForNextLevel } from '@/rating';
 import { getGameDefinition } from '@/registry/registry';
-import { directionArrow, formatPercent, formatSigned } from '@/analytics/format';
+import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned } from '@/analytics/format';
 
 const EMPTY_SNAPSHOT: ProgressSnapshot = {
   ratings: [],
@@ -104,6 +111,53 @@ export default function ProgressScreen() {
     [data.sessions, rvlWindow, nowMs],
   );
 
+  // Training balance: each session counts toward its game's primary domain.
+  const trainingBalance = useMemo(
+    () =>
+      buildTrainingBalance(
+        data.sessions,
+        (gameId) => getGameDefinition(gameId)?.primaryCategory ?? null,
+        DOMAINS,
+        nowMs,
+        windowKey,
+      ),
+    [data.sessions, nowMs, windowKey],
+  );
+  const balanceSegments = useMemo(
+    () =>
+      trainingBalance.perDomain
+        .filter((entry) => entry.sessions > 0)
+        .map((entry) => ({ key: entry.domain, fraction: entry.share })),
+    [trainingBalance],
+  );
+
+  // Whole days since the most recent stored session (staleness indicator).
+  const daysSinceLast = useMemo(
+    () => daysSinceLastSession(data.sessions, nowMs),
+    [data.sessions, nowMs],
+  );
+
+  // Per-game recent-vs-lifetime direction for the "Per game" list.
+  const perGameDelta = useMemo(() => {
+    const byGame = new Map<string, GameSessionRecord[]>();
+    for (const session of data.sessions) {
+      const list = byGame.get(session.gameId);
+      if (list) {
+        list.push(session);
+      } else {
+        byGame.set(session.gameId, [session]);
+      }
+    }
+    const deltas = new Map<string, number>();
+    for (const [gameId, sessions] of byGame) {
+      const delta = compareRecentVsLifetime(sessions, rvlWindow, nowMs).deltaAvgNormalized;
+      if (delta !== null) {
+        deltas.set(gameId, delta);
+      }
+    }
+    return deltas;
+  }, [data.sessions, rvlWindow, nowMs]);
+
   const level = levelForXp(data.totalXp);
   const isNewPlayer = data.sessions.length === 0;
 
@@ -155,6 +209,13 @@ export default function ProgressScreen() {
         <ThemedText type="caption" themeColor="textSecondary">
           {xpIntoLevel(data.totalXp)} / {xpForNextLevel(data.totalXp)} XP to level {level + 1}
         </ThemedText>
+        {!isNewPlayer && daysSinceLast !== null ? (
+          <ThemedText type="caption" themeColor="textSecondary" testID="progress-last-session">
+            Last session:{' '}
+            {daysSinceLast === 0 ? 'today' : `${daysSinceLast}d ago`} ·{' '}
+            {explainMetric('recency').toLowerCase()}
+          </ThemedText>
+        ) : null}
       </ThemedView>
 
       <CompositeCard composite={composite} testID="progress-composite" />
@@ -200,6 +261,43 @@ export default function ProgressScreen() {
           domain again. Movement shown is for the selected window.
         </ThemedText>
       </ThemedView>
+
+      {!isNewPlayer ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-balance">
+          <ThemedText type="subtitle">Training balance</ThemedText>
+          <StackedShareBar segments={balanceSegments} testID="progress-balance-bar" />
+          <View style={styles.rows}>
+            {trainingBalance.perDomain
+              .filter((entry) => entry.sessions > 0)
+              .map((entry) => (
+                <View
+                  key={entry.domain}
+                  style={styles.row}
+                  testID={`progress-balance-${entry.domain.replace(/[^a-z]/gi, '').toLowerCase()}`}>
+                  <ThemedText type="small">{entry.domain}</ThemedText>
+                  <ThemedText type="smallBold">
+                    {entry.sessions}× · {formatPercent(entry.share)}
+                  </ThemedText>
+                </View>
+              ))}
+          </View>
+          {trainingBalance.untrainedDomains.length > 0 ? (
+            <ThemedText type="caption" themeColor="textSecondary" testID="progress-balance-untrained">
+              Not trained in this window: {trainingBalance.untrainedDomains.join(', ')}.
+            </ThemedText>
+          ) : null}
+          {trainingBalance.unmappedSessions > 0 ? (
+            <ThemedText type="caption" themeColor="textSecondary">
+              {trainingBalance.unmappedSessions} session
+              {trainingBalance.unmappedSessions === 1 ? '' : 's'} not counted (game or domain
+              unknown).
+            </ThemedText>
+          ) : null}
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('balance')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
 
       <ThemedView type="surface" style={styles.card} testID="progress-activity">
         <View style={styles.cardHeader}>
@@ -254,9 +352,32 @@ export default function ProgressScreen() {
                   <ThemedText type="small">
                     {getGameDefinition(a.gameId)?.name ?? a.gameId}
                   </ThemedText>
-                  <ThemedText type="smallBold">
-                    {a.count}× · best {Math.round(a.bestNormalized * 100)}%
-                  </ThemedText>
+                  <View style={styles.domainRight}>
+                    <ThemedText type="smallBold">
+                      {a.count}× · best {Math.round(a.bestNormalized * 100)}%
+                    </ThemedText>
+                    {perGameDelta.get(a.gameId) !== undefined ? (
+                      <ThemedText
+                        type="caption"
+                        themeColor={
+                          perGameDelta.get(a.gameId)! > 0
+                            ? 'success'
+                            : perGameDelta.get(a.gameId)! < 0
+                              ? 'danger'
+                              : 'textSecondary'
+                        }
+                        testID={`progress-game-trend-${a.gameId}`}>
+                        {directionArrow(
+                          perGameDelta.get(a.gameId)! > 0
+                            ? 'up'
+                            : perGameDelta.get(a.gameId)! < 0
+                              ? 'down'
+                              : 'flat',
+                        )}{' '}
+                        vs lifetime ({WINDOW_LABELS[windowKey]})
+                      </ThemedText>
+                    ) : null}
+                  </View>
                 </Pressable>
               </Link>
             ))}
@@ -276,7 +397,8 @@ export default function ProgressScreen() {
               <Link key={session.id} href={`/results?id=${session.id}`} asChild>
                 <Pressable style={styles.row} testID={`progress-session-${session.id}`}>
                   <ThemedText type="small">
-                    {getGameDefinition(session.gameId)?.name ?? session.gameId}
+                    {getGameDefinition(session.gameId)?.name ?? session.gameId} ·{' '}
+                    {formatDayLabel(session.completedAt)}
                   </ThemedText>
                   <ThemedText type="smallBold">
                     {Math.round(session.normalizedResult * 100)}%
@@ -405,6 +527,59 @@ export function RecentVsLifetimeCard({
           tone={delta === null ? undefined : delta > 0 ? 'success' : delta < 0 ? 'danger' : undefined}
         />
       </View>
+      {rvl.lifetimeAvgAccuracy !== null ? (
+        <View style={styles.summaryRow}>
+          <SummaryStat
+            label={`Acc (${windowLabel})`}
+            value={rvl.recentAvgAccuracy === null ? '—' : formatPercent(rvl.recentAvgAccuracy)}
+          />
+          <SummaryStat label="Acc (all)" value={formatPercent(rvl.lifetimeAvgAccuracy)} />
+          <SummaryStat
+            label="Δ acc"
+            value={
+              rvl.deltaAvgAccuracy === null
+                ? '—'
+                : formatSigned(Math.round((rvl.deltaAvgAccuracy ?? 0) * 100)) + '%'
+            }
+            tone={
+              rvl.deltaAvgAccuracy === null
+                ? undefined
+                : rvl.deltaAvgAccuracy > 0
+                  ? 'success'
+                  : rvl.deltaAvgAccuracy < 0
+                    ? 'danger'
+                    : undefined
+            }
+          />
+        </View>
+      ) : null}
+      {rvl.lifetimeAvgReactionMs !== null ? (
+        <View style={styles.summaryRow}>
+          <SummaryStat
+            label={`React (${windowLabel})`}
+            value={rvl.recentAvgReactionMs === null ? '—' : formatMs(rvl.recentAvgReactionMs)}
+          />
+          <SummaryStat label="React (all)" value={formatMs(rvl.lifetimeAvgReactionMs)} />
+          <SummaryStat
+            label="Δ react"
+            value={
+              rvl.deltaAvgReactionMs === null
+                ? '—'
+                : formatSigned(Math.round(rvl.deltaAvgReactionMs)) + 'ms'
+            }
+            // Lower reaction time is better: a negative delta is the good direction.
+            tone={
+              rvl.deltaAvgReactionMs === null
+                ? undefined
+                : rvl.deltaAvgReactionMs < 0
+                  ? 'success'
+                  : rvl.deltaAvgReactionMs > 0
+                    ? 'danger'
+                    : undefined
+            }
+          />
+        </View>
+      ) : null}
       {!hasRecent ? (
         <ThemedText type="caption" themeColor="textSecondary">
           No sessions in this window yet — keep training to compare.

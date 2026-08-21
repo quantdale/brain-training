@@ -69,6 +69,15 @@ function rawProgress(
    return { progress: snapshot.bestNormalized ?? 0, goal: criteria.goal };
   case "workout-completions":
    return { progress: snapshot.workoutsCompleted ?? 0, goal: criteria.goal };
+  default: {
+   // Exhaustiveness guard: when a new criteria type joins AchievementCriteria
+   // (catalog growth), TypeScript forces this branch to be updated instead of
+   // silently evaluating `undefined >= goal` (never met, NaN ratio).
+   const unreachable: never = criteria;
+   throw new Error(
+    `rawProgress: unknown achievement criteria type: ${JSON.stringify(unreachable)}`,
+   );
+  }
  }
 }
 

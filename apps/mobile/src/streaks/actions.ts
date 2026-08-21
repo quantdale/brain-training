@@ -4,7 +4,10 @@
  *
  * - Applying an owned Freeze/Shield/Recovery persists covered dates (and
  *   consumes the item) inside one `db.transaction`, so the streak-state change
- *   and the inventory change commit together or roll back as one.
+ *   and the inventory change commit together or roll back as one. A repeated
+ *   application that would add NO new covered date (e.g. a double tap on the
+ *   same day) is refused before any write, so it cannot burn a second item on
+ *   coverage the player already has.
  * - Claiming a reached milestone's reward appends the XP award + currency
  *   ledger entry exactly once (idempotent via an `operationId` and a persisted
  *   `claimedMilestones` set), so a crash or retry can never double-grant.
@@ -23,7 +26,7 @@ import {
   canApplyRecovery,
   canApplyShield,
 } from './rules';
-import { readInventory } from './inventory';
+import { readInventory, readCoveredDates } from './inventory';
 import {
   markMilestoneClaimed,
   readClaimedMilestones,
@@ -70,6 +73,18 @@ export async function applyOwnedStreakItem(
         : kind === 'recovery'
           ? applyRecoveryToSettings(settings0, state, now)
           : applyShieldToSettings(settings0, state, now);
+
+    // Duplicate-apply guard (double tap / stale UI state): if the transform
+    // would not add a single new covered date, the coverage already exists and
+    // consuming an item would waste it. Refuse without persisting anything.
+    // Computed against the fresh in-transaction settings, so it is race-safe.
+    const coveredBefore = new Set(readCoveredDates(settings0));
+    const addsCoverage = readCoveredDates(nextSettings).some(
+      (date) => !coveredBefore.has(date),
+    );
+    if (!addsCoverage) {
+      return 'not-allowed' as const;
+    }
 
     await db.profile.update({ settings: nextSettings }, txn);
     return 'applied' as const;

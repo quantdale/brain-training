@@ -17,7 +17,7 @@
 
 import type { GameDefinition } from "@/sdk";
 import { personalizedWorkout } from "./personalize";
-import type { DomainRating } from "./personalize";
+import type { DomainRating, PersonalizeOptions } from "./personalize";
 
 /** Constitution §14: the first reroll each day is free. */
 export const REROLL_FIRST_FREE = true;
@@ -72,6 +72,7 @@ export function nextWorkoutAfterReroll(
  recentGameIds: readonly string[],
  attemptsUsed: number,
  exclude: readonly string[] = [],
+ options: PersonalizeOptions = {},
 ): GameDefinition[] {
  return personalizedWorkout(
   games,
@@ -80,5 +81,6 @@ export function nextWorkoutAfterReroll(
   recentGameIds,
   attemptsUsed + 1,
   exclude,
+  options,
  );
 }

@@ -81,6 +81,12 @@ export function useWorkout(args: {
         domainRatings,
         recentGameIds,
         0,
+        [],
+        // Inject the wall clock once at creation time so stale domains
+        // (constitution §15) surface after weak ones; the pure layer never
+        // reads the clock itself. Persisted with the instance, so the
+        // selection stays stable for the rest of the day.
+        { nowMs: Date.now() },
       );
       const created = await db.workouts.getOrCreate(date, {
         gameIds: seed.map((g) => g.id),
@@ -128,7 +134,15 @@ export function useWorkout(args: {
     const db = getDb();
     const { domainRatings, recentGameIds } = argsRef.current;
     const current = await db.workouts.getByDate(date);
-    if (!current || current.rerollAttempt >= MAX_REROLLS_PER_DAY) {
+    // Refuse when the day is exhausted (cap) or the workout is already
+    // completed: rerolling a completed instance would replace nothing (the
+    // whole list is the completed prefix) yet still debit coins — defense in
+    // depth beyond the Home screen's disabled button.
+    if (
+      !current ||
+      current.status !== "active" ||
+      current.rerollAttempt >= MAX_REROLLS_PER_DAY
+    ) {
       return;
     }
     const nextAttempt = current.rerollAttempt + 1;
@@ -143,6 +157,7 @@ export function useWorkout(args: {
       recentGameIds,
       current.rerollAttempt,
       completedPrefix,
+      { nowMs: Date.now() },
     );
     const ids = selection.map((g) => g.id);
     const cost = rerollCost(current.rerollAttempt);

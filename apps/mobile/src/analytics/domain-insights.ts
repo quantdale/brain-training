@@ -13,7 +13,7 @@ import { isRatingStale } from '@/db/rating';
 import type { DomainRating, RatingHistoryEntry } from '@/db';
 
 import { filterHistoryByWindow } from './windows';
-import type { Direction, DomainStatus, TimeWindowKey } from './types';
+import type { Direction, DomainStatus, Point, TimeWindowKey } from './types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -41,6 +41,22 @@ export interface DomainInsight {
   direction: Direction;
   /** Number of rating-history entries that landed inside the window. */
   windowEntries: number;
+  /**
+   * Chronological rating points inside the window (oldest first) — the source
+   * for a sparkline of the in-window trend.
+   */
+  windowSeries: Point[];
+  /**
+   * Highest rating ever recorded for this domain (history ∪ current row), or
+   * `null` for an unseen domain. A personal best derived only from stored
+   * evidence.
+   */
+  bestRating: number | null;
+  /**
+   * When the best rating was first reached (epoch ms; earliest on ties), or
+   * `null` for an unseen domain.
+   */
+  bestRatingAt: number | null;
 }
 
 function directionOf(delta: number): Direction {
@@ -88,6 +104,27 @@ export function buildDomainInsights(
       (a, b) => a.createdAt - b.createdAt,
     );
     const windowHistory = filterHistoryByWindow(history, nowMs, windowKey);
+    const windowSeries: Point[] = windowHistory.map((entry) => ({
+      t: entry.createdAt,
+      value: entry.ratingAfter,
+    }));
+
+    // Personal best from stored evidence only: the highest ratingAfter in the
+    // append-only history, plus the current row; earliest timestamp wins ties.
+    let bestRating: number | null = null;
+    let bestRatingAt: number | null = null;
+    const considerBest = (value: number, at: number) => {
+      if (bestRating === null || value > bestRating || (value === bestRating && at < bestRatingAt!)) {
+        bestRating = value;
+        bestRatingAt = at;
+      }
+    };
+    for (const entry of history) {
+      considerBest(entry.ratingAfter, entry.createdAt);
+    }
+    if (rating) {
+      considerBest(rating.rating, rating.updatedAt);
+    }
 
     if (!rating) {
       // Unseen domain: never played, no rating to show.
@@ -101,6 +138,9 @@ export function buildDomainInsights(
         windowMovement: 0,
         direction: 'flat',
         windowEntries: windowHistory.length,
+        windowSeries,
+        bestRating,
+        bestRatingAt,
       } satisfies DomainInsight;
     }
 
@@ -120,6 +160,9 @@ export function buildDomainInsights(
       windowMovement,
       direction: directionOf(windowMovement),
       windowEntries: windowHistory.length,
+      windowSeries,
+      bestRating,
+      bestRatingAt,
     } satisfies DomainInsight;
   });
 }

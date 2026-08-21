@@ -34,6 +34,13 @@ export interface GameInsight {
   bestNormalized: number;
   /** Session id of the best-normalized session, or `null`. */
   bestNormalizedSessionId: string | null;
+  /**
+   * Mean normalized performance over the most recent `RECENT_FORM_SESSIONS`
+   * sessions ("recent form"), or `null` when there are no sessions.
+   */
+  recentFormNormalized: number | null;
+  /** How many sessions the recent-form average covers (1..`RECENT_FORM_SESSIONS`). */
+  recentFormCount: number;
   /** First / most-recent completion timestamps (0 when none). */
   firstCompletedAt: number;
   lastCompletedAt: number;
@@ -67,6 +74,9 @@ export interface GameInsight {
 function sortedByTime(sessions: readonly GameSessionRecord[]): GameSessionRecord[] {
   return sessions.slice().sort((a, b) => a.completedAt - b.completedAt);
 }
+
+/** How many most-recent sessions the "recent form" average covers. */
+export const RECENT_FORM_SESSIONS = 5;
 
 /**
  * Build the per-game insight from its sessions. `sessions` must all belong to
@@ -158,6 +168,12 @@ export function buildGameInsight(
     avgNormalized: sumNormalized / ordered.length,
     bestNormalized: bestNormalized === -Infinity ? 0 : bestNormalized,
     bestNormalizedSessionId,
+    recentFormNormalized:
+      ordered.length === 0
+        ? null
+        : ordered.slice(-RECENT_FORM_SESSIONS).reduce((s, x) => s + x.normalizedResult, 0) /
+          Math.min(ordered.length, RECENT_FORM_SESSIONS),
+    recentFormCount: Math.min(ordered.length, RECENT_FORM_SESSIONS),
     firstCompletedAt: ordered[0].completedAt,
     lastCompletedAt: ordered[ordered.length - 1].completedAt,
     fastestMs,
@@ -201,6 +217,44 @@ export interface RecentVsLifetime {
   recentBestScore: number | null;
   lifetimeBestScore: number | null;
   deltaBestScore: number | null;
+  /**
+   * Mean accuracy (0..1) recent vs lifetime; all three are `null` when no
+   * session in the set carries a stored accuracy metric.
+   */
+  recentAvgAccuracy: number | null;
+  lifetimeAvgAccuracy: number | null;
+  deltaAvgAccuracy: number | null;
+  /**
+   * Mean reaction time (ms) recent vs lifetime; `null` when the metric is not
+   * persisted. For reaction time a *negative* delta means improvement.
+   */
+  recentAvgReactionMs: number | null;
+  lifetimeAvgReactionMs: number | null;
+  deltaAvgReactionMs: number | null;
+  /**
+   * Mean difficulty rating (0..1) recent vs lifetime; `null` when the game
+   * does not persist an interpretable difficulty payload.
+   */
+  recentAvgDifficulty: number | null;
+  lifetimeAvgDifficulty: number | null;
+  deltaAvgDifficulty: number | null;
+}
+
+/** Mean of `extract(session)` over sessions carrying the metric, else `null`. */
+function avgMetric(
+  list: readonly GameSessionRecord[],
+  extract: (session: GameSessionRecord) => number | null,
+): number | null {
+  let sum = 0;
+  let n = 0;
+  for (const session of list) {
+    const value = extract(session);
+    if (value !== null) {
+      sum += value;
+      n += 1;
+    }
+  }
+  return n === 0 ? null : sum / n;
 }
 
 export function compareRecentVsLifetime(
@@ -233,6 +287,13 @@ export function compareRecentVsLifetime(
   const recentScore = bestScore(recent);
   const lifetimeScore = bestScore(lifetime);
 
+  const recentAvgAccuracy = avgMetric(recent, (s) => extractAccuracy(s.rawResult));
+  const lifetimeAvgAccuracy = avgMetric(lifetime, (s) => extractAccuracy(s.rawResult));
+  const recentAvgReactionMs = avgMetric(recent, (s) => extractReactionMs(s.rawResult));
+  const lifetimeAvgReactionMs = avgMetric(lifetime, (s) => extractReactionMs(s.rawResult));
+  const recentAvgDifficulty = avgMetric(recent, (s) => extractDifficultyRating(s.difficulty));
+  const lifetimeAvgDifficulty = avgMetric(lifetime, (s) => extractDifficultyRating(s.difficulty));
+
   return {
     recentCount: recent.length,
     lifetimeCount: lifetime.length,
@@ -249,5 +310,23 @@ export function compareRecentVsLifetime(
     lifetimeBestScore: lifetimeScore,
     deltaBestScore:
       recentScore !== null && lifetimeScore !== null ? recentScore - lifetimeScore : null,
+    recentAvgAccuracy,
+    lifetimeAvgAccuracy,
+    deltaAvgAccuracy:
+      recentAvgAccuracy !== null && lifetimeAvgAccuracy !== null
+        ? recentAvgAccuracy - lifetimeAvgAccuracy
+        : null,
+    recentAvgReactionMs,
+    lifetimeAvgReactionMs,
+    deltaAvgReactionMs:
+      recentAvgReactionMs !== null && lifetimeAvgReactionMs !== null
+        ? recentAvgReactionMs - lifetimeAvgReactionMs
+        : null,
+    recentAvgDifficulty,
+    lifetimeAvgDifficulty,
+    deltaAvgDifficulty:
+      recentAvgDifficulty !== null && lifetimeAvgDifficulty !== null
+        ? recentAvgDifficulty - lifetimeAvgDifficulty
+        : null,
   };
 }

@@ -11,10 +11,17 @@
  * entry recorded by the economy layer. The celebration never grants anything.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import {
+  AccessibilityInfo,
+  Animated,
+  Easing,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { Spacing } from "@/constants/theme";
-
+import { usePrefersReducedMotion } from "@/components/game-ui/use-reduced-motion";
 export interface RewardCelebrationPayload {
   /** Stable-ish unique id (auto-assigned if omitted). */
   id?: string;
@@ -52,6 +59,10 @@ export function RewardCelebrationHost() {
     useState<Required<RewardCelebrationPayload> | null>(null);
   const opacity = useMemo(() => new Animated.Value(0), []);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  // Announce each banner once: screen-reader users get the reward feedback
+  // that sighted users get from the transient visual banner.
+  const announcedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const listener: CelebrationListener = (payload) => {
@@ -74,6 +85,23 @@ export function RewardCelebrationHost() {
     if (!current) {
       return;
     }
+    if (announcedIdRef.current !== current.id) {
+      announcedIdRef.current = current.id;
+      const bits = [
+        current.title,
+        current.xp > 0 ? `+${current.xp} XP` : null,
+        current.coins > 0 ? `+${current.coins} coins` : null,
+        current.cosmeticName ? `Unlocked ${current.cosmeticName}` : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      AccessibilityInfo.announceForAccessibility(bits);
+    }
+    if (prefersReducedMotion) {
+      // Reduced motion: present the banner statically at full opacity.
+      opacity.setValue(1);
+      return;
+    }
     opacity.setValue(0);
     Animated.timing(opacity, {
       toValue: 1,
@@ -81,7 +109,7 @@ export function RewardCelebrationHost() {
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
     }).start();
-  }, [current, opacity]);
+  }, [current, opacity, prefersReducedMotion]);
 
   if (!current) {
     return null;
@@ -130,6 +158,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
+    // Android has no shadow* props; elevation is required for the card to
+    // separate from the content underneath.
+    elevation: 4,
   },
   emoji: {
     fontSize: 28,

@@ -120,4 +120,57 @@ describe("reconcileWorkout", () => {
     const asArr = reconcileWorkout(inst, ["a", "c", "d"]);
     expect(asSet.instance?.gameIds).toEqual(asArr.instance?.gameIds);
   });
+
+  it("repairs a corrupted NEGATIVE currentIndex to the first valid game (no crash)", () => {
+    // A drifted row must not hit Array.slice's negative-from-the-end semantics:
+    // resume lands on the first valid game instead of skipping ahead.
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: -2,
+    });
+    const { instance, changed } = reconcileWorkout(inst, ["a", "b", "c", "d"]);
+    expect(changed).toBe(true);
+    expect(instance?.currentIndex).toBe(0);
+    expect(instance?.gameIds[instance.currentIndex]).toBe("a");
+    expect(instance?.status).toBe("active");
+  });
+
+  it("repairs a negative currentIndex whose clamped game was retired", () => {
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: -5,
+    });
+    const { instance } = reconcileWorkout(inst, ["b", "c", "d"]); // a retired
+    expect(instance?.gameIds).toEqual(["b", "c", "d"]);
+    expect(instance?.currentIndex).toBe(0);
+    expect(instance?.gameIds[instance.currentIndex]).toBe("b");
+  });
+
+  it("treats an out-of-range currentIndex as exhausted and completes the workout", () => {
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 9,
+    });
+    const { instance, changed } = reconcileWorkout(inst, ["a", "b", "c", "d"]);
+    expect(changed).toBe(true);
+    expect(instance?.currentIndex).toBe(4);
+    expect(instance?.status).toBe("completed");
+  });
+
+  it("truncates a non-integer currentIndex back onto a real position", () => {
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 1.5,
+    });
+    const { instance } = reconcileWorkout(inst, ["a", "b", "c", "d"]);
+    expect(instance?.currentIndex).toBe(1);
+    expect(instance?.gameIds[instance.currentIndex]).toBe("b");
+  });
+
+  it("handles an empty stored game list by signalling regeneration", () => {
+    const inst = makeInstance({ gameIds: [] });
+    const { instance, changed } = reconcileWorkout(inst, ["a", "b"]);
+    expect(instance).toBeNull();
+    expect(changed).toBe(true);
+  });
 });

@@ -15,6 +15,7 @@ import { Link, useFocusEffect } from 'expo-router';
 import { memo, useCallback, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+import { MinTouchTarget } from '@/components/a11y';
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -76,7 +77,11 @@ export default function GamesScreen() {
       </ThemedText>
 
       {games.length === 0 ? (
-        <ThemedView type="surface" style={styles.emptyCard} testID="games-empty">
+        <ThemedView
+          type="surface"
+          style={styles.emptyCard}
+          testID="games-empty"
+          accessibilityLiveRegion="polite">
           <ThemedText type="subtitle">No games yet</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             The game library is being built. Games appear here as they are
@@ -120,7 +125,11 @@ export default function GamesScreen() {
           </View>
 
           {visible.length === 0 ? (
-            <ThemedView type="surface" style={styles.emptyCard} testID="games-no-results">
+            <ThemedView
+              type="surface"
+              style={styles.emptyCard}
+              testID="games-no-results"
+              accessibilityLiveRegion="polite">
               <ThemedText type="subtitle">No matches</ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 Try a different search or filter.
@@ -235,6 +244,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   chip: {
+    ...MinTouchTarget,
     borderRadius: Radii.pill,
     paddingVertical: Spacing.half,
     paddingHorizontal: Spacing.twoHalf,

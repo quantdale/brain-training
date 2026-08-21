@@ -55,10 +55,18 @@ export const DIFFICULTY_EXPECTED_PERFORMANCE: Readonly<Record<string, number>> =
  * use their final challenge rating directly.
  *
  * Constitution §9: easy has a high baseline so easy play cannot inflate ratings.
+ *
+ * Non-finite inputs (NaN/±Infinity from corrupt session metadata) fall back to
+ * the Normal baseline (0.6) instead of propagating NaN into the rating delta;
+ * a garbage challenge rating must not silently become the easiest or harshest
+ * expectation.
  */
 export function expectedPerformanceFromChallenge(
  challengeRating: number,
 ): number {
+ if (!Number.isFinite(challengeRating)) {
+  return DIFFICULTY_EXPECTED_PERFORMANCE.normal;
+ }
  // Clamp to [0, 1]
  const cr = Math.min(1, Math.max(0, challengeRating));
  // Piecewise linear interpolation between the four anchor points.
@@ -155,6 +163,10 @@ export function computeRatingDelta(
 
 /** Currency coins for a session's XP (floor at the configured rate). */
 export function computeCurrency(xp: number): number {
+ // Non-finite XP (corrupt aggregate) awards nothing rather than NaN coins.
+ if (!Number.isFinite(xp)) {
+  return 0;
+ }
  return Math.floor(Math.max(0, xp) / XP_CURRENCY_RATE);
 }
 
@@ -182,6 +194,10 @@ function challengeRatingOf(session: GameSessionRecord): number | undefined {
  * Full outcome for one completed session. `getDomains` maps the game id to
  * its domain list (primary first, then secondary) so the pipeline stays free
  * of registry/UI dependencies and is trivially testable.
+ *
+ * The domain list is de-duplicated preserving order (first occurrence wins):
+ * a game that accidentally repeats its primary category in `secondaryDomains`
+ * must not move the same domain twice in one session.
  */
 export function computeRatingOutcome(
  session: GameSessionRecord,
@@ -192,8 +208,16 @@ export function computeRatingOutcome(
  const normalized = clamp01(session.normalizedResult);
 
  const xp = computeXp(normalized, level);
- const deltas: readonly RatingDelta[] = getDomains(session.gameId).map(
-  (domain, index) => ({
+ const seen = new Set<string>();
+ const deltas: readonly RatingDelta[] = getDomains(session.gameId)
+  .filter((domain) => {
+   if (seen.has(domain)) {
+    return false;
+   }
+   seen.add(domain);
+   return true;
+  })
+  .map((domain, index) => ({
    domain,
    delta: computeRatingDelta(
     normalized,
@@ -201,8 +225,7 @@ export function computeRatingOutcome(
     index === 0 ? 1 : SECONDARY_DOMAIN_WEIGHT,
     challengeRating,
    ),
-  }),
- );
+  }));
 
  return { xp, currency: computeCurrency(xp), deltas };
 }

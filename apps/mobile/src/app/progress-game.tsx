@@ -2,10 +2,13 @@
  * Per-game analytics drill-down — `/progress-game?gameId=...`.
  *
  * Builds its view from the canonical session rows for one game only (via
- * `buildGameInsight`). It surfaces personal records and trend series for whatever
- * metrics that game actually persisted (score / accuracy / reaction time /
- * difficulty) and omits any trend whose data is not present — no metrics are
- * invented. Neutral, non-clinical language.
+ * `buildGameInsight`). It surfaces personal records (including a "last 5"
+ * recent-form average), trend series for whatever metrics that game actually
+ * persisted (score / accuracy / reaction time / difficulty), and an extended
+ * recent-vs-lifetime comparison. Trends omit any metric whose data is not
+ * present — no metrics are invented. Reaction-time trends treat lower as
+ * better when coloring movement; difficulty is shown neutrally. Neutral,
+ * non-clinical language throughout.
  */
 
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -102,7 +105,8 @@ export default function ProgressGameScreen() {
         {def?.name ?? gameId}
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
-        {insight.count} sessions · last played {formatDayLabel(insight.lastCompletedAt)}
+        {insight.count} sessions · last played {formatDayLabel(insight.lastCompletedAt)} · since{' '}
+        {formatDayLabel(insight.firstCompletedAt)}
       </ThemedText>
 
       <View style={styles.windowRow}>
@@ -135,6 +139,12 @@ export default function ProgressGameScreen() {
             value={available.reaction && insight.bestReactionMs !== null ? formatMs(insight.bestReactionMs) : '—'}
           />
           <Record label="Avg performance" value={formatPercent(insight.avgNormalized)} />
+          {insight.recentFormNormalized !== null ? (
+            <Record
+              label={`Last ${insight.recentFormCount} avg`}
+              value={formatPercent(insight.recentFormNormalized)}
+            />
+          ) : null}
         </View>
       </ThemedView>
 
@@ -162,9 +172,10 @@ export default function ProgressGameScreen() {
       {available.reaction ? (
         <TrendBlock
           testID="progress-game-trend-reaction"
-          label="Reaction time"
+          label="Reaction time (lower is better)"
           values={trendValues(insight, 'reaction')}
           format={(v) => formatMs(v)}
+          tone="lower-better"
         />
       ) : null}
       {available.difficulty ? (
@@ -173,6 +184,7 @@ export default function ProgressGameScreen() {
           label="Difficulty (challenge rating)"
           values={trendValues(insight, 'difficulty')}
           format={(v) => formatPercent(v)}
+          tone="neutral"
         />
       ) : null}
 
@@ -196,6 +208,57 @@ export default function ProgressGameScreen() {
             }
           />
         </View>
+        {rvl.lifetimeAvgAccuracy !== null ? (
+          <View style={styles.summaryRow}>
+            <Record
+              label={`Acc (${WINDOW_LABELS[windowKey]})`}
+              value={rvl.recentAvgAccuracy === null ? '—' : formatPercent(rvl.recentAvgAccuracy)}
+            />
+            <Record label="Acc (all)" value={formatPercent(rvl.lifetimeAvgAccuracy)} />
+            <Record
+              label="Δ acc"
+              value={
+                rvl.deltaAvgAccuracy === null
+                  ? '—'
+                  : formatSigned(Math.round((rvl.deltaAvgAccuracy ?? 0) * 100)) + '%'
+              }
+            />
+          </View>
+        ) : null}
+        {rvl.lifetimeAvgReactionMs !== null ? (
+          <View style={styles.summaryRow}>
+            <Record
+              label={`React (${WINDOW_LABELS[windowKey]})`}
+              value={rvl.recentAvgReactionMs === null ? '—' : formatMs(rvl.recentAvgReactionMs)}
+            />
+            <Record label="React (all)" value={formatMs(rvl.lifetimeAvgReactionMs)} />
+            <Record
+              label="Δ react (− is better)"
+              value={
+                rvl.deltaAvgReactionMs === null
+                  ? '—'
+                  : formatSigned(Math.round(rvl.deltaAvgReactionMs)) + 'ms'
+              }
+            />
+          </View>
+        ) : null}
+        {rvl.lifetimeAvgDifficulty !== null ? (
+          <View style={styles.summaryRow}>
+            <Record
+              label={`Difficulty (${WINDOW_LABELS[windowKey]})`}
+              value={rvl.recentAvgDifficulty === null ? '—' : formatPercent(rvl.recentAvgDifficulty)}
+            />
+            <Record label="Difficulty (all)" value={formatPercent(rvl.lifetimeAvgDifficulty)} />
+            <Record
+              label="Δ difficulty"
+              value={
+                rvl.deltaAvgDifficulty === null
+                  ? '—'
+                  : formatSigned(Math.round((rvl.deltaAvgDifficulty ?? 0) * 100)) + '%'
+              }
+            />
+          </View>
+        ) : null}
       </ThemedView>
 
       <ThemedView type="surface" style={styles.card} testID="progress-game-recent">
@@ -213,20 +276,30 @@ export default function ProgressGameScreen() {
   );
 }
 
+/**
+ * One metric trend card. `tone` controls how the first→last movement is
+ * colored: `higher-better` (default) greens a rise, `lower-better` (e.g.
+ * reaction time) greens a fall, and `neutral` (e.g. difficulty, which is
+ * neither good nor bad) never colors the movement.
+ */
 function TrendBlock({
   testID,
   label,
   values,
   format = (v) => String(Math.round(v)),
+  tone = 'higher-better',
 }: {
   testID: string;
   label: string;
   values: readonly number[];
   format?: (v: number) => string;
+  tone?: 'higher-better' | 'lower-better' | 'neutral';
 }) {
   const last = values.length > 0 ? values[values.length - 1] : null;
   const first = values.length > 0 ? values[0] : null;
   const delta = last !== null && first !== null ? last - first : 0;
+  const improved = tone === 'lower-better' ? delta < 0 : delta > 0;
+  const regressed = tone === 'lower-better' ? delta > 0 : delta < 0;
   return (
     <ThemedView type="surface" style={styles.card} testID={testID}>
       <View style={styles.cardHeader}>
@@ -234,7 +307,15 @@ function TrendBlock({
         {values.length > 0 ? (
           <ThemedText
             type="smallBold"
-            themeColor={delta > 0 ? 'success' : delta < 0 ? 'danger' : 'textSecondary'}>
+            themeColor={
+              tone === 'neutral'
+                ? 'textSecondary'
+                : improved
+                  ? 'success'
+                  : regressed
+                    ? 'danger'
+                    : 'textSecondary'
+            }>
             {format(last ?? 0)}
             {delta !== 0 ? ` (${delta > 0 ? '+' : ''}${format(delta)})` : ''}
           </ThemedText>

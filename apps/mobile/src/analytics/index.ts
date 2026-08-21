@@ -13,4 +13,6 @@ export * from './domain-insights';
 export * from './composite-explainer';
 export * from './activity-calendar';
 export * from './game-insights';
+export * from './training-balance';
+export * from './insight-notes';
 export * from './queries';

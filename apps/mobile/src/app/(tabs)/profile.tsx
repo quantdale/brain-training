@@ -12,9 +12,10 @@
  */
 import { Link } from "expo-router";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
+import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
 import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
@@ -30,7 +31,11 @@ import {
   evaluateAchievementProgress,
   type AchievementDef,
 } from "@/achievements";
-import { syncAchievements, syncQuestProgress } from "@/progression";
+import {
+  buildAchievementSnapshot,
+  syncAchievements,
+  syncQuestProgress,
+} from "@/progression";
 import { getGameDefinition } from "@/registry/registry";
 import {
   evaluateQuests,
@@ -167,7 +172,10 @@ async function loadProfile(
   const profileSettings = profile?.settings ?? {};
   const inventory = readInventory(profileSettings);
 
-  const sessions = await db.sessions.listRecent(5000);
+  // Lightweight projection only: quest evaluation needs (gameId, xp,
+  // completedAt) — no JSON blobs. Full-row listRecent here was a per-focus
+  // scalability hazard on large histories.
+  const sessions = await db.sessions.listLightweight(5000);
   const samples: QuestSessionSample[] = sessions.map((session) => ({
     completedAt: session.completedAt,
     gameId: session.gameId,
@@ -199,9 +207,10 @@ async function loadProfile(
   }
 
   const today = localDateString(now);
-  const activityDates = sessions.map((session) =>
-    localDateString(new Date(session.completedAt)),
-  );
+  // Distinct LOCAL activity days straight from SQL (uncapped; the repository
+  // uses the 'localtime' modifier matching localDateString semantics).
+  // reconstructStreak dedupes internally, so distinct input is equivalent.
+  const activityDates = await db.sessions.getDistinctActivityDates();
   const coveredDates = readCoveredDates(profileSettings);
   const streakState = reconstructStreak(activityDates, today, coveredDates);
   const longestStreak = streakState.longest;
@@ -236,27 +245,10 @@ async function loadProfile(
     longestStreak,
   };
 
-  // Achievement progress bars: build the richer snapshot from history.
-  const domainSessions: Record<string, number> = {};
-  let perfectSessions = 0;
-  for (const session of sessions) {
-    const domain = getGameDefinition(session.gameId)?.primaryCategory;
-    if (domain) {
-      domainSessions[domain] = (domainSessions[domain] ?? 0) + 1;
-    }
-    if (session.normalizedResult >= 0.9) {
-      perfectSessions += 1;
-    }
-  }
-  const achievementSnapshot = {
-    sessionCount: sessions.length,
-    totalXp:
-      sessions.reduce((sum, s) => sum + s.xp, 0) +
-      (await db.xpAwards.getTotalAwardedXp()),
-    domainSessions,
-    longestStreak,
-    perfectSessions,
-  };
+  // Achievement progress bars: reuse the authoritative aggregation snapshot
+  // (uncapped SQL counts) instead of deriving ratios from the capped 5000-row
+  // session list — the two paths previously diverged on large histories.
+  const achievementSnapshot = await buildAchievementSnapshot(db, now);
   const achievementRatios = new Map<string, number>(
     ACHIEVEMENT_DEFINITIONS_V1.map((definition) => [
       definition.id,
@@ -309,11 +301,20 @@ export default function ProfileScreen() {
     setRefreshKey((key) => key + 1);
   }, []);
 
+  // In-flight guard per item kind: a fast double tap must not pass the
+  // canPurchase balance gate twice and double-charge (the repository also
+  // validates balance inside its transaction; this keeps the UX single-shot).
+  const buyInFlightRef = useRef<Set<StreakItemKind>>(new Set());
+
   const onBuyStreakItem = async (kind: StreakItemKind) => {
+    if (buyInFlightRef.current.has(kind)) {
+      return;
+    }
     const cost = ITEM_COSTS[kind];
     if (!canPurchase(data.balance, kind, data.profileSettings, new Date())) {
       return;
     }
+    buyInFlightRef.current.add(kind);
     try {
       await purchaseStreakItem(getDb(), {
         kind,
@@ -329,6 +330,8 @@ export default function ProfileScreen() {
       } else {
         console.error("[profile] streak item purchase failed", error);
       }
+    } finally {
+      buyInFlightRef.current.delete(kind);
     }
   };
 
@@ -463,6 +466,7 @@ export default function ProfileScreen() {
             type="caption"
             themeColor="warning"
             testID="profile-streak-at-risk"
+            accessibilityLiveRegion="polite"
           >
             Your streak is at risk — play today to keep it alive.
           </ThemedText>
@@ -502,6 +506,7 @@ export default function ProfileScreen() {
                     <Pressable
                       testID={`streak-apply-${item.kind}`}
                       accessibilityRole="button"
+                      accessibilityLabel={`Apply ${item.label}`}
                       onPress={() => onApplyStreakItem(item.kind)}
                     >
                       <ThemedView type="accentSoft" style={styles.buyPill}>
@@ -514,6 +519,7 @@ export default function ProfileScreen() {
                   <Pressable
                     testID={`streak-buy-${item.kind}`}
                     accessibilityRole="button"
+                    accessibilityLabel={`Buy ${item.label} for ${ITEM_COSTS[item.kind]} coins`}
                     disabled={
                       !canPurchase(
                         data.balance,
@@ -562,6 +568,7 @@ export default function ProfileScreen() {
               <Pressable
                 testID={`milestone-claim-${milestone.id}`}
                 accessibilityRole="button"
+                accessibilityLabel={`Claim ${milestone.label} reward`}
                 onPress={() => onClaimMilestone(milestone)}
               >
                 <ThemedView type="accentSoft" style={styles.buyPill}>
@@ -624,6 +631,7 @@ export default function ProfileScreen() {
                   <Pressable
                     testID={`quest-claim-${evaluation.questId}`}
                     accessibilityRole="button"
+                    accessibilityLabel={`Claim ${definition.title} reward`}
                     onPress={() => onClaimQuest(definition)}
                   >
                     <ThemedView type="accentSoft" style={styles.buyPill}>
@@ -677,6 +685,7 @@ export default function ProfileScreen() {
                 <Pressable
                   testID={`achievement-claim-${definition.id}`}
                   accessibilityRole="button"
+                  accessibilityLabel={`Claim ${definition.title} reward`}
                   onPress={() => onClaimAchievement(definition)}
                 >
                   <ThemedView type="accentSoft" style={styles.buyPill}>
@@ -693,7 +702,11 @@ export default function ProfileScreen() {
 
       {/* Cosmetics summary + link to the full Rewards hub. */}
       <Link href={"/rewards" as any} asChild>
-        <Pressable testID="profile-cosmetics">
+        <Pressable
+          testID="profile-cosmetics"
+          accessibilityRole="button"
+          accessibilityLabel="Cosmetics. Manage your cosmetics"
+        >
           <ThemedView type="surface" style={styles.card}>
             <ThemedText type="subtitle">Cosmetics</ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
@@ -706,7 +719,11 @@ export default function ProfileScreen() {
 
       {/* Data portability — export / import / wipe (Session 05). */}
       <Link href={"/data-management" as any} asChild>
-        <Pressable testID="profile-data-management">
+        <Pressable
+          testID="profile-data-management"
+          accessibilityRole="button"
+          accessibilityLabel="Data Management. Backup, restore, and delete your local training data"
+        >
           <ThemedView type="surface" style={styles.card}>
             <ThemedText type="subtitle">Data Management</ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
@@ -726,6 +743,8 @@ export default function ProfileScreen() {
               key={option.id}
               testID={`theme-option-${option.id}`}
               accessibilityRole="button"
+              accessibilityLabel={`Theme ${option.label}`}
+              accessibilityState={{ selected }}
               onPress={() => onSelectTheme(option)}
             >
               <ThemedView
@@ -811,6 +830,7 @@ const styles = StyleSheet.create({
   },
   buyPill: {
     alignSelf: "flex-start",
+    ...MinTouchTarget,
     borderRadius: Radii.pill,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,

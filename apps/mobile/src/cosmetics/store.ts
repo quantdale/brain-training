@@ -76,16 +76,25 @@ export async function purchaseCosmetic(
 /**
  * Equip an owned cosmetic. No-op (returns false) when the cosmetic is not
  * owned. Free and idempotent — equipping never touches currency.
+ *
+ * The ownership read, the settings transform, and the persist run inside one
+ * transaction: `db.profile.update` merges whole top-level keys, so a
+ * read-transform-write done OUTSIDE the transaction could interleave with a
+ * concurrent equip/purchase and silently drop its `cosmetics` block
+ * (last-writer-wins). Inside the transaction the fresh settings are read,
+ * transformed, and committed atomically.
  */
 export async function equipCosmeticPersisted(
   db: AppDatabase,
   def: CosmeticDef,
   progression: CosmeticProgression,
 ): Promise<boolean> {
-  const settings = (await db.profile.get())?.settings ?? {};
-  if (!isCosmeticOwned(def, progression, settings)) {
-    return false;
-  }
-  await db.profile.update({ settings: equipCosmetic(settings, def.slot, def.id) });
-  return true;
+  return db.transaction(async (txn) => {
+    const settings = (await db.profile.get(txn))?.settings ?? {};
+    if (!isCosmeticOwned(def, progression, settings)) {
+      return false;
+    }
+    await db.profile.update({ settings: equipCosmetic(settings, def.slot, def.id) }, txn);
+    return true;
+  });
 }

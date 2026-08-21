@@ -76,7 +76,14 @@ export function reconcileWorkout(
   return { instance: null, changed: true };
  }
 
- const oldIndex = instance.currentIndex;
+ // Clamp a corrupted persisted index into [0, length] before using it: a
+ // negative index would otherwise feed `slice(0, oldIndex)` its negative-
+ // from-the-end semantics and mis-place the resume point (Queue A: no crash /
+ // no silent mis-repair on drifted rows).
+ const oldIndex = Math.min(
+  Math.max(Math.trunc(instance.currentIndex), 0),
+  instance.gameIds.length,
+ );
  const oldCurrentId = instance.gameIds[oldIndex];
 
  let newIndex: number;

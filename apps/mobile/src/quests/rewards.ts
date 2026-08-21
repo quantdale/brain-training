@@ -15,7 +15,11 @@
  * ordering: the claim is the commit point and rewards are granted only after
  * it returns true. A crash between claim and award leaves a
  * claimed-but-unrewarded quest (never a double reward); the app wiring can
- * detect that via `claimedAt` vs `xp_awards`.
+ * detect that via `claimedAt` vs `xp_awards`. The ledger entry also carries a
+ * stable, PERIOD-SCOPED `operationId` (`quest:<id>:<period>`, unique by the
+ * schema's partial index) — quests recur every period, so the key must scope
+ * to the claimed period while still making a retried claim/import of the same
+ * period impossible to double-append.
  */
 import type { AppDatabase, LedgerEntry, QuestDefinition as DbQuestDefinition, XpAward } from '@/db';
 import type { QuestDefinition } from './types';
@@ -72,7 +76,13 @@ export async function applyQuestReward(
       txn,
     );
     const ledgerEntry = await db.ledger.append(
-      { amount: definition.reward.coins, reason: 'quest' },
+      {
+        amount: definition.reward.coins,
+        reason: 'quest',
+        // Period-scoped idempotency key: quests recur per period, so the key
+        // must distinguish periods while pinning one entry per claimed period.
+        operationId: `quest:${definition.id}:${periodKey}`,
+      },
       txn,
     );
     return { status: 'claimed', progress: row.progress, xpAward, ledgerEntry };

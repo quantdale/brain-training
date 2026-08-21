@@ -24,8 +24,12 @@ import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry 
 import { useDbData } from '@/hooks/use-db-data';
 import { getGameDefinition } from '@/registry/registry';
 
-/** How many rating-history entries (newest first) feed the per-domain trends. */
-const HISTORY_LIMIT = 20;
+/** How many rating-history entries (newest first) feed the per-domain trends.
+ *  Bounded well above the old value of 20 so 8-domain histories stay visible
+ *  for a while, while still never loading the whole append-only table. */
+const HISTORY_LIMIT = 120;
+/** How many entries per domain to render before collapsing into "+N earlier". */
+const PER_DOMAIN_SHOWN = 12;
 /** How many recent sessions to list. */
 const RECENT_LIMIT = 10;
 
@@ -169,9 +173,10 @@ export default function ProgressDetailScreen() {
 }
 
 /**
- * One domain's rating trend: name header + chronological entries (rating
- * after each movement, signed delta, date). `entries` arrive newest first
- * from the repo and are reversed for the chronological read.
+ * One domain's rating trend: name header (with the latest movement) +
+ * chronological entries (rating after each movement, signed delta, date).
+ * `entries` arrive newest first from the repo; only the newest
+ * `PER_DOMAIN_SHOWN` are rendered, with an "+N earlier" note when truncated.
  */
 function DomainHistory({
   domain,
@@ -181,10 +186,30 @@ function DomainHistory({
   entries: readonly RatingHistoryEntry[];
 }) {
   const slug = domain.replace(/[^a-z]/gi, '').toLowerCase();
+  const chronological = [...entries].reverse();
+  const hiddenCount = Math.max(0, chronological.length - PER_DOMAIN_SHOWN);
+  const shown = chronological.slice(-PER_DOMAIN_SHOWN);
+  const latest = entries[0];
   return (
     <View style={styles.rows} testID={`progress-detail-domain-${slug}`}>
-      <ThemedText type="smallBold">{domain}</ThemedText>
-      {[...entries].reverse().map((entry) => (
+      <View style={styles.row}>
+        <ThemedText type="smallBold">{domain}</ThemedText>
+        {latest ? (
+          <ThemedText
+            type="caption"
+            themeColor={latest.delta > 0 ? 'success' : latest.delta < 0 ? 'danger' : 'textSecondary'}
+            testID={`progress-detail-domain-latest-${slug}`}>
+            latest {latest.delta >= 0 ? '+' : ''}
+            {latest.delta}
+          </ThemedText>
+        ) : null}
+      </View>
+      {hiddenCount > 0 ? (
+        <ThemedText type="caption" themeColor="textSecondary">
+          +{hiddenCount} earlier update{hiddenCount === 1 ? '' : 's'} not shown.
+        </ThemedText>
+      ) : null}
+      {shown.map((entry) => (
         <View
           key={entry.id}
           style={styles.row}

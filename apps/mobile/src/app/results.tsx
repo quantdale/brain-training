@@ -9,9 +9,10 @@
  */
 
 import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { memo, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { MinTouchTarget } from '@/components/a11y';
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -73,6 +74,7 @@ export default function ResultsScreen() {
         testID="results-back"
         accessibilityRole="button"
         accessibilityLabel="Back"
+        style={MinTouchTarget}
         onPress={() => router.back()}>
         <ThemedText type="smallBold" themeColor="accent">
           ‹ Back
@@ -85,7 +87,14 @@ export default function ResultsScreen() {
 
       {session ? (
         <>
-          <ThemedView type="surface" style={styles.card} testID="results-summary">
+          {/* Live region: when the session loads (or the user switches between
+              recent sessions) screen readers announce the headline result
+              instead of silently re-rendering. */}
+          <ThemedView
+            type="surface"
+            style={styles.card}
+            testID="results-summary"
+            accessibilityLiveRegion="polite">
             <ThemedText type="headline" themeColor="accent" testID="results-score">
               {Math.round(session.normalizedResult * 100)}%
             </ThemedText>
@@ -113,7 +122,11 @@ export default function ResultsScreen() {
             </ThemedView>
           ) : nextGameId ? (
             <Link href={`/game/${nextGameId}`} asChild>
-              <Pressable testID="results-next-game" accessibilityRole="button" style={styles.nextGame}>
+              <Pressable
+                testID="results-next-game"
+                accessibilityRole="button"
+                accessibilityLabel={`Play the next game`}
+                style={[styles.nextGame, MinTouchTarget]}>
                 <ThemedText type="smallBold" themeColor="accent">
                   Next Game →
                 </ThemedText>
@@ -148,7 +161,9 @@ export default function ResultsScreen() {
                   <Pressable
                     testID={`results-session-${s.id}`}
                     accessibilityRole="button"
-                    style={[styles.row, s.id === session.id && styles.rowActive]}>
+                    accessibilityLabel={`${getGameDefinition(s.gameId)?.name ?? s.gameId} result from ${new Date(s.completedAt).toLocaleDateString()}, ${Math.round(s.normalizedResult * 100)} percent`}
+                    accessibilityState={{ selected: s.id === session.id }}
+                    style={[styles.row, MinTouchTarget, s.id === session.id && styles.rowActive]}>
                     <ThemedText type="small" themeColor="textSecondary">
                       {getGameDefinition(s.gameId)?.name ?? s.gameId} · {new Date(s.completedAt).toLocaleDateString()}
                     </ThemedText>
@@ -197,6 +212,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
   },
+  // Visual-only marker for the currently shown session; screen readers get the
+  // same information via accessibilityState.selected on each row.
   rowActive: {
     opacity: 0.6,
   },

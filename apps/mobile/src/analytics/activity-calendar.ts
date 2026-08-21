@@ -111,3 +111,21 @@ export function activityFrequencyBuckets(calendar: ActivityCalendar): { perDay: 
     .map(([perDay, days]) => ({ perDay, days }))
     .sort((a, b) => a.perDay - b.perDay);
 }
+
+/**
+ * Whole days since the most recent completed session (`0` = today), or `null`
+ * when there are no sessions at all. A staleness indicator derived only from
+ * stored completion timestamps.
+ */
+export function daysSinceLastSession(
+  sessions: readonly GameSessionRecord[],
+  nowMs: number,
+): number | null {
+  let last: number | null = null;
+  for (const session of sessions) {
+    if (last === null || session.completedAt > last) {
+      last = session.completedAt;
+    }
+  }
+  return last === null ? null : Math.floor((nowMs - last) / DAY_MS);
+}

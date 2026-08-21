@@ -2,10 +2,11 @@
  * Performance regression guard for the overall composite (task 08 / D).
  *
  * `computeComposite` is on the hot path for every Progress surface. The common
- * case is O(n) over `knownDomains`, but the fallback branch that folds in
- * ratings absent from `knownDomains` uses `knownDomains.includes(...)`
- * (O(n) per entry → O(n^2) worst case). This test pins the common-case cost
- * at scale and fails loudly if a change reintroduces quadratic behavior.
+ * case is O(n) over `knownDomains`; the fallback branch that folds in ratings
+ * absent from `knownDomains` uses a prebuilt Set membership check (O(1) per
+ * entry, campaign 009 W07) so the whole computation stays linear. This test
+ * pins the cost at scale and fails loudly if a change reintroduces quadratic
+ * behavior.
  */
 import { describe, expect, it } from "@jest/globals";
 
