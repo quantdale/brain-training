@@ -10,7 +10,7 @@
  * The demo is remounted with a new `key` on every replay attempt, which
  * resets its internal state without any setState-in-effect cascades.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
@@ -118,6 +118,17 @@ function DemoTrial({ attempt, onWrong, onDone, onSkip }: DemoTrialProps) {
   const trial = trials[trialIndex];
   const isCorrect = selectedColor === trial.swatchColor;
 
+  // Track the pending advance timer so it cannot fire after unmount (e.g. the
+  // user quits the tutorial mid-demo) and setState on a dead component.
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (advanceTimerRef.current !== null) {
+        clearTimeout(advanceTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleTapColor = (color: ColorName) => {
     if (completed) return;
     setSelectedColor(color);
@@ -128,7 +139,8 @@ function DemoTrial({ attempt, onWrong, onDone, onSkip }: DemoTrialProps) {
       if (trialIndex + 1 >= DEMO_TRIALS) {
         onDone();
       } else {
-        setTimeout(() => {
+        advanceTimerRef.current = setTimeout(() => {
+          advanceTimerRef.current = null;
           setTrialIndex((index) => index + 1);
           setSelectedColor(null);
           setCompleted(false);

@@ -13,7 +13,7 @@ describe("loadContentPack", () => {
   it("loads and validates the bundled pack (memoized)", () => {
     const pack = loadContentPack();
     expect(pack.packId).toBe("language-word-chain-core-v1");
-    expect(pack.packVersion).toBe("1.0.0");
+    expect(pack.packVersion).toBe("1.1.0");
     expect(pack.chainCount).toBe(pack.chains.length);
     expect(loadContentPack()).toBe(pack); // memoized
   });

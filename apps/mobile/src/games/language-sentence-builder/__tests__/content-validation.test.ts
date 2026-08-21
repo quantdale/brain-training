@@ -84,3 +84,81 @@ describe("bundled sentence bank validation", () => {
     expect(() => validateSentenceBank(bank)).toThrow(/has no sentences/);
   });
 });
+
+describe("alternative word-order validation", () => {
+  const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS);
+
+  /** Build an 8-token filler sentence with a unique text and a rotating category. */
+  function filler(i: number): { text: string; category: string; wordCount: number } {
+    return {
+      text: `Filler sentence number ${i} walks home today now`,
+      category: ALL_CATEGORIES[i % ALL_CATEGORIES.length],
+      wordCount: 8,
+    };
+  }
+
+  function bankWithFirst(entry: Record<string, unknown>): unknown[] {
+    const rest = Array.from({ length: MIN_SENTENCE_BANK_SIZE - 1 }, (_, i) => filler(i + 1));
+    return [{ category: "conditional", ...entry }, ...rest];
+  }
+
+  it("accepts alternatives that are exact word-permutations of the original", () => {
+    const bank = bankWithFirst({
+      text: "If she finishes early she might join us",
+      wordCount: 8,
+      alternatives: ["She might join us if she finishes early"],
+    });
+    expect(() => validateSentenceBank(bank)).not.toThrow();
+  });
+
+  it("rejects an alternative that is not a word-permutation", () => {
+    const bank = bankWithFirst({
+      text: "If she finishes early she might join us",
+      wordCount: 8,
+      alternatives: ["She might join us if she finishes early today"],
+    });
+    expect(() => validateSentenceBank(bank)).toThrow(/not a word-permutation/);
+  });
+
+  it("rejects an alternative identical to the original", () => {
+    const bank = bankWithFirst({
+      text: "If she finishes early she might join us",
+      wordCount: 8,
+      alternatives: ["if SHE finishes early she might join us"],
+    });
+    expect(() => validateSentenceBank(bank)).toThrow(/duplicates the original/);
+  });
+
+  it("rejects duplicate alternatives within one sentence", () => {
+    const bank = bankWithFirst({
+      text: "If she finishes early she might join us",
+      wordCount: 8,
+      alternatives: [
+        "She might join us if she finishes early",
+        "She might join us if she finishes early",
+      ],
+    });
+    expect(() => validateSentenceBank(bank)).toThrow(/duplicate alternative/);
+  });
+
+  it("rejects a non-array alternatives field", () => {
+    const bank = bankWithFirst({
+      text: "If she finishes early she might join us",
+      wordCount: 8,
+      alternatives: "She might join us if she finishes early",
+    });
+    expect(() => validateSentenceBank(bank)).toThrow(/must be an array/);
+  });
+
+  it("bundled bank declares clause-swap alternatives for ambiguous sentences", () => {
+    const withAlts = SENTENCE_BANK.filter((s) => s.alternatives !== undefined && s.alternatives.length > 0);
+    // The conditional category alone contributes 14; pin a floor so the
+    // ambiguity fix cannot silently regress to an empty annotation set.
+    expect(withAlts.length).toBeGreaterThanOrEqual(30);
+    for (const s of withAlts) {
+      for (const alt of s.alternatives ?? []) {
+        expect(alt.split(/\s+/).length).toBe(s.wordCount);
+      }
+    }
+  });
+});

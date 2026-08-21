@@ -35,6 +35,7 @@ function buildRaw(overrides: Partial<Parameters<typeof buildColorStroopRawResult
     challengeRating: 0.5,
     seed: '42',
     stats: STATS,
+    totalFlips: 3,
     forced: false,
     startedAtMs: 1_000,
     activeDurationMs: 45_000,
@@ -96,6 +97,7 @@ describe('buildColorStroopRawResult', () => {
     expect(raw.correctTrials).toBe(10);
     expect(raw.bestStreak).toBe(5);
     expect(raw.postFlipCorrect).toBe(3);
+    expect(raw.totalFlips).toBe(3);
     expect(raw.avgResponseTimeMs).toBe(800);
   });
 });

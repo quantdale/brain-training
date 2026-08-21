@@ -108,6 +108,7 @@ function drawCandidate(
   params: WordChainDifficultyParams,
   usedChainIds: ReadonlySet<string>,
   previousRound: WordChainRound | null,
+  allowNearDuplicate = false,
 ): WordChainRound {
   const fork = rng.fork(`round:${roundIndex}:attempt:${attempt}`);
   const eligible = pool.filter((chain) => !usedChainIds.has(chain.id));
@@ -115,7 +116,11 @@ function drawCandidate(
   const source = eligible.length > 0 ? eligible : pool;
   const chain = fork.pick(source);
 
-  if (previousRound !== null && previousRound.chainId === chain.id) {
+  if (
+    !allowNearDuplicate &&
+    previousRound !== null &&
+    previousRound.chainId === chain.id
+  ) {
     // Near-duplicate: signal the caller to re-draw with the next attempt.
     throw new NearDuplicateError();
   }
@@ -201,7 +206,9 @@ export function generateRound(input: GenerateRoundInput): WordChainRound {
       throw error;
     }
   }
-  // Extremely unlikely fallback: deterministically accept a near-duplicate.
+  // Extremely unlikely fallback: deterministically accept a near-duplicate
+  // (same fork salt as the last failed attempt, but the duplicate check is
+  // suppressed so a degenerate single-chain pool can never crash generation).
   return drawCandidate(
     rng,
     roundIndex,
@@ -211,6 +218,7 @@ export function generateRound(input: GenerateRoundInput): WordChainRound {
     params,
     usedChainIds,
     previousRound,
+    true,
   );
 }
 

@@ -114,6 +114,73 @@ describe('tap-word', () => {
   });
 });
 
+describe('tap-word with alternative word orders', () => {
+  const TEXT = 'If she finishes early she might join us';
+  const ALT = 'She might join us if she finishes early';
+
+  /** Hand-built round for the conditional sentence above (8 words). */
+  function stateForSentence(): SentenceBuilderState {
+    const state = startSession('alt-order');
+    const words = TEXT.split(' ');
+    // Deterministic non-identity scramble: reverse order.
+    const scrambleOrder = words.map((_, i) => words.length - 1 - i);
+    return {
+      ...state,
+      scrambled: {
+        original: words,
+        scrambleOrder,
+        scrambled: scrambleOrder.map((i) => words[i]),
+        category: 'conditional',
+        acceptedOrders: [words, ALT.split(' ')],
+      },
+    };
+  }
+
+  function tapSequence(state: SentenceBuilderState, sentence: string): SentenceBuilderState {
+    let current = state;
+    for (const word of sentence.split(' ')) {
+      if (current.phase !== 'puzzle') break;
+      const idx = current.scrambled!.scrambled.findIndex(
+        (w) => w.toLowerCase() === word.toLowerCase(),
+      );
+      current = sentenceBuilderReducer(current, { type: 'tap-word', index: idx });
+    }
+    return current;
+  }
+
+  it('accepts a full clause-swapped reconstruction as a perfect round', () => {
+    const solved = tapSequence(stateForSentence(), ALT);
+    expect(solved.phase).toBe('roundResult');
+    expect(solved.roundOutcome).toBe('passed');
+    expect(solved.stats.roundsPassed).toBe(1);
+    // Perfect score: 100 base + 10 × 8 words.
+    expect(solved.stats.score).toBe(180);
+  });
+
+  it('still accepts the canonical order', () => {
+    const solved = tapSequence(stateForSentence(), TEXT);
+    expect(solved.roundOutcome).toBe('passed');
+    expect(solved.stats.score).toBe(180);
+  });
+
+  it('does not fail mid-round when the player starts the alternative clause', () => {
+    let state = stateForSentence();
+    // First alt word is "she", which does NOT start the canonical order.
+    const idx = state.scrambled!.scrambled.findIndex((w) => w.toLowerCase() === 'she');
+    state = sentenceBuilderReducer(state, { type: 'tap-word', index: idx });
+    expect(state.phase).toBe('puzzle');
+    expect(state.inputIndex).toBe(1);
+  });
+
+  it('rejects a hybrid sequence that matches no accepted order', () => {
+    // "she might join us she might join us" — valid prefix of the alternative
+    // then diverges; must not be scored as a pass.
+    const solved = tapSequence(stateForSentence(), 'She might join us She might join us');
+    expect(solved.roundOutcome).toBe('failed');
+    expect(solved.stats.roundsPassed).toBe(0);
+  });
+});
+
 describe('timer-expired', () => {
   it('fails the current round', () => {
     let state = startSession('timer');

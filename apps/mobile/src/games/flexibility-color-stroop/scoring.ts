@@ -76,7 +76,10 @@ export function normalizeColorStroopResult(
 ): NormalizedPerformance {
   const accuracy = accuracyOf(raw.correctTrials, raw.trialsPlayed);
   const speed = speedBonus(raw.avgResponseTimeMs);
-  const flips = flipBonusFactor(raw.postFlipCorrect, Math.floor(raw.totalTrials / 4));
+  // The flip denominator is the session's ACTUAL number of rule-flip trials.
+  // Records persisted before `totalFlips` existed fall back to the legacy
+  // floor(totalTrials / 4) estimate.
+  const flips = flipBonusFactor(raw.postFlipCorrect, raw.totalFlips ?? Math.floor(raw.totalTrials / 4));
   const value = clamp01(accuracy * (0.4 + 0.3 * speed + 0.3 * flips));
   return { value, scale: '0..1', raw: { ...raw } };
 }

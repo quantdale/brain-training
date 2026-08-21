@@ -19,7 +19,7 @@ import {
   paramsFromProfile,
   resolveSentenceBuilderDifficulty,
 } from "./difficulty";
-import { computeRoundScore } from "./scoring";
+import { bestPositionAccuracy, computeRoundScoreForOrders, sameWord } from "./scoring";
 import { GAME_ID, INITIAL_STATS, createInitialState } from "./types";
 import type {
   SentenceBuilderAction,
@@ -122,9 +122,18 @@ export function sentenceBuilderReducer(
 
       // Check if the tapped scrambled index matches the expected original word.
       const tappedScrambledIndex = action.index;
-      const expectedOriginalWord = scrambled.original[expectedIndex];
       const tappedWord = scrambled.scrambled[tappedScrambledIndex];
-      const correct = tappedWord === expectedOriginalWord;
+
+      // Surviving candidates: accepted orders (canonical + curated clause-swap
+      // alternatives) still consistent with every tap made so far.
+      const liveCandidates = scrambled.acceptedOrders.filter((order) =>
+        state.taps.every((tapIdx, pos) => sameWord(order[pos], scrambled.scrambled[tapIdx])),
+      );
+      // The tap is correct when at least one surviving candidate expects this
+      // word here. Final scoring (below) judges the completed sequence against
+      // the best-matching full order, so mid-round leniency cannot award a
+      // perfect score to a hybrid sequence that matches no accepted order.
+      const correct = liveCandidates.some((order) => sameWord(order[expectedIndex], tappedWord));
 
       const newTaps = [...state.taps, tappedScrambledIndex];
       const nextInputIndex = state.inputIndex + 1;
@@ -145,15 +154,11 @@ export function sentenceBuilderReducer(
 
       // Round complete (either all correct or wrong).
       const playerOrder = newTaps.map((i) => scrambled.scrambled[i]);
-      const { points, passed } = computeRoundScore(
-        scrambled.original,
+      const { points, passed } = computeRoundScoreForOrders(
+        scrambled.acceptedOrders,
         playerOrder,
       );
-      const accuracy =
-        playerOrder.length > 0
-          ? playerOrder.filter((w, i) => w === scrambled.original[i]).length /
-            scrambled.original.length
-          : 0;
+      const accuracy = bestPositionAccuracy(scrambled.acceptedOrders, playerOrder);
       const wordCount = scrambled.original.length;
       const stats = advanceStats(
         state.stats,

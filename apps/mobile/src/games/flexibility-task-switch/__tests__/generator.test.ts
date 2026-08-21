@@ -181,4 +181,17 @@ describe('validatePlan', () => {
     );
     expect(validatePlan(tampered).join(' ')).toMatch(new RegExp(`round ${firstSwitch}`));
   });
+
+  it('does not reuse the identical token on every round of a session', () => {
+    // Regression: pickToken forked constant salts ("token:color", …), and
+    // Rng.fork(salt) derives the child stream from the parent seed string
+    // alone — so every round of a session showed the exact same token.
+    for (const seed of ['tok-a', 'tok-b', 'tok-c']) {
+      const plan = generateSession(seed, paramsWith({ rounds: 10 }));
+      const distinctTokens = new Set(
+        plan.map((r) => `${r.token.number}:${r.token.color}:${r.token.shape}`),
+      );
+      expect(distinctTokens.size).toBeGreaterThan(1);
+    }
+  });
 });

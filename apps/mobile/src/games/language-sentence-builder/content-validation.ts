@@ -12,6 +12,9 @@
  *   - every used category is a declared `CATEGORY_LABELS` key (no typos /
  *     orphan categories);
  *   - no two sentences normalize to the same text (duplicate normalized form);
+ *   - declared `alternatives` are non-empty, distinct from the original and
+ *     from each other, and exact word-permutations of the original (same
+ *     token multiset) — so accepting them can never change the answer words;
  *   - all ten declared categories are represented in the bank.
  */
 import {
@@ -33,6 +36,20 @@ export const MIN_SENTENCE_BANK_SIZE = 80;
 
 function normalizeText(text: string): string {
   return text.replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+/** Lowercase, punctuation-stripped word tokens (same rule as generator.ts). */
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/** Sorted token multiset of a sentence, joined for cheap equality checks. */
+function tokenMultiset(text: string): string {
+  return tokenize(text).sort().join(" ");
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -58,6 +75,7 @@ export function validateSentenceBank(
   const labels = new Set(Object.keys(CATEGORY_LABELS));
   const perCategory = new Map<string, number>();
   const seen = new Set<string>();
+  const validated: CuratedSentence[] = [];
 
   json.forEach((entry, index) => {
     if (!isPlainObject(entry)) {
@@ -96,7 +114,51 @@ export function validateSentenceBank(
       throw new SentenceBankError(`duplicate normalized sentence "${norm}"`);
     }
     seen.add(norm);
+
+    // Validate declared alternative word orders (clause-swap ambiguity fix):
+    // each must be a distinct, exact permutation of the original's words.
+    let alternatives: readonly string[] | undefined;
+    const rawAlternatives = entry.alternatives;
+    if (rawAlternatives !== undefined) {
+      if (!Array.isArray(rawAlternatives)) {
+        throw new SentenceBankError(`${where}.alternatives must be an array of sentences`);
+      }
+      const originalMultiset = tokenMultiset(trimmed);
+      const altNorms = new Set<string>();
+      const cleaned: string[] = [];
+      for (const [altIndex, rawAlt] of rawAlternatives.entries()) {
+        const altWhere = `${where}.alternatives[${altIndex}]`;
+        if (typeof rawAlt !== "string" || rawAlt.trim().length === 0) {
+          throw new SentenceBankError(`${altWhere} must be a non-empty string`);
+        }
+        const alt = rawAlt.trim();
+        const altNorm = normalizeText(alt);
+        if (altNorm === norm) {
+          throw new SentenceBankError(`${altWhere} duplicates the original sentence`);
+        }
+        if (altNorms.has(altNorm)) {
+          throw new SentenceBankError(`${altWhere} is a duplicate alternative "${alt}"`);
+        }
+        altNorms.add(altNorm);
+        if (tokenMultiset(alt) !== originalMultiset) {
+          throw new SentenceBankError(
+            `${altWhere} "${alt}" is not a word-permutation of "${trimmed}"`,
+          );
+        }
+        cleaned.push(alt);
+      }
+      alternatives = Object.freeze(cleaned);
+    }
+
     perCategory.set(rawCategory, (perCategory.get(rawCategory) ?? 0) + 1);
+    validated.push(
+      Object.freeze({
+        text: trimmed,
+        category: rawCategory,
+        wordCount: rawWordCount,
+        ...(alternatives !== undefined ? { alternatives } : {}),
+      }) as CuratedSentence,
+    );
   });
 
   // Every declared category must be represented.
@@ -108,7 +170,7 @@ export function validateSentenceBank(
     }
   }
 
-  return Object.freeze(json as CuratedSentence[]);
+  return Object.freeze(validated);
 }
 
 let cached: readonly CuratedSentence[] | null = null;

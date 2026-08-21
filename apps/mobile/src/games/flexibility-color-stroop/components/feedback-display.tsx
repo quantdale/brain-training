@@ -11,6 +11,8 @@ interface FeedbackDisplayProps {
   correct: boolean;
   correctAnswer: string;
   responseTimeMs: number;
+  /** True when the round ended by stimulus timeout (no answer was given). */
+  timedOut?: boolean;
   testID?: string;
 }
 
@@ -18,6 +20,7 @@ export function FeedbackDisplay({
   correct,
   correctAnswer,
   responseTimeMs,
+  timedOut = false,
   testID,
 }: FeedbackDisplayProps) {
   const theme = useTheme();
@@ -27,7 +30,7 @@ export function FeedbackDisplay({
       style={[styles.container, { backgroundColor: correct ? theme.success : theme.danger }]}
       testID={testID}>
       <ThemedText type="headline" style={styles.text}>
-        {correct ? 'Correct!' : 'Wrong!'}
+        {correct ? 'Correct!' : timedOut ? "Time's up!" : 'Wrong!'}
       </ThemedText>
       {!correct && (
         <ThemedText type="bodyLarge" style={styles.answer}>

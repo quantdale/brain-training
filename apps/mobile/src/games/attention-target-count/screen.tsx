@@ -10,9 +10,10 @@
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer and the per-round
- * countdown; resuming restarts the round clock from the same position. The
- * board is covered by the opaque `PauseOverlay` and hidden from the
- * accessibility tree while paused.
+ * countdown; resuming continues the remaining round window (freeze-and-continue,
+ * so pausing can never stretch the window or reset elapsed time). The board is
+ * covered by the opaque `PauseOverlay` and hidden from the accessibility tree
+ * while paused.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { AppState, StyleSheet, View } from 'react-native';
@@ -65,6 +66,9 @@ export interface TargetCountScreenProps {
   xpHook?: XpRatingHook;
 }
 
+/** Countdown accumulator step (ms); also bounds the pause-freeze drift. */
+const ROUND_TICK_MS = 100;
+
 /** Random per-session seed — the seed is input, not generator content. */
 function randomSeed(): string {
   return String(Math.floor(Math.random() * 0xffffffff));
@@ -88,7 +92,11 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
   const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
   const finalizedRef = useRef(false);
-  const roundStartedAtRef = useRef<number>(0);
+  // Accumulated ACTIVE (non-paused) time in the current round; reset when a new
+  // round begins so pause/resume freezes and continues the remaining window
+  // instead of restarting it (and the speed bonus stays honest).
+  const roundElapsedRef = useRef(0);
+  const roundElapsedRoundRef = useRef(-1);
 
   // Keep a ref of the latest state for event handlers (AppState, timers).
   useEffect(() => {
@@ -111,23 +119,40 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
     }
   }, [tutorial]);
 
-  // ---- Per-round countdown. Resets the round clock whenever we enter a fresh
-  // grid, and respects pause (the effect re-runs on `paused`, clearing the
-  // pending timeout and stopping the clock until resume).
+  // ---- Reset the per-round elapsed baseline when a fresh grid begins.
+  useEffect(() => {
+    if (state.phase === 'showGrid' && roundElapsedRoundRef.current !== state.roundIndex) {
+      roundElapsedRoundRef.current = state.roundIndex;
+      roundElapsedRef.current = 0;
+    }
+  }, [state.phase, state.roundIndex]);
+
+  // ---- Per-round countdown with freeze-and-continue: a window of
+  // `roundTimeMs` of ACTIVE (non-paused) time, accumulated in ROUND_TICK_MS
+  // steps. While paused, the interval is cleared so no time accrues; on resume
+  // it continues from where it left off, so pausing can never stretch the
+  // window or reset the elapsed time the speed bonus is computed from (mirrors
+  // memory's study-tick freeze semantics).
   useEffect(() => {
     if (state.phase !== 'showGrid' || state.paused) {
-      return;
+      return undefined;
     }
-    roundStartedAtRef.current = clock.now();
-    const timeout = setTimeout(() => {
-      dispatch({
-        type: 'answer',
-        selectedCount: null,
-        elapsedMs: clock.now() - roundStartedAtRef.current,
-      });
-    }, roundTimeMs);
-    return () => clearTimeout(timeout);
-  }, [state.phase, state.roundIndex, state.paused, roundTimeMs, clock, dispatch]);
+    const interval = setInterval(() => {
+      roundElapsedRef.current = Math.min(
+        roundTimeMs,
+        roundElapsedRef.current + ROUND_TICK_MS,
+      );
+      if (roundElapsedRef.current >= roundTimeMs) {
+        clearInterval(interval);
+        dispatch({
+          type: 'answer',
+          selectedCount: null,
+          elapsedMs: roundElapsedRef.current,
+        });
+      }
+    }, ROUND_TICK_MS);
+    return () => clearInterval(interval);
+  }, [state.phase, state.paused, roundTimeMs, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -280,15 +305,25 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
       if (current.phase !== 'showGrid' || current.paused) {
         return;
       }
-      liveAudioHaptics.playSfx('memory-tile-correct');
-      liveAudioHaptics.haptic('light');
+      // Feedback must match the answer actually given: a wrong pick plays the
+      // wrong sound, not the correct one.
+      const correct =
+        current.currentRound !== null &&
+        selectedCount === current.currentRound.targetCount;
+      if (correct) {
+        liveAudioHaptics.playSfx('memory-tile-correct');
+        liveAudioHaptics.haptic('light');
+      } else {
+        liveAudioHaptics.playSfx('memory-tile-wrong');
+        liveAudioHaptics.haptic('warning');
+      }
       dispatch({
         type: 'answer',
         selectedCount,
-        elapsedMs: clock.now() - roundStartedAtRef.current,
+        elapsedMs: roundElapsedRef.current,
       });
     },
-    [clock, dispatch],
+    [dispatch],
   );
 
   const handleStart = useCallback(() => {

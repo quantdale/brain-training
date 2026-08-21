@@ -150,7 +150,17 @@ export function countSolutions(round: LogicDeductionRound, cap = 2): number {
   return total;
 }
 
-/** The set of distinct answers to `question` across consistent assignments. */
+/**
+ * The set of distinct answers to `question` across ALL consistent assignments
+ * of the questioned attribute. Enumeration is exhaustive (at most `n!` <= 120
+ * permutations) with a sound early exit: once two different answers are seen,
+ * the answer set cannot shrink back to one.
+ *
+ * NOTE: this must scan every consistent permutation. A capped scan (e.g. the
+ * first two permutations) can falsely report uniqueness when the first two
+ * happen to agree on the questioned entity while a later permutation differs
+ * — regressed in campaign 009 with concrete counterexamples.
+ */
 export function answerSet(
   round: LogicDeductionRound,
   question: Question,
@@ -158,7 +168,7 @@ export function answerSet(
   const attr = attributeById(round, question.attribute);
   const ei = entityIndex(round, question.entity);
   const set = new Set<string>();
-  for (const perm of solveAttribute(round, attr, 2)) {
+  for (const perm of solveAttribute(round, attr, Number.POSITIVE_INFINITY)) {
     set.add(perm[ei]);
     if (set.size > 1) {
       break;

@@ -70,6 +70,13 @@ export interface CuratedSentence {
   readonly category: string;
   /** Pre-computed word count. */
   readonly wordCount: number;
+  /**
+   * Alternative word orders that are equally valid reconstructions of this
+   * sentence (e.g. "She might join us if she finishes early" /
+   * "If she finishes early she might join us"). Each entry must be a
+   * permutation of the original's words; enforced by content validation.
+   */
+  readonly alternatives?: readonly string[];
 }
 
 /** Scramble result: words in shuffled order with the mapping back. */
@@ -82,6 +89,11 @@ export interface ScrambledSentence {
   readonly scrambled: readonly string[];
   /** Category label for the hint. */
   readonly category: string;
+  /**
+   * Every accepted token order for this round: the original plus each curated
+   * alternative. The reducer accepts a tap sequence that matches any of them.
+   */
+  readonly acceptedOrders: readonly (readonly string[])[];
 }
 
 /**

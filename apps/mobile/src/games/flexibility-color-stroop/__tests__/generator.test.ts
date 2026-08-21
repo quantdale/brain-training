@@ -96,4 +96,30 @@ describe('generateTrials', () => {
       }
     }
   });
+
+  it('never schedules a neutral trial under the word rule', () => {
+    // Regression: neutral words ("TABLE", …) name no color, so a 'word'-rule
+    // trial with a neutral word was unanswerable. Neutrals must only occupy
+    // 'ink'-rule slots.
+    for (const level of ['easy', 'normal', 'hard', 'expert'] as const) {
+      for (let seed = 1; seed <= 25; seed += 1) {
+        const trials = fullSession(`neutral-rule-${level}-${seed}`, level);
+        for (const trial of trials) {
+          if (trial.trialType === 'neutral') {
+            expect(trial.rule).toBe('ink');
+          }
+        }
+      }
+    }
+  });
+
+  it('still produces neutral trials at all', () => {
+    // Guard the previous fix against overcorrection: neutrals must remain in
+    // the mix (they only move to ink-rule slots).
+    let seen = 0;
+    for (let seed = 1; seed <= 20; seed += 1) {
+      seen += fullSession(String(seed), 'normal').filter((t) => t.trialType === 'neutral').length;
+    }
+    expect(seen).toBeGreaterThan(0);
+  });
 });

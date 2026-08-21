@@ -302,15 +302,27 @@ interface BlockSpec {
   readonly length: number;
 }
 
-/** Choose a block length in [blockMin, blockMax], capped by `remaining` rounds. */
-function chooseBlockLength(rng: Rng, params: FlexibilityRuleFlipDifficultyParams, remaining: number): number {
+/**
+ * Choose a block length in [blockMin, blockMax], capped by `remaining` rounds.
+ *
+ * The fork salt MUST be scoped by `blockIndex`: `Rng.fork(salt)` derives the
+ * child stream from the parent's canonical seed string alone (parent
+ * consumption does not advance it), so a constant salt would give every block
+ * of a session the identical length.
+ */
+function chooseBlockLength(
+  rng: Rng,
+  blockIndex: number,
+  params: FlexibilityRuleFlipDifficultyParams,
+  remaining: number,
+): number {
   const max = Math.max(1, Math.min(params.blockMax, remaining));
   const min = Math.max(1, Math.min(params.blockMin, max));
   if (max <= min) {
     return max;
   }
   // rng.nextInt is exclusive on the upper bound.
-  return min + rng.fork('block-len').nextInt(max - min + 1);
+  return min + rng.fork(`block-len:${blockIndex}`).nextInt(max - min + 1);
 }
 
 /** Decide the full block structure (rules + lengths) deterministically. */
@@ -325,7 +337,7 @@ function planBlocks(rng: Rng, params: FlexibilityRuleFlipDifficultyParams): Bloc
       prevRule === null
         ? pickInitialRule(rng, params.rulesPool)
         : nextBlockRule(rng, prevRule, params.flipRate, params.rulesPool);
-    const length = chooseBlockLength(rng, params, remaining);
+    const length = chooseBlockLength(rng, blocks.length, params, remaining);
     blocks.push({ rule, length });
     totalTrials += length;
     prevRule = rule;

@@ -35,15 +35,19 @@ export {
 export type { GenerateRoundInput, GenerateRoundResult } from './generator';
 export {
   MAX_SCRAMBLE_ATTEMPTS,
+  acceptedOrdersOf,
   categoryDistance,
   generateRound,
+  sameWordOrder,
   scrambleWords,
 } from './generator';
 export {
   accuracyOf,
   avgWordLengthFactor,
+  bestPositionAccuracy,
   clamp01,
   computeRoundScore,
+  computeRoundScoreForOrders,
   normalizeSentenceBuilderResult,
   partialRoundScore,
   perfectRoundScore,

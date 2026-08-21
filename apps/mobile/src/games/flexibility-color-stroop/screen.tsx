@@ -82,6 +82,9 @@ function newSessionId(): string {
   return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** How long the rule-flip banner stays up before the next stimulus appears. */
+const FLIP_CUE_MS = 1500;
+
 export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   const {
     clock = systemClock,
@@ -102,10 +105,20 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   const stateRef = useRef(state);
   const finalizedRef = useRef(false);
   const stimulusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Monotonic-clock time the current stimulus was shown (response origin). */
+  const trialStartRef = useRef(0);
+  const pauseStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
   });
+
+  // Mark the response origin each time a fresh stimulus is shown.
+  useEffect(() => {
+    if (state.phase === "stimulus" && !state.paused) {
+      trialStartRef.current = clock.now();
+    }
+  }, [state.phase, state.trialIndex, clock]);
 
   const tutorial = useMemo(
     () => createColorStroopTutorialLifecycle(tutorialStore),
@@ -126,14 +139,15 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     state.phase === "flipCue" ||
     state.phase === "roundResult";
 
-  // ---- Stimulus auto-advance: if the player doesn't respond in time, treat as wrong.
+  // ---- Stimulus auto-advance: an unanswered trial counts as wrong, then the
+  // session continues with the next trial (a slow trial must never end the
+  // whole session).
   useEffect(() => {
     if (state.phase !== "stimulus" || state.paused) {
       return;
     }
     const timer = setTimeout(() => {
-      // Auto-advance with a wrong answer (timeout).
-      dispatch({ type: "session-timeout" });
+      dispatch({ type: "trial-timeout", responseTimeMs: stimulusMs });
     }, stimulusMs);
     stimulusTimerRef.current = timer;
     return () => {
@@ -142,6 +156,19 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       }
     };
   }, [state.phase, state.paused, state.trialIndex, stimulusMs, dispatch]);
+
+  // ---- Flip-cue auto-advance: the rule-change banner shows briefly, then the
+  // next stimulus appears. Without this the flipCue phase has no continue
+  // affordance and the session would dead-end mid-run.
+  useEffect(() => {
+    if (state.phase !== "flipCue" || state.paused) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      dispatch({ type: "dismiss-flip-cue" });
+    }, FLIP_CUE_MS);
+    return () => clearTimeout(timer);
+  }, [state.phase, state.paused, dispatch]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -191,6 +218,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       challengeRating,
       seed: state.seed,
       stats: state.stats,
+      totalFlips: state.trials.filter((trial) => trial.isFlipPoint).length,
       forced: state.forced,
       startedAtMs: state.startedAtMs,
       activeDurationMs,
@@ -251,6 +279,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     state.startedAtMs,
     state.seed,
     state.stats,
+    state.trials,
     state.forced,
     state.difficulty,
     xpHook,
@@ -278,14 +307,21 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     if (!inSession || current.paused) {
       return;
     }
+    // Freeze the response clock so paused time never counts against RT.
+    pauseStartRef.current = clock.now();
     lifecycleRef.current?.pause();
     dispatch({ type: "pause" });
-  }, [dispatch, inSession]);
+  }, [clock, dispatch, inSession]);
 
   const resumeSession = useCallback(() => {
+    // Compensate the response clock for the paused span.
+    if (pauseStartRef.current !== null) {
+      trialStartRef.current += clock.now() - pauseStartRef.current;
+      pauseStartRef.current = null;
+    }
     lifecycleRef.current?.resume();
     dispatch({ type: "resume" });
-  }, [dispatch]);
+  }, [clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     const lifecycle = lifecycleRef.current;
@@ -304,12 +340,9 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       if (current.phase !== "stimulus" || current.paused) {
         return;
       }
-      // Calculate response time from stimulus start.
-      const responseTimeMs =
-        current.startedAtMs !== null ? Date.now() - current.startedAtMs : 500;
-      // Use a simpler approach: fixed response time estimate.
-      // The real timing would use a stimulus start timestamp.
-      const estimatedResponseMs = 800 + Math.random() * 400;
+      // Real response time against the monotonic clock, measured from the
+      // moment the stimulus was shown (pause-compensated).
+      const responseTimeMs = Math.max(0, clock.now() - trialStartRef.current);
 
       const trial = current.trials[current.trialIndex];
       if (answer === trial.correctAnswer) {
@@ -322,10 +355,10 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       dispatch({
         type: "submit-answer",
         answer,
-        responseTimeMs: estimatedResponseMs,
+        responseTimeMs,
       });
     },
-    [dispatch],
+    [clock, dispatch],
   );
 
   const handleStart = useCallback(() => {
@@ -472,12 +505,13 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
               </>
             )}
 
-            {state.phase === "feedback" && state.currentAnswer !== null && (
+            {state.phase === "feedback" && (
               <>
                 <FeedbackDisplay
                   correct={state.currentCorrect ?? false}
                   correctAnswer={currentTrial.correctAnswer}
                   responseTimeMs={state.currentResponseTimeMs ?? 0}
+                  timedOut={state.currentAnswer === null}
                   testID={testId(GAME_ID, "feedback")}
                 />
                 <GameButton

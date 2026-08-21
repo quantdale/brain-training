@@ -1,7 +1,7 @@
 {
   "packId": "language-word-chain-core-v1",
-  "packVersion": "1.0.0",
-  "chainCount": 18,
+  "packVersion": "1.1.0",
+  "chainCount": 21,
   "decoyPool": [
     "apple", "brick", "cloud", "dream", "flame", "ghost", "honey", "ivory",
     "jungle", "koala", "light", "mango", "night", "olive", "pearl", "quilt",
@@ -35,6 +35,11 @@
       "words": ["moon", "nose", "egg", "gold", "drum"]
     },
     {
+      "id": "wc-t1-06",
+      "tier": "t1",
+      "words": ["lion", "nut", "town", "nail", "leaf"]
+    },
+    {
       "id": "wc-t2-01",
       "tier": "t2",
       "words": ["bread", "dance", "ember", "raven", "needle", "engine"]
@@ -58,6 +63,11 @@
       "id": "wc-t2-05",
       "tier": "t2",
       "words": ["candle", "eraser", "ribbon", "nectar", "radish", "hammer"]
+    },
+    {
+      "id": "wc-t2-06",
+      "tier": "t2",
+      "words": ["planet", "turnip", "plaza", "apricot", "trumpet", "temple"]
     },
     {
       "id": "wc-t3-01",
@@ -98,6 +108,11 @@
       "id": "wc-t3-08",
       "tier": "t3",
       "words": ["harbor", "rafter", "ripple", "elm", "mosaic", "cobalt"]
+    },
+    {
+      "id": "wc-t3-09",
+      "tier": "t3",
+      "words": ["penguin", "nugget", "teapot", "tunnel", "lobster", "raccoon"]
     }
   ]
 }

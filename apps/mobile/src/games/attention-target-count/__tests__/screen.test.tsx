@@ -9,7 +9,7 @@ import { TARGET_COUNT_DIFFICULTY_PARAMS } from '../difficulty';
 import { generateRound } from '../generator';
 import type { SessionPersistence } from '../session';
 import type { CompleteSessionResult } from '@/db';
-import { createRng, testId } from '@/sdk';
+import { createRng, noopAudioHaptics, setLiveAudioHaptics, testId } from '@/sdk';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -168,5 +168,82 @@ describe('TargetCountScreen', () => {
     );
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'help')));
     expect(screen.getByTestId(testId(GAME_ID, 'tutorial'))).toBeTruthy();
+  });
+
+  it('pausing freezes the round window and resume continues the remainder', async () => {
+    await render(
+      <TargetCountScreen
+        tutorialStore={completedStore()}
+        sessionSeed="pause-seed"
+      />,
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    expect(screen.getByTestId(testId(GAME_ID, 'show-grid'))).toBeTruthy();
+
+    // Partway into the normal-level round window (9000ms).
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+    });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    expect(screen.getByTestId(testId(GAME_ID, 'pause-overlay'))).toBeTruthy();
+
+    // Frozen: background time must not expire the round while paused (the
+    // board itself is hidden from the accessibility tree, so assertions
+    // resume before querying game content).
+    await act(async () => {
+      jest.advanceTimersByTime(60000);
+    });
+
+    // Resume: only the remaining ~6000ms of active time may elapse before the
+    // round times out (a pre-fix bug restarted the FULL window on resume).
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-timeout'))).toBeNull();
+    await act(async () => {
+      jest.advanceTimersByTime(5900);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'show-grid'))).toBeTruthy();
+    await act(async () => {
+      jest.advanceTimersByTime(200);
+    });
+    expect(screen.queryByTestId(testId(GAME_ID, 'show-grid'))).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeTruthy();
+  });
+
+  it('plays wrong feedback for a wrong answer and correct feedback for a right answer', async () => {
+    const sfx: string[] = [];
+    const haptics: string[] = [];
+    setLiveAudioHaptics({
+      ...noopAudioHaptics,
+      playSfx: (name) => sfx.push(name),
+      haptic: (type) => haptics.push(type),
+    });
+    try {
+      const rounds = sessionRounds('sfx-seed', 'normal');
+      await render(
+        <TargetCountScreen
+          tutorialStore={completedStore()}
+          sessionSeed="sfx-seed"
+        />,
+      );
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+
+      // Wrong pick: must play the WRONG sound (a pre-fix bug always played
+      // the correct sound regardless of the answer).
+      const correct0 = rounds[0].targetCount;
+      const wrong = rounds[0].options.find((o) => o !== correct0) ?? -1;
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'count-option', String(wrong))));
+      expect(sfx).toEqual(['memory-tile-wrong']);
+      expect(haptics).toEqual(['warning']);
+
+      // Correct pick on the next round: correct sound + light haptic.
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+      await fireEvent.press(
+        screen.getByTestId(testId(GAME_ID, 'count-option', String(rounds[1].targetCount))),
+      );
+      expect(sfx).toEqual(['memory-tile-wrong', 'memory-tile-correct']);
+      expect(haptics).toEqual(['warning', 'light']);
+    } finally {
+      setLiveAudioHaptics(noopAudioHaptics);
+    }
   });
 });

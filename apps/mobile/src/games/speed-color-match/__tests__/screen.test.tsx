@@ -217,6 +217,62 @@ describe('SpeedColorMatchScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'color-grid'))).toBeOnTheScreen();
   });
 
+  it('measures reaction time with the injected monotonic clock, not wall-clock time', async () => {
+    const { clock } = await renderScreen({ seed: 'rt-clock' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    expect(screen.getByTestId(testId(GAME_ID, 'color-grid'))).toBeOnTheScreen();
+
+    // Advance ONLY the injected monotonic clock (jest timers / Date.now stay
+    // put): the measured reaction must reflect the clock delta of 250ms.
+    clock.advance(250);
+
+    const trials = generateTrials({
+      rng: createRng('rt-clock'),
+      totalTrials: 20,
+      incongruentCount: 8,
+    });
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, 'color-btn', trials[0].swatchColor)),
+    );
+
+    expect(screen.getByTestId(testId(GAME_ID, 'trial-correct'))).toBeOnTheScreen();
+    expect(screen.getByText('250ms')).toBeOnTheScreen();
+  });
+
+  it('pause does not consume the stimulus window: the trial survives a long pause', async () => {
+    const { clock } = await renderScreen({ seed: 'pause-window' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    expect(screen.getByTestId(testId(GAME_ID, 'color-grid'))).toBeOnTheScreen();
+
+    // Pause well before the 4s (normal) stimulus timeout...
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    expect(screen.getByTestId(testId(GAME_ID, 'pause-overlay'))).toBeOnTheScreen();
+
+    // ...stay paused far past the original deadline...
+    clock.advance(60_000);
+
+    // ...and resume: the trial must NOT instantly time out — the window
+    // restarts from the resume moment.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    expect(screen.queryByTestId(testId(GAME_ID, 'pause-overlay'))).toBeNull();
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, 'color-grid'))).toBeOnTheScreen();
+
+    // Just inside the restored window: still waiting for an answer.
+    await act(async () => {
+      jest.advanceTimersByTime(3_500);
+    });
+    expect(screen.queryByTestId(testId(GAME_ID, 'trial-wrong'))).toBeNull();
+
+    // Past the restored window: the trial times out.
+    await act(async () => {
+      jest.advanceTimersByTime(600);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'trial-wrong'))).toBeOnTheScreen();
+  });
+
   it('force-win ends the session as a perfect run and marks it forced', async () => {
     const { persister } = await renderScreen({ seed: 'qa-win' });
 

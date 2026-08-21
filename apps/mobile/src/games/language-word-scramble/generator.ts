@@ -48,13 +48,17 @@ export function scrambleWord(word: string, rng: Rng): string {
       return result;
     }
   }
-  // Fallback: swap first two characters (guarantees different for length >= 2).
-  if (letters.length >= 2) {
-    const swapped = [...letters];
-    const temp = swapped[0];
-    swapped[0] = swapped[1];
-    swapped[1] = temp;
-    return swapped.join("");
+  // Fallback: swap the first pair of adjacent differing characters
+  // (guarantees a different string whenever the word has two distinct
+  // letters; unreachable for the curated bank, kept as a safe bound).
+  for (let i = 0; i < letters.length - 1; i += 1) {
+    if (letters[i] !== letters[i + 1]) {
+      const swapped = [...letters];
+      const temp = swapped[i];
+      swapped[i] = swapped[i + 1];
+      swapped[i + 1] = temp;
+      return swapped.join("");
+    }
   }
   return word;
 }

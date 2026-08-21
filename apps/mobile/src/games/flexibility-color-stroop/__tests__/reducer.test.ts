@@ -7,6 +7,7 @@ import { colorStroopGameReducer } from '../reducer';
 import { createInitialColorStroopState } from '../types';
 import type { ColorStroopGameState } from '../types';
 import { generateTrials } from '../generator';
+import { perfectSessionScore } from '../scoring';
 import { COLOR_STROOP_DIFFICULTY_PARAMS } from '../difficulty';
 
 function startSession(
@@ -150,6 +151,54 @@ describe('next-trial', () => {
   });
 });
 
+describe('trial-timeout', () => {
+  it('scores the unanswered trial as wrong and continues the session', () => {
+    let state = startSession('timeout-test');
+    state = colorStroopGameReducer(state, { type: 'trial-timeout', responseTimeMs: 1500 });
+    expect(state.phase).toBe('feedback');
+    expect(state.currentCorrect).toBe(false);
+    expect(state.currentAnswer).toBeNull();
+    expect(state.stats.trialsPlayed).toBe(1);
+    expect(state.stats.correctTrials).toBe(0);
+    expect(state.stats.streak).toBe(0);
+    expect(state.stats.totalResponseTimeMs).toBe(1500);
+
+    // The session must continue after a slow trial.
+    state = colorStroopGameReducer(state, { type: 'next-trial' });
+    expect(state.phase).toBe('stimulus');
+    expect(state.trialIndex).toBe(1);
+  });
+
+  it('is ignored while paused or outside the stimulus phase', () => {
+    let state = colorStroopGameReducer(startSession('timeout-guard'), { type: 'pause' });
+    const before = state.stats;
+    state = colorStroopGameReducer(state, { type: 'trial-timeout', responseTimeMs: 1500 });
+    expect(state.stats).toBe(before);
+    expect(state.phase).toBe('stimulus');
+
+    const intro = colorStroopGameReducer(createInitialColorStroopState(), {
+      type: 'trial-timeout',
+      responseTimeMs: 1500,
+    });
+    expect(intro.phase).toBe('intro');
+  });
+
+  it('a full session of timeouts still reaches results with zero correct', () => {
+    let state = startSession('all-timeout', 'easy'); // 10 trials
+    for (let i = 0; i < 10; i += 1) {
+      if (state.phase === 'flipCue') {
+        state = colorStroopGameReducer(state, { type: 'dismiss-flip-cue' });
+      }
+      state = colorStroopGameReducer(state, { type: 'trial-timeout', responseTimeMs: 2000 });
+      expect(state.phase).toBe('feedback');
+      state = colorStroopGameReducer(state, { type: 'next-trial' });
+    }
+    expect(state.phase).toBe('results');
+    expect(state.stats.trialsPlayed).toBe(10);
+    expect(state.stats.correctTrials).toBe(0);
+  });
+});
+
 describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
     const inIntro = colorStroopGameReducer(createInitialColorStroopState(), { type: 'pause' });
@@ -205,11 +254,19 @@ describe('session finalization + persistence states', () => {
 
 describe('QA force hooks (state shaping)', () => {
   it('force-win ends the session as a perfect run', () => {
-    const state = colorStroopGameReducer(startSession('qa-win'), { type: 'qa/force-win' });
+    const started = startSession('qa-win');
+    const state = colorStroopGameReducer(started, { type: 'qa/force-win' });
     expect(state.phase).toBe('results');
     expect(state.forced).toBe(true);
     expect(state.stats.trialsPlayed).toBe(15);
     expect(state.stats.correctTrials).toBe(15);
+    // The forced score must equal the exact perfect score for the generated
+    // sequence (not a rough estimate).
+    const totalFlips = started.trials.filter((t) => t.isFlipPoint).length;
+    expect(state.stats.score).toBe(
+      perfectSessionScore(COLOR_STROOP_DIFFICULTY_PARAMS.normal, totalFlips),
+    );
+    expect(state.stats.postFlipCorrect).toBe(totalFlips);
   });
 
   it('force-lose ends the session with the current trial failed', () => {

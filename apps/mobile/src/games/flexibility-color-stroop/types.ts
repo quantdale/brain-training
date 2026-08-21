@@ -126,6 +126,13 @@ export interface ColorStroopRawResult extends GameRawResult {
   readonly accuracy: number;
   readonly bestStreak: number;
   readonly postFlipCorrect: number;
+  /**
+   * Number of rule-flip trials in the generated session (the postFlipCorrect
+   * denominator for normalization). Optional for backward compatibility with
+   * records persisted before it existed; the normalizer falls back to the
+   * legacy `floor(totalTrials / 4)` estimate when absent.
+   */
+  readonly totalFlips?: number;
   readonly avgResponseTimeMs: number;
   readonly fastestResponseMs: number;
   readonly challengeRating: number;
@@ -160,7 +167,11 @@ export type ColorStroopAction =
   | { type: "show-flip-cue" }
   | { type: "dismiss-flip-cue" }
   | { type: "next-trial" }
-  | { type: "session-timeout" }
+  | {
+      /** Per-trial stimulus timeout: the trial counts as wrong, the session continues. */
+      type: "trial-timeout";
+      responseTimeMs: number;
+    }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "tutorial-open" }

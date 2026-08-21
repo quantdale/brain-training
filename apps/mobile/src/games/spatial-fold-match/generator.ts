@@ -198,7 +198,8 @@ export function applyFoldXor(source: Grid, fold: FoldType): Grid {
  * A distinct distractor at the result dimensions.
  */
 export function applyFoldBaseOnly(source: Grid, fold: FoldType): Grid {
-  const mergeKeepBase = (_base: boolean, _folded: boolean): boolean => false;
+  // Keep the base cell's value and ignore the folded-over contribution.
+  const mergeKeepBase = (base: boolean, _folded: boolean): boolean => base;
   let result = cloneGrid(source);
   if (fold === 'foldV' || fold === 'foldVH') {
     result = foldGridV(result, mergeKeepBase);

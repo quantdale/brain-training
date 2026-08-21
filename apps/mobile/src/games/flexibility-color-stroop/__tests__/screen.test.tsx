@@ -150,4 +150,45 @@ describe('ColorStroopScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect((input.session.rawResult as ColorStroopRawResult).forced).toBe(true);
   });
+
+  it('a stimulus timeout scores the trial wrong and the session continues', async () => {
+    // Regression: the stimulus timer used to dispatch a session-wide timeout
+    // that jumped straight to results on the first slow trial.
+    await renderScreen({ seed: 'timeout-flow' });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    expect(screen.getByTestId(testId(GAME_ID, 'stimulus'))).toBeOnTheScreen();
+
+    // Let the stimulus window lapse without answering.
+    await act(async () => {
+      jest.advanceTimersByTime(2500);
+    });
+
+    expect(screen.getByTestId(testId(GAME_ID, 'feedback'))).toBeOnTheScreen();
+    expect(screen.queryByTestId(testId(GAME_ID, 'results'))).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, 'feedback'))).toHaveTextContent(/Time's up!/);
+
+    // The session continues with the next trial.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-trial')));
+    expect(screen.getByTestId(testId(GAME_ID, 'stimulus'))).toBeOnTheScreen();
+  });
+
+  it('the rule-flip banner auto-advances to the next stimulus', async () => {
+    // Regression: the flipCue phase had no continue affordance in the UI and
+    // dead-ended the session at the first rule flip.
+    await renderScreen({ seed: 'flip-flow' });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'expert'))); // flips every 2 trials
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+
+    for (let i = 0; i < 2; i += 1) {
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'answer-buttons-red')));
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-trial')));
+    }
+    expect(screen.getByTestId(testId(GAME_ID, 'flip-cue'))).toBeOnTheScreen();
+
+    await act(async () => {
+      jest.advanceTimersByTime(1500);
+    });
+    expect(screen.queryByTestId(testId(GAME_ID, 'flip-cue'))).toBeNull();
+    expect(screen.getByTestId(testId(GAME_ID, 'stimulus'))).toBeOnTheScreen();
+  });
 });

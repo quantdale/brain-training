@@ -1,0 +1,14 @@
+{
+  "id": "memory-pair-recall",
+  "name": "Pair Recall",
+  "primaryCategory": "Memory",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Learn which partner each shape is paired with, then recall the partners from cued prompts. Shapes come back with NEW partners between rounds, so stale pairings become traps.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

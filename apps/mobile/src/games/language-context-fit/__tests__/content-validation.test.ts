@@ -31,7 +31,7 @@ describe("bundled content pack", () => {
   it("validates and is the expected curated pack", () => {
     const pack = loadContentPack();
     expect(pack.packId).toBe("language-context-fit-core-v1");
-    expect(pack.packVersion).toBe("1.0.0");
+    expect(pack.packVersion).toBe("1.1.0");
     expect(pack.itemCount).toBe(pack.items.length);
   });
 
@@ -43,6 +43,16 @@ describe("bundled content pack", () => {
         pack.items.filter((item) => item.tier === tier).length,
       ).toBeGreaterThanOrEqual(12);
     }
+  });
+
+  it("regression: repaired t3 items keep their unambiguous, real-word answers", () => {
+    const pack = loadContentPack();
+    const byId = new Map(pack.items.map((item) => [item.id, item]));
+    // cf-t3-10 previously read "A good metaphor should ___ an abstract idea
+    // into something felt", where "translate" was a second defensible answer.
+    expect(byId.get("cf-t3-10")!.context).toContain("alchemist");
+    // cf-t3-11 previously used the non-word "anachronize" as the answer.
+    expect(byId.get("cf-t3-11")!.answer).toBe("anachronism");
   });
 
   it("every item: exactly one blank, answer not among distractors, distinct distractors, >=3 distractors", () => {

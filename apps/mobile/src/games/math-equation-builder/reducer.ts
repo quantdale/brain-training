@@ -139,6 +139,16 @@ export function insertGroupParens(
   return result;
 }
 
+/**
+ * Whether the input pad should expect an operator after these tokens:
+ * an equation ending in a number or `)` continues with an operator; an empty
+ * equation or one ending in an operator or `(` continues with a number.
+ */
+export function expectsOperatorAfter(tokens: readonly EquationToken[]): boolean {
+  const last = tokens[tokens.length - 1];
+  return last !== undefined && (typeof last === 'number' || last === ')');
+}
+
 export function mathEquationBuilderGameReducer(
   state: MathEquationBuilderGameState,
   action: MathEquationBuilderAction,
@@ -237,29 +247,20 @@ export function mathEquationBuilderGameReducer(
       if (state.paused) return state;
       if (state.equationTokens.length === 0) return state;
 
-      const lastToken = state.equationTokens[state.equationTokens.length - 1];
       const newTokens = state.equationTokens.slice(0, -1);
-
-      if (typeof lastToken === 'number') {
-        // Find which number index this was.
-        const numIdx = state.availableNumbers.indexOf(lastToken);
-        // Remove the last used index that corresponds to this number.
-        const newUsed = state.usedNumberIndices.slice(0, -1);
-        return {
-          ...state,
-          equationTokens: newTokens,
-          usedNumberIndices: newUsed,
-          expectOperator: false,
-        };
-      }
-      // Removed an operator or paren: expectOperator stays the same.
-      // If we removed an operator, expectOperator should be false (next is number).
-      // If we removed a paren, keep the previous state.
-      if (lastToken === '(' || lastToken === ')') {
-        return { ...state, equationTokens: newTokens };
-      }
-      // Removed an operator.
-      return { ...state, equationTokens: newTokens, expectOperator: false };
+      // Re-derive the pad mode from the remaining tokens so undo always lands
+      // in the same state as if the last token had never been added (e.g.
+      // undoing a trailing operator must expect an operator again, not a
+      // second number in a row).
+      return {
+        ...state,
+        equationTokens: newTokens,
+        usedNumberIndices:
+          typeof state.equationTokens[state.equationTokens.length - 1] === 'number'
+            ? state.usedNumberIndices.slice(0, -1)
+            : state.usedNumberIndices,
+        expectOperator: expectsOperatorAfter(newTokens),
+      };
     }
 
     case 'clear': {

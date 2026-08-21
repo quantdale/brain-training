@@ -174,4 +174,51 @@ describe('normalizeColorStroopResult (documented formula)', () => {
     });
     expect(normalized.raw).toEqual(expect.objectContaining({ seed: 's', difficulty: 'normal' }));
   });
+
+  it('reaches exactly 1.0 for a perfect run when totalFlips is recorded', () => {
+    // Regression: the flip denominator was hardcoded to floor(totalTrials / 4),
+    // which ignores flipFrequency and made a perfect run unreachable on most
+    // difficulties (e.g. easy: 1 actual flip vs denominator 2).
+    const raw = rawResult({
+      totalTrials: 10,
+      trialsPlayed: 10,
+      correctTrials: 10,
+      bestStreak: 10,
+      postFlipCorrect: 1,
+      totalFlips: 1,
+      avgResponseTimeMs: 0,
+      accuracy: 1,
+    });
+    const normalized = normalizeColorStroopResult(raw, {
+      gameId: 'flexibility-color-stroop',
+      difficulty: 'easy',
+      durationMs: 0,
+    });
+    expect(normalized.value).toBe(1);
+  });
+
+  it('falls back to the legacy floor(totalTrials / 4) estimate without totalFlips', () => {
+    // Records persisted before `totalFlips` existed must keep normalizing.
+    const withField = normalizeColorStroopResult(
+      rawResult({
+        trialsPlayed: 15,
+        correctTrials: 15,
+        postFlipCorrect: 3,
+        totalFlips: 3,
+        avgResponseTimeMs: 0,
+      }),
+      { gameId: 'flexibility-color-stroop', difficulty: 'normal', durationMs: 0 },
+    );
+    const withoutField = normalizeColorStroopResult(
+      rawResult({
+        trialsPlayed: 15,
+        correctTrials: 15,
+        postFlipCorrect: 3,
+        avgResponseTimeMs: 0,
+      }),
+      { gameId: 'flexibility-color-stroop', difficulty: 'normal', durationMs: 0 },
+    );
+    // floor(15 / 4) = 3 → identical result for this shape.
+    expect(withoutField.value).toBe(withField.value);
+  });
 });

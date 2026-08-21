@@ -7,7 +7,8 @@
  *
  * Invariants:
  * - Same seed → same sentence selection and scramble (deterministic).
- * - Scramble ≠ original order (verified; retry up to MAX_SCRAMBLE_ATTEMPTS).
+ * - Scramble ≠ original order AND ≠ any curated alternative order (verified;
+ *   retry up to MAX_SCRAMBLE_ATTEMPTS) so a round is never pre-solved.
  * - No duplicate sentences in the same session.
  * - Near-duplicate avoidance: consecutive sentences from different categories.
  * - No wall-clock used in generated content.
@@ -25,22 +26,6 @@ export const MAX_SCRAMBLE_ATTEMPTS = 12;
 
 /** Maximum category-distance to consider "near-duplicate" (same category = 0). */
 export const MIN_CATEGORY_DISTANCE = 1;
-
-/** Internal mapping from category slugs to numeric ids for distance calc. */
-const CATEGORY_IDS = new Map<string, number>();
-
-/**
- * Get a numeric id for a category slug (stable within a process).
- * Unknown slugs get a unique id.
- */
-function categoryId(category: string): number {
- let id = CATEGORY_IDS.get(category);
- if (id === undefined) {
-  id = CATEGORY_IDS.size;
-  CATEGORY_IDS.set(category, id);
- }
- return id;
-}
 
 /**
  * Category distance: 0 if same, 1 if different.
@@ -69,6 +54,33 @@ function tokenize(text: string): string[] {
 export function hasNoDuplicateWords(sentence: CuratedSentence): boolean {
  const tokens = tokenize(sentence.text);
  return new Set(tokens).size === tokens.length;
+}
+
+/**
+ * Every accepted token order for a sentence: the original plus each curated
+ * alternative, as whitespace-split surface words (original casing preserved —
+ * these are compared verbatim against tapped tiles during play).
+ * Alternatives were already validated as exact permutations by content
+ * validation; this re-derives their token arrays for play.
+ */
+export function acceptedOrdersOf(
+ sentence: CuratedSentence,
+): readonly (readonly string[])[] {
+ const orders: string[][] = [sentence.text.split(/\s+/)];
+ if (sentence.alternatives !== undefined) {
+  for (const alt of sentence.alternatives) {
+   orders.push(alt.trim().split(/\s+/));
+  }
+ }
+ return orders;
+}
+
+/** True when two token orders are identical word-for-word. */
+export function sameWordOrder(
+ a: readonly string[],
+ b: readonly string[],
+): boolean {
+ return a.length === b.length && a.every((w, i) => w === b[i]);
 }
 
 /**
@@ -162,13 +174,23 @@ export function generateRound(input: GenerateRoundInput): GenerateRoundResult {
  // Step 4: Pick one deterministically.
  const sentence = rng.pick(finalPool);
 
- // Step 5: Scramble with retry.
+ // Step 5: Scramble with retry. A scramble is unusable when it reproduces the
+ // original order OR any curated alternative order (a pre-solved round).
  const words = sentence.text.split(/\s+/);
+ const acceptedOrders = acceptedOrdersOf(sentence);
  let scrambleOrder: number[] | null = null;
  for (let attempt = 0; attempt < MAX_SCRAMBLE_ATTEMPTS; attempt += 1) {
   const fork = rng.fork(`scramble:${roundIndex}:${attempt}`);
-  scrambleOrder = scrambleWords(fork, words);
-  if (scrambleOrder !== null) {
+  const candidate = scrambleWords(fork, words);
+  if (candidate === null) {
+   continue;
+  }
+  const candidateWords = candidate.map((i) => words[i]);
+  const preSolved = acceptedOrders.some((order) =>
+   sameWordOrder(order, candidateWords),
+  );
+  if (!preSolved) {
+   scrambleOrder = candidate;
    break;
   }
  }
@@ -188,6 +210,7 @@ export function generateRound(input: GenerateRoundInput): GenerateRoundResult {
    scrambleOrder,
    scrambled,
    category: sentence.category,
+   acceptedOrders,
   },
  };
 }

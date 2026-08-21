@@ -240,4 +240,42 @@ describe("isNearDuplicateRound / MAX_GENERATION_ATTEMPTS", () => {
   it("bounds the re-draw budget", () => {
     expect(MAX_GENERATION_ATTEMPTS).toBeGreaterThanOrEqual(2);
   });
+
+  it("regression: a degenerate single-chain pool falls back to a deterministic near-duplicate round instead of crashing", () => {
+    const singleChainPool = [POOL[0]];
+    // Round 0 picks the only chain; round 1 must re-pick it (pool exhausted
+    // of alternatives). Before the fix the post-loop fallback re-threw the
+    // uncaught NearDuplicateError and crashed generation.
+    const previous = generateRound({
+      rng: createRng("single-chain"),
+      roundIndex: 0,
+      pool: singleChainPool,
+      decoyPool: PACK.decoyPool,
+      params: PARAMS,
+      usedChainIds: new Set(),
+      previousRound: null,
+    });
+    expect(() =>
+      generateRound({
+        rng: createRng("single-chain"),
+        roundIndex: 1,
+        pool: singleChainPool,
+        decoyPool: PACK.decoyPool,
+        params: PARAMS,
+        usedChainIds: new Set(),
+        previousRound: previous,
+      }),
+    ).not.toThrow();
+    const next = generateRound({
+      rng: createRng("single-chain"),
+      roundIndex: 1,
+      pool: singleChainPool,
+      decoyPool: PACK.decoyPool,
+      params: PARAMS,
+      usedChainIds: new Set(),
+      previousRound: previous,
+    });
+    expect(next.chainId).toBe(previous.chainId);
+    expect(validateGeneratedRound(next)).toBe(true);
+  });
 });

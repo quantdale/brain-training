@@ -6,6 +6,12 @@
  * resume/complete/abandon), auto-pause on backgrounding, the tutorial, the
  * dev-only QA panel, and result persistence.
  *
+ * Timing contract (constitution §20): reaction times are measured with the
+ * injected monotonic `Clock` (`trialShownAtMs` → tap), never wall-clock time,
+ * so clock jumps cannot distort a measured reaction. Pausing re-baselines the
+ * live trial's window on resume, so paused time never counts against the
+ * player.
+ *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  */
@@ -107,28 +113,29 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
   const inSession = state.phase === 'trial' || state.phase === 'roundResult';
   const isLastTrial = state.trialIndex + 1 >= totalTrials;
 
-  // ---- Auto-show trial when entering trial phase.
+  // ---- Auto-show trial when entering trial phase. The shown timestamp is a
+  // monotonic clock reading (constitution §20), never wall-clock time.
   useEffect(() => {
     if (state.phase === 'trial' && state.trialShownAtMs === null && !state.paused) {
-      dispatch({ type: 'trial-shown', shownAtMs: Date.now() });
+      dispatch({ type: 'trial-shown', shownAtMs: clock.now() });
     }
-  }, [state.phase, state.trialShownAtMs, state.paused]);
+  }, [state.phase, state.trialShownAtMs, state.paused, clock]);
 
   // ---- Stimulus timeout: auto-fail trial on expiry.
   useEffect(() => {
     if (state.phase !== 'trial' || state.paused || state.trialShownAtMs === null) {
       return;
     }
-    const remaining = stimulusTimeoutMs - (Date.now() - state.trialShownAtMs);
+    const remaining = stimulusTimeoutMs - (clock.now() - state.trialShownAtMs);
     if (remaining <= 0) {
-      dispatch({ type: 'trial-timeout', timedOutAtMs: Date.now() });
+      dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() });
       return;
     }
     const timer = setTimeout(() => {
-      dispatch({ type: 'trial-timeout', timedOutAtMs: Date.now() });
+      dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() });
     }, remaining);
     return () => clearTimeout(timer);
-  }, [state.phase, state.paused, state.trialShownAtMs, stimulusTimeoutMs, state.trialIndex]);
+  }, [state.phase, state.paused, state.trialShownAtMs, stimulusTimeoutMs, state.trialIndex, clock]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -265,7 +272,13 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
   const resumeSession = useCallback(() => {
     lifecycleRef.current?.resume();
     dispatch({ type: 'resume' });
-  }, [dispatch]);
+    if (stateRef.current.phase === 'trial') {
+      // Re-baseline the stimulus window at the resume moment: paused time must
+      // never count against the player's response window (constitution §11).
+      // Mirrors speed-reaction-time's fresh-`goAtMs` resume path.
+      dispatch({ type: 'trial-shown', shownAtMs: clock.now() });
+    }
+  }, [clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     const lifecycle = lifecycleRef.current;
@@ -291,16 +304,18 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
         liveAudioHaptics.playSfx('memory-tile-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'tap-color', color, tappedAtMs: Date.now() });
+      // Reaction time = monotonic clock delta from stimulus onset to the tap;
+      // wall-clock jumps can never distort a measured reaction.
+      dispatch({ type: 'tap-color', color, tappedAtMs: clock.now() });
     },
-    [dispatch],
+    [clock, dispatch],
   );
 
   const handleTimerExpire = useCallback(() => {
     const current = stateRef.current;
     if (current.phase !== 'trial' || current.paused) return;
-    dispatch({ type: 'trial-timeout', timedOutAtMs: Date.now() });
-  }, [dispatch]);
+    dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() });
+  }, [clock, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;

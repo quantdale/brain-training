@@ -34,16 +34,14 @@ export interface GenerateTrialsInput {
  * - Rule flips occur at the scheduled intervals.
  * - Congruent trials have word === inkColor.
  * - Incongruent trials have word !== inkColor.
- * - Neutral trials use non-color words.
+ * - Neutral trials use non-color words AND always run under the 'ink' rule:
+ *   a neutral word ("TABLE") names no color, so a 'word'-rule trial with a
+ *   neutral word would be unanswerable.
  * - The first trial always starts with the 'ink' rule.
  */
 export function generateTrials(input: GenerateTrialsInput): StroopTrial[] {
   const { rng, params } = input;
   const { trials: totalTrials, incongruentRatio, flipFrequency } = params;
-
-  const result: StroopTrial[] = [];
-  let currentRule: AnswerRule = 'ink';
-  let trialsSinceFlip = 0;
 
   // Determine how many incongruent trials to generate.
   const numIncongruent = Math.round(totalTrials * incongruentRatio);
@@ -61,17 +59,57 @@ export function generateTrials(input: GenerateTrialsInput): StroopTrial[] {
   ];
   const shuffledTypes = rng.shuffle(trialTypes);
 
+  // Precompute the rule schedule (flip cadence) so neutral trials can be
+  // kept off 'word'-rule slots before any trial content is drawn.
+  const rules: AnswerRule[] = [];
+  let currentRule: AnswerRule = 'ink';
+  let trialsSinceFlip = 0;
   for (let i = 0; i < totalTrials; i += 1) {
-    // Check for rule flip.
     const isFlipPoint = i > 0 && trialsSinceFlip >= flipFrequency;
     if (isFlipPoint) {
       currentRule = currentRule === 'ink' ? 'word' : 'ink';
       trialsSinceFlip = 0;
     }
     trialsSinceFlip += 1;
+    rules.push(currentRule);
+  }
 
-    const trialType = shuffledTypes[i];
-    const trial = generateSingleTrial(rng.fork(`trial:${i}`), trialType, currentRule, isFlipPoint);
+  // Assign trial types to indices. Neutral trials may only occupy 'ink'-rule
+  // slots (see invariant above); congruent/incongruent trials are answerable
+  // under either rule and fill the remaining slots in shuffled order.
+  const inkSlots: number[] = [];
+  const wordSlots: number[] = [];
+  for (let i = 0; i < totalTrials; i += 1) {
+    (rules[i] === 'ink' ? inkSlots : wordSlots).push(i);
+  }
+  const assigned: ('congruent' | 'incongruent' | 'neutral')[] = new Array(totalTrials);
+  let inkPtr = 0;
+  let wordPtr = 0;
+  for (const trialType of shuffledTypes) {
+    if (trialType === 'neutral') {
+      if (inkPtr < inkSlots.length) {
+        assigned[inkSlots[inkPtr]] = 'neutral';
+        inkPtr += 1;
+      } else {
+        // No 'ink' slot left for this neutral (virtually impossible with the
+        // difficulty tunings): degrade deterministically to a congruent trial
+        // so counts stay consistent.
+        assigned[wordSlots[wordPtr]] = 'congruent';
+        wordPtr += 1;
+      }
+    } else if (wordPtr < wordSlots.length) {
+      assigned[wordSlots[wordPtr]] = trialType;
+      wordPtr += 1;
+    } else {
+      assigned[inkSlots[inkPtr]] = trialType;
+      inkPtr += 1;
+    }
+  }
+
+  const result: StroopTrial[] = [];
+  for (let i = 0; i < totalTrials; i += 1) {
+    const isFlipPoint = i > 0 && rules[i] !== rules[i - 1];
+    const trial = generateSingleTrial(rng.fork(`trial:${i}`), assigned[i], rules[i], isFlipPoint);
     result.push(trial);
   }
 
@@ -149,6 +187,11 @@ export function validateTrials(trials: readonly StroopTrial[]): boolean {
     // Neutral: word is not a color word.
     if (trial.trialType === 'neutral') {
       if (STROOP_COLORS.includes(trial.word.toLowerCase() as StroopColor)) {
+        return false;
+      }
+      // A neutral word names no color, so it must never run under the
+      // 'word' rule (the trial would be unanswerable).
+      if (trial.rule !== 'ink') {
         return false;
       }
     }

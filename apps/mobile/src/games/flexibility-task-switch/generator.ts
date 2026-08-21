@@ -60,16 +60,24 @@ function pickTask(
  return prevTask;
 }
 
-/** Deterministic token (number + color + shape) for a round. */
+/**
+ * Deterministic token (number + color + shape) for a round.
+ *
+ * The fork salts MUST be scoped by `index`: `Rng.fork(salt)` derives the child
+ * stream from the parent's canonical seed string alone (parent consumption
+ * does not advance it), so a constant salt would yield the identical token on
+ * every round of a session.
+ */
 function pickToken(
  rng: Rng,
+ index: number,
  params: FlexibilityTaskSwitchDifficultyParams,
 ): Token {
  const colors = TOKEN_COLORS.slice(0, params.numColors);
  const shapes = TOKEN_SHAPES.slice(0, params.numShapes);
- const color = rng.fork("token:color").pick(colors);
- const shape = rng.fork("token:shape").pick(shapes);
- const number = rng.fork("token:number").nextIntRange(1, params.numNumbers + 1);
+ const color = rng.fork(`round:${index}:token:color`).pick(colors);
+ const shape = rng.fork(`round:${index}:token:shape`).pick(shapes);
+ const number = rng.fork(`round:${index}:token:number`).nextIntRange(1, params.numNumbers + 1);
  return { number, color, shape };
 }
 
@@ -87,7 +95,7 @@ export function generateRound(
   params.taskPool,
   params.switchRate,
  );
- const token = pickToken(rng, params);
+ const token = pickToken(rng, index, params);
  const options = TASK_ANSWERS[task];
  const correct = correctAnswerFor(task, token);
  const correctIndex = options.indexOf(correct);

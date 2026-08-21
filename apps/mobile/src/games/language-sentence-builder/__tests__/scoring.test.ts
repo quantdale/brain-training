@@ -4,8 +4,10 @@ import { describe, expect, it } from '@jest/globals';
 import {
   accuracyOf,
   avgWordLengthFactor,
+  bestPositionAccuracy,
   clamp01,
   computeRoundScore,
+  computeRoundScoreForOrders,
   normalizeSentenceBuilderResult,
   partialRoundScore,
   perfectRoundScore,
@@ -64,6 +66,59 @@ describe('computeRoundScore', () => {
     const result = computeRoundScore(['a', 'b', 'c'], ['x', 'y', 'z']);
     expect(result.passed).toBe(false);
     expect(result.points).toBe(0);
+  });
+});
+
+describe('bestPositionAccuracy / computeRoundScoreForOrders', () => {
+  const orders = [
+    ['if', 'she', 'finishes', 'early', 'she', 'might', 'join', 'us'],
+    ['she', 'might', 'join', 'us', 'if', 'she', 'finishes', 'early'],
+  ];
+
+  it('measures accuracy against the best-matching accepted order', () => {
+    // Exact match with the alternative order.
+    expect(bestPositionAccuracy(orders, orders[1])).toBe(1);
+    // Against the canonical order alone this would be ~0.125.
+    expect(positionAccuracy(orders[0], orders[1])).toBeLessThan(0.2);
+  });
+
+  it('awards the perfect score for a clause-swapped reconstruction', () => {
+    const result = computeRoundScoreForOrders(orders, orders[1]);
+    expect(result.passed).toBe(true);
+    expect(result.points).toBe(perfectRoundScore(8));
+  });
+
+  it('still awards the perfect score for the canonical order', () => {
+    const result = computeRoundScoreForOrders(orders, orders[0]);
+    expect(result.passed).toBe(true);
+    expect(result.points).toBe(perfectRoundScore(8));
+  });
+
+  it('gives partial credit measured against the closest order', () => {
+    // 7 of 8 positions match the alternative order (last word swapped).
+    const player = ['she', 'might', 'join', 'us', 'if', 'she', 'finishes', 'earlyx'];
+    const result = computeRoundScoreForOrders(orders, player);
+    expect(result.passed).toBe(true);
+    expect(result.points).toBe(partialRoundScore());
+  });
+
+  it('fails a hybrid sequence that matches no accepted order', () => {
+    // Starts like the alternative but ends like the canonical order: matches
+    // neither fully and stays below the 80% partial threshold.
+    const hybrid = ['she', 'might', 'join', 'us', 'she', 'might', 'join', 'us'];
+    const result = computeRoundScoreForOrders(orders, hybrid);
+    expect(result.passed).toBe(false);
+    expect(result.points).toBe(0);
+  });
+
+  it('degenerates to plain scoring for a single order', () => {
+    const original = ['a', 'b', 'c', 'd', 'e'];
+    expect(computeRoundScoreForOrders([original], [...original])).toEqual(
+      computeRoundScore(original, [...original]),
+    );
+    expect(computeRoundScoreForOrders([original], ['a', 'b', 'c', 'd', 'x'])).toEqual(
+      computeRoundScore(original, ['a', 'b', 'c', 'd', 'x']),
+    );
   });
 });
 

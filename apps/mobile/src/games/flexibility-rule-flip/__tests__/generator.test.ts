@@ -234,4 +234,32 @@ describe('generateSession', () => {
   it('respects MAX_GENERATE_ATTEMPTS as the redraw budget', () => {
     expect(MAX_GENERATE_ATTEMPTS).toBeGreaterThan(0);
   });
+
+  it('draws varying block lengths when blockMax > blockMin', () => {
+    // Regression: chooseBlockLength re-forked the same salt for every block,
+    // and Rng.fork(salt) depends only on the parent seed string — so every
+    // block in a session came out with the identical length.
+    const hard = FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.hard; // blockMin 3, blockMax 5
+    expect(hard.blockMax).toBeGreaterThan(hard.blockMin);
+    const runLengths = new Set<number>();
+    for (const seed of ['bl-1', 'bl-2', 'bl-3', 'bl-4', 'bl-5', 'bl-6']) {
+      const plan = generateSession(seed, hard);
+      let run = 1;
+      for (let i = 1; i < plan.length; i += 1) {
+        if (plan[i].rule === plan[i - 1].rule) {
+          run += 1;
+        } else {
+          runLengths.add(run);
+          run = 1;
+        }
+      }
+      runLengths.add(run);
+    }
+    // Same-rule consecutive blocks may merge into longer runs, so only the
+    // lower bound is provable per run — but lengths must not all be equal.
+    for (const length of runLengths) {
+      expect(length).toBeGreaterThanOrEqual(hard.blockMin);
+    }
+    expect(runLengths.size).toBeGreaterThan(1);
+  });
 });

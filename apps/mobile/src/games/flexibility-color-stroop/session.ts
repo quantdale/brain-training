@@ -44,6 +44,8 @@ export interface BuildRawResultInput {
   readonly challengeRating: number;
   readonly seed: string;
   readonly stats: ColorStroopStats;
+  /** Number of rule-flip trials in the generated sequence (normalization denominator). */
+  readonly totalFlips: number;
   readonly forced: boolean;
   readonly startedAtMs: number;
   readonly activeDurationMs: number;
@@ -87,6 +89,7 @@ export function buildColorStroopRawResult(input: BuildRawResultInput): ColorStro
     accuracy: accuracyOf(input.stats.correctTrials, input.stats.trialsPlayed),
     bestStreak: input.stats.bestStreak,
     postFlipCorrect: input.stats.postFlipCorrect,
+    totalFlips: input.totalFlips,
     avgResponseTimeMs,
     fastestResponseMs:
       input.stats.fastestResponseMs === Number.POSITIVE_INFINITY

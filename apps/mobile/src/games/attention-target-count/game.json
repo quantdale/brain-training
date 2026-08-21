@@ -5,7 +5,7 @@
   "secondaryDomains": ["Speed"],
   "description": "A grid briefly shows a mix of symbols. Quickly count how many of the highlighted target symbol appear, then pick the right number. Trains selective attention and numerosity under time pressure.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
+  "gameVersion": "1.1.0",
   "generatorVersion": "1.0.0",
   "contentVersion": null,
   "hasTutorial": true

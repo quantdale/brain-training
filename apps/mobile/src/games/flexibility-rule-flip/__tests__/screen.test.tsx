@@ -229,7 +229,7 @@ describe('RuleFlipScreen', () => {
     expect(raw.score).toBe(perfectPlanScore(plan));
     expect(raw.totalRounds).toBe(plan.length);
     expect(raw.switchPlayed).toBe(plan.filter((r) => r.isSwitch).length);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

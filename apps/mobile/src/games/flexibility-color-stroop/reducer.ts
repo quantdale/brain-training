@@ -12,7 +12,7 @@ import {
   resolveColorStroopDifficulty,
 } from './difficulty';
 import { generateTrials } from './generator';
-import { trialScore } from './scoring';
+import { perfectSessionScore, trialScore } from './scoring';
 import { GAME_ID, INITIAL_STATS, createInitialColorStroopState } from './types';
 import type { ColorStroopAction, ColorStroopGameState, ColorStroopStats, StroopColor } from './types';
 
@@ -180,11 +180,31 @@ export function colorStroopGameReducer(
       };
     }
 
-    case 'session-timeout': {
-      if (state.phase === 'results' || state.phase === 'intro') {
+    case 'trial-timeout': {
+      // Stimulus timeout: the unanswered trial counts as wrong (full-window
+      // response time) but the session continues with the next trial.
+      if (state.phase !== 'stimulus' || state.paused || state.profile === null) {
         return state;
       }
-      return { ...state, phase: 'results' };
+      const trial = state.trials[state.trialIndex];
+      if (!trial) {
+        return state;
+      }
+      const stats: ColorStroopStats = {
+        ...state.stats,
+        trialsPlayed: state.stats.trialsPlayed + 1,
+        streak: 0,
+        totalResponseTimeMs: state.stats.totalResponseTimeMs + action.responseTimeMs,
+      };
+      return {
+        ...state,
+        phase: 'feedback',
+        currentAnswer: null,
+        currentResponseTimeMs: action.responseTimeMs,
+        currentCorrect: false,
+        previousCorrect: false,
+        stats,
+      };
     }
 
     case 'pause': {
@@ -243,14 +263,17 @@ export function colorStroopGameReducer(
         return state;
       }
       const params = colorStroopParamsFromProfile(state.profile);
+      // Perfect run: every trial correct and instant, including every
+      // rule-flip trial (counted from the actual generated sequence).
+      const totalFlips = state.trials.filter((t) => t.isFlipPoint).length;
       const forcedStats: ColorStroopStats = {
         ...state.stats,
-        score: params.trials * 150, // Perfect score estimate
+        score: perfectSessionScore(params, totalFlips),
         trialsPlayed: params.trials,
         correctTrials: params.trials,
         bestStreak: params.trials,
         streak: params.trials,
-        postFlipCorrect: Math.floor(params.trials / params.flipFrequency),
+        postFlipCorrect: totalFlips,
       };
       return {
         ...state,

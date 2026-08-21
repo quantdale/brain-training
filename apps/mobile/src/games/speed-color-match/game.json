@@ -7,7 +7,7 @@
   ],
   "description": "Tap the button matching the swatch color (not the text color) as fast as possible.",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
+  "gameVersion": "1.0.1",
   "generatorVersion": "1.0.0",
   "contentVersion": null,
   "hasTutorial": true

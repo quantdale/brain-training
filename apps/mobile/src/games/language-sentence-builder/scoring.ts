@@ -7,6 +7,8 @@
  * Scoring rule (per packet):
  *   100 points per correct sentence + 10 × wordCount bonus.
  *   Partial credit: 50 points if 80%+ words are in the correct position.
+ *   "Correct position" is measured against the best-matching accepted word
+ *   order (canonical or curated clause-swap alternative).
  *
  * Normalization rule:
  *   accuracy = roundsPassed / roundsPlayed  (0..1)
@@ -30,6 +32,15 @@ export function partialRoundScore(): number {
 }
 
 /**
+ * Case-insensitive word equality for play comparisons: tiles and accepted
+ * orders carry surface casing ("She" vs "she"), which must not affect
+ * correctness.
+ */
+export function sameWord(a: string, b: string): boolean {
+  return a === b || a.toLowerCase() === b.toLowerCase();
+}
+
+/**
  * Compute per-word position accuracy for a round.
  * Returns the fraction of words in the correct position.
  */
@@ -41,7 +52,7 @@ export function positionAccuracy(
   let correct = 0;
   const len = Math.min(original.length, playerOrder.length);
   for (let i = 0; i < len; i += 1) {
-    if (original[i] === playerOrder[i]) {
+    if (sameWord(original[i], playerOrder[i])) {
       correct += 1;
     }
   }
@@ -61,6 +72,43 @@ export function computeRoundScore(
 
   if (perfect) {
     return { points: perfectRoundScore(original.length), passed: true };
+  }
+  if (passed) {
+    return { points: partialRoundScore(), passed: true };
+  }
+  return { points: 0, passed: false };
+}
+
+/**
+ * Best per-word position accuracy across every accepted order (the canonical
+ * order plus any curated clause-swap alternatives).
+ */
+export function bestPositionAccuracy(
+  acceptedOrders: readonly (readonly string[])[],
+  playerOrder: readonly string[],
+): number {
+  let best = 0;
+  for (const order of acceptedOrders) {
+    best = Math.max(best, positionAccuracy(order, playerOrder));
+  }
+  return best;
+}
+
+/**
+ * Compute the round score against a set of accepted word orders. The player's
+ * sequence is measured against whichever accepted order it matches best, so a
+ * grammatical clause-swapped reconstruction is never scored as wrong.
+ */
+export function computeRoundScoreForOrders(
+  acceptedOrders: readonly (readonly string[])[],
+  playerOrder: readonly string[],
+): { points: number; passed: boolean } {
+  const accuracy = bestPositionAccuracy(acceptedOrders, playerOrder);
+  const perfect = accuracy >= 1.0;
+  const passed = accuracy >= 0.8;
+
+  if (perfect) {
+    return { points: perfectRoundScore(playerOrder.length), passed: true };
   }
   if (passed) {
     return { points: partialRoundScore(), passed: true };

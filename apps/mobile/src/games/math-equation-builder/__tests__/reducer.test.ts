@@ -159,6 +159,53 @@ describe('undo / clear', () => {
     expect(state.equationTokens).toHaveLength(2);
     state = mathEquationBuilderGameReducer(state, { type: 'undo' });
     expect(state.equationTokens).toHaveLength(1);
+    // The equation ends with a number again, so an operator comes next.
+    expect(state.expectOperator).toBe(true);
+  });
+
+  it('undo of a trailing operator restores operator mode (regression)', () => {
+    let state = startSession('undo-op');
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, {
+      type: 'add-operator',
+      operator: '+',
+    });
+    state = mathEquationBuilderGameReducer(state, { type: 'undo' });
+
+    // The removed operator can be re-entered; a second number in a row cannot.
+    const reAdded = mathEquationBuilderGameReducer(state, {
+      type: 'add-operator',
+      operator: '+',
+    });
+    expect(reAdded.equationTokens).toHaveLength(2);
+    const blockedNumber = mathEquationBuilderGameReducer(state, {
+      type: 'add-number',
+      numberIndex: 1,
+    });
+    expect(blockedNumber.equationTokens).toHaveLength(1);
+  });
+
+  it('undo of a closing paren expects an operator again', () => {
+    let state = startSession('undo-paren');
+    for (const i of [0, 1]) {
+      state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: i });
+      if (i === 0) {
+        state = mathEquationBuilderGameReducer(state, { type: 'add-operator', operator: '+' });
+      }
+    }
+    state = mathEquationBuilderGameReducer(state, { type: 'group' });
+    expect(state.equationTokens).toContain(')');
+    state = mathEquationBuilderGameReducer(state, { type: 'undo' });
+    expect(state.equationTokens).not.toContain(')');
+    expect(state.expectOperator).toBe(true);
+  });
+
+  it('undo back to empty expects a number', () => {
+    let state = startSession('undo-empty');
+    state = mathEquationBuilderGameReducer(state, { type: 'add-number', numberIndex: 0 });
+    state = mathEquationBuilderGameReducer(state, { type: 'undo' });
+    expect(state.equationTokens).toHaveLength(0);
+    expect(state.usedNumberIndices).toHaveLength(0);
     expect(state.expectOperator).toBe(false);
   });
 
