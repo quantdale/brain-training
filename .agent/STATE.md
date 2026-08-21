@@ -1,11 +1,29 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-21 (campaign 009: single-session 16-worker broad development → 38 games; Critical/High repairs across games/db/portability/economy; full gates green; Android autobot QA executed)
+**Last update:** 2026-08-21 (campaign 010 opened: mass product implementation wave, 16 worker packets in `.agent/_tasks/campaign010/`; BUILD NOW / VERIFY LATER — validation deferred to campaign 011)
 **Canonical branch:** `main`
-**Active campaign:** `009-single-session-broad-development`
+**Active campaign:** `010-mass-product-implementation`
 
 ## Current status
+
+Campaign 009 COMPLETED at `e0d92ce` (38 games, full gates green, Android autobot QA).
+Campaign 010 is an owner-directed bulk construction campaign: maximize production-code
+implementation throughput across up to 16 specialized workers with strict disjoint
+write ownership. Testing/hardening is explicitly deferred to Campaign 011; anything
+unverified is recorded `NOT VALIDATED — Campaign 010 implementation-only wave` and
+queued in `.agent/_tasks/campaign011-validation-backlog.md`.
+
+### 010 scope (in flight)
+
+4 new games (attention-sustained-vigilance + Speed/Math/Memory-or-Logic additions),
+GameHost consolidation (D1), Workout V2, Personalization V2, Progress/Analytics V2,
+query performance rewrite (101ms@20k debt), backup single-pass serialization +
+transport wiring (D2, deps added by parent), DB repository maturation, Engagement V2,
+UX/IA depth, accessibility primitives (B1/D5), platform/deps cleanup (A1/A4/B7),
+cross-platform seams (B5). See `.agent/CURRENT_CAMPAIGN.md`.
+
+### 009 summary (completed)
 
 Campaign 008 (Wave 02 recovery, 36 games) COMPLETED at `d1b371f`. Campaign 009 then ran
 as ONE parent-controlled session with up to 16 specialized worker agents under strict
