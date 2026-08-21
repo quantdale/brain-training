@@ -45,7 +45,11 @@ export function FeedbackPanel({
         {title}
       </ThemedText>
       <ThemedText type="bodyLarge" testID={testId(GAME_ID, 'feedback-problem')}>
-        {problem.left} {problem.operator} {problem.right} ={' '}
+        {problem.left} {problem.operator} {problem.right}
+        {problem.secondOperator !== undefined
+          ? ` ${problem.secondOperator} ${problem.secondOperand}`
+          : ''}{' '}
+        ={' '}
         {outcome === 'correct' ? String(problem.answer) : enteredAnswer.length > 0 ? enteredAnswer : '—'}
       </ThemedText>
       {expected !== null ? (

@@ -28,7 +28,12 @@ export const NUMBER_LINE_DIFFICULTY_PARAMS: Readonly<
   easy: { rounds: 8, budgetMs: 12_000, lineMin: 0, lineMax: 10, tolerancePct: 8 },
   normal: { rounds: 10, budgetMs: 10_000, lineMin: 0, lineMax: 20, tolerancePct: 6 },
   hard: { rounds: 12, budgetMs: 8_000, lineMin: 0, lineMax: 100, tolerancePct: 4 },
-  expert: { rounds: 14, budgetMs: 6_000, lineMin: 0, lineMax: 1000, tolerancePct: 2.5 },
+  // Expert shifts to a non-zero origin: with endpoints [250, 750] no
+  // anchor-relative heuristic ("it's near 0 / near 1000") can locate the
+  // flag, so the round demands true magnitude interpolation. Tap difficulty
+  // is unchanged in screen terms — the tolerance is a fixed percent of the
+  // span and the span maps onto the same widget width as before.
+  expert: { rounds: 14, budgetMs: 6_000, lineMin: 250, lineMax: 750, tolerancePct: 2.5 },
 };
 
 /**

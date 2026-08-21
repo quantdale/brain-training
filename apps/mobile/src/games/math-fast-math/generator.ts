@@ -25,6 +25,14 @@
  * exhausted — the deterministic fallback then accepts the last candidate
  * (still fully valid; only variety is affected). Every step is deterministic:
  * the same seed always yields the same session for the same play history.
+ *
+ * Two-step tier (expert content depth): when `params.twoStepChance > 0`, a
+ * per-problem gate fork (`twostep-gate:problem:<index>`) decides whether the
+ * problem is drawn as a two-step expression `a op b ± c` (curated templates
+ * first, then validated procedural candidates). Tails are `+`/`−` only and
+ * keep every intermediate and final value an exact non-negative integer with
+ * answers ≥ 1 and ≤ 999. The gate is skipped entirely when the chance is 0,
+ * so single-step sessions reproduce their pre-tier streams exactly.
  */
 import type { Rng } from '@/sdk';
 
@@ -79,8 +87,48 @@ export const PROBLEM_TEMPLATES: readonly ProblemTemplate[] = [
   { a: 15, b: 4, operator: '×', result: 60 },
 ];
 
+/**
+ * A pre-verified two-step problem template (expert tier).  The displayed
+ * expression is `a op b tailOp c`, evaluated left to right; `result` is the
+ * exact final answer.  All intermediate and final values are integers ≥ 0
+ * (`tailOp` '−' keeps `result ≥ 1` by construction).
+ */
+export interface TwoStepTemplate {
+  readonly a: number;
+  readonly b: number;
+  readonly operator: string;
+  readonly c: number;
+  readonly tailOperator: '+' | '−';
+  readonly result: number;
+}
+
+/**
+ * Curated expert-range two-step templates, supplementing procedural two-step
+ * draws.  Invariants maintained by construction:
+ * - first step within the expert ranges (× ≤ 15×15, ÷ exact with dividend ≤ 169,
+ *   +/− ≤ 30) and every other level's ranges are subsets where applicable;
+ * - `c` within [1, maxRight] of its tail operator's range at every level that
+ *   can draw it;
+ * - final answers stay ≤ 999 (three digits — see reducer MAX_INPUT_LENGTH).
+ */
+export const TWO_STEP_TEMPLATES: readonly TwoStepTemplate[] = [
+  { a: 12, b: 7, operator: '×', c: 9, tailOperator: '+', result: 93 },   // 12 × 7 + 9
+  { a: 13, b: 9, operator: '×', c: 23, tailOperator: '+', result: 140 }, // 13 × 9 + 23
+  { a: 11, b: 11, operator: '×', c: 19, tailOperator: '+', result: 140 },// 11 × 11 + 19
+  { a: 14, b: 12, operator: '×', c: 30, tailOperator: '−', result: 138 },// 14 × 12 − 30
+  { a: 15, b: 4, operator: '×', c: 8, tailOperator: '−', result: 52 },   // 15 × 4 − 8
+  { a: 56, b: 8, operator: '÷', c: 15, tailOperator: '+', result: 22 },  // 56 ÷ 8 + 15
+  { a: 144, b: 12, operator: '÷', c: 29, tailOperator: '+', result: 41 },// 144 ÷ 12 + 29
+  { a: 91, b: 7, operator: '÷', c: 10, tailOperator: '−', result: 3 },   // 91 ÷ 7 − 10
+  { a: 169, b: 13, operator: '÷', c: 9, tailOperator: '−', result: 4 },  // 169 ÷ 13 − 9
+  { a: 25, b: 18, operator: '+', c: 14, tailOperator: '−', result: 29 }, // 25 + 18 − 14
+];
+
 /** Upper bound on re-draw attempts before the last candidate is accepted. */
 export const MAX_PROBLEM_ATTEMPTS = 20;
+
+/** Hard ceiling on any two-step answer (keeps input ≤ three digits). */
+export const MAX_TWO_STEP_ANSWER = 999;
 
 export interface GenerateProblemInput {
   readonly rng: Rng;
@@ -94,6 +142,20 @@ export interface GenerateProblemInput {
 /** Generate one validated problem (see module docs for the invariants). */
 export function generateProblem(input: GenerateProblemInput): MathProblem {
   const { rng, problemIndex, params, prevProblem } = input;
+
+  // ---- Two-step tier (expert / high adaptive steps): gated on its own fork
+  // so enabling it never perturbs the single-step draw streams. A rejected or
+  // duplicate two-step candidate falls through to single-step generation.
+  const twoStepChance = params.twoStepChance ?? 0;
+  if (twoStepChance > 0) {
+    const gate = rng.fork(`twostep-gate:problem:${problemIndex}`);
+    if (gate.next() < twoStepChance) {
+      const twoStep = drawTwoStepProblem(rng, problemIndex, params, prevProblem);
+      if (twoStep !== null) {
+        return twoStep;
+      }
+    }
+  }
 
   // ---- Content-pack: try curated templates first ----
   const compatibleTemplates = PROBLEM_TEMPLATES.filter((t) => {
@@ -181,6 +243,96 @@ function drawProblem(rng: Rng, params: MathDifficultyParams): MathProblem {
 }
 
 /**
+ * Draw one two-step problem: curated templates first, then validated
+ * procedural candidates. Returns null when no candidate passes (the caller
+ * falls through to single-step generation) — every return path is
+ * deterministic for `(seed, params, prevProblem)`.
+ */
+function drawTwoStepProblem(
+  rng: Rng,
+  problemIndex: number,
+  params: MathDifficultyParams,
+  prevProblem: MathProblem | null,
+): MathProblem | null {
+  const compatibleTemplates = TWO_STEP_TEMPLATES.filter((t) => {
+    const op = t.operator as Operator;
+    if (!params.operators.includes(op)) return false;
+    const first = params.ranges[op];
+    const tail = params.ranges[t.tailOperator];
+    return (
+      t.a >= 1 &&
+      t.a <= first.maxLeft &&
+      t.b >= 1 &&
+      t.b <= first.maxRight &&
+      t.c >= 1 &&
+      t.c <= tail.maxRight
+    );
+  });
+
+  if (compatibleTemplates.length > 0) {
+    const fork = rng.fork(`twostep-templates:problem:${problemIndex}`);
+    const shuffled = fork.shuffle([...compatibleTemplates]);
+    for (const template of shuffled) {
+      const problem: MathProblem = {
+        operator: template.operator as Operator,
+        left: template.a,
+        right: template.b,
+        secondOperator: template.tailOperator,
+        secondOperand: template.c,
+        answer: template.result,
+      };
+      if (!isNearDuplicate(problem, prevProblem)) {
+        return problem;
+      }
+    }
+  }
+
+  for (let attempt = 0; attempt < MAX_PROBLEM_ATTEMPTS; attempt += 1) {
+    const candidate = drawTwoStepCandidate(
+      rng.fork(`twostep:problem:${problemIndex}:attempt:${attempt}`),
+      params,
+    );
+    if (candidate !== null && !isNearDuplicate(candidate, prevProblem)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+/**
+ * One procedural two-step candidate: a validated single-step draw followed by
+ * a `+`/`−` tail that keeps every intermediate and the final answer exact,
+ * non-negative (`−` tails keep the answer ≥ 1) and ≤ MAX_TWO_STEP_ANSWER.
+ * Returns null when no feasible tail exists for the drawn first step.
+ */
+function drawTwoStepCandidate(
+  rng: Rng,
+  params: MathDifficultyParams,
+): MathProblem | null {
+  const first = drawProblem(rng, params);
+  const intermediate = first.answer;
+  const tailOperator = rng.pick<TailOperator>(['+', '−']);
+  if (tailOperator === '+') {
+    const hi = Math.min(params.ranges['+'].maxRight, MAX_TWO_STEP_ANSWER - intermediate);
+    if (hi < 1) {
+      return null;
+    }
+    const c = rng.nextIntRange(1, hi + 1);
+    return { ...first, secondOperator: '+', secondOperand: c, answer: intermediate + c };
+  }
+  // '−' tail: keep the final answer ≥ 1 (no zero-answer problems).
+  const hi = Math.min(params.ranges['−'].maxRight, intermediate - 1);
+  if (hi < 1) {
+    return null;
+  }
+  const c = rng.nextIntRange(1, hi + 1);
+  return { ...first, secondOperator: '−', secondOperand: c, answer: intermediate - c };
+}
+
+/** Tail operators of the two-step tier. */
+type TailOperator = '+' | '−';
+
+/**
  * Canonical signature of a problem: operator plus operands, with commutative
  * operands sorted for + and × so `3 + 4` and `4 + 3` count as the same
  * problem for near-duplicate purposes.
@@ -193,7 +345,11 @@ export function problemSignature(problem: MathProblem): string {
   const second = isCommutative
     ? Math.max(problem.left, problem.right)
     : problem.right;
-  return `${problem.operator}|${first}|${second}`;
+  const base = `${problem.operator}|${first}|${second}`;
+  if (problem.secondOperator === undefined) {
+    return base;
+  }
+  return `${base}|${problem.secondOperator}|${problem.secondOperand}`;
 }
 
 /** True when `a` repeats `b` exactly (commutativity-aware). */
@@ -209,17 +365,36 @@ export function isNearDuplicate(a: MathProblem, b: MathProblem | null): boolean 
 export function isTrivialProblem(problem: MathProblem): boolean {
   switch (problem.operator) {
     case '+':
-      return problem.left === 0 || problem.right === 0;
+      if (problem.left === 0 || problem.right === 0) return true;
+      break;
     case '−':
-      return problem.right === 0 || problem.left === problem.right;
+      if (problem.right === 0 || problem.left === problem.right) return true;
+      break;
     case '×':
-      return (
+      if (
         problem.left === 0 ||
         problem.right === 0 ||
         problem.left === 1 ||
         problem.right === 1
-      );
+      ) {
+        return true;
+      }
+      break;
     case '÷':
-      return problem.right === 1 || problem.left === problem.right;
+      if (problem.right === 1 || problem.left === problem.right) return true;
+      break;
   }
+  // Two-step tier: a missing/degenerate tail operand is trivial by definition;
+  // generation guarantees answer ≥ 1 for '−' tails, so a non-positive final
+  // answer means a broken candidate.
+  if (problem.secondOperator !== undefined) {
+    const c = problem.secondOperand;
+    if (c === undefined || !Number.isInteger(c) || c < 1) {
+      return true;
+    }
+    if (problem.secondOperator === '−' && problem.answer < 1) {
+      return true;
+    }
+  }
+  return false;
 }

@@ -63,6 +63,7 @@ describe('Fast Math difficulty parameter mapping', () => {
         '×': { maxLeft: 15, maxRight: 15 },
         '÷': { maxLeft: 169, maxRight: 13 },
       },
+      twoStepChance: 0.35,
     });
   });
 
@@ -147,6 +148,8 @@ describe('adaptiveParamsForStep', () => {
     expect(derived.timeBudgetMs).toBe(4_000);
     expect(derived.operators).toEqual(OPERATORS);
     expect(derived.rounds).toBe(ADAPTIVE_PARAMS.rounds);
+    // The two-step tier ramps in with the ranges toward the expert chance.
+    expect(derived.twoStepChance).toBe(MATH_DIFFICULTY_PARAMS.expert.twoStepChance);
   });
 
   it('grows monotonically: wider ranges and a tighter budget per step', () => {

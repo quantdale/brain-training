@@ -70,6 +70,9 @@ export function buildMathRawResult(input: BuildRawResultInput): MathRawResult {
     maxRight_mul: input.params.ranges['×'].maxRight,
     maxLeft_div: input.params.ranges['÷'].maxLeft,
     maxRight_div: input.params.ranges['÷'].maxRight,
+    // Two-step tier chance (0 for levels without it); part of the
+    // reproducibility envelope alongside the seed + versions.
+    twoStepChance: input.params.twoStepChance ?? 0,
     rngAlgorithm: RNG_ALGORITHM_VERSION,
   };
   const diagnosticMetadata: DiagnosticMetadata = createDiagnosticMetadata({

@@ -35,6 +35,14 @@ export interface MathProblem {
   readonly left: number;
   /** Displayed right operand (positive integer; for ÷ this is the divisor). */
   readonly right: number;
+  /**
+   * Optional second step (expert two-step tier): the displayed expression is
+   * `left operator right secondOperator secondOperand`, evaluated left to
+   * right. When absent the problem is a plain single-step problem.
+   */
+  readonly secondOperator?: Operator;
+  /** Second-step operand (positive integer); present iff `secondOperator` is. */
+  readonly secondOperand?: number;
   /** The exact answer; for ÷ `left === answer * right` always holds. */
   readonly answer: number;
 }
@@ -55,6 +63,11 @@ export interface MathDifficultyParams {
   readonly ranges: Readonly<Record<Operator, OperatorRange>>;
   /** Allowed operators for the session (uniformly picked at generation). */
   readonly operators: readonly Operator[];
+  /**
+   * Probability [0, 1] that a problem is drawn as a two-step expression
+   * (`a × b + c`). Absent/0 = single-step only (all levels except expert).
+   */
+  readonly twoStepChance?: number;
   /** Adaptive-only: per-problem difficulty-step bounds. */
   readonly minStep?: number;
   /** Adaptive-only: per-problem difficulty-step bounds. */

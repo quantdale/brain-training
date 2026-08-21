@@ -34,10 +34,16 @@ export interface PuzzleTemplate {
  * Invariants maintained by construction:
  * - all targets achievable via some parenthesisation of the numbers
  * - numbers in [2, 20], count in [3, 5], all distinct within a set
- * - no duplicate targets across the 20 templates
+ * - no duplicate targets across the bank
+ *
+ * Pool layout follows the per-level `numbersCount`: 3-number sets serve easy
+ * (+/− only — the only operator mix that can draw them), 4-number sets serve
+ * normal/hard, and the 5-number pool serves expert (which previously had NO
+ * curated content at all). Every new template was machine-verified solvable
+ * under the smallest operator mix of a level that can draw it.
  */
 export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
-  // 3-number sets (easy / normal / hard compatible)
+  // 3-number sets (easy compatible: +/− only)
   { numbers: [3, 5, 7], target: 15 },   // 3 + 5 + 7
   { numbers: [4, 6, 2], target: 12 },   // 4 + 6 + 2
   { numbers: [5, 8, 3], target: 16 },   // 5 + 8 + 3
@@ -50,6 +56,9 @@ export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   { numbers: [14, 6, 2], target: 22 },  // 14 + 6 + 2
   { numbers: [11, 4, 3], target: 18 },  // 11 + 4 + 3
   { numbers: [15, 2, 3], target: 14 },  // 15 + 2 − 3
+  { numbers: [20, 7, 3], target: 24 },  // 20 + 7 − 3
+  { numbers: [16, 9, 4], target: 21 },  // 16 + 9 − 4
+  { numbers: [13, 8, 2], target: 19 },  // 13 + 8 − 2
   // 4-number sets (normal / hard / expert compatible)
   { numbers: [3, 4, 2, 5], target: 30 },  // 3 × (4 − 2) × 5
   { numbers: [5, 3, 2, 4], target: 40 },  // (5 + 3 + 2) × 4
@@ -57,6 +66,17 @@ export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   { numbers: [8, 2, 3, 5], target: 48 },  // (8 − 2) × (3 + 5)
   { numbers: [7, 3, 2, 4], target: 32 },  // (7 + 3 − 2) × 4
   { numbers: [4, 7, 2, 3], target: 34 },  // (4 × 7) + (2 × 3)
+  { numbers: [10, 2, 6, 3], target: 36 }, // (10 + 2) × (6 − 3)
+  { numbers: [16, 8, 5, 2], target: 42 }, // ((16 − 8) × 5) + 2
+  { numbers: [11, 2, 6, 4], target: 46 }, // (11 × 2) + (6 × 4)
+  { numbers: [9, 5, 7, 3], target: 56 },  // (9 + 5) × (7 − 3)
+  { numbers: [12, 3, 5, 2], target: 63 }, // (12 − 3) × (5 + 2)
+  { numbers: [13, 4, 2, 6], target: 72 }, // (13 − 4) × (6 + 2)
+  { numbers: [8, 5, 2, 7], target: 77 },  // ((8 + 7) × 5) + 2
+  { numbers: [9, 4, 8, 3], target: 55 },  // (9 − 4) × (8 + 3)
+  { numbers: [9, 4, 6, 3], target: 87 },  // (9 × (4 + 6)) − 3
+  { numbers: [14, 5, 2, 3], target: 95 }, // (14 + 5) × (3 + 2)
+  { numbers: [6, 7, 2, 5], target: 91 },  // (6 + 7) × (5 + 2)
   // 3-number sets (hard / expert compatible — higher targets)
   { numbers: [8, 7, 3], target: 53 },   // (8 × 7) − 3
   { numbers: [6, 5, 4], target: 54 },   // 6 × (5 + 4)
@@ -65,6 +85,17 @@ export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   { numbers: [10, 5, 2], target: 52 },  // (10 × 5) + 2
   { numbers: [8, 6, 4], target: 44 },   // (8 × 6) − 4
   { numbers: [13, 2, 5], target: 31 },  // (13 × 2) + 5
+  // 5-number sets (expert compatible — the curated expert pool)
+  { numbers: [2, 3, 4, 5, 6], target: 60 },    // ((2 × 3) × (4 + 5)) + 6
+  { numbers: [3, 4, 5, 6, 7], target: 102 },   // (7 × (4 + 5 + 6)) − 3
+  { numbers: [2, 5, 7, 9, 11], target: 114 },  // ((11 + 9) × 5) + (7 × 2)
+  { numbers: [4, 6, 8, 10, 12], target: 126 }, // ((12 + 8) × 6) + (10 − 4)
+  { numbers: [2, 4, 6, 8, 10], target: 200 },  // (2 + 4 + 6 + 8) × 10
+  { numbers: [3, 5, 6, 9, 12], target: 105 },  // (12 × 9) − ((6 − 5) × 3)
+  { numbers: [4, 5, 7, 11, 13], target: 135 }, // (13 × 11) − ((7 − 5) × 4)
+  { numbers: [6, 7, 8, 9, 10], target: 81 },   // (10 × 9) − (8 + 7 − 6)
+  { numbers: [19, 11, 7, 3, 2], target: 186 }, // (19 × 11) − ((7 × 3) + 2)
+  { numbers: [5, 6, 7, 8, 9], target: 118 },   // ((9 + 8) × 7) − (6 − 5)
 ];
 
 export interface GeneratePuzzleInput {

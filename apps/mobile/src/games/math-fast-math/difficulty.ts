@@ -72,6 +72,9 @@ export const MATH_DIFFICULTY_PARAMS: Readonly<
       '×': { maxLeft: 15, maxRight: 15 },
       '÷': { maxLeft: 169, maxRight: 13 },
     },
+    // Expert-only two-step tier: ~1 in 3 problems is `a op b ± c`, raising the
+    // ceiling above single-step recall while staying exact and non-negative.
+    twoStepChance: 0.35,
   },
 };
 
@@ -148,6 +151,9 @@ export function mathParamsToRecord(
   if (params.maxStep !== undefined) {
     record.maxStep = params.maxStep;
   }
+  if (params.twoStepChance !== undefined) {
+    record.twoStepChance = params.twoStepChance;
+  }
   return record;
 }
 
@@ -178,6 +184,17 @@ export function mathParamsFromProfile(profile: DifficultyProfile): MathDifficult
   }
   const minStep = p.minStep === undefined ? undefined : requireNumber('minStep');
   const maxStep = p.maxStep === undefined ? undefined : requireNumber('maxStep');
+  // Optional (older persisted profiles predate the two-step tier).
+  const twoStepChance =
+    p.twoStepChance === undefined ? undefined : requireNumber('twoStepChance');
+  if (
+    twoStepChance !== undefined &&
+    (twoStepChance < 0 || twoStepChance > 1)
+  ) {
+    throw new Error(
+      `math-fast-math: difficulty profile has invalid twoStepChance "${String(twoStepChance)}"`,
+    );
+  }
   return {
     rounds,
     timeBudgetMs: timeBudgetMs === 0 ? null : timeBudgetMs,
@@ -185,6 +202,7 @@ export function mathParamsFromProfile(profile: DifficultyProfile): MathDifficult
     operators: operatorsFromMask(mask),
     ...(minStep !== undefined ? { minStep } : {}),
     ...(maxStep !== undefined ? { maxStep } : {}),
+    ...(twoStepChance !== undefined ? { twoStepChance } : {}),
   };
 }
 
@@ -245,6 +263,10 @@ export function adaptiveParamsForStep(
     base.timeBudgetMs !== null && target.timeBudgetMs !== null
       ? Math.round(base.timeBudgetMs + (target.timeBudgetMs - base.timeBudgetMs) * t)
       : base.timeBudgetMs;
+  // Two-step tier ramps in with the ranges toward the expert chance; omitted
+  // while zero so step 0 reproduces the base params exactly.
+  const twoStepChance =
+    (base.twoStepChance ?? 0) + ((target.twoStepChance ?? 0) - (base.twoStepChance ?? 0)) * t;
   return {
     rounds: base.rounds,
     timeBudgetMs,
@@ -252,6 +274,7 @@ export function adaptiveParamsForStep(
     operators: operatorsForStep(step),
     minStep: min,
     maxStep: max,
+    ...(twoStepChance > 0 ? { twoStepChance } : {}),
   };
 }
 

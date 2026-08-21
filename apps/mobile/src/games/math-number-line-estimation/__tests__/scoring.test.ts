@@ -23,7 +23,8 @@ describe('toleranceSpan', () => {
   it('converts the percent-of-span tolerance into value units', () => {
     expect(toleranceSpan(NORMAL)).toBeCloseTo(1.2);
     expect(toleranceSpan(NUMBER_LINE_DIFFICULTY_PARAMS.easy)).toBeCloseTo(0.8);
-    expect(toleranceSpan(NUMBER_LINE_DIFFICULTY_PARAMS.expert)).toBeCloseTo(25);
+    // Expert spans [250, 750]: 2.5% of 500 = 12.5.
+    expect(toleranceSpan(NUMBER_LINE_DIFFICULTY_PARAMS.expert)).toBeCloseTo(12.5);
   });
 });
 

@@ -35,6 +35,19 @@ export function ProblemDisplay({ problem, input }: ProblemDisplayProps) {
       <ThemedText type="display" testID={testId(GAME_ID, 'problem-right')}>
         {problem.right}
       </ThemedText>
+      {problem.secondOperator !== undefined ? (
+        <>
+          <ThemedText
+            type="display"
+            themeColor="textSecondary"
+            testID={testId(GAME_ID, 'problem-second-op')}>
+            {problem.secondOperator}
+          </ThemedText>
+          <ThemedText type="display" testID={testId(GAME_ID, 'problem-second-operand')}>
+            {problem.secondOperand}
+          </ThemedText>
+        </>
+      ) : null}
       <ThemedText type="display" themeColor="textSecondary">
         =
       </ThemedText>

@@ -28,38 +28,57 @@ function assertProblemValid(problem: MathProblem, params: MathDifficultyParams):
   expect(Number.isInteger(problem.answer)).toBe(true);
   expect(problem.answer).toBeGreaterThanOrEqual(0);
   expect(isTrivialProblem(problem)).toBe(false);
+  // Value of the first step alone (`left op right`); two-step problems are
+  // validated against this intermediate before the tail is applied.
+  let intermediate: number;
   switch (problem.operator) {
     case '+':
       expect(problem.left).toBeGreaterThanOrEqual(1);
       expect(problem.left).toBeLessThanOrEqual(range.maxLeft);
       expect(problem.right).toBeGreaterThanOrEqual(1);
       expect(problem.right).toBeLessThanOrEqual(range.maxRight);
-      expect(problem.answer).toBe(problem.left + problem.right);
+      intermediate = problem.left + problem.right;
       break;
     case '−':
       expect(problem.left).toBeGreaterThanOrEqual(2);
       expect(problem.left).toBeLessThanOrEqual(range.maxLeft);
       expect(problem.right).toBeGreaterThanOrEqual(1);
       expect(problem.right).toBeLessThanOrEqual(range.maxRight);
-      expect(problem.answer).toBe(problem.left - problem.right);
-      expect(problem.answer).toBeGreaterThanOrEqual(1);
+      intermediate = problem.left - problem.right;
+      expect(intermediate).toBeGreaterThanOrEqual(1);
       break;
     case '×':
       expect(problem.left).toBeGreaterThanOrEqual(2);
       expect(problem.left).toBeLessThanOrEqual(range.maxLeft);
       expect(problem.right).toBeGreaterThanOrEqual(2);
       expect(problem.right).toBeLessThanOrEqual(range.maxRight);
-      expect(problem.answer).toBe(problem.left * problem.right);
+      intermediate = problem.left * problem.right;
       break;
     case '÷':
       expect(problem.right).toBeGreaterThanOrEqual(2);
       expect(problem.right).toBeLessThanOrEqual(range.maxRight);
-      expect(problem.answer).toBeGreaterThanOrEqual(2);
-      expect(problem.answer).toBeLessThanOrEqual(range.maxRight);
-      // Exactness by construction: left is always the dividend, answer × right.
-      expect(problem.left).toBe(problem.answer * problem.right);
+      // Exactness by construction: left is always the dividend, answer × right
+      // (before any two-step tail is applied).
+      expect(problem.left % problem.right).toBe(0);
       expect(problem.left).toBeLessThanOrEqual(range.maxLeft);
+      intermediate = problem.left / problem.right;
+      expect(intermediate).toBeGreaterThanOrEqual(2);
+      expect(intermediate).toBeLessThanOrEqual(range.maxRight);
       break;
+  }
+  if (problem.secondOperator !== undefined) {
+    const tail = problem.secondOperator;
+    expect(tail === '+' || tail === '−').toBe(true);
+    const c = problem.secondOperand as number;
+    expect(Number.isInteger(c)).toBe(true);
+    expect(c).toBeGreaterThanOrEqual(1);
+    expect(c).toBeLessThanOrEqual(params.ranges[tail].maxRight);
+    expect(problem.answer).toBe(tail === '+' ? intermediate + c : intermediate - c);
+    expect(problem.answer).toBeGreaterThanOrEqual(1);
+    expect(problem.answer).toBeLessThanOrEqual(999);
+  } else {
+    expect(problem.secondOperand).toBeUndefined();
+    expect(problem.answer).toBe(intermediate);
   }
 }
 
@@ -113,6 +132,62 @@ describe('generateSessionProblems', () => {
         assertSessionValid(fullSession(`step-${step}-${seed}`, params), params);
       }
     }
+  });
+});
+
+describe('two-step tier (expert content depth)', () => {
+  it('draws two-step problems at expert and never at lower levels', () => {
+    let expertTwoStepCount = 0;
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const problems = fullSession(`ts-${seed}`, MATH_DIFFICULTY_PARAMS.expert);
+      expertTwoStepCount += problems.filter((p) => p.secondOperator !== undefined).length;
+      for (const level of ['easy', 'normal', 'hard'] as const) {
+        const plain = fullSession(`ts-${level}-${seed}`, MATH_DIFFICULTY_PARAMS[level]);
+        expect(plain.some((p) => p.secondOperator !== undefined)).toBe(false);
+      }
+    }
+    expect(expertTwoStepCount).toBeGreaterThan(0);
+  });
+
+  it('keeps two-step answers exact, positive and within three digits', () => {
+    for (let seed = 1; seed <= 50; seed += 1) {
+      for (const problem of fullSession(`tsx-${seed}`, MATH_DIFFICULTY_PARAMS.expert)) {
+        if (problem.secondOperator === undefined) continue;
+        const c = problem.secondOperand as number;
+        const step1 =
+          problem.operator === '+'
+            ? problem.left + problem.right
+            : problem.operator === '−'
+              ? problem.left - problem.right
+              : problem.operator === '×'
+                ? problem.left * problem.right
+                : problem.left / problem.right;
+        expect(problem.answer).toBe(
+          problem.secondOperator === '+' ? step1 + c : step1 - c,
+        );
+        expect(problem.answer).toBeGreaterThanOrEqual(1);
+        expect(problem.answer).toBeLessThanOrEqual(999);
+      }
+    }
+  });
+
+  it('stays deterministic with the tier enabled', () => {
+    expect(fullSession('ts-det', MATH_DIFFICULTY_PARAMS.expert)).toEqual(
+      fullSession('ts-det', MATH_DIFFICULTY_PARAMS.expert),
+    );
+  });
+
+  it('includes the second step in the signature', () => {
+    expect(
+      problemSignature({
+        operator: '×',
+        left: 12,
+        right: 7,
+        secondOperator: '+',
+        secondOperand: 9,
+        answer: 93,
+      }),
+    ).toBe('×|7|12|+|9');
   });
 });
 
