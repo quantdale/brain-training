@@ -1,6 +1,6 @@
 // Jest globals imported explicitly (repo has no @types/jest).
-import { describe, expect, it } from '@jest/globals';
-import { createRng } from '@/sdk';
+import { describe, expect, it } from "@jest/globals";
+import { createRng } from "@/sdk";
 
 import {
   MAX_GENERATION_ATTEMPTS,
@@ -12,16 +12,16 @@ import {
   indexToCoords,
   isSymmetric,
   patternDistance,
-} from '../generator';
-import { ALL_TRANSFORMS } from '../types';
-import type { TransformType } from '../types';
+} from "../generator";
+import { ALL_TRANSFORMS } from "../types";
+import type { TransformType } from "../types";
 
 // ---------------------------------------------------------------------------
 // Coordinate helpers
 // ---------------------------------------------------------------------------
 
-describe('indexToCoords / coordsToIndex', () => {
-  it('round-trips for a 3×3 grid', () => {
+describe("indexToCoords / coordsToIndex", () => {
+  it("round-trips for a 3×3 grid", () => {
     const side = 3;
     for (let i = 0; i < 9; i += 1) {
       const { row, col } = indexToCoords(i, side);
@@ -33,7 +33,7 @@ describe('indexToCoords / coordsToIndex', () => {
     }
   });
 
-  it('round-trips for a 4×4 grid', () => {
+  it("round-trips for a 4×4 grid", () => {
     const side = 4;
     for (let i = 0; i < 16; i += 1) {
       const { row, col } = indexToCoords(i, side);
@@ -46,55 +46,59 @@ describe('indexToCoords / coordsToIndex', () => {
 // Transforms
 // ---------------------------------------------------------------------------
 
-describe('applyTransform', () => {
-  it('rotate90 on a 3×3 grid transforms correctly', () => {
+describe("applyTransform", () => {
+  it("rotate90 on a 3×3 grid transforms correctly", () => {
     // Pattern: top-left cell (0,0) → after 90° CW: (0,2) = index 2
     // Pattern: center (1,1) → stays at (1,1) = index 4
     // Pattern: bottom-right (2,2) → (2,0) = index 6
     const pattern = [0, 4, 8];
-    const result = applyTransform(pattern, 'rotate90', 3);
+    const result = applyTransform(pattern, "rotate90", 3);
     expect(result).toEqual([2, 4, 6]);
   });
 
-  it('rotate180 on a 3×3 grid transforms correctly', () => {
+  it("rotate180 on a 3×3 grid transforms correctly", () => {
     // (0,0)→(2,2)=8, (0,1)→(2,1)=7, (1,0)→(1,2)=5
     const pattern = [0, 1, 3];
-    const result = applyTransform(pattern, 'rotate180', 3);
+    const result = applyTransform(pattern, "rotate180", 3);
     expect(result).toEqual([5, 7, 8]);
   });
 
-  it('rotate270 on a 3×3 grid transforms correctly', () => {
+  it("rotate270 on a 3×3 grid transforms correctly", () => {
     // (0,0)→(2,0)=6, (1,1)→(1,1)=4, (2,2)→(0,2)=2
     const pattern = [0, 4, 8];
-    const result = applyTransform(pattern, 'rotate270', 3);
+    const result = applyTransform(pattern, "rotate270", 3);
     expect(result).toEqual([2, 4, 6]);
   });
 
-  it('mirrorH on a 3×3 grid flips left-right', () => {
+  it("mirrorH on a 3×3 grid flips left-right", () => {
     // (0,0)→(0,2)=2, (0,1)→(0,1)=1, (1,0)→(1,2)=5
     const pattern = [0, 1, 3];
-    const result = applyTransform(pattern, 'mirrorH', 3);
+    const result = applyTransform(pattern, "mirrorH", 3);
     expect(result).toEqual([1, 2, 5]);
   });
 
-  it('mirrorV on a 3×3 grid flips top-bottom', () => {
+  it("mirrorV on a 3×3 grid flips top-bottom", () => {
     // (0,0)→(2,0)=6, (0,1)→(2,1)=7, (1,0)→(1,0)=3
     const pattern = [0, 1, 3];
-    const result = applyTransform(pattern, 'mirrorV', 3);
+    const result = applyTransform(pattern, "mirrorV", 3);
     expect(result).toEqual([3, 6, 7]);
   });
 
-  it('result is always sorted', () => {
+  it("result is always sorted", () => {
     const pattern = [8, 0, 4];
     for (const t of ALL_TRANSFORMS) {
-      const result = applyTransform(t === 'rotate270' ? pattern : [0, 1, 2], t, 3);
+      const result = applyTransform(
+        t === "rotate270" ? pattern : [0, 1, 2],
+        t,
+        3,
+      );
       for (let i = 1; i < result.length; i += 1) {
         expect(result[i]).toBeGreaterThanOrEqual(result[i - 1]);
       }
     }
   });
 
-  it('preserves pattern size', () => {
+  it("preserves pattern size", () => {
     const pattern = [0, 2, 5, 7];
     for (const t of ALL_TRANSFORMS) {
       expect(applyTransform(pattern, t, 4)).toHaveLength(4);
@@ -106,30 +110,30 @@ describe('applyTransform', () => {
 // Symmetry
 // ---------------------------------------------------------------------------
 
-describe('isSymmetric', () => {
-  it('detects a symmetric pattern under rotate180', () => {
+describe("isSymmetric", () => {
+  it("detects a symmetric pattern under rotate180", () => {
     // Pattern symmetric under 180° rotation: [0, 4, 8] on 3×3
     // (0,0)→(2,2)=8, (1,1)→(1,1)=4, (2,2)→(0,0)=0 → same set
-    expect(isSymmetric([0, 4, 8], 'rotate180', 3)).toBe(true);
+    expect(isSymmetric([0, 4, 8], "rotate180", 3)).toBe(true);
   });
 
-  it('detects a non-symmetric pattern under rotate90', () => {
+  it("detects a non-symmetric pattern under rotate90", () => {
     // [0, 1, 2] on 3×3: rotate90 → [2, 5, 8], different
-    expect(isSymmetric([0, 1, 2], 'rotate90', 3)).toBe(false);
+    expect(isSymmetric([0, 1, 2], "rotate90", 3)).toBe(false);
   });
 
-  it('detects a pattern symmetric under mirrorH', () => {
+  it("detects a pattern symmetric under mirrorH", () => {
     // [1, 3, 5, 7] on 3×3 (diamond): mirrorH → [1, 3, 5, 7]
-    expect(isSymmetric([1, 3, 5, 7], 'mirrorH', 3)).toBe(true);
+    expect(isSymmetric([1, 3, 5, 7], "mirrorH", 3)).toBe(true);
   });
 
-  it('detects a pattern symmetric under mirrorV', () => {
+  it("detects a pattern symmetric under mirrorV", () => {
     // [3, 4, 5] on 3×3 (middle row): mirrorV → [3, 4, 5]
-    expect(isSymmetric([3, 4, 5], 'mirrorV', 3)).toBe(true);
+    expect(isSymmetric([3, 4, 5], "mirrorV", 3)).toBe(true);
   });
 
-  it('returns false for patterns of different lengths', () => {
-    expect(isSymmetric([0, 1], 'rotate90', 3)).toBe(false);
+  it("returns false for patterns of different lengths", () => {
+    expect(isSymmetric([0, 1], "rotate90", 3)).toBe(false);
   });
 });
 
@@ -137,19 +141,19 @@ describe('isSymmetric', () => {
 // Pattern distance
 // ---------------------------------------------------------------------------
 
-describe('patternDistance', () => {
-  it('returns 0 for identical patterns', () => {
+describe("patternDistance", () => {
+  it("returns 0 for identical patterns", () => {
     expect(patternDistance([0, 1, 2], [0, 1, 2])).toBe(0);
   });
 
-  it('counts differing cells (filledCells - intersection)', () => {
+  it("counts differing cells (filledCells - intersection)", () => {
     // [0,1,2] vs [0,1,3]: intersection=2, distance = 3-2 = 1
     expect(patternDistance([0, 1, 2], [0, 1, 3])).toBe(1);
     // [0,1,2] vs [3,4,5]: intersection=0, distance = 3-0 = 3
     expect(patternDistance([0, 1, 2], [3, 4, 5])).toBe(3);
   });
 
-  it('handles different-length patterns', () => {
+  it("handles different-length patterns", () => {
     expect(patternDistance([0, 1], [0, 1, 2])).toBeGreaterThan(0);
   });
 });
@@ -158,28 +162,28 @@ describe('patternDistance', () => {
 // Source pattern generation
 // ---------------------------------------------------------------------------
 
-describe('generateSourcePattern', () => {
-  it('is deterministic: same seed produces same pattern', () => {
-    const a = generateSourcePattern(createRng('src-42'), 0, 9, 3);
-    const b = generateSourcePattern(createRng('src-42'), 0, 9, 3);
+describe("generateSourcePattern", () => {
+  it("is deterministic: same seed produces same pattern", () => {
+    const a = generateSourcePattern(createRng("src-42"), 0, 9, 3);
+    const b = generateSourcePattern(createRng("src-42"), 0, 9, 3);
     expect(a).toEqual(b);
   });
 
-  it('produces the correct number of filled cells', () => {
-    const pattern = generateSourcePattern(createRng('fill'), 0, 16, 5);
+  it("produces the correct number of filled cells", () => {
+    const pattern = generateSourcePattern(createRng("fill"), 0, 16, 5);
     expect(pattern).toHaveLength(5);
   });
 
-  it('all cells are in range', () => {
-    const pattern = generateSourcePattern(createRng('range'), 0, 9, 4);
+  it("all cells are in range", () => {
+    const pattern = generateSourcePattern(createRng("range"), 0, 9, 4);
     for (const cell of pattern) {
       expect(cell).toBeGreaterThanOrEqual(0);
       expect(cell).toBeLessThan(9);
     }
   });
 
-  it('cells are sorted and unique', () => {
-    const pattern = generateSourcePattern(createRng('unique'), 0, 16, 6);
+  it("cells are sorted and unique", () => {
+    const pattern = generateSourcePattern(createRng("unique"), 0, 16, 6);
     const set = new Set(pattern);
     expect(set.size).toBe(6);
     for (let i = 1; i < pattern.length; i += 1) {
@@ -187,9 +191,9 @@ describe('generateSourcePattern', () => {
     }
   });
 
-  it('different seeds produce different patterns', () => {
-    const a = generateSourcePattern(createRng('seed-a'), 0, 9, 3);
-    const b = generateSourcePattern(createRng('seed-b'), 0, 9, 3);
+  it("different seeds produce different patterns", () => {
+    const a = generateSourcePattern(createRng("seed-a"), 0, 9, 3);
+    const b = generateSourcePattern(createRng("seed-b"), 0, 9, 3);
     expect(a).not.toEqual(b);
   });
 });
@@ -198,16 +202,16 @@ describe('generateSourcePattern', () => {
 // Full round data generation
 // ---------------------------------------------------------------------------
 
-describe('generateRoundData', () => {
-  it('is deterministic: same seed reproduces the same round', () => {
+describe("generateRoundData", () => {
+  it("is deterministic: same seed reproduces the same round", () => {
     const makeRound = () =>
       generateRoundData({
-        rng: createRng('round-det'),
+        rng: createRng("round-det"),
         roundIndex: 0,
         gridSize: 9,
         side: 3,
         filledCells: 3,
-        allowedTransforms: ['rotate90', 'rotate180'],
+        allowedTransforms: ["rotate90", "rotate180"],
         optionCount: 3,
         prevSource: null,
         prevTransform: null,
@@ -215,14 +219,14 @@ describe('generateRoundData', () => {
     expect(makeRound()).toEqual(makeRound());
   });
 
-  it('correct option equals the transformed source exactly', () => {
+  it("correct option equals the transformed source exactly", () => {
     const round = generateRoundData({
-      rng: createRng('correct-check'),
+      rng: createRng("correct-check"),
       roundIndex: 0,
       gridSize: 9,
       side: 3,
       filledCells: 3,
-      allowedTransforms: ['rotate90'],
+      allowedTransforms: ["rotate90"],
       optionCount: 2,
       prevSource: null,
       prevTransform: null,
@@ -232,14 +236,14 @@ describe('generateRoundData', () => {
     expect(round.options[round.correctOptionIndex]).toEqual(expected);
   });
 
-  it('distractors differ from the correct option', () => {
+  it("distractors differ from the correct option", () => {
     const round = generateRoundData({
-      rng: createRng('distractor-check'),
+      rng: createRng("distractor-check"),
       roundIndex: 0,
       gridSize: 9,
       side: 3,
       filledCells: 3,
-      allowedTransforms: ['rotate90'],
+      allowedTransforms: ["rotate90"],
       optionCount: 3,
       prevSource: null,
       prevTransform: null,
@@ -251,14 +255,14 @@ describe('generateRoundData', () => {
     }
   });
 
-  it('option count matches the requested count', () => {
+  it("option count matches the requested count", () => {
     const round = generateRoundData({
-      rng: createRng('opt-count'),
+      rng: createRng("opt-count"),
       roundIndex: 0,
       gridSize: 9,
       side: 3,
       filledCells: 3,
-      allowedTransforms: ['rotate90', 'rotate180', 'rotate270'],
+      allowedTransforms: ["rotate90", "rotate180", "rotate270"],
       optionCount: 4,
       prevSource: null,
       prevTransform: null,
@@ -266,7 +270,7 @@ describe('generateRoundData', () => {
     expect(round.options).toHaveLength(4);
   });
 
-  it('source is not symmetric under the chosen transform', () => {
+  it("source is not symmetric under the chosen transform", () => {
     // Run many seeds to verify the symmetry rejection works.
     for (let seed = 0; seed < 50; seed += 1) {
       const round = generateRoundData({
@@ -275,7 +279,13 @@ describe('generateRoundData', () => {
         gridSize: 9,
         side: 3,
         filledCells: 3,
-        allowedTransforms: ['rotate90', 'rotate180', 'rotate270', 'mirrorH', 'mirrorV'],
+        allowedTransforms: [
+          "rotate90",
+          "rotate180",
+          "rotate270",
+          "mirrorH",
+          "mirrorV",
+        ],
         optionCount: 3,
         prevSource: null,
         prevTransform: null,
@@ -284,8 +294,8 @@ describe('generateRoundData', () => {
     }
   });
 
-  it('near-duplicate avoidance: consecutive rounds differ', () => {
-    const rng = createRng('near-dup');
+  it("near-duplicate avoidance: consecutive rounds differ", () => {
+    const rng = createRng("near-dup");
     let prevSource: readonly number[] | null = null;
     let prevTransform: TransformType | null = null;
     for (let round = 0; round < 10; round += 1) {
@@ -295,27 +305,29 @@ describe('generateRoundData', () => {
         gridSize: 9,
         side: 3,
         filledCells: 3,
-        allowedTransforms: ['rotate90', 'rotate180'],
+        allowedTransforms: ["rotate90", "rotate180"],
         optionCount: 2,
         prevSource,
         prevTransform,
       });
       if (prevSource !== null) {
-        expect(patternDistance(data.source, prevSource)).toBeGreaterThanOrEqual(MIN_PATTERN_DISTANCE);
+        expect(patternDistance(data.source, prevSource)).toBeGreaterThanOrEqual(
+          MIN_PATTERN_DISTANCE,
+        );
       }
       prevSource = data.source;
       prevTransform = data.transformType;
     }
   });
 
-  it('works on a 4×4 grid', () => {
+  it("works on a 4×4 grid", () => {
     const round = generateRoundData({
-      rng: createRng('grid-16'),
+      rng: createRng("grid-16"),
       roundIndex: 0,
       gridSize: 16,
       side: 4,
       filledCells: 5,
-      allowedTransforms: ['rotate90', 'rotate180', 'rotate270'],
+      allowedTransforms: ["rotate90", "rotate180", "rotate270"],
       optionCount: 3,
       prevSource: null,
       prevTransform: null,
@@ -328,20 +340,216 @@ describe('generateRoundData', () => {
     expect(round.options).toHaveLength(3);
   });
 
-  it('is bounded: generation always terminates', () => {
+  it("is bounded: generation always terminates", () => {
     // Even with tight constraints, generation stays in budget.
     const round = generateRoundData({
-      rng: createRng('budget'),
+      rng: createRng("budget"),
       roundIndex: 0,
       gridSize: 9,
       side: 3,
       filledCells: 3,
-      allowedTransforms: ['rotate90'],
+      allowedTransforms: ["rotate90"],
       optionCount: 2,
       prevSource: null,
       prevTransform: null,
     });
     expect(round.source).toHaveLength(3);
     expect(MAX_GENERATION_ATTEMPTS).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Transform composition identities (proves the math is self-consistent).
+// ---------------------------------------------------------------------------
+
+function patternsEqualLocal(
+  a: readonly number[],
+  b: readonly number[],
+): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+describe("transform composition identities", () => {
+  it("mirrorH ∘ mirrorH is the identity", () => {
+    const p = [0, 1, 4, 8];
+    expect(
+      applyTransform(applyTransform(p, "mirrorH", 3), "mirrorH", 3),
+    ).toEqual(p);
+  });
+
+  it("mirrorV ∘ mirrorV is the identity", () => {
+    const p = [0, 1, 4, 8];
+    expect(
+      applyTransform(applyTransform(p, "mirrorV", 3), "mirrorV", 3),
+    ).toEqual(p);
+  });
+
+  it("rotate180 ∘ rotate180 is the identity", () => {
+    const p = [0, 1, 4, 8];
+    expect(
+      applyTransform(applyTransform(p, "rotate180", 3), "rotate180", 3),
+    ).toEqual(p);
+  });
+
+  it("rotate90 applied four times is the identity", () => {
+    const p = [0, 1, 4, 8];
+    let acc = p;
+    for (let i = 0; i < 4; i += 1) acc = applyTransform(acc, "rotate90", 3);
+    expect(acc).toEqual(p);
+  });
+
+  it("isSymmetric rejects a non-symmetric source and accepts a symmetric one", () => {
+    expect(isSymmetric([0, 1, 2], "rotate90", 3)).toBe(false);
+    expect(isSymmetric([0, 4, 8], "rotate180", 3)).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regression: option sets must be distinct (no duplicate answer options).
+// ---------------------------------------------------------------------------
+
+describe("regression: options are always distinct (no duplicate answers)", () => {
+  const LEVELS: {
+    gridSize: number;
+    side: number;
+    filledCells: number;
+    allowed: TransformType[];
+    optionCount: number;
+  }[] = [
+    {
+      gridSize: 9,
+      side: 3,
+      filledCells: 3,
+      allowed: ["rotate90"],
+      optionCount: 2,
+    },
+    {
+      gridSize: 9,
+      side: 3,
+      filledCells: 4,
+      allowed: ["rotate90", "rotate180"],
+      optionCount: 3,
+    },
+    {
+      gridSize: 16,
+      side: 4,
+      filledCells: 4,
+      allowed: ["rotate90", "rotate180", "rotate270"],
+      optionCount: 3,
+    },
+    {
+      gridSize: 16,
+      side: 4,
+      filledCells: 5,
+      allowed: ["rotate90", "rotate180", "rotate270", "mirrorH", "mirrorV"],
+      optionCount: 4,
+    },
+  ];
+
+  it("never produces duplicate option patterns across many seeds", () => {
+    for (const lvl of LEVELS) {
+      for (let seed = 0; seed < 300; seed += 1) {
+        const round = generateRoundData({
+          rng: createRng(`reg-distinct-${lvl.gridSize}-${seed}`),
+          roundIndex: seed % 7,
+          gridSize: lvl.gridSize,
+          side: lvl.side,
+          filledCells: lvl.filledCells,
+          allowedTransforms: lvl.allowed,
+          optionCount: lvl.optionCount,
+          prevSource: null,
+          prevTransform: null,
+        });
+        for (let i = 0; i < round.options.length; i += 1) {
+          for (let j = i + 1; j < round.options.length; j += 1) {
+            expect(patternsEqualLocal(round.options[i], round.options[j])).toBe(
+              false,
+            );
+          }
+        }
+        const correctCount = round.options.filter((o) =>
+          patternsEqualLocal(o, round.correctPattern),
+        ).length;
+        expect(correctCount).toBe(1);
+      }
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regression: the chosen transform must never be symmetric under the source (the
+// game's central invariant). This reproduces the pre-fix bug where, in
+// multi-transform modes, a source symmetric under every allowed transform forced
+// the fallback to pick a symmetric (degenerate) transform.
+// ---------------------------------------------------------------------------
+
+describe("regression: chosen transform is never symmetric under the source", () => {
+  const LEVELS: {
+    name: string;
+    gridSize: number;
+    side: number;
+    filledCells: number;
+    allowed: TransformType[];
+    optionCount: number;
+  }[] = [
+    {
+      name: "easy",
+      gridSize: 9,
+      side: 3,
+      filledCells: 3,
+      allowed: ["rotate90"],
+      optionCount: 2,
+    },
+    {
+      name: "normal",
+      gridSize: 9,
+      side: 3,
+      filledCells: 4,
+      allowed: ["rotate90", "rotate180"],
+      optionCount: 3,
+    },
+    {
+      name: "hard",
+      gridSize: 16,
+      side: 4,
+      filledCells: 4,
+      allowed: ["rotate90", "rotate180", "rotate270"],
+      optionCount: 3,
+    },
+    {
+      name: "expert",
+      gridSize: 16,
+      side: 4,
+      filledCells: 5,
+      allowed: ["rotate90", "rotate180", "rotate270", "mirrorH", "mirrorV"],
+      optionCount: 4,
+    },
+  ];
+
+  it("never picks a transform under which the source is symmetric", () => {
+    for (const lvl of LEVELS) {
+      for (let seed = 0; seed < 400; seed += 1) {
+        const round = generateRoundData({
+          rng: createRng(`fuzz-${lvl.gridSize}-${seed}`),
+          roundIndex: seed % 7,
+          gridSize: lvl.gridSize,
+          side: lvl.side,
+          filledCells: lvl.filledCells,
+          allowedTransforms: lvl.allowed,
+          optionCount: lvl.optionCount,
+          prevSource: null,
+          prevTransform: null,
+        });
+        expect(isSymmetric(round.source, round.transformType, lvl.side)).toBe(
+          false,
+        );
+        // The transformed source must differ from the source (non-trivial round).
+        expect(patternsEqualLocal(round.correctPattern, round.source)).toBe(
+          false,
+        );
+      }
+    }
   });
 });

@@ -1,0 +1,12 @@
+{
+  "id": "spatial-fold-match",
+  "name": "Fold Match",
+  "primaryCategory": "Spatial",
+  "secondaryDomains": ["Logic & Problem Solving"],
+  "description": "A grid folds along an axis and the two halves merge. Pick the folded result.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

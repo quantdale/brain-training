@@ -5,9 +5,9 @@
  * effects: stimulus timing, the SDK `SessionLifecycle`, auto-pause, tutorial,
  * dev-only QA panel, and result persistence.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { AppState, StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
 
 import {
   SessionLifecycle,
@@ -16,36 +16,55 @@ import {
   noopXpRatingHook,
   systemClock,
   testId,
-} from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+} from "@/sdk";
+import type {
+  Clock,
+  DifficultyLevel,
+  TutorialStore,
+  XpRatingHook,
+} from "@/sdk";
+import { ThemedText } from "@/components/themed-text";
+import {
+  DifficultySelector,
+  SessionHeader,
+  StatRow,
+} from "@/components/game-ui";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
-import { AnswerButtons } from './components/answer-buttons';
-import { FeedbackDisplay } from './components/feedback-display';
-import { FlipCueBanner } from './components/flip-cue-banner';
-import { GameButton } from './components/button';
-import { PauseOverlay } from './components/pause-overlay';
-import { QaPanel } from './components/qa-panel';
-import { StimulusDisplay } from './components/stimulus-display';
-import { Tutorial } from './components/tutorial';
-import { colorStroopParamsFromProfile, sessionChallengeRating } from './difficulty';
-import { gameDefinition } from './game-definition';
-import { createColorStroopQaForceStateHooks, createColorStroopTutorialLifecycle } from './hooks';
-import { colorStroopGameReducer } from './reducer';
-import { normalizeColorStroopResult } from './scoring';
+import { AnswerButtons } from "./components/answer-buttons";
+import { FeedbackDisplay } from "./components/feedback-display";
+import { FlipCueBanner } from "./components/flip-cue-banner";
+import { GameButton } from "./components/button";
+import { PauseOverlay } from "./components/pause-overlay";
+import { QaPanel } from "./components/qa-panel";
+import { StimulusDisplay } from "./components/stimulus-display";
+import { Tutorial } from "./components/tutorial";
+import {
+  colorStroopParamsFromProfile,
+  sessionChallengeRating,
+} from "./difficulty";
+import { gameDefinition } from "./game-definition";
+import {
+  createColorStroopQaForceStateHooks,
+  createColorStroopTutorialLifecycle,
+} from "./hooks";
+import { colorStroopGameReducer } from "./reducer";
+import { normalizeColorStroopResult } from "./scoring";
 import {
   buildColorStroopRawResult,
   buildSessionRecord,
   dbSessionPersister,
   persistColorStroopSession,
-} from './session';
-import type { SessionPersistence } from './session';
-import { GAME_ID, STROOP_COLOR_HEX, createInitialColorStroopState } from './types';
-import type { StroopColor } from './types';
-import { SCORING_VERSION } from './versions';
+} from "./session";
+import type { SessionPersistence } from "./session";
+import {
+  GAME_ID,
+  STROOP_COLOR_HEX,
+  createInitialColorStroopState,
+} from "./types";
+import type { StroopColor } from "./types";
+import { SCORING_VERSION } from "./versions";
 
 export interface ColorStroopScreenProps {
   clock?: Clock;
@@ -73,7 +92,11 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   } = props;
   const theme = useTheme();
   const router = useRouter();
-  const [state, dispatch] = useReducer(colorStroopGameReducer, undefined, createInitialColorStroopState);
+  const [state, dispatch] = useReducer(
+    colorStroopGameReducer,
+    undefined,
+    createInitialColorStroopState,
+  );
 
   const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
@@ -84,26 +107,33 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     stateRef.current = state;
   });
 
-  const tutorial = useMemo(() => createColorStroopTutorialLifecycle(tutorialStore), [tutorialStore]);
-  const qaHooks = useMemo(() => createColorStroopQaForceStateHooks(dispatch), [dispatch]);
+  const tutorial = useMemo(
+    () => createColorStroopTutorialLifecycle(tutorialStore),
+    [tutorialStore],
+  );
+  const qaHooks = useMemo(
+    () => createColorStroopQaForceStateHooks(dispatch),
+    [dispatch],
+  );
 
-  const params = state.profile !== null ? colorStroopParamsFromProfile(state.profile) : null;
+  const params =
+    state.profile !== null ? colorStroopParamsFromProfile(state.profile) : null;
   const stimulusMs = params?.stimulusMs ?? 1500;
   const totalTrials = params?.trials ?? 15;
   const inSession =
-    state.phase === 'stimulus' ||
-    state.phase === 'feedback' ||
-    state.phase === 'flipCue' ||
-    state.phase === 'roundResult';
+    state.phase === "stimulus" ||
+    state.phase === "feedback" ||
+    state.phase === "flipCue" ||
+    state.phase === "roundResult";
 
   // ---- Stimulus auto-advance: if the player doesn't respond in time, treat as wrong.
   useEffect(() => {
-    if (state.phase !== 'stimulus' || state.paused) {
+    if (state.phase !== "stimulus" || state.paused) {
       return;
     }
     const timer = setTimeout(() => {
       // Auto-advance with a wrong answer (timeout).
-      dispatch({ type: 'session-timeout' });
+      dispatch({ type: "session-timeout" });
     }, stimulusMs);
     stimulusTimerRef.current = timer;
     return () => {
@@ -116,14 +146,14 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
-      dispatch({ type: 'tutorial-open' });
+      dispatch({ type: "tutorial-open" });
     }
   }, [tutorial]);
 
   // ---- Session finalization.
   useEffect(() => {
     if (
-      state.phase !== 'results' ||
+      state.phase !== "results" ||
       finalizedRef.current ||
       state.profile === null ||
       state.sessionId === null ||
@@ -136,17 +166,21 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     const lifecycle = lifecycleRef.current;
     if (
       lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
+      lifecycle.status !== "completed" &&
+      lifecycle.status !== "abandoned"
     ) {
       lifecycle.complete();
     }
     const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
     const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
     const completedAtMs = Date.now();
-    const difficulty = state.difficulty ?? 'normal';
+    const difficulty = state.difficulty ?? "normal";
     const resolvedParams = colorStroopParamsFromProfile(state.profile);
-    const challengeRating = sessionChallengeRating(difficulty, state.profile, resolvedParams.incongruentRatio);
+    const challengeRating = sessionChallengeRating(
+      difficulty,
+      state.profile,
+      resolvedParams.incongruentRatio,
+    );
 
     const raw = buildColorStroopRawResult({
       gameVersion: gameDefinition.gameVersion,
@@ -162,13 +196,17 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       activeDurationMs,
       pausedDurationMs,
     });
-    const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
+    const context = {
+      gameId: GAME_ID,
+      difficulty,
+      durationMs: activeDurationMs,
+    };
     const normalized = normalizeColorStroopResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({
-      type: 'session-finalized',
+      type: "session-finalized",
       xp,
       normalized: normalized.value,
       activeDurationMs,
@@ -186,21 +224,24 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       completedAtMs,
       activeDurationMs,
     });
-    dispatch({ type: 'persistence-started' });
+    dispatch({ type: "persistence-started" });
     void persistColorStroopSession(record, persistSession).then((outcome) => {
       if (outcome.ok) {
-        dispatch({ type: 'persistence-succeeded' });
+        dispatch({ type: "persistence-succeeded" });
         const co = outcome.result.completionOutcome;
         if (co) {
           dispatch({
-            type: 'completion-outcome-received',
+            type: "completion-outcome-received",
             xp: co.xp,
             currency: co.currency,
             deltas: co.deltas,
           });
         }
       } else {
-        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+        dispatch({
+          type: "persistence-failed",
+          message: String(outcome.error),
+        });
       }
     });
   }, [
@@ -223,7 +264,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       lifecycleRef.current = new SessionLifecycle({ clock });
       lifecycleRef.current.start();
       dispatch({
-        type: 'start-session',
+        type: "start-session",
         seed,
         sessionId: newSessionId(),
         startedAtMs: Date.now(),
@@ -238,17 +279,20 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       return;
     }
     lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
+    dispatch({ type: "pause" });
   }, [dispatch, inSession]);
 
   const resumeSession = useCallback(() => {
     lifecycleRef.current?.resume();
-    dispatch({ type: 'resume' });
+    dispatch({ type: "resume" });
   }, [dispatch]);
 
   const quitToLibrary = useCallback(() => {
     const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
+    if (
+      lifecycle !== null &&
+      (lifecycle.status === "active" || lifecycle.status === "paused")
+    ) {
       lifecycle.abandon();
     }
     router.back();
@@ -257,34 +301,39 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   const handleAnswer = useCallback(
     (answer: StroopColor) => {
       const current = stateRef.current;
-      if (current.phase !== 'stimulus' || current.paused) {
+      if (current.phase !== "stimulus" || current.paused) {
         return;
       }
       // Calculate response time from stimulus start.
-      const responseTimeMs = current.startedAtMs !== null
-        ? Date.now() - current.startedAtMs
-        : 500;
+      const responseTimeMs =
+        current.startedAtMs !== null ? Date.now() - current.startedAtMs : 500;
       // Use a simpler approach: fixed response time estimate.
       // The real timing would use a stimulus start timestamp.
       const estimatedResponseMs = 800 + Math.random() * 400;
 
       const trial = current.trials[current.trialIndex];
       if (answer === trial.correctAnswer) {
-        liveAudioHaptics.playSfx('memory-tile-correct');
-        liveAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx("memory-tile-correct");
+        liveAudioHaptics.haptic("light");
       } else {
-        liveAudioHaptics.playSfx('memory-tile-wrong');
-        liveAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx("memory-tile-wrong");
+        liveAudioHaptics.haptic("warning");
       }
-      dispatch({ type: 'submit-answer', answer, responseTimeMs: estimatedResponseMs });
+      dispatch({
+        type: "submit-answer",
+        answer,
+        responseTimeMs: estimatedResponseMs,
+      });
     },
     [dispatch],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
+    const level = current.difficulty ?? "normal";
+    const seed =
+      current.seedOverride ??
+      (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
     startSession(level, seed);
   }, [startSession, sessionSeed]);
 
@@ -293,23 +342,23 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
     tutorial.requestReplay(GAME_ID);
-    dispatch({ type: 'tutorial-open' });
+    dispatch({ type: "tutorial-open" });
   }, [tutorial, dispatch]);
 
   const completeTutorial = useCallback(() => {
     tutorial.complete(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
+    dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
 
   const skipTutorial = useCallback(() => {
     tutorial.skipForQa(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
+    dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
 
   // ---- Auto-pause when the app leaves the foreground.
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState !== "active") {
         pauseSession();
       }
     });
@@ -321,14 +370,17 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   const isLastTrial = state.trialIndex + 1 >= totalTrials;
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
+    <View style={styles.screen} testID={testId(GAME_ID, "screen")}>
       <View
         style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
+        importantForAccessibility={
+          state.paused ? "no-hide-descendants" : "auto"
+        }
         accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
+        accessible={false}
+      >
+        {state.phase === "intro" ? (
+          <View style={styles.section} testID={testId(GAME_ID, "intro")}>
             <ThemedText type="small" themeColor="textSecondary">
               {gameDefinition.description}
             </ThemedText>
@@ -339,13 +391,19 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
             <DifficultySelector
               gameId={GAME_ID}
               selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
+              onSelect={(level) =>
+                dispatch({ type: "select-difficulty", level })
+              }
             />
 
             <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
               <GameButton
-                testID={testId(GAME_ID, 'help')}
+                testID={testId(GAME_ID, "start")}
+                label="Start"
+                onPress={handleStart}
+              />
+              <GameButton
+                testID={testId(GAME_ID, "help")}
                 label="How to play"
                 variant="secondary"
                 onPress={openTutorial}
@@ -353,7 +411,10 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
             </View>
 
             {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+              />
             ) : null}
           </View>
         ) : null}
@@ -361,120 +422,146 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
         {inSession && currentTrial ? (
           <View style={styles.section}>
             <SessionHeader>
-              <ThemedText type="subtitle" testID={testId(GAME_ID, 'trial', String(state.trialIndex + 1))}>
+              <ThemedText
+                type="subtitle"
+                testID={testId(GAME_ID, "trial", String(state.trialIndex + 1))}
+              >
                 Trial {state.trialIndex + 1}/{totalTrials}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                testID={testId(GAME_ID, "score")}
+              >
                 Score {state.stats.score}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'rule')}>
-                Rule: {state.currentRule === 'ink' ? 'INK' : 'WORD'}
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                testID={testId(GAME_ID, "rule")}
+              >
+                Rule: {state.currentRule === "ink" ? "INK" : "WORD"}
               </ThemedText>
               <GameButton
                 small
                 variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
+                testID={testId(GAME_ID, "pause")}
                 label="Pause"
                 onPress={pauseSession}
               />
             </SessionHeader>
 
-            {state.phase === 'flipCue' && (
+            {state.phase === "flipCue" && (
               <FlipCueBanner
                 newRule={state.currentRule}
-                testID={testId(GAME_ID, 'flip-cue')}
+                testID={testId(GAME_ID, "flip-cue")}
               />
             )}
 
-            {state.phase === 'stimulus' && (
+            {state.phase === "stimulus" && (
               <>
                 <StimulusDisplay
                   word={currentTrial.word}
                   inkColor={currentTrial.inkColor}
-                  testID={testId(GAME_ID, 'stimulus')}
+                  testID={testId(GAME_ID, "stimulus")}
                 />
                 <AnswerButtons
                   onPress={handleAnswer}
-                  testID={testId(GAME_ID, 'answer-buttons')}
+                  testID={testId(GAME_ID, "answer-buttons")}
                 />
               </>
             )}
 
-            {state.phase === 'feedback' && state.currentAnswer !== null && (
+            {state.phase === "feedback" && state.currentAnswer !== null && (
               <>
                 <FeedbackDisplay
                   correct={state.currentCorrect ?? false}
                   correctAnswer={currentTrial.correctAnswer}
                   responseTimeMs={state.currentResponseTimeMs ?? 0}
-                  testID={testId(GAME_ID, 'feedback')}
+                  testID={testId(GAME_ID, "feedback")}
                 />
                 <GameButton
-                  testID={testId(GAME_ID, 'next-trial')}
-                  label={isLastTrial ? 'See results' : 'Next trial'}
-                  onPress={() => dispatch({ type: 'next-trial' })}
+                  testID={testId(GAME_ID, "next-trial")}
+                  label={isLastTrial ? "See results" : "Next trial"}
+                  onPress={() => dispatch({ type: "next-trial" })}
                 />
               </>
             )}
 
             {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+              />
             ) : null}
           </View>
         ) : null}
 
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
+        {state.phase === "results" ? (
+          <View style={styles.section} testID={testId(GAME_ID, "results")}>
             <ThemedText type="title">Session complete</ThemedText>
             <StatRow
               label="Score"
               value={String(state.stats.score)}
-              testID={testId(GAME_ID, 'score')}
+              testID={testId(GAME_ID, "score")}
             />
             <StatRow
               label="Accuracy"
               value={`${Math.round(
-                (state.stats.trialsPlayed > 0 ? state.stats.correctTrials / state.stats.trialsPlayed : 0) * 100,
+                (state.stats.trialsPlayed > 0
+                  ? state.stats.correctTrials / state.stats.trialsPlayed
+                  : 0) * 100,
               )}%`}
-              testID={testId(GAME_ID, 'accuracy')}
+              testID={testId(GAME_ID, "accuracy")}
             />
             <StatRow
               label="Correct"
               value={`${state.stats.correctTrials}/${state.stats.trialsPlayed}`}
-              testID={testId(GAME_ID, 'correct-trials')}
+              testID={testId(GAME_ID, "correct-trials")}
             />
             <StatRow
               label="Best streak"
               value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
+              testID={testId(GAME_ID, "best-streak")}
             />
             <StatRow
               label="Post-flip correct"
               value={String(state.stats.postFlipCorrect)}
-              testID={testId(GAME_ID, 'post-flip-correct')}
+              testID={testId(GAME_ID, "post-flip-correct")}
             />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
+            <StatRow
+              label="XP"
+              value={String(state.authoritativeXp ?? state.xp)}
+              testID={testId(GAME_ID, "xp")}
+            />
 
-            {state.persistState === 'failed' ? (
+            {state.persistState === "failed" ? (
               <ThemedText
                 type="small"
                 themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
+                testID={testId(GAME_ID, "persist-error")}
+              >
+                Your session could not be saved. {state.lastError ?? ""}
               </ThemedText>
             ) : null}
             {state.forced ? (
               <ThemedText
                 type="caption"
                 themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
+                testID={testId(GAME_ID, "forced-badge")}
+              >
                 QA-forced session
               </ThemedText>
             ) : null}
 
             <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
               <GameButton
-                testID={testId(GAME_ID, 'quit')}
+                testID={testId(GAME_ID, "restart")}
+                label="Play again"
+                onPress={handleRestart}
+              />
+              <GameButton
+                testID={testId(GAME_ID, "quit")}
                 label="Done"
                 variant="secondary"
                 onPress={quitToLibrary}
@@ -510,8 +597,8 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
 });

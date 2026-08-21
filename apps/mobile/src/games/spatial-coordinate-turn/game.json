@@ -1,0 +1,12 @@
+{
+  "id": "spatial-coordinate-turn",
+  "name": "Coordinate Turn",
+  "primaryCategory": "Spatial",
+  "secondaryDomains": ["Attention", "Logic & Problem Solving"],
+  "description": "Follow relative turn and move instructions, then say which way you end up facing.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

@@ -16,10 +16,10 @@
  *   - Distractors differ from the correct option (compare cell sets).
  *   - Consecutive source patterns avoid near-duplicates.
  */
-import type { Rng } from '@/sdk';
+import type { Rng } from "@/sdk";
 
-import { ALL_TRANSFORMS } from './types';
-import type { TransformType } from './types';
+import { ALL_TRANSFORMS } from "./types";
+import type { TransformType } from "./types";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -36,7 +36,10 @@ export const MAX_GENERATION_ATTEMPTS = 12;
 // ---------------------------------------------------------------------------
 
 /** Convert a flat cell index to (row, col) coordinates. */
-export function indexToCoords(index: number, side: number): { row: number; col: number } {
+export function indexToCoords(
+  index: number,
+  side: number,
+): { row: number; col: number } {
   return { row: Math.floor(index / side), col: index % side };
 }
 
@@ -75,19 +78,19 @@ function transformCoords(
   side: number,
 ): { row: number; col: number } {
   switch (transform) {
-    case 'rotate90':
+    case "rotate90":
       // Clockwise 90°: (r,c) → (c, side-1-r)
       return { row: col, col: side - 1 - row };
-    case 'rotate180':
+    case "rotate180":
       // 180°: (r,c) → (side-1-r, side-1-c)
       return { row: side - 1 - row, col: side - 1 - col };
-    case 'rotate270':
+    case "rotate270":
       // Clockwise 270° (= counterclockwise 90°): (r,c) → (side-1-c, r)
       return { row: side - 1 - col, col: row };
-    case 'mirrorH':
+    case "mirrorH":
       // Horizontal flip (left-right): (r,c) → (r, side-1-c)
       return { row, col: side - 1 - col };
-    case 'mirrorV':
+    case "mirrorV":
       // Vertical flip (top-bottom): (r,c) → (side-1-r, c)
       return { row: side - 1 - row, col };
   }
@@ -250,8 +253,17 @@ export function generateRoundData(input: GenerateRoundDataInput): RoundData {
       filledCells,
     );
     const tooClose =
-      prevSource !== null && patternDistance(candidate, prevSource) < MIN_PATTERN_DISTANCE;
-    if (!tooClose) {
+      prevSource !== null &&
+      patternDistance(candidate, prevSource) < MIN_PATTERN_DISTANCE;
+    // The game's central invariant is that the chosen transform is NEVER
+    // symmetric under the source. If the source is symmetric under EVERY allowed
+    // transform there is no valid transform to pick, so reject the source and
+    // draw another (deterministic) one. This guarantees step 2 can always find a
+    // non-symmetric transform instead of falling back to a degenerate one.
+    const degenerate = allowedTransforms.every((t) =>
+      isSymmetric(candidate, t, side),
+    );
+    if (!tooClose && !degenerate) {
       source = candidate;
       break;
     }
@@ -276,7 +288,10 @@ export function generateRoundData(input: GenerateRoundDataInput): RoundData {
       const candidate = allowedTransforms[idx];
       if (!isSymmetric(source, candidate, side)) {
         // Prefer a different transform from the previous round when possible.
-        if (candidate === prevTransform && attempt < MAX_GENERATION_ATTEMPTS - 1) {
+        if (
+          candidate === prevTransform &&
+          attempt < MAX_GENERATION_ATTEMPTS - 1
+        ) {
           continue;
         }
         chosenTransform = candidate;
@@ -286,16 +301,36 @@ export function generateRoundData(input: GenerateRoundDataInput): RoundData {
     }
   }
   if (chosenTransform === null || correctPattern === null) {
-    // Fallback: use the first allowed transform (symmetry is extremely unlikely
-    // to block all transforms for random patterns).
-    chosenTransform = allowedTransforms[0];
+    // Step 1 above guarantees at least one allowed transform under which the
+    // source is not symmetric, so scan for it. This keeps the chosen transform
+    // non-symmetric even in the (astronomically unlikely) event the random
+    // selection loop never picked it across its attempts.
+    chosenTransform =
+      allowedTransforms.find((t) => !isSymmetric(source, t, side)) ??
+      allowedTransforms[0];
     correctPattern = applyTransform(source, chosenTransform, side);
   }
 
   // ---- Step 3: Generate distractors (other transforms first, then random).
   const otherTransforms = ALL_TRANSFORMS.filter((t) => t !== chosenTransform);
   const distractors: number[][] = [];
+  const seenDistractors = new Set<string>();
+  const distractorKey = (d: number[]): string => d.join(",");
   const dRng = rng.fork(`distractors:round:${roundIndex}`);
+
+  // Add a candidate distractor iff it is not the correct option and has not
+  // already been added. Two distinct transforms can map the source to the same
+  // pattern (when the source is symmetric under their composition); without this
+  // dedupe the option set would contain duplicate (non-distinct) answer options.
+  const tryAddDistractor = (d: number[]): boolean => {
+    const key = distractorKey(d);
+    if (seenDistractors.has(key) || patternsEqual(d, correctPattern)) {
+      return false;
+    }
+    seenDistractors.add(key);
+    distractors.push(d);
+    return true;
+  };
 
   // Use other-transform results as distractors.
   const shuffledOther = dRng.shuffle([...otherTransforms]);
@@ -303,10 +338,7 @@ export function generateRoundData(input: GenerateRoundDataInput): RoundData {
     if (distractors.length >= optionCount - 1) {
       break;
     }
-    const d = applyTransform(source, t, side);
-    if (!patternsEqual(d, correctPattern)) {
-      distractors.push(d);
-    }
+    tryAddDistractor(applyTransform(source, t, side));
   }
 
   // If still not enough, generate random patterns of the same density.
@@ -319,12 +351,7 @@ export function generateRoundData(input: GenerateRoundDataInput): RoundData {
       filledCells,
     );
     fallbackIdx += 1;
-    if (
-      !patternsEqual(randPattern, correctPattern) &&
-      !distractors.some((d) => patternsEqual(d, randPattern))
-    ) {
-      distractors.push(randPattern);
-    }
+    tryAddDistractor(randPattern);
     // Safety: prevent infinite loop (extremely unlikely).
     if (fallbackIdx > MAX_GENERATION_ATTEMPTS) {
       break;
@@ -333,8 +360,12 @@ export function generateRoundData(input: GenerateRoundDataInput): RoundData {
 
   // ---- Step 4: Combine correct + distractors and shuffle into options.
   const allOptions: number[][] = [correctPattern, ...distractors];
-  const shuffledOptions = rng.fork(`options:round:${roundIndex}`).shuffle(allOptions);
-  const correctIndex = shuffledOptions.findIndex((o) => patternsEqual(o, correctPattern));
+  const shuffledOptions = rng
+    .fork(`options:round:${roundIndex}`)
+    .shuffle(allOptions);
+  const correctIndex = shuffledOptions.findIndex((o) =>
+    patternsEqual(o, correctPattern),
+  );
 
   return {
     source,

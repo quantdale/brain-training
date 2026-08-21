@@ -1,0 +1,14 @@
+{
+  "id": "attention-symbol-tracker",
+  "name": "Symbol Tracker",
+  "primaryCategory": "Attention",
+  "secondaryDomains": [
+    "Memory"
+  ],
+  "description": "Watch which tokens are highlighted, then the board scrambles and adds distractors. Pick out the tokens you were told to track by what they are.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

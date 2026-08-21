@@ -54,7 +54,7 @@ export function categoryDistance(a: string, b: string): number {
 function tokenize(text: string): string[] {
  return text
   .toLowerCase()
-  .replace(/[^a-z0-9 ]/g, ' ')
+  .replace(/[^a-z0-9 ]/g, " ")
   .split(/\s+/)
   .filter(Boolean);
 }

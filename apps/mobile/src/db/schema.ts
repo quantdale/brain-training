@@ -7,7 +7,7 @@
  * common dialect shared by expo-sqlite and better-sqlite3.
  */
 
-import type { SQLiteAdapter } from './adapter';
+import type { SQLiteAdapter } from "./adapter";
 
 export const SCHEMA_VERSION = 8;
 
@@ -25,7 +25,7 @@ export interface Migration {
 /** SQL statement chunks shared by migrations and the runner. */
 export const SQL = {
   /** Enforce foreign keys on every connection (SQLite defaults them off). */
-  foreignKeysOn: 'PRAGMA foreign_keys = ON',
+  foreignKeysOn: "PRAGMA foreign_keys = ON",
 
   /**
    * Singleton local profile (constitution §6: "One persistent local profile
@@ -408,13 +408,17 @@ export const MIGRATIONS: readonly Migration[] = [
       // against a column that already exists (e.g. a database replayed after a
       // downgrade, or migrations re-run after a partial apply). The unique
       // index is already guarded with IF NOT EXISTS.
-      const cols = await txn.all<{ name: string }>('PRAGMA table_info(currency_ledger)');
-      if (!cols.some((c) => c.name === 'operation_id')) {
-        await txn.exec('ALTER TABLE currency_ledger ADD COLUMN operation_id TEXT');
+      const cols = await txn.all<{ name: string }>(
+        "PRAGMA table_info(currency_ledger)",
+      );
+      if (!cols.some((c) => c.name === "operation_id")) {
+        await txn.exec(
+          "ALTER TABLE currency_ledger ADD COLUMN operation_id TEXT",
+        );
       }
       await txn.exec(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_currency_ledger_operation_id ' +
-          'ON currency_ledger (operation_id) WHERE operation_id IS NOT NULL',
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_currency_ledger_operation_id " +
+          "ON currency_ledger (operation_id) WHERE operation_id IS NOT NULL",
       );
     },
   },

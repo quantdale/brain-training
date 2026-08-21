@@ -19,7 +19,7 @@ import {
 import { paidReroll } from "@/db/economy";
 import { emitWorkoutChanged, onWorkoutChanged } from "./events";
 import { personalizedWorkout, type DomainRating } from "@/workout/personalize";
-import { getAllGameDefinitions } from "@/registry/registry";
+import { eligibleGameIds, eligibleGames } from "@/workout/reconcile";
 import { localDateString } from "@/workout/today";
 import {
   canAffordReroll,
@@ -27,11 +27,6 @@ import {
   nextWorkoutAfterReroll,
   rerollCost,
 } from "@/workout/reroll";
-
-/** Word Match is frozen out of workout selection until semantic correction. */
-function eligibleGames() {
-  return getAllGameDefinitions().filter((g) => g.id !== "language-word-match");
-}
 
 export interface UseWorkoutResult {
   instance: WorkoutInstance | null;
@@ -71,9 +66,13 @@ export function useWorkout(args: {
     (async () => {
       const db = getDb();
       const { domainRatings, recentGameIds } = argsRef.current;
-      const existing = await db.workouts.getByDate(date);
-      if (existing) {
-        if (!cancelled) setInstance(existing);
+      // Reconcile against the current eligible catalog so a stored instance
+      // that references retired/renamed game ids (catalog drift between
+      // sessions, other workers' catalog expansion) is repaired in place
+      // instead of crashing or launching a dead game (Queue A).
+      const reconciled = await db.workouts.reconcile(date, eligibleGameIds());
+      if (reconciled) {
+        if (!cancelled) setInstance(reconciled);
         return;
       }
       const seed = personalizedWorkout(
@@ -133,12 +132,17 @@ export function useWorkout(args: {
       return;
     }
     const nextAttempt = current.rerollAttempt + 1;
+    // Exclude the already-completed prefix so a reroll after partial
+    // completion never reintroduces a game the player has already finished
+    // (Queue A: reroll replacing already-played games).
+    const completedPrefix = current.gameIds.slice(0, current.currentIndex);
     const selection = nextWorkoutAfterReroll(
       eligibleGames(),
       date,
       domainRatings,
       recentGameIds,
       current.rerollAttempt,
+      completedPrefix,
     );
     const ids = selection.map((g) => g.id);
     const cost = rerollCost(current.rerollAttempt);

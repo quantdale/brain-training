@@ -154,10 +154,14 @@ function traceMs(start) {
 // Device build metadata — captured once per run for triage/diagnostics (H).
 function deviceInfo() {
   try {
-    const rel = adb(['shell', 'getprop', 'ro.build.version.release']).trim();
-    const sdk = adb(['shell', 'getprop', 'ro.build.version.sdk']).trim();
-    const model = adb(['shell', 'getprop', 'ro.product.model']).trim();
-    return { androidRelease: rel || null, sdk: sdk || null, model: model || null };
+    const rel = adb(["shell", "getprop", "ro.build.version.release"]).trim();
+    const sdk = adb(["shell", "getprop", "ro.build.version.sdk"]).trim();
+    const model = adb(["shell", "getprop", "ro.product.model"]).trim();
+    return {
+      androidRelease: rel || null,
+      sdk: sdk || null,
+      model: model || null,
+    };
   } catch {
     return {};
   }

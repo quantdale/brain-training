@@ -16,19 +16,19 @@ import { render } from "@testing-library/react-native";
 import { ResultRow, StatRow } from "@/components/game-ui";
 
 describe("ResultRow / StatRow accessibility", () => {
-  it("renders label and value as separate, readable nodes", async () => {
-    const { getByText } = await render(
-      <ResultRow label="Accuracy" value="100%" />,
-    );
-    expect(getByText("Accuracy")).toBeTruthy();
-    expect(getByText("100%")).toBeTruthy();
-  });
+   it("renders label and value as separate, readable nodes", async () => {
+      const { getByText } = await render(
+         <ResultRow label="Accuracy" value="100%" />,
+      );
+      expect(getByText("Accuracy")).toBeTruthy();
+      expect(getByText("100%")).toBeTruthy();
+   });
 
-  it("exposes an optional value testID for assertions", async () => {
-    const { getByTestId } = await render(
-      <StatRow label="Score" value="750" testID="r-score" />,
-    );
-    const value = getByTestId("r-score");
-    expect(value.props.children).toBe("750");
-  });
+   it("exposes an optional value testID for assertions", async () => {
+      const { getByTestId } = await render(
+         <StatRow label="Score" value="750" testID="r-score" />,
+      );
+      const value = getByTestId("r-score");
+      expect(value.props.children).toBe("750");
+   });
 });

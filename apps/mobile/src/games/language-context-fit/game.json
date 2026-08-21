@@ -1,0 +1,11 @@
+{
+  "id": "language-context-fit",
+  "name": "Context Fit",
+  "primaryCategory": "Language",
+  "description": "Read a short sentence with a blank and pick the one word that fits the context best.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": null,
+  "contentVersion": "1.0.0",
+  "hasTutorial": true
+}

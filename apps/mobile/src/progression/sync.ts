@@ -141,8 +141,14 @@ export async function buildAchievementSnapshot(
   // Longest streak reflects the reconstructed streak INCLUDING any covered
   // (freeze/recovery) dates, matching the displayed streak so achievement
   // progress and the Home/Profile streak number stay in agreement.
-  const coveredDates = readCoveredDates((await db.profile.get())?.settings ?? {});
-  const longestStreak = reconstructStreak(activityDates, today, coveredDates).longest;
+  const coveredDates = readCoveredDates(
+    (await db.profile.get())?.settings ?? {},
+  );
+  const longestStreak = reconstructStreak(
+    activityDates,
+    today,
+    coveredDates,
+  ).longest;
 
   return {
     sessionCount,

@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "src/games/language-context-fit/**",
+    "src/games/math-estimation-sprint/**",
+    "src/games/math-number-balance/**",
+    "src/games/memory-grid-recall/**",
+    "src/games/speed-quick-compare/**",
+    "src/games/speed-tap-sequence/**"
+  ]
+}
