@@ -17,11 +17,12 @@
  * so a session can never be abandoned accidentally. Intro/results views keep
  * default navigation.
  */
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 
 import { isDevBuild, testId } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
+import { markGameFirstInteraction } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
 import {
   DifficultySelector,
@@ -62,6 +63,13 @@ export interface GameHostProps {
    * host ONLY behind `isDevBuild()`, in the intro and session views.
    */
   readonly qaPanel?: React.ReactNode;
+  /**
+   * Placement of the dev-only QA panel in the session view. `'below'` (the
+   * default) renders after the game children; `'above'` renders before them
+   * so tall boards (e.g. transform-match) cannot push the panel out of the
+   * automation-reachable viewport.
+   */
+  readonly qaPanelPosition?: 'above' | 'below';
   /** Tutorial element; mounted by the host while `tutorialOpen`. */
   readonly tutorial?: React.ReactNode;
   readonly tutorialOpen?: boolean;
@@ -86,6 +94,7 @@ export function GameHost({
   header,
   score,
   qaPanel,
+  qaPanelPosition = 'below',
   tutorial,
   tutorialOpen = false,
   interceptBack = false,
@@ -96,6 +105,15 @@ export function GameHost({
   useEffect(() => {
     backStateRef.current = { paused, onPause };
   });
+
+  // Dev-only perf seam (campaign 010, debt D4): the first touch on the
+  // session body closes the game-start→first-interaction latency window
+  // opened by `useGameSession.begin()`. Passive observation only —
+  // onTouchStart does not participate in responder negotiation, so child
+  // controls behave unchanged.
+  const handleSessionTouchStart = useCallback(() => {
+    markGameFirstInteraction(gameId);
+  }, [gameId]);
 
   useEffect(() => {
     if (!interceptBack) {
@@ -148,7 +166,7 @@ export function GameHost({
         ) : null}
 
         {view === 'session' ? (
-          <View style={styles.section}>
+          <View style={styles.section} onTouchStart={handleSessionTouchStart}>
             <SessionHeader>
               {header}
               {score !== undefined ? (
@@ -168,9 +186,11 @@ export function GameHost({
               />
             </SessionHeader>
 
+            {isDevBuild() && qaPanelPosition === 'above' ? qaPanel : null}
+
             {children}
 
-            {isDevBuild() ? qaPanel : null}
+            {isDevBuild() && qaPanelPosition === 'below' ? qaPanel : null}
           </View>
         ) : null}
 

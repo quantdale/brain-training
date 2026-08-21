@@ -24,6 +24,7 @@ import { AppState } from 'react-native';
 import { SessionLifecycle, systemClock } from '@/sdk';
 import type { Clock, SessionStatus } from '@/sdk';
 
+import { markGameSessionStart } from '@/sdk/perf';
 import { createSessionId } from './session-identity';
 
 /** Identity of a freshly begun session, dispatched into the game reducer. */
@@ -130,6 +131,10 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
       const lifecycle = new SessionLifecycle({ clock });
       lifecycle.start();
       lifecycleRef.current = lifecycle;
+      // Perf mark (dev-only no-op in release): opens the game-start→first-
+      // interaction latency window that <GameHost>'s session-body touch
+      // observer closes (campaign 010, debt D4).
+      markGameSessionStart(gameId);
       return { sessionId: createSessionId(gameId), startedAtMs: Date.now() };
     }, [clock, gameId]),
 

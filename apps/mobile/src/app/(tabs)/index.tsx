@@ -15,14 +15,28 @@
  * surfacing, relative-day recency labels on recent sessions, and explicit
  * loading/error states. The first-run/empty-state render tree is kept stable
  * for the visual-baseline canary snapshots.
+ *
+ * W24 wave: Workout V2 surfacing — a secondary "More workouts" section that
+ * starts focus/length-template workouts through `useWorkoutTemplates` (the
+ * daily flow above stays primary), a post-workout completion summary card,
+ * a compact workout-history feed over the engine's history API, and a
+ * read-only claimable-rewards hint on the Rewards quick action (W12 inbox).
+ * All W24 additions are gated behind loaded data so first-run trees stay
+ * unchanged for the visual-baseline canaries.
  */
 
 import { Link, router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { ProgressTrack, SectionHeader, StateCard, StatTile } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
+import {
+  WorkoutCompletionCard,
+  WorkoutHistoryRow,
+  WorkoutLengthChips,
+  WorkoutTemplateChips,
+} from "@/components/workout";
 import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -33,10 +47,18 @@ import type { GameDefinition } from "@/sdk";
 import { useDbData } from "@/hooks/use-db-data";
 import { levelForXp } from "@/rating";
 import { getAllGameDefinitions } from "@/registry/registry";
+import { collectClaimableRewards } from "@/rewards/inbox";
 import { effectiveCurrent, reconstructStreak } from "@/streaks";
-import { localDateString } from "@/workout/today";
+import { parseInstanceKey, type WorkoutLength } from "@/workout/metadata";
 import { canAffordReroll, MAX_REROLLS_PER_DAY } from "@/workout/reroll";
+import {
+  DEFAULT_WORKOUT_LENGTH,
+  WORKOUT_LENGTHS,
+} from "@/workout/templates";
+import type { WorkoutCompletionSummary } from "@/workout/summary";
+import { localDateString } from "@/workout/today";
 import { useWorkout } from "@/workout/use-workout";
+import { useWorkoutTemplates } from "@/workout/use-workout-templates";
 
 interface HomeData {
   domainRatings: DomainRating[];
@@ -54,6 +76,8 @@ interface HomeData {
     xp: number;
     completedAt: number;
   }[];
+  /** W24: claimable engagement rewards (W12 inbox, read-only hint count). */
+  claimableRewards: number;
 }
 
 const EMPTY_HOME: HomeData = {
@@ -63,6 +87,7 @@ const EMPTY_HOME: HomeData = {
   balance: 0,
   totalXp: 0,
   recentSessions: [],
+  claimableRewards: 0,
 };
 
 async function loadHome(db: AppDatabase): Promise<HomeData> {
@@ -95,7 +120,22 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
     balance,
     totalXp: sessionXp + awardsXp,
     recentSessions,
+    claimableRewards: await loadClaimableRewardCount(db),
   };
+}
+
+/**
+ * W24 (read-only consumption of W12's engagement exports): count currently
+ * claimable rewards for the Rewards quick-action hint. Isolated try/catch so
+ * an engagement-layer failure can never blank the core dashboard slots —
+ * the hint simply stays at zero.
+ */
+async function loadClaimableRewardCount(db: AppDatabase): Promise<number> {
+  try {
+    return (await collectClaimableRewards(db)).length;
+  } catch {
+    return 0;
+  }
 }
 
 export default function HomeScreen() {
@@ -131,9 +171,117 @@ export default function HomeScreen() {
   const workoutIndex = workoutFlow.instance?.currentIndex ?? 0;
   const workoutStatus = workoutFlow.instance?.status ?? "active";
 
+  // ---------------------------------------------------------------------
+  // W24: Workout V2 surfacing (templates / completion / history).
+  // Secondary path — the daily flow above stays the primary CTA.
+  // ---------------------------------------------------------------------
+  const {
+    suggestions,
+    templates: allTemplates,
+    history: workoutHistory,
+    startTemplate,
+  } = useWorkoutTemplates({
+    domainRatings: data.domainRatings,
+    recentGameIds: data.recentGameIds,
+  });
+
+  // Picker state: null = follow today's rotation order (first suggestion) /
+  // the engine's default length, so the section is sensible before any tap.
+  const [pickedTemplateId, setPickedTemplateId] = useState<string | null>(null);
+  const [pickedLength, setPickedLength] = useState<WorkoutLength | null>(null);
+  const [startInProgress, setStartInProgress] = useState(false);
+
+  /** Template ids already started today (active or completed). */
+  const startedTemplateIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const summary of workoutHistory) {
+      if (summary.date !== today) {
+        continue;
+      }
+      const parsed = parseInstanceKey(summary.key);
+      if (parsed.kind === "template" && parsed.templateId) {
+        ids.add(parsed.templateId);
+      }
+    }
+    return ids;
+  }, [workoutHistory, today]);
+
+  // Chip menu: today's rotation order first; started workouts leave the
+  // rotation menu, so re-append them (catalog order) to keep partially played
+  // templates resumable from Home — startTemplate resumes the SAME persisted
+  // instance instead of duplicating it.
+  const templateChoices = useMemo(() => {
+    const choices = suggestions.filter((t) => t.kind === "template");
+    for (const template of allTemplates) {
+      if (
+        template.kind === "template" &&
+        startedTemplateIds.has(template.id) &&
+        !choices.some((choice) => choice.id === template.id)
+      ) {
+        choices.push(template);
+      }
+    }
+    return choices;
+  }, [suggestions, allTemplates, startedTemplateIds]);
+
+  const effectiveTemplateId =
+    pickedTemplateId != null &&
+    templateChoices.some((t) => t.id === pickedTemplateId)
+      ? pickedTemplateId
+      : (templateChoices[0]?.id ?? null);
+  const effectiveLength = pickedLength ?? DEFAULT_WORKOUT_LENGTH;
+  const selectedTemplate =
+    templateChoices.find((t) => t.id === effectiveTemplateId) ?? null;
+  const resumeSelected = effectiveTemplateId != null && startedTemplateIds.has(effectiveTemplateId);
+  const lengthLabel =
+    WORKOUT_LENGTHS.find((l) => l.id === effectiveLength)?.label ?? "Standard";
+  const startLabel = selectedTemplate
+    ? `${resumeSelected ? "Resume" : "Start"} ${selectedTemplate.name} · ${lengthLabel}`
+    : "Start workout";
+
+  // Latest completed TEMPLATE workout today → post-workout summary card.
+  // History is newest-first, so the first match is the most recent one.
+  const latestCompletedTemplate: WorkoutCompletionSummary | null = useMemo(() => {
+    for (const summary of workoutHistory) {
+      if (summary.date !== today) {
+        continue;
+      }
+      const parsed = parseInstanceKey(summary.key);
+      if (parsed.kind === "template" && summary.status === "completed") {
+        return summary;
+      }
+    }
+    return null;
+  }, [workoutHistory, today]);
+
+  const onStartTemplate = useCallback(async () => {
+    if (!effectiveTemplateId || startInProgress) {
+      return;
+    }
+    setStartInProgress(true);
+    try {
+      const instance = await startTemplate(effectiveTemplateId, effectiveLength);
+      // Jump straight into the first unplayed game. A fully completed resume
+      // target has nothing left to launch, so stay on Home (the completion
+      // card below picks it up).
+      const nextGameId =
+        instance && instance.status === "active"
+          ? (instance.gameIds[instance.currentIndex] ?? null)
+          : null;
+      if (nextGameId) {
+        router.push(`/game/${nextGameId}`);
+      }
+    } catch (error) {
+      console.error("[home] template workout start failed", error);
+    } finally {
+      setStartInProgress(false);
+    }
+  }, [effectiveTemplateId, effectiveLength, startInProgress, startTemplate]);
+
   // Displayed selection reflects the persisted workout instance (so rerolls and
   // resume state stay in sync with what is stored).
   const allGames = getAllGameDefinitions();
+
   const workout: GameDefinition[] = workoutFlow.instance
     ? workoutFlow.instance.gameIds
         .map((id) => allGames.find((g) => g.id === id))
@@ -346,6 +494,76 @@ export default function HomeScreen() {
         )}
       </ThemedView>
 
+      {/* W24: post-workout feedback — the most recent TEMPLATE workout
+          finished today. Data-gated so first-run trees stay unchanged. */}
+      {loaded && latestCompletedTemplate ? (
+        <WorkoutCompletionCard
+          summary={latestCompletedTemplate}
+          testID="home-workout-completion-card"
+        />
+      ) : null}
+
+      {/* W24: "More workouts" — Workout V2 rotation menu + length variants,
+          started through the engine hook. Secondary to the daily CTA above;
+          gated behind a loaded db + installed catalog for visual-baseline
+          stability. */}
+      {loaded && hasCatalog ? (
+        <ThemedView
+          type="surface"
+          style={styles.ctaCard}
+          testID="home-workout-templates"
+        >
+          <SectionHeader
+            title="More workouts"
+            caption="Focus training beyond today's mix."
+          />
+          {templateChoices.length > 0 ? (
+            <>
+              <WorkoutTemplateChips
+                templates={templateChoices}
+                selectedId={effectiveTemplateId}
+                startedIds={startedTemplateIds}
+                onSelect={setPickedTemplateId}
+                testIDPrefix="home-workout-template"
+              />
+              <WorkoutLengthChips
+                selected={effectiveLength}
+                onSelect={setPickedLength}
+                testIDPrefix="home-workout-length"
+              />
+              <Pressable
+                testID="home-workout-template-start"
+                accessibilityRole="button"
+                accessibilityLabel={startLabel}
+                accessibilityHint={`Starts a ${lengthLabel.toLowerCase()} ${
+                  selectedTemplate?.name ?? "workout"
+                } session.`}
+                disabled={!effectiveTemplateId || startInProgress}
+                onPress={onStartTemplate}
+              >
+                <ThemedView
+                  type={
+                    effectiveTemplateId && !startInProgress
+                      ? "accentSoft"
+                      : "surface"
+                  }
+                  style={[styles.ctaPill, styles.secondaryPill]}
+                >
+                  <ThemedText type="smallBold" themeColor="accent">
+                    {startInProgress ? "Starting…" : startLabel}
+                  </ThemedText>
+                </ThemedView>
+              </Pressable>
+            </>
+          ) : (
+            <ThemedText type="small" themeColor="textSecondary">
+              All of today&apos;s suggested focus workouts are already on your
+              plan.
+            </ThemedText>
+          )}
+        </ThemedView>
+      ) : null}
+
       {/* Streak / XP / level slot — real values when the db is available.
           Coins join the row once a balance exists (economy visibility). */}
       <View style={styles.statsRow}>
@@ -421,11 +639,17 @@ export default function HomeScreen() {
               <Pressable
                 testID="home-quick-rewards"
                 accessibilityRole="button"
-                accessibilityLabel="Open rewards"
+                accessibilityLabel={
+                  data.claimableRewards > 0
+                    ? `Open rewards, ${data.claimableRewards} ready to claim`
+                    : "Open rewards"
+                }
               >
                 <ThemedView type="surface" style={styles.quickPill}>
                   <ThemedText type="smallBold" themeColor="accent">
-                    Rewards
+                    {data.claimableRewards > 0
+                      ? `Rewards (${data.claimableRewards})`
+                      : "Rewards"}
                   </ThemedText>
                 </ThemedView>
               </Pressable>
@@ -487,8 +711,43 @@ export default function HomeScreen() {
           </ThemedText>
         )}
       </ThemedView>
+
+      {/* W24: compact workout-history feed over the engine's history API
+          (daily + template workouts, newest first). Data-gated: hidden until
+          the first workout exists, keeping first-run trees stable. */}
+      {loaded && workoutHistory.length > 0 ? (
+        <ThemedView
+          type="surface"
+          style={styles.recentCard}
+          testID="home-workout-history"
+        >
+          <SectionHeader
+            title="Workout history"
+            caption="Your recent daily and focus workouts."
+          />
+          <View style={styles.recentList}>
+            {workoutHistory.slice(0, 4).map((summary) => (
+              <WorkoutHistoryRow
+                key={summary.key}
+                summary={summary}
+                nowMs={nowMs}
+                testID={`home-workout-history-${sanitizeTestId(summary.key)}`}
+              />
+            ))}
+          </View>
+        </ThemedView>
+      ) : null}
     </ScreenShell>
   );
+}
+
+/**
+ * Instance keys contain `::` separators (`2026-08-21::focus-math::short`);
+ * flatten every non-alphanumeric run to `-` so the resulting testIDs stay
+ * stable, single-token selectors for QA automation.
+ */
+function sanitizeTestId(key: string): string {
+  return key.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
 const styles = StyleSheet.create({

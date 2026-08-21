@@ -76,3 +76,23 @@ export { createDiagnosticMetadata } from './types/diagnostics';
 export type { DiagnosticMetadata, GeneratorInfo } from './types/diagnostics';
 export { isDevBuild, assertDevOnly, createNoopQaForceStateHooks } from './types/qa';
 export type { QaForceStateHooks } from './types/qa';
+// Performance instrumentation (campaign 010, debt D4) — dev-only, no-op in
+// production builds. Also importable directly via '@/sdk/perf'.
+export {
+  PERF_SCHEMA_VERSION,
+  PERF_RING_CAPACITY,
+  markPerfEvent,
+  startPerfMeasure,
+  markGameSessionStart,
+  markGameFirstInteraction,
+  trackSessionPersist,
+  trackProgressSnapshotLoad,
+  getRecentPerfRecords,
+} from './perf';
+export type {
+  PerfEventName,
+  PerfDetail,
+  PerfRecord,
+  PerfMeasure,
+  PerfEventContext,
+} from './perf';

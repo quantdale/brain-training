@@ -7,9 +7,12 @@
  * game's stat rows, the persistence-failure error line, the QA-forced badge,
  * and the Play again / Done actions. Games pass their stat rows as children.
  */
+import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
+import { trackSessionPersist } from '@/sdk/perf';
+import type { PerfMeasure } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
@@ -45,6 +48,27 @@ export function GameResults({
   onQuit,
   children,
 }: GameResultsProps) {
+  // Dev-only perf seam (campaign 010, debt D4): bracket the session-completion
+  // DB write as observed through the persistence lifecycle — from the first
+  // render showing 'started' to the terminal 'succeeded'/'failed', or back to
+  // 'idle' when a restart supersedes an in-flight write. Includes a little
+  // React scheduling slack around the awaited write; unmounting mid-write
+  // drops the sample instead of recording a truncated duration.
+  const persistMeasureRef = useRef<PerfMeasure | null>(null);
+  useEffect(() => {
+    if (persistState === 'started') {
+      if (persistMeasureRef.current === null) {
+        persistMeasureRef.current = trackSessionPersist(gameId);
+      }
+      return;
+    }
+    const open = persistMeasureRef.current;
+    if (open !== null) {
+      persistMeasureRef.current = null;
+      open.end({ outcome: persistState === 'idle' ? 'superseded' : persistState });
+    }
+  }, [persistState, gameId]);
+
   return (
     <View style={styles.section} testID={testId(gameId, 'results')}>
       <ThemedText type="title">{title}</ThemedText>
