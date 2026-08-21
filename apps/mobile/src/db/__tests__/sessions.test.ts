@@ -163,6 +163,7 @@ describe("completeSession", () => {
     expect(second.session.xp).toBe(50); // original, not overwritten
     expect(second.completionOutcome).toBeNull(); // nothing freshly applied
     expect(second.balance).toBe(balanceAfterFirst);
+    expect(second.ledgerEntry).toBeNull(); // replay grants nothing extra
 
     const stored = await sessions.getById("session-1");
     expect(stored?.xp).toBe(50); // original, not overwritten
@@ -172,6 +173,38 @@ describe("completeSession", () => {
     );
     expect(await adapter.all("SELECT * FROM game_sessions")).toHaveLength(1);
     expect(await adapter.all("SELECT * FROM rating_history")).toHaveLength(0);
+  });
+
+  it("is idempotent when the first completion granted currency: a replay grants nothing extra", async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter);
+    const first = await sessions.completeSession({
+      session: makeSession(),
+      currency: { amount: 25, reason: "first" },
+    });
+    expect(first.ledgerEntry?.amount).toBe(25);
+    expect(first.balance).toBe(25);
+
+    // A crash/retry that replays the SAME session id must not double-award
+    // currency or create a second row (economy correctness, §A).
+    const second = await sessions.completeSession({
+      session: makeSession(),
+      currency: { amount: 5, reason: "dup" },
+    });
+    expect(second.ledgerEntry).toBeNull();
+    expect(second.balance).toBe(25); // unchanged
+    expect(second.session.xp).toBe(50); // original row reflected
+    expect((await adapter.all("SELECT * FROM currency_ledger"))).toHaveLength(1); // only the first
+  });
+
+  it("is idempotent for a replayed session even without a currency entry", async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter);
+    await sessions.completeSession({ session: makeSession() });
+    const replay = await sessions.completeSession({ session: makeSession() });
+    expect(replay.ledgerEntry).toBeNull();
+    expect(replay.session.id).toBe("session-1");
+    expect(await sessions.getById("session-1")).not.toBeNull();
   });
 
   it("stamps the gameplay currency award with a stable operation_id for idempotent import", async () => {

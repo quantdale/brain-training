@@ -259,24 +259,17 @@ export class SessionRepository {
       const deltas: readonly RatingDelta[] = outcome ? outcome.deltas : [];
       let appliedDeltas: readonly AppliedRatingDelta[] = [];
       if (isNew && deltas.length > 0) {
-        appliedDeltas = await this.ratingRepository.applyDeltas(
-          txn,
-          s.id,
-          deltas,
-          s.completedAt,
-        );
+        appliedDeltas = await this.ratingRepository.applyDeltas(txn, s.id, deltas, s.completedAt);
       }
 
       // On a duplicate completion we reflect the already-persisted row rather
-      // than re-awarding; no ledger entry or rating deltas are produced here.
+      // than re-awarding; no ledger entry or rating deltas are produced.
       let existing: SessionRow | null = null;
       if (!isNew) {
         existing = await txn.get<SessionRow>(SELECT_SESSION_BY_ID, [s.id]);
         if (!existing) {
-          // Unreachable: INSERT OR IGNORE only skips on a primary-key conflict.
-          throw new Error(
-            `completeSession: missing existing row for duplicate id ${s.id}`,
-          );
+          // Should be unreachable: INSERT OR IGNORE only skips on a conflict.
+          throw new Error(`completeSession: missing existing row for duplicate id ${s.id}`);
         }
       }
 
