@@ -735,11 +735,13 @@ Convergence branch `recovery/wave02-full-convergence` (merge order: 07-tip ff �
   byte-identical to origin/main (git diff empty) — environmental drift, not a
   Wave 02 change; left unpinned deliberately (no upgrade churn)
 - `npx --no-install openspec validate --changes`: PASS (1 change)
-- Emulator canary (emulator-local autobot, no host input): first two attempts
-  FAIL "app did not warm to home" — root cause: Metro stale watcher could not
-  resolve newly created game directories (`@/games/flexibility-rule-flip`),
-  surfaced as dev-server 500. Metro restarted with `--clear`; result recorded
-  below once rerun completes.
+- Emulator canary (emulator-local autobot, no host input): **PASS** —
+  `memory-grid-recall` force-win + exactly one persisted session +
+  authoritative results (`qa-artifacts/20260821-020119-autobot-game`). First two
+  attempts FAIL "app did not warm to home" — root cause: Metro stale watcher
+  could not resolve newly created game directories, dev-server 500; fixed by
+  restarting Metro with `--clear`. Full 36-game catalog journeys remain NOT
+  VALIDATED this wave.
 
 **Migration integrity:** SCHEMA_VERSION 8 with migrations v1–v8 sequential and
 unique (migration-robustness suite: 12/12 — upgrade paths, data survival,
