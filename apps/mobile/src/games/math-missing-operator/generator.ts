@@ -80,6 +80,22 @@ export const EQUATION_TEMPLATES: readonly EquationTemplate[] = [
   // Large operands (hard / expert compatible — covers all 4 operators)
   { numbers: [14, 3], operators: ['*'], result: 42 },   // 14 × 3 = 42
   { numbers: [16, 5], operators: ['+'], result: 21 },   // 16 + 5 = 21
+  // Large-operand depth block (machine-verified unique solutions; b ≤ expert
+  // maxB so the compatibility filter admits exactly the intended levels —
+  // entries with b > hard's maxB serve expert only, and a > 40 only surfaces
+  // in later expert rounds as aMax escalates toward 99).
+  { numbers: [24, 6], operators: ['/'], result: 4 },    // 24 ÷ 6 = 4
+  { numbers: [36, 9], operators: ['/'], result: 4 },    // 36 ÷ 9 = 4
+  { numbers: [48, 8], operators: ['/'], result: 6 },    // 48 ÷ 8 = 6
+  { numbers: [63, 7], operators: ['/'], result: 9 },    // 63 ÷ 7 = 9
+  { numbers: [96, 8], operators: ['/'], result: 12 },   // 96 ÷ 8 = 12
+  { numbers: [13, 7], operators: ['*'], result: 91 },   // 13 × 7 = 91
+  { numbers: [19, 4], operators: ['*'], result: 76 },   // 19 × 4 = 76
+  { numbers: [17, 6], operators: ['*'], result: 102 },  // 17 × 6 = 102
+  { numbers: [28, 5], operators: ['*'], result: 140 },  // 28 × 5 = 140
+  { numbers: [87, 5], operators: ['+'], result: 92 },   // 87 + 5 = 92
+  { numbers: [64, 10], operators: ['-'], result: 54 },  // 64 − 10 = 54
+  { numbers: [73, 9], operators: ['+'], result: 82 },   // 73 + 9 = 82
 ];
 
 /** Upper bound on re-draw attempts per round before the fallback is used. */

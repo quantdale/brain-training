@@ -1,10 +1,11 @@
 /**
  * MathMissingOperatorScreen — the Missing Operator game.
  *
- * Renders a pure state machine (`mathMissingOperatorGameReducer`) and owns
- * the side effects: the per-round budget timer, the SDK `SessionLifecycle`
- * (start/pause/resume/complete/abandon), auto-pause on backgrounding, the
- * tutorial, the dev-only QA panel, and result persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Missing-Operator-specific — the reducer wiring, the per-round
+ * budget timer, the scoring/persistence pipeline, and the equation view.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
@@ -14,30 +15,33 @@
  * cancels the timer (the reducer banks the elapsed segment), so pause freezes
  * the countdown and resume restarts it with the remaining time; an
  * over-long pause that exceeds the budget times the round out immediately on
- * resume. The equation is covered by the opaque `PauseOverlay` and hidden
- * from the accessibility tree while paused.
+ * resume. The equation is covered by the opaque shared PauseOverlay and
+ * hidden from the accessibility tree while paused.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  SessionLifecycle,
   isDevBuild,
   liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameSession,
+} from '@/components/game-host';
 
-import { GameButton } from './components/button';
 import { EquationDisplay } from './components/equation-display';
 import { OperatorRow } from './components/operator-button';
-import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import {
@@ -76,15 +80,6 @@ export interface MathMissingOperatorScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function MathMissingOperatorScreen(props: MathMissingOperatorScreenProps = {}) {
   const {
     clock = systemClock,
@@ -100,13 +95,24 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     createInitialMathMissingOperatorState,
   );
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
 
   // Keep a ref of the latest state for event handlers (AppState, timers).
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === 'answer' || current.phase === 'roundResult') &&
+        !current.paused
+      );
+    },
+    onPause: () => dispatch({ type: 'pause', pausedAtMs: clock.now() }),
   });
 
   const tutorial = useMemo(
@@ -160,28 +166,21 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
       state.profile === null ||
       state.sessionId === null ||
-      state.startedAtMs === null
+      state.startedAtMs === null ||
+      !session.claimFinalize()
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = mathMissingOperatorParamsFromProfile(state.profile);
@@ -258,49 +257,25 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     state.forced,
     state.adaptiveRating,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        // Wall-clock epoch for the record; monotonic anchor for round pacing.
-        startedAtMs: Date.now(),
-        roundStartedAtMs: clock.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (!(current.phase === 'answer' || current.phase === 'roundResult') || current.paused) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause', pausedAtMs: clock.now() });
-  }, [clock, dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: 'resume', resumedAtMs: clock.now() });
-  }, [clock, dispatch]);
+  }, [session, clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleAnswer = useCallback(
     (operator: Operator) => {
@@ -327,10 +302,17 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+      // Monotonic anchor for round pacing (identity.startedAtMs is wall-clock).
+      roundStartedAtMs: clock.now(),
+    });
+  }, [session, sessionSeed, clock, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -349,16 +331,6 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
-
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
 
   // ---- Round presentation.
   const revealedOperator: Operator | null =
@@ -384,205 +356,141 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     [state.phase, state.equation?.answerOperator, state.lastAnsweredOperator],
   );
 
+  const view =
+    state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
+
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
-              <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
-                Round {state.roundIndex + 1}/{rounds}
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+          Round {state.roundIndex + 1}/{rounds}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
+        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {inSession ? (
+        <>
+          {state.phase === 'answer' && state.equation !== null ? (
+            <>
+              <ThemedText
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, 'answer-status')}>
+                Pick the missing operator
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
+              <EquationDisplay equation={state.equation} />
+              <OperatorRow operators={OPERATORS} onPressOperator={handleAnswer} highlightFor={highlightFor} />
+            </>
+          ) : null}
 
-            {state.phase === 'answer' && state.equation !== null ? (
-              <>
-                <ThemedText
-                  type="bodyLarge"
-                  themeColor="text"
-                  testID={testId(GAME_ID, 'answer-status')}>
-                  Pick the missing operator
-                </ThemedText>
-                <EquationDisplay equation={state.equation} />
-                <OperatorRow operators={OPERATORS} onPressOperator={handleAnswer} highlightFor={highlightFor} />
-              </>
-            ) : null}
-
-            {state.phase === 'roundResult' && state.equation !== null ? (
-              <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-                <ThemedText
-                  type="headline"
-                  themeColor={
-                    state.roundOutcome === 'correct'
-                      ? 'success'
-                      : state.roundOutcome === 'wrong'
-                        ? 'danger'
-                        : 'warning'
-                  }
-                  testID={testId(
-                    GAME_ID,
-                    state.roundOutcome === 'correct'
-                      ? 'round-correct'
-                      : state.roundOutcome === 'wrong'
-                        ? 'round-wrong'
-                        : 'round-timeout',
-                  )}>
-                  {state.roundOutcome === 'correct'
-                    ? 'Correct!'
+          {state.phase === 'roundResult' && state.equation !== null ? (
+            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              <ThemedText
+                type="headline"
+                themeColor={
+                  state.roundOutcome === 'correct'
+                    ? 'success'
                     : state.roundOutcome === 'wrong'
-                      ? 'Not quite'
-                      : 'Time’s up'}
+                      ? 'danger'
+                      : 'warning'
+                }
+                testID={testId(
+                  GAME_ID,
+                  state.roundOutcome === 'correct'
+                    ? 'round-correct'
+                    : state.roundOutcome === 'wrong'
+                      ? 'round-wrong'
+                      : 'round-timeout',
+                )}>
+                {state.roundOutcome === 'correct'
+                  ? 'Correct!'
+                  : state.roundOutcome === 'wrong'
+                    ? 'Not quite'
+                    : 'Time’s up'}
+              </ThemedText>
+              <EquationDisplay equation={state.equation} reveal={revealedOperator} />
+              {state.roundOutcome === 'wrong' && state.lastAnsweredOperator !== null ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  You picked {OPERATOR_GLYPHS[state.lastAnsweredOperator]} — the answer is{' '}
+                  {OPERATOR_GLYPHS[state.equation.answerOperator]}.
                 </ThemedText>
-                <EquationDisplay equation={state.equation} reveal={revealedOperator} />
-                {state.roundOutcome === 'wrong' && state.lastAnsweredOperator !== null ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    You picked {OPERATOR_GLYPHS[state.lastAnsweredOperator]} — the answer is{' '}
-                    {OPERATOR_GLYPHS[state.equation.answerOperator]}.
-                  </ThemedText>
-                ) : null}
-                {state.roundOutcome === 'timeout' ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    The answer is {OPERATOR_GLYPHS[state.equation.answerOperator]}.
-                  </ThemedText>
-                ) : null}
-                <OperatorRow disabled operators={OPERATORS} onPressOperator={handleAnswer} highlightFor={highlightFor} />
-                <GameButton
-                  testID={testId(GAME_ID, 'next-round')}
-                  label={isLastRound ? 'See results' : 'Next round'}
-                  onPress={handleNextRound}
-                />
-              </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, 'score')}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.roundsPlayed > 0 ? state.stats.roundsCorrect / state.stats.roundsPlayed : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, 'accuracy')}
-            />
-            <StatRow
-              label="Correct"
-              value={`${state.stats.roundsCorrect}/${state.stats.roundsPlayed}`}
-              testID={testId(GAME_ID, 'correct')}
-            />
-            <StatRow
-              label="Timeouts"
-              value={String(state.stats.timeouts)}
-              testID={testId(GAME_ID, 'timeouts')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow
-              label="Avg response"
-              value={formatAvgResponse(avgResponseMs(state.stats))}
-              testID={testId(GAME_ID, 'avg-response')}
-            />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
-
-            {state.persistState === 'failed' ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
+              ) : null}
+              {state.roundOutcome === 'timeout' ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  The answer is {OPERATOR_GLYPHS[state.equation.answerOperator]}.
+                </ThemedText>
+              ) : null}
+              <OperatorRow disabled operators={OPERATORS} onPressOperator={handleAnswer} highlightFor={highlightFor} />
               <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
+                testID={testId(GAME_ID, 'next-round')}
+                label={isLastRound ? 'See results' : 'Next round'}
+                onPress={handleNextRound}
               />
             </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+          ) : null}
+        </>
       ) : null}
 
-      {state.tutorialOpen ? (
-        <Tutorial
-          onComplete={completeTutorial}
-          onSkip={isDevBuild() ? skipTutorial : undefined}
-        />
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, 'score')}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.roundsPlayed > 0 ? state.stats.roundsCorrect / state.stats.roundsPlayed : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'accuracy')}
+          />
+          <StatRow
+            label="Correct"
+            value={`${state.stats.roundsCorrect}/${state.stats.roundsPlayed}`}
+            testID={testId(GAME_ID, 'correct')}
+          />
+          <StatRow
+            label="Timeouts"
+            value={String(state.stats.timeouts)}
+            testID={testId(GAME_ID, 'timeouts')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow
+            label="Avg response"
+            value={formatAvgResponse(avgResponseMs(state.stats))}
+            testID={testId(GAME_ID, 'avg-response')}
+          />
+          <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
+        </GameResults>
       ) : null}
-    </View>
+    </GameHost>
   );
 }
 
@@ -592,24 +500,7 @@ function formatAvgResponse(avgMs: number): string {
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-  },
-  operators: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    paddingVertical: Spacing.two,
   },
 });

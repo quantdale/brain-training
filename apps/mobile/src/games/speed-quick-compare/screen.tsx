@@ -1,26 +1,26 @@
 /**
  * QuickCompareScreen — the Quick Compare game.
  *
- * Renders a pure state machine (`quickCompareGameReducer`) and owns the side
- * effects: the per-round window-expiry timer (scheduled against the monotonic
- * `deadlineMs`), the SDK `SessionLifecycle` (start/pause/resume/complete/
- * abandon), auto-pause on backgrounding, the tutorial, the dev-only QA panel,
- * and result persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Quick-Compare-specific — the per-round window-expiry timer,
+ * answer handling, and the scoring/persistence pipeline.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer and cancels the expiry
- * timer; resuming re-schedules expiry with the exact remaining time
- * (`deadlineMs - clock.now()`). The board is covered by the opaque
- * `PauseOverlay` and hidden from the accessibility tree while paused.
+ * timer; resuming re-schedules expiry from the exact remaining time captured
+ * at pause (`deadlineMs - clock.now()`), so pausing never buys extra time.
+ * The board is covered by the opaque `PauseOverlay` and hidden from the
+ * accessibility tree while paused.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  SessionLifecycle,
   isDevBuild,
   liveAudioHaptics,
   noopXpRatingHook,
@@ -29,14 +29,19 @@ import {
 } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameSession,
+  useGameTimeout,
+} from '@/components/game-host';
+import type { GameHostView } from '@/components/game-host';
 
-import { GameButton } from './components/button';
 import { Comparison } from './components/comparison';
 import { Countdown } from './components/countdown';
-import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import { sessionChallengeRating, quickCompareParamsFromProfile } from './difficulty';
@@ -67,15 +72,6 @@ export interface QuickCompareScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) {
   const {
     clock = systemClock,
@@ -84,18 +80,36 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
     persistSession = dbSessionPersister,
     xpHook = noopXpRatingHook,
   } = props;
-  const theme = useTheme();
   const router = useRouter();
-  const [state, dispatch] = useReducer(quickCompareGameReducer, undefined, createInitialQuickCompareState);
+  const [state, dispatch] = useReducer(
+    quickCompareGameReducer,
+    undefined,
+    createInitialQuickCompareState,
+  );
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
+  // Keep a ref of the latest state for event handlers (timers, guards).
+  useEffect(() => {
+    stateRef.current = state;
+  });
   /** Window time left when pausing; the resume action re-anchors from it. */
   const pauseRemainingRef = useRef(0);
 
-  useEffect(() => {
-    stateRef.current = state;
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === 'active' || current.phase === 'feedback') && !current.paused
+      );
+    },
+    onPause: () => {
+      const current = stateRef.current;
+      pauseRemainingRef.current =
+        current.deadlineMs !== null ? Math.max(0, current.deadlineMs - clock.now()) : 0;
+      dispatch({ type: 'pause' });
+    },
   });
 
   const tutorial = useMemo(
@@ -113,22 +127,17 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   // ---- Window expiry: one timer per live round, scheduled from the monotonic
-  // deadline. Pause cancels the timer; resume re-schedules with the remaining
-  // time, so pausing never buys extra time.
-  useEffect(() => {
-    if (state.phase !== 'active' || state.paused || state.deadlineMs === null) {
-      return;
-    }
-    const remaining = state.deadlineMs - clock.now();
-    if (remaining <= 0) {
-      dispatch({ type: 'answer-timeout', nowMs: clock.now() });
-      return;
-    }
-    const timer = setTimeout(() => {
-      dispatch({ type: 'answer-timeout', nowMs: clock.now() });
-    }, remaining);
-    return () => clearTimeout(timer);
-  }, [state.phase, state.paused, state.deadlineMs, state.roundIndex, clock, dispatch]);
+  // deadline. Pause deactivates the timer; resume re-schedules it from the
+  // remaining time the reducer re-anchored, so pausing never buys extra time.
+  const windowRemainingMs =
+    state.phase === 'active' && !state.paused && state.deadlineMs !== null
+      ? Math.max(0, state.deadlineMs - clock.now())
+      : 0;
+  useGameTimeout(
+    state.phase === 'active' && !state.paused && state.deadlineMs !== null,
+    () => dispatch({ type: 'answer-timeout', nowMs: clock.now() }),
+    windowRemainingMs,
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -139,28 +148,21 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = quickCompareParamsFromProfile(state.profile);
@@ -184,6 +186,8 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizeQuickCompareResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
+    // Phase-2 seam: rating deltas are computed but unused while the shared
+    // hook is a no-op.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({
@@ -232,54 +236,29 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
     state.forced,
     state.windowMs,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-        spawnedAtMs: clock.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (!(current.phase === 'active' || current.phase === 'feedback') || current.paused) {
-      return;
-    }
-    pauseRemainingRef.current =
-      current.deadlineMs !== null ? Math.max(0, current.deadlineMs - clock.now()) : 0;
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
-  }, [clock, dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({
       type: 'resume',
       nowMs: clock.now(),
       remainingMs: pauseRemainingRef.current,
     });
-  }, [clock, dispatch]);
+  }, [clock, session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleAnswer = useCallback(
     (index: number) => {
@@ -303,12 +282,6 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
     [clock, dispatch],
   );
 
-  const handleTimeout = useCallback(() => {
-    liveAudioHaptics.playSfx('wrong');
-    liveAudioHaptics.haptic('warning');
-    dispatch({ type: 'answer-timeout', nowMs: clock.now() });
-  }, [clock, dispatch]);
-
   const handleNext = useCallback(() => {
     dispatch({ type: 'next-round', spawnedAtMs: clock.now() });
   }, [clock, dispatch]);
@@ -316,12 +289,20 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
     const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+      spawnedAtMs: clock.now(),
+    });
+  }, [clock, session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
+  // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
     tutorial.requestReplay(GAME_ID);
     dispatch({ type: 'tutorial-open' });
@@ -333,18 +314,12 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
   }, [tutorial, dispatch]);
 
   const skipTutorial = useCallback(() => {
-    tutorial.skipForQa(GAME_ID);
+    tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
+  const view: GameHostView =
+    state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
   const accuracyPct =
     state.stats.roundsTotal > 0
@@ -352,204 +327,138 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
       : 0;
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
-              <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession && state.round !== null ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText
-                type="subtitle"
-                testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
-                Round {state.roundIndex + 1}/{rounds}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'streak')}>
-                Streak {state.stats.streak}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            {state.phase === 'active' ? (
-              <>
-                <Countdown
-                  deadlineMs={state.deadlineMs ?? clock.now()}
-                  windowMs={state.windowMs}
-                  clock={clock}
-                  testID={testId(GAME_ID, 'countdown')}
-                />
-                <Comparison
-                  round={state.round}
-                  selectedIndex={state.selectedIndex}
-                  lastVerdict={state.lastVerdict}
-                  disabled={false}
-                  onSelect={handleAnswer}
-                  testID={testId(GAME_ID, 'comparison')}
-                />
-              </>
-            ) : null}
-
-            {state.phase === 'feedback' ? (
-              <View style={styles.section} testID={testId(GAME_ID, 'feedback')}>
-                <ThemedText
-                  type="headline"
-                  themeColor={
-                    state.lastVerdict === 'correct'
-                      ? 'success'
-                      : state.lastVerdict === 'miss'
-                        ? 'warning'
-                        : 'danger'
-                  }
-                  testID={testId(GAME_ID, 'verdict')}>
-                  {state.lastVerdict === 'correct'
-                    ? 'Correct!'
-                    : state.lastVerdict === 'miss'
-                      ? 'Too slow'
-                      : 'Not quite'}
-                </ThemedText>
-                <GameButton
-                  testID={testId(GAME_ID, 'next')}
-                  label={isLastRound ? 'See results' : 'Next round'}
-                  onPress={handleNext}
-                />
-              </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
-            <StatRow
-              label="Accuracy"
-              value={`${accuracyPct}%`}
-              testID={testId(GAME_ID, 'accuracy')}
-            />
-            <StatRow
-              label="Correct"
-              value={`${state.stats.roundsCorrect}/${state.stats.roundsTotal}`}
-              testID={testId(GAME_ID, 'correct')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow
-              label="Best reaction"
-              value={
-                state.stats.reactions.length > 0
-                  ? `${Math.round(Math.min(...state.stats.reactions))} ms`
-                  : '—'
-              }
-              testID={testId(GAME_ID, 'best-reaction')}
-            />
-            <StatRow
-              label="XP"
-              value={String(state.authoritativeXp ?? state.xp)}
-              testID={testId(GAME_ID, 'xp')}
-            />
-
-            {state.persistState === 'failed' ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, 'restart')}
-                label="Play again"
-                onPress={handleRestart}
-              />
-              <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
-              />
-            </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
-      ) : null}
-
-      {state.tutorialOpen ? (
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <>
+          <ThemedText
+            type="subtitle"
+            testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+            Round {state.roundIndex + 1}/{rounds}
+          </ThemedText>
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            testID={testId(GAME_ID, 'streak')}>
+            Streak {state.stats.streak}
+          </ThemedText>
+        </>
+      }
+      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {inSession && state.round !== null ? (
+        <>
+          {state.phase === 'active' ? (
+            <>
+              <Countdown
+                deadlineMs={state.deadlineMs ?? clock.now()}
+                windowMs={state.windowMs}
+                clock={clock}
+                testID={testId(GAME_ID, 'countdown')}
+              />
+              <Comparison
+                round={state.round}
+                selectedIndex={state.selectedIndex}
+                lastVerdict={state.lastVerdict}
+                disabled={false}
+                onSelect={handleAnswer}
+                testID={testId(GAME_ID, 'comparison')}
+              />
+            </>
+          ) : null}
+
+          {state.phase === 'feedback' ? (
+            <View style={styles.section} testID={testId(GAME_ID, 'feedback')}>
+              <ThemedText
+                type="headline"
+                themeColor={
+                  state.lastVerdict === 'correct'
+                    ? 'success'
+                    : state.lastVerdict === 'miss'
+                      ? 'warning'
+                      : 'danger'
+                }
+                testID={testId(GAME_ID, 'verdict')}>
+                {state.lastVerdict === 'correct'
+                  ? 'Correct!'
+                  : state.lastVerdict === 'miss'
+                    ? 'Too slow'
+                    : 'Not quite'}
+              </ThemedText>
+              <GameButton
+                testID={testId(GAME_ID, 'next')}
+                label={isLastRound ? 'See results' : 'Next round'}
+                onPress={handleNext}
+              />
+            </View>
+          ) : null}
+        </>
       ) : null}
-    </View>
+
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, 'score')}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${accuracyPct}%`}
+            testID={testId(GAME_ID, 'accuracy')}
+          />
+          <StatRow
+            label="Correct"
+            value={`${state.stats.roundsCorrect}/${state.stats.roundsTotal}`}
+            testID={testId(GAME_ID, 'correct')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow
+            label="Best reaction"
+            value={
+              state.stats.reactions.length > 0
+                ? `${Math.round(Math.min(...state.stats.reactions))} ms`
+                : '—'
+            }
+            testID={testId(GAME_ID, 'best-reaction')}
+          />
+          <StatRow
+            label="XP"
+            value={String(state.authoritativeXp ?? state.xp)}
+            testID={testId(GAME_ID, 'xp')}
+          />
+        </GameResults>
+      ) : null}
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
 });
