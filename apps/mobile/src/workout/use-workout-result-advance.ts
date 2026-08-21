@@ -3,11 +3,14 @@
  * hardening gap: the durable daily workout was implemented and unit-tested but
  * no screen ever advanced it, so `current_index` stayed at 0 on-device.
  *
- * Given the session shown on the result screen, this hook loads today's
- * workout instance and, when the session finished the current (resume) game,
- * advances the instance exactly once via `WorkoutRepository.advance`. It returns
- * the next game id to surface a "Next Game" CTA, or a `completed` flag for the
- * "Workout complete" state.
+ * Given the session shown on the result screen, this hook finds the workout
+ * instance the session belongs to and advances it exactly once via
+ * `WorkoutRepository.advance`. Workout Engine V2 extends routing beyond the
+ * default daily mix: the candidate is ANY active instance whose CURRENT
+ * (resume) position equals the session's game — the daily mix or a template
+ * workout (`focus-*`, short/standard/extended). When several qualify, the
+ * repository picks the most recently updated one (the player's latest
+ * intent). Sessions that belong to no active workout advance nothing.
  *
  * Idempotency (Queue A — completion idempotency / rapid navigation races): the
  * `shouldAdvanceWorkout` guard alone is not enough, because `useDbData` does
@@ -27,24 +30,33 @@ import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { shouldAdvanceWorkout } from "./advance";
 import { eligibleGameIds, reconcileWorkout } from "./reconcile";
-import { localDateString } from "./today";
 
 export interface WorkoutResultAdvance {
-  /** Today's persisted (reconciled) workout instance (null until loaded). */
+  /** The matched (reconciled) workout instance (null until loaded/matched). */
   instance: WorkoutInstance | null;
   /** Game id to play next after this session advanced the workout, or null. */
   nextGameId: string | null;
-  /** True when the workout is finished (already, or just completed by this session). */
+  /** True when the matched workout is finished (already, or just completed). */
   completed: boolean;
 }
 
 export function useWorkoutResultAdvance(
   session: GameSessionRecord | null,
 ): WorkoutResultAdvance {
-  const today = localDateString();
+  const sessionId = session?.id ?? null;
+
+  // Route the session to its owning workout across ALL template types: any
+  // active instance whose current resume game matches, touched before the
+  // session finished. Null when the session belongs to no workout.
   const { data: loadedInstance } = useDbData(
-    (db) => db.workouts.getByDate(today),
-    [today],
+    async (db) =>
+      session
+        ? db.workouts.findActiveInstanceForGame(
+            session.gameId,
+            session.completedAt,
+          )
+        : null,
+    [sessionId],
     null as WorkoutInstance | null,
   );
 
@@ -87,8 +99,10 @@ export function useWorkoutResultAdvance(
       return;
     }
     advancingRef.current = true;
+    // `instance.date` is the instance KEY (daily date or namespaced template
+    // key), so one advance call serves every workout kind.
     getDb()
-      .workouts.advance(today)
+      .workouts.advance(reconciled.date)
       .then((updated) => {
         advancedForSessionRef.current = session.id;
         setAdvancedInstance(updated); // keep the guard honest for any re-run
@@ -103,7 +117,7 @@ export function useWorkoutResultAdvance(
       .finally(() => {
         advancingRef.current = false;
       });
-  }, [session, reconciled, today]);
+  }, [session, reconciled]);
 
   return {
     instance: reconciled,

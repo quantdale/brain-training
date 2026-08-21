@@ -20,6 +20,15 @@
  *   Omitting `nowMs` disables the pass entirely (byte-identical ordering to
  *   the pre-staleness behavior), so the feature is strictly opt-in.
  *
+ * Since campaign 010 this layer CONSUMES the shared Advanced Personalization
+ * V2 kernel (`src/personalization`): the weak/stale thresholds, the staleness
+ * rule, per-domain signal computation and the reason formatters live there.
+ * This module keeps its pinned legacy ordering semantics (tier sort with
+ * stable tie-breaks) and public export names/signatures unchanged — the
+ * richer weighted-component scoring lives in `src/personalization/scoring.ts`
+ * and is layered ON TOP of these primitives, not wired into the pinned
+ * workout reorder.
+ *
  * Seed scheme: the personalized composition derives its own RNG stream from
  * `workout::<date>::<attempt>::personalized` — the `::personalized` suffix
  * keeps this layer's stream independent of the base pick's
@@ -33,45 +42,50 @@
 
 import { createRng } from "@/sdk";
 import type { GameDefinition, Rng } from "@/sdk";
+import {
+ STALE_DOMAIN_DAYS,
+ WEAK_DOMAIN_RATING_THRESHOLD,
+ computeDomainSignals,
+ formatStaleDomainDetail,
+ formatWeakDomainDetail,
+} from "@/personalization";
+import type {
+ DomainRatingView,
+ DomainSignalSummary,
+} from "@/personalization";
 import { dailyWorkout } from "./today";
 
 /**
  * Structural view of a domain rating (shape-compatible with `DomainRating`
- * in src/db/rating.ts; kept local so this module has zero db imports).
- * `domain`/`rating` drive the weak tier; an optional `updatedAt` enables the
- * staleness tier when the caller passes a clock (`PersonalizeOptions.nowMs`);
- * the optional fields mirror the db row so callers can pass full rows without
- * casts.
+ * in src/db/rating.ts), shared with the personalization kernel so callers can
+ * pass db rows directly to either layer without casts. `domain`/`rating`
+ * drive the weak tier; an optional `updatedAt` enables the staleness tier
+ * when the caller passes a clock (`PersonalizeOptions.nowMs`); the optional
+ * fields mirror the db row.
  */
-export interface DomainRating {
- domain: string;
- rating: number;
- sessions?: number;
- updatedAt?: number;
-}
+export type DomainRating = DomainRatingView;
 
 /**
  * A domain is treated as "weak" when its rating is below this threshold.
- * Matches `INITIAL_RATING` (1000) in src/db/rating.ts: a domain that was
- * never played sits exactly at the initial rating, so only domains that have
- * ACTIVELY declined are favored (a test pins the two constants together).
+ * Canonical value lives in the personalization kernel and matches
+ * `INITIAL_RATING` (1000) in src/db/rating.ts: a domain that was never played
+ * sits exactly at the initial rating, so only domains that have ACTIVELY
+ * declined are favored (a test pins the two constants together).
  * Domain-to-category matching compares `game.primaryCategory` against
  * `DomainRating.domain` — the rating pipeline stores the primary category
  * string itself (see `getDomains` in src/app/_layout.tsx), so the comparison
  * is exact by construction.
  */
-export const WEAK_DOMAIN_RATING_THRESHOLD = 1000;
+export { WEAK_DOMAIN_RATING_THRESHOLD };
 
 /**
  * A domain rating not updated for this many days is treated as stale
- * (constitution §15). Deliberately equal to the default horizon of
- * `isRatingStale` in src/db/rating.ts — a test pins the two constants
- * together, so changing one must be a conscious re-alignment of both.
+ * (constitution §15). Canonical value lives in the personalization kernel and
+ * is deliberately equal to the default horizon of `isRatingStale` in
+ * src/db/rating.ts — a test pins the two constants together, so changing one
+ * must be a conscious re-alignment of both.
  */
-export const STALE_DOMAIN_DAYS = 30;
-
-/** Milliseconds per day; keeps the staleness comparison local to this module. */
-const DAY_MS = 24 * 60 * 60 * 1000;
+export { STALE_DOMAIN_DAYS };
 
 /**
  * Options for the personalization reorder. Everything is optional; omitting
@@ -87,23 +101,6 @@ export interface PersonalizeOptions {
  nowMs?: number;
  /** Staleness horizon in days (default {@link STALE_DOMAIN_DAYS}). */
  staleDays?: number;
-}
-
-/**
- * Whether a domain rating is stale under {@link PersonalizeOptions}. Mirrors
- * `isRatingStale` in src/db/rating.ts (`now - updatedAt > maxAgeDays`, strict
- * inequality — exactly 30 days is NOT stale) without importing from `@/db`,
- * so this module keeps its zero-db-import property; a test pins the parity.
- */
-function isStale(
- updatedAt: number | undefined,
- options: PersonalizeOptions,
-): boolean {
- if (options.nowMs === undefined || typeof updatedAt !== "number") {
-  return false;
- }
- const maxAgeDays = options.staleDays ?? STALE_DOMAIN_DAYS;
- return options.nowMs - updatedAt > maxAgeDays * DAY_MS;
 }
 
 /**
@@ -136,30 +133,32 @@ export function reorderByWeakDomains(
   return [];
  }
 
- const ratingByDomain = new Map<string, number>();
- const updatedAtByDomain = new Map<string, number>();
- for (const { domain, rating, updatedAt } of domainRatings) {
-  ratingByDomain.set(domain, rating);
-  if (typeof updatedAt === "number") {
-   updatedAtByDomain.set(domain, updatedAt);
-  }
- }
+ // Shared V2 signal kernel: one pass computes weakness/staleness per RATED
+ // domain. Domains absent from `domainRatings` have no entry and are treated
+ // as at the threshold (never played ⇒ initial rating) with no timestamp, so
+ // they are never labeled weak or stale.
+ const signals = computeDomainSignals(domainRatings, options);
 
  /** 0 = weak (actively declined), 1 = stale (rusty), 2 = everything else. */
- const tierOf = (domain: string, rating: number): 0 | 1 | 2 => {
-  if (rating < WEAK_DOMAIN_RATING_THRESHOLD) {
+ const tierOf = (summary: DomainSignalSummary | undefined): 0 | 1 | 2 => {
+  if (!summary) {
+   return 2;
+  }
+  if (summary.weak) {
    return 0;
   }
-  return isStale(updatedAtByDomain.get(domain), options) ? 1 : 2;
+  return summary.stale ? 1 : 2;
  };
 
- const rated = games.map((game, index) => ({
-  game,
-  rating:
-   ratingByDomain.get(game.primaryCategory) ?? WEAK_DOMAIN_RATING_THRESHOLD,
-  tier: tierOf(game.primaryCategory, ratingByDomain.get(game.primaryCategory) ?? WEAK_DOMAIN_RATING_THRESHOLD),
-  index,
- }));
+ const rated = games.map((game, index) => {
+  const summary = signals.get(game.primaryCategory);
+  return {
+   game,
+   rating: summary ? summary.rating : WEAK_DOMAIN_RATING_THRESHOLD,
+   tier: tierOf(summary),
+   index,
+  };
+ });
 
  return rated
   .sort((a, b) => {
@@ -281,14 +280,9 @@ export function explainPersonalizedWorkout(
   exclude,
   options,
  );
- const ratingByDomain = new Map<string, number>();
- const updatedAtByDomain = new Map<string, number>();
- for (const { domain, rating, updatedAt } of domainRatings) {
-  ratingByDomain.set(domain, rating);
-  if (typeof updatedAt === "number") {
-   updatedAtByDomain.set(domain, updatedAt);
-  }
- }
+ // Same shared signal pass as the reorder, so reasons can never drift from
+ // the ordering they explain.
+ const signals = computeDomainSignals(domainRatings, options);
  const recentSet = new Set(recentGameIds);
  const excludeSet = new Set(exclude);
 
@@ -300,25 +294,23 @@ export function explainPersonalizedWorkout(
     detail: "excluded (already played)",
    };
   }
-  const rating =
-   ratingByDomain.get(game.primaryCategory) ?? WEAK_DOMAIN_RATING_THRESHOLD;
-  if (rating < WEAK_DOMAIN_RATING_THRESHOLD) {
+  const summary = signals.get(game.primaryCategory);
+  if (summary?.weak) {
    return {
     gameId: game.id,
     kind: "weak-domain",
-    detail: `weak ${game.primaryCategory} domain (rating ${rating})`,
+    detail: formatWeakDomainDetail(summary.domain, summary.rating),
    };
   }
-  if (isStale(updatedAtByDomain.get(game.primaryCategory), options)) {
-   const ageDays = Math.floor(
-    ((options.nowMs ?? 0) -
-     (updatedAtByDomain.get(game.primaryCategory) ?? 0)) /
-     DAY_MS,
-   );
+  if (summary?.stale) {
    return {
     gameId: game.id,
     kind: "stale-domain",
-    detail: `rusty ${game.primaryCategory} domain (rating ${rating}, not played for ~${ageDays}d)`,
+    detail: formatStaleDomainDetail(
+     summary.domain,
+     summary.rating,
+     summary.daysSinceUpdate ?? 0,
+    ),
    };
   }
   if (recentSet.has(game.id)) {

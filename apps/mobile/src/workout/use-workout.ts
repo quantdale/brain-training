@@ -18,6 +18,10 @@ import {
 } from "@/db";
 import { paidReroll } from "@/db/economy";
 import { emitWorkoutChanged, onWorkoutChanged } from "./events";
+import {
+  createWorkoutMetadata,
+  dailySelectionSeed,
+} from "./metadata";
 import { personalizedWorkout, type DomainRating } from "@/workout/personalize";
 import { eligibleGameIds, eligibleGames } from "@/workout/reconcile";
 import { localDateString } from "@/workout/today";
@@ -88,10 +92,29 @@ export function useWorkout(args: {
         // selection stays stable for the rest of the day.
         { nowMs: Date.now() },
       );
-      const created = await db.workouts.getOrCreate(date, {
-        gameIds: seed.map((g) => g.id),
-        seedVersion: 1,
-      });
+      const created = await db.workouts.getOrCreate(
+        date,
+        {
+          gameIds: seed.map((g) => g.id),
+          seedVersion: 1,
+        },
+        // V2 metadata (versioned; see metadata.ts). Persisted when the schema
+        // carries the optional metadata_json column, dropped silently on
+        // legacy schemas — the daily selection itself is unchanged.
+        createWorkoutMetadata({
+          kind: "daily",
+          templateId: "daily-mix",
+          length: "standard",
+          focus: null,
+          inputs: {
+            domainRatings: Object.fromEntries(
+              domainRatings.map((entry) => [entry.domain, entry.rating]),
+            ),
+            recentGameIds: [...recentGameIds],
+            seed: dailySelectionSeed(date, 0),
+          },
+        }),
+      );
       if (!cancelled) setInstance(created);
     })().catch((error) => {
       console.error("[workout] load failed", error);
