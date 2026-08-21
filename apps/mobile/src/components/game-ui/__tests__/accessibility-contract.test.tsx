@@ -24,9 +24,14 @@ describe("PauseOverlay accessibility", () => {
       const overlay = screen.getByTestId(spec.testID);
       // The overlay must be modal so the screen reader cannot traverse the
       // (still-mounted) challenge behind it — this is the a11y half of the
-      // "pause obscures the answer" contract.
+      // "pause obscures the answer" contract. The root is intentionally NOT
+      // `accessible`: grouping would collapse Resume/Quit into one unfocusable
+      // blob (screen-reader users could not activate them, and automation
+      // cannot see the buttons).
       expect(overlay.props.accessibilityViewIsModal).toBe(true);
-      expect(overlay.props.accessible).toBe(true);
+      // Absent (`undefined`) rather than literally false — the prop is simply
+      // not set, so children stay individually focusable.
+      expect(overlay.props.accessible).toBeFalsy();
       // A truthful, non-empty label (not the answer) must be exposed.
       expect(typeof overlay.props.accessibilityLabel).toBe("string");
       expect(overlay.props.accessibilityLabel.length).toBeGreaterThan(0);

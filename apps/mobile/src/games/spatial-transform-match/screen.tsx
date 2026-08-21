@@ -391,6 +391,13 @@ export default function SpatialTransformMatchScreen(
               />
             </SessionHeader>
 
+            {/* Dev-only QA controls anchored above the tall board content so
+                they stay reachable by automation (the board pushes anything
+                rendered below it past several viewport-heights). */}
+            {isDevBuild() ? (
+              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+            ) : null}
+
             {/* Source phase: show the source pattern alone */}
             {state.phase === 'source' ? (
               <>
@@ -471,10 +478,6 @@ export default function SpatialTransformMatchScreen(
                   onPress={() => dispatch({ type: 'next-round' })}
                 />
               </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
             ) : null}
           </View>
         ) : null}

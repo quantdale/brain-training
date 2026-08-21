@@ -405,6 +405,17 @@ export default function SpatialGridNavScreen(
               />
             </SessionHeader>
 
+            {/* Dev-only QA controls anchored above the tall board content so
+                they stay reachable by automation (the board pushes anything
+                rendered below it past several viewport-heights). */}
+            {isDevBuild() ? (
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+                onForceTimeout={forceTimeout}
+              />
+            ) : null}
+
             {state.round !== null ? (
               <>
                 <GridBoard
@@ -450,14 +461,6 @@ export default function SpatialGridNavScreen(
                   onPress={() => dispatch({ type: 'next-round' })}
                 />
               </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForceTimeout={forceTimeout}
-              />
             ) : null}
           </View>
         ) : null}

@@ -406,6 +406,17 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
               />
             </SessionHeader>
 
+            {/* Dev-only QA controls anchored above the tall board content so
+                they stay reachable by automation (the board pushes anything
+                rendered below it past several viewport-heights). */}
+            {isDevBuild() ? (
+              <QaPanel
+                onForceWin={qaHooks.forceWin}
+                onForceLose={qaHooks.forceLose}
+                onForceTimeout={qaHooks.forceTimeout}
+              />
+            ) : null}
+
             {state.phase === 'play' ? (
               <>
                 <TimerBar
@@ -488,14 +499,6 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
                   onPress={handleNextRound}
                 />
               </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForceTimeout={qaHooks.forceTimeout}
-              />
             ) : null}
           </View>
         ) : null}

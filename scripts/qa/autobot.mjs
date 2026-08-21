@@ -742,23 +742,28 @@ function captureFailure(id, tag, reason, extra = {}) {
 // ---------------------------------------------------------------------------
 // QA force-win driving
 // ---------------------------------------------------------------------------
-// One best-effort attempt at toggle → panel → force-win. Returns true if the
-// force-win tap was issued (panel opened), false if the toggle was not
-// currently reachable (e.g. the QA panel is phase-gated this frame).
-async function tapForceWinOnce(id, tag) {
-  let qa = await waitFor(`${id}.qa-toggle`, 3000, `${tag}-fw`);
-  if (!qa) {
-    // Long in-session content can push the dev-only QA panel below the
-    // ScrollView fold, hiding it from the hierarchy dump; scroll once and
-    // look again before giving up this attempt.
-    shell("input swipe 540 1600 540 600 300");
+// Scroll up to `attempts` times looking for `id` — tall game boards can push
+// the dev-only QA controls several viewport-heights down their ScrollView.
+async function findWithScroll(gameId, id, tag, attempts = 3) {
+  let node = await waitFor(id, 2500, tag);
+  let i = 0;
+  while (!node && i < attempts) {
+    shell("input swipe 540 1900 540 300 350");
     await sleep(700);
-    qa = await waitFor(`${id}.qa-toggle`, 2000, `${tag}-fw`);
+    node = await waitFor(id, 2000, tag);
+    i += 1;
   }
-  if (!qa) return false;
-  tapTestId(`${id}.qa-toggle`, qa);
+  return node;
+}
+// One best-effort attempt at toggle → panel → force-win. Returns true if the
+// force-win tap was issued (panel opened), false if the sequence was not
+// currently reachable (phase-gated or below the ScrollView fold).
+async function tapForceWinOnce(id, tag) {
+  const toggle = await findWithScroll(id, `${id}.qa-toggle`, `${tag}-fw`);
+  if (!toggle) return false;
+  tapTestId(`${id}.qa-toggle`, toggle);
   await sleep(400);
-  const panel = await waitFor(`${id}.qa-panel`, 3000, `${tag}-fw`);
+  const panel = await findWithScroll(id, `${id}.qa-panel`, `${tag}-fw`);
   if (!panel) return false;
   tapTestId(`${id}.force-win`, panel);
   log("force-win pressed");
@@ -883,6 +888,18 @@ async function flowGame(id, opts = {}) {
         await sleep(700);
         pauseProbe.resumed = true;
         log("resumed");
+      } else {
+        // Patient retry: the overlay can render late under load. Without a
+        // resumed state every later tap lands on the opaque overlay.
+        const rp2 = await waitFor(`${id}.resume`, 9000, tag);
+        if (rp2) {
+          tapTestId(`${id}.resume`, rp2);
+          await sleep(700);
+          pauseProbe.resumed = true;
+          log("resumed (retry)");
+        } else {
+          log("resume not reachable");
+        }
       }
     } else {
       log("no pause control (not applicable)");
@@ -893,6 +910,17 @@ async function flowGame(id, opts = {}) {
   // a specific in-session phase (e.g. a brief "study" phase before the choice
   // phase unmounts the panel), so poll the toggle→panel→force-win sequence in
   // a loop until results appear rather than assuming a single fixed wait.
+  // If the pause probe left the app paused, force-win polling would tap into
+  // the opaque overlay — report that honestly instead.
+  if (pauseProbe.paused && !pauseProbe.resumed) {
+    return failGame(
+      id,
+      "app left paused: resume control not reachable after retry",
+      t0,
+      tag,
+      { interaction, pause: pauseProbe },
+    );
+  }
   const results = await driveForceWin(id, tag);
   if (!results) {
     return failGame(
@@ -1170,7 +1198,9 @@ async function flowWorkout() {
     };
 
   const ids = [];
-  for (const m of home.match(/home-workout-game-([a-z0-9-]+)/g) || [])
+  // `home-workout-game-status-<id>` child markers (added with the Home
+  // workout progress UI) must not count as separate games.
+  for (const m of home.match(/home-workout-game-(?!status-)([a-z0-9-]+)/g) || [])
     ids.push(m.replace("home-workout-game-", ""));
   const uniq = [...new Set(ids)];
   if (uniq.length !== 4) {

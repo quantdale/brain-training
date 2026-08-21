@@ -32,8 +32,7 @@ export function PauseOverlay({ gameId, onResume, onQuit }: PauseOverlayProps) {
       style={[styles.overlay, { backgroundColor: theme.background }]}
       testID={spec.testID}
       accessibilityLabel={spec.accessibilityLabel}
-      accessibilityViewIsModal
-      accessible>
+      accessibilityViewIsModal>
       <ThemedText type="headline" testID={testId(gameId, 'pause-title')}>
         Paused
       </ThemedText>
