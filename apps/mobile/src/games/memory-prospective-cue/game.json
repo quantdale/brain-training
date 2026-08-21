@@ -1,0 +1,14 @@
+{
+  "id": "memory-prospective-cue",
+  "name": "Cue Keeper",
+  "primaryCategory": "Memory",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Memorize which symbols are your signals, then tap SIGNAL the moment one appears in a fast stream — with no on-screen reminders. New signals join between rounds while old ones retire, so stale intentions become traps.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

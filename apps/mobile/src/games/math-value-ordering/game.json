@@ -1,0 +1,14 @@
+{
+  "id": "math-value-ordering",
+  "name": "Value Order",
+  "primaryCategory": "Math",
+  "secondaryDomains": [
+    "Logic & Problem Solving"
+  ],
+  "description": "Tap the values from smallest to largest before time runs out — some hide behind quick expressions.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

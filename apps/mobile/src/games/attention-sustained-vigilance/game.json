@@ -1,0 +1,14 @@
+{
+  "id": "attention-sustained-vigilance",
+  "name": "Signal Watch",
+  "primaryCategory": "Attention",
+  "secondaryDomains": [
+    "Speed"
+  ],
+  "description": "Numbers stream by one at a time — tap GO on every number, but hold your response when the stop number appears. Stay sharp; it speeds up.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

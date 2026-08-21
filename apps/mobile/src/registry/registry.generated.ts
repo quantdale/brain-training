@@ -24,6 +24,20 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "attention-sustained-vigilance",
+    name: "Signal Watch",
+    primaryCategory: "Attention",
+    secondaryDomains: [
+    "Speed"
+  ],
+    description: "Numbers stream by one at a time — tap GO on every number, but hold your response when the stop number appears. Stay sharp; it speeds up.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
     id: "attention-symbol-tracker",
     name: "Symbol Tracker",
     primaryCategory: "Attention",
@@ -322,6 +336,20 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "math-value-ordering",
+    name: "Value Order",
+    primaryCategory: "Math",
+    secondaryDomains: [
+    "Logic & Problem Solving"
+  ],
+    description: "Tap the values from smallest to largest before time runs out — some hide behind quick expressions.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
     id: "memory",
     name: "Memory",
     primaryCategory: "Memory",
@@ -371,6 +399,20 @@ export const registry: readonly GameDefinition[] = [
     "Attention"
   ],
     description: "Watch tiles light up in a sequence, then tap them back in the same order.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
+    id: "memory-prospective-cue",
+    name: "Cue Keeper",
+    primaryCategory: "Memory",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Memorize which symbols are your signals, then tap SIGNAL the moment one appears in a fast stream — with no on-screen reminders. New signals join between rounds while old ones retire, so stale intentions become traps.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
     generatorVersion: "1.0.0",
@@ -491,6 +533,20 @@ export const registry: readonly GameDefinition[] = [
     hasTutorial: true,
   },
   {
+    id: "speed-order-sweep",
+    name: "Order Sweep",
+    primaryCategory: "Speed",
+    secondaryDomains: [
+    "Attention"
+  ],
+    description: "Every number is on the board at once — sweep them from smallest to largest before the timer drains.",
+    sdkVersion: "0.1.0",
+    gameVersion: "1.0.0",
+    generatorVersion: "1.0.0",
+    contentVersion: null,
+    hasTutorial: true,
+  },
+  {
     id: "speed-quick-compare",
     name: "Quick Compare",
     primaryCategory: "Speed",
@@ -541,6 +597,7 @@ export const registry: readonly GameDefinition[] = [
  */
 export const gameScreenLoaders: Record<string, () => Promise<{ default: ComponentType }>> = {
   'attention-odd-one-out': () => import('@/games/attention-odd-one-out'),
+  'attention-sustained-vigilance': () => import('@/games/attention-sustained-vigilance'),
   'attention-symbol-tracker': () => import('@/games/attention-symbol-tracker'),
   'attention-target-count': () => import('@/games/attention-target-count'),
   'attention-visual-search': () => import('@/games/attention-visual-search'),
@@ -563,10 +620,12 @@ export const gameScreenLoaders: Record<string, () => Promise<{ default: Componen
   'math-fast-math': () => import('@/games/math-fast-math'),
   'math-missing-operator': () => import('@/games/math-missing-operator'),
   'math-number-line-estimation': () => import('@/games/math-number-line-estimation'),
+  'math-value-ordering': () => import('@/games/math-value-ordering'),
   'memory': () => import('@/games/memory'),
   'memory-grid-recall': () => import('@/games/memory-grid-recall'),
   'memory-pair-recall': () => import('@/games/memory-pair-recall'),
   'memory-pattern-tap-back': () => import('@/games/memory-pattern-tap-back'),
+  'memory-prospective-cue': () => import('@/games/memory-prospective-cue'),
   'memory-running-order': () => import('@/games/memory-running-order'),
   'memory-sequence-memory': () => import('@/games/memory-sequence-memory'),
   'spatial-coordinate-turn': () => import('@/games/spatial-coordinate-turn'),
@@ -575,6 +634,7 @@ export const gameScreenLoaders: Record<string, () => Promise<{ default: Componen
   'spatial-mental-rotation': () => import('@/games/spatial-mental-rotation'),
   'spatial-transform-match': () => import('@/games/spatial-transform-match'),
   'speed-color-match': () => import('@/games/speed-color-match'),
+  'speed-order-sweep': () => import('@/games/speed-order-sweep'),
   'speed-quick-compare': () => import('@/games/speed-quick-compare'),
   'speed-reaction-time': () => import('@/games/speed-reaction-time'),
   'speed-tap-rush': () => import('@/games/speed-tap-rush'),
