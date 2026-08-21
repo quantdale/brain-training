@@ -1,7 +1,7 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it } from "@jest/globals";
 import { createRng, RNG_ALGORITHM_VERSION } from "@/sdk";
-import type { GameRawResult } from "@/sdk";
+import type { DifficultyProfile, GameRawResult } from "@/sdk";
 
 import {
   GRID_RECALL_DIFFICULTY_PARAMS,
@@ -119,8 +119,11 @@ describe("buildSessionRecord", () => {
     expect(record.id).toBe("sid");
     expect(record.gameId).toBe("memory-grid-recall");
     expect(record.seed).toBe(seedToNumber("rec-seed"));
-    expect(record.difficulty.level).toBe("normal");
-    expect(record.difficulty.challengeRating).toBe(0.5);
+    // `GameSessionRecord.difficulty` is `unknown` at the db boundary; the
+    // session builder stores the resolved profile document.
+    const storedDifficulty = record.difficulty as DifficultyProfile;
+    expect(storedDifficulty.level).toBe("normal");
+    expect(storedDifficulty.challengeRating).toBe(0.5);
     expect(record.normalizedResult).toBe(0.5);
     expect(record.xp).toBe(0);
     expect(record.durationMs).toBe(100);
