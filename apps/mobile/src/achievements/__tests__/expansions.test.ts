@@ -20,6 +20,13 @@ import {
   type AchievementSnapshot,
 } from "@/achievements";
 import { buildAchievementSnapshot, syncAchievements } from "@/progression";
+import { registry } from "@/registry/registry.generated";
+import { registerGameDefinitions } from "@/registry/registry";
+
+// The root layout normally registers the game catalog during bootstrap; the
+// snapshot builder maps game ids to cognitive domains through it, so register
+// the generated catalog here (same pattern as use-workout.test.ts).
+registerGameDefinitions(registry);
 
 const T0 = 1_700_000_000_000;
 
@@ -254,27 +261,28 @@ describe("buildAchievementSnapshot — aggregation integration", () => {
         completedAt: T0,
       }),
     );
-    // One completed workout.
+    // One completed workout: advance past both games through the repository
+    // API, which flips the instance to 'completed' on the final advance.
     await db.workouts.getOrCreate("2026-08-16", {
       gameIds: ["memory", "math-fast-math"],
     });
-    const w = await db.workouts.getByDate("2026-08-16");
-    if (w) {
-      await db.adapter.run(
-        "UPDATE workout_instances SET status = 'completed', current_index = 4 WHERE date = '2026-08-16'",
-      );
-    }
+    await db.workouts.advance("2026-08-16");
+    await db.workouts.advance("2026-08-16");
   }
 
   it("derives every field from aggregation queries without a full-history scan", async () => {
     const db = await makeDb();
     await seedHistory(db);
-    const snapshot = await buildAchievementSnapshot(db, new Date(T0));
+    // Anchor "today" after the last seeded activity day (day 2) so the streak
+    // reconstruction counts all three days instead of dropping them as future.
+    const snapshot = await buildAchievementSnapshot(
+      db,
+      new Date(T0 + 2 * 86_400_000),
+    );
 
     expect(snapshot.sessionCount).toBe(5);
     expect(snapshot.distinctGames).toBe(4);
-    expect(snapshot.domainCoverage).toBe(3); // Memory, Math, Attention, Spatial -> 4? wait distinct
-    // distinct domains among played games: Memory, Math, Attention, Spatial = 4
+    // Distinct domains among played games: Memory, Math, Attention, Spatial.
     expect(snapshot.domainCoverage).toBe(4);
     expect(snapshot.domainSessions?.Memory).toBe(2);
     expect(snapshot.domainSessions?.Math).toBe(1);
@@ -290,6 +298,16 @@ describe("buildAchievementSnapshot — aggregation integration", () => {
   it("syncAchievements unlocks the reachable new achievements", async () => {
     const db = await makeDb();
     await seedHistory(db);
+    // A fifth distinct game so ach-games-5 ("play 5 different games") is
+    // actually reachable when the sync evaluates the snapshot.
+    await db.sessions.completeSession(
+      sessionInput({
+        id: "sync-fifth-game",
+        gameId: "speed-reaction-time",
+        normalizedResult: 0.7,
+        completedAt: T0,
+      }),
+    );
     await db.achievements.upsertDefinition(
       toDbAchievementDefinition(
         ACHIEVEMENT_DEFINITIONS_V1.find((d) => d.id === "ach-games-5")!,
@@ -314,9 +332,10 @@ describe("buildAchievementSnapshot — aggregation integration", () => {
     for (const def of ACHIEVEMENT_DEFINITIONS_V1) {
       await db.achievements.upsertDefinition(toDbAchievementDefinition(def));
     }
-    await (await import("@/progression")).syncAchievements(db, new Date(T0));
+    await syncAchievements(db, new Date(T0));
 
-    // 4 distinct games / 3 domains / 3 active days / 0 completed workouts? wait 1.
+    // Unlocked: 5 distinct games played. Not unlocked: 8-domain coverage,
+    // 7 active days, and 10 completed workouts are all still out of reach.
     expect(await db.achievements.getUnlock("ach-games-5")).not.toBeNull();
     expect(await db.achievements.getUnlock("ach-domains-all")).toBeNull(); // needs 8 domains
     expect(await db.achievements.getUnlock("ach-active-7")).toBeNull(); // needs 7 active days

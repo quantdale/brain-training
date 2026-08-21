@@ -24,6 +24,8 @@ function minimalValidPack(): ContentPack {
         prompt: 'cat',
         options: ['kitten', 'dog', 'wolf', 'fox'],
         correctIndex: 0,
+        // Derived field per PackItem: options[correctIndex].
+        correctWord: 'kitten',
         tier: 't1',
         family: 'fam1',
       },
@@ -50,7 +52,9 @@ describe('content-pack validation (task E)', () => {
 
   it('rejects a duplicate item id', () => {
     const p = minimalValidPack();
-    const dup = { ...p, items: [...p.items, p.items[0]] };
+    // itemCount must track items.length or validation fails earlier, on the
+    // count mismatch, before reaching the per-item duplicate-id check.
+    const dup = { ...p, itemCount: 2, items: [...p.items, p.items[0]] };
     expect(() => validateContentPack(dup)).toThrow(/duplicate item id/i);
   });
 
@@ -58,6 +62,7 @@ describe('content-pack validation (task E)', () => {
     const p = minimalValidPack();
     const dup = {
       ...p,
+      itemCount: 2,
       items: [p.items[0], { ...p.items[0], id: 'i2', prompt: 'cat' }],
     };
     expect(() => validateContentPack(dup)).toThrow(/duplicate prompt/i);
@@ -100,7 +105,9 @@ describe('content-pack validation (task E)', () => {
     const a = getBundledPacks();
     const b = getBundledPacks();
     expect(a).toEqual(b);
-    expect(Object.isFrozen(a)).toBe(true);
-    expect(a[0].packId).toBe('language-word-match');
+    // Documented contract (registry.ts): each returned entry is frozen; the
+    // array itself is a fresh, unfrozen list per call.
+    expect(Object.isFrozen(a[0])).toBe(true);
+    expect(a[0].packId).toBe('language-word-match-core-v1');
   });
 });

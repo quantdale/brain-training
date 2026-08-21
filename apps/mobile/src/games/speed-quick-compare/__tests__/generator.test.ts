@@ -16,7 +16,12 @@ describe('generateRound', () => {
       for (let seed = 0; seed < 200; seed += 1) {
         const round = generateRound(createRng(String(seed)), 0, params);
         const validation = validateRound(round);
-        expect(validation.ok, `level=${level} seed=${seed}: ${validation.reason}`).toBe(true);
+        // @jest/globals' typed expect takes a single argument; keep the
+        // level/seed context via an explicit failure instead.
+        if (!validation.ok) {
+          throw new Error(`level=${level} seed=${seed}: ${validation.reason}`);
+        }
+        expect(validation.ok).toBe(true);
       }
     }
   });
@@ -26,12 +31,18 @@ describe('generateRound', () => {
     const round = generateRound(createRng('labels'), 0, params);
     const unique = new Set(round.optionLabels);
     expect(unique.size).toBe(round.optionLabels.length);
-    // exactly one label maps to the canonical correct answer
-    const expected = round.left.numbers[0] === round.right.numbers[0]
-      ? 'Same'
-      : round.left.numbers[0] > round.right.numbers[0]
-        ? 'Left'
-        : 'Right';
+    // exactly one label maps to the canonical correct answer; the canonical
+    // rule depends on the prompt type (mirrors generator.ts correctLabel)
+    let expected: string;
+    if (round.promptType === 'same-different') {
+      expected = round.left.numbers[0] === round.right.numbers[0] ? 'Same' : 'Different';
+    } else if (round.promptType === 'magnitude') {
+      expected = round.left.numbers[0] > round.right.numbers[0] ? 'Left' : 'Right';
+    } else {
+      const sumL = round.left.numbers.reduce((a, b) => a + b, 0);
+      const sumR = round.right.numbers.reduce((a, b) => a + b, 0);
+      expected = sumL > sumR ? 'Left' : 'Right';
+    }
     const matches = round.optionLabels.filter((l) => l === expected);
     expect(matches).toHaveLength(1);
     expect(round.optionLabels.indexOf(expected)).toBe(round.correctIndex);

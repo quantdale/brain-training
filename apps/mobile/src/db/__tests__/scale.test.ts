@@ -8,6 +8,7 @@
 
 import { describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
+import type { SQLiteValue } from '../types';
 import { createMigratedDb } from './helpers';
 import { SessionRepository } from '../sessions';
 import { RatingRepository } from '../rating';
@@ -21,10 +22,10 @@ const N = 3000;
 async function seedLargeHistory(adapter: SQLiteAdapter): Promise<void> {
   await adapter.run("INSERT INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES ('local','t','{}',?,?)", [T0, T0]);
   // Batch inserts for speed.
-  const sessionValues: unknown[] = [];
-  const ledgerValues: unknown[] = [];
-  const historyValues: unknown[] = [];
-  const ratingValues: unknown[] = [];
+  const sessionValues: SQLiteValue[] = [];
+  const ledgerValues: SQLiteValue[] = [];
+  const historyValues: SQLiteValue[] = [];
+  const ratingValues: SQLiteValue[] = [];
   for (let i = 0; i < N; i++) {
     const done = T0 + i * 1000;
     sessionValues.push(`s${i}`, 'memory', 1, 1, 1, i, '{}', '{}', 0.5 + (i % 5) * 0.1, 50, T0 + i * 500, done, 1000);

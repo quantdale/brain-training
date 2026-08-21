@@ -9,10 +9,8 @@ import { describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
 import { createNodeSqliteAdapter } from '../adapters/node';
 import { runMigrations, getSchemaVersion } from '../migrate';
-import { SCHEMA_VERSION } from '../schema';
+import { MIGRATIONS, SCHEMA_VERSION } from '../schema';
 import { createMigratedDb } from './helpers';
-
-import { runMigrations, getSchemaVersion, MIGRATIONS } from '../migrate';
 
 describe('every upgrade path lands at SCHEMA_VERSION', () => {
   for (let start = 1; start < SCHEMA_VERSION; start += 1) {

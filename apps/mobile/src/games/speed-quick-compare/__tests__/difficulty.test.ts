@@ -15,7 +15,9 @@ import {
 } from '../difficulty';
 import type { QuickCompareDifficultyParams } from '../types';
 
-const LEVELS: DifficultyLevel[] = ['easy', 'normal', 'hard', 'expert'];
+// Fixed levels only; `adaptive` has its own params (ADAPTIVE_PARAMS) and is
+// covered separately below.
+const LEVELS: Exclude<DifficultyLevel, 'adaptive'>[] = ['easy', 'normal', 'hard', 'expert'];
 
 describe('resolveQuickCompareDifficulty', () => {
   it('resolves every fixed level with the expected tuning', () => {

@@ -10,7 +10,7 @@ import {
   seedToNumber,
 } from '../session';
 import type { SessionPersistence } from '../session';
-import { QUICK_COMPARE_DIFFICULTY_PARAMS } from '../difficulty';
+import { QUICK_COMPARE_DIFFICULTY_PARAMS, quickCompareParamsToRecord } from '../difficulty';
 import { normalizeQuickCompareResult } from '../scoring';
 import type { QuickCompareRawResult, QuickCompareStats } from '../types';
 
@@ -118,7 +118,9 @@ describe('buildSessionRecord', () => {
       difficulty: {
         level: 'normal',
         challengeRating: 0.5,
-        parameters: { ...QUICK_COMPARE_DIFFICULTY_PARAMS.normal },
+        // Profile parameters are number-only; the prompt-type mix is encoded
+        // as a bitmask (same encoding resolveQuickCompareDifficulty uses).
+        parameters: quickCompareParamsToRecord(QUICK_COMPARE_DIFFICULTY_PARAMS.normal),
       },
       normalized,
       xp: 0,

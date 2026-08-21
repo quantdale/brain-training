@@ -9,8 +9,8 @@ import { describe, expect, it } from '@jest/globals';
 import { createMigratedDb } from './helpers';
 import { LedgerRepository } from '../ledger';
 import { RatingRepository, INITIAL_RATING, MIN_RATING } from '../rating';
-import { SessionRepository, type CompleteSessionInput } from '../sessions';
-import type { RatingService } from '../types';
+import { SessionRepository } from '../sessions';
+import type { CompleteSessionInput, RatingService } from '../types';
 
 const T0 = 1_700_000_000_000;
 
