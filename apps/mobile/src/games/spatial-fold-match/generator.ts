@@ -32,6 +32,9 @@ import type { FoldType } from './types';
 /** A grid is a boolean matrix indexed [row][col]. */
 export type Grid = boolean[][];
 
+/** Read-only view of a grid (game state stores immutable round data). */
+export type ReadonlyGrid = readonly (readonly boolean[])[];
+
 /** Build an all-empty grid. */
 export function makeEmptyGrid(rows: number, cols: number): Grid {
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => false));
@@ -48,7 +51,7 @@ export function gridDims(grid: Grid): { rows: number; cols: number } {
 }
 
 /** True when two grids are identical cell-for-cell. */
-export function gridsEqual(a: Grid, b: Grid): boolean {
+export function gridsEqual(a: ReadonlyGrid, b: ReadonlyGrid): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -66,7 +69,7 @@ export function gridsEqual(a: Grid, b: Grid): boolean {
 }
 
 /** Number of cells that differ between two equally-sized grids. */
-export function gridDistance(a: Grid, b: Grid): number {
+export function gridDistance(a: ReadonlyGrid, b: ReadonlyGrid): number {
   if (a.length !== b.length || (a[0]?.length ?? 0) !== (b[0]?.length ?? 0)) {
     return a.length * (a[0]?.length ?? 0) + 100; // large: never a near-duplicate
   }
@@ -256,7 +259,7 @@ export interface GenerateRoundInput {
   readonly foldsAllowed: readonly FoldType[];
   readonly optionCount: number;
   /** Previous round's source grid, or null for round 0. */
-  readonly prevSource: Grid | null;
+  readonly prevSource: ReadonlyGrid | null;
   /** Previous round's fold type, or null for round 0. */
   readonly prevFold: FoldType | null;
 }

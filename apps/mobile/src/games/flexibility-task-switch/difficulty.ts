@@ -71,7 +71,8 @@ export const ADAPTIVE_PARAMS: Readonly<FlexibilityTaskSwitchDifficultyParams> =
   Object.freeze({
     rounds: 12,
     switchRate: 0.5,
-    taskPool: ["parity", "magnitude"],
+    // `as const` keeps the literal a TaskId tuple through Object.freeze inference.
+    taskPool: ["parity", "magnitude"] as const,
     numColors: 3,
     numShapes: 3,
     numNumbers: 9,

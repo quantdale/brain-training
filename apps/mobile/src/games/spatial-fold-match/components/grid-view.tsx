@@ -22,11 +22,11 @@ import { useTheme } from '@/hooks/use-theme';
 import { usePrefersReducedMotion } from '@/components/game-ui';
 
 import { GAME_ID } from '../types';
-import type { Grid } from '../generator';
+import type { ReadonlyGrid } from '../generator';
 
 export interface GridViewProps {
   /** The grid to render (rows × cols boolean matrix). */
-  grid: Grid;
+  grid: ReadonlyGrid;
   /** Semantic testID of the grid container. */
   testID: string;
   /** Optional accessibility label for the whole grid. */

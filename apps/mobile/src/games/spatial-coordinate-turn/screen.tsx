@@ -35,7 +35,10 @@ import { CompassView, CommandList, OptionArrow, OptionCoord } from './components
 import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
-import { paramsFromProfile, sessionChallengeRating } from './difficulty';
+import {
+  sessionChallengeRating,
+  spatialCoordinateTurnParamsFromProfile,
+} from './difficulty';
 import { gameDefinition } from './game-definition';
 import { createSpatialCoordinateTurnQaForceStateHooks, createSpatialCoordinateTurnTutorialLifecycle } from './hooks';
 import { gameReducer } from './reducer';
@@ -99,7 +102,7 @@ export default function SpatialCoordinateTurnScreen(
   const tutorial = useMemo(() => createSpatialCoordinateTurnTutorialLifecycle(tutorialStore), [tutorialStore]);
   const qaHooks = useMemo(() => createSpatialCoordinateTurnQaForceStateHooks(dispatch), [dispatch]);
 
-  const params = state.profile !== null ? paramsFromProfile(state.profile) : null;
+  const params = state.profile !== null ? spatialCoordinateTurnParamsFromProfile(state.profile) : null;
   const rounds = params?.rounds ?? 0;
   const inSession = state.phase === 'brief' || state.phase === 'choice' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
@@ -144,7 +147,7 @@ export default function SpatialCoordinateTurnScreen(
     const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
-    const resolvedParams = paramsFromProfile(state.profile);
+    const resolvedParams = spatialCoordinateTurnParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
       difficulty,
       state.profile,

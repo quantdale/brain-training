@@ -36,7 +36,7 @@ export {
   ADAPTIVE_PARAMS,
   DIFFICULTY_PARAMS,
   paramsForLevel,
-  paramsFromProfile,
+  spatialCoordinateTurnParamsFromProfile,
   resolveSpatialCoordinateTurnDifficulty,
   sessionChallengeRating,
 } from './difficulty';

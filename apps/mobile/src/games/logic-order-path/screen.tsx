@@ -9,9 +9,10 @@
  * The route renders this component with no props; every prop is an optional
  * injection seam for deterministic tests.
  *
- * Timing comes from the injectable SDK monotonic clock (never `Date.now()`).
- * The round deadline lives in the reducer; the screen schedules one timeout per
- * active round segment (pause cancels it, resume re-schedules).
+ * Timing comes from the injectable SDK monotonic clock (gameplay timing never
+ * uses `Date.now()`; the wall clock only stamps session ids and the completion
+ * timestamp). The round deadline lives in the reducer; the screen schedules one
+ * timeout per active round segment (pause cancels it, resume re-schedules).
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { AppState, StyleSheet, View } from "react-native";
@@ -61,6 +62,7 @@ import {
   persistOrderPathSession,
 } from "./session";
 import type { SessionPersistence } from "./session";
+import { availableNext } from "./solver";
 import { GAME_ID, createInitialOrderPathState } from "./types";
 import { SCORING_VERSION } from "./versions";
 
@@ -261,7 +263,10 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
         type: "start-session",
         seed,
         sessionId: newSessionId(),
-        startedAtMs: Date.now(),
+        // Same clock as select-item/expire-round: the reducer derives the
+        // round-1 deadline and answer timing from this value, so it must live
+        // on the injectable monotonic clock's epoch, not the wall clock.
+        startedAtMs: clock.now(),
       });
     },
     [clock, dispatch],
@@ -306,13 +311,16 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
       if (nowMs > current.roundDeadlineMs) {
         return;
       }
-      if (current.currentRound?.solution[0] === item) {
-        liveAudioHaptics.playSfx("logic-order-path-correct");
-        liveAudioHaptics.haptic("success");
-      } else {
-        liveAudioHaptics.playSfx("logic-order-path-wrong");
-        liveAudioHaptics.haptic("warning");
-      }
+      // Feedback reflects whether the tapped item is the unique valid next
+      // placement at the current step — not merely the first solution item.
+      const round = current.currentRound;
+      const available =
+        round !== null
+          ? availableNext(round.items, round.edges, current.placedItems)
+          : [];
+      liveAudioHaptics.feedback(
+        available.length === 1 && available[0] === item ? "correct" : "wrong",
+      );
       dispatch({ type: "select-item", item, nowMs });
     },
     [clock, dispatch],

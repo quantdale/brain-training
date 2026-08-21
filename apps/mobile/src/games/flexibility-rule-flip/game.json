@@ -1,0 +1,14 @@
+{
+  "id": "flexibility-rule-flip",
+  "name": "Rule Flip",
+  "primaryCategory": "Flexibility",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Match the target card by the active rule — color, shape, or number. The rule stays put for a run of trials, then flips without warning; re-anchor fast to keep scoring.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

@@ -72,7 +72,12 @@ export function gameReducer(
         return state;
       }
       const profile = resolveSpatialFoldMatchDifficulty(state.difficulty);
-      const round = generateForRound({ ...state, profile, seed: action.seed }, 0);
+      // Round 0 never has a predecessor: drop any stale anchor from a
+      // previous session so the same seed always regenerates the same round.
+      const round = generateForRound(
+        { ...state, profile, seed: action.seed, prevSourceGrid: null, prevFoldType: null },
+        0,
+      );
       return {
         ...state,
         phase: 'source',

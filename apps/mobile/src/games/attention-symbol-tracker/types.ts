@@ -84,6 +84,8 @@ export interface SymbolTrackerRawResult extends GameRawResult {
   readonly bestRecall: number;
   readonly bestStreak: number;
   readonly initialTrackCount: number;
+  /** Distinct symbols placed on the observe board (escalation cap). */
+  readonly tokenCount: number;
   readonly gridSize: number;
   readonly observeMs: number;
   readonly distractors: number;

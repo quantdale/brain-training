@@ -32,7 +32,6 @@ import {
   noopXpRatingHook,
   systemClock,
   testId,
-  assertDevOnly,
 } from '@/sdk';
 import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
@@ -326,11 +325,9 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       }
       const responseMs = Math.max(0, clock.now() - trialStartRef.current);
       if (index === current.round.correctIndex) {
-        liveAudioHaptics.playSfx('flexibility-rule-correct');
-        liveAudioHaptics.haptic('light');
+        liveAudioHaptics.feedback('correct');
       } else {
-        liveAudioHaptics.playSfx('flexibility-rule-wrong');
-        liveAudioHaptics.haptic('warning');
+        liveAudioHaptics.feedback('wrong');
       }
       dispatch({ type: 'pick-card', index, responseMs });
     },
@@ -361,11 +358,6 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
-
-  const forceTimeout = useCallback(() => {
-    assertDevOnly();
-    dispatch({ type: 'qa/force-timeout' });
-  }, [dispatch]);
 
   // Auto-pause when the app leaves the foreground (constitution §11).
   useEffect(() => {
@@ -428,7 +420,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
               <QaPanel
                 onForceWin={qaHooks.forceWin}
                 onForceLose={qaHooks.forceLose}
-                onForceTimeout={forceTimeout}
+                onForceTimeout={qaHooks.forceTimeout}
               />
             ) : null}
           </View>
@@ -529,7 +521,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
               <QaPanel
                 onForceWin={qaHooks.forceWin}
                 onForceLose={qaHooks.forceLose}
-                onForceTimeout={forceTimeout}
+                onForceTimeout={qaHooks.forceTimeout}
               />
             ) : null}
           </View>

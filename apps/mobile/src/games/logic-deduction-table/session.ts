@@ -42,7 +42,8 @@ export const dbSessionPersister: SessionPersistence = {
 
 export interface BuildRawResultInput {
   readonly gameVersion: string;
-  readonly generatorVersion: string;
+  /** From `gameDefinition.generatorVersion`; `null` for non-procedural games. */
+  readonly generatorVersion: string | null;
   readonly scoringVersion: string;
   readonly difficulty: DifficultyLevel;
   readonly params: LogicDeductionDifficultyParams;

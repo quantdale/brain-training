@@ -73,7 +73,9 @@ export function normalizeSpatialFoldMatchResult(
 ): NormalizedPerformance {
   const accuracy = accuracyOf(raw.roundsPassed, raw.roundsPlayed);
   const speedScore = speedScoreOf(raw.averageAnswerMs, raw.sourceRevealMs + 10_000);
-  const value = clamp01(accuracy * (0.7 + 0.3 * speedScore));
+  // Algebraically identical to `accuracy * (0.7 + 0.3 * speedScore)` but free
+  // of float dust at the boundaries (perfect play normalizes to exactly 1).
+  const value = clamp01(accuracy - 0.3 * accuracy * (1 - speedScore));
   return { value, scale: '0..1', raw: { ...raw } };
 }
 

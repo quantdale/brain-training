@@ -66,11 +66,11 @@ import {
   persistFlexibilityTaskSwitchSession,
 } from "./session";
 import type { SessionPersistence } from "./session";
-import { GAME_ID, TASK_CUE_WORDS, switchCostMsOf } from "./types";
+import { GAME_ID, TASK_CUE_WORDS, createInitialFlexibilityTaskSwitchState, switchCostMsOf } from "./types";
 import type { FlexibilityTaskSwitchGameState } from "./types";
 import { SCORING_VERSION } from "./versions";
 
-export interface TaskSwitchScreenProps {
+export interface FlexibilityTaskSwitchScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
   clock?: Clock;
   /** Injectable tutorial persistence (tests); defaults to an in-memory store. */
@@ -92,7 +92,9 @@ function newSessionId(): string {
   return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export default function TaskSwitchScreen(props: TaskSwitchScreenProps = {}) {
+export default function TaskSwitchScreen(
+  props: FlexibilityTaskSwitchScreenProps = {},
+) {
   const {
     clock = systemClock,
     tutorialStore,

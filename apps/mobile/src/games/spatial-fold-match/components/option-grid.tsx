@@ -13,14 +13,14 @@ import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
-import type { Grid } from '../generator';
+import type { ReadonlyGrid } from '../generator';
 import { GridView } from './grid-view';
 
 export interface OptionGridProps {
   /** 0-based option index; used for the testID. */
   index: number;
   /** The grid to display. */
-  grid: Grid;
+  grid: ReadonlyGrid;
   /** Whether this option is currently selected. */
   selected: boolean;
   /** Whether this option is the correct answer (for reveal in roundResult). */

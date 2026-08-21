@@ -124,8 +124,12 @@ export function spatialCoordinateTurnParamsFromProfile(
   }
   const askPositionRaw = p.askPosition;
   const askPosition = typeof askPositionRaw === 'number' ? askPositionRaw !== 0 : Boolean(askPositionRaw);
+  const optionalNumber = (key: string): number | undefined => {
+    const value = p[key];
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  };
 
-  return {
+  const params: SpatialCoordinateTurnDifficultyParams = {
     directions: directionsRaw === 8 ? 8 : 4,
     rounds: requireNumber('rounds'),
     minSteps: requireNumber('minSteps'),
@@ -133,7 +137,18 @@ export function spatialCoordinateTurnParamsFromProfile(
     moveMax: requireNumber('moveMax'),
     askPosition,
     speedTargetMs: requireNumber('speedTargetMs'),
+    // Adaptive-only bounds travel with the profile; recover them when present
+    // so `sessionChallengeRating` can map the reached direction count into
+    // [0, 1]. Absent for fixed levels.
+    ...(optionalNumber('minDirections') !== undefined && { minDirections: optionalNumber('minDirections') }),
+    ...(optionalNumber('maxDirections') !== undefined && { maxDirections: optionalNumber('maxDirections') }),
+    ...(optionalNumber('minMaxSteps') !== undefined && { minMaxSteps: optionalNumber('minMaxSteps') }),
+    ...(optionalNumber('maxMaxSteps') !== undefined && { maxMaxSteps: optionalNumber('maxMaxSteps') }),
+    ...(optionalNumber('minMoveMax') !== undefined && { minMoveMax: optionalNumber('minMoveMax') }),
+    ...(optionalNumber('maxMoveMax') !== undefined && { maxMoveMax: optionalNumber('maxMoveMax') }),
   };
+
+  return params;
 }
 
 /**

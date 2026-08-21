@@ -1,0 +1,103 @@
+{
+  "packId": "language-word-chain-core-v1",
+  "packVersion": "1.0.0",
+  "chainCount": 18,
+  "decoyPool": [
+    "apple", "brick", "cloud", "dream", "flame", "ghost", "honey", "ivory",
+    "jungle", "koala", "light", "mango", "night", "olive", "pearl", "quilt",
+    "robin", "stone", "umbrella", "velvet", "whale", "yogurt", "pencil",
+    "mirror", "basket", "garden", "window", "pillow", "silver", "autumn"
+  ],
+  "chains": [
+    {
+      "id": "wc-t1-01",
+      "tier": "t1",
+      "words": ["cat", "tree", "eagle", "earth", "house"]
+    },
+    {
+      "id": "wc-t1-02",
+      "tier": "t1",
+      "words": ["dog", "goat", "tiger", "river", "road"]
+    },
+    {
+      "id": "wc-t1-03",
+      "tier": "t1",
+      "words": ["sun", "nest", "train", "north", "horse"]
+    },
+    {
+      "id": "wc-t1-04",
+      "tier": "t1",
+      "words": ["fish", "hen", "nine", "east", "table"]
+    },
+    {
+      "id": "wc-t1-05",
+      "tier": "t1",
+      "words": ["moon", "nose", "egg", "gold", "drum"]
+    },
+    {
+      "id": "wc-t2-01",
+      "tier": "t2",
+      "words": ["bread", "dance", "ember", "raven", "needle", "engine"]
+    },
+    {
+      "id": "wc-t2-02",
+      "tier": "t2",
+      "words": ["piano", "ocean", "nickel", "lemon", "napkin", "nurse"]
+    },
+    {
+      "id": "wc-t2-03",
+      "tier": "t2",
+      "words": ["smile", "elbow", "wagon", "noble", "eight", "tulip"]
+    },
+    {
+      "id": "wc-t2-04",
+      "tier": "t2",
+      "words": ["grape", "easel", "lotus", "storm", "maple"]
+    },
+    {
+      "id": "wc-t2-05",
+      "tier": "t2",
+      "words": ["candle", "eraser", "ribbon", "nectar", "radish", "hammer"]
+    },
+    {
+      "id": "wc-t3-01",
+      "tier": "t3",
+      "words": ["quartz", "zebra", "anchor", "rocket", "throne", "exile"]
+    },
+    {
+      "id": "wc-t3-02",
+      "tier": "t3",
+      "words": ["phantom", "marble", "echo", "orchid", "dahlia", "almond"]
+    },
+    {
+      "id": "wc-t3-03",
+      "tier": "t3",
+      "words": ["jigsaw", "walnut", "tundra", "asphalt", "thistle", "enzyme"]
+    },
+    {
+      "id": "wc-t3-04",
+      "tier": "t3",
+      "words": ["waltz", "zephyr", "rhubarb", "basil", "lichen", "nutmeg"]
+    },
+    {
+      "id": "wc-t3-05",
+      "tier": "t3",
+      "words": ["glacier", "rustic", "cactus", "saddle", "escrow", "willow"]
+    },
+    {
+      "id": "wc-t3-06",
+      "tier": "t3",
+      "words": ["beacon", "neuron", "nimble", "enigma", "avatar", "ruler"]
+    },
+    {
+      "id": "wc-t3-07",
+      "tier": "t3",
+      "words": ["fossil", "lantern", "nectarine", "espresso", "oregano", "onyx"]
+    },
+    {
+      "id": "wc-t3-08",
+      "tier": "t3",
+      "words": ["harbor", "rafter", "ripple", "elm", "mosaic", "cobalt"]
+    }
+  ]
+}

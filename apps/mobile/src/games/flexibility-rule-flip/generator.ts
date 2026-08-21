@@ -35,7 +35,8 @@
 import type { Rng } from '@/sdk';
 import { createRng } from '@/sdk';
 
-import { CARD_COLORS, RULES, SHAPES, matchesUnder, otherRules } from './types';
+import { nextBlockRule } from './difficulty';
+import { CARD_COLORS, SHAPES, matchesUnder, otherRules } from './types';
 import type {
   Card,
   FlexibilityRuleFlipDifficultyParams,
@@ -320,7 +321,7 @@ function planBlocks(rng: Rng, params: FlexibilityRuleFlipDifficultyParams): Bloc
 
   while (totalTrials < params.rounds) {
     const remaining = params.rounds - totalTrials;
-    const rule =
+    const rule: RuleId =
       prevRule === null
         ? pickInitialRule(rng, params.rulesPool)
         : nextBlockRule(rng, prevRule, params.flipRate, params.rulesPool);

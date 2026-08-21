@@ -18,8 +18,8 @@
 import { isDifficultyLevel } from '@/sdk';
 
 import {
-  paramsFromProfile,
   resolveSpatialCoordinateTurnDifficulty,
+  spatialCoordinateTurnParamsFromProfile,
 } from './difficulty';
 import { generateSession } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
@@ -50,7 +50,7 @@ export function gameReducer(
         return state;
       }
       const profile = resolveSpatialCoordinateTurnDifficulty(state.difficulty);
-      const params = paramsFromProfile(profile);
+      const params = spatialCoordinateTurnParamsFromProfile(profile);
       const plan = generateSession(action.seed, params);
       return {
         ...state,
@@ -86,7 +86,7 @@ export function gameReducer(
       ) {
         return state;
       }
-      const params = paramsFromProfile(state.profile);
+      const params = spatialCoordinateTurnParamsFromProfile(state.profile);
       const round = state.round;
       const correct = action.index === round.correctIndex;
       const responseMs = action.answerMs;
@@ -214,7 +214,7 @@ export function gameReducer(
       if (state.phase === 'results' || state.phase === 'intro' || state.profile === null) {
         return state;
       }
-      const params = paramsFromProfile(state.profile);
+      const params = spatialCoordinateTurnParamsFromProfile(state.profile);
       const plan = generateSession(state.seed, params);
       const positionCount = plan.filter((r) => r.task === 'position').length;
       return {
@@ -258,6 +258,25 @@ export function gameReducer(
         roundOutcome: null,
         forced: true,
         stats,
+      };
+    }
+
+    case 'qa/force-timeout': {
+      // Dev-only entry point (screen gates it behind isDevBuild). Ends the
+      // session with whatever was achieved so far — the clock "expired" mid-run
+      // so the in-flight round is NOT scored and no penalty is added. Unplayed
+      // remaining rounds are simply omitted, mirroring a real timeout.
+      if (state.phase === 'results' || state.phase === 'intro' || state.profile === null) {
+        return state;
+      }
+      return {
+        ...state,
+        phase: 'results',
+        paused: false,
+        roundOutcome: null,
+        selectedOptionIndex: null,
+        round: null,
+        forced: true,
       };
     }
 
