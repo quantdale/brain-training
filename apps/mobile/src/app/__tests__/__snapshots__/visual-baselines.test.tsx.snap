@@ -130,6 +130,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
               Pick a game to train a skill. New games appear here as they are added.
             </Text>
             <View
+              accessibilityLiveRegion="polite"
               style={
                 [
                   {
@@ -1346,6 +1347,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     }
                   >
                     <View
+                      accessibilityLabel="Buy Freeze for 100 coins"
                       accessibilityRole="button"
                       accessibilityState={
                         {
@@ -1387,6 +1389,8 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                             {
                               "alignSelf": "flex-start",
                               "borderRadius": 999,
+                              "justifyContent": "center",
+                              "minHeight": 44,
                               "paddingHorizontal": 16,
                               "paddingVertical": 4,
                             },
@@ -1512,6 +1516,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     }
                   >
                     <View
+                      accessibilityLabel="Buy Shield for 150 coins"
                       accessibilityRole="button"
                       accessibilityState={
                         {
@@ -1553,6 +1558,8 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                             {
                               "alignSelf": "flex-start",
                               "borderRadius": 999,
+                              "justifyContent": "center",
+                              "minHeight": 44,
                               "paddingHorizontal": 16,
                               "paddingVertical": 4,
                             },
@@ -1678,6 +1685,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     }
                   >
                     <View
+                      accessibilityLabel="Buy Recovery for 200 coins"
                       accessibilityRole="button"
                       accessibilityState={
                         {
@@ -1719,6 +1727,8 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                             {
                               "alignSelf": "flex-start",
                               "borderRadius": 999,
+                              "justifyContent": "center",
+                              "minHeight": 44,
                               "paddingHorizontal": 16,
                               "paddingVertical": 4,
                             },
@@ -5732,6 +5742,8 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               </View>
             </View>
             <View
+              accessibilityLabel="Cosmetics. Manage your cosmetics"
+              accessibilityRole="button"
               accessibilityState={
                 {
                   "busy": undefined,
@@ -5843,6 +5855,8 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               </View>
             </View>
             <View
+              accessibilityLabel="Data Management. Backup, restore, and delete your local training data"
+              accessibilityRole="button"
               accessibilityState={
                 {
                   "busy": undefined,
@@ -5992,6 +6006,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 Theme
               </Text>
               <View
+                accessibilityLabel="Theme System"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -5999,7 +6014,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     "checked": undefined,
                     "disabled": undefined,
                     "expanded": undefined,
-                    "selected": undefined,
+                    "selected": true,
                   }
                 }
                 accessibilityValue={
@@ -6100,6 +6115,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 </View>
               </View>
               <View
+                accessibilityLabel="Theme Light"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -6107,7 +6123,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     "checked": undefined,
                     "disabled": undefined,
                     "expanded": undefined,
-                    "selected": undefined,
+                    "selected": false,
                   }
                 }
                 accessibilityValue={
@@ -6208,6 +6224,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 </View>
               </View>
               <View
+                accessibilityLabel="Theme Dark"
                 accessibilityRole="button"
                 accessibilityState={
                   {
@@ -6215,7 +6232,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     "checked": undefined,
                     "disabled": undefined,
                     "expanded": undefined,
-                    "selected": undefined,
+                    "selected": false,
                   }
                 }
                 accessibilityValue={
@@ -6435,7 +6452,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   </Text>
                 </View>
                 <RCTSwitch
-                  accessibilityLabel="Sound effects toggle"
+                  accessibilityLabel="Sound effects. Gameplay and UI sounds"
                   accessibilityRole="switch"
                   onChange={[Function]}
                   onResponderTerminationRequest={[Function]}
@@ -6525,7 +6542,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   </Text>
                 </View>
                 <RCTSwitch
-                  accessibilityLabel="Haptics toggle"
+                  accessibilityLabel="Haptics. Vibration feedback"
                   accessibilityRole="switch"
                   onChange={[Function]}
                   onResponderTerminationRequest={[Function]}

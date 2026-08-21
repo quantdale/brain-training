@@ -14,7 +14,7 @@
  * non-blocking celebration.
  */
 import { Link } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
@@ -82,7 +82,10 @@ async function loadRewards(
           db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
         ),
       ),
-      db.sessions.listRecent(5000),
+      // Lightweight projection only: streak reconstruction needs just the
+      // completion timestamps, not every session's JSON blobs (large
+      // histories stay cheap to load on this screen).
+      db.sessions.listLightweight(5000),
     ]);
 
   const profileSettings = profile?.settings ?? {};
@@ -152,8 +155,16 @@ export default function RewardsScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
   const { data } = useDbData(loadRewards, [refreshKey], EMPTY_REWARDS);
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  // In-flight guard: a double tap must not fire a second purchase/equip while
+  // the first is still running. The economy layer is idempotent regardless;
+  // this keeps the UI from spamming duplicate transactions/celebrations.
+  const busyRef = useRef(false);
 
   const onBuy = async (def: CosmeticDef) => {
+    if (busyRef.current) {
+      return;
+    }
+    busyRef.current = true;
     try {
       const result = await purchaseCosmetic(
         getDb(),
@@ -178,10 +189,16 @@ export default function RewardsScreen() {
       }
     } catch (error) {
       console.error("[rewards] purchase failed", error);
+    } finally {
+      busyRef.current = false;
     }
   };
 
   const onEquip = async (def: CosmeticDef) => {
+    if (busyRef.current) {
+      return;
+    }
+    busyRef.current = true;
     try {
       const ok = await equipCosmeticPersisted(
         getDb(),
@@ -197,6 +214,8 @@ export default function RewardsScreen() {
       }
     } catch (error) {
       console.error("[rewards] equip failed", error);
+    } finally {
+      busyRef.current = false;
     }
   };
 
