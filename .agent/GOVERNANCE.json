@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "007-parallel-wave-01-convergence",
+  "activeCampaign": "008-wave02-recovery-convergence",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

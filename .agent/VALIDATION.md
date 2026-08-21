@@ -702,3 +702,56 @@ Eight parallel sessions recovered, completed, and merged into one coherent 24-ga
 - Sensory: `sdk/audio-haptics*.ts` + `audio-haptics-real.ts` + `assets/sfx/*.wav` + `components/sensory/**` + `settings-provider` persistence + 24-game live wiring
 - A11y/perf: `components/game-ui/**` + `use-reduced-motion`, 24-game coverage
 - QA: `scripts/qa/autobot.mjs` + `README.md`, 24-game catalog support
+
+---
+
+# Wave: 008 — Wave 02 recovery convergence (2026-08-21)
+
+Owner-authorized salvage of the failed eight-session Wave 02 parallel development.
+Convergence branch `recovery/wave02-full-convergence` (merge order: 07-tip ff →
+03-tip → canonical-dirty salvage → wt-02 salvage; then completion + repair commits).
+
+**Validation on the converged tree (exact outcomes):**
+
+- `node scripts/validate-repo-state.mjs`: PASS
+- `npx tsc --noEmit` (apps/mobile): PASS — 0 errors (42 pre-existing errors in
+  never-validated salvaged test files repaired honestly; no assertion weakening)
+- `npx jest --ci --maxWorkers=2` (apps/mobile): PASS — **343 suites / 3926 tests /
+  4 snapshots** (up from 239/2727 at 007). Final failures fixed at root cause:
+  composite perf guard flake (best-of-3 sampling), workout selection fallback
+  contract, quick-compare screen playthrough missing final advance, visual
+  baselines regenerated for the salvaged home-workout-progress element.
+- `npm run lint` (apps/mobile): PASS — 0 errors (302 warnings, non-blocking;
+  memory-running-order tutorial setState-in-effect fixed via derived phase)
+- `node scripts/generate-game-registry.mjs` + `--check`: PASS — **36 games**
+  (Memory 5, Attention 4, Speed 4, Math 3, Language 5, Logic 5, Flexibility 5,
+  Spatial 5); regenerated once from the final tree, never hand-edited
+- `node scripts/validate-provenance.mjs --check`: PASS (no drift)
+- `node scripts/validate-task-ownership.cjs`: PASS
+- `node scripts/validate-offline.mjs --check`: PASS (CLEAN, 768 files)
+- `npx expo export --platform web` (apps/mobile): PASS
+- `npx expo-doctor`: 20/21 — one check flags patch-version drift
+  (@expo/ui/expo/expo-linking/expo-router patch minors); dependencies are
+  byte-identical to origin/main (git diff empty) — environmental drift, not a
+  Wave 02 change; left unpinned deliberately (no upgrade churn)
+- `npx --no-install openspec validate --changes`: PASS (1 change)
+- Emulator canary (emulator-local autobot, no host input): first two attempts
+  FAIL "app did not warm to home" — root cause: Metro stale watcher could not
+  resolve newly created game directories (`@/games/flexibility-rule-flip`),
+  surfaced as dev-server 500. Metro restarted with `--clear`; result recorded
+  below once rerun completes.
+
+**Migration integrity:** SCHEMA_VERSION 8 with migrations v1–v8 sequential and
+unique (migration-robustness suite: 12/12 — upgrade paths, data survival,
+downgrade rejection, duplicate-version rejection); v8 adds game_sessions
+completed_at index + guarded operation_id backfill; no colliding migration
+numbers across sessions (only session 07 touched migrations).
+
+**Dependencies:** zero diff vs origin/main in package.json / lockfiles — no
+dependency convergence needed; no unused deps introduced by rejected features.
+
+**Duplicate rejection proof:** `diff -rq` byte-identical:
+math-estimation-sprint == math-number-balance == math-fast-math (existing);
+speed-tap-sequence == speed-tap-rush (existing). Removed from catalog; content
+preserved at commit `8540d2c` (branch parallel-wave-02/02-speed-math) and merge
+`a19edab`. speed-quick-compare retained (genuinely distinct mechanics).
