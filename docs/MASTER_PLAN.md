@@ -189,3 +189,35 @@ Principles:
 - production hardening
 
 These later systems require future decision reviews at the point they become necessary.
+
+## Campaign 010 — Mass Product Implementation (2026-08-21)
+
+Owner-directed bulk construction campaign (`010-mass-product-implementation`): BUILD NOW /
+VERIFY LATER. Two worker waves (16 + 8 specialized agents) under one parent orchestrator
+with strict disjoint write ownership; validation explicitly deferred to Campaign 011.
+
+Delivered (all `IMPLEMENTED — NOT VALIDATED` unless noted):
+
+- Catalog 38 → **42 games**: attention-sustained-vigilance "Signal Watch" (SART-like),
+  speed-order-sweep, math-value-ordering, memory-prospective-cue "Cue Keeper".
+- GameHost consolidation (debt D1): shared session/lifecycle/pause/QA/tutorial/results
+  host; 18 of 42 games migrated across two waves; catalog contract scanner extended to
+  recognize host-delegating modules.
+- Workout V2 (templates/focus/lengths/history/metadata/rotation) + home surfacing;
+  Personalization V2 (explainable weighted signals, `src/personalization`).
+- Progress/Analytics V2 (trends, volumes, PB history, rolling windows, category
+  comparison, workout analytics) + query performance rewrite (SQL projections,
+  repository primitives, bounded reads) targeting the measured 101 ms @20k debt.
+- Portability: single-pass serialization + durable FileBackupTransport with share/
+  picker seams (debt D2). Repository API maturation: projection DTOs, keyset
+  pagination, aggregates, batch helpers, schema v9 index.
+- Engagement V2: achievement chains/tiers, quest refresh/history, reward inbox with
+  idempotent claim-all, cosmetic collection progress, provenance feed.
+- UX/IA depth, accessibility primitives program (announcements, focus, reduced motion,
+  font-scale caps, touch targets, dialogs), platform cleanup (7 unused native deps
+  removed; expo-audio permission overreach trimmed at plugin source), cross-platform
+  seams (safe-area B5, keyboard/platform adapters), perf instrumentation (D4),
+  sync-readiness seams (D3), entitlements/notification/assistant seams.
+
+Campaign 011 (next): TEST / AUDIT / QA / FIX / HARDEN — see
+`.agent/_tasks/campaign011-validation-backlog.md`.

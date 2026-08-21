@@ -2,48 +2,56 @@
 
 ## Current blockers
 
+- **Campaign 010 validation debt (campaign-level, by design)**: the entire 010 wave
+  landed implementation-only. Full Jest, lint, builds, emulator QA, benchmarks and
+  device flows are NOT RUN for everything listed in
+  `.agent/_tasks/campaign011-validation-backlog.md`. Nothing from 010 may be labeled
+  HARDENED / PRODUCTION VERIFIED. Highest-risk areas: GameHost migrations (18 games),
+  analytics projection SQL equivalence, backup file transport on device, workout V2
+  lifecycle.
 - **spatial-grid-nav QA force-win unreachable via automation (Medium, QA-tooling,
   open)**: on-device, grid-nav's shared PauseOverlay renders but its Resume/Quit
   buttons never appear in the uiautomator tree (title/buttons absent while the
   overlay node is present), so the harness cannot resume or force-win. The game
-  itself launches, plays, and pauses correctly; all 9 unit suites pass. The
-  sibling games with identical overlay code are verified (transform-match and
-  mental-rotation PASS after the `accessible`-grouping fix in the shared
-  PauseOverlay — which was itself a real a11y defect: TalkBack could not focus
-  Resume/Quit individually). Root cause needs on-device React-tree inspection;
-  top candidate for the next QA wave. Harness reports this honestly as
-  "app left paused: resume control not reachable" instead of a misleading
-  qa-toggle failure.
-- **12.11 / CI confirmation pending**: GitHub App CI + Repository Integrity auto-run on push to `main`; final post-009 SHA must be confirmed from GitHub Actions UI after promotion. Note: the new OpenSpec CI step downloads `@fission-ai/openspec@1.6.0` via npx at run time (exact-pinned).
-- **expo-doctor patch drift (Low, environmental)**: doctor reports 20/21 — patch-version advice for @expo/ui, expo, expo-linking, expo-router. Dependencies are byte-identical to origin/main (no 009 dependency change); left unpinned to avoid upgrade churn. Revisit at next dependency-audit campaign.
-- **Host NDK toolchain pinned per-host (SDK patch, reversible)**: unchanged from 008; see open debt below and `VALIDATION.md`.
+  itself launches, plays, and pauses correctly; all 9 unit suites pass. The sibling
+  games with identical overlay code are verified. NOTE: grid-nav is NOT yet
+  GameHost-migrated; its overlay now differs from the 18 migrated games' host-mounted
+  overlay — re-verify after any migration wave. Root cause needs on-device
+  React-tree inspection.
+- **data_extraction_rules / backup_rules XMLs are untracked (Low, environmental)**:
+  `android/` is gitignored (CNG prebuild). W15's local manifest trim + extraction-
+  rule XMLs exist only in this working tree; they must be re-applied — or codified
+  into a small Expo config plugin — before any clean `prebuild`. The durable fix is
+  the expo-audio plugin config in `app.json` (committed).
+- **expo-doctor patch drift + dependency removals (Low)**: doctor's patch-version
+  advice predates 010; 010 REMOVED @expo/ui, expo-glass-effect, expo-device,
+  expo-image, expo-web-browser, expo-status-bar, expo-system-ui (verified zero src
+  imports and zero transitive requirers; expo-linking kept — expo-router dep).
+  App boot after removals NOT VALIDATED — first item for the 011 emulator pass.
+- **Post-010 CI confirmation pending**: GitHub App CI + Repository Integrity auto-run
+  on push to `main`; final post-010 SHA must be confirmed from GitHub Actions UI.
+  Expected: typecheck/lint/registry/provenance gates should pass; Jest may surface
+  failures in areas 010 changed deliberately (migrated screens, math content tests) —
+  those are Campaign 011's first work items, not blockers to revert.
 
 ## Open debt (tracked, non-blocking)
 
-- **Performance findings routed to debt (009, measured)**: `analytics/queries.ts`
-  `loadProgressSnapshot` still loads full rows (101 ms @20k sessions per
-  Progress focus; projection/window-pushdown proposed by W13/W09);
-  backup export canonicalizes the envelope twice (~2.4 s frozen JS @5k
-  sessions; single-pass serializer proposed). Both functional today;
-  guards + baselines recorded in `scripts/perf/`. Next candidates when
-  large-history performance matters.
-- **Unused native deps (Low, 009 audit)**: `@expo/ui`, `expo-glass-effect`,
-  `expo-device`, `expo-image`, `expo-web-browser` have zero src imports
-  (`expo-linking` likely required transitively by expo-router — verify before
-  removal). Removal inflates iOS pod surface less; deferred to avoid
-  dependency churn without a transitive-dependency check.
-- **Android manifest permissions exceed product use (Low, 009 audit)**:
-  RECORD_AUDIO / SYSTEM_ALERT_WINDOW / FOREGROUND_SERVICE(_MEDIA_PLAYBACK)
-  appear injected via expo-audio plugin defaults; trim at the app.json plugin
-  config source of truth during the next Android build campaign.
-- **iOS build unverifiable on this host (NOT VALIDATED)**: Windows host has
-  no Xcode/macOS. Static audit refreshed in 009
-  (`docs/audits/campaign009-xplat-audit.md`: fix-now items applied at
-  convergence — web tab inset, celebration elevation; watch-list and
-  needs-macOS items documented there).
-- **Attention sustained-vigilance game (follow-up candidate)**: mechanically
-  distinct SART-style design evaluated but not built in 009 (session budget);
-  top candidate for the next catalog wave.
+- **Performance findings (009 measured → 010 implementation)**: `loadProgressSnapshot`
+  SQL projection path + repository primitives implemented in 010 (targeted the
+  101 ms @20k debt); backup single-pass serializer + file transport implemented.
+  Both NOT VALIDATED / NOT RE-MEASURED — Campaign 011 owns equivalence tests and
+  benchmark re-runs (`scripts/perf/` baselines unchanged).
+- **equation-builder dead easy-level templates (Low, 010 finding)**: eight
+  pre-existing 3-number templates requiring × are unreachable because easy's +/−
+  operator mix always fails their solvability filter ([10,3,4]→26, [8,7,3]→53,
+  [6,5,4]→54, [9,4,2]→38, [7,6,3]→45, [10,5,2]→52, [8,6,4]→44, [13,2,5]→31).
+  Prune or re-tier in a content campaign.
+- **GameHost migration remainder (Medium)**: 24 of 42 games still pre-GameHost
+  (mechanics work fine; boilerplate remains). Migrate in batches during 011 with
+  screen suites as guardrails.
+- **iOS build unverifiable on this host (NOT VALIDATED)**: Windows host has no
+  Xcode/macOS. Static audit refreshed in 009; 010 added platform seams (safe-area,
+  keyboard adapters) that are source-level only.
 - **Achievements sync scope (Low)**: quest/achievement evaluation scans up
   to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); far above realistic
   foundations-phase history, but a documented cap.

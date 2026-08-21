@@ -13,10 +13,10 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 | Training | Adaptive difficulty | IMPLEMENTED | Hidden continuous rating + named modes |
 | Training | Manual difficulty | IMPLEMENTED | Easy/Normal/Hard/Expert/Adaptive |
 | Training | Personalized recommendations | IMPLEMENTED | Weak-domain balancing + recency avoidance + reroll economics |
-| Games | Memory catalog | IMPLEMENTED | Memory (Phase 2) + Sequence Memory (Phase 4) + Pattern Tap Back (Phase 5) + Grid Recall + Running Order (Wave 02) + Pair Recall (009, associative re-pairing) — 6 games |
-| Games | Attention catalog | IMPLEMENTED | Visual Search (Phase 2) + Odd One Out (Phase 4) + Target Count (Wave 01) + Symbol Tracker (Wave 02) — 4 games |
-| Games | Speed catalog | IMPLEMENTED | Reaction Time (Phase 2) + Tap Rush (Phase 4) + Color Match (Phase 5) + Quick Compare (Wave 02) — 4 games |
-| Games | Math catalog | IMPLEMENTED | Fast Math (Phase 2) + Missing Operator (Phase 4) + Equation Builder (Phase 5) + Number Line (009, magnitude estimation) — 4 games |
+| Games | Memory catalog | IMPLEMENTED | Memory (Phase 2) + Sequence Memory (Phase 4) + Pattern Tap Back (Phase 5) + Grid Recall + Running Order (Wave 02) + Pair Recall (009, associative re-pairing) + Prospective Cue "Cue Keeper" (010, event-based prospective memory) — 7 games |
+| Games | Attention catalog | IMPLEMENTED | Visual Search (Phase 2) + Odd One Out (Phase 4) + Target Count (Wave 01) + Symbol Tracker (Wave 02) + Sustained Vigilance "Signal Watch" (010, SART-like go/no-go) — 5 games |
+| Games | Speed catalog | IMPLEMENTED | Reaction Time (Phase 2) + Tap Rush (Phase 4) + Color Match (Phase 5) + Quick Compare (Wave 02) + Order Sweep (010, rapid ordering under draining windows) — 5 games |
+| Games | Math catalog | IMPLEMENTED | Fast Math (Phase 2; 010: expert two-step tier) + Missing Operator (Phase 4; 010: expanded template bank) + Equation Builder (Phase 5; 010: bank 25→51 incl. 5-number expert pool) + Number Line (009; 010: non-zero expert origin) + Value Order (010, ordinal ranking of disguised quantities) — 5 games |
 | Games | Language catalog | IMPLEMENTED | Word Match (Phase 2) + Word Scramble (Phase 4) + Sentence Builder (Phase 5) + Context Fit + Word Chain (Wave 02) + versioned content packs — 5 games |
 | Games | Logic & Problem Solving catalog | IMPLEMENTED | Next in Sequence (Phase 2) + Code Cracker (Phase 4) + Rule Grid (Wave 01) + Deduction Table + Order Path (Wave 02) — 5 games |
 | Games | Flexibility catalog | IMPLEMENTED | Card Sort (Phase 2) + Color Stroop (Phase 4) + Cue Shift (Wave 01) + Rule Flip + Task Switch (Wave 02) — 5 games |
@@ -36,12 +36,16 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 | UX | Audio/haptics | IMPLEMENTED | Real `expo-audio` + `expo-haptics` engine behind the `AudioHapticsService` SDK seam; canonical feedback events (tap/correct/wrong/success/failure/record/reward); sfx + haptics toggles persist into profile settings JSON; global off + per-channel disable; assets preloaded/released. Music remains DEFERRED (no BGM control exposed). Theme selection IS persisted. See `docs/DEFERRED_DECISIONS.md`. |
 | Content | Deterministic procedural generation | IMPLEMENTED | Seeded per game, versioned |
 | Content | Curated versioned packs | IMPLEMENTED | Language pack + pack registry seam |
-| Data | Manual backup/export/import | IMPLEMENTED | Versioned, checksummed envelope; preview/dry-run; merge/replace with dedupe/idempotency; integrity/future-version rejection; atomic + rollback |
+| Data | Manual backup/export/import | IMPLEMENTED | Versioned, checksummed envelope; preview/dry-run; merge/replace with dedupe/idempotency; integrity/future-version rejection; atomic + rollback. 010: single-pass serialization + durable file transport (document directory) + share/picker seams — device flows NOT VALIDATED (Campaign 011) |
+| Platform | Sync readiness seams | IMPLEMENTED | `src/sync` (010): DTO/tombstone conventions, table descriptors, change-log seam, conflict-policy resolvers, no-op engine. No network code; device-instance-id migration documented, not applied |
+| Platform | Performance instrumentation | IMPLEMENTED | `sdk/perf` (010): dev-only mark/measure ring buffer (session start / first interaction / persist / snapshot load). No production overhead path verified on device yet |
+| Platform | Notification preference model | IMPLEMENTED | `src/notifications` (010): preference + schedule-intent types only; no scheduling decided, no expo-notifications usage |
+| AI | Advisory context seam | IMPLEMENTED | `src/assistant` (010): advisory-only context summary DTOs (`advisoryOnly: true` literal); no provider/network |
 | Data | Full deletion | IMPLEMENTED | Local deletion workflow with counts + DELETE confirmation; append-only triggers remain valid |
 | AI | AI assistant/RAG | DEFERRED | Advisory only by default |
 | AI | AI-generated validated challenges | DEFERRED | Never unvalidated scoring content |
 | Social | Leaderboards/friends/leagues | DEFERRED | Explicitly out of current scope |
-| Commercial | Entitlements abstraction | PLANNED | Lightweight seam only |
+| Commercial | Entitlements abstraction | IMPLEMENTED | `src/entitlements` seam (010): provider interface, feature keys, local all-unlocked default; no billing provider (validation deferred to Campaign 011) |
 | Commercial | Paid/free tiers | DEFERRED | Model not finalized |
 | Commercial | Ads | DEFERRED | Possible future option |
 | Commercial | AI credits | DEFERRED | Separate from normal currency |

@@ -1,27 +1,45 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-21 (campaign 010 opened: mass product implementation wave, 16 worker packets in `.agent/_tasks/campaign010/`; BUILD NOW / VERIFY LATER — validation deferred to campaign 011)
+**Last update:** 2026-08-21 (campaign 010 COMPLETED: mass product implementation, two waves / 24 worker packets → 42 games, GameHost consolidation, Workout/Personalization/Analytics V2, portability transport, engagement depth, a11y + platform + seam programs; implementation-only — full validation deferred to campaign 011)
 **Canonical branch:** `main`
-**Active campaign:** `010-mass-product-implementation`
+**Active campaign:** `010-mass-product-implementation` (COMPLETED; next: `011` TEST/AUDIT/QA/FIX/HARDEN)
 
 ## Current status
 
 Campaign 009 COMPLETED at `e0d92ce` (38 games, full gates green, Android autobot QA).
-Campaign 010 is an owner-directed bulk construction campaign: maximize production-code
-implementation throughput across up to 16 specialized workers with strict disjoint
-write ownership. Testing/hardening is explicitly deferred to Campaign 011; anything
-unverified is recorded `NOT VALIDATED — Campaign 010 implementation-only wave` and
-queued in `.agent/_tasks/campaign011-validation-backlog.md`.
+Campaign 010 was an owner-directed bulk construction campaign: maximize production-code
+implementation throughput. Two waves of specialized workers under one parent
+orchestrator with strict disjoint write ownership (packets in `.agent/_tasks/campaign010/`).
 
-### 010 scope (in flight)
+### 010 outcome
 
-4 new games (attention-sustained-vigilance + Speed/Math/Memory-or-Logic additions),
-GameHost consolidation (D1), Workout V2, Personalization V2, Progress/Analytics V2,
-query performance rewrite (101ms@20k debt), backup single-pass serialization +
-transport wiring (D2, deps added by parent), DB repository maturation, Engagement V2,
-UX/IA depth, accessibility primitives (B1/D5), platform/deps cleanup (A1/A4/B7),
-cross-platform seams (B5). See `.agent/CURRENT_CAMPAIGN.md`.
+- **Catalog:** 38 → **42 games**. NEW: `attention-sustained-vigilance` "Signal Watch"
+  (SART-like go/no-go vigilance), `speed-order-sweep`, `math-value-ordering`,
+  `memory-prospective-cue` "Cue Keeper" (prospective memory). Math content tiers
+  deepened across all four existing math games.
+- **GameHost consolidation (D1):** shared session/lifecycle/pause/QA/tutorial/results
+  host in `components/game-host`; 18 of 42 games migrated; contract scanner extended.
+- **Workout V2 + Personalization V2:** templates/focus/lengths/history/rotation;
+  explainable weighted-signal recommender (`src/personalization`); home surfacing.
+- **Progress/Analytics V2 + query rewrite:** trend/volume/PB/window/comparison
+  modules; SQL projection path + repository primitives targeting the measured
+  101 ms @20k snapshot debt; schema v9 rating_history index.
+- **Portability:** single-pass serialization; durable FileBackupTransport +
+  share/picker seams (D2) — parent-implemented after W10 truncation.
+- **Engagement V2:** achievement chains/tiers, quest refresh/history, reward inbox +
+  idempotent claim-all, cosmetic collection progress, provenance feed.
+- **UX/IA, accessibility, platform:** shell states/components, home workout UI;
+  a11y primitive program (announcements/focus/reduced-motion/font-scale caps/touch
+  targets/dialogs); 7 unused native dependencies removed; expo-audio permission
+  overreach trimmed at plugin source (app.json source of truth); safe-area + keyboard
+  platform seams; perf instrumentation (D4); sync-readiness seams (D3);
+  entitlements/notification/assistant seams.
+
+**Validation status:** `IMPLEMENTED — NOT VALIDATED` unless previously evidenced.
+Convergence checks run: tsc PASS (0 errors), catalog contracts 16/16, registry --check
+PASS, repo-state PASS. Full Jest / lint / web export / emulator QA / benchmarks / iOS:
+NOT RUN by design. Complete handoff inventory: `.agent/_tasks/campaign011-validation-backlog.md`.
 
 ### 009 summary (completed)
 

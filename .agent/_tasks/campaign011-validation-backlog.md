@@ -77,3 +77,81 @@ continuously during the wave using this per-entry shape:
 - Required property/invariant checks: none
 - Required performance measurements: none
 - Platform requirements: iOS device/simulator verification NOT VALIDATED (no macOS host)
+
+---
+
+## Wave entries appended at convergence (2026-08-21)
+
+### New games W01–W04 detail
+- attention-sustained-vigilance, speed-order-sweep, math-value-ordering,
+  memory-prospective-cue. Risk: High. Required: per-game generator/scoring/pause/
+  force-win unit suites; autobot full-journey each; sensory alias verification on
+  device; tutorial first-play flow. NOTE: order-sweep vs value-ordering similarity
+  review (both ascending-order tasks; distinct rationale documented in packets) —
+  Campaign 011 should confirm the distinction holds in playtesting.
+
+### GameHost migrations (18 games total)
+- Batch 1: speed-reaction-time, math-fast-math, attention-visual-search,
+  language-word-scramble, spatial-coordinate-turn, flexibility-card-sort.
+- Batch 2: attention-target-count, attention-symbol-tracker, memory-grid-recall,
+  math-missing-operator, logic-next-sequence, spatial-fold-match,
+  attention-odd-one-out, speed-quick-compare, memory-pattern-tap-back,
+  flexibility-task-switch, logic-order-path, spatial-transform-match.
+- Risk: High (largest behavioral surface). Required: run every migrated game's
+  existing screen test suite; fake-timer cadence checks (odd-one-out interval,
+  quick-compare/order-path zero-remaining expiry edge); pause-freeze parity;
+  back-guard behavior; transform-match qaPanelPosition='above' reachability in
+  autobot; visual baselines unaffected (tab routes only) — confirm.
+
+### Workout V2 + Personalization V2
+- Files: src/workout/{templates,metadata,rotation,reasons,summary,use-workout-templates},
+  db/workout.ts listRecent, src/personalization/**, workout/personalize.ts refactor.
+- Risk: High (daily flow). Required: template lifecycle integration tests
+  (start/resume/advance/complete per template+length), rotation determinism,
+  personalize.ts backward-compat suite re-run (43 pinned tests), migration of
+  pre-V2 workout instances.
+
+### Analytics V2 + query rewrite + repository primitives
+- Files: analytics/* new modules, queries.ts projection path,
+  db/sessions.ts projection primitives, schema v9 migration.
+- Risk: Critical (data correctness). Required: result-equivalence tests old vs new
+  loaders on fixture DBs (incl. corrupt JSON rows), v8→v9 upgrade-path test,
+  json_extract parity vs JS extractors across all games' raw shapes, perf baselines
+  re-run (target <<101 ms @20k), perf-db-query-patterns CI guard.
+
+### Portability file transport + single-pass serialization
+- Risk: Critical (data safety). Required: serialize/deserialize equivalence suites,
+  export→wipe→import round-trip via real files, picker/share flows on device,
+  large-backup memory profile, data-management screen render tests with mocked FS.
+
+### Engagement V2
+- Chains/tiers resolution, quest refresh boundaries (timezone edges), inbox claim-all
+  idempotency under double-tap and backup-reimport, ledger operationIds preserved,
+  rewards hub render tests.
+
+### UX/IA + home workout UI
+- Home/Games/Profile additions gated for baseline stability — re-run visual-baseline
+  canaries; new shell components a11y contract pass; workout template start→resume→
+  complete e2e on emulator; rewards-hint count degradation when db unavailable.
+
+### Accessibility primitives
+- Font-scale caps at fontScale 2.0 layouts; LiveRegion platform split (Android node /
+  iOS imperative) on device; A11yDialog focus trap with TalkBack/VoiceOver; reduced-
+  motion plumbing adopted surfaces; PauseOverlay hardening vs grid-nav finding.
+
+### Math content tiers
+- fast-math two-step validity + determinism at chance boundaries; number-line expert
+  span-relative scoring; equation-builder 51-template solvability/uniqueness property
+  sweep (8 known dead easy-level templates flagged for pruning); missing-operator
+  uniqueness lemma over new templates; gameVersion 1.1.0 replay compatibility.
+
+### Seams + instrumentation
+- entitlements/notifications/assistant/sync unit suites (written, unexecuted);
+  sdk/perf no-op verification in production build config; ring-buffer behavior;
+  projections instrumentation records correct tier after W22 refactor.
+
+### Platform/deps cleanup follow-ups
+- App boots after 7 dependency removals (cold start + representative journey);
+  expo-audio plugin trim verified on fresh prebuild (RECORD_AUDIO absent);
+  data_extraction_rules/backup_rules XMLs are UNTRACKED (android/ gitignored, CNG) —
+  must be re-applied or codified into a config plugin before any clean prebuild.
