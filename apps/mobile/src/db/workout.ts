@@ -409,6 +409,18 @@ export class WorkoutRepository {
   }
 
   /**
+   * Most recent instances across ALL workout kinds (daily + templates),
+   * newest instance key first (campaign 010 W22, resolving W08's
+   * NEEDS_PARENT request). The bounded "latest N workouts" read for overview
+   * screens: one indexed primary-key walk instead of a per-day `getByDate`
+   * loop. Ordering matches {@link listHistory}: within a day the daily row
+   * sorts before its namespaced template rows ('2026-08-21' < '2026-08-21::…').
+   */
+  async listRecent(limit = 30): Promise<WorkoutInstance[]> {
+    return this.listHistory({ limit });
+  }
+
+  /**
    * Active instances, most recently touched first (bounded). Used by advance
    * routing (which workout does this completed session belong to?) and by
    * {@link reconcileActiveInstances}.

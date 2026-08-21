@@ -98,6 +98,12 @@ export { isValidSessionCursor } from './sessions';
 export type { RatingHistoryQuery } from './rating';
 export type { FavoriteEntry } from './favorites';
 
+// --- Campaign 010 W22: Progress read-projection primitive (additive) --------
+// Row shape of `SessionRepository.listProgressProjection` /
+// `listProgressProjectionByGame` (scalar columns + blob-derived metric
+// scalars extracted in SQLite; consumed by `analytics/projections.ts`).
+export type { SessionProgressRow } from './sessions';
+
 /** On-device database file name. */
 export const APP_DATABASE_NAME = 'brain-training.db';
 

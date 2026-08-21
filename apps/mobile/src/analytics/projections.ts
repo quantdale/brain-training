@@ -29,138 +29,32 @@
  * back to the legacy full-row repository reads when absent or on any SQL
  * error — this module can never make Progress less available than before.
  *
- * db-layer note: `AppDatabase` exposes no public raw-read API, so the
- * projection runs through the existing public `db.transaction()` seam (the
- * same pattern feature modules like cosmetics/rewards already use). A
- * dedicated read-only repository method would remove the exclusive-lock
- * detour; see the NEEDS_PARENT note in `.agent/_tasks/campaign010/W09.md`.
+ * db-layer note (campaign 010 W22): the projection SQL's canonical home is
+ * now `db/sessions.ts`, and the preferred execution path is the dedicated
+ * plain-read repository primitive (`SessionRepository.listProgressProjection`
+ * / `listProgressProjectionByGame` — resolving W09's NEEDS_PARENT request, no
+ * exclusive-lock transaction detour). The former public-`db.transaction()`
+ * seam path is kept below as a fallback for degraded/partial database
+ * handles, ahead of the legacy full-row reads.
  */
 
 import type { AppDatabase, GameSessionRecord, SQLiteAdapter, SQLiteValue } from '@/db';
-import { DIFFICULTY_LEVELS } from '@/sdk';
+import {
+  DIFFICULTY_LEVEL_PARAMS,
+  PROJECTED_SESSIONS_ALL_SQL,
+  PROJECTED_SESSIONS_BY_GAME_SQL,
+  type SessionProgressRow,
+} from '@/db/sessions';
+import { trackProgressSnapshotLoad } from '@/sdk/perf';
 
-/**
- * Field-name mirrors of the private candidate lists in `metrics-map.ts`
- * (W08-owned). The SQL extraction below must recognize exactly the same names
- * in the same priority order so shim-based extraction stays behaviorally
- * identical to parsing the full blob. If `metrics-map` gains a field name,
- * mirror it here in the same position.
- */
-const SCORE_FIELDS = ['score', 'points', 'totalScore'] as const;
-const ACCURACY_FIELDS = ['accuracy', 'hitRate', 'precision'] as const;
-const REACTION_MEAN_FIELDS = [
-  'avgResponseMs',
-  'meanReactionMs',
-  'avgReactionMs',
-  'averageAnswerMs',
-  'avgReactionTimeMs',
-  'medianReactionMs',
-] as const;
-const REACTION_BEST_FIELDS = ['fastestReactionMs', 'bestReactionMs', 'fastestResponseMs'] as const;
-
-/** One projected session row: scalar columns + blob-derived metric scalars. */
-export interface ProjectedSessionRow {
-  id: string;
-  gameId: string;
-  gameVersion: number;
-  generatorVersion: number;
-  scoringVersion: number;
-  seed: number;
-  normalizedResult: number;
-  xp: number;
-  startedAt: number;
-  completedAt: number;
-  durationMs: number;
-  /** First numeric `raw_result_json` score field (metrics-map priority), else null. */
-  mScore: number | null;
-  /** First numeric accuracy field, unclamped (the shared extractor clamps), else null. */
-  mAccuracy: number | null;
-  /** First reaction-time field (means before bests), else null. */
-  mReactionMs: number | null;
-  /** Numeric `difficulty_json.challengeRating`, unclamped, else null. */
-  mDifficultyRating: number | null;
-  /** `difficulty_json.level` when it is a known SDK level string, else null. */
-  mDifficultyLevel: string | null;
-}
-
-/**
- * SQL expression for "first JSON number among `paths`", mirroring
- * `readNumber` (non-objects and non-numbers yield null). The outer
- * `json_valid` CASE guards malformed/corrupt blobs — SQLite only evaluates
- * the chosen CASE arm, so invalid JSON degrades to nulls exactly like the
- * JS-side `fromJson` fallback instead of erroring the whole scan.
- */
-function jsonNumberExpr(doc: string, path: string): string {
-  return (
-    `CASE WHEN json_type(${doc}, '${path}') IN ('integer','real') ` +
-    `THEN json_extract(${doc}, '${path}') END`
-  );
-}
-
-function coalescedJsonNumbers(doc: string, paths: readonly string[]): string {
-  const inner = paths.map((path) => jsonNumberExpr(doc, path)).join(', ');
-  return `CASE WHEN json_valid(${doc}) THEN COALESCE(${inner}) END`;
-}
-
-/** Bound parameter values for the known SDK difficulty levels (deterministic order). */
-export const DIFFICULTY_LEVEL_PARAMS: readonly SQLiteValue[] = [...DIFFICULTY_LEVELS];
-
-/**
- * Known difficulty-level string from `difficulty_json`, in either object form
- * (`{"level":"hard"}`) or bare-string form (`"hard"`). Unknown strings stay
- * null; the shared extractor maps them to challenge ratings.
- */
-function difficultyLevelExpr(): string {
-  const placeholders = DIFFICULTY_LEVELS.map(() => '?').join(', ');
-  return (
-    // Object form: {"level": "<known>"}
-    'CASE WHEN json_valid(difficulty_json) THEN COALESCE(' +
-    `CASE WHEN json_type(difficulty_json, '$.level') = 'text' ` +
-    `AND json_extract(difficulty_json, '$.level') IN (${placeholders}) ` +
-    `THEN json_extract(difficulty_json, '$.level') END, ` +
-    // Bare-string form: "<known>"
-    `CASE WHEN json_type(difficulty_json) = 'text' ` +
-    `AND json_extract(difficulty_json, '$') IN (${placeholders}) ` +
-    `THEN json_extract(difficulty_json, '$') END` +
-    ') END'
-  );
-}
-
-/** Projected column list; placeholder order = [levels…, levels…]. */
-const PROJECTED_COLUMNS = [
-  'id',
-  'game_id AS gameId',
-  'game_version AS gameVersion',
-  'generator_version AS generatorVersion',
-  'scoring_version AS scoringVersion',
-  'seed',
-  'normalized_result AS normalizedResult',
-  'xp',
-  'started_at AS startedAt',
-  'completed_at AS completedAt',
-  'duration_ms AS durationMs',
-  coalescedJsonNumbers('raw_result_json', SCORE_FIELDS) + ' AS mScore',
-  coalescedJsonNumbers('raw_result_json', ACCURACY_FIELDS) + ' AS mAccuracy',
-  coalescedJsonNumbers('raw_result_json', [...REACTION_MEAN_FIELDS, ...REACTION_BEST_FIELDS]) +
-    ' AS mReactionMs',
-  coalescedJsonNumbers('difficulty_json', ['$.challengeRating']) + ' AS mDifficultyRating',
-  difficultyLevelExpr() + ' AS mDifficultyLevel',
-].join(',\n  ');
-
-/** Newest-first projection over every session (bounded by the caller's limit). */
-export const PROJECTED_SESSIONS_ALL_SQL = `
-  SELECT ${PROJECTED_COLUMNS}
-  FROM game_sessions
-  ORDER BY completed_at DESC
-  LIMIT ?`;
-
-/** Newest-first projection for one game (uses idx_game_sessions_game_id). */
-export const PROJECTED_SESSIONS_BY_GAME_SQL = `
-  SELECT ${PROJECTED_COLUMNS}
-  FROM game_sessions
-  WHERE game_id = ?
-  ORDER BY completed_at DESC
-  LIMIT ?`;
+// Backward-compatible re-exports (campaign 010 W22): the projection SQL, the
+// difficulty-level bindings and the row shape moved to their canonical home
+// in `db/sessions.ts` (so the repository primitives and this module share one
+// implementation); they stay exported here under their historical names so
+// existing consumers and the parity tests are unaffected.
+export { DIFFICULTY_LEVEL_PARAMS, PROJECTED_SESSIONS_ALL_SQL, PROJECTED_SESSIONS_BY_GAME_SQL };
+/** Row shape of the Progress projection (canonical definition: `db/sessions.ts`). */
+export type ProjectedSessionRow = SessionProgressRow;
 
 /** JSON1 capability probe result; static per SQLite build, so memoized. */
 let jsonFunctionsSupported: boolean | null = null;
@@ -179,9 +73,10 @@ async function supportsJsonFunctions(txn: SQLiteAdapter): Promise<boolean> {
 }
 
 /**
- * Load projected session rows newest-first, or `null` when the fast path is
- * unavailable (no JSON1 support, nested-transaction guard, any SQL error) so
- * callers can fall back to the legacy full-row repository reads. Never throws.
+ * Load projected session rows newest-first, or `null` when every projection
+ * path is unavailable so callers can fall back to the legacy full-row
+ * repository reads. Never throws. Path order (campaign 010 W22): repository
+ * primitives → `db.transaction()` seam → `null`.
  *
  * `gameId === null` loads across all games; otherwise only that game's rows.
  */
@@ -190,8 +85,28 @@ export async function tryLoadProjectedSessionRows(
   gameId: string | null,
   limit: number,
 ): Promise<ProjectedSessionRow[] | null> {
+  // Dev-only perf mark (campaign 010 W21, debt D4): duration of the whole
+  // projection load path, with the resolved tier so QA artifacts can tell
+  // fast-path repository reads from the transaction-seam fallback. Pure
+  // observation — the returned values and fallback order are unchanged.
+  const measure = trackProgressSnapshotLoad();
+  // Fast path (campaign 010 W22): the dedicated repository primitives run the
+  // same canonical SQL as a plain read on the shared connection — no
+  // exclusive-lock transaction seam, and they keep working when called inside
+  // an outer transaction (where db.transaction() would refuse to nest).
   try {
-    return await db.transaction(async (txn) => {
+    const rows =
+      gameId === null
+        ? await db.sessions.listProgressProjection(limit)
+        : await db.sessions.listProgressProjectionByGame(gameId, limit);
+    measure.end({ outcome: 'rows', path: 'repository', rowCount: rows.length });
+    return rows;
+  } catch {
+    // Fall through: JSON1-less SQLite build, degraded/partial db handle, or
+    // any unexpected error — the seams below preserve the old behavior.
+  }
+  try {
+    const rows = await db.transaction(async (txn) => {
       if (!(await supportsJsonFunctions(txn))) {
         return null;
       }
@@ -207,7 +122,14 @@ export async function tryLoadProjectedSessionRows(
       const sql = gameId === null ? PROJECTED_SESSIONS_ALL_SQL : PROJECTED_SESSIONS_BY_GAME_SQL;
       return txn.all<ProjectedSessionRow>(sql, params);
     });
+    measure.end({
+      outcome: rows === null ? 'fallback' : 'rows',
+      path: 'transaction',
+      rowCount: rows === null ? 0 : rows.length,
+    });
+    return rows;
   } catch {
+    measure.end({ outcome: 'error', path: 'none' });
     // Read-path resilience: any unexpected failure falls back to the legacy
     // loader rather than taking the Progress screens down (same policy as the
     // corrupt-JSON handling in db/sessions.ts `fromJson`).

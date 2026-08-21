@@ -76,16 +76,13 @@ import { useDbData } from '@/hooks/use-db-data';
 import { GAME_CATEGORIES as DOMAINS } from '@/sdk';
 import { levelForXp, levelProgress, xpIntoLevel, xpForNextLevel } from '@/rating';
 import { getGameDefinition } from '@/registry/registry';
-import { localDateString } from '@/workout/today';
 import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned } from '@/analytics/format';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Rolling-average width (sessions) for the overview refinement. */
 const ROLLING_AVERAGE_SESSIONS = 5;
 
-/** How many days of persisted workout instances the overview loads read-only. */
-const WORKOUT_LOOKBACK_DAYS = 28;
+/** How many recent workout instances the overview loads read-only (newest first). */
+const WORKOUT_RECENT_LIMIT = 30;
 
 /** How many weekly slices the balance-history strip shows. */
 const BALANCE_HISTORY_WEEKS = 4;
@@ -113,17 +110,13 @@ const OVERVIEW_CALENDAR_DAYS = 84; // ~12 weeks
 
 async function load(db: AppDatabase): Promise<ProgressData> {
   const snapshot = await loadProgressSnapshot(db);
-  // Read-only workout consumption through the existing repository API: a
-  // bounded primary-key walk back in time plus the O(1) completed counter.
-  // Optional chaining keeps analytics alive when the repository itself is
-  // unavailable (partial fakes, degraded db) — the workout card just hides.
-  const now = Date.now();
-  const dates: string[] = [];
-  for (let i = 0; i < WORKOUT_LOOKBACK_DAYS; i += 1) {
-    dates.push(localDateString(new Date(now - i * DAY_MS)));
-  }
-  const settled = await Promise.all(dates.map((d) => db.workouts?.getByDate?.(d)));
-  const workouts = settled.filter((i): i is WorkoutInstance => i != null);
+  // Read-only workout consumption through the existing repository API: one
+  // bounded newest-first read (`WorkoutRepository.listRecent`, campaign 010
+  // W22) replaces the former per-day getByDate walk, plus the O(1) completed
+  // counter. Optional chaining keeps analytics alive when the repository
+  // itself is unavailable (partial fakes, degraded db) — the workout card
+  // just hides.
+  const workouts = (await db.workouts?.listRecent?.(WORKOUT_RECENT_LIMIT)) ?? [];
   const workoutsCompletedLifetime = (await db.workouts?.countCompleted?.()) ?? 0;
   return { ...snapshot, workouts, workoutsCompletedLifetime };
 }
@@ -560,7 +553,7 @@ export default function ProgressScreen() {
           <ThemedText type="subtitle">Workout completion</ThemedText>
           <View style={styles.summaryRow}>
             <SummaryStat
-              label={`Done (${WORKOUT_LOOKBACK_DAYS}d)`}
+              label={`Done (last ${WORKOUT_RECENT_LIMIT})`}
               value={`${workoutAnalytics.completedInstances}/${workoutAnalytics.loadedInstances}`}
             />
             <SummaryStat
