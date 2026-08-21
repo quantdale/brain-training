@@ -17,8 +17,10 @@ describe('game.json', () => {
     expect(gameDefinition.primaryCategory).toBe('Math');
     expect(gameDefinition.secondaryDomains).toEqual(['Logic & Problem Solving']);
     expect(gameDefinition.sdkVersion).toBe(SDK_VERSION);
-    expect(gameDefinition.gameVersion).toBe('1.0.0');
-    expect(gameDefinition.generatorVersion).toBe('1.0.0');
+    // 1.1.0: campaign-010 W23 content wave (large-operand template block);
+    // generatorVersion bumped too — same-seed draws changed via template priority.
+    expect(gameDefinition.gameVersion).toBe('1.1.0');
+    expect(gameDefinition.generatorVersion).toBe('1.1.0');
     expect(gameDefinition.hasTutorial).toBe(true);
     expect(gameDefinition.description).toBeTruthy();
   });

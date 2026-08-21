@@ -10,9 +10,9 @@
  *
  * 1. Target placement — exactly `expectedTargetCount(params)` trials become
  *    stop-digit targets. Candidate layouts come from seeded shuffles of all
- *    trial indices (`targets:attempt:<n>` forks); the first layout whose
- *    consecutive targets are ≥ `minTargetGap` apart wins. If the attempt
- *    budget is exhausted, a deterministic even-spread fallback
+ *    trial indices (`targets:attempt:<n>` forks); the first layout with at
+ *    least `minTargetGap` non-target trials between consecutive targets wins.
+ *    If the attempt budget is exhausted, a deterministic even-spread fallback
  *    (`fallbackTargetIndices`) is used — always gap-valid for feasible params,
  *    so generation never fails.
  * 2. Digits — the session's stop digit is drawn once (`stop-digit` fork);
@@ -24,7 +24,8 @@
  * Invariants (enforced by construction, checked by `validateStream`):
  * - Every digit lies in `[DIGIT_MIN, DIGIT_MAX]`.
  * - Target trials show exactly the stop digit; go trials never do.
- * - Exactly `expectedTargetCount` targets, spaced ≥ `minTargetGap` apart.
+ * - Exactly `expectedTargetCount` targets, with ≥ `minTargetGap` non-target
+ *   trials between consecutive targets.
  */
 import type { Rng } from '@/sdk';
 
@@ -51,7 +52,7 @@ export function fallbackTargetIndices(trials: number, targetCount: number): numb
   return indices;
 }
 
-/** True when consecutive sorted positions are ≥ `minGap` apart. */
+/** True when consecutive sorted positions leave ≥ `minGap` non-targets between them. */
 export function gapsRespected(sortedPositions: readonly number[], minGap: number): boolean {
   for (let i = 1; i < sortedPositions.length; i += 1) {
     if (sortedPositions[i] - sortedPositions[i - 1] <= minGap) {

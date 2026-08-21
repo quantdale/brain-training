@@ -952,15 +952,25 @@ const REACTION_BEST_FIELDS = [
  * JS-side `fromJson` fallback instead of erroring the whole scan.
  */
 function jsonNumberExpr(doc: string, path: string): string {
+  // Field candidates arrive as bare object key names ("score"); SQLite JSON
+  // paths must start with "$", so normalize here. Paths that already carry
+  // the "$" prefix ($.challengeRating) pass through untouched.
+  const jsonPath = path.startsWith("$") ? path : `$.${path}`;
   return (
-    `CASE WHEN json_type(${doc}, '${path}') IN ('integer','real') ` +
-    `THEN json_extract(${doc}, '${path}') END`
+    `CASE WHEN json_type(${doc}, '${jsonPath}') IN ('integer','real') ` +
+    `THEN json_extract(${doc}, '${jsonPath}') END`
   );
 }
 
 function coalescedJsonNumbers(doc: string, paths: readonly string[]): string {
-  const inner = paths.map((path) => jsonNumberExpr(doc, path)).join(", ");
-  return `CASE WHEN json_valid(${doc}) THEN COALESCE(${inner}) END`;
+  const inner = paths.map((path) => jsonNumberExpr(doc, path));
+  // COALESCE needs ≥2 arguments in SQLite; single-path lists (e.g. the
+  // difficulty `challengeRating` extraction) must skip it entirely or the
+  // whole statement fails to prepare — which silently disabled the entire
+  // projection fast path (campaign 011 W10 regression pin).
+  const coalesced =
+    inner.length > 1 ? `COALESCE(${inner.join(", ")})` : inner[0];
+  return `CASE WHEN json_valid(${doc}) THEN ${coalesced} END`;
 }
 
 /** Bound parameter values for the known SDK difficulty levels (deterministic order). */

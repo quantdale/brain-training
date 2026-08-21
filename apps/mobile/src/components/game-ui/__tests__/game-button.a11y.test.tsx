@@ -49,4 +49,12 @@ describe('GameButton accessibility', () => {
     const flat = resolvedStyle(getByTestId('b').props.style).flat();
     expect(flat).toContainEqual(expect.objectContaining({ minHeight: 44 }));
   });
+
+  it('keeps the 44pt floor on the small variant (font-scale cap keeps rows intact)', async () => {
+    // At OS fontScale 2.0 the capped label grows the button naturally; the
+    // explicit minHeight stays the accessibility floor in both variants.
+    await render(<GameButton testID="b-small" label="Go" onPress={() => {}} small />);
+    const flat = resolvedStyle(screen.getByTestId('b-small').props.style).flat();
+    expect(flat).toContainEqual(expect.objectContaining({ minHeight: 44 }));
+  });
 });

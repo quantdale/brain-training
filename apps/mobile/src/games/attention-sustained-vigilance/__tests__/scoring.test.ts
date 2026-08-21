@@ -36,6 +36,7 @@ function rawWith(
     reactions: [],
     goAccuracy: 0,
     holdAccuracy: 0,
+    accuracy: 0,
     // Callers pass meanSpeed directly so normalization is exercised in
     // isolation from the stats aggregation.
     meanSpeed: overrides.meanSpeed ?? 0,

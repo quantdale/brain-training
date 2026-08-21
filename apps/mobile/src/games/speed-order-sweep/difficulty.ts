@@ -124,10 +124,13 @@ export function nextWindowMs(
 
 /**
  * Final challenge rating of a session. Fixed levels report the SDK default
- * rating; adaptive reports how far the player pushed the round window, mapped
- * linearly into [0, 1] over [minWindowMs, maxWindowBoundMs] with the direction
- * inverted (smaller window = higher challenge). The neutral initial window
- * (8000 ms over [4000, 10000]) lands exactly on the 0.5 baseline.
+ * rating; adaptive maps how far the player pushed the round window into
+ * [0, 1] piecewise-linearly through (minWindowMs → 1, initialWindowMs → 0.5,
+ * maxWindowBoundMs → 0), inverted so a smaller window is a higher challenge.
+ * The neutral starting window always reports exactly the SDK 0.5 baseline
+ * even when it is not the band midpoint (Order Sweep starts at 8000 ms over
+ * [4000, 10000]). A non-finite window falls back to the profile baseline
+ * instead of persisting NaN.
  */
 export function sessionChallengeRating(
   level: DifficultyLevel,
@@ -140,9 +143,20 @@ export function sessionChallengeRating(
   const params = orderSweepParamsFromProfile(profile);
   const { minMs, maxMs } = adaptiveBounds(params);
   const span = maxMs - minMs;
-  if (span <= 0) {
+  if (!(span > 0) || !Number.isFinite(finalWindowMs)) {
     return profile.challengeRating;
   }
   const clamped = Math.min(maxMs, Math.max(minMs, finalWindowMs));
-  return Math.min(1, Math.max(0, 1 - (clamped - minMs) / span));
+  const hardSpan = params.initialWindowMs - minMs; // start → floor band
+  const easySpan = maxMs - params.initialWindowMs; // start → cap band
+  if (clamped <= params.initialWindowMs && hardSpan > 0) {
+    // Harder-than-start half: 0.5 at the start window up to 1 at the floor.
+    return Math.min(1, Math.max(0, 0.5 + (0.5 * (params.initialWindowMs - clamped)) / hardSpan));
+  }
+  if (easySpan > 0) {
+    // Easier-than-start half: 0.5 at the start window down to 0 at the cap.
+    return Math.min(1, Math.max(0, (0.5 * (maxMs - clamped)) / easySpan));
+  }
+  // Degenerate band without one of the halves: everything left is neutral.
+  return 0.5;
 }

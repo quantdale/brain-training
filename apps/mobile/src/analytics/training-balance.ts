@@ -152,8 +152,14 @@ export interface WeeklyBalanceSlice {
 
 /**
  * Week-by-week balance history for a stacked share view: `weekCount` slices of
- * 7 days each, ending at `nowMs`, oldest first. Domains keep canonical order
- * in every slice (NOT count order) so stacked-bar segment colors stay stable
+ * 7 days each, ending at `nowMs`, oldest first. Slices tile time without gaps
+ * or overlaps: slice `w` holds sessions aged `[w·7, (w+1)·7)` days, i.e.
+ * `completedAt ∈ (end − 7d, end]` with `end = now − w·7d`. The newest slice
+ * therefore includes a session completed exactly at `nowMs`, each shared edge
+ * belongs to the newer slice (mirroring the volume-view boundary convention),
+ * future-dated rows land nowhere, and sessions older than the oldest slice
+ * stay outside the history by construction. Domains keep canonical order in
+ * every slice (NOT count order) so stacked-bar segment colors stay stable
  * across weeks — count ordering here would make the same domain change color
  * week to week.
  */
@@ -169,14 +175,14 @@ export function buildWeeklyBalance(
 
   for (let w = weekCount - 1; w >= 0; w -= 1) {
     const end = nowMs - w * 7 * DAY_MS;
-    const start = end - 7 * DAY_MS;
+    const lowerExclusive = end - 7 * DAY_MS;
 
     const counts = new Map<string, number>();
     let mapped = 0;
     let total = 0;
     for (const session of sessions) {
       const t = session.completedAt;
-      if (t < start || t >= end) {
+      if (t <= lowerExclusive || t > end) {
         continue;
       }
       total += 1;

@@ -8,7 +8,7 @@
  * dismissal test waits out the real window once.
  */
 import { describe, expect, it } from '@jest/globals';
-import { act, render } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import { celebrateReward, RewardCelebrationHost } from '../celebration';
@@ -67,8 +67,12 @@ describe('RewardCelebrationHost', () => {
     expect(getAllByText('Fan-out')).toHaveLength(2);
   });
 
-  // LAST: uses real wall-clock time (~3.6s) because react-native's jest
+  // LAST: uses real wall-clock time (~3.5s) because react-native's jest
   // polyfill routes component-level setTimeout around jest's fake clock.
+  // W13: the fixed 3600ms sleep raced the component's 3500ms timer with only
+  // ~90ms of margin and failed under heavy parallel load (the dismissal
+  // callback itself gets starved). Condition-based wait instead: the banner
+  // MUST disappear once the real timer fires — if it never does, this fails.
   it('auto-dismisses the banner after ~3.5s', async () => {
     const { getByTestId, queryByTestId, queryByText } = await render(
       <RewardCelebrationHost />,
@@ -77,9 +81,12 @@ describe('RewardCelebrationHost', () => {
     await emit({ title: 'Fleeting', xp: 1 });
     expect(getByTestId('reward-celebration')).toBeTruthy();
 
-    // Just past the 3500ms dismissal window.
-    await new Promise((resolve) => setTimeout(resolve, 3600));
-    expect(queryByTestId('reward-celebration')).toBeNull();
-    expect(queryByText('Fleeting')).toBeNull();
+    await waitFor(
+      () => {
+        expect(queryByTestId('reward-celebration')).toBeNull();
+        expect(queryByText('Fleeting')).toBeNull();
+      },
+      { timeout: 8_000 },
+    );
   }, 10_000);
 });

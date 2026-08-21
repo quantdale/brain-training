@@ -36,3 +36,16 @@ run in normal CI:
   reuse / release lifecycle of the audio engine.
 - `src/__tests__/perf-use-db-data.test.tsx` — load-once-per-deps and
   stale-response cancellation for the shared data hook.
+
+## Campaign 011 W10 addition: old-vs-new snapshot read measurement
+
+`apps/mobile/src/analytics/__tests__/projections-differential.test.ts` contains
+an opt-in describe (`perf: projection vs legacy read cost`, enabled via
+`PERF_PROBE=1`) that measures, on one seeded fixture per size (1k/5k/20k):
+
+- legacy full-row `listRecent` vs `listProgressProjection` (+ JS mapping) vs
+  end-to-end `loadProgressSnapshot`, each a median of 3 in-process runs;
+- results print as `PERF_W10_JSON:{...}` lines for capture.
+
+Unlike the scenarios above it compares old-vs-new inside ONE process, so it is
+meaningful even on a loaded machine; absolute values remain machine-relative.

@@ -70,7 +70,17 @@ export function reconcileWorkout(
  const eligible =
   eligibleIds instanceof Set ? eligibleIds : new Set(eligibleIds);
 
- const validIds = instance.gameIds.filter((id) => eligible.has(id));
+ // Collapse duplicate ids (a drifted row could store the same game twice,
+ // which would double-count completions in summaries): keep the FIRST
+ // occurrence so order and the earliest positions win.
+ const seenIds = new Set<string>();
+ const validIds = instance.gameIds.filter((id) => {
+  if (!eligible.has(id) || seenIds.has(id)) {
+   return false;
+  }
+  seenIds.add(id);
+  return true;
+ });
  if (validIds.length === 0) {
   // Every stored game was retired / is ineligible: signal regeneration.
   return { instance: null, changed: true };

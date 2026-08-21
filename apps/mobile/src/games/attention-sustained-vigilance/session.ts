@@ -23,7 +23,13 @@ import type {
   VigilanceStats,
 } from './types';
 import { versionToNumber } from './versions';
-import { goAccuracyOf, holdAccuracyOf, meanOf, meanSpeedOf } from './scoring';
+import {
+  goAccuracyOf,
+  holdAccuracyOf,
+  meanOf,
+  meanSpeedOf,
+  overallAccuracyOf,
+} from './scoring';
 
 /** Persistence seam so tests can substitute the db layer. */
 export interface SessionPersistence {
@@ -95,6 +101,12 @@ export function buildVigilanceRawResult(input: BuildRawResultInput): VigilanceRa
     reactions: input.stats.reactions,
     goAccuracy: goAccuracyOf(input.stats.hits, input.stats.omissions),
     holdAccuracy: holdAccuracyOf(input.stats.correctHolds, input.stats.commissions),
+    // Catalog-standard analytics field (see types.ts): correct trials / played.
+    accuracy: overallAccuracyOf(
+      input.stats.hits,
+      input.stats.correctHolds,
+      input.stats.trialsPlayed,
+    ),
     meanSpeed: meanSpeedOf(input.stats.totalSpeed, input.stats.hits),
     finalResponseWindowMs: input.finalResponseWindowMs,
     stopDigit: input.stopDigit,

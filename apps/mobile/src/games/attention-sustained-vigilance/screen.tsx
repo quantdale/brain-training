@@ -261,15 +261,26 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
 
   const pauseSession = useCallback(() => {
     const current = stateRef.current;
-    if (current.phase !== 'stream' || current.paused) {
+    const lifecycle = lifecycleRef.current;
+    // Guard the lifecycle transition itself, not just the reducer state: a
+    // rapid double-tap can re-enter before the re-render, and a second strict
+    // `pause()` from 'paused' would throw IllegalTransitionError.
+    if (current.phase !== 'stream' || current.paused || lifecycle?.status !== 'active') {
       return;
     }
-    lifecycleRef.current?.pause();
+    lifecycle.pause();
     dispatch({ type: 'pause' });
   }, [dispatch]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    const lifecycle = lifecycleRef.current;
+    // Mirror of pauseSession: `resume()` is only legal from 'paused', so a
+    // double-tapped Resume (or resume after finish) must be dropped instead of
+    // throwing and never re-open a finished session.
+    if (lifecycle?.status !== 'paused') {
+      return;
+    }
+    lifecycle.resume();
     dispatch({ type: 'resume' });
   }, [dispatch]);
 

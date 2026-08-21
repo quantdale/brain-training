@@ -96,6 +96,9 @@ node scripts/qa/autobot.mjs --mode workout
 # category canaries only (gate 12.9)
 node scripts/qa/autobot.mjs --mode canaries
 
+# pre-build every game's lazy Metro chunk before timed runs (one-time cost)
+node scripts/qa/autobot.mjs --mode warm-bundles
+
 # print the derived catalog (offline; asserts game.json <-> registry agreement)
 node scripts/qa/autobot.mjs --list-games
 node scripts/qa/autobot.mjs --list-games --category "Logic & Problem Solving"
@@ -108,6 +111,16 @@ Env overrides: `QA_DEVICE` (adb serial), `QA_PKG` (default `com.braintraining.ap
 `QA_SCHEME` (default `braintraining`), `QA_OUT` (artifact root), `QA_SQLITE`
 (path to `sqlite3`). An unknown `--game`/`--category` value is rejected before
 any device contact.
+
+## Lazy-chunk budgets
+
+Game screens are lazy-loaded, so Metro builds each game's bundle chunk on
+first request. On a cold cache under heavy host load one chunk took ~246s,
+which is why screen waits are env-tunable instead of fixed:
+`QA_SCREEN_BUDGET_MS` (default 120000) for per-game screen/intro loads and
+`QA_NEXT_BUDGET_MS` (default 60000) for next-game probes. Run
+`--mode warm-bundles` once after a Metro restart to move that one-time build
+cost out of timed runs (`QA_WARM_STEP_MS`, `QA_WARM_CAP_MS` tune its pacing).
 
 ## Reproducibility
 

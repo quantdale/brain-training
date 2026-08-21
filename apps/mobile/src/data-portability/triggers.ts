@@ -41,6 +41,10 @@ export async function dropTriggers(db: AppDatabase, triggers: TriggerDef[]): Pro
 export async function recreateTriggers(db: AppDatabase, triggers: TriggerDef[]): Promise<void> {
   for (const t of triggers) {
     if (t.sql) {
+      // Tolerate partially-dropped states: if the DROP loop itself failed
+      // midway, some definitions still exist and a bare CREATE TRIGGER would
+      // throw "already exists", masking the original error.
+      await db.rawExec(`DROP TRIGGER IF EXISTS "${t.name}"`);
       await db.rawExec(t.sql);
     }
   }
@@ -50,14 +54,18 @@ export async function recreateTriggers(db: AppDatabase, triggers: TriggerDef[]):
  * Clear the listed tables with the append-only triggers temporarily removed,
  * then restore them. The clear itself runs in one transaction so a crash
  * during deletion leaves the data intact (rolled back) and triggers restored.
+ *
+ * Campaign 011 (W12): the DROP runs INSIDE the guarded region — a failure
+ * during the DDL itself previously skipped the `finally` entirely, leaving
+ * the connection permanently without its append-only guards.
  */
 export async function clearTablesIgnoringTriggers(
   db: AppDatabase,
   tables: string[],
 ): Promise<void> {
   const triggers = await captureTriggers(db);
-  await dropTriggers(db, triggers);
   try {
+    await dropTriggers(db, triggers);
     await db.transaction(async (txn) => {
       for (const table of tables) {
         await txn.exec(`DELETE FROM ${table}`);

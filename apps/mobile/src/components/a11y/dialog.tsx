@@ -15,7 +15,7 @@
  * primitives consume this module family's leaf files, so importing them back
  * here would create an import cycle.
  */
-import { useEffect, type PropsWithChildren } from 'react';
+import { useEffect, useRef, type PropsWithChildren } from 'react';
 import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
 
 import { announce } from '@/components/a11y/announcements';
@@ -51,14 +51,23 @@ export function A11yDialog({
   const theme = useTheme();
   const cardRef = useInitialA11yFocus<View>(visible);
 
+  // Latest-value refs so the open announcement reads fresh copy while firing
+  // exactly once per open: callers routinely pass fresh inline closures for
+  // `onRequestClose` on every render, and keying the announcement on that
+  // identity would re-announce the title on every parent re-render (e.g.
+  // every gameplay tick) while the dialog is open.
+  const announceStateRef = useRef({ title, announceOnShow });
+  announceStateRef.current = { title, announceOnShow };
+
   useEffect(() => {
-    if (!visible) {
+    if (!visible || !announceStateRef.current.announceOnShow) {
       return;
     }
-    if (announceOnShow) {
-      announce(title);
-    }
-    if (!onRequestClose) {
+    announce(announceStateRef.current.title);
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible || !onRequestClose) {
       return;
     }
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -66,7 +75,7 @@ export function A11yDialog({
       return true;
     });
     return () => subscription.remove();
-  }, [visible, title, announceOnShow, onRequestClose]);
+  }, [visible, onRequestClose]);
 
   if (!visible) {
     return null;
@@ -79,6 +88,7 @@ export function A11yDialog({
       <Pressable
         style={StyleSheet.absoluteFill}
         accessibilityLabel="Dismiss dialog"
+        testID={testID ? `${testID}-scrim-dismiss` : undefined}
         onPress={onRequestClose}
         disabled={!onRequestClose}
       />

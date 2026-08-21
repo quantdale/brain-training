@@ -202,7 +202,9 @@ describe('MathScreen', () => {
     const raw = input.session.rawResult as MathRawResult;
     expect(raw.score).toBe(720); // 5 × (100 + 44)
     expect(raw.avgCorrectMs).toBe(1_000);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    // 1.1.0: campaign-010 W23 content wave (expert two-step tier); scoring
+    // semantics unchanged, so the rest of this suite still pins the old math.
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);

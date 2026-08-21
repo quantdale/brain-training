@@ -325,4 +325,60 @@ describe('OrderPathScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
     expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
   });
+
+  // ---- Campaign 011 W05 regressions (W18's flagged expiry edge after the
+  // useGameTimeout conversion): the deadline boundary is strict `>` and a
+  // late tap never steals the resolution from the expiry timer.
+
+  it('a round solved exactly AT the deadline still counts (strict > boundary)', async () => {
+    const seed = 'deadline-boundary';
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    const first = sessionRounds(seed, 1)[0];
+    // Advance only the clock TO the deadline — the fake expiry timer has not
+    // fired yet, so this races it.
+    await act(async () => {
+      clock.advance(BUDGET_MS);
+    });
+    // Place the full solution; every pick stamps nowMs === deadlineMs, which
+    // the guards must accept (only strictly-after is rejected).
+    await solveCurrentRound(first);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-correct'))).toBeOnTheScreen();
+
+    // The pending expiry timer fires afterwards but is a no-op (round already
+    // resolved) — no double resolution.
+    await act(async () => {
+      jest.advanceTimersByTime(BUDGET_MS);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'round-correct'))).toBeOnTheScreen();
+  });
+
+  it('a pick strictly AFTER the deadline is ignored; expiry owns the resolution', async () => {
+    const seed = 'late-pick';
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    const first = sessionRounds(seed, 1)[0];
+    // Move past the deadline WITHOUT advancing fake timers: the expiry
+    // dispatch is still pending, so this races it.
+    await act(async () => {
+      clock.advance(BUDGET_MS + 1);
+    });
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, 'item', first.solution[0])),
+    );
+    // The late pick was rejected — no round outcome yet.
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-result'))).toBeNull();
+
+    // The expiry timer then resolves the round as a timeout.
+    await act(async () => {
+      jest.advanceTimersByTime(BUDGET_MS + 10);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeOnTheScreen();
+    // Exactly one resolution: stats show a single played/failed round.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent('Score 0');
+  });
 });

@@ -168,4 +168,93 @@ describe('QuickCompareScreen', () => {
     expect((input.session.rawResult as QuickCompareRawResult).forced).toBe(true);
     expect(input.session.normalizedResult).toBe(0);
   });
+
+  // ---- Campaign 011 W05 regressions: the per-round expiry timer had NO
+  // coverage at all. These pin the useGameTimeout conversion semantics
+  // (W18's flagged risk): deadline resolution, the strict `>` answer
+  // boundary, and pause-at-zero resume never losing the expiry.
+
+  it('window expiry resolves the round as a miss ("Too slow")', async () => {
+    const { clock } = await renderScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    // normal window is 2600 ms; the scheduled expiry fires on it.
+    await act(async () => {
+      clock.advance(2_600);
+      jest.advanceTimersByTime(2_600);
+    });
+
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Too slow');
+    // Exactly one miss recorded for round 1.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next')));
+    expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
+  });
+
+  it('an answer exactly AT the deadline counts; the pending expiry cannot double-resolve', async () => {
+    const { clock } = await renderScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    // Advance only the clock to the deadline — the fake expiry timer has not
+    // fired yet, so this races it.
+    await act(async () => {
+      clock.advance(PARAMS.windowMs);
+    });
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, 'option', String(correctIndex(0)))),
+    );
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Correct!');
+
+    // The expiry timer fires afterwards but is a no-op (round already resolved).
+    await act(async () => {
+      jest.advanceTimersByTime(PARAMS.windowMs);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Correct!');
+  });
+
+  it('an answer strictly AFTER the deadline is ignored and expiry resolves the miss', async () => {
+    const { clock } = await renderScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await act(async () => {
+      clock.advance(PARAMS.windowMs + 1); // past the deadline; timer still pending
+    });
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, 'option', String(correctIndex(0)))),
+    );
+    // Late tap rejected — no verdict yet.
+    expect(screen.queryByTestId(testId(GAME_ID, 'verdict'))).toBeNull();
+
+    // The expiry then owns the resolution.
+    await act(async () => {
+      jest.advanceTimersByTime(PARAMS.windowMs + 10);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Too slow');
+  });
+
+  it('pausing at zero remaining then resuming still expires promptly (never buys time)', async () => {
+    const { clock } = await renderScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await act(async () => {
+      clock.advance(PARAMS.windowMs - 1); // 1 ms of window left
+    });
+
+    // Pause captures remaining=1ms and freezes everything.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    expect(screen.getByTestId(`${GAME_ID}.pause-overlay`)).toBeOnTheScreen();
+    await act(async () => {
+      clock.advance(60_000);
+      jest.advanceTimersByTime(60_000);
+    });
+    // Frozen: paused wall-time must not expire or resolve the round.
+    expect(screen.queryByTestId(testId(GAME_ID, 'verdict'))).toBeNull();
+
+    // Resume re-anchors deadline = now + 1ms; the rescheduled 0-ish timeout
+    // must still fire (the W18 "0 ms-remaining" edge) instead of being lost.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'verdict'))).toHaveTextContent('Too slow');
+  });
 });

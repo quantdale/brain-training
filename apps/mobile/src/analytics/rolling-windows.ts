@@ -84,18 +84,21 @@ export function compareRates(
   nowMs: number,
   windowKey: TimeWindowKey,
 ): RateComparison {
-  if (sessions.length === 0) {
+  // Future-dated rows (import artifacts / clock skew) stay out of the lifetime
+  // side exactly as they do out of the recent window below.
+  const stored = sessions.filter((s) => s.completedAt <= nowMs);
+  if (stored.length === 0) {
     return { recentPerWeek: null, lifetimePerWeek: null, deltaPerWeek: null };
   }
 
   let first = Infinity;
-  for (const s of sessions) {
+  for (const s of stored) {
     if (s.completedAt < first) {
       first = s.completedAt;
     }
   }
   const lifetimeWeeks = Math.max(1, (nowMs - first) / WEEK_MS);
-  const lifetimePerWeek = sessions.length / lifetimeWeeks;
+  const lifetimePerWeek = stored.length / lifetimeWeeks;
 
   const windowDays = WINDOW_DAYS[windowKey];
   if (windowDays === null) {
@@ -105,7 +108,7 @@ export function compareRates(
 
   const start = windowStartMs(nowMs, windowKey);
   let recentCount = 0;
-  for (const s of sessions) {
+  for (const s of stored) {
     if (s.completedAt >= start && s.completedAt <= nowMs) {
       recentCount += 1;
     }

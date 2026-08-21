@@ -49,16 +49,32 @@ export interface BestPoint {
 /**
  * Build the PB history from points ordered in any direction; they are sorted
  * ascending by `t` first so the chain is deterministic regardless of input
- * order. Ties keep the earliest holder.
+ * order. Ties on value keep the earliest holder. Sessions sharing one exact
+ * timestamp (duplicate/batch imports) collapse to that instant's maximum
+ * before scanning — otherwise the chain would depend on which of the tied
+ * rows happened to be read first, breaking the order-independence promise.
  */
 export function buildPersonalBestHistory(
   points: readonly BestPoint[],
   nowMs: number,
 ): PersonalBestHistory {
   const ordered = points.slice().sort((a, b) => a.t - b.t);
+  // Collapse equal-timestamp groups to their maximum (first row wins exact
+  // (t, value) duplicates), making the chain a function of the row set alone.
+  const perInstant: BestPoint[] = [];
+  for (const p of ordered) {
+    const prev = perInstant[perInstant.length - 1];
+    if (prev && prev.t === p.t) {
+      if (p.value > prev.value) {
+        perInstant[perInstant.length - 1] = p;
+      }
+    } else {
+      perInstant.push(p);
+    }
+  }
   const events: PersonalBestEvent[] = [];
   let best = -Infinity;
-  for (const p of ordered) {
+  for (const p of perInstant) {
     if (p.value > best) {
       best = p.value;
       events.push({ t: p.t, value: p.value, sessionId: p.sessionId ?? null });

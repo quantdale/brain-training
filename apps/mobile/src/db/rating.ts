@@ -72,9 +72,15 @@ interface RatingHistoryRow {
 
 const SELECT_ALL = 'SELECT domain, rating, sessions, updated_at FROM domain_ratings ORDER BY domain';
 const SELECT_ONE = 'SELECT domain, rating, sessions, updated_at FROM domain_ratings WHERE domain = ?';
-/** Shared projection for history reads (aliased snake_case -> camelCase). */
+/**
+ * Shared projection for history reads. Columns stay raw snake_case on purpose:
+ * `mapHistoryRow` is the single snake_case -> camelCase translation point for
+ * every history read. (Aliasing here while the mapper still read snake_case
+ * keys silently yielded `undefined` sessionId/ratingAfter/createdAt — pinned
+ * by the full-projection regression test in rating.test.ts.)
+ */
 const HISTORY_COLUMNS =
-  'SELECT id, session_id AS sessionId, domain, delta, rating_after AS ratingAfter, created_at AS createdAt FROM rating_history';
+  'SELECT id, session_id, domain, delta, rating_after, created_at FROM rating_history';
 const SELECT_HISTORY = `${HISTORY_COLUMNS} ORDER BY id DESC LIMIT ?`;
 const SELECT_HISTORY_BY_SESSION = `${HISTORY_COLUMNS} WHERE session_id = ? ORDER BY id ASC`;
 

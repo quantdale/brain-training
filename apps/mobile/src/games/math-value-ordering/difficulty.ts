@@ -128,8 +128,9 @@ export function resolveValueOrderingDifficulty(level: DifficultyLevel): Difficul
 /**
  * Recover validated parameters from a resolved profile (e.g. a persisted
  * `difficulty` record). Throws when a required parameter is missing/non-finite
- * or the configuration is degenerate (empty range, fewer distinct values than
- * tiles), instead of silently producing an ambiguous session.
+ * or the configuration is degenerate (empty value range, fewer distinct values
+ * than tiles, non-positive rounds/budget, inverted expression-operand range),
+ * instead of silently producing an ambiguous or timing-free session.
  */
 export function valueOrderingParamsFromProfile(
   profile: DifficultyProfile,
@@ -168,15 +169,34 @@ export function valueOrderingParamsFromProfile(
       `math-value-ordering: expressionTiles must be an integer in [0, tiles], got ${expressionTiles}`,
     );
   }
+  const rounds = requireNumber('rounds');
+  if (!Number.isInteger(rounds) || rounds < 1) {
+    throw new Error(`math-value-ordering: rounds must be an integer ≥ 1, got ${rounds}`);
+  }
+  const budgetMs = requireNumber('budgetMs');
+  if (budgetMs <= 0) {
+    // A non-positive budget would silently disable timeouts (ticks and
+    // past-budget taps both guard on it) — reject instead of misbehaving.
+    throw new Error(`math-value-ordering: budgetMs must be positive, got ${budgetMs}`);
+  }
+  const exprOperandMin = requireNumber('exprOperandMin');
+  const exprOperandMax = requireNumber('exprOperandMax');
+  if (expressionTiles > 0 && !(exprOperandMax >= exprOperandMin)) {
+    // Degenerate operand range would only explode later inside the generator's
+    // `nextIntRange`; fail fast at decode time instead.
+    throw new Error(
+      `math-value-ordering: degenerate expression operand range [${exprOperandMin}, ${exprOperandMax}]`,
+    );
+  }
   return {
-    rounds: requireNumber('rounds'),
-    budgetMs: requireNumber('budgetMs'),
+    rounds,
+    budgetMs,
     tiles,
     minValue,
     maxValue,
     expressionTiles,
-    exprOperandMin: requireNumber('exprOperandMin'),
-    exprOperandMax: requireNumber('exprOperandMax'),
+    exprOperandMin,
+    exprOperandMax,
     ...(minTiles !== undefined ? { minTiles } : {}),
     ...(maxTiles !== undefined ? { maxTiles } : {}),
     ...(stepTiles !== undefined ? { stepTiles } : {}),

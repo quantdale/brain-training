@@ -84,7 +84,9 @@ export interface WorkoutCompletionSummary {
  */
 export function buildWorkoutSummary(
   instance: WorkoutInstance,
-  sessions: readonly WorkoutSessionRef[],
+  // Defaults to [] so a direct caller omitting the candidate list gets an
+  // unplayed summary instead of a TypeError from the match loop below.
+  sessions: readonly WorkoutSessionRef[] = [],
   reasons: readonly WorkoutSelectionReason[] | null = null,
 ): WorkoutCompletionSummary {
   const parsed = parseInstanceKey(instance.date);

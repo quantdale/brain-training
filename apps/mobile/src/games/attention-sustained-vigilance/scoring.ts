@@ -97,6 +97,18 @@ export function holdAccuracyOf(correctHolds: number, commissions: number): numbe
   return targetTrials > 0 ? correctHolds / targetTrials : 0;
 }
 
+/**
+ * Overall trial accuracy on the shared analytics scale: correct trials
+ * (hits + correct holds) over all played trials; 0 when nothing was played.
+ */
+export function overallAccuracyOf(
+  hits: number,
+  correctHolds: number,
+  trialsPlayed: number,
+): number {
+  return trialsPlayed > 0 ? (hits + correctHolds) / trialsPlayed : 0;
+}
+
 /** Mean of a numeric list; null for an empty list. */
 export function meanOf(values: readonly number[]): number | null {
   if (values.length === 0) {

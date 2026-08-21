@@ -11,7 +11,7 @@
  * - touch-target: the 44pt minimum control contract (shell-wide).
  * - font-scale: dynamic-type cap (~1.35) + board-glyph opt-out constants.
  * - reduced-motion: shared preference hook + pure motion selectors.
- * - focus: screen-reader cursor helpers (setAccessibilityFocus with retries).
+ * - focus: screen-reader cursor helpers (sendAccessibilityEvent focus with retries).
  * - announcements: imperative announce + polite/assertive live regions.
  * - stats: single-stop grouped stat semantics (`StatGroup`, `formatStats`).
  * - result-feedback: game-result announcement pattern.

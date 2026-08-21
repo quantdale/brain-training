@@ -88,13 +88,14 @@ export async function previewImport(
   // Run the real apply inside a transaction that we intentionally abort so the
   // database is left completely untouched while we capture exact counters.
   // For replace, the clear needs the append-only triggers dropped at the
-  // connection level (modern SQLite removed `PRAGMA triggers`).
+  // connection level (modern SQLite removed `PRAGMA triggers`). The drop runs
+  // inside the guarded region so a mid-DDL failure still recreates them.
   let triggers: Awaited<ReturnType<typeof captureTriggers>> | null = null;
-  if (mode === 'replace') {
-    triggers = await captureTriggers(db);
-    await dropTriggers(db, triggers);
-  }
   try {
+    if (mode === 'replace') {
+      triggers = await captureTriggers(db);
+      await dropTriggers(db, triggers);
+    }
     await db.transaction(async (txn) => {
       await applyData(txn, parsed.data, mode, c);
       throw new PreviewRollback();

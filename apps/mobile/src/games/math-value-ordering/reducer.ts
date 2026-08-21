@@ -178,6 +178,13 @@ export function valueOrderingGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 

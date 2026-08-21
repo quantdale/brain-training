@@ -35,9 +35,14 @@ export interface ActivityCalendar {
   days: CalendarDay[];
   /** Number of distinct days with at least one session. */
   activeDays: number;
-  /** Total sessions in the window. */
+  /**
+   * Sessions whose UTC day falls inside the grid (`Σ days.count`). Sessions
+   * completed outside the covered window — older history or corrupt
+   * future-dated rows — are not part of this view and do not inflate the
+   * total, so every displayed number traces to the rendered cells.
+   */
   totalSessions: number;
-  /** Mean sessions per active day (`0` when nothing was played). */
+  /** Mean in-window sessions per active day (`0` when nothing was played). */
   avgPerActiveDay: number;
   /** Busiest day in the window, or `null` when empty. */
   busiest: CalendarDay | null;
@@ -69,9 +74,14 @@ export function buildActivityCalendar(
     days.push({ dateKey: key, offsetDays: offset, count, hasSession: count > 0 });
   }
 
+  // Totals come from the grid cells only: callers hand in the full stored
+  // history, so counting `sessions.length` would mix out-of-window (and
+  // future-dated) rows into a window-scoped stat.
+  let totalSessions = 0;
   let activeDays = 0;
   let busiest: CalendarDay | null = null;
   for (const day of days) {
+    totalSessions += day.count;
     if (day.count > 0) {
       activeDays += 1;
       if (!busiest || day.count > busiest.count) {
@@ -91,8 +101,8 @@ export function buildActivityCalendar(
   return {
     days,
     activeDays,
-    totalSessions: sessions.length,
-    avgPerActiveDay: activeDays > 0 ? sessions.length / activeDays : 0,
+    totalSessions,
+    avgPerActiveDay: activeDays > 0 ? totalSessions / activeDays : 0,
     busiest,
   };
 }
@@ -115,7 +125,9 @@ export function activityFrequencyBuckets(calendar: ActivityCalendar): { perDay: 
 /**
  * Whole days since the most recent completed session (`0` = today), or `null`
  * when there are no sessions at all. A staleness indicator derived only from
- * stored completion timestamps.
+ * stored completion timestamps. Future-dated rows (import artifacts / clock
+ * skew) are ignored, matching the windowed views' upper clamp — a corrupt
+ * timestamp must never render as a negative staleness.
  */
 export function daysSinceLastSession(
   sessions: readonly GameSessionRecord[],
@@ -123,11 +135,14 @@ export function daysSinceLastSession(
 ): number | null {
   let last: number | null = null;
   for (const session of sessions) {
+    if (session.completedAt > nowMs) {
+      continue;
+    }
     if (last === null || session.completedAt > last) {
       last = session.completedAt;
     }
   }
-  return last === null ? null : Math.floor((nowMs - last) / DAY_MS);
+  return last === null ? null : Math.max(0, Math.floor((nowMs - last) / DAY_MS));
 }
 
 /** Consecutive active-day runs inside a calendar window. */

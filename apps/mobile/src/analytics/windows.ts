@@ -41,9 +41,14 @@ export function windowStartMs(nowMs: number, key: TimeWindowKey): number {
   return nowMs - days * DAY_MS;
 }
 
-/** True when `t` falls inside the window (inclusive of the start boundary). */
+/**
+ * True when `t` falls inside the window: at or after the window start and no
+ * later than `nowMs`. The upper clamp keeps corrupt/future-dated rows (import
+ * artifacts, clock skew) out of every windowed view, matching
+ * `buildSessionVolume` and `compareRates`.
+ */
 export function isWithinWindow(t: number, nowMs: number, key: TimeWindowKey): boolean {
-  return t >= windowStartMs(nowMs, key);
+  return t >= windowStartMs(nowMs, key) && t <= nowMs;
 }
 
 /** Filter a list of timestamped items to those inside the window. */
@@ -53,7 +58,7 @@ export function filterByWindow<T extends { completedAt: number }>(
   key: TimeWindowKey,
 ): T[] {
   const start = windowStartMs(nowMs, key);
-  return items.filter((item) => item.completedAt >= start);
+  return items.filter((item) => item.completedAt >= start && item.completedAt <= nowMs);
 }
 
 /** Filter rating-history entries (which use `createdAt`) to the window. */
@@ -63,5 +68,5 @@ export function filterHistoryByWindow<T extends { createdAt: number }>(
   key: TimeWindowKey,
 ): T[] {
   const start = windowStartMs(nowMs, key);
-  return items.filter((item) => item.createdAt >= start);
+  return items.filter((item) => item.createdAt >= start && item.createdAt <= nowMs);
 }

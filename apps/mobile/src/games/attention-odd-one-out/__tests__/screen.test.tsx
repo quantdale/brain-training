@@ -380,4 +380,41 @@ describe('OddOneOutScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tile', String(round0.oddIndex))));
     expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
   });
+
+  // ---- Campaign 011 W05 regressions: pin the tick cadence of the shared
+  // `useGameInterval` conversion (W18's flagged risk — "interval no longer
+  // restarts on deadlineMs change"). Every deadline change in this game
+  // passes through roundResult/pause, so `active` flips and re-arms the
+  // interval; these tests prove pacing restarts cleanly per round and that
+  // the timeout lands on the first tick past the deadline.
+
+  it('ticks only at the host cadence and each new round re-arms the interval', async () => {
+    const seed = 'cadence';
+    const boards = boardsForSession(seed, 'normal');
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    expect(screen.getByTestId(testId(GAME_ID, 'time-left'))).toHaveTextContent('12.0s');
+
+    // Sub-tick advance: no tick yet, display unchanged (pacing comes from the
+    // 250 ms host interval, not per-frame).
+    await advanceTime(clock, 200);
+    expect(screen.getByTestId(testId(GAME_ID, 'time-left'))).toHaveTextContent('12.0s');
+    // One more 50 ms reaches the first tick boundary → display refreshes.
+    await advanceTime(clock, 50);
+    expect(screen.getByTestId(testId(GAME_ID, 'time-left'))).toHaveTextContent('11.8s');
+
+    // Solve round 1 immediately; open round 2.
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tile', String(boards[0].oddIndex))));
+    expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+
+    // Round 2 re-armed from its own full effective window — the step
+    // escalation shrank it by windowStepMs (12s → 10.5s) — and the interval
+    // is alive again in the new playing phase.
+    expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'time-left'))).toHaveTextContent('10.5s');
+    await advanceTime(clock, 250);
+    expect(screen.getByTestId(testId(GAME_ID, 'time-left'))).toHaveTextContent('10.3s');
+  });
 });

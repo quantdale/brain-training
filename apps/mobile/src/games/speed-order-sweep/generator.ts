@@ -72,8 +72,11 @@ function sampleOrderedValues(rng: Rng, count: number, maxValue: number): number[
 
 /** True when the row-major board reading is exactly the ascending sequence. */
 function isTriviallySorted(tokens: readonly Token[], order: readonly number[]): boolean {
-  // Token at cell k must hold order[k] for the board to read as sorted.
-  return tokens.every((token) => token.value === order[token.id]);
+  // `tokens` arrives sorted by cell id, so the k-th placed token sits at
+  // reading position k even when a ragged grid leaves interior holes;
+  // comparing against `order[token.id]` would misalign whenever a hole
+  // shifts the visible reading away from the id indexing.
+  return tokens.every((token, index) => token.value === order[index]);
 }
 
 /** Deterministic candidate board for one placement attempt. */

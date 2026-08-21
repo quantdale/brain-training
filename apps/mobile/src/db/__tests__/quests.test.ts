@@ -121,9 +121,24 @@ describe('QuestRepository', () => {
     expect(await quests.claim('play-three', '2026-08-16')).toBe(false);
     expect((await quests.listProgressForPeriod('2026-08-16'))[0].claimedAt).toBe(T0);
 
-    // A different period is independent.
-    await quests.recordProgress({ questId: 'play-three', period: '2026-08-17', progress: 1 });
+    // A different period is independent. (W13: the fixture now stamps
+    // `completedAt` — a never-completed row must NOT be claimable, so the
+    // independence check needs a genuinely completed row.)
+    await quests.recordProgress({
+      questId: 'play-three',
+      period: '2026-08-17',
+      progress: 3,
+      completedAt: T0 + 10_000,
+    });
     expect(await quests.claim('play-three', '2026-08-17')).toBe(true);
+
+    // W13 regression pin: an UNCOMPLETED row can never have its claim marker
+    // burned — claiming below the goal is refused at the repository layer too.
+    await quests.recordProgress({ questId: 'play-three', period: '2026-08-18', progress: 2 });
+    expect(await quests.claim('play-three', '2026-08-18')).toBe(false);
+    expect(
+      (await quests.listProgressForPeriod('2026-08-18'))[0].claimedAt,
+    ).toBeNull();
   });
 });
 

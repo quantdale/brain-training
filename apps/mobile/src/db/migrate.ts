@@ -42,7 +42,7 @@ export async function runMigrations(
   }
 
   const current = await getSchemaVersion(adapter);
-  
+
   // Task 8.2: Reject if database has newer schema than code supports
   if (current > target) {
     throw new Error(
@@ -50,7 +50,16 @@ export async function runMigrations(
       `Cannot open database with older code. Please update the application.`
     );
   }
-  
+
+  // A negative user_version cannot be produced by this runner; seeing one means
+  // header corruption. Treat the database as unopenable rather than silently
+  // replaying the whole migration chain over live data.
+  if (!Number.isInteger(current) || current < 0) {
+    throw new Error(
+      `Database schema version ${current} is corrupt (expected a non-negative integer).`
+    );
+  }
+
   const pending = migrations.filter((m) => m.version > current && m.version <= target);
 
   for (const migration of pending) {

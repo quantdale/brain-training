@@ -73,6 +73,16 @@ const SQLITE =
   process.env.QA_SQLITE ||
   join(process.env.ANDROID_HOME || "", "platform-tools", "sqlite3.exe");
 
+// Game screens are lazy-loaded (`gameScreenLoaders` dynamic imports). Metro
+// builds each game's chunk on first request; on a cold transform cache under
+// heavy host load a single chunk took ~246s (1451 modules), which silently
+// exceeded the old fixed 25s budget and masqueraded as a product failure
+// ("screen did not load"). Budgets are env-tunable so constrained hosts can
+// tighten them without code edits. Run `--mode warm-bundles` first to move
+// the one-time build cost out of timed runs entirely.
+const SCREEN_BUDGET_MS = Number(process.env.QA_SCREEN_BUDGET_MS || 120000);
+const NEXT_BUDGET_MS = Number(process.env.QA_NEXT_BUDGET_MS || 60000);
+
 // ---------------------------------------------------------------------------
 // Catalog derivation (PURE-ish: filesystem only, no adb — exercised by
 // --self-test and required by --list-games, both of which must work offline)
@@ -679,7 +689,19 @@ async function ensureWarmHome() {
   const xml = readFileSyncSafe(p);
   if (xml && HOME_READY_IDS.some((id) => hasTestId(xml, id))) return true;
   launch();
-  const ready = await waitForHome();
+  let ready = await waitForHome();
+  if (ready) return true;
+  // Recovery: the process may be alive but wedged off-Home (e.g. left on a
+  // lazy-loading game route by an earlier probe) — `am start` is a no-op for
+  // an already-top-most activity, so force-stop and relaunch once.
+  try {
+    adb(["shell", "am", "force-stop", PKG]);
+    await sleep(1000);
+    launch();
+    ready = await waitForHome();
+  } catch {
+    /* fall through */
+  }
   return !!ready;
 }
 function tap(node) {
@@ -820,8 +842,8 @@ async function flowGame(id, opts = {}) {
 
   deepLink(`game/${id}`);
   let xml =
-    (await waitFor(`${id}.screen`, 25000, tag)) ||
-    (await waitFor(`${id}.intro`, 25000, tag));
+    (await waitFor(`${id}.screen`, SCREEN_BUDGET_MS, tag)) ||
+    (await waitFor(`${id}.intro`, SCREEN_BUDGET_MS, tag));
   if (!xml) {
     return failGame(id, "screen did not load", t0, tag);
   }
@@ -1053,9 +1075,72 @@ async function probeNextGame(id, tag) {
   const next = cat.ids[(idx + 1) % cat.ids.length];
   deepLink(`game/${next}`);
   const xml =
-    (await waitFor(`${next}.screen`, 15000, `${tag}-next`)) ||
-    (await waitFor(`${next}.intro`, 15000, `${tag}-next`));
+    (await waitFor(`${next}.screen`, NEXT_BUDGET_MS, `${tag}-next`)) ||
+    (await waitFor(`${next}.intro`, NEXT_BUDGET_MS, `${tag}-next`));
   return { next, ok: !!xml };
+}
+
+// Warm-bundles mode: trigger Metro's lazy-route builds for every catalog id
+// ahead of timed runs. Each deep link makes the app call import() for that
+// game's chunk; Metro keeps the built graph in its transform cache regardless
+// of whether the UI finishes mounting, so later timed flows hit warm caches.
+// Ids whose screen did not mount within the per-id cap get one retry pass —
+// a miss usually means the chunk was still building, not that it is broken.
+async function flowWarmBundles() {
+  beginSteps();
+  const t0 = Date.now();
+  const stepMs = Number(process.env.QA_WARM_STEP_MS || 3000);
+  const capMs = Number(process.env.QA_WARM_CAP_MS || 30000);
+  if (!(await ensureWarmHome())) {
+    return {
+      id: "warm-bundles",
+      passed: false,
+      status: "FAIL",
+      reason: "app did not warm to home",
+      details: [],
+      ms: traceMs(t0),
+      artifacts: captureAll("warm"),
+      trace: traceSlice(),
+    };
+  }
+  const cat = loadCatalog();
+  const attempt = async (ids, label) => {
+    const out = [];
+    for (const id of ids) {
+      deepLink(`game/${id}`);
+      const xml =
+        (await waitFor(`${id}.screen`, capMs, `warm-${label}-${id}`)) ||
+        (await waitFor(`${id}.intro`, capMs, `warm-${label}-${id}`));
+      out.push({ id, mounted: !!xml });
+      log(`${label}: ${id} ${xml ? "mounted" : "COLD (chunk building)"}`);
+    }
+    return out;
+  };
+  const first = await attempt(cat.ids, "p1");
+  let cold = first.filter((r) => !r.mounted).map((r) => r.id);
+  if (cold.length > 0) {
+    await sleep(5000); // give Metro a moment to drain pending builds
+    const retry = await attempt(cold, "p2");
+    cold = retry.filter((r) => !r.mounted).map((r) => r.id);
+  }
+  const warmedCount = cat.ids.length - cold.length;
+  return {
+    id: "warm-bundles",
+    passed: cold.length === 0,
+    status: cold.length === 0 ? "PASS" : "FAIL",
+    reason:
+      cold.length === 0
+        ? `${warmedCount}/${cat.ids.length} game chunks mounted`
+        : `cold after retry (${cold.length}): ${cold.join(", ")}`,
+    details: {
+      firstPassMisses: first.filter((r) => !r.mounted).map((r) => r.id),
+      finalCold: cold,
+    },
+    steps: stepsOut(),
+    ms: traceMs(t0),
+    artifacts: captureAll("warm"),
+    trace: traceSlice(),
+  };
 }
 
 function failGame(id, reason, t0, tag, extra = {}) {
@@ -1255,28 +1340,35 @@ async function flowWorkout() {
     await sleep(700);
     tapTestId(`${gameId}.start`, readFileSyncSafe(dumpHierarchy(`wk-g${i}-s`)));
     await sleep(1200);
-    if (!tapForceWinOnce(gameId, `wk-g${i}`))
-      return {
-        id: "daily-workout",
-        passed: false,
-        status: "FAIL",
-        reason: `qa-toggle/force-win not reachable for ${gameId}`,
-        details: log,
-        ms: traceMs(t0),
-        artifacts: captureAll("workout"),
-        trace: traceSlice(),
-      };
-    const res = await waitFor(
-      i < 3 ? "results-next-game" : "results-workout-complete",
-      15000,
-      `wk-g${i}-res`,
-    );
+    // Multi-round games land on an intermediate round-advance surface after
+    // each forced win, so poll force-win → (next-round)* → shared results
+    // instead of assuming a single tap reaches the workout results. This is
+    // the root-cause fix for the 009 abort at game 0 (context-fit timing).
+    const wantId = i < 3 ? "results-next-game" : "results-workout-complete";
+    let res = null;
+    let fwTaps = 0;
+    const fwDeadline = Date.now() + 45000;
+    while (Date.now() < fwDeadline && !res) {
+      if (tapForceWinOnce(gameId, `wk-g${i}`)) {
+        fwTaps += 1;
+        await sleep(1000);
+      }
+      res = await waitFor(wantId, 3000, `wk-g${i}-res`);
+      if (!res) {
+        // Round gate: advance through intermediate rounds when offered.
+        const rx = readFileSyncSafe(dumpHierarchy(`wk-g${i}-round`));
+        if (rx && hasTestId(rx, `${gameId}.next-round`)) {
+          tapTestId(`${gameId}.next-round`, rx);
+          await sleep(1100);
+        }
+      }
+    }
     if (!res)
       return {
         id: "daily-workout",
         passed: false,
         status: "FAIL",
-        reason: `results not reached for game ${i} (${gameId})`,
+        reason: `results (${wantId}) not reached for game ${i} (${gameId}) after ${fwTaps} force-win taps`,
         details: log,
         ms: traceMs(t0),
         artifacts: captureAll("workout"),
@@ -1480,6 +1572,7 @@ function selfTest() {
 function selectTargets(mode, onlyGame, category, canariesOnly) {
   const cat = loadCatalog();
   const targets = [];
+  if (mode === "warm-bundles") return [{ kind: "warm", id: "warm-bundles" }];
   const wantsGames = mode === "game" || mode === "all" || mode === "catalog";
   if (wantsGames) {
     let list = cat.ids;
@@ -1492,8 +1585,7 @@ function selectTargets(mode, onlyGame, category, canariesOnly) {
   if (mode === "wordmatch" || mode === "all")
     targets.push({ kind: "wordmatch", id: "language-word-match (3.6)" });
   if (mode === "workout" || mode === "all")
-    targets.push({ kind: "workout", id: "daily-workout (6.8/12.7)" });
-  if (mode === "canaries" || mode === "all") {
+    targets.push({ kind: "workout", id: "daily-workout (6.8/12.7)" });  if (mode === "canaries" || mode === "all") {
     for (const g of Object.values(cat.canaries)) {
       if (!targets.some((t) => t.kind === "game" && t.id === g))
         targets.push({ kind: "game", id: g });
@@ -1620,6 +1712,8 @@ async function main() {
 
   for (const t of planned) {
     if (t.kind === "game") report.results.push(await flowGame(t.id, { pause }));
+    else if (t.kind === "warm")
+      report.results.push(await flowWarmBundles());
     else if (t.kind === "wordmatch")
       report.results.push(await flowWordMatch());
     else if (t.kind === "workout") report.results.push(await flowWorkout());

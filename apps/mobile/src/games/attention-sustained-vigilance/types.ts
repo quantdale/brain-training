@@ -150,6 +150,14 @@ export interface VigilanceRawResult extends GameRawResult {
   readonly goAccuracy: number;
   /** Share of target trials held (0 when no target was resolved). */
   readonly holdAccuracy: number;
+  /**
+   * Overall trial accuracy on the shared analytics scale:
+   * `(hits + correctHolds) / trialsPlayed` (0 when no trial was played).
+   * Catalog convention: analytics `extractAccuracy` recognizes a top-level
+   * `accuracy` field, so without it the game's accuracy trend would silently
+   * disappear from history/trend UIs.
+   */
+  readonly accuracy: number;
   /** Mean per-hit speed factor in [0, 1] (0 when no hit). */
   readonly meanSpeed: number;
   readonly finalResponseWindowMs: number;

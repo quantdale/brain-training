@@ -334,10 +334,16 @@ export class WorkoutRepository {
    * UNPLAYED (future) positions with `newGameIds`, keeping the already
    * completed prefix immutable (006R task 6.6). Completed positions are
    * `[0, currentIndex)`; the reroll may only change `[currentIndex, len)`.
-   * `newGameIds` is expected to already exclude the completed prefix (the
-   * reroll selector passes the played ids in `exclude`), so the replaced tail
-   * never reintroduces an already-played game. The currency cost is handled by
-   * the caller (economy layer, task 7.4/6.5).
+   *
+   * POSITIONAL convention: entries of `newGameIds` below `currentIndex` are
+   * placeholders that are discarded (callers conventionally repeat the played
+   * prefix there), and positions `[currentIndex, len)` are taken from
+   * `newGameIds.slice(currentIndex)`. Callers whose selector returns a
+   * fresh-only list (played ids passed as `exclude`) must prepend the played
+   * prefix before calling — see `useWorkout().reroll()` — or the first fresh
+   * games would be sliced off. The total instance length is preserved when
+   * `newGameIds.length >= current.gameIds.length`. The currency cost is
+   * handled by the caller (economy layer, task 7.4/6.5).
    */
   async applyReroll(
     date: string,
@@ -401,8 +407,14 @@ export class WorkoutRepository {
     }
     const where =
       clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+    // Two-key sort honoring the documented W22 contract: newest DAY first,
+    // and within one day the bare-date daily row before its namespaced
+    // template rows ('2026-08-21' < '2026-08-21::…'). A plain `date DESC`
+    // would invert the within-day half (namespaced keys sort after their
+    // bare date), which silently mis-ordered history screens. Row counts are
+    // tiny (days × few templates), so the expression sort is negligible.
     const rows = await this.adapter.all<WorkoutRow>(
-      `SELECT * FROM workout_instances ${where} ORDER BY date DESC LIMIT ?`,
+      `SELECT * FROM workout_instances ${where} ORDER BY substr(date, 1, 10) DESC, date ASC LIMIT ?`,
       [...params, limit],
     );
     return rows.map(rowToInstance);

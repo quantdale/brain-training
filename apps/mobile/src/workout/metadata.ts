@@ -187,7 +187,9 @@ export function createWorkoutMetadata(input: {
  * Parse an unknown JSON value (a `metadata_json` cell) into
  * {@link WorkoutMetadata}, returning undefined for absent/malformed payloads
  * so one drifted row can never crash a history read (same policy as
- * `game_ids_json` parsing in db/workout.ts).
+ * `game_ids_json` parsing in db/workout.ts). A structurally valid
+ * `inputs` snapshot round-trips; a malformed one is dropped while the rest of
+ * the metadata survives (provenance is best-effort, never load-bearing).
  */
 export function parseWorkoutMetadata(raw: unknown): WorkoutMetadata | undefined {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
@@ -204,11 +206,37 @@ export function parseWorkoutMetadata(raw: unknown): WorkoutMetadata | undefined 
   }
   const focus =
     typeof value.focus === "string" ? (value.focus as GameCategory) : null;
+  const rawInputs = value.inputs;
+  let inputs: WorkoutGenerationInputs | undefined;
+  if (typeof rawInputs === "object" && rawInputs !== null && !Array.isArray(rawInputs)) {
+    const candidate = rawInputs as Record<string, unknown>;
+    // All-or-nothing: a snapshot that lost any entry would silently change
+    // what "re-running the recorded inputs" reproduces, so it is dropped whole.
+    const domainRatingsOk =
+      typeof candidate.domainRatings === "object" &&
+      candidate.domainRatings !== null &&
+      !Array.isArray(candidate.domainRatings) &&
+      Object.values(candidate.domainRatings).every(
+        (rating) => typeof rating === "number" && Number.isFinite(rating),
+      );
+    const recentOk =
+      Array.isArray(candidate.recentGameIds) &&
+      candidate.recentGameIds.every((id) => typeof id === "string");
+    inputs =
+      domainRatingsOk && recentOk && typeof candidate.seed === "string"
+        ? {
+            domainRatings: { ...(candidate.domainRatings as Record<string, number>) },
+            recentGameIds: [...(candidate.recentGameIds as string[])],
+            seed: candidate.seed,
+          }
+        : undefined;
+  }
   return {
     version: value.version,
     kind: value.kind,
     templateId: value.templateId,
     length: value.length,
     focus,
+    ...(inputs ? { inputs } : {}),
   };
 }

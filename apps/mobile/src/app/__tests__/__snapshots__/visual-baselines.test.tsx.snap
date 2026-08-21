@@ -73,6 +73,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
             }
           >
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -102,6 +103,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
               Games
             </Text>
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -146,6 +148,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
               testID="games-empty"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -174,6 +177,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                 No games yet
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -283,6 +287,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
             }
           >
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -312,6 +317,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               BRAIN TRAINING
             </Text>
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -356,6 +362,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               testID="home-workout-cta"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -384,6 +391,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 Today's Workout
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -416,6 +424,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                  done — keep going!
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -469,6 +478,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 testID="home-stat-streak"
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -497,6 +507,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                   0 days
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -542,6 +553,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 testID="home-stat-xp"
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -570,6 +582,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                   0
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -615,6 +628,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 testID="home-stat-level"
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -643,6 +657,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                   1
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -688,6 +703,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               testID="home-recent-games"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -716,6 +732,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 Recent games
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -825,6 +842,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
             }
           >
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -854,6 +872,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               Profile
             </Text>
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -913,6 +932,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -950,6 +970,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -978,6 +999,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   Local player
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -1023,6 +1045,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               testID="profile-streak"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -1067,6 +1090,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -1095,6 +1119,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     0
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -1132,6 +1157,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -1160,6 +1186,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     0
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -1197,6 +1224,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -1225,6 +1253,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     0
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -1280,6 +1309,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -1310,6 +1340,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       0
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -1398,6 +1429,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                         }
                       >
                         <Text
+                          maxFontSizeMultiplier={1.35}
                           style={
                             [
                               {
@@ -1449,6 +1481,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -1479,6 +1512,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       0
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -1567,6 +1601,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                         }
                       >
                         <Text
+                          maxFontSizeMultiplier={1.35}
                           style={
                             [
                               {
@@ -1618,6 +1653,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -1648,6 +1684,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       0
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -1736,6 +1773,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                         }
                       >
                         <Text
+                          maxFontSizeMultiplier={1.35}
                           style={
                             [
                               {
@@ -1786,6 +1824,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               testID="profile-milestones"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -1830,6 +1869,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               testID="profile-quests"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -1858,6 +1898,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 Quests
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -1902,6 +1943,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               testID="profile-achievements"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -1948,6 +1990,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2000,6 +2043,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2051,6 +2095,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2103,6 +2148,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2154,6 +2200,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2206,6 +2253,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2257,6 +2305,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2309,6 +2358,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2360,6 +2410,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2412,6 +2463,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2463,6 +2515,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2515,6 +2568,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2566,6 +2620,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2618,6 +2673,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2669,6 +2725,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2721,6 +2778,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2772,6 +2830,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2824,6 +2883,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2875,6 +2935,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2927,6 +2988,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -2978,6 +3040,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3030,6 +3093,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3081,6 +3145,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3133,6 +3198,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3184,6 +3250,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3236,6 +3303,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3287,6 +3355,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3339,6 +3408,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3390,6 +3460,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3442,6 +3513,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3493,6 +3565,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3545,6 +3618,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3596,6 +3670,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3648,6 +3723,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3699,6 +3775,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3751,6 +3828,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3802,6 +3880,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3854,6 +3933,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3905,6 +3985,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -3957,6 +4038,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4008,6 +4090,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4060,6 +4143,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4111,6 +4195,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4163,6 +4248,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4214,6 +4300,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4266,6 +4353,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4317,6 +4405,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4369,6 +4458,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4420,6 +4510,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4472,6 +4563,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4523,6 +4615,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4575,6 +4668,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4626,6 +4720,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4678,6 +4773,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4729,6 +4825,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4781,6 +4878,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4832,6 +4930,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4884,6 +4983,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4935,6 +5035,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -4987,6 +5088,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5038,6 +5140,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5090,6 +5193,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5141,6 +5245,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5193,6 +5298,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5244,6 +5350,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5296,6 +5403,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5347,6 +5455,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5399,6 +5508,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5450,6 +5560,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5502,6 +5613,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5553,6 +5665,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5605,6 +5718,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5656,6 +5770,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5708,6 +5823,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     />
                   </View>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -5792,6 +5908,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -5820,6 +5937,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   Cosmetics
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -5905,6 +6023,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -5933,6 +6052,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   Data Management
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -5978,6 +6098,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               testID="theme-card"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -6057,6 +6178,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6085,6 +6207,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     System
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6166,6 +6289,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6194,6 +6318,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     Light
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6275,6 +6400,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6303,6 +6429,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     Dark
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6349,6 +6476,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               testID="settings-card"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -6395,6 +6523,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6423,6 +6552,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     Sound effects
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6485,6 +6615,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6513,6 +6644,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     Haptics
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6638,6 +6770,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
             }
           >
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -6667,6 +6800,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               Progress
             </Text>
             <Text
+              maxFontSizeMultiplier={1.35}
               style={
                 [
                   {
@@ -6758,6 +6892,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-window-7d"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6833,6 +6968,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-window-30d"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6906,6 +7042,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-window-90d"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -6979,6 +7116,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-window-all"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7025,6 +7163,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               testID="progress-empty"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -7053,6 +7192,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 No sessions yet
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -7099,6 +7239,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               testID="progress-summary"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -7143,6 +7284,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7171,6 +7313,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     1
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7208,6 +7351,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7236,6 +7380,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     0
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7273,6 +7418,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7301,6 +7447,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     0
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7338,6 +7485,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7366,6 +7514,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     0
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7422,6 +7571,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 />
               </View>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -7470,6 +7620,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               testID="progress-composite"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -7507,6 +7658,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -7544,6 +7696,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7578,6 +7731,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                      stale
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7628,6 +7782,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-memory"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7664,6 +7819,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -7692,6 +7848,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -7733,6 +7890,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-attention"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7769,6 +7927,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -7797,6 +7956,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -7838,6 +7998,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-speed"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7874,6 +8035,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -7902,6 +8064,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -7943,6 +8106,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-math"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -7979,6 +8143,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8007,6 +8172,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8048,6 +8214,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-language"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -8084,6 +8251,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8112,6 +8280,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8153,6 +8322,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-logicproblemsolving"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -8189,6 +8359,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8217,6 +8388,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8258,6 +8430,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-flexibility"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -8294,6 +8467,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8322,6 +8496,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8363,6 +8538,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-composite-domain-spatial"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -8399,6 +8575,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8427,6 +8604,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       1000
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8474,6 +8652,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               testID="progress-domains"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -8559,6 +8738,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8587,6 +8767,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Memory
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8624,6 +8805,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8652,6 +8834,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8732,6 +8915,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8760,6 +8944,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Attention
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8797,6 +8982,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8825,6 +9011,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8905,6 +9092,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8933,6 +9121,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Speed
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8970,6 +9159,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -8998,6 +9188,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9078,6 +9269,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9106,6 +9298,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Math
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9143,6 +9336,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9171,6 +9365,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9251,6 +9446,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9279,6 +9475,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Language
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9316,6 +9513,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9344,6 +9542,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9424,6 +9623,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9452,6 +9652,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Logic & Problem Solving
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9489,6 +9690,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9517,6 +9719,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9597,6 +9800,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9625,6 +9829,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Flexibility
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9662,6 +9867,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9690,6 +9896,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9770,6 +9977,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9798,6 +10006,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       Spatial
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9835,6 +10044,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     }
                   >
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9863,6 +10073,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                       —
                     </Text>
                     <Text
+                      maxFontSizeMultiplier={1.35}
                       style={
                         [
                           {
@@ -9894,6 +10105,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 </View>
               </View>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -9947,6 +10159,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -10010,6 +10223,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   testID="progress-activity-link"
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -10545,6 +10759,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 </View>
               </View>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -10592,6 +10807,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               testID="progress-recent"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -10620,6 +10836,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 Recent vs lifetime
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -10666,6 +10883,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -10694,6 +10912,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     —
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -10731,6 +10950,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -10759,6 +10979,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     0%
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -10796,6 +11017,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   }
                 >
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -10824,6 +11046,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     —
                   </Text>
                   <Text
+                    maxFontSizeMultiplier={1.35}
                     style={
                       [
                         {
@@ -10854,6 +11077,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 </View>
               </View>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -10932,6 +11156,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 }
               >
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -10960,6 +11185,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   Full history ›
                 </Text>
                 <Text
+                  maxFontSizeMultiplier={1.35}
                   style={
                     [
                       {
@@ -11005,6 +11231,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               testID="progress-game-stats"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -11033,6 +11260,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 Per game
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -11077,6 +11305,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               testID="progress-recent-sessions"
             >
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {
@@ -11105,6 +11334,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 Recent sessions
               </Text>
               <Text
+                maxFontSizeMultiplier={1.35}
                 style={
                   [
                     {

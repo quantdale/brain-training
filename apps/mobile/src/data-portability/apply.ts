@@ -769,12 +769,12 @@ export async function applyImport(
   if (mode === "replace") {
     // The append-only DELETE triggers must be removed at the connection level
     // (the legacy `PRAGMA triggers` is gone from modern SQLite and a no-op
-    // inside a transaction). Drop them, run the clear + full insert in one
-    // transaction, then recreate the exact same triggers so the connection is
-    // never left without its append-only guarantees.
+    // inside a transaction). Drop + clear + re-insert all happen inside the
+    // guarded region so the exact same triggers are ALWAYS recreated — even
+    // when the drop DDL itself fails midway (campaign 011 W12 finding).
     const triggers = await captureTriggers(db);
-    await dropTriggers(db, triggers);
     try {
+      await dropTriggers(db, triggers);
       await db.transaction(async (txn) => {
         await applyData(txn, parsed.data, mode, c);
       });

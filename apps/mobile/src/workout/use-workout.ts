@@ -182,7 +182,24 @@ export function useWorkout(args: {
       completedPrefix,
       { nowMs: Date.now() },
     );
-    const ids = selection.map((g) => g.id);
+    // `applyReroll` is POSITION-based: it keeps game_ids [0, currentIndex)
+    // verbatim and replaces [currentIndex, len) with
+    // `newGameIds.slice(currentIndex)` (006R task 6.6). The reroll selector
+    // returns FRESH games only (the played prefix went in as `exclude`), so
+    // feed it the positional form — the played prefix as placeholders plus the
+    // fresh selection truncated to the remaining slots. Passing the bare
+    // fresh list would slice off its first `currentIndex` games on every
+    // post-completion reroll (campaign 011 W07 regression).
+    const playedSet = new Set(completedPrefix);
+    const remainingSlots = Math.max(
+      0,
+      current.gameIds.length - current.currentIndex,
+    );
+    const freshIds = selection
+      .map((game) => game.id)
+      .filter((id) => !playedSet.has(id))
+      .slice(0, remainingSlots);
+    const ids = [...current.gameIds.slice(0, current.currentIndex), ...freshIds];
     const cost = rerollCost(current.rerollAttempt);
 
     if (cost > 0) {

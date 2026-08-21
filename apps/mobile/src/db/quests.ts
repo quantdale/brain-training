@@ -81,8 +81,11 @@ const UPSERT_PROGRESS = `
     progress = MAX(quest_progress.progress, excluded.progress),
     completed_at = COALESCE(quest_progress.completed_at, excluded.completed_at),
     claimed_at = COALESCE(quest_progress.claimed_at, excluded.claimed_at)`;
-const CLAIM_PROGRESS =
-  'UPDATE quest_progress SET claimed_at = ? WHERE quest_id = ? AND period = ? AND claimed_at IS NULL';
+const CLAIM_PROGRESS = `
+  UPDATE quest_progress SET claimed_at = ?
+  WHERE quest_id = ? AND period = ?
+    AND claimed_at IS NULL
+    AND completed_at IS NOT NULL`;
 const SELECT_PERIOD_PROGRESS =
   'SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress WHERE period = ? ORDER BY quest_id';
 const SELECT_QUEST_PROGRESS =
@@ -184,9 +187,12 @@ export class QuestRepository {
   }
 
   /**
-   * Mark a completed quest's reward as claimed. Returns true when this call
-   * performed the claim (the row was not already claimed). `txn` runs it inside
-   * a transaction (task 7.3).
+   * Mark a COMPLETED quest's reward as claimed. Returns true when this call
+   * performed the claim (the row was not already claimed). Rows whose target
+   * was never reached (`completed_at IS NULL`) can never have their claim
+   * marker burned — a stale/direct caller cannot permanently destroy a quest
+   * reward before it is earned (W13 hardening). `txn` runs it inside a
+   * transaction (task 7.3).
    */
   async claim(questId: string, period: string, txn?: SQLiteAdapter): Promise<boolean> {
     const result = await (txn ?? this.adapter).run(CLAIM_PROGRESS, [this.now(), questId, period]);

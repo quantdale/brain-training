@@ -93,6 +93,57 @@ describe('RatingRepository', () => {
     expect(history[0]).toMatchObject({ domain: 'Math', delta: -1000, ratingAfter: MIN_RATING });
   });
 
+  it('projects every history column (regression: aliased SELECT + snake_case mapper dropped fields)', async () => {
+    // Wave-1 refactor aliased HISTORY_COLUMNS to camelCase while mapHistoryRow
+    // still read snake_case keys, so getHistory/getHistoryWindowed/
+    // getHistoryForSession returned undefined sessionId/ratingAfter/createdAt
+    // while domain/delta happened to match. Pin ALL projected fields on every
+    // read path so a projection/mapper mismatch can never ship silently again.
+    const adapter = await createMigratedDb();
+    const ratings = new RatingRepository(adapter, () => T0);
+    await seedSession(adapter, 'session-full');
+    const eventAt = T0 + 5_000;
+
+    await adapter.transaction((txn) =>
+      ratings.applyDeltas(
+        txn,
+        'session-full',
+        [
+          { domain: 'Memory', delta: 7 },
+          { domain: 'Focus', delta: -3 },
+        ],
+        eventAt,
+      ),
+    );
+
+    const expectedEntry = (domain: string, delta: number, ratingAfter: number) => ({
+      sessionId: 'session-full',
+      domain,
+      delta,
+      ratingAfter,
+      createdAt: eventAt,
+    });
+
+    // getHistory: newest first, full projection with concrete values.
+    expect(await ratings.getHistory(10)).toEqual([
+      { id: expect.any(Number), ...expectedEntry('Focus', -3, INITIAL_RATING - 3) },
+      { id: expect.any(Number), ...expectedEntry('Memory', 7, INITIAL_RATING + 7) },
+    ]);
+
+    // Windowed variant shares the same projection.
+    expect(await ratings.getHistoryWindowed({ limit: 10 })).toHaveLength(2);
+    expect(await ratings.getHistoryWindowed({ domain: 'Memory' })).toEqual([
+      { id: expect.any(Number), ...expectedEntry('Memory', 7, INITIAL_RATING + 7) },
+    ]);
+
+    // Per-session variant restores application order AND the full projection.
+    expect(await ratings.getHistoryForSession('session-full')).toEqual([
+      { id: expect.any(Number), ...expectedEntry('Memory', 7, INITIAL_RATING + 7) },
+      { id: expect.any(Number), ...expectedEntry('Focus', -3, INITIAL_RATING - 3) },
+    ]);
+    expect(await ratings.getHistoryForSession('missing-session')).toEqual([]);
+  });
+
   it('returns null for a domain that was never played', async () => {
     const adapter = await createMigratedDb();
     const ratings = new RatingRepository(adapter, () => T0);

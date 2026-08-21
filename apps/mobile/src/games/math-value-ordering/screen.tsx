@@ -267,13 +267,27 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     if (!(current.phase === 'ordering' || current.phase === 'feedback') || current.paused) {
       return;
     }
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
+    // Gate on the lifecycle's authoritative status: `stateRef` lags one commit
+    // behind, so a double-tap (or Pause racing an AppState background event)
+    // can reach this handler twice before React re-renders. A redundant SDK
+    // `pause()` would throw IllegalTransitionError (pause is only legal from
+    // `active`); skipping the no-op keeps both sides consistent instead.
+    const lifecycle = lifecycleRef.current;
+    if (lifecycle !== null && lifecycle.status === 'active') {
+      lifecycle.pause();
+      dispatch({ type: 'pause' });
+    }
   }, [dispatch]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
-    dispatch({ type: 'resume' });
+    // Mirror of the pause gate: `resume()` throws unless the lifecycle is
+    // genuinely `paused`, so consult its status rather than the possibly
+    // stale reducer ref.
+    const lifecycle = lifecycleRef.current;
+    if (lifecycle !== null && lifecycle.status === 'paused') {
+      lifecycle.resume();
+      dispatch({ type: 'resume' });
+    }
   }, [dispatch]);
 
   const quitToLibrary = useCallback(() => {

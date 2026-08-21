@@ -59,6 +59,7 @@ export {
   meanOf,
   meanSpeedOf,
   normalizeVigilanceResult,
+  overallAccuracyOf,
   perfectSessionScore,
   speedFactorOf,
   vigilancePerformanceNormalizer,

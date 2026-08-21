@@ -392,8 +392,15 @@ export interface SerializedBackupText {
  * `checksum === computeChecksum(canonicalString(payload))`. The trick: the
  * `checksum` member participates in top-level key ordering from the start, but
  * its VALUE is emitted as an empty placeholder chunk that is filled in after
- * the digest. Only the placeholder member's tokens are excluded from the hash,
- * so the hashed byte sequence equals the legacy payload text precisely.
+ * the digest, and NONE of its tokens enter the hash.
+ *
+ * Campaign 011 regression guard (checksum comma bug): output text and digest
+ * input diverge around `checksum` (`A,CHECKSUM,B` in the text hashes as
+ * `A,B`). Output commas are emitted at every member boundary; only commas
+ * tying two PAYLOAD members together enter the digest. Hashing a checksum-
+ * adjacent comma (or dropping an output comma after a leading `checksum`)
+ * either corrupts every export's digest or emits unparseable JSON — both were
+ * real regressions during this fix, now pinned by serializer.test.ts.
  */
 export function serializeEnvelopeWithChecksum(
   payload: BackupEnvelopePayload,
@@ -422,23 +429,38 @@ export function serializeEnvelopeWithChecksum(
   keys.sort();
 
   emitHashed('{');
+  let hashedMembers = 0; // payload members emitted into the hash so far
   for (let i = 0; i < keys.length; i++) {
-    if (i > 0) {
-      // Structural commas exist in both texts: the legacy payload text also
-      // separates its members with commas, so they are hashed.
-      emitHashed(',');
-    }
     const key = keys[i];
     if (key === 'checksum') {
+      // Output-text-only member. Its preceding comma (if any) separates two
+      // output members but does NOT exist in the hashed legacy payload text;
+      // never feed it to the hasher.
+      if (i > 0) {
+        emitTextOnly(',');
+      }
       emitTextOnly('"checksum"');
       emitTextOnly(':');
       checksumValueIndex = chunks.length;
       emitTextOnly(''); // placeholder, replaced with the digest below
       continue;
     }
+    if (i > 0) {
+      // Output text ALWAYS needs this comma. Whether it is also hashed
+      // depends on the legacy payload text (`A,CHECKSUM,B` hashes as `A,B`):
+      // only a comma tying this member to a PRECEDING PAYLOAD member enters
+      // the digest. When `checksum` sorts first, the comma exists solely in
+      // the output and must stay out of the hash.
+      if (hashedMembers > 0) {
+        emitHashed(',');
+      } else {
+        emitTextOnly(',');
+      }
+    }
     emitHashed(JSON.stringify(key));
     emitHashed(':');
     writeCanonicalJson(record[key], emitHashed);
+    hashedMembers += 1;
   }
   emitHashed('}');
 

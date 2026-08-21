@@ -16,10 +16,13 @@ import { AccessibilityInfo, Platform, StyleSheet, Text, View } from 'react-nativ
 
 /** Announce `message` to the screen reader (polite priority). */
 export function announce(message: string): void {
-  if (!message) {
+  // Whitespace-only copy would queue an empty/silent utterance on some
+  // engines; trim-guard drops it and normalizes padded input.
+  const text = message.trim();
+  if (!text) {
     return;
   }
-  AccessibilityInfo.announceForAccessibility(message);
+  AccessibilityInfo.announceForAccessibility(text);
 }
 
 export interface LiveRegionProps {
