@@ -757,3 +757,66 @@ math-estimation-sprint == math-number-balance == math-fast-math (existing);
 speed-tap-sequence == speed-tap-rush (existing). Removed from catalog; content
 preserved at commit `8540d2c` (branch parallel-wave-02/02-speed-math) and merge
 `a19edab`. speed-quick-compare retained (genuinely distinct mechanics).
+
+## Campaign 009 (2026-08-21, single-session 16-worker development)
+
+Tree: `main` at `7ae5483..e21435b` (five coherent campaign commits on top of
+`d1b371f`). One parent orchestrator; 16 worker packets with disjoint write
+ownership (`.agent/_tasks/campaign009/`); workers never branch/commit.
+
+- `node scripts/validate-repo-state.mjs`: PASS
+- `npx tsc --noEmit` (apps/mobile): PASS (0 errors)
+- `npx jest --ci --maxWorkers=2`: **PASS — 391 suites / 4530 tests / 4
+  snapshots** (up from 343/3926 at 008; +1 opt-in perf probe skipped by
+  design). One intentional gate catch fixed en route: number-line feedback
+  ternary tripped the new sensory scanner; aligned to literal-call convention
+  instead of weakening the assertion.
+- `npm run lint`: PASS — 0 errors (208 warnings, non-blocking; down from 302)
+- `node scripts/generate-game-registry.mjs --check`: PASS — **38 games**
+  (Memory 6, Attention 4, Speed 4, Math 4, Language 5, Logic & PS 5,
+  Flexibility 5, Spatial 5); regenerated exactly once from the final tree
+- `node scripts/validate-provenance.mjs --check`: PASS (no drift; version
+  bumps applied where gameplay/scoring/generators changed)
+- `node scripts/validate-task-ownership.cjs`: PASS
+- `node scripts/validate-offline.mjs --check`: PASS (CLEAN)
+- `npx expo export --platform web`: PASS
+- `npx expo-doctor`: 20/21 — same pre-existing patch-version drift;
+  package.json/lockfile byte-identical to origin/main (verified empty diff)
+- `npx --no-install openspec validate --changes`: PASS
+
+**Android emulator QA (emulator-local autobot, no host input), AVD
+`braintraining35` on emulator-5554:**
+
+- Harness self-test: 16/16 PASS offline (`--list-games` = 38 ids matching the
+  generated registry).
+- Canary journey (`--mode canaries --pause`, full chain: warm home → deep
+  link → tutorial bypass → start → interaction probe → pause/resume → QA
+  force-win → results → persistence evidence → back nav → next game):
+  **7/8 PASS** (`qa-artifacts/20260821-052305-autobot-canaries`). The single
+  FAIL (spatial-transform-match) was diagnosed as the dev-only QA panel
+  scrolling below the ScrollView fold during long choice phases; harness
+  fixed to scroll-and-retry.
+- Two harness defects found by device runs and fixed at root: dropped
+  `driveForceWin`/`tapForceWinOnce` helpers restored from history; warm-home
+  budget raised 40s→120s based on measured ~50s cold starts after `pm clear`
+  (budget, not assertion, change).
+- Full 38-game catalog journey (`--mode all --pause`): **33/38 PASS** on the
+  first complete pass
+  (`qa-artifacts/20260821-054448-autobot-all`). Post-run root-causing plus
+  targeted re-runs verified 3 more games (speed-tap-rush, logic-order-path,
+  spatial-transform-match, spatial-mental-rotation) → **37/38 games verified**
+  through the full journey chain (launch → tutorial bypass → start →
+  interaction → pause/resume → force-win → results → persistence → back →
+  next). Fixes that came out of it: warm-home budget 40s→120s (measured ~50s
+  cold starts), iterative scroll for below-fold QA panels, restored
+  driveForceWin/tapForceWinOnce helpers, workout game-count regex excluding
+  `home-workout-game-status-*` markers, patient resume retry with honest
+  "app left paused" reporting, and a real a11y defect fix in the shared
+  PauseOverlay (`accessible` grouping collapsed Resume/Quit into one
+  unfocusable node for TalkBack and automation alike).
+- NOT VERIFIED / open: `spatial-grid-nav` force-win path (overlay buttons not
+  exposed to the a11y tree on device; game itself launches/plays/pauses — see
+  KNOWN_ISSUES); `--mode workout` full journey (run aborted at game 0 on
+  context-fit results timing; the underlying advance/resume mechanics are
+  covered by unit/lifecycle suites and the per-game journeys); two transient
+  warm-home Metro timeouts during the long run self-resolved on retry.

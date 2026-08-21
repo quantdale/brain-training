@@ -13,10 +13,10 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 | Training | Adaptive difficulty | IMPLEMENTED | Hidden continuous rating + named modes |
 | Training | Manual difficulty | IMPLEMENTED | Easy/Normal/Hard/Expert/Adaptive |
 | Training | Personalized recommendations | IMPLEMENTED | Weak-domain balancing + recency avoidance + reroll economics |
-| Games | Memory catalog | IMPLEMENTED | Memory (Phase 2) + Sequence Memory (Phase 4) + Pattern Tap Back (Phase 5) + Grid Recall + Running Order (Wave 02) — 5 games |
+| Games | Memory catalog | IMPLEMENTED | Memory (Phase 2) + Sequence Memory (Phase 4) + Pattern Tap Back (Phase 5) + Grid Recall + Running Order (Wave 02) + Pair Recall (009, associative re-pairing) — 6 games |
 | Games | Attention catalog | IMPLEMENTED | Visual Search (Phase 2) + Odd One Out (Phase 4) + Target Count (Wave 01) + Symbol Tracker (Wave 02) — 4 games |
 | Games | Speed catalog | IMPLEMENTED | Reaction Time (Phase 2) + Tap Rush (Phase 4) + Color Match (Phase 5) + Quick Compare (Wave 02) — 4 games |
-| Games | Math catalog | IMPLEMENTED | Fast Math (Phase 2) + Missing Operator (Phase 4) + Equation Builder (Phase 5) — 3 games |
+| Games | Math catalog | IMPLEMENTED | Fast Math (Phase 2) + Missing Operator (Phase 4) + Equation Builder (Phase 5) + Number Line (009, magnitude estimation) — 4 games |
 | Games | Language catalog | IMPLEMENTED | Word Match (Phase 2) + Word Scramble (Phase 4) + Sentence Builder (Phase 5) + Context Fit + Word Chain (Wave 02) + versioned content packs — 5 games |
 | Games | Logic & Problem Solving catalog | IMPLEMENTED | Next in Sequence (Phase 2) + Code Cracker (Phase 4) + Rule Grid (Wave 01) + Deduction Table + Order Path (Wave 02) — 5 games |
 | Games | Flexibility catalog | IMPLEMENTED | Card Sort (Phase 2) + Color Stroop (Phase 4) + Cue Shift (Wave 01) + Rule Flip + Task Switch (Wave 02) — 5 games |

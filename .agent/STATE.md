@@ -1,63 +1,68 @@
 # Durable Project State
 
-**State schema:** 1  
-**Last update:** 2026-08-21 (008 Wave 02 recovery: all eight failed parallel sessions salvaged, converged, completed where needed → 36 games; 343 suites / 3926 tests green on convergence branch; duplicates rejected with proof; temporary topology removed)
-**Canonical branch:** `main`  
-**Active campaign:** `008-wave02-recovery-convergence` (COMPLETED)
+**State schema:** 1
+**Last update:** 2026-08-21 (campaign 009: single-session 16-worker broad development → 38 games; Critical/High repairs across games/db/portability/economy; full gates green; Android autobot QA executed)
+**Canonical branch:** `main`
+**Active campaign:** `009-single-session-broad-development`
 
 ## Current status
 
-Campaign 007 (Wave 01 convergence, 24 games) COMPLETED at `d355e47`. The owner-authorized
-Wave 02 recovery campaign (`008-wave02-recovery-convergence`) then salvaged the failed
-eight-session Wave 02 development and converged it. See `.agent/CURRENT_CAMPAIGN.md` for
-the full recovery record and `VALIDATION.md` for exact gate results.
+Campaign 008 (Wave 02 recovery, 36 games) COMPLETED at `d1b371f`. Campaign 009 then ran
+as ONE parent-controlled session with up to 16 specialized worker agents under strict
+disjoint write ownership (packets in `.agent/_tasks/campaign009/`). Workers never
+branch/commit; the parent owns integration, generated files, git, and durable state.
 
-### 008 Recovery summary
+### 009 summary
 
-- **Sources audited:** canonical dirty tree (sessions 01–06 uncommitted work),
-  branch `parallel-wave-02/07-data-content-integrity` (15 commits), branch
-  `parallel-wave-02/03-language-logic` (1 commit), worktree
-  `brain-training-wt-02` (4 untracked session-02 games), branches 01/04/05/06/08
-  (= origin/main, no unique commits), 3 dangling spatial-transform-match WIP
-  commits (superseded by salvaged tree), 4 pre-Wave-02 dangling stash commits
-  (superseded), `bt-stray-backup` (empty), `Downloads/brain-training-app-starter`
-  (stale copy, zero unique files).
-- **Convergence:** merge order 07-tip → 03-tip → canonical-dirty salvage →
-  wt-02 salvage on `recovery/wave02-full-convergence`; conflicts resolved by
-  intent (db idempotency: kept the more mature operation_id implementation;
-  streaks atomic apply: kept transactional version over a format-only reformat;
-  speed-quick-compare add/add: took complete module versions).
-- **Completion:** 9 incomplete salvaged game modules finished by scoped parallel
-  agents (~850 new tests); 42 tsc errors in never-validated salvaged test files
-  repaired honestly; final Jest failures fixed; lint 0 errors.
-- **Rejections (with proof):** math-estimation-sprint, math-number-balance,
-  speed-tap-sequence were byte-identical copies of existing catalog games —
-  removed from the catalog, content preserved in history (`8540d2c`, merge
-  `a19edab`).
-- **Catalog:** 36 games (Memory 5, Attention 4, Speed 4, Math 3, Language 5,
-  Logic 5, Flexibility 5, Spatial 5), registry regenerated once from the final
-  tree.
+- **Catalog:** 36 → **38 games**. NEW: `memory-pair-recall` (associative pair recall
+  with deterministic re-pairing interference) and `math-number-line-estimation`
+  (magnitude interpolation on a seeded number line). Registry regenerated exactly once.
+- **Critical/High repairs:** logic-deduction-table unsound uniqueness prover shipped
+  ambiguous rounds (now exhaustive + property-proven); db v8 migration could brick
+  startup on legacy ledger data (collision-safe atomic backfill); foreign-profile-id
+  backups created invisible profiles on restore (normalized); attention-target-count
+  pause exploit inflated scores; speed-color-match wall-clock timing + pause window;
+  stroop unanswerable neutral trials / session-ending timeout / fabricated RTs /
+  capped perfect score; task-switch identical stimuli every round; rule-flip constant
+  block lengths; fold-match degenerate distractors; silent SFX failure for context-fit
+  + cue-shift (missing aliases); reroll allowed on completed workouts; paidReroll
+  in-transaction balance check; profile double-tap purchase guard.
+- **Depth additions:** workout end-to-end lifecycle suite + staleness personalization;
+  rating NaN/invariant hardening (24 tests); economy claim idempotency via ledger
+  operationIds; progress insights (training balance, personal bests, recent-vs-lifetime,
+  explainability); portability adversarial hardening (typed early rejection, DoS gate,
+  exact wipe counts); a11y shell program (44pt targets, live regions, 43 contract
+  tests); perf guards + measured baselines; catalog-wide source contract tests;
+  test-utils fixture infrastructure; CI OpenSpec gate added; QA harness derives the
+  catalog from game.json (scales with growth) + richer smoke chain + machine-readable
+  failure artifacts; iOS static-compat + architecture-debt audit reports
+  (`docs/audits/`).
+- **Rejected (quality bar):** sustained-vigilance Attention game (top follow-up
+  candidate), Speed addition (no clearly distinct mechanic), Flexibility/Spatial
+  additions (declined by W04 as insufficiently distinct).
 
-**Validation on convergence branch (all green):**
+**Validation (final tree):**
 
 - `node scripts/validate-repo-state.mjs`: PASS
 - `npx tsc --noEmit` (apps/mobile): PASS (0 errors)
-- `npx jest --ci --maxWorkers=2` (apps/mobile): PASS — 343 suites / 3926 tests / 4 snapshots
-- `npm run lint` (apps/mobile): PASS — 0 errors (302 warnings, non-blocking)
-- `node scripts/generate-game-registry.mjs --check`: PASS (36 games)
+- `npx jest --ci --maxWorkers=2`: PASS — 391 suites / 4530 tests / 4 snapshots
+  (+1 opt-in perf probe skipped by design)
+- `npm run lint`: PASS — 0 errors (208 warnings, non-blocking)
+- `node scripts/generate-game-registry.mjs --check`: PASS (38 games)
 - `node scripts/validate-provenance.mjs --check`: PASS
 - `node scripts/validate-task-ownership.cjs`: PASS
-- `node scripts/validate-offline.mjs --check`: PASS (CLEAN, 768 files)
+- `node scripts/validate-offline.mjs --check`: PASS (CLEAN)
 - `npx expo export --platform web`: PASS
-- `npx expo-doctor`: 20/21 (patch-version drift advice; dependencies byte-identical to origin/main — no dependency change in Wave 02)
+- `npx expo-doctor`: 20/21 (pre-existing patch-version drift; dependencies
+  byte-identical to origin/main — no dependency change this campaign)
 - `npx --no-install openspec validate --changes`: PASS
-- Emulator canary: see VALIDATION.md (emulator-local autobot run)
+- Emulator QA: see VALIDATION.md "Campaign 009" (autobot, emulator-local)
 
 ## Authoritative active change
 
-`openspec/changes/007-parallel-wave-01-convergence/` remains the last validated
-openspec change; campaign 008 was an owner-directed recovery executed outside
-openspec (salvage + convergence + cleanup).
+`openspec/changes/006r-core-integrity-correction/` remains the last validated
+openspec change; campaign 009 was an owner-directed single-session development
+executed outside openspec.
 
 Fresh-agent entry: `.agent/CURRENT_CAMPAIGN.md` + `AGENTS.md` + `docs/PROJECT_CONSTITUTION.md`
 
@@ -66,7 +71,8 @@ Fresh-agent entry: `.agent/CURRENT_CAMPAIGN.md` + `AGENTS.md` + `docs/PROJECT_CO
 - GitHub `main` is canonical; no autonomous force-push to `main`
 - Android-first autonomous QA; one dedicated AVD by default
 - No host physical mouse/keyboard automation
-- Up to 7 coder agents only with explicit disjoint ownership
+- Worker swarms only with explicit disjoint ownership; shared/generated files are
+  parent-only (`AGENTS.md`, `.agent/_tasks/campaign009/README.md`)
 - Generated files are updated through generators only
 - Missing validation is never PASS
 

@@ -2,82 +2,102 @@
 
 ## Current blockers
 
-- **AVD/emulator validation — canary rerun after Metro cache clear (008)**: `scripts/qa/autobot.mjs` drives emulator-local QA via ADB + hierarchy + testIDs (no host input). During 008 recovery, the first canary attempts FAILED "app did not warm to home" — root cause: a long-running Metro dev server had a stale file watcher that could not resolve newly created game directories (`@/games/flexibility-rule-flip`), returning dev-server 500; restarting Metro with `--clear` fixed bundle build (HTTP 200, 7.2 MB). Canary result after the fix is recorded in `VALIDATION.md`. Full 36-game catalog journeys (`--mode all --pause`, `--mode workout`) remain NOT VALIDATED this wave. Not a product defect; note for future waves: restart Metro with `--clear` after large file-tree additions.
-- **12.11 / CI confirmation pending**: GitHub App CI + Repository Integrity auto-run on push to `main`; final post-008 SHA must be confirmed from GitHub Actions UI after promotion.
-- **expo-doctor patch drift (Low, environmental)**: doctor reports 20/21 — patch-version advice for @expo/ui, expo, expo-linking, expo-router. Dependencies are byte-identical to origin/main (no Wave 02 dependency change); left unpinned to avoid upgrade churn. Revisit at next dependency-audit campaign.
-- **Host NDK toolchain pinned per-host (SDK patch, reversible)**: the app NDK pin `27.0.12077973` lives in generated `android/gradle.properties` (`.gitignored` under `android/`, so not pushed — survives `prebuild --clean` but per-host). The SDK-side `27.1.12297006` fix (`android-legacy.toolchain.cmake` `c++_shared` + `-lstdc++`) is likewise a per-host reversible block with `BUILD SUCCESSFUL` evidence — not a blind forced upgrade; see open debt below and `VALIDATION.md`.
+- **spatial-grid-nav QA force-win unreachable via automation (Medium, QA-tooling,
+  open)**: on-device, grid-nav's shared PauseOverlay renders but its Resume/Quit
+  buttons never appear in the uiautomator tree (title/buttons absent while the
+  overlay node is present), so the harness cannot resume or force-win. The game
+  itself launches, plays, and pauses correctly; all 9 unit suites pass. The
+  sibling games with identical overlay code are verified (transform-match and
+  mental-rotation PASS after the `accessible`-grouping fix in the shared
+  PauseOverlay — which was itself a real a11y defect: TalkBack could not focus
+  Resume/Quit individually). Root cause needs on-device React-tree inspection;
+  top candidate for the next QA wave. Harness reports this honestly as
+  "app left paused: resume control not reachable" instead of a misleading
+  qa-toggle failure.
+- **12.11 / CI confirmation pending**: GitHub App CI + Repository Integrity auto-run on push to `main`; final post-009 SHA must be confirmed from GitHub Actions UI after promotion. Note: the new OpenSpec CI step downloads `@fission-ai/openspec@1.6.0` via npx at run time (exact-pinned).
+- **expo-doctor patch drift (Low, environmental)**: doctor reports 20/21 — patch-version advice for @expo/ui, expo, expo-linking, expo-router. Dependencies are byte-identical to origin/main (no 009 dependency change); left unpinned to avoid upgrade churn. Revisit at next dependency-audit campaign.
+- **Host NDK toolchain pinned per-host (SDK patch, reversible)**: unchanged from 008; see open debt below and `VALIDATION.md`.
 
 ## Open debt (tracked, non-blocking)
 
-- **Shared game UI primitives — full 24-game catalog migrated (RESOLVED, 2026-08-20)**: all 24 games now use `apps/mobile/src/components/game-ui/*` (GameButton, PauseOverlay, TutorialFrame, QaPanelShell with `extraActions`, ResultRow/StatRow, SessionHeader, DifficultySelector) with tsc clean, lint 0 errors, and Jest 239 suites / 2727 tests green. No per-module `GameButton`/`StatRow` copies remain. This closes the 10.2/10.3 convergence (20-game) plus Wave 01 4-game extension; recorded in `VALIDATION.md` (Wave: 007 convergence).
-- **Pattern Tap Back true path mechanics (Low, task 10.6 follow-up)**: the game
-  is a distinct-span variant (not an adjacency-constrained path); its docs were
-  corrected to match. Closure criterion: if a true adjacent-path generator is
-  wanted, implement it deterministically and pass its generator tests.
+- **Performance findings routed to debt (009, measured)**: `analytics/queries.ts`
+  `loadProgressSnapshot` still loads full rows (101 ms @20k sessions per
+  Progress focus; projection/window-pushdown proposed by W13/W09);
+  backup export canonicalizes the envelope twice (~2.4 s frozen JS @5k
+  sessions; single-pass serializer proposed). Both functional today;
+  guards + baselines recorded in `scripts/perf/`. Next candidates when
+  large-history performance matters.
+- **Unused native deps (Low, 009 audit)**: `@expo/ui`, `expo-glass-effect`,
+  `expo-device`, `expo-image`, `expo-web-browser` have zero src imports
+  (`expo-linking` likely required transitively by expo-router — verify before
+  removal). Removal inflates iOS pod surface less; deferred to avoid
+  dependency churn without a transitive-dependency check.
+- **Android manifest permissions exceed product use (Low, 009 audit)**:
+  RECORD_AUDIO / SYSTEM_ALERT_WINDOW / FOREGROUND_SERVICE(_MEDIA_PLAYBACK)
+  appear injected via expo-audio plugin defaults; trim at the app.json plugin
+  config source of truth during the next Android build campaign.
 - **iOS build unverifiable on this host (NOT VALIDATED)**: Windows host has
-  no Xcode/macOS, so `expo run:ios`-equivalent cannot run. Static audit
-  PASS (see VALIDATION.md). A macOS host/CI runner is required for the real
-  build; not a product defect.
-- **Settings sensory feedback seam — RESOLVED in 007 (Low, task 10.4)**: the production audio/haptics service is now a real `expo-audio` + `expo-haptics` engine (`audio-haptics-real.ts`, SFX assets, `liveAudioHaptics` across all 24 games, `SensorySettingsCard`, persisted `sfx`/`haptics` in profile JSON). Music (BGM) remains deferred (no non-functional toggle). Previously the seam was classified DEFERRED in 006R; now IMPLEMENTED, parity/deferred docs updated.
+  no Xcode/macOS. Static audit refreshed in 009
+  (`docs/audits/campaign009-xplat-audit.md`: fix-now items applied at
+  convergence — web tab inset, celebration elevation; watch-list and
+  needs-macOS items documented there).
+- **Attention sustained-vigilance game (follow-up candidate)**: mechanically
+  distinct SART-style design evaluated but not built in 009 (session budget);
+  top candidate for the next catalog wave.
 - **Achievements sync scope (Low)**: quest/achievement evaluation scans up
   to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); far above realistic
   foundations-phase history, but a documented cap.
 - **NativeTabs snapshot instability (tooling)**: router-tree snapshots
   contain per-render random `screenId`s; visual baselines render bare
   routes to stay deterministic (see visual-baselines test header).
-- **Host NDK / provenance-allowlist / warning-class handling (Low, 006R)**: the SDK NDK pinned `27.1.12297006 → 27.0.12077973` and the `android-legacy.toolchain.cmake` `c++_shared`/`-lstdc++` patch are warning-class fixes (same-target-toolchain `lld` mismatch evidence in `VALIDATION.md`) — no blind forced major upgrade, documented with reversible block + artifact path and `BUILD SUCCESSFUL 484 tasks` witness. Provenance validator allowlist (`.agent/provenance-allowlist.json`) is for non-semantic edits (comments/formatting) only; real generator/content changes still require `gameVersion`/`generatorVersion` bumps. The 187 `src/games` `eslint` unused-var/`import/no-duplicates` warnings stay as warnings (out of scope) — catalog is `0 errors` via the `6f75d09` JSX-entity + `memory-sequence-memory` state-driven label fix (no `eslint-disable` to hide it); deterministic replay snapshots cover the procedural/hybrid contract, `scripts/validate-provenance.mjs --check` is wired as a CI warning, not a fake green. XP/rating is clamped/verified by pipeline tests.
+- **Host NDK / provenance-allowlist / warning-class handling (Low, 006R)**:
+  unchanged from 008; see `VALIDATION.md` history. The `src/games` eslint
+  warnings stay warnings (0 errors enforced).
 
-## Resolved during 006R
+## Resolved during Campaign 009
 
-- **WORKOUT-ADVANCE-UNWIRED (High, resolved 006R hardening wave)**: the durable
-  daily workout's `WorkoutRepository.advance()` was implemented and unit-tested
-  (task 6.2/6.3) but no screen ever invoked it, so on-device `current_index`
-  stayed at 0, `home-workout-game-*` rows never marked current/completed, and
-  kill/relaunch always resumed at game 1. Fixed by wiring `useWorkoutResultAdvance`
-  into `results.tsx` (advances a freshly-completed current-game session exactly
-  once, idempotent via the `completedAt > updatedAt` guard in `shouldAdvanceWorkout`),
-  adding `Next Game` / `Workout complete` CTAs, and reflecting progress on Home
-  via a router-free workout-change event (`@/workout/events`). Covered by
-  `src/workout/__tests__/advance.test.ts` (guard + real `WorkoutRepository`). The
-  4/4 AVD journey (6.8) is still NOT VALIDATED pending the on-device probe.
-- **REROLL-ATTEMPTS-NOT-PERSISTED (Low)**: daily workout reroll attempts are
-  now persisted per date in `workout_instances.reroll_attempt`; the Workout
-  repository applies rerolls transactionally and restart does not restore the
-  free reroll (tasks 6.1/6.5/7.4).
-- **CLAIMED-BUT-UNREWARDED WINDOW (Low)**: quest/achievement claims are now
-  atomic/idempotent with a shared operation id — claimed marker and all
-  XP/currency rewards commit together and roll back on failure (task 7.3).
-- **3 inherited test failures (blocking full-Jest green)**: repaired as stale
-  tests — content registry item-count pin (72→120) and two game tutorial tests
-  that did not drive the current 3-step tutorial. Suite is now fully green.
-- **Sensory toggles falsely marked IMPLEMENTED**: parity matrix corrected to
-  DEFERRED (see open debt above / task 10.4).
+- **logic-deduction-table ambiguous rounds (Critical)**: uniqueness prover
+  enumerated only the first two consistent permutations; 8 counterexamples
+  produced shipped-but-ambiguous puzzles. Exhaustive sound enumeration +
+  regression suite pinning a counterexample.
+- **db v8 migration startup brick (Critical)**: append-only trigger aborted
+  the operation_id backfill transaction; duplicate legacy 'gameplay' rows
+  violated the partial unique index. Collision-safe atomic backfill with
+  trigger restore.
+- **Invisible-profile restore (High)**: backups with foreign profile ids
+  created a second, unreadable profile row on import; normalized to the
+  local singleton.
+- **Silent SFX failure (High, UX)**: context-fit and cue-shift correct/wrong
+  sounds never played in production (names missing from `SFX_ALIASES`);
+  aliases added with SDK-level invariant tests.
+- **attention-target-count pause exploit (High)**: pause+resume restarted the
+  full round window → unlimited think time and inflated scores; freeze-and-
+  continue accumulator adopted (gameVersion 1.1.0).
+- **speed-color-match timing (High)**: wall-clock reaction measurement and
+  pause window accounting replaced with monotonic clock paths (1.0.1).
+- **stroop defect cluster (High)**: unanswerable neutral trials,
+  session-ending first timeout, dead-ended flip-cue phase, fabricated RTs,
+  capped perfect-run score, inexact force-win — all fixed with regressions.
+- **task-switch/rule-flip generator determinism bugs (Medium)**: constant
+  fork salts made every round/block identical; round-/block-scoped salts.
+- **fold-match degenerate distractors (Medium)**: keep-base contradiction.
+- **Reroll on completed workouts (Medium)**: debited coins for nothing;
+  refused now. `paidReroll` balance checked inside its transaction.
+- **Shield unusable standalone (Medium)**: delegated to Freeze/Recovery
+  predicates and consumed the wrong item; correct item now consumed.
+- **equation-builder undo (Medium)**: undo of trailing operator left an
+  impossible token state; re-derived from remaining tokens (1.0.1).
+- **word-chain degenerate-pool crash (Low)** + content ambiguity fixes
+  (context-fit non-word/ambiguous items, truncated idioms).
+- **QA harness stale catalog (Medium)**: hardcoded 24-game list replaced by
+  game.json derivation + registry cross-check; scales with catalog growth.
 
-## Resolved during Campaign 003
+## Resolved during 008
 
-- None beyond the above debt (no Critical/High findings).
+See Git history / VALIDATION.md (Wave 02 recovery convergence; canary PASS
+after Metro cache clear).
 
-## Resolved during Campaign 002
+## Resolved during 006R / earlier
 
-- **STALE-DB-SCREENS (Medium, fixed `0a16f68`)**: game-detail/results/Progress/
-  Games rendered stale data after returning to an already-mounted screen
-  (React Navigation keeps screens mounted; no refetch on focus). Fixed with
-  `useFocusEffect`-driven refresh keys in `useDbData` consumers + optimistic
-  favorite override. Re-verified on-device.
-- **Typed-routes local staleness**: `.expo/types/router.d.ts` is generated
-  only by `expo start` (not `expo export`); a stale local copy rejected new
-  routes in `tsc`. `.expo/` is gitignored and CI typechecks without the file
-  (loose href typing, consistent with CI). If a dev runs `expo start`, the
-  file regenerates with correct routes and everything still typechecks.
-
-## Resolved during Campaign 001
-
-- **GAME-ROUTE-TRAPPED-IN-NATIVETABS (High, fixed `d380699`)**: `/game/[id]`
-  was unreachable from taps and deep links because the route lived inside the
-  NativeTabs navigator, which only handles declared triggers. Fixed by moving
-  tab screens into `app/(tabs)/` and making the root layout a Stack. Verified
-  on-device; add a shell test covering route reachability when the router
-  testing library supports it.
-- `@types/jest` gap: wave-0 typecheck failure fixed in wave-1 convergence.
-- Registry generator dropped the game `id` (fixed wave 2).
-- Root README had a UTF-16 tail (fixed wave 0); remote history also fixed it.
+See Git history and prior entries in this file's archived sections in
+`VALIDATION.md`.
