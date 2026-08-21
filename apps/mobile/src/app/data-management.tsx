@@ -1,5 +1,6 @@
 /**
- * Data Management — local backup / restore / wipe (Session 05 portability).
+ * Data Management — local backup / restore / wipe (Session 05 portability,
+ * W13 UX wave).
  *
  * Offline-first, manual backup flow (constitution §7):
  * - Export canonical local profile/progression evidence as a versioned, checksummed envelope.
@@ -9,10 +10,11 @@
  * - Atomic application + rollback on failure; triggers stay valid.
  * - Local data deletion workflow with backup-offered-first and typed confirmation.
  *
- * Transport is deliberately UI-level: the engine produces/consumes a JSON string;
- * the screen surfaces it in a copyable TextInput (no native file-picker dependency
- * needed for the portability contract). A native share/file transport can be
- * layered later without changing the engine.
+ * Transport consumes W10's `BackupTransport` seam as-is via the provided
+ * in-memory implementation: every export is also saved under a timestamped
+ * name (`defaultBackupName`) and can be re-loaded into the import box or
+ * deleted within the session. A native file/share transport can replace it
+ * later without touching this engine contract.
  */
 
 import { useCallback, useState } from "react";
@@ -33,14 +35,27 @@ import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import {
   countLocalData,
+  defaultBackupName,
   exportLocalData,
   parseAndValidateBackup,
   previewImport,
   serializeBackup,
   wipeLocalData,
+  type BackupTransport,
   type LocalDataCounts,
 } from "@/data-portability";
 import { applyImport } from "@/data-portability";
+// Imported directly rather than via the barrel: this module pulls in native
+// filesystem modules that Node-side engine tests must not load transitively.
+import {
+  createFileBackupTransport,
+  pickBackupFile,
+} from "@/data-portability/file-transport";
+
+// Durable backup store (Campaign 010 file transport, debt D2): saved backups
+// live under the app document directory and survive restarts. Import can also
+// source files from outside the sandbox via the document picker.
+const backupTransport: BackupTransport = createFileBackupTransport();
 
 const EMPTY_COUNTS: LocalDataCounts = {
   gameSessions: 0,
@@ -74,6 +89,17 @@ export default function DataManagementScreen() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [wipeConfirm, setWipeConfirm] = useState("");
+  // Names currently held by the transport (refreshed after save/delete/load).
+  const [savedBackups, setSavedBackups] = useState<string[]>([]);
+
+  const refreshSavedBackups = useCallback(async () => {
+    try {
+      setSavedBackups(await backupTransport.listBackups());
+    } catch {
+      // Transport failures must never take the management screen down.
+      setSavedBackups([]);
+    }
+  }, []);
 
   const onExport = useCallback(async () => {
     setBusy(true);
@@ -82,11 +108,71 @@ export default function DataManagementScreen() {
       const env = await exportLocalData(getDb());
       const text = serializeBackup(env);
       setExportText(text);
+      // Also park the envelope in the session transport so it can be
+      // re-imported without copy/paste gymnastics.
+      const name = defaultBackupName();
+      await backupTransport.writeBackup(name, text);
+      await refreshSavedBackups();
       setMessage(
-        `Exported ${env.data.gameSessions.length} sessions, ${env.data.currencyLedger.length} ledger entries.`,
+        `Exported ${env.data.gameSessions.length} sessions, ${env.data.currencyLedger.length} ledger entries. Saved as ${name}.`,
       );
     } catch (e) {
       setMessage(`Export failed: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  }, [refreshSavedBackups]);
+
+  const onLoadBackup = useCallback(
+    async (name: string) => {
+      setBusy(true);
+      setMessage(null);
+      try {
+        const text = await backupTransport.readBackup(name);
+        setImportText(text);
+        setMessage(`Loaded "${name}" into the import box. Preview before applying.`);
+      } catch (e) {
+        setMessage(`Load failed: ${(e as Error).message}`);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [],
+  );
+
+  const onDeleteBackup = useCallback(
+    async (name: string) => {
+      setBusy(true);
+      setMessage(null);
+      try {
+        await backupTransport.deleteBackup(name);
+        await refreshSavedBackups();
+        setMessage(`Deleted saved backup "${name}".`);
+      } catch (e) {
+        setMessage(`Delete failed: ${(e as Error).message}`);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [refreshSavedBackups],
+  );
+
+  const onLoadFromFile = useCallback(async () => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const picked = await pickBackupFile();
+      if (!picked) {
+        // User canceled the picker — not an error.
+        setMessage(null);
+        return;
+      }
+      setImportText(picked.text);
+      setMessage(
+        `Loaded "${picked.name}" into the import box. Preview before applying.`,
+      );
+    } catch (e) {
+      setMessage(`File load failed: ${(e as Error).message}`);
     } finally {
       setBusy(false);
     }
@@ -225,6 +311,11 @@ export default function DataManagementScreen() {
             value={counts.questProgress}
             testID="data-count-quests"
           />
+          <Count
+            label="XP awards"
+            value={counts.xpAwards}
+            testID="data-count-xp"
+          />
         </View>
         <ThemedText type="caption" themeColor="textSecondary">
           {counts.hasProfile ? "Profile present" : "No profile"} ·{" "}
@@ -238,11 +329,13 @@ export default function DataManagementScreen() {
         <ThemedText type="caption" themeColor="textSecondary">
           Creates a versioned, checksummed JSON envelope containing all
           canonical local data (sessions, ratings, ledger, quests, streak
-          inventory, settings, etc.).
+          inventory, settings, etc.). Exports are also saved into the app's
+          backups folder and listed below.
         </ThemedText>
         <Pressable
           testID="data-export-button"
           accessibilityRole="button"
+          accessibilityLabel="Export backup to JSON"
           disabled={busy}
           onPress={onExport}
           style={styles.button}
@@ -270,12 +363,67 @@ export default function DataManagementScreen() {
         ) : null}
       </ThemedView>
 
+      {/* Saved backups (file transport — persists in the app documents folder). */}
+      <ThemedView type="surface" style={styles.card} testID="data-saved-backups">
+        <ThemedText type="subtitle">Saved Backups</ThemedText>
+        <ThemedText type="caption" themeColor="textSecondary">
+          Stored in the app's backups folder and kept across app restarts. Load
+          one to restore it, or delete it. Use the share sheet or a file manager
+          to keep copies outside the app.
+        </ThemedText>
+        {savedBackups.length === 0 ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            No saved backups yet. Export above to create one.
+          </ThemedText>
+        ) : (
+          <View style={styles.rows}>
+            {savedBackups.map((name) => (
+              <View key={name} style={styles.backupRow}>
+                <ThemedText
+                  type="small"
+                  numberOfLines={1}
+                  style={styles.backupName}>
+                  {name}
+                </ThemedText>
+                <View style={styles.row}>
+                  <Pressable
+                    testID={`data-backup-load-${name}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Load backup ${name} into the import box`}
+                    disabled={busy}
+                    onPress={() => onLoadBackup(name)}>
+                    <ThemedView type="accentSoft" style={styles.smallPill}>
+                      <ThemedText type="smallBold" themeColor="accent">
+                        Load
+                      </ThemedText>
+                    </ThemedView>
+                  </Pressable>
+                  <Pressable
+                    testID={`data-backup-delete-${name}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Delete saved backup ${name}`}
+                    disabled={busy}
+                    onPress={() => onDeleteBackup(name)}>
+                    <ThemedView type="surface" style={styles.smallPill}>
+                      <ThemedText type="smallBold" themeColor="danger">
+                        Delete
+                      </ThemedText>
+                    </ThemedView>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </ThemedView>
+
       <ThemedView type="surface" style={styles.card} testID="data-import-card">
         <ThemedText type="subtitle">Import / Restore</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Paste a previously exported backup JSON. Preview first to see what
-          would change (no data is written during preview). Then choose Merge
-          (add new, keep existing) or Replace (overwrite everything).
+          Paste a previously exported backup JSON (or load a saved backup
+          above). Preview first to see what would change (no data is written
+          during preview). Then choose Merge (add new, keep existing) or Replace
+          (overwrite everything).
         </ThemedText>
         <TextInput
           testID="data-import-input"
@@ -289,8 +437,20 @@ export default function DataManagementScreen() {
         />
         <View style={styles.row}>
           <Pressable
+            testID="data-import-from-file"
+            accessibilityRole="button"
+            accessibilityLabel="Load backup JSON from a file"
+            disabled={busy}
+            onPress={onLoadFromFile}
+          >
+            <ThemedView type="surface" style={styles.smallPill}>
+              <ThemedText type="smallBold">Load from file…</ThemedText>
+            </ThemedView>
+          </Pressable>
+          <Pressable
             testID="data-preview-merge"
             accessibilityRole="button"
+            accessibilityLabel="Preview merge import"
             disabled={busy || !importText.trim()}
             onPress={() => onPreview("merge")}
           >
@@ -301,6 +461,7 @@ export default function DataManagementScreen() {
           <Pressable
             testID="data-preview-replace"
             accessibilityRole="button"
+            accessibilityLabel="Preview replace import"
             disabled={busy || !importText.trim()}
             onPress={() => onPreview("replace")}
           >
@@ -335,6 +496,7 @@ export default function DataManagementScreen() {
           <Pressable
             testID="data-import-merge"
             accessibilityRole="button"
+            accessibilityLabel="Apply merge import"
             disabled={busy || !importText.trim()}
             onPress={() => onImport("merge")}
           >
@@ -347,6 +509,7 @@ export default function DataManagementScreen() {
           <Pressable
             testID="data-import-replace"
             accessibilityRole="button"
+            accessibilityLabel="Apply replace import"
             disabled={busy || !importText.trim()}
             onPress={() => onImport("replace")}
           >
@@ -381,6 +544,7 @@ export default function DataManagementScreen() {
         <Pressable
           testID="data-wipe-button"
           accessibilityRole="button"
+          accessibilityLabel="Wipe all local data"
           disabled={busy || wipeConfirm !== "DELETE"}
           onPress={onWipe}
         >
@@ -471,6 +635,18 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     gap: Spacing.two,
+  },
+  rows: {
+    gap: Spacing.two,
+  },
+  backupRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.two,
+  },
+  backupName: {
+    flex: 1,
   },
   textArea: {
     minHeight: 120,

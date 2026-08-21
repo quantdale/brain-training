@@ -8,7 +8,14 @@
  * This is an *integrity* checksum (accidental corruption / truncation /
  * tampering detection), not a cryptographic MAC — the constitution defers
  * password-encrypted backups, so confidentiality is out of scope here.
+ *
+ * Campaign 010 (debt D2): `Sha256` exposes incremental `update()` so large
+ * backups can be hashed WHILE they are serialized chunk-by-chunk, instead of
+ * materializing the whole payload string plus a second full-size UTF-8 byte
+ * copy. Digests are identical whether fed in one call or many.
  */
+
+import { writeCanonicalJson } from './canonical-json';
 
 const K = new Uint32Array([
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -21,29 +28,55 @@ const K = new Uint32Array([
   0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ]);
 
-function utf8Encode(input: string): Uint8Array {
-  const bytes: number[] = [];
+/**
+ * Encode a JS string as UTF-8.
+ *
+ * Two-pass (count bytes, then fill) so multi-megabyte payloads never build the
+ * intermediate boxed `number[]` the legacy encoder allocated. Byte output is
+ * IDENTICAL to the legacy encoder, including its deterministic handling of a
+ * trailing lone high surrogate (it consumes the next code unit unconditionally;
+ * a missing/invalid continuation yields the same fixed byte sequence).
+ */
+export function utf8Encode(input: string): Uint8Array {
+  let byteLength = 0;
+  for (let i = 0; i < input.length; i++) {
+    const code = input.charCodeAt(i);
+    if (code < 0x80) {
+      byteLength += 1;
+    } else if (code < 0x800) {
+      byteLength += 2;
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      // Surrogate pair: combine with the next code unit.
+      byteLength += 4;
+      i++;
+    } else {
+      byteLength += 3;
+    }
+  }
+
+  const out = new Uint8Array(byteLength);
+  let j = 0;
   for (let i = 0; i < input.length; i++) {
     let code = input.charCodeAt(i);
     if (code < 0x80) {
-      bytes.push(code);
+      out[j++] = code;
     } else if (code < 0x800) {
-      bytes.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
+      out[j++] = 0xc0 | (code >> 6);
+      out[j++] = 0x80 | (code & 0x3f);
     } else if (code >= 0xd800 && code <= 0xdbff) {
-      // Surrogate pair: combine with the next code unit.
       const next = input.charCodeAt(++i);
       code = 0x10000 + ((code - 0xd800) << 10) + (next - 0xdc00);
-      bytes.push(
-        0xf0 | (code >> 18),
-        0x80 | ((code >> 12) & 0x3f),
-        0x80 | ((code >> 6) & 0x3f),
-        0x80 | (code & 0x3f),
-      );
+      out[j++] = 0xf0 | (code >> 18);
+      out[j++] = 0x80 | ((code >> 12) & 0x3f);
+      out[j++] = 0x80 | ((code >> 6) & 0x3f);
+      out[j++] = 0x80 | (code & 0x3f);
     } else {
-      bytes.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
+      out[j++] = 0xe0 | (code >> 12);
+      out[j++] = 0x80 | ((code >> 6) & 0x3f);
+      out[j++] = 0x80 | (code & 0x3f);
     }
   }
-  return new Uint8Array(bytes);
+  return out;
 }
 
 /** Right-rotate a 32-bit integer `n` bits. */
@@ -51,40 +84,84 @@ function rotr(x: number, n: number): number {
   return (x >>> n) | (x << (32 - n));
 }
 
+const BLOCK_SIZE = 64;
+
 /**
- * Compute the SHA-256 digest of a UTF-8 string and return it as a lowercase
- * hex string. Deterministic across platforms.
+ * Incremental SHA-256. Feed arbitrarily sized string/byte chunks via `update`,
+ * then read the hex digest once via `digestHex`. Chunk boundaries never affect
+ * the digest: partial blocks are carried internally.
+ *
+ * `digestHex` is non-destructive (padding runs against a snapshot of the
+ * chaining state), though the intended usage is exactly one digest per hash.
  */
-export function sha256Hex(message: string): string {
-  const bytes = utf8Encode(message);
+export class Sha256 {
+  private readonly state = new Uint32Array([
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+  ]);
+  private readonly w = new Uint32Array(64);
+  private readonly carry = new Uint8Array(BLOCK_SIZE);
+  private buffered = 0;
+  private totalBytes = 0;
 
-  // Pre-processing: append the bit '1', then zeros, then the 64-bit length.
-  const bitLength = bytes.length * 8;
-  const withOne = bytes.length + 1; // original + 0x80
-  const totalLength = Math.ceil((withOne + 8) / 64) * 64;
-  const padded = new Uint8Array(totalLength);
-  padded.set(bytes);
-  padded[bytes.length] = 0x80;
-  // 64-bit big-endian length in the final 8 bytes.
-  const view = new DataView(padded.buffer);
-  // High 32 bits (JS numbers are safe for our sizes; zero for normal inputs).
-  view.setUint32(totalLength - 8, Math.floor(bitLength / 0x100000000));
-  view.setUint32(totalLength - 4, bitLength >>> 0);
+  /** Absorb one more chunk of message bytes. */
+  update(data: string | Uint8Array): this {
+    const bytes = typeof data === 'string' ? utf8Encode(data) : data;
+    this.totalBytes += bytes.length;
 
-  let h0 = 0x6a09e667;
-  let h1 = 0xbb67ae85;
-  let h2 = 0x3c6ef372;
-  let h3 = 0xa54ff53a;
-  let h4 = 0x510e527f;
-  let h5 = 0x9b05688c;
-  let h6 = 0x1f83d9ab;
-  let h7 = 0x5be0cd19;
+    let offset = 0;
+    if (this.buffered > 0) {
+      const take = Math.min(BLOCK_SIZE - this.buffered, bytes.length);
+      this.carry.set(bytes.subarray(0, take), this.buffered);
+      this.buffered += take;
+      offset = take;
+      if (this.buffered === BLOCK_SIZE) {
+        this.processBlock(this.carry, 0);
+        this.buffered = 0;
+      }
+    }
+    while (offset + BLOCK_SIZE <= bytes.length) {
+      this.processBlock(bytes, offset);
+      offset += BLOCK_SIZE;
+    }
+    if (offset < bytes.length) {
+      this.carry.set(bytes.subarray(offset), 0);
+      this.buffered = bytes.length - offset;
+    }
+    return this;
+  }
 
-  const w = new Uint32Array(64);
+  /** Finalize and return the lowercase hex digest. */
+  digestHex(): string {
+    // Snapshot the chaining state so digesting stays non-destructive.
+    const saved = this.state.slice();
 
-  for (let offset = 0; offset < totalLength; offset += 64) {
+    // Pre-processing: append the bit '1', zeros, then the 64-bit length.
+    const rem = this.buffered;
+    const finalLen = rem + 9 <= BLOCK_SIZE ? BLOCK_SIZE : BLOCK_SIZE * 2;
+    const final = new Uint8Array(finalLen);
+    final.set(this.carry.subarray(0, rem));
+    final[rem] = 0x80;
+    const bitLength = this.totalBytes * 8; // safe: payloads stay far below 2^53 bits
+    const view = new DataView(final.buffer);
+    view.setUint32(finalLen - 8, Math.floor(bitLength / 0x100000000));
+    view.setUint32(finalLen - 4, bitLength >>> 0);
+
+    this.processBlock(final, 0);
+    if (finalLen === BLOCK_SIZE * 2) {
+      this.processBlock(final, BLOCK_SIZE);
+    }
+
+    const hex = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => toHex(this.state[i])).join('');
+    this.state.set(saved);
+    return hex;
+  }
+
+  /** Compress one 64-byte block starting at `offset` into the chaining state. */
+  private processBlock(bytes: Uint8Array, offset: number): void {
+    const view = new DataView(bytes.buffer, bytes.byteOffset + offset, BLOCK_SIZE);
+    const w = this.w;
     for (let i = 0; i < 16; i++) {
-      w[i] = view.getUint32(offset + i * 4);
+      w[i] = view.getUint32(i * 4);
     }
     for (let i = 16; i < 64; i++) {
       const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
@@ -92,14 +169,14 @@ export function sha256Hex(message: string): string {
       w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
     }
 
-    let a = h0;
-    let b = h1;
-    let c = h2;
-    let d = h3;
-    let e = h4;
-    let f = h5;
-    let g = h6;
-    let h = h7;
+    let a = this.state[0];
+    let b = this.state[1];
+    let c = this.state[2];
+    let d = this.state[3];
+    let e = this.state[4];
+    let f = this.state[5];
+    let g = this.state[6];
+    let h = this.state[7];
 
     for (let i = 0; i < 64; i++) {
       const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
@@ -118,22 +195,28 @@ export function sha256Hex(message: string): string {
       a = (temp1 + temp2) | 0;
     }
 
-    h0 = (h0 + a) | 0;
-    h1 = (h1 + b) | 0;
-    h2 = (h2 + c) | 0;
-    h3 = (h3 + d) | 0;
-    h4 = (h4 + e) | 0;
-    h5 = (h5 + f) | 0;
-    h6 = (h6 + g) | 0;
-    h7 = (h7 + h) | 0;
+    this.state[0] = (this.state[0] + a) | 0;
+    this.state[1] = (this.state[1] + b) | 0;
+    this.state[2] = (this.state[2] + c) | 0;
+    this.state[3] = (this.state[3] + d) | 0;
+    this.state[4] = (this.state[4] + e) | 0;
+    this.state[5] = (this.state[5] + f) | 0;
+    this.state[6] = (this.state[6] + g) | 0;
+    this.state[7] = (this.state[7] + h) | 0;
   }
-
-  return [h0, h1, h2, h3, h4, h5, h6, h7].map(toHex).join('');
 }
 
 /** Convert a 32-bit integer to an 8-char lowercase hex string. */
 function toHex(n: number): string {
   return (n >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Compute the SHA-256 digest of a UTF-8 string and return it as a lowercase
+ * hex string. Deterministic across platforms.
+ */
+export function sha256Hex(message: string): string {
+  return new Sha256().update(message).digestHex();
 }
 
 /**
@@ -146,4 +229,16 @@ export const CHECKSUM_ALGORITHM = 'sha256';
 /** Compute the envelope checksum over the canonical (checksum-excluded) payload. */
 export function computeChecksum(payload: string): string {
   return sha256Hex(payload);
+}
+
+/**
+ * SHA-256 over the canonical JSON form of `value`, computed in ONE pass:
+ * canonical chunks stream straight into the hasher, so verification never
+ * materializes the joined canonical string nor a second full-size UTF-8 copy.
+ * Digest is identical to `computeChecksum(canonicalString(value))`.
+ */
+export function canonicalSha256Hex(value: unknown): string {
+  const hasher = new Sha256();
+  writeCanonicalJson(value, (chunk) => hasher.update(chunk));
+  return hasher.digestHex();
 }

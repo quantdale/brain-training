@@ -1,4 +1,6 @@
 import type { SQLiteAdapter } from './adapter';
+import { MAX_READ_LIMIT, clampLimit, joinAnd, normalizeOffset, requireFiniteNumber } from './query';
+import type { SQLiteValue } from './types';
 import type { AppliedRatingDelta, RatingDelta } from './types';
 
 /**
@@ -38,6 +40,20 @@ export interface RatingHistoryEntry {
   createdAt: number;
 }
 
+/** Filter/pagination shape for `getHistoryWindowed`. */
+export interface RatingHistoryQuery {
+  /** One domain, or all domains when omitted. */
+  domain?: string;
+  /** Inclusive lower bound on created_at (epoch ms). */
+  fromMs?: number;
+  /** Inclusive upper bound on created_at (epoch ms). */
+  toMs?: number;
+  /** Page size; clamped to [1, 10000], default 100. */
+  limit?: number;
+  /** Offset into the ordered result set; negative/undefined = 0. */
+  offset?: number;
+}
+
 interface DomainRatingRow {
   domain: string;
   rating: number;
@@ -56,10 +72,11 @@ interface RatingHistoryRow {
 
 const SELECT_ALL = 'SELECT domain, rating, sessions, updated_at FROM domain_ratings ORDER BY domain';
 const SELECT_ONE = 'SELECT domain, rating, sessions, updated_at FROM domain_ratings WHERE domain = ?';
-const SELECT_HISTORY =
-  'SELECT id, session_id, domain, delta, rating_after, created_at FROM rating_history ORDER BY id DESC LIMIT ?';
-const SELECT_HISTORY_BY_SESSION =
-  'SELECT id, session_id, domain, delta, rating_after, created_at FROM rating_history WHERE session_id = ? ORDER BY id ASC';
+/** Shared projection for history reads (aliased snake_case -> camelCase). */
+const HISTORY_COLUMNS =
+  'SELECT id, session_id AS sessionId, domain, delta, rating_after AS ratingAfter, created_at AS createdAt FROM rating_history';
+const SELECT_HISTORY = `${HISTORY_COLUMNS} ORDER BY id DESC LIMIT ?`;
+const SELECT_HISTORY_BY_SESSION = `${HISTORY_COLUMNS} WHERE session_id = ? ORDER BY id ASC`;
 
 function mapRatingRow(row: DomainRatingRow): DomainRating {
   return { domain: row.domain, rating: row.rating, sessions: row.sessions, updatedAt: row.updated_at };
@@ -151,6 +168,46 @@ export class RatingRepository {
   /** Most recent rating movements, newest first. */
   async getHistory(limit = 100): Promise<RatingHistoryEntry[]> {
     const rows = await this.adapter.all<RatingHistoryRow>(SELECT_HISTORY, [limit]);
+    return rows.map(mapHistoryRow);
+  }
+
+  /**
+   * Windowed rating movements with filter + offset pagination (campaign 010
+   * W11; bounds the unbounded `getHistory(ALL)` pattern the 009 audit flagged).
+   * Reads the same columns as `getHistory` — no session JSON is involved.
+   *
+   * Index-awareness: a `domain` filter walks
+   * `idx_rating_history_domain (domain, created_at)`; an unfiltered window
+   * walks `idx_rating_history_created_at (created_at)` (schema v9, added for
+   * exactly this read). Ordering tie-breaks on `id DESC` so equal timestamps
+   * paginate deterministically.
+   */
+  async getHistoryWindowed(query: RatingHistoryQuery = {}): Promise<RatingHistoryEntry[]> {
+    requireFiniteNumber(query.fromMs, 'query.fromMs');
+    requireFiniteNumber(query.toMs, 'query.toMs');
+    if (query.domain !== undefined && (typeof query.domain !== 'string' || query.domain === '')) {
+      throw new Error('query.domain: must be a non-empty string when provided');
+    }
+    const conditions: string[] = [];
+    const params: SQLiteValue[] = [];
+    if (query.domain !== undefined) {
+      conditions.push('domain = ?');
+      params.push(query.domain);
+    }
+    if (query.fromMs !== undefined) {
+      conditions.push('created_at >= ?');
+      params.push(query.fromMs);
+    }
+    if (query.toMs !== undefined) {
+      conditions.push('created_at <= ?');
+      params.push(query.toMs);
+    }
+    const limit = clampLimit(query.limit, 100, MAX_READ_LIMIT);
+    const offset = normalizeOffset(query.offset);
+    const rows = await this.adapter.all<RatingHistoryRow>(
+      `${HISTORY_COLUMNS} ${joinAnd(conditions)} ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset],
+    );
     return rows.map(mapHistoryRow);
   }
 

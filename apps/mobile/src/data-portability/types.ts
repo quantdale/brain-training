@@ -13,6 +13,17 @@ import type { DomainRating, RatingHistoryEntry } from '@/db';
 /** Highest backup-format version this engine can read and write. */
 export const BACKUP_FORMAT_VERSION = 1;
 
+/**
+ * Revision of the portability ENGINE itself (orthogonal to the envelope
+ * format). Bumped when serialization semantics or produced metadata change so
+ * diagnostics can tell which writer produced a backup:
+ *   1 — campaign 009 engine (two-pass canonical serialization).
+ *   2 — campaign 010 (D2): single-pass canonical serializer, incremental
+ *       checksum, `engineVersion` + `manifest` metadata on export.
+ * Readers never reject on this value; it is provenance only.
+ */
+export const BACKUP_ENGINE_VERSION = 2;
+
 /** Envelope `format` discriminator — rejects anything that is not our backup. */
 export const BACKUP_FORMAT = 'brain-training-backup';
 
@@ -155,6 +166,41 @@ export interface BackupData {
   achievementUnlocks: BackupAchievementUnlock[];
 }
 
+/**
+ * Per-section record counts. Shared shape between the export-side
+ * `BackupManifest` and the preview-side `BackupMeta.counts` so both UIs and
+ * diagnostics read one vocabulary.
+ */
+export interface BackupSectionCounts {
+  gameSessions: number;
+  domainRatings: number;
+  ratingHistory: number;
+  currencyLedger: number;
+  gameFavorites: number;
+  xpAwards: number;
+  tutorialState: number;
+  workoutInstances: number;
+  questDefinitions: number;
+  questProgress: number;
+  achievementDefinitions: number;
+  achievementUnlocks: number;
+  hasProfile: boolean;
+}
+
+/**
+ * Export-time backup manifest: a quick, checksum-protected summary of the
+ * envelope so tooling (and the data-management screen) can show what a backup
+ * contains without walking every data array. Derived entirely from `data` at
+ * write time; readers treat it as informational.
+ */
+export interface BackupManifest {
+  /** Writer identity + engine revision, e.g. `"data-portability/2"`. */
+  generatedBy: string;
+  sections: BackupSectionCounts;
+  /** Total authoritative records across all sections (profile counted once). */
+  totalRecords: number;
+}
+
 /** The serialized + integrity-protected backup envelope. */
 export interface BackupEnvelope {
   format: typeof BACKUP_FORMAT;
@@ -165,6 +211,16 @@ export interface BackupEnvelope {
   appVersion?: string;
   /** Source DB schema version (provenance only). */
   schemaVersion: number;
+  /**
+   * Portability engine revision that produced this backup (provenance only).
+   * Absent in campaign-009-era backups; never blocks an import.
+   */
+  engineVersion?: number;
+  /**
+   * Checksum-protected section summary (see {@link BackupManifest}).
+   * Absent in campaign-009-era backups; never blocks an import.
+   */
+  manifest?: BackupManifest;
   /** Checksum over the canonical payload (everything except `checksum`). */
   checksum: string;
   checksumAlgorithm: string;

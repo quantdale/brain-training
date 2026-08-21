@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from "./adapter";
 
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -298,6 +298,25 @@ export const SQL = {
   `,
 
   /**
+   * Campaign 010 (W11) — SCHEMA CHANGE v9, documented per the worker packet's
+   * granted exception. Append-only and collision-safe (`IF NOT EXISTS`); no
+   * table, column, or row is touched, so existing installs migrate forward
+   * with zero data impact and backups stay compatible (backup `schemaVersion`
+   * is informational only).
+   *
+   * Why: the new windowed rating-history read (`RatingRepository
+   * .getHistoryWindowed`) orders by `created_at` when no domain filter is
+   * present. Before this index that ordering was a full scan + sort of the
+   * append-only history — the same gap v8 closed for `game_sessions
+   * .completed_at`. Domain-scoped windowed reads were already covered by
+   * `idx_rating_history_domain (domain, created_at)`.
+   */
+  createRatingHistoryCreatedAtIndex: `
+    CREATE INDEX IF NOT EXISTS idx_rating_history_created_at
+      ON rating_history (created_at);
+  `,
+
+  /**
    * Backfill a stable idempotency key onto legacy gameplay currency rows that
    * predate v8 (task A/idempotency). Newer rows already carry
    * `gameplay:<sessionId>` from `completeSession`. Two guards keep the
@@ -469,6 +488,15 @@ export const MIGRATIONS: readonly Migration[] = [
       await txn.exec("DROP TRIGGER IF EXISTS trg_currency_ledger_no_update");
       await txn.exec(SQL.backfillGameplayOperationIds);
       await txn.exec(SQL.createCurrencyLedgerNoUpdateTrigger);
+    },
+  },
+  {
+    version: 9,
+    up: async (txn) => {
+      // Index for the windowed rating-history read (campaign 010 W11). See
+      // SQL.createRatingHistoryCreatedAtIndex for rationale; append-only,
+      // collision-safe, no data change.
+      await txn.exec(SQL.createRatingHistoryCreatedAtIndex);
     },
   },
 ];

@@ -1,6 +1,18 @@
 import type { SQLiteAdapter } from "./adapter";
 import { LOCAL_PROFILE_ID } from "./profile";
 import { RatingRepository } from "./rating";
+import {
+  MAX_READ_LIMIT,
+  DEFAULT_READ_LIMIT,
+  SQL_VARIABLE_CHUNK,
+  buildInPlaceholders,
+  chunk,
+  clampLimit,
+  joinAnd,
+  normalizeOffset,
+  requireFiniteNumber,
+} from "./query";
+import type { SQLiteValue } from "./types";
 import type {
   AppliedRatingDelta,
   CompleteSessionInput,
@@ -43,6 +55,17 @@ const INSERT_SESSION = `INSERT OR IGNORE INTO game_sessions (
   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
 const SELECT_SESSION_BY_ID = "SELECT * FROM game_sessions WHERE id = ?";
+const SELECT_ALL_SESSIONS = "SELECT * FROM game_sessions";
+/**
+ * Column-limited projection for list/aggregate read paths (campaign 010 W11).
+ * Exactly the columns the Progress/analytics consumers need — never the
+ * per-session `difficulty_json` / `raw_result_json` blobs, whose JSON.parse
+ * cost dominated screen loads at scale (009 audit F1/F3). Aliased to camelCase
+ * so rows map 1:1 onto `SessionSummary` without a mapper pass.
+ */
+const SELECT_SUMMARY_COLUMNS =
+  "SELECT id, game_id AS gameId, xp, normalized_result AS normalizedResult, " +
+  "duration_ms AS durationMs, completed_at AS completedAt FROM game_sessions";
 const SELECT_LEDGER_FOR_SESSION =
   "SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE session_id = ? ORDER BY id ASC LIMIT 1";
 /** Stable idempotency key for a session's gameplay currency award. */
@@ -453,6 +476,175 @@ export class SessionRepository {
     );
     return row ? mapAggregateRow(row) : null;
   }
+
+  /**
+   * Column-limited session summaries with filter/order/pagination (campaign
+   * 010 W11; answers the 009 audit's projection-read request). Reads only the
+   * six projected columns — no JSON blobs — so cost scales with the page size,
+   * not the history size.
+   *
+   * Index-awareness: without `gameIds` the read walks
+   * `idx_game_sessions_completed_at` (ORDER BY completed_at); with `gameIds`
+   * it walks `idx_game_sessions_game_id` (game_id, completed_at). Both orders
+   * tie-break on `id` so equal timestamps still paginate deterministically.
+   */
+  async listSummaries(query: SessionSummaryQuery = {}): Promise<SessionSummary[]> {
+    assertSummaryQuery(query);
+    const { whereSql, params } = buildSessionFilter(query);
+    const order = query.order === "asc" ? "ASC" : "DESC";
+    const limit = clampLimit(query.limit, DEFAULT_READ_LIMIT, MAX_READ_LIMIT);
+    const offset = normalizeOffset(query.offset);
+    return this.adapter.all<SessionSummary>(
+      `${SELECT_SUMMARY_COLUMNS} ${whereSql} ` +
+        `ORDER BY completed_at ${order}, id ${order} LIMIT ? OFFSET ?`,
+      [...params, limit, offset],
+    );
+  }
+
+  /**
+   * Keyset-paginated walk over all sessions, newest first
+   * (`completed_at DESC, id DESC`). Unlike OFFSET paging, per-page cost stays
+   * flat at any depth: each page seeks directly past the previous page's last
+   * row via `idx_game_sessions_completed_at`. Pass `nextCursor` from the
+   * previous page until it comes back null.
+   */
+  async pageSummaries(
+    cursor: SessionCursor | null = null,
+    limit = DEFAULT_READ_LIMIT,
+  ): Promise<SessionPage> {
+    if (cursor !== null && !isValidSessionCursor(cursor)) {
+      throw new Error(
+        "pageSummaries: cursor must be { completedAt: finite number, id: non-empty string }",
+      );
+    }
+    const pageSize = clampLimit(limit, DEFAULT_READ_LIMIT, MAX_READ_LIMIT);
+    const conditions: string[] = [];
+    const params: SQLiteValue[] = [];
+    if (cursor) {
+      // Expanded (non-row-value) keyset predicate: portable across every
+      // SQLite either backend may ship, and sargable for the completed_at index.
+      conditions.push("(completed_at < ? OR (completed_at = ? AND id < ?))");
+      params.push(cursor.completedAt, cursor.completedAt, cursor.id);
+    }
+    // One extra row detects hasMore without a COUNT scan.
+    const rows = await this.adapter.all<SessionSummary>(
+      `${SELECT_SUMMARY_COLUMNS} ${joinAnd(conditions)} ` +
+        "ORDER BY completed_at DESC, id DESC LIMIT ?",
+      [...params, pageSize + 1],
+    );
+    const hasMore = rows.length > pageSize;
+    const items = hasMore ? rows.slice(0, pageSize) : rows;
+    const last = items[items.length - 1];
+    return {
+      items,
+      hasMore,
+      nextCursor:
+        hasMore && last ? { completedAt: last.completedAt, id: last.id } : null,
+    };
+  }
+
+  /** COUNT pushdown for the same filter shape `listSummaries` accepts. */
+  async countSessions(query: SessionFilterQuery = {}): Promise<number> {
+    assertSummaryQuery(query);
+    const { whereSql, params } = buildSessionFilter(query);
+    const row = await this.adapter.get<{ n: number }>(
+      `SELECT COUNT(*) AS n FROM game_sessions ${whereSql}`,
+      params,
+    );
+    return row?.n ?? 0;
+  }
+
+  /**
+   * One-statement aggregate pushdown over a filtered window (COUNT/SUM/AVG/
+   * MAX/MIN computed in SQLite instead of materializing rows into JS).
+   * All-zero result means "no matching sessions".
+   */
+  async getSessionWindowAggregate(
+    query: SessionFilterQuery = {},
+  ): Promise<WindowedSessionAggregate> {
+    assertSummaryQuery(query);
+    const { whereSql, params } = buildSessionFilter(query);
+    const row = await this.adapter.get<WindowedSessionAggregate>(
+      `SELECT COUNT(*) AS count,
+              COALESCE(SUM(xp), 0) AS totalXp,
+              COALESCE(AVG(normalized_result), 0) AS avgNormalized,
+              COALESCE(MAX(normalized_result), 0) AS bestNormalized,
+              COALESCE(SUM(duration_ms), 0) AS totalDurationMs,
+              COALESCE(MIN(completed_at), 0) AS firstCompletedAt,
+              COALESCE(MAX(completed_at), 0) AS lastCompletedAt
+       FROM game_sessions ${whereSql}`,
+      params,
+    );
+    return (
+      row ?? {
+        count: 0,
+        totalXp: 0,
+        avgNormalized: 0,
+        bestNormalized: 0,
+        totalDurationMs: 0,
+        firstCompletedAt: 0,
+        lastCompletedAt: 0,
+      }
+    );
+  }
+
+  /**
+   * Sessions-per-day counts pushed down to SQLite (one row per active day —
+   * the cheap input for activity calendars/frequency charts, replacing full
+   * row reads). `dayBoundary` picks the day-key convention: 'utc' matches the
+   * analytics calendar (`utcDateKey`); 'local' matches the streak engine's
+   * local-calendar convention (see `getDistinctActivityDates`). Days sort
+   * newest first.
+   */
+  async getDailySessionCounts(
+    query: SessionDayCountQuery = {},
+  ): Promise<DailySessionCount[]> {
+    assertSummaryQuery(query);
+    if (
+      query.dayBoundary !== undefined &&
+      query.dayBoundary !== "utc" &&
+      query.dayBoundary !== "local"
+    ) {
+      throw new Error('getDailySessionCounts: dayBoundary must be "utc" or "local"');
+    }
+    const { whereSql, params } = buildSessionFilter(query);
+    // Only two fixed modifier strings exist; caller text never reaches SQL.
+    const modifier = query.dayBoundary === "local" ? ", 'localtime'" : "";
+    return this.adapter.all<DailySessionCount>(
+      `SELECT DATE(completed_at / 1000, 'unixepoch'${modifier}) AS day,
+              COUNT(*) AS count
+       FROM game_sessions ${whereSql}
+       GROUP BY day
+       ORDER BY day DESC`,
+      params,
+    );
+  }
+
+  /**
+   * Bulk fetch by id preserving the CALLER'S order (deduplicated; missing ids
+   * are simply absent). Ids are chunked under the per-statement variable
+   * budget so arbitrarily large id lists stay safe.
+   */
+  async listByIds(ids: readonly string[]): Promise<GameSessionRecord[]> {
+    const unique = [...new Set(ids)];
+    if (unique.length === 0) {
+      return [];
+    }
+    const byId = new Map<string, GameSessionRecord>();
+    for (const chunkIds of chunk(unique, SQL_VARIABLE_CHUNK)) {
+      const rows = await this.adapter.all<SessionRow>(
+        `${SELECT_ALL_SESSIONS} WHERE id IN (${buildInPlaceholders(chunkIds.length)})`,
+        chunkIds,
+      );
+      for (const row of rows) {
+        byId.set(row.id, mapRow(row));
+      }
+    }
+    return unique.flatMap((id) => {
+      const record = byId.get(id);
+      return record ? [record] : [];
+    });
+  }
 }
 
 export interface GameAggregate {
@@ -482,4 +674,163 @@ function mapAggregateRow(row: GameAggregateRow): GameAggregate {
     bestNormalized: row.bestNormalized ?? 0,
     lastCompletedAt: row.lastCompletedAt ?? 0,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Projection / pagination APIs (campaign 010 W11)
+// ---------------------------------------------------------------------------
+
+/**
+ * Lightweight session projection (constitution §21 analytics inputs). Six
+ * scalar columns only — deliberately excludes the per-session
+ * `difficulty`/`rawResult` JSON blobs, whose parse cost is what made full-row
+ * reads scale poorly (009 audit F1/F3).
+ */
+export interface SessionSummary {
+  id: string;
+  gameId: string;
+  xp: number;
+  /** Shared 0..1 normalized performance. */
+  normalizedResult: number;
+  durationMs: number;
+  /** Unix epoch ms of completion. */
+  completedAt: number;
+}
+
+/** Filter shape shared by the windowed read/aggregate/count APIs. */
+export interface SessionFilterQuery {
+  /** Any of these games; empty/undefined = all games. */
+  gameIds?: readonly string[];
+  /** Inclusive lower bound on completed_at (epoch ms). */
+  fromMs?: number;
+  /** Inclusive upper bound on completed_at (epoch ms). */
+  toMs?: number;
+  /** Inclusive lower bound on normalized_result (0..1). */
+  minNormalized?: number;
+  /** Inclusive upper bound on normalized_result (0..1). */
+  maxNormalized?: number;
+}
+
+/** `SessionFilterQuery` plus ordering and offset pagination for list reads. */
+export interface SessionSummaryQuery extends SessionFilterQuery {
+  /** Sort by completed_at; defaults to 'desc' (newest first). */
+  order?: "asc" | "desc";
+  /** Page size; clamped to [1, MAX_READ_LIMIT], default DEFAULT_READ_LIMIT. */
+  limit?: number;
+  /** Offset into the ordered result set; negative/undefined = 0. */
+  offset?: number;
+}
+
+/** Day-key convention for `getDailySessionCounts`. */
+export type SessionDayBoundary = "utc" | "local";
+
+export interface SessionDayCountQuery extends SessionFilterQuery {
+  /** Defaults to 'utc' (matches the analytics calendar convention). */
+  dayBoundary?: SessionDayBoundary;
+}
+
+/** Resume point for keyset pagination (`pageSummaries`). Opaque to callers. */
+export interface SessionCursor {
+  completedAt: number;
+  id: string;
+}
+
+/** One page of the keyset walk over all sessions, newest first. */
+export interface SessionPage {
+  items: SessionSummary[];
+  /** True when another page exists after this one. */
+  hasMore: boolean;
+  /** Pass to the next `pageSummaries` call; null when exhausted. */
+  nextCursor: SessionCursor | null;
+}
+
+/** Aggregate pushdown result for a filtered session window. */
+export interface WindowedSessionAggregate {
+  count: number;
+  totalXp: number;
+  avgNormalized: number;
+  bestNormalized: number;
+  totalDurationMs: number;
+  /** Earliest matching completion (0 when none). */
+  firstCompletedAt: number;
+  /** Latest matching completion (0 when none). */
+  lastCompletedAt: number;
+}
+
+/** One row of `getDailySessionCounts`. */
+export interface DailySessionCount {
+  /** YYYY-MM-DD day key in the requested boundary convention. */
+  day: string;
+  count: number;
+}
+
+/** Structural guard so deserialized cursors are validated before use. */
+export function isValidSessionCursor(value: unknown): value is SessionCursor {
+  if (value === null || typeof value !== "object") {
+    return false;
+  }
+  const candidate = value as Partial<SessionCursor>;
+  return (
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.completedAt === "number" &&
+    Number.isFinite(candidate.completedAt)
+  );
+}
+
+/** Reject non-finite bounds up front with caller-facing names. */
+function assertSummaryQuery(query: SessionSummaryQuery): void {
+  requireFiniteNumber(query.fromMs, "query.fromMs");
+  requireFiniteNumber(query.toMs, "query.toMs");
+  requireFiniteNumber(query.minNormalized, "query.minNormalized");
+  requireFiniteNumber(query.maxNormalized, "query.maxNormalized");
+  if (
+    query.order !== undefined &&
+    query.order !== "asc" &&
+    query.order !== "desc"
+  ) {
+    throw new Error('query.order: must be "asc" or "desc"');
+  }
+}
+
+/**
+ * Compose the shared WHERE clause for session projection/aggregate queries.
+ * Values always bind as positional params; the only interpolated SQL comes
+ * from fixed strings built here. `gameIds` dedupes and OR-groups its IN lists
+ * so id sets larger than the per-statement variable budget stay correct.
+ */
+function buildSessionFilter(query: SessionFilterQuery): {
+  whereSql: string;
+  params: SQLiteValue[];
+} {
+  const conditions: string[] = [];
+  const params: SQLiteValue[] = [];
+
+  if (query.gameIds && query.gameIds.length > 0) {
+    const unique = [...new Set(query.gameIds)];
+    const groups: string[] = [];
+    for (const chunkIds of chunk(unique, SQL_VARIABLE_CHUNK)) {
+      groups.push(`game_id IN (${buildInPlaceholders(chunkIds.length)})`);
+      params.push(...chunkIds);
+    }
+    conditions.push(`(${groups.join(" OR ")})`);
+  }
+  if (query.fromMs !== undefined) {
+    conditions.push("completed_at >= ?");
+    params.push(query.fromMs);
+  }
+  if (query.toMs !== undefined) {
+    conditions.push("completed_at <= ?");
+    params.push(query.toMs);
+  }
+  if (query.minNormalized !== undefined) {
+    conditions.push("normalized_result >= ?");
+    params.push(query.minNormalized);
+  }
+  if (query.maxNormalized !== undefined) {
+    conditions.push("normalized_result <= ?");
+    params.push(query.maxNormalized);
+  }
+
+  return { whereSql: joinAnd(conditions), params };
 }

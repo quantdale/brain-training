@@ -67,6 +67,37 @@ export {
 } from './economy';
 export type { SpendInput, PurchaseStreakItemInput, PaidRerollInput } from './economy';
 
+// --- Campaign 010 W11: repository API maturation (additive) -----------------
+// Pure query-building helpers and the safe batch primitive. Free functions
+// over any SQLiteAdapter — the adapter interface itself is unchanged.
+export {
+  SQL_VARIABLE_CHUNK,
+  DEFAULT_READ_LIMIT,
+  MAX_READ_LIMIT,
+  chunk,
+  buildInPlaceholders,
+  clampLimit,
+  normalizeOffset,
+  joinAnd,
+  requireFiniteNumber,
+} from './query';
+export { executeBatch } from './batch';
+export type { BatchStatement, BatchOutcome } from './batch';
+export type {
+  SessionSummary,
+  SessionFilterQuery,
+  SessionSummaryQuery,
+  SessionDayBoundary,
+  SessionDayCountQuery,
+  SessionCursor,
+  SessionPage,
+  WindowedSessionAggregate,
+  DailySessionCount,
+} from './sessions';
+export { isValidSessionCursor } from './sessions';
+export type { RatingHistoryQuery } from './rating';
+export type { FavoriteEntry } from './favorites';
+
 /** On-device database file name. */
 export const APP_DATABASE_NAME = 'brain-training.db';
 
