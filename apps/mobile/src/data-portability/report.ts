@@ -4,6 +4,7 @@
  * imports.
  */
 
+import type { ParsedBackup } from './deserialize';
 import type { ImportMode } from './types';
 
 /** Per-section counters produced by an import. */
@@ -92,4 +93,10 @@ export interface ImportPreview {
   counters: ImportCounters;
   /** Human-readable notes, e.g. destructive replace warning. */
   notes: string[];
+  /**
+   * The already-validated parsed backup, present when `valid` is true.
+   * Callers that apply immediately after previewing can reuse it instead of
+   * paying a second full parse/validate/canonicalize pass on large backups.
+   */
+  parsed?: ParsedBackup;
 }

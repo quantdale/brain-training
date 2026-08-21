@@ -6,24 +6,9 @@
  * only performs the irreversible clear once asked.
  */
 
-import type { AppDatabase } from "@/db";
+import { LOCAL_PROFILE_ID, type AppDatabase } from "@/db";
+import { FK_DELETE_ORDER } from "./apply";
 import { clearTablesIgnoringTriggers } from "./triggers";
-
-const WIPE_ORDER = [
-  "rating_history",
-  "currency_ledger",
-  "quest_progress",
-  "achievement_unlocks",
-  "xp_awards",
-  "game_favorites",
-  "tutorial_state",
-  "workout_instances",
-  "domain_ratings",
-  "game_sessions",
-  "quests",
-  "achievements",
-  "profile",
-];
 
 export interface LocalDataCounts {
   gameSessions: number;
@@ -41,45 +26,41 @@ export interface LocalDataCounts {
   hasProfile: boolean;
 }
 
-/** Count everything that `wipeLocalData` would remove (for confirmation UI). */
+/**
+ * Count everything that `wipeLocalData` would remove (for confirmation UI).
+ * Uses raw `COUNT(*)` per table rather than repository list calls so the
+ * numbers stay EXACT for large stores (repository lists cap at a limit and
+ * would undercount, e.g. a user with more than 10k sessions).
+ */
 export async function countLocalData(
   db: AppDatabase,
 ): Promise<LocalDataCounts> {
-  const tutorial = await db.transaction((txn) =>
-    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM tutorial_state"),
-  );
-  const workouts = await db.transaction((txn) =>
-    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM workout_instances"),
-  );
-  const questDefs = await db.transaction((txn) =>
-    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM quests"),
-  );
-  const questProg = await db.transaction((txn) =>
-    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM quest_progress"),
-  );
-  const achDefs = await db.transaction((txn) =>
-    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM achievements"),
-  );
-  const achUnlocks = await db.transaction((txn) =>
-    txn.all<{ c: number }>("SELECT COUNT(*) AS c FROM achievement_unlocks"),
-  );
-  const profile = await db.profile.get();
-
-  return {
-    gameSessions: (await db.sessions.listRecent(10000)).length,
-    domainRatings: (await db.ratings.getRatings()).length,
-    ratingHistory: (await db.ratings.getHistory(10000)).length,
-    currencyLedger: (await db.ledger.list(10000)).length,
-    gameFavorites: (await db.favorites.listFavoriteGameIds()).length,
-    xpAwards: (await db.xpAwards.list(10000)).length,
-    tutorialState: tutorial[0]?.c ?? 0,
-    workoutInstances: workouts[0]?.c ?? 0,
-    questDefinitions: questDefs[0]?.c ?? 0,
-    questProgress: questProg[0]?.c ?? 0,
-    achievementDefinitions: achDefs[0]?.c ?? 0,
-    achievementUnlocks: achUnlocks[0]?.c ?? 0,
-    hasProfile: profile !== null,
-  };
+  return db.transaction(async (txn) => {
+    const count = async (table: string): Promise<number> => {
+      // Table names are compile-time constants in this module, never user input.
+      const rows = await txn.all<{ c: number }>(`SELECT COUNT(*) AS c FROM ${table}`);
+      return rows[0]?.c ?? 0;
+    };
+    const profileRow = await txn.get<{ id: string }>(
+      "SELECT id FROM profile WHERE id = ?",
+      [LOCAL_PROFILE_ID],
+    );
+    return {
+      gameSessions: await count("game_sessions"),
+      domainRatings: await count("domain_ratings"),
+      ratingHistory: await count("rating_history"),
+      currencyLedger: await count("currency_ledger"),
+      gameFavorites: await count("game_favorites"),
+      xpAwards: await count("xp_awards"),
+      tutorialState: await count("tutorial_state"),
+      workoutInstances: await count("workout_instances"),
+      questDefinitions: await count("quests"),
+      questProgress: await count("quest_progress"),
+      achievementDefinitions: await count("achievements"),
+      achievementUnlocks: await count("achievement_unlocks"),
+      hasProfile: profileRow !== null && profileRow !== undefined,
+    };
+  });
 }
 
 /**
@@ -92,6 +73,7 @@ export async function wipeLocalData(db: AppDatabase): Promise<void> {
   // (modern SQLite removed `PRAGMA triggers` and it is a no-op inside a
   // transaction). `clearTablesIgnoringTriggers` drops them, clears in a
   // transaction, then recreates the exact same triggers so the connection is
-  // never left without its append-only guarantees.
-  await clearTablesIgnoringTriggers(db, WIPE_ORDER);
+  // never left without its append-only guarantees. The table order is the
+  // shared FK-safe order exported by `apply.ts`.
+  await clearTablesIgnoringTriggers(db, [...FK_DELETE_ORDER]);
 }

@@ -153,6 +153,13 @@ export async function paidReroll(
         return { ledgerEntry: existing };
       }
     }
+    // Balance check inside the transaction (mirrors spendCurrency): the caller's
+    // pre-check runs against a possibly stale UI balance, so a race could
+    // otherwise drive the ledger negative.
+    const balance = await db.ledger.getBalance(txn);
+    if (balance < input.cost) {
+      throw new InsufficientFundsError(input.cost, balance);
+    }
     await input.mutateWorkout(txn);
     const ledgerEntry = await db.ledger.append(
       { amount: -input.cost, reason, operationId: input.operationId ?? null },

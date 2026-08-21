@@ -252,6 +252,22 @@ describe('paidReroll', () => {
     expect(mutations).toBe(1); // not recalled
     expect(await db.ledger.getBalance()).toBe(90); // only one debit
   });
+
+  it('rejects when the balance cannot cover the cost (no workout mutation, no debit)', async () => {
+    const db = await healthy(5);
+    let mutations = 0;
+    await expect(
+      paidReroll(db, {
+        cost: 10,
+        mutateWorkout: async () => {
+          mutations += 1;
+        },
+      }),
+    ).rejects.toBeInstanceOf(InsufficientFundsError);
+    expect(mutations).toBe(0); // workout untouched when unaffordable
+    expect(await db.ledger.getBalance()).toBe(5);
+    expect(await db.ledger.list()).toHaveLength(1); // no debit appended
+  });
 });
 
 describe('atomic quest claim (fault at first mutation)', () => {

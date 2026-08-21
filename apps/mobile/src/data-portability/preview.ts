@@ -61,19 +61,24 @@ export async function previewImport(
     parsed = parseAndValidateBackup(text);
   } catch (error) {
     if (error instanceof SyntaxError || (error as Error).name === 'MalformedBackupError') {
-      return reject('malformed', (error as Error).message, error);
+      return reject(mode, 'malformed', (error as Error).message, error);
     }
     const name = (error as Error).name;
     if (name === 'UnsupportedVersionError') {
-      return reject('unsupported-version', (error as Error).message, error);
+      return reject(mode, 'unsupported-version', (error as Error).message, error);
     }
     if (name === 'ChecksumMismatchError') {
-      return reject('checksum', (error as Error).message, error);
+      return reject(mode, 'checksum', (error as Error).message, error);
     }
     if (name === 'BackupDataValidationError') {
-      return reject('data-validation', (error as Error).message, (error as { issues?: unknown }).issues);
+      return reject(
+        mode,
+        'data-validation',
+        (error as Error).message,
+        (error as { issues?: unknown }).issues,
+      );
     }
-    return reject('malformed', (error as Error).message, error);
+    return reject(mode, 'malformed', (error as Error).message, error);
   }
 
   const meta = buildMeta(parsed);
@@ -98,7 +103,7 @@ export async function previewImport(
     if (!(error instanceof PreviewRollback)) {
       // A genuine failure during the dry-run (should not happen for valid data);
       // surface it as a validation error rather than crashing the preview.
-      return reject('data-validation', `Preview failed: ${(error as Error).message}`, error);
+      return reject(mode, 'data-validation', `Preview failed: ${(error as Error).message}`, error);
     }
   } finally {
     if (triggers) {
@@ -129,17 +134,20 @@ export async function previewImport(
     }
   }
 
-  return { valid: true, mode, meta, counters: c, notes };
+  return { valid: true, mode, meta, counters: c, notes, parsed };
 }
 
 function reject(
+  mode: ImportMode,
   kind: 'malformed' | 'unsupported-version' | 'checksum' | 'data-validation',
   message: string,
   details?: unknown,
 ): ImportPreview {
   return {
     valid: false,
-    mode: 'merge',
+    // Preserve the caller's requested mode so the UI can keep showing what the
+    // user was about to do, even when the backup was rejected.
+    mode,
     meta: {
       format: '',
       version: 0,

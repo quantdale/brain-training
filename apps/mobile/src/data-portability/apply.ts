@@ -7,8 +7,11 @@
  *  - `merge`  — additive and idempotent. Sessions are keyed by id (INSERT OR
  *               IGNORE), economy/rating/xp rows are deduplicated by natural
  *               keys, and conflicted value rows (ratings, progress, unlocks,
- *               workouts) take the "best"/latest value. Re-importing the same
- *               backup is a no-op beyond what it first added.
+ *               workouts) take the "best"/latest value. The profile is always
+ *               written under the local singleton id and its cosmetics merge
+ *               monotonically (`owned` is unioned — a merge never disowns a
+ *               cosmetic the device earned). Re-importing the same backup is a
+ *               no-op beyond what it first added.
  *  - `replace`— clears all user data first (append-only triggers are
  *               temporarily disabled for the clear only), then inserts the
  *               entire backup. The whole operation runs in one transaction, so
@@ -35,7 +38,13 @@ import {
 import type { ParsedBackup } from "./deserialize";
 import { captureTriggers, dropTriggers, recreateTriggers } from "./triggers";
 
-const FK_DELETE_ORDER = [
+/**
+ * Deletion order honoring foreign keys: children before parents. Single source
+ * of truth for BOTH the replace-import clear and the local-data wipe
+ * (`wipe.ts` imports this) so the two destructive paths can never drift apart
+ * when the schema grows a table.
+ */
+export const FK_DELETE_ORDER = [
   "rating_history",
   "currency_ledger",
   "quest_progress",
@@ -100,6 +109,59 @@ function dedupeNonNullKey<T>(
 const composite = (...parts: (string | number | null)[]): string =>
   parts.join("\u0000");
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+/**
+ * Merge `incoming` (backup) profile settings over `target` (device) settings.
+ *
+ * Default rule is backup-wins per top-level key. `cosmetics` is the one
+ * exception because ownership is monotonic: a merge must never DISOWN a
+ * cosmetic the device legitimately earned just because the backup's `owned`
+ * list is older/narrower. So `owned` is unioned (device items first, then
+ * backup-only additions), while `equipped` slots resolve per-slot with the
+ * backup winning — matching the documented conflict semantics — and slots
+ * equipped only on the device survive.
+ */
+export function mergeProfileSettings(
+  target: Record<string, unknown>,
+  incoming: Record<string, unknown>,
+): Record<string, unknown> {
+  const merged: Record<string, unknown> = { ...target, ...incoming };
+  if (target.cosmetics !== undefined || incoming.cosmetics !== undefined) {
+    const t = isPlainObject(target.cosmetics) ? target.cosmetics : {};
+    const i = isPlainObject(incoming.cosmetics) ? incoming.cosmetics : {};
+    const out: Record<string, unknown> = { ...t, ...i };
+
+    const owned = stringArray(t.owned);
+    const ownedSet = new Set(owned);
+    for (const item of stringArray(i.owned)) {
+      if (!ownedSet.has(item)) {
+        owned.push(item);
+        ownedSet.add(item);
+      }
+    }
+    if (t.owned !== undefined || i.owned !== undefined) {
+      out.owned = owned;
+    }
+
+    const tEquipped = isPlainObject(t.equipped) ? t.equipped : {};
+    const iEquipped = isPlainObject(i.equipped) ? i.equipped : {};
+    if (t.equipped !== undefined || i.equipped !== undefined) {
+      // Backup wins each slot it names; device-only slots are preserved.
+      out.equipped = { ...tEquipped, ...iEquipped };
+    }
+
+    merged.cosmetics = out;
+  }
+  return merged;
+}
+
 async function writeProfile(
   txn: SQLiteAdapter,
   profile: BackupData["profile"],
@@ -109,11 +171,19 @@ async function writeProfile(
   if (!profile) {
     return;
   }
+  // The profile row is a device singleton keyed by LOCAL_PROFILE_ID ('local').
+  // A backup may carry a row written under a different id (foreign/hand-edited
+  // file); writing that id verbatim would create an INVISIBLE second profile
+  // (every read goes through WHERE id = LOCAL_PROFILE_ID), silently dropping
+  // the restored identity/settings/cosmetics. Normalize to the local id.
+  const displayName = profile.displayName;
+  const settings = profile.settings;
   if (mode === "merge") {
     const existing = await txn.get<{
       display_name: string;
       settings_json: string;
-    }>("SELECT display_name, settings_json FROM profile WHERE id = ?", [
+      updated_at: number;
+    }>("SELECT display_name, settings_json, updated_at FROM profile WHERE id = ?", [
       LOCAL_PROFILE_ID,
     ]);
     if (existing) {
@@ -121,20 +191,12 @@ async function writeProfile(
         string,
         unknown
       >;
-      const merged = { ...targetSettings, ...profile.settings };
-      const displayName = profile.displayName || existing.display_name;
-      const updatedAt = Math.max(
-        profile.updatedAt,
-        (
-          await txn.get<{ updated_at: number }>(
-            "SELECT updated_at FROM profile WHERE id = ?",
-            [LOCAL_PROFILE_ID],
-          )
-        )?.updated_at ?? 0,
-      );
+      const merged = mergeProfileSettings(targetSettings, settings);
+      const resolvedName = displayName || existing.display_name;
+      const updatedAt = Math.max(profile.updatedAt, existing.updated_at);
       await txn.run(
         "UPDATE profile SET display_name = ?, settings_json = ?, updated_at = ? WHERE id = ?",
-        [displayName, toJson(merged), updatedAt, LOCAL_PROFILE_ID],
+        [resolvedName, toJson(merged), updatedAt, LOCAL_PROFILE_ID],
       );
       c.profileMerged = true;
       return;
@@ -143,9 +205,9 @@ async function writeProfile(
   await txn.run(
     "INSERT INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
     [
-      profile.id,
-      profile.displayName,
-      toJson(profile.settings),
+      LOCAL_PROFILE_ID,
+      displayName,
+      toJson(settings),
       profile.createdAt,
       profile.updatedAt,
     ],

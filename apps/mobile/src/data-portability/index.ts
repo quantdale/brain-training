@@ -8,10 +8,15 @@
  */
 
 export { exportLocalData, readSnapshot, serializeBackup, type ExportOptions } from './serialize';
-export { parseAndValidateBackup, type ParsedBackup } from './deserialize';
+export {
+  parseAndValidateBackup,
+  MAX_BACKUP_TEXT_LENGTH,
+  type ParsedBackup,
+} from './deserialize';
 export {
   applyImport,
   buildDatabaseFromBackup,
+  mergeProfileSettings,
 } from './apply';
 export { previewImport } from './preview';
 export { wipeLocalData, countLocalData, type LocalDataCounts } from './wipe';

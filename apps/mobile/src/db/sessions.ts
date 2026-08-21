@@ -58,7 +58,7 @@ const SELECT_COUNT = "SELECT COUNT(*) AS n FROM game_sessions";
 const SELECT_DISTINCT_GAME_COUNT =
   "SELECT COUNT(DISTINCT game_id) AS n FROM game_sessions";
 const SELECT_DISTINCT_ACTIVITY_DATE_COUNT =
-  "SELECT COUNT(DISTINCT DATE(completed_at / 1000, 'unixepoch')) AS n FROM game_sessions";
+  "SELECT COUNT(DISTINCT DATE(completed_at / 1000, 'unixepoch', 'localtime')) AS n FROM game_sessions";
 const SELECT_ACCURACY_SESSION_COUNT =
   "SELECT COUNT(*) AS n FROM game_sessions WHERE normalized_result >= ?";
 const SELECT_BEST_NORMALIZED =
@@ -93,11 +93,15 @@ function toJson(value: unknown): string {
   return JSON.stringify(value === undefined ? null : value);
 }
 
-function fromJson(raw: string, column: string, id: string): unknown {
+function fromJson(raw: string): unknown {
   try {
     return JSON.parse(raw);
   } catch {
-    throw new Error(`Corrupt JSON in "${column}" for session ${id}`);
+    // Corrupt JSON must not brick reads: one bad row used to throw out of
+    // getById/listRecent and take down history screens and data export.
+    // Degrade to a null payload (same policy as profile settings / workout
+    // game ids) so the rest of the history stays readable.
+    return null;
   }
 }
 
@@ -109,8 +113,8 @@ function mapRow(row: SessionRow): GameSessionRecord {
     generatorVersion: row.generator_version,
     scoringVersion: row.scoring_version,
     seed: row.seed,
-    difficulty: fromJson(row.difficulty_json, "difficulty_json", row.id),
-    rawResult: fromJson(row.raw_result_json, "raw_result_json", row.id),
+    difficulty: fromJson(row.difficulty_json),
+    rawResult: fromJson(row.raw_result_json),
     normalizedResult: row.normalized_result,
     xp: row.xp,
     startedAt: row.started_at,
@@ -418,10 +422,14 @@ export class SessionRepository {
    * Task 9.3: Get distinct activity dates for streak calculation.
    * Returns dates in YYYY-MM-DD format, most recent first.
    * Uses canonical activity query instead of arbitrary session limit.
+   * Dates are LOCAL calendar days (`'localtime'` modifier): the streak engine
+   * (`reconstructStreak`) and every other consumer key days by the device's
+   * local calendar ("repo local-calendar convention"), so a session counts for
+   * the day the user actually played it, not its UTC date.
    */
   async getDistinctActivityDates(): Promise<string[]> {
     const rows = await this.adapter.all<{ date: string }>(
-      `SELECT DISTINCT DATE(completed_at / 1000, 'unixepoch') as date
+      `SELECT DISTINCT DATE(completed_at / 1000, 'unixepoch', 'localtime') as date
        FROM game_sessions
        ORDER BY date DESC`,
     );

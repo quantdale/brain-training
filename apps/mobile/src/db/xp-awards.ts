@@ -44,9 +44,12 @@ export class XpAwardsRepository {
     if (!Number.isInteger(amount) || amount <= 0) {
       throw new Error(`xp award amount must be a positive integer, got ${amount}`);
     }
+    // Capture the clock once so the returned timestamp always equals the
+    // stored `created_at` even if the injectable clock advances mid-call.
+    const createdAt = this.now();
     const a = txn ?? this.adapter;
-    const result = await a.run(INSERT, [amount, reason, source, this.now()]);
-    return { id: result.lastInsertRowId, amount, reason, source, createdAt: this.now() };
+    const result = await a.run(INSERT, [amount, reason, source, createdAt]);
+    return { id: result.lastInsertRowId, amount, reason, source, createdAt };
   }
 
   /** Total XP awarded outside sessions (0 when none). */

@@ -25,7 +25,7 @@ import type { ContentPack } from '@/games/language-word-match/content-validation
 import type { PackInfo, StorageSummary } from './types';
 
 /** A bundled pack source: the game module that ships + validates the pack. */
-interface BundledPackSource {
+export interface BundledPackSource {
   /** Stable game id of the module shipping the pack. */
   readonly sourceGameId: string;
   /** Loads and validates the pack; throws on a broken pack (fail-fast). */
@@ -76,27 +76,49 @@ export function estimatePackSizeBytes(items: readonly ContentPack['items'][numbe
 }
 
 /**
- * All bundled packs, in source order. Each entry is validated (via the source
- * validator) and frozen; throws on the first broken pack so an invalid bundled
- * pack fails fast instead of silently producing a wrong registry.
+ * All bundled packs, deterministically ordered by stable `packId` (NOT by
+ * registration order, so adding a source line can never reshuffle existing
+ * entries). Each entry is validated (via the source validator) and frozen;
+ * throws on the first broken pack so an invalid bundled pack fails fast
+ * instead of silently producing a wrong registry.
+ *
+ * The optional `sources` parameter exists for tests/hardening drills: it lets
+ * callers exercise the registry's defensive checks (bad ids/versions,
+ * duplicate pack ids) without shipping a broken pack.
  */
-export function getBundledPacks(): PackInfo[] {
-  return BUNDLED_PACK_SOURCES.map((source): PackInfo => {
+export function getBundledPacks(
+  sources: readonly BundledPackSource[] = BUNDLED_PACK_SOURCES,
+): PackInfo[] {
+  const seen = new Map<string, string>(); // packId -> first sourceGameId
+  const infos = sources.map((source): PackInfo => {
     const pack = source.load();
 
-    // Defensive required-field check. The game validators already enforce the
-    // full contract; this keeps the registry self-contained if a future
-    // source ships its own (weaker) validator.
-    if (pack.packId.length === 0 || pack.packVersion.length === 0) {
+    // Defensive required-field + format checks. The game validators already
+    // enforce the full contract; this keeps the registry self-contained if a
+    // future source ships its own (weaker) validator.
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pack.packId)) {
       throw new Error(
-        `ContentPack registry: pack from "${source.sourceGameId}" must declare packId and packVersion`,
+        `ContentPack registry: pack from "${source.sourceGameId}" has invalid packId "${pack.packId}" (must be non-empty kebab-case)`,
       );
     }
-    if (pack.itemCount !== pack.items.length) {
+    if (!/^\d+\.\d+\.\d+$/.test(pack.packVersion)) {
+      throw new Error(
+        `ContentPack registry: pack "${pack.packId}" has invalid packVersion "${pack.packVersion}" (must be a semantic version like "1.0.0")`,
+      );
+    }
+    if (!Number.isInteger(pack.itemCount) || pack.itemCount !== pack.items.length) {
       throw new Error(
         `ContentPack registry: pack "${pack.packId}" itemCount ${pack.itemCount} does not match items.length ${pack.items.length}`,
       );
     }
+
+    const firstOwner = seen.get(pack.packId);
+    if (firstOwner !== undefined) {
+      throw new Error(
+        `ContentPack registry: duplicate packId "${pack.packId}" shipped by both "${firstOwner}" and "${source.sourceGameId}"`,
+      );
+    }
+    seen.set(pack.packId, source.sourceGameId);
 
     return Object.freeze({
       packId: pack.packId,
@@ -107,11 +129,16 @@ export function getBundledPacks(): PackInfo[] {
       source: 'bundled' as const,
     });
   });
+
+  return infos.sort((a, b) => (a.packId < b.packId ? -1 : a.packId > b.packId ? 1 : 0));
 }
 
-/** Look up a pack by stable pack id; `null` when unknown. */
-export function getPack(packId: string): PackInfo | null {
-  return getBundledPacks().find((pack) => pack.packId === packId) ?? null;
+/** Look up a pack by stable pack id; `null` when unknown. Accepts injected sources for tests/hardening drills (see `getBundledPacks`). */
+export function getPack(
+  packId: string,
+  sources: readonly BundledPackSource[] = BUNDLED_PACK_SOURCES,
+): PackInfo | null {
+  return getBundledPacks(sources).find((pack) => pack.packId === packId) ?? null;
 }
 
 /** Aggregate storage view over all known packs (see `types.ts`). */

@@ -55,7 +55,10 @@ export class ProfileRepository {
 
   /** Create the singleton row if absent; returns the current profile. */
   async ensureExists(): Promise<Profile> {
-    await this.adapter.run(INSERT_IF_ABSENT, [LOCAL_PROFILE_ID, '', '{}', this.now(), this.now()]);
+    // One clock capture: created_at and updated_at must agree on insert even
+    // if the injectable clock advances between the two reads.
+    const now = this.now();
+    await this.adapter.run(INSERT_IF_ABSENT, [LOCAL_PROFILE_ID, '', '{}', now, now]);
     const row = await this.adapter.get<ProfileRow>(SELECT_BY_ID, [LOCAL_PROFILE_ID]);
     if (!row) {
       throw new Error('profile row missing after ensureExists'); // unreachable

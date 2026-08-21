@@ -24,6 +24,7 @@ import {
   View,
 } from "react-native";
 
+import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -142,7 +143,9 @@ export default function DataManagementScreen() {
       setBusy(true);
       setMessage(null);
       try {
-        const parsed = parseAndValidateBackup(importText);
+        // Reuse the preview's already-validated payload (same importText) —
+        // re-parsing large backups doubled the synchronous work per import.
+        const parsed = previewResult.parsed ?? parseAndValidateBackup(importText);
         const result = await applyImport(getDb(), parsed, mode);
         setMessage(
           `Import ${mode} complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger added.`,
@@ -307,7 +310,11 @@ export default function DataManagementScreen() {
           </Pressable>
         </View>
         {preview ? (
-          <View style={styles.previewBox} testID="data-preview-output">
+          <View
+            style={styles.previewBox}
+            testID="data-preview-output"
+            accessibilityLiveRegion="polite"
+          >
             <ThemedText type="smallBold">
               Preview:{" "}
               {preview.valid ? "Valid" : `Invalid (${preview.error?.kind})`}
@@ -392,7 +399,12 @@ export default function DataManagementScreen() {
       </ThemedView>
 
       {message ? (
-        <ThemedView type="surface" style={styles.card} testID="data-message">
+        <ThemedView
+          type="surface"
+          style={styles.card}
+          testID="data-message"
+          accessibilityLiveRegion="polite"
+        >
           <ThemedText type="small" themeColor="textSecondary">
             {message}
           </ThemedText>
@@ -443,11 +455,13 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   pill: {
+    ...MinTouchTarget,
     borderRadius: Radii.pill,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
   },
   smallPill: {
+    ...MinTouchTarget,
     borderRadius: Radii.pill,
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.two,

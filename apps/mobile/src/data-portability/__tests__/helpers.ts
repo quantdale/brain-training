@@ -102,3 +102,54 @@ export async function seedFixture(db: AppDatabase, opts: SeedOptions = {}): Prom
 
 export { SCHEMA_VERSION };
 export type { SQLiteAdapter };
+
+import {
+  BACKUP_FORMAT,
+  BACKUP_FORMAT_VERSION,
+  computeChecksum,
+  canonicalString,
+  type BackupData,
+  type BackupEnvelope,
+} from '../index';
+
+/**
+ * Build a fully-checksummed envelope from raw `data` (shared by the
+ * adversarial + hardening suites so crafted-backup tests stay consistent).
+ */
+export function buildEnvelope(
+  data: BackupData | Record<string, unknown>,
+  opts: { version?: number; schemaVersion?: number; createdAt?: number } = {},
+): BackupEnvelope {
+  const withoutChecksum: Omit<BackupEnvelope, 'checksum'> = {
+    format: BACKUP_FORMAT,
+    version: opts.version ?? BACKUP_FORMAT_VERSION,
+    createdAt: opts.createdAt ?? T0 + 1,
+    schemaVersion: opts.schemaVersion ?? 7,
+    checksumAlgorithm: 'sha256',
+    data: data as BackupData,
+  };
+  const checksum = computeChecksum(
+    canonicalString(withoutChecksum as unknown as Record<string, unknown>),
+  );
+  return { ...withoutChecksum, checksum };
+}
+
+/** A minimal but valid data snapshot (empty everything). */
+export function emptyData(): BackupData {
+  return {
+    schemaVersion: 7,
+    profile: null,
+    gameSessions: [],
+    domainRatings: [],
+    ratingHistory: [],
+    currencyLedger: [],
+    gameFavorites: [],
+    xpAwards: [],
+    tutorialState: [],
+    workoutInstances: [],
+    questDefinitions: [],
+    questProgress: [],
+    achievementDefinitions: [],
+    achievementUnlocks: [],
+  };
+}

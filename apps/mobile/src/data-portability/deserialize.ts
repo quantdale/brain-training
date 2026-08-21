@@ -31,6 +31,16 @@ export interface ParsedBackup {
   data: BackupData;
 }
 
+/**
+ * Upper bound on accepted backup text size, in UTF-16 code units (the portable
+ * proxy for bytes: UTF-8 byte length is always >= code-unit length, so any
+ * rejection here is guaranteed to be a genuinely huge input). Our own exports
+ * stay orders of magnitude below this even with years of sessions; the gate
+ * exists so a hostile/mis-picked multi-hundred-MB file fails fast with a clear
+ * error instead of OOM-ing the JS runtime inside JSON.parse.
+ */
+export const MAX_BACKUP_TEXT_LENGTH = 64 * 1024 * 1024;
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -89,6 +99,30 @@ function validateData(data: unknown): BackupData {
       issues.push(`gameSessions entry ${JSON.stringify(s?.id ?? '?')} is missing/invalid fields`);
       return false;
     }
+    // Range checks mirror the DB's own CHECK constraints/triggers (schema.ts):
+    // a backup that violates them must be rejected with a typed, readable
+    // error at validation time — not abort mid-import with an opaque SQLite
+    // constraint message after the clear has already run.
+    if (s.normalizedResult < 0 || s.normalizedResult > 1) {
+      issues.push(
+        `gameSessions entry ${JSON.stringify(s.id)} normalizedResult must be in [0, 1]`,
+      );
+      return false;
+    }
+    if (s.xp < 0) {
+      issues.push(`gameSessions entry ${JSON.stringify(s.id)} xp must be nonnegative`);
+      return false;
+    }
+    if (s.completedAt < s.startedAt) {
+      issues.push(
+        `gameSessions entry ${JSON.stringify(s.id)} completedAt must not precede startedAt`,
+      );
+      return false;
+    }
+    if (s.durationMs < 0) {
+      issues.push(`gameSessions entry ${JSON.stringify(s.id)} durationMs must be nonnegative`);
+      return false;
+    }
     return true;
   });
 
@@ -102,6 +136,11 @@ function validateData(data: unknown): BackupData {
       !isNumber(r.updatedAt)
     ) {
       issues.push('domainRatings contains an invalid entry');
+      return false;
+    }
+    // Mirrors the DB's `rating >= 0` insert/update triggers.
+    if (r.rating < 0 || r.sessions < 0) {
+      issues.push(`domainRatings entry "${r.domain}" rating/sessions must be nonnegative`);
       return false;
     }
     return true;
@@ -288,6 +327,33 @@ function validateData(data: unknown): BackupData {
     }
   }
 
+  // Relational integrity: both FK-backed sections must reference sessions that
+  // exist in the SAME backup. Every export we produce is self-consistent by
+  // construction, so a dangling reference means the file was hand-edited or
+  // truncated per-section — reject it with a typed error instead of aborting
+  // mid-import on a FOREIGN KEY constraint (replace mode) or silently dropping
+  // rows (merge mode).
+  const sessionIds = new Set(gameSessions.map((s) => s.id as string));
+  for (const h of ratingHistoryRaw) {
+    if (isObject(h) && isString(h.sessionId) && !sessionIds.has(h.sessionId)) {
+      issues.push(
+        `ratingHistory references unknown session ${JSON.stringify(h.sessionId)} (no matching gameSessions entry)`,
+      );
+    }
+  }
+  for (const e of ledgerRaw) {
+    if (
+      isObject(e) &&
+      isString(e.sessionId) &&
+      e.sessionId !== null &&
+      !sessionIds.has(e.sessionId)
+    ) {
+      issues.push(
+        `currencyLedger references unknown session ${JSON.stringify(e.sessionId)} (no matching gameSessions entry)`,
+      );
+    }
+  }
+
   if (issues.length > 0) {
     throw new BackupDataValidationError(issues);
   }
@@ -337,6 +403,12 @@ function validateData(data: unknown): BackupData {
  * rejection gate. Returns the validated envelope + normalized data.
  */
 export function parseAndValidateBackup(text: string): ParsedBackup {
+  if (text.length > MAX_BACKUP_TEXT_LENGTH) {
+    throw new MalformedBackupError(
+      `Backup is too large (${text.length} characters; the maximum supported size is ${MAX_BACKUP_TEXT_LENGTH}).`,
+    );
+  }
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
@@ -356,6 +428,15 @@ export function parseAndValidateBackup(text: string): ParsedBackup {
 
   if (!isNumber(parsed.version)) {
     throw new MalformedBackupError('Backup is missing a numeric `version`.');
+  }
+  // Only whole, positive format versions have ever existed. Zero, negative,
+  // and fractional values are not "very old backups" — they are corrupt or
+  // forged envelopes and must be rejected with a clear error rather than
+  // silently read as if they were the current format.
+  if (!Number.isSafeInteger(parsed.version) || parsed.version < 1) {
+    throw new MalformedBackupError(
+      `Backup version ${String(parsed.version)} is not a valid format version (expected a positive integer).`,
+    );
   }
 
   if (parsed.version > BACKUP_FORMAT_VERSION) {

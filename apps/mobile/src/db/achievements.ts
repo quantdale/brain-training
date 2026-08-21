@@ -86,7 +86,10 @@ export class AchievementRepository {
       id: r.id,
       title: r.title,
       description: r.description,
-      criteria: JSON.parse(r.criteria_json),
+      // Corrupt JSON degrades to a null criteria document instead of throwing:
+      // definitions are re-seeded (and thus healed) from the versioned app
+      // module at startup, so a read must never crash on a bad row.
+      criteria: parseJsonOrNull(r.criteria_json),
       rewardXp: r.reward_xp,
       rewardCurrency: r.reward_currency,
       version: r.version,
@@ -126,4 +129,13 @@ function mapUnlockRow(row: UnlockRow): AchievementUnlock {
     unlockedAt: row.unlocked_at,
     claimedAt: row.claimed_at,
   };
+}
+
+/** JSON.parse that degrades to null on corrupt input (never throws). */
+function parseJsonOrNull(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }

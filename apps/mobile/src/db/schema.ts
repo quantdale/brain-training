@@ -300,10 +300,17 @@ export const SQL = {
   /**
    * Backfill a stable idempotency key onto legacy gameplay currency rows that
    * predate v8 (task A/idempotency). Newer rows already carry
-   * `gameplay:<sessionId>` from `completeSession`. The `NOT EXISTS` guard keeps
-   * the backfill conflict-free with the partial unique index on `operation_id`
-   * (it skips any row whose derived key would collide with an existing one),
-   * so the migration can never fail on historical data.
+   * `gameplay:<sessionId>` from `completeSession`. Two guards keep the
+   * backfill conflict-free with the partial unique index on `operation_id`, so
+   * the migration can never fail on historical data:
+   *
+   * 1. `NOT EXISTS` skips any row whose derived key is already committed.
+   * 2. Only the EARLIEST legacy row per session is keyed. If historical data
+   *    contains several `gameplay` rows for one session (e.g. a merge of two
+   *    pre-v6 exports), keying them all would collide on the unique index and
+   *    abort this migration — bricking startup for that database. The extra
+   *    duplicate rows stay NULL: they remain visible as historical evidence of
+   *    the double award instead of blocking the upgrade.
    */
   backfillGameplayOperationIds: `
     UPDATE currency_ledger
@@ -311,10 +318,31 @@ export const SQL = {
     WHERE session_id IS NOT NULL
       AND operation_id IS NULL
       AND reason = 'gameplay'
+      AND id = (
+        SELECT MIN(first.id) FROM currency_ledger AS first
+        WHERE first.session_id = currency_ledger.session_id
+          AND first.reason = 'gameplay'
+          AND first.operation_id IS NULL
+      )
       AND NOT EXISTS (
         SELECT 1 FROM currency_ledger AS other
         WHERE other.operation_id = 'gameplay:' || currency_ledger.session_id
       );
+  `,
+
+  /**
+   * Recreates the currency-ledger append-only UPDATE guard. Must mirror the
+   * definition embedded in `createCurrencyLedger` (v1) exactly. Migration v8
+   * needs it because that very trigger rejects the backfill UPDATE below —
+   * the drop/backfill/recreate trio runs inside one transaction, so the
+   * protection is never absent from a committed state.
+   */
+  createCurrencyLedgerNoUpdateTrigger: `
+    CREATE TRIGGER IF NOT EXISTS trg_currency_ledger_no_update
+    BEFORE UPDATE ON currency_ledger
+    BEGIN
+      SELECT RAISE(ABORT, 'currency_ledger is append-only: UPDATE forbidden');
+    END;
   `,
 
   /** CHECK constraints for data integrity (task 8.1). */
@@ -433,8 +461,14 @@ export const MIGRATIONS: readonly Migration[] = [
     up: async (txn) => {
       // Index for scale (recent lists / aggregates / activity-date scan).
       await txn.exec(SQL.createGameSessionsCompletedAtIndex);
-      // Backfill idempotency keys on legacy gameplay currency rows.
+      // Backfill idempotency keys on legacy gameplay currency rows. The
+      // append-only guard trigger rejects UPDATE outright, so it is dropped
+      // and recreated around the backfill — all inside this transaction, so
+      // a failure rolls the drop back too and the trigger never disappears
+      // from a committed database.
+      await txn.exec("DROP TRIGGER IF EXISTS trg_currency_ledger_no_update");
       await txn.exec(SQL.backfillGameplayOperationIds);
+      await txn.exec(SQL.createCurrencyLedgerNoUpdateTrigger);
     },
   },
 ];
