@@ -1,10 +1,11 @@
 /**
  * Game detail — `/game-detail/[id]`.
  *
- * Per-game info surface (WP-2H): description, category, versions, favorite
- * toggle (persisted via the db favorites repository), records/aggregates and
- * recent session history from the persistence layer, and a Play CTA into the
- * game route. Back navigation returns to the library.
+ * Per-game info surface (WP-2H + W13 UX wave): description, category,
+ * versions, favorite toggle (persisted via the db favorites repository),
+ * records/aggregates (including last-played recency) and recent session
+ * history from the persistence layer, and a prominent Play CTA into the game
+ * route. Back navigation returns to the library.
  */
 
 import {
@@ -18,6 +19,8 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
+import { InfoRow } from "@/components/shell";
+import { formatRelativeDay } from "@/components/shell/format";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Radii, Spacing } from "@/constants/theme";
@@ -82,9 +85,13 @@ export default function GameDetailScreen() {
         <ThemedText type="title" testID="game-detail-title">
           Game
         </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          Unknown game.
-        </ThemedText>
+        <ThemedView type="surface" style={styles.card}>
+          <ThemedText type="subtitle">Unknown game</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            This game is not in your library. It may have been renamed or
+            removed — browse the library to find something to play.
+          </ThemedText>
+        </ThemedView>
         <BackLink />
       </ScreenShell>
     );
@@ -113,6 +120,8 @@ export default function GameDetailScreen() {
     }
   }, [currentFavorite, game?.id]);
 
+  const nowMs = Date.now();
+
   return (
     <ScreenShell>
       <BackLink />
@@ -136,6 +145,11 @@ export default function GameDetailScreen() {
           testID="game-detail-description"
         >
           {game.description}
+        </ThemedText>
+      ) : null}
+      {game.hasTutorial ? (
+        <ThemedText type="caption" themeColor="textSecondary">
+          Includes a short guided tutorial on first play.
         </ThemedText>
       ) : null}
 
@@ -168,16 +182,18 @@ export default function GameDetailScreen() {
         </ThemedText>
       ) : null}
 
+      {/* Primary CTA: filled pill so the main action reads as the main action. */}
       <Link href={`/game/${game.id}`} asChild>
         <Pressable
           testID="game-detail-play"
           accessibilityRole="button"
           accessibilityLabel={`Play ${game.name}`}
-          style={styles.playButton}
         >
-          <ThemedText type="smallBold" themeColor="accent">
-            Play {game.name}
-          </ThemedText>
+          <ThemedView type="accentSoft" style={styles.playButton}>
+            <ThemedText type="bodyLarge" themeColor="accent">
+              Play {game.name}
+            </ThemedText>
+          </ThemedView>
         </Pressable>
       </Link>
 
@@ -189,14 +205,18 @@ export default function GameDetailScreen() {
         <ThemedText type="subtitle">Records</ThemedText>
         {data.aggregate ? (
           <View style={styles.rows}>
-            <DetailRow label="Sessions" value={String(data.aggregate.count)} />
-            <DetailRow
+            <InfoRow label="Sessions" value={String(data.aggregate.count)} />
+            <InfoRow
               label="Best"
               value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
             />
-            <DetailRow
+            <InfoRow
               label="Average"
               value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
+            />
+            <InfoRow
+              label="Last played"
+              value={formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}
             />
           </View>
         ) : (
@@ -218,6 +238,7 @@ export default function GameDetailScreen() {
               <SessionRow
                 key={(session as { id: string }).id}
                 session={session}
+                nowMs={nowMs}
               />
             ))}
           </View>
@@ -258,24 +279,13 @@ function BackLink() {
   );
 }
 
-const DetailRow = memo(function DetailRow({
-  label,
-  value,
+const SessionRow = memo(function SessionRow({
+  session,
+  nowMs,
 }: {
-  label: string;
-  value: string;
+  session: unknown;
+  nowMs: number;
 }) {
-  return (
-    <View style={styles.row}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="smallBold">{value}</ThemedText>
-    </View>
-  );
-});
-
-const SessionRow = memo(function SessionRow({ session }: { session: unknown }) {
   const s = session as {
     id: string;
     normalizedResult: number;
@@ -288,11 +298,11 @@ const SessionRow = memo(function SessionRow({ session }: { session: unknown }) {
       <Pressable
         testID={`game-detail-session-${s.id}`}
         accessibilityRole="button"
-        accessibilityLabel={`Open result from ${new Date(s.completedAt).toLocaleDateString()}`}
+        accessibilityLabel={`Open result from ${formatRelativeDay(s.completedAt, nowMs)}, ${Math.round(s.normalizedResult * 100)} percent`}
         style={[styles.row, MinTouchTarget]}
       >
         <ThemedText type="small" themeColor="textSecondary">
-          {new Date(s.completedAt).toLocaleDateString()} ·{" "}
+          {formatRelativeDay(s.completedAt, nowMs)} ·{" "}
           {s.difficulty?.level ?? "?"}
         </ThemedText>
         <ThemedText type="smallBold">
@@ -320,11 +330,10 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
   },
   playButton: {
+    ...MinTouchTarget,
     borderRadius: Radii.large,
-    borderWidth: 1,
-    borderColor: "transparent",
-    backgroundColor: "transparent",
     alignItems: "center",
+    justifyContent: "center",
     paddingVertical: Spacing.three,
   },
   rows: {

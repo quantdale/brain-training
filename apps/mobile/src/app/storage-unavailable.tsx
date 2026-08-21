@@ -1,10 +1,14 @@
 /**
- * Recoverable storage-unavailable screen (006R task 8.4).
+ * Recoverable storage-unavailable screen (006R task 8.4, W13 UX wave).
  *
  * Shown when the canonical local database fails to initialize at startup.
  * Per the Database Integrity spec, a storage-init failure MUST surface a
  * recoverable state with retry/diagnostic options rather than silently
  * rendering the normal app (which would later fail only on first save).
+ *
+ * Deliberately self-contained: plain RN primitives + fixed colors, because the
+ * theme/db layers this screen would otherwise depend on are exactly what may
+ * have failed to initialize.
  */
 import { Pressable, Text, View } from 'react-native';
 
@@ -14,6 +18,12 @@ export interface StorageUnavailableProps {
   /** Re-attempts database initialization. */
   onRetry: () => void;
 }
+
+const STEPS = [
+  'Tap Retry below — transient open failures often clear immediately.',
+  'If retry keeps failing, close and reopen the app.',
+  'Your data is stored safely on device; nothing is deleted by this error.',
+];
 
 export default function StorageUnavailable({ error, onRetry }: StorageUnavailableProps) {
   return (
@@ -27,6 +37,13 @@ export default function StorageUnavailable({ error, onRetry }: StorageUnavailabl
         Your local data store could not be opened. Until this is resolved, progress cannot be
         saved. Your data is not lost — retry to reconnect to the local store.
       </Text>
+      <View style={styles.steps}>
+        {STEPS.map((step) => (
+          <Text key={step} style={styles.step}>
+            • {step}
+          </Text>
+        ))}
+      </View>
       {error ? (
         <Text testID="storage-unavailable-detail" style={styles.detail}>
           {error.message}
@@ -36,6 +53,8 @@ export default function StorageUnavailable({ error, onRetry }: StorageUnavailabl
         testID="storage-unavailable-retry"
         onPress={onRetry}
         accessibilityRole="button"
+        accessibilityLabel="Retry opening the local data store"
+        accessibilityHint="Re-attempts the storage initialization that failed"
         style={({ pressed }) => [styles.retry, pressed && styles.retryPressed]}
       >
         <Text style={styles.retryText}>Retry</Text>
@@ -59,6 +78,16 @@ const styles = {
     textAlign: 'center' as const,
     marginBottom: 16,
     maxWidth: 320,
+  },
+  steps: {
+    marginBottom: 16,
+    maxWidth: 320,
+    gap: 6,
+  },
+  step: {
+    fontSize: 13,
+    color: '#9aa1b5',
+    lineHeight: 18,
   },
   detail: {
     fontSize: 13,

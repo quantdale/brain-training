@@ -1,11 +1,12 @@
 /**
  * Results — `/results`.
  *
- * Session result surface (WP-2H; constitution §16: headline + meaningful
- * metrics — score, accuracy, reaction, difficulty, rating movement, XP,
- * personal records). Shows one session (by `?id=` search param, else the most
- * recent) plus rating movement from the append-only history, and a list of
- * recent sessions to switch between.
+ * Session result surface (WP-2H + W13 UX wave; constitution §16: headline
+ * plus meaningful metrics — score, accuracy, reaction, difficulty, rating
+ * movement, XP, personal records). Shows one session (by `?id=` search param,
+ * else the most recent) plus rating movement from the append-only history,
+ * and a list of recent sessions to switch between. Adds an explicit loading
+ * state and a performance-band headline over the raw percentage.
  */
 
 import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -14,6 +15,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { MinTouchTarget } from '@/components/a11y';
 import { ScreenShell } from '@/components/screen-shell';
+import { InfoRow, StateCard } from '@/components/shell';
+import { performanceBand } from '@/components/shell/format';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
@@ -58,7 +61,7 @@ export default function ResultsScreen() {
     }, []),
   );
 
-  const { data } = useDbData((db) => loadResults(db, id), [id, refreshKey], EMPTY);
+  const { data, loaded } = useDbData((db) => loadResults(db, id), [id, refreshKey], EMPTY);
   const { session, recent, ratingHistory } = data;
 
   // Cross-feature wiring (006R hardening): advance the durable workout when this
@@ -85,7 +88,14 @@ export default function ResultsScreen() {
         Results
       </ThemedText>
 
-      {session ? (
+      {!loaded ? (
+        <StateCard
+          variant="loading"
+          title="Loading…"
+          message="Fetching your session results."
+          testID="results-loading"
+        />
+      ) : session ? (
         <>
           {/* Live region: when the session loads (or the user switches between
               recent sessions) screen readers announce the headline result
@@ -95,6 +105,14 @@ export default function ResultsScreen() {
             style={styles.card}
             testID="results-summary"
             accessibilityLiveRegion="polite">
+            {/* Performance band headline (constitution §16): an encouraging,
+                non-clinical read of the normalized score above the number. */}
+            <ThemedText
+              type="subtitle"
+              themeColor={performanceBand(session.normalizedResult).tone}
+              testID="results-band">
+              {performanceBand(session.normalizedResult).label}
+            </ThemedText>
             <ThemedText type="headline" themeColor="accent" testID="results-score">
               {Math.round(session.normalizedResult * 100)}%
             </ThemedText>
@@ -102,10 +120,10 @@ export default function ResultsScreen() {
               {game?.name ?? session.gameId}
             </ThemedText>
             <View style={styles.rows}>
-              <ResultRow label="Difficulty" value={String((session.difficulty as { level?: string } | null)?.level ?? '—')} />
-              <ResultRow label="XP earned" value={`+${session.xp}`} />
-              <ResultRow label="Duration" value={`${Math.round(session.durationMs / 1000)}s`} />
-              <ResultRow label="Date" value={new Date(session.completedAt).toLocaleDateString()} />
+              <InfoRow label="Difficulty" value={String((session.difficulty as { level?: string } | null)?.level ?? '—')} />
+              <InfoRow label="XP earned" value={`+${session.xp}`} />
+              <InfoRow label="Duration" value={`${Math.round(session.durationMs / 1000)}s`} />
+              <InfoRow label="Date" value={new Date(session.completedAt).toLocaleDateString()} />
             </View>
           </ThemedView>
 
@@ -139,7 +157,7 @@ export default function ResultsScreen() {
             {ratingHistory.length > 0 ? (
               <View style={styles.rows}>
                 {ratingHistory.map((h) => (
-                  <ResultRow
+                  <InfoRow
                     key={h.domain}
                     label={h.domain}
                     value={`${h.delta >= 0 ? '+' : ''}${h.delta} → ${h.ratingAfter}`}
@@ -175,25 +193,19 @@ export default function ResultsScreen() {
           </ThemedView>
         </>
       ) : (
-        <ThemedView type="surface" style={styles.card} testID="results-empty">
-          <ThemedText type="subtitle">No sessions yet</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Play a game to see your results here.
-          </ThemedText>
-        </ThemedView>
+        <StateCard
+          variant="empty"
+          title="No sessions yet"
+          message="Play a game to see your results here."
+          testID="results-empty"
+          action={{
+            label: 'Browse games',
+            onPress: () => router.push('/games'),
+            accessibilityLabel: 'Browse the game library',
+          }}
+        />
       )}
     </ScreenShell>
-  );
-}
-
-function ResultRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row}>
-      <ThemedText type="small" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-      <ThemedText type="smallBold">{value}</ThemedText>
-    </View>
   );
 }
 
