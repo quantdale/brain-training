@@ -24,9 +24,9 @@
  * `DomainRating` is a structural view so callers can pass db rows directly.
  */
 
-import { createRng } from '@/sdk';
-import type { GameDefinition, Rng } from '@/sdk';
-import { dailyWorkout } from './today';
+import { createRng } from "@/sdk";
+import type { GameDefinition, Rng } from "@/sdk";
+import { dailyWorkout } from "./today";
 
 /**
  * Structural view of a domain rating (shape-compatible with `DomainRating`
@@ -35,10 +35,10 @@ import { dailyWorkout } from './today';
  * db row so callers can pass full rows without casts.
  */
 export interface DomainRating {
-  domain: string;
-  rating: number;
-  sessions?: number;
-  updatedAt?: number;
+ domain: string;
+ rating: number;
+ sessions?: number;
+ updatedAt?: number;
 }
 
 /**
@@ -72,32 +72,33 @@ export const WEAK_DOMAIN_RATING_THRESHOLD = 1000;
  * array is never mutated.
  */
 export function reorderByWeakDomains(
-  games: readonly GameDefinition[],
-  domainRatings: readonly DomainRating[],
-  rng: Rng,
+ games: readonly GameDefinition[],
+ domainRatings: readonly DomainRating[],
+ rng: Rng,
 ): GameDefinition[] {
-  if (games.length === 0) {
-    return [];
-  }
+ if (games.length === 0) {
+  return [];
+ }
 
-  const ratingByDomain = new Map<string, number>();
-  for (const { domain, rating } of domainRatings) {
-    ratingByDomain.set(domain, rating);
-  }
+ const ratingByDomain = new Map<string, number>();
+ for (const { domain, rating } of domainRatings) {
+  ratingByDomain.set(domain, rating);
+ }
 
-  const rated = games.map((game, index) => ({
-    game,
-    rating: ratingByDomain.get(game.primaryCategory) ?? WEAK_DOMAIN_RATING_THRESHOLD,
-    index,
-  }));
+ const rated = games.map((game, index) => ({
+  game,
+  rating:
+   ratingByDomain.get(game.primaryCategory) ?? WEAK_DOMAIN_RATING_THRESHOLD,
+  index,
+ }));
 
-  return rated
-    .sort((a, b) => {
-      const weakA = a.rating < WEAK_DOMAIN_RATING_THRESHOLD ? 0 : 1;
-      const weakB = b.rating < WEAK_DOMAIN_RATING_THRESHOLD ? 0 : 1;
-      return weakA - weakB || a.rating - b.rating || a.index - b.index;
-    })
-    .map(({ game }) => game);
+ return rated
+  .sort((a, b) => {
+   const weakA = a.rating < WEAK_DOMAIN_RATING_THRESHOLD ? 0 : 1;
+   const weakB = b.rating < WEAK_DOMAIN_RATING_THRESHOLD ? 0 : 1;
+   return weakA - weakB || a.rating - b.rating || a.index - b.index;
+  })
+  .map(({ game }) => game);
 }
 
 /**
@@ -109,35 +110,35 @@ export function reorderByWeakDomains(
  * ignored; duplicates are dropped. Deterministic — no randomness involved.
  */
 export function rankByRecency(
-  games: readonly GameDefinition[],
-  recentGameIds: readonly string[],
+ games: readonly GameDefinition[],
+ recentGameIds: readonly string[],
 ): GameDefinition[] {
-  if (games.length === 0) {
-    return [];
+ if (games.length === 0) {
+  return [];
+ }
+
+ const recentSet = new Set(recentGameIds);
+ const fresh = games.filter((game) => !recentSet.has(game.id));
+
+ const gameById = new Map<string, GameDefinition>();
+ for (const game of games) {
+  gameById.set(game.id, game);
+ }
+
+ // Reverse the newest-first input so the tail runs oldest → newest; the
+ // most recently played game therefore ends up last.
+ const tail: GameDefinition[] = [];
+ const seen = new Set<string>();
+ for (let i = recentGameIds.length - 1; i >= 0; i -= 1) {
+  const id = recentGameIds[i];
+  const game = gameById.get(id);
+  if (game !== undefined && !seen.has(id)) {
+   seen.add(id);
+   tail.push(game);
   }
+ }
 
-  const recentSet = new Set(recentGameIds);
-  const fresh = games.filter((game) => !recentSet.has(game.id));
-
-  const gameById = new Map<string, GameDefinition>();
-  for (const game of games) {
-    gameById.set(game.id, game);
-  }
-
-  // Reverse the newest-first input so the tail runs oldest → newest; the
-  // most recently played game therefore ends up last.
-  const tail: GameDefinition[] = [];
-  const seen = new Set<string>();
-  for (let i = recentGameIds.length - 1; i >= 0; i -= 1) {
-    const id = recentGameIds[i];
-    const game = gameById.get(id);
-    if (game !== undefined && !seen.has(id)) {
-      seen.add(id);
-      tail.push(game);
-    }
-  }
-
-  return [...fresh, ...tail];
+ return [...fresh, ...tail];
 }
 
 /**
@@ -149,17 +150,89 @@ export function rankByRecency(
  * deterministic: the same inputs always return the same selection.
  */
 export function personalizedWorkout(
-  games: readonly GameDefinition[],
-  date: string,
-  domainRatings: readonly DomainRating[],
-  recentGameIds: readonly string[],
-  attempt = 0,
+ games: readonly GameDefinition[],
+ date: string,
+ domainRatings: readonly DomainRating[],
+ recentGameIds: readonly string[],
+ attempt = 0,
+ exclude: readonly string[] = [],
 ): GameDefinition[] {
-  if (games.length === 0) {
-    return [];
-  }
+ if (games.length === 0) {
+  return [];
+ }
 
-  const base = dailyWorkout(games, date, attempt);
-  const rng = createRng(`workout::${date}::${attempt}::personalized`);
-  return reorderByWeakDomains(rankByRecency(base, recentGameIds), domainRatings, rng);
+ const base = dailyWorkout(games, date, attempt, exclude);
+ const rng = createRng(`workout::${date}::${attempt}::personalized`);
+ return reorderByWeakDomains(
+  rankByRecency(base, recentGameIds),
+  domainRatings,
+  rng,
+ );
+}
+
+/** One line of human-readable rationale for why a game sits where it does. */
+export interface WorkoutSelectionReason {
+ gameId: string;
+ /** 'weak-domain' | 'recency-avoided' | 'selected' | 'excluded' */
+ kind: "weak-domain" | "recency-avoided" | "selected" | "excluded";
+ detail: string;
+}
+
+/**
+ * Explainable companion to `personalizedWorkout` (constitution §14 + Queue B:
+ * "explainable"). Returns, in selection order, a short reason per game so the
+ * UI or diagnostics can show *why* each game was chosen. Pure and
+ * deterministic — same inputs yield the same reasons. Intended for telemetry/
+ * diagnostics and optional player-facing hints; it never changes the actual
+ * selection.
+ */
+export function explainPersonalizedWorkout(
+ games: readonly GameDefinition[],
+ date: string,
+ domainRatings: readonly DomainRating[],
+ recentGameIds: readonly string[],
+ attempt = 0,
+ exclude: readonly string[] = [],
+): WorkoutSelectionReason[] {
+ const selection = personalizedWorkout(
+  games,
+  date,
+  domainRatings,
+  recentGameIds,
+  attempt,
+  exclude,
+ );
+ const ratingByDomain = new Map<string, number>();
+ for (const { domain, rating } of domainRatings) {
+  ratingByDomain.set(domain, rating);
+ }
+ const recentSet = new Set(recentGameIds);
+ const excludeSet = new Set(exclude);
+
+ return selection.map((game) => {
+  if (excludeSet.has(game.id)) {
+   return {
+    gameId: game.id,
+    kind: "excluded",
+    detail: "excluded (already played)",
+   };
+  }
+  const rating =
+   ratingByDomain.get(game.primaryCategory) ?? WEAK_DOMAIN_RATING_THRESHOLD;
+  if (rating < WEAK_DOMAIN_RATING_THRESHOLD) {
+   return {
+    gameId: game.id,
+    kind: "weak-domain",
+    detail: `weak ${game.primaryCategory} domain (rating ${rating})`,
+   };
+  }
+  if (recentSet.has(game.id)) {
+   return {
+    gameId: game.id,
+    kind: "recency-avoided",
+    detail: "recently played, lower priority",
+   };
+  }
+  return { gameId: game.id, kind: "selected", detail: "balanced selection" };
+ });
 }

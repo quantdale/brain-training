@@ -22,35 +22,43 @@
 import {
   LOCAL_PROFILE_ID,
   type AppDatabase,
-} from '@/db';
-import { initializeConnection, runMigrations, type SQLiteAdapter } from '@/db';
-import type { BackupData } from './types';
-import type { ImportMode } from './types';
-import { emptyCounters, type ImportCounters, type ImportResult } from './report';
-import type { ParsedBackup } from './deserialize';
-import { captureTriggers, dropTriggers, recreateTriggers } from './triggers';
+  initializeConnection,
+  runMigrations,
+  type SQLiteAdapter,
+} from "@/db";
+import type { BackupData, ImportMode } from "./types";
+import {
+  emptyCounters,
+  type ImportCounters,
+  type ImportResult,
+} from "./report";
+import type { ParsedBackup } from "./deserialize";
+import { captureTriggers, dropTriggers, recreateTriggers } from "./triggers";
 
 const FK_DELETE_ORDER = [
-  'rating_history',
-  'currency_ledger',
-  'quest_progress',
-  'achievement_unlocks',
-  'xp_awards',
-  'game_favorites',
-  'tutorial_state',
-  'workout_instances',
-  'domain_ratings',
-  'game_sessions',
-  'quests',
-  'achievements',
-  'profile',
+  "rating_history",
+  "currency_ledger",
+  "quest_progress",
+  "achievement_unlocks",
+  "xp_awards",
+  "game_favorites",
+  "tutorial_state",
+  "workout_instances",
+  "domain_ratings",
+  "game_sessions",
+  "quests",
+  "achievements",
+  "profile",
 ];
 
 function toJson(value: unknown): string {
   return JSON.stringify(value === undefined ? null : value);
 }
 
-function parseJson(text: string | null | undefined, fallback: unknown): unknown {
+function parseJson(
+  text: string | null | undefined,
+  fallback: unknown,
+): unknown {
   if (text == null) return fallback;
   try {
     return JSON.parse(text);
@@ -69,7 +77,10 @@ function parseJson(text: string | null | undefined, fallback: unknown): unknown 
  * rows that merely share a nullable field), so legitimate data is never
  * over-deduped.
  */
-function dedupeNonNullKey<T>(items: readonly T[], key: (item: T) => string | null): T[] {
+function dedupeNonNullKey<T>(
+  items: readonly T[],
+  key: (item: T) => string | null,
+): T[] {
   const seen = new Set<string>();
   const out: T[] = [];
   for (const item of items) {
@@ -86,34 +97,43 @@ function dedupeNonNullKey<T>(items: readonly T[], key: (item: T) => string | nul
 }
 
 /** Composite key helper (entries are kept distinct unless every field matches). */
-const composite =
-  (...parts: (string | number | null)[]): string =>
-  parts.join('\u0000');
+const composite = (...parts: (string | number | null)[]): string =>
+  parts.join("\u0000");
 
 async function writeProfile(
   txn: SQLiteAdapter,
-  profile: BackupData['profile'],
+  profile: BackupData["profile"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   if (!profile) {
     return;
   }
-  if (mode === 'merge') {
-    const existing = await txn.get<{ display_name: string; settings_json: string }>(
-      'SELECT display_name, settings_json FROM profile WHERE id = ?',
-      [LOCAL_PROFILE_ID],
-    );
+  if (mode === "merge") {
+    const existing = await txn.get<{
+      display_name: string;
+      settings_json: string;
+    }>("SELECT display_name, settings_json FROM profile WHERE id = ?", [
+      LOCAL_PROFILE_ID,
+    ]);
     if (existing) {
-      const targetSettings = parseJson(existing.settings_json, {}) as Record<string, unknown>;
+      const targetSettings = parseJson(existing.settings_json, {}) as Record<
+        string,
+        unknown
+      >;
       const merged = { ...targetSettings, ...profile.settings };
       const displayName = profile.displayName || existing.display_name;
       const updatedAt = Math.max(
         profile.updatedAt,
-        (await txn.get<{ updated_at: number }>('SELECT updated_at FROM profile WHERE id = ?', [LOCAL_PROFILE_ID]))?.updated_at ?? 0,
+        (
+          await txn.get<{ updated_at: number }>(
+            "SELECT updated_at FROM profile WHERE id = ?",
+            [LOCAL_PROFILE_ID],
+          )
+        )?.updated_at ?? 0,
       );
       await txn.run(
-        'UPDATE profile SET display_name = ?, settings_json = ?, updated_at = ? WHERE id = ?',
+        "UPDATE profile SET display_name = ?, settings_json = ?, updated_at = ? WHERE id = ?",
         [displayName, toJson(merged), updatedAt, LOCAL_PROFILE_ID],
       );
       c.profileMerged = true;
@@ -121,26 +141,33 @@ async function writeProfile(
     }
   }
   await txn.run(
-    'INSERT INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
-    [profile.id, profile.displayName, toJson(profile.settings), profile.createdAt, profile.updatedAt],
+    "INSERT INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+    [
+      profile.id,
+      profile.displayName,
+      toJson(profile.settings),
+      profile.createdAt,
+      profile.updatedAt,
+    ],
   );
   c.profileMerged = true;
 }
 
 async function writeSessions(
   txn: SQLiteAdapter,
-  sessions: BackupData['gameSessions'],
+  sessions: BackupData["gameSessions"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<Set<string>> {
   const newIds = new Set<string>();
   const INSERT =
-    'INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    "INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   for (const s of sessions) {
-    if (mode === 'merge') {
-      const existing = await txn.get<{ id: string }>('SELECT id FROM game_sessions WHERE id = ?', [
-        s.id,
-      ]);
+    if (mode === "merge") {
+      const existing = await txn.get<{ id: string }>(
+        "SELECT id FROM game_sessions WHERE id = ?",
+        [s.id],
+      );
       if (existing) {
         c.sessionsSkipped += 1;
         continue;
@@ -169,80 +196,92 @@ async function writeSessions(
 
 async function writeRatingHistory(
   txn: SQLiteAdapter,
-  history: BackupData['ratingHistory'],
+  history: BackupData["ratingHistory"],
   mode: ImportMode,
   c: ImportCounters,
   newSessionIds: Set<string>,
 ): Promise<void> {
   const INSERT =
-    'INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at) VALUES (?, ?, ?, ?, ?)';
+    "INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at) VALUES (?, ?, ?, ?, ?)";
   for (const r of history) {
     // Only import history for sessions we actually inserted (or the whole
     // backup in replace mode, where every session was inserted).
     if (!newSessionIds.has(r.sessionId)) {
       continue;
     }
-    if (mode === 'merge') {
+    if (mode === "merge") {
       const existing = await txn.get<{ id: number }>(
-        'SELECT id FROM rating_history WHERE session_id = ? AND domain = ?',
+        "SELECT id FROM rating_history WHERE session_id = ? AND domain = ?",
         [r.sessionId, r.domain],
       );
       if (existing) continue;
     }
-    await txn.run(INSERT, [r.sessionId, r.domain, r.delta, r.ratingAfter, r.createdAt]);
+    await txn.run(INSERT, [
+      r.sessionId,
+      r.domain,
+      r.delta,
+      r.ratingAfter,
+      r.createdAt,
+    ]);
     c.ratingHistoryAdded += 1;
   }
 }
 
 async function writeLedger(
   txn: SQLiteAdapter,
-  ledger: BackupData['currencyLedger'],
+  ledger: BackupData["currencyLedger"],
   mode: ImportMode,
   c: ImportCounters,
   newSessionIds: Set<string>,
 ): Promise<void> {
   const INSERT =
-    'INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)';
+    "INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)";
   for (const e of ledger) {
-    if (mode === 'merge') {
+    if (mode === "merge") {
       if (e.operationId) {
         const ex = await txn.get<{ id: number }>(
-          'SELECT id FROM currency_ledger WHERE operation_id = ?',
+          "SELECT id FROM currency_ledger WHERE operation_id = ?",
           [e.operationId],
         );
         if (ex) continue;
       } else if (e.sessionId) {
         if (!newSessionIds.has(e.sessionId)) continue; // session already present → its ledger is too
         const ex = await txn.get<{ id: number }>(
-          'SELECT id FROM currency_ledger WHERE session_id = ? AND reason = ? AND amount = ? AND created_at = ?',
+          "SELECT id FROM currency_ledger WHERE session_id = ? AND reason = ? AND amount = ? AND created_at = ?",
           [e.sessionId, e.reason, e.amount, e.createdAt],
         );
         if (ex) continue;
       } else {
         const ex = await txn.get<{ id: number }>(
-          'SELECT id FROM currency_ledger WHERE session_id IS NULL AND reason = ? AND amount = ? AND created_at = ?',
+          "SELECT id FROM currency_ledger WHERE session_id IS NULL AND reason = ? AND amount = ? AND created_at = ?",
           [e.reason, e.amount, e.createdAt],
         );
         if (ex) continue;
       }
     }
-    await txn.run(INSERT, [e.amount, e.reason, e.sessionId, e.createdAt, e.operationId]);
+    await txn.run(INSERT, [
+      e.amount,
+      e.reason,
+      e.sessionId,
+      e.createdAt,
+      e.operationId,
+    ]);
     c.ledgerAdded += 1;
   }
 }
 
 async function writeXpAwards(
   txn: SQLiteAdapter,
-  awards: BackupData['xpAwards'],
+  awards: BackupData["xpAwards"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   const INSERT =
-    'INSERT INTO xp_awards (amount, reason, source, created_at) VALUES (?, ?, ?, ?)';
+    "INSERT INTO xp_awards (amount, reason, source, created_at) VALUES (?, ?, ?, ?)";
   for (const a of awards) {
-    if (mode === 'merge') {
+    if (mode === "merge") {
       const ex = await txn.get<{ id: number }>(
-        'SELECT id FROM xp_awards WHERE source = ? AND amount = ? AND reason = ? AND created_at = ?',
+        "SELECT id FROM xp_awards WHERE source = ? AND amount = ? AND reason = ? AND created_at = ?",
         [a.source, a.amount, a.reason, a.createdAt],
       );
       if (ex) continue;
@@ -254,36 +293,40 @@ async function writeXpAwards(
 
 async function writeFavorites(
   txn: SQLiteAdapter,
-  favorites: BackupData['gameFavorites'],
+  favorites: BackupData["gameFavorites"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const f of favorites) {
-    if (mode === 'merge') {
+    if (mode === "merge") {
       const ex = await txn.get<{ game_id: string }>(
-        'SELECT game_id FROM game_favorites WHERE game_id = ?',
+        "SELECT game_id FROM game_favorites WHERE game_id = ?",
         [f.gameId],
       );
       if (ex) continue;
     }
-    await txn.run('INSERT INTO game_favorites (game_id, created_at) VALUES (?, ?)', [
-      f.gameId,
-      f.createdAt,
-    ]);
+    await txn.run(
+      "INSERT INTO game_favorites (game_id, created_at) VALUES (?, ?)",
+      [f.gameId, f.createdAt],
+    );
     c.favoritesAdded += 1;
   }
 }
 
 async function writeDomainRatings(
   txn: SQLiteAdapter,
-  ratings: BackupData['domainRatings'],
+  ratings: BackupData["domainRatings"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const d of ratings) {
-    if (mode === 'merge') {
-      const ex = await txn.get<{ rating: number; sessions: number; updated_at: number }>(
-        'SELECT rating, sessions, updated_at FROM domain_ratings WHERE domain = ?',
+    if (mode === "merge") {
+      const ex = await txn.get<{
+        rating: number;
+        sessions: number;
+        updated_at: number;
+      }>(
+        "SELECT rating, sessions, updated_at FROM domain_ratings WHERE domain = ?",
         [d.domain],
       );
       if (ex) {
@@ -292,7 +335,7 @@ async function writeDomainRatings(
         const sessions = Math.max(ex.sessions, d.sessions);
         const updatedAt = Math.max(ex.updated_at, d.updatedAt);
         await txn.run(
-          'UPDATE domain_ratings SET rating = ?, sessions = ?, updated_at = ? WHERE domain = ?',
+          "UPDATE domain_ratings SET rating = ?, sessions = ?, updated_at = ? WHERE domain = ?",
           [rating, sessions, updatedAt, d.domain],
         );
         c.domainRatingsUpdated += 1;
@@ -300,7 +343,7 @@ async function writeDomainRatings(
       }
     }
     await txn.run(
-      'INSERT INTO domain_ratings (domain, rating, sessions, updated_at) VALUES (?, ?, ?, ?)',
+      "INSERT INTO domain_ratings (domain, rating, sessions, updated_at) VALUES (?, ?, ?, ?)",
       [d.domain, d.rating, d.sessions, d.updatedAt],
     );
     c.domainRatingsUpdated += 1;
@@ -309,28 +352,40 @@ async function writeDomainRatings(
 
 async function writeTutorial(
   txn: SQLiteAdapter,
-  states: BackupData['tutorialState'],
+  states: BackupData["tutorialState"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const t of states) {
-    if (mode === 'merge') {
+    if (mode === "merge") {
       const ex = await txn.get<{ game_id: string }>(
-        'SELECT game_id FROM tutorial_state WHERE game_id = ?',
+        "SELECT game_id FROM tutorial_state WHERE game_id = ?",
         [t.gameId],
       );
       if (ex) {
         await txn.run(
-          'UPDATE tutorial_state SET completed = ?, replay_requested = ?, version = ?, updated_at = ? WHERE game_id = ?',
-          [t.completed ? 1 : 0, t.replayRequested ? 1 : 0, t.version, t.updatedAt, t.gameId],
+          "UPDATE tutorial_state SET completed = ?, replay_requested = ?, version = ?, updated_at = ? WHERE game_id = ?",
+          [
+            t.completed ? 1 : 0,
+            t.replayRequested ? 1 : 0,
+            t.version,
+            t.updatedAt,
+            t.gameId,
+          ],
         );
         c.tutorialsUpdated += 1;
         continue;
       }
     }
     await txn.run(
-      'INSERT INTO tutorial_state (game_id, completed, replay_requested, version, updated_at) VALUES (?, ?, ?, ?, ?)',
-      [t.gameId, t.completed ? 1 : 0, t.replayRequested ? 1 : 0, t.version, t.updatedAt],
+      "INSERT INTO tutorial_state (game_id, completed, replay_requested, version, updated_at) VALUES (?, ?, ?, ?, ?)",
+      [
+        t.gameId,
+        t.completed ? 1 : 0,
+        t.replayRequested ? 1 : 0,
+        t.version,
+        t.updatedAt,
+      ],
     );
     c.tutorialsUpdated += 1;
   }
@@ -338,15 +393,15 @@ async function writeTutorial(
 
 async function writeWorkouts(
   txn: SQLiteAdapter,
-  workouts: BackupData['workoutInstances'],
+  workouts: BackupData["workoutInstances"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const w of workouts) {
     const json = JSON.stringify(w.gameIds);
-    if (mode === 'merge') {
+    if (mode === "merge") {
       const ex = await txn.get<{ updated_at: number }>(
-        'SELECT updated_at FROM workout_instances WHERE date = ?',
+        "SELECT updated_at FROM workout_instances WHERE date = ?",
         [w.date],
       );
       if (ex) {
@@ -354,16 +409,33 @@ async function writeWorkouts(
           continue; // keep the newer/equal existing instance
         }
         await txn.run(
-          'UPDATE workout_instances SET game_ids_json = ?, status = ?, current_index = ?, reroll_attempt = ?, seed_version = ?, updated_at = ? WHERE date = ?',
-          [json, w.status, w.currentIndex, w.rerollAttempt, w.seedVersion, w.updatedAt, w.date],
+          "UPDATE workout_instances SET game_ids_json = ?, status = ?, current_index = ?, reroll_attempt = ?, seed_version = ?, updated_at = ? WHERE date = ?",
+          [
+            json,
+            w.status,
+            w.currentIndex,
+            w.rerollAttempt,
+            w.seedVersion,
+            w.updatedAt,
+            w.date,
+          ],
         );
         c.workoutsUpdated += 1;
         continue;
       }
     }
     await txn.run(
-      'INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [w.date, json, w.status, w.currentIndex, w.rerollAttempt, w.seedVersion, w.createdAt, w.updatedAt],
+      "INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        w.date,
+        json,
+        w.status,
+        w.currentIndex,
+        w.rerollAttempt,
+        w.seedVersion,
+        w.createdAt,
+        w.updatedAt,
+      ],
     );
     c.workoutsUpdated += 1;
   }
@@ -371,28 +443,47 @@ async function writeWorkouts(
 
 async function writeQuestDefinitions(
   txn: SQLiteAdapter,
-  defs: BackupData['questDefinitions'],
+  defs: BackupData["questDefinitions"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const q of defs) {
-    if (mode === 'merge') {
-      const ex = await txn.get<{ version: number }>('SELECT version FROM quests WHERE id = ?', [
-        q.id,
-      ]);
+    if (mode === "merge") {
+      const ex = await txn.get<{ version: number }>(
+        "SELECT version FROM quests WHERE id = ?",
+        [q.id],
+      );
       if (ex) {
         if (ex.version >= q.version) continue;
         await txn.run(
-          'UPDATE quests SET kind = ?, title = ?, description = ?, criteria_json = ?, reward_xp = ?, reward_currency = ?, version = ? WHERE id = ?',
-          [q.kind, q.title, q.description, toJson(q.criteria), q.rewardXp, q.rewardCurrency, q.version, q.id],
+          "UPDATE quests SET kind = ?, title = ?, description = ?, criteria_json = ?, reward_xp = ?, reward_currency = ?, version = ? WHERE id = ?",
+          [
+            q.kind,
+            q.title,
+            q.description,
+            toJson(q.criteria),
+            q.rewardXp,
+            q.rewardCurrency,
+            q.version,
+            q.id,
+          ],
         );
         c.questDefinitionsUpdated += 1;
         continue;
       }
     }
     await txn.run(
-      'INSERT INTO quests (id, kind, title, description, criteria_json, reward_xp, reward_currency, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [q.id, q.kind, q.title, q.description, toJson(q.criteria), q.rewardXp, q.rewardCurrency, q.version],
+      "INSERT INTO quests (id, kind, title, description, criteria_json, reward_xp, reward_currency, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [
+        q.id,
+        q.kind,
+        q.title,
+        q.description,
+        toJson(q.criteria),
+        q.rewardXp,
+        q.rewardCurrency,
+        q.version,
+      ],
     );
     c.questDefinitionsUpdated += 1;
   }
@@ -400,14 +491,18 @@ async function writeQuestDefinitions(
 
 async function writeQuestProgress(
   txn: SQLiteAdapter,
-  progress: BackupData['questProgress'],
+  progress: BackupData["questProgress"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const p of progress) {
-    if (mode === 'merge') {
-      const ex = await txn.get<{ progress: number; completed_at: number | null; claimed_at: number | null }>(
-        'SELECT progress, completed_at, claimed_at FROM quest_progress WHERE quest_id = ? AND period = ?',
+    if (mode === "merge") {
+      const ex = await txn.get<{
+        progress: number;
+        completed_at: number | null;
+        claimed_at: number | null;
+      }>(
+        "SELECT progress, completed_at, claimed_at FROM quest_progress WHERE quest_id = ? AND period = ?",
         [p.questId, p.period],
       );
       if (ex) {
@@ -415,7 +510,7 @@ async function writeQuestProgress(
         const completedAt = ex.completed_at ?? p.completedAt;
         const claimedAt = ex.claimed_at ?? p.claimedAt;
         await txn.run(
-          'UPDATE quest_progress SET progress = ?, completed_at = ?, claimed_at = ? WHERE quest_id = ? AND period = ?',
+          "UPDATE quest_progress SET progress = ?, completed_at = ?, claimed_at = ? WHERE quest_id = ? AND period = ?",
           [progressVal, completedAt, claimedAt, p.questId, p.period],
         );
         c.questProgressUpdated += 1;
@@ -423,7 +518,7 @@ async function writeQuestProgress(
       }
     }
     await txn.run(
-      'INSERT INTO quest_progress (quest_id, period, progress, completed_at, claimed_at) VALUES (?, ?, ?, ?, ?)',
+      "INSERT INTO quest_progress (quest_id, period, progress, completed_at, claimed_at) VALUES (?, ?, ?, ?, ?)",
       [p.questId, p.period, p.progress, p.completedAt, p.claimedAt],
     );
     c.questProgressUpdated += 1;
@@ -432,29 +527,45 @@ async function writeQuestProgress(
 
 async function writeAchievementDefinitions(
   txn: SQLiteAdapter,
-  defs: BackupData['achievementDefinitions'],
+  defs: BackupData["achievementDefinitions"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const d of defs) {
-    if (mode === 'merge') {
+    if (mode === "merge") {
       const ex = await txn.get<{ version: number }>(
-        'SELECT version FROM achievements WHERE id = ?',
+        "SELECT version FROM achievements WHERE id = ?",
         [d.id],
       );
       if (ex) {
         if (ex.version >= d.version) continue;
         await txn.run(
-          'UPDATE achievements SET title = ?, description = ?, criteria_json = ?, reward_xp = ?, reward_currency = ?, version = ? WHERE id = ?',
-          [d.title, d.description, toJson(d.criteria), d.rewardXp, d.rewardCurrency, d.version, d.id],
+          "UPDATE achievements SET title = ?, description = ?, criteria_json = ?, reward_xp = ?, reward_currency = ?, version = ? WHERE id = ?",
+          [
+            d.title,
+            d.description,
+            toJson(d.criteria),
+            d.rewardXp,
+            d.rewardCurrency,
+            d.version,
+            d.id,
+          ],
         );
         c.achievementDefinitionsUpdated += 1;
         continue;
       }
     }
     await txn.run(
-      'INSERT INTO achievements (id, title, description, criteria_json, reward_xp, reward_currency, version) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [d.id, d.title, d.description, toJson(d.criteria), d.rewardXp, d.rewardCurrency, d.version],
+      "INSERT INTO achievements (id, title, description, criteria_json, reward_xp, reward_currency, version) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [
+        d.id,
+        d.title,
+        d.description,
+        toJson(d.criteria),
+        d.rewardXp,
+        d.rewardCurrency,
+        d.version,
+      ],
     );
     c.achievementDefinitionsUpdated += 1;
   }
@@ -462,21 +573,24 @@ async function writeAchievementDefinitions(
 
 async function writeAchievementUnlocks(
   txn: SQLiteAdapter,
-  unlocks: BackupData['achievementUnlocks'],
+  unlocks: BackupData["achievementUnlocks"],
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
   for (const u of unlocks) {
-    if (mode === 'merge') {
-      const ex = await txn.get<{ unlocked_at: number; claimed_at: number | null }>(
-        'SELECT unlocked_at, claimed_at FROM achievement_unlocks WHERE achievement_id = ?',
+    if (mode === "merge") {
+      const ex = await txn.get<{
+        unlocked_at: number;
+        claimed_at: number | null;
+      }>(
+        "SELECT unlocked_at, claimed_at FROM achievement_unlocks WHERE achievement_id = ?",
         [u.achievementId],
       );
       if (ex) {
         const unlockedAt = Math.min(ex.unlocked_at, u.unlockedAt);
         const claimedAt = ex.claimed_at ?? u.claimedAt;
         await txn.run(
-          'UPDATE achievement_unlocks SET unlocked_at = ?, claimed_at = ? WHERE achievement_id = ?',
+          "UPDATE achievement_unlocks SET unlocked_at = ?, claimed_at = ? WHERE achievement_id = ?",
           [unlockedAt, claimedAt, u.achievementId],
         );
         c.achievementUnlocksUpdated += 1;
@@ -484,7 +598,7 @@ async function writeAchievementUnlocks(
       }
     }
     await txn.run(
-      'INSERT INTO achievement_unlocks (achievement_id, unlocked_at, claimed_at) VALUES (?, ?, ?)',
+      "INSERT INTO achievement_unlocks (achievement_id, unlocked_at, claimed_at) VALUES (?, ?, ?)",
       [u.achievementId, u.unlockedAt, u.claimedAt],
     );
     c.achievementUnlocksUpdated += 1;
@@ -505,26 +619,36 @@ export async function applyData(
   // keys of the other tables. Well-formed backups are unaffected (no dups).
   const gameSessions = dedupeNonNullKey(data.gameSessions, (s) => s.id);
   const domainRatings = dedupeNonNullKey(data.domainRatings, (d) => d.domain);
-  const ratingHistory = dedupeNonNullKey(
-    data.ratingHistory,
-    (r) => composite(r.sessionId, r.domain),
+  const ratingHistory = dedupeNonNullKey(data.ratingHistory, (r) =>
+    composite(r.sessionId, r.domain),
   );
-  const currencyLedger = dedupeNonNullKey(data.currencyLedger, (e) => e.operationId);
+  const currencyLedger = dedupeNonNullKey(
+    data.currencyLedger,
+    (e) => e.operationId,
+  );
   const gameFavorites = dedupeNonNullKey(data.gameFavorites, (f) => f.gameId);
   const tutorialState = dedupeNonNullKey(data.tutorialState, (t) => t.gameId);
-  const workoutInstances = dedupeNonNullKey(data.workoutInstances, (w) => w.date);
-  const questDefinitions = dedupeNonNullKey(data.questDefinitions, (q) => q.id);
-  const questProgress = dedupeNonNullKey(
-    data.questProgress,
-    (q) => composite(q.questId, q.period),
+  const workoutInstances = dedupeNonNullKey(
+    data.workoutInstances,
+    (w) => w.date,
   );
-  const achievementDefinitions = dedupeNonNullKey(data.achievementDefinitions, (a) => a.id);
-  const achievementUnlocks = dedupeNonNullKey(data.achievementUnlocks, (a) => a.achievementId);
+  const questDefinitions = dedupeNonNullKey(data.questDefinitions, (q) => q.id);
+  const questProgress = dedupeNonNullKey(data.questProgress, (q) =>
+    composite(q.questId, q.period),
+  );
+  const achievementDefinitions = dedupeNonNullKey(
+    data.achievementDefinitions,
+    (a) => a.id,
+  );
+  const achievementUnlocks = dedupeNonNullKey(
+    data.achievementUnlocks,
+    (a) => a.achievementId,
+  );
   // `xp_awards` has no stable natural key (two legit awards can coincide), so it
   // is intentionally NOT deduped here.
   const xpAwards = data.xpAwards;
 
-  if (mode === 'replace') {
+  if (mode === "replace") {
     // The append-only DELETE triggers are dropped at the CONNECTION level by the
     // caller (`applyImport` / `clearTablesIgnoringTriggers`) before this
     // transaction opens — `PRAGMA triggers = OFF` is a removed/no-op pragma in
@@ -537,18 +661,18 @@ export async function applyData(
   }
 
   await writeProfile(txn, data.profile, mode, c);
-  await writeFavorites(txn, data.gameFavorites, mode, c);
-  await writeDomainRatings(txn, data.domainRatings, mode, c);
-  const newSessionIds = await writeSessions(txn, data.gameSessions, mode, c);
-  await writeRatingHistory(txn, data.ratingHistory, mode, c, newSessionIds);
-  await writeLedger(txn, data.currencyLedger, mode, c, newSessionIds);
-  await writeXpAwards(txn, data.xpAwards, mode, c);
-  await writeTutorial(txn, data.tutorialState, mode, c);
-  await writeWorkouts(txn, data.workoutInstances, mode, c);
-  await writeQuestDefinitions(txn, data.questDefinitions, mode, c);
-  await writeQuestProgress(txn, data.questProgress, mode, c);
-  await writeAchievementDefinitions(txn, data.achievementDefinitions, mode, c);
-  await writeAchievementUnlocks(txn, data.achievementUnlocks, mode, c);
+  await writeFavorites(txn, gameFavorites, mode, c);
+  await writeDomainRatings(txn, domainRatings, mode, c);
+  const newSessionIds = await writeSessions(txn, gameSessions, mode, c);
+  await writeRatingHistory(txn, ratingHistory, mode, c, newSessionIds);
+  await writeLedger(txn, currencyLedger, mode, c, newSessionIds);
+  await writeXpAwards(txn, xpAwards, mode, c);
+  await writeTutorial(txn, tutorialState, mode, c);
+  await writeWorkouts(txn, workoutInstances, mode, c);
+  await writeQuestDefinitions(txn, questDefinitions, mode, c);
+  await writeQuestProgress(txn, questProgress, mode, c);
+  await writeAchievementDefinitions(txn, achievementDefinitions, mode, c);
+  await writeAchievementUnlocks(txn, achievementUnlocks, mode, c);
 }
 
 function summarizeWritten(c: ImportCounters): number {
@@ -580,7 +704,7 @@ export async function applyImport(
   mode: ImportMode,
 ): Promise<ImportResult> {
   const c = emptyCounters(mode);
-  if (mode === 'replace') {
+  if (mode === "replace") {
     // The append-only DELETE triggers must be removed at the connection level
     // (the legacy `PRAGMA triggers` is gone from modern SQLite and a no-op
     // inside a transaction). Drop them, run the clear + full insert in one
@@ -617,9 +741,9 @@ export async function buildDatabaseFromBackup(
   const adapter = await makeAdapter();
   await initializeConnection(adapter);
   await runMigrations(adapter);
-  const c = emptyCounters('replace');
+  const c = emptyCounters("replace");
   await adapter.transaction(async (txn) => {
-    await applyData(txn, parsed.data, 'replace', c);
+    await applyData(txn, parsed.data, "replace", c);
   });
   return adapter;
 }

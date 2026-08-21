@@ -24,12 +24,7 @@ import { levelForXp } from "@/rating";
 import { getAllGameDefinitions } from "@/registry/registry";
 import { effectiveCurrent, reconstructStreak } from "@/streaks";
 import { localDateString } from "@/workout/today";
-import { personalizedWorkout } from "@/workout/personalize";
-import {
-  canAffordReroll,
-  MAX_REROLLS_PER_DAY,
-  rerollCost,
-} from "@/workout/reroll";
+import { canAffordReroll, MAX_REROLLS_PER_DAY } from "@/workout/reroll";
 import { useWorkout } from "@/workout/use-workout";
 
 interface HomeData {
@@ -91,9 +86,6 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
 }
 
 export default function HomeScreen() {
-  const games = getAllGameDefinitions();
-  // Freeze Word Match from workout selection until semantic correction (006R task 3.1)
-  const eligibleGames = games.filter((g) => g.id !== "language-word-match");
   const today = localDateString();
   const { data, loaded } = useDbData(loadHome, [], EMPTY_HOME);
 
@@ -108,7 +100,6 @@ export default function HomeScreen() {
   const rerollAttempt = workoutFlow.instance?.rerollAttempt ?? 0;
   const nextRerollCost = workoutFlow.rerollCostNow;
   const rerollAffordable = canAffordReroll(data.balance, rerollAttempt);
-  const rerollUsed = rerollAttempt >= 1;
   const rerollExhausted = rerollAttempt >= MAX_REROLLS_PER_DAY;
 
   // Durable workout progress markers (006R hardening): reflect the persisted
@@ -132,13 +123,28 @@ export default function HomeScreen() {
 
   const onReroll = workoutFlow.reroll;
 
-  const rerollLabel = rerollExhausted
-    ? "No rerolls left"
-    : nextRerollCost === 0
-      ? "Reroll workout (free)"
-      : rerollAffordable
-        ? `Reroll workout (${nextRerollCost} coins)`
-        : `Need ${nextRerollCost} coins`;
+  const rerollLabel =
+    workoutStatus === "completed"
+      ? "Workout complete"
+      : rerollExhausted
+        ? "No rerolls left"
+        : nextRerollCost === 0
+          ? "Reroll workout (free)"
+          : rerollAffordable
+            ? `Reroll workout (${nextRerollCost} coins)`
+            : `Need ${nextRerollCost} coins`;
+
+  // Explanatory hint so the reroll economy is legible (Queue D).
+  const rerollHint =
+    workoutStatus === "completed"
+      ? "You've finished today's workout."
+      : rerollExhausted
+        ? "You've used all rerolls for today."
+        : nextRerollCost === 0
+          ? "First reroll is free; later rerolls cost escalating coins."
+          : rerollAffordable
+            ? `Reroll costs ${nextRerollCost} coins (more each time).`
+            : `Not enough coins — you need ${nextRerollCost}.`;
 
   return (
     <ScreenShell>
@@ -156,6 +162,23 @@ export default function HomeScreen() {
         testID="home-workout-cta"
       >
         <ThemedText type="subtitle">Today&apos;s Workout</ThemedText>
+        {workoutStatus === "completed" ? (
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            testID="home-workout-complete"
+          >
+            Workout complete — come back tomorrow to train again.
+          </ThemedText>
+        ) : (
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            testID="home-workout-progress"
+          >
+            {workoutIndex} of {workout.length} done — keep going!
+          </ThemedText>
+        )}
         {workout.length > 0 ? (
           <>
             <ThemedText type="small" themeColor="textSecondary">
@@ -202,12 +225,20 @@ export default function HomeScreen() {
             <Pressable
               testID="home-workout-reroll"
               accessibilityRole="button"
-              disabled={!rerollAffordable || rerollExhausted}
+              accessibilityLabel={rerollLabel}
+              accessibilityHint={rerollHint}
+              disabled={
+                !rerollAffordable ||
+                rerollExhausted ||
+                workoutStatus === "completed"
+              }
               onPress={onReroll}
             >
               <ThemedView
                 type={
-                  rerollExhausted || !rerollAffordable
+                  rerollExhausted ||
+                  !rerollAffordable ||
+                  workoutStatus === "completed"
                     ? "surface"
                     : "accentSoft"
                 }
@@ -218,15 +249,13 @@ export default function HomeScreen() {
                 </ThemedText>
               </ThemedView>
             </Pressable>
-            {rerollUsed && !rerollExhausted && (
+            {workoutStatus === "active" && (
               <ThemedText
                 type="caption"
                 themeColor="textSecondary"
                 testID="home-reroll-hint"
               >
-                {rerollAffordable
-                  ? `${MAX_REROLLS_PER_DAY - rerollAttempt} reroll${MAX_REROLLS_PER_DAY - rerollAttempt === 1 ? "" : "s"} left today`
-                  : "Not enough coins for another reroll"}
+                {rerollHint}
               </ThemedText>
             )}
           </>

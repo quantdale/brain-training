@@ -11,10 +11,10 @@ import type {
   DifficultyProfile,
   GameRawResult,
   GeneratorInfo,
-} from '@/sdk';
+} from "@/sdk";
 
 /** Stable game id (must match game.json). Never rename once shipped. */
-export const GAME_ID = 'flexibility-color-stroop';
+export const GAME_ID = "flexibility-color-stroop";
 
 /**
  * The four game colors. Tokens lack 4 distinct hues suitable for Stroop,
@@ -24,22 +24,29 @@ export const GAME_ID = 'flexibility-color-stroop';
  * work well for color-naming tasks. They avoid confusion between similar
  * shades (e.g., no light blue vs dark blue).
  */
-export const STROOP_COLORS = ['red', 'blue', 'green', 'yellow'] as const;
+export const STROOP_COLORS = ["red", "blue", "green", "yellow"] as const;
 export type StroopColor = (typeof STROOP_COLORS)[number];
 
 /** Color display values for rendering (hex codes). */
 export const STROOP_COLOR_HEX: Readonly<Record<StroopColor, string>> = {
-  red: '#E53935',
-  blue: '#1E88E5',
-  green: '#43A047',
-  yellow: '#FDD835',
+  red: "#E53935",
+  blue: "#1E88E5",
+  green: "#43A047",
+  yellow: "#FDD835",
 };
 
 /** Non-color words used for neutral trials. */
-export const NEUTRAL_WORDS = ['TABLE', 'CHAIR', 'BOOK', 'PEN', 'DOOR', 'WALL'] as const;
+export const NEUTRAL_WORDS = [
+  "TABLE",
+  "CHAIR",
+  "BOOK",
+  "PEN",
+  "DOOR",
+  "WALL",
+] as const;
 
 /** The current rule for answering. */
-export type AnswerRule = 'ink' | 'word';
+export type AnswerRule = "ink" | "word";
 
 /** Game-defined difficulty tuning; recorded in the resolved difficulty profile. */
 export interface ColorStroopDifficultyParams {
@@ -60,12 +67,12 @@ export interface ColorStroopDifficultyParams {
 }
 
 export type ColorStroopPhase =
-  | 'intro'
-  | 'stimulus'
-  | 'feedback'
-  | 'flipCue'
-  | 'roundResult'
-  | 'results';
+  | "intro"
+  | "stimulus"
+  | "feedback"
+  | "flipCue"
+  | "roundResult"
+  | "results";
 
 /** Accumulated session statistics. */
 export interface ColorStroopStats {
@@ -105,7 +112,7 @@ export interface StroopTrial {
   /** Whether this trial is a rule-flip cue point. */
   readonly isFlipPoint: boolean;
   /** The trial type for diagnostic purposes. */
-  readonly trialType: 'congruent' | 'incongruent' | 'neutral';
+  readonly trialType: "congruent" | "incongruent" | "neutral";
 }
 
 /**
@@ -141,38 +148,43 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
 }
 
 export type ColorStroopAction =
-  | { type: 'select-difficulty'; level: DifficultyLevel }
-  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
-  | { type: 'show-stimulus'; trialIndex: number }
-  | { type: 'submit-answer'; answer: StroopColor; responseTimeMs: number }
-  | { type: 'show-flip-cue' }
-  | { type: 'dismiss-flip-cue' }
-  | { type: 'next-trial' }
-  | { type: 'session-timeout' }
-  | { type: 'pause' }
-  | { type: 'resume' }
-  | { type: 'tutorial-open' }
-  | { type: 'tutorial-close' }
+  | { type: "select-difficulty"; level: DifficultyLevel }
   | {
-      type: 'session-finalized';
+      type: "start-session";
+      seed: string;
+      sessionId: string;
+      startedAtMs: number;
+    }
+  | { type: "show-stimulus"; trialIndex: number }
+  | { type: "submit-answer"; answer: StroopColor; responseTimeMs: number }
+  | { type: "show-flip-cue" }
+  | { type: "dismiss-flip-cue" }
+  | { type: "next-trial" }
+  | { type: "session-timeout" }
+  | { type: "pause" }
+  | { type: "resume" }
+  | { type: "tutorial-open" }
+  | { type: "tutorial-close" }
+  | {
+      type: "session-finalized";
       xp: number;
       normalized: number;
       activeDurationMs: number;
       pausedDurationMs: number;
       completedAtMs: number;
     }
-  | { type: 'persistence-started' }
-  | { type: 'persistence-succeeded' }
-  | { type: 'persistence-failed'; message: string }
+  | { type: "persistence-started" }
+  | { type: "persistence-succeeded" }
+  | { type: "persistence-failed"; message: string }
   | {
-      type: 'completion-outcome-received';
+      type: "completion-outcome-received";
       xp: number;
       currency: number;
       deltas: readonly { domain: string; delta: number; ratingAfter: number }[];
     }
-  | { type: 'qa/force-win' }
-  | { type: 'qa/force-lose' }
-  | { type: 'qa/force-state'; patch: QaForceStatePatch };
+  | { type: "qa/force-win" }
+  | { type: "qa/force-lose" }
+  | { type: "qa/force-state"; patch: QaForceStatePatch };
 
 /** Complete game state. */
 export interface ColorStroopGameState {
@@ -209,25 +221,29 @@ export interface ColorStroopGameState {
   forced: boolean;
   xp: number;
   normalized: number | null;
-  persistState: 'idle' | 'started' | 'succeeded' | 'failed';
+  persistState: "idle" | "started" | "succeeded" | "failed";
   lastError: string | null;
   /** Authoritative XP from the rating pipeline (null until persistence succeeds). */
   authoritativeXp: number | null;
   /** Authoritative currency from the rating pipeline (null until persistence succeeds). */
   authoritativeCurrency: number | null;
   /** Authoritative rating deltas with resulting ratings (empty until persistence succeeds). */
-  authoritativeDeltas: readonly { domain: string; delta: number; ratingAfter: number }[];
+  authoritativeDeltas: readonly {
+    domain: string;
+    delta: number;
+    ratingAfter: number;
+  }[];
   tutorialOpen: boolean;
 }
 
 export function createInitialColorStroopState(): ColorStroopGameState {
   return {
-    phase: 'intro',
+    phase: "intro",
     paused: false,
-    difficulty: 'normal',
+    difficulty: "normal",
     profile: null,
     seedOverride: null,
-    seed: '',
+    seed: "",
     sessionId: null,
     startedAtMs: null,
     completedAtMs: null,
@@ -235,7 +251,7 @@ export function createInitialColorStroopState(): ColorStroopGameState {
     pausedDurationMs: 0,
     trialIndex: 0,
     trials: [],
-    currentRule: 'ink',
+    currentRule: "ink",
     trialsSinceFlip: 0,
     showingFlipCue: false,
     currentAnswer: null,
@@ -246,7 +262,7 @@ export function createInitialColorStroopState(): ColorStroopGameState {
     forced: false,
     xp: 0,
     normalized: null,
-    persistState: 'idle',
+    persistState: "idle",
     lastError: null,
     authoritativeXp: null,
     authoritativeCurrency: null,

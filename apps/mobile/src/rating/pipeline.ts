@@ -18,15 +18,20 @@
  * `isRatingStale` (db layer). All functions are pure and deterministic; the
  * db layer applies the outcome atomically with the session row.
  */
-import type { GameSessionRecord, RatingDelta, RatingOutcome, RatingService } from '@/db';
+import type {
+ GameSessionRecord,
+ RatingDelta,
+ RatingOutcome,
+ RatingService,
+} from "@/db";
 
 /** XP multiplier per difficulty level (Adaptive sits between Normal and Hard). */
 export const DIFFICULTY_XP_MULTIPLIER: Readonly<Record<string, number>> = {
-  easy: 0.8,
-  normal: 1,
-  hard: 1.2,
-  expert: 1.4,
-  adaptive: 1.1,
+ easy: 0.8,
+ normal: 1,
+ hard: 1.2,
+ expert: 1.4,
+ adaptive: 1.1,
 };
 
 /**
@@ -34,13 +39,14 @@ export const DIFFICULTY_XP_MULTIPLIER: Readonly<Record<string, number>> = {
  * baseline gains rating; far below loses it. Easy has a high baseline so
  * easy play cannot inflate ratings (constitution §9).
  */
-export const DIFFICULTY_EXPECTED_PERFORMANCE: Readonly<Record<string, number>> = {
+export const DIFFICULTY_EXPECTED_PERFORMANCE: Readonly<Record<string, number>> =
+ {
   easy: 0.8,
   normal: 0.6,
   hard: 0.45,
   expert: 0.3,
   adaptive: 0.5,
-};
+ };
 
 /**
  * Map a continuous challenge rating (0..1) to expected normalized performance.
@@ -50,40 +56,44 @@ export const DIFFICULTY_EXPECTED_PERFORMANCE: Readonly<Record<string, number>> =
  *
  * Constitution §9: easy has a high baseline so easy play cannot inflate ratings.
  */
-export function expectedPerformanceFromChallenge(challengeRating: number): number {
-  // Clamp to [0, 1]
-  const cr = Math.min(1, Math.max(0, challengeRating));
-  // Piecewise linear interpolation between the four anchor points.
-  const anchors = [
-    { cr: 0.2, ep: 0.8 },
-    { cr: 0.5, ep: 0.6 },
-    { cr: 0.8, ep: 0.45 },
-    { cr: 0.95, ep: 0.3 },
-  ];
-  // If cr is below the first anchor, extrapolate from first two points.
-  if (cr <= anchors[0].cr) {
-    const slope = (anchors[1].ep - anchors[0].ep) / (anchors[1].cr - anchors[0].cr);
-    return anchors[0].ep + slope * (cr - anchors[0].cr);
+export function expectedPerformanceFromChallenge(
+ challengeRating: number,
+): number {
+ // Clamp to [0, 1]
+ const cr = Math.min(1, Math.max(0, challengeRating));
+ // Piecewise linear interpolation between the four anchor points.
+ const anchors = [
+  { cr: 0.2, ep: 0.8 },
+  { cr: 0.5, ep: 0.6 },
+  { cr: 0.8, ep: 0.45 },
+  { cr: 0.95, ep: 0.3 },
+ ];
+ // If cr is below the first anchor, extrapolate from first two points.
+ if (cr <= anchors[0].cr) {
+  const slope =
+   (anchors[1].ep - anchors[0].ep) / (anchors[1].cr - anchors[0].cr);
+  return anchors[0].ep + slope * (cr - anchors[0].cr);
+ }
+ // If cr is above the last anchor, extrapolate from last two points.
+ if (cr >= anchors[anchors.length - 1].cr) {
+  const slope =
+   (anchors[anchors.length - 1].ep - anchors[anchors.length - 2].ep) /
+   (anchors[anchors.length - 1].cr - anchors[anchors.length - 2].cr);
+  return (
+   anchors[anchors.length - 1].ep +
+   slope * (cr - anchors[anchors.length - 1].cr)
+  );
+ }
+ // Find the segment containing cr.
+ for (let i = 0; i < anchors.length - 1; i++) {
+  if (cr >= anchors[i].cr && cr <= anchors[i + 1].cr) {
+   const slope =
+    (anchors[i + 1].ep - anchors[i].ep) / (anchors[i + 1].cr - anchors[i].cr);
+   return anchors[i].ep + slope * (cr - anchors[i].cr);
   }
-  // If cr is above the last anchor, extrapolate from last two points.
-  if (cr >= anchors[anchors.length - 1].cr) {
-    const slope =
-      (anchors[anchors.length - 1].ep - anchors[anchors.length - 2].ep) /
-      (anchors[anchors.length - 1].cr - anchors[anchors.length - 2].cr);
-    return (
-      anchors[anchors.length - 1].ep +
-      slope * (cr - anchors[anchors.length - 1].cr)
-    );
-  }
-  // Find the segment containing cr.
-  for (let i = 0; i < anchors.length - 1; i++) {
-    if (cr >= anchors[i].cr && cr <= anchors[i + 1].cr) {
-      const slope = (anchors[i + 1].ep - anchors[i].ep) / (anchors[i + 1].cr - anchors[i].cr);
-      return anchors[i].ep + slope * (cr - anchors[i].cr);
-    }
-  }
-  // Fallback (should not reach).
-  return 0.6;
+ }
+ // Fallback (should not reach).
+ return 0.6;
 }
 
 /** Rating sensitivity factor (points of movement per unit of performance edge). */
@@ -98,15 +108,25 @@ export const SECONDARY_DOMAIN_WEIGHT = 0.5;
 /** Currency rate: 1 coin per this many XP (floor). */
 export const XP_CURRENCY_RATE = 5;
 
-/** Clamp to [0, 1] — the canonical normalized scale. */
+/** Clamp to [0, 1] — the canonical normalized scale.
+ *
+ * Non-finite inputs (NaN, Infinity from a corrupt/garbage normalized result)
+ * collapse to 0 rather than propagating NaN/Infinity into XP and rating deltas,
+ * which would otherwise permanently corrupt a domain rating (Queue C). Treating a
+ * malformed result as worst-case (0 performance) still grants participation XP
+ * while costing rating, which is the safe failure mode.
+ */
 export function clamp01(value: number): number {
-  return Math.min(1, Math.max(0, value));
+ if (!Number.isFinite(value)) {
+  return 0;
+ }
+ return Math.min(1, Math.max(0, value));
 }
 
 /** XP awarded for a session: participation floor + performance bonus, difficulty-scaled. */
 export function computeXp(normalized: number, difficultyLevel: string): number {
-  const multiplier = DIFFICULTY_XP_MULTIPLIER[difficultyLevel] ?? 1;
-  return Math.round((10 + 40 * clamp01(normalized)) * multiplier);
+ const multiplier = DIFFICULTY_XP_MULTIPLIER[difficultyLevel] ?? 1;
+ return Math.round((10 + 40 * clamp01(normalized)) * multiplier);
 }
 
 /**
@@ -114,39 +134,48 @@ export function computeXp(normalized: number, difficultyLevel: string): number {
  * rounded and capped at ±MAX_RATING_DELTA_PER_SESSION.
  */
 export function computeRatingDelta(
-  normalized: number,
-  difficultyLevel: string,
-  weight = 1,
-  challengeRating?: number,
+ normalized: number,
+ difficultyLevel: string,
+ weight = 1,
+ challengeRating?: number,
 ): number {
-  let expected: number;
-  if (typeof challengeRating === 'number' && Number.isFinite(challengeRating)) {
-    expected = expectedPerformanceFromChallenge(challengeRating);
-  } else {
-    expected = DIFFICULTY_EXPECTED_PERFORMANCE[difficultyLevel] ?? 0.6; // default to normal
-  }
-  const raw = RATING_K * (clamp01(normalized) - expected) * weight;
-  const rounded = Math.round(raw);
-  return Math.max(-MAX_RATING_DELTA_PER_SESSION, Math.min(MAX_RATING_DELTA_PER_SESSION, rounded));
+ let expected: number;
+ if (typeof challengeRating === "number" && Number.isFinite(challengeRating)) {
+  expected = expectedPerformanceFromChallenge(challengeRating);
+ } else {
+  expected = DIFFICULTY_EXPECTED_PERFORMANCE[difficultyLevel] ?? 0.6; // default to normal
+ }
+ const raw = RATING_K * (clamp01(normalized) - expected) * weight;
+ const rounded = Math.round(raw);
+ return Math.max(
+  -MAX_RATING_DELTA_PER_SESSION,
+  Math.min(MAX_RATING_DELTA_PER_SESSION, rounded),
+ );
 }
 
 /** Currency coins for a session's XP (floor at the configured rate). */
 export function computeCurrency(xp: number): number {
-  return Math.floor(Math.max(0, xp) / XP_CURRENCY_RATE);
+ return Math.floor(Math.max(0, xp) / XP_CURRENCY_RATE);
 }
 
 /** Difficulty level recorded on the persisted session, defaulting to Normal. */
 function difficultyLevelOf(session: GameSessionRecord): string {
-  const difficulty = session.difficulty as { level?: string } | null | undefined;
-  return difficulty?.level ?? 'normal';
+ const difficulty = session.difficulty as { level?: string } | null | undefined;
+ return difficulty?.level ?? "normal";
 }
 
 function challengeRatingOf(session: GameSessionRecord): number | undefined {
-  const difficulty = session.difficulty as { challengeRating?: number } | null | undefined;
-  if (typeof difficulty?.challengeRating === 'number' && Number.isFinite(difficulty.challengeRating)) {
-    return difficulty.challengeRating;
-  }
-  return undefined;
+ const difficulty = session.difficulty as
+  | { challengeRating?: number }
+  | null
+  | undefined;
+ if (
+  typeof difficulty?.challengeRating === "number" &&
+  Number.isFinite(difficulty.challengeRating)
+ ) {
+  return difficulty.challengeRating;
+ }
+ return undefined;
 }
 
 /**
@@ -155,40 +184,44 @@ function challengeRatingOf(session: GameSessionRecord): number | undefined {
  * of registry/UI dependencies and is trivially testable.
  */
 export function computeRatingOutcome(
-  session: GameSessionRecord,
-  getDomains: (gameId: string) => readonly string[],
+ session: GameSessionRecord,
+ getDomains: (gameId: string) => readonly string[],
 ): RatingOutcome {
-  const level = difficultyLevelOf(session);
-  const challengeRating = challengeRatingOf(session);
-  const normalized = clamp01(session.normalizedResult);
+ const level = difficultyLevelOf(session);
+ const challengeRating = challengeRatingOf(session);
+ const normalized = clamp01(session.normalizedResult);
 
-  const xp = computeXp(normalized, level);
-  const deltas: readonly RatingDelta[] = getDomains(session.gameId).map((domain, index) => ({
-    domain,
-    delta: computeRatingDelta(
-      normalized,
-      level,
-      index === 0 ? 1 : SECONDARY_DOMAIN_WEIGHT,
-      challengeRating,
-    ),
-  }));
+ const xp = computeXp(normalized, level);
+ const deltas: readonly RatingDelta[] = getDomains(session.gameId).map(
+  (domain, index) => ({
+   domain,
+   delta: computeRatingDelta(
+    normalized,
+    level,
+    index === 0 ? 1 : SECONDARY_DOMAIN_WEIGHT,
+    challengeRating,
+   ),
+  }),
+ );
 
-  return { xp, currency: computeCurrency(xp), deltas };
+ return { xp, currency: computeCurrency(xp), deltas };
 }
 
 export interface RatingPipelineOptions {
-  /** Domain list per game id: primary category first, then secondary domains. */
-  getDomains(gameId: string): readonly string[];
+ /** Domain list per game id: primary category first, then secondary domains. */
+ getDomains(gameId: string): readonly string[];
 }
 
 /**
  * Build the `RatingService` consumed by `SessionRepository.completeSession`.
  * Pure computation; the db layer applies the outcome atomically.
  */
-export function createRatingPipeline(options: RatingPipelineOptions): RatingService {
-  return {
-    async compute(input: { session: GameSessionRecord }): Promise<RatingOutcome> {
-      return computeRatingOutcome(input.session, options.getDomains);
-    },
-  };
+export function createRatingPipeline(
+ options: RatingPipelineOptions,
+): RatingService {
+ return {
+  async compute(input: { session: GameSessionRecord }): Promise<RatingOutcome> {
+   return computeRatingOutcome(input.session, options.getDomains);
+  },
+ };
 }

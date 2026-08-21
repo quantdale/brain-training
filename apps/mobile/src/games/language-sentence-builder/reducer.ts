@@ -10,20 +10,23 @@
  * QA force actions (`qa/*`) only reshape state; the screen gates their entry
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()`.
  */
-import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
+import { createRng, isDifficultyLevel } from "@/sdk";
+import type { DifficultyProfile } from "@/sdk";
 
-import { generateRound } from './generator';
-import { SENTENCE_BANK } from './content/sentence-bank';
-import { paramsFromProfile, resolveSentenceBuilderDifficulty } from './difficulty';
-import { computeRoundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialState } from './types';
+import { generateRound } from "./generator";
+import { SENTENCE_BANK } from "./content/sentence-bank";
+import {
+  paramsFromProfile,
+  resolveSentenceBuilderDifficulty,
+} from "./difficulty";
+import { computeRoundScore } from "./scoring";
+import { GAME_ID, INITIAL_STATS, createInitialState } from "./types";
 import type {
   SentenceBuilderAction,
   SentenceBuilderDifficultyParams,
   SentenceBuilderState,
   SentenceBuilderStats,
-} from './types';
+} from "./types";
 
 export { createInitialState };
 
@@ -56,14 +59,14 @@ export function sentenceBuilderReducer(
   action: SentenceBuilderAction,
 ): SentenceBuilderState {
   switch (action.type) {
-    case 'select-difficulty': {
-      if (state.phase !== 'intro') {
+    case "select-difficulty": {
+      if (state.phase !== "intro") {
         return state;
       }
       return { ...state, difficulty: action.level };
     }
 
-    case 'start-session': {
+    case "start-session": {
       if (state.difficulty === null) {
         return state;
       }
@@ -82,7 +85,7 @@ export function sentenceBuilderReducer(
 
       return {
         ...state,
-        phase: 'puzzle',
+        phase: "puzzle",
         paused: false,
         profile,
         seed: action.seed,
@@ -101,12 +104,17 @@ export function sentenceBuilderReducer(
         forced: false,
         xp: 0,
         normalized: null,
-        persistState: 'idle',
+        persistState: "idle",
       };
     }
 
-    case 'tap-word': {
-      if (state.phase !== 'puzzle' || state.paused || state.profile === null || state.scrambled === null) {
+    case "tap-word": {
+      if (
+        state.phase !== "puzzle" ||
+        state.paused ||
+        state.profile === null ||
+        state.scrambled === null
+      ) {
         return state;
       }
       const { scrambled } = state;
@@ -137,25 +145,36 @@ export function sentenceBuilderReducer(
 
       // Round complete (either all correct or wrong).
       const playerOrder = newTaps.map((i) => scrambled.scrambled[i]);
-      const { points, passed } = computeRoundScore(scrambled.original, playerOrder);
-      const accuracy = playerOrder.length > 0
-        ? playerOrder.filter((w, i) => w === scrambled.original[i]).length / scrambled.original.length
-        : 0;
+      const { points, passed } = computeRoundScore(
+        scrambled.original,
+        playerOrder,
+      );
+      const accuracy =
+        playerOrder.length > 0
+          ? playerOrder.filter((w, i) => w === scrambled.original[i]).length /
+            scrambled.original.length
+          : 0;
       const wordCount = scrambled.original.length;
-      const stats = advanceStats(state.stats, points, passed, wordCount, accuracy);
+      const stats = advanceStats(
+        state.stats,
+        points,
+        passed,
+        wordCount,
+        accuracy,
+      );
 
       return {
         ...state,
-        phase: 'roundResult',
-        roundOutcome: passed ? 'passed' : 'failed',
+        phase: "roundResult",
+        roundOutcome: passed ? "passed" : "failed",
         taps: newTaps,
         inputIndex: nextInputIndex,
         stats,
       };
     }
 
-    case 'timer-expired': {
-      if (state.phase !== 'puzzle' || state.scrambled === null) {
+    case "timer-expired": {
+      if (state.phase !== "puzzle" || state.scrambled === null) {
         return state;
       }
       // Timer expired: round fails.
@@ -163,25 +182,30 @@ export function sentenceBuilderReducer(
       const stats = advanceStats(state.stats, 0, false, wordCount, 0);
       return {
         ...state,
-        phase: 'roundResult',
-        roundOutcome: 'failed',
+        phase: "roundResult",
+        roundOutcome: "failed",
         stats,
       };
     }
 
-    case 'next-round': {
-      if (state.phase !== 'roundResult' || state.profile === null || state.difficulty === null) {
+    case "next-round": {
+      if (
+        state.phase !== "roundResult" ||
+        state.profile === null ||
+        state.difficulty === null
+      ) {
         return state;
       }
       const params = paramsFromProfile(state.profile);
       const nextIndex = state.roundIndex + 1;
 
       if (nextIndex >= params.rounds) {
-        return { ...state, phase: 'results', roundOutcome: null };
+        return { ...state, phase: "results", roundOutcome: null };
       }
 
       const rng = createRng(state.seed);
-      const usedCategories = state.prevCategory !== null ? [state.prevCategory] : [];
+      const usedCategories =
+        state.prevCategory !== null ? [state.prevCategory] : [];
 
       const { scrambled: newScrambled, sentence: newSentence } = generateRound({
         rng,
@@ -195,7 +219,7 @@ export function sentenceBuilderReducer(
 
       return {
         ...state,
-        phase: 'puzzle',
+        phase: "puzzle",
         roundIndex: nextIndex,
         scrambled: newScrambled,
         taps: [],
@@ -205,26 +229,30 @@ export function sentenceBuilderReducer(
       };
     }
 
-    case 'pause': {
-      if (state.paused || state.phase === 'results' || state.phase === 'intro') {
+    case "pause": {
+      if (
+        state.paused ||
+        state.phase === "results" ||
+        state.phase === "intro"
+      ) {
         return state;
       }
       return { ...state, paused: true };
     }
 
-    case 'resume': {
+    case "resume": {
       return state.paused ? { ...state, paused: false } : state;
     }
 
-    case 'tutorial-open': {
+    case "tutorial-open": {
       return { ...state, tutorialOpen: true };
     }
 
-    case 'tutorial-close': {
+    case "tutorial-close": {
       return { ...state, tutorialOpen: false };
     }
 
-    case 'session-finalized': {
+    case "session-finalized": {
       return {
         ...state,
         xp: action.xp,
@@ -235,19 +263,19 @@ export function sentenceBuilderReducer(
       };
     }
 
-    case 'persistence-started': {
-      return { ...state, persistState: 'started' };
+    case "persistence-started": {
+      return { ...state, persistState: "started" };
     }
 
-    case 'persistence-succeeded': {
-      return { ...state, persistState: 'succeeded' };
+    case "persistence-succeeded": {
+      return { ...state, persistState: "succeeded" };
     }
 
-    case 'persistence-failed': {
-      return { ...state, persistState: 'failed', lastError: action.message };
+    case "persistence-failed": {
+      return { ...state, persistState: "failed", lastError: action.message };
     }
 
-    case 'completion-outcome-received': {
+    case "completion-outcome-received": {
       return {
         ...state,
         authoritativeXp: action.xp,
@@ -256,15 +284,19 @@ export function sentenceBuilderReducer(
       };
     }
 
-    case 'qa/force-win': {
-      if (state.phase === 'results' || state.phase === 'intro' || state.profile === null) {
+    case "qa/force-win": {
+      if (
+        state.phase === "results" ||
+        state.phase === "intro" ||
+        state.profile === null
+      ) {
         return state;
       }
       const params = paramsFromProfile(state.profile);
       const rounds = params.rounds;
       return {
         ...state,
-        phase: 'results',
+        phase: "results",
         paused: false,
         roundOutcome: null,
         forced: true,
@@ -279,14 +311,18 @@ export function sentenceBuilderReducer(
       };
     }
 
-    case 'qa/force-lose': {
-      if (state.phase === 'results' || state.phase === 'intro' || state.profile === null) {
+    case "qa/force-lose": {
+      if (
+        state.phase === "results" ||
+        state.phase === "intro" ||
+        state.profile === null
+      ) {
         return state;
       }
-      const currentRoundCounted = state.phase === 'roundResult' ? 0 : 1;
+      const currentRoundCounted = state.phase === "roundResult" ? 0 : 1;
       return {
         ...state,
-        phase: 'results',
+        phase: "results",
         paused: false,
         roundOutcome: null,
         forced: true,
@@ -298,8 +334,8 @@ export function sentenceBuilderReducer(
       };
     }
 
-    case 'qa/force-state': {
-      if (state.phase !== 'intro') {
+    case "qa/force-state": {
+      if (state.phase !== "intro") {
         return state;
       }
       const patch = action.patch;
@@ -319,7 +355,9 @@ export function sentenceBuilderReducer(
 }
 
 /** Helper: perfect session score from params. */
-function perfectSessionScoreFromParams(params: SentenceBuilderDifficultyParams): number {
+function perfectSessionScoreFromParams(
+  params: SentenceBuilderDifficultyParams,
+): number {
   let total = 0;
   for (let i = 0; i < params.rounds; i += 1) {
     const avgWords = Math.round((params.minWords + params.maxWords) / 2);

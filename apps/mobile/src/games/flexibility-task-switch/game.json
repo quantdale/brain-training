@@ -1,0 +1,14 @@
+{
+  "id": "flexibility-task-switch",
+  "name": "Task Switch",
+  "primaryCategory": "Flexibility",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Alternate between micro-tasks using the cue. Switching tasks is the challenge — accuracy and switch cost matter more than speed.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

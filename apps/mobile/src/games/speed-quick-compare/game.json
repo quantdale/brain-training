@@ -1,0 +1,14 @@
+{
+  "id": "speed-quick-compare",
+  "name": "Quick Compare",
+  "primaryCategory": "Speed",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Two values, one fast decision: judge whether they match, which is larger, or which side sums to more — before the clock runs out.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}

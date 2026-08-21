@@ -1,0 +1,14 @@
+{
+  "id": "memory-running-order",
+  "name": "Running Order",
+  "primaryCategory": "Memory",
+  "secondaryDomains": [
+    "Attention"
+  ],
+  "description": "Watch a stream of symbols, then recall the LAST few in order. Older items are just distractors — hold only what matters.",
+  "sdkVersion": "0.1.0",
+  "gameVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "contentVersion": null,
+  "hasTutorial": true
+}
