@@ -1,9 +1,36 @@
-# Campaign 010 — Mass Product Implementation
+# Campaign 011 — Full Validation, QA, Audit, Fix & Hardening
 
-**Status:** COMPLETED (implementation-only; validation deferred to Campaign 011)
-**Campaign id:** `010-mass-product-implementation`
-**Predecessor:** `009-single-session-broad-development` (COMPLETED at `e0d92ce`; 38-game catalog)
-**Execution entry:** owner-directed orchestrator brief — BUILD NOW / VERIFY LATER bulk construction campaign
+**Status:** IN PROGRESS (Day mode)
+**Campaign id:** `011-full-validation-hardening`
+**Predecessor:** `010-mass-product-implementation` (COMPLETED at `2630a77`; 42 games, implementation-only)
+**Execution entry:** owner-directed validation orchestrator brief — VERIFY → BREAK → DIAGNOSE → FIX → REGRESSION TEST → INTEGRATE → DEVICE VERIFY → HARDEN → PROVE
+
+## Mission
+
+Test everything Campaign 010 changed; find defects; fix root causes; harden the combined
+product. Not a feature campaign. Known ground truth at open: full Jest = **12 failed
+suites / 32 failed tests / 4 snapshots** (of 412/4665); GitHub App CI red on `2630a77`;
+Android emulator available. Failure inventory routed in `.agent/_tasks/campaign011/W*.md`.
+
+## Topology
+
+16 worker packets in `.agent/_tasks/campaign011/` with disjoint ownership; workers never
+branch/commit; parent owns Git, full-suite runs, device-journey coordination, durable
+state. Only W16 touches the emulator. Workers run targeted Jest only.
+
+## Exit criteria
+
+- [ ] All failing suites triaged and green (or justified quarantine)
+- [ ] Critical/High defects fixed with regression tests
+- [ ] Differential equivalence proven: analytics V2, JSON1 projections, backup round-trip
+- [ ] Migration matrix v1→v9 green
+- [ ] Android catalog journey executed over 42 games with honest classification
+- [ ] Workout device journey closed (009 gap)
+- [ ] Performance re-measured vs 009 baselines
+- [ ] Cross-system integration pipeline test (parent)
+- [ ] Full local gates + CI verified on final SHA
+- [ ] campaign010 validation backlog fully classified (CLOSED/DEFERRED/BLOCKED/OBSOLETE)
+- [ ] Durable state updated to evidence-based statuses
 
 ## Outcome summary
 
