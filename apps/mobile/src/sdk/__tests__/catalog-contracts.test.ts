@@ -120,6 +120,35 @@ function requireFile(game: GameSource, file: string): string {
   return content ?? '';
 }
 
+/**
+ * Shared GameHost sources (campaign 010, architecture debt D1).
+ *
+ * Screens that delegate to `<GameHost>` / `useGameSession`
+ * (`@/components/game-host`) inherit the session lifecycle, pause overlay,
+ * and accessibility contracts from that shared module instead of carrying the
+ * boilerplate inline. For those screens the lifecycle/a11y/overlay scans below
+ * run against the GameHost sources as well — the contract itself is unchanged;
+ * only its location moves. The shared source is loaded once; if it disappears
+ * every delegating game fails loudly rather than silently skipping.
+ */
+const GAME_HOST_SOURCES = (() => {
+  const dir = join(GAMES_ROOT, '..', 'components', 'game-host');
+  const names = ['game-host.tsx', 'use-game-session.ts'];
+  return names.map((name) => readFileSync(join(dir, name), 'utf8')).join('\n');
+})();
+
+function delegatesToGameHost(screen: string): boolean {
+  return /@\/components\/game-host/.test(screen);
+}
+
+/** Contract text for one game: screen source plus (when delegating) the host. */
+function contractSource(game: GameSource): string {
+  const screen = requireFile(game, 'screen.tsx');
+  return delegatesToGameHost(screen)
+    ? `${screen}\n${GAME_HOST_SOURCES}`
+    : screen;
+}
+
 describe('catalog sanity', () => {
   it('discovers the full game catalog (guards against vacuous scans)', () => {
     // The catalog ships 36 games; a floor well below that catches a broken
@@ -156,16 +185,16 @@ describe('game.json metadata contracts', () => {
 describe('session lifecycle contracts (every screen)', () => {
   it('drives SessionLifecycle, auto-pauses on background, abandons on quit', () => {
     collectViolations((game) => {
-      const screen = requireFile(game, 'screen.tsx');
+      const screen = contractSource(game);
       const problems: string[] = [];
       if (!/new\s+SessionLifecycle/.test(screen)) {
-        problems.push('screen.tsx never constructs SessionLifecycle');
+        problems.push('screen never constructs SessionLifecycle');
       }
       if (!/AppState\.addEventListener/.test(screen)) {
-        problems.push('screen.tsx lacks AppState auto-pause on backgrounding');
+        problems.push('screen lacks AppState auto-pause on backgrounding');
       }
       if (!/\.abandon\(\)/.test(screen)) {
-        problems.push('screen.tsx never abandons the lifecycle on quit');
+        problems.push('screen never abandons the lifecycle on quit');
       }
       return problems;
     });
@@ -173,9 +202,9 @@ describe('session lifecycle contracts (every screen)', () => {
 
   it('guards result finalization against double submission', () => {
     collectViolations((game) => {
-      const screen = requireFile(game, 'screen.tsx');
+      const screen = contractSource(game);
       if (!/finalizedRef/.test(screen)) {
-        return ['screen.tsx lacks a finalizedRef double-submit guard'];
+        return ['screen lacks a finalizedRef double-submit guard'];
       }
       return [];
     });
@@ -183,13 +212,13 @@ describe('session lifecycle contracts (every screen)', () => {
 
   it('hides the challenge from the accessibility tree while paused', () => {
     collectViolations((game) => {
-      const screen = requireFile(game, 'screen.tsx');
+      const screen = contractSource(game);
       const problems: string[] = [];
       if (!/accessibilityElementsHidden/.test(screen)) {
-        problems.push('screen.tsx does not set accessibilityElementsHidden while paused');
+        problems.push('screen does not set accessibilityElementsHidden while paused');
       }
       if (!/importantForAccessibility/.test(screen)) {
-        problems.push('screen.tsx does not set importantForAccessibility="no-hide-descendants" while paused');
+        problems.push('screen does not set importantForAccessibility="no-hide-descendants" while paused');
       }
       return problems;
     });
@@ -199,6 +228,15 @@ describe('session lifecycle contracts (every screen)', () => {
 describe('shared component delegation', () => {
   it('pause overlay re-exports the shared PauseOverlay primitive', () => {
     collectViolations((game) => {
+      const screen = requireFile(game, 'screen.tsx');
+      // GameHost-delegating screens mount the shared PauseOverlay from the
+      // host component itself; no per-game overlay file exists by design.
+      if (delegatesToGameHost(screen)) {
+        if (!/PauseOverlay/.test(GAME_HOST_SOURCES)) {
+          return ['GameHost sources do not reference PauseOverlay'];
+        }
+        return [];
+      }
       const overlay = requireFile(game, 'components/pause-overlay.tsx');
       const problems: string[] = [];
       if (!/@\/components\/game-ui/.test(overlay)) {

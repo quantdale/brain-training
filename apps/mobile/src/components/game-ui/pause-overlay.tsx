@@ -7,10 +7,23 @@
  * paused (importantForAccessibility / accessibilityElementsHidden).
  *
  * Theme-aware, generic: callers supply `gameId`, `onResume`, `onQuit`.
+ *
+ * Reachability contract (campaign 009 device findings, grid-nav harness):
+ * - The root is intentionally NOT `accessible` (grouping would collapse
+ *   Resume/Quit into one unfocusable blob) and explicitly opts back INTO the
+ *   Android tree (`importantForAccessibility="yes"`) so it stays reachable
+ *   even under an ancestor's hiding attribute.
+ * - On show, the paused state is announced and the screen-reader cursor is
+ *   parked on Resume, so TalkBack users land inside the overlay instead of
+ *   stranded behind it; a polite live region backs the announcement on
+ *   Android where imperative announces can be dropped.
  */
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { createPauseOverlaySpec, testId } from '@/sdk';
+import { announce } from '@/components/a11y/announcements';
+import { requestAccessibilityFocus } from '@/components/a11y/focus';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,12 +39,25 @@ export interface PauseOverlayProps {
 export function PauseOverlay({ gameId, onResume, onQuit }: PauseOverlayProps) {
   const theme = useTheme();
   const spec = createPauseOverlaySpec(gameId);
+  const resumeRef = useRef<View | null>(null);
+
+  useEffect(() => {
+    // Android announces via the root's polite live region (below); firing the
+    // imperative announce there too would double-speak. iOS/web have no live
+    // region, so they get the imperative announcement.
+    if (Platform.OS !== 'android') {
+      announce(spec.accessibilityLabel);
+    }
+    requestAccessibilityFocus(resumeRef);
+  }, [spec.accessibilityLabel]);
 
   return (
     <View
       style={[styles.overlay, { backgroundColor: theme.background }]}
       testID={spec.testID}
       accessibilityLabel={spec.accessibilityLabel}
+      accessibilityLiveRegion="polite"
+      importantForAccessibility="yes"
       accessibilityViewIsModal>
       <ThemedText type="headline" testID={testId(gameId, 'pause-title')}>
         Paused
@@ -40,7 +66,7 @@ export function PauseOverlay({ gameId, onResume, onQuit }: PauseOverlayProps) {
         The challenge is hidden and the timers are frozen.
       </ThemedText>
       <View style={styles.actions}>
-        <GameButton testID={testId(gameId, 'resume')} label="Resume" onPress={onResume} />
+        <GameButton ref={resumeRef} testID={testId(gameId, 'resume')} label="Resume" onPress={onResume} />
         <GameButton testID={testId(gameId, 'quit')} label="Quit" variant="secondary" onPress={onQuit} />
       </View>
     </View>

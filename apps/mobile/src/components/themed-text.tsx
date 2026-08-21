@@ -1,5 +1,6 @@
 import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
+import { MAX_FONT_SCALE } from '@/components/a11y/font-scale';
 import { Fonts, ThemeColor, Typography } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -20,7 +21,22 @@ export type ThemedTextProps = TextProps & {
   themeColor?: ThemeColor;
 };
 
-export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
+/**
+ * Dynamic type (xplat audit B1): font scaling is capped at ~1.35 so large
+ * system font settings stay readable without breaking board/row layouts
+ * (`lineHeight` scales proportionally with the capped size). Callers override
+ * per-node with an explicit `maxFontSizeMultiplier`, or opt out entirely for
+ * board glyphs with `allowFontScaling={false}` — spatial glyph content must
+ * not scale. See `@/components/a11y/font-scale`.
+ */
+export function ThemedText({
+  style,
+  type = 'default',
+  themeColor,
+  maxFontSizeMultiplier,
+  allowFontScaling,
+  ...rest
+}: ThemedTextProps) {
   const theme = useTheme();
 
   return (
@@ -41,6 +57,8 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
         type === 'code' && styles.code,
         style,
       ]}
+      allowFontScaling={allowFontScaling}
+      maxFontSizeMultiplier={maxFontSizeMultiplier ?? MAX_FONT_SCALE}
       {...rest}
     />
   );

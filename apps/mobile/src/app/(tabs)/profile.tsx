@@ -37,6 +37,7 @@ import {
   syncQuestProgress,
 } from "@/progression";
 import { getGameDefinition } from "@/registry/registry";
+import { levelForXp } from "@/rating";
 import {
   evaluateQuests,
   currentPeriodKey,
@@ -99,6 +100,8 @@ const STREAK_ITEMS: { kind: StreakItemKind; label: string; caption: string }[] =
 
 interface ProfileData {
   balance: number;
+  /** Session XP + award XP, for the identity context line. */
+  totalXp: number;
   inventory: StreakInventory;
   profileSettings: Record<string, unknown>;
   questRows: Map<string, QuestProgress>;
@@ -121,6 +124,7 @@ interface ProfileData {
 
 const EMPTY_PROFILE: ProfileData = {
   balance: 0,
+  totalXp: 0,
   inventory: { freeze: 0, shield: 0, recovery: 0 },
   profileSettings: {},
   questRows: new Map(),
@@ -156,18 +160,27 @@ async function loadProfile(
   await syncQuestProgress(db, now);
   await syncAchievements(db, now);
 
-  const [balance, profile, achievements, unlockRows, progressRows] =
-    await Promise.all([
-      db.ledger.getBalance(),
-      db.profile.get(),
-      db.achievements.listDefinitions(),
-      db.achievements.listUnlocks(),
-      Promise.all(
-        selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>
-          db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
-        ),
+  const [
+    balance,
+    profile,
+    achievements,
+    unlockRows,
+    progressRows,
+    sessionXp,
+    awardsXp,
+  ] = await Promise.all([
+    db.ledger.getBalance(),
+    db.profile.get(),
+    db.achievements.listDefinitions(),
+    db.achievements.listUnlocks(),
+    Promise.all(
+      selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>
+        db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
       ),
-    ]);
+    ),
+    db.sessions.getTotalXp(),
+    db.xpAwards.getTotalAwardedXp(),
+  ]);
 
   const profileSettings = profile?.settings ?? {};
   const inventory = readInventory(profileSettings);
@@ -264,6 +277,7 @@ async function loadProfile(
 
   return {
     balance,
+    totalXp: sessionXp + awardsXp,
     inventory,
     profileSettings,
     questRows,
@@ -300,6 +314,21 @@ export default function ProfileScreen() {
   const refresh = useCallback(() => {
     setRefreshKey((key) => key + 1);
   }, []);
+
+  // Contextual claim counters: surface "rewards ready" summaries at the top of
+  // the quest/achievement sections so completed-but-unclaimed work is
+  // impossible to miss in a long list.
+  const claimableQuests = data.questEvals.filter((evaluation) => {
+    const row = data.questRows.get(evaluation.questId);
+    const completed = evaluation.completed || row?.completedAt != null;
+    return completed && row?.claimedAt == null;
+  }).length;
+  const claimableAchievements = ACHIEVEMENT_DEFINITIONS_V1.filter(
+    (definition) => {
+      const unlock = data.unlocks.get(definition.id);
+      return unlock != null && unlock.claimedAt == null;
+    },
+  ).length;
 
   // In-flight guard per item kind: a fast double tap must not pass the
   // canPurchase balance gate twice and double-charge (the repository also
@@ -444,9 +473,17 @@ export default function ProfileScreen() {
         </ThemedView>
         <View style={styles.identityText}>
           <ThemedText type="bodyLarge">Local player</ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">
-            Profile name and avatar customization arrive in a later wave.
-          </ThemedText>
+          {/* Progression context (gated on real data so the db-unavailable
+              fallback — and the visual-baseline canary — stays unchanged). */}
+          {data.totalXp > 0 || data.balance > 0 ? (
+            <ThemedText type="caption" themeColor="textSecondary">
+              Level {levelForXp(data.totalXp)} · {data.balance} coins
+            </ThemedText>
+          ) : (
+            <ThemedText type="caption" themeColor="textSecondary">
+              Profile name and avatar customization arrive in a later wave.
+            </ThemedText>
+          )}
         </View>
       </ThemedView>
 
@@ -585,6 +622,17 @@ export default function ProfileScreen() {
       {/* Quests — live progress + once-only claims. */}
       <ThemedView type="surface" style={styles.card} testID="profile-quests">
         <ThemedText type="subtitle">Quests</ThemedText>
+        {claimableQuests > 0 && (
+          <ThemedText
+            type="caption"
+            themeColor="accent"
+            testID="profile-quests-ready"
+            accessibilityLiveRegion="polite"
+          >
+            {claimableQuests} quest reward{claimableQuests === 1 ? "" : "s"}{" "}
+            ready to claim!
+          </ThemedText>
+        )}
         {data.questEvals.length === 0 ? (
           <ThemedText type="small" themeColor="textSecondary">
             No quests yet.
@@ -654,6 +702,17 @@ export default function ProfileScreen() {
         testID="profile-achievements"
       >
         <ThemedText type="subtitle">Achievements</ThemedText>
+        {claimableAchievements > 0 && (
+          <ThemedText
+            type="caption"
+            themeColor="accent"
+            testID="profile-achievements-ready"
+            accessibilityLiveRegion="polite"
+          >
+            {claimableAchievements} achievement reward
+            {claimableAchievements === 1 ? "" : "s"} ready to claim!
+          </ThemedText>
+        )}
         {ACHIEVEMENT_DEFINITIONS_V1.map((definition) => {
           const unlock = data.unlocks.get(definition.id);
           const claimed = unlock?.claimedAt != null;

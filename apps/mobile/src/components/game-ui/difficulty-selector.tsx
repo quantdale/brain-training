@@ -4,6 +4,11 @@
  * Renders `DIFFICULTY_LABELS` as `GameButton` chips. Callers provide the
  * current selection and the dispatch callback; no reducer or game mechanics
  * live here.
+ *
+ * Accessibility: the row is announced as a difficulty radio group (chips keep
+ * the button role with a truthful `selected` state, which screen readers read
+ * as "selected"), and every chip inherits GameButton's 44pt touch-target
+ * contract.
  */
 import { View, StyleSheet } from 'react-native';
 
@@ -21,7 +26,7 @@ export interface DifficultySelectorProps {
 
 export function DifficultySelector({ gameId, selected, onSelect }: DifficultySelectorProps) {
   return (
-    <View style={styles.row}>
+    <View style={styles.row} accessibilityRole="radiogroup" accessibilityLabel="Difficulty">
       {Object.entries(DIFFICULTY_LABELS).map(([level, label]) => {
         const isSelected = selected === level;
         return (

@@ -1,21 +1,47 @@
 /**
- * Shared shell accessibility helpers (W12).
+ * Shared accessibility primitives (W12 shell contract + W14 a11y program).
  *
- * Single source of truth for the shell-wide touch-target contract so screens
- * stop re-inventing one-off minimums. Games own their in-game controls via
- * `@/components/game-ui`; this module covers the product shell.
+ * Barrel over the leaf modules in `components/a11y/`. Import from
+ * `@/components/a11y` in screens; shared `game-ui` primitives must import the
+ * leaf paths directly (e.g. `@/components/a11y/touch-target`) because this
+ * barrel re-exports dialog/stats modules that would otherwise create an
+ * import cycle back through game-ui.
+ *
+ * Contents:
+ * - touch-target: the 44pt minimum control contract (shell-wide).
+ * - font-scale: dynamic-type cap (~1.35) + board-glyph opt-out constants.
+ * - reduced-motion: shared preference hook + pure motion selectors.
+ * - focus: screen-reader cursor helpers (setAccessibilityFocus with retries).
+ * - announcements: imperative announce + polite/assertive live regions.
+ * - stats: single-stop grouped stat semantics (`StatGroup`, `formatStats`).
+ * - result-feedback: game-result announcement pattern.
+ * - dialog: accessible modal dialog primitive (`A11yDialog`).
  */
 
-/** Minimum interactive control height in dp/pt (WCAG 2.5.5 / HIG / Material). */
-export const MIN_TOUCH_TARGET = 44;
+export { MIN_TOUCH_TARGET, MinTouchTarget } from './a11y/touch-target';
 
-/**
- * Style fragment that lifts a pill/text button to the minimum touch target
- * without changing its horizontal footprint. Merge it into the *visible*
- * control style (the Pressable's child) so the hit area matches what the user
- * sees, e.g. `style={[styles.chip, MinTouchTarget]}`.
- */
-export const MinTouchTarget = {
-  minHeight: MIN_TOUCH_TARGET,
-  justifyContent: 'center',
-} as const;
+export {
+  MAX_FONT_SCALE,
+  BOARD_GLYPH_FONT_SCALE,
+  effectiveFontScale,
+} from './a11y/font-scale';
+
+export {
+  usePrefersReducedMotion,
+  motionValue,
+  reduceDuration,
+} from './a11y/reduced-motion';
+
+export { requestAccessibilityFocus, useInitialA11yFocus } from './a11y/focus';
+
+export { announce, LiveRegion } from './a11y/announcements';
+export type { LiveRegionProps } from './a11y/announcements';
+
+export { StatGroup, formatStats } from './a11y/stats';
+export type { StatGroupProps } from './a11y/stats';
+
+export { ResultFeedback, formatResultSummary } from './a11y/result-feedback';
+export type { ResultFeedbackProps } from './a11y/result-feedback';
+
+export { A11yDialog } from './a11y/dialog';
+export type { A11yDialogProps } from './a11y/dialog';

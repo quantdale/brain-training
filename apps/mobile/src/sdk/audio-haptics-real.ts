@@ -18,6 +18,7 @@
  */
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
+import { Platform } from 'react-native';
 
 import {
   AudioHapticsService,
@@ -68,6 +69,21 @@ function notificationFor(type: HapticType): Haptics.NotificationFeedbackType | n
     default:
       return null;
   }
+}
+
+/**
+ * Fire-and-forget a haptic promise, attaching the rejection handler the
+ * promise needs (campaign009 audit platform branch). The expo-haptics calls
+ * are `async`, so a missing native backend surfaces as an ASYNC rejection —
+ * the synchronous try/catch around the call site cannot catch it, and a bare
+ * `void promise` would escalate to an unhandled-rejection warning. Attaching
+ * `.catch` here keeps the fail-open invariant on every platform (web's
+ * vibration fallbacks and permission-less devices included).
+ */
+function fireAndForgetHaptic(promise: Promise<void>): void {
+  promise.catch(() => {
+    /* platform/hardware lacks the capability: ignore */
+  });
 }
 
 /**
@@ -129,15 +145,15 @@ export function createAudioHaptics(options: AudioHapticsEngineOptions): AudioHap
       const impact = impactStyleFor(type);
       try {
         if (impact !== null) {
-          void Haptics.impactAsync(impact);
+          fireAndForgetHaptic(Haptics.impactAsync(impact));
           return;
         }
         const notification = notificationFor(type);
         if (notification !== null) {
-          void Haptics.notificationAsync(notification);
+          fireAndForgetHaptic(Haptics.notificationAsync(notification));
         }
       } catch {
-        /* platform/hardware lacks the capability: ignore */
+        /* synchronous failure (module unavailable): ignore */
       }
     },
 
@@ -173,6 +189,11 @@ export function createAudioHaptics(options: AudioHapticsEngineOptions): AudioHap
       prepared = true;
       try {
         // SFX should mix with other audio and play even in silent/ring mode.
+        // Platform notes (campaign009 audit): `playsInSilentMode` is the iOS
+        // mute-switch override; Android ignores it but honors
+        // `interruptionMode`; on web expo-audio's `setAudioModeAsync` is a
+        // no-op stub, so this call is intentionally harmless there rather
+        // than branched away (keeps one code path; fail-open via catch).
         await setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' });
       } catch {
         /* audio session configuration is best-effort */

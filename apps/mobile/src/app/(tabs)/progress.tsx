@@ -1,5 +1,6 @@
 /**
- * Progress — analytics dashboard (WP-2H; constitution §15, §17, §21).
+ * Progress — analytics dashboard (WP-2H; constitution §15, §17, §21; V2 in
+ * campaign 010).
  *
  * A personal analytics surface built entirely from stored session and rating
  * evidence:
@@ -8,12 +9,18 @@
  *  - per-domain cards showing rating, freshness (stale / unseen), net movement
  *    inside the selected window, and recent direction;
  *  - a training-balance card: each session counts toward its game's primary
- *    domain, with per-domain shares and untrained domains called out;
+ *    domain, with per-domain shares, untrained domains called out, plus V2
+ *    evenness (effective domains) and a week-by-week share history;
  *  - a time-window selector (7d / 30d / 90d / all) that drives the activity
  *    calendar, domain movement and recent-vs-lifetime comparisons;
  *  - an activity-frequency calendar (no streaks/engagement scores);
  *  - per-game records with a recent-vs-lifetime direction arrow, plus a
- *    "days since last session" staleness indicator.
+ *    "days since last session" staleness indicator;
+ *  - V2 additions: session volume vs the previous equal-length window, a
+ *    cross-category comparison, personal-best history summary, a rolling
+ *    average refinement, workout-completion analytics (read-only consumption
+ *    of the persisted workout instances), and a domain-breadth co-occurrence
+ *    view rendered strictly as co-occurrence (never causation).
  *
  * All aggregation runs through the pure functions in `@/analytics`; this screen
  * only fetches already-persisted rows and renders them. Every number carries an
@@ -29,14 +36,24 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
   buildActivityCalendar,
+  buildCategoryComparison,
+  buildDomainBreadthPerformance,
   buildDomainInsights,
+  buildNormalizedBestHistory,
+  buildRollingAverageSeries,
+  buildSessionVolume,
   buildTrainingBalance,
+  buildWeeklyBalance,
+  balanceCoverage,
+  balanceEffectiveDomains,
+  COOCCURRENCE_CAPTION,
   compareRecentVsLifetime,
   daysSinceLastSession,
   explainComposite,
   explainMetric,
   filterByWindow,
   loadProgressSnapshot,
+  buildWorkoutAnalytics,
   type ProgressSnapshot,
   type TimeWindowKey,
   WINDOW_LABELS,
@@ -46,29 +63,69 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { SegmentedControl, HeatmapRow, StackedShareBar } from '@/components/progress-charts';
+import {
+  CompareBars,
+  MiniBarChart,
+  SegmentedControl,
+  HeatmapRow,
+  StackedShareBar,
+} from '@/components/progress-charts';
 import { Radii, Spacing } from '@/constants/theme';
-import type { AppDatabase, GameSessionRecord } from '@/db';
+import type { AppDatabase, GameSessionRecord, WorkoutInstance } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { GAME_CATEGORIES as DOMAINS } from '@/sdk';
 import { levelForXp, levelProgress, xpIntoLevel, xpForNextLevel } from '@/rating';
 import { getGameDefinition } from '@/registry/registry';
+import { localDateString } from '@/workout/today';
 import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned } from '@/analytics/format';
 
-const EMPTY_SNAPSHOT: ProgressSnapshot = {
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Rolling-average width (sessions) for the overview refinement. */
+const ROLLING_AVERAGE_SESSIONS = 5;
+
+/** How many days of persisted workout instances the overview loads read-only. */
+const WORKOUT_LOOKBACK_DAYS = 28;
+
+/** How many weekly slices the balance-history strip shows. */
+const BALANCE_HISTORY_WEEKS = 4;
+
+interface ProgressData extends ProgressSnapshot {
+  /** Persisted workout instances for the lookback window (may be empty). */
+  workouts: WorkoutInstance[];
+  /** Lifetime completed-workout count (`WorkoutRepository.countCompleted`). */
+  workoutsCompletedLifetime: number;
+}
+
+const EMPTY_DATA: ProgressData = {
   ratings: [],
   ratingHistory: [],
   sessions: [],
   aggregates: [],
   totalXp: 0,
   balance: 0,
+  workouts: [],
+  workoutsCompletedLifetime: 0,
 };
 
 /** Calendar span for the overview heatmap (days). */
 const OVERVIEW_CALENDAR_DAYS = 84; // ~12 weeks
 
-function load(db: AppDatabase): Promise<ProgressSnapshot> {
-  return loadProgressSnapshot(db);
+async function load(db: AppDatabase): Promise<ProgressData> {
+  const snapshot = await loadProgressSnapshot(db);
+  // Read-only workout consumption through the existing repository API: a
+  // bounded primary-key walk back in time plus the O(1) completed counter.
+  // Optional chaining keeps analytics alive when the repository itself is
+  // unavailable (partial fakes, degraded db) — the workout card just hides.
+  const now = Date.now();
+  const dates: string[] = [];
+  for (let i = 0; i < WORKOUT_LOOKBACK_DAYS; i += 1) {
+    dates.push(localDateString(new Date(now - i * DAY_MS)));
+  }
+  const settled = await Promise.all(dates.map((d) => db.workouts?.getByDate?.(d)));
+  const workouts = settled.filter((i): i is WorkoutInstance => i != null);
+  const workoutsCompletedLifetime = (await db.workouts?.countCompleted?.()) ?? 0;
+  return { ...snapshot, workouts, workoutsCompletedLifetime };
 }
 
 export default function ProgressScreen() {
@@ -81,7 +138,7 @@ export default function ProgressScreen() {
     }, []),
   );
 
-  const { data } = useDbData(load, [refreshKey], EMPTY_SNAPSHOT);
+  const { data } = useDbData(load, [refreshKey], EMPTY_DATA);
   const [windowKey, setWindowKey] = useState<TimeWindowKey>('30d');
 
   const windowedSessions = useMemo(
@@ -135,6 +192,97 @@ export default function ProgressScreen() {
   const daysSinceLast = useMemo(
     () => daysSinceLastSession(data.sessions, nowMs),
     [data.sessions, nowMs],
+  );
+
+  // V2: session volume in-window vs the preceding equal-length window.
+  const volume = useMemo(
+    () => buildSessionVolume(data.sessions, nowMs, windowKey),
+    [data.sessions, nowMs, windowKey],
+  );
+  const volumeCompareRows = useMemo(() => {
+    const max = Math.max(volume.windowSessions, volume.previousWindowSessions ?? 0, 1);
+    const rows = [
+      {
+        key: 'current',
+        label: `This window (${WINDOW_LABELS[windowKey]})`,
+        valueLabel: String(volume.windowSessions),
+        fraction: volume.windowSessions / max,
+      },
+    ];
+    if (volume.previousWindowSessions !== null) {
+      rows.push({
+        key: 'previous',
+        label: 'Previous window',
+        valueLabel: String(volume.previousWindowSessions),
+        fraction: volume.previousWindowSessions / max,
+      });
+    }
+    return rows;
+  }, [volume, windowKey]);
+
+  // V2: cross-category comparison (ratings + in-window per-category activity).
+  const resolveDomain = useCallback(
+    (gameId: string) => getGameDefinition(gameId)?.primaryCategory ?? null,
+    [],
+  );
+  const categoryComparison = useMemo(
+    () =>
+      buildCategoryComparison({
+        insights: domainInsights,
+        sessions: data.sessions,
+        resolveDomain,
+        nowMs,
+        windowKey,
+      }),
+    [domainInsights, data.sessions, resolveDomain, nowMs, windowKey],
+  );
+
+  // V2: workout-completion analytics over the read-only instance walk.
+  const workoutAnalytics = useMemo(
+    () => buildWorkoutAnalytics(data.workouts, data.workoutsCompletedLifetime),
+    [data.workouts, data.workoutsCompletedLifetime],
+  );
+  const hasWorkoutData = data.workouts.length > 0 || data.workoutsCompletedLifetime > 0;
+
+  // V2: domain-breadth co-occurrence view (presentation of co-occurrence only).
+  const breadth = useMemo(
+    () => buildDomainBreadthPerformance(data.sessions, resolveDomain),
+    [data.sessions, resolveDomain],
+  );
+
+  // V2: personal-best history on the shared normalized scale.
+  const bestHistory = useMemo(
+    () => buildNormalizedBestHistory(data.sessions, nowMs),
+    [data.sessions, nowMs],
+  );
+
+  // V2: rolling-average refinement of the recent-vs-lifetime comparison.
+  const normalizedPointsAsc = useMemo(
+    () =>
+      data.sessions
+        .slice()
+        .sort((a, b) => a.completedAt - b.completedAt)
+        .map((s) => ({ t: s.completedAt, value: s.normalizedResult })),
+    [data.sessions],
+  );
+  const rollingLatest = useMemo(() => {
+    const series = buildRollingAverageSeries(normalizedPointsAsc, ROLLING_AVERAGE_SESSIONS);
+    return series.length > 0 ? series[series.length - 1].value : null;
+  }, [normalizedPointsAsc]);
+
+  // V2 balance enhancements: evenness + week-by-week share history.
+  const effectiveDomains = useMemo(
+    () => balanceEffectiveDomains(trainingBalance),
+    [trainingBalance],
+  );
+  const coverage = useMemo(
+    () => balanceCoverage(trainingBalance, DOMAINS),
+    [trainingBalance],
+  );
+  const weeklyBalance = useMemo(
+    () =>
+      buildWeeklyBalance(data.sessions, resolveDomain, DOMAINS, nowMs, BALANCE_HISTORY_WEEKS),
+    [data.sessions, resolveDomain, nowMs],
   );
 
   // Per-game recent-vs-lifetime direction for the "Per game" list.
@@ -293,6 +441,34 @@ export default function ProgressScreen() {
               unknown).
             </ThemedText>
           ) : null}
+          {!isNewPlayer && trainingBalance.mappedSessions > 0 ? (
+            <View style={styles.rows} testID="progress-balance-diversity">
+              <ThemedText type="caption" themeColor="textSecondary">
+                Evenness: {effectiveDomains.toFixed(1)} effective domains of{' '}
+                {DOMAINS.length} ({formatPercent(coverage)} coverage).{' '}
+                {explainMetric('diversity')}
+              </ThemedText>
+              {weeklyBalance
+                .filter((slice) => slice.sessions > 0)
+                .map((slice) => (
+                  <View key={slice.endOffsetDays} style={styles.rows}>
+                    <ThemedText type="caption" themeColor="textSecondary">
+                      {slice.endOffsetDays === 0
+                        ? 'This week'
+                        : `Ended ${slice.endOffsetDays}d ago`}{' '}
+                      · {slice.sessions} session{slice.sessions === 1 ? '' : 's'}
+                    </ThemedText>
+                    <StackedShareBar
+                      height={6}
+                      testID={`progress-balance-week-${slice.endOffsetDays}`}
+                      segments={slice.perDomain
+                        .filter((entry) => entry.share > 0)
+                        .map((entry) => ({ key: entry.domain, fraction: entry.share }))}
+                    />
+                  </View>
+                ))}
+            </View>
+          ) : null}
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('balance')}
           </ThemedText>
@@ -321,7 +497,172 @@ export default function ProgressScreen() {
         </ThemedText>
       </ThemedView>
 
-      <RecentVsLifetimeCard rvl={recentVsLifetime} windowLabel={WINDOW_LABELS[windowKey]} testID="progress-recent" />
+      {!isNewPlayer ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-volume">
+          <ThemedText type="subtitle">Session volume</ThemedText>
+          <CompareBars testID="progress-volume-compare" rows={volumeCompareRows} />
+          {volume.deltaSessions !== null && volume.deltaSessions !== 0 ? (
+            <ThemedText
+              type="caption"
+              themeColor={volume.direction === 'up' ? 'success' : 'danger'}
+              testID="progress-volume-delta">
+              {directionArrow(volume.direction)} {formatSigned(volume.deltaSessions)} sessions
+              vs previous window
+            </ThemedText>
+          ) : null}
+          <MiniBarChart
+            values={volume.weeklyCounts}
+            testID="progress-volume-weekly"
+            emptyLabel="Weekly buckets need a bounded window"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            {volume.activeDays} active day{volume.activeDays === 1 ? '' : 's'} ·{' '}
+            {volume.perWeek === null ? '—' : volume.perWeek.toFixed(1)} sessions/week.{' '}
+            {explainMetric('volume')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      <RecentVsLifetimeCard
+        rvl={recentVsLifetime}
+        windowLabel={WINDOW_LABELS[windowKey]}
+        rollingLatest={rollingLatest}
+        testID="progress-recent"
+      />
+
+      {!isNewPlayer && bestHistory.current !== null ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-personal-best">
+          <ThemedText type="subtitle">Personal best</ThemedText>
+          <View style={styles.summaryRow}>
+            <SummaryStat
+              label="Best session"
+              value={formatPercent(bestHistory.current.value)}
+            />
+            <SummaryStat label="Set" value={formatDayLabel(bestHistory.current.t)} />
+            <SummaryStat
+              label="Standing"
+              value={
+                bestHistory.standingDays === 0
+                  ? 'Today'
+                  : `${bestHistory.standingDays ?? 0}d`
+              }
+            />
+            <SummaryStat label="Times raised" value={String(bestHistory.timesBeaten)} />
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('personal-best-history')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {hasWorkoutData ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-workouts">
+          <ThemedText type="subtitle">Workout completion</ThemedText>
+          <View style={styles.summaryRow}>
+            <SummaryStat
+              label={`Done (${WORKOUT_LOOKBACK_DAYS}d)`}
+              value={`${workoutAnalytics.completedInstances}/${workoutAnalytics.loadedInstances}`}
+            />
+            <SummaryStat
+              label="Rate"
+              value={
+                workoutAnalytics.completionRate === null
+                  ? '—'
+                  : formatPercent(workoutAnalytics.completionRate)
+              }
+            />
+            <SummaryStat
+              label="Current run"
+              value={`${workoutAnalytics.currentCompletedRun}d`}
+            />
+            <SummaryStat label="All-time" value={String(workoutAnalytics.lifetimeCompleted)} />
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary" testID="progress-workouts-games">
+            Games finished inside workouts: {workoutAnalytics.gamesCompleted} of{' '}
+            {workoutAnalytics.gamesAssigned} assigned · longest completed run{' '}
+            {workoutAnalytics.longestCompletedRun}d.
+          </ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('workout-completion')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {!isNewPlayer ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-categories">
+          <ThemedText type="subtitle">Category comparison</ThemedText>
+          <View style={styles.rows}>
+            {categoryComparison.rows.map((row) => {
+              const slug = row.domain.replace(/[^a-z]/gi, '').toLowerCase();
+              return (
+                <Link
+                  key={row.domain}
+                  href={{ pathname: '/progress-domain' as any, params: { domain: row.domain } }}
+                  asChild>
+                  <Pressable
+                    style={styles.row}
+                    accessibilityRole="button"
+                    testID={`progress-category-${slug}`}>
+                    <View style={styles.domainLeft}>
+                      <ThemedText type="small">{row.domain}</ThemedText>
+                      <ThemedText type="caption" themeColor="textSecondary">
+                        {row.sessions}× this window
+                        {row.avgNormalized !== null
+                          ? ` · avg ${formatPercent(row.avgNormalized)}`
+                          : ''}
+                      </ThemedText>
+                    </View>
+                    <View style={styles.domainRight}>
+                      <ThemedText type="smallBold">
+                        {row.rating === null ? '—' : row.rating}
+                      </ThemedText>
+                      {row.movement !== 0 ? (
+                        <ThemedText
+                          type="caption"
+                          themeColor={row.direction === 'up' ? 'success' : 'danger'}>
+                          {directionArrow(row.direction)} {formatSigned(row.movement)}
+                        </ThemedText>
+                      ) : (
+                        <ThemedText type="caption" themeColor="textSecondary">
+                          no change
+                        </ThemedText>
+                      )}
+                    </View>
+                  </Pressable>
+                </Link>
+              );
+            })}
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('category-comparison')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {!isNewPlayer && breadth.groups.length > 0 ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-cooccurrence">
+          <ThemedText type="subtitle">Training breadth &amp; results</ThemedText>
+          <View style={styles.rows}>
+            {breadth.groups.map((group) => (
+              <View
+                key={group.breadth}
+                style={styles.row}
+                testID={`progress-cooccurrence-breadth-${group.breadth}`}>
+                <ThemedText type="small">
+                  {group.breadth} domain{group.breadth === 1 ? '' : 's'} / day
+                </ThemedText>
+                <ThemedText type="smallBold">
+                  {group.days} day{group.days === 1 ? '' : 's'} ·{' '}
+                  {group.avgNormalized === null ? '—' : formatPercent(group.avgNormalized)} avg
+                </ThemedText>
+              </View>
+            ))}
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {COOCCURRENCE_CAPTION}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
 
       <Link href="/progress-detail" asChild>
         <Pressable testID="progress-detail-link" accessibilityRole="button">
@@ -500,10 +841,13 @@ export function ActivityHeatmap({
 export function RecentVsLifetimeCard({
   rvl,
   windowLabel,
+  rollingLatest = null,
   testID,
 }: {
   rvl: ReturnType<typeof compareRecentVsLifetime>;
   windowLabel: string;
+  /** Latest trailing rolling average across sessions (`null` when too few). */
+  rollingLatest?: number | null;
   testID?: string;
 }) {
   const avg = rvl.recentAvgNormalized;
@@ -527,6 +871,12 @@ export function RecentVsLifetimeCard({
           tone={delta === null ? undefined : delta > 0 ? 'success' : delta < 0 ? 'danger' : undefined}
         />
       </View>
+      {rollingLatest !== null ? (
+        <ThemedText type="caption" themeColor="textSecondary" testID={`${testID}-rolling`}>
+          Rolling last-5-session average: {formatPercent(rollingLatest)}.{' '}
+          {explainMetric('rolling-average')}
+        </ThemedText>
+      ) : null}
       {rvl.lifetimeAvgAccuracy !== null ? (
         <View style={styles.summaryRow}>
           <SummaryStat

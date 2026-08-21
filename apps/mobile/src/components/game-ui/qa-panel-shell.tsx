@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
+import { MinTouchTarget } from '@/components/a11y/touch-target';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
@@ -33,6 +34,7 @@ export function QaPanelShell({ gameId, onForceWin, onForceLose, extraActions }: 
       <Pressable
         testID={testId(gameId, 'qa-toggle')}
         accessibilityRole="button"
+        style={styles.toggle}
         onPress={() => setOpen((value) => !value)}>
         <ThemedText type="smallBold" themeColor="warning">
           QA controls (dev only)
@@ -66,6 +68,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: Spacing.twoHalf,
     gap: Spacing.two,
+  },
+  // Dev-only control still honors the shared 44pt touch-target contract.
+  toggle: {
+    ...MinTouchTarget,
+    alignSelf: 'flex-start',
   },
   panel: {
     gap: Spacing.two,

@@ -8,14 +8,25 @@
  * §14 economics — first free, then escalating coin costs (ledger-debited).
  * Streak/XP/level read real persisted data when the db is available and
  * degrade to placeholders otherwise. Slot testIDs are the stable QA contract.
+ *
+ * W13 UX wave: focus-refresh so returning from a game updates every slot,
+ * an explicit Continue-workout CTA at the resume position, a workout
+ * completion bar, quick-action drills (games/progress/rewards), coin balance
+ * surfacing, relative-day recency labels on recent sessions, and explicit
+ * loading/error states. The first-run/empty-state render tree is kept stable
+ * for the visual-baseline canary snapshots.
  */
 
-import { Link } from "expo-router";
+import { Link, router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
+import { ProgressTrack, SectionHeader, StateCard, StatTile } from "@/components/shell";
+import { formatRelativeDay } from "@/components/shell/format";
 import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { MinTouchTarget } from "@/components/a11y";
 import { Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, DomainRating } from "@/db";
 import type { GameDefinition } from "@/sdk";
@@ -40,6 +51,7 @@ interface HomeData {
     gameId: string;
     gameName: string;
     normalizedResult: number;
+    xp: number;
     completedAt: number;
   }[];
 }
@@ -72,6 +84,7 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
     gameId: session.gameId,
     gameName: getGameDefinition(session.gameId)?.name ?? session.gameId,
     normalizedResult: session.normalizedResult,
+    xp: session.xp,
     completedAt: session.completedAt,
   }));
 
@@ -87,7 +100,16 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
 
 export default function HomeScreen() {
   const today = localDateString();
-  const { data, loaded } = useDbData(loadHome, [], EMPTY_HOME);
+  const [refreshKey, setRefreshKey] = useState(0);
+  // Reload on every focus so slots reflect sessions completed elsewhere (the
+  // workout instance additionally self-refreshes via workout events).
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((key) => key + 1);
+    }, []),
+  );
+  const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
+  const { data, loaded, error } = useDbData(loadHome, [refreshKey], EMPTY_HOME);
 
   // Durable workout context: loads/creates today's persisted instance and owns
   // reroll (persisted attempt + transactional currency debit). The displayed
@@ -111,15 +133,25 @@ export default function HomeScreen() {
 
   // Displayed selection reflects the persisted workout instance (so rerolls and
   // resume state stay in sync with what is stored).
+  const allGames = getAllGameDefinitions();
   const workout: GameDefinition[] = workoutFlow.instance
     ? workoutFlow.instance.gameIds
-        .map((id) => getAllGameDefinitions().find((g) => g.id === id))
+        .map((id) => allGames.find((g) => g.id === id))
         .filter((g): g is GameDefinition => g !== undefined)
     : [];
+  const currentGame = workoutFlow.currentGameId
+    ? allGames.find((g) => g.id === workoutFlow.currentGameId)
+    : undefined;
 
   const streak = reconstructStreak(data.activityDates, today);
   const currentStreak = effectiveCurrent(streak, today);
   const level = levelForXp(data.totalXp);
+
+  // Error surfacing: only when a real game catalog is installed. With an empty
+  // registry (fresh bootstrap / bare test harness) a db failure is expected
+  // and the static placeholders ARE the correct degraded state — surfacing an
+  // error there would flip the visual-baseline canaries.
+  const hasCatalog = allGames.length > 0;
 
   const onReroll = workoutFlow.reroll;
 
@@ -146,6 +178,8 @@ export default function HomeScreen() {
             ? `Reroll costs ${nextRerollCost} coins (more each time).`
             : `Not enough coins — you need ${nextRerollCost}.`;
 
+  const nowMs = Date.now();
+
   return (
     <ScreenShell>
       <ThemedText type="caption" themeColor="accent" testID="home-brand">
@@ -154,6 +188,17 @@ export default function HomeScreen() {
       <ThemedText type="title" testID="home-title">
         Home
       </ThemedText>
+
+      {/* Loading state: brief inline hint while the first db read settles. */}
+      {!loaded && (
+        <ThemedText
+          type="caption"
+          themeColor="textSecondary"
+          testID="home-loading"
+        >
+          Loading your training data…
+        </ThemedText>
+      )}
 
       {/* Today's Workout CTA slot (constitution §13: primary CTA). */}
       <ThemedView
@@ -181,6 +226,11 @@ export default function HomeScreen() {
         )}
         {workout.length > 0 ? (
           <>
+            {/* Completion bar mirrors the durable resume position. */}
+            <ProgressTrack
+              ratio={workoutIndex / workout.length}
+              testID="home-workout-progress-bar"
+            />
             <ThemedText type="small" themeColor="textSecondary">
               Your daily {workout.length}-game training plan, balanced toward
               your weakest domains. Play any game to earn XP and train your
@@ -197,6 +247,9 @@ export default function HomeScreen() {
                     <Pressable
                       testID={`home-workout-game-${game.id}`}
                       accessibilityRole="button"
+                      accessibilityLabel={`${game.name}, ${game.primaryCategory}, ${
+                        isCompleted ? "done" : isCurrent ? "up now" : "up next"
+                      }`}
                       style={
                         isCurrent
                           ? StyleSheet.flatten([
@@ -209,7 +262,15 @@ export default function HomeScreen() {
                       <ThemedText type="smallBold" themeColor="accent">
                         {index + 1}.
                       </ThemedText>
-                      <ThemedText type="small">{game.name}</ThemedText>
+                      <View style={styles.workoutItemText}>
+                        <ThemedText type="small">{game.name}</ThemedText>
+                        <ThemedText
+                          type="caption"
+                          themeColor="textSecondary"
+                        >
+                          {game.primaryCategory}
+                        </ThemedText>
+                      </View>
                       <ThemedText
                         type="caption"
                         themeColor="textSecondary"
@@ -222,6 +283,24 @@ export default function HomeScreen() {
                 );
               })}
             </View>
+            {/* Primary resume affordance: jumps straight to the current game. */}
+            {workoutStatus === "active" && workoutFlow.currentGameId ? (
+              <Link href={`/game/${workoutFlow.currentGameId}`} asChild>
+                <Pressable
+                  testID="home-workout-continue"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Continue today's workout with ${
+                    currentGame?.name ?? "the next game"
+                  }`}
+                >
+                  <ThemedView type="accentSoft" style={styles.ctaPill}>
+                    <ThemedText type="smallBold" themeColor="accent">
+                      Continue workout →
+                    </ThemedText>
+                  </ThemedView>
+                </Pressable>
+              </Link>
+            ) : null}
             <Pressable
               testID="home-workout-reroll"
               accessibilityRole="button"
@@ -242,7 +321,7 @@ export default function HomeScreen() {
                     ? "surface"
                     : "accentSoft"
                 }
-                style={styles.ctaPill}
+                style={[styles.ctaPill, styles.secondaryPill]}
               >
                 <ThemedText type="smallBold" themeColor="accent">
                   {rerollLabel}
@@ -267,15 +346,23 @@ export default function HomeScreen() {
         )}
       </ThemedView>
 
-      {/* Streak / XP / level slot — real values when the db is available. */}
+      {/* Streak / XP / level slot — real values when the db is available.
+          Coins join the row once a balance exists (economy visibility). */}
       <View style={styles.statsRow}>
-        <StatCard
+        <StatTile
           testID="home-stat-streak"
           label="Streak"
           value={`${currentStreak} days`}
         />
-        <StatCard testID="home-stat-xp" label="XP" value={`${data.totalXp}`} />
-        <StatCard testID="home-stat-level" label="Level" value={`${level}`} />
+        <StatTile testID="home-stat-xp" label="XP" value={`${data.totalXp}`} />
+        <StatTile testID="home-stat-level" label="Level" value={`${level}`} />
+        {data.balance > 0 && (
+          <StatTile
+            testID="home-stat-coins"
+            label="Coins"
+            value={`${data.balance}`}
+          />
+        )}
       </View>
       {loaded && streak.atRisk && (
         <ThemedText
@@ -287,13 +374,83 @@ export default function HomeScreen() {
         </ThemedText>
       )}
 
+      {/* Error state: recoverable read failure with an explicit retry.
+          `error != null` keeps the guard boolean so the JSX stays ReactNode. */}
+      {loaded && error != null && hasCatalog ? (
+        <StateCard
+          variant="error"
+          testID="home-data-error"
+          title="Couldn't load your data"
+          message="Your training data couldn't be read just now. Your progress stays safely on disk — try again."
+          action={{ label: "Retry", onPress: refresh }}
+        />
+      ) : null}
+
+      {/* Quick actions (constitution §13 order): drill-downs one tap away. */}
+      {workout.length > 0 && (
+        <View>
+          <SectionHeader title="Quick actions" />
+          <View style={styles.quickRow} testID="home-quick-actions">
+            <Link href="/games" asChild>
+              <Pressable
+                testID="home-quick-games"
+                accessibilityRole="button"
+                accessibilityLabel="Browse all games"
+              >
+                <ThemedView type="surface" style={styles.quickPill}>
+                  <ThemedText type="smallBold" themeColor="accent">
+                    Browse games
+                  </ThemedText>
+                </ThemedView>
+              </Pressable>
+            </Link>
+            <Link href={"/progress" as any} asChild>
+              <Pressable
+                testID="home-quick-progress"
+                accessibilityRole="button"
+                accessibilityLabel="View your progress"
+              >
+                <ThemedView type="surface" style={styles.quickPill}>
+                  <ThemedText type="smallBold" themeColor="accent">
+                    Progress
+                  </ThemedText>
+                </ThemedView>
+              </Pressable>
+            </Link>
+            <Link href={"/rewards" as any} asChild>
+              <Pressable
+                testID="home-quick-rewards"
+                accessibilityRole="button"
+                accessibilityLabel="Open rewards"
+              >
+                <ThemedView type="surface" style={styles.quickPill}>
+                  <ThemedText type="smallBold" themeColor="accent">
+                    Rewards
+                  </ThemedText>
+                </ThemedView>
+              </Pressable>
+            </Link>
+          </View>
+        </View>
+      )}
+
       {/* Recent games slot — task 9.6: real recent session/game data */}
       <ThemedView
         type="surface"
         style={styles.recentCard}
         testID="home-recent-games"
       >
-        <ThemedText type="subtitle">Recent games</ThemedText>
+        {data.recentSessions.length > 0 ? (
+          <SectionHeader
+            title="Recent games"
+            actionLabel="Results"
+            actionTestID="home-recent-all"
+            actionAccessibilityLabel="Open full results history"
+            onActionPress={() => router.push("/results")}
+          />
+        ) : (
+          <ThemedText type="subtitle">Recent games</ThemedText>
+        )}
         {data.recentSessions.length > 0 ? (
           <View style={styles.recentList}>
             {data.recentSessions.map((session) => (
@@ -301,11 +458,22 @@ export default function HomeScreen() {
                 <Pressable
                   testID={`home-recent-game-${session.id}`}
                   accessibilityRole="button"
-                  style={styles.recentRow}
+                  accessibilityLabel={`${session.gameName} result, ${formatRelativeDay(
+                    session.completedAt,
+                    nowMs,
+                  )}, ${Math.round(session.normalizedResult * 100)} percent`}
+                  style={({ pressed }) => [
+                    styles.recentRow,
+                    pressed && styles.pressed,
+                  ]}
                 >
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {session.gameName}
-                  </ThemedText>
+                  <View style={styles.recentText}>
+                    <ThemedText type="small">{session.gameName}</ThemedText>
+                    <ThemedText type="caption" themeColor="textSecondary">
+                      {formatRelativeDay(session.completedAt, nowMs)} · +
+                      {session.xp} XP
+                    </ThemedText>
+                  </View>
                   <ThemedText type="smallBold">
                     {Math.round(session.normalizedResult * 100)}%
                   </ThemedText>
@@ -323,27 +491,6 @@ export default function HomeScreen() {
   );
 }
 
-function StatCard({
-  testID,
-  label,
-  value,
-}: {
-  testID: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <ThemedView type="surface" style={styles.statCard} testID={testID}>
-      <ThemedText type="headline" themeColor="accent">
-        {value}
-      </ThemedText>
-      <ThemedText type="caption" themeColor="textSecondary">
-        {label}
-      </ThemedText>
-    </ThemedView>
-  );
-}
-
 const styles = StyleSheet.create({
   ctaCard: {
     borderRadius: Radii.large,
@@ -357,6 +504,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     marginTop: Spacing.two,
   },
+  secondaryPill: {
+    borderWidth: 1,
+    borderColor: "rgba(120,120,140,0.2)",
+  },
   workoutList: {
     gap: Spacing.two,
     marginTop: Spacing.two,
@@ -365,6 +516,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.two,
+  },
+  workoutItemText: {
+    flex: 1,
+    gap: Spacing.half,
   },
   workoutRowCurrent: {
     borderRadius: Radii.medium,
@@ -375,11 +530,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.two,
   },
-  statCard: {
-    flex: 1,
-    borderRadius: Radii.medium,
-    padding: Spacing.three,
-    gap: Spacing.half,
+  quickRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+  },
+  quickPill: {
+    ...MinTouchTarget,
+    alignSelf: "flex-start",
+    borderRadius: Radii.pill,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.three,
+    borderWidth: 1,
+    borderColor: "rgba(120,120,140,0.2)",
   },
   recentCard: {
     borderRadius: Radii.large,
@@ -393,5 +557,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: Spacing.two,
+  },
+  recentText: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });

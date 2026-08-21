@@ -132,8 +132,29 @@ export const Typography = {
   display: { size: 40, lineHeight: 48, weight: '600' as const },
 } as const;
 
-/** Bottom inset reserved for the floating web tab bar. */
-export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 64 }) ?? 0;
+/**
+ * Bottom inset reserved for the floating web tab bar.
+ *
+ * Platform keys are explicit so no platform silently falls into `undefined`
+ * (campaign009 audit A2: without a `web`/`default` key the value resolved to
+ * 0 on web, letting the floating pill bar overlap the last content row).
+ * Native tab hosts absorb the device bottom inset themselves; pushed native
+ * routes must use their real safe-area inset instead (see
+ * `components/screen-shell.tsx`, audit B5).
+ */
+export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 64, default: 0 }) ?? 0;
 
 /** Max content width for tablet/web layouts; screens center within it. */
 export const MaxContentWidth = 800;
+
+/** Layout breakpoints consumed by the responsive helpers in `@/platform/layout`. */
+export const CompactLayoutMaxWidth = 480;
+export const MediumLayoutMaxWidth = 768;
+
+/**
+ * Reference height of the iOS home-indicator / Android gesture-navigation
+ * bottom zone (~34pt on notched iPhones). Documentation/QA reference value:
+ * runtime code should prefer the real safe-area inset reported by
+ * `react-native-safe-area-context` over this static estimate.
+ */
+export const HomeIndicatorInset = 34;

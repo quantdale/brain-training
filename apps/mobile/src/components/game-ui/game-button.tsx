@@ -4,10 +4,16 @@
  * Extracted from 20 identical per-game copies (e.g. `memory/components/button.tsx`).
  * Keep mechanics out: this is a dumb pressable with themed variants only.
  * QA/testID support via explicit `testID` prop (callers compose with `testId(gameId, ...)`).
+ *
+ * Touch-target contract: both variants meet the shared 44pt minimum from
+ * `@/components/a11y/touch-target` (single source of truth for shell + games).
+ * React 19 ref-as-prop: callers may pass `ref` to drive screen-reader focus
+ * (see `@/components/a11y/focus`).
  */
-import { memo } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { memo, type Ref } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { MIN_TOUCH_TARGET } from '@/components/a11y/touch-target';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -23,6 +29,8 @@ export interface GameButtonProps {
   selected?: boolean;
   /** Optional screen-reader hint describing the action's result. */
   hint?: string;
+  /** Host view ref for focus management (React 19 ref-as-prop). */
+  ref?: Ref<View>;
 }
 
 export const GameButton = memo(function GameButton({
@@ -34,6 +42,7 @@ export const GameButton = memo(function GameButton({
   disabled = false,
   selected = false,
   hint,
+  ref,
 }: GameButtonProps) {
   const theme = useTheme();
   const filled = variant !== 'secondary';
@@ -43,6 +52,7 @@ export const GameButton = memo(function GameButton({
 
   return (
     <Pressable
+      ref={ref}
       testID={testID}
       accessibilityRole="button"
       accessibilityState={{ disabled, selected, busy: false }}
@@ -61,9 +71,6 @@ export const GameButton = memo(function GameButton({
   );
 });
 
-// Minimum recommended touch target (44pt) per platform accessibility guidance.
-const HIT_TARGET_MIN = 44;
-
 const styles = StyleSheet.create({
   button: {
     alignSelf: 'flex-start',
@@ -72,13 +79,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.twoHalf,
     paddingHorizontal: Spacing.four,
     minWidth: 120,
-    minHeight: HIT_TARGET_MIN,
+    minHeight: MIN_TOUCH_TARGET,
     alignItems: 'center',
     justifyContent: 'center',
   },
   small: {
     minWidth: 96,
-    minHeight: HIT_TARGET_MIN,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.oneHalf,
     paddingHorizontal: Spacing.three,
   },

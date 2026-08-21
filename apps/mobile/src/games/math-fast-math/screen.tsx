@@ -1,10 +1,11 @@
 /**
  * MathScreen — the Fast Math game (validated procedural arithmetic).
  *
- * Renders a pure state machine (`mathGameReducer`) and owns the side
- * effects: the per-problem budget ticker, the SDK `SessionLifecycle`
- * (start/pause/resume/complete/abandon), auto-pause on backgrounding, the
- * tutorial, the dev-only QA panel, and result persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Fast-Math-specific — the reducer wiring, the per-problem
+ * budget ticker, the scoring/persistence pipeline, and the problem view.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
@@ -15,11 +16,10 @@
  * cannot be used to gain thinking time (see reducer.ts docs).
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  SessionLifecycle,
   isDevBuild,
   liveAudioHaptics,
   noopXpRatingHook,
@@ -30,13 +30,15 @@ import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk'
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { GameButton, StatRow } from '@/components/game-ui';
 import {
-  DifficultySelector,
-  GameButton,
-  PauseOverlay,
-  SessionHeader,
-  StatRow,
-} from '@/components/game-ui';
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameInterval,
+  useGameSession,
+} from '@/components/game-host';
+import type { GameHostView } from '@/components/game-host';
 
 import { FeedbackPanel } from './components/feedback';
 import { NumberPad } from './components/number-pad';
@@ -74,15 +76,6 @@ export interface MathScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function MathScreen(props: MathScreenProps = {}) {
   const {
     clock = systemClock,
@@ -95,13 +88,20 @@ export default function MathScreen(props: MathScreenProps = {}) {
   const router = useRouter();
   const [state, dispatch] = useReducer(mathGameReducer, undefined, createInitialMathState);
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
-
-  // Keep a ref of the latest state for event handlers (AppState, timers).
+  // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (current.phase === 'problem' || current.phase === 'feedback') && !current.paused;
+    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
 
   const tutorial = useMemo(() => createMathTutorialLifecycle(tutorialStore), [tutorialStore]);
@@ -114,18 +114,13 @@ export default function MathScreen(props: MathScreenProps = {}) {
 
   // ---- Per-problem budget ticker: feeds the reducer with active-only
   // elapsed ms; the reducer transitions to `timeout` when the budget is
-  // crossed. Pause cancels the ticker (timers frozen); resume re-schedules
+  // crossed. Pause deactivates the ticker (timers frozen); resume re-schedules
   // from the current active elapsed (paused segments excluded by lifecycle).
-  useEffect(() => {
-    if (state.phase !== 'problem' || state.paused || state.problemBudgetMs <= 0) {
-      return;
-    }
-    const timer = setInterval(() => {
-      const activeMs = lifecycleRef.current?.elapsedMs() ?? 0;
-      dispatch({ type: 'problem-tick', atActiveMs: activeMs });
-    }, TIMER_TICK_MS);
-    return () => clearInterval(timer);
-  }, [state.phase, state.paused, state.problemIndex, state.problemBudgetMs, dispatch]);
+  useGameInterval(
+    state.phase === 'problem' && !state.paused && state.problemBudgetMs > 0,
+    () => dispatch({ type: 'problem-tick', atActiveMs: session.elapsedMs() }),
+    TIMER_TICK_MS,
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -136,28 +131,21 @@ export default function MathScreen(props: MathScreenProps = {}) {
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = mathParamsFromProfile(state.profile);
@@ -234,50 +222,25 @@ export default function MathScreen(props: MathScreenProps = {}) {
     state.forced,
     state.difficulty,
     state.difficultyStep,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (
-      !(current.phase === 'problem' || current.phase === 'feedback') ||
-      current.paused
-    ) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
-  }, [dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: 'resume' });
-  }, [dispatch]);
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleDigit = useCallback(
     (digit: number) => {
@@ -308,21 +271,25 @@ export default function MathScreen(props: MathScreenProps = {}) {
       liveAudioHaptics.playSfx('math-fast-math-wrong');
       liveAudioHaptics.haptic('warning');
     }
-    const activeMs = lifecycleRef.current?.elapsedMs() ?? 0;
-    dispatch({ type: 'submit-answer', atActiveMs: activeMs });
-  }, [dispatch]);
+    dispatch({ type: 'submit-answer', atActiveMs: session.elapsedMs() });
+  }, [session, dispatch]);
 
   const handleNext = useCallback(() => {
-    const activeMs = lifecycleRef.current?.elapsedMs() ?? 0;
-    dispatch({ type: 'next-problem', startedAtActiveMs: activeMs });
-  }, [dispatch]);
+    dispatch({ type: 'next-problem', startedAtActiveMs: session.elapsedMs() });
+  }, [session, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
     const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -342,196 +309,130 @@ export default function MathScreen(props: MathScreenProps = {}) {
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
+  const view: GameHostView =
+    state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
   const remainingMs = Math.max(0, state.problemBudgetMs - state.problemElapsedMs);
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
-              <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText
-                type="subtitle"
-                testID={testId(GAME_ID, 'problem-label', String(state.problemIndex + 1))}>
-                Problem {state.problemIndex + 1}/{rounds}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            {state.phase === 'problem' && state.problem !== null ? (
-              <View
-                style={styles.section}
-                testID={testId(GAME_ID, 'problem', String(state.problemIndex + 1))}>
-                <ProblemDisplay problem={state.problem} input={state.input} />
-                {state.problemBudgetMs > 0 ? (
-                  <TimerBar
-                    remainingMs={remainingMs}
-                    totalMs={state.problemBudgetMs}
-                    theme={theme}
-                  />
-                ) : null}
-                <View style={styles.padRow}>
-                  <GameButton
-                    small
-                    variant="secondary"
-                    testID={testId(GAME_ID, 'clear')}
-                    label="Clear"
-                    onPress={handleClearInput}
-                  />
-                </View>
-                <NumberPad
-                  onDigit={handleDigit}
-                  onBackspace={handleBackspace}
-                  onSubmit={handleSubmit}
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText
+          type="subtitle"
+          testID={testId(GAME_ID, 'problem-label', String(state.problemIndex + 1))}>
+          Problem {state.problemIndex + 1}/{rounds}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
+        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {inSession ? (
+        <>
+          {state.phase === 'problem' && state.problem !== null ? (
+            <View
+              style={styles.section}
+              testID={testId(GAME_ID, 'problem', String(state.problemIndex + 1))}>
+              <ProblemDisplay problem={state.problem} input={state.input} />
+              {state.problemBudgetMs > 0 ? (
+                <TimerBar
+                  remainingMs={remainingMs}
+                  totalMs={state.problemBudgetMs}
+                  theme={theme}
+                />
+              ) : null}
+              <View style={styles.padRow}>
+                <GameButton
+                  small
+                  variant="secondary"
+                  testID={testId(GAME_ID, 'clear')}
+                  label="Clear"
+                  onPress={handleClearInput}
                 />
               </View>
-            ) : null}
-
-            {state.phase === 'feedback' && state.problem !== null && state.outcome !== null ? (
-              <View style={styles.section}>
-                <FeedbackPanel
-                  outcome={state.outcome}
-                  problem={state.problem}
-                  enteredAnswer={state.enteredAnswer}
-                  isLastProblem={isLastProblem}
-                  onNext={handleNext}
-                />
-              </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, 'score')}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.problemsPlayed > 0 ? state.stats.problemsCorrect / state.stats.problemsPlayed : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, 'accuracy')}
-            />
-            <StatRow
-              label="Correct"
-              value={`${state.stats.problemsCorrect}/${state.stats.problemsPlayed}`}
-              testID={testId(GAME_ID, 'problems-correct')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow
-              label="Fastest answer"
-              value={state.stats.fastestMs === null ? '—' : `${(state.stats.fastestMs / 1000).toFixed(1)}s`}
-              testID={testId(GAME_ID, 'fastest')}
-            />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
-
-            {state.persistState === 'failed' ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
-              <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
+              <NumberPad
+                onDigit={handleDigit}
+                onBackspace={handleBackspace}
+                onSubmit={handleSubmit}
               />
             </View>
-          </View>
-        ) : null}
-      </View>
+          ) : null}
 
-      {state.paused && inSession ? (
-        <PauseOverlay gameId={GAME_ID} onResume={resumeSession} onQuit={quitToLibrary} />
+          {state.phase === 'feedback' && state.problem !== null && state.outcome !== null ? (
+            <View style={styles.section}>
+              <FeedbackPanel
+                outcome={state.outcome}
+                problem={state.problem}
+                enteredAnswer={state.enteredAnswer}
+                isLastProblem={isLastProblem}
+                onNext={handleNext}
+              />
+            </View>
+          ) : null}
+        </>
       ) : null}
 
-      {state.tutorialOpen ? (
-        <Tutorial
-          onComplete={completeTutorial}
-          onSkip={isDevBuild() ? skipTutorial : undefined}
-        />
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, 'score')}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.problemsPlayed > 0
+                ? state.stats.problemsCorrect / state.stats.problemsPlayed
+                : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'accuracy')}
+          />
+          <StatRow
+            label="Correct"
+            value={`${state.stats.problemsCorrect}/${state.stats.problemsPlayed}`}
+            testID={testId(GAME_ID, 'problems-correct')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow
+            label="Fastest answer"
+            value={
+              state.stats.fastestMs === null ? '—' : `${(state.stats.fastestMs / 1000).toFixed(1)}s`
+            }
+            testID={testId(GAME_ID, 'fastest')}
+          />
+          <StatRow
+            label="XP"
+            value={String(state.authoritativeXp ?? state.xp)}
+            testID={testId(GAME_ID, 'xp')}
+          />
+        </GameResults>
       ) : null}
-    </View>
+    </GameHost>
   );
 }
 
@@ -564,21 +465,8 @@ function TimerBar({
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
   padRow: {
     flexDirection: 'row',
@@ -593,5 +481,4 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: Radii.pill,
   },
-
 });

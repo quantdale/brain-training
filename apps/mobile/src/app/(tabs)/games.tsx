@@ -1,14 +1,15 @@
 /**
- * Games — library screen (WP-2H).
+ * Games — library screen (WP-2H + W13 UX wave).
  *
  * Renders the generated game registry (via `@/registry/registry`) as a card
  * grid with discovery basics (constitution §21): text search over name and
- * description, primary-category filter chips, and a favorites-only toggle
- * backed by the db favorites repository. Each card links to the game detail
- * screen (`/game-detail/[id]`), which hosts the Play CTA.
+ * description, primary-category filter chips (with per-category counts), a
+ * favorites-only toggle backed by the db favorites repository, and a live
+ * result count. Each card links to the game detail screen
+ * (`/game-detail/[id]`), which hosts the Play CTA.
  *
  * Empty states: `games-empty` when nothing is registered; `games-no-results`
- * when filters match nothing.
+ * when filters match nothing (with a one-tap Clear-filters recovery action).
  */
 
 import { Link, useFocusEffect } from 'expo-router';
@@ -17,6 +18,7 @@ import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { MinTouchTarget } from '@/components/a11y';
 import { ScreenShell } from '@/components/screen-shell';
+import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
@@ -49,6 +51,16 @@ export default function GamesScreen() {
   );
   const favoriteSet = new Set(favorites);
 
+  // Per-category counts keep the filter chips informative at a glance
+  // (information density without a separate stats surface).
+  const categoryCounts = new Map<string, number>();
+  for (const game of games) {
+    categoryCounts.set(
+      game.primaryCategory,
+      (categoryCounts.get(game.primaryCategory) ?? 0) + 1,
+    );
+  }
+
   const normalizedQuery = query.trim().toLowerCase();
   const visible = games.filter((game) => {
     if (category && game.primaryCategory !== category) {
@@ -66,6 +78,12 @@ export default function GamesScreen() {
       game.primaryCategory.toLowerCase().includes(normalizedQuery)
     );
   });
+
+  const clearFilters = useCallback(() => {
+    setQuery('');
+    setCategory(null);
+    setFavOnly(false);
+  }, []);
 
   return (
     <ScreenShell>
@@ -103,7 +121,7 @@ export default function GamesScreen() {
           <View style={styles.filterRow} testID="games-filters">
             <FilterChip
               testID="games-filter-all"
-              label="All"
+              label={`All · ${games.length}`}
               active={category === null}
               onPress={() => setCategory(null)}
             />
@@ -111,7 +129,7 @@ export default function GamesScreen() {
               <FilterChip
                 key={c}
                 testID={`games-filter-${c.toLowerCase().replace(/[^a-z]/g, '')}`}
-                label={c}
+                label={`${c} · ${categoryCounts.get(c) ?? 0}`}
                 active={category === c}
                 onPress={() => setCategory(category === c ? null : c)}
               />
@@ -124,17 +142,23 @@ export default function GamesScreen() {
             />
           </View>
 
+          {/* Live result count so filtering feedback is explicit. */}
+          <ThemedText type="caption" themeColor="textSecondary" testID="games-count">
+            Showing {visible.length} of {games.length} games
+          </ThemedText>
+
           {visible.length === 0 ? (
-            <ThemedView
-              type="surface"
-              style={styles.emptyCard}
+            <StateCard
+              variant="empty"
+              title="No matches"
+              message="No games match your current search or filters."
               testID="games-no-results"
-              accessibilityLiveRegion="polite">
-              <ThemedText type="subtitle">No matches</ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Try a different search or filter.
-              </ThemedText>
-            </ThemedView>
+              action={{
+                label: 'Clear filters',
+                onPress: clearFilters,
+                accessibilityLabel: 'Clear search and filters',
+              }}
+            />
           ) : (
             <View style={styles.grid} testID="games-grid">
               {visible.map((game) => (
@@ -201,9 +225,21 @@ const GameCard = memo(function GameCard({
         accessibilityLabel={`${game.name}, ${game.primaryCategory} game${isFavorite ? ', favorited' : ''}`}
         style={({ pressed }) => pressed && styles.pressed}>
         <ThemedView type="surface" style={styles.card}>
-          <ThemedText type="subtitle" numberOfLines={1}>
-            {game.name}
-          </ThemedText>
+          {/* Name + favorite marker share the top row so the star reads as a
+              card-level badge instead of orphaning below the description. */}
+          <View style={styles.cardHeader}>
+            <ThemedText type="subtitle" numberOfLines={1} style={styles.cardTitle}>
+              {game.name}
+            </ThemedText>
+            {isFavorite ? (
+              <ThemedText
+                type="caption"
+                themeColor="accent"
+                accessibilityLabel="Favorited">
+                ★
+              </ThemedText>
+            ) : null}
+          </View>
           <ThemedView type="accentSoft" style={styles.categoryPill}>
             <ThemedText type="caption" themeColor="accent">
               {game.primaryCategory}
@@ -212,11 +248,6 @@ const GameCard = memo(function GameCard({
           {game.description ? (
             <ThemedText type="small" themeColor="textSecondary" numberOfLines={3}>
               {game.description}
-            </ThemedText>
-          ) : null}
-          {isFavorite ? (
-            <ThemedText type="caption" themeColor="accent">
-              ★
             </ThemedText>
           ) : null}
         </ThemedView>
@@ -261,6 +292,15 @@ const styles = StyleSheet.create({
     borderRadius: Radii.large,
     padding: Spacing.three,
     gap: Spacing.two,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  cardTitle: {
+    flexShrink: 1,
   },
   categoryPill: {
     alignSelf: 'flex-start',
