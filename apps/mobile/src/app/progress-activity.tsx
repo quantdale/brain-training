@@ -5,6 +5,11 @@
  * timestamps (bucketing by UTC day, matching the rest of the product). This is a
  * frequency view, not an engagement/streak score — it simply shows how often
  * training happened.
+ *
+ * V2 (campaign 010) additions: consecutive active-day runs inside the window
+ * (window-local frequency, not the engagement streak), a weekday-pattern
+ * distribution, and a month-by-month rollup — all pure restatements of the
+ * same stored completion timestamps.
  */
 
 import { router, useFocusEffect } from 'expo-router';
@@ -12,16 +17,20 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
+  activeRuns,
   activityFrequencyBuckets,
   buildActivityCalendar,
   daysSinceLastSession,
+  explainMetric,
   loadProgressSnapshot,
+  monthlyActivity,
+  weekdayDistribution,
   type ProgressSnapshot,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { HeatmapRow } from '@/components/progress-charts';
+import { HeatmapRow, LabeledBars } from '@/components/progress-charts';
 import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
@@ -63,6 +72,11 @@ export default function ProgressActivityScreen() {
     () => daysSinceLastSession(data.sessions, nowMs),
     [data.sessions, nowMs],
   );
+
+  // V2: runs, weekday pattern and monthly rollup over the same window.
+  const runs = useMemo(() => activeRuns(calendar), [calendar]);
+  const weekdays = useMemo(() => weekdayDistribution(calendar), [calendar]);
+  const months = useMemo(() => monthlyActivity(calendar), [calendar]);
 
   const maxCount = calendar.busiest?.count ?? 0;
   const weeks: number[][] = [];
@@ -111,6 +125,13 @@ export default function ProgressActivityScreen() {
           {calendar.activeDays} of {CALENDAR_DAYS} days active (
           {Math.round((calendar.activeDays / CALENDAR_DAYS) * 100)}%).
         </ThemedText>
+        <View style={styles.summaryRow} testID="progress-activity-runs">
+          <SummaryStat label="Current run" value={`${runs.current}d`} />
+          <SummaryStat label="Longest run" value={`${runs.longest}d`} />
+        </View>
+        <ThemedText type="caption" themeColor="textSecondary">
+          {explainMetric('activity-runs')}
+        </ThemedText>
       </ThemedView>
 
       <ThemedView type="surface" style={styles.card} testID="progress-activity-heatmap">
@@ -157,6 +178,48 @@ export default function ProgressActivityScreen() {
           ))}
         </View>
       </ThemedView>
+
+      <ThemedView type="surface" style={styles.card} testID="progress-activity-weekdays">
+        <ThemedText type="subtitle">Weekday pattern</ThemedText>
+        <LabeledBars
+          testID="progress-activity-weekday-bars"
+          bars={weekdays.map((w) => ({ key: String(w.weekday), label: w.label, value: w.sessions }))}
+        />
+        <View style={styles.rows}>
+          {weekdays.map((w) => (
+            <View key={w.weekday} style={styles.row} testID={`progress-activity-weekday-${w.weekday}`}>
+              <ThemedText type="small">{w.label}</ThemedText>
+              <ThemedText type="smallBold">
+                {w.sessions} session{w.sessions === 1 ? '' : 's'} · {w.activeDays} active day
+                {w.activeDays === 1 ? '' : 's'}
+              </ThemedText>
+            </View>
+          ))}
+        </View>
+        <ThemedText type="caption" themeColor="textSecondary">
+          {explainMetric('weekday-pattern')}
+        </ThemedText>
+      </ThemedView>
+
+      {months.length > 0 ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-activity-monthly">
+          <ThemedText type="subtitle">By month</ThemedText>
+          <View style={styles.rows}>
+            {months.map((m) => (
+              <View key={m.monthKey} style={styles.row} testID={`progress-activity-month-${m.monthKey}`}>
+                <ThemedText type="small">{m.monthKey}</ThemedText>
+                <ThemedText type="smallBold">
+                  {m.sessions} session{m.sessions === 1 ? '' : 's'} · {m.activeDays} active day
+                  {m.activeDays === 1 ? '' : 's'}
+                </ThemedText>
+              </View>
+            ))}
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Months partially covered by this view include only their covered days.
+          </ThemedText>
+        </ThemedView>
+      ) : null}
     </ScreenShell>
   );
 }

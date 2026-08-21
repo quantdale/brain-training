@@ -26,7 +26,21 @@ export type ProgressMetricKey =
   | 'balance'
   | 'activity-calendar'
   | 'recency'
-  | 'recent-vs-lifetime';
+  | 'recent-vs-lifetime'
+  // Progress V2 (campaign 010) additions:
+  | 'trend-summary'
+  | 'volume'
+  | 'accuracy-trend'
+  | 'reaction-trend'
+  | 'difficulty-progression'
+  | 'personal-best-history'
+  | 'rolling-average'
+  | 'category-comparison'
+  | 'workout-completion'
+  | 'cooccurrence'
+  | 'diversity'
+  | 'activity-runs'
+  | 'weekday-pattern';
 
 const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   composite:
@@ -57,6 +71,32 @@ const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   recency: 'Whole days since your most recent completed session.',
   'recent-vs-lifetime':
     'The recent average covers only sessions inside the selected window; the lifetime average covers every stored session.',
+  'trend-summary':
+    'First and last values of the series in this view, plus how steady it is around its own average. Derived only from the points shown.',
+  volume:
+    'Count of completed sessions inside the selected window compared with the immediately preceding window of equal length.',
+  'accuracy-trend':
+    'Accuracy values across sessions over time, using whatever each game stored; games without a stored accuracy contribute nothing.',
+  'reaction-trend':
+    'Stored response times across sessions over time; lower is faster. Games without a stored reaction time contribute nothing.',
+  'difficulty-progression':
+    'Challenge ratings you attempted over time, shown neutrally: a change in challenge is not a better or worse result.',
+  'personal-best-history':
+    'Every moment a personal best was raised, derived from stored results; ties keep the earliest holder.',
+  'rolling-average':
+    'Mean of the last N sessions at each point, so single-session spikes do not dominate the shape.',
+  'category-comparison':
+    'One row per domain: its stored rating plus this window\u2019s sessions attributed by each game\u2019s primary category.',
+  'workout-completion':
+    'A workout counts as completed only when all of its games were durably finished that day, matching the persisted workout status.',
+  cooccurrence:
+    'Compares your results on days with different numbers of domains trained. This describes patterns in your own history only \u2014 it does not show cause and effect.',
+  diversity:
+    'How evenly sessions spread across domains: the effective number of domains you trained at equal share.',
+  'activity-runs':
+    'Consecutive active days inside this view. Window-local frequency, not your engagement streak.',
+  'weekday-pattern':
+    'Which weekdays your sessions landed on inside this view \u2014 a record of habit, not advice.',
 };
 
 /** The fixed derivation sentence for a metric (deterministic, testable). */

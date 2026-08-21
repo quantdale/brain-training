@@ -8,6 +8,11 @@
  * than two updates), per-game contribution counts with best results, and the
  * domain's recent sessions. Unseen domains render an explanatory state (no
  * fabricated rating). Neutral wording throughout.
+ *
+ * V2 (campaign 010) additions: a statistical trend summary of the in-window
+ * rating series (spread/consistency/slope), plus accuracy, reaction-time and
+ * difficulty-progression views over the domain's own sessions — each shown
+ * only when the underlying games actually stored the metric.
  */
 
 import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -15,11 +20,17 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
+  buildAccuracyTrend,
   buildActivityCalendar,
+  buildDifficultyProgression,
   buildDomainInsights,
+  buildReactionTrend,
+  explainMetric,
   filterByWindow,
   isWithinWindow,
   loadProgressSnapshot,
+  summarizePointTrend,
+  trendImproved,
   type ProgressSnapshot,
   type TimeWindowKey,
   WINDOW_LABELS,
@@ -29,7 +40,7 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { SegmentedControl, MiniBarChart, HeatmapRow } from '@/components/progress-charts';
+import { MiniBarChart, SegmentedControl, HeatmapRow } from '@/components/progress-charts';
 import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
@@ -37,6 +48,7 @@ import { getGameDefinition } from '@/registry/registry';
 import {
   directionArrow,
   formatDayLabel,
+  formatMs,
   formatPercent,
   formatSigned,
 } from '@/analytics/format';
@@ -159,6 +171,32 @@ export default function ProgressDomainScreen() {
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
   }, [domainSessions]);
 
+  // V2: statistical summary of the domain's rating series — in-window when the
+  // window holds at least two updates, all-time otherwise (same fallback the
+  // chart above uses).
+  const ratingPoints = useMemo(
+    () =>
+      data.ratingHistory
+        .filter((h: RatingHistoryEntry) => h.domain === domain)
+        .slice()
+        .sort((a, b) => a.createdAt - b.createdAt)
+        .map((h) => ({ t: h.createdAt, value: h.ratingAfter })),
+    [data.ratingHistory, domain],
+  );
+  const trendSummary = useMemo(() => {
+    const inWindow = ratingPoints.filter((p) => isWithinWindow(p.t, nowMs, windowKey));
+    return summarizePointTrend(inWindow.length >= 2 ? inWindow : ratingPoints);
+  }, [ratingPoints, nowMs, windowKey]);
+
+  // V2: metric trends over this domain's own sessions (only when stored).
+  const accuracyTrend = useMemo(() => buildAccuracyTrend(domainSessions), [domainSessions]);
+  const reactionTrend = useMemo(() => buildReactionTrend(domainSessions), [domainSessions]);
+  const difficultyTrend = useMemo(
+    () => buildDifficultyProgression(domainSessions),
+    [domainSessions],
+  );
+  const domainTrendImproved = trendImproved(trendSummary, 'higher-better');
+
   if (!domain) {
     return (
       <ScreenShell>
@@ -273,6 +311,103 @@ export default function ProgressDomainScreen() {
         </ThemedText>
       </ThemedView>
 
+      {trendSummary.count >= 2 ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-domain-trend">
+          <View style={styles.row}>
+            <ThemedText type="subtitle">Trend summary</ThemedText>
+            {domainTrendImproved !== null ? (
+              <ThemedText
+                type="smallBold"
+                themeColor={domainTrendImproved ? 'success' : 'danger'}
+                testID="progress-domain-trend-direction">
+                {directionArrow(trendSummary.direction)}{' '}
+                {formatSigned(Math.round(trendSummary.delta ?? 0))}
+              </ThemedText>
+            ) : null}
+          </View>
+          <View style={styles.summaryRow}>
+            <DomainStat
+              label="Updates in series"
+              value={String(trendSummary.count)}
+            />
+            <DomainStat
+              label="Consistency"
+              value={
+                trendSummary.consistency === null
+                  ? '—'
+                  : formatPercent(trendSummary.consistency)
+              }
+            />
+            <DomainStat
+              label="Slope / day"
+              value={
+                trendSummary.slopePerDay === null
+                  ? '—'
+                  : `${formatSigned(Math.round(trendSummary.slopePerDay * 1000) / 10)}`
+              }
+            />
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('trend-summary')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {accuracyTrend.available ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-domain-accuracy">
+          <View style={styles.cardHeader}>
+            <ThemedText type="subtitle">Accuracy over time</ThemedText>
+            <ThemedText type="smallBold">
+              {accuracyTrend.recentMean === null
+                ? '—'
+                : formatPercent(accuracyTrend.recentMean)}{' '}
+              recent
+            </ThemedText>
+          </View>
+          <MiniBarChart
+            values={accuracyTrend.series.map((p) => p.value)}
+            testID="progress-domain-accuracy-chart"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('accuracy-trend')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {reactionTrend.available ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-domain-reaction">
+          <View style={styles.cardHeader}>
+            <ThemedText type="subtitle">Reaction time (lower is better)</ThemedText>
+            <ThemedText type="smallBold">
+              {reactionTrend.recentMean === null ? '—' : formatMs(reactionTrend.recentMean)} recent
+            </ThemedText>
+          </View>
+          <MiniBarChart
+            values={reactionTrend.series.map((p) => p.value)}
+            testID="progress-domain-reaction-chart"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('reaction-trend')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {difficultyTrend.available ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-domain-difficulty">
+          <ThemedText type="subtitle">Difficulty attempted</ThemedText>
+          <MiniBarChart
+            values={difficultyTrend.series.map((p) => p.value)}
+            testID="progress-domain-difficulty-chart"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            First {formatPercent(difficultyTrend.first ?? 0)} → latest{' '}
+            {formatPercent(difficultyTrend.latest ?? 0)} · peak{' '}
+            {formatPercent(difficultyTrend.peak ?? 0)}.{' '}
+            {explainMetric('difficulty-progression')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
       <ThemedView type="surface" style={styles.card} testID="progress-domain-activity">
         <ThemedText type="subtitle">Activity</ThemedText>
         <View style={styles.heatmap}>
@@ -369,6 +504,11 @@ const styles = StyleSheet.create({
     borderRadius: Radii.large,
     padding: Spacing.four,
     gap: Spacing.two,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   windowRow: {
     marginTop: Spacing.one,

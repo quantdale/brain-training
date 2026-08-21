@@ -16,3 +16,13 @@ export * from './game-insights';
 export * from './training-balance';
 export * from './insight-notes';
 export * from './queries';
+// Progress V2 (campaign 010) additions:
+export * from './trend-summary';
+export * from './volume-view';
+export * from './metric-trends';
+export * from './difficulty-progression';
+export * from './personal-best';
+export * from './rolling-windows';
+export * from './category-comparison';
+export * from './workout-analytics';
+export * from './cooccurrence';

@@ -2,10 +2,15 @@
  * Progress detail — `/progress-detail` (WP-3F; constitution §21).
  *
  * Deeper Progress dashboard one tap away from the Progress tab: per-domain
- * rating history (the last 20 append-only `rating_history` entries, grouped
- * by domain as a chronological mini-trend), per-game records (best normalized
- * score, session count, last played, linked to `/game-detail/[id]`) and the
- * most recent sessions (linked to `/results`).
+ * rating history (the append-only `rating_history` tail, grouped by domain as
+ * a chronological mini-trend), per-game records (best normalized score,
+ * session count, last played, linked to `/game-detail/[id]`) and the most
+ * recent sessions (linked to `/results`).
+ *
+ * V2 (campaign 010) additions computed over a wider recent-session window:
+ * the personal-best history chain on the normalized scale, a rolling-average
+ * smoothing view, and cross-game accuracy / reaction-time trends (each shown
+ * only when games actually stored those metrics).
  *
  * Mirrors the Progress tab's data-loading pattern (`useFocusEffect` +
  * `useDbData`), its card/row styling, and its graceful empty states when the
@@ -13,16 +18,25 @@
  */
 
 import { Link, router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import {
+  buildAccuracyTrend,
+  buildNormalizedBestHistory,
+  buildReactionTrend,
+  buildRollingAverageSeries,
+  explainMetric,
+} from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { MiniBarChart } from '@/components/progress-charts';
 import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { getGameDefinition } from '@/registry/registry';
+import { formatDayLabel, formatMs, formatPercent } from '@/analytics/format';
 
 /** How many rating-history entries (newest first) feed the per-domain trends.
  *  Bounded well above the old value of 20 so 8-domain histories stay visible
@@ -32,6 +46,10 @@ const HISTORY_LIMIT = 120;
 const PER_DOMAIN_SHOWN = 12;
 /** How many recent sessions to list. */
 const RECENT_LIMIT = 10;
+/** Wider recent-session window feeding the V2 aggregates. */
+const ANALYTICS_WINDOW = 120;
+/** Rolling-average width (sessions) for the smoothing view. */
+const ROLLING_AVERAGE_SESSIONS = 5;
 
 interface ProgressDetailData {
   history: RatingHistoryEntry[];
@@ -43,7 +61,7 @@ async function loadProgressDetail(db: AppDatabase): Promise<ProgressDetailData> 
   const [history, aggregates, recent] = await Promise.all([
     db.ratings.getHistory(HISTORY_LIMIT),
     db.sessions.getAggregates(),
-    db.sessions.listRecent(RECENT_LIMIT),
+    db.sessions.listRecent(ANALYTICS_WINDOW),
   ]);
   return { history, aggregates, recent };
 }
@@ -53,13 +71,30 @@ const EMPTY: ProgressDetailData = { history: [], aggregates: [], recent: [] };
 export default function ProgressDetailScreen() {
   // Reload whenever the screen regains focus (a session may have just landed).
   const [refreshKey, setRefreshKey] = useState(0);
+  const [nowMs, setNowMs] = useState(0);
   useFocusEffect(
     useCallback(() => {
+      setNowMs(Date.now());
       setRefreshKey((k) => k + 1);
     }, []),
   );
 
   const { data } = useDbData(loadProgressDetail, [refreshKey], EMPTY);
+
+  // V2 aggregates over the wider recent-session window.
+  const bestHistory = useMemo(
+    () => buildNormalizedBestHistory(data.recent, nowMs),
+    [data.recent, nowMs],
+  );
+  const rollingSeries = useMemo(() => {
+    const ascending = data.recent
+      .slice()
+      .sort((a, b) => a.completedAt - b.completedAt)
+      .map((s) => ({ t: s.completedAt, value: s.normalizedResult }));
+    return buildRollingAverageSeries(ascending, ROLLING_AVERAGE_SESSIONS);
+  }, [data.recent]);
+  const accuracyTrend = useMemo(() => buildAccuracyTrend(data.recent), [data.recent]);
+  const reactionTrend = useMemo(() => buildReactionTrend(data.recent), [data.recent]);
 
   // Group the newest-first history into per-domain lists (entries stay newest
   // first; each domain renders them chronologically as a mini-trend).
@@ -110,6 +145,88 @@ export default function ProgressDetailScreen() {
         )}
       </ThemedView>
 
+      {bestHistory.current !== null ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-detail-pb">
+          <ThemedText type="subtitle">Recent personal bests</ThemedText>
+          <View style={styles.rows}>
+            {bestHistory.events.slice(-5).map((event) => (
+              <View
+                key={`${event.t}-${event.value}`}
+                style={styles.row}
+                testID={`progress-detail-pb-${event.t}`}>
+                <ThemedText type="small">{formatDayLabel(event.t)}</ThemedText>
+                <ThemedText type="smallBold">{formatPercent(event.value)}</ThemedText>
+              </View>
+            ))}
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Across your {data.recent.length} most recent sessions · current best stood{' '}
+            {bestHistory.standingDays === 0
+              ? 'less than a day'
+              : `${bestHistory.standingDays ?? 0}d`}. {explainMetric('personal-best-history')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {rollingSeries.length > 0 ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-detail-rolling">
+          <View style={styles.row}>
+            <ThemedText type="subtitle">Rolling average</ThemedText>
+            <ThemedText type="smallBold">
+              {formatPercent(rollingSeries[rollingSeries.length - 1].value)}
+            </ThemedText>
+          </View>
+          <MiniBarChart
+            values={rollingSeries.map((p) => p.value)}
+            testID="progress-detail-rolling-chart"
+            emptyLabel="Not enough sessions yet"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            Mean of the last {ROLLING_AVERAGE_SESSIONS} sessions at each point.{' '}
+            {explainMetric('rolling-average')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {accuracyTrend.available ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-detail-accuracy">
+          <View style={styles.row}>
+            <ThemedText type="subtitle">Accuracy over time</ThemedText>
+            <ThemedText type="smallBold">
+              {accuracyTrend.recentMean === null
+                ? '—'
+                : formatPercent(accuracyTrend.recentMean)}{' '}
+              recent
+            </ThemedText>
+          </View>
+          <MiniBarChart
+            values={accuracyTrend.series.map((p) => p.value)}
+            testID="progress-detail-accuracy-chart"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('accuracy-trend')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {reactionTrend.available ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-detail-reaction">
+          <View style={styles.row}>
+            <ThemedText type="subtitle">Reaction time (lower is better)</ThemedText>
+            <ThemedText type="smallBold">
+              {reactionTrend.recentMean === null ? '—' : formatMs(reactionTrend.recentMean)} recent
+            </ThemedText>
+          </View>
+          <MiniBarChart
+            values={reactionTrend.series.map((p) => p.value)}
+            testID="progress-detail-reaction-chart"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('reaction-trend')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
       <ThemedView type="surface" style={styles.card} testID="progress-detail-games">
         <ThemedText type="subtitle">Game records</ThemedText>
         {data.aggregates.length > 0 ? (
@@ -142,7 +259,7 @@ export default function ProgressDetailScreen() {
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         {data.recent.length > 0 ? (
           <View style={styles.rows}>
-            {data.recent.map((session) => (
+            {data.recent.slice(0, RECENT_LIMIT).map((session) => (
               <Link key={session.id} href={`/results?id=${session.id}`} asChild>
                 <Pressable
                   style={styles.row}

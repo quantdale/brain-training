@@ -108,3 +108,104 @@ export function buildTrainingBalance(
     topDomainShare: top !== null && mappedSessions > 0 ? top.share : null,
   };
 }
+
+/**
+ * Coverage: the fraction of `knownDomains` with at least one in-window session
+ * (0..1). A plain restatement of breadth — "you touched N of M domains".
+ */
+export function balanceCoverage(
+  balance: TrainingBalance,
+  knownDomains: readonly string[],
+): number {
+  if (knownDomains.length === 0) {
+    return 0;
+  }
+  return balance.trainedDomains / knownDomains.length;
+}
+
+/**
+ * Evenness: the "effective number of domains" (inverse Simpson index) —
+ * `1 / Σ share²`. Equal spread across N domains yields exactly N; one dominant
+ * domain approaches 1. A deterministic, explainable single-number summary of
+ * how evenly sessions were distributed. Returns 0 when nothing was mapped.
+ */
+export function balanceEffectiveDomains(balance: TrainingBalance): number {
+  if (balance.mappedSessions === 0) {
+    return 0;
+  }
+  const herfindahl = balance.perDomain.reduce((s, d) => s + d.share * d.share, 0);
+  // Floating-point guard: a perfectly even spread can round Σshare² just above
+  // its exact value; clamp so the effective count never exceeds reality.
+  const effective = herfindahl > 0 ? 1 / herfindahl : 0;
+  return Math.min(effective, balance.mappedSessions);
+}
+
+/** One week's slice of the balance history. */
+export interface WeeklyBalanceSlice {
+  /** Whole days before "now" where this 7-day slice ends (0 = current week). */
+  endOffsetDays: number;
+  /** Sessions in the slice (mapped + unmapped). */
+  sessions: number;
+  /** Per-domain shares, canonical `knownDomains` order first (stable colors). */
+  perDomain: DomainSessionShare[];
+}
+
+/**
+ * Week-by-week balance history for a stacked share view: `weekCount` slices of
+ * 7 days each, ending at `nowMs`, oldest first. Domains keep canonical order
+ * in every slice (NOT count order) so stacked-bar segment colors stay stable
+ * across weeks — count ordering here would make the same domain change color
+ * week to week.
+ */
+export function buildWeeklyBalance(
+  sessions: readonly GameSessionRecord[],
+  resolveDomain: (gameId: string) => string | null,
+  knownDomains: readonly string[],
+  nowMs: number,
+  weekCount: number,
+): WeeklyBalanceSlice[] {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const slices: WeeklyBalanceSlice[] = [];
+
+  for (let w = weekCount - 1; w >= 0; w -= 1) {
+    const end = nowMs - w * 7 * DAY_MS;
+    const start = end - 7 * DAY_MS;
+
+    const counts = new Map<string, number>();
+    let mapped = 0;
+    let total = 0;
+    for (const session of sessions) {
+      const t = session.completedAt;
+      if (t < start || t >= end) {
+        continue;
+      }
+      total += 1;
+      const domain = resolveDomain(session.gameId);
+      if (domain === null) {
+        continue;
+      }
+      mapped += 1;
+      counts.set(domain, (counts.get(domain) ?? 0) + 1);
+    }
+
+    // Canonical order first, then any resolved extras (alphabetical fallback).
+    const orderedDomains = [...knownDomains];
+    for (const domain of counts.keys()) {
+      if (!orderedDomains.includes(domain)) {
+        orderedDomains.push(domain);
+      }
+    }
+
+    slices.push({
+      endOffsetDays: w * 7,
+      sessions: total,
+      perDomain: orderedDomains.map((domain) => ({
+        domain,
+        sessions: counts.get(domain) ?? 0,
+        share: mapped > 0 ? (counts.get(domain) ?? 0) / mapped : 0,
+      })),
+    });
+  }
+
+  return slices;
+}

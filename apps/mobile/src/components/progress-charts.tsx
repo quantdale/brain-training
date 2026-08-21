@@ -213,6 +213,91 @@ export function StackedShareBar({
   );
 }
 
+/**
+ * Two-row horizontal comparison bar pair (Progress V2), e.g. this window's
+ * session volume vs the previous window. Presentational and deterministic:
+ * each row renders a track with a fill of exactly `fraction` of the track and
+ * a caller-formatted value label. Fractions are clamped into [0, 1].
+ */
+export function CompareBars({
+  rows,
+  testID,
+}: {
+  rows: readonly { key: string; label: string; valueLabel: string; fraction: number }[];
+  testID?: string;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={styles.compareRows} testID={testID}>
+      {rows.map((row) => {
+        const fraction = Math.min(1, Math.max(0, row.fraction));
+        return (
+          <View key={row.key} style={styles.compareRow}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              {row.label}
+            </ThemedText>
+            <View style={styles.compareTrack}>
+              <View
+                style={[
+                  styles.compareFill,
+                  { width: `${Math.round(fraction * 100)}%`, backgroundColor: theme.accent },
+                ]}
+                testID={testID ? `${testID}-${row.key}-fill` : undefined}
+              />
+            </View>
+            <ThemedText type="caption" style={styles.compareValue}>
+              {row.valueLabel}
+            </ThemedText>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+/**
+ * Labeled vertical bars for small categorical distributions (Progress V2),
+ * e.g. sessions per weekday. Deterministic: bar heights are exact fractions of
+ * the tallest bucket; a zero bucket renders as a stub.
+ */
+export function LabeledBars({
+  bars,
+  height = 56,
+  testID,
+}: {
+  bars: readonly { key: string; label: string; value: number }[];
+  height?: number;
+  testID?: string;
+}) {
+  const theme = useTheme();
+  const max = Math.max(...bars.map((b) => b.value), 0);
+  return (
+    <View style={styles.labeledBars} testID={testID}>
+      {bars.map((bar) => {
+        const ratio = max > 0 ? bar.value / max : 0;
+        const h = bar.value > 0 ? Math.max(3, Math.round(ratio * (height - 14))) : 2;
+        return (
+          <View key={bar.key} style={styles.labeledBarSlot}>
+            <View
+              style={[
+                styles.bar,
+                {
+                  height: h,
+                  backgroundColor: bar.value > 0 ? theme.accent : theme.border,
+                },
+              ]}
+              testID={testID ? `${testID}-${bar.key}` : undefined}
+            />
+            <ThemedText type="caption" themeColor="textSecondary">
+              {bar.label}
+            </ThemedText>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   segmented: {
     flexDirection: 'row',
@@ -260,5 +345,39 @@ const styles = StyleSheet.create({
   },
   shareTrackFilled: {
     flexDirection: 'row',
+  },
+  compareRows: {
+    gap: Spacing.two,
+  },
+  compareRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  compareTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: Radii.pill,
+    backgroundColor: 'rgba(128,128,128,0.25)',
+    overflow: 'hidden',
+  },
+  compareFill: {
+    height: '100%',
+    borderRadius: Radii.pill,
+  },
+  compareValue: {
+    minWidth: 36,
+    textAlign: 'right',
+  },
+  labeledBars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: Spacing.one,
+  },
+  labeledBarSlot: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: Spacing.half,
   },
 });

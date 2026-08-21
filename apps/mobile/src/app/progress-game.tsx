@@ -9,6 +9,11 @@
  * present — no metrics are invented. Reaction-time trends treat lower as
  * better when coloring movement; difficulty is shown neutrally. Neutral,
  * non-clinical language throughout.
+ *
+ * V2 (campaign 010) additions: a statistical trend summary (spread/consistency
+ * and per-day slope of the normalized series), the personal-best history chain
+ * for normalized results and raw score, a rolling-average view that smooths
+ * single-session spikes, and a neutral difficulty-progression block.
  */
 
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -16,9 +21,16 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import {
+  buildDifficultyProgression,
   buildGameInsight,
+  buildNormalizedBestHistory,
+  buildRollingAverageSeries,
+  buildScoreBestHistory,
   compareRecentVsLifetime,
+  explainMetric,
   loadGameSessions,
+  summarizePointTrend,
+  trendImproved,
   type GameInsight,
   type TimeWindowKey,
   WINDOW_LABELS,
@@ -27,14 +39,17 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { SegmentedControl, MiniBarChart } from '@/components/progress-charts';
+import { MiniBarChart, SegmentedControl } from '@/components/progress-charts';
 import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { getGameDefinition } from '@/registry/registry';
-import { formatDayLabel, formatMs, formatPercent, formatSigned } from '@/analytics/format';
+import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned } from '@/analytics/format';
 
 const EMPTY: GameSessionRecord[] = [];
+
+/** Rolling-average width (sessions) for the per-game smoothing view. */
+const ROLLING_AVERAGE_SESSIONS = 5;
 
 function trendValues(insight: GameInsight, key: keyof GameInsight['series']): number[] {
   return insight.series[key].map((p) => p.value);
@@ -66,6 +81,33 @@ export default function ProgressGameScreen() {
   const rvl = useMemo(
     () => compareRecentVsLifetime(data, rvlWindow, nowMs),
     [data, rvlWindow, nowMs],
+  );
+
+  // V2: statistical summary of the normalized series + smoothed rolling view.
+  const normalizedSummary = useMemo(
+    () => summarizePointTrend(insight?.series.normalized ?? []),
+    [insight],
+  );
+  const normalizedImproved = trendImproved(normalizedSummary, 'higher-better');
+  const rollingSeries = useMemo(
+    () => buildRollingAverageSeries(insight?.series.normalized ?? [], ROLLING_AVERAGE_SESSIONS),
+    [insight],
+  );
+
+  // V2: personal-best chains (normalized always; score only when persisted).
+  const bestHistory = useMemo(
+    () => buildNormalizedBestHistory(data, nowMs),
+    [data, nowMs],
+  );
+  const scoreBestHistory = useMemo(
+    () => buildScoreBestHistory(data, nowMs),
+    [data, nowMs],
+  );
+
+  // V2: neutral difficulty progression over whatever the game stored.
+  const difficultyProgression = useMemo(
+    () => buildDifficultyProgression(data),
+    [data],
   );
 
   const def = gameId ? getGameDefinition(gameId) : undefined;
@@ -148,6 +190,115 @@ export default function ProgressGameScreen() {
         </View>
       </ThemedView>
 
+      <ThemedView type="surface" style={styles.card} testID="progress-game-trend-summary">
+        <ThemedText type="subtitle">Trend summary</ThemedText>
+        <View style={styles.recordGrid}>
+          <Record
+            label="Sessions in series"
+            value={String(normalizedSummary.count)}
+          />
+          <Record
+            label="Consistency"
+            value={
+              normalizedSummary.consistency === null ? '—' : formatPercent(normalizedSummary.consistency)
+            }
+          />
+          <Record
+            label="Swing (±1σ)"
+            value={normalizedSummary.stdDev === null ? '—' : formatPercent(normalizedSummary.stdDev)}
+          />
+          <Record
+            label={`Slope / day (${WINDOW_LABELS[windowKey]})`}
+            value={
+              normalizedSummary.slopePerDay === null
+                ? '—'
+                : `${formatSigned(Math.round(normalizedSummary.slopePerDay * 1000) / 10)}%/d`
+            }
+          />
+        </View>
+        {normalizedImproved !== null ? (
+          <ThemedText
+            type="caption"
+            themeColor={normalizedImproved ? 'success' : 'danger'}
+            testID="progress-game-trend-direction">
+            {directionArrow(normalizedSummary.direction)}{' '}
+            {normalizedSummary.delta === null
+              ? ''
+              : `${formatSigned(Math.round(normalizedSummary.delta * 100))}% first → last`}
+          </ThemedText>
+        ) : (
+          <ThemedText type="caption" themeColor="textSecondary">
+            Not enough movement to describe a direction yet.
+          </ThemedText>
+        )}
+        <ThemedText type="caption" themeColor="textSecondary">
+          {explainMetric('trend-summary')}
+        </ThemedText>
+      </ThemedView>
+
+      {rollingSeries.length > 0 ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-game-rolling">
+          <View style={styles.cardHeader}>
+            <ThemedText type="subtitle">Rolling average</ThemedText>
+            <ThemedText type="smallBold">
+              {formatPercent(rollingSeries[rollingSeries.length - 1].value)}
+            </ThemedText>
+          </View>
+          <MiniBarChart
+            values={rollingSeries.map((p) => p.value)}
+            testID="progress-game-rolling-chart"
+            emptyLabel="Not enough sessions yet"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            Mean of the last {ROLLING_AVERAGE_SESSIONS} sessions at each point.{' '}
+            {explainMetric('rolling-average')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {bestHistory.current !== null ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-game-pb">
+          <ThemedText type="subtitle">Best-result history</ThemedText>
+          <View style={styles.rows}>
+            {bestHistory.events.slice(-5).map((event) => (
+              <View
+                key={`${event.t}-${event.value}`}
+                style={styles.row}
+                testID={`progress-game-pb-${event.t}`}>
+                <ThemedText type="small">{formatDayLabel(event.t)}</ThemedText>
+                <ThemedText type="smallBold">{formatPercent(event.value)}</ThemedText>
+              </View>
+            ))}
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Current best has stood{' '}
+            {bestHistory.standingDays === 0 ? 'less than a day' : `${bestHistory.standingDays ?? 0}d`} ·
+            raised {bestHistory.timesBeaten} time{bestHistory.timesBeaten === 1 ? '' : 's'}.{' '}
+            {explainMetric('personal-best-history')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
+      {scoreBestHistory !== null && scoreBestHistory.events.length >= 2 ? (
+        <ThemedView type="surface" style={styles.card} testID="progress-game-pb-score">
+          <ThemedText type="subtitle">Score-record history</ThemedText>
+          <View style={styles.rows}>
+            {scoreBestHistory.events.slice(-5).map((event) => (
+              <View
+                key={`${event.t}-${event.value}`}
+                style={styles.row}
+                testID={`progress-game-pb-score-${event.t}`}>
+                <ThemedText type="small">{formatDayLabel(event.t)}</ThemedText>
+                <ThemedText type="smallBold">{Math.round(event.value)}</ThemedText>
+              </View>
+            ))}
+          </View>
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('personal-best-history')}
+          </ThemedText>
+        </ThemedView>
+      ) : null}
+
       <TrendBlock
         testID="progress-game-trend-normalized"
         label="Performance (normalized)"
@@ -186,6 +337,45 @@ export default function ProgressGameScreen() {
           format={(v) => formatPercent(v)}
           tone="neutral"
         />
+      ) : null}
+      {difficultyProgression.available ? (
+        <ThemedView
+          type="surface"
+          style={styles.card}
+          testID="progress-game-difficulty-progression">
+          <ThemedText type="subtitle">Difficulty progression</ThemedText>
+          <View style={styles.recordGrid}>
+            <Record
+              label="First challenge"
+              value={formatPercent(difficultyProgression.first ?? 0)}
+            />
+            <Record
+              label="Latest challenge"
+              value={formatPercent(difficultyProgression.latest ?? 0)}
+            />
+            <Record
+              label="Peak challenge"
+              value={formatPercent(difficultyProgression.peak ?? 0)}
+            />
+            <Record
+              label="At/above your median"
+              value={
+                difficultyProgression.atOrAboveMedianShare === null
+                  ? '—'
+                  : formatPercent(difficultyProgression.atOrAboveMedianShare)
+              }
+            />
+          </View>
+          {difficultyProgression.delta !== null && difficultyProgression.delta !== 0 ? (
+            <ThemedText type="caption" themeColor="textSecondary">
+              {directionArrow(difficultyProgression.direction)}{' '}
+              {formatSigned(Math.round(difficultyProgression.delta * 100))}% first → latest.
+            </ThemedText>
+          ) : null}
+          <ThemedText type="caption" themeColor="textSecondary">
+            {explainMetric('difficulty-progression')}
+          </ThemedText>
+        </ThemedView>
       ) : null}
 
       <ThemedView type="surface" style={styles.card} testID="progress-game-rvl">
