@@ -9,10 +9,10 @@
 import { Link } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { MinTouchTarget } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
-
 export function GameNotReady({
   variant = 'not-implemented',
 }: {
@@ -30,7 +30,11 @@ export function GameNotReady({
         <ThemedText type="subtitle" themeColor="text">
           {isNotFound ? 'Game not found' : isLoading ? 'Loading…' : 'Not ready yet'}
         </ThemedText>
-        <ThemedText type="small" themeColor="textSecondary" style={styles.body}>
+        <ThemedText
+          type="small"
+          themeColor="textSecondary"
+          style={styles.body}
+          accessibilityLiveRegion="polite">
           {isNotFound
             ? 'This game is not in the library. It may have been renamed or removed.'
             : isLoading
@@ -42,7 +46,10 @@ export function GameNotReady({
             testID={`game-not-ready-${isNotFound ? 'not-found' : isLoading ? 'loading' : 'back-to-library'}`}
             accessibilityRole="button"
             style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
-            <ThemedText type="smallBold" themeColor="accent">
+            {/* Touch target lives on the label: expo-router's Link asChild
+                clone hides the Pressable's own style from the rendered tree,
+                so the 44pt minimum is guaranteed by the visible child. */}
+            <ThemedText type="smallBold" themeColor="accent" style={MinTouchTarget}>
               {isLoading ? 'Cancel' : 'Back to library'}
             </ThemedText>
           </Pressable>
@@ -65,6 +72,7 @@ const styles = StyleSheet.create({
   },
   button: {
     alignSelf: 'flex-start',
+    ...MinTouchTarget,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radii.pill,

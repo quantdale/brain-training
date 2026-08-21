@@ -17,7 +17,9 @@ export interface StorageUnavailableProps {
 
 export default function StorageUnavailable({ error, onRetry }: StorageUnavailableProps) {
   return (
-    <View testID="storage-unavailable" style={styles.container}>
+    // Live region: this screen can appear (or transition to recovered) while a
+    // screen reader user is waiting, so surface the state change audibly.
+    <View testID="storage-unavailable" style={styles.container} accessibilityLiveRegion="polite">
       <Text testID="storage-unavailable-title" style={styles.title}>
         Storage Unavailable
       </Text>

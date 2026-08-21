@@ -16,6 +16,7 @@ import {
 import { memo, useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
+import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -144,7 +145,9 @@ export default function GameDetailScreen() {
         accessibilityLabel={
           currentFavorite ? "Remove from favorites" : "Add to favorites"
         }
-        accessibilityState={{ checked: currentFavorite }}
+        // `selected` (not `checked`): with role=button, screen readers announce
+        // selected/unselected; `checked` is only spoken for toggle/checkbox roles.
+        accessibilityState={{ selected: currentFavorite }}
         onPress={onToggleFavorite}
         disabled={!loaded}
       >
@@ -159,6 +162,7 @@ export default function GameDetailScreen() {
           type="caption"
           themeColor="danger"
           testID="game-detail-fav-error"
+          accessibilityLiveRegion="polite"
         >
           Could not update favorites.
         </ThemedText>
@@ -245,6 +249,7 @@ function BackLink() {
       accessibilityRole="button"
       accessibilityLabel="Back to Games"
       onPress={() => router.back()}
+      style={MinTouchTarget}
     >
       <ThemedText type="smallBold" themeColor="accent">
         ‹ Back
@@ -284,7 +289,7 @@ const SessionRow = memo(function SessionRow({ session }: { session: unknown }) {
         testID={`game-detail-session-${s.id}`}
         accessibilityRole="button"
         accessibilityLabel={`Open result from ${new Date(s.completedAt).toLocaleDateString()}`}
-        style={styles.row}
+        style={[styles.row, MinTouchTarget]}
       >
         <ThemedText type="small" themeColor="textSecondary">
           {new Date(s.completedAt).toLocaleDateString()} ·{" "}

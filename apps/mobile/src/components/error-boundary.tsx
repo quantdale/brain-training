@@ -5,8 +5,9 @@
  * Used at the game route level so a crash in any game screen is contained.
  */
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Pressable, StyleSheet, View } from 'react-native';
 
+import { MinTouchTarget } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radii, Spacing } from '@/constants/theme';
@@ -34,6 +35,14 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // Preserve diagnostic context for the consumer (e.g. game id, stack,
     // component stack) so retry never silently discards the failure.
     this.props.onError?.(error, info);
+    // Screen readers get no DOM mutation cue from the default fallback swap,
+    // so announce it explicitly (only for our own fallback; a custom fallback
+    // owns its own UX).
+    if (!this.props.fallback) {
+      AccessibilityInfo.announceForAccessibility(
+        'Something went wrong. An unexpected error occurred.',
+      );
+    }
   }
 
   /**
@@ -102,6 +111,7 @@ const styles = StyleSheet.create({
   },
   button: {
     alignSelf: 'flex-start',
+    ...MinTouchTarget,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radii.pill,

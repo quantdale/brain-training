@@ -13,6 +13,16 @@
 // exercises the pure parsing/selection/report logic with fixture XML, so the
 // harness is CI-testable without an emulator.
 //
+// The game catalog is DERIVED, never hardcoded: `loadCatalog()` scans
+// `apps/mobile/src/games/*/game.json` and cross-checks the ids against
+// `apps/mobile/src/registry/registry.generated.ts`, so this harness scales
+// automatically as the catalog grows. A documented canary subset (one stable
+// representative per primary category) backs the quick `--mode canaries` run.
+//
+// Exit codes: 0 = requested checks all PASS; 1 = at least one FAIL (or a
+// catalog/self-test assertion failed); 2 = BLOCKED (no usable adb device —
+// every planned target is reported NOT VALIDATED, never faked green).
+//
 // Usage:
 //   node scripts/qa/autobot.mjs --mode game --game memory
 //   node scripts/qa/autobot.mjs --mode game --game memory --pause
@@ -21,12 +31,12 @@
 //   node scripts/qa/autobot.mjs --mode workout
 //   node scripts/qa/autobot.mjs --mode all --pause
 //   node scripts/qa/autobot.mjs --mode canaries
-//   node scripts/qa/autobot.mjs --category Memory          # one category
+//   node scripts/qa/autobot.mjs --category "Logic & Problem Solving"  # one category
 //   node scripts/qa/autobot.mjs --list-games
 //   node scripts/qa/autobot.mjs --self-test                # offline logic tests
 //
 // Env overrides:
-//   QA_DEVICE   adb serial (default: first emulator-*)
+//   QA_DEVICE   adb serial (default: first emulator-* in `device` state)
 //   QA_PKG      application id (default: com.braintraining.app)
 //   QA_SCHEME   deep-link scheme (default: braintraining)
 //   QA_OUT      artifact root (default: qa-artifacts)
@@ -38,6 +48,7 @@ import {
   mkdirSync,
   writeFileSync,
   readFileSync,
+  readdirSync,
   renameSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
@@ -45,82 +56,133 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = resolve(__dirname, "..", "..");
+const GAMES_DIR = join(REPO_ROOT, "apps", "mobile", "src", "games");
+const REGISTRY_TS = join(
+  REPO_ROOT,
+  "apps",
+  "mobile",
+  "src",
+  "registry",
+  "registry.generated.ts",
+);
 
 const PKG = process.env.QA_PKG || "com.braintraining.app";
 const SCHEME = process.env.QA_SCHEME || "braintraining";
 const OUT = process.env.QA_OUT || join(REPO_ROOT, "qa-artifacts");
-const SERIAL = (process.env.QA_DEVICE || firstEmulator()).trim();
 const SQLITE =
   process.env.QA_SQLITE ||
   join(process.env.ANDROID_HOME || "", "platform-tools", "sqlite3.exe");
 
-// Canonical 24-game catalog (kept in sync with apps/mobile/src/registry via
-// `node scripts/generate-game-registry.mjs`). This is the QA harness's own
-// smoke list, not the product registry — it intentionally mirrors the catalog
-// so every shipped game gets a deep-link smoke pass.
-const GAMES = [
-  "attention-odd-one-out",
-  "attention-target-count",
-  "attention-visual-search",
-  "flexibility-card-sort",
-  "flexibility-color-stroop",
-  "flexibility-cue-shift",
-  "language-sentence-builder",
-  "language-word-match",
-  "language-word-scramble",
-  "logic-code-cracker",
-  "logic-next-sequence",
-  "logic-rule-grid",
-  "math-equation-builder",
-  "math-fast-math",
-  "math-missing-operator",
-  "memory",
-  "memory-pattern-tap-back",
-  "memory-sequence-memory",
-  "spatial-grid-nav",
-  "spatial-mental-rotation",
-  "spatial-transform-match",
-  "speed-color-match",
-  "speed-reaction-time",
-  "speed-tap-rush",
-];
-const CATEGORIES = {
-  Memory: ["memory", "memory-pattern-tap-back", "memory-sequence-memory"],
-  Attention: [
-    "attention-odd-one-out",
-    "attention-target-count",
-    "attention-visual-search",
-  ],
-  Speed: ["speed-tap-rush", "speed-reaction-time", "speed-color-match"],
-  Math: ["math-fast-math", "math-equation-builder", "math-missing-operator"],
-  Language: [
-    "language-word-match",
-    "language-sentence-builder",
-    "language-word-scramble",
-  ],
-  Logic: ["logic-next-sequence", "logic-code-cracker", "logic-rule-grid"],
-  Flexibility: [
-    "flexibility-card-sort",
-    "flexibility-color-stroop",
-    "flexibility-cue-shift",
-  ],
-  Spatial: [
-    "spatial-transform-match",
-    "spatial-mental-rotation",
-    "spatial-grid-nav",
-  ],
-};
-// One representative per category for the lightweight "canaries" mode.
-const CANARIES = {
+// ---------------------------------------------------------------------------
+// Catalog derivation (PURE-ish: filesystem only, no adb — exercised by
+// --self-test and required by --list-games, both of which must work offline)
+// ---------------------------------------------------------------------------
+// Stable canary representatives (one per primary category) kept from the
+// original hand-maintained list. If a category ever loses its preferred
+// representative, the alphabetically-first id in that category is used instead,
+// so `--mode canaries` always covers every category without manual upkeep.
+const PREFERRED_CANARIES = {
   Memory: "memory",
   Attention: "attention-odd-one-out",
   Speed: "speed-tap-rush",
   Math: "math-fast-math",
   Language: "language-word-match",
-  Logic: "logic-next-sequence",
+  "Logic & Problem Solving": "logic-next-sequence",
   Flexibility: "flexibility-card-sort",
   Spatial: "spatial-transform-match",
 };
+
+let CATALOG = null; // cached result of loadCatalog()
+function loadCatalog() {
+  if (CATALOG) return CATALOG;
+  const gamesDir = GAMES_DIR;
+  if (!existsSync(gamesDir)) {
+    throw new Error(`games directory not found: ${gamesDir}`);
+  }
+  const entries = [];
+  for (const dir of listDirs(gamesDir)) {
+    const jsonPath = join(gamesDir, dir, "game.json");
+    if (!existsSync(jsonPath)) continue;
+    let meta;
+    try {
+      meta = JSON.parse(readFileSync(jsonPath, "utf8"));
+    } catch (e) {
+      throw new Error(`unparseable game.json for ${dir}: ${e.message}`);
+    }
+    if (!meta.id || !/^[a-z0-9-]+$/.test(meta.id)) {
+      throw new Error(`game.json for ${dir} has no valid id`);
+    }
+    if (meta.id !== dir) {
+      throw new Error(
+        `game.json id "${meta.id}" does not match directory name "${dir}"`,
+      );
+    }
+    entries.push({
+      id: meta.id,
+      name: meta.name || meta.id,
+      category: meta.primaryCategory || "Uncategorized",
+      hasTutorial: !!meta.hasTutorial,
+    });
+  }
+  if (entries.length === 0) {
+    throw new Error(`no game.json found under ${gamesDir}`);
+  }
+  // Cross-check against the generated product registry (independent source).
+  const registryIds = parseRegistryIds();
+  const scannedIds = entries.map((g) => g.id).sort();
+  const drift =
+    registryIds.length > 0 &&
+    (registryIds.join(",") !== scannedIds.join(","));
+  const categories = {};
+  for (const g of entries) {
+    (categories[g.category] ||= []).push(g.id);
+  }
+  for (const cat of Object.keys(categories)) categories[cat].sort();
+  const canaries = {};
+  for (const [cat, ids] of Object.entries(categories)) {
+    canaries[cat] =
+      PREFERRED_CANARIES[cat] && ids.includes(PREFERRED_CANARIES[cat])
+        ? PREFERRED_CANARIES[cat]
+        : ids[0];
+  }
+  CATALOG = {
+    games: entries.sort((a, b) => (a.id < b.id ? -1 : 1)),
+    ids: scannedIds,
+    categories,
+    canaries,
+    registryIds,
+    registryDrift: drift,
+  };
+  return CATALOG;
+}
+function listDirs(dir) {
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
+    .sort();
+}
+// Extract top-level game ids from the GENERATED registry module. The file is
+// machine-generated with a stable shape (`    id: "<id>",` at 4-space indent),
+// so a strict regex is deterministic and avoids a TS parser dependency.
+function parseRegistryIds() {
+  if (!existsSync(REGISTRY_TS)) return [];
+  const out = [];
+  const re = /^\s{4}id: "([a-z0-9-]+)",$/gm;
+  const src = readFileSync(REGISTRY_TS, "utf8");
+  let m;
+  while ((m = re.exec(src))) out.push(m[1]);
+  return out.sort();
+}
+
+// Device serial is resolved lazily (and only by paths that actually need a
+// device) so --list-games / --self-test never spawn adb.
+let SERIAL_CACHE = null;
+function serial() {
+  if (SERIAL_CACHE === null) {
+    SERIAL_CACHE = (process.env.QA_DEVICE || firstEmulator()).trim();
+  }
+  return SERIAL_CACHE;
+}
 
 // Home testIDs that prove the JS bundle finished loading and the React
 // navigation context is ready. We must reach one of these BEFORE deep-linking,
@@ -128,6 +190,17 @@ const CANARIES = {
 // intent delivered before the context is ready ("onNewIntent while context is
 // not ready"), so warming Home first is mandatory.
 const HOME_READY_IDS = ["home-brand", "home-title", "home-workout-list"];
+
+// Interactive in-game item testIDs (see apps/mobile/src/sdk/testid.ts:
+// testId(gameId, element, ...) → `<gameId>.<element>...`). The interaction
+// probe taps one of these to prove real gameplay input works before the
+// force-win shortcut. Tutorial/QA/result surfaces are excluded on purpose.
+const INTERACTIVE_SUFFIXES =
+  "(?:tile|option|cell|trigger|choice|(?:card-grid\\.card))\\.";
+function interactiveRe(gameId) {
+  const esc = gameId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`^${esc}\\.${INTERACTIVE_SUFFIXES}`);
+}
 
 // ---------------------------------------------------------------------------
 // Action trace (structured, deterministic diagnosis)
@@ -146,6 +219,17 @@ function trace(action, target, ok, detail) {
 }
 function traceMs(start) {
   return Date.now() - start;
+}
+// Per-flow human-readable step log (returned inside results for run.json).
+let STEPS = [];
+function beginSteps() {
+  STEPS = [];
+}
+function log(msg) {
+  STEPS.push({ t: new Date().toISOString(), msg });
+}
+function stepsOut() {
+  return STEPS.slice(-60);
 }
 
 // ---------------------------------------------------------------------------
@@ -167,20 +251,58 @@ function deviceInfo() {
   }
 }
 
-function firstEmulator() {
+// Host-level `adb devices` parse. Returns {ready[], other[]} or {error} when
+// the adb binary itself cannot be executed. Never touches a specific device.
+function adbHostDevices() {
+  let out;
   try {
-    const out = execFileSync("adb", ["devices"], { encoding: "utf8" });
-    for (const line of out.split("\n")) {
-      const m = line.match(/^(\S+)\s+device$/);
-      if (m && /emulator|device/.test(m[1])) return m[1];
-    }
-  } catch {
-    /* ignore */
+    out = execFileSync("adb", ["devices"], { encoding: "utf8" });
+  } catch (e) {
+    return { error: String(e && e.message ? e.message : e) };
+  }
+  const ready = [];
+  const other = [];
+  for (const line of out.split("\n")) {
+    const m = line.match(/^(\S+)\s+(device|offline|unauthorized)\s*$/);
+    if (!m) continue;
+    if (m[2] === "device") ready.push(m[1]);
+    else other.push(`${m[1]} (${m[2]})`);
+  }
+  return { ready, other };
+}
+// Preflight: is there a usable device? Degrades to a clear BLOCKED reason
+// instead of letting individual adb calls fail with cryptic errors mid-run.
+function preflightDevice() {
+  const d = adbHostDevices();
+  if (d.error) return { ok: false, reason: `adb not runnable: ${d.error}` };
+  const want = process.env.QA_DEVICE ? process.env.QA_DEVICE.trim() : null;
+  if (want) {
+    if (d.ready.includes(want)) return { ok: true, serial: want };
+    return {
+      ok: false,
+      reason: `QA_DEVICE=${want} is not in adb 'device' state (ready=[${d.ready.join(", ") || "none"}], other=[${d.other.join(", ") || "none"}])`,
+    };
+  }
+  if (d.ready.length > 0) {
+    const emu = d.ready.find((s) => /^emulator-/.test(s));
+    return { ok: true, serial: emu || d.ready[0] };
+  }
+  return {
+    ok: false,
+    reason: `no adb device in 'device' state (other=[${d.other.join(", ") || "none"}]). Boot the AVD: scripts/android/avd.sh boot`,
+  };
+}
+function firstEmulator() {
+  const d = adbHostDevices();
+  if (d.ready) {
+    const emu = d.ready.find((s) => /^emulator-/.test(s));
+    if (emu) return emu;
+    if (d.ready.length) return d.ready[0];
   }
   return "emulator-5554";
 }
 function adb(args, opts = {}) {
-  return execFileSync("adb", ["-s", SERIAL, ...args], {
+  return execFileSync("adb", ["-s", serial(), ...args], {
     encoding: "utf8",
     ...opts,
   });
@@ -250,6 +372,29 @@ function centerOf(node) {
   return node && node.bounds
     ? { cx: node.bounds.cx, cy: node.bounds.cy }
     : null;
+}
+// Pure selector for the generic gameplay-interaction probe: collect tappable
+// in-game item nodes (`<id>.option.N`, `<id>.tile.N`, `<id>.cell.X`,
+// `<id>.choice.*`, `<id>.trigger.*`, `<id>.card-grid.card.N`) from a hierarchy
+// dump, excluding tutorial/QA/result surfaces. Clickable nodes sort first.
+function findInteractionCandidates(xml, gameId) {
+  if (!xml) return [];
+  const re = interactiveRe(gameId);
+  const out = [];
+  for (const node of xml.match(/<node\b[^>]*>/g) || []) {
+    const idm = node.match(/resource-id="([^"]+)"/);
+    if (!idm || !re.test(idm[1])) continue;
+    if (/tutorial|qa-panel|round-result/.test(idm[1])) continue;
+    const bm = node.match(/bounds="([^"]+)"/);
+    const b = bm ? parseBounds(bm[1]) : null;
+    if (!b || b.x2 <= b.x1 || b.y2 <= b.y1) continue;
+    out.push({
+      id: idm[1],
+      bounds: b,
+      clickable: /clickable="true"/.test(node),
+    });
+  }
+  return out.sort((a, b) => (b.clickable ? 1 : 0) - (a.clickable ? 1 : 0));
 }
 
 // ---------------------------------------------------------------------------
@@ -346,6 +491,21 @@ function captureLogcat(tag) {
   }
   return local;
 }
+// Bounded recent logcat slice — cheap, machine-readable triage context for a
+// single failing game without multi-MB full-buffer dumps per failure.
+function captureLogcatSlice(tag, lines = 800) {
+  const local = join(ART.logcat, `${tag}-slice.txt`);
+  try {
+    const out = adbRetry(["logcat", "-d", "-t", String(lines)], {
+      tries: 2,
+      opts: { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 },
+    });
+    writeFileSync(local, out);
+  } catch {
+    /* ignore */
+  }
+  return local;
+}
 function pullDb(tag) {
   const local = join(ART.db, `${tag}.sqlite`);
   try {
@@ -353,7 +513,7 @@ function pullDb(tag) {
       "adb",
       [
         "-s",
-        SERIAL,
+        serial(),
         "exec-out",
         "run-as",
         PKG,
@@ -441,7 +601,11 @@ async function waitForAny(ids, timeoutMs = 20000, tag = "waitAny") {
   return null;
 }
 // Wait for a stable home screen (bundle loaded, nav context ready).
-async function waitForHome(timeoutMs = 40000) {
+// Measured on the dedicated AVD (2026-08-21, 38-game catalog, dev client):
+// a `pm clear` + relaunch cold start reaches interactive Home in ~50s
+// (bundle fetch + JS execution). The budget must exceed that with headroom,
+// otherwise every game after the first reset false-fails on warm-home.
+async function waitForHome(timeoutMs = 120000) {
   const end = Date.now() + timeoutMs;
   while (Date.now() < end) {
     const p = dumpHierarchy("home-warm");
@@ -533,133 +697,64 @@ function tapTestId(id, xml) {
   trace("tap", id, true, `${node.bounds.cx},${node.bounds.cy}`);
   return true;
 }
+// True when the app process still owns (or recently owned) the foreground —
+// used after BACK/input probes to distinguish "navigated somewhere valid"
+// from "app crashed or was backgrounded".
+function appForeground() {
+  try {
+    const out = shell("dumpsys window");
+    return out.includes(PKG);
+  } catch {
+    return false;
+  }
+}
 
 // ---------------------------------------------------------------------------
-// Core game drive
+// Failure artifacts (machine-readable JSON + screenshot + hierarchy + logcat
+// slice + DB snapshot, per failing game)
 // ---------------------------------------------------------------------------
-async function flowGame(id, opts = {}) {
-  const steps = [];
-  const tag = `game-${id}`;
-  const t0 = Date.now();
-  reset();
-  const warm = await ensureWarmHome();
-  log(`warmed home: ${warm ? "yes" : "NO (deep-link may blank)"}`);
-  if (!warm) {
-    return {
-      id,
-      passed: false,
-      reason: "app did not warm to home (Metro/JS load)",
-      steps,
-      ms: traceMs(t0),
-      artifacts: captureAll(tag),
-      trace: traceSlice(),
-    };
-  }
-
-  deepLink(`game/${id}`);
-  let xml =
-    (await waitFor(`${id}.screen`, 25000, tag)) ||
-    (await waitFor(`${id}.intro`, 25000, tag));
-  if (!xml) {
-    captureAll(tag);
-    return fail(id, "screen did not load", steps, t0, tag);
-  }
-  log("screen loaded");
-  screenshot(`${tag}-screen`);
-
-  // Tutorial skip (first play).
-  if (tapTestId(`${id}.tutorial-skip`, xml)) {
-    await sleep(700);
-    xml = readFileSyncSafe(dumpHierarchy(`${tag}-postskip`));
-    log("tutorial skipped");
-  } else {
-    log("no tutorial (already completed or none)");
-  }
-
-  // Start.
-  if (!tapTestId(`${id}.start`, xml)) {
-    xml = await waitFor(`${id}.start`, 8000, tag);
-    if (!xml || !tapTestId(`${id}.start`, xml)) {
-      captureAll(tag);
-      return fail(id, "start button not found", steps, t0, tag);
-    }
-  }
-  log("started");
-  await sleep(400);
-
-  // Optional pause/resume probe.
-  if (opts.pause) {
-    const px = await waitFor(`${id}.pause`, 6000, tag);
-    if (px) {
-      tapTestId(`${id}.pause`, px);
-      await sleep(700);
-      const paused = await waitFor(`${id}.pause-overlay`, 5000, tag);
-      log(
-        paused
-          ? "paused + overlay shown"
-          : "paused (overlay testID not matched)",
-      );
-      const rp = await waitFor(`${id}.resume`, 4000, tag);
-      if (rp) {
-        tapTestId(`${id}.resume`, rp);
-        await sleep(700);
-        log("resumed");
-      }
-    } else {
-      log("no pause control (not applicable)");
-    }
-  }
-
-  // Open QA panel and force win. Some games only expose the QA toggle during
-  // a specific in-session phase (e.g. a brief "study" phase before the choice
-  // phase unmounts the panel), so poll the toggle→panel→force-win sequence in
-  // a loop until results appear rather than assuming a single fixed wait.
-  const results = await driveForceWin(id, tag);
-  if (!results) {
-    captureAll(tag);
-    return fail(
-      id,
-      "qa-toggle/force-win not reachable (qa panel may be phase-gated)",
-      steps,
-      t0,
-      tag,
-    );
-  }
-  log(`results reached via ${results.id}`);
-  screenshot(`${tag}-results`);
-
-  // Persistence: exactly one session for this game after a fresh reset.
-  const stats = sessionStats(id);
-  log(`persistence: ${stats.note}`);
-  captureLogcat(`${tag}-logcat`);
-
-  const passed = stats.count === 1 && !stats.duplicates;
-  return {
-    id,
-    passed,
-    reason: passed
-      ? "force-win + exactly one persisted session + authoritative results"
-      : `session count=${stats.count} (expected 1), duplicates=${stats.duplicates}`,
-    steps,
-    ms: traceMs(t0),
-    artifacts: captureAll(tag),
-    session: stats,
-    trace: traceSlice(),
+function captureFailure(id, tag, reason, extra = {}) {
+  mkdirSync(RUN_DIR, { recursive: true });
+  const artifacts = {
+    screenshot: screenshot(`${tag}-fail`),
+    hierarchy: dumpHierarchy(`${tag}-fail`),
+    logcatSlice: captureLogcatSlice(`${tag}-fail`),
+    db: pullDb(`${tag}-fail-db`),
   };
-}
-function log(_s) {
-  /* steps are recorded via trace; keep a local echo for clarity */
+  const manifest = {
+    gameId: id,
+    reason,
+    at: new Date().toISOString(),
+    device: { serial: serial(), pkg: PKG, scheme: SCHEME, ...deviceInfo() },
+    steps: stepsOut(),
+    trace: TRACE.slice(-24),
+    artifacts,
+    ...extra,
+  };
+  const dir = join(RUN_DIR, "failures");
+  mkdirSync(dir, { recursive: true });
+  const file = join(dir, `${id}.json`);
+  writeFileSync(file, JSON.stringify(manifest, null, 2));
+  log(`failure artifacts written: ${file}`);
+  return { manifest: file, ...artifacts };
 }
 
-// Poll the QA toggle → panel → force-win sequence until results appear.
-// Returns the matching results node (with `.id`) or null on timeout. This is
-// resilient to games whose QA panel is only mounted during certain play
-// phases: it taps force-win the moment the toggle is observable.
+// ---------------------------------------------------------------------------
+// QA force-win driving
+// ---------------------------------------------------------------------------
 // One best-effort attempt at toggle → panel → force-win. Returns true if the
 // force-win tap was issued (panel opened), false if the toggle was not
 // currently reachable (e.g. the QA panel is phase-gated this frame).
 async function tapForceWinOnce(id, tag) {
-  const qa = await waitFor(`${id}.qa-toggle`, 3000, `${tag}-fw`);
+  let qa = await waitFor(`${id}.qa-toggle`, 3000, `${tag}-fw`);
+  if (!qa) {
+    // Long in-session content can push the dev-only QA panel below the
+    // ScrollView fold, hiding it from the hierarchy dump; scroll once and
+    // look again before giving up this attempt.
+    shell("input swipe 540 1600 540 600 300");
+    await sleep(700);
+    qa = await waitFor(`${id}.qa-toggle`, 2000, `${tag}-fw`);
+  }
   if (!qa) return false;
   tapTestId(`${id}.qa-toggle`, qa);
   await sleep(400);
@@ -670,6 +765,9 @@ async function tapForceWinOnce(id, tag) {
   return true;
 }
 // Poll the QA toggle → panel → force-win sequence until results appear.
+// Returns the matching results node (with `.id`) or null on timeout. This is
+// resilient to games whose QA panel is only mounted during certain play
+// phases: it taps force-win the moment the toggle is observable.
 async function driveForceWin(id, tag) {
   const end = Date.now() + 15000;
   while (Date.now() < end) {
@@ -687,14 +785,262 @@ async function driveForceWin(id, tag) {
   return null;
 }
 
-function fail(id, reason, steps, t0, tag) {
+// ---------------------------------------------------------------------------
+// Core game drive
+// ---------------------------------------------------------------------------
+async function flowGame(id, opts = {}) {
+  beginSteps();
+  const tag = `game-${id}`;
+  const t0 = Date.now();
+  reset();
+  const warm = await ensureWarmHome();
+  log(`warmed home: ${warm ? "yes" : "NO (deep-link may blank)"}`);
+  if (!warm) {
+    const artifacts = captureFailure(
+      id,
+      tag,
+      "app did not warm to home (Metro/JS load)",
+    );
+    return {
+      id,
+      passed: false,
+      status: "FAIL",
+      reason: "app did not warm to home (Metro/JS load)",
+      steps: stepsOut(),
+      ms: traceMs(t0),
+      artifacts,
+      trace: traceSlice(),
+    };
+  }
+
+  deepLink(`game/${id}`);
+  let xml =
+    (await waitFor(`${id}.screen`, 25000, tag)) ||
+    (await waitFor(`${id}.intro`, 25000, tag));
+  if (!xml) {
+    return failGame(id, "screen did not load", t0, tag);
+  }
+  log("screen loaded");
+  screenshot(`${tag}-screen`);
+
+  // Tutorial bypass: skip button first, then done/next variants (some games
+  // gate the skip control behind an intro page or expose only "Done").
+  let skippedTutorial = false;
+  for (const tid of [
+    `${id}.tutorial-skip`,
+    `${id}.tutorial-done`,
+    `${id}.tutorial-next`,
+  ]) {
+    if (tapTestId(tid, xml)) {
+      skippedTutorial = true;
+      await sleep(700);
+      xml = readFileSyncSafe(dumpHierarchy(`${tag}-postskip`));
+      break;
+    }
+  }
+  log(skippedTutorial ? "tutorial bypassed" : "no tutorial (already completed or none)");
+
+  // Start.
+  if (!tapTestId(`${id}.start`, xml)) {
+    xml = await waitFor(`${id}.start`, 8000, tag);
+    if (!xml || !tapTestId(`${id}.start`, xml)) {
+      return failGame(id, "start button not found", t0, tag);
+    }
+  }
+  log("started");
+  await sleep(400);
+
+  // Real gameplay interaction probe: tap one in-game item (option/tile/cell/
+  // choice/trigger/card) so the smoke proves actual input handling, not just
+  // the force-win shortcut. Best-effort: study/countdown phases may legitimately
+  // expose nothing tappable yet, so a miss is recorded but never fails the run.
+  const interaction = await probeInteraction(id, tag);
+  log(
+    interaction.attempted
+      ? `interaction tapped ${interaction.nodeId}`
+      : `interaction: no tappable item visible (${interaction.reason})`,
+  );
+
+  // Optional pause/resume probe.
+  let pauseProbe = { attempted: !!opts.pause, paused: false, resumed: false };
+  if (opts.pause) {
+    const px = await waitFor(`${id}.pause`, 6000, tag);
+    if (px) {
+      tapTestId(`${id}.pause`, px);
+      await sleep(700);
+      const paused = await waitForAny(
+        [`${id}.pause-overlay`, `${id}.resume`],
+        5000,
+        tag,
+      );
+      pauseProbe.paused = !!paused;
+      log(
+        paused ? "paused + overlay shown" : "paused (overlay testID not matched)",
+      );
+      const rp = await waitFor(`${id}.resume`, 4000, tag);
+      if (rp) {
+        tapTestId(`${id}.resume`, rp);
+        await sleep(700);
+        pauseProbe.resumed = true;
+        log("resumed");
+      }
+    } else {
+      log("no pause control (not applicable)");
+    }
+  }
+
+  // Open QA panel and force win. Some games only expose the QA toggle during
+  // a specific in-session phase (e.g. a brief "study" phase before the choice
+  // phase unmounts the panel), so poll the toggle→panel→force-win sequence in
+  // a loop until results appear rather than assuming a single fixed wait.
+  const results = await driveForceWin(id, tag);
+  if (!results) {
+    return failGame(
+      id,
+      "qa-toggle/force-win not reachable (qa panel may be phase-gated)",
+      t0,
+      tag,
+      { interaction, pause: pauseProbe },
+    );
+  }
+  log(`results reached via ${results.id}`);
+  screenshot(`${tag}-results`);
+
+  // Persistence: exactly one session for this game after a fresh reset.
+  const stats = sessionStats(id);
+  log(`persistence: ${stats.note}`);
+  captureLogcatSlice(`${tag}`);
+
+  // Back navigation: after results, BACK must land somewhere known (home,
+  // intro, or results surfaces) with the app still alive — not crash/background.
+  const back = await probeBackNavigation(id, tag);
+  log(
+    back.ok
+      ? `back navigation OK (surface: ${back.surface || "app foreground"})`
+      : "back navigation FAILED (app dead/backgrounded)",
+  );
+
+  // Next-game navigation: deep-link to the neighboring catalog entry and prove
+  // its screen loads (per-game smoke covers "next game" traversal).
+  const next = await probeNextGame(id, tag);
+  log(
+    next.ok
+      ? `next-game navigation OK (${next.next})`
+      : `next-game navigation FAILED (${next.next})`,
+  );
+
+  const coreOk = stats.count === 1 && !stats.duplicates;
+  const passed = coreOk && back.ok && next.ok;
+  const reason = passed
+    ? "force-win + exactly one persisted session + authoritative results + back/next navigation"
+    : !coreOk
+      ? `session count=${stats.count} (expected 1), duplicates=${stats.duplicates}`
+      : !back.ok
+        ? "back navigation left the app dead/backgrounded"
+        : `next-game screen did not load (${next.next})`;
+  return {
+    id,
+    passed,
+    status: passed ? "PASS" : "FAIL",
+    reason,
+    interaction,
+    pause: pauseProbe,
+    back,
+    next: next.next,
+    steps: stepsOut(),
+    ms: traceMs(t0),
+    artifacts: captureAll(tag),
+    session: stats,
+    trace: traceSlice(),
+  };
+}
+
+// Generic gameplay-interaction probe. Taps the first tappable in-game item
+// found right after start; retries once just before force-win (some games only
+// mount their answer grid after a countdown/study phase). Non-gating.
+async function probeInteraction(id, tag) {
+  const attemptAt = async (label) => {
+    const xml = readFileSyncSafe(dumpHierarchy(`${tag}-ix-${label}`));
+    const candidates = findInteractionCandidates(xml, id);
+    if (candidates.length === 0) return null;
+    const c = candidates[0];
+    tap(c);
+    trace("tap.interaction", c.id, true, `${c.bounds.cx},${c.bounds.cy}`);
+    await sleep(500);
+    if (!appForeground()) {
+      return { nodeId: c.id, crashedAfterTap: true };
+    }
+    return { nodeId: c.id };
+  };
+  const first = await attemptAt("post-start");
+  if (first) {
+    return {
+      attempted: true,
+      ...first,
+      reason: first.crashedAfterTap ? "app died after tap" : "tapped",
+    };
+  }
+  const second = await attemptAt("retry");
+  if (second) {
+    return {
+      attempted: true,
+      ...second,
+      reason: second.crashedAfterTap ? "app died after tap" : "tapped (late mount)",
+    };
+  }
+  return { attempted: false, reason: "no interactive item mounted at probe time" };
+}
+
+// BACK navigation probe: press KEYCODE_BACK (emulator-local), then require the
+// app to still be foreground AND showing a known surface (home / game intro /
+// game screen / shared results). Lenient about WHICH surface appears because
+// nav stacks differ per entry point; strict about the app staying alive.
+async function probeBackNavigation(id, tag) {
+  try {
+    shell("input keyevent 4");
+  } catch (e) {
+    trace("keyevent.BACK", id, false, String(e).slice(0, 80));
+  }
+  await sleep(1200);
+  const surfaces = [
+    ...HOME_READY_IDS,
+    `${id}.screen`,
+    `${id}.intro`,
+    "results-title",
+  ];
+  const found = await waitForAny(surfaces, 8000, `${tag}-back`);
+  const alive = appForeground();
+  return {
+    ok: !!(found && alive),
+    surface: found ? found.id : null,
+    alive,
+  };
+}
+
+// Next-game probe: deep-link to the next catalog id (wrap-around) and require
+// its screen/intro to mount. Proves per-game navigation beyond the current game.
+async function probeNextGame(id, tag) {
+  const cat = loadCatalog();
+  const idx = cat.ids.indexOf(id);
+  const next = cat.ids[(idx + 1) % cat.ids.length];
+  deepLink(`game/${next}`);
+  const xml =
+    (await waitFor(`${next}.screen`, 15000, `${tag}-next`)) ||
+    (await waitFor(`${next}.intro`, 15000, `${tag}-next`));
+  return { next, ok: !!xml };
+}
+
+function failGame(id, reason, t0, tag, extra = {}) {
+  const artifacts = captureFailure(id, tag, reason, extra);
   return {
     id,
     passed: false,
+    status: "FAIL",
     reason,
-    steps,
+    ...extra,
+    steps: stepsOut(),
     ms: traceMs(t0),
-    artifacts: captureAll(tag),
+    artifacts,
     trace: traceSlice(),
   };
 }
@@ -717,6 +1063,7 @@ function captureAll(tag) {
 // Word Match multi-round / multi-tier smoke (gate 3.6)
 // ---------------------------------------------------------------------------
 async function flowWordMatch() {
+  beginSteps();
   const id = "language-word-match";
   const tiers = ["easy", "normal", "hard", "expert"];
   const results = [];
@@ -783,7 +1130,9 @@ async function flowWordMatch() {
   return {
     id: "language-word-match (3.6)",
     passed,
+    status: passed ? "PASS" : "FAIL",
     details: results,
+    steps: stepsOut(),
     artifacts: captureAll("wordmatch"),
     trace: traceSlice(),
   };
@@ -793,12 +1142,14 @@ async function flowWordMatch() {
 // Daily Workout 4/4 + interruption/resume (gates 6.8 / 12.7)
 // ---------------------------------------------------------------------------
 async function flowWorkout() {
+  beginSteps();
   const t0 = Date.now();
   reset();
   if (!(await ensureWarmHome()))
     return {
       id: "daily-workout (6.8/12.7)",
       passed: false,
+      status: "FAIL",
       reason: "app did not warm to home",
       details: [],
       ms: traceMs(t0),
@@ -810,6 +1161,7 @@ async function flowWorkout() {
     return {
       id: "daily-workout (6.8/12.7)",
       passed: false,
+      status: "FAIL",
       reason: "Home workout list not found",
       details: [],
       ms: traceMs(t0),
@@ -825,6 +1177,7 @@ async function flowWorkout() {
     return {
       id: "daily-workout (6.8/12.7)",
       passed: false,
+      status: "FAIL",
       reason: `expected 4 workout games, found ${uniq.length}`,
       details: uniq,
       ms: traceMs(t0),
@@ -845,6 +1198,7 @@ async function flowWorkout() {
         return {
           id: "daily-workout",
           passed: false,
+          status: "FAIL",
           reason: `could not enter game ${gameId}`,
           details: log,
           ms: traceMs(t0),
@@ -860,6 +1214,7 @@ async function flowWorkout() {
       return {
         id: "daily-workout",
         passed: false,
+        status: "FAIL",
         reason: `game ${gameId} did not load`,
         details: log,
         ms: traceMs(t0),
@@ -874,6 +1229,7 @@ async function flowWorkout() {
       return {
         id: "daily-workout",
         passed: false,
+        status: "FAIL",
         reason: `qa-toggle/force-win not reachable for ${gameId}`,
         details: log,
         ms: traceMs(t0),
@@ -889,6 +1245,7 @@ async function flowWorkout() {
       return {
         id: "daily-workout",
         passed: false,
+        status: "FAIL",
         reason: `results not reached for game ${i} (${gameId})`,
         details: log,
         ms: traceMs(t0),
@@ -938,10 +1295,12 @@ async function flowWorkout() {
   return {
     id: "daily-workout (6.8/12.7)",
     passed,
+    status: passed ? "PASS" : "FAIL",
     reason: passed
       ? "4/4 completed + relaunch shows persisted completion"
       : "see log",
     details: log,
+    steps: stepsOut(),
     ms: traceMs(t0),
     artifacts: captureAll("workout"),
     trace: traceSlice(),
@@ -952,7 +1311,7 @@ async function flowWorkout() {
 // Reporting
 // ---------------------------------------------------------------------------
 function summaryLine(r) {
-  const status = r.passed ? "PASS" : r.reason ? "FAIL" : "NOT VALIDATED";
+  const status = r.status || (r.passed ? "PASS" : "FAIL");
   return `[${status}] ${r.id}${r.reason ? " — " + r.reason : ""}`;
 }
 function writeRunJson(_runId, data) {
@@ -972,6 +1331,13 @@ function selfTest() {
     '<node content-desc="results-title" bounds="[0,200][300,260]" text="Results"/>',
     '<node resource-id="game-id-2" bounds="[0,0][40,40]" text="x"/>',
   ].join("");
+  const fixtureXml = [
+    '<node resource-id="g1.qa-toggle" clickable="true" bounds="[0,0][100,40]" text=""/>',
+    '<node resource-id="g1.option.2" clickable="true" bounds="[10,60][110,160]" text=""/>',
+    '<node resource-id="g1.tile.5" clickable="false" bounds="[0,200][50,250]" text=""/>',
+    '<node resource-id="g1.card-grid.card.1" clickable="true" bounds="[0,260][80,340]" text=""/>',
+    '<node resource-id="g1.tutorial-grid.option.0" clickable="true" bounds="[0,350][90,430]" text=""/>',
+  ].join("");
   const checks = [];
   const assert = (name, cond, detail) =>
     checks.push({ name, pass: !!cond, detail: detail ?? null });
@@ -985,22 +1351,84 @@ function selfTest() {
   assert("centerOf", c && c.cx === 50 && c.cy === 50, JSON.stringify(c));
   const seeds = ["a|1", "a|1", "b|1"];
   assert("duplicate seeds detected", new Set(seeds).size !== seeds.length);
-  assert("catalog has 24 games", GAMES.length === 24, String(GAMES.length));
-  assert("catalog unique", new Set(GAMES).size === GAMES.length);
-  for (const [cat, list] of Object.entries(CATEGORIES)) {
-    assert(`category ${cat} has 3`, list.length === 3, String(list.length));
-    assert(
-      `category ${cat} in catalog`,
-      list.every((g) => GAMES.includes(g)),
-    );
-  }
+
+  // Interaction-probe selector (pure): picks tappable in-game items, prefers
+  // clickable nodes, excludes tutorial/QA surfaces.
+  const candidates = findInteractionCandidates(fixtureXml, "g1");
   assert(
-    "canaries in catalog",
-    Object.values(CANARIES).every((g) => GAMES.includes(g)),
+    "interaction candidates exclude qa/tutorial",
+    candidates.every(
+      (n) => !/qa-toggle|tutorial/.test(n.id),
+    ),
+    JSON.stringify(candidates.map((n) => n.id)),
   );
+  assert(
+    "interaction candidates include option/tile/card",
+    ["g1.option.2", "g1.tile.5", "g1.card-grid.card.1"].every((id) =>
+      candidates.some((n) => n.id === id),
+    ),
+    JSON.stringify(candidates.map((n) => n.id)),
+  );
+  assert(
+    "interaction candidates prefer clickable",
+    candidates.length > 0 && candidates[0].id === "g1.option.2",
+    JSON.stringify(candidates.map((n) => `${n.id}:${n.clickable}`)),
+  );
+  assert(
+    "interaction candidates empty for unrelated xml",
+    findInteractionCandidates(xml, "g1").length === 0,
+  );
+
+  // Catalog derivation: scan game.json + cross-check against the generated
+  // registry. Both sources must agree — any drift fails loudly here instead of
+  // silently smoke-testing a stale list.
+  try {
+    const cat = loadCatalog();
+    assert("catalog non-empty", cat.ids.length > 0, String(cat.ids.length));
+    assert(
+      "catalog ids unique",
+      new Set(cat.ids).size === cat.ids.length,
+      String(cat.ids.length),
+    );
+    assert(
+      "catalog matches registry.generated.ts",
+      !cat.registryDrift,
+      `scanned=${cat.ids.length} registry=${cat.registryIds.length}`,
+    );
+    assert(
+      "every category non-empty",
+      Object.values(cat.categories).every((l) => l.length > 0),
+      JSON.stringify(
+        Object.fromEntries(
+          Object.entries(cat.categories).map(([k, v]) => [k, v.length]),
+        ),
+      ),
+    );
+    assert(
+      "one canary per category, all in catalog",
+      Object.keys(cat.canaries).length === Object.keys(cat.categories).length &&
+        Object.values(cat.canaries).every(
+          (g) => cat.ids.includes(g),
+        ),
+      JSON.stringify(cat.canaries),
+    );
+    assert(
+      "canary preferred reps honored where present",
+      Object.entries(PREFERRED_CANARIES).every(
+        ([catName, pref]) =>
+          !cat.categories[catName] ||
+          !cat.categories[catName].includes(pref) ||
+          cat.canaries[catName] === pref,
+      ),
+      JSON.stringify(cat.canaries),
+    );
+  } catch (e) {
+    assert("catalog loads", false, String(e).slice(0, 200));
+  }
 
   const passed = checks.every((c) => c.pass);
   const report = { selfTest: true, passed, checks };
+  mkdirSync(OUT, { recursive: true });
   writeFileSync(
     join(OUT, "autobot-self-test.json"),
     JSON.stringify(report, null, 2),
@@ -1013,6 +1441,35 @@ function selfTest() {
     `Self-test: ${checks.filter((c) => c.pass).length}/${checks.length} passed`,
   );
   return passed;
+}
+
+// ---------------------------------------------------------------------------
+// Target selection (shared by live runs and the blocked path so both report
+// exactly the same planned set)
+// ---------------------------------------------------------------------------
+function selectTargets(mode, onlyGame, category, canariesOnly) {
+  const cat = loadCatalog();
+  const targets = [];
+  const wantsGames = mode === "game" || mode === "all" || mode === "catalog";
+  if (wantsGames) {
+    let list = cat.ids;
+    if (onlyGame) list = [onlyGame];
+    else if (category && cat.categories[category])
+      list = cat.categories[category];
+    if (canariesOnly && !onlyGame) list = Object.values(cat.canaries);
+    for (const g of list) targets.push({ kind: "game", id: g });
+  }
+  if (mode === "wordmatch" || mode === "all")
+    targets.push({ kind: "wordmatch", id: "language-word-match (3.6)" });
+  if (mode === "workout" || mode === "all")
+    targets.push({ kind: "workout", id: "daily-workout (6.8/12.7)" });
+  if (mode === "canaries" || mode === "all") {
+    for (const g of Object.values(cat.canaries)) {
+      if (!targets.some((t) => t.kind === "game" && t.id === g))
+        targets.push({ kind: "game", id: g });
+    }
+  }
+  return targets;
 }
 
 // ---------------------------------------------------------------------------
@@ -1030,53 +1487,112 @@ async function main() {
   const pause = args.includes("--pause");
   const listGames = args.includes("--list-games");
   const self = args.includes("--self-test");
-  const exitNonZero =
-    args.includes("--exit-nonzero-on-fail") || !args.includes("--exit-zero");
+  const exitZero = args.includes("--exit-zero");
+  const exitNonZero = args.includes("--exit-nonzero-on-fail") || !exitZero;
 
+  // Offline modes first: they must never spawn adb or touch a device.
   if (self) {
     process.exit(selfTest() ? 0 : 1);
   }
-  // Animation-disabled dumps are reliable across every game (see disableAnimations).
-  disableAnimations();
+
+  // Catalog load + CLI validation (offline; exits before any device contact).
+  let cat;
+  try {
+    cat = loadCatalog();
+  } catch (e) {
+    console.error(`[BLOCKED] catalog derivation failed: ${e.message}`);
+    process.exit(1);
+  }
   if (listGames) {
-    console.log(GAMES.join("\n"));
-    if (category)
-      console.log(
-        `\nCategory ${category}: ${(CATEGORIES[category] || []).join(", ")}`,
+    for (const id of cat.ids) console.log(id);
+    console.error(`# ${cat.ids.length} games derived from apps/mobile/src/games/*/game.json`);
+    if (category) {
+      const list = cat.categories[category] || [];
+      console.error(`# Category ${category}: ${list.join(", ")}`);
+    }
+    console.error(
+      `# Canaries: ${JSON.stringify(cat.canaries)}`,
+    );
+    if (cat.registryDrift) {
+      console.error(
+        "# DRIFT: game.json set differs from registry.generated.ts — regenerate the registry",
       );
+      process.exit(1);
+    }
     process.exit(0);
   }
+  if (onlyGame && !cat.ids.includes(onlyGame)) {
+    console.error(
+      `[ERROR] unknown --game '${onlyGame}'. Valid ids (${cat.ids.length}):`,
+    );
+    console.error(cat.ids.join("\n"));
+    process.exit(1);
+  }
+  if (category && !cat.categories[category]) {
+    console.error(
+      `[ERROR] unknown --category '${category}'. Valid categories: ${Object.keys(cat.categories).join(" | ")}`,
+    );
+    process.exit(1);
+  }
+
+  const planned = selectTargets(mode, onlyGame, category, args.includes("--canaries-only"));
+
+  // Preflight: without a usable device, report BLOCKED + NOT VALIDATED per
+  // planned target and exit 2. Never fake PASS.
+  const pf = preflightDevice();
+  if (!pf.ok) {
+    const runId = initRunDir(`${mode}-blocked`);
+    const results = planned.map((t) => ({
+      id: t.id,
+      passed: false,
+      status: "NOT VALIDATED",
+      reason: `blocked: ${pf.reason}`,
+    }));
+    const report = {
+      runId,
+      status: "BLOCKED",
+      pkg: PKG,
+      scheme: SCHEME,
+      mode,
+      blockedReason: pf.reason,
+      startedAt: new Date().toISOString(),
+      endedAt: new Date().toISOString(),
+      results,
+      passed: 0,
+      failed: 0,
+      notValidated: results.length,
+      artifactsDir: RUN_DIR,
+    };
+    writeRunJson(runId, report);
+    console.error(`[BLOCKED] ${pf.reason}`);
+    for (const r of results) console.log(summaryLine(r));
+    console.log(`Run dir: ${RUN_DIR}`);
+    process.exit(exitZero ? 0 : 2);
+  }
+  SERIAL_CACHE = pf.serial;
+
+  // Animation-disabled dumps are reliable across every game (see disableAnimations).
+  disableAnimations();
 
   const runId = initRunDir(mode);
-  mkdirSync(OUT, { recursive: true });
   const report = {
     runId,
-    device: SERIAL,
+    status: "COMPLETED",
+    device: serial(),
     pkg: PKG,
     scheme: SCHEME,
     mode,
+    catalogSize: cat.ids.length,
     deviceInfo: deviceInfo(),
     startedAt: new Date().toISOString(),
     results: [],
   };
 
-  let list = GAMES;
-  if (onlyGame) list = [onlyGame];
-  else if (category && CATEGORIES[category]) list = CATEGORIES[category];
-  if (args.includes("--canaries-only")) list = Object.values(CANARIES);
-
-  if (mode === "game" || mode === "all" || mode === "catalog") {
-    for (const g of list) report.results.push(await flowGame(g, { pause }));
-  }
-  if (mode === "wordmatch" || mode === "all")
-    report.results.push(await flowWordMatch());
-  if (mode === "workout" || mode === "all")
-    report.results.push(await flowWorkout());
-  if (mode === "canaries" || mode === "all") {
-    for (const g of Object.values(CANARIES)) {
-      if (!report.results.some((r) => r.id === g))
-        report.results.push(await flowGame(g, { pause }));
-    }
+  for (const t of planned) {
+    if (t.kind === "game") report.results.push(await flowGame(t.id, { pause }));
+    else if (t.kind === "wordmatch")
+      report.results.push(await flowWordMatch());
+    else if (t.kind === "workout") report.results.push(await flowWorkout());
   }
 
   report.endedAt = new Date().toISOString();

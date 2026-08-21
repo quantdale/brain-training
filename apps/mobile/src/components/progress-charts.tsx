@@ -145,6 +145,74 @@ export function HeatmapRow({
   );
 }
 
+/**
+ * Deterministic segment palette for `StackedShareBar` (fixed hex values so the
+ * rendering is identical across themes, runs and platforms — required for
+ * stable visual baselines). Cycles when there are more segments than colors.
+ */
+export const SHARE_BAR_COLORS = [
+  '#7C9EFF',
+  '#69D2A8',
+  '#FFB86B',
+  '#FF7B9C',
+  '#6BD5E1',
+  '#C792EA',
+  '#F7D774',
+  '#A0AAB8',
+] as const;
+
+/** One proportional slice of a `StackedShareBar`. */
+export interface ShareSegment {
+  /** Stable identifier (e.g. the domain name). */
+  key: string;
+  /** Fraction of the bar in [0, 1]; segments are rendered in the given order. */
+  fraction: number;
+}
+
+/**
+ * Horizontal stacked share bar (e.g. training balance across domains).
+ * Presentational and deterministic: widths are exact fractions of the total,
+ * colors come from the fixed `SHARE_BAR_COLORS` palette by index. Renders a
+ * neutral empty track when there is nothing to show.
+ */
+export function StackedShareBar({
+  segments,
+  height = 10,
+  testID,
+}: {
+  segments: readonly ShareSegment[];
+  height?: number;
+  testID?: string;
+}) {
+  const visible = segments.filter((s) => s.fraction > 0);
+  if (visible.length === 0) {
+    return (
+      <View
+        style={[styles.shareTrack, { height }]}
+        testID={testID}
+        accessibilityLabel="No data"
+      />
+    );
+  }
+  return (
+    <View
+      style={[styles.shareTrack, styles.shareTrackFilled, { height }]}
+      testID={testID}
+      accessibilityLabel={visible.map((s) => `${s.key} ${Math.round(s.fraction * 100)}%`).join(', ')}>
+      {visible.map((segment, i) => (
+        <View
+          key={segment.key}
+          testID={testID ? `${testID}-${segment.key.replace(/[^a-z]/gi, '').toLowerCase()}` : undefined}
+          style={{
+            flex: segment.fraction,
+            backgroundColor: SHARE_BAR_COLORS[i % SHARE_BAR_COLORS.length],
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   segmented: {
     flexDirection: 'row',
@@ -184,5 +252,13 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 3,
+  },
+  shareTrack: {
+    borderRadius: Radii.pill,
+    backgroundColor: 'rgba(128,128,128,0.25)',
+    overflow: 'hidden',
+  },
+  shareTrackFilled: {
+    flexDirection: 'row',
   },
 });

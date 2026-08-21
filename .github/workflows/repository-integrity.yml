@@ -9,9 +9,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: repository-integrity-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   durable-state:
     runs-on: ubuntu-latest
+    # Fail fast on hung runners instead of burning the 360-minute default.
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,3 +29,10 @@ jobs:
 
       - name: Validate durable repository state
         run: node scripts/validate-repo-state.mjs
+
+      # OpenSpec change/spec validation. The CLI is pinned to an exact
+      # version so CI validation is deterministic across runners; it runs
+      # here (not app-ci) because it validates repository docs/specs and
+      # needs no dependency install.
+      - name: OpenSpec validate
+        run: npx --yes @fission-ai/openspec@1.6.0 validate --all

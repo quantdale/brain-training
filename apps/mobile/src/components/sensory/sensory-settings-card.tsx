@@ -36,7 +36,11 @@ export function SensorySettingsCard() {
             testID={`settings-${row.key}`}
             value={settings[row.key]}
             onValueChange={(value) => setSetting(row.key, value)}
-            accessibilityLabel={`${row.label} toggle`}
+            // Label carries the caption too: the switch is the only focusable
+            // element in the row, so a screen reader user would otherwise never
+            // hear what the toggle actually controls. State ("on/off") is
+            // announced by the platform from `value`.
+            accessibilityLabel={`${row.label}. ${row.caption}`}
           />
         </View>
       ))}

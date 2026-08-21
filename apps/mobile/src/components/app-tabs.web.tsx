@@ -21,6 +21,7 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { TAB_DEFINITIONS } from '@/constants/tabs';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -60,7 +61,12 @@ export function TabButton({
   const theme = useTheme();
 
   return (
-    <Pressable {...props} testID={testID} style={({ pressed }) => pressed && styles.pressed}>
+    <Pressable
+      {...props}
+      testID={testID}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isFocused }}
+      style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
       <ThemedView
         type={isFocused ? 'accentSoft' : 'backgroundElement'}
         style={styles.tabButtonView}>
@@ -121,6 +127,12 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  // Touch-target contract: the Pressable (not just the pill) meets the 44pt
+  // minimum so the full tab is reliably tappable and switch-accessible.
+  tabButton: {
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
   },
   tabButtonView: {
     paddingVertical: Spacing.one,

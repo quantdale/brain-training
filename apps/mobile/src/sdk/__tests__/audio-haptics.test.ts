@@ -134,35 +134,40 @@ describe('live service injection (production SDK injection)', () => {
 });
 
 describe('SFX alias coverage (no game sound dropped)', () => {
-  const CANONICAL = new Set(['tap', 'correct', 'wrong', 'success', 'failure', 'record', 'reward']);
-  const KNOWN_GAME_SFX = [
-    'tile-flip',
-    'memory-tile-correct',
-    'memory-tile-wrong',
-    'memory-sequence-memory-tile-correct',
-    'memory-sequence-memory-tile-wrong',
-    'visual-search-hit',
-    'visual-search-miss',
-    'odd-one-out-correct',
-    'odd-one-out-wrong',
-    'logic-option-correct',
-    'logic-option-wrong',
-    'language-word-match-correct',
-    'language-word-match-wrong',
-    'flexibility-card-correct',
-    'flexibility-card-wrong',
-    'math-fast-math-correct',
-    'math-fast-math-wrong',
-    'math-missing-operator-correct',
-    'math-missing-operator-wrong',
-    'spatial-answer-correct',
-    'spatial-answer-wrong',
-    'speed-false-start',
-    'speed-trigger',
-  ];
+  const CANONICAL = new Set(Object.values(FEEDBACK_EVENT_MAP).map((m) => m.sfx));
 
-  it('every game sfx name resolves to a real canonical asset', () => {
-    for (const name of KNOWN_GAME_SFX) {
+  it('canonical asset set is exactly the seven bundled sounds', () => {
+    expect([...CANONICAL].sort()).toEqual([
+      'correct',
+      'failure',
+      'record',
+      'reward',
+      'success',
+      'tap',
+      'wrong',
+    ]);
+  });
+
+  it('every alias target is a canonical asset name (never another alias)', () => {
+    for (const target of Object.values(SFX_ALIASES)) {
+      // The real engine resolves exactly one hop (SFX_ALIASES[name] ?? name),
+      // so an alias pointing at another alias would silently drop the sound.
+      expect(CANONICAL.has(target)).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(SFX_ALIASES, target)).toBe(false);
+    }
+  });
+
+  it('regression: catalog sfx names that once fell through unaliased now resolve', () => {
+    // language-context-fit and flexibility-cue-shift shipped these names in
+    // production before their aliases existed — they resolved to themselves,
+    // matched no asset, and played nothing. See catalog-contracts.test.ts for
+    // the catalog-wide scan that keeps this class of bug closed.
+    for (const name of [
+      'language-context-fit-correct',
+      'language-context-fit-wrong',
+      'flexibility-cue-correct',
+      'flexibility-cue-wrong',
+    ]) {
       const canonical = SFX_ALIASES[name] ?? name;
       expect(CANONICAL.has(canonical)).toBe(true);
     }

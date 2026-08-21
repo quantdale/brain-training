@@ -11,6 +11,8 @@
 #                        foreground focus changed (skipped with WARN when no
 #                        clickable node exists, e.g. app not installed yet)
 #   6. logs              logcat capture is non-empty
+#   7. qa harness        offline autobot self-test (catalog derivation from
+#                        game.json + registry cross-check + hierarchy parsing)
 #
 #   scripts/android/self-test.sh            boot if needed, then run all checks
 #   scripts/android/self-test.sh --no-boot  only run checks (AVD must be up)
@@ -172,8 +174,24 @@ else
 fi
 
 echo
+echo "-- 7. qa harness offline self-test (autobot catalog + parsing) --"
+# The autobot harness derives the game catalog from game.json and cross-checks
+# it against the generated registry; its --self-test exercises that plus the
+# hierarchy/interaction parsing purely offline. A drift or parser regression
+# fails here before any device time is spent.
+if command -v node >/dev/null 2>&1; then
+  if node "$BT_REPO_ROOT/scripts/qa/autobot.mjs" --self-test >"$BT_ARTIFACTS_DIR/self-test-autobot.log" 2>&1; then
+    check "autobot offline self-test ($(grep -c '^\[PASS\]' "$BT_ARTIFACTS_DIR/self-test-autobot.log") assertions)" 0
+  else
+    check "autobot offline self-test (see $BT_ARTIFACTS_DIR/self-test-autobot.log)" 1
+  fi
+else
+  skip "node not on PATH — autobot offline self-test not run"
+fi
+
+echo
 echo "== results: PASS=$PASS FAIL=$FAILURES SKIP=$SKIPPED =="
-echo "artifacts: $BT_ARTIFACTS_DIR (self-test-hierarchy.xml, self-test-screen.png, self-test-logcat.log)"
+echo "artifacts: $BT_ARTIFACTS_DIR (self-test-hierarchy.xml, self-test-screen.png, self-test-logcat.log, self-test-autobot.log)"
 if [ "$FAILURES" -gt 0 ]; then
   echo "SELF-TEST FAILED"
   exit 1
