@@ -29,6 +29,7 @@ import {
   explainMetric,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
+import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MiniBarChart } from '@/components/progress-charts';
@@ -79,7 +80,9 @@ export default function ProgressDetailScreen() {
     }, []),
   );
 
-  const { data } = useDbData(loadProgressDetail, [refreshKey], EMPTY);
+  const { data, loaded, error } = useDbData(loadProgressDetail, [refreshKey], EMPTY);
+  // Recovery action for the error state: bumping the key reruns the load.
+  const retry = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   // V2 aggregates over the wider recent-session window.
   const bestHistory = useMemo(
@@ -126,6 +129,24 @@ export default function ProgressDetailScreen() {
       <ThemedText type="small" themeColor="textSecondary">
         Domain trends, per-game records and recent sessions.
       </ThemedText>
+
+      {!loaded ? (
+        <StateCard
+          variant="loading"
+          title="Loading…"
+          message="Fetching your detailed history."
+          testID="progress-detail-loading"
+        />
+      ) : error ? (
+        <StateCard
+          variant="error"
+          title="Couldn't load history"
+          message="Your progress data is unavailable right now."
+          testID="progress-detail-error"
+          action={{ label: 'Try again', onPress: retry }}
+        />
+      ) : (
+        <>
 
       <ThemedView type="surface" style={styles.card} testID="progress-detail-domains">
         <ThemedText type="subtitle">Domain history</ThemedText>
@@ -240,10 +261,15 @@ export default function ProgressDetailScreen() {
                   <ThemedText type="small">
                     {getGameDefinition(a.gameId)?.name ?? a.gameId}
                   </ThemedText>
-                  <ThemedText type="smallBold">
-                    {a.count}× · best {Math.round(a.bestNormalized * 100)}% ·{' '}
-                    {new Date(a.lastCompletedAt).toLocaleDateString()}
-                  </ThemedText>
+                  <View style={styles.rowRight}>
+                    <ThemedText type="smallBold">
+                      {a.count}× · best {Math.round(a.bestNormalized * 100)}% ·{' '}
+                      {new Date(a.lastCompletedAt).toLocaleDateString()}
+                    </ThemedText>
+                    <ThemedText type="smallBold" themeColor="accent">
+                      ›
+                    </ThemedText>
+                  </View>
                 </Pressable>
               </Link>
             ))}
@@ -269,9 +295,14 @@ export default function ProgressDetailScreen() {
                     {getGameDefinition(session.gameId)?.name ?? session.gameId} ·{' '}
                     {new Date(session.completedAt).toLocaleDateString()}
                   </ThemedText>
-                  <ThemedText type="smallBold">
-                    {Math.round(session.normalizedResult * 100)}%
-                  </ThemedText>
+                  <View style={styles.rowRight}>
+                    <ThemedText type="smallBold">
+                      {Math.round(session.normalizedResult * 100)}%
+                    </ThemedText>
+                    <ThemedText type="smallBold" themeColor="accent">
+                      ›
+                    </ThemedText>
+                  </View>
                 </Pressable>
               </Link>
             ))}
@@ -285,6 +316,8 @@ export default function ProgressDetailScreen() {
           </ThemedText>
         )}
       </ThemedView>
+        </>
+      )}
     </ScreenShell>
   );
 }
@@ -358,5 +391,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
+  },
+  rowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

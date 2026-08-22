@@ -28,6 +28,7 @@ import {
   type ProgressSnapshot,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
+import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { HeatmapRow, LabeledBars } from '@/components/progress-charts';
@@ -61,7 +62,9 @@ export default function ProgressActivityScreen() {
     }, []),
   );
 
-  const { data } = useDbData(load, [refreshKey], EMPTY);
+  const { data, loaded, error } = useDbData(load, [refreshKey], EMPTY);
+  // Recovery action for the error state: bumping the key reruns the load.
+  const retry = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   const calendar = useMemo(
     () => buildActivityCalendar(data.sessions, CALENDAR_DAYS, nowMs),
@@ -99,6 +102,36 @@ export default function ProgressActivityScreen() {
       <ThemedText type="small" themeColor="textSecondary">
         How often you trained over the last ~6 months.
       </ThemedText>
+
+      {!loaded ? (
+        <StateCard
+          variant="loading"
+          title="Loading…"
+          message="Building your activity calendar."
+          testID="progress-activity-loading"
+        />
+      ) : error ? (
+        <StateCard
+          variant="error"
+          title="Couldn't load activity"
+          message="Your training history is unavailable right now."
+          testID="progress-activity-error"
+          action={{ label: 'Try again', onPress: retry }}
+        />
+      ) : calendar.totalSessions === 0 ? (
+        <StateCard
+          variant="empty"
+          title="No sessions yet"
+          message="Play a game to start filling your activity calendar."
+          testID="progress-activity-empty"
+          action={{
+            label: 'Browse games',
+            onPress: () => router.push('/games'),
+            accessibilityLabel: 'Browse the game library',
+          }}
+        />
+      ) : (
+        <>
 
       <ThemedView type="surface" style={styles.card} testID="progress-activity-summary">
         <View style={styles.summaryRow}>
@@ -220,6 +253,8 @@ export default function ProgressActivityScreen() {
           </ThemedText>
         </ThemedView>
       ) : null}
+        </>
+      )}
     </ScreenShell>
   );
 }

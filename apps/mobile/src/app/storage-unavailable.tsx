@@ -1,5 +1,6 @@
 /**
- * Recoverable storage-unavailable screen (006R task 8.4, W13 UX wave).
+ * Recoverable storage-unavailable screen (006R task 8.4, W13 UX wave;
+ * polished in campaign 012 W12).
  *
  * Shown when the canonical local database fails to initialize at startup.
  * Per the Database Integrity spec, a storage-init failure MUST surface a
@@ -8,7 +9,9 @@
  *
  * Deliberately self-contained: plain RN primitives + fixed colors, because the
  * theme/db layers this screen would otherwise depend on are exactly what may
- * have failed to initialize.
+ * have failed to initialize. Font scaling is still capped at ~1.35 to match
+ * the rest of the app so large system fonts cannot push recovery controls
+ * out of reach.
  */
 import { Pressable, Text, View } from 'react-native';
 
@@ -30,22 +33,37 @@ export default function StorageUnavailable({ error, onRetry }: StorageUnavailabl
     // Live region: this screen can appear (or transition to recovered) while a
     // screen reader user is waiting, so surface the state change audibly.
     <View testID="storage-unavailable" style={styles.container} accessibilityLiveRegion="polite">
-      <Text testID="storage-unavailable-title" style={styles.title}>
+      <Text
+        testID="storage-unavailable-title"
+        style={styles.title}
+        maxFontSizeMultiplier={1.35}
+      >
         Storage Unavailable
       </Text>
-      <Text testID="storage-unavailable-message" style={styles.message}>
+      <Text
+        testID="storage-unavailable-message"
+        style={styles.message}
+        maxFontSizeMultiplier={1.35}
+      >
         Your local data store could not be opened. Until this is resolved, progress cannot be
         saved. Your data is not lost — retry to reconnect to the local store.
       </Text>
       <View style={styles.steps}>
         {STEPS.map((step) => (
-          <Text key={step} style={styles.step}>
+          <Text key={step} style={styles.step} maxFontSizeMultiplier={1.35}>
             • {step}
           </Text>
         ))}
       </View>
       {error ? (
-        <Text testID="storage-unavailable-detail" style={styles.detail}>
+        // Selectable: lets a user copy the diagnostic text for a bug report
+        // without any share/logging infrastructure on this degraded surface.
+        <Text
+          testID="storage-unavailable-detail"
+          style={styles.detail}
+          selectable
+          maxFontSizeMultiplier={1.35}
+        >
           {error.message}
         </Text>
       ) : null}
@@ -57,7 +75,9 @@ export default function StorageUnavailable({ error, onRetry }: StorageUnavailabl
         accessibilityHint="Re-attempts the storage initialization that failed"
         style={({ pressed }) => [styles.retry, pressed && styles.retryPressed]}
       >
-        <Text style={styles.retryText}>Retry</Text>
+        <Text style={styles.retryText} maxFontSizeMultiplier={1.35}>
+          Retry
+        </Text>
       </Pressable>
     </View>
   );

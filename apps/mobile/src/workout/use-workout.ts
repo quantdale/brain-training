@@ -22,6 +22,7 @@ import {
   createWorkoutMetadata,
   dailySelectionSeed,
 } from "./metadata";
+import { explainDailyWorkout } from "./reasons";
 import { personalizedWorkout, type DomainRating } from "@/workout/personalize";
 import { eligibleGameIds, eligibleGames } from "@/workout/reconcile";
 import { localDateString } from "@/workout/today";
@@ -79,6 +80,13 @@ export function useWorkout(args: {
         if (!cancelled) setInstance(reconciled);
         return;
       }
+      // Inject the wall clock ONCE at creation time and share it between the
+      // selection and its recorded reasons, so stale domains
+      // (constitution §15) surface after weak ones and both computations
+      // agree on staleness classification. The pure layer never reads the
+      // clock itself; the value is captured here so the selection stays
+      // stable for the rest of the day.
+      const nowMs = Date.now();
       const seed = personalizedWorkout(
         eligibleGames(),
         date,
@@ -86,11 +94,22 @@ export function useWorkout(args: {
         recentGameIds,
         0,
         [],
-        // Inject the wall clock once at creation time so stale domains
-        // (constitution §15) surface after weak ones; the pure layer never
-        // reads the clock itself. Persisted with the instance, so the
-        // selection stays stable for the rest of the day.
-        { nowMs: Date.now() },
+        { nowMs },
+      );
+      // Explainability companion (constitution §14): record WHY each game was
+      // chosen at creation time. Same inputs + same clock as the selection
+      // above, so the recorded reasons describe exactly this instance's
+      // ordered list; they ride inside metadata (dropped silently on legacy
+      // schemas) and are surfaced back through history summaries.
+      const reasons = explainDailyWorkout(
+        eligibleGames(),
+        date,
+        domainRatings,
+        recentGameIds,
+        0,
+        [],
+        // Same creation clock as the selection call above.
+        { nowMs },
       );
       const created = await db.workouts.getOrCreate(
         date,
@@ -113,6 +132,7 @@ export function useWorkout(args: {
             recentGameIds: [...recentGameIds],
             seed: dailySelectionSeed(date, 0),
           },
+          reasons,
         }),
       );
       if (!cancelled) setInstance(created);

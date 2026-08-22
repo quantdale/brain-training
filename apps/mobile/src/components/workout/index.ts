@@ -8,6 +8,15 @@
  * name resolvers) so they stay deterministic under test.
  */
 export { formatDurationMs, localDayStartMs } from './format';
-export { WorkoutLengthChips, WorkoutTemplateChips } from './template-picker';
+export {
+  WorkoutLengthChips,
+  WorkoutTemplateChips,
+  type TemplateResumeInfo,
+} from './template-picker';
 export { WorkoutCompletionCard } from './completion-summary-card';
 export { WorkoutHistoryRow } from './history-row';
+export {
+  WorkoutTemplateDetails,
+  type TemplateDetailsResume,
+} from './template-details';
+export { WorkoutFocusExplanation } from './focus-explanation';

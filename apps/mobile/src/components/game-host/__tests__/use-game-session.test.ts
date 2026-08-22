@@ -9,6 +9,8 @@
  * - AppState auto-pause routes through the same guarded path (backgrounding
  *   must not bypass a `canPause` phase guard);
  * - lifecycle terminal-state idempotency (`completeIfActive`/`abandonIfActive`);
+ * - guarded resume (`resumeIfPaused`) mirrors `requestPause`: only the legal
+ *   paused→active transition succeeds, every other status refuses silently;
  * - elapsed time excludes paused segments.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
@@ -163,6 +165,43 @@ describe('useGameSession', () => {
     clock.advance(50);
     expect(controller.elapsedMs()).toBe(150);
     expect(controller.pausedDurationMs()).toBe(400);
+  });
+
+  it('resumeIfPaused only resumes from paused; refuses everywhere else without throwing', async () => {
+    const { clock, controller } = await makeHook();
+
+    // No session yet: refuse (never throw), timing untouched.
+    expect(controller.resumeIfPaused()).toBe(false);
+
+    controller.begin();
+    clock.advance(100);
+
+    // Active → refuse: a resume racing completion/double-tap is dropped.
+    expect(controller.resumeIfPaused()).toBe(false);
+    expect(controller.status()).toBe('active');
+    clock.advance(50);
+    expect(controller.elapsedMs()).toBe(150);
+
+    // Paused → the one legal path: resumes and unfreezes exactly like resume().
+    expect(controller.requestPause()).toBe(true);
+    clock.advance(400); // paused wall-time — must NOT count
+    expect(controller.resumeIfPaused()).toBe(true);
+    expect(controller.status()).toBe('active');
+    clock.advance(50);
+    expect(controller.elapsedMs()).toBe(200);
+    expect(controller.pausedDurationMs()).toBe(400);
+
+    // Already resumed: an immediate second invocation loses the race cleanly.
+    expect(controller.resumeIfPaused()).toBe(false);
+
+    // Terminal states refuse too (no resurrect, no throw).
+    controller.completeIfActive();
+    expect(controller.resumeIfPaused()).toBe(false);
+    expect(controller.status()).toBe('completed');
+    controller.begin();
+    controller.abandonIfActive();
+    expect(controller.resumeIfPaused()).toBe(false);
+    expect(controller.status()).toBe('abandoned');
   });
 
   it('completeIfActive/abandonIfActive are idempotent and never leave a dangling session', async () => {

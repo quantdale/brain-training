@@ -6,6 +6,11 @@
  * records/aggregates (including last-played recency) and recent session
  * history from the persistence layer, and a prominent Play CTA into the game
  * route. Back navigation returns to the library.
+ *
+ * W11 polish: explicit loading / error states over the persisted sections
+ * (the registry-derived info stays instantly visible), a recovery CTA on the
+ * unknown-game state, and a drill-down link into `/progress-game` when
+ * records exist.
  */
 
 import {
@@ -19,7 +24,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
-import { InfoRow } from "@/components/shell";
+import { InfoRow, StateCard } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
@@ -72,7 +77,7 @@ export default function GameDetailScreen() {
     }, []),
   );
 
-  const { data, loaded } = useDbData(
+  const { data, loaded, error } = useDbData(
     (db) => loadDetail(db, id ?? ""),
     [id, refreshKey],
     EMPTY_DETAIL,
@@ -82,28 +87,12 @@ export default function GameDetailScreen() {
   );
   const [toggleError, setToggleError] = useState(false);
 
-  if (!game) {
-    return (
-      <ScreenShell>
-        <ThemedText type="title" testID="game-detail-title">
-          Game
-        </ThemedText>
-        <ThemedView type="surface" style={styles.card}>
-          <ThemedText type="subtitle">Unknown game</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            This game is not in your library. It may have been renamed or
-            removed — browse the library to find something to play.
-          </ThemedText>
-        </ThemedView>
-        <BackLink />
-      </ScreenShell>
-    );
-  }
-
   const currentFavorite = favoriteOverride ?? (loaded ? data.favorite : false);
+  // Recovery action for the error state: bumping the key reruns the load.
+  const retryLoad = useCallback(() => setRefreshKey((k) => k + 1), []);
 
-  // Hook must be called unconditionally before early return — keep it above the game null guard.
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  // Hooks stay above the unknown-game early return so the hook count cannot
+  // change across navigations between valid and invalid ids.
   const onToggleFavorite = useCallback(async () => {
     if (!game) return;
     try {
@@ -117,11 +106,40 @@ export default function GameDetailScreen() {
       }
       setToggleError(false);
       setRefreshKey((k) => k + 1); // resync the db-backed favorite state
-    } catch (error) {
+    } catch {
       setFavoriteOverride(null);
       setToggleError(true);
     }
-  }, [currentFavorite, game?.id]);
+  }, [currentFavorite, game]);
+
+  if (!game) {
+    return (
+      <ScreenShell>
+        <ThemedText type="title" testID="game-detail-title">
+          Game
+        </ThemedText>
+        <ThemedView type="surface" style={styles.card}>
+          <ThemedText type="subtitle">Unknown game</ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            This game is not in your library. It may have been renamed or
+            removed — browse the library to find something to play.
+          </ThemedText>
+          <Link href="/games" asChild>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Browse the game library"
+              testID="game-detail-unknown-browse"
+            >
+              <ThemedText type="smallBold" themeColor="accent">
+                Browse games ›
+              </ThemedText>
+            </Pressable>
+          </Link>
+        </ThemedView>
+        <BackLink />
+      </ScreenShell>
+    );
+  }
 
   const nowMs = data.nowMs;
 
@@ -200,57 +218,90 @@ export default function GameDetailScreen() {
         </Pressable>
       </Link>
 
-      <ThemedView
-        type="surface"
-        style={styles.card}
-        testID="game-detail-records"
-      >
-        <ThemedText type="subtitle">Records</ThemedText>
-        {data.aggregate ? (
-          <View style={styles.rows}>
-            <InfoRow label="Sessions" value={String(data.aggregate.count)} />
-            <InfoRow
-              label="Best"
-              value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
-            />
-            <InfoRow
-              label="Average"
-              value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
-            />
-            <InfoRow
-              label="Last played"
-              value={formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}
-            />
-          </View>
-        ) : (
-          <ThemedText type="small" themeColor="textSecondary">
-            No sessions yet — play once to see records.
-          </ThemedText>
-        )}
-      </ThemedView>
+      {!loaded ? (
+        <StateCard
+          variant="loading"
+          title="Loading…"
+          message="Fetching your records for this game."
+          testID="game-detail-loading"
+        />
+      ) : error ? (
+        <StateCard
+          variant="error"
+          title="Couldn't load records"
+          message="Your history for this game is unavailable right now."
+          testID="game-detail-error"
+          action={{ label: "Try again", onPress: retryLoad }}
+        />
+      ) : (
+        <>
+          <ThemedView
+            type="surface"
+            style={styles.card}
+            testID="game-detail-records"
+          >
+            <ThemedText type="subtitle">Records</ThemedText>
+            {data.aggregate ? (
+              <View style={styles.rows}>
+                <InfoRow label="Sessions" value={String(data.aggregate.count)} />
+                <InfoRow
+                  label="Best"
+                  value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
+                />
+                <InfoRow
+                  label="Average"
+                  value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
+                />
+                <InfoRow
+                  label="Last played"
+                  value={formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}
+                />
+              </View>
+            ) : (
+              <ThemedText type="small" themeColor="textSecondary">
+                No sessions yet — play once to see records.
+              </ThemedText>
+            )}
+            {/* Drill-down: per-game trends live on the analytics screen. */}
+            {data.aggregate ? (
+              <Link href={{ pathname: '/progress-game' as any, params: { gameId: game.id } }} asChild>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="View detailed trends for this game"
+                  testID="game-detail-stats-link"
+                >
+                  <ThemedText type="smallBold" themeColor="accent">
+                    View detailed trends ›
+                  </ThemedText>
+                </Pressable>
+              </Link>
+            ) : null}
+          </ThemedView>
 
-      <ThemedView
-        type="surface"
-        style={styles.card}
-        testID="game-detail-recent"
-      >
-        <ThemedText type="subtitle">Recent sessions</ThemedText>
-        {data.recent.length > 0 ? (
-          <View style={styles.rows}>
-            {data.recent.map((session) => (
-              <SessionRow
-                key={(session as { id: string }).id}
-                session={session}
-                nowMs={nowMs}
-              />
-            ))}
-          </View>
-        ) : (
-          <ThemedText type="small" themeColor="textSecondary">
-            Nothing here yet.
-          </ThemedText>
-        )}
-      </ThemedView>
+          <ThemedView
+            type="surface"
+            style={styles.card}
+            testID="game-detail-recent"
+          >
+            <ThemedText type="subtitle">Recent sessions</ThemedText>
+            {data.recent.length > 0 ? (
+              <View style={styles.rows}>
+                {data.recent.map((session) => (
+                  <SessionRow
+                    key={(session as { id: string }).id}
+                    session={session}
+                    nowMs={nowMs}
+                  />
+                ))}
+              </View>
+            ) : (
+              <ThemedText type="small" themeColor="textSecondary">
+                Nothing here yet.
+              </ThemedText>
+            )}
+          </ThemedView>
+        </>
+      )}
 
       <ThemedText
         type="caption"

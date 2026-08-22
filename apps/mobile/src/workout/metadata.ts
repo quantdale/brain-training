@@ -23,6 +23,7 @@
  */
 
 import type { GameCategory } from "@/sdk";
+import type { WorkoutSelectionReason } from "./personalize";
 
 /**
  * Schema version of {@link WorkoutMetadata}. Bump whenever the shape changes
@@ -76,6 +77,17 @@ export interface WorkoutMetadata {
   focus: GameCategory | null;
   /** Generation-input snapshot (present when the caller supplied one). */
   inputs?: WorkoutGenerationInputs;
+  /**
+   * Selection-order personalization reasons recorded at creation time (see
+   * `reasons.ts`). Additive OPTIONAL field (provenance, not load-bearing):
+   * v1 producers never wrote it and both old and new readers interpret rows
+   * correctly without a version bump — old parsers silently ignore unknown
+   * JSON keys, new parsers treat absence as undefined. Consumers must treat
+   * recorded reasons as valid only while they still match the persisted
+   * selection (see `alignedRecordedReasons` in `reasons.ts`): rerolls and
+   * catalog reconciliation can change `gameIds` after the fact.
+   */
+  reasons?: WorkoutSelectionReason[];
 }
 
 /* ------------------------------------------------------------------ *
@@ -172,6 +184,8 @@ export function createWorkoutMetadata(input: {
   length: WorkoutLength;
   focus: GameCategory | null;
   inputs?: WorkoutGenerationInputs;
+  /** Creation-time selection reasons (persisted when provided). */
+  reasons?: WorkoutSelectionReason[];
 }): WorkoutMetadata {
   return {
     version: WORKOUT_METADATA_VERSION,
@@ -180,6 +194,7 @@ export function createWorkoutMetadata(input: {
     length: input.length,
     focus: input.focus,
     ...(input.inputs ? { inputs: input.inputs } : {}),
+    ...(input.reasons ? { reasons: [...input.reasons] } : {}),
   };
 }
 
@@ -231,6 +246,7 @@ export function parseWorkoutMetadata(raw: unknown): WorkoutMetadata | undefined 
           }
         : undefined;
   }
+  const reasons = parseRecordedReasons(value.reasons);
   return {
     version: value.version,
     kind: value.kind,
@@ -238,5 +254,50 @@ export function parseWorkoutMetadata(raw: unknown): WorkoutMetadata | undefined 
     length: value.length,
     focus,
     ...(inputs ? { inputs } : {}),
+    ...(reasons ? { reasons } : {}),
   };
+}
+
+/**
+ * Validate a persisted `reasons` array (defensive, same policy as the
+ * generation-inputs snapshot): every entry must carry a string `gameId`, a
+ * known reason `kind` and a string `detail`; one malformed entry drops the
+ * WHOLE array (a partially-valid provenance record would silently mislabel
+ * positions). Absent/invalid input yields undefined so legacy rows keep
+ * loading with no reasons instead of crashing a history read.
+ */
+const REASON_KINDS: readonly WorkoutSelectionReason["kind"][] = [
+  "weak-domain",
+  "stale-domain",
+  "recency-avoided",
+  "selected",
+  "excluded",
+];
+
+function parseRecordedReasons(
+  raw: unknown,
+): WorkoutSelectionReason[] | undefined {
+  if (!Array.isArray(raw)) {
+    return undefined;
+  }
+  const parsed: WorkoutSelectionReason[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) {
+      return undefined;
+    }
+    const value = entry as Record<string, unknown>;
+    if (
+      typeof value.gameId !== "string" ||
+      typeof value.detail !== "string" ||
+      !REASON_KINDS.includes(value.kind as WorkoutSelectionReason["kind"])
+    ) {
+      return undefined;
+    }
+    parsed.push({
+      gameId: value.gameId,
+      kind: value.kind as WorkoutSelectionReason["kind"],
+      detail: value.detail,
+    });
+  }
+  return parsed;
 }

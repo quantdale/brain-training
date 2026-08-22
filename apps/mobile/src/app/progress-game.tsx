@@ -16,7 +16,7 @@
  * single-session spikes, and a neutral difficulty-progression block.
  */
 
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -37,6 +37,7 @@ import {
   WINDOW_ORDER,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
+import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MiniBarChart, SegmentedControl } from '@/components/progress-charts';
@@ -68,11 +69,13 @@ export default function ProgressGameScreen() {
     }, []),
   );
 
-  const { data } = useDbData(
+  const { data, loaded, error } = useDbData(
     useCallback((db: AppDatabase) => loadGameSessions(db, gameId), [gameId]),
     [refreshKey, gameId],
     EMPTY,
   );
+  // Recovery action for the error state: bumping the key reruns the load.
+  const retry = useCallback(() => setRefreshKey((k) => k + 1), []);
   const [windowKey, setWindowKey] = useState<TimeWindowKey>('30d');
 
   const insight = useMemo(() => buildGameInsight(gameId, data), [gameId, data]);
@@ -123,12 +126,38 @@ export default function ProgressGameScreen() {
         <ThemedText type="title" testID="progress-game-title">
           {def?.name ?? gameId ?? 'Game'}
         </ThemedText>
-        <ThemedView type="surface" style={styles.card} testID="progress-game-empty">
-          <ThemedText type="subtitle">No sessions yet</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Play this game to start tracking its scores, accuracy and records here.
-          </ThemedText>
-        </ThemedView>
+        {!loaded ? (
+          <StateCard
+            variant="loading"
+            title="Loading…"
+            message="Fetching this game's sessions."
+            testID="progress-game-loading"
+          />
+        ) : error ? (
+          <StateCard
+            variant="error"
+            title="Couldn't load game history"
+            message="This game's data is unavailable right now."
+            testID="progress-game-error"
+            action={{ label: 'Try again', onPress: retry }}
+          />
+        ) : (
+          <ThemedView type="surface" style={styles.card} testID="progress-game-empty">
+            <ThemedText type="subtitle">No sessions yet</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Play this game to start tracking its scores, accuracy and records here.
+            </ThemedText>
+            {gameId ? (
+              <Link href={`/game-detail/${gameId}`} asChild>
+                <Pressable accessibilityRole="button" testID="progress-game-empty-action">
+                  <ThemedText type="smallBold" themeColor="accent">
+                    View game details ›
+                  </ThemedText>
+                </Pressable>
+              </Link>
+            ) : null}
+          </ThemedView>
+        )}
       </ScreenShell>
     );
   }
@@ -455,10 +484,16 @@ export default function ProgressGameScreen() {
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         <View style={styles.rows}>
           {data.slice(0, 10).map((session) => (
-            <View key={session.id} style={styles.row} testID={`progress-game-session-${session.id}`}>
-              <ThemedText type="small">{formatDayLabel(session.completedAt)}</ThemedText>
-              <ThemedText type="smallBold">{formatPercent(session.normalizedResult)}</ThemedText>
-            </View>
+            <Link key={session.id} href={`/results?id=${session.id}`} asChild>
+              <Pressable
+                style={styles.row}
+                accessibilityRole="button"
+                accessibilityLabel={`${formatDayLabel(session.completedAt)} session, ${Math.round(session.normalizedResult * 100)} percent`}
+                testID={`progress-game-session-${session.id}`}>
+                <ThemedText type="small">{formatDayLabel(session.completedAt)}</ThemedText>
+                <ThemedText type="smallBold">{formatPercent(session.normalizedResult)}</ThemedText>
+              </Pressable>
+            </Link>
           ))}
         </View>
       </ThemedView>

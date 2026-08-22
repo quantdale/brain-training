@@ -31,6 +31,7 @@ import {
   type WorkoutLength,
 } from "./metadata";
 import type { DomainRating } from "./personalize";
+import { alignedRecordedReasons, explainTemplateWorkout } from "./reasons";
 import { eligibleGameIds, eligibleGames } from "./reconcile";
 import { localDateString } from "./today";
 import { rotationSuggestions } from "./rotation";
@@ -100,7 +101,24 @@ export function useWorkoutTemplates(
       // eligible catalog before reading history (completed rows are
       // historical records and are intentionally left untouched).
       await db.workouts.reconcileActiveInstances(eligibleGameIds());
-      return db.workouts.listRecentSummaries(HISTORY_LIMIT);
+      const limit = HISTORY_LIMIT;
+      // Provenance round-trip (campaign 012 W06): recorded creation-time
+      // reasons ride inside `metadata_json` and are surfaced back through the
+      // summaries' `reasons` field — but ONLY while they still describe the
+      // persisted selection one-for-one (`alignedRecordedReasons`). Rerolls
+      // and catalog reconciliation legitimately invalidate them; those rows
+      // degrade to null reasons instead of mislabeled provenance.
+      const instances = await db.workouts.listHistory({ limit });
+      const reasonsByKey = new Map(
+        instances.map((instance) => [
+          instance.date,
+          alignedRecordedReasons(instance.gameIds, instance.metadata),
+        ]),
+      );
+      return db.workouts.listRecentSummaries(
+        limit,
+        (key) => reasonsByKey.get(key) ?? null,
+      );
     },
     [date, reloadToken],
     [] as WorkoutCompletionSummary[],
@@ -141,6 +159,9 @@ export function useWorkoutTemplates(
         return null;
       }
       const { domainRatings, recentGameIds } = argsRef.current;
+      // Inject the wall clock once and share it between the personalization
+      // reorder and its recorded reasons so both agree on staleness.
+      const nowMs = Date.now();
       const selection = selectTemplateWorkout({
         games: eligibleGames(),
         template,
@@ -153,8 +174,18 @@ export function useWorkoutTemplates(
         domainRatings,
         recentGameIds,
         seed: selection.seed,
-        options: { nowMs: Date.now() },
+        options: { nowMs },
       });
+      // Explainability companion (constitution §14): record WHY each game sits
+      // where it does, in final selection order, at creation time. Persisted
+      // inside metadata when the schema allows; surfaced back through history.
+      const reasons = explainTemplateWorkout(
+        ordered,
+        domainRatings,
+        recentGameIds,
+        [],
+        { nowMs },
+      );
       const key = templateInstanceKey(date, template.id, length);
       const instance = await db.workouts.getOrCreate(
         key,
@@ -171,6 +202,7 @@ export function useWorkoutTemplates(
             recentGameIds: [...recentGameIds],
             seed: selection.seed,
           },
+          reasons,
         },
       );
       emitWorkoutChanged();

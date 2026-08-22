@@ -38,6 +38,7 @@ import {
   WINDOW_DAYS,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
+import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MiniBarChart, SegmentedControl, HeatmapRow } from '@/components/progress-charts';
@@ -94,7 +95,9 @@ export default function ProgressDomainScreen() {
     }, []),
   );
 
-  const { data } = useDbData(load, [refreshKey, domain], EMPTY);
+  const { data, loaded, error } = useDbData(load, [refreshKey, domain], EMPTY);
+  // Recovery action for the error state: bumping the key reruns the load.
+  const retry = useCallback(() => setRefreshKey((k) => k + 1), []);
   const [windowKey, setWindowKey] = useState<TimeWindowKey>('30d');
 
   const domainSessions = useMemo(
@@ -244,6 +247,23 @@ export default function ProgressDomainScreen() {
         />
       </View>
 
+      {!loaded ? (
+        <StateCard
+          variant="loading"
+          title="Loading…"
+          message="Fetching this domain's history."
+          testID="progress-domain-loading"
+        />
+      ) : error ? (
+        <StateCard
+          variant="error"
+          title="Couldn't load domain"
+          message="This domain's data is unavailable right now."
+          testID="progress-domain-error"
+          action={{ label: 'Try again', onPress: retry }}
+        />
+      ) : (
+        <>
       {unseen ? (
         <ThemedView type="surface" style={styles.card} testID="progress-domain-unseen">
           <ThemedText type="subtitle">Not trained yet</ThemedText>
@@ -251,6 +271,13 @@ export default function ProgressDomainScreen() {
             You haven&apos;t played a {domain} game. This domain contributes the starting
             rating ({insight?.rating ?? 1000}) to your overall composite until you train it.
           </ThemedText>
+          <Link href={'/games' as any} asChild>
+            <Pressable accessibilityRole="button" testID="progress-domain-unseen-action">
+              <ThemedText type="smallBold" themeColor="accent">
+                Find a {domain} game ›
+              </ThemedText>
+            </Pressable>
+          </Link>
         </ThemedView>
       ) : (
         <ThemedView type="surface" style={styles.card} testID="progress-domain-summary">
@@ -483,6 +510,8 @@ export default function ProgressDomainScreen() {
           </ThemedText>
         )}
       </ThemedView>
+        </>
+      )}
     </ScreenShell>
   );
 }

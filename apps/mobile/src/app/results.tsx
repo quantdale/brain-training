@@ -71,7 +71,7 @@ export default function ResultsScreen() {
     }, []),
   );
 
-  const { data, loaded } = useDbData(
+  const { data, loaded, error } = useDbData(
     (db) => loadResults(db, id),
     [id, refreshKey],
     EMPTY,
@@ -110,6 +110,14 @@ export default function ResultsScreen() {
           title="Loading…"
           message="Fetching your session results."
           testID="results-loading"
+        />
+      ) : error ? (
+        <StateCard
+          variant="error"
+          title="Couldn't load results"
+          message="This session's data is unavailable right now."
+          testID="results-error"
+          action={{ label: "Try again", onPress: () => setRefreshKey((k) => k + 1) }}
         />
       ) : session ? (
         <>
@@ -204,11 +212,22 @@ export default function ResultsScreen() {
             {ratingHistory.length > 0 ? (
               <View style={styles.rows}>
                 {ratingHistory.map((h) => (
-                  <InfoRow
-                    key={h.domain}
-                    label={h.domain}
-                    value={`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
-                  />
+                  <View key={h.domain} style={styles.row}>
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {h.domain}
+                    </ThemedText>
+                    <ThemedText
+                      type="smallBold"
+                      themeColor={
+                        h.delta > 0 ? "success" : h.delta < 0 ? "danger" : undefined
+                      }
+                      testID={`results-rating-delta-${h.domain
+                        .replace(/[^a-z]/gi, "")
+                        .toLowerCase()}`}
+                    >
+                      {`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
+                    </ThemedText>
+                  </View>
                 ))}
               </View>
             ) : (
@@ -216,6 +235,12 @@ export default function ResultsScreen() {
                 No rating movement recorded for this session.
               </ThemedText>
             )}
+            {ratingHistory.length > 0 ? (
+              <ThemedText type="caption" themeColor="textSecondary">
+                Deltas show how each domain rating changed because of this
+                session.
+              </ThemedText>
+            ) : null}
           </ThemedView>
 
           <ThemedView

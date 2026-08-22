@@ -1,6 +1,6 @@
 /**
  * Data Management — local backup / restore / wipe (Session 05 portability,
- * W13 UX wave).
+ * matured in campaign 012 W12).
  *
  * Offline-first, manual backup flow (constitution §7):
  * - Export canonical local profile/progression evidence as a versioned, checksummed envelope.
@@ -10,14 +10,22 @@
  * - Atomic application + rollback on failure; triggers stay valid.
  * - Local data deletion workflow with backup-offered-first and typed confirmation.
  *
- * Transport consumes W10's `BackupTransport` seam as-is via the provided
- * in-memory implementation: every export is also saved under a timestamped
- * name (`defaultBackupName`) and can be re-loaded into the import box or
- * deleted within the session. A native file/share transport can replace it
- * later without touching this engine contract.
+ * UX contract (W12):
+ * - Device-local honesty: every explanation states that data lives only on
+ *   this phone; there is no account or cloud sync to fall back on.
+ * - Destructive actions are two-tap (Replace import, per-backup Delete) using
+ *   the shared ConfirmButton — same arm/confirm pattern as reward purchases.
+ * - The share sheet is offered where available; when the platform reports it
+ *   unavailable we say so plainly instead of failing silently.
+ *
+ * Transport consumes W10's `BackupTransport` seam via the file-backed
+ * implementation: every export is also saved under a timestamped name
+ * (`defaultBackupName`) inside the app's document directory and survives
+ * restarts. A native transport can replace it later without touching this
+ * engine contract.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -28,12 +36,12 @@ import {
 
 import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
+import { ConfirmButton } from "@/components/settings/confirm-button";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Radii, Spacing } from "@/constants/theme";
-import { getDb } from "@/db";
-import { useDbData } from "@/hooks/use-db-data";
 import {
+  applyImport,
   countLocalData,
   defaultBackupName,
   exportLocalData,
@@ -44,7 +52,8 @@ import {
   type BackupTransport,
   type LocalDataCounts,
 } from "@/data-portability";
-import { applyImport } from "@/data-portability";
+import { getDb } from "@/db";
+import { useDbData } from "@/hooks/use-db-data";
 // Imported directly rather than via the barrel: this module pulls in native
 // filesystem modules that Node-side engine tests must not load transitively.
 // The native requires inside are LAZY (campaign 011 fix), so importing this
@@ -53,6 +62,7 @@ import { applyImport } from "@/data-portability";
 import {
   createFileBackupTransport,
   pickBackupFile,
+  shareBackupFile,
 } from "@/data-portability/file-transport";
 
 // Durable backup store (Campaign 010 file transport, debt D2): saved backups
@@ -85,6 +95,7 @@ export default function DataManagementScreen() {
   const { data: counts } = useDbData(loadCounts, [refreshKey], EMPTY_COUNTS);
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
   const [exportText, setExportText] = useState<string | null>(null);
+  const [lastExportName, setLastExportName] = useState<string | null>(null);
   const [importText, setImportText] = useState("");
   const [preview, setPreview] = useState<Awaited<
     ReturnType<typeof previewImport>
@@ -104,46 +115,88 @@ export default function DataManagementScreen() {
     }
   }, []);
 
+  // Backups saved by earlier sessions must be visible on arrival — without
+  // this mount-time listing the inventory only appeared after an action,
+  // hiding exactly the files a user came here to restore.
+  useEffect(() => {
+    void refreshSavedBackups();
+  }, [refreshSavedBackups]);
+
   const onExport = useCallback(async () => {
+    if (busy) {
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
       const env = await exportLocalData(getDb());
       const text = serializeBackup(env);
       setExportText(text);
-      // Also park the envelope in the session transport so it can be
-      // re-imported without copy/paste gymnastics.
+      // Also park the envelope in the durable transport so a copy survives
+      // even if the user never shares it off-device.
       const name = defaultBackupName();
       await backupTransport.writeBackup(name, text);
+      setLastExportName(name);
       await refreshSavedBackups();
       setMessage(
-        `Exported ${env.data.gameSessions.length} sessions, ${env.data.currencyLedger.length} ledger entries. Saved as ${name}.`,
+        `Exported ${env.data.gameSessions.length} sessions and ${env.data.currencyLedger.length} ledger entries. Saved on this phone as ${name}.`,
       );
     } catch (e) {
+      setLastExportName(null);
       setMessage(`Export failed: ${(e as Error).message}`);
     } finally {
       setBusy(false);
     }
-  }, [refreshSavedBackups]);
+  }, [busy, refreshSavedBackups]);
 
-  const onLoadBackup = useCallback(async (name: string) => {
+  /** Offer the fresh/saved export to the system share sheet when present. */
+  const onShareBackup = useCallback(async (name: string) => {
+    if (busy) {
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
-      const text = await backupTransport.readBackup(name);
-      setImportText(text);
+      const shared = await shareBackupFile(name);
       setMessage(
-        `Loaded "${name}" into the import box. Preview before applying.`,
+        shared
+          ? `Backup "${name}" handed to the system share sheet.`
+          : `Sharing isn't available on this device. Use your file manager to copy "${name}" out of this app's backups folder.`,
       );
     } catch (e) {
-      setMessage(`Load failed: ${(e as Error).message}`);
+      setMessage(`Share failed: ${(e as Error).message}`);
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [busy]);
+
+  const onLoadBackup = useCallback(
+    async (name: string) => {
+      if (busy) {
+        return;
+      }
+      setBusy(true);
+      setMessage(null);
+      try {
+        const text = await backupTransport.readBackup(name);
+        setImportText(text);
+        setMessage(
+          `Loaded "${name}" into the import box. Preview before applying.`,
+        );
+      } catch (e) {
+        setMessage(`Load failed: ${(e as Error).message}`);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy],
+  );
 
   const onDeleteBackup = useCallback(
     async (name: string) => {
+      if (busy) {
+        return;
+      }
       setBusy(true);
       setMessage(null);
       try {
@@ -156,10 +209,13 @@ export default function DataManagementScreen() {
         setBusy(false);
       }
     },
-    [refreshSavedBackups],
+    [busy, refreshSavedBackups],
   );
 
   const onLoadFromFile = useCallback(async () => {
+    if (busy) {
+      return;
+    }
     setBusy(true);
     setMessage(null);
     try {
@@ -178,7 +234,7 @@ export default function DataManagementScreen() {
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [busy]);
 
   const onPreview = useCallback(
     async (mode: "merge" | "replace") => {
@@ -193,7 +249,7 @@ export default function DataManagementScreen() {
         setPreview(result);
         if (!result.valid) {
           setMessage(
-            `Preview: rejected (${result.error?.kind}): ${result.error?.message}`,
+            `Preview rejected (${result.error?.kind}): ${result.error?.message}`,
           );
         } else {
           setMessage(
@@ -211,33 +267,34 @@ export default function DataManagementScreen() {
 
   const onImport = useCallback(
     async (mode: "merge" | "replace") => {
+      if (busy) {
+        return;
+      }
       if (!importText.trim()) {
         setMessage("Paste a backup JSON first.");
         return;
       }
-      // Validate before mutation (engine also validates, but we surface the preview first).
-      const previewResult = await previewImport(getDb(), importText, mode);
-      if (!previewResult.valid) {
-        setMessage(
-          `Import rejected: ${previewResult.error?.kind} — ${previewResult.error?.message}`,
-        );
-        return;
-      }
-      // For replace, confirm destructiveness via an extra guard (typed confirmation already in wipe, but for replace we also warn).
-      if (mode === "replace") {
-        // Simple in-UI confirmation via Alert on native, but also allow proceeding.
-        // We do not block automation: the caller must have previewed.
-      }
+      // Validate before mutation (the engine validates again inside its own
+      // transaction; this pass surfaces typed rejections without writing).
       setBusy(true);
       setMessage(null);
       try {
+        const previewResult = await previewImport(getDb(), importText, mode);
+        if (!previewResult.valid) {
+          setMessage(
+            `Import rejected: ${previewResult.error?.kind} — ${previewResult.error?.message}`,
+          );
+          return;
+        }
         // Reuse the preview's already-validated payload (same importText) —
         // re-parsing large backups doubled the synchronous work per import.
         const parsed =
           previewResult.parsed ?? parseAndValidateBackup(importText);
         const result = await applyImport(getDb(), parsed, mode);
         setMessage(
-          `Import ${mode} complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger added.`,
+          mode === "replace"
+            ? `Replace complete: current data was erased and ${result.sessionsAdded} sessions restored (${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added).`
+            : `Merge complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added.`,
         );
         setPreview(null);
         refresh();
@@ -247,20 +304,26 @@ export default function DataManagementScreen() {
         setBusy(false);
       }
     },
-    [importText, refresh],
+    [busy, importText, refresh],
   );
 
   const onWipe = useCallback(async () => {
+    if (busy) {
+      return;
+    }
     if (wipeConfirm !== "DELETE") {
-      setMessage("Type DELETE to confirm wipe.");
+      setMessage("Type DELETE to confirm wiping all local data.");
       return;
     }
     setBusy(true);
     setMessage(null);
     try {
       await wipeLocalData(getDb());
-      setMessage("All local data wiped. App will start fresh on next launch.");
+      setMessage(
+        "All local training data wiped. Saved backup files were kept — restore one any time.",
+      );
       setExportText(null);
+      setLastExportName(null);
       setPreview(null);
       setWipeConfirm("");
       refresh();
@@ -269,7 +332,7 @@ export default function DataManagementScreen() {
     } finally {
       setBusy(false);
     }
-  }, [wipeConfirm, refresh]);
+  }, [busy, refresh, wipeConfirm]);
 
   return (
     <ScreenShell>
@@ -277,8 +340,10 @@ export default function DataManagementScreen() {
         Data Management
       </ThemedText>
       <ThemedText type="caption" themeColor="textSecondary">
-        Export, preview, and restore your local training data. All operations
-        validate before mutating and are fully offline.
+        Your training history lives only on this phone — there is no account or
+        cloud copy. Export a backup file you control, preview exactly what a
+        restore would change, and delete local data only when you mean it. All
+        operations validate before they write and work fully offline.
       </ThemedText>
 
       <ThemedView type="surface" style={styles.card} testID="data-counts">
@@ -330,25 +395,41 @@ export default function DataManagementScreen() {
       <ThemedView type="surface" style={styles.card} testID="data-export-card">
         <ThemedText type="subtitle">Export Backup</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Creates a versioned, checksummed JSON envelope containing all
-          canonical local data (sessions, ratings, ledger, quests, streak
-          inventory, settings, etc.). Exports are also saved into the app&apos;s
-          backups folder and listed below.
+          Creates one versioned, checksummed JSON file containing your full
+          local training history: sessions, ratings, coins, quests,
+          achievements, streak inventory and settings. It is saved in this
+          app&apos;s backups folder on your phone; nothing is uploaded
+          anywhere. Use Share to put a copy outside the app.
         </ThemedText>
-        <Pressable
-          testID="data-export-button"
-          accessibilityRole="button"
-          accessibilityLabel="Export backup to JSON"
-          disabled={busy}
-          onPress={onExport}
-          style={styles.button}
-        >
-          <ThemedView type="accentSoft" style={styles.pill}>
-            <ThemedText type="smallBold" themeColor="accent">
-              {busy ? "Working…" : "Export to JSON"}
-            </ThemedText>
-          </ThemedView>
-        </Pressable>
+        <View style={styles.row}>
+          <Pressable
+            testID="data-export-button"
+            accessibilityRole="button"
+            accessibilityLabel="Export backup to JSON"
+            disabled={busy}
+            onPress={onExport}
+            style={styles.button}
+          >
+            <ThemedView type="accentSoft" style={styles.pill}>
+              <ThemedText type="smallBold" themeColor="accent">
+                {busy ? "Working…" : "Export to JSON"}
+              </ThemedText>
+            </ThemedView>
+          </Pressable>
+          {lastExportName && !busy ? (
+            <Pressable
+              testID={`data-export-share-${lastExportName}`}
+              accessibilityRole="button"
+              accessibilityLabel={`Share the exported backup ${lastExportName}`}
+              onPress={() => onShareBackup(lastExportName)}
+              style={styles.button}
+            >
+              <ThemedView type="surface" style={styles.smallPill}>
+                <ThemedText type="smallBold">Share…</ThemedText>
+              </ThemedView>
+            </Pressable>
+          ) : null}
+        </View>
         {exportText ? (
           <View style={styles.exportBox} testID="data-export-output">
             <ScrollView style={styles.exportScroll} testID="data-export-scroll">
@@ -358,9 +439,9 @@ export default function DataManagementScreen() {
               </ThemedText>
             </ScrollView>
             <ThemedText type="caption" themeColor="textSecondary">
-              Full backup is {exportText.length} characters. Copy the full text
-              from the export (long-press to select). For sharing, paste into a
-              file or cloud note.
+              Full backup is {exportText.length} characters. This preview is
+              truncated — share the file or load it from Saved Backups instead
+              of copying by hand.
             </ThemedText>
           </View>
         ) : null}
@@ -374,9 +455,9 @@ export default function DataManagementScreen() {
       >
         <ThemedText type="subtitle">Saved Backups</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Stored in the app&apos;s backups folder and kept across app restarts.
-          Load one to restore it, or delete it. Use the share sheet or a file
-          manager to keep copies outside the app.
+          Plain JSON files in this app&apos;s backups folder on your phone.
+          They survive restarts and are NOT removed by deleting your training
+          data below. For real safety keep a copy outside the device (Share).
         </ThemedText>
         {savedBackups.length === 0 ? (
           <ThemedText type="small" themeColor="textSecondary">
@@ -408,18 +489,28 @@ export default function DataManagementScreen() {
                     </ThemedView>
                   </Pressable>
                   <Pressable
-                    testID={`data-backup-delete-${name}`}
+                    testID={`data-backup-share-${name}`}
                     accessibilityRole="button"
-                    accessibilityLabel={`Delete saved backup ${name}`}
+                    accessibilityLabel={`Share saved backup ${name}`}
                     disabled={busy}
-                    onPress={() => onDeleteBackup(name)}
+                    onPress={() => onShareBackup(name)}
                   >
                     <ThemedView type="surface" style={styles.smallPill}>
-                      <ThemedText type="smallBold" themeColor="danger">
-                        Delete
-                      </ThemedText>
+                      <ThemedText type="smallBold">Share</ThemedText>
                     </ThemedView>
                   </Pressable>
+                  {/* Deleting a backup is destructive and irreversible —
+                      require the confirming second tap. */}
+                  <ConfirmButton
+                    testID={`data-backup-delete-${name}`}
+                    label="Delete"
+                    confirmLabel="Tap to confirm"
+                    accessibilityLabel={`Delete saved backup ${name}`}
+                    variant="danger"
+                    size="small"
+                    disabled={busy}
+                    onConfirm={() => void onDeleteBackup(name)}
+                  />
                 </View>
               </View>
             ))}
@@ -430,16 +521,28 @@ export default function DataManagementScreen() {
       <ThemedView type="surface" style={styles.card} testID="data-import-card">
         <ThemedText type="subtitle">Import / Restore</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Paste a previously exported backup JSON (or load a saved backup
-          above). Preview first to see what would change (no data is written
-          during preview). Then choose Merge (add new, keep existing) or Replace
-          (overwrite everything).
+          Paste a previously exported backup JSON (or load a saved backup or
+          file below), then preview — previews never write data.
         </ThemedText>
+        <View style={styles.modeBox} testID="data-import-modes">
+          <ThemedText type="smallBold">Merge</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Adds what the backup contains that your phone is missing. Nothing
+            currently on the phone is deleted or overwritten.
+          </ThemedText>
+          <ThemedText type="smallBold">Replace</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Erases your current local data first, then restores exactly what is
+            in the backup. Anything not in the backup is gone permanently.
+          </ThemedText>
+        </View>
         <TextInput
           testID="data-import-input"
           placeholder="Paste backup JSON here"
           placeholderTextColor="#999"
           multiline
+          autoCapitalize="none"
+          autoCorrect={false}
           style={styles.textArea}
           value={importText}
           onChangeText={setImportText}
@@ -487,14 +590,20 @@ export default function DataManagementScreen() {
             accessibilityLiveRegion="polite"
           >
             <ThemedText type="smallBold">
-              Preview:{" "}
+              Preview ({preview.mode}):{" "}
               {preview.valid ? "Valid" : `Invalid (${preview.error?.kind})`}
             </ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
               {preview.valid
-                ? `Would add ${preview.counters.sessionsAdded} sessions, ${preview.counters.ledgerAdded} ledger entries.`
+                ? `Would add ${preview.counters.sessionsAdded} sessions and ${preview.counters.ledgerAdded} ledger entries${preview.mode === "replace" ? " after erasing current data" : ""}.`
                 : preview.error?.message}
             </ThemedText>
+            {preview.mode === "replace" && (
+              <ThemedText type="caption" themeColor="warning">
+                Replace erases everything currently on this phone before
+                restoring the backup.
+              </ThemedText>
+            )}
             {preview.notes.map((n, i) => (
               <ThemedText key={i} type="caption" themeColor="textSecondary">
                 • {n}
@@ -516,40 +625,58 @@ export default function DataManagementScreen() {
               </ThemedText>
             </ThemedView>
           </Pressable>
-          <Pressable
+          {/* Replace is destructive: first tap arms ("Tap again…"), second
+              tap applies. Same pattern as deleting saved backups. */}
+          <ConfirmButton
             testID="data-import-replace"
-            accessibilityRole="button"
+            label="Replace Import"
+            confirmLabel="Tap again to erase and restore"
             accessibilityLabel="Apply replace import"
+            variant="danger"
             disabled={busy || !importText.trim()}
-            onPress={() => onImport("replace")}
-          >
-            <ThemedView type="accentSoft" style={styles.pill}>
-              <ThemedText type="smallBold" themeColor="accent">
-                Replace Import
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
+            onConfirm={() => void onImport("replace")}
+          />
         </View>
         <ThemedText type="caption" themeColor="warning">
-          Replace is destructive and cannot be undone except by another restore.
+          Replace cannot be undone except by restoring another backup. Not sure
+          which mode you need? Merge is always safe.
         </ThemedText>
       </ThemedView>
 
       <ThemedView type="surface" style={styles.card} testID="data-wipe-card">
         <ThemedText type="subtitle">Delete All Local Data</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Permanently deletes all sessions, ratings, ledger, quests, and
-          settings. Offer a backup first — export above before wiping. Type
-          DELETE to confirm.
+          Permanently deletes every session, rating, coin ledger entry, quest,
+          achievement and setting on this phone. There is no cloud copy to fall
+          back on. Export a backup first — you cannot undo this unless you have
+          one.
         </ThemedText>
+        <View style={styles.row}>
+          <Pressable
+            testID="data-wipe-export-first"
+            accessibilityRole="button"
+            accessibilityLabel="Export a backup before deleting anything"
+            disabled={busy}
+            onPress={onExport}
+          >
+            <ThemedView type="accentSoft" style={styles.pill}>
+              <ThemedText type="smallBold" themeColor="accent">
+                Export a backup first
+              </ThemedText>
+            </ThemedView>
+          </Pressable>
+        </View>
         <TextInput
           testID="data-wipe-confirm"
           placeholder="Type DELETE to confirm"
           placeholderTextColor="#999"
+          autoCapitalize="characters"
+          autoCorrect={false}
           style={styles.input}
           value={wipeConfirm}
           onChangeText={setWipeConfirm}
           accessibilityLabel="Wipe confirmation input"
+          accessibilityHint='Typing DELETE enables the wipe button below'
         />
         <Pressable
           testID="data-wipe-button"
@@ -570,6 +697,10 @@ export default function DataManagementScreen() {
             </ThemedText>
           </ThemedView>
         </Pressable>
+        <ThemedText type="caption" themeColor="textSecondary">
+          Saved backup files are kept by the wipe — restore one from Saved
+          Backups if you change your mind.
+        </ThemedText>
       </ThemedView>
 
       {message ? (
@@ -644,6 +775,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
   rows: {
@@ -657,6 +789,12 @@ const styles = StyleSheet.create({
   },
   backupName: {
     flex: 1,
+  },
+  modeBox: {
+    gap: Spacing.one,
+    padding: Spacing.two,
+    borderRadius: Radii.medium,
+    backgroundColor: "rgba(120,120,140,0.08)",
   },
   textArea: {
     minHeight: 120,

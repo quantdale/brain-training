@@ -1,0 +1,17 @@
+{
+  "platform": "win32 node v22.23.2",
+  "measuredAt": "2026-08-22T19:34:21.626Z",
+  "spec": "apps/mobile/src/__tests__/perf-quest-eval-ab.test.ts (PERF_PROBE=1)",
+  "subject": "quests-engine scan vs single-pass period partition over 5000 samples, 9 active quests — REAL code under the project babel/jest toolchain, order-robust (both orders + interleaved)",
+  "results": {
+    "activeQuests": 9,
+    "engineFirst_ms": 79.2583,
+    "partitionedAfterEngine_ms": 91.2333,
+    "partitionedFirst_ms": 75.6012,
+    "engineAfterPartitioned_ms": 47.7849,
+    "interleavedEngine_ms": 49.3913,
+    "interleavedPartitioned_ms": 56.4568,
+    "keysOnlySinglePass_ms": 32.6839
+  },
+  "conclusion": "Partitioned variant measures ~15% SLOWER than the engine scan under jest-expo/babel (interleaved 56.5 vs 49.4 ms), despite a plain-node micro-replica showing the opposite ratio (~3x faster: 26 -> 8 ms). The variant was therefore NOT applied to progression/sync.ts."
+}

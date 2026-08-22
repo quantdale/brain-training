@@ -10,6 +10,8 @@
  *
  * Empty states: `games-empty` when nothing is registered; `games-no-results`
  * when filters match nothing (with a one-tap Clear-filters recovery action).
+ * The search field carries an inline clear button once a query is typed.
+ * when filters match nothing (with a one-tap Clear-filters recovery action).
  */
 
 import { Link, useFocusEffect } from 'expo-router';
@@ -108,15 +110,31 @@ export default function GamesScreen() {
         </ThemedView>
       ) : (
         <>
-          <TextInput
-            testID="games-search"
-            accessibilityLabel="Search games"
-            placeholder="Search games…"
-            placeholderTextColor={theme.textSecondary}
-            value={query}
-            onChangeText={setQuery}
-            style={[styles.searchInput, { color: theme.text }]}
-          />
+          <View style={styles.searchRow}>
+            <TextInput
+              testID="games-search"
+              accessibilityLabel="Search games"
+              placeholder="Search games…"
+              placeholderTextColor={theme.textSecondary}
+              value={query}
+              onChangeText={setQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={[styles.searchInput, styles.searchInputFlex, { color: theme.text }]}
+            />
+            {query.length > 0 ? (
+              <Pressable
+                testID="games-search-clear"
+                accessibilityRole="button"
+                accessibilityLabel="Clear search"
+                onPress={() => setQuery('')}
+                style={({ pressed }) => [styles.searchClear, pressed && styles.pressed]}>
+                <ThemedText type="smallBold" themeColor="textSecondary">
+                  ✕
+                </ThemedText>
+              </Pressable>
+            ) : null}
+          </View>
 
           <View style={styles.filterRow} testID="games-filters">
             <FilterChip
@@ -262,12 +280,25 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
   searchInput: {
     borderRadius: Radii.medium,
     borderWidth: 1,
     borderColor: 'rgba(128,128,128,0.4)',
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
+  },
+  searchInputFlex: {
+    flex: 1,
+  },
+  searchClear: {
+    ...MinTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   filterRow: {
     flexDirection: 'row',

@@ -23,6 +23,12 @@
  * read-only claimable-rewards hint on the Rewards quick action (W12 inbox).
  * All W24 additions are gated behind loaded data so first-run trees stay
  * unchanged for the visual-baseline canaries.
+ *
+ * Campaign 012 (W07) wave: the More-workouts picker gains a selected-template
+ * detail panel (explicit length line + durable "2 of 4 done" resume state /
+ * completed state), a focus-workout explanation computed from the engine's
+ * pure reason explainer (`@/workout/reasons`), progress-aware chips, richer
+ * completion outcomes, and length-labelled history rows.
  */
 
 import { Link, router, useFocusEffect } from "expo-router";
@@ -33,9 +39,11 @@ import { ProgressTrack, SectionHeader, StateCard, StatTile } from "@/components/
 import { formatRelativeDay } from "@/components/shell/format";
 import {
   WorkoutCompletionCard,
+  WorkoutFocusExplanation,
   WorkoutHistoryRow,
   WorkoutLengthChips,
   WorkoutTemplateChips,
+  WorkoutTemplateDetails,
 } from "@/components/workout";
 import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
@@ -50,10 +58,15 @@ import { getAllGameDefinitions } from "@/registry/registry";
 import { collectClaimableRewards } from "@/rewards/inbox";
 import { effectiveCurrent, reconstructStreak } from "@/streaks";
 import { parseInstanceKey, type WorkoutLength } from "@/workout/metadata";
+import type { WorkoutSelectionReason } from "@/workout/personalize";
 import { canAffordReroll, MAX_REROLLS_PER_DAY } from "@/workout/reroll";
+import { explainTemplateWorkout } from "@/workout/reasons";
+import { eligibleGames } from "@/workout/reconcile";
 import {
+  applyTemplatePersonalization,
   DEFAULT_WORKOUT_LENGTH,
-  WORKOUT_LENGTHS,
+  selectTemplateWorkout,
+  workoutLengthSpec,
 } from "@/workout/templates";
 import type { WorkoutCompletionSummary } from "@/workout/summary";
 import { localDateString } from "@/workout/today";
@@ -92,6 +105,14 @@ const EMPTY_HOME: HomeData = {
   recentSessions: [],
   claimableRewards: 0,
 };
+
+/** One today-instance of a template, for resume/completed markers. */
+interface TemplateResumeEntry {
+  length: WorkoutLength | null;
+  completedGames: number;
+  totalGames: number;
+  status: WorkoutCompletionSummary["status"];
+}
 
 async function loadHome(db: AppDatabase): Promise<HomeData> {
   const [domainRatings, recent, balance, sessionXp, awardsXp, activityDates] =
@@ -241,10 +262,97 @@ export default function HomeScreen() {
   const selectedTemplate =
     templateChoices.find((t) => t.id === effectiveTemplateId) ?? null;
   const resumeSelected = effectiveTemplateId != null && startedTemplateIds.has(effectiveTemplateId);
-  const lengthLabel =
-    WORKOUT_LENGTHS.find((l) => l.id === effectiveLength)?.label ?? "Standard";
+
+  /** All of today's template instances grouped by template id. A template
+   * can legitimately own several instances in one day (one per length). */
+  const resumeEntriesByTemplateId = useMemo(() => {
+    const map = new Map<string, TemplateResumeEntry[]>();
+    for (const summary of workoutHistory) {
+      if (summary.date !== today) {
+        continue;
+      }
+      const parsed = parseInstanceKey(summary.key);
+      if (parsed.kind !== "template" || !parsed.templateId) {
+        continue;
+      }
+      const list = map.get(parsed.templateId) ?? [];
+      list.push({
+        length: parsed.length,
+        completedGames: summary.completedGames,
+        totalGames: summary.totalGames,
+        status: summary.status,
+      });
+      map.set(parsed.templateId, list);
+    }
+    return map;
+  }, [workoutHistory, today]);
+
+  // Display entry per template id: prefer the instance at the currently
+  // selected length (that is the one Start would resume), else the most
+  // progressed one — so chips read "2 of 4 done" / "Completed" truthfully.
+  const resumeById = useMemo(() => {
+    const out = new Map<string, TemplateResumeEntry>();
+    for (const [templateId, entries] of resumeEntriesByTemplateId) {
+      const matching = entries.find((entry) => entry.length === effectiveLength);
+      const mostProgressed = [...entries].sort(
+        (a, b) => b.completedGames - a.completedGames,
+      )[0];
+      const chosen = matching ?? mostProgressed;
+      if (chosen) {
+        out.set(templateId, chosen);
+      }
+    }
+    return out;
+  }, [resumeEntriesByTemplateId, effectiveLength]);
+
+  const selectedResume = effectiveTemplateId
+    ? (resumeById.get(effectiveTemplateId) ?? null)
+    : null;
+  const selectedCompletedToday = selectedResume?.status === "completed";
+
+  const lengthSpec = workoutLengthSpec(effectiveLength);
+  const lengthLabel = lengthSpec.label;
+
+  // Why-this-workout reasons: recompute the same deterministic selection the
+  // engine will persist on start (pure functions, no side effects), then run
+  // the shared personalization explainer over it. Null when the catalog is
+  // empty or the template is not startable — the panel degrades to static copy.
+  const previewReasons = useMemo<readonly WorkoutSelectionReason[] | null>(() => {
+    if (!selectedTemplate || selectedTemplate.kind !== "template") {
+      return null;
+    }
+    try {
+      const selection = selectTemplateWorkout({
+        games: eligibleGames(),
+        template: selectedTemplate,
+        length: effectiveLength,
+        date: today,
+      });
+      const ordered = applyTemplatePersonalization(selection.games, {
+        domainRatings: data.domainRatings,
+        recentGameIds: data.recentGameIds,
+        seed: selection.seed,
+      });
+      return explainTemplateWorkout(
+        ordered,
+        data.domainRatings,
+        data.recentGameIds,
+      );
+    } catch {
+      return null;
+    }
+  }, [
+    selectedTemplate,
+    effectiveLength,
+    today,
+    data.domainRatings,
+    data.recentGameIds,
+  ]);
+
   const startLabel = selectedTemplate
-    ? `${resumeSelected ? "Resume" : "Start"} ${selectedTemplate.name} · ${lengthLabel}`
+    ? selectedCompletedToday
+      ? `${selectedTemplate.name} · Completed`
+      : `${resumeSelected ? "Resume" : "Start"} ${selectedTemplate.name} · ${lengthLabel}`
     : "Start workout";
 
   // Latest completed TEMPLATE workout today → post-workout summary card.
@@ -505,6 +613,9 @@ export default function HomeScreen() {
       {loaded && latestCompletedTemplate ? (
         <WorkoutCompletionCard
           summary={latestCompletedTemplate}
+          resolveGameName={(gameId) =>
+            allGames.find((game) => game.id === gameId)?.name ?? null
+          }
           testID="home-workout-completion-card"
         />
       ) : null}
@@ -529,6 +640,7 @@ export default function HomeScreen() {
                 templates={templateChoices}
                 selectedId={effectiveTemplateId}
                 startedIds={startedTemplateIds}
+                resumeById={resumeById}
                 onSelect={setPickedTemplateId}
                 testIDPrefix="home-workout-template"
               />
@@ -537,6 +649,25 @@ export default function HomeScreen() {
                 onSelect={setPickedLength}
                 testIDPrefix="home-workout-length"
               />
+              {selectedTemplate ? (
+                <>
+                  {/* Selected-template detail: explicit length line + durable
+                      resume/completed state for today's instance. */}
+                  <WorkoutTemplateDetails
+                    template={selectedTemplate}
+                    lengthSpec={lengthSpec}
+                    resume={selectedResume}
+                    testID="home-workout-selected"
+                  />
+                  {/* Focus explanation: why this domain + how the
+                      personalization layer ordered the games. */}
+                  <WorkoutFocusExplanation
+                    template={selectedTemplate}
+                    reasons={previewReasons}
+                    testID="home-workout-focus"
+                  />
+                </>
+              ) : null}
               <Pressable
                 testID="home-workout-template-start"
                 accessibilityRole="button"
@@ -544,12 +675,14 @@ export default function HomeScreen() {
                 accessibilityHint={`Starts a ${lengthLabel.toLowerCase()} ${
                   selectedTemplate?.name ?? "workout"
                 } session.`}
-                disabled={!effectiveTemplateId || startInProgress}
+                disabled={
+                  !effectiveTemplateId || startInProgress || selectedCompletedToday
+                }
                 onPress={onStartTemplate}
               >
                 <ThemedView
                   type={
-                    effectiveTemplateId && !startInProgress
+                    effectiveTemplateId && !startInProgress && !selectedCompletedToday
                       ? "accentSoft"
                       : "surface"
                   }

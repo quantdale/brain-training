@@ -23,6 +23,14 @@ import {
   type WorkoutLengthSpec,
   type WorkoutTemplate,
 } from '@/workout/templates';
+import type { WorkoutStatus } from '@/db';
+
+/** Per-template today progress for resume/completed chip markers. */
+export interface TemplateResumeInfo {
+  completedGames: number;
+  totalGames: number;
+  status: WorkoutStatus;
+}
 
 /**
  * Length-variant chips (Short / Standard / Extended). Defaults to the
@@ -73,22 +81,27 @@ export function WorkoutLengthChips({
 
 /**
  * Focus-template chips for one rotation menu. Templates whose id is in
- * `startedIds` get a "Started" marker — they are still selectable because
- * starting an already-started template RESUMES the same persisted instance
- * (`useWorkoutTemplates.startTemplate` is idempotent per day).
+ * `startedIds` get a progress marker — still selectable, because starting an
+ * already-started template RESUMES the same persisted instance
+ * (`useWorkoutTemplates.startTemplate` is idempotent per day). Pass
+ * `resumeById` to surface durable progress on the marker ("2 of 4 done" or
+ * "Completed") so partially played workouts are visibly resumable.
  */
 export function WorkoutTemplateChips({
   templates,
   selectedId,
   startedIds,
+  resumeById,
   onSelect,
   testIDPrefix = 'workout-template',
 }: {
   templates: readonly WorkoutTemplate[];
   /** Highlighted template id; null highlights nothing (empty menu). */
   selectedId: string | null;
-  /** Template ids already started today (shown with a Started marker). */
+  /** Template ids already started today (shown with a progress marker). */
   startedIds?: ReadonlySet<string>;
+  /** Today's per-template progress (optional enrichment of the marker). */
+  resumeById?: ReadonlyMap<string, TemplateResumeInfo>;
   onSelect: (templateId: string) => void;
   testIDPrefix?: string;
 }) {
@@ -96,8 +109,12 @@ export function WorkoutTemplateChips({
     <View style={styles.row} testID={`${testIDPrefix}-row`}>
       {templates.map((template) => {
         const active = template.id === selectedId;
+        const resume = resumeById?.get(template.id);
         const started = startedIds?.has(template.id) ?? false;
-        const label = started ? `${template.name} · Started` : template.name;
+        let label = template.name;
+        if (started) {
+          label = resumeMarkerLabel(template.name, started, resume);
+        }
         return (
           <Pressable
             key={template.id}
@@ -121,6 +138,28 @@ export function WorkoutTemplateChips({
       })}
     </View>
   );
+}
+
+/** Chip/a11y label for a started template: plain Started, progress, or done. */
+function resumeMarkerLabel(
+  name: string,
+  started: boolean,
+  resume: TemplateResumeInfo | undefined,
+): string {
+  if (!started) {
+    return name;
+  }
+  if (resume?.status === 'completed') {
+    return `${name} · Completed`;
+  }
+  if (
+    resume &&
+    resume.completedGames > 0 &&
+    resume.totalGames > resume.completedGames
+  ) {
+    return `${name} · ${resume.completedGames} of ${resume.totalGames} done`;
+  }
+  return `${name} · Started`;
 }
 
 const styles = StyleSheet.create({

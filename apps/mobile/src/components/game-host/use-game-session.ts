@@ -66,8 +66,22 @@ export interface GameSessionController {
    * pauses the lifecycle (freezing timers) and fires `onPause`.
    */
   requestPause(): boolean;
-  /** Resume the paused lifecycle (timers unfreeze). Idempotent-safe. */
+  /**
+   * Resume the paused lifecycle (timers unfreeze). STRICT: throws
+   * IllegalTransitionError unless the status is exactly 'paused' (mirrors the
+   * SDK state machine). Prefer `resumeIfPaused()` from UI handlers where a
+   * stale/double invocation must be dropped instead of crashing.
+   */
   resume(): void;
+  /**
+   * Guarded resume — the mirror of `requestPause()`: resumes only when the
+   * lifecycle is exactly `paused` (timers unfreeze) and returns true;
+   * refuses (returning false, never throwing) without a session or from any
+   * other status ('created'/'active'/terminal). Screens no longer need to
+   * read `status()` themselves to guard against a double-tapped Resume or a
+   * resume racing completion.
+   */
+  resumeIfPaused(): boolean;
   /** Complete the lifecycle unless already terminal (idempotent). */
   completeIfActive(): void;
   /** Abandon the lifecycle unless already terminal (quit path). */
@@ -142,6 +156,20 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
 
     resume: useCallback(() => {
       lifecycleRef.current?.resume();
+    }, []),
+
+    // Guarded like requestPause(): the PauseOverlay stays mounted until React
+    // re-renders, so a fast double-tap on Resume (or a resume racing session
+    // completion) can reach this twice; the SDK throws on the illegal
+    // transition, so drop the no-op instead of crashing (the two pre-host
+    // guards this replaces: attention-sustained-vigilance, math-value-ordering).
+    resumeIfPaused: useCallback((): boolean => {
+      const lifecycle = lifecycleRef.current;
+      if (lifecycle === null || lifecycle.status !== 'paused') {
+        return false;
+      }
+      lifecycle.resume();
+      return true;
     }, []),
 
     completeIfActive: useCallback(() => {

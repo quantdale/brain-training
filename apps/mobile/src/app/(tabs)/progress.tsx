@@ -61,6 +61,7 @@ import {
   WINDOW_DAYS,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
+import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
@@ -131,7 +132,7 @@ export default function ProgressScreen() {
     }, []),
   );
 
-  const { data } = useDbData(load, [refreshKey], EMPTY_DATA);
+  const { data, loaded } = useDbData(load, [refreshKey], EMPTY_DATA);
   const [windowKey, setWindowKey] = useState<TimeWindowKey>('30d');
 
   const windowedSessions = useMemo(
@@ -249,6 +250,19 @@ export default function ProgressScreen() {
     [data.sessions, nowMs],
   );
 
+  // Sessions that set or extended the personal best (PB-chain events carry
+  // their source session id) — used to badge rows in the recent-sessions
+  // list so record moments stay visible in context.
+  const pbSessionIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const event of bestHistory.events) {
+      if (event.sessionId) {
+        ids.add(event.sessionId);
+      }
+    }
+    return ids;
+  }, [bestHistory]);
+
   // V2: rolling-average refinement of the recent-vs-lifetime comparison.
   const normalizedPointsAsc = useMemo(
     () =>
@@ -320,6 +334,15 @@ export default function ProgressScreen() {
         />
       </View>
 
+      {!loaded ? (
+        <StateCard
+          variant="loading"
+          title="Loading…"
+          message="Crunching your training history."
+          testID="progress-loading"
+        />
+      ) : (
+        <>
       {isNewPlayer ? (
         <ThemedView type="surface" style={styles.card} testID="progress-empty">
           <ThemedText type="subtitle">No sessions yet</ThemedText>
@@ -729,14 +752,29 @@ export default function ProgressScreen() {
           <View style={styles.rows}>
             {data.sessions.slice(0, 10).map((session) => (
               <Link key={session.id} href={`/results?id=${session.id}`} asChild>
-                <Pressable style={styles.row} testID={`progress-session-${session.id}`}>
+                <Pressable
+                  style={styles.row}
+                  accessibilityRole="button"
+                  testID={`progress-session-${session.id}`}>
                   <ThemedText type="small">
                     {getGameDefinition(session.gameId)?.name ?? session.gameId} ·{' '}
                     {formatDayLabel(session.completedAt)}
                   </ThemedText>
-                  <ThemedText type="smallBold">
-                    {Math.round(session.normalizedResult * 100)}%
-                  </ThemedText>
+                  <View style={styles.domainRight}>
+                    <ThemedText type="smallBold">
+                      {Math.round(session.normalizedResult * 100)}%
+                    </ThemedText>
+                    {pbSessionIds.has(session.id) ? (
+                      <ThemedView
+                        type="accentSoft"
+                        style={styles.pbBadge}
+                        testID={`progress-session-pb-${session.id}`}>
+                        <ThemedText type="caption" themeColor="accent">
+                          PB
+                        </ThemedText>
+                      </ThemedView>
+                    ) : null}
+                  </View>
                 </Pressable>
               </Link>
             ))}
@@ -747,6 +785,8 @@ export default function ProgressScreen() {
           </ThemedText>
         )}
       </ThemedView>
+        </>
+      )}
     </ScreenShell>
   );
 }
@@ -1018,6 +1058,12 @@ const styles = StyleSheet.create({
   domainRight: {
     alignItems: 'flex-end',
     gap: Spacing.half,
+  },
+  pbBadge: {
+    alignSelf: 'flex-end',
+    borderRadius: Radii.pill,
+    paddingVertical: Spacing.half,
+    paddingHorizontal: Spacing.two,
   },
   compositeRow: {
     flexDirection: 'row',

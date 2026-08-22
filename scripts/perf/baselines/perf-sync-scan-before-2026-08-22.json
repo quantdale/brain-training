@@ -1,0 +1,33 @@
+{
+  "platform": "win32 node v22.23.2",
+  "measuredAt": "2026-08-22T19:17:09.206Z",
+  "spec": "apps/mobile/src/__tests__/perf-sync-scan-probe.test.ts (PERF_PROBE=1)",
+  "methodology": "min-of-3 per scenario; all scenarios idempotent (monotonic-MAX upserts / INSERT OR IGNORE / pure reads); in-memory node:sqlite DB seeded with realistic blob sizes, sessions one minute apart ending at the evaluation clock",
+  "note": "BEFORE baseline for campaign 012 W13. No product change was applied after analysis (see sync-scan-baselines.md); this remains the current reference until a parent-owned fix lands.",
+  "scenarios": {
+    "buildQuestSamples_100_ms": 0.2412,
+    "evaluateQuests_100_inmemory_ms": 2.1767,
+    "syncQuestProgress_100_total_ms": 6.1764,
+    "buildAchievementSnapshot_100_ms": 0.9107,
+    "syncAchievements_100_total_ms": 1.9669,
+    "getDistinctActivityDates_100_ms": 0.1243,
+    "buildQuestSamples_1000_ms": 1.4315,
+    "evaluateQuests_1000_inmemory_ms": 19.0868,
+    "syncQuestProgress_1000_total_ms": 20.0257,
+    "buildAchievementSnapshot_1000_ms": 2.1616,
+    "syncAchievements_1000_total_ms": 4.8693,
+    "getDistinctActivityDates_1000_ms": 0.5485,
+    "buildQuestSamples_5000_ms": 5.1346,
+    "evaluateQuests_5000_inmemory_ms": 77.8985,
+    "syncQuestProgress_5000_total_ms": 80.2426,
+    "buildAchievementSnapshot_5000_ms": 12.6139,
+    "syncAchievements_5000_total_ms": 8.9082,
+    "getDistinctActivityDates_5000_ms": 1.5902,
+    "buildQuestSamples_20000_ms": 5.4368,
+    "evaluateQuests_20000_inmemory_ms": 71.4916,
+    "syncQuestProgress_20000_total_ms": 82.2176,
+    "buildAchievementSnapshot_20000_ms": 41.9429,
+    "syncAchievements_20000_total_ms": 41.9361,
+    "getDistinctActivityDates_20000_ms": 11.5704
+  }
+}

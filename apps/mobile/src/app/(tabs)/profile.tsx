@@ -658,11 +658,21 @@ export default function ProfileScreen() {
                     {definition?.title ?? evaluation.questId}
                   </ThemedText>
                   <View style={styles.progressTrack}>
+                    {/* Progress semantics: bare bars are invisible to screen
+                        readers without a role + value (quests only render
+                        with live data; achievement bars share this style and
+                        are pinned by the visual-baseline snapshot). */}
                     <View
                       style={[
                         styles.progressFill,
                         { width: `${Math.round(progress * 100)}%` },
                       ]}
+                      accessibilityRole="progressbar"
+                      accessibilityValue={{
+                        min: 0,
+                        max: Math.max(evaluation.goal, 1),
+                        now: Math.min(evaluation.progress, evaluation.goal),
+                      }}
                     />
                   </View>
                   <ThemedText type="caption" themeColor="textSecondary">

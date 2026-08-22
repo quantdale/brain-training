@@ -1,10 +1,13 @@
 /**
- * WorkoutHistoryRow — one compact recent-workout row (campaign 010 / W24).
+ * WorkoutHistoryRow — one compact recent-workout row (campaign 010 / W24,
+ * extended campaign 012 / W07).
  *
  * Renders a `WorkoutCompletionSummary` from the engine's history API
  * (`useWorkoutTemplates.history`) as a single non-interactive row: workout
- * name, relative day, progress, and XP. The clock is injected (`nowMs`) so
- * the relative-day label stays deterministic under test.
+ * name (with its length variant for template workouts, so "Math Focus · Short"
+ * and "Math Focus · Extended" read as distinct sessions), relative day,
+ * progress, and XP. The clock is injected (`nowMs`) so the relative-day label
+ * stays deterministic under test.
  */
 
 import { StyleSheet, View } from 'react-native';
@@ -14,7 +17,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { parseInstanceKey } from '@/workout/metadata';
 import type { WorkoutCompletionSummary } from '@/workout/summary';
-import { getWorkoutTemplate } from '@/workout/templates';
+import { getWorkoutTemplate, WORKOUT_LENGTHS } from '@/workout/templates';
 import { localDayStartMs } from './format';
 
 export function WorkoutHistoryRow({
@@ -28,9 +31,16 @@ export function WorkoutHistoryRow({
   testID?: string;
 }) {
   const parsed = parseInstanceKey(summary.key);
-  const name =
+  const baseName =
     (parsed.templateId ? getWorkoutTemplate(parsed.templateId)?.name : null) ??
     "Today's Workout";
+  // Template rows carry their length variant in the instance key — surface it
+  // so two sessions of the same template never look identical. Daily rows are
+  // always standard and stay unsuffixed.
+  const lengthLabel = parsed.templateId
+    ? (WORKOUT_LENGTHS.find((spec) => spec.id === parsed.length)?.label ?? null)
+    : null;
+  const name = lengthLabel ? `${baseName} · ${lengthLabel}` : baseName;
   // Prefer the matched-session completion time; fall back to local midnight
   // of the instance's own date (NaN-safe: formatRelativeDay renders "—").
   const dayLabel = formatRelativeDay(
@@ -48,12 +58,19 @@ export function WorkoutHistoryRow({
       testID={testID}
       accessibilityLabel={`${name}, ${dayLabel}, ${progressLabel}, plus ${summary.totalXp} XP`}>
       <View style={styles.text}>
-        <ThemedText type="small">{name}</ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
+        <ThemedText type="small" testID={testID ? `${testID}-name` : undefined}>
+          {name}
+        </ThemedText>
+        <ThemedText
+          type="caption"
+          themeColor="textSecondary"
+          testID={testID ? `${testID}-detail` : undefined}>
           {dayLabel} · {progressLabel}
         </ThemedText>
       </View>
-      <ThemedText type="smallBold">+{summary.totalXp} XP</ThemedText>
+      <ThemedText type="smallBold" testID={testID ? `${testID}-xp` : undefined}>
+        +{summary.totalXp} XP
+      </ThemedText>
     </View>
   );
 }

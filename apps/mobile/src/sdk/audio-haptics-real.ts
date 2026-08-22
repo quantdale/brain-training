@@ -18,7 +18,6 @@
  */
 import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
 
 import {
   AudioHapticsService,

@@ -14,10 +14,11 @@
  * Reward moments emit a non-blocking celebration; nothing here blocks play.
  */
 import { Link } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
+import { StateCard } from "@/components/shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Radii, Spacing } from "@/constants/theme";
@@ -180,14 +181,44 @@ function inboxTestId(item: RewardInboxItem): string {
   return item.key.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
+/** How long a purchase stays armed (awaiting its confirming second tap). */
+const PURCHASE_CONFIRM_MS = 4000;
+
 export default function RewardsScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
-  const { data } = useDbData(loadRewards, [refreshKey], EMPTY_REWARDS);
+  const { data, loaded, error } = useDbData(loadRewards, [refreshKey], EMPTY_REWARDS);
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
   // In-flight guard: a double tap must not fire a second purchase/equip/claim
   // while the first is still running. The economy layer is idempotent
   // regardless; this keeps the UI from spamming duplicate celebrations.
   const busyRef = useRef(false);
+
+  // Destructive-action safety: a purchase spends earned currency, so the
+  // price pill requires a confirming second tap; the arm expires quickly so
+  // a stray tap can never spend coins minutes later.
+  const [armedBuyId, setArmedBuyId] = useState<string | null>(null);
+  const armTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const disarmBuy = useCallback(() => {
+    if (armTimerRef.current) {
+      clearTimeout(armTimerRef.current);
+      armTimerRef.current = null;
+    }
+    setArmedBuyId(null);
+  }, []);
+  useEffect(() => disarmBuy, [disarmBuy]);
+
+  const onBuyPress = (def: CosmeticDef) => {
+    if (armedBuyId !== def.id) {
+      if (armTimerRef.current) {
+        clearTimeout(armTimerRef.current);
+      }
+      setArmedBuyId(def.id);
+      armTimerRef.current = setTimeout(disarmBuy, PURCHASE_CONFIRM_MS);
+      return;
+    }
+    disarmBuy();
+    void onBuy(def);
+  };
 
   const onBuy = async (def: CosmeticDef) => {
     if (busyRef.current) {
@@ -314,6 +345,24 @@ export default function RewardsScreen() {
       <ThemedText type="title" testID="rewards-title">
         Rewards
       </ThemedText>
+
+      {!loaded ? (
+        <StateCard
+          variant="loading"
+          title="Loading…"
+          message="Fetching your rewards."
+          testID="rewards-loading"
+        />
+      ) : error ? (
+        <StateCard
+          variant="error"
+          title="Couldn't load rewards"
+          message="Your rewards data is unavailable right now."
+          testID="rewards-error"
+          action={{ label: "Try again", onPress: refresh }}
+        />
+      ) : (
+        <>
       <ThemedView
         type="surface"
         style={styles.balanceCard}
@@ -452,6 +501,7 @@ export default function RewardsScreen() {
                       <Pressable
                         testID={`cosmetic-equip-${def.id}`}
                         accessibilityRole="button"
+                        accessibilityLabel={`Equip ${def.name}`}
                         onPress={() => onEquip(def)}
                       >
                         <ThemedView type="accentSoft" style={styles.pill}>
@@ -465,12 +515,19 @@ export default function RewardsScreen() {
                       <Pressable
                         testID={`cosmetic-buy-${def.id}`}
                         accessibilityRole="button"
+                        accessibilityLabel={
+                          armedBuyId === def.id
+                            ? `Confirm purchase of ${def.name} for ${def.price ?? 0} coins`
+                            : `Buy ${def.name} for ${def.price ?? 0} coins`
+                        }
                         disabled={data.balance < (def.price ?? 0)}
-                        onPress={() => onBuy(def)}
+                        onPress={() => onBuyPress(def)}
                       >
                         <ThemedView type="accentSoft" style={styles.pill}>
                           <ThemedText type="smallBold" themeColor="accent">
-                            {def.price ?? 0} coins
+                            {armedBuyId === def.id
+                              ? "Tap to confirm"
+                              : `${def.price ?? 0} coins`}
                           </ThemedText>
                         </ThemedView>
                       </Pressable>
@@ -517,7 +574,11 @@ export default function RewardsScreen() {
       </ThemedView>
 
       <Link href={"/(tabs)/profile" as any} asChild>
-        <Pressable testID="rewards-done">
+        <Pressable
+          testID="rewards-done"
+          accessibilityRole="button"
+          accessibilityLabel="Back to profile"
+        >
           <ThemedView type="accentSoft" style={styles.donePill}>
             <ThemedText type="smallBold" themeColor="accent">
               Done
@@ -525,6 +586,8 @@ export default function RewardsScreen() {
           </ThemedView>
         </Pressable>
       </Link>
+        </>
+      )}
 
       <RewardCelebrationHost />
     </ScreenShell>

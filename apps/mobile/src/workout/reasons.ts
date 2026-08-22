@@ -21,6 +21,7 @@ import {
   type PersonalizeOptions,
   type WorkoutSelectionReason,
 } from "./personalize";
+import type { WorkoutMetadata } from "./metadata";
 
 /**
  * Reasons for the default daily workout, in selection order. Thin documented
@@ -137,4 +138,29 @@ export function explainTemplateWorkout(
     }
     return { gameId: game.id, kind: "selected", detail: "balanced selection" };
   });
+}
+
+/**
+ * Recorded creation-time reasons for a persisted instance, surfaced ONLY when
+ * they still describe the instance's CURRENT selection: the recorded gameId
+ * sequence must match `gameIds` one-for-one. Rerolls (which replace the
+ * unplayed tail) and catalog reconciliation (which drops retired ids) change
+ * `gameIds` after creation, so their rows degrade to null instead of showing
+ * provenance that no longer matches what the player actually sees. Pure and
+ * cheap — no db, no clock, no catalog access.
+ */
+export function alignedRecordedReasons(
+  gameIds: readonly string[],
+  metadata: WorkoutMetadata | undefined,
+): WorkoutSelectionReason[] | null {
+  const recorded = metadata?.reasons;
+  if (!recorded || recorded.length !== gameIds.length) {
+    return null;
+  }
+  for (let i = 0; i < gameIds.length; i += 1) {
+    if (recorded[i].gameId !== gameIds[i]) {
+      return null;
+    }
+  }
+  return recorded.map((reason) => ({ ...reason }));
 }

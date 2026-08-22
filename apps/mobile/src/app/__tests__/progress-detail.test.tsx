@@ -73,6 +73,9 @@ describe('progress detail screen', () => {
     mockDbState.db = null;
   });
 
+  // Full-router renders are CPU-bound: ~3s in isolation but >15s under a
+  // fully parallel jest worker pool on slower hosts, so pin generous explicit
+  // timeouts instead of relying on the 15s default.
   it('renders explanatory empty states without data', async () => {
     mockDbState.db = makeFakeDb();
     const result = renderRouter('./src/app', { initialUrl: '/progress-detail' });
@@ -86,7 +89,7 @@ describe('progress detail screen', () => {
     expect(screen.getByTestId('progress-detail-domains-empty')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-detail-games-empty')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-detail-sessions-empty')).toBeOnTheScreen();
-  });
+  }, 30_000);
 
   it('renders domain history, game records and recent sessions from the db', async () => {
     mockDbState.db = makeFakeDb({
@@ -145,12 +148,16 @@ describe('progress detail screen', () => {
     expect(screen.queryByTestId('progress-detail-sessions-empty')).toBeNull();
     expect(screen.getByTestId('progress-detail-session-r1')).toHaveTextContent(/90%/);
 
+    // Settle router effects before pressing: under a fully parallel jest
+    // worker pool renderRouter's promise can resolve before all routes are
+    // mounted, turning the first press into an unhandled NAVIGATE action.
+    await act(async () => {});
     // The record row navigates to the game detail route.
     await fireEvent.press(gameRow);
     await act(async () => {});
     expect(result.getPathname()).toBe('/game-detail/memory');
     expect(screen.getByTestId('game-detail-title')).toBeOnTheScreen();
-  });
+  }, 30_000);
 
   it('opens the detail screen from the Progress tab link', async () => {
     mockDbState.db = makeFakeDb();
