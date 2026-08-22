@@ -122,15 +122,20 @@ export default function SignalWatchScreen(
   // Per-item response-window baseline: tracks elapsed ACTIVE (non-paused)
   // window time so pausing freezes and resuming resumes the remaining window
   // (freeze-and-continue; mirrors memory-pair-recall's study-tick semantics).
-  const itemElapsedRef = useRef(0);
-  /** Tracks which item the accumulator belongs to (reset inside callbacks). */
-  const itemElapsedForRef = useRef(-1);
   /**
-   * Remaining-window elapsed ms as RENDER STATE. Only ever written inside
-   * interval/press callbacks (never synchronously in an effect), so renders
-   * stay pure; the urgency bar derives its fraction from this value.
+   * Per-item response-window elapsed ms as pure RENDER STATE, driving both
+   * the urgency bar and the press-path elapsedFraction. Written ONLY by the
+   * pacing interval (50 ms) and reset via the sanctioned render-phase
+   * adjustment when the current item changes — never synchronously in an
+   * effect and never via refs, so renders stay pure.
    */
-  const [windowElapsedMs, setWindowElapsedMs] = useState(0);
+  const [windowElapsedState, setWindowElapsedState] = useState({
+    itemIndex: state.itemIndex,
+    elapsedMs: 0,
+  });
+  if (windowElapsedState.itemIndex !== state.itemIndex) {
+    setWindowElapsedState({ itemIndex: state.itemIndex, elapsedMs: 0 });
+  }
 
   useEffect(() => {
     stateRef.current = state;
@@ -170,21 +175,15 @@ export default function SignalWatchScreen(
       return undefined;
     }
     const itemIndex = state.itemIndex;
-    // Arm a fresh baseline for this item (ref write in effect is safe; the
-    // first tick 50 ms later renders the corrected fraction).
-    itemElapsedRef.current = 0;
+    let elapsedMs = 0;
     const interval = setInterval(() => {
-      if (itemElapsedForRef.current !== itemIndex) {
-        // First tick after an item switch: start that item's window fresh.
-        itemElapsedForRef.current = itemIndex;
-        itemElapsedRef.current = 0;
-      }
-      itemElapsedRef.current = Math.min(
-        itemMs,
-        itemElapsedRef.current + WINDOW_TICK_MS,
+      elapsedMs = Math.min(itemMs, elapsedMs + WINDOW_TICK_MS);
+      setWindowElapsedState((prev) =>
+        prev.itemIndex === itemIndex
+          ? { ...prev, elapsedMs }
+          : prev,
       );
-      setWindowElapsedMs(itemElapsedRef.current);
-      if (itemElapsedRef.current >= itemMs) {
+      if (elapsedMs >= itemMs) {
         clearInterval(interval);
         dispatch({ type: "item-timeout", itemIndex });
       }
@@ -396,9 +395,15 @@ export default function SignalWatchScreen(
       ) {
         return;
       }
+      // State-carried drain (≤ one 50 ms tick stale) is the press-path truth;
+      // a press on a freshly-switched item reads 0 elapsed.
+      const pressedElapsedMs =
+        windowElapsedState.itemIndex === current.itemIndex
+          ? windowElapsedState.elapsedMs
+          : 0;
       const elapsedFraction = Math.min(
         1,
-        Math.max(0, itemElapsedRef.current / itemMs),
+        Math.max(0, pressedElapsedMs / itemMs),
       );
       // Stamped with the item the player actually saw; the reducer ignores
       // presses for any other index (double-tap / late-press protection).
@@ -573,14 +578,7 @@ export default function SignalWatchScreen(
                 <StreamView
                   item={currentItem}
                   fractionRemaining={
-                    1 -
-                    Math.min(
-                      itemElapsedForRef.current === state.itemIndex
-                        ? windowElapsedMs
-                        : 0,
-                      itemMs,
-                    ) /
-                      itemMs
+                    1 - Math.min(windowElapsedMs, itemMs) / itemMs
                   }
                   disabled={state.paused}
                 />

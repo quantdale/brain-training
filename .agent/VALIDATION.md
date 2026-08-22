@@ -820,3 +820,59 @@ ownership (`.agent/_tasks/campaign009/`); workers never branch/commit.
   context-fit results timing; the underlying advance/resume mechanics are
   covered by unit/lifecycle suites and the per-game journeys); two transient
   warm-home Metro timeouts during the long run self-resolved on retry.
+
+## Campaign 011 — Full Validation, QA, Audit, Fix & Hardening
+
+Tree: `main` from `2630a77` (post-010) through the 011 convergence commits.
+One parent orchestrator; 16 worker packets (`.agent/_tasks/campaign011/`), workers
+never branch/commit.
+
+### Ground truth at open
+Full Jest on the unvalidated 010 wave: **12 failed suites / 32 failed tests /
+4 snapshots** (of 412/4665); GitHub App CI red; Android emulator available.
+
+### Defects found & fixed (highlights; full inventory in packets)
+- **Critical** — data-portability single-pass serializer hashed structural commas
+  adjacent to the checksum member ⇒ every fresh export failed re-import; fixed with a
+  byte-contract suite in both sort positions.
+- **Critical** — Campaign 010's Progress JSON1 fast path was silently dead on every
+  device (single-arg `COALESCE()` prepare failure + bare-field JSON paths); fixed;
+  differential equivalence proven at 1k/5k/20k incl. malformed blobs.
+- **Critical** — a11y focus helper passed an object to deprecated
+  `setAccessibilityFocus(reactTag)` which silently no-ops on Android/Fabric
+  (grid-nav root cause); replaced with renderer-routed `sendAccessibilityEvent`.
+- **High** — quest claim could burn a claim marker on a never-completed row;
+  workout reroll dropped fresh games after partial completions; stale-state
+  lifecycle crash (IllegalTransitionError) on rapid pause/resume in two new games;
+  prospective-cue response bleed-through across stream items; append-only triggers
+  permanently strippable on mid-DDL fault; rating-history double-translation
+  returned undefined fields.
+- **Medium/Low** — volume/balance/calendar window-boundary semantics
+  (age-space half-open tiling), personal-best order-dependence, future-row clamps,
+  workout metadata round-trip, corrupt-profile decode gaps, tutorial-open window
+  freeze, dialog re-announce spam, font-cap snapshot reconciliation.
+
+### Local gates (convergence)
+- `npx tsc --noEmit`: PASS (0 errors)
+- Full Jest: **5519 passed / 5522 total** (3 skipped = opt-in perf probes by design);
+  every previously-failing suite green or justified
+- `npm run lint`: PASS — **0 errors** (warnings non-blocking)
+- `node scripts/generate-game-registry.mjs --check`: PASS (42 games)
+- `validate-provenance --check` / `validate-task-ownership` / `validate-offline
+  --check` / `validate-repo-state`: PASS
+- `openspec validate --changes`: PASS
+- `expo export --platform web`: PASS
+- `expo-doctor`: 1 check failed — same patch-version-drift class as 009 (documented)
+- Cross-system integration pipeline test (§27): PASS — completions across
+  legacy/migrated/new game classes flow through XP→ledger→ratings→engagement→
+  streaks→workout→personalization→analytics and survive backup export→import with
+  analytics equivalence.
+
+### Performance (measured)
+- loadProgressSnapshot @20k sessions: 102.7 ms via projection path (~1.6–1.9× faster
+  than legacy reads; parity vs the 009 baseline of ~101 ms while now returning the
+  same data through the fast path).
+- Backup export probe re-run recorded in `scripts/perf/baselines/`.
+
+### Android emulator QA (emulator-local autobot, AVD braintraining35)
+See final section below (catalog + workout journeys executed at convergence).

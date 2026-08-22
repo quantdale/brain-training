@@ -155,3 +155,28 @@ continuously during the wave using this per-entry shape:
   expo-audio plugin trim verified on fresh prebuild (RECORD_AUDIO absent);
   data_extraction_rules/backup_rules XMLs are UNTRACKED (android/ gitignored, CNG) —
   must be re-applied or codified into a config plugin before any clean prebuild.
+
+---
+
+## Campaign 011 closure ledger (2026-08-22)
+
+| Backlog item | Classification | Evidence |
+|---|---|---|
+| Catalog contracts — 4 new games | CLOSED — validated | 15 suites / 219 tests green; adversarial property sweeps pinned |
+| GameHost migrations parity | CLOSED — validated | W05: 138 suites / 1701 tests green across host + 18 games; risk-area regressions pinned |
+| Query performance rewrite equivalence | CLOSED — fixed + validated | Two dead-SQL defects found+fixed (COALESCE arity, bare JSON paths); 18-test differential suite green @1k/5k/20k; no perf regression (83.8ms vs 141.4ms legacy @20k) |
+| Backup transport wiring (device flows) | PARTIALLY CLOSED — engine validated on Node; SAF/share/picker on-device DEFERRED (needs interactive consent surfaces; autobot cannot drive system sheet) |
+| Platform/deps cleanup post-removal boot | CLOSED — validated | APK rebuilt+installed after removals; app boots (canary warm-home PASS); doctor delta recorded (patch-drift only) |
+| Cross-platform seams insets | CLOSED — validated | screen-shell inset suite green; tokens additive-only proven vs e0d92ce |
+| New-game distinctness review | CLOSED — validated | Order Sweep vs Value Order: MATERIALLY DISTINCT (4 documented differences); both retained |
+| Workout V2 lifecycle | CLOSED — fixed + validated | 5 defects fixed incl. High reroll tail-drop; 62 new DB-backed tests; rotation/metadata/reconcile suites green |
+| Analytics V2 metric correctness | CLOSED — fixed + validated | 6 boundary/ordering defects fixed (age-space half-open tiling documented); 96 reference-equivalence tests |
+| Schema v9 migration matrix | CLOSED — validated | v1→v9 all hops green, corrupt user_version now rejected, rating double-translation fixed |
+| Portability serializer + rollback | CLOSED — fixed + validated | Critical checksum bug fixed (byte-contract pinned); trigger-strip fault path fixed; whole-DB rollback proofs green |
+| Engagement transactionality | CLOSED — fixed + validated | High quest-claim-on-incomplete fixed; claim-all idempotency matrix green |
+| Accessibility rendered behavior | CLOSED — fixed + validated | Critical focus-helper no-op fixed (renderer-routed API); dialog re-announce spam fixed; visual baselines reconciled hunk-by-hunk |
+| grid-nav PauseOverlay reachability | ROOT CAUSE FIXED — device confirmation pending in catalog run (focus fix landed) |
+| Perf baselines re-measure | CLOSED — validated | loadProgressSnapshot 102.7ms @20k (≤009's 101ms class) with fast path engaged; export probe re-run |
+| iOS build/runtime | BLOCKED — no macOS host (unchanged) |
+| Sync/entitlements/notification/assistant seams inertness | CLOSED — validated | Unit suites green; default entitlements unrestricted; no network calls (offline validator CLEAN) |
+| Workout device journey (--mode workout) | IN PROGRESS this campaign — result recorded in VALIDATION.md |
