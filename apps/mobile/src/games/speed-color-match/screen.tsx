@@ -1,10 +1,12 @@
 /**
  * SpeedColorMatchScreen — the Speed Color Match game.
  *
- * Renders a pure state machine (`speedColorMatchReducer`) and owns the side
- * effects: stimulus timeout timers, the SDK `SessionLifecycle` (start/pause/
- * resume/complete/abandon), auto-pause on backgrounding, the tutorial, the
- * dev-only QA panel, and result persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Speed-Color-Match-specific — the reducer wiring, the stimulus
+ * auto-show + timeout pacing, the scoring/persistence pipeline, and the
+ * swatch/response view.
  *
  * Timing contract (constitution §20): reaction times are measured with the
  * injected monotonic `Clock` (`trialShownAtMs` → tap), never wall-clock time,
@@ -16,26 +18,29 @@
  * prop is an optional injection seam for deterministic tests.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  SessionLifecycle,
   isDevBuild,
   liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameTimeout,
+  useGameSession,
+} from '@/components/game-host';
 
 import { ColorButtonGrid } from './components/color-button';
-import { GameButton } from './components/button';
-import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { ColorSwatch } from './components/swatch';
 import { Tutorial } from './components/tutorial';
@@ -74,15 +79,6 @@ export interface SpeedColorMatchScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps = {}) {
   const {
     clock = systemClock,
@@ -91,17 +87,24 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     persistSession = dbSessionPersister,
     xpHook = noopXpRatingHook,
   } = props;
-  const theme = useTheme();
   const router = useRouter();
   const [state, dispatch] = useReducer(speedColorMatchReducer, undefined, createInitialSpeedColorMatchState);
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
 
   // Keep a ref of the latest state for event handlers.
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (current.phase === 'trial' || current.phase === 'roundResult') && !current.paused;
+    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
 
   const tutorial = useMemo(() => createSpeedColorMatchTutorialLifecycle(tutorialStore), [tutorialStore]);
@@ -121,21 +124,18 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     }
   }, [state.phase, state.trialShownAtMs, state.paused, clock]);
 
-  // ---- Stimulus timeout: auto-fail trial on expiry.
-  useEffect(() => {
-    if (state.phase !== 'trial' || state.paused || state.trialShownAtMs === null) {
-      return;
-    }
-    const remaining = stimulusTimeoutMs - (clock.now() - state.trialShownAtMs);
-    if (remaining <= 0) {
-      dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() });
-      return;
-    }
-    const timer = setTimeout(() => {
-      dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() });
-    }, remaining);
-    return () => clearTimeout(timer);
-  }, [state.phase, state.paused, state.trialShownAtMs, stimulusTimeoutMs, state.trialIndex, clock]);
+  // ---- Stimulus timeout: auto-fail trial on expiry. Scheduled from the
+  // monotonic onset (`trialShownAtMs`); pausing deactivates the timer, and
+  // resume re-baselines the onset (below) before the timer re-arms, so paused
+  // time never counts against the response window.
+  useGameTimeout(
+    state.phase === 'trial' && !state.paused && state.trialShownAtMs !== null,
+    () => dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() }),
+    Math.max(
+      0,
+      state.trialShownAtMs !== null ? stimulusTimeoutMs - (clock.now() - state.trialShownAtMs) : 0,
+    ),
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -144,29 +144,23 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     }
   }, [tutorial]);
 
-  // ---- Session finalization.
+  // ---- Session finalization: complete the lifecycle, run the SDK scoring
+  // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = speedColorMatchParamsFromProfile(state.profile);
@@ -240,37 +234,18 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     state.stats,
     state.forced,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (!(current.phase === 'trial' || current.phase === 'roundResult') || current.paused) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
-  }, [dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: 'resume' });
     if (stateRef.current.phase === 'trial') {
       // Re-baseline the stimulus window at the resume moment: paused time must
@@ -278,15 +253,12 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
       // Mirrors speed-reaction-time's fresh-`goAtMs` resume path.
       dispatch({ type: 'trial-shown', shownAtMs: clock.now() });
     }
-  }, [clock, dispatch]);
+  }, [session, clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleTapColor = useCallback(
     (color: ColorName) => {
@@ -311,18 +283,17 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     [clock, dispatch],
   );
 
-  const handleTimerExpire = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== 'trial' || current.paused) return;
-    dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() });
-  }, [clock, dispatch]);
-
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -342,220 +313,134 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
-  // ---- Auto-pause when the app leaves the foreground.
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
+  const view: 'intro' | 'session' | 'results' =
+    state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
   const currentTrial = state.trials[state.trialIndex] ?? null;
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'trial', String(state.trialIndex + 1))}>
+          Trial {state.trialIndex + 1}/{totalTrials}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
+        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {inSession ? (
+        <>
+          {state.phase === 'trial' && currentTrial ? (
+            <>
+              <ColorSwatch
+                swatchColor={currentTrial.swatchColor}
+                labelColor={currentTrial.labelColor}
+                testID={testId(GAME_ID, 'current-swatch')}
+              />
+              <ThemedText
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, 'trial-status')}>
+                Tap the matching color!
+              </ThemedText>
+              <ColorButtonGrid
+                colors={COLOR_PALETTE}
+                onPress={handleTapColor}
+                disabled={state.paused}
+              />
+            </>
+          ) : null}
 
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
+          {state.phase === 'roundResult' ? (
+            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              <ThemedText
+                type="headline"
+                themeColor={state.currentTrialOutcome === 'correct' ? 'success' : 'danger'}
+                testID={testId(GAME_ID, state.currentTrialOutcome === 'correct' ? 'trial-correct' : 'trial-wrong')}>
+                {state.currentTrialOutcome === 'correct' ? 'Correct!' : 'Wrong!'}
+              </ThemedText>
+              {state.currentReactionMs !== null ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {Math.round(state.currentReactionMs)}ms
+                </ThemedText>
+              ) : (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Timed out
+                </ThemedText>
+              )}
               <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
+                testID={testId(GAME_ID, 'next-trial')}
+                label={isLastTrial ? 'See results' : 'Next trial'}
+                onPress={() => dispatch({ type: 'next-trial' })}
               />
             </View>
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText type="subtitle" testID={testId(GAME_ID, 'trial', String(state.trialIndex + 1))}>
-                Trial {state.trialIndex + 1}/{totalTrials}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            {state.phase === 'trial' && currentTrial ? (
-              <>
-                <ColorSwatch
-                  swatchColor={currentTrial.swatchColor}
-                  labelColor={currentTrial.labelColor}
-                  testID={testId(GAME_ID, 'current-swatch')}
-                />
-                <ThemedText
-                  type="bodyLarge"
-                  themeColor="text"
-                  testID={testId(GAME_ID, 'trial-status')}>
-                  Tap the matching color!
-                </ThemedText>
-                <ColorButtonGrid
-                  colors={COLOR_PALETTE}
-                  onPress={handleTapColor}
-                  disabled={state.paused}
-                />
-              </>
-            ) : null}
-
-            {state.phase === 'roundResult' ? (
-              <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-                <ThemedText
-                  type="headline"
-                  themeColor={state.currentTrialOutcome === 'correct' ? 'success' : 'danger'}
-                  testID={testId(GAME_ID, state.currentTrialOutcome === 'correct' ? 'trial-correct' : 'trial-wrong')}>
-                  {state.currentTrialOutcome === 'correct' ? 'Correct!' : 'Wrong!'}
-                </ThemedText>
-                {state.currentReactionMs !== null ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    {Math.round(state.currentReactionMs)}ms
-                  </ThemedText>
-                ) : (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    Timed out
-                  </ThemedText>
-                )}
-                <GameButton
-                  testID={testId(GAME_ID, 'next-trial')}
-                  label={isLastTrial ? 'See results' : 'Next trial'}
-                  onPress={() => dispatch({ type: 'next-trial' })}
-                />
-              </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, 'score')}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.trialsPlayed > 0 ? state.stats.trialsCorrect / state.stats.trialsPlayed : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, 'accuracy')}
-            />
-            <StatRow
-              label="Trials correct"
-              value={`${state.stats.trialsCorrect}/${state.stats.trialsPlayed}`}
-              testID={testId(GAME_ID, 'trials-correct')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow
-              label="Avg reaction"
-              value={
-                state.stats.avgReactionMs > 0 && state.stats.avgReactionMs < Infinity
-                  ? `${Math.round(state.stats.avgReactionMs)}ms`
-                  : 'N/A'
-              }
-              testID={testId(GAME_ID, 'avg-reaction')}
-            />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
-
-            {state.persistState === 'failed' ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
-              <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
-              />
-            </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+          ) : null}
+        </>
       ) : null}
 
-      {state.tutorialOpen ? (
-        <Tutorial
-          onComplete={completeTutorial}
-          onSkip={isDevBuild() ? skipTutorial : undefined}
-        />
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, 'score')}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.trialsPlayed > 0 ? state.stats.trialsCorrect / state.stats.trialsPlayed : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'accuracy')}
+          />
+          <StatRow
+            label="Trials correct"
+            value={`${state.stats.trialsCorrect}/${state.stats.trialsPlayed}`}
+            testID={testId(GAME_ID, 'trials-correct')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow
+            label="Avg reaction"
+            value={
+              state.stats.avgReactionMs > 0 && state.stats.avgReactionMs < Infinity
+                ? `${Math.round(state.stats.avgReactionMs)}ms`
+                : 'N/A'
+            }
+            testID={testId(GAME_ID, 'avg-reaction')}
+          />
+          <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
+        </GameResults>
       ) : null}
-    </View>
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
 });

@@ -1,38 +1,37 @@
 /**
  * RuleGridScreen — the Rule Grid game (Latin-square constraint inference).
  *
- * Renders a pure state machine (`ruleGridGameReducer`) and owns the side
- * effects: the SDK `SessionLifecycle` (start/pause/resume/complete/abandon),
- * auto-pause on backgrounding, the tutorial, the dev-only QA panel, the
- * per-round timeout, and result persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Rule-Grid-specific — the reducer wiring, the per-round timeout,
+ * the scoring/persistence pipeline, and the grid view.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer; resuming continues
- * from the same position. The board is covered by the opaque `PauseOverlay`
- * and hidden from the accessibility tree while paused.
+ * from the same position (the per-round timeout re-arms with its full budget,
+ * matching the pre-migration behavior). The board is covered by the opaque
+ * shared `PauseOverlay` and hidden from the accessibility tree while paused.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import {
-  SessionLifecycle,
-  isDevBuild,
-  liveAudioHaptics,
-  noopXpRatingHook,
-  systemClock,
-  testId,
-} from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameSession,
+} from '@/components/game-host';
 
 import { Grid } from './components/grid';
-import { GameButton } from './components/button';
-import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { SymbolOptions } from './components/symbol-options';
 import { Tutorial } from './components/tutorial';
@@ -64,15 +63,6 @@ export interface RuleGridScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
   const {
     clock = systemClock,
@@ -84,14 +74,25 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
   const router = useRouter();
   const [state, dispatch] = useReducer(ruleGridGameReducer, undefined, createInitialRuleGridState);
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
   const roundStartedAtRef = useRef<number>(0);
 
-  // Keep a ref of the latest state for event handlers (AppState, timers).
+  // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === 'showGrid' || current.phase === 'roundResult') &&
+        !current.paused
+      );
+    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
 
   const tutorial = useMemo(() => createRuleGridTutorialLifecycle(tutorialStore), [tutorialStore]);
@@ -112,6 +113,9 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
   }, [tutorial]);
 
   // ---- Per-round timeout: auto-answer null when the budget is exhausted.
+  // Kept as a plain effect (not `useGameTimeout`): it deliberately restarts on
+  // every activation — including resume — anchoring `roundStartedAtRef` to the
+  // current monotonic time, which is exactly the pre-migration behavior.
   useEffect(() => {
     if (state.phase !== 'showGrid' || state.paused || state.currentRound === null || state.profile === null) {
       return;
@@ -130,28 +134,21 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = ruleGridParamsFromProfile(state.profile);
@@ -228,50 +225,25 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
     state.stats,
     state.forced,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (
-      !(current.phase === 'showGrid' || current.phase === 'roundResult') ||
-      current.paused
-    ) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
-  }, [dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: 'resume' });
-  }, [dispatch]);
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleSelectSymbol = useCallback(
     (value: number) => {
@@ -292,10 +264,15 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -315,210 +292,121 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
-
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={inSession ? 'session' : state.phase === 'results' ? 'results' : 'intro'}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+          Round {state.roundIndex + 1}/{rounds}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
+        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {state.phase === 'showGrid' && state.currentRound !== null ? (
+        <View style={styles.section} testID={testId(GAME_ID, 'show-grid')}>
+          <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
+            One symbol is missing. Which fits?
+          </ThemedText>
 
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
+          <Grid
+            size={state.currentRound.size}
+            square={state.currentRound.square}
+            blankIndex={state.currentRound.blankIndex}
+            renderSymbol={renderSymbol}
+            testIdCell={(i) => testId(GAME_ID, 'cell', String(i))}
+          />
 
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
-              <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'showGrid' && state.currentRound !== null ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'show-grid')}>
-            <SessionHeader>
-              <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
-                Round {state.roundIndex + 1}/{rounds}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
-              One symbol is missing. Which fits?
-            </ThemedText>
-
-            <Grid
-              size={state.currentRound.size}
-              square={state.currentRound.square}
-              blankIndex={state.currentRound.blankIndex}
-              renderSymbol={renderSymbol}
-              testIdCell={(i) => testId(GAME_ID, 'cell', String(i))}
-            />
-
-            <SymbolOptions
-              options={state.currentRound.options}
-              onSelect={handleSelectSymbol}
-              renderSymbol={renderSymbol}
-            />
-          </View>
-        ) : null}
-
-        {state.phase === 'roundResult' && state.currentRound !== null ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-            <ThemedText
-              type="headline"
-              themeColor={state.roundCorrect ? 'success' : 'danger'}
-              testID={testId(
-                GAME_ID,
-                state.roundCorrect ? 'round-correct' : state.roundOutcome === 'timeout' ? 'round-timeout' : 'round-wrong',
-              )}>
-              {state.roundCorrect ? 'Correct!' : state.roundOutcome === 'timeout' ? 'Time up!' : 'Not quite'}
-            </ThemedText>
-
-            <ThemedText type="small" themeColor="textSecondary">
-              The missing symbol was
-            </ThemedText>
-            <ThemedText
-              type="bodyLarge"
-              testID={testId(GAME_ID, 'correct-symbol')}>
-              {renderSymbol(state.currentRound.answer)}
-            </ThemedText>
-
-            <GameButton
-              testID={testId(GAME_ID, 'next-round')}
-              label={isLastRound ? 'See results' : 'Next round'}
-              onPress={() => dispatch({ type: 'next-round' })}
-            />
-          </View>
-        ) : null}
-
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, 'score')}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.roundsPlayed > 0 ? state.stats.roundsCorrect / state.stats.roundsPlayed : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, 'accuracy')}
-            />
-            <StatRow
-              label="Rounds correct"
-              value={`${state.stats.roundsCorrect}/${state.stats.roundsPlayed}`}
-              testID={testId(GAME_ID, 'rounds-correct')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
-
-            {state.persistState === 'failed' ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
-              <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
-              />
-            </View>
-          </View>
-        ) : null}
-
-        {isDevBuild() && inSession ? (
-          <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+          <SymbolOptions
+            options={state.currentRound.options}
+            onSelect={handleSelectSymbol}
+            renderSymbol={renderSymbol}
+          />
+        </View>
       ) : null}
 
-      {state.tutorialOpen ? (
-        <Tutorial
-          onComplete={completeTutorial}
-          onSkip={isDevBuild() ? skipTutorial : undefined}
-        />
+      {state.phase === 'roundResult' && state.currentRound !== null ? (
+        <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+          <ThemedText
+            type="headline"
+            themeColor={state.roundCorrect ? 'success' : 'danger'}
+            testID={testId(
+              GAME_ID,
+              state.roundCorrect ? 'round-correct' : state.roundOutcome === 'timeout' ? 'round-timeout' : 'round-wrong',
+            )}>
+            {state.roundCorrect ? 'Correct!' : state.roundOutcome === 'timeout' ? 'Time up!' : 'Not quite'}
+          </ThemedText>
+
+          <ThemedText type="small" themeColor="textSecondary">
+            The missing symbol was
+          </ThemedText>
+          <ThemedText
+            type="bodyLarge"
+            testID={testId(GAME_ID, 'correct-symbol')}>
+            {renderSymbol(state.currentRound.answer)}
+          </ThemedText>
+
+          <GameButton
+            testID={testId(GAME_ID, 'next-round')}
+            label={isLastRound ? 'See results' : 'Next round'}
+            onPress={() => dispatch({ type: 'next-round' })}
+          />
+        </View>
       ) : null}
-    </View>
+
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          forced={state.forced}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, 'score')}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.roundsPlayed > 0 ? state.stats.roundsCorrect / state.stats.roundsPlayed : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'accuracy')}
+          />
+          <StatRow
+            label="Rounds correct"
+            value={`${state.stats.roundsCorrect}/${state.stats.roundsPlayed}`}
+            testID={testId(GAME_ID, 'rounds-correct')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
+        </GameResults>
+      ) : null}
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
 });

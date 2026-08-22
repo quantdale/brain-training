@@ -279,3 +279,41 @@ describe('adaptive round-trip through the reducer', () => {
     expect(sessionChallengeRating('adaptive', profile, state.tiles)).toBe(0);
   });
 });
+
+describe('tier consistency audit (campaign 012)', () => {
+  it('escalates tile count, range and expression mix monotonically while tightening time', () => {
+    for (let i = 1; i < LEVELS.length; i += 1) {
+      const lo = VALUE_ORDERING_DIFFICULTY_PARAMS[LEVELS[i - 1]];
+      const hi = VALUE_ORDERING_DIFFICULTY_PARAMS[LEVELS[i]];
+      expect(hi.tiles).toBeGreaterThan(lo.tiles);
+      expect(hi.maxValue).toBeGreaterThan(lo.maxValue);
+      expect(hi.expressionTiles).toBeGreaterThanOrEqual(lo.expressionTiles);
+      expect(hi.budgetMs).toBeLessThan(lo.budgetMs);
+      expect(hi.rounds).toBeGreaterThan(lo.rounds);
+    }
+  });
+
+  it('keeps easy genuinely easy: few tiles, tiny range, no expressions', () => {
+    const easy = VALUE_ORDERING_DIFFICULTY_PARAMS.easy;
+    expect(easy.tiles).toBe(3);
+    expect(easy.maxValue).toBeLessThanOrEqual(20);
+    expect(easy.expressionTiles).toBe(0);
+  });
+
+  it('keeps expert meaningful without degenerate items', () => {
+    const expert = VALUE_ORDERING_DIFFICULTY_PARAMS.expert;
+    expect(expert.tiles).toBe(6);
+    expect(expert.budgetMs).toBeGreaterThan(0);
+    // The range hosts its tiles even in the worst case where every expression
+    // collapses onto plain-range values (distinctness is still guaranteed by
+    // the generator's collision resolution).
+    expect(expert.maxValue - expert.minValue + 1).toBeGreaterThanOrEqual(expert.tiles);
+    // Expression operands stay sane at every level that uses them.
+    for (const level of LEVELS) {
+      const params = VALUE_ORDERING_DIFFICULTY_PARAMS[level];
+      if (params.expressionTiles === 0) continue;
+      expect(params.exprOperandMax).toBeGreaterThanOrEqual(params.exprOperandMin);
+      expect(params.exprOperandMin).toBeGreaterThanOrEqual(2); // no ×1/−0 triviality
+    }
+  });
+});

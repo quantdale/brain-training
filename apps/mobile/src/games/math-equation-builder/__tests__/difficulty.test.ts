@@ -139,3 +139,37 @@ describe('sessionChallengeRating', () => {
     expect(sessionChallengeRating('adaptive', profile, 5)).toBe(1);
   });
 });
+
+describe('tier consistency audit (campaign 012)', () => {
+  it('escalates numbers count, target ceiling and time pressure monotonically', () => {
+    const order = ['easy', 'normal', 'hard', 'expert'] as const;
+    for (let i = 1; i < order.length; i += 1) {
+      const lo = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS[order[i - 1]];
+      const hi = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS[order[i]];
+      expect(hi.numbersCount).toBeGreaterThanOrEqual(lo.numbersCount);
+      expect(hi.targetMax).toBeGreaterThan(lo.targetMax);
+      expect(hi.timeBudgetMs).toBeLessThan(lo.timeBudgetMs);
+      expect(hi.rounds).toBeGreaterThan(lo.rounds);
+    }
+    // Easy stays genuinely easy: 3 numbers, +/− only.
+    expect(MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.easy.numbersCount).toBe(3);
+    expect(MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.easy.operators).toEqual(['+', '-']);
+  });
+
+  it('grows the operator mix monotonically (easy ⊂ normal ⊂ hard = expert)', () => {
+    const easy = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.easy.operators;
+    const normal = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.normal.operators;
+    const hard = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.hard.operators;
+    const expert = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.expert.operators;
+    expect(easy.every((op) => normal.includes(op))).toBe(true);
+    expect(normal.every((op) => hard.includes(op))).toBe(true);
+    expect(hard).toEqual(expert);
+    // Expert is meaningfully harder than hard: one more number and double
+    // the target ceiling — never a degenerate copy of the tier below it.
+    expect(expert.length).toBe(4); // full operator set
+    expect(MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.expert.numbersCount).toBe(5);
+    expect(MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.expert.targetMax).toBe(
+      2 * MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.hard.targetMax,
+    );
+  });
+});

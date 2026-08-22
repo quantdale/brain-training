@@ -1,38 +1,44 @@
 /**
  * ValueOrderingScreen — the Value Order game.
  *
- * Renders a pure state machine (`valueOrderingGameReducer`) and owns the side
- * effects: the per-round budget ticker (active-only elapsed ms from the SDK
- * `SessionLifecycle`, mirroring the catalog convention), auto-pause on
- * backgrounding, the tutorial, the dev-only QA panel, and result persistence.
+ * GameHost-based slice: shared session lifecycle, auto-pause, tutorial/QA
+ * gating, intro/pause/results chrome and the Android back-guard live in
+ * `@/components/game-host`; this module keeps only what is Value-Ordering-
+ * specific — the reducer wiring, the per-round budget ticker, the
+ * scoring/persistence pipeline, and the round view.
  *
  * Timing contract (constitution §20): the reducer never reads a clock; ticks
- * and taps carry `atActiveMs` from the lifecycle, so paused time is excluded
- * from both the round budget and any scoring decision — pausing can never buy
- * or lose time.
+ * and taps carry `atActiveMs` from the session lifecycle (active-only elapsed,
+ * paused time excluded), so pausing can never buy or lose time.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  SessionLifecycle,
   isDevBuild,
   liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameInterval,
+  useGameSession,
+} from '@/components/game-host';
+import type { GameHostView } from '@/components/game-host';
 
 import { GameButton } from './components/button';
-import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import { ValueGrid } from './components/value-grid';
@@ -79,15 +85,6 @@ export interface ValueOrderingScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}) {
   const {
     clock = systemClock,
@@ -103,13 +100,26 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     createInitialValueOrderingState,
   );
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
 
   // Keep a ref of the latest state for event handlers.
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  // Ordering and feedback phases pause (feedback has no running clock but a
+  // pause must still cover it per the phase machine).
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === 'ordering' || current.phase === 'feedback') &&
+        !current.paused
+      );
+    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
 
   const tutorial = useMemo(
@@ -125,18 +135,13 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
 
   // ---- Per-round budget ticker: feeds the reducer with active-only elapsed
   // ms; the reducer transitions to `timeout` when the budget is crossed.
-  // Pause cancels the ticker (timers frozen); resume re-schedules from the
-  // current active elapsed (paused segments excluded by the lifecycle).
-  useEffect(() => {
-    if (state.phase !== 'ordering' || state.paused || state.roundBudgetMs <= 0) {
-      return;
-    }
-    const timer = setInterval(() => {
-      const activeMs = lifecycleRef.current?.elapsedMs() ?? 0;
-      dispatch({ type: 'round-tick', atActiveMs: activeMs });
-    }, TIMER_TICK_MS);
-    return () => clearInterval(timer);
-  }, [state.phase, state.paused, state.roundIndex, state.roundBudgetMs, dispatch]);
+  // Pause deactivates the ticker (timers frozen); resume re-schedules from
+  // the current active elapsed (paused segments excluded by the lifecycle).
+  useGameInterval(
+    state.phase === 'ordering' && !state.paused && state.roundBudgetMs > 0,
+    () => dispatch({ type: 'round-tick', atActiveMs: session.elapsedMs() }),
+    TIMER_TICK_MS,
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -147,28 +152,21 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = valueOrderingParamsFromProfile(state.profile);
@@ -242,61 +240,37 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     state.forced,
     state.tiles,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (!(current.phase === 'ordering' || current.phase === 'feedback') || current.paused) {
-      return;
-    }
-    // Gate on the lifecycle's authoritative status: `stateRef` lags one commit
-    // behind, so a double-tap (or Pause racing an AppState background event)
-    // can reach this handler twice before React re-renders. A redundant SDK
-    // `pause()` would throw IllegalTransitionError (pause is only legal from
-    // `active`); skipping the no-op keeps both sides consistent instead.
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && lifecycle.status === 'active') {
-      lifecycle.pause();
-      dispatch({ type: 'pause' });
-    }
-  }, [dispatch]);
+    // `requestPause()` gates on the lifecycle's authoritative `active` status:
+    // `stateRef` lags one commit behind, so a double-tap (or Pause racing an
+    // AppState background event) can reach this handler twice before React
+    // re-renders. A redundant SDK `pause()` would throw IllegalTransitionError
+    // (pause is only legal from `active`); skipping the no-op keeps both sides
+    // consistent instead.
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
     // Mirror of the pause gate: `resume()` throws unless the lifecycle is
     // genuinely `paused`, so consult its status rather than the possibly
     // stale reducer ref.
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && lifecycle.status === 'paused') {
-      lifecycle.resume();
-      dispatch({ type: 'resume' });
+    if (session.status() !== 'paused') {
+      return;
     }
-  }, [dispatch]);
+    session.resume();
+    dispatch({ type: 'resume' });
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleTapTile = useCallback(
     (tileId: string) => {
@@ -307,9 +281,9 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
         return;
       }
       liveAudioHaptics.feedback('tap');
-      dispatch({ type: 'tap-tile', tileId, atActiveMs: lifecycleRef.current?.elapsedMs() ?? 0 });
+      dispatch({ type: 'tap-tile', tileId, atActiveMs: session.elapsedMs() });
     },
-    [dispatch],
+    [session, dispatch],
   );
 
   // ---- Sensory outcome feedback via canonical events (correct/wrong). The
@@ -328,15 +302,20 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   }, [state.phase, state.outcome]);
 
   const handleNext = useCallback(() => {
-    dispatch({ type: 'next-round', startActiveMs: lifecycleRef.current?.elapsedMs() ?? 0 });
-  }, [dispatch]);
+    dispatch({ type: 'next-round', startActiveMs: session.elapsedMs() });
+  }, [session, dispatch]);
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -356,16 +335,6 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
-
   const round = state.round;
   const secondsLeft =
     state.phase === 'ordering'
@@ -374,205 +343,129 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   const remainingTiles =
     round !== null ? round.tiles.length - state.tappedIds.length : 0;
 
+  const view: GameHostView =
+    state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
+
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
-              <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession && round !== null ? (
-          <View style={styles.section}>
-            <SessionHeader>
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText
+          type="subtitle"
+          testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+          Round {state.roundIndex + 1}/{rounds}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
+        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {inSession && round !== null ? (
+        <>
+          {state.phase === 'ordering' ? (
+            <>
               <ThemedText
-                type="subtitle"
-                testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
-                Round {state.roundIndex + 1}/{rounds}
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, 'prompt')}>
+                Tap from smallest to largest
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            {state.phase === 'ordering' ? (
-              <>
-                <ThemedText
-                  type="bodyLarge"
-                  themeColor="text"
-                  testID={testId(GAME_ID, 'prompt')}>
-                  Tap from smallest to largest
-                </ThemedText>
-                <ThemedText
-                  type="caption"
-                  themeColor="textSecondary"
-                  testID={testId(GAME_ID, 'round-time')}>
-                  {secondsLeft}s left · {remainingTiles} to go
-                </ThemedText>
-                <ValueGrid
-                  round={round}
-                  tappedIds={state.tappedIds}
-                  disabled={state.paused}
-                  onTapTile={handleTapTile}
-                />
-              </>
-            ) : null}
-
-            {state.phase === 'feedback' ? (
-              <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-                <ThemedText
-                  type="headline"
-                  themeColor={state.outcome === 'perfect' ? 'success' : 'danger'}
-                  testID={testId(GAME_ID, `round-${state.outcome ?? 'mistake'}`)}>
-                  {state.outcome === 'perfect'
-                    ? 'Perfect order!'
-                    : state.outcome === 'mistake'
-                      ? 'Wrong tile'
-                      : "Time's up"}
-                </ThemedText>
-                <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal')}>
-                  Correct order:{' '}
-                  {sortedTilesOf(round)
-                    .map((tile) => tile.display)
-                    .join('  <  ')}
-                </ThemedText>
-                {state.mistakeTileId !== null ? (
-                  <ThemedText type="small" themeColor="textSecondary">
-                    You tapped{' '}
-                    {round.tiles.find((tile) => tile.id === state.mistakeTileId)?.display ?? '?'}{' '}
-                    too early.
-                  </ThemedText>
-                ) : null}
-                <GameButton
-                  testID={testId(GAME_ID, 'next-round')}
-                  label={isLastRound ? 'See results' : 'Next round'}
-                  onPress={handleNext}
-                />
-              </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
-            <StatRow
-              label="Perfect rounds"
-              value={`${state.stats.roundsHit}/${state.stats.roundsPlayed}`}
-              testID={testId(GAME_ID, 'hits')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow
-              label="Best speed"
-              value={`${Math.round(state.stats.bestSpeedFactor * 100)}%`}
-              testID={testId(GAME_ID, 'best-speed')}
-            />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
-
-            {state.persistState === 'failed' ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
               <ThemedText
                 type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
+                themeColor="textSecondary"
+                testID={testId(GAME_ID, 'round-time')}>
+                {secondsLeft}s left · {remainingTiles} to go
               </ThemedText>
-            ) : null}
+              <ValueGrid
+                round={round}
+                tappedIds={state.tappedIds}
+                disabled={state.paused}
+                onTapTile={handleTapTile}
+              />
+            </>
+          ) : null}
 
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
+          {state.phase === 'feedback' ? (
+            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              <ThemedText
+                type="headline"
+                themeColor={state.outcome === 'perfect' ? 'success' : 'danger'}
+                testID={testId(GAME_ID, `round-${state.outcome ?? 'mistake'}`)}>
+                {state.outcome === 'perfect'
+                  ? 'Perfect order!'
+                  : state.outcome === 'mistake'
+                    ? 'Wrong tile'
+                    : "Time's up"}
+              </ThemedText>
+              <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal')}>
+                Correct order:{' '}
+                {sortedTilesOf(round)
+                  .map((tile) => tile.display)
+                  .join('  <  ')}
+              </ThemedText>
+              {state.mistakeTileId !== null ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  You tapped{' '}
+                  {round.tiles.find((tile) => tile.id === state.mistakeTileId)?.display ?? '?'}{' '}
+                  too early.
+                </ThemedText>
+              ) : null}
               <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
+                testID={testId(GAME_ID, 'next-round')}
+                label={isLastRound ? 'See results' : 'Next round'}
+                onPress={handleNext}
               />
             </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+          ) : null}
+        </>
       ) : null}
 
-      {state.tutorialOpen ? (
-        <Tutorial
-          onComplete={completeTutorial}
-          onSkip={isDevBuild() ? skipTutorial : undefined}
-        />
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
+          <StatRow
+            label="Perfect rounds"
+            value={`${state.stats.roundsHit}/${state.stats.roundsPlayed}`}
+            testID={testId(GAME_ID, 'hits')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow
+            label="Best speed"
+            value={`${Math.round(state.stats.bestSpeedFactor * 100)}%`}
+            testID={testId(GAME_ID, 'best-speed')}
+          />
+          <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
+        </GameResults>
       ) : null}
-    </View>
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
 });

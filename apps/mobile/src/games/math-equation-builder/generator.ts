@@ -39,8 +39,11 @@ export interface PuzzleTemplate {
  * Pool layout follows the per-level `numbersCount`: 3-number sets serve easy
  * (+/− only — the only operator mix that can draw them), 4-number sets serve
  * normal/hard, and the 5-number pool serves expert (which previously had NO
- * curated content at all). Every new template was machine-verified solvable
- * under the smallest operator mix of a level that can draw it.
+ * curated content at all). Every template is machine-verified reachable under
+ * the operator mix of a level that can draw it (enforced by
+ * `__tests__/generator.reachability.test.ts`): a template that fails the
+ * length/range/solvability filter of EVERY level is dead content and must not
+ * be shipped (campaign 012 removed nine such entries).
  */
 export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   // 3-number sets (easy compatible: +/− only)
@@ -50,8 +53,7 @@ export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   { numbers: [7, 4, 2], target: 13 },   // 7 + 4 + 2
   { numbers: [9, 3, 5], target: 17 },   // 9 + 3 + 5
   { numbers: [6, 2, 3], target: 11 },   // 6 + 2 + 3
-  { numbers: [8, 4, 5], target: 9 },    // 8 − 4 + 5
-  { numbers: [10, 3, 4], target: 26 },  // (10 × 3) − 4
+  { numbers: [8, 19, 4], target: 23 },  // 8 + (19 − 4)
   { numbers: [12, 5, 3], target: 20 },  // 12 + 5 + 3
   { numbers: [14, 6, 2], target: 22 },  // 14 + 6 + 2
   { numbers: [11, 4, 3], target: 18 },  // 11 + 4 + 3
@@ -77,14 +79,22 @@ export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   { numbers: [9, 4, 6, 3], target: 87 },  // (9 × (4 + 6)) − 3
   { numbers: [14, 5, 2, 3], target: 95 }, // (14 + 5) × (3 + 2)
   { numbers: [6, 7, 2, 5], target: 91 },  // (6 + 7) × (5 + 2)
-  // 3-number sets (hard / expert compatible — higher targets)
-  { numbers: [8, 7, 3], target: 53 },   // (8 × 7) − 3
-  { numbers: [6, 5, 4], target: 54 },   // 6 × (5 + 4)
-  { numbers: [9, 4, 2], target: 38 },   // (9 × 4) + 2
-  { numbers: [7, 6, 3], target: 45 },   // (7 × 6) + 3
-  { numbers: [10, 5, 2], target: 52 },  // (10 × 5) + 2
-  { numbers: [8, 6, 4], target: 44 },   // (8 × 6) − 4
-  { numbers: [13, 2, 5], target: 31 },  // (13 × 2) + 5
+  // 4-number multiplication sets re-tiered from dead 3-number templates
+  // (campaign 012). The originals required ×, but every tier that draws
+  // 3-number sets runs a +/− operator mix, so they were unreachable at every
+  // level ([10,3,4]→26 also failed easy's target range via ×; [8,4,5]→9 sat
+  // below easy's targetMin and was replaced in the easy pool instead). Each
+  // conversion keeps the original operands and adds one distinct number; all
+  // are verified reachable at normal AND hard, and NOT solvable with +/−
+  // alone, so multiplication stays the crux.
+  { numbers: [10, 3, 4, 2], target: 26 }, // (10 + 3) × (4 − 2)
+  { numbers: [8, 7, 3, 2], target: 50 },  // 8 + (7 × (3 × 2))
+  { numbers: [6, 5, 4, 3], target: 47 },  // ((6 + 5) × 4) + 3
+  { numbers: [9, 4, 2, 3], target: 37 },  // (9 × 4) − (2 − 3)
+  { numbers: [7, 6, 3, 2], target: 43 },  // 7 + (6 × (3 × 2))
+  { numbers: [10, 5, 2, 3], target: 49 }, // (10 × 5) + (2 − 3)
+  { numbers: [8, 6, 4, 2], target: 44 },  // 8 + (6 × (4 + 2))
+  { numbers: [13, 2, 5, 4], target: 31 }, // 13 + (2 × (5 + 4))
   // 5-number sets (expert compatible — the curated expert pool)
   { numbers: [2, 3, 4, 5, 6], target: 60 },    // ((2 × 3) × (4 + 5)) + 6
   { numbers: [3, 4, 5, 6, 7], target: 102 },   // (7 × (4 + 5 + 6)) − 3

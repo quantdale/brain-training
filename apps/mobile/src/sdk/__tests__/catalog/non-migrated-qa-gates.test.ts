@@ -1,8 +1,8 @@
 /**
- * Runtime QA-gate + tutorial contracts for the NON-migrated games
- * (campaign 011 — W06).
+ * Runtime QA-gate + tutorial contracts for NON-migrated games
+ * (campaign 011 — W06; campaign 012 convergence).
  *
- * The 24 games that still carry their own screen (no `@/components/game-host`
+ * Games whose screen still carries its own lifecycle (no `@/components/game-host`
  * delegation) own their session/QA/tutorial wiring inline, so the production
  * safety properties are verified here AT RUNTIME instead of by text scan:
  *
@@ -16,9 +16,13 @@
  *   - the tutorial and QA-panel components exist as callable components and
  *     are actually wired into the screen source.
  *
- * Dangerous QA controls staying inert in production is constitution §29; this
- * suite is the regression net that keeps the 24 legacy screens honest while
- * they await GameHost migration.
+ * Dangerous QA controls staying inert in production is constitution §29.
+ *
+ * Campaign 012 migrated the FULL catalog onto GameHost, so this roster is now
+ * empty: only the count-pin test remains active, and the per-game gates below
+ * are registered solely while a non-migrated roster exists (Jest forbids
+ * `it.each([])` and hooks inside test-less describes). They reactivate
+ * automatically if any screen ever drops GameHost delegation again.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { readdirSync, readFileSync } from 'node:fs';
@@ -52,8 +56,8 @@ function listNonMigratedGames(): string[] {
 
 const NON_MIGRATED = listNonMigratedGames();
 
-/** Pinned at campaign-011 baseline; grows intentionally as migration lands. */
-const EXPECTED_NON_MIGRATED_COUNT = 24;
+/** Campaign 012 target state: zero screens awaiting GameHost migration. */
+const EXPECTED_NON_MIGRATED_COUNT = 0;
 
 interface QaHooks {
   readonly gameId: string;
@@ -80,103 +84,108 @@ describe('non-migrated roster', () => {
   });
 });
 
-describe('QA force-state hooks refuse to run outside dev builds', () => {
-  let originalDev: boolean | undefined;
+if (NON_MIGRATED.length > 0) {
+  describe('QA force-state hooks refuse to run outside dev builds', () => {
+    let originalDev: boolean | undefined;
 
-  beforeEach(() => {
-    originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
-    setDevBuild(true);
+    beforeEach(() => {
+      originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
+      setDevBuild(true);
+    });
+
+    afterEach(() => {
+      setDevBuild(originalDev ?? true);
+    });
+
+    it.each(NON_MIGRATED)('%s: hooks gate on __DEV__ before dispatching', async (id: string) => {
+      const mod = loadModule(`@/games/${id}/hooks`);
+      const factoryName = findExport(mod, /^create[A-Za-z0-9]*QaForceStateHooks$/);
+      const factory = mod[factoryName] as HooksFactory;
+
+      const dispatch = jest.fn();
+      const hooks = factory(dispatch);
+      expect(hooks.gameId).toBe(id);
+
+      // Production behavior: every method throws BEFORE reaching dispatch.
+      setDevBuild(false);
+      expect(() => hooks.forceWin()).toThrow(/dev-only/i);
+      expect(() => hooks.forceLose()).toThrow(/dev-only/i);
+      const forceState = hooks.forceState;
+      if (typeof forceState === 'function') {
+        expect(() => forceState({})).toThrow(/dev-only/i);
+      }
+      expect(dispatch).not.toHaveBeenCalled();
+
+      // Dev behavior: force-win drives the reducer through a QA action.
+      setDevBuild(true);
+      hooks.forceWin();
+      expect(dispatch).toHaveBeenCalled();
+      const [action] = dispatch.mock.calls[0] as [{ type?: string } | undefined, ...unknown[]];
+      expect(String(action?.type)).toContain('qa/');
+    });
   });
 
-  afterEach(() => {
-    setDevBuild(originalDev ?? true);
-  });
+  describe('tutorial lifecycle wiring', () => {
+    let originalDev: boolean | undefined;
 
-  it.each(NON_MIGRATED)('%s: hooks gate on __DEV__ before dispatching', async (id) => {
-    const mod = loadModule(`@/games/${id}/hooks`);
-    const factoryName = findExport(mod, /^create[A-Za-z0-9]*QaForceStateHooks$/);
-    const factory = mod[factoryName] as HooksFactory;
+    beforeEach(() => {
+      originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
+      setDevBuild(true);
+    });
 
-    const dispatch = jest.fn();
-    const hooks = factory(dispatch);
-    expect(hooks.gameId).toBe(id);
+    afterEach(() => {
+      setDevBuild(originalDev ?? true);
+    });
 
-    // Production behavior: every method throws BEFORE reaching dispatch.
-    setDevBuild(false);
-    expect(() => hooks.forceWin()).toThrow(/dev-only/i);
-    expect(() => hooks.forceLose()).toThrow(/dev-only/i);
-    const forceState = hooks.forceState;
-    if (typeof forceState === 'function') {
-      expect(() => forceState({})).toThrow(/dev-only/i);
-    }
-    expect(dispatch).not.toHaveBeenCalled();
+    it.each(NON_MIGRATED)(
+      '%s: lifecycle shows first-play, completes, and skipForQa is dev-only',
+      async (id: string) => {
+        const mod = loadModule(`@/games/${id}/hooks`);
+        const factoryName = findExport(mod, /^create[A-Za-z0-9]*TutorialLifecycle$/);
+        const create = mod[factoryName] as () => {
+          shouldShowTutorial(gameId: string): boolean;
+          complete(gameId: string): void;
+          skipForQa(gameId: string): void;
+          getState(gameId: string): { completed: boolean };
+        };
 
-    // Dev behavior: force-win drives the reducer through a QA action.
-    setDevBuild(true);
-    hooks.forceWin();
-    expect(dispatch).toHaveBeenCalled();
-    const [action] = dispatch.mock.calls[0] as [{ type?: string } | undefined, ...unknown[]];
-    expect(String(action?.type)).toContain('qa/');
-  });
-});
+        const lifecycle = create();
+        expect(lifecycle.shouldShowTutorial(id)).toBe(true);
 
-describe('tutorial lifecycle wiring', () => {
-  let originalDev: boolean | undefined;
+        lifecycle.complete(id);
+        expect(lifecycle.shouldShowTutorial(id)).toBe(false);
+        expect(lifecycle.getState(id).completed).toBe(true);
 
-  beforeEach(() => {
-    originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
-    setDevBuild(true);
-  });
-
-  afterEach(() => {
-    setDevBuild(originalDev ?? true);
-  });
-
-  it.each(NON_MIGRATED)('%s: lifecycle shows first-play, completes, and skipForQa is dev-only', async (id) => {
-    const mod = loadModule(`@/games/${id}/hooks`);
-    const factoryName = findExport(mod, /^create[A-Za-z0-9]*TutorialLifecycle$/);
-    const create = mod[factoryName] as () => {
-      shouldShowTutorial(gameId: string): boolean;
-      complete(gameId: string): void;
-      skipForQa(gameId: string): void;
-      getState(gameId: string): { completed: boolean };
-    };
-
-    const lifecycle = create();
-    expect(lifecycle.shouldShowTutorial(id)).toBe(true);
-
-    lifecycle.complete(id);
-    expect(lifecycle.shouldShowTutorial(id)).toBe(false);
-    expect(lifecycle.getState(id).completed).toBe(true);
-
-    // The QA bypass shares the production gate with force-state hooks.
-    setDevBuild(false);
-    expect(() => lifecycle.skipForQa(id)).toThrow(/dev-only/i);
-    setDevBuild(true);
-    lifecycle.skipForQa(id);
-  });
-});
-
-describe('tutorial + QA panel components exist and are wired into the screen', () => {
-  it.each(NON_MIGRATED)('%s: components callable, screen mounts both', async (id) => {
-    const tutorialMod = loadModule(`@/games/${id}/components/tutorial`);
-    const tutorialComponent = Object.keys(tutorialMod).find(
-      (key) =>
-        (/(^|[^a-z])tutorial/i.test(key) || key === 'default') &&
-        typeof tutorialMod[key] === 'function',
+        // The QA bypass shares the production gate with force-state hooks.
+        setDevBuild(false);
+        expect(() => lifecycle.skipForQa(id)).toThrow(/dev-only/i);
+        setDevBuild(true);
+        lifecycle.skipForQa(id);
+      },
     );
-    expect(`${id}: ${tutorialComponent ?? 'none'}`).not.toBe(`${id}: none`);
-
-    const panelMod = loadModule(`@/games/${id}/components/qa-panel`);
-    const panelComponent = Object.keys(panelMod).find(
-      (key) =>
-        (/qapanel/i.test(key) || key === 'default') &&
-        typeof panelMod[key] === 'function',
-    );
-    expect(`${id}: ${panelComponent ?? 'none'}`).not.toBe(`${id}: none`);
-
-    const screen = readFileSync(join(GAMES_ROOT, id, 'screen.tsx'), 'utf8');
-    expect(screen).toContain('components/tutorial');
-    expect(screen).toContain('components/qa-panel');
   });
-});
+
+  describe('tutorial + QA panel components exist and are wired into the screen', () => {
+    it.each(NON_MIGRATED)('%s: components callable, screen mounts both', async (id: string) => {
+      const tutorialMod = loadModule(`@/games/${id}/components/tutorial`);
+      const tutorialComponent = Object.keys(tutorialMod).find(
+        (key) =>
+          (/(^|[^a-z])tutorial/i.test(key) || key === 'default') &&
+          typeof tutorialMod[key] === 'function',
+      );
+      expect(`${id}: ${tutorialComponent ?? 'none'}`).not.toBe(`${id}: none`);
+
+      const panelMod = loadModule(`@/games/${id}/components/qa-panel`);
+      const panelComponent = Object.keys(panelMod).find(
+        (key) =>
+          (/qapanel/i.test(key) || key === 'default') &&
+          typeof panelMod[key] === 'function',
+      );
+      expect(`${id}: ${panelComponent ?? 'none'}`).not.toBe(`${id}: none`);
+
+      const screen = readFileSync(join(GAMES_ROOT, id, 'screen.tsx'), 'utf8');
+      expect(screen).toContain('components/tutorial');
+      expect(screen).toContain('components/qa-panel');
+    });
+  });
+}

@@ -13,6 +13,7 @@ import {
   resolveNumberLineDifficulty,
   sessionChallengeRating,
 } from '../difficulty';
+import { targetRange } from '../generator';
 
 const LEVELS = ['easy', 'normal', 'hard', 'expert'] as const;
 
@@ -130,5 +131,30 @@ describe('sessionChallengeRating (adaptive)', () => {
       const profile = resolveNumberLineDifficulty(level);
       expect(sessionChallengeRating(level, profile, 999)).toBe(profile.challengeRating);
     }
+  });
+});
+
+describe('tier consistency audit (campaign 012)', () => {
+  it('tightens budgets monotonically across fixed levels', () => {
+    for (let i = 1; i < LEVELS.length; i += 1) {
+      const lo = NUMBER_LINE_DIFFICULTY_PARAMS[LEVELS[i - 1]];
+      const hi = NUMBER_LINE_DIFFICULTY_PARAMS[LEVELS[i]];
+      expect(hi.budgetMs).toBeLessThan(lo.budgetMs);
+      expect(hi.rounds).toBeGreaterThan(lo.rounds);
+    }
+  });
+
+  it('keeps the expert shifted-origin design sound', () => {
+    const expert = NUMBER_LINE_DIFFICULTY_PARAMS.expert;
+    // Non-zero origin defeats anchor heuristics ("near 0 / near max") — the
+    // span must still be wide enough that the 2.5% tolerance window holds a
+    // meaningful set of interior targets.
+    expect(expert.lineMin).toBeGreaterThan(0);
+    const { lo, hi } = targetRange(expert.lineMin, expert.lineMax);
+    expect(hi - lo + 1).toBeGreaterThanOrEqual(50);
+    // Relative precision still tightens toward expert (8% → 6% → 4% → 2.5%),
+    // and the absolute tap window stays achievable on-screen.
+    const toleranceUnits = ((expert.lineMax - expert.lineMin) * expert.tolerancePct) / 100;
+    expect(toleranceUnits).toBeGreaterThanOrEqual(1);
   });
 });

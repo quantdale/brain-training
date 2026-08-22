@@ -1,48 +1,38 @@
 /**
  * LogicDeductionScreen — the Deduction Table game.
  *
- * Renders a pure state machine (`logicDeductionReducer`) and owns the side
- * effects: the per-round expiry timer, the SDK `SessionLifecycle`
- * (start/pause/resume/complete/abandon), auto-pause on backgrounding, the
- * tutorial, the dev-only QA panel, and result persistence. All gameplay
- * timing comes from the injectable SDK monotonic clock.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Deduction-Table-specific — the reducer wiring, the per-round
+ * expiry timeout, the scoring/persistence pipeline, and the puzzle view. All
+ * gameplay timing comes from the injectable SDK monotonic clock.
  *
  * Pause semantics: pausing freezes the lifecycle timer and cancels the round
  * deadline; resuming re-arms the remaining budget. The screen is covered by
- * the opaque `PauseOverlay` and hidden from the accessibility tree while
- * paused, so the puzzle cannot be studied during a pause.
+ * the opaque shared `PauseOverlay` and hidden from the accessibility tree
+ * while paused, so the puzzle cannot be studied during a pause.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
-import { AppState, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import {
-  SessionLifecycle,
-  isDevBuild,
-  liveAudioHaptics,
-  noopXpRatingHook,
-  systemClock,
-  testId,
-} from "@/sdk";
-import type {
-  Clock,
-  DifficultyLevel,
-  TutorialStore,
-  XpRatingHook,
-} from "@/sdk";
+import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from "@/sdk";
+import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
-import {
-  DifficultySelector,
-  SessionHeader,
-  StatRow,
-} from "@/components/game-ui";
+import { GameButton, StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameSession,
+  useGameTimeout,
+} from "@/components/game-host";
 
 import { ClueTable } from "./components/clue-table";
-import { GameButton } from "./components/button";
 import { Option } from "./components/option";
 import type { OptionVisualState } from "./components/option";
-import { PauseOverlay } from "./components/pause-overlay";
 import { QaPanel } from "./components/qa-panel";
 import { Tutorial } from "./components/tutorial";
 import {
@@ -79,15 +69,6 @@ export interface LogicDeductionScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function LogicDeductionScreen(
   props: LogicDeductionScreenProps = {},
 ) {
@@ -105,12 +86,20 @@ export default function LogicDeductionScreen(
     createInitialLogicDeductionState,
   );
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return current.phase === "question" && !current.paused;
+    },
+    onPause: () => dispatch({ type: "pause", nowMs: clock.now() }),
   });
 
   const tutorial = useMemo(
@@ -131,22 +120,13 @@ export default function LogicDeductionScreen(
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   // ---- Per-round expiry timer: fires once at the round deadline. Pausing
-  // clears the timeout (effect cleanup) and the reducer freezes the remaining
-  // budget; resuming re-arms a fresh timeout for whatever is left.
-  useEffect(() => {
-    if (
-      state.phase !== "question" ||
-      state.paused ||
-      state.roundDeadlineMs === null
-    ) {
-      return undefined;
-    }
-    const remaining = Math.max(0, state.roundDeadlineMs - clock.now());
-    const timer = setTimeout(() => {
-      dispatch({ type: "expire-round", nowMs: clock.now() });
-    }, remaining);
-    return () => clearTimeout(timer);
-  }, [state.phase, state.paused, state.roundDeadlineMs, clock, dispatch]);
+  // deactivates the timeout (effect cleanup) and the reducer freezes the
+  // remaining budget; resuming re-arms a fresh timeout for whatever is left.
+  useGameTimeout(
+    state.phase === "question" && !state.paused && state.roundDeadlineMs !== null,
+    () => dispatch({ type: "expire-round", nowMs: clock.now() }),
+    Math.max(0, state.roundDeadlineMs !== null ? state.roundDeadlineMs - clock.now() : 0),
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -157,10 +137,11 @@ export default function LogicDeductionScreen(
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== "results" ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.params === null ||
       state.sessionId === null ||
@@ -168,18 +149,10 @@ export default function LogicDeductionScreen(
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== "completed" &&
-      lifecycle.status !== "abandoned"
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? "normal";
     const resolvedParams = logicDeductionParamsFromProfile(state.profile);
@@ -266,49 +239,25 @@ export default function LogicDeductionScreen(
     state.forced,
     state.roundOutcomes,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: "start-session",
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-        nowMs: clock.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (current.phase !== "question" || current.paused) return;
-    lifecycleRef.current?.pause();
-    dispatch({ type: "pause", nowMs: clock.now() });
-  }, [clock, dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: "resume", nowMs: clock.now() });
-  }, [clock, dispatch]);
+  }, [session, clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      (lifecycle.status === "active" || lifecycle.status === "paused")
-    ) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleAnswer = useCallback(
     (index: number) => {
@@ -331,12 +280,16 @@ export default function LogicDeductionScreen(
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? "normal";
-    const seed =
-      current.seedOverride ??
-      (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: "start-session",
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+      nowMs: clock.now(),
+    });
+  }, [session, sessionSeed, clock, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -352,19 +305,9 @@ export default function LogicDeductionScreen(
   }, [tutorial, dispatch]);
 
   const skipTutorial = useCallback(() => {
-    tutorial.skipForQa(GAME_ID);
+    tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
     dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
-
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState !== "active") {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
 
   // ---- Option visuals. During the question every card is neutral (no hint);
   // after scoring the true answer lights up, the player's own wrong pick is
@@ -391,295 +334,203 @@ export default function LogicDeductionScreen(
         : "Not quite";
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, "screen")}>
-      <View
-        style={styles.content}
-        importantForAccessibility={
-          state.paused ? "no-hide-descendants" : "auto"
-        }
-        accessibilityElementsHidden={state.paused}
-        accessible={false}
-      >
-        {state.phase === "intro" ? (
-          <View style={styles.section} testID={testId(GAME_ID, "intro")}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) =>
-                dispatch({ type: "select-difficulty", level })
-              }
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, "start")}
-                label="Start"
-                onPress={handleStart}
-              />
-              <GameButton
-                testID={testId(GAME_ID, "help")}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForceTimeout={qaHooks.forceTimeout}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText
-                type="subtitle"
-                testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
-              >
-                Round {state.roundIndex + 1}/{rounds}
-              </ThemedText>
-              <ThemedText
-                type="small"
-                themeColor="textSecondary"
-                testID={testId(GAME_ID, "score")}
-              >
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, "pause")}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            {state.phase === "question" && state.round !== null ? (
-              <View style={styles.section}>
-                <ClueTable
-                  round={state.round}
-                  testID={testId(GAME_ID, "clue-table")}
-                />
-                <View style={styles.clues}>
-                  {state.round.clues.map((clue, i) => (
-                    <ThemedText
-                      key={i}
-                      type="small"
-                      themeColor="textSecondary"
-                      testID={testId(GAME_ID, "clue", String(i))}
-                    >
-                      • {clue.text}
-                    </ThemedText>
-                  ))}
-                </View>
-                <ThemedText
-                  type="headline"
-                  testID={testId(GAME_ID, "question")}
-                  accessibilityLabel={state.round.question.text}
-                >
-                  {state.round.question.text}
-                </ThemedText>
-                <ThemedText
-                  type="caption"
-                  themeColor="textSecondary"
-                  testID={testId(GAME_ID, "time-budget")}
-                >
-                  Answer within {budgetSeconds}s
-                </ThemedText>
-                <View style={styles.options}>
-                  {state.round.options.map((value, index) => (
-                    <Option
-                      key={index}
-                      index={index}
-                      label={value}
-                      visual={visualFor(index)}
-                      onPressOption={handleAnswer}
-                    />
-                  ))}
-                </View>
-              </View>
-            ) : null}
-
-            {state.phase === "roundResult" && state.round !== null ? (
-              <View style={styles.section} testID={testId(GAME_ID, "round-result")}>
-                <ThemedText
-                  type="headline"
-                  themeColor={
-                    state.roundOutcome === "correct"
-                      ? "success"
-                      : state.roundOutcome === "timeout"
-                        ? "warning"
-                        : "danger"
-                  }
-                  testID={testId(
-                    GAME_ID,
-                    state.roundOutcome === "correct"
-                      ? "round-correct"
-                      : state.roundOutcome === "timeout"
-                        ? "round-timeout"
-                        : "round-wrong",
-                  )}
-                >
-                  {roundResultMessage}
-                </ThemedText>
-                {state.roundOutcome !== "correct" ? (
-                  <ThemedText
-                    type="small"
-                    themeColor="textSecondary"
-                    testID={testId(GAME_ID, "round-answer-reveal")}
-                  >
-                    The answer was {state.round.answer}
-                  </ThemedText>
-                ) : null}
-                <View style={styles.options}>
-                  {state.round.options.map((value, index) => (
-                    <Option
-                      key={index}
-                      index={index}
-                      label={value}
-                      visual={visualFor(index)}
-                      selected={index === state.lastAnswerIndex}
-                      disabled
-                      onPressOption={handleAnswer}
-                    />
-                  ))}
-                </View>
-                <GameButton
-                  testID={testId(GAME_ID, "next-round")}
-                  label={isLastRound ? "See results" : "Next round"}
-                  onPress={() =>
-                    dispatch({ type: "next-round", nowMs: clock.now() })
-                  }
-                />
-              </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForceTimeout={qaHooks.forceTimeout}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === "results" ? (
-          <View style={styles.section} testID={testId(GAME_ID, "results")}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, "score")}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.roundsPlayed > 0
-                  ? state.stats.roundsCorrect / state.stats.roundsPlayed
-                  : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, "accuracy")}
-            />
-            <StatRow
-              label="Rounds correct"
-              value={`${state.stats.roundsCorrect}/${state.stats.roundsPlayed}`}
-              testID={testId(GAME_ID, "rounds-correct")}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, "best-streak")}
-            />
-            <StatRow
-              label="Avg answer time"
-              value={
-                state.stats.roundsPlayed > 0
-                  ? `${(state.stats.totalAnswerMs / state.stats.roundsPlayed / 1000).toFixed(1)}s`
-                  : "—"
-              }
-              testID={testId(GAME_ID, "avg-time")}
-            />
-            <StatRow
-              label="XP"
-              value={String(state.authoritativeXp ?? state.xp)}
-              testID={testId(GAME_ID, "xp")}
-            />
-
-            {state.persistState === "failed" ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, "persist-error")}
-              >
-                Your session could not be saved. {state.lastError ?? ""}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, "forced-badge")}
-              >
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, "restart")}
-                label="Play again"
-                onPress={handleRestart}
-              />
-              <GameButton
-                testID={testId(GAME_ID, "quit")}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
-              />
-            </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && state.phase === "question" ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
-      ) : null}
-
-      {state.tutorialOpen ? (
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={inSession ? "session" : state.phase === "results" ? "results" : "intro"}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) =>
+        dispatch({ type: "select-difficulty", level })
+      }
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText
+          type="subtitle"
+          testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
+        >
+          Round {state.roundIndex + 1}/{rounds}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={
+        <QaPanel
+          onForceWin={qaHooks.forceWin}
+          onForceLose={qaHooks.forceLose}
+          onForceTimeout={qaHooks.forceTimeout}
+        />
+      }
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
         <Tutorial
           onComplete={completeTutorial}
           onSkip={isDevBuild() ? skipTutorial : undefined}
         />
+      }>
+      {inSession ? (
+        <>
+          {state.phase === "question" && state.round !== null ? (
+            <View style={styles.section}>
+              <ClueTable
+                round={state.round}
+                testID={testId(GAME_ID, "clue-table")}
+              />
+              <View style={styles.clues}>
+                {state.round.clues.map((clue, i) => (
+                  <ThemedText
+                    key={i}
+                    type="small"
+                    themeColor="textSecondary"
+                    testID={testId(GAME_ID, "clue", String(i))}
+                  >
+                    • {clue.text}
+                  </ThemedText>
+                ))}
+              </View>
+              <ThemedText
+                type="headline"
+                testID={testId(GAME_ID, "question")}
+                accessibilityLabel={state.round.question.text}
+              >
+                {state.round.question.text}
+              </ThemedText>
+              <ThemedText
+                type="caption"
+                themeColor="textSecondary"
+                testID={testId(GAME_ID, "time-budget")}
+              >
+                Answer within {budgetSeconds}s
+              </ThemedText>
+              <View style={styles.options}>
+                {state.round.options.map((value, index) => (
+                  <Option
+                    key={index}
+                    index={index}
+                    label={value}
+                    visual={visualFor(index)}
+                    onPressOption={handleAnswer}
+                  />
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {state.phase === "roundResult" && state.round !== null ? (
+            <View style={styles.section} testID={testId(GAME_ID, "round-result")}>
+              <ThemedText
+                type="headline"
+                themeColor={
+                  state.roundOutcome === "correct"
+                    ? "success"
+                    : state.roundOutcome === "timeout"
+                      ? "warning"
+                      : "danger"
+                }
+                testID={testId(
+                  GAME_ID,
+                  state.roundOutcome === "correct"
+                    ? "round-correct"
+                    : state.roundOutcome === "timeout"
+                      ? "round-timeout"
+                      : "round-wrong",
+                )}
+              >
+                {roundResultMessage}
+              </ThemedText>
+              {state.roundOutcome !== "correct" ? (
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, "round-answer-reveal")}
+                >
+                  The answer was {state.round.answer}
+                </ThemedText>
+              ) : null}
+              <View style={styles.options}>
+                {state.round.options.map((value, index) => (
+                  <Option
+                    key={index}
+                    index={index}
+                    label={value}
+                    visual={visualFor(index)}
+                    selected={index === state.lastAnswerIndex}
+                    disabled
+                    onPressOption={handleAnswer}
+                  />
+                ))}
+              </View>
+              <GameButton
+                testID={testId(GAME_ID, "next-round")}
+                label={isLastRound ? "See results" : "Next round"}
+                onPress={() =>
+                  dispatch({ type: "next-round", nowMs: clock.now() })
+                }
+              />
+            </View>
+          ) : null}
+        </>
       ) : null}
-    </View>
+
+      {state.phase === "results" ? (
+        <GameResults
+          gameId={GAME_ID}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          forced={state.forced}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, "score")}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.roundsPlayed > 0
+                ? state.stats.roundsCorrect / state.stats.roundsPlayed
+                : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, "accuracy")}
+          />
+          <StatRow
+            label="Rounds correct"
+            value={`${state.stats.roundsCorrect}/${state.stats.roundsPlayed}`}
+            testID={testId(GAME_ID, "rounds-correct")}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, "best-streak")}
+          />
+          <StatRow
+            label="Avg answer time"
+            value={
+              state.stats.roundsPlayed > 0
+                ? `${(state.stats.totalAnswerMs / state.stats.roundsPlayed / 1000).toFixed(1)}s`
+                : "—"
+            }
+            testID={testId(GAME_ID, "avg-time")}
+          />
+          <StatRow
+            label="XP"
+            value={String(state.authoritativeXp ?? state.xp)}
+            testID={testId(GAME_ID, "xp")}
+          />
+        </GameResults>
+      ) : null}
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
   },
   clues: {
     gap: Spacing.one,

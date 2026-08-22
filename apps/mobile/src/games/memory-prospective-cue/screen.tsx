@@ -1,53 +1,44 @@
 /**
  * SignalWatchScreen — the Cue Keeper game (event-based prospective memory).
  *
- * Renders a pure state machine (`prospectiveCueGameReducer`) and owns the
- * side effects: per-item response-window pacing, the SDK `SessionLifecycle`
- * (start/pause/resume/complete/abandon), auto-pause on backgrounding, the
- * tutorial, the dev-only QA panel, and result persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Cue-Keeper-specific — the reducer wiring, the per-item
+ * response-window pacer (campaign 011 fix), the scoring/persistence pipeline,
+ * and the stream view.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer AND the current item's
  * response window (the pacing interval is cleared; elapsed window time stays
- * accumulated in a ref); resuming continues the remaining window (freeze-and-
- * continue, never a restart). The tutorial overlay freezes the item window
- * the same way while it covers the stream. The stream is covered by the
- * opaque `PauseOverlay` and hidden from the accessibility tree while paused — the
- * watchlist lives only in the player's head, and pausing must not buy study
- * time either.
+ * accumulated in render state); resuming continues the remaining window. The
+ * tutorial overlay freezes the item window the same way while it covers the
+ * stream. The stream is covered by the opaque shared `PauseOverlay` and hidden
+ * from the accessibility tree while paused — the watchlist lives only in the
+ * player's head, and pausing must not buy study time either.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { AppState, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import {
-  SessionLifecycle,
-  isDevBuild,
-  liveAudioHaptics,
-  noopXpRatingHook,
-  systemClock,
-  testId,
-} from "@/sdk";
-import type {
-  Clock,
-  DifficultyLevel,
-  TutorialStore,
-  XpRatingHook,
-} from "@/sdk";
+import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from "@/sdk";
+import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
-import {
-  DifficultySelector,
-  SessionHeader,
-  StatRow,
-} from "@/components/game-ui";
+import { StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameSession,
+} from "@/components/game-host";
+import type { GameHostView } from "@/components/game-host";
 
 import { BriefingPanel, GlyphChip } from "./components/briefing-panel";
 import { GameButton } from "./components/button";
-import { PauseOverlay } from "./components/pause-overlay";
 import { QaPanel } from "./components/qa-panel";
 import { ResponseControls } from "./components/response-controls";
 import { StreamView } from "./components/stream-view";
@@ -89,15 +80,6 @@ export interface ProspectiveCueScreenProps {
 /** Pacing tick granularity for the per-item response window (ms). */
 const WINDOW_TICK_MS = 50;
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function SignalWatchScreen(
   props: ProspectiveCueScreenProps = {},
 ) {
@@ -116,18 +98,15 @@ export default function SignalWatchScreen(
     createInitialProspectiveCueState,
   );
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
-  // Per-item response-window baseline: tracks elapsed ACTIVE (non-paused)
-  // window time so pausing freezes and resuming resumes the remaining window
-  // (freeze-and-continue; mirrors memory-pair-recall's study-tick semantics).
   /**
    * Per-item response-window elapsed ms as pure RENDER STATE, driving both
    * the urgency bar and the press-path elapsedFraction. Written ONLY by the
    * pacing interval (50 ms) and reset via the sanctioned render-phase
    * adjustment when the current item changes — never synchronously in an
-   * effect and never via refs, so renders stay pure.
+   * effect and never via refs, so renders stay pure. (Campaign 011 fix: the
+   * item-index stamping keeps a press or timeout belonging to one item from
+   * bleeding into the next.)
    */
   const [windowElapsedState, setWindowElapsedState] = useState({
     itemIndex: state.itemIndex,
@@ -145,6 +124,21 @@ export default function SignalWatchScreen(
 
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === "briefing" ||
+          current.phase === "stream" ||
+          current.phase === "roundResult") &&
+        !current.paused
+      );
+    },
+    onPause: () => dispatch({ type: "pause" }),
   });
 
   const tutorial = useMemo(
@@ -169,13 +163,19 @@ export default function SignalWatchScreen(
     state.phase === "roundResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-
   // Response-window pacing with freeze-and-continue: a window of `itemMs` of
   // ACTIVE (non-paused, tutorial-closed) time, accumulated in 50ms steps.
   // While paused OR the tutorial overlay is open the interval is cleared so
   // no window time accrues; on resume/close it continues from where it left
   // off. Expiry dispatches an index-stamped `item-timeout` — only the
   // interval that owns the current item can expire it.
+  //
+  // Kept as a game-local effect (not `useGameInterval`) DELIBERATELY: the
+  // campaign 011 bleed-through fix couples the accumulator lifecycle to this
+  // effect's dependency-scoped closures (index-stamped render-state writes +
+  // index-stamped expiry). Hoisting it behind the shared helper would either
+  // change resume semantics or reintroduce the render-phase ref access that
+  // 011 removed. Correctness beats mechanical uniformity.
   useEffect(() => {
     if (state.phase !== "stream" || state.paused || state.tutorialOpen) {
       return undefined;
@@ -229,28 +229,21 @@ export default function SignalWatchScreen(
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== "results" ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== "completed" &&
-      lifecycle.status !== "abandoned"
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? "normal";
     const resolvedParams = prospectiveCueParamsFromProfile(state.profile);
@@ -338,57 +331,25 @@ export default function SignalWatchScreen(
     state.signalCount,
     state.itemMs,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: "start-session",
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (
-      !(
-        current.phase === "briefing" ||
-        current.phase === "stream" ||
-        current.phase === "roundResult"
-      ) ||
-      current.paused
-    ) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: "pause" });
-  }, [dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: "resume" });
-  }, [dispatch]);
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      (lifecycle.status === "active" || lifecycle.status === "paused")
-    ) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleRespond = useCallback(
     (kind: "go" | "signal") => {
@@ -420,12 +381,15 @@ export default function SignalWatchScreen(
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? "normal";
-    const seed =
-      current.seedOverride ??
-      (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: "start-session",
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -445,16 +409,6 @@ export default function SignalWatchScreen(
     dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
 
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState !== "active") {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
-
   const round = state.round;
   const currentItem =
     round !== null && state.phase === "stream"
@@ -469,291 +423,200 @@ export default function SignalWatchScreen(
         )
       : [];
 
+  const view: GameHostView =
+    state.phase === "intro" ? "intro" : state.phase === "results" ? "results" : "session";
+
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, "screen")}>
-      <View
-        style={styles.content}
-        importantForAccessibility={
-          state.paused ? "no-hide-descendants" : "auto"
-        }
-        accessibilityElementsHidden={state.paused}
-        accessible={false}
-      >
-        {state.phase === "intro" ? (
-          <View style={styles.section} testID={testId(GAME_ID, "intro")}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) =>
-                dispatch({ type: "select-difficulty", level })
-              }
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, "start")}
-                label="Start"
-                onPress={handleStart}
-              />
-              <GameButton
-                testID={testId(GAME_ID, "help")}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession && round !== null ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText
-                type="subtitle"
-                testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
-              >
-                Round {state.roundIndex + 1}/{rounds}
-              </ThemedText>
-              <ThemedText
-                type="small"
-                themeColor="textSecondary"
-                testID={testId(GAME_ID, "score")}
-              >
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, "pause")}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            {state.phase === "briefing" ? (
-              <>
-                <BriefingPanel round={round} survivorIds={survivorIds} />
-                <GameButton
-                  testID={testId(GAME_ID, "briefing-start")}
-                  label="Start stream"
-                  onPress={() => dispatch({ type: "briefing-done" })}
-                />
-              </>
-            ) : null}
-
-            {state.phase === "stream" && currentItem !== null ? (
-              <>
-                <View style={styles.statusRow}>
-                  <ThemedText
-                    type="bodyLarge"
-                    themeColor="text"
-                    testID={testId(GAME_ID, "stream-status")}
-                  >
-                    Watch the stream…
-                  </ThemedText>
-                  <View
-                    style={styles.dots}
-                    testID={testId(GAME_ID, "progress")}
-                    accessibilityLabel={`Item ${state.itemIndex + 1} of ${streamLen}`}
-                  >
-                    {Array.from({ length: streamLen }, (_, i) => (
-                      <View
-                        key={i}
-                        style={[
-                          styles.dot,
-                          {
-                            backgroundColor:
-                              i < state.itemIndex ? theme.accent : theme.border,
-                          },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                </View>
-                <StreamView
-                  item={currentItem}
-                  fractionRemaining={
-                    1 - Math.min(windowElapsedMs, itemMs) / itemMs
-                  }
-                  disabled={state.paused}
-                />
-                <ResponseControls
-                  disabled={state.paused}
-                  onRespond={handleRespond}
-                />
-              </>
-            ) : null}
-
-            {state.phase === "roundResult" ? (
-              <View
-                style={styles.section}
-                testID={testId(GAME_ID, "round-result")}
-              >
-                <ThemedText
-                  type="headline"
-                  themeColor={
-                    state.roundOutcome === "passed" ? "success" : "danger"
-                  }
-                  testID={testId(
-                    GAME_ID,
-                    state.roundOutcome === "passed"
-                      ? "round-passed"
-                      : "round-failed",
-                  )}
-                >
-                  {state.roundOutcome === "passed"
-                    ? "All signals caught!"
-                    : "Not quite"}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Signals caught {state.roundSignalHits}/
-                  {state.roundSignalTotal}
-                  {state.roundFalseAlarms > 0
-                    ? ` · ${state.roundFalseAlarms} false alarm${state.roundFalseAlarms > 1 ? "s" : ""}`
-                    : ""}
-                </ThemedText>
-                {/* Reveal the round's watchlist after scoring. */}
-                <View style={styles.chipRow}>
-                  {round.activeSignalIds.map((id) => (
-                    <GlyphChip key={id} glyphId={id} />
-                  ))}
-                </View>
-                <GameButton
-                  testID={testId(GAME_ID, "next-round")}
-                  label={isLastRound ? "See results" : "Next round"}
-                  onPress={() => dispatch({ type: "next-round" })}
-                />
-              </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === "results" ? (
-          <View style={styles.section} testID={testId(GAME_ID, "results")}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, "score")}
-            />
-            <StatRow
-              label="Signals caught"
-              value={`${state.stats.signalHits}/${state.stats.totalSignals}`}
-              testID={testId(GAME_ID, "signals-caught")}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.totalItems > 0
-                  ? state.stats.correctResponses / state.stats.totalItems
-                  : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, "accuracy")}
-            />
-            <StatRow
-              label="False alarms"
-              value={String(state.stats.falseAlarms)}
-              testID={testId(GAME_ID, "false-alarms")}
-            />
-            <StatRow
-              label="Rounds passed"
-              value={`${state.stats.roundsPassed}/${state.stats.roundsPlayed}`}
-              testID={testId(GAME_ID, "rounds-passed")}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, "best-streak")}
-            />
-            <StatRow
-              label="XP"
-              value={String(state.authoritativeXp ?? state.xp)}
-              testID={testId(GAME_ID, "xp")}
-            />
-
-            {state.persistState === "failed" ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, "persist-error")}
-              >
-                Your session could not be saved. {state.lastError ?? ""}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, "forced-badge")}
-              >
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, "restart")}
-                label="Play again"
-                onPress={handleRestart}
-              />
-              <GameButton
-                testID={testId(GAME_ID, "quit")}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
-              />
-            </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
-      ) : null}
-
-      {state.tutorialOpen ? (
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) =>
+        dispatch({ type: "select-difficulty", level })
+      }
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText
+          type="subtitle"
+          testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
+        >
+          Round {state.roundIndex + 1}/{rounds}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={
+        <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
+      }
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
         <Tutorial
           onComplete={completeTutorial}
           onSkip={isDevBuild() ? skipTutorial : undefined}
         />
+      }>
+      {inSession && round !== null ? (
+        <>
+          {state.phase === "briefing" ? (
+            <>
+              <BriefingPanel round={round} survivorIds={survivorIds} />
+              <GameButton
+                testID={testId(GAME_ID, "briefing-start")}
+                label="Start stream"
+                onPress={() => dispatch({ type: "briefing-done" })}
+              />
+            </>
+          ) : null}
+
+          {state.phase === "stream" && currentItem !== null ? (
+            <>
+              <View style={styles.statusRow}>
+                <ThemedText
+                  type="bodyLarge"
+                  themeColor="text"
+                  testID={testId(GAME_ID, "stream-status")}
+                >
+                  Watch the stream…
+                </ThemedText>
+                <View
+                  style={styles.dots}
+                  testID={testId(GAME_ID, "progress")}
+                  accessibilityLabel={`Item ${state.itemIndex + 1} of ${streamLen}`}
+                >
+                  {Array.from({ length: streamLen }, (_, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.dot,
+                        {
+                          backgroundColor:
+                            i < state.itemIndex ? theme.accent : theme.border,
+                        },
+                      ]}
+                    />
+                  ))}
+                </View>
+              </View>
+              <StreamView
+                item={currentItem}
+                fractionRemaining={
+                  1 - Math.min(windowElapsedMs, itemMs) / itemMs
+                }
+                disabled={state.paused}
+              />
+              <ResponseControls
+                disabled={state.paused}
+                onRespond={handleRespond}
+              />
+            </>
+          ) : null}
+
+          {state.phase === "roundResult" ? (
+            <View
+              style={styles.section}
+              testID={testId(GAME_ID, "round-result")}
+            >
+              <ThemedText
+                type="headline"
+                themeColor={
+                  state.roundOutcome === "passed" ? "success" : "danger"
+                }
+                testID={testId(
+                  GAME_ID,
+                  state.roundOutcome === "passed"
+                    ? "round-passed"
+                    : "round-failed",
+                )}
+              >
+                {state.roundOutcome === "passed"
+                  ? "All signals caught!"
+                  : "Not quite"}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Signals caught {state.roundSignalHits}/
+                {state.roundSignalTotal}
+                {state.roundFalseAlarms > 0
+                  ? ` · ${state.roundFalseAlarms} false alarm${state.roundFalseAlarms > 1 ? "s" : ""}`
+                  : ""}
+              </ThemedText>
+              {/* Reveal the round's watchlist after scoring. */}
+              <View style={styles.chipRow}>
+                {round.activeSignalIds.map((id) => (
+                  <GlyphChip key={id} glyphId={id} />
+                ))}
+              </View>
+              <GameButton
+                testID={testId(GAME_ID, "next-round")}
+                label={isLastRound ? "See results" : "Next round"}
+                onPress={() => dispatch({ type: "next-round" })}
+              />
+            </View>
+          ) : null}
+        </>
       ) : null}
-    </View>
+
+      {state.phase === "results" ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, "score")}
+          />
+          <StatRow
+            label="Signals caught"
+            value={`${state.stats.signalHits}/${state.stats.totalSignals}`}
+            testID={testId(GAME_ID, "signals-caught")}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.totalItems > 0
+                ? state.stats.correctResponses / state.stats.totalItems
+                : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, "accuracy")}
+          />
+          <StatRow
+            label="False alarms"
+            value={String(state.stats.falseAlarms)}
+            testID={testId(GAME_ID, "false-alarms")}
+          />
+          <StatRow
+            label="Rounds passed"
+            value={`${state.stats.roundsPassed}/${state.stats.roundsPlayed}`}
+            testID={testId(GAME_ID, "rounds-passed")}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, "best-streak")}
+          />
+          <StatRow
+            label="XP"
+            value={String(state.authoritativeXp ?? state.xp)}
+            testID={testId(GAME_ID, "xp")}
+          />
+        </GameResults>
+      ) : null}
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
   },
   statusRow: {
     flexDirection: "row",

@@ -1,41 +1,44 @@
 /**
  * CodeCrackerScreen — the Code Cracker game (Mastermind-style deduction).
  *
- * Renders a pure state machine (`codeCrackerGameReducer`) and owns the side
- * effects: the SDK `SessionLifecycle` (start/pause/resume/complete/abandon),
- * auto-pause on backgrounding, the tutorial, the dev-only QA panel, and
- * result persistence.
- *
- * The route (`app/game/[id].tsx`) renders this component with no props; every
- * prop is an optional injection seam for deterministic tests.
+ * GameHost-based slice: shared session lifecycle, auto-pause, tutorial/QA
+ * gating, intro/pause/results chrome and the Android back-guard live in
+ * `@/components/game-host`; this module keeps only what is Code-Cracker-
+ * specific — the reducer wiring, the reveal/input/result phase views, the
+ * scoring/persistence pipeline, and the guess flow. Solver validation and
+ * generator logic are untouched.
  *
  * Pause semantics: pausing freezes the lifecycle timer; resuming continues
- * from the same position. The board is covered by the opaque `PauseOverlay`
- * and hidden from the accessibility tree while paused.
+ * from the same position. The board is covered by the opaque shared
+ * `PauseOverlay` and hidden from the accessibility tree while paused.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
-  SessionLifecycle,
   isDevBuild,
   liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameSession,
+} from '@/components/game-host';
+import type { GameHostView } from '@/components/game-host';
 
 import { ColorPicker } from './components/color-picker';
 import { CurrentGuess } from './components/current-guess';
 import { GameButton } from './components/button';
 import { GuessHistory } from './components/guess-history';
-import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { SecretReveal } from './components/secret-reveal';
 import { Tutorial } from './components/tutorial';
@@ -67,15 +70,6 @@ export interface CodeCrackerScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
   const {
     clock = systemClock,
@@ -84,17 +78,30 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
     persistSession = dbSessionPersister,
     xpHook = noopXpRatingHook,
   } = props;
-  const theme = useTheme();
   const router = useRouter();
   const [state, dispatch] = useReducer(codeCrackerGameReducer, undefined, createInitialCodeCrackerState);
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
 
-  // Keep a ref of the latest state for event handlers (AppState, timers).
+  // Keep a ref of the latest state for event handlers.
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  // Every in-session phase is pausable (reveal / input / round result).
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === 'roundReveal' ||
+          current.phase === 'input' ||
+          current.phase === 'roundResult') &&
+        !current.paused
+      );
+    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
 
   const tutorial = useMemo(() => createCodeCrackerTutorialLifecycle(tutorialStore), [tutorialStore]);
@@ -118,28 +125,21 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = codeCrackerParamsFromProfile(state.profile);
@@ -169,6 +169,8 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizeCodeCrackerResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
+    // Phase-2 seam: rating deltas are computed but unused while the shared
+    // hook is a no-op.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({
@@ -216,50 +218,25 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
     state.stats,
     state.forced,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (
-      !(current.phase === 'roundReveal' || current.phase === 'input' || current.phase === 'roundResult') ||
-      current.paused
-    ) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
-  }, [dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: 'resume' });
-  }, [dispatch]);
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleSelectColor = useCallback(
     (colorIndex: number) => {
@@ -289,10 +266,15 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -312,247 +294,149 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
+  const view: GameHostView =
+    state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
-              <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'roundReveal' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'round-reveal')}>
-            <SessionHeader>
-              <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
-                Round {state.roundIndex + 1}/{rounds}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-            <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal-status')}>
-              Get ready to crack the code…
-            </ThemedText>
-            <GameButton
-              testID={testId(GAME_ID, 'reveal-start')}
-              label="Start guessing"
-              onPress={() => dispatch({ type: 'reveal-code' })}
-            />
-          </View>
-        ) : null}
-
-        {state.phase === 'input' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'input')}>
-            <SessionHeader>
-              <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
-                Round {state.roundIndex + 1}/{rounds}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            <CurrentGuess
-              currentGuess={state.currentGuess}
-              codeLength={codeLength}
-              showClear
-              onClear={handleClearGuess}
-            />
-
-            <ColorPicker
-              colorCount={colorCount}
-              onSelectColor={handleSelectColor}
-            />
-
-            <GameButton
-              testID={testId(GAME_ID, 'submit-guess')}
-              label="Submit guess"
-              disabled={state.currentGuess.length !== codeLength}
-              onPress={handleSubmitGuess}
-            />
-
-            {state.roundGuesses.length > 0 ? (
-              <GuessHistory
-                guesses={state.roundGuesses}
-                guessesUsed={state.guessesUsed}
-                guessBudget={guessBudget}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === 'roundResult' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-            <ThemedText
-              type="headline"
-              themeColor={state.roundSolved ? 'success' : 'danger'}
-              testID={testId(GAME_ID, state.roundSolved ? 'round-solved' : 'round-failed')}>
-              {state.roundSolved ? 'Code cracked!' : 'Budget exhausted'}
-            </ThemedText>
-
-            <SecretReveal secretCode={state.secretCode} />
-
-            {state.roundGuesses.length > 0 ? (
-              <GuessHistory
-                guesses={state.roundGuesses}
-                guessesUsed={state.guessesUsed}
-                guessBudget={guessBudget}
-              />
-            ) : null}
-
-            <GameButton
-              testID={testId(GAME_ID, 'next-round')}
-              label={isLastRound ? 'See results' : 'Next round'}
-              onPress={() => dispatch({ type: 'next-round' })}
-            />
-          </View>
-        ) : null}
-
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, 'score')}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.roundsPlayed > 0 ? state.stats.roundsSolved / state.stats.roundsPlayed : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, 'accuracy')}
-            />
-            <StatRow
-              label="Rounds solved"
-              value={`${state.stats.roundsSolved}/${state.stats.roundsPlayed}`}
-              testID={testId(GAME_ID, 'rounds-solved')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow
-              label="Total guesses"
-              value={`${state.stats.totalGuessesUsed}/${state.stats.totalGuessesBudget}`}
-              testID={testId(GAME_ID, 'total-guesses')}
-            />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
-
-            {state.persistState === 'failed' ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
-              <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
-              />
-            </View>
-          </View>
-        ) : null}
-
-        {isDevBuild() && inSession ? (
-          <QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+          Round {state.roundIndex + 1}/{rounds}
+        </ThemedText>
+      }
+      score={state.phase === 'input' ? String(state.stats.score) : undefined}
+      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
+        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {state.phase === 'roundReveal' ? (
+        <View style={styles.section} testID={testId(GAME_ID, 'round-reveal')}>
+          <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal-status')}>
+            Get ready to crack the code…
+          </ThemedText>
+          <GameButton
+            testID={testId(GAME_ID, 'reveal-start')}
+            label="Start guessing"
+            onPress={() => dispatch({ type: 'reveal-code' })}
+          />
+        </View>
       ) : null}
 
-      {state.tutorialOpen ? (
-        <Tutorial
-          onComplete={completeTutorial}
-          onSkip={isDevBuild() ? skipTutorial : undefined}
-        />
+      {state.phase === 'input' ? (
+        <View style={styles.section} testID={testId(GAME_ID, 'input')}>
+          <CurrentGuess
+            currentGuess={state.currentGuess}
+            codeLength={codeLength}
+            showClear
+            onClear={handleClearGuess}
+          />
+
+          <ColorPicker
+            colorCount={colorCount}
+            onSelectColor={handleSelectColor}
+          />
+
+          <GameButton
+            testID={testId(GAME_ID, 'submit-guess')}
+            label="Submit guess"
+            disabled={state.currentGuess.length !== codeLength}
+            onPress={handleSubmitGuess}
+          />
+
+          {state.roundGuesses.length > 0 ? (
+            <GuessHistory
+              guesses={state.roundGuesses}
+              guessesUsed={state.guessesUsed}
+              guessBudget={guessBudget}
+            />
+          ) : null}
+        </View>
       ) : null}
-    </View>
+
+      {state.phase === 'roundResult' ? (
+        <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+          <ThemedText
+            type="headline"
+            themeColor={state.roundSolved ? 'success' : 'danger'}
+            testID={testId(GAME_ID, state.roundSolved ? 'round-solved' : 'round-failed')}>
+            {state.roundSolved ? 'Code cracked!' : 'Budget exhausted'}
+          </ThemedText>
+
+          <SecretReveal secretCode={state.secretCode} />
+
+          {state.roundGuesses.length > 0 ? (
+            <GuessHistory
+              guesses={state.roundGuesses}
+              guessesUsed={state.guessesUsed}
+              guessBudget={guessBudget}
+            />
+          ) : null}
+
+          <GameButton
+            testID={testId(GAME_ID, 'next-round')}
+            label={isLastRound ? 'See results' : 'Next round'}
+            onPress={() => dispatch({ type: 'next-round' })}
+          />
+        </View>
+      ) : null}
+
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, 'score')}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.roundsPlayed > 0 ? state.stats.roundsSolved / state.stats.roundsPlayed : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'accuracy')}
+          />
+          <StatRow
+            label="Rounds solved"
+            value={`${state.stats.roundsSolved}/${state.stats.roundsPlayed}`}
+            testID={testId(GAME_ID, 'rounds-solved')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow
+            label="Total guesses"
+            value={`${state.stats.totalGuessesUsed}/${state.stats.totalGuessesBudget}`}
+            testID={testId(GAME_ID, 'total-guesses')}
+          />
+          <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
+        </GameResults>
+      ) : null}
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
 });

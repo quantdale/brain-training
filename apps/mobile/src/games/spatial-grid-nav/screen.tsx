@@ -1,43 +1,45 @@
 /**
  * SpatialGridNavScreen — the Spatial Grid Navigator game.
  *
- * Renders a pure state machine (`gameReducer`) and owns the side effects:
- * the SDK `SessionLifecycle` (start/pause/resume/complete/abandon),
- * auto-pause on backgrounding, the tutorial, the dev-only QA panel, and result
- * persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Grid-Navigator-specific — the reducer wiring, the response-time
+ * measurement against the monotonic clock, the scoring/persistence pipeline,
+ * and the board view.
  *
  * The route renders this component with no props; every prop is an optional
  * injection seam for deterministic tests. Pause freezes the lifecycle timer;
- * the board is covered by the opaque `PauseOverlay` while paused.
+ * the board is covered by the opaque shared `PauseOverlay` while paused.
+ *
+ * Dev-only QA controls are anchored ABOVE the tall board content
+ * (`qaPanelPosition="above"`) so they stay reachable by automation — the
+ * board pushes anything rendered below it past several viewport-heights.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
-import { AppState, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 
 import {
-  SessionLifecycle,
+  assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
   noopXpRatingHook,
   systemClock,
   testId,
-  assertDevOnly,
 } from "@/sdk";
-import type {
-  Clock,
-  DifficultyLevel,
-  TutorialStore,
-  XpRatingHook,
-} from "@/sdk";
+import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
-import {
-  DifficultySelector,
-  SessionHeader,
-  StatRow,
-  PauseOverlay as SharedPauseOverlay,
-} from "@/components/game-ui";
+import { StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameSession,
+} from "@/components/game-host";
+import type { GameHostView } from "@/components/game-host";
 
 import { GameButton } from "./components/button";
 import { GridBoard, CommandList, OptionCell } from "./components/grid";
@@ -75,15 +77,6 @@ export interface SpatialGridNavScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function SpatialGridNavScreen(
   props: SpatialGridNavScreenProps = {},
 ) {
@@ -91,7 +84,7 @@ export default function SpatialGridNavScreen(
     clock = systemClock,
     tutorialStore,
     sessionSeed,
-    persistSession: persisterProp = dbSessionPersister,
+    persistSession = dbSessionPersister,
     xpHook = noopXpRatingHook,
   } = props;
   const theme = useTheme();
@@ -102,14 +95,27 @@ export default function SpatialGridNavScreen(
     createInitialState,
   );
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
   /** Monotonic timestamp (clock.now()) of when the trial became active. */
   const choiceStartedAtRef = useRef(0);
 
+  // Keep a ref of the latest state for event handlers (guards).
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === "trialActive" || current.phase === "trialResult") &&
+        !current.paused &&
+        current.round !== null
+      );
+    },
+    onPause: () => dispatch({ type: "pause" }),
   });
 
   const tutorial = useMemo(
@@ -142,28 +148,21 @@ export default function SpatialGridNavScreen(
 
   // Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== "results" ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== "completed" &&
-      lifecycle.status !== "abandoned"
-    ) {
-      lifecycle.complete();
-    }
-    const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+    session.completeIfActive();
+    const activeDurationMs = session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? "normal";
     const resolvedParams = paramsFromProfile(state.profile);
@@ -194,6 +193,8 @@ export default function SpatialGridNavScreen(
     };
     const normalized = normalizeSpatialGridNavResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
+    // Phase-2 seam: rating deltas are computed but unused while the shared
+    // hook is a no-op.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({
@@ -216,7 +217,7 @@ export default function SpatialGridNavScreen(
       activeDurationMs,
     });
     dispatch({ type: "persistence-started" });
-    void persistSpatialGridNavSession(record, persisterProp).then((outcome) => {
+    void persistSpatialGridNavSession(record, persistSession).then((outcome) => {
       if (outcome.ok) {
         dispatch({ type: "persistence-succeeded" });
         const co = outcome.result.completionOutcome;
@@ -244,54 +245,25 @@ export default function SpatialGridNavScreen(
     state.stats,
     state.forced,
     state.difficulty,
+    session,
     xpHook,
-    persisterProp,
+    persistSession,
   ]);
 
-  // Session controls.
-  const startSession = useCallback(
-    (_level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      dispatch({
-        type: "start-session",
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (
-      !(current.phase === "trialActive" || current.phase === "trialResult") ||
-      current.paused ||
-      current.round === null
-    ) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: "pause" });
-  }, [dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: "resume" });
-  }, [dispatch]);
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      (lifecycle.status === "active" || lifecycle.status === "paused")
-    ) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handlePickCell = useCallback(
     (index: number) => {
@@ -314,12 +286,15 @@ export default function SpatialGridNavScreen(
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? "normal";
-    const seed =
-      current.seedOverride ??
-      (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    const identity = session.begin();
+    dispatch({
+      type: "start-session",
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -343,16 +318,6 @@ export default function SpatialGridNavScreen(
     assertDevOnly();
     dispatch({ type: "qa/force-timeout" });
   }, [dispatch]);
-
-  // Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextState) => {
-      if (nextState !== "active") {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
 
   const accuracyPct =
     state.stats.roundsPlayed > 0
@@ -379,278 +344,179 @@ export default function SpatialGridNavScreen(
     return markers;
   })();
 
+  const view: GameHostView =
+    state.phase === "intro" ? "intro" : state.phase === "results" ? "results" : "session";
+
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, "screen")}>
-      <View
-        style={styles.content}
-        importantForAccessibility={
-          state.paused ? "no-hide-descendants" : "auto"
-        }
-        accessibilityElementsHidden={state.paused}
-        accessible={false}
-      >
-        {/* ---- Intro phase ---- */}
-        {state.phase === "intro" ? (
-          <View style={styles.section} testID={testId(GAME_ID, "intro")}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
-            </ThemedText>
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) =>
-                dispatch({ type: "select-difficulty", level })
-              }
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, "start")}
-                label="Start"
-                onPress={handleStart}
-              />
-              <GameButton
-                testID={testId(GAME_ID, "help")}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForceTimeout={forceTimeout}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText
-                type="subtitle"
-                testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
-              >
-                {`Round ${state.roundIndex + 1}/${rounds}`}
-              </ThemedText>
-              <ThemedText
-                type="small"
-                themeColor="textSecondary"
-                testID={testId(GAME_ID, "score")}
-              >
-                {`Score ${state.stats.score}`}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, "pause")}
-                label="Pause"
-                onPress={pauseSession}
-              />
-            </SessionHeader>
-
-            {/* Dev-only QA controls anchored above the tall board content so
-                they stay reachable by automation (the board pushes anything
-                rendered below it past several viewport-heights). */}
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForceTimeout={forceTimeout}
-              />
-            ) : null}
-
-            {/* Board/commands stay mounted while paused; the decorative
-             * option boards do not. Workaround for an RN/Fabric Android a11y
-             * defect (campaign 011 device finding, bisected on device): deep
-             * non-flattenable view nests inside accessibility buttons (each
-             * option board is ~26 views) make the PauseOverlay subtree vanish
-             * from the Android accessibility tree, leaving Resume/Quit
-             * unreachable for TalkBack and automation alike. While paused the
-             * overlay is opaque and game content is already hidden from a11y,
-             * so unmounting the options has no user impact; they remount on
-             * resume. */}
-            {!state.paused && state.round !== null ? (
-              <>
-                <GridBoard
-                  side={side}
-                  start={state.round.start}
-                  startDir={state.round.startDir}
-                  markers={resultMarkers}
-                  testID={testId(GAME_ID, "grid")}
-                  accessibilityLabel="Game board"
-                />
-                <CommandList
-                  commands={state.round.commands}
-                  testID={testId(GAME_ID, "command-list")}
-                />
-                <View
-                  style={styles.optionRow}
-                  testID={testId(GAME_ID, "options-grid")}
-                >
-                  {state.round.options.map((cell, i) => (
-                    <OptionCell
-                      key={i}
-                      index={i}
-                      side={side}
-                      cell={cell}
-                      selected={state.selectedOptionIndex === i}
-                      correct={
-                        state.phase === "trialResult" &&
-                        i === state.round!.correctIndex
-                      }
-                      disabled={state.phase === "trialResult"}
-                      onPress={() => handlePickCell(i)}
-                    />
-                  ))}
-                </View>
-              </>
-            ) : null}
-
-            {state.phase === "trialResult" ? (
-              <View
-                style={styles.section}
-                testID={testId(GAME_ID, "round-result")}
-              >
-                <ThemedText
-                  type="headline"
-                  themeColor={
-                    state.roundOutcome === "correct" ? "success" : "danger"
-                  }
-                  testID={testId(
-                    GAME_ID,
-                    state.roundOutcome === "correct"
-                      ? "round-correct"
-                      : "round-wrong",
-                  )}
-                >
-                  {state.roundOutcome === "correct" ? "Correct!" : "Wrong!"}
-                </ThemedText>
-                <GameButton
-                  testID={testId(GAME_ID, "next-round")}
-                  label={isLastRound ? "See results" : "Next round"}
-                  onPress={() => dispatch({ type: "next-round" })}
-                />
-              </View>
-            ) : null}
-          </View>
-        ) : null}
-
-        {state.phase === "results" ? (
-          <View style={styles.section} testID={testId(GAME_ID, "results")}>
-            <ThemedText type="title">Session complete</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, "score")}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${accuracyPct}%`}
-              testID={testId(GAME_ID, "accuracy")}
-            />
-            <StatRow
-              label="Speed"
-              value={`${Math.round(state.stats.scoredPicks > 0 ? state.stats.totalResponseMs / state.stats.scoredPicks : 0)} ms`}
-              testID={testId(GAME_ID, "speed")}
-            />
-            <StatRow
-              label="Long sequences"
-              value={`${hardAccuracyPct}%`}
-              testID={testId(GAME_ID, "long-sequences")}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, "best-streak")}
-            />
-            <StatRow
-              label="Mistakes"
-              value={String(state.stats.mistakes)}
-              testID={testId(GAME_ID, "mistakes")}
-            />
-            <StatRow
-              label="XP"
-              value={String(state.authoritativeXp ?? state.xp)}
-              testID={testId(GAME_ID, "xp")}
-            />
-
-            {state.persistState === "failed" ? (
-              <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, "persist-error")}
-              >
-                {`Your session could not be saved. ${state.lastError ?? ""}`}
-              </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, "forced-badge")}
-              >
-                QA-forced session
-              </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, "restart")}
-                label="Play again"
-                onPress={handleRestart}
-              />
-              <GameButton
-                testID={testId(GAME_ID, "quit")}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
-              />
-            </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <SharedPauseOverlay
-          gameId={GAME_ID}
-          onResume={resumeSession}
-          onQuit={quitToLibrary}
+    <GameHost
+      gameId={GAME_ID}
+      description={gameDefinition.description}
+      view={view}
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) =>
+        dispatch({ type: "select-difficulty", level })
+      }
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <ThemedText
+          type="subtitle"
+          testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
+        >
+          {`Round ${state.roundIndex + 1}/${rounds}`}
+        </ThemedText>
+      }
+      score={String(state.stats.score)}
+      qaPanel={
+        <QaPanel
+          onForceWin={qaHooks.forceWin}
+          onForceLose={qaHooks.forceLose}
+          onForceTimeout={forceTimeout}
         />
-      ) : null}
-
-      {state.tutorialOpen ? (
+      }
+      qaPanelPosition="above"
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
         <Tutorial
           onComplete={completeTutorial}
           onSkip={isDevBuild() ? skipTutorial : undefined}
         />
+      }>
+      {inSession && state.round !== null ? (
+        <>
+          {/* Board/commands stay mounted while paused; the decorative
+           * option boards do not. Workaround for an RN/Fabric Android a11y
+           * defect (campaign 011 device finding, bisected on device): deep
+           * non-flattenable view nests inside accessibility buttons (each
+           * option board is ~26 views) make the PauseOverlay subtree vanish
+           * from the Android accessibility tree, leaving Resume/Quit
+           * unreachable for TalkBack and automation alike. While paused the
+           * overlay is opaque and game content is already hidden from a11y,
+           * so unmounting the options has no user impact; they remount on
+           * resume. */}
+          {!state.paused ? (
+            <>
+              <GridBoard
+                side={side}
+                start={state.round.start}
+                startDir={state.round.startDir}
+                markers={resultMarkers}
+                testID={testId(GAME_ID, "grid")}
+                accessibilityLabel="Game board"
+              />
+              <CommandList
+                commands={state.round.commands}
+                testID={testId(GAME_ID, "command-list")}
+              />
+              <View
+                style={styles.optionRow}
+                testID={testId(GAME_ID, "options-grid")}
+              >
+                {state.round.options.map((cell, i) => (
+                  <OptionCell
+                    key={i}
+                    index={i}
+                    side={side}
+                    cell={cell}
+                    selected={state.selectedOptionIndex === i}
+                    correct={
+                      state.phase === "trialResult" &&
+                      i === state.round!.correctIndex
+                    }
+                    disabled={state.phase === "trialResult"}
+                    onPress={() => handlePickCell(i)}
+                  />
+                ))}
+              </View>
+            </>
+          ) : null}
+
+          {state.phase === "trialResult" ? (
+            <View
+              style={styles.section}
+              testID={testId(GAME_ID, "round-result")}
+            >
+              <ThemedText
+                type="headline"
+                themeColor={
+                  state.roundOutcome === "correct" ? "success" : "danger"
+                }
+                testID={testId(
+                  GAME_ID,
+                  state.roundOutcome === "correct"
+                    ? "round-correct"
+                    : "round-wrong",
+                )}
+              >
+                {state.roundOutcome === "correct" ? "Correct!" : "Wrong!"}
+              </ThemedText>
+              <GameButton
+                testID={testId(GAME_ID, "next-round")}
+                label={isLastRound ? "See results" : "Next round"}
+                onPress={() => dispatch({ type: "next-round" })}
+              />
+            </View>
+          ) : null}
+        </>
       ) : null}
-    </View>
+
+      {state.phase === "results" ? (
+        <GameResults
+          gameId={GAME_ID}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, "score")}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${accuracyPct}%`}
+            testID={testId(GAME_ID, "accuracy")}
+          />
+          <StatRow
+            label="Speed"
+            value={`${Math.round(state.stats.scoredPicks > 0 ? state.stats.totalResponseMs / state.stats.scoredPicks : 0)} ms`}
+            testID={testId(GAME_ID, "speed")}
+          />
+          <StatRow
+            label="Long sequences"
+            value={`${hardAccuracyPct}%`}
+            testID={testId(GAME_ID, "long-sequences")}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, "best-streak")}
+          />
+          <StatRow
+            label="Mistakes"
+            value={String(state.stats.mistakes)}
+            testID={testId(GAME_ID, "mistakes")}
+          />
+          <StatRow
+            label="XP"
+            value={String(state.authoritativeXp ?? state.xp)}
+            testID={testId(GAME_ID, "xp")}
+          />
+        </GameResults>
+      ) : null}
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
   },
   optionRow: {
     flexDirection: "row",

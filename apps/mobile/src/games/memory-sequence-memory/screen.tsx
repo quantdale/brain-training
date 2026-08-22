@@ -1,11 +1,12 @@
 /**
  * SequenceMemoryScreen — the Sequence Memory game (Simon-style score attack).
  *
- * Renders a pure state machine (`sequenceMemoryGameReducer`) and owns the
- * side effects: reveal pacing timers, the score-attack countdown (a 250ms
- * ticker dispatches `time-up` when the monotonic time budget expires), the
- * SDK `SessionLifecycle` (start/pause/resume/complete/abandon), auto-pause on
- * backgrounding, the tutorial, the dev-only QA panel, and result persistence.
+ * GameHost-based slice (campaign 010, architecture-debt D1): shared session
+ * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
+ * the Android back-guard live in `@/components/game-host`; this module keeps
+ * only what is Sequence-Memory-specific — the reducer wiring, the reveal
+ * pacing timers, the score-attack countdown, the scoring/persistence
+ * pipeline, and the pad view.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
@@ -13,28 +14,33 @@
  * Pause semantics: pausing freezes the lifecycle timer (so the score-attack
  * budget stops too) and cancels reveal pacing; resuming re-flashes the
  * current tile and continues from the same position. The board is covered by
- * the opaque `PauseOverlay` and hidden from the accessibility tree while
- * paused.
+ * the opaque shared `PauseOverlay` and hidden from the accessibility tree
+ * while paused.
  *
  * Countdown semantics: the budget runs during every in-session phase
  * (reveal/input/round-result) and freezes while paused; a round still being
  * performed when time expires counts as failed.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { SessionLifecycle, isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
+import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  GameHost,
+  GameResults,
+  resolveSessionSeed,
+  useGameInterval,
+  useGameSession,
+} from '@/components/game-host';
 
-import { GameButton } from './components/button';
 import { SequencePad } from './components/pad';
 import type { PadTileVisualState } from './components/tile';
-import { PauseOverlay } from './components/pause-overlay';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import {
@@ -75,15 +81,6 @@ export interface SequenceMemoryScreenProps {
   xpHook?: XpRatingHook;
 }
 
-/** Random per-session seed — the seed is input, not generator content. */
-function randomSeed(): string {
-  return String(Math.floor(Math.random() * 0xffffffff));
-}
-
-function newSessionId(): string {
-  return `${GAME_ID}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 /** Remaining budget as a "m:ss" label (ceil so the countdown hits 0 only at the end). */
 function formatRemaining(remainingMs: number): string {
   const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
@@ -110,22 +107,33 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   // Re-render tick for the countdown display (no state payload needed).
   const [, tick] = useReducer((value: number) => value + 1, 0);
 
-  const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
-  const finalizedRef = useRef(false);
   /**
    * Monotonic elapsed time at the moment the budget expired (set by the
    * countdown interval right before dispatching `time-up`). Finalization
-   * prefers this over `lifecycle.elapsedMs()` because state updates are
+   * prefers this over `session.elapsedMs()` because state updates are
    * batched: in tests the clock may have advanced past the expiry moment by
    * the time the results effect runs, and recording at detection is also the
    * more truthful "active play time" for a time-bounded session.
    */
   const timeUpElapsedMsRef = useRef<number | null>(null);
 
-  // Keep a ref of the latest state for event handlers (AppState, timers).
+  // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
+  });
+
+  const session = useGameSession({
+    gameId: GAME_ID,
+    clock,
+    canPause: () => {
+      const current = stateRef.current;
+      return (
+        (current.phase === 'reveal' || current.phase === 'input' || current.phase === 'roundResult') &&
+        !current.paused
+      );
+    },
+    onPause: () => dispatch({ type: 'pause' }),
   });
 
   const tutorial = useMemo(
@@ -140,14 +148,17 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const budgetMs = (params?.sessionSeconds ?? 90) * 1000;
   // Countdown label is state-driven (not a direct ref read during render) so
   // the screen stays rule-clean under concurrent rendering; the countdown
-  // interval below keeps it in lockstep with `lifecycleRef.current.elapsedMs()`.
+  // interval below keeps it in lockstep with `session.elapsedMs()`.
   // Reset on (re)start so a changed budget is reflected before the first tick.
   const [displayRemainingMs, setDisplayRemainingMs] = useState(budgetMs);
   const inSession =
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
 
-  // ---- Reveal pacing: one tick per revealMs; pause cancels (timers frozen),
-  // resume re-schedules from the current tile.
+  // ---- Reveal pacing: one tick per tile, re-scheduled on every
+  // `revealedIndex` change so each flash lasts the full `revealMs`; pause
+  // cancels (frozen), resume re-schedules from the current tile. A plain
+  // chained timeout (not `useGameTimeout`) because the timer must restart
+  // per tile, which the single-shot host helper cannot key on.
   useEffect(() => {
     if (state.phase !== 'reveal' || state.paused) {
       return;
@@ -158,30 +169,28 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
 
   // ---- Score-attack countdown: while in session and unpaused, check the
   // monotonic budget every 250ms; expire the session when it is exhausted and
-  // re-render the remaining-time label otherwise. Pausing clears the interval
-  // and freezes the lifecycle timer, so the budget never drains while paused.
-  useEffect(() => {
-    if (!inSession || state.paused) {
-      return;
-    }
-    const interval = setInterval(() => {
-      const elapsedMs = lifecycleRef.current?.elapsedMs() ?? 0;
+  // re-render the remaining-time label otherwise. Pausing deactivates the
+  // interval and freezes the lifecycle timer, so the budget never drains
+  // while paused. Duplicate expiry ticks between the dispatch and the next
+  // render are inert: the reducer ignores `time-up` outside in-session
+  // phases and the ref below records the first expiry instant only.
+  useGameInterval(
+    inSession && !state.paused,
+    () => {
+      const elapsedMs = session.elapsedMs();
       if (elapsedMs >= budgetMs) {
-        // Record the exact expiry instant once, then stop the ticker; the
-        // self-clear keeps batched timer runs (tests) from re-dispatching.
         setDisplayRemainingMs(0);
         if (timeUpElapsedMsRef.current === null) {
           timeUpElapsedMsRef.current = elapsedMs;
         }
-        clearInterval(interval);
         dispatch({ type: 'time-up' });
       } else {
         setDisplayRemainingMs(Math.max(0, budgetMs - elapsedMs));
         tick();
       }
-    }, COUNTDOWN_TICK_MS);
-    return () => clearInterval(interval);
-  }, [inSession, state.paused, budgetMs, dispatch]);
+    },
+    COUNTDOWN_TICK_MS,
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -192,29 +201,22 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
+  // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
       state.phase !== 'results' ||
-      finalizedRef.current ||
+      !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
       state.startedAtMs === null
     ) {
       return;
     }
-    finalizedRef.current = true;
 
-    const lifecycle = lifecycleRef.current;
-    if (
-      lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
-    ) {
-      lifecycle.complete();
-    }
+    session.completeIfActive();
     const activeDurationMs =
-      timeUpElapsedMsRef.current ?? (lifecycle?.elapsedMs() ?? 0);
-    const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
+      timeUpElapsedMsRef.current ?? session.elapsedMs();
+    const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? 'normal';
     const resolvedParams = sequenceMemoryParamsFromProfile(state.profile);
@@ -289,60 +291,25 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
     state.timeUp,
     state.length,
     state.difficulty,
+    session,
     xpHook,
     persistSession,
   ]);
 
-  // ---- Session controls.
-  const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
-      finalizedRef.current = false;
-      timeUpElapsedMsRef.current = null;
-      lifecycleRef.current = new SessionLifecycle({ clock });
-      lifecycleRef.current.start();
-      // Reset the countdown label before the first ticker tick so a restarted
-      // session (e.g. "Play again") starts from the full budget, not the
-      // previous run's leftover value. Derived from `level` (not the captured
-      // `budgetMs` closure) so it matches exactly what the render computes for
-      // the selected difficulty and is immune to memoization/batching timing.
-      const startBudgetMs =
-        (sequenceMemoryParamsFromProfile(resolveSequenceMemoryDifficulty(level))?.sessionSeconds ??
-          90) * 1000;
-      setDisplayRemainingMs(startBudgetMs);
-      dispatch({
-        type: 'start-session',
-        seed,
-        sessionId: newSessionId(),
-        startedAtMs: Date.now(),
-      });
-    },
-    [clock, dispatch],
-  );
-
+  // ---- Session controls (mechanics live here; mechanics-free plumbing does not).
   const pauseSession = useCallback(() => {
-    const current = stateRef.current;
-    if (
-      !(current.phase === 'reveal' || current.phase === 'input' || current.phase === 'roundResult') ||
-      current.paused
-    ) {
-      return;
-    }
-    lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
-  }, [dispatch]);
+    session.requestPause();
+  }, [session]);
 
   const resumeSession = useCallback(() => {
-    lifecycleRef.current?.resume();
+    session.resume();
     dispatch({ type: 'resume' });
-  }, [dispatch]);
+  }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
-    const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
-      lifecycle.abandon();
-    }
+    session.abandonIfActive();
     router.back();
-  }, [router]);
+  }, [session, router]);
 
   const handleTapTile = useCallback(
     (index: number) => {
@@ -365,10 +332,25 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
     const level = current.difficulty ?? 'normal';
-    const seed =
-      current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
-    startSession(level, seed);
-  }, [startSession, sessionSeed]);
+    const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    timeUpElapsedMsRef.current = null;
+    const identity = session.begin();
+    // Reset the countdown label before the first ticker tick so a restarted
+    // session (e.g. "Play again") starts from the full budget, not the
+    // previous run's leftover value. Derived from `level` (not the captured
+    // `budgetMs` closure) so it matches exactly what the render computes for
+    // the selected difficulty and is immune to memoization/batching timing.
+    const startBudgetMs =
+      (sequenceMemoryParamsFromProfile(resolveSequenceMemoryDifficulty(level))?.sessionSeconds ??
+        90) * 1000;
+    setDisplayRemainingMs(startBudgetMs);
+    dispatch({
+      type: 'start-session',
+      seed,
+      sessionId: identity.sessionId,
+      startedAtMs: identity.startedAtMs,
+    });
+  }, [session, sessionSeed, dispatch]);
 
   const handleRestart = handleStart;
 
@@ -387,16 +369,6 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
-
-  // ---- Auto-pause when the app leaves the foreground (constitution §11).
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
-        pauseSession();
-      }
-    });
-    return () => subscription.remove();
-  }, [pauseSession]);
 
   // ---- Pad visuals (see PadTileVisualState). Stable across the per-tick
   // countdown re-renders: depends only on round-transition state, never on
@@ -433,256 +405,180 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const remainingMs = displayRemainingMs;
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
-      <View
-        style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={state.paused}
-        accessible={false}>
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
-            <ThemedText type="small" themeColor="textSecondary">
-              {gameDefinition.description}
-            </ThemedText>
-
-            <DifficultySelector
-              gameId={GAME_ID}
-              selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
-            />
-
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
-              <GameButton
-                testID={testId(GAME_ID, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={openTutorial}
-              />
-            </View>
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForcePerfect={qaHooks.forcePerfect}
-              />
-            ) : null}
-          </View>
-        ) : null}
-
-        {inSession ? (
-          <View style={styles.section}>
-            <SessionHeader>
-              <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
-                Sequence {state.roundIndex + 1}
-              </ThemedText>
+    <GameHost
+      gameId={GAME_ID}
+      view={
+        state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session'
+      }
+      paused={state.paused}
+      difficulty={state.difficulty}
+      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onStart={handleStart}
+      onHelp={openTutorial}
+      onPause={pauseSession}
+      onResume={resumeSession}
+      onQuit={quitToLibrary}
+      interceptBack={inSession}
+      header={
+        <>
+          <ThemedText
+            type="subtitle"
+            testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+            Sequence {state.roundIndex + 1}
+          </ThemedText>
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            testID={testId(GAME_ID, 'countdown')}>
+            {formatRemaining(remainingMs)}
+          </ThemedText>
+        </>
+      }
+      score={String(state.stats.score)}
+      qaPanel={
+        <QaPanel
+          onForceWin={qaHooks.forceWin}
+          onForceLose={qaHooks.forceLose}
+          onForcePerfect={qaHooks.forcePerfect}
+        />
+      }
+      tutorialOpen={state.tutorialOpen}
+      tutorial={
+        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+      }>
+      {inSession ? (
+        <>
+          {state.phase === 'reveal' ? (
+            <>
               <ThemedText
-                type="small"
-                themeColor="textSecondary"
-                testID={testId(GAME_ID, 'countdown')}>
-                {formatRemaining(remainingMs)}
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, 'reveal-status')}>
+                Watch the sequence…
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
-                Score {state.stats.score}
-              </ThemedText>
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
-                label="Pause"
-                onPress={pauseSession}
+              <SequencePad
+                tileCount={tileCount}
+                testID={testId(GAME_ID, 'reveal-pad')}
+                visualFor={visualFor}
+                disabled
+                onPressTile={handleTapTile}
               />
-            </SessionHeader>
+            </>
+          ) : null}
 
-            {state.phase === 'reveal' ? (
-              <>
+          {state.phase === 'input' ? (
+            <>
+              <View style={styles.statusRow}>
                 <ThemedText
                   type="bodyLarge"
                   themeColor="text"
-                  testID={testId(GAME_ID, 'reveal-status')}>
-                  Watch the sequence…
+                  testID={testId(GAME_ID, 'input-status')}>
+                  Now repeat it
                 </ThemedText>
-                <SequencePad
-                  tileCount={tileCount}
-                  testID={testId(GAME_ID, 'reveal-pad')}
-                  visualFor={visualFor}
-                  disabled
-                  onPressTile={handleTapTile}
-                />
-              </>
-            ) : null}
-
-            {state.phase === 'input' ? (
-              <>
-                <View style={styles.statusRow}>
-                  <ThemedText
-                    type="bodyLarge"
-                    themeColor="text"
-                    testID={testId(GAME_ID, 'input-status')}>
-                    Now repeat it
-                  </ThemedText>
-                  <View
-                    style={styles.dots}
-                    testID={testId(GAME_ID, 'progress')}
-                    accessibilityLabel={`${state.inputIndex} of ${state.length} matched`}>
-                    {Array.from({ length: state.length }, (_, i) => (
-                      <View
-                        key={i}
-                        style={[
-                          styles.dot,
-                          { backgroundColor: i < state.inputIndex ? theme.accent : theme.border },
-                        ]}
-                      />
-                    ))}
-                  </View>
+                <View
+                  style={styles.dots}
+                  testID={testId(GAME_ID, 'progress')}
+                  accessibilityLabel={`${state.inputIndex} of ${state.length} matched`}>
+                  {Array.from({ length: state.length }, (_, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.dot,
+                        { backgroundColor: i < state.inputIndex ? theme.accent : theme.border },
+                      ]}
+                    />
+                  ))}
                 </View>
-                <SequencePad
-                  tileCount={tileCount}
-                  testID={testId(GAME_ID, 'input-pad')}
-                  visualFor={visualFor}
-                  onPressTile={handleTapTile}
-                />
-              </>
-            ) : null}
-
-            {state.phase === 'roundResult' ? (
-              <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-                <ThemedText
-                  type="headline"
-                  themeColor={state.roundOutcome === 'passed' ? 'success' : 'danger'}
-                  testID={testId(
-                    GAME_ID,
-                    state.roundOutcome === 'passed' ? 'round-passed' : 'round-failed',
-                  )}>
-                  {state.roundOutcome === 'passed' ? 'Sequence complete!' : 'Wrong tap'}
-                </ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  Sequence length {state.length}
-                  {state.roundOutcome === 'failed'
-                    ? ` — expected ${state.sequence.map((tile) => tile + 1).join(' · ')}`
-                    : ''}
-                </ThemedText>
-                <SequencePad
-                  tileCount={tileCount}
-                  testID={testId(GAME_ID, 'round-result-pad')}
-                  visualFor={visualFor}
-                  disabled
-                  onPressTile={handleTapTile}
-                />
-                <GameButton
-                  testID={testId(GAME_ID, 'next-round')}
-                  label="Next sequence"
-                  onPress={() => dispatch({ type: 'next-round' })}
-                />
               </View>
-            ) : null}
-
-            {isDevBuild() ? (
-              <QaPanel
-                onForceWin={qaHooks.forceWin}
-                onForceLose={qaHooks.forceLose}
-                onForcePerfect={qaHooks.forcePerfect}
+              <SequencePad
+                tileCount={tileCount}
+                testID={testId(GAME_ID, 'input-pad')}
+                visualFor={visualFor}
+                onPressTile={handleTapTile}
               />
-            ) : null}
-          </View>
-        ) : null}
+            </>
+          ) : null}
 
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
-            <ThemedText type="title">{state.timeUp ? "Time's up!" : 'Session complete'}</ThemedText>
-            <StatRow
-              label="Score"
-              value={String(state.stats.score)}
-              testID={testId(GAME_ID, 'score')}
-            />
-            <StatRow
-              label="Accuracy"
-              value={`${Math.round(
-                (state.stats.roundsPlayed > 0 ? state.stats.roundsPassed / state.stats.roundsPlayed : 0) * 100,
-              )}%`}
-              testID={testId(GAME_ID, 'accuracy')}
-            />
-            <StatRow
-              label="Sequences passed"
-              value={`${state.stats.roundsPassed}/${state.stats.roundsPlayed}`}
-              testID={testId(GAME_ID, 'rounds-passed')}
-            />
-            <StatRow
-              label="Best streak"
-              value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
-            />
-            <StatRow
-              label="Longest sequence"
-              value={String(state.stats.longestSequence)}
-              testID={testId(GAME_ID, 'longest-sequence')}
-            />
-            <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
-
-            {state.persistState === 'failed' ? (
+          {state.phase === 'roundResult' ? (
+            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
               <ThemedText
-                type="small"
-                themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                Your session could not be saved. {state.lastError ?? ''}
+                type="headline"
+                themeColor={state.roundOutcome === 'passed' ? 'success' : 'danger'}
+                testID={testId(
+                  GAME_ID,
+                  state.roundOutcome === 'passed' ? 'round-passed' : 'round-failed',
+                )}>
+                {state.roundOutcome === 'passed' ? 'Sequence complete!' : 'Wrong tap'}
               </ThemedText>
-            ) : null}
-            {state.forced ? (
-              <ThemedText
-                type="caption"
-                themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
-                QA-forced session
+              <ThemedText type="small" themeColor="textSecondary">
+                Sequence length {state.length}
+                {state.roundOutcome === 'failed'
+                  ? ` — expected ${state.sequence.map((tile) => tile + 1).join(' · ')}`
+                  : ''}
               </ThemedText>
-            ) : null}
-
-            <View style={styles.buttonRow}>
-              <GameButton
-                testID={testId(GAME_ID, 'restart')}
-                label="Play again"
-                onPress={handleRestart}
+              <SequencePad
+                tileCount={tileCount}
+                testID={testId(GAME_ID, 'round-result-pad')}
+                visualFor={visualFor}
+                disabled
+                onPressTile={handleTapTile}
               />
               <GameButton
-                testID={testId(GAME_ID, 'quit')}
-                label="Done"
-                variant="secondary"
-                onPress={quitToLibrary}
+                testID={testId(GAME_ID, 'next-round')}
+                label="Next sequence"
+                onPress={() => dispatch({ type: 'next-round' })}
               />
             </View>
-          </View>
-        ) : null}
-      </View>
-
-      {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+          ) : null}
+        </>
       ) : null}
 
-      {state.tutorialOpen ? (
-        <Tutorial
-          onComplete={completeTutorial}
-          onSkip={isDevBuild() ? skipTutorial : undefined}
-        />
+      {state.phase === 'results' ? (
+        <GameResults
+          gameId={GAME_ID}
+          title={state.timeUp ? "Time's up!" : 'Session complete'}
+          forced={state.forced}
+          persistState={state.persistState}
+          lastError={state.lastError}
+          onRestart={handleRestart}
+          onQuit={quitToLibrary}>
+          <StatRow
+            label="Score"
+            value={String(state.stats.score)}
+            testID={testId(GAME_ID, 'score')}
+          />
+          <StatRow
+            label="Accuracy"
+            value={`${Math.round(
+              (state.stats.roundsPlayed > 0 ? state.stats.roundsPassed / state.stats.roundsPlayed : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'accuracy')}
+          />
+          <StatRow
+            label="Sequences passed"
+            value={`${state.stats.roundsPassed}/${state.stats.roundsPlayed}`}
+            testID={testId(GAME_ID, 'rounds-passed')}
+          />
+          <StatRow
+            label="Best streak"
+            value={String(state.stats.bestStreak)}
+            testID={testId(GAME_ID, 'best-streak')}
+          />
+          <StatRow
+            label="Longest sequence"
+            value={String(state.stats.longestSequence)}
+            testID={testId(GAME_ID, 'longest-sequence')}
+          />
+          <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />
+        </GameResults>
       ) : null}
-    </View>
+    </GameHost>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    gap: Spacing.three,
-  },
   section: {
     gap: Spacing.three,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
   statusRow: {
     flexDirection: 'row',
@@ -699,5 +595,4 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
   },
-
 });
