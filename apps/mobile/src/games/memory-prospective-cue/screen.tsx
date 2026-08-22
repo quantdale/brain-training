@@ -136,6 +136,12 @@ export default function SignalWatchScreen(
   if (windowElapsedState.itemIndex !== state.itemIndex) {
     setWindowElapsedState({ itemIndex: state.itemIndex, elapsedMs: 0 });
   }
+  // Pure-derived read for render/press paths (0 until the adjustment above
+  // commits for a freshly-switched item).
+  const windowElapsedMs =
+    windowElapsedState.itemIndex === state.itemIndex
+      ? windowElapsedState.elapsedMs
+      : 0;
 
   useEffect(() => {
     stateRef.current = state;
