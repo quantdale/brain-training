@@ -1,7 +1,7 @@
 # Campaign 011 — Full Validation, QA, Audit, Fix & Hardening
 
-**Status:** CONVERGING (Day mode) — local gates green, CI green, device journeys executing
-**Final-SHA line:** see `.agent/STATE.md` (updated at close)
+**Status:** COMPLETED (2026-08-22)
+**Final-SHA line:** see `.agent/STATE.md`
 **Campaign id:** `011-full-validation-hardening`
 **Predecessor:** `010-mass-product-implementation` (COMPLETED at `2630a77`; 42 games, implementation-only)
 **Execution entry:** owner-directed validation orchestrator brief — VERIFY → BREAK → DIAGNOSE → FIX → REGRESSION TEST → INTEGRATE → DEVICE VERIFY → HARDEN → PROVE
@@ -25,71 +25,39 @@ state. Only W16 touches the emulator. Workers run targeted Jest only.
 - [x] Critical/High defects fixed with regression tests (see VALIDATION.md)
 - [x] Differential equivalence proven: analytics V2 (96 tests), JSON1 projections
       (18 tests @1k/5k/20k), backup round-trip (byte-contract + rollback proofs)
-- [x] Migration matrix v1→v9 green (14 tests; corrupt user_version hardened)
-- [ ] Android catalog journey over 42 games — RUNNING (`qa-artifacts/20260822-022415-autobot-all`)
-- [ ] Workout device journey — auto-chained after catalog
+- [x] Android catalog journey over 42 games — **42/42 PASS** (`20260822-022415-autobot-all`
+      38 PASS + 6 clean exclusive re-runs ending PASS; ledger in W16 packet)
+- [x] Workout device journey — V2 full default journey PASS with DB evidence
+      (`qa-artifacts/20260822-113955-autobot-workout`; short-template traversal deferred to 012)
 - [x] Performance re-measured: snapshot 102.7ms @20k via fast path (≤009 baseline class)
 - [x] Cross-system integration pipeline test PASS (parent-owned §27 suite)
-- [x] Local gates green; CI green from `6d04318` (Jest + doctor 21/21 via pinned patches)
+- [x] Local gates green; CI green from `6d04318` (Jest + doctor 21/21 via pinned patches);
+      final closure SHA verified after push (see STATE.md final-SHA line)
 - [x] campaign010 validation backlog fully classified (closure ledger appended)
-- [ ] Durable state final sync (this file's status + STATE.md at close)
+- [x] Durable state final sync (this file + STATE.md + VALIDATION.md + KNOWN_ISSUES.md)
 
 ## Outcome summary
 
-Two waves executed: wave 1 = W01–W16, wave 2 = W17–W24 (GameHost migration batch B,
-repository primitive resolution, future-facing seams, perf instrumentation, math
-content tiers, workout UI). All packets COMPLETED; three wave-2 workers were resumed
-after API interruptions and finished. Parent convergence: cross-worker interface
-fixes, FileBackupTransport implemented by parent (W10 truncation gap), game-name
-collision resolved ("Cue Keeper" rename), catalog contract scanner extended for
-GameHost modules (pre-authorized in W05 packet), registry regenerated twice (once
-per wave), qaPanelPosition prop added.
+Two waves executed: wave 1 = W01–W16, wave 2 = W17–W24. All packets COMPLETED.
+Device convergence (exclusive sessions, one Metro / one autobot):
 
-Checks actually performed at convergence: `tsc --noEmit` PASS (0 errors),
-catalog-contracts suite 16/16 PASS (42 games), registry generator --check PASS,
-repo-state validation PASS. Full Jest / lint / builds / emulator QA / benchmarks:
-intentionally NOT RUN (Campaign 011 owns them) — see
-`.agent/_tasks/campaign011-validation-backlog.md`.
+- Catalog **42/42 terminal PASS** on Android (base run 38 PASS; every non-PASS game
+  re-ran clean after triage — classifications in `.agent/_tasks/campaign011/W16.md`).
+- grid-nav-class PauseOverlay reachability root-caused on device (Fabric a11y subtree
+  collapse under nested accessibility buttons) and fixed by unmounting decorative option
+  boards while paused; device-confirmed on grid-nav + transform-match + sibling.
+- Real product defect from the workout journey found and fixed: `/results?id=` crashed on
+  mount (array styles into `<Slot>` children via asChild Links); regression-tested.
+- Native-dep stale-dev-client hazard durably addressed (lazy portability requires +
+  typed diagnostic error + ops guidance). CNG android config codified in committed
+  config plugins, proven by real prebuild regeneration.
+- Final local gates: Jest **5750 passed / 0 failed**, tsc 0 errors, lint 0 errors,
+  web export PASS, expo-doctor 21/21 (pinned patch exclusions), openspec PASS.
 
-## Mission
+Deferred/blocked remainder recorded in
+`.agent/_tasks/campaign011-validation-backlog.md` FINAL closure ledger (short-template
+workout traversal DEFERRED to 012; SAF system consent sheets BLOCKED for emulator-local
+automation; iOS build/runtime BLOCKED — no macOS host).
 
-Maximize correct production-code implementation throughput: implement as much of the remaining product architecture, functionality, UX, platform infrastructure, content, performance architecture, and future-facing seams as can safely be implemented in parallel by up to 16 specialized workers under one parent orchestrator.
-
-Explicitly deferred to Campaign 011 (TEST/AUDIT/QA/FIX/HARDEN): large Jest expansion, property-test campaigns, full integration tests, emulator catalog traversal, manual QA, visual-regression review, performance benchmarking, CI debugging, flaky-test investigation, iOS validation, release qualification.
-
-Anything not actually tested is recorded `NOT VALIDATED — Campaign 010 implementation-only wave`. New systems are `IMPLEMENTED — validation deferred to Campaign 011`, never HARDENED/PRODUCTION VERIFIED.
-
-## Topology
-
-- 16 worker packets in `.agent/_tasks/campaign010/` (README contract + W01–W16), strict disjoint write ownership.
-- Workers never branch/commit/push; parent owns git, generated registry (`node scripts/generate-game-registry.mjs`, run once near convergence), package.json/lockfiles, navigation registries, durable state.
-- Cross-worker needs go through `NEEDS_PARENT:` blocks in worker packets.
-- Validation policy: no full Jest/lint/builds/emulators during the wave; parent may run one lightweight typecheck near convergence; mandatory handoff backlog at `.agent/_tasks/campaign011-validation-backlog.md`.
-
-## Worker assignments
-
-- W01 NEW game `attention-sustained-vigilance` (SART-like; top 009 follow-up candidate)
-- W02 NEW Speed game (distinct mechanic, worker-selected after catalog study)
-- W03 NEW Math game (distinct mechanic)
-- W04 NEW Memory OR Logic game (clearest gap)
-- W05 GameHost consolidation (debt D1) + representative migrations + back-handler seam (B6)
-- W06 Workout V2 (templates/focus/lengths/history/metadata/rotation) + `db/workout.ts`
-- W07 Personalization V2 (`personalization/**` + `workout/personalize.ts`, explainable weighted signals)
-- W08 Progress/Analytics V2 (trends/volumes/windows/comparisons + progress screens/charts)
-- W09 Query performance rewrite (`analytics/queries.ts` projections/pushdown; 101ms@20k debt)
-- W10 Backup/storage V2 (single-pass serialization ~2.4s@5k debt + FileBackupTransport/share/picker wiring, D2)
-- W11 DB/repository API maturation (projections/pagination/aggregates/bulk/transactions)
-- W12 Engagement V2 (achievement tiers/stages, quest history, reward inbox/claim-all, streak milestones, provenance) + engagement db files
-- W13 UX/navigation IA (home/games/profile/results/game-detail/data-management states+hierarchy+drill-downs)
-- W14 Accessibility production primitives (announcements/focus/reduced-motion/font-scale caps B1/touch targets D5/dialogs)
-- W15 Platform/deps cleanup (unused native deps evidence A1, manifest permission trim A4, allowBackup policy B7; package.json removals applied by parent)
-- W16 Cross-platform seams (safe area B5, keyboard/platform adapters, audio-haptic branches, tokens additive)
-
-## Exit criteria
-
-- [x] All 24 packets completed (W01–W16 wave 1; W17–W24 wave 2), NEEDS_PARENT items resolved by parent
-- [x] Parent integration: registry regenerated once per wave, cross-worker seams landed
-- [x] Minimal catastrophic-breakage check: conflict-marker scan, `tsc --noEmit` PASS, catalog contracts 16/16
-- [x] Coherent commits pushed to origin/main (no force push)
-- [x] `.agent/_tasks/campaign011-validation-backlog.md` populated (mandatory handoff)
-- [x] Durable state reconciled with IMPLEMENTED — NOT VALIDATED semantics
+Fresh-agent entry: `.agent/CURRENT_CAMPAIGN.md` (this file) + `AGENTS.md` +
+`docs/PROJECT_CONSTITUTION.md`. Next campaign starts only on owner direction.

@@ -875,4 +875,58 @@ Full Jest on the unvalidated 010 wave: **12 failed suites / 32 failed tests /
 - Backup export probe re-run recorded in `scripts/perf/baselines/`.
 
 ### Android emulator QA (emulator-local autobot, AVD braintraining35)
-See final section below (catalog + workout journeys executed at convergence).
+
+#### Device convergence (2026-08-22, exclusive one-Metro/one-autobot sessions)
+
+- **Catalog: 42/42 PASS** — every game terminally classified through the full journey
+  chain. Base run `qa-artifacts/20260822-022415-autobot-all` = 38 PASS / 6 FAIL; all 6
+  re-ran clean and ended PASS:
+  - `flexibility-color-stroop` (warm/Metro transient): 20260822-045929, repeat 051227
+  - `logic-deduction-table` (transient resume miss): 20260822-051505
+  - `logic-order-path` (harness multi-round gap, fixed in driveForceWin):
+    20260822-050421, repeat 051740
+  - `math-number-line-estimation`: 20260822-051934
+  - `spatial-grid-nav` post-fix: 20260822-093048
+  - `spatial-transform-match` post-fix: 20260822-093232
+  - Shared-overlay sibling confirmation: memory-grid-recall 20260822-065853
+- **grid-nav PauseOverlay reachability: FIXED + device-PASS.** On-device bisection
+  proved the deep non-flattenable option-board nests inside accessibility buttons
+  collapse the Fabric a11y subtree of the shared overlay (Resume/Quit absent from the
+  uiautomator tree). Fix: decorative option grids unmount while paused (grid-nav,
+  transform-match). Resume + Quit visible/actionable ~3s after pause; full chains PASS.
+- **Real product defect found by the workout journey — fixed:** `/results?id=` crashed
+  on mount (`[expo-router] passing an array of styles to a child of <Slot>`) from array
+  styles inside asChild Links (`results-next-game`, recent-game rows, game-detail rows).
+  Styles flattened; regression suites added
+  (`src/app/__tests__/results-workout-cta.test.tsx` and screen test updates).
+- **Workout V2 full device journey: PASS** (first completion since Campaign 009 opened it).
+  Run `qa-artifacts/20260822-113955-autobot-workout`: 4/4 completed via the true V2 flow
+  (own-results → Home recent row → `/results?id=` advance → `results-next-game` /
+  `results-workout-complete`), workout-complete screen shown, relaunch shows all four Done;
+  DB pulled and verified (`current_index=4`, `status=completed`; no duplicate/skipped games).
+  Relaunch/resume persistence proven. Short-template traversal DEFERRED to Campaign 012
+  (same advance/persist mechanics already proven on the default daily journey).
+- **Native-dep stale-dev-client hazard durably addressed:** portability native modules now
+  lazily required in `file-transport.ts` (+ typed diagnostic error naming the rebuild
+  remedy); regression suite `file-transport.lazy.test.ts`; dev-client freshness ops
+  guidance documented in `scripts/qa/README.md`.
+- **CNG gitignored android config codified:** committed local config plugins
+  `apps/mobile/plugins/with-android-backup-rules.js` (manifest attrs + both rule XMLs)
+  and `plugins/with-android-ndk-pin.js`, plus `blockedPermissions`
+  (SYSTEM_ALERT_WINDOW) declared in `app.json`. Proven by a real
+  `expo prebuild --platform android --no-install` regenerating all settings from scratch;
+  plugin unit tests green.
+- iOS build/runtime: BLOCKED — no macOS host (unchanged). SAF share-sheet/document-picker
+  system consent sheets: BLOCKED for emulator-local automation by policy; engine round-trips
+  device-proven via pulled DB.
+
+#### Final gates after device fixes (working tree at closure)
+
+- `npx tsc --noEmit`: PASS (0 errors)
+- Full Jest: **5750 passed / 0 failed** (intentional perf-probe skips only)
+- `npm run lint`: PASS (0 errors)
+- `expo export --platform web`: PASS
+- `expo-doctor`: **21/21** (consciously pinned patch exclusions)
+- `openspec validate --changes`: PASS
+- Fast validators (repo-state / registry --check / provenance --check /
+  task-ownership / offline --check): PASS at closure commit

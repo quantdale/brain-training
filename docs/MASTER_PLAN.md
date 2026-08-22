@@ -219,5 +219,12 @@ Delivered (all `IMPLEMENTED — NOT VALIDATED` unless noted):
   seams (safe-area B5, keyboard/platform adapters), perf instrumentation (D4),
   sync-readiness seams (D3), entitlements/notification/assistant seams.
 
-Campaign 011 (next): TEST / AUDIT / QA / FIX / HARDEN — see
-`.agent/_tasks/campaign011-validation-backlog.md`.
+Campaign 011 (COMPLETED 2026-08-22): TEST / AUDIT / QA / FIX / HARDEN. All 42 games
+terminally classified on Android through the full journey chain; Workout V2 full
+device journey PASS (4/4 + relaunch persistence); grid-nav a11y defect root-caused
+on-device and fixed; /results Slot array-style crash fixed (had made the workout
+journey impossible); native-dep stale-dev-client hazard durably mitigated (lazy
+requires) and CNG Android config codified into committed local config plugins.
+Final gates: Jest 5750 passed, tsc/lint 0 errors, doctor 21/21, all validators PASS.
+Next campaign: owner-directed (012 scope TBD — GameHost remainder migration,
+short-template workout device traversal, expo patch-version bump audit).
