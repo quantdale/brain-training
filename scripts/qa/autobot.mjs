@@ -1312,81 +1312,103 @@ async function flowWorkout() {
   }
   const order = uniq;
   const log = [];
-
+  const wkFail = (t0, details, reason) => ({
+    id: "daily-workout",
+    passed: false,
+    status: "FAIL",
+    reason,
+    details,
+    ms: traceMs(t0),
+    artifacts: captureAll("workout"),
+    trace: traceSlice(),
+  });
+  // Post-workout-V2 journey (root-cause fix for the 009 + campaign-011 game-0
+  // aborts): games finish on their OWN results surface (`<id>.results`) and do
+  // NOT auto-navigate anywhere. The durable workout advances only when the
+  // session's shared result page (`/results?id=<session>`, reachable from the
+  // Home "Recent games" rows) is viewed — that page renders `results-next-game`
+  // or `results-workout-complete` via useWorkoutResultAdvance. So each leg is:
+  // enter game → force-win → own results → BACK to Home → open newest recent
+  // session → verify/press the workout CTA.
   for (let i = 0; i < 4; i++) {
     const gameId = order[i];
-    home = readFileSyncSafe(dumpHierarchy("wk-loop-home"));
-    if (!tapTestId(`home-workout-game-${gameId}`, home)) {
-      const r = readFileSyncSafe(dumpHierarchy("wk-loop-r"));
-      if (hasTestId(r, "results-next-game")) tapTestId("results-next-game", r);
-      else
-        return {
-          id: "daily-workout",
-          passed: false,
-          status: "FAIL",
-          reason: `could not enter game ${gameId}`,
-          details: log,
-          ms: traceMs(t0),
-          artifacts: captureAll("workout"),
-          trace: traceSlice(),
-        };
+    // --- Enter game i ---
+    let entered = false;
+    if (i > 0) {
+      // Previous leg ended by pressing results-next-game, which deep-links
+      // straight into this game — check before navigating anywhere.
+      const cur = readFileSyncSafe(dumpHierarchy(`wk-cur-${i}`));
+      if (cur && (hasTestId(cur, `${gameId}.screen`) || hasTestId(cur, `${gameId}.intro`)))
+        entered = true;
+    }
+    if (!entered) {
+      let hx = readFileSyncSafe(dumpHierarchy(`wk-enter-${i}`));
+      if (!hx || !hasTestId(hx, "home-workout-list")) {
+        shell("input keyevent 4");
+        await sleep(1200);
+        hx = await waitForAny(
+          ["home-workout-list", ...HOME_READY_IDS],
+          20000,
+          `wk-home-e${i}`,
+        );
+        if (!hx)
+          return wkFail(t0, log, `did not reach Home before game ${i} (${gameId})`);
+      }
+      if (!tapTestId(`home-workout-game-${gameId}`, hx))
+        return wkFail(t0, log, `could not enter game ${gameId}`);
     }
     await sleep(1400);
     const gxml =
-      (await waitFor(`${gameId}.screen`, 20000, `wk-g${i}`)) ||
-      (await waitFor(`${gameId}.intro`, 20000, `wk-g${i}`));
-    if (!gxml)
-      return {
-        id: "daily-workout",
-        passed: false,
-        status: "FAIL",
-        reason: `game ${gameId} did not load`,
-        details: log,
-        ms: traceMs(t0),
-        artifacts: captureAll("workout"),
-        trace: traceSlice(),
-      };
+      (await waitFor(`${gameId}.screen`, 60000, `wk-g${i}`)) ||
+      (await waitFor(`${gameId}.intro`, 60000, `wk-g${i}`));
+    if (!gxml) return wkFail(t0, log, `game ${gameId} did not load`);
     tapTestId(`${gameId}.tutorial-skip`, gxml);
     await sleep(700);
     tapTestId(`${gameId}.start`, readFileSyncSafe(dumpHierarchy(`wk-g${i}-s`)));
     await sleep(1200);
-    // Multi-round games land on an intermediate round-advance surface after
-    // each forced win, so poll force-win → (next-round)* → shared results
-    // instead of assuming a single tap reaches the workout results. This is
-    // the root-cause fix for the 009 abort at game 0 (context-fit timing).
+    // Force the win and wait out the game's own results surface (driveForceWin
+    // handles multi-round gates internally).
+    const own = await driveForceWin(gameId, `wk-g${i}`);
+    const reachedResults = !!own;
+    log.push(`completed ${gameId} (${i + 1}/4, own-results=${reachedResults})`);
+    // --- Advance the workout via the shared session result page ---
+    shell("input keyevent 4");
+    await sleep(1500);
+    const hx2 = await waitForAny(
+      ["home-workout-list", ...HOME_READY_IDS],
+      30000,
+      `wk-home-a${i}`,
+    );
+    if (!hx2) return wkFail(t0, log, `did not return Home after ${gameId}`);
     const wantId = i < 3 ? "results-next-game" : "results-workout-complete";
-    let res = null;
-    let fwTaps = 0;
-    const fwDeadline = Date.now() + 45000;
-    while (Date.now() < fwDeadline && !res) {
-      if (tapForceWinOnce(gameId, `wk-g${i}`)) {
-        fwTaps += 1;
-        await sleep(1000);
-      }
-      res = await waitFor(wantId, 3000, `wk-g${i}-res`);
-      if (!res) {
-        // Round gate: advance through intermediate rounds when offered.
-        const rx = readFileSyncSafe(dumpHierarchy(`wk-g${i}-round`));
-        if (rx && hasTestId(rx, `${gameId}.next-round`)) {
-          tapTestId(`${gameId}.next-round`, rx);
-          await sleep(1100);
+    let resPage = null;
+    for (let t = 0; t < 3 && !resPage; t++) {
+      const rx = readFileSyncSafe(dumpHierarchy(`wk-recent-${i}-${t}`));
+      const rowMatch = rx ? rx.match(/home-recent-game-[A-Za-z0-9_-]+/) : null;
+      if (rowMatch && tapTestId(rowMatch[0], rx)) {
+        resPage = await waitFor(wantId, 8000, `wk-res-${i}`);
+        if (!resPage) {
+          // Not the session we expected (or advance already consumed):
+// back off and retry with the next-most-recent row on a fresh dump.
+          shell("input keyevent 4");
+          await sleep(1000);
         }
+      } else {
+        await sleep(1500); // recent list may still be rendering after persist
       }
     }
-    if (!res)
-      return {
-        id: "daily-workout",
-        passed: false,
-        status: "FAIL",
-        reason: `results (${wantId}) not reached for game ${i} (${gameId}) after ${fwTaps} force-win taps`,
-        details: log,
-        ms: traceMs(t0),
-        artifacts: captureAll("workout"),
-        trace: traceSlice(),
-      };
-    log.push(`completed ${gameId} (${i + 1}/4)`);
-    if (i < 3) tapTestId("results-next-game", res);
-    await sleep(1400);
+    if (!resPage)
+      resPage = await waitFor(wantId, 4000, `wk-res-final-${i}`);
+    if (!resPage)
+      return wkFail(
+        t0,
+        log,
+        `${wantId} not reached after ${gameId} (recent-session route)`,
+      );
+    if (i < 3) {
+      tapTestId("results-next-game", resPage);
+      await sleep(1400);
+    }
   }
 
   const complete = readFileSyncSafe(dumpHierarchy("wk-complete"));

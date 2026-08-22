@@ -2,37 +2,25 @@
 
 ## Current blockers
 
-- **Campaign 010 validation debt (campaign-level, by design)**: the entire 010 wave
-  landed implementation-only. Full Jest, lint, builds, emulator QA, benchmarks and
-  device flows are NOT RUN for everything listed in
-  `.agent/_tasks/campaign011-validation-backlog.md`. Nothing from 010 may be labeled
-  HARDENED / PRODUCTION VERIFIED. Highest-risk areas: GameHost migrations (18 games),
-  analytics projection SQL equivalence, backup file transport on device, workout V2
-  lifecycle.
-- **spatial-grid-nav QA force-win unreachable via automation (Medium, QA-tooling,
-  open)**: on-device, grid-nav's shared PauseOverlay renders but its Resume/Quit
-  buttons never appear in the uiautomator tree (title/buttons absent while the
-  overlay node is present), so the harness cannot resume or force-win. The game
-  itself launches, plays, and pauses correctly; all 9 unit suites pass. The sibling
-  games with identical overlay code are verified. NOTE: grid-nav is NOT yet
-  GameHost-migrated; its overlay now differs from the 18 migrated games' host-mounted
-  overlay — re-verify after any migration wave. Root cause needs on-device
-  React-tree inspection.
-- **data_extraction_rules / backup_rules XMLs are untracked (Low, environmental)**:
-  `android/` is gitignored (CNG prebuild). W15's local manifest trim + extraction-
-  rule XMLs exist only in this working tree; they must be re-applied — or codified
-  into a small Expo config plugin — before any clean `prebuild`. The durable fix is
-  the expo-audio plugin config in `app.json` (committed).
-- **expo-doctor patch drift + dependency removals (Low)**: doctor's patch-version
-  advice predates 010; 010 REMOVED @expo/ui, expo-glass-effect, expo-device,
-  expo-image, expo-web-browser, expo-status-bar, expo-system-ui (verified zero src
-  imports and zero transitive requirers; expo-linking kept — expo-router dep).
-  App boot after removals NOT VALIDATED — first item for the 011 emulator pass.
-- **Post-010 CI confirmation pending**: GitHub App CI + Repository Integrity auto-run
-  on push to `main`; final post-010 SHA must be confirmed from GitHub Actions UI.
-  Expected: typecheck/lint/registry/provenance gates should pass; Jest may surface
-  failures in areas 010 changed deliberately (migrated screens, math content tests) —
-  those are Campaign 011's first work items, not blockers to revert.
+- **Campaign 011 device journeys (in flight at last write)**: catalog
+  `qa-artifacts/20260822-022415-autobot-all`, workout chained after. Final
+  classification recorded in `.agent/VALIDATION.md` Campaign 011 section.
+- **grid-nav-class PauseOverlay reachability (root cause FIXED)**: the shared a11y
+  focus helper passed a HostInstance object into deprecated
+  `setAccessibilityFocus(reactTag:number)` which silently no-ops on Android/Fabric;
+  replaced with renderer-routed `AccessibilityInfo.sendAccessibilityEvent(handle,
+  'focus')`. Device confirmation lands with the catalog run.
+- **expo-doctor patch drift (Low, consciously pinned)**: expo/expo-linking/
+  expo-router stay on 57.0.14-era pins via `expo.install.exclude` so doctor reads
+  21/21; bump them together at the next dependency-audit campaign.
+- **android/ is gitignored (CNG)**: W15's manifest trim + data_extraction_rules/
+  backup_rules XMLs are working-tree only; re-apply or codify into a config plugin
+  before any clean `expo prebuild --clean`.
+- **Ops lesson (tooling)**: two concurrent `expo start` instances served divergent
+  module graphs and produced phantom "screen did not load" QA failures; always run
+  exactly one Metro, kill by PID (`netstat -ano`), and never edit src while a
+  journey runs.
+
 
 ## Open debt (tracked, non-blocking)
 

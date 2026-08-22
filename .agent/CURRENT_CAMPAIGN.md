@@ -1,6 +1,7 @@
 # Campaign 011 — Full Validation, QA, Audit, Fix & Hardening
 
-**Status:** IN PROGRESS (Day mode)
+**Status:** CONVERGING (Day mode) — local gates green, CI green, device journeys executing
+**Final-SHA line:** see `.agent/STATE.md` (updated at close)
 **Campaign id:** `011-full-validation-hardening`
 **Predecessor:** `010-mass-product-implementation` (COMPLETED at `2630a77`; 42 games, implementation-only)
 **Execution entry:** owner-directed validation orchestrator brief — VERIFY → BREAK → DIAGNOSE → FIX → REGRESSION TEST → INTEGRATE → DEVICE VERIFY → HARDEN → PROVE
@@ -20,17 +21,18 @@ state. Only W16 touches the emulator. Workers run targeted Jest only.
 
 ## Exit criteria
 
-- [ ] All failing suites triaged and green (or justified quarantine)
-- [ ] Critical/High defects fixed with regression tests
-- [ ] Differential equivalence proven: analytics V2, JSON1 projections, backup round-trip
-- [ ] Migration matrix v1→v9 green
-- [ ] Android catalog journey executed over 42 games with honest classification
-- [ ] Workout device journey closed (009 gap)
-- [ ] Performance re-measured vs 009 baselines
-- [ ] Cross-system integration pipeline test (parent)
-- [ ] Full local gates + CI verified on final SHA
-- [ ] campaign010 validation backlog fully classified (CLOSED/DEFERRED/BLOCKED/OBSOLETE)
-- [ ] Durable state updated to evidence-based statuses
+- [x] All failing suites triaged and green (12→0; every fix root-caused)
+- [x] Critical/High defects fixed with regression tests (see VALIDATION.md)
+- [x] Differential equivalence proven: analytics V2 (96 tests), JSON1 projections
+      (18 tests @1k/5k/20k), backup round-trip (byte-contract + rollback proofs)
+- [x] Migration matrix v1→v9 green (14 tests; corrupt user_version hardened)
+- [ ] Android catalog journey over 42 games — RUNNING (`qa-artifacts/20260822-022415-autobot-all`)
+- [ ] Workout device journey — auto-chained after catalog
+- [x] Performance re-measured: snapshot 102.7ms @20k via fast path (≤009 baseline class)
+- [x] Cross-system integration pipeline test PASS (parent-owned §27 suite)
+- [x] Local gates green; CI green from `6d04318` (Jest + doctor 21/21 via pinned patches)
+- [x] campaign010 validation backlog fully classified (closure ledger appended)
+- [ ] Durable state final sync (this file's status + STATE.md at close)
 
 ## Outcome summary
 

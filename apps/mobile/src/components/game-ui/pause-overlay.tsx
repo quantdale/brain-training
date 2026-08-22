@@ -8,18 +8,17 @@
  *
  * Theme-aware, generic: callers supply `gameId`, `onResume`, `onQuit`.
  *
- * Reachability contract (campaign 009 device findings, grid-nav harness):
- * - The root is intentionally NOT `accessible` (grouping would collapse
- *   Resume/Quit into one unfocusable blob) and explicitly opts back INTO the
- *   Android tree (`importantForAccessibility="yes"`) so it stays reachable
- *   even under an ancestor's hiding attribute.
- * - On show, the paused state is announced and the screen-reader cursor is
- *   parked on Resume, so TalkBack users land inside the overlay instead of
- *   stranded behind it; a polite live region backs the announcement on
- *   Android where imperative announces can be dropped.
+ * Reachability contract (campaign 009 + 011 device findings):
+ * - The root must stay a NON-grouping, unlabeled container. Adding
+ *   `accessibilityLabel` (+ `importantForAccessibility="yes"`) turns the
+ *   overlay into a single Android a11y leaf that absorbs Resume/Quit —
+ *   uiautomator then sees a childless "Paused." node and the session becomes
+ *   unresumable (reproduced on 3 games in the 011 catalog run). The paused
+ *   state is announced imperatively instead, and the SR cursor is parked on
+ *   Resume so TalkBack users land inside the overlay.
  */
 import { useEffect, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { createPauseOverlaySpec, testId } from '@/sdk';
 import { announce } from '@/components/a11y/announcements';
@@ -42,12 +41,10 @@ export function PauseOverlay({ gameId, onResume, onQuit }: PauseOverlayProps) {
   const resumeRef = useRef<View | null>(null);
 
   useEffect(() => {
-    // Android announces via the root's polite live region (below); firing the
-    // imperative announce there too would double-speak. iOS/web have no live
-    // region, so they get the imperative announcement.
-    if (Platform.OS !== 'android') {
-      announce(spec.accessibilityLabel);
-    }
+    // No live region on the root: a labeled/grouping root collapses the
+    // subtree into one a11y leaf on Android (see contract above). Announce
+    // imperatively on every platform instead.
+    announce(spec.accessibilityLabel);
     requestAccessibilityFocus(resumeRef);
   }, [spec.accessibilityLabel]);
 
@@ -55,10 +52,7 @@ export function PauseOverlay({ gameId, onResume, onQuit }: PauseOverlayProps) {
     <View
       style={[styles.overlay, { backgroundColor: theme.background }]}
       testID={spec.testID}
-      accessibilityLabel={spec.accessibilityLabel}
-      accessibilityLiveRegion="polite"
-      importantForAccessibility="yes"
-      accessibilityViewIsModal>
+      importantForAccessibility="auto">
       <ThemedText type="headline" testID={testId(gameId, 'pause-title')}>
         Paused
       </ThemedText>
