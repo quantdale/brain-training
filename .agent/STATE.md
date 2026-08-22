@@ -1,9 +1,9 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-22 (campaign 011 COMPLETED: full validation/hardening — 42/42 games terminal PASS on Android, grid-nav a11y root cause fixed + device-confirmed, Workout V2 full device journey PASS, `/results` Slot crash fixed, native-dep lazy guard, CNG config plugins, final gates Jest 5750/TS 0/lint 0/doctor 21-21)
+**Last update:** 2026-08-22 (campaign 012 OPENED: broad convergence + release-candidate prep — GameHost 18/42→target 42/42 in similarity batches, Workout V2 completion, content debt removal, release polish, build/deps/iOS audits)
 **Canonical branch:** `main`
-**Active campaign:** `011-full-validation-hardening` (COMPLETED; next campaign awaits owner direction)
+**Active campaign:** `012-broad-convergence-release-prep` (ACTIVE; opened at `b8ca36f`)
 
 ## Current status
 

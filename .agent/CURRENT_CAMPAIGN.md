@@ -1,63 +1,57 @@
-# Campaign 011 — Full Validation, QA, Audit, Fix & Hardening
+# Campaign 012 — Broad Convergence and Release-Candidate Preparation
 
-**Status:** COMPLETED (2026-08-22)
-**Final-SHA line:** see `.agent/STATE.md`
-**Campaign id:** `011-full-validation-hardening`
-**Predecessor:** `010-mass-product-implementation` (COMPLETED at `2630a77`; 42 games, implementation-only)
-**Execution entry:** owner-directed validation orchestrator brief — VERIFY → BREAK → DIAGNOSE → FIX → REGRESSION TEST → INTEGRATE → DEVICE VERIFY → HARDEN → PROVE
+**Status:** ACTIVE (opened 2026-08-22)
+**Campaign id:** `012-broad-convergence-release-prep`
+**Predecessor:** `011-full-validation-hardening` (COMPLETED at `b8ca36f`; 42/42 device PASS,
+Jest 5750/0, TS/lint 0, doctor 21/21)
+**Mode:** day (default; owner did not select night)
 
 ## Mission
 
-Test everything Campaign 010 changed; find defects; fix root causes; harden the combined
-product. Not a feature campaign. Known ground truth at open: full Jest = **12 failed
-suites / 32 failed tests / 4 snapshots** (of 412/4665); GitHub App CI red on `2630a77`;
-Android emulator available. Failure inventory routed in `.agent/_tasks/campaign011/W*.md`.
+CONSOLIDATE → COMPLETE → SIMPLIFY → DEEPEN → PREPARE FOR RELEASE.
+
+1. **P1 — GameHost migration:** 18/42 migrated, 24 legacy. Migrate in similarity batches
+   (A simple timer/response, B medium multi-round, C complex board/spatial/content,
+   D special lifecycle) + consolidate the host abstraction. Target 42/42; correctness
+   beats numeric completion.
+2. **P2 — Workout V2 complete product:** short/standard/extended/focus flows, resume,
+   history, completion summary, picker UX, device harness traversal (short-template
+   traversal deferred from 011).
+3. **P3 — Content debt:** equation-builder 8 dead easy templates ([10,3,4]→26 etc.) plus
+   a global dead-content audit across the catalog.
+4. **P4 — Release polish:** Home/Games/Workout/Progress/Rewards/Profile/Results/Game
+   Detail/Data Management coherence. No uncontrolled redesign.
+5. **P5 — Performance maturation** where measured (sync scan limit 5000 investigation).
+6. **P6 — Build determinism:** permissions/backup-rules/prebuild reconstruction audit.
+7. **P7 — Dependency audit** (controlled; no broad SDK upgrade).
+8. **P8 — iOS static preparation** (source-level only; build stays NOT VALIDATED).
 
 ## Topology
 
-16 worker packets in `.agent/_tasks/campaign011/` with disjoint ownership; workers never
-branch/commit; parent owns Git, full-suite runs, device-journey coordination, durable
-state. Only W16 touches the emulator. Workers run targeted Jest only.
+16 worker packets in `.agent/_tasks/campaign012/` with strict disjoint ownership;
+workers never branch/worktree/commit/push. Parent owns Git, shared files, generated
+registries, schema ordering, durable state, cross-worker interfaces, integration, full
+gates, and ALL emulator/device journeys (one Metro / one autobot / one device owner).
+
+Waves (day-mode ceiling ≤7 concurrent coders): W01–W07+parallel audits first, then the
+remainder; workers reused for second-wave cleanup where scope remains.
 
 ## Exit criteria
 
-- [x] All failing suites triaged and green (12→0; every fix root-caused)
-- [x] Critical/High defects fixed with regression tests (see VALIDATION.md)
-- [x] Differential equivalence proven: analytics V2 (96 tests), JSON1 projections
-      (18 tests @1k/5k/20k), backup round-trip (byte-contract + rollback proofs)
-- [x] Android catalog journey over 42 games — **42/42 PASS** (`20260822-022415-autobot-all`
-      38 PASS + 6 clean exclusive re-runs ending PASS; ledger in W16 packet)
-- [x] Workout device journey — V2 full default journey PASS with DB evidence
-      (`qa-artifacts/20260822-113955-autobot-workout`; short-template traversal deferred to 012)
-- [x] Performance re-measured: snapshot 102.7ms @20k via fast path (≤009 baseline class)
-- [x] Cross-system integration pipeline test PASS (parent-owned §27 suite)
-- [x] Local gates green; CI green from `6d04318` (Jest + doctor 21/21 via pinned patches);
-      final closure SHA verified after push (see STATE.md final-SHA line)
-- [x] campaign010 validation backlog fully classified (closure ledger appended)
-- [x] Durable state final sync (this file + STATE.md + VALIDATION.md + KNOWN_ISSUES.md)
+- [ ] GameHost migration substantially or fully completed (target 42/42) with per-batch validation
+- [ ] Workout V2 short/standard/focus/resume/history flows implemented; device automation written
+- [ ] Device journeys run by parent: migrated-game canaries/journeys + workout template journeys
+- [ ] Dead math content fixed; global content audit completed with fixes
+- [ ] UX/settings/release surfaces matured without redesign churn
+- [ ] Build configuration audited; prebuild determinism evidenced
+- [ ] Dependency audit delivered; approved changes applied and validated
+- [ ] iOS static compatibility improved; build honestly NOT VALIDATED
+- [ ] Final full gates green (repo-state, registry --check, provenance, ownership, offline,
+      tsc, lint, Jest, web export, expo-doctor, openspec)
+- [ ] If GameHost reaches 42/42: strong-preference full 42-game Android catalog run
+- [ ] Durable state synchronized; release-blocker inventory recorded
 
-## Outcome summary
+## Deferred product decisions (unchanged — do not activate)
 
-Two waves executed: wave 1 = W01–W16, wave 2 = W17–W24. All packets COMPLETED.
-Device convergence (exclusive sessions, one Metro / one autobot):
-
-- Catalog **42/42 terminal PASS** on Android (base run 38 PASS; every non-PASS game
-  re-ran clean after triage — classifications in `.agent/_tasks/campaign011/W16.md`).
-- grid-nav-class PauseOverlay reachability root-caused on device (Fabric a11y subtree
-  collapse under nested accessibility buttons) and fixed by unmounting decorative option
-  boards while paused; device-confirmed on grid-nav + transform-match + sibling.
-- Real product defect from the workout journey found and fixed: `/results?id=` crashed on
-  mount (array styles into `<Slot>` children via asChild Links); regression-tested.
-- Native-dep stale-dev-client hazard durably addressed (lazy portability requires +
-  typed diagnostic error + ops guidance). CNG android config codified in committed
-  config plugins, proven by real prebuild regeneration.
-- Final local gates: Jest **5750 passed / 0 failed**, tsc 0 errors, lint 0 errors,
-  web export PASS, expo-doctor 21/21 (pinned patch exclusions), openspec PASS.
-
-Deferred/blocked remainder recorded in
-`.agent/_tasks/campaign011-validation-backlog.md` FINAL closure ledger (short-template
-workout traversal DEFERRED to 012; SAF system consent sheets BLOCKED for emulator-local
-automation; iOS build/runtime BLOCKED — no macOS host).
-
-Fresh-agent entry: `.agent/CURRENT_CAMPAIGN.md` (this file) + `AGENTS.md` +
-`docs/PROJECT_CONSTITUTION.md`. Next campaign starts only on owner direction.
+Branding, account provider, Supabase production, cloud sync deployment, premium pricing,
+ads, AI provider/pricing, social, notification schedule, store listing timing.
