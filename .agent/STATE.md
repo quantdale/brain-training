@@ -3,7 +3,7 @@
 **State schema:** 1
 **Last update:** 2026-08-21 (campaign 010 COMPLETED: mass product implementation, two waves / 24 worker packets → 42 games, GameHost consolidation, Workout/Personalization/Analytics V2, portability transport, engagement depth, a11y + platform + seam programs; implementation-only — full validation deferred to campaign 011)
 **Canonical branch:** `main`
-**Active campaign:** `010-mass-product-implementation` (COMPLETED; next: `011` TEST/AUDIT/QA/FIX/HARDEN)
+**Active campaign:** `011-full-validation-hardening` (validating/hardening the 010 wave)
 
 ## Current status
 

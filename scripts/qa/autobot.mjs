@@ -795,8 +795,12 @@ async function tapForceWinOnce(id, tag) {
 // Returns the matching results node (with `.id`) or null on timeout. This is
 // resilient to games whose QA panel is only mounted during certain play
 // phases: it taps force-win the moment the toggle is observable.
+// Multi-round games land on a round-advance surface after each forced win,
+// so keep pressing and step through `<id>.next-round` gates until the shared
+// results surface appears (mirrors the workout-flow fix).
 async function driveForceWin(id, tag) {
-  const end = Date.now() + 15000;
+  const budgetMs = Number(process.env.QA_FORCEWIN_BUDGET_MS || 45000);
+  const end = Date.now() + budgetMs;
   while (Date.now() < end) {
     if (tapForceWinOnce(id, tag)) {
       await sleep(800);
@@ -806,6 +810,12 @@ async function driveForceWin(id, tag) {
         `${tag}-fw`,
       );
       if (res) return res;
+      const rx = readFileSyncSafe(dumpHierarchy(`${tag}-fw-round`));
+      if (rx && hasTestId(rx, `${id}.next-round`)) {
+        tapTestId(`${id}.next-round`, rx);
+        log("next-round stepped");
+        await sleep(1000);
+      }
     }
     await sleep(500);
   }

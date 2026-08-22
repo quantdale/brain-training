@@ -155,6 +155,16 @@ export function computeDomainSignals(
   const staleDays = options.staleDays ?? STALE_DOMAIN_DAYS;
   const map = new Map<string, DomainSignalSummary>();
   for (const row of ratings) {
+    // Defensive: direct callers may pass unsanitized db output; skip rows
+    // that are null/malformed rather than crashing mid-signal.
+    if (
+      row === null ||
+      typeof row !== 'object' ||
+      typeof row.domain !== 'string' ||
+      !Number.isFinite(row.rating)
+    ) {
+      continue;
+    }
     const weak = row.rating < WEAK_DOMAIN_RATING_THRESHOLD;
     const stale = isDomainStale(row.updatedAt, options.nowMs, staleDays);
     const age = daysSinceUpdate(row.updatedAt, options.nowMs);

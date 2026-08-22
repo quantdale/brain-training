@@ -13,6 +13,7 @@ import {
   prospectiveCueParamsForLevel,
   resolveProspectiveCueDifficulty,
 } from "../difficulty";
+import type { DifficultyLevel } from "@/sdk";
 import { generateRound } from "../generator";
 import { perfectSessionScore } from "../scoring";
 import { GAME_ID, INITIAL_STATS, createInitialProspectiveCueState } from "../types";
@@ -171,13 +172,17 @@ describe("per-round tally pass rule (wave-1 regression pin)", () => {
 describe("response bleed-through guards (stale-index stamping)", () => {
   it("ignores a second press for an already-resolved item (double-tap)", () => {
     let state = inStream(startedState("normal", "w04-double-tap"));
-    // Find a signal immediately followed by a filler.
+    // Find a signal immediately followed by a filler (fallback: any signal).
     const items = state.round!.items;
     let k = items.findIndex(
       (item, i) => item.isSignal && i + 1 < items.length && !items[i + 1].isSignal,
     );
     if (k === -1) {
       k = items.findIndex((item) => item.isSignal);
+    }
+    // Drive perfect play up TO item k first.
+    for (let i = 0; i < k; i += 1) {
+      state = respond(state, items[i].isSignal ? "signal" : "go", 0.25);
     }
     state = respond(state, "signal", 0.2); // hit on item k
     const afterFirst = state;
@@ -282,9 +287,9 @@ describe("lifecycle interruption matrix (reducer level)", () => {
   it("tutorial-open during stream freezes the window: responses/timeouts/advance all held", () => {
     let state = inStream(startedState("normal", "w04-tutorial-freeze"));
     state = respond(state, "go", 0.4);
-    const before = state;
     state = reducer(state, { type: "tutorial-open" });
     expect(state.tutorialOpen).toBe(true);
+    const covered = state; // snapshot AFTER opening (overlay up)
 
     state = reducer(state, {
       type: "respond",
@@ -294,14 +299,14 @@ describe("lifecycle interruption matrix (reducer level)", () => {
     });
     state = reducer(state, { type: "item-timeout", itemIndex: state.itemIndex });
     state = reducer(state, { type: "briefing-done" });
-    expect(state).toEqual(before); // nothing moved under the overlay
+    expect(state).toEqual(covered); // nothing moved under the overlay
 
     state = reducer(state, { type: "tutorial-close" });
     expect(state.tutorialOpen).toBe(false);
-    expect(state.itemIndex).toBe(before.itemIndex); // exact resume point
+    expect(state.itemIndex).toBe(covered.itemIndex); // exact resume point
     // ...and the game responds again afterwards.
     const resumed = respond(state, "go", 0.5);
-    expect(resumed.itemIndex).toBe(before.itemIndex + 1);
+    expect(resumed.itemIndex).toBe(covered.itemIndex + 1);
   });
 
   it("quit mid-round → relaunch resets the whole machine (fresh session)", () => {
@@ -366,24 +371,35 @@ describe("scoring table + stats accounting through the reducer", () => {
       state = isSignal ? respond(state, "signal") : timeoutItem(state);
     }
     const scoreBefore = state.stats.score;
+    const correctBeforeFiller = state.stats.correctResponses;
     state = respond(state, "go", 0.25);
     expect(state.stats.score).toBe(scoreBefore + 18);
-    expect(state.stats.correctResponses).toBe(scoreBefore === 0 ? 1 : state.stats.correctResponses);
+    expect(state.stats.correctResponses).toBe(correctBeforeFiller + 1);
 
-    // False alarm on a filler: −40, correctResponses NOT incremented.
-    while (state.round !== null && state.itemIndex < items.length && state.round.items[state.itemIndex].isSignal) {
+    // False alarm on a filler: −40 (floored at zero), correctResponses NOT incremented.
+    while (
+      state.phase === "stream" &&
+      state.round!.items[state.itemIndex].isSignal
+    ) {
       state = respond(state, "signal");
     }
     if (state.phase === "stream") {
       const faBefore = state.stats.falseAlarms;
-      const correctBefore = state.stats.correctResponses;
+      const correctBeforeFa = state.stats.correctResponses;
       state = respond(state, "signal", 0.5);
       expect(state.stats.falseAlarms).toBe(faBefore + 1);
-      expect(state.stats.correctResponses).toBe(correctBefore);
-      expect(state.stats.score).toBe(scoreBefore + 18 - 40);
+      expect(state.stats.correctResponses).toBe(correctBeforeFa);
+      // Score floor applies when penalties outweigh points so far.
+      expect(state.stats.score).toBe(Math.max(0, scoreBefore + 18 - 40));
     }
 
-    // Signal hit: +120 (drive to first signal if still in-stream).
+    // Signal hit: +120 — drive to the first signal from the current position.
+    while (
+      state.phase === "stream" &&
+      !state.round!.items[state.itemIndex].isSignal
+    ) {
+      state = respond(state, "go", 0.25);
+    }
     if (state.phase === "stream") {
       const hitsBefore = state.stats.signalHits;
       const scoreAt = state.stats.score;
@@ -473,7 +489,8 @@ describe("QA force paths", () => {
 
     state = reducer(state, {
       type: "qa/force-state",
-      patch: { difficulty: "not-a-level", unknown: true },
+      // Negative probe: invalid level must be ignored (escape the union type).
+      patch: { difficulty: "not-a-level" as unknown as DifficultyLevel, unknown: true },
     });
     expect(state.difficulty).toBe("expert"); // invalid patch ignored
     expect(state.seedOverride).toBe("12345"); // unknown keys don't clobber

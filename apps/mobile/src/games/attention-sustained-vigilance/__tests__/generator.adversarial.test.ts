@@ -239,17 +239,19 @@ describe('forced RNG-collision escape (go digit re-draw exhaustion)', () => {
     'stop digit %i: exhausted go draws fall back to the lowest legal alternative',
     (stopCandidate) => {
       const params = paramsFor('expert');
-      const seed = `collision-${stopCandidate}`;
 
-      // Learn the natural stop digit for this seed first…
-      const natural = generateStream(rigged(createRng(seed), null), params);
+      // Find a seed whose natural stop digit is this candidate…
+      let seed: string | null = null;
+      for (let s = 0; s < 400 && seed === null; s += 1) {
+        const candidateSeed = `collision-${stopCandidate}-${s}`;
+        if (generateStream(createRng(candidateSeed), params).stopDigit === stopCandidate) {
+          seed = candidateSeed;
+        }
+      }
+      expect(seed).not.toBeNull();
 
       // …then force every go-trial draw to collide with it.
-      const { trials, stopDigit } = generateStream(
-        rigged(createRng(seed), natural.stopDigit),
-        params,
-      );
-      expect(stopDigit).toBe(natural.stopDigit);
+      const { trials, stopDigit } = generateStream(rigged(createRng(seed as string), stopCandidate), params);
       expect(stopDigit).toBe(stopCandidate);
 
       const expectedEscape = stopDigit === DIGIT_MAX ? DIGIT_MIN : stopDigit + 1;

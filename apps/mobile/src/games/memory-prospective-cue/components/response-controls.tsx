@@ -4,7 +4,9 @@
  *
  * Accessibility: both are labeled buttons; neither reveals correctness.
  * Buttons stay enabled while the window is open — a late press still lands
- * within the same item if it beats the timeout dispatch.
+ * within the same item if it beats the timeout dispatch. Presses stamped for
+ * an already-resolved item (rapid double taps) are ignored by the reducer
+ * instead of leaking into the next, unseen item.
  */
 import { StyleSheet, View } from "react-native";
 

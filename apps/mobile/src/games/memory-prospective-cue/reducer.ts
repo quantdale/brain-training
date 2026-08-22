@@ -11,6 +11,12 @@
  * QA force actions (`qa/*`) only reshape state; the screen gates their entry
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()` (see
  * hooks.ts), so production builds never expose them.
+ *
+ * Interruption semantics (unit-pinned in __tests__/reducer.test.ts):
+ * `respond`/`item-timeout` carry the stream index they were made for and are
+ * ignored for any other index, so double taps and late presses can never
+ * consume the next unseen item; pausing AND the tutorial overlay both freeze
+ * the response window — no window time, tallies, or inputs move while covered.
  */
 import { createRng, isDifficultyLevel } from "@/sdk";
 import type { DifficultyProfile } from "@/sdk";
@@ -122,6 +128,12 @@ function resolveItem(
     return {
       ...state,
       phase: "roundResult",
+      // Write back the tallies INCLUDING the final item's contribution, so
+      // the result screen reveals exact per-round numbers ("caught X/Y",
+      // false alarms). The pass decision already used these locals.
+      roundSignalTotal,
+      roundSignalHits,
+      roundFalseAlarms,
       lastItem,
       roundScored: true,
       roundOutcome: passed ? "passed" : "failed",
@@ -188,21 +200,40 @@ export function prospectiveCueGameReducer(
     }
 
     case "briefing-done": {
-      if (state.phase !== "briefing" || state.paused) {
+      if (state.phase !== "briefing" || state.paused || state.tutorialOpen) {
         return state;
       }
       return { ...state, phase: "stream", itemIndex: 0, lastItem: null };
     }
 
     case "respond": {
-      if (state.phase !== "stream" || state.paused || state.roundScored) {
+      // Stale-index guard: a press is only valid for the item currently on
+      // screen. After an item resolves, itemIndex has already advanced, so a
+      // late/double tap stamped for the old index is ignored instead of being
+      // stolen by the next unseen item. The tutorial overlay freezes the
+      // window the same way a pause does.
+      if (
+        state.phase !== "stream" ||
+        state.paused ||
+        state.tutorialOpen ||
+        state.roundScored ||
+        action.itemIndex !== state.itemIndex
+      ) {
         return state;
       }
       return resolveItem(state, action.kind, action.elapsedFraction);
     }
 
     case "item-timeout": {
-      if (state.phase !== "stream" || state.paused || state.roundScored) {
+      // Same guards as `respond`: only the interval that owns the current
+      // item may expire it, and never while paused/tutorial-covered/scored.
+      if (
+        state.phase !== "stream" ||
+        state.paused ||
+        state.tutorialOpen ||
+        state.roundScored ||
+        action.itemIndex !== state.itemIndex
+      ) {
         return state;
       }
       return resolveItem(state, "timeout", 1);

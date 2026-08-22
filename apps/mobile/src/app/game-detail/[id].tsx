@@ -29,6 +29,8 @@ import { useDbData } from "@/hooks/use-db-data";
 import { getGameDefinition } from "@/registry/registry";
 
 interface DetailData {
+  /** Load-time clock for relative-day formatting (set outside render). */
+  nowMs: number;
   favorite: boolean;
   aggregate: {
     count: number;
@@ -46,11 +48,12 @@ function loadDetail(db: AppDatabase, id: string): Promise<DetailData> {
       db.sessions.getGameAggregate(id),
       db.sessions.listByGame(id, 10),
     ]);
-    return { favorite, aggregate, recent };
+    return { nowMs: Date.now(), favorite, aggregate, recent };
   })();
 }
 
 const EMPTY_DETAIL: DetailData = {
+  nowMs: 0,
   favorite: false,
   aggregate: null,
   recent: [],
@@ -120,7 +123,7 @@ export default function GameDetailScreen() {
     }
   }, [currentFavorite, game?.id]);
 
-  const nowMs = Date.now();
+  const nowMs = data.nowMs;
 
   return (
     <ScreenShell>

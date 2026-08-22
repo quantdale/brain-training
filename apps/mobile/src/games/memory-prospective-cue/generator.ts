@@ -155,6 +155,17 @@ export function generateRound(input: GenerateRoundInput): ProspectiveRound {
     streamLen,
     prevActiveSignalIds,
   );
+  // Postcondition: the candidate must deliver exactly the requested number of
+  // simultaneous signals. A hostile glyph budget (a long previous watchlist
+  // crowding out the fresh pool) used to degrade silently into a short
+  // watchlist — fail loudly instead; shipped difficulty params can never hit
+  // this (max 6 signals vs 12 glyphs).
+  if (candidate.activeSignalIds.length !== signalCount) {
+    throw new RangeError(
+      `generateRound: glyph budget cannot deliver ${signalCount} simultaneous signals ` +
+        `(previous watchlist [${(prevActiveSignalIds ?? []).join(", ")}] leaves too few fresh glyphs)`,
+    );
+  }
   for (let attempt = 1; attempt < MAX_ROUND_ATTEMPTS; attempt += 1) {
     if (
       prevActiveSignalIds === null ||

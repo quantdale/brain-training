@@ -183,8 +183,19 @@ export type ProspectiveCueAction =
       kind: "go" | "signal";
       /** Fraction of the item window consumed when the response landed (0..1). */
       elapsedFraction: number;
+      /**
+       * Stream index the press was made for (the item on screen when the
+       * player tapped). The reducer ignores presses stamped for any other
+       * index, so a late or double tap can never steal the next, not-yet-seen
+       * item (mirrors attention-sustained-vigilance's late-tap guard).
+       */
+      itemIndex: number;
     }
-  | { type: "item-timeout" }
+  | {
+      type: "item-timeout";
+      /** Stream index whose response window expired (stamped by its interval). */
+      itemIndex: number;
+    }
   | { type: "next-round" }
   | { type: "pause" }
   | { type: "resume" }

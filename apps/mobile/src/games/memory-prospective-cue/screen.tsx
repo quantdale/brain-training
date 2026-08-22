@@ -12,8 +12,9 @@
  * Pause semantics: pausing freezes the lifecycle timer AND the current item's
  * response window (the pacing interval is cleared; elapsed window time stays
  * accumulated in a ref); resuming continues the remaining window (freeze-and-
- * continue, never a restart). The stream is covered by the opaque
- * `PauseOverlay` and hidden from the accessibility tree while paused — the
+ * continue, never a restart). The tutorial overlay freezes the item window
+ * the same way while it covers the stream. The stream is covered by the
+ * opaque `PauseOverlay` and hidden from the accessibility tree while paused — the
  * watchlist lives only in the player's head, and pausing must not buy study
  * time either.
  */
@@ -122,8 +123,14 @@ export default function SignalWatchScreen(
   // window time so pausing freezes and resuming resumes the remaining window
   // (freeze-and-continue; mirrors memory-pair-recall's study-tick semantics).
   const itemElapsedRef = useRef(0);
-  /** Remaining-window fraction (0..1) driving the urgency bar (UI-only state). */
-  const [windowFraction, setWindowFraction] = useState(1);
+  /** Tracks which item the accumulator belongs to (reset inside callbacks). */
+  const itemElapsedForRef = useRef(-1);
+  /**
+   * Remaining-window elapsed ms as RENDER STATE. Only ever written inside
+   * interval/press callbacks (never synchronously in an effect), so renders
+   * stay pure; the urgency bar derives its fraction from this value.
+   */
+  const [windowElapsedMs, setWindowElapsedMs] = useState(0);
 
   useEffect(() => {
     stateRef.current = state;
@@ -151,35 +158,46 @@ export default function SignalWatchScreen(
     state.phase === "roundResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Reset the per-item window baseline whenever a new item becomes current.
-  useEffect(() => {
-    if (state.phase === "stream") {
-      itemElapsedRef.current = 0;
-      setWindowFraction(1);
-    }
-  }, [state.phase, state.roundIndex, state.itemIndex]);
 
   // Response-window pacing with freeze-and-continue: a window of `itemMs` of
-  // ACTIVE (non-paused) time, accumulated in 50ms steps. While paused the
-  // interval is cleared so no window time accrues; on resume it continues
-  // from where it left off. Expiry dispatches `item-timeout`.
+  // ACTIVE (non-paused, tutorial-closed) time, accumulated in 50ms steps.
+  // While paused OR the tutorial overlay is open the interval is cleared so
+  // no window time accrues; on resume/close it continues from where it left
+  // off. Expiry dispatches an index-stamped `item-timeout` — only the
+  // interval that owns the current item can expire it.
   useEffect(() => {
-    if (state.phase !== "stream" || state.paused) {
+    if (state.phase !== "stream" || state.paused || state.tutorialOpen) {
       return undefined;
     }
+    const itemIndex = state.itemIndex;
+    // Arm a fresh baseline for this item (ref write in effect is safe; the
+    // first tick 50 ms later renders the corrected fraction).
+    itemElapsedRef.current = 0;
     const interval = setInterval(() => {
+      if (itemElapsedForRef.current !== itemIndex) {
+        // First tick after an item switch: start that item's window fresh.
+        itemElapsedForRef.current = itemIndex;
+        itemElapsedRef.current = 0;
+      }
       itemElapsedRef.current = Math.min(
         itemMs,
         itemElapsedRef.current + WINDOW_TICK_MS,
       );
-      setWindowFraction(1 - itemElapsedRef.current / itemMs);
+      setWindowElapsedMs(itemElapsedRef.current);
       if (itemElapsedRef.current >= itemMs) {
         clearInterval(interval);
-        dispatch({ type: "item-timeout" });
+        dispatch({ type: "item-timeout", itemIndex });
       }
     }, WINDOW_TICK_MS);
     return () => clearInterval(interval);
-  }, [state.phase, state.paused, state.itemIndex, itemMs, dispatch]);
+  }, [
+    state.phase,
+    state.paused,
+    state.tutorialOpen,
+    state.itemIndex,
+    itemMs,
+    dispatch,
+  ]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -370,14 +388,21 @@ export default function SignalWatchScreen(
   const handleRespond = useCallback(
     (kind: "go" | "signal") => {
       const current = stateRef.current;
-      if (current.phase !== "stream" || current.paused || current.roundScored) {
+      if (
+        current.phase !== "stream" ||
+        current.paused ||
+        current.tutorialOpen ||
+        current.roundScored
+      ) {
         return;
       }
       const elapsedFraction = Math.min(
         1,
         Math.max(0, itemElapsedRef.current / itemMs),
       );
-      dispatch({ type: "respond", kind, elapsedFraction });
+      // Stamped with the item the player actually saw; the reducer ignores
+      // presses for any other index (double-tap / late-press protection).
+      dispatch({ type: "respond", kind, elapsedFraction, itemIndex: current.itemIndex });
     },
     [dispatch, itemMs],
   );
@@ -547,7 +572,16 @@ export default function SignalWatchScreen(
                 </View>
                 <StreamView
                   item={currentItem}
-                  fractionRemaining={windowFraction}
+                  fractionRemaining={
+                    1 -
+                    Math.min(
+                      itemElapsedForRef.current === state.itemIndex
+                        ? windowElapsedMs
+                        : 0,
+                      itemMs,
+                    ) /
+                      itemMs
+                  }
                   disabled={state.paused}
                 />
                 <ResponseControls

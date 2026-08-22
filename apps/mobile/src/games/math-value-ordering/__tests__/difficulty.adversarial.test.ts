@@ -245,9 +245,11 @@ describe('adaptive round-trip through the reducer', () => {
         });
       }
       if (round < ADAPTIVE_PARAMS.rounds - 1) {
+        // The next round begins at a fresh round-start offset; its taps below
+        // must land AFTER this (active-ms monotonicity) and inside the budget.
         state = valueOrderingGameReducer(state, {
           type: 'next-round',
-          startActiveMs: round * 100_000 + 60_000,
+          startActiveMs: (round + 1) * 100_000,
         });
       }
     }

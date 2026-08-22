@@ -57,7 +57,12 @@ export function A11yDialog({
   // identity would re-announce the title on every parent re-render (e.g.
   // every gameplay tick) while the dialog is open.
   const announceStateRef = useRef({ title, announceOnShow });
-  announceStateRef.current = { title, announceOnShow };
+  useEffect(() => {
+    // Latest-value ref pattern: updated after every commit so the
+    // [visible]-keyed announcement effect below always reads fresh props
+    // without re-announcing on parent re-renders.
+    announceStateRef.current = { title, announceOnShow };
+  });
 
   useEffect(() => {
     if (!visible || !announceStateRef.current.announceOnShow) {

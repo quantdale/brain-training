@@ -1,6 +1,7 @@
 // Jest globals imported explicitly (repo has no @types/jest — see generator.test.ts).
 import { describe, expect, it } from "@jest/globals";
 import { createRng } from "@/sdk";
+import type { DifficultyLevel } from "@/sdk";
 
 import {
   ADAPTIVE_PARAMS,
@@ -101,7 +102,7 @@ describe("generateRound property sweep (seeded)", () => {
       [true, true, false, false],
     ];
     for (const seed of seeds) {
-      for (const level of ALL_LEVELS) {
+      for (const level of ALL_LEVELS as readonly DifficultyLevel[]) {
         for (const pattern of patterns) {
           sweepSession(seed, level, [...pattern]);
         }

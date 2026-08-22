@@ -15,8 +15,8 @@ import {
   buildSessionRecord,
   persistProspectiveCueSession,
   seedToNumber,
-  versionToNumber,
 } from "../session";
+import { versionToNumber } from "../versions";
 import type { SessionPersistence } from "../session";
 import {
   INITIAL_STATS,
@@ -238,8 +238,14 @@ describe("buildSessionRecord", () => {
     expect(record.generatorVersion).toBe(1_000_000);
     expect(record.scoringVersion).toBe(1_000_000);
     expect(record.seed).toBe(seedToNumber("session-seed"));
-    expect(record.difficulty.level).toBe(profile.level);
-    expect(record.difficulty.challengeRating).toBe(profile.challengeRating);
+    const persistedDifficulty = record.difficulty as {
+      level: string;
+      challengeRating: number;
+    };
+    expect(persistedDifficulty.level).toBe(profile.level);
+    expect(persistedDifficulty.challengeRating).toBe(
+      profile.challengeRating,
+    );
     expect(record.normalizedResult).toBe(0.75);
     expect(record.xp).toBe(120);
     expect(record.startedAt).toBe(1_000);
@@ -262,7 +268,10 @@ describe("buildSessionRecord", () => {
       completedAtMs: 0,
       activeDurationMs: 0,
     });
-    (record.difficulty.parameters as Record<string, unknown>).streamLen = 9999;
+    const recordDifficulty = record.difficulty as {
+      parameters: Record<string, unknown>;
+    };
+    recordDifficulty.parameters.streamLen = 9999;
     expect(
       (profile.parameters as Record<string, unknown>).streamLen,
     ).not.toBe(9999);

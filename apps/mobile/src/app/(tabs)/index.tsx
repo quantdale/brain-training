@@ -61,6 +61,8 @@ import { useWorkout } from "@/workout/use-workout";
 import { useWorkoutTemplates } from "@/workout/use-workout-templates";
 
 interface HomeData {
+  /** Load-time clock for relative-day formatting (set outside render). */
+  nowMs: number;
   domainRatings: DomainRating[];
   recentGameIds: string[];
   /** Local YYYY-MM-DD of each recent session (for streak reconstruction). */
@@ -81,6 +83,7 @@ interface HomeData {
 }
 
 const EMPTY_HOME: HomeData = {
+  nowMs: 0,
   domainRatings: [],
   recentGameIds: [],
   activityDates: [],
@@ -102,6 +105,8 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
       db.sessions.getDistinctActivityDates(),
     ]);
 
+  const nowMs = Date.now();
+
   // Task 9.6: Build recent sessions with game names
   const { getGameDefinition } = await import("@/registry/registry");
   const recentSessions = recent.slice(0, 5).map((session) => ({
@@ -114,6 +119,7 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
   }));
 
   return {
+    nowMs,
     domainRatings,
     recentGameIds: recent.map((session) => session.gameId),
     activityDates,
@@ -150,6 +156,8 @@ export default function HomeScreen() {
   );
   const refresh = useCallback(() => setRefreshKey((key) => key + 1), []);
   const { data, loaded, error } = useDbData(loadHome, [refreshKey], EMPTY_HOME);
+  // Load-time clock (see HomeData.nowMs) for relative-day labels.
+  const nowMs = data.nowMs;
 
   // Durable workout context: loads/creates today's persisted instance and owns
   // reroll (persisted attempt + transactional currency debit). The displayed
@@ -325,8 +333,6 @@ export default function HomeScreen() {
           : rerollAffordable
             ? `Reroll costs ${nextRerollCost} coins (more each time).`
             : `Not enough coins — you need ${nextRerollCost}.`;
-
-  const nowMs = Date.now();
 
   return (
     <ScreenShell>

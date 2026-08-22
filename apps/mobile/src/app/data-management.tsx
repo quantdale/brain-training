@@ -329,7 +329,7 @@ export default function DataManagementScreen() {
         <ThemedText type="caption" themeColor="textSecondary">
           Creates a versioned, checksummed JSON envelope containing all
           canonical local data (sessions, ratings, ledger, quests, streak
-          inventory, settings, etc.). Exports are also saved into the app's
+          inventory, settings, etc.). Exports are also saved into the app&apos;s
           backups folder and listed below.
         </ThemedText>
         <Pressable
@@ -367,7 +367,7 @@ export default function DataManagementScreen() {
       <ThemedView type="surface" style={styles.card} testID="data-saved-backups">
         <ThemedText type="subtitle">Saved Backups</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Stored in the app's backups folder and kept across app restarts. Load
+          Stored in the app&apos;s backups folder and kept across app restarts. Load
           one to restore it, or delete it. Use the share sheet or a file manager
           to keep copies outside the app.
         </ThemedText>

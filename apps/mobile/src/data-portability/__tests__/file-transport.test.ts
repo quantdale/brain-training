@@ -93,16 +93,29 @@ jest.mock('expo-file-system', () => {
   return { Directory, File, Paths };
 });
 
-const mockGetDocumentAsync = jest.fn();
+type MockPickerResult = {
+  canceled: boolean;
+  assets: Array<{ uri: string; name: string }>;
+};
+
+const mockGetDocumentAsync = jest.fn(
+  (): Promise<MockPickerResult> => Promise.resolve({ canceled: true, assets: [] }),
+);
 jest.mock('expo-document-picker', () => ({
-  getDocumentAsync: (...args: unknown[]) => mockGetDocumentAsync(...args),
+  getDocumentAsync: (
+    ...args: Parameters<typeof mockGetDocumentAsync>
+  ) => mockGetDocumentAsync(...args),
 }));
 
-const mockIsAvailableAsync = jest.fn();
-const mockShareAsync = jest.fn();
+const mockIsAvailableAsync = jest.fn((): Promise<boolean> => Promise.resolve(false));
+const mockShareAsync = jest.fn(
+  (_uri: string, _options?: Record<string, unknown>): Promise<void> => Promise.resolve(),
+);
 jest.mock('expo-sharing', () => ({
-  isAvailableAsync: (...args: unknown[]) => mockIsAvailableAsync(...args),
-  shareAsync: (...args: unknown[]) => mockShareAsync(...args),
+  isAvailableAsync: (
+    ...args: Parameters<typeof mockIsAvailableAsync>
+  ) => mockIsAvailableAsync(...args),
+  shareAsync: (...args: Parameters<typeof mockShareAsync>) => mockShareAsync(...args),
 }));
 
 import {
