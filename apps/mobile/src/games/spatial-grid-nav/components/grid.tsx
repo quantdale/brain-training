@@ -7,35 +7,35 @@
  * highlighted cell is the candidate final cell. `CommandList` renders the
  * command sequence as readable text. Plain Views/Text only (no Skia).
  */
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { testId } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { testId } from "@/sdk";
+import { ThemedText } from "@/components/themed-text";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
-import { GAME_ID } from '../types';
-import type { Cell, Command, Dir } from '../types';
+import { GAME_ID } from "../types";
+import type { Cell, Command, Dir } from "../types";
 
 /** Unicode arrow glyphs per facing direction. */
 export const DIR_ARROW: Readonly<Record<Dir, string>> = {
-  N: '↑',
-  E: '→',
-  S: '↓',
-  W: '←',
+  N: "↑",
+  E: "→",
+  S: "↓",
+  W: "←",
 };
 
 /** Human-readable label for a command. */
 export function commandLabel(command: Command): string {
   switch (command.type) {
-    case 'forward':
-      return 'Move forward';
-    case 'back':
-      return 'Move back';
-    case 'left':
-      return 'Turn left';
-    case 'right':
-      return 'Turn right';
+    case "forward":
+      return "Move forward";
+    case "back":
+      return "Move back";
+    case "left":
+      return "Turn left";
+    case "right":
+      return "Turn right";
   }
 }
 
@@ -51,6 +51,14 @@ export interface GridBoardProps {
   readonly startDir?: Dir;
   readonly markers?: readonly GridMarker[];
   readonly testID: string;
+  /**
+   * Accessibility label for the board. When omitted, NO label prop is set at
+   * all — an unlabeled plain View does not become an Android a11y grouping
+   * node. This matters: a labeled container nested inside an accessibility
+   * button (e.g. decorative option boards) collapses the Android a11y tree
+   * on Fabric — campaign 011 device finding (PauseOverlay subtree vanished
+   * from uiautomator/TalkBack while such options were mounted).
+   */
   readonly accessibilityLabel?: string;
 }
 
@@ -61,7 +69,7 @@ export function GridBoard({
   startDir,
   markers = [],
   testID,
-  accessibilityLabel = 'Grid',
+  accessibilityLabel,
 }: GridBoardProps) {
   const theme = useTheme();
   const markerAt = (row: number, col: number): GridMarker | undefined =>
@@ -71,27 +79,36 @@ export function GridBoard({
     <View
       style={styles.grid}
       testID={testID}
-      accessibilityLabel={accessibilityLabel}>
+      {...(accessibilityLabel !== undefined ? { accessibilityLabel } : {})}
+    >
       {Array.from({ length: side * side }, (_, index) => {
         const row = Math.floor(index / side);
         const col = index % side;
-        const isStart = start !== null && start !== undefined && start.row === row && start.col === col;
+        const isStart =
+          start !== null &&
+          start !== undefined &&
+          start.row === row &&
+          start.col === col;
         const marker = markerAt(row, col);
         const isMarked = marker !== undefined;
         const cellColor = isMarked ? marker!.color : theme.surface;
         return (
           <View key={index} style={[styles.cell, { width: `${100 / side}%` }]}>
             <View
-              testID={testId(GAME_ID, 'cell', String(index))}
+              testID={testId(GAME_ID, "cell", String(index))}
               style={[
                 styles.tile,
                 {
                   backgroundColor: cellColor,
                   borderColor: theme.border,
                 },
-              ]}>
+              ]}
+            >
               {isStart && startDir ? (
-                <ThemedText type="headline" testID={testId(GAME_ID, 'start-marker')}>
+                <ThemedText
+                  type="headline"
+                  testID={testId(GAME_ID, "start-marker")}
+                >
                   {DIR_ARROW[startDir]}
                 </ThemedText>
               ) : null}
@@ -119,7 +136,8 @@ export function CommandList({ commands, testID }: CommandListProps) {
         <ThemedText
           key={i}
           type="bodyLarge"
-          testID={testId(GAME_ID, 'command', String(i))}>
+          testID={testId(GAME_ID, "command", String(i))}
+        >
           {`${i + 1}. ${commandLabel(command)}`}
         </ThemedText>
       ))}
@@ -160,7 +178,7 @@ export function OptionCell({
 
   return (
     <Pressable
-      testID={testId(GAME_ID, 'option', String(index))}
+      testID={testId(GAME_ID, "option", String(index))}
       accessibilityRole="button"
       accessibilityLabel={`Option ${index + 1}, cell row ${cell.row + 1} column ${cell.col + 1}`}
       accessibilityState={{ disabled, selected }}
@@ -169,12 +187,18 @@ export function OptionCell({
       style={({ pressed }) => [
         styles.optionContainer,
         { borderColor, opacity: pressed || disabled ? 0.8 : 1 },
-      ]}>
+      ]}
+    >
+      {/* The mini board is purely decorative: the outer button already
+       * announces "Option N, cell row X column Y", so the inner board gets
+       * NO accessibilityLabel (an unlabeled plain View creates no Android
+       * a11y grouping node). Campaign 011 device finding: deep view nests
+       * inside accessibility buttons corrupt the Android a11y tree on
+       * Fabric — see the paused-gating note in screen.tsx. */}
       <GridBoard
         side={side}
         markers={markers}
-        testID={testId(GAME_ID, 'option-grid', String(index))}
-        accessibilityLabel={`Option ${index + 1} board`}
+        testID={testId(GAME_ID, "option-grid", String(index))}
       />
     </Pressable>
   );
@@ -182,9 +206,9 @@ export function OptionCell({
 
 const styles = StyleSheet.create({
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignSelf: 'stretch',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignSelf: "stretch",
   },
   cell: {
     padding: Spacing.one,
@@ -193,8 +217,8 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 6,
     borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   commandList: {
     gap: Spacing.one,

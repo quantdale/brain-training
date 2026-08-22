@@ -20,9 +20,9 @@
  * The source-reveal timer re-fires after each remount via the host helper's
  * activation dependency.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
 
 import {
   isDevBuild,
@@ -30,38 +30,46 @@ import {
   noopXpRatingHook,
   systemClock,
   testId,
-} from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
-import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+} from "@/sdk";
+import type {
+  Clock,
+  DifficultyLevel,
+  TutorialStore,
+  XpRatingHook,
+} from "@/sdk";
+import { ThemedText } from "@/components/themed-text";
+import { GameButton, StatRow } from "@/components/game-ui";
+import { Spacing } from "@/constants/theme";
 import {
   GameHost,
   GameResults,
   resolveSessionSeed,
   useGameSession,
   useGameTimeout,
-} from '@/components/game-host';
-import type { GameHostView } from '@/components/game-host';
+} from "@/components/game-host";
+import type { GameHostView } from "@/components/game-host";
 
-import { OptionButton } from './components/option-button';
-import { PatternGrid } from './components/pattern-grid';
-import { QaPanel } from './components/qa-panel';
-import { Tutorial } from './components/tutorial';
-import { paramsFromProfile, sessionChallengeRating } from './difficulty';
-import { gameDefinition } from './game-definition';
-import { createQaForceStateHooks, createSpatialTransformMatchTutorialLifecycle } from './hooks';
-import { gameReducer } from './reducer';
-import { normalizeResult } from './scoring';
+import { OptionButton } from "./components/option-button";
+import { PatternGrid } from "./components/pattern-grid";
+import { QaPanel } from "./components/qa-panel";
+import { Tutorial } from "./components/tutorial";
+import { paramsFromProfile, sessionChallengeRating } from "./difficulty";
+import { gameDefinition } from "./game-definition";
+import {
+  createQaForceStateHooks,
+  createSpatialTransformMatchTutorialLifecycle,
+} from "./hooks";
+import { gameReducer } from "./reducer";
+import { normalizeResult } from "./scoring";
 import {
   buildRawResult,
   buildSessionRecord,
   dbSessionPersister,
   persistSession,
-} from './session';
-import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialState } from './types';
-import { SCORING_VERSION } from './versions';
+} from "./session";
+import type { SessionPersistence } from "./session";
+import { GAME_ID, createInitialState } from "./types";
+import { SCORING_VERSION } from "./versions";
 
 export interface SpatialTransformMatchScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -87,7 +95,11 @@ export default function SpatialTransformMatchScreen(
     xpHook = noopXpRatingHook,
   } = props;
   const router = useRouter();
-  const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
+  const [state, dispatch] = useReducer(
+    gameReducer,
+    undefined,
+    createInitialState,
+  );
 
   const stateRef = useRef(state);
   /** Monotonic timestamp (clock.now()) of when the choice phase started. */
@@ -104,36 +116,42 @@ export default function SpatialTransformMatchScreen(
     canPause: () => {
       const current = stateRef.current;
       return (
-        (current.phase === 'source' ||
-          current.phase === 'choice' ||
-          current.phase === 'roundResult') &&
+        (current.phase === "source" ||
+          current.phase === "choice" ||
+          current.phase === "roundResult") &&
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => dispatch({ type: "pause" }),
   });
 
-  const tutorial = useMemo(() => createSpatialTransformMatchTutorialLifecycle(tutorialStore), [tutorialStore]);
+  const tutorial = useMemo(
+    () => createSpatialTransformMatchTutorialLifecycle(tutorialStore),
+    [tutorialStore],
+  );
   const qaHooks = useMemo(() => createQaForceStateHooks(dispatch), [dispatch]);
 
-  const params = state.profile !== null ? paramsFromProfile(state.profile) : null;
+  const params =
+    state.profile !== null ? paramsFromProfile(state.profile) : null;
   const sourceRevealMs = params?.sourceRevealMs ?? 1500;
   const rounds = params?.rounds ?? 5;
   const inSession =
-    state.phase === 'source' || state.phase === 'choice' || state.phase === 'roundResult';
+    state.phase === "source" ||
+    state.phase === "choice" ||
+    state.phase === "roundResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   // ---- Source reveal pacing: single tick after sourceRevealMs. Pause
   // deactivates the timer; resume restarts the reveal from scratch.
   useGameTimeout(
-    state.phase === 'source' && !state.paused,
-    () => dispatch({ type: 'source-tick' }),
+    state.phase === "source" && !state.paused,
+    () => dispatch({ type: "source-tick" }),
     sourceRevealMs,
   );
 
   // ---- Record the monotonic time when the choice phase begins.
   useEffect(() => {
-    if (state.phase === 'choice' && !state.paused) {
+    if (state.phase === "choice" && !state.paused) {
       choiceStartedAtRef.current = clock.now();
     }
   }, [state.phase, state.paused, clock]);
@@ -141,7 +159,7 @@ export default function SpatialTransformMatchScreen(
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
-      dispatch({ type: 'tutorial-open' });
+      dispatch({ type: "tutorial-open" });
     }
   }, [tutorial]);
 
@@ -150,7 +168,7 @@ export default function SpatialTransformMatchScreen(
   // `claimFinalize()` guards against double submission (once per session).
   useEffect(() => {
     if (
-      state.phase !== 'results' ||
+      state.phase !== "results" ||
       !session.claimFinalize() ||
       state.profile === null ||
       state.sessionId === null ||
@@ -163,7 +181,7 @@ export default function SpatialTransformMatchScreen(
     const activeDurationMs = session.elapsedMs();
     const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
-    const difficulty = state.difficulty ?? 'normal';
+    const difficulty = state.difficulty ?? "normal";
     const resolvedParams = paramsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
       difficulty,
@@ -185,7 +203,11 @@ export default function SpatialTransformMatchScreen(
       activeDurationMs,
       pausedDurationMs,
     });
-    const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
+    const context = {
+      gameId: GAME_ID,
+      difficulty,
+      durationMs: activeDurationMs,
+    };
     const normalized = normalizeResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
     // Phase-2 seam: rating deltas are computed but unused while the shared
@@ -193,7 +215,7 @@ export default function SpatialTransformMatchScreen(
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({
-      type: 'session-finalized',
+      type: "session-finalized",
       xp,
       normalized: normalized.value,
       activeDurationMs,
@@ -211,21 +233,24 @@ export default function SpatialTransformMatchScreen(
       completedAtMs,
       activeDurationMs,
     });
-    dispatch({ type: 'persistence-started' });
+    dispatch({ type: "persistence-started" });
     void persistSession(record, persisterProp).then((outcome) => {
       if (outcome.ok) {
-        dispatch({ type: 'persistence-succeeded' });
+        dispatch({ type: "persistence-succeeded" });
         const co = outcome.result.completionOutcome;
         if (co) {
           dispatch({
-            type: 'completion-outcome-received',
+            type: "completion-outcome-received",
             xp: co.xp,
             currency: co.currency,
             deltas: co.deltas,
           });
         }
       } else {
-        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+        dispatch({
+          type: "persistence-failed",
+          message: String(outcome.error),
+        });
       }
     });
   }, [
@@ -249,7 +274,7 @@ export default function SpatialTransformMatchScreen(
 
   const resumeSession = useCallback(() => {
     session.resume();
-    dispatch({ type: 'resume' });
+    dispatch({ type: "resume" });
   }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
@@ -260,29 +285,29 @@ export default function SpatialTransformMatchScreen(
   const handleSelectOption = useCallback(
     (index: number) => {
       const current = stateRef.current;
-      if (current.phase !== 'choice' || current.paused) {
+      if (current.phase !== "choice" || current.paused) {
         return;
       }
       const answerMs = clock.now() - choiceStartedAtRef.current;
       if (index === current.correctOptionIndex) {
-        liveAudioHaptics.playSfx('memory-tile-correct');
-        liveAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx("memory-tile-correct");
+        liveAudioHaptics.haptic("light");
       } else {
-        liveAudioHaptics.playSfx('memory-tile-wrong');
-        liveAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx("memory-tile-wrong");
+        liveAudioHaptics.haptic("warning");
       }
-      dispatch({ type: 'select-option', index, answerMs });
+      dispatch({ type: "select-option", index, answerMs });
     },
     [clock, dispatch],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
+    const level = current.difficulty ?? "normal";
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
-      type: 'start-session',
+      type: "start-session",
       seed,
       sessionId: identity.sessionId,
       startedAtMs: identity.startedAtMs,
@@ -294,21 +319,25 @@ export default function SpatialTransformMatchScreen(
   // ---- Tutorial controls.
   const openTutorial = useCallback(() => {
     tutorial.requestReplay(GAME_ID);
-    dispatch({ type: 'tutorial-open' });
+    dispatch({ type: "tutorial-open" });
   }, [tutorial, dispatch]);
 
   const completeTutorial = useCallback(() => {
     tutorial.complete(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
+    dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
 
   const skipTutorial = useCallback(() => {
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
-    dispatch({ type: 'tutorial-close' });
+    dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
 
   const view: GameHostView =
-    state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
+    state.phase === "intro"
+      ? "intro"
+      : state.phase === "results"
+        ? "results"
+        : "session";
 
   return (
     <GameHost
@@ -317,7 +346,9 @@ export default function SpatialTransformMatchScreen(
       view={view}
       paused={state.paused}
       difficulty={state.difficulty}
-      onSelectDifficulty={(level) => dispatch({ type: 'select-difficulty', level })}
+      onSelectDifficulty={(level) =>
+        dispatch({ type: "select-difficulty", level })
+      }
       onStart={handleStart}
       onHelp={openTutorial}
       onPause={pauseSession}
@@ -327,76 +358,109 @@ export default function SpatialTransformMatchScreen(
       header={
         <ThemedText
           type="subtitle"
-          testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+          testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
+        >
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
       score={String(state.stats.score)}
-      qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
+      qaPanel={
+        <QaPanel
+          onForceWin={qaHooks.forceWin}
+          onForceLose={qaHooks.forceLose}
+        />
+      }
       qaPanelPosition="above"
       tutorialOpen={state.tutorialOpen}
       tutorial={
-        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
-      }>
+        <Tutorial
+          onComplete={completeTutorial}
+          onSkip={isDevBuild() ? skipTutorial : undefined}
+        />
+      }
+    >
       {inSession ? (
         <>
           {/* Source phase: show the source pattern alone */}
-          {state.phase === 'source' ? (
+          {state.phase === "source" ? (
             <>
               <ThemedText
                 type="bodyLarge"
                 themeColor="text"
-                testID={testId(GAME_ID, 'source-status')}>
+                testID={testId(GAME_ID, "source-status")}
+              >
                 Study the pattern…
               </ThemedText>
               <PatternGrid
                 gridSize={params?.gridSize ?? 9}
                 pattern={state.sourcePattern}
-                testID={testId(GAME_ID, 'source-grid')}
+                testID={testId(GAME_ID, "source-grid")}
                 accessibilityLabel="Source pattern"
               />
             </>
           ) : null}
 
           {/* Choice phase: show source (reference) + transform label + options */}
-          {state.phase === 'choice' ? (
+          {state.phase === "choice" ? (
             <>
               <ThemedText
                 type="bodyLarge"
                 themeColor="text"
-                testID={testId(GAME_ID, 'choice-status')}>
+                testID={testId(GAME_ID, "choice-status")}
+              >
                 {state.transformLabel}
               </ThemedText>
               <PatternGrid
                 gridSize={params?.gridSize ?? 9}
                 pattern={state.sourcePattern}
-                testID={testId(GAME_ID, 'choice-source-grid')}
+                testID={testId(GAME_ID, "choice-source-grid")}
                 accessibilityLabel="Source pattern reference"
               />
-              <View style={styles.optionRow} testID={testId(GAME_ID, 'options')}>
-                {state.options.map((opt, i) => (
-                  <OptionButton
-                    key={i}
-                    index={i}
-                    gridSize={params?.gridSize ?? 9}
-                    pattern={opt}
-                    selected={false}
-                    correct={false}
-                    onPressOption={handleSelectOption}
-                  />
-                ))}
-              </View>
+              {/* Options unmount while paused — RN/Fabric Android a11y
+               * workaround (see spatial-grid-nav screen.tsx): deep option
+               * board nests inside accessibility buttons make the session
+               * PauseOverlay subtree vanish from the Android accessibility
+               * tree while paused. The opaque overlay covers them anyway. */}
+              {!state.paused && (
+                <View
+                  style={styles.optionRow}
+                  testID={testId(GAME_ID, "options")}
+                >
+                  {state.options.map((opt, i) => (
+                    <OptionButton
+                      key={i}
+                      index={i}
+                      gridSize={params?.gridSize ?? 9}
+                      pattern={opt}
+                      selected={false}
+                      correct={false}
+                      onPressOption={handleSelectOption}
+                    />
+                  ))}
+                </View>
+              )}
             </>
           ) : null}
 
           {/* Round result phase */}
-          {state.phase === 'roundResult' ? (
-            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+          {state.phase === "roundResult" ? (
+            <View
+              style={styles.section}
+              testID={testId(GAME_ID, "round-result")}
+            >
               <ThemedText
                 type="headline"
-                themeColor={state.roundOutcome === 'passed' ? 'success' : 'danger'}
-                testID={testId(GAME_ID, state.roundOutcome === 'passed' ? 'round-passed' : 'round-failed')}>
-                {state.roundOutcome === 'passed' ? 'Correct!' : 'Wrong!'}
+                themeColor={
+                  state.roundOutcome === "passed" ? "success" : "danger"
+                }
+                testID={testId(
+                  GAME_ID,
+                  state.roundOutcome === "passed"
+                    ? "round-passed"
+                    : "round-failed",
+                )}
+              >
+                {state.roundOutcome === "passed" ? "Correct!" : "Wrong!"}
               </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
                 {state.transformLabel}
@@ -415,27 +479,28 @@ export default function SpatialTransformMatchScreen(
                 ))}
               </View>
               <GameButton
-                testID={testId(GAME_ID, 'next-round')}
-                label={isLastRound ? 'See results' : 'Next round'}
-                onPress={() => dispatch({ type: 'next-round' })}
+                testID={testId(GAME_ID, "next-round")}
+                label={isLastRound ? "See results" : "Next round"}
+                onPress={() => dispatch({ type: "next-round" })}
               />
             </View>
           ) : null}
         </>
       ) : null}
 
-      {state.phase === 'results' ? (
+      {state.phase === "results" ? (
         <GameResults
           gameId={GAME_ID}
           forced={state.forced}
           persistState={state.persistState}
           lastError={state.lastError}
           onRestart={handleRestart}
-          onQuit={quitToLibrary}>
+          onQuit={quitToLibrary}
+        >
           <StatRow
             label="Score"
             value={String(state.stats.score)}
-            testID={testId(GAME_ID, 'score')}
+            testID={testId(GAME_ID, "score")}
           />
           <StatRow
             label="Accuracy"
@@ -444,22 +509,22 @@ export default function SpatialTransformMatchScreen(
                 ? state.stats.roundsPassed / state.stats.roundsPlayed
                 : 0) * 100,
             )}%`}
-            testID={testId(GAME_ID, 'accuracy')}
+            testID={testId(GAME_ID, "accuracy")}
           />
           <StatRow
             label="Rounds passed"
             value={`${state.stats.roundsPassed}/${state.stats.roundsPlayed}`}
-            testID={testId(GAME_ID, 'rounds-passed')}
+            testID={testId(GAME_ID, "rounds-passed")}
           />
           <StatRow
             label="Best streak"
             value={String(state.stats.bestStreak)}
-            testID={testId(GAME_ID, 'best-streak')}
+            testID={testId(GAME_ID, "best-streak")}
           />
           <StatRow
             label="XP"
             value={String(state.authoritativeXp ?? state.xp)}
-            testID={testId(GAME_ID, 'xp')}
+            testID={testId(GAME_ID, "xp")}
           />
         </GameResults>
       ) : null}
@@ -472,8 +537,8 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   optionRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
 });

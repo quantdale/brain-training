@@ -17,17 +17,17 @@
  *   state is announced imperatively instead, and the SR cursor is parked on
  *   Resume so TalkBack users land inside the overlay.
  */
-import { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useEffect, useRef } from "react";
+import { StyleSheet, View } from "react-native";
 
-import { createPauseOverlaySpec, testId } from '@/sdk';
-import { announce } from '@/components/a11y/announcements';
-import { requestAccessibilityFocus } from '@/components/a11y/focus';
-import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { createPauseOverlaySpec, testId } from "@/sdk";
+import { announce } from "@/components/a11y/announcements";
+import { requestAccessibilityFocus } from "@/components/a11y/focus";
+import { ThemedText } from "@/components/themed-text";
+import { Radii, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
-import { GameButton } from './game-button';
+import { GameButton } from "./game-button";
 
 export interface PauseOverlayProps {
   gameId: string;
@@ -52,16 +52,27 @@ export function PauseOverlay({ gameId, onResume, onQuit }: PauseOverlayProps) {
     <View
       style={[styles.overlay, { backgroundColor: theme.background }]}
       testID={spec.testID}
-      importantForAccessibility="auto">
-      <ThemedText type="headline" testID={testId(gameId, 'pause-title')}>
+      importantForAccessibility="auto"
+    >
+      <ThemedText type="headline" testID={testId(gameId, "pause-title")}>
         Paused
       </ThemedText>
       <ThemedText type="small" themeColor="textSecondary">
         The challenge is hidden and the timers are frozen.
       </ThemedText>
       <View style={styles.actions}>
-        <GameButton ref={resumeRef} testID={testId(gameId, 'resume')} label="Resume" onPress={onResume} />
-        <GameButton testID={testId(gameId, 'quit')} label="Quit" variant="secondary" onPress={onQuit} />
+        <GameButton
+          ref={resumeRef}
+          testID={testId(gameId, "resume")}
+          label="Resume"
+          onPress={onResume}
+        />
+        <GameButton
+          testID={testId(gameId, "quit")}
+          label="Quit"
+          variant="secondary"
+          onPress={onQuit}
+        />
       </View>
     </View>
   );
@@ -69,19 +80,19 @@ export function PauseOverlay({ gameId, onResume, onQuit }: PauseOverlayProps) {
 
 const styles = StyleSheet.create({
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     borderRadius: Radii.large,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: Spacing.four,
     gap: Spacing.three,
   },
   actions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Spacing.three,
     marginTop: Spacing.two,
   },

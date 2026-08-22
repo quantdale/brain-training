@@ -47,6 +47,9 @@ import {
 import { applyImport } from "@/data-portability";
 // Imported directly rather than via the barrel: this module pulls in native
 // filesystem modules that Node-side engine tests must not load transitively.
+// The native requires inside are LAZY (campaign 011 fix), so importing this
+// module — even at route-table startup — never touches native code until an
+// export/import/pick/share operation actually runs.
 import {
   createFileBackupTransport,
   pickBackupFile,
@@ -123,22 +126,21 @@ export default function DataManagementScreen() {
     }
   }, [refreshSavedBackups]);
 
-  const onLoadBackup = useCallback(
-    async (name: string) => {
-      setBusy(true);
-      setMessage(null);
-      try {
-        const text = await backupTransport.readBackup(name);
-        setImportText(text);
-        setMessage(`Loaded "${name}" into the import box. Preview before applying.`);
-      } catch (e) {
-        setMessage(`Load failed: ${(e as Error).message}`);
-      } finally {
-        setBusy(false);
-      }
-    },
-    [],
-  );
+  const onLoadBackup = useCallback(async (name: string) => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      const text = await backupTransport.readBackup(name);
+      setImportText(text);
+      setMessage(
+        `Loaded "${name}" into the import box. Preview before applying.`,
+      );
+    } catch (e) {
+      setMessage(`Load failed: ${(e as Error).message}`);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   const onDeleteBackup = useCallback(
     async (name: string) => {
@@ -231,7 +233,8 @@ export default function DataManagementScreen() {
       try {
         // Reuse the preview's already-validated payload (same importText) —
         // re-parsing large backups doubled the synchronous work per import.
-        const parsed = previewResult.parsed ?? parseAndValidateBackup(importText);
+        const parsed =
+          previewResult.parsed ?? parseAndValidateBackup(importText);
         const result = await applyImport(getDb(), parsed, mode);
         setMessage(
           `Import ${mode} complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger added.`,
@@ -364,12 +367,16 @@ export default function DataManagementScreen() {
       </ThemedView>
 
       {/* Saved backups (file transport — persists in the app documents folder). */}
-      <ThemedView type="surface" style={styles.card} testID="data-saved-backups">
+      <ThemedView
+        type="surface"
+        style={styles.card}
+        testID="data-saved-backups"
+      >
         <ThemedText type="subtitle">Saved Backups</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
-          Stored in the app&apos;s backups folder and kept across app restarts. Load
-          one to restore it, or delete it. Use the share sheet or a file manager
-          to keep copies outside the app.
+          Stored in the app&apos;s backups folder and kept across app restarts.
+          Load one to restore it, or delete it. Use the share sheet or a file
+          manager to keep copies outside the app.
         </ThemedText>
         {savedBackups.length === 0 ? (
           <ThemedText type="small" themeColor="textSecondary">
@@ -382,7 +389,8 @@ export default function DataManagementScreen() {
                 <ThemedText
                   type="small"
                   numberOfLines={1}
-                  style={styles.backupName}>
+                  style={styles.backupName}
+                >
                   {name}
                 </ThemedText>
                 <View style={styles.row}>
@@ -391,7 +399,8 @@ export default function DataManagementScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`Load backup ${name} into the import box`}
                     disabled={busy}
-                    onPress={() => onLoadBackup(name)}>
+                    onPress={() => onLoadBackup(name)}
+                  >
                     <ThemedView type="accentSoft" style={styles.smallPill}>
                       <ThemedText type="smallBold" themeColor="accent">
                         Load
@@ -403,7 +412,8 @@ export default function DataManagementScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`Delete saved backup ${name}`}
                     disabled={busy}
-                    onPress={() => onDeleteBackup(name)}>
+                    onPress={() => onDeleteBackup(name)}
+                  >
                     <ThemedView type="surface" style={styles.smallPill}>
                       <ThemedText type="smallBold" themeColor="danger">
                         Delete

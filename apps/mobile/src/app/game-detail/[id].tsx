@@ -103,7 +103,7 @@ export default function GameDetailScreen() {
   const currentFavorite = favoriteOverride ?? (loaded ? data.favorite : false);
 
   // Hook must be called unconditionally before early return — keep it above the game null guard.
-  // eslint-disable-next-line react-hooks/rules-of-hooks, react-hooks/preserve-manual-memoization
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const onToggleFavorite = useCallback(async () => {
     if (!game) return;
     try {
@@ -302,7 +302,9 @@ const SessionRow = memo(function SessionRow({
         testID={`game-detail-session-${s.id}`}
         accessibilityRole="button"
         accessibilityLabel={`Open result from ${formatRelativeDay(s.completedAt, nowMs)}, ${Math.round(s.normalizedResult * 100)} percent`}
-        style={[styles.row, MinTouchTarget]}
+        // Flatten: array styles inside asChild Links throw in expo-router's
+        // Radix Slot shim (dev builds) — campaign 011 device finding.
+        style={StyleSheet.flatten([styles.row, MinTouchTarget])}
       >
         <ThemedText type="small" themeColor="textSecondary">
           {formatRelativeDay(s.completedAt, nowMs)} ·{" "}

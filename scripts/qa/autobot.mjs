@@ -141,8 +141,7 @@ function loadCatalog() {
   const registryIds = parseRegistryIds();
   const scannedIds = entries.map((g) => g.id).sort();
   const drift =
-    registryIds.length > 0 &&
-    (registryIds.join(",") !== scannedIds.join(","));
+    registryIds.length > 0 && registryIds.join(",") !== scannedIds.join(",");
   const categories = {};
   for (const g of entries) {
     (categories[g.category] ||= []).push(g.id);
@@ -361,13 +360,17 @@ function parseBounds(bounds) {
 }
 // RN Android renders `testID` as the node `resource-id`. We also accept
 // `content-desc` and a literal `testID` attribute for cross-version robustness.
+// Attribute ORDER inside a node is NOT stable across uiautomator/Android
+// versions (text may be emitted before or after resource-id), so match the
+// whole opening tag and extract sibling attributes from it — never assume
+// anything comes after resource-id.
 function findTestId(xml, id) {
   const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   for (const attr of ["resource-id", "testID", "content-desc"]) {
-    const re = new RegExp(`${attr}="${escaped}"([^>]*)`);
+    const re = new RegExp(`<node[^>]*\\b${attr}="${escaped}"[^>]*>`);
     const m = xml ? xml.match(re) : null;
     if (m) {
-      const a = m[1] || "";
+      const a = m[0] || "";
       const b = a.match(/bounds="([^"]+)"/);
       const t = a.match(/text="([^"]*)"/);
       return { id, bounds: b ? parseBounds(b[1]) : null, text: t ? t[1] : "" };
@@ -481,21 +484,6 @@ function screenshot(tag) {
       opts: { encoding: "buffer", maxBuffer: 32 * 1024 * 1024 },
     });
     writeFileSync(local, buf);
-  } catch {
-    /* ignore */
-  }
-  return local;
-}
-function captureLogcat(tag) {
-  const local = join(ART.logcat, `${tag}.txt`);
-  try {
-    // Capture logcat to stdout and persist it; `-f <path>` would write on the
-    // device, not the host, so we buffer instead.
-    const out = adbRetry(["logcat", "-d"], {
-      tries: 2,
-      opts: { encoding: "utf8", maxBuffer: 32 * 1024 * 1024 },
-    });
-    writeFileSync(local, out);
   } catch {
     /* ignore */
   }
@@ -766,7 +754,7 @@ function captureFailure(id, tag, reason, extra = {}) {
 // ---------------------------------------------------------------------------
 // Scroll up to `attempts` times looking for `id` — tall game boards can push
 // the dev-only QA controls several viewport-heights down their ScrollView.
-async function findWithScroll(gameId, id, tag, attempts = 3) {
+async function findWithScroll(id, tag, attempts = 3) {
   let node = await waitFor(id, 2500, tag);
   let i = 0;
   while (!node && i < attempts) {
@@ -781,11 +769,11 @@ async function findWithScroll(gameId, id, tag, attempts = 3) {
 // force-win tap was issued (panel opened), false if the sequence was not
 // currently reachable (phase-gated or below the ScrollView fold).
 async function tapForceWinOnce(id, tag) {
-  const toggle = await findWithScroll(id, `${id}.qa-toggle`, `${tag}-fw`);
+  const toggle = await findWithScroll(`${id}.qa-toggle`, `${tag}-fw`);
   if (!toggle) return false;
   tapTestId(`${id}.qa-toggle`, toggle);
   await sleep(400);
-  const panel = await findWithScroll(id, `${id}.qa-panel`, `${tag}-fw`);
+  const panel = await findWithScroll(`${id}.qa-panel`, `${tag}-fw`);
   if (!panel) return false;
   tapTestId(`${id}.force-win`, panel);
   log("force-win pressed");
@@ -875,7 +863,11 @@ async function flowGame(id, opts = {}) {
       break;
     }
   }
-  log(skippedTutorial ? "tutorial bypassed" : "no tutorial (already completed or none)");
+  log(
+    skippedTutorial
+      ? "tutorial bypassed"
+      : "no tutorial (already completed or none)",
+  );
 
   // Start.
   if (!tapTestId(`${id}.start`, xml)) {
@@ -899,7 +891,7 @@ async function flowGame(id, opts = {}) {
   );
 
   // Optional pause/resume probe.
-  let pauseProbe = { attempted: !!opts.pause, paused: false, resumed: false };
+  const pauseProbe = { attempted: !!opts.pause, paused: false, resumed: false };
   if (opts.pause) {
     const px = await waitFor(`${id}.pause`, 6000, tag);
     if (px) {
@@ -912,7 +904,9 @@ async function flowGame(id, opts = {}) {
       );
       pauseProbe.paused = !!paused;
       log(
-        paused ? "paused + overlay shown" : "paused (overlay testID not matched)",
+        paused
+          ? "paused + overlay shown"
+          : "paused (overlay testID not matched)",
       );
       const rp = await waitFor(`${id}.resume`, 4000, tag);
       if (rp) {
@@ -993,11 +987,11 @@ async function flowGame(id, opts = {}) {
   const passed = coreOk && back.ok && next.ok;
   const reason = passed
     ? "force-win + exactly one persisted session + authoritative results + back/next navigation"
-    : !coreOk
-      ? `session count=${stats.count} (expected 1), duplicates=${stats.duplicates}`
-      : !back.ok
-        ? "back navigation left the app dead/backgrounded"
-        : `next-game screen did not load (${next.next})`;
+    : coreOk
+      ? back.ok
+        ? `next-game screen did not load (${next.next})`
+        : "back navigation left the app dead/backgrounded"
+      : `session count=${stats.count} (expected 1), duplicates=${stats.duplicates}`;
   return {
     id,
     passed,
@@ -1045,10 +1039,15 @@ async function probeInteraction(id, tag) {
     return {
       attempted: true,
       ...second,
-      reason: second.crashedAfterTap ? "app died after tap" : "tapped (late mount)",
+      reason: second.crashedAfterTap
+        ? "app died after tap"
+        : "tapped (late mount)",
     };
   }
-  return { attempted: false, reason: "no interactive item mounted at probe time" };
+  return {
+    attempted: false,
+    reason: "no interactive item mounted at probe time",
+  };
 }
 
 // BACK navigation probe: press KEYCODE_BACK (emulator-local), then require the
@@ -1099,7 +1098,6 @@ async function probeNextGame(id, tag) {
 async function flowWarmBundles() {
   beginSteps();
   const t0 = Date.now();
-  const stepMs = Number(process.env.QA_WARM_STEP_MS || 3000);
   const capMs = Number(process.env.QA_WARM_CAP_MS || 30000);
   if (!(await ensureWarmHome())) {
     return {
@@ -1279,7 +1277,7 @@ async function flowWorkout() {
       artifacts: captureAll("workout"),
       trace: traceSlice(),
     };
-  let home = await waitFor("home-workout-list", 20000, "wk-home");
+  const home = await waitFor("home-workout-list", 20000, "wk-home");
   if (!home)
     return {
       id: "daily-workout (6.8/12.7)",
@@ -1295,7 +1293,8 @@ async function flowWorkout() {
   const ids = [];
   // `home-workout-game-status-<id>` child markers (added with the Home
   // workout progress UI) must not count as separate games.
-  for (const m of home.match(/home-workout-game-(?!status-)([a-z0-9-]+)/g) || [])
+  for (const m of home.match(/home-workout-game-(?!status-)([a-z0-9-]+)/g) ||
+    [])
     ids.push(m.replace("home-workout-game-", ""));
   const uniq = [...new Set(ids)];
   if (uniq.length !== 4) {
@@ -1330,6 +1329,20 @@ async function flowWorkout() {
   // or `results-workout-complete` via useWorkoutResultAdvance. So each leg is:
   // enter game → force-win → own results → BACK to Home → open newest recent
   // session → verify/press the workout CTA.
+  //
+  // Campaign-011 device finding: since the workout templates section landed,
+  // Home's Recent-games card sits BELOW the fold, and uiautomator skips
+  // off-screen nodes entirely — the rows must be scrolled into view.
+  const scrollToRecentRow = async (tag) => {
+    for (let s = 0; s < 5; s++) {
+      const rx = readFileSyncSafe(dumpHierarchy(`${tag}-s${s}`));
+      const m = rx ? rx.match(/home-recent-game-[A-Za-z0-9_-]+/) : null;
+      if (m) return { rx, row: m[0] };
+      shell("input swipe 540 1700 540 700 300");
+      await sleep(900);
+    }
+    return null;
+  };
   for (let i = 0; i < 4; i++) {
     const gameId = order[i];
     // --- Enter game i ---
@@ -1338,7 +1351,11 @@ async function flowWorkout() {
       // Previous leg ended by pressing results-next-game, which deep-links
       // straight into this game — check before navigating anywhere.
       const cur = readFileSyncSafe(dumpHierarchy(`wk-cur-${i}`));
-      if (cur && (hasTestId(cur, `${gameId}.screen`) || hasTestId(cur, `${gameId}.intro`)))
+      if (
+        cur &&
+        (hasTestId(cur, `${gameId}.screen`) ||
+          hasTestId(cur, `${gameId}.intro`))
+      )
         entered = true;
     }
     if (!entered) {
@@ -1352,9 +1369,25 @@ async function flowWorkout() {
           `wk-home-e${i}`,
         );
         if (!hx)
-          return wkFail(t0, log, `did not reach Home before game ${i} (${gameId})`);
+          return wkFail(
+            t0,
+            log,
+            `did not reach Home before game ${i} (${gameId})`,
+          );
       }
-      if (!tapTestId(`home-workout-game-${gameId}`, hx))
+      if (!hasTestId(hx, `home-workout-game-${gameId}`)) {
+        // We may be scrolled down (recent-games hunt from the previous leg);
+        // the workout list lives at the top of Home. Scroll back up first.
+        shell("input swipe 540 700 540 1700 300");
+        await sleep(800);
+        hx = readFileSyncSafe(dumpHierarchy(`wk-enter-top-${i}`));
+        if (hx && !hasTestId(hx, `home-workout-game-${gameId}`)) {
+          shell("input swipe 540 700 540 1700 300");
+          await sleep(800);
+          hx = readFileSyncSafe(dumpHierarchy(`wk-enter-top-${i}-2`));
+        }
+      }
+      if (!hx || !tapTestId(`home-workout-game-${gameId}`, hx))
         return wkFail(t0, log, `could not enter game ${gameId}`);
     }
     await sleep(1400);
@@ -1372,24 +1405,36 @@ async function flowWorkout() {
     const reachedResults = !!own;
     log.push(`completed ${gameId} (${i + 1}/4, own-results=${reachedResults})`);
     // --- Advance the workout via the shared session result page ---
-    shell("input keyevent 4");
-    await sleep(1500);
-    const hx2 = await waitForAny(
-      ["home-workout-list", ...HOME_READY_IDS],
-      30000,
-      `wk-home-a${i}`,
-    );
+    // After results-next-game pushes game/[id] onto the stack, BACK pops one
+    // route at a time: game → /results → Home. Home may render scrolled down
+    // (previous recent-row hunt), so ANY home marker counts as arrived; the
+    // workout-list scroll-up happens lazily where the tile is needed. Never
+    // press more BACKs once a marker is seen — popping past Home's root
+    // route exits the app to the launcher.
+    let hx2 = null;
+    for (let b = 0; b < 3 && !hx2; b++) {
+      shell("input keyevent 4");
+      await sleep(1500);
+      hx2 = await waitForAny(
+        HOME_READY_IDS.concat(["home-workout-templates"]),
+        b === 2 ? 30000 : 8000,
+        `wk-home-a${i}-b${b}`,
+      );
+    }
     if (!hx2) return wkFail(t0, log, `did not return Home after ${gameId}`);
     const wantId = i < 3 ? "results-next-game" : "results-workout-complete";
     let resPage = null;
     for (let t = 0; t < 3 && !resPage; t++) {
-      const rx = readFileSyncSafe(dumpHierarchy(`wk-recent-${i}-${t}`));
-      const rowMatch = rx ? rx.match(/home-recent-game-[A-Za-z0-9_-]+/) : null;
-      if (rowMatch && tapTestId(rowMatch[0], rx)) {
-        resPage = await waitFor(wantId, 8000, `wk-res-${i}`);
+      const found = await scrollToRecentRow(`wk-recent-${i}-${t}`);
+      if (found && tapTestId(found.row, found.rx)) {
+        // The /results route is its own lazy chunk — its FIRST Metro build
+        // can take minutes on a cold cache (same class as game chunks), so
+        // this wait uses the full screen budget rather than a fixed few
+        // seconds.
+        resPage = await waitFor(wantId, SCREEN_BUDGET_MS, `wk-res-${i}`);
         if (!resPage) {
           // Not the session we expected (or advance already consumed):
-// back off and retry with the next-most-recent row on a fresh dump.
+          // back off and retry with the next-most-recent row on a fresh dump.
           shell("input keyevent 4");
           await sleep(1000);
         }
@@ -1397,8 +1442,7 @@ async function flowWorkout() {
         await sleep(1500); // recent list may still be rendering after persist
       }
     }
-    if (!resPage)
-      resPage = await waitFor(wantId, 4000, `wk-res-final-${i}`);
+    if (!resPage) resPage = await waitFor(wantId, 4000, `wk-res-final-${i}`);
     if (!resPage)
       return wkFail(
         t0,
@@ -1511,9 +1555,7 @@ function selfTest() {
   const candidates = findInteractionCandidates(fixtureXml, "g1");
   assert(
     "interaction candidates exclude qa/tutorial",
-    candidates.every(
-      (n) => !/qa-toggle|tutorial/.test(n.id),
-    ),
+    candidates.every((n) => !/qa-toggle|tutorial/.test(n.id)),
     JSON.stringify(candidates.map((n) => n.id)),
   );
   assert(
@@ -1561,9 +1603,7 @@ function selfTest() {
     assert(
       "one canary per category, all in catalog",
       Object.keys(cat.canaries).length === Object.keys(cat.categories).length &&
-        Object.values(cat.canaries).every(
-          (g) => cat.ids.includes(g),
-        ),
+        Object.values(cat.canaries).every((g) => cat.ids.includes(g)),
       JSON.stringify(cat.canaries),
     );
     assert(
@@ -1617,7 +1657,8 @@ function selectTargets(mode, onlyGame, category, canariesOnly) {
   if (mode === "wordmatch" || mode === "all")
     targets.push({ kind: "wordmatch", id: "language-word-match (3.6)" });
   if (mode === "workout" || mode === "all")
-    targets.push({ kind: "workout", id: "daily-workout (6.8/12.7)" });  if (mode === "canaries" || mode === "all") {
+    targets.push({ kind: "workout", id: "daily-workout (6.8/12.7)" });
+  if (mode === "canaries" || mode === "all") {
     for (const g of Object.values(cat.canaries)) {
       if (!targets.some((t) => t.kind === "game" && t.id === g))
         targets.push({ kind: "game", id: g });
@@ -1659,14 +1700,14 @@ async function main() {
   }
   if (listGames) {
     for (const id of cat.ids) console.log(id);
-    console.error(`# ${cat.ids.length} games derived from apps/mobile/src/games/*/game.json`);
+    console.error(
+      `# ${cat.ids.length} games derived from apps/mobile/src/games/*/game.json`,
+    );
     if (category) {
       const list = cat.categories[category] || [];
       console.error(`# Category ${category}: ${list.join(", ")}`);
     }
-    console.error(
-      `# Canaries: ${JSON.stringify(cat.canaries)}`,
-    );
+    console.error(`# Canaries: ${JSON.stringify(cat.canaries)}`);
     if (cat.registryDrift) {
       console.error(
         "# DRIFT: game.json set differs from registry.generated.ts — regenerate the registry",
@@ -1689,7 +1730,12 @@ async function main() {
     process.exit(1);
   }
 
-  const planned = selectTargets(mode, onlyGame, category, args.includes("--canaries-only"));
+  const planned = selectTargets(
+    mode,
+    onlyGame,
+    category,
+    args.includes("--canaries-only"),
+  );
 
   // Preflight: without a usable device, report BLOCKED + NOT VALIDATED per
   // planned target and exit 2. Never fake PASS.
@@ -1744,10 +1790,8 @@ async function main() {
 
   for (const t of planned) {
     if (t.kind === "game") report.results.push(await flowGame(t.id, { pause }));
-    else if (t.kind === "warm")
-      report.results.push(await flowWarmBundles());
-    else if (t.kind === "wordmatch")
-      report.results.push(await flowWordMatch());
+    else if (t.kind === "warm") report.results.push(await flowWarmBundles());
+    else if (t.kind === "wordmatch") report.results.push(await flowWordMatch());
     else if (t.kind === "workout") report.results.push(await flowWorkout());
   }
 

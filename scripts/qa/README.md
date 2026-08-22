@@ -129,6 +129,24 @@ written under `qa-artifacts/`. Re-running any mode creates a fresh timestamped
 run directory; commit the directory (or a tagged subset) as evidence for exit
 gates.
 
+## Dev-client freshness (native dependencies)
+
+The dev build loads JS from Metro, so source edits need no reinstall — but
+NATIVE modules do. If `package.json` gains a native-backed dependency after
+the installed debug APK was built, autolinking never baked it in and any
+startup path requiring it crashes (`Cannot find native module '...'`).
+Mitigations in place since campaign 011:
+
+- `src/data-portability/file-transport.ts` requires its native modules LAZILY
+  at first operation and throws a diagnostic error naming the rebuild remedy,
+  so a stale binary degrades gracefully instead of crashing app startup.
+- Operational rule: after adding ANY native dependency, rebuild + reinstall
+  the dev client before device QA:
+  `cd apps/mobile && npx expo run:android` (or `assembleDebug` + install).
+  Check freshness when journeys fail at warm-home with module-resolution
+  errors: `adb shell dumpsys package com.braintraining.app | grep lastUpdateTime`
+  vs the commit date of the last `package.json` native-dep change.
+
 ## Honest-status policy
 
 A gate is only marked `PASS` when the emulator actually reached the results

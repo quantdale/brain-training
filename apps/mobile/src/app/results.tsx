@@ -9,21 +9,26 @@
  * state and a performance-band headline over the raw percentage.
  */
 
-import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import {
+  Link,
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
+import { useCallback, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
 
-import { MinTouchTarget } from '@/components/a11y';
-import { ScreenShell } from '@/components/screen-shell';
-import { InfoRow, StateCard } from '@/components/shell';
-import { performanceBand } from '@/components/shell/format';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
-import type { AppDatabase, GameSessionRecord } from '@/db';
-import { useDbData } from '@/hooks/use-db-data';
-import { getGameDefinition } from '@/registry/registry';
-import { useWorkoutResultAdvance } from '@/workout/use-workout-result-advance';
+import { MinTouchTarget } from "@/components/a11y";
+import { ScreenShell } from "@/components/screen-shell";
+import { InfoRow, StateCard } from "@/components/shell";
+import { performanceBand } from "@/components/shell/format";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Radii, Spacing } from "@/constants/theme";
+import type { AppDatabase, GameSessionRecord } from "@/db";
+import { useDbData } from "@/hooks/use-db-data";
+import { getGameDefinition } from "@/registry/registry";
+import { useWorkoutResultAdvance } from "@/workout/use-workout-result-advance";
 
 interface ResultsData {
   session: GameSessionRecord | null;
@@ -36,9 +41,14 @@ interface ResultsData {
   }[];
 }
 
-function loadResults(db: AppDatabase, id: string | undefined): Promise<ResultsData> {
+function loadResults(
+  db: AppDatabase,
+  id: string | undefined,
+): Promise<ResultsData> {
   return (async () => {
-    const session = id ? await db.sessions.getById(id) : (await db.sessions.listRecent(1))[0] ?? null;
+    const session = id
+      ? await db.sessions.getById(id)
+      : ((await db.sessions.listRecent(1))[0] ?? null);
     const recent = await db.sessions.listRecent(20);
     // Task 9.4: Load exact rating history for selected session
     const ratingHistory = session
@@ -61,12 +71,17 @@ export default function ResultsScreen() {
     }, []),
   );
 
-  const { data, loaded } = useDbData((db) => loadResults(db, id), [id, refreshKey], EMPTY);
+  const { data, loaded } = useDbData(
+    (db) => loadResults(db, id),
+    [id, refreshKey],
+    EMPTY,
+  );
   const { session, recent, ratingHistory } = data;
 
   // Cross-feature wiring (006R hardening): advance the durable workout when this
   // session finished the current game, and surface the next game / completion.
-  const { nextGameId, completed: workoutCompleted } = useWorkoutResultAdvance(session);
+  const { nextGameId, completed: workoutCompleted } =
+    useWorkoutResultAdvance(session);
 
   const game = session ? getGameDefinition(session.gameId) : undefined;
   // Task 9.4: ratingHistory is already filtered to the selected session
@@ -78,7 +93,8 @@ export default function ResultsScreen() {
         accessibilityRole="button"
         accessibilityLabel="Back"
         style={MinTouchTarget}
-        onPress={() => router.back()}>
+        onPress={() => router.back()}
+      >
         <ThemedText type="smallBold" themeColor="accent">
           ‹ Back
         </ThemedText>
@@ -104,33 +120,55 @@ export default function ResultsScreen() {
             type="surface"
             style={styles.card}
             testID="results-summary"
-            accessibilityLiveRegion="polite">
+            accessibilityLiveRegion="polite"
+          >
             {/* Performance band headline (constitution §16): an encouraging,
                 non-clinical read of the normalized score above the number. */}
             <ThemedText
               type="subtitle"
               themeColor={performanceBand(session.normalizedResult).tone}
-              testID="results-band">
+              testID="results-band"
+            >
               {performanceBand(session.normalizedResult).label}
             </ThemedText>
-            <ThemedText type="headline" themeColor="accent" testID="results-score">
+            <ThemedText
+              type="headline"
+              themeColor="accent"
+              testID="results-score"
+            >
               {Math.round(session.normalizedResult * 100)}%
             </ThemedText>
             <ThemedText type="subtitle" testID="results-game">
               {game?.name ?? session.gameId}
             </ThemedText>
             <View style={styles.rows}>
-              <InfoRow label="Difficulty" value={String((session.difficulty as { level?: string } | null)?.level ?? '—')} />
+              <InfoRow
+                label="Difficulty"
+                value={String(
+                  (session.difficulty as { level?: string } | null)?.level ??
+                    "—",
+                )}
+              />
               <InfoRow label="XP earned" value={`+${session.xp}`} />
-              <InfoRow label="Duration" value={`${Math.round(session.durationMs / 1000)}s`} />
-              <InfoRow label="Date" value={new Date(session.completedAt).toLocaleDateString()} />
+              <InfoRow
+                label="Duration"
+                value={`${Math.round(session.durationMs / 1000)}s`}
+              />
+              <InfoRow
+                label="Date"
+                value={new Date(session.completedAt).toLocaleDateString()}
+              />
             </View>
           </ThemedView>
 
           {/* Workout progress (006R hardening): after finishing the current
               workout game, surface the next game or the completion state. */}
           {workoutCompleted ? (
-            <ThemedView type="accentSoft" style={styles.card} testID="results-workout-complete">
+            <ThemedView
+              type="accentSoft"
+              style={styles.card}
+              testID="results-workout-complete"
+            >
               <ThemedText type="subtitle" themeColor="accent">
                 Workout complete
               </ThemedText>
@@ -144,7 +182,12 @@ export default function ResultsScreen() {
                 testID="results-next-game"
                 accessibilityRole="button"
                 accessibilityLabel={`Play the next game`}
-                style={[styles.nextGame, MinTouchTarget]}>
+                // Flattened: expo-router's <Link asChild> (Radix Slot) THROWS
+                // on array styles in dev builds — this exact array crashed the
+                // /results route on device and made the durable workout
+                // journey impossible to complete (campaign 011 finding).
+                style={StyleSheet.flatten([styles.nextGame, MinTouchTarget])}
+              >
                 <ThemedText type="smallBold" themeColor="accent">
                   Next Game →
                 </ThemedText>
@@ -152,7 +195,11 @@ export default function ResultsScreen() {
             </Link>
           ) : null}
 
-          <ThemedView type="surface" style={styles.card} testID="results-rating">
+          <ThemedView
+            type="surface"
+            style={styles.card}
+            testID="results-rating"
+          >
             <ThemedText type="subtitle">Rating movement</ThemedText>
             {ratingHistory.length > 0 ? (
               <View style={styles.rows}>
@@ -160,7 +207,7 @@ export default function ResultsScreen() {
                   <InfoRow
                     key={h.domain}
                     label={h.domain}
-                    value={`${h.delta >= 0 ? '+' : ''}${h.delta} → ${h.ratingAfter}`}
+                    value={`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
                   />
                 ))}
               </View>
@@ -171,7 +218,11 @@ export default function ResultsScreen() {
             )}
           </ThemedView>
 
-          <ThemedView type="surface" style={styles.card} testID="results-recent">
+          <ThemedView
+            type="surface"
+            style={styles.card}
+            testID="results-recent"
+          >
             <ThemedText type="subtitle">Recent sessions</ThemedText>
             <View style={styles.rows}>
               {recent.slice(0, 10).map((s) => (
@@ -181,11 +232,22 @@ export default function ResultsScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`${getGameDefinition(s.gameId)?.name ?? s.gameId} result from ${new Date(s.completedAt).toLocaleDateString()}, ${Math.round(s.normalizedResult * 100)} percent`}
                     accessibilityState={{ selected: s.id === session.id }}
-                    style={[styles.row, MinTouchTarget, s.id === session.id && styles.rowActive]}>
+                    // Flatten: array styles inside asChild Links throw in
+                    // expo-router's Radix Slot shim (dev builds) — see the
+                    // results-next-game comment above.
+                    style={StyleSheet.flatten([
+                      styles.row,
+                      MinTouchTarget,
+                      s.id === session.id && styles.rowActive,
+                    ])}
+                  >
                     <ThemedText type="small" themeColor="textSecondary">
-                      {getGameDefinition(s.gameId)?.name ?? s.gameId} · {new Date(s.completedAt).toLocaleDateString()}
+                      {getGameDefinition(s.gameId)?.name ?? s.gameId} ·{" "}
+                      {new Date(s.completedAt).toLocaleDateString()}
                     </ThemedText>
-                    <ThemedText type="smallBold">{Math.round(s.normalizedResult * 100)}%</ThemedText>
+                    <ThemedText type="smallBold">
+                      {Math.round(s.normalizedResult * 100)}%
+                    </ThemedText>
                   </Pressable>
                 </Link>
               ))}
@@ -199,9 +261,9 @@ export default function ResultsScreen() {
           message="Play a game to see your results here."
           testID="results-empty"
           action={{
-            label: 'Browse games',
-            onPress: () => router.push('/games'),
-            accessibilityLabel: 'Browse the game library',
+            label: "Browse games",
+            onPress: () => router.push("/games"),
+            accessibilityLabel: "Browse the game library",
           }}
         />
       )}
@@ -219,9 +281,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     gap: Spacing.two,
   },
   // Visual-only marker for the currently shown session; screen readers get the
@@ -230,10 +292,10 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   nextGame: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     borderRadius: Radii.pill,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
-    backgroundColor: 'rgba(0, 122, 255, 0.12)',
+    backgroundColor: "rgba(0, 122, 255, 0.12)",
   },
 });

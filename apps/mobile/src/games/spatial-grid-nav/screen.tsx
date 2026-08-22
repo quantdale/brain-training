@@ -10,9 +10,9 @@
  * injection seam for deterministic tests. Pause freezes the lifecycle timer;
  * the board is covered by the opaque `PauseOverlay` while paused.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { AppState, StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
 
 import {
   SessionLifecycle,
@@ -22,33 +22,45 @@ import {
   systemClock,
   testId,
   assertDevOnly,
-} from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
-import { ThemedText } from '@/components/themed-text';
-import { DifficultySelector, SessionHeader, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+} from "@/sdk";
+import type {
+  Clock,
+  DifficultyLevel,
+  TutorialStore,
+  XpRatingHook,
+} from "@/sdk";
+import { ThemedText } from "@/components/themed-text";
+import {
+  DifficultySelector,
+  SessionHeader,
+  StatRow,
+  PauseOverlay as SharedPauseOverlay,
+} from "@/components/game-ui";
+import { Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 
-import { GameButton } from './components/button';
-import { GridBoard, CommandList, OptionCell } from './components/grid';
-import type { GridMarker } from './components/grid';
-import { PauseOverlay } from './components/pause-overlay';
-import { QaPanel } from './components/qa-panel';
-import { Tutorial } from './components/tutorial';
-import { paramsFromProfile, sessionChallengeRating } from './difficulty';
-import { gameDefinition } from './game-definition';
-import { createQaForceStateHooks, createSpatialGridNavTutorialLifecycle } from './hooks';
-import { gameReducer } from './reducer';
-import { normalizeSpatialGridNavResult } from './scoring';
+import { GameButton } from "./components/button";
+import { GridBoard, CommandList, OptionCell } from "./components/grid";
+import type { GridMarker } from "./components/grid";
+import { QaPanel } from "./components/qa-panel";
+import { Tutorial } from "./components/tutorial";
+import { paramsFromProfile, sessionChallengeRating } from "./difficulty";
+import { gameDefinition } from "./game-definition";
+import {
+  createQaForceStateHooks,
+  createSpatialGridNavTutorialLifecycle,
+} from "./hooks";
+import { gameReducer } from "./reducer";
+import { normalizeSpatialGridNavResult } from "./scoring";
 import {
   buildRawResult,
   buildSessionRecord,
   dbSessionPersister,
   persistSpatialGridNavSession,
-} from './session';
-import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialState } from './types';
-import { SCORING_VERSION } from './versions';
+} from "./session";
+import type { SessionPersistence } from "./session";
+import { GAME_ID, createInitialState } from "./types";
+import { SCORING_VERSION } from "./versions";
 
 export interface SpatialGridNavScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -84,7 +96,11 @@ export default function SpatialGridNavScreen(
   } = props;
   const theme = useTheme();
   const router = useRouter();
-  const [state, dispatch] = useReducer(gameReducer, undefined, createInitialState);
+  const [state, dispatch] = useReducer(
+    gameReducer,
+    undefined,
+    createInitialState,
+  );
 
   const lifecycleRef = useRef<SessionLifecycle | null>(null);
   const stateRef = useRef(state);
@@ -96,18 +112,23 @@ export default function SpatialGridNavScreen(
     stateRef.current = state;
   });
 
-  const tutorial = useMemo(() => createSpatialGridNavTutorialLifecycle(tutorialStore), [tutorialStore]);
+  const tutorial = useMemo(
+    () => createSpatialGridNavTutorialLifecycle(tutorialStore),
+    [tutorialStore],
+  );
   const qaHooks = useMemo(() => createQaForceStateHooks(dispatch), [dispatch]);
 
-  const params = state.profile !== null ? paramsFromProfile(state.profile) : null;
+  const params =
+    state.profile !== null ? paramsFromProfile(state.profile) : null;
   const side = params?.gridSide ?? 5;
   const rounds = params?.rounds ?? 0;
-  const inSession = state.phase === 'trialActive' || state.phase === 'trialResult';
+  const inSession =
+    state.phase === "trialActive" || state.phase === "trialResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   // Record the monotonic time when a trial becomes active (answer timing).
   useEffect(() => {
-    if (state.phase === 'trialActive' && !state.paused) {
+    if (state.phase === "trialActive" && !state.paused) {
       choiceStartedAtRef.current = clock.now();
     }
   }, [state.phase, state.paused, clock]);
@@ -115,7 +136,7 @@ export default function SpatialGridNavScreen(
   // First play: open the tutorial automatically.
   useEffect(() => {
     if (tutorial.shouldShowTutorial(GAME_ID)) {
-      dispatch({ type: 'tutorial-open' });
+      dispatch({ type: "tutorial-open" });
     }
   }, [tutorial]);
 
@@ -123,7 +144,7 @@ export default function SpatialGridNavScreen(
   // pipeline (raw → normalized → XP hook), and persist atomically.
   useEffect(() => {
     if (
-      state.phase !== 'results' ||
+      state.phase !== "results" ||
       finalizedRef.current ||
       state.profile === null ||
       state.sessionId === null ||
@@ -136,15 +157,15 @@ export default function SpatialGridNavScreen(
     const lifecycle = lifecycleRef.current;
     if (
       lifecycle !== null &&
-      lifecycle.status !== 'completed' &&
-      lifecycle.status !== 'abandoned'
+      lifecycle.status !== "completed" &&
+      lifecycle.status !== "abandoned"
     ) {
       lifecycle.complete();
     }
     const activeDurationMs = lifecycle?.elapsedMs() ?? 0;
     const pausedDurationMs = lifecycle?.pausedDurationMs() ?? 0;
     const completedAtMs = Date.now();
-    const difficulty = state.difficulty ?? 'normal';
+    const difficulty = state.difficulty ?? "normal";
     const resolvedParams = paramsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
       difficulty,
@@ -166,13 +187,17 @@ export default function SpatialGridNavScreen(
       activeDurationMs,
       pausedDurationMs,
     });
-    const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
+    const context = {
+      gameId: GAME_ID,
+      difficulty,
+      durationMs: activeDurationMs,
+    };
     const normalized = normalizeSpatialGridNavResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({
-      type: 'session-finalized',
+      type: "session-finalized",
       xp,
       normalized: normalized.value,
       activeDurationMs,
@@ -190,21 +215,24 @@ export default function SpatialGridNavScreen(
       completedAtMs,
       activeDurationMs,
     });
-    dispatch({ type: 'persistence-started' });
+    dispatch({ type: "persistence-started" });
     void persistSpatialGridNavSession(record, persisterProp).then((outcome) => {
       if (outcome.ok) {
-        dispatch({ type: 'persistence-succeeded' });
+        dispatch({ type: "persistence-succeeded" });
         const co = outcome.result.completionOutcome;
         if (co) {
           dispatch({
-            type: 'completion-outcome-received',
+            type: "completion-outcome-received",
             xp: co.xp,
             currency: co.currency,
             deltas: co.deltas,
           });
         }
       } else {
-        dispatch({ type: 'persistence-failed', message: String(outcome.error) });
+        dispatch({
+          type: "persistence-failed",
+          message: String(outcome.error),
+        });
       }
     });
   }, [
@@ -222,12 +250,12 @@ export default function SpatialGridNavScreen(
 
   // Session controls.
   const startSession = useCallback(
-    (level: DifficultyLevel, seed: string) => {
+    (_level: DifficultyLevel, seed: string) => {
       finalizedRef.current = false;
       lifecycleRef.current = new SessionLifecycle({ clock });
       lifecycleRef.current.start();
       dispatch({
-        type: 'start-session',
+        type: "start-session",
         seed,
         sessionId: newSessionId(),
         startedAtMs: Date.now(),
@@ -239,24 +267,27 @@ export default function SpatialGridNavScreen(
   const pauseSession = useCallback(() => {
     const current = stateRef.current;
     if (
-      !(current.phase === 'trialActive' || current.phase === 'trialResult') ||
+      !(current.phase === "trialActive" || current.phase === "trialResult") ||
       current.paused ||
       current.round === null
     ) {
       return;
     }
     lifecycleRef.current?.pause();
-    dispatch({ type: 'pause' });
+    dispatch({ type: "pause" });
   }, [dispatch]);
 
   const resumeSession = useCallback(() => {
     lifecycleRef.current?.resume();
-    dispatch({ type: 'resume' });
+    dispatch({ type: "resume" });
   }, [dispatch]);
 
   const quitToLibrary = useCallback(() => {
     const lifecycle = lifecycleRef.current;
-    if (lifecycle !== null && (lifecycle.status === 'active' || lifecycle.status === 'paused')) {
+    if (
+      lifecycle !== null &&
+      (lifecycle.status === "active" || lifecycle.status === "paused")
+    ) {
       lifecycle.abandon();
     }
     router.back();
@@ -265,26 +296,28 @@ export default function SpatialGridNavScreen(
   const handlePickCell = useCallback(
     (index: number) => {
       const current = stateRef.current;
-      if (current.phase !== 'trialActive' || current.paused) {
+      if (current.phase !== "trialActive" || current.paused) {
         return;
       }
       const answerMs = clock.now() - choiceStartedAtRef.current;
       if (index === current.round?.correctIndex) {
-        liveAudioHaptics.playSfx('memory-tile-correct');
-        liveAudioHaptics.haptic('light');
+        liveAudioHaptics.playSfx("memory-tile-correct");
+        liveAudioHaptics.haptic("light");
       } else {
-        liveAudioHaptics.playSfx('memory-tile-wrong');
-        liveAudioHaptics.haptic('warning');
+        liveAudioHaptics.playSfx("memory-tile-wrong");
+        liveAudioHaptics.haptic("warning");
       }
-      dispatch({ type: 'pick-cell', index, responseMs: answerMs });
+      dispatch({ type: "pick-cell", index, responseMs: answerMs });
     },
     [clock, dispatch],
   );
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
-    const seed = current.seedOverride ?? (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
+    const level = current.difficulty ?? "normal";
+    const seed =
+      current.seedOverride ??
+      (sessionSeed !== undefined ? String(sessionSeed) : randomSeed());
     startSession(level, seed);
   }, [startSession, sessionSeed]);
 
@@ -293,28 +326,28 @@ export default function SpatialGridNavScreen(
   // Tutorial controls.
   const openTutorial = useCallback(() => {
     tutorial.requestReplay(GAME_ID);
-    dispatch({ type: 'tutorial-open' });
+    dispatch({ type: "tutorial-open" });
   }, [tutorial, dispatch]);
 
   const completeTutorial = useCallback(() => {
     tutorial.complete(GAME_ID);
-    dispatch({ type: 'tutorial-close' });
+    dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
 
   const skipTutorial = useCallback(() => {
     tutorial.skipForQa(GAME_ID); // dev-only (assertDevOnly inside)
-    dispatch({ type: 'tutorial-close' });
+    dispatch({ type: "tutorial-close" });
   }, [tutorial, dispatch]);
 
   const forceTimeout = useCallback(() => {
     assertDevOnly();
-    dispatch({ type: 'qa/force-timeout' });
+    dispatch({ type: "qa/force-timeout" });
   }, [dispatch]);
 
   // Auto-pause when the app leaves the foreground (constitution §11).
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState !== 'active') {
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (nextState !== "active") {
         pauseSession();
       }
     });
@@ -331,27 +364,34 @@ export default function SpatialGridNavScreen(
       : 0;
 
   const resultMarkers = (() => {
-    if (state.phase !== 'trialResult' || state.round === null) return [];
+    if (state.phase !== "trialResult" || state.round === null) return [];
     const markers: GridMarker[] = [
-      { cell: state.round.finalCell, color: theme.success, glyph: '✓' },
+      { cell: state.round.finalCell, color: theme.success, glyph: "✓" },
     ];
     const sel = state.selectedOptionIndex;
-    if (sel !== null && sel !== state.round.correctIndex && state.round.options[sel]) {
+    if (
+      sel !== null &&
+      sel !== state.round.correctIndex &&
+      state.round.options[sel]
+    ) {
       markers.push({ cell: state.round.options[sel], color: theme.danger });
     }
     return markers;
   })();
 
   return (
-    <View style={styles.screen} testID={testId(GAME_ID, 'screen')}>
+    <View style={styles.screen} testID={testId(GAME_ID, "screen")}>
       <View
         style={styles.content}
-        importantForAccessibility={state.paused ? 'no-hide-descendants' : 'auto'}
+        importantForAccessibility={
+          state.paused ? "no-hide-descendants" : "auto"
+        }
         accessibilityElementsHidden={state.paused}
-        accessible={false}>
+        accessible={false}
+      >
         {/* ---- Intro phase ---- */}
-        {state.phase === 'intro' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'intro')}>
+        {state.phase === "intro" ? (
+          <View style={styles.section} testID={testId(GAME_ID, "intro")}>
             <ThemedText type="small" themeColor="textSecondary">
               {gameDefinition.description}
             </ThemedText>
@@ -362,13 +402,19 @@ export default function SpatialGridNavScreen(
             <DifficultySelector
               gameId={GAME_ID}
               selected={state.difficulty}
-              onSelect={(level) => dispatch({ type: 'select-difficulty', level })}
+              onSelect={(level) =>
+                dispatch({ type: "select-difficulty", level })
+              }
             />
 
             <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'start')} label="Start" onPress={handleStart} />
               <GameButton
-                testID={testId(GAME_ID, 'help')}
+                testID={testId(GAME_ID, "start")}
+                label="Start"
+                onPress={handleStart}
+              />
+              <GameButton
+                testID={testId(GAME_ID, "help")}
                 label="How to play"
                 variant="secondary"
                 onPress={openTutorial}
@@ -390,16 +436,21 @@ export default function SpatialGridNavScreen(
             <SessionHeader>
               <ThemedText
                 type="subtitle"
-                testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+                testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
+              >
                 {`Round ${state.roundIndex + 1}/${rounds}`}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'score')}>
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                testID={testId(GAME_ID, "score")}
+              >
                 {`Score ${state.stats.score}`}
               </ThemedText>
               <GameButton
                 small
                 variant="secondary"
-                testID={testId(GAME_ID, 'pause')}
+                testID={testId(GAME_ID, "pause")}
                 label="Pause"
                 onPress={pauseSession}
               />
@@ -416,21 +467,34 @@ export default function SpatialGridNavScreen(
               />
             ) : null}
 
-            {state.round !== null ? (
+            {/* Board/commands stay mounted while paused; the decorative
+             * option boards do not. Workaround for an RN/Fabric Android a11y
+             * defect (campaign 011 device finding, bisected on device): deep
+             * non-flattenable view nests inside accessibility buttons (each
+             * option board is ~26 views) make the PauseOverlay subtree vanish
+             * from the Android accessibility tree, leaving Resume/Quit
+             * unreachable for TalkBack and automation alike. While paused the
+             * overlay is opaque and game content is already hidden from a11y,
+             * so unmounting the options has no user impact; they remount on
+             * resume. */}
+            {!state.paused && state.round !== null ? (
               <>
                 <GridBoard
                   side={side}
                   start={state.round.start}
                   startDir={state.round.startDir}
                   markers={resultMarkers}
-                  testID={testId(GAME_ID, 'grid')}
+                  testID={testId(GAME_ID, "grid")}
                   accessibilityLabel="Game board"
                 />
                 <CommandList
                   commands={state.round.commands}
-                  testID={testId(GAME_ID, 'command-list')}
+                  testID={testId(GAME_ID, "command-list")}
                 />
-                <View style={styles.optionRow} testID={testId(GAME_ID, 'options-grid')}>
+                <View
+                  style={styles.optionRow}
+                  testID={testId(GAME_ID, "options-grid")}
+                >
                   {state.round.options.map((cell, i) => (
                     <OptionCell
                       key={i}
@@ -438,8 +502,11 @@ export default function SpatialGridNavScreen(
                       side={side}
                       cell={cell}
                       selected={state.selectedOptionIndex === i}
-                      correct={state.phase === 'trialResult' && i === state.round!.correctIndex}
-                      disabled={state.phase === 'trialResult'}
+                      correct={
+                        state.phase === "trialResult" &&
+                        i === state.round!.correctIndex
+                      }
+                      disabled={state.phase === "trialResult"}
                       onPress={() => handlePickCell(i)}
                     />
                   ))}
@@ -447,80 +514,101 @@ export default function SpatialGridNavScreen(
               </>
             ) : null}
 
-            {state.phase === 'trialResult' ? (
-              <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+            {state.phase === "trialResult" ? (
+              <View
+                style={styles.section}
+                testID={testId(GAME_ID, "round-result")}
+              >
                 <ThemedText
                   type="headline"
-                  themeColor={state.roundOutcome === 'correct' ? 'success' : 'danger'}
-                  testID={testId(GAME_ID, state.roundOutcome === 'correct' ? 'round-correct' : 'round-wrong')}>
-                  {state.roundOutcome === 'correct' ? 'Correct!' : 'Wrong!'}
+                  themeColor={
+                    state.roundOutcome === "correct" ? "success" : "danger"
+                  }
+                  testID={testId(
+                    GAME_ID,
+                    state.roundOutcome === "correct"
+                      ? "round-correct"
+                      : "round-wrong",
+                  )}
+                >
+                  {state.roundOutcome === "correct" ? "Correct!" : "Wrong!"}
                 </ThemedText>
                 <GameButton
-                  testID={testId(GAME_ID, 'next-round')}
-                  label={isLastRound ? 'See results' : 'Next round'}
-                  onPress={() => dispatch({ type: 'next-round' })}
+                  testID={testId(GAME_ID, "next-round")}
+                  label={isLastRound ? "See results" : "Next round"}
+                  onPress={() => dispatch({ type: "next-round" })}
                 />
               </View>
             ) : null}
           </View>
         ) : null}
 
-        {state.phase === 'results' ? (
-          <View style={styles.section} testID={testId(GAME_ID, 'results')}>
+        {state.phase === "results" ? (
+          <View style={styles.section} testID={testId(GAME_ID, "results")}>
             <ThemedText type="title">Session complete</ThemedText>
-            <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
+            <StatRow
+              label="Score"
+              value={String(state.stats.score)}
+              testID={testId(GAME_ID, "score")}
+            />
             <StatRow
               label="Accuracy"
               value={`${accuracyPct}%`}
-              testID={testId(GAME_ID, 'accuracy')}
+              testID={testId(GAME_ID, "accuracy")}
             />
             <StatRow
               label="Speed"
-              value={`${Math.round((state.stats.scoredPicks > 0 ? state.stats.totalResponseMs / state.stats.scoredPicks : 0))} ms`}
-              testID={testId(GAME_ID, 'speed')}
+              value={`${Math.round(state.stats.scoredPicks > 0 ? state.stats.totalResponseMs / state.stats.scoredPicks : 0)} ms`}
+              testID={testId(GAME_ID, "speed")}
             />
             <StatRow
               label="Long sequences"
               value={`${hardAccuracyPct}%`}
-              testID={testId(GAME_ID, 'long-sequences')}
+              testID={testId(GAME_ID, "long-sequences")}
             />
             <StatRow
               label="Best streak"
               value={String(state.stats.bestStreak)}
-              testID={testId(GAME_ID, 'best-streak')}
+              testID={testId(GAME_ID, "best-streak")}
             />
             <StatRow
               label="Mistakes"
               value={String(state.stats.mistakes)}
-              testID={testId(GAME_ID, 'mistakes')}
+              testID={testId(GAME_ID, "mistakes")}
             />
             <StatRow
               label="XP"
               value={String(state.authoritativeXp ?? state.xp)}
-              testID={testId(GAME_ID, 'xp')}
+              testID={testId(GAME_ID, "xp")}
             />
 
-            {state.persistState === 'failed' ? (
+            {state.persistState === "failed" ? (
               <ThemedText
                 type="small"
                 themeColor="danger"
-                testID={testId(GAME_ID, 'persist-error')}>
-                {`Your session could not be saved. ${state.lastError ?? ''}`}
+                testID={testId(GAME_ID, "persist-error")}
+              >
+                {`Your session could not be saved. ${state.lastError ?? ""}`}
               </ThemedText>
             ) : null}
             {state.forced ? (
               <ThemedText
                 type="caption"
                 themeColor="warning"
-                testID={testId(GAME_ID, 'forced-badge')}>
+                testID={testId(GAME_ID, "forced-badge")}
+              >
                 QA-forced session
               </ThemedText>
             ) : null}
 
             <View style={styles.buttonRow}>
-              <GameButton testID={testId(GAME_ID, 'restart')} label="Play again" onPress={handleRestart} />
               <GameButton
-                testID={testId(GAME_ID, 'quit')}
+                testID={testId(GAME_ID, "restart")}
+                label="Play again"
+                onPress={handleRestart}
+              />
+              <GameButton
+                testID={testId(GAME_ID, "quit")}
                 label="Done"
                 variant="secondary"
                 onPress={quitToLibrary}
@@ -531,11 +619,18 @@ export default function SpatialGridNavScreen(
       </View>
 
       {state.paused && inSession ? (
-        <PauseOverlay onResume={resumeSession} onQuit={quitToLibrary} />
+        <SharedPauseOverlay
+          gameId={GAME_ID}
+          onResume={resumeSession}
+          onQuit={quitToLibrary}
+        />
       ) : null}
 
       {state.tutorialOpen ? (
-        <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
+        <Tutorial
+          onComplete={completeTutorial}
+          onSkip={isDevBuild() ? skipTutorial : undefined}
+        />
       ) : null}
     </View>
   );
@@ -553,13 +648,13 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   buttonRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
   optionRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
 });
