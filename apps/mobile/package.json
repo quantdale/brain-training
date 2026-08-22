@@ -63,5 +63,14 @@
     ],
     "testTimeout": 15000
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "install": {
+      "exclude": [
+        "expo",
+        "expo-linking",
+        "expo-router"
+      ]
+    }
+  }
 }
