@@ -835,74 +835,69 @@ async function findWithScroll(id, tag, attempts = 3) {
   return node;
 }
 // How long to wait for the QA panel to appear after its toggle is pressed
-// before concluding it did not open (covers slow never-idle dumps).
+// before concluding anything (covers slow never-idle dumps).
 const PANEL_SETTLE_BUDGET_MS = 12000;
-// One best-effort attempt at toggle → panel → force-win. Returns true if the
-// force-win tap was issued (panel opened), false if the sequence was not
-// currently reachable (phase-gated or below the ScrollView fold).
-// After opening the panel we POLL for it instead of re-running the toggle:
-// games with per-second timers keep uiautomator "never idle", so a single
-// dump can take many seconds or fail outright — re-tapping the toggle in
-// between merely CLOSES the panel again (device-verified failure mode).
-async function tapForceWinOnce(id, tag) {
-  const toggle = await findWithScroll(`${id}.qa-toggle`, `${tag}-fw`);
-  if (!toggle) return false;
-  tapTestId(`${id}.qa-toggle`, toggle);
-  await sleep(400);
-  const panelEnd = Date.now() + PANEL_SETTLE_BUDGET_MS;
-  while (Date.now() < panelEnd) {
-    const p = dumpHierarchy(`${tag}-panel-${Date.now() % 100000}`);
-    const xml = readFileSyncSafe(p);
-    if (xml && !DUMP_ERROR_RE.test(xml)) {
-      if (hasTestId(xml, `${id}.qa-panel`)) {
-        tapTestId(`${id}.force-win`, xml);
-        log("force-win pressed");
-        return true;
-      }
-      // Fresh VALID dump shows the panel closed → genuinely not open.
-      return false;
-    }
-    await sleep(500);
-  }
-  return false;
-}
-// Poll the QA toggle → panel → force-win sequence until results appear.
-// Returns the matching results node (with `.id`) or null on timeout. This is
-// resilient to games whose QA panel is only mounted during certain play
-// phases: it taps force-win the moment the toggle is observable.
-// Multi-round games land on a round-advance surface after each forced win,
-// so keep pressing and step through `<id>.next-round` gates until the shared
-// results surface appears (mirrors the workout-flow fix).
+/**
+ * Drive the dev-only QA panel to force-win until the shared results surface
+ * appears (or the budget expires). Evidence-based state machine:
+ *
+ *   - Only a FRESH VALID dump may change beliefs. Invalid/never-idle dumps
+ *     (per-second timers keep uiautomator busy on this host) are ignored —
+ *     they used to cause blind re-toggles that CLOSED an open panel.
+ *   - Panel open is assumed after tapping the toggle and only revoked on
+ *     positive proof: a valid dump showing qa-toggle WITHOUT qa-panel.
+ *   - While the panel is assumed open, every fresh valid dump that still
+ *     shows the panel gets another force-win tap (multi-round games need
+ *     repeated presses across round gates).
+ *   - A visible next-round gate is stepped whenever the panel is closed.
+ *
+ * Returns the results-surface xml, or null on budget exhaustion.
+ */
 async function driveForceWin(id, tag) {
-  // Per-cycle dump latency on this host is 5-15s under never-idle UIs
-  // (ticking timers keep uiautomator from settling), so the total budget
-  // must span several toggle→panel cycles, not one.
+  // Per-cycle dump latency on this host is 5-15s under never-idle UIs, so
+  // the total budget must span several observe→act cycles, not one.
   const budgetMs = Number(process.env.QA_FORCEWIN_BUDGET_MS || 90000);
   const end = Date.now() + budgetMs;
+  let panelAssumedOpen = false;
   while (Date.now() < end) {
-    if (tapForceWinOnce(id, tag)) {
-      await sleep(800);
-      const res = await waitForAny(
-        ["results-title", `${id}.results`, "results-score"],
-        4000,
-        `${tag}-fw`,
-      );
-      if (res) return res;
+    const p = dumpHierarchy(`${tag}-fw-${Date.now() % 100000}`);
+    const xml = readFileSyncSafe(p);
+    if (!xml || DUMP_ERROR_RE.test(xml)) {
+      await sleep(600); // no evidence → no action; keep current belief
+      continue;
     }
-    // Round-gated games: while we fumbled the panel, the round may have
-    // ended onto its round-result/next-round surface. Step the gate so the
-    // next cycle opens the panel against a fresh playing phase instead of
-    // burning budget staring at a dead round.
-    const rx = readFileSyncSafe(dumpHierarchy(`${tag}-fw-round-${Date.now() % 100000}`));
-    if (rx && !DUMP_ERROR_RE.test(rx)) {
-      if (hasTestId(rx, "results-title") || hasTestId(rx, `${id}.results`) || hasTestId(rx, "results-score")) {
-        return rx;
+    if (
+      hasTestId(xml, "results-title") ||
+      hasTestId(xml, `${id}.results`) ||
+      hasTestId(xml, "results-score")
+    ) {
+      return xml;
+    }
+    if (hasTestId(xml, `${id}.qa-panel`)) {
+      tapTestId(`${id}.force-win`, xml);
+      log("force-win pressed");
+      await sleep(900);
+      continue;
+    }
+    if (hasTestId(xml, `${id}.next-round`)) {
+      tapTestId(`${id}.next-round`, xml);
+      log("next-round stepped");
+      panelAssumedOpen = false;
+      await sleep(1200);
+      continue;
+    }
+    if (hasTestId(xml, `${id}.qa-toggle`)) {
+      if (!panelAssumedOpen) {
+        tapTestId(`${id}.qa-toggle`, xml);
+        log("qa panel toggled open");
+        panelAssumedOpen = true;
+        await sleep(700);
+      } else {
+        // Positive proof the panel is NOT open (toggle visible, panel not).
+        panelAssumedOpen = false;
+        await sleep(300);
       }
-      if (hasTestId(rx, `${id}.next-round`)) {
-        tapTestId(`${id}.next-round`, rx);
-        log("next-round stepped");
-        await sleep(1200);
-      }
+      continue;
     }
     await sleep(500);
   }
@@ -947,21 +942,33 @@ async function flowGame(id, opts = {}) {
   log("screen loaded");
   screenshot(`${tag}-screen`);
 
-  // Tutorial bypass: skip button first, then done/next variants (some games
-  // gate the skip control behind an intro page or expose only "Done").
+  // Tutorial bypass: verified retry loop. One tap can miss (bounds captured
+  // while the tutorial card's internal ScrollView is still settling can land
+  // one button higher — e.g. on "Try a demo" instead of "Skip"), so re-dump
+  // and verify dismissal, up to ATTEMPTS times, before concluding anything.
+  // No blind swipes: the overlay-anchored card scrolls internally and a page
+  // swipe would just scroll demo content instead of revealing controls.
+  const TUTORIAL_BYPASS_ATTEMPTS = 4;
   let skippedTutorial = false;
-  for (const tid of [
-    `${id}.tutorial-skip`,
-    `${id}.tutorial-done`,
-    `${id}.tutorial-next`,
-  ]) {
-    if (tapTestId(tid, xml)) {
-      skippedTutorial = true;
-      await sleep(700);
-      xml = readFileSyncSafe(dumpHierarchy(`${tag}-postskip`));
+  for (let attempt = 0; attempt < TUTORIAL_BYPASS_ATTEMPTS; attempt += 1) {
+    xml = readFileSyncSafe(dumpHierarchy(`${tag}-tut-${attempt}`));
+    if (!xml || !hasTestId(xml, `${id}.tutorial`)) {
+      skippedTutorial = attempt > 0;
       break;
     }
+    const pressed = [
+      `${id}.tutorial-skip`,
+      `${id}.tutorial-done`,
+      `${id}.tutorial-next`,
+    ].some((tid) => tapTestId(tid, xml));
+    if (!pressed) break; // tutorial present but no bypass control rendered
+    skippedTutorial = true;
+    await sleep(900);
   }
+  if (!xml || hasTestId(xml || "", `${id}.tutorial`)) {
+    log("tutorial bypass: control still mounted after retries");
+  }
+  xml = readFileSyncSafe(dumpHierarchy(`${tag}-postskip`));
   log(
     skippedTutorial
       ? "tutorial bypassed"
@@ -1971,32 +1978,19 @@ async function flowWorkoutTemplate(opts) {
     }
 
     // Tutorial bypass + start (best-effort, mirrors the daily journey).
-    // Tall tutorials can clip the skip button at the viewport bottom edge
-    // (uiautomator reports it but the tap lands on the nav bar), so verify
-    // the tap landed — if the tutorial is still mounted, nudge a small
-    // upward swipe and retry once before proceeding.
-    let pre = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-pre`));
-    if (pre && hasTestId(pre, `${curGame}.tutorial-skip`)) {
-      tapTestId(`${curGame}.tutorial-skip`, pre);
-      await sleep(600);
-      const postSkip = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-postskip`));
-      if (postSkip && hasTestId(postSkip, `${curGame}.tutorial`)) {
-        swipeDown();
-        await sleep(600);
-        const rescrolled = readFileSyncSafe(
-          dumpHierarchy(`${tag}-leg${i}-preskip2`),
-        );
-        if (rescrolled) tapTestId(`${curGame}.tutorial-skip`, rescrolled);
-        await sleep(600);
-      }
-    } else {
-      // No skip button visible (maybe already dismissed): try a scrolled hunt.
-      const sk = await findWithScroll(`${curGame}.tutorial-skip`, `${tag}-leg${i}-skiphunt`, 2);
-      if (sk && sk.bounds) {
-        tap(sk);
-        trace("tap", `${curGame}.tutorial-skip`, true, "scrolled hunt");
-        await sleep(600);
-      }
+    // Verified retry loop with fresh dumps each attempt — no blind swipes
+    // (the overlay tutorial card scrolls internally; a page swipe would only
+    // scroll demo content, and stale bounds can land one button higher).
+    for (let tutAttempt = 0; tutAttempt < 4; tutAttempt += 1) {
+      const pre = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-tut${tutAttempt}`));
+      if (!pre || !hasTestId(pre, `${curGame}.tutorial`)) break;
+      const pressed = [
+        `${curGame}.tutorial-skip`,
+        `${curGame}.tutorial-done`,
+        `${curGame}.tutorial-next`,
+      ].some((tid) => tapTestId(tid, pre));
+      if (!pressed) break;
+      await sleep(900);
     }
     await sleep(400);
     const startXml = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-start`));

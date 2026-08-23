@@ -216,7 +216,8 @@ const styles = StyleSheet.create({
   },
   // Bottom-anchored overlay: guarantees tutorial controls stay reachable on
   // short viewports where stacking the card after tall intro content used to
-  // clip the Skip/Done buttons off-screen (device-verified defect).
+  // clip the Skip/Done buttons off-screen (device-verified defect). The
+  // bottom inset keeps the last button clear of the gesture/nav zone.
   tutorialOverlay: {
     position: 'absolute',
     top: 0,
@@ -224,6 +225,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     justifyContent: 'flex-end',
+    paddingBottom: Spacing.four,
   },
   content: {
     flex: 1,

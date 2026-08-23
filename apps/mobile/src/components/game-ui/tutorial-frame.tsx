@@ -6,7 +6,7 @@
  * reinvent the same surface + testID wrapper.
  */
 import type { PropsWithChildren } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedView } from '@/components/themed-view';
@@ -19,15 +19,12 @@ export interface TutorialFrameProps extends PropsWithChildren {
 export function TutorialFrame({ gameId, children }: TutorialFrameProps) {
   return (
     <ThemedView type="surface" style={styles.card} testID={testId(gameId, 'tutorial')}>
-      {/* Tall tutorials (e.g. multi-step demos) scroll internally so their
-          action buttons can never be pushed out of reach on small screens. */}
-      <ScrollView
-        style={styles.bodyScroll}
-        contentContainerStyle={styles.body}
-        showsVerticalScrollIndicator={false}
-      >
-        {children}
-      </ScrollView>
+      {/* Plain body: GameHost anchors this card as a bottom-anchored overlay
+          with generous viewport headroom, so intrinsic sizing is safe. An
+          internal ScrollView here created an auto-height measuring cycle that
+          collapsed the last button's layout (device-verified: skip rendered
+          with negative height and taps never landed). */}
+      <View style={styles.body}>{children}</View>
     </ThemedView>
   );
 }
@@ -36,10 +33,9 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Radii.large,
     padding: Spacing.four,
-    maxHeight: '90%',
-  },
-  bodyScroll: {
-    flexGrow: 0,
+    // Pure safety valve — observed tutorials stay far below this. Keeps a
+    // pathological future step from pushing controls off-screen.
+    maxHeight: '88%',
   },
   body: {
     gap: Spacing.three,
