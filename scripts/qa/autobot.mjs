@@ -827,7 +827,7 @@ async function findWithScroll(id, tag, attempts = 3) {
   let node = await waitFor(id, 2500, tag);
   let i = 0;
   while (!node && i < attempts) {
-    shell("input swipe 540 1900 540 300 350");
+    swipeDown();
     await sleep(700);
     node = await waitFor(id, 2000, tag);
     i += 1;
@@ -1407,7 +1407,7 @@ async function flowWorkout() {
       const rx = readFileSyncSafe(dumpHierarchy(`${tag}-s${s}`));
       const m = rx ? rx.match(/home-recent-game-[A-Za-z0-9_-]+/) : null;
       if (m) return { rx, row: m[0] };
-      shell("input swipe 540 1700 540 700 300");
+      swipeDown();
       await sleep(900);
     }
     return null;
@@ -1447,11 +1447,11 @@ async function flowWorkout() {
       if (!hasTestId(hx, `home-workout-game-${gameId}`)) {
         // We may be scrolled down (recent-games hunt from the previous leg);
         // the workout list lives at the top of Home. Scroll back up first.
-        shell("input swipe 540 700 540 1700 300");
+        swipeUp();
         await sleep(800);
         hx = readFileSyncSafe(dumpHierarchy(`wk-enter-top-${i}`));
         if (hx && !hasTestId(hx, `home-workout-game-${gameId}`)) {
-          shell("input swipe 540 700 540 1700 300");
+          swipeUp();
           await sleep(800);
           hx = readFileSyncSafe(dumpHierarchy(`wk-enter-top-${i}-2`));
         }
@@ -1609,6 +1609,30 @@ function swipeSafe(x1, y1, x2, y2, ms) {
     trace("swipe", `${x1},${y1}->${x2},${y2}`, false, String(e).slice(0, 80));
   }
 }
+
+// Viewport-derived swipe anchors: the legacy fixed y=1700 assumed a tall
+// device and is a no-op below the screen edge on a 720x1280 AVD. Cache
+// `wm size` once per run and scroll between 78% and 34% of the real height.
+let cachedViewport = null;
+function viewport() {
+  if (cachedViewport) return cachedViewport;
+  try {
+    const out = shell("wm size");
+    const m = /Override size:\s*(\d+)x(\d+)/.exec(out) || /Physical size:\s*(\d+)x(\d+)/.exec(out);
+    cachedViewport = m ? { w: Number(m[1]), h: Number(m[2]) } : { w: 720, h: 1280 };
+  } catch {
+    cachedViewport = { w: 720, h: 1280 };
+  }
+  return cachedViewport;
+}
+function swipeDown() {
+  const { w, h } = viewport();
+  swipeSafe(Math.round(w / 2), Math.round(h * 0.78), Math.round(w / 2), Math.round(h * 0.34), 300);
+}
+function swipeUp() {
+  const { w, h } = viewport();
+  swipeSafe(Math.round(w / 2), Math.round(h * 0.34), Math.round(w / 2), Math.round(h * 0.78), 300);
+}
 async function scrollToAny(ids, tag, maxSwipes = 5) {
   const look = async () => {
     const xml = readFileSyncSafe(dumpHierarchy(`${tag}-${Date.now() % 100000}`));
@@ -1621,12 +1645,12 @@ async function scrollToAny(ids, tag, maxSwipes = 5) {
     const hit = await look();
     if (hit) return hit;
     if (s < maxSwipes) {
-      swipeSafe(540, 1700, 540, 700, 300);
+      swipeDown();
       await sleep(900);
     }
   }
   for (let s = 0; s < 2; s++) {
-    swipeSafe(540, 700, 540, 1700, 300);
+    swipeUp();
     await sleep(900);
     const hit = await look();
     if (hit) return hit;
@@ -1641,7 +1665,7 @@ async function scrollToRecentRowQa(tag) {
     const rx = readFileSyncSafe(dumpHierarchy(`${tag}-s${s}`));
     const m = rx ? rx.match(/home-recent-game-[A-Za-z0-9_-]+/) : null;
     if (m) return { rx, row: m[0] };
-    swipeSafe(540, 1700, 540, 700, 300);
+    swipeDown();
     await sleep(900);
   }
   return null;
@@ -1718,10 +1742,10 @@ async function detectMountedGame(tag, budgetMs) {
 // template id, the start-button label, and XML snapshots for callers that
 // need follow-up assertions or taps.
 async function selectTemplateAndLength({ wantedTemplateId, length, tag }) {
-  const reached = await scrollToAny(
-    ["home-workout-template-row", "home-workout-templates"],
-    `${tag}-tpl`,
-  );
+  // Scroll until an actual template ROW is visible — stopping at the section
+  // header (home-workout-templates) leaves the chips below the fold where
+  // uiautomator cannot see them.
+  const reached = await scrollToAny(["home-workout-template-row"], `${tag}-tpl`);
   if (!reached)
     return {
       ok: false,
@@ -1874,12 +1898,43 @@ async function flowWorkoutTemplate(opts) {
     }
 
     // Tutorial bypass + start (best-effort, mirrors the daily journey).
-    const pre = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-pre`));
-    tapTestId(`${curGame}.tutorial-skip`, pre);
-    await sleep(600);
+    // Tall tutorials can clip the skip button at the viewport bottom edge
+    // (uiautomator reports it but the tap lands on the nav bar), so verify
+    // the tap landed — if the tutorial is still mounted, nudge a small
+    // upward swipe and retry once before proceeding.
+    let pre = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-pre`));
+    if (pre && hasTestId(pre, `${curGame}.tutorial-skip`)) {
+      tapTestId(`${curGame}.tutorial-skip`, pre);
+      await sleep(600);
+      const postSkip = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-postskip`));
+      if (postSkip && hasTestId(postSkip, `${curGame}.tutorial`)) {
+        swipeDown();
+        await sleep(600);
+        const rescrolled = readFileSyncSafe(
+          dumpHierarchy(`${tag}-leg${i}-preskip2`),
+        );
+        if (rescrolled) tapTestId(`${curGame}.tutorial-skip`, rescrolled);
+        await sleep(600);
+      }
+    } else {
+      // No skip button visible (maybe already dismissed): try a scrolled hunt.
+      const sk = await findWithScroll(`${curGame}.tutorial-skip`, `${tag}-leg${i}-skiphunt`, 2);
+      if (sk && sk.bounds) {
+        tap(sk);
+        trace("tap", `${curGame}.tutorial-skip`, true, "scrolled hunt");
+        await sleep(600);
+      }
+    }
+    await sleep(400);
+    const startXml = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-start`));
+    if (!startXml || !hasTestId(startXml, `${curGame}.start`)) {
+      // Start may sit below/above the fold after the tutorial closed.
+      swipeUp();
+      await sleep(700);
+    }
     tapTestId(
       `${curGame}.start`,
-      readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-start`)),
+      readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-start2`)),
     );
     await sleep(800);
 

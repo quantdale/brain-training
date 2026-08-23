@@ -311,6 +311,7 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      qaPanelPosition="above"
       description={gameDefinition.description}
       view={view}
       paused={state.paused}

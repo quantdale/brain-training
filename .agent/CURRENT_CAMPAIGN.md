@@ -38,18 +38,17 @@ remainder; workers reused for second-wave cleanup where scope remains.
 
 ## Exit criteria
 
-- [ ] GameHost migration substantially or fully completed (target 42/42) with per-batch validation
-- [ ] Workout V2 short/standard/focus/resume/history flows implemented; device automation written
-- [ ] Device journeys run by parent: migrated-game canaries/journeys + workout template journeys
-- [ ] Dead math content fixed; global content audit completed with fixes
-- [ ] UX/settings/release surfaces matured without redesign churn
-- [ ] Build configuration audited; prebuild determinism evidenced
-- [ ] Dependency audit delivered; approved changes applied and validated
-- [ ] iOS static compatibility improved; build honestly NOT VALIDATED
-- [ ] Final full gates green (repo-state, registry --check, provenance, ownership, offline,
-      tsc, lint, Jest, web export, expo-doctor, openspec)
-- [ ] If GameHost reaches 42/42: strong-preference full 42-game Android catalog run
-- [ ] Durable state synchronized; release-blocker inventory recorded
+- [x] GameHost migration fully completed (42/42) with per-batch validation (wave 1, `0669f8e`)
+- [x] Workout V2 short/standard/focus/resume/history flows implemented; device automation written (W06/W07/W08)
+- [ ] Device journeys run by parent: migrated-game canaries/journeys + workout template journeys (PENDING — parent closeout)
+- [x] Dead math content fixed (9 dead templates, permanent tripwire); global content audit completed CLEAN (37 non-math games swept)
+- [x] UX/settings/release surfaces matured without redesign churn (W11/W12; zero snapshot drift)
+- [x] Build configuration audited; prebuild determinism evidenced (W14, two-run temp-dir proof + hashes)
+- [x] Dependency audit delivered; approved changes applied and validated (W15 report → pins lifted, doctor 21/21)
+- [x] iOS static compatibility improved; build honestly NOT VALIDATED (W16; requires macOS/Xcode)
+- [x] Final full gates green (repo-state, registry --check, provenance, ownership, offline, tsc, lint, Jest test:ci 469/5781 PASS, expo-doctor 21/21); web export + OpenSpec re-run pending at closeout
+- [ ] If GameHost reaches 42/42: strong-preference full 42-game Android catalog run (PENDING — parent closeout, needs dev-client rebuild first)
+- [ ] Durable state synchronized; release-blocker inventory recorded (in progress at closeout)
 
 ## Deferred product decisions (unchanged — do not activate)
 

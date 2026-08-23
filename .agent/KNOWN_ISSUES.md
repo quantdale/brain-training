@@ -2,9 +2,12 @@
 
 ## Current blockers
 
-- **expo-doctor patch drift (Low, consciously pinned)**: expo/expo-linking/
-  expo-router stay on 57.0.14-era pins via `expo.install.exclude` so doctor reads
-  21/21; bump them together at the next dependency-audit campaign.
+- **Device QA requires dev-client rebuild (closeout gate)**: the dependency
+  wave lifted native module pins (expo/modules-core ~57.0.15) and the local
+  gitignored `android/` tree is stale pre-011 — a fresh `expo prebuild` +
+  `expo run:android` (or dev client install on AVD) is required before any
+  emulator journey. W08 harness smoke confirmed emulator-5554 currently has no
+  app installed.
 - **Ops lesson (tooling)**: two concurrent `expo start` instances served divergent
   module graphs and produced phantom "screen did not load" QA failures; always run
   exactly one Metro, kill by PID (`netstat -ano`), and never edit src while a
@@ -13,33 +16,38 @@
 
 ## Open debt (tracked, non-blocking)
 
-- **equation-builder dead easy-level templates (Low, 010 finding)**: eight
-  pre-existing 3-number templates requiring × are unreachable because easy's +/−
-  operator mix always fails their solvability filter ([10,3,4]→26, [8,7,3]→53,
-  [6,5,4]→54, [9,4,2]→38, [7,6,3]→45, [10,5,2]→52, [8,6,4]→44, [13,2,5]→31).
-  Prune or re-tier in a content campaign.
-- **GameHost migration remainder (Medium)**: 24 of 42 games still pre-GameHost
-  (mechanics work fine; boilerplate remains). Campaign 011 deliberately did not
-  mass-migrate (validation campaign); schedule batches in Campaign 012 with screen
-  suites as guardrails.
-- **Short-template workout traversal (Low)**: default daily V2 journey fully PASS on
-  device incl. relaunch persistence; template-length selection UI traversal needs a
-  new harness flow (template row → start). Deferred to Campaign 012.
+- **Heavy-UI suite load sensitivity (Low, tooling)**: app-shell / progress-detail /
+  results-workout-cta / celebration can time out under unbounded jest workers on
+  this workstation (RNTL v14 + React 19 renderRouter settle timing). All pass in
+  isolation and under `test:ci` (--maxWorkers=2); heaviest tests now carry explicit
+  30s timeouts. Consider sharding if CI hosts show the same pattern.
+- **Workout reasons persistence needs schema column (Medium, deferred)**: W06
+  persists personalization reasons additively inside metadata_json, but schema v9
+  lacks that optional column — values degrade to null on device until a parent-owned
+  migration lands (engine-side graceful degradation verified).
+- **word-chain expert pool small (Low)**: 9 expert chains vs 8 rounds (easy 6 vs 5);
+  within-session usedChainIds prevents repeats; expansion candidate only.
+- **results-workout-complete copy hardcodes "four games" (Low, cosmetic)**: label does
+  not adapt to short/extended workout lengths (W08 product-request item).
 - **SAF share-sheet/document-picker system consent sheets**: cannot be driven
   emulator-locally by autobot policy; engine round-trips are device-proven via pulled
   DB. Requires interactive/manual validation path.
 - **iOS build unverifiable on this host (NOT VALIDATED)**: Windows host has no
-  Xcode/macOS. Static audit refreshed in 009; platform seams are source-level only.
+  Xcode/macOS. Static audit refreshed in Campaign 012 W16; platform seams are
+  source-level only.
 - **Achievements sync scope (Low)**: quest/achievement evaluation scans up
-  to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); far above realistic
-  foundations-phase history, but a documented cap.
+  to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); measured flat ~78ms at cap
+  (W13 baselines); far above realistic foundations-phase history, documented cap.
 - **NativeTabs snapshot instability (tooling)**: router-tree snapshots
   contain per-render random `screenId`s; visual baselines render bare
   routes to stay deterministic (see visual-baselines test header).
 - **Provenance-allowlist / warning-class handling (Low, 006R)**:
   unchanged from 008; see `VALIDATION.md` history. The `src/games` eslint
   warnings stay warnings (0 errors enforced). Host NDK workaround codified in
-  `apps/mobile/plugins/with-android-ndk-pin.js` (011).
+  `apps/mobile/plugins/with-android-ndk-pin.js` (tested in 012).
+- **versionCode strategy (release-gate decision)**: android.versionCode unset
+  (defaults 1); production signing/minify intentionally deferred with other store
+  decisions.
 
 ## Resolved during Campaign 011
 

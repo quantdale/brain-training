@@ -1,8 +1,26 @@
 # Brain Training App
 
-Working repository name for a closed-source, offline-first brain-training application targeting Android and iOS.
+Closed-source, offline-first brain-training application for Android and iOS
+(React Native + Expo + TypeScript), built autonomously by coding agents.
 
-> **Status:** pre-implementation bootstrap. The product and autonomous-development constitutions are frozen; Phase 1 is the Autonomous Foundation.
+> **Status:** mature implementation. A 42-game catalog ships on a shared
+> GameHost architecture, with Workout V2 (short/standard/extended/domain-focus),
+> adaptive progression, achievements, quests, rewards/cosmetics, analytics,
+> and backup/data-portability. Android is the primary validated platform;
+> iOS source compatibility is maintained but builds are NOT VALIDATED on this
+> Windows host (requires macOS/Xcode).
+
+## Repository layout
+
+```text
+apps/mobile/          Expo app: src/games/<game>/ modules, shared game-host,
+                      workout engine (src/workout), db layer (SQLite), QA-tested
+plugins/              Committed Expo config plugins (backup rules, NDK pin)
+scripts/              Repo validators, registry generator, perf probes
+scripts/qa/           Autobot device-journey harness (Android emulator-local)
+docs/                 PROJECT_CONSTITUTION.md, ADRs, audits
+.agent/               Durable autonomous-development state + campaign packets
+```
 
 ## Fast start with Kimi Code CLI
 
@@ -45,4 +63,23 @@ Before doing implementation work, agents should run:
 node scripts/validate-repo-state.mjs
 ```
 
-This bootstrap repository intentionally contains no application implementation yet. Phase 1 owns framework scaffolding, emulator automation, QA instrumentation, and the first representative playable game.
+App-level gates (from `apps/mobile/`):
+
+```bash
+npm run typecheck    # tsc --noEmit
+npm run test:ci      # jest full suite (2 workers — matches CI)
+npm run lint         # expo lint
+npx expo-doctor      # 21/21 expected
+```
+
+Repo-level gates from the root:
+
+```bash
+node scripts/generate-game-registry.mjs --check
+node scripts/validate-provenance.mjs --check
+node scripts/validate-task-ownership.cjs
+node scripts/validate-offline.mjs --check
+```
+
+Device journeys (`scripts/qa/autobot.mjs`) drive an Android emulator locally
+via adb only — no host mouse/keyboard automation; see `scripts/qa/README.md`.

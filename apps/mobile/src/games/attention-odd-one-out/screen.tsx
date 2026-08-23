@@ -343,6 +343,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
+      qaPanelPosition="above"
       description={gameDefinition.description}
       view={view}
       paused={state.paused}
