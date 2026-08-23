@@ -15,7 +15,8 @@ Closed-source, offline-first brain-training application for Android and iOS
 ```text
 apps/mobile/          Expo app: src/games/<game>/ modules, shared game-host,
                       workout engine (src/workout), db layer (SQLite), QA-tested
-plugins/              Committed Expo config plugins (backup rules, NDK pin)
+plugins/               Committed Expo config plugins (backup rules, NDK pin,
+                       deterministic version/build metadata)
 scripts/              Repo validators, registry generator, perf probes
 scripts/qa/           Autobot device-journey harness (Android emulator-local)
 docs/                 PROJECT_CONSTITUTION.md, ADRs, audits

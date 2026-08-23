@@ -55,6 +55,7 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
+  unlinkSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -2597,6 +2598,43 @@ async function main() {
     console.log(JSON.stringify({ offline: true, deviceTouched: false, flows }, null, 2));
     process.exit(0);
   }
+
+  // Single-driver lock (one-exclusive-device-owner rule): a second autobot
+  // against the same device corrupts both runs' taps AND floods Metro with
+  // duplicate main-bundle requests (device-verified: queued builds grew to
+  // 7,200,000 ms and every journey starved on warm-home). The lock is a
+  // PID liveness file; a stale lock from a killed driver is auto-cleared.
+  const lockPath = join(REPO_ROOT, "scripts", "qa", ".autobot.lock");
+  if (existsSync(lockPath)) {
+    try {
+      const lockPid = Number(readFileSync(lockPath, "utf8").trim());
+      let alive = false;
+      try {
+        process.kill(lockPid, 0);
+        alive = true;
+      } catch {
+        alive = false;
+      }
+      if (alive) {
+        console.error(
+          `REFUSED: another autobot driver (pid ${lockPid}) is already running. One exclusive device owner per QA_DEVICE.`,
+        );
+        process.exit(3);
+      }
+    } catch {
+      /* unreadable lock → treat as stale */
+    }
+  }
+  writeFileSync(lockPath, String(process.pid));
+  process.on("exit", () => {
+    try {
+      if (readFileSync(lockPath, "utf8").trim() === String(process.pid)) {
+        unlinkSync(lockPath);
+      }
+    } catch {
+      /* best-effort cleanup */
+    }
+  });
 
   const planned = selectTargets(mode, {
     onlyGame,

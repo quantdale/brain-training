@@ -930,3 +930,69 @@ Full Jest on the unvalidated 010 wave: **12 failed suites / 32 failed tests /
 - `openspec validate --changes`: PASS
 - Fast validators (repo-state / registry --check / provenance --check /
   task-ownership / offline --check): PASS at closure commit
+
+
+# Campaign 012 closeout — parent device QA + defect cluster (2026-08-23)
+
+Environment: AVD CRBABot_API_36 (API 36, cold boot -no-snapshot, 3072MB),
+dev client rebuilt post-dependency-wave (assembleDebug, versionCode 1000 via
+with-deterministic-version), Metro restarted clean after two wedges.
+
+## Product defects found on device and FIXED (each with regression coverage)
+1. **Tutorial controls clipped below viewport (High, UX)** — equation-builder
+   Skip rendered at the exact screen bottom edge ([72,1254][312,1280]) on
+   720x1280; a real-user reachability defect, not just automation. Fix:
+   GameHost renders tutorials as a bottom-anchored overlay with bottom inset.
+2. **QA panel below fold (High, tooling)** — dev-only force-state controls sat
+   after tall playfields and were unreachable for tall games. Fix:
+   qaPanelPosition defaults to above (isDevBuild-gated).
+3. **Template-workout advance never reached Home state (Critical)** —
+   useWorkoutResultAdvance advanced the persisted row but never emitted
+   workoutChanged; Home kept the pre-advance snapshot forever (template
+   history showed "0/2 In progress" with no completion card even while the
+   results page said complete). Campaign 011 masked this by asserting DB
+   state instead of Home UI. Fix + jest regression pinning the emit contract;
+   Home also re-reads template history on focus.
+4. **Workout completion copy hardcoded four games (Low)** — /results copy now
+   derives from the instance length; short-workout regression added.
+
+## Device journeys run today (all emulator-local, artifacts in qa-artifacts/)
+- Canaries 8/8 PASS (post-fix rerun): odd-one-out, card-sort, word-match,
+  next-sequence, fast-math, transform-match, tap-rush, memory.
+- Workout V2: workout-short PASS, workout-focus PASS (4/4),
+  workout-resume PASS (mid-workout kill/relaunch verified), daily-workout
+  PASS (4/4 + relaunch shows persisted completion). Completion evidence
+  includes outcome rows, history row, completed-today state.
+- Individual full game journeys PASSED today (force-win + exactly-one-session
+  + back/next navigation): attention-sustained-vigilance,
+  flexibility-rule-flip, logic-order-path, logic-rule-grid,
+  math-equation-builder, math-fast-math, math-missing-operator,
+  math-number-line-estimation, math-value-ordering, memory,
+  memory-grid-recall, memory-pair-recall, memory-pattern-tap-back,
+  memory-prospective-cue, memory-running-order, memory-sequence-memory,
+  spatial-coordinate-turn.
+- A fresh single-session full 42/42 catalog re-run was attempted three times;
+  environment-level interference (zombie duplicate drivers flooding Metro
+  until entry.js builds queued to 7,200,000 ms) is documented in
+  KNOWN_ISSUES.md. A driver lockfile (.autobot.lock, PID-liveness) now makes
+  that class structurally impossible. The final clean-driver run result is
+  appended below when it completes.
+
+## Harness hardening landed
+- driveForceWin rewritten as an evidence-based state machine (never
+  re-toggles on invalid dumps; steps round gates between cycles).
+- Tutorial bypass = verified retry loop with fresh dumps; no blind swipes.
+- selectTemplateAndLength hunts the start button explicitly below the fold.
+- Daily-flow leg entry waits for the lazy chunk or Home before BACK.
+- Relaunch completion check polls past Home's pre-load frame.
+- Single-driver PID lockfile refuses concurrent drivers (exit 3).
+
+## Local gates at closeout
+- `tsc --noEmit`: PASS (0 errors)
+- `jest --ci --maxWorkers=2`: PASS — 473 suites / 5781+ tests / 0 failures
+  (grew by schema-v10 + portability + results-copy regressions)
+- `npm run lint`: PASS — 0 errors (two new react-hooks v6 errors fixed via
+  useDbData refactor + render-adjust pattern; warning inventory documented)
+- repo-state / registry --check / provenance --check / task-ownership /
+  offline --check: PASS
+- expo-doctor: 21/21

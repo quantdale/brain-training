@@ -1,56 +1,62 @@
-# Campaign 012 — Broad Convergence and Release-Candidate Preparation
+# Campaign 013 — Final Product Completion (owner-authorized)
 
-**Status:** ACTIVE (opened 2026-08-22)
-**Campaign id:** `012-broad-convergence-release-prep`
-**Predecessor:** `011-full-validation-hardening` (COMPLETED at `b8ca36f`; 42/42 device PASS,
-Jest 5750/0, TS/lint 0, doctor 21/21)
-**Mode:** day (default; owner did not select night)
+**Status:** ACTIVE (opened 2026-08-23 at Campaign 012 closure)
+**Campaign id:** `013-final-product-completion`
+**Predecessor:** `012-broad-convergence-release-prep` (COMPLETED)
+**Mode:** day
+**Authorization:** explicit owner directive — full completion + hardening
+campaign for the currently locked v1 scope. This is the user-invoked
+hardening campaign normally gated behind an owner request.
 
 ## Mission
 
-CONSOLIDATE → COMPLETE → SIMPLIFY → DEEPEN → PREPARE FOR RELEASE.
+AUDIT → COMPLETE → HARDEN → POLISH → VALIDATE → CERTIFY.
 
-1. **P1 — GameHost migration:** 18/42 migrated, 24 legacy. Migrate in similarity batches
-   (A simple timer/response, B medium multi-round, C complex board/spatial/content,
-   D special lifecycle) + consolidate the host abstraction. Target 42/42; correctness
-   beats numeric completion.
-2. **P2 — Workout V2 complete product:** short/standard/extended/focus flows, resume,
-   history, completion summary, picker UX, device harness traversal (short-template
-   traversal deferred from 011).
-3. **P3 — Content debt:** equation-builder 8 dead easy templates ([10,3,4]→26 etc.) plus
-   a global dead-content audit across the catalog.
-4. **P4 — Release polish:** Home/Games/Workout/Progress/Rewards/Profile/Results/Game
-   Detail/Data Management coherence. No uncontrolled redesign.
-5. **P5 — Performance maturation** where measured (sync scan limit 5000 investigation).
-6. **P6 — Build determinism:** permissions/backup-rules/prebuild reconstruction audit.
-7. **P7 — Dependency audit** (controlled; no broad SDK upgrade).
-8. **P8 — iOS static preparation** (source-level only; build stays NOT VALIDATED).
+Drive the repository to the strongest technically complete, production-grade,
+release-candidate state possible under `docs/PROJECT_CONSTITUTION.md`'s
+locked scope, and certify v1 of the offline-first Brain Training product.
 
-## Topology
+## Workstreams
 
-16 worker packets in `.agent/_tasks/campaign012/` with strict disjoint ownership;
-workers never branch/worktree/commit/push. Parent owns Git, shared files, generated
-registries, schema ordering, durable state, cross-worker interfaces, integration, full
-gates, and ALL emulator/device journeys (one Metro / one autobot / one device owner).
-
-Waves (day-mode ceiling ≤7 concurrent coders): W01–W07+parallel audits first, then the
-remainder; workers reused for second-wave cleanup where scope remains.
+1. **W1 — Repository-wide completion audit** (in progress): TODO/FIXME/
+   stub/dead-code/silent-catch/unsafe-cast inventory across all routes, 42
+   game modules, GameHost/SDK, persistence, engagement systems, QA infra,
+   CI, docs. Status: initial sweeps clean (one stale TODO comment in the
+   offline-boundary suite; silent catches are documented defensive patterns).
+2. **W2 — Known-debt resolution**: schema v10 workout reasons persistence
+   ✅ (+ backup round-trip); length-aware completion copy ✅; word-chain
+   expert pool 9→18 ✅; deterministic versionCode/buildNumber ✅; lint error
+   class eliminated (react-hooks v6) ✅; warning inventory reduction and
+   NativeTabs snapshot seam still open.
+3. **W3 — Persistence/migration hardening**: migration matrix tests exist
+   (fresh + every prior version + corrupt user_version + rollback); extend
+   with adversarial portability attacks as gaps are found.
+4. **W4 — Lifecycle/concurrency**: advance idempotency, double-submit
+   guards, pause/back interception already tested; continue attack-matrix
+   passes (rapid taps, backgrounding, kill/relaunch) on device.
+5. **W5 — Security/privacy**: offline boundary validator CLEAN (919 files);
+   QA hooks isDevBuild-gated with throwing defaults; permissions audited
+   (RECORD_AUDIO/SYSTEM_ALERT_WINDOW blocked at plugin source). Maintain.
+6. **W6 — UX/a11y polish**: tutorial overlay fix materially improved small-
+   viewport behavior; continue label/contrast/focus passes opportunistically.
+7. **W7 — Release engineering**: deterministic version mechanics done;
+   signing/publication stay deferred (no credentials by policy). Cold-clone
+   path = npm ci + expo prebuild + assembleDebug verified this campaign.
+8. **W8 — Documentation reconciliation**: README/MASTER_PLAN/BACKLOG/PARITY
+   refreshed to implementation reality at closure.
+9. **W9 — Final Android certification**: single-session 42/42 catalog run +
+   full journey chain per game. IN PROGRESS — see KNOWN_ISSUES.md for the
+   environment-interference history and the driver-lockfile fix that removes
+   it structurally.
 
 ## Exit criteria
 
-- [x] GameHost migration fully completed (42/42) with per-batch validation (wave 1, `0669f8e`)
-- [x] Workout V2 short/standard/focus/resume/history flows implemented; device automation written (W06/W07/W08)
-- [ ] Device journeys run by parent: migrated-game canaries/journeys + workout template journeys (PENDING — parent closeout)
-- [x] Dead math content fixed (9 dead templates, permanent tripwire); global content audit completed CLEAN (37 non-math games swept)
-- [x] UX/settings/release surfaces matured without redesign churn (W11/W12; zero snapshot drift)
-- [x] Build configuration audited; prebuild determinism evidenced (W14, two-run temp-dir proof + hashes)
-- [x] Dependency audit delivered; approved changes applied and validated (W15 report → pins lifted, doctor 21/21)
-- [x] iOS static compatibility improved; build honestly NOT VALIDATED (W16; requires macOS/Xcode)
-- [x] Final full gates green (repo-state, registry --check, provenance, ownership, offline, tsc, lint, Jest test:ci 469/5781 PASS, expo-doctor 21/21); web export + OpenSpec re-run pending at closeout
-- [ ] If GameHost reaches 42/42: strong-preference full 42-game Android catalog run (PENDING — parent closeout, needs dev-client rebuild first)
-- [ ] Durable state synchronized; release-blocker inventory recorded (in progress at closeout)
-
-## Deferred product decisions (unchanged — do not activate)
-
-Branding, account provider, Supabase production, cloud sync deployment, premium pricing,
-ads, AI provider/pricing, social, notification schedule, store listing timing.
+- [ ] Single-session 42/42 Android catalog terminal classification PASS
+      under one exclusive driver
+- [ ] Full Workout V2 certification retained (short/focus/resume/daily)
+- [ ] Warning inventory reduced to an explainable small set or explicitly
+      documented per-class
+- [ ] Documentation reconciled (README, MASTER_PLAN phases, BACKLOG, PARITY)
+- [ ] All final gates green from a clean coherent state
+- [ ] Certification report delivered (repository state, campaigns, product
+      areas, validation counts, defects fixed, remaining blockers, verdict)

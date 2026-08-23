@@ -2,33 +2,30 @@
 
 ## Current blockers
 
-- **Device QA requires dev-client rebuild (closeout gate)**: the dependency
-  wave lifted native module pins (expo/modules-core ~57.0.15) and the local
-  gitignored `android/` tree is stale pre-011 — a fresh `expo prebuild` +
-  `expo run:android` (or dev client install on AVD) is required before any
-  emulator journey. W08 harness smoke confirmed emulator-5554 currently has no
-  app installed.
+- **Single-session 42/42 catalog re-run (campaign 013 gate, IN PROGRESS)**:
+  three attempts failed on environment interference — zombie duplicate
+  autobot drivers flooded Metro with duplicate main-bundle requests (queued
+  builds reached 7,200,000 ms) before a driver PID lockfile was added; the
+  emulator's netsimd also holds a chatty Metro connection. The lockfile
+  makes the driver class structurally impossible; the clean single-driver
+  run is the remaining campaign-013 exit gate.
 - **Ops lesson (tooling)**: two concurrent `expo start` instances served divergent
   module graphs and produced phantom "screen did not load" QA failures; always run
-  exactly one Metro, kill by PID (`netstat -ano`), and never edit src while a
-  journey runs.
+  exactly one Metro, kill by PID (`netstat -ano`), never edit src while a
+  journey runs — and since 012 closeout, exactly ONE autobot driver per device
+  (enforced by `scripts/qa/.autobot.lock`).
 
 
 ## Open debt (tracked, non-blocking)
 
-- **Heavy-UI suite load sensitivity (Low, tooling)**: app-shell / progress-detail /
-  results-workout-cta / celebration can time out under unbounded jest workers on
-  this workstation (RNTL v14 + React 19 renderRouter settle timing). All pass in
-  isolation and under `test:ci` (--maxWorkers=2); heaviest tests now carry explicit
-  30s timeouts. Consider sharding if CI hosts show the same pattern.
-- **Workout reasons persistence needs schema column (Medium, deferred)**: W06
-  persists personalization reasons additively inside metadata_json, but schema v9
-  lacks that optional column — values degrade to null on device until a parent-owned
-  migration lands (engine-side graceful degradation verified).
-- **word-chain expert pool small (Low)**: 9 expert chains vs 8 rounds (easy 6 vs 5);
-  within-session usedChainIds prevents repeats; expansion candidate only.
-- **results-workout-complete copy hardcodes "four games" (Low, cosmetic)**: label does
-  not adapt to short/extended workout lengths (W08 product-request item).
+- **Lint warning inventory (~430, campaign 013 work item)**: classes are
+  import ordering/duplication, array-type style, unused vars from the
+  game-ui re-export pattern, exhaustive-deps candidates needing case-by-case
+  review. Zero errors enforced. Reduction tracked in campaign 013; nothing
+  suppressed.
+- **NativeTabs snapshot instability (tooling)**: router-tree snapshots
+  contain per-render random `screenId`s; visual baselines render bare
+  routes to stay deterministic (see visual-baselines test header).
 - **SAF share-sheet/document-picker system consent sheets**: cannot be driven
   emulator-locally by autobot policy; engine round-trips are device-proven via pulled
   DB. Requires interactive/manual validation path.
@@ -38,16 +35,9 @@
 - **Achievements sync scope (Low)**: quest/achievement evaluation scans up
   to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); measured flat ~78ms at cap
   (W13 baselines); far above realistic foundations-phase history, documented cap.
-- **NativeTabs snapshot instability (tooling)**: router-tree snapshots
-  contain per-render random `screenId`s; visual baselines render bare
-  routes to stay deterministic (see visual-baselines test header).
-- **Provenance-allowlist / warning-class handling (Low, 006R)**:
-  unchanged from 008; see `VALIDATION.md` history. The `src/games` eslint
-  warnings stay warnings (0 errors enforced). Host NDK workaround codified in
-  `apps/mobile/plugins/with-android-ndk-pin.js` (tested in 012).
-- **versionCode strategy (release-gate decision)**: android.versionCode unset
-  (defaults 1); production signing/minify intentionally deferred with other store
-  decisions.
+- **versionCode strategy**: deterministic semver-derived encoding shipped
+  (with-deterministic-version plugin, 0.1.0 → versionCode 1000). Production
+  signing/minify remain deferred store decisions.
 
 ## Resolved during Campaign 011
 

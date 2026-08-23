@@ -1,24 +1,17 @@
 # Durable Backlog
 
-This is not a micro-task list. It records durable work not currently owned by the active campaign.
+Historical phase list — superseded by implementation reality (42-game
+catalog, Workout V2, full progression/portability shipped; see
+`docs/PARITY_MATRIX.md`). Active work is owned by the campaign in
+`.agent/CURRENT_CAMPAIGN.md`; this file only records durable work outside
+any campaign.
 
-## Phase 2
+## Still-open durable items
 
-- Add the remaining representative canary games for Attention, Speed, Math, Language, Logic & Problem Solving, Flexibility, and Spatial.
-- Mature normalized scoring, domain ratings, overall score, XP/player level, currency ledger, results, game detail screens, basic analytics.
-
-## Phase 3
-
-- Today's Workout personalization and rerolls
-- quests/achievements/streak systems
-- broader Progress dashboard
-- favorites/search/filter discovery
-- content-pack/storage seams
-- first iOS compatibility build campaign
-- autonomy/platform mass-expansion gate
-
-## Phase 4+
-
-- large parallel original game catalog expansion toward parity matrix
-- user-invoked hardening campaigns as requested
-- later cloud/auth/AI/monetization/release systems only after future decisions
+- Lint warning inventory reduction to an explainable small set (campaign 013).
+- iOS build validation when a macOS/Xcode environment exists (static
+  compatibility maintained source-level today).
+- SAF share/picker consent sheets require an interactive manual QA path
+  (autobot policy forbids driving system consent UIs).
+- Deferred product decisions (see `docs/DEFERRED_DECISIONS.md`) stay untouched
+  until the owner decides.
