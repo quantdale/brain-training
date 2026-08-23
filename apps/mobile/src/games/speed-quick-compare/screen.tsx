@@ -247,12 +247,13 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({
-      type: 'resume',
-      nowMs: clock.now(),
-      remainingMs: pauseRemainingRef.current,
-    });
+    if (session.resumeIfPaused()) {
+      dispatch({
+        type: 'resume',
+        nowMs: clock.now(),
+        remainingMs: pauseRemainingRef.current,
+      });
+    }
   }, [clock, session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

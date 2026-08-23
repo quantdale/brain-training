@@ -236,8 +236,9 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({ type: 'resume' });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
+    }
   }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

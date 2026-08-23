@@ -50,6 +50,61 @@ grows and can never silently smoke-test a stale list.
 - Emits structured per-game `PASS`/`FAIL`/`NOT VALIDATED` results to
   `<run-dir>/run.json`.
 
+## Workout V2 template flows (campaign 012)
+
+Three modes traverse the Home "More workouts" picker end-to-end using the W07
+testIDs:
+
+| Mode | Template | Default length | Legs | Resume probe |
+| --- | --- | --- | --- | --- |
+| `workout-short` | auto (first rendered chip, prefers `focus-*`) or `--template` | `short` | 2 | opt-in (`--resume-probe`) |
+| `workout-focus` | auto (today's rotation head) or `--template focus-*` | `standard` | 4 | opt-in (`--resume-probe`) |
+| `workout-resume` | auto or `--template` | `short` | 2 | always |
+
+Shared flags: `--template <id>` (e.g. `focus-memory`; validated kebab-case,
+and must be `focus-*` for `workout-focus`) and `--length short\|standard\|
+extended` (validated offline before any device contact). Each journey:
+
+1. Reset + warm Home, scroll to the templates card.
+2. Tap the template chip `home-workout-template-<id>` and length chip
+   `home-workout-length-<length>`; verify the `home-workout-selected` panel,
+   the `home-workout-focus` explanation region, and the start label
+   (`Start <name> · <length>`).
+3. Tap `home-workout-template-start`, then force-win each leg and advance via
+   the shared session-result chain (BACK to Home → newest `home-recent-game-*`
+   row → `results-next-game`, same mechanism as the proven daily journey).
+4. Verify `results-workout-complete` on the final leg, then on Home:
+   the completion card (`home-workout-completion-card-outcome-<gameId>` rows),
+   the history row containing the template id
+   (`home-workout-history-<date>-<templateId>-<length>`), and — after
+   re-selecting the finished template — the `home-workout-selected-done`
+   Completed-today state.
+
+**Resume probe** (`workout-resume`): after leg 0's advance has persisted (the
+results page showing `results-next-game` IS the persistence evidence), the
+harness kills the app (`am force-stop`), relaunches, warms Home, re-selects
+the same template, and requires the durable resume surface: started-chip
+marker "N of M done", the `home-workout-selected-resume` block, and a start
+label beginning with `Resume`. It then resumes through the remaining legs to
+completion.
+
+### One-exclusive-device-owner rule
+
+Exactly **one** autobot driver may target a given device (`QA_DEVICE`) at a
+time. Two drivers fight over the same UI hierarchy and corrupt each other's
+taps, producing false failures. The orchestrator owns emulator sessions;
+parallel workers/coders must never launch journeys concurrently against the
+same AVD, and this harness itself never spawns a second driver.
+
+Prerequisites beyond the base setup: an installed dev client with the current
+W07 Home workout testIDs, and Metro running (force-win requires `__DEV__`).
+The `/results` route is its own lazy Metro chunk — first-load waits reuse the
+game screen budget (`QA_SCREEN_BUDGET_MS`), as in the daily journey.
+
+Failure artifacts follow the shared convention:
+`<run-dir>/failures/<sanitized-flow-id>.json` plus screenshot/hierarchy/
+logcat slice/DB snapshot captured at failure time.
+
 ## Failure artifacts
 
 Every failing game writes a machine-readable manifest at
@@ -92,6 +147,24 @@ node scripts/qa/autobot.mjs --mode wordmatch
 
 # Daily Workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 (gates 6.8, 12.7)
 node scripts/qa/autobot.mjs --mode workout
+
+# Workout V2 template flows (campaign 012):
+#   short template end-to-end (2 forced-win legs)
+node scripts/qa/autobot.mjs --mode workout-short
+
+#   today's rotated focus/domain template at standard length (4 legs)
+node scripts/qa/autobot.mjs --mode workout-focus
+
+#   explicit template + parameterized length (short | standard | extended)
+node scripts/qa/autobot.mjs --mode workout-short --template focus-memory --length standard
+
+#   mid-workout kill/relaunch resume probe (short by default)
+node scripts/qa/autobot.mjs --mode workout-resume
+node scripts/qa/autobot.mjs --mode workout-short --resume-probe
+
+# offline dry-run: print flow definitions without touching adb or a device
+node scripts/qa/autobot.mjs --list-flows
+node scripts/qa/autobot.mjs --mode workout-focus --template focus-memory --length extended --list-flows
 
 # category canaries only (gate 12.9)
 node scripts/qa/autobot.mjs --mode canaries

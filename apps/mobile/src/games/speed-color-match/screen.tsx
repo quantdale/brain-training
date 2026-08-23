@@ -245,13 +245,14 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({ type: 'resume' });
-    if (stateRef.current.phase === 'trial') {
-      // Re-baseline the stimulus window at the resume moment: paused time must
-      // never count against the player's response window (constitution §11).
-      // Mirrors speed-reaction-time's fresh-`goAtMs` resume path.
-      dispatch({ type: 'trial-shown', shownAtMs: clock.now() });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
+      if (stateRef.current.phase === 'trial') {
+        // Re-baseline the stimulus window at the resume moment: paused time must
+        // never count against the player's response window (constitution §11).
+        // Mirrors speed-reaction-time's fresh-`goAtMs` resume path.
+        dispatch({ type: 'trial-shown', shownAtMs: clock.now() });
+      }
     }
   }, [session, clock, dispatch]);
 

@@ -300,8 +300,9 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({ type: 'resume' });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
+    }
   }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

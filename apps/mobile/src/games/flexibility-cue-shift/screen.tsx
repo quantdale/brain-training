@@ -263,8 +263,9 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
       trialStartRef.current += clock.now() - pauseStartRef.current;
       pauseStartRef.current = null;
     }
-    session.resume();
-    dispatch({ type: 'resume' });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
+    }
   }, [session, clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {

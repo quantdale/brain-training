@@ -245,8 +245,9 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({ type: 'resume', nowMs: clock.now() });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume', nowMs: clock.now() });
+    }
   }, [clock, session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

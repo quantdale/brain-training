@@ -21,7 +21,7 @@
  *
  * XML-comment hazard: generated comments must never contain `--` (illegal
  * inside XML comments; broke a manifest merge once already). The strings
- * below are checked by scripts/validate-repo-state.mjs.
+ * below are pinned by plugins/__tests__/with-android-backup-rules.test.ts.
  *
  * minSdk note: 24 (Expo root-plugin default) < 31, so BOTH rule files are
  * required for full coverage. No AsyncStorage/RKStorage usage exists in src,

@@ -29,6 +29,11 @@
 //   node scripts/qa/autobot.mjs --mode catalog
 //   node scripts/qa/autobot.mjs --mode wordmatch
 //   node scripts/qa/autobot.mjs --mode workout
+//   node scripts/qa/autobot.mjs --mode workout-short           # Workout V2 short template
+//   node scripts/qa/autobot.mjs --mode workout-focus           # today's rotated focus template
+//   node scripts/qa/autobot.mjs --mode workout-short --length standard --template focus-memory
+//   node scripts/qa/autobot.mjs --mode workout-resume          # kill+relaunch resume probe
+//   node scripts/qa/autobot.mjs --list-flows                   # offline flow definitions (no device)
 //   node scripts/qa/autobot.mjs --mode all --pause
 //   node scripts/qa/autobot.mjs --mode canaries
 //   node scripts/qa/autobot.mjs --category "Logic & Problem Solving"  # one category
@@ -373,7 +378,16 @@ function findTestId(xml, id) {
       const a = m[0] || "";
       const b = a.match(/bounds="([^"]+)"/);
       const t = a.match(/text="([^"]*)"/);
-      return { id, bounds: b ? parseBounds(b[1]) : null, text: t ? t[1] : "" };
+      // Pressable nodes carry their accessibilityLabel as `content-desc` (the
+      // visible copy lives on child Text nodes without testIDs), so expose it
+      // separately; `text` keeps its historical visible-text-only meaning.
+      const d = a.match(/content-desc="([^"]*)"/);
+      return {
+        id,
+        bounds: b ? parseBounds(b[1]) : null,
+        text: t ? t[1] : "",
+        contentDesc: d && d[1] ? d[1] : "",
+      };
     }
   }
   return null;
@@ -408,6 +422,60 @@ function findInteractionCandidates(xml, gameId) {
     });
   }
   return out.sort((a, b) => (b.clickable ? 1 : 0) - (a.clickable ? 1 : 0));
+}
+
+// ---------------------------------------------------------------------------
+// Workout V2 template-flow selectors (PURE — exercised by --self-test)
+// ---------------------------------------------------------------------------
+// Mirror of the product's WORKOUT_LENGTHS ids (apps/mobile/src/workout/
+// templates.ts). Drift would be caught on-device by an unrenderable length
+// chip; kept literal here so the harness stays dependency-free.
+const WORKOUT_LENGTHS_QA = ["short", "standard", "extended"];
+const LEG_COUNT_BY_LENGTH = { short: 2, standard: 4, extended: 6 };
+
+// Failure-artifact filenames must survive Windows (':' and friends are
+// illegal there), e.g. flow ids like "workout-short:focus-memory".
+function sanitizeTag(s) {
+  return String(s).replace(/[^A-Za-z0-9._-]+/g, "-");
+}
+
+function normalizeWorkoutLength(v) {
+  const s = String(v || "").trim().toLowerCase();
+  return WORKOUT_LENGTHS_QA.includes(s) ? s : null;
+}
+
+// Template chip ids rendered in the picker row. The shared prefixes
+// `home-workout-template-row` / `-start` are structural, not chips — skip
+// them. (`home-workout-templates`, the section container, never matches:
+// it lacks the trailing dash.)
+function extractTemplateChipIds(xml) {
+  if (!xml) return [];
+  const out = [];
+  for (const m of xml.match(/home-workout-template-([a-z0-9-]+)/g) || []) {
+    const id = m.slice("home-workout-template-".length);
+    if (id === "row" || id === "start") continue;
+    if (!out.includes(id)) out.push(id);
+  }
+  return out;
+}
+
+// Which game screen/intro currently owns the hierarchy: match resource-ids
+// of the shape `<gameId>.screen|.intro` against the derived catalog.
+function extractMountedGameId(xml, catalogIds) {
+  if (!xml || !Array.isArray(catalogIds)) return null;
+  const known = new Set(catalogIds);
+  for (const m of xml.matchAll(/resource-id="([a-z0-9-]+)\.(?:screen|intro)"/g)) {
+    if (known.has(m[1])) return m[1];
+  }
+  return null;
+}
+
+// Durable progress copy used by both the started-chip marker
+// ("<Name> · 1 of 2 done") and the selected-panel resume caption
+// ("In progress — 1 of 2 done.").
+function parseResumeProgress(text) {
+  const m = /(\d+)\s+of\s+(\d+)\s+done/i.exec(String(text || ""));
+  return m ? { completed: Number(m[1]), total: Number(m[2]) } : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -743,7 +811,8 @@ function captureFailure(id, tag, reason, extra = {}) {
   };
   const dir = join(RUN_DIR, "failures");
   mkdirSync(dir, { recursive: true });
-  const file = join(dir, `${id}.json`);
+  // Sanitized for Windows-hostile characters (flow ids may contain ':').
+  const file = join(dir, `${sanitizeTag(id)}.json`);
   writeFileSync(file, JSON.stringify(manifest, null, 2));
   log(`failure artifacts written: ${file}`);
   return { manifest: file, ...artifacts };
@@ -1506,6 +1575,498 @@ async function flowWorkout() {
 }
 
 // ---------------------------------------------------------------------------
+// Workout V2 template flows (campaign 012 / W08)
+// ---------------------------------------------------------------------------
+// Traverses the Home "More workouts" picker end-to-end on the emulator:
+// template chip → length chip → selected-template panel → start → N forced-
+// win legs → shared session-result advance chain (identical mechanism to the
+// proven daily journey in flowWorkout) → completion card + history row +
+// Completed-state verification on Home.
+//
+// Resume probe (`workout-resume`, or --resume-probe): kills the app process
+// AFTER leg 0's advance persisted (results page showing results-next-game),
+// relaunches, and verifies the durable resume surface — started-chip marker
+// "N of M done", `home-workout-selected-resume` block, start label beginning
+// with "Resume" — then finishes the workout through the same chain.
+//
+// ONE-EXCLUSIVE-DEVICE-OWNER RULE: exactly ONE autobot driver may target a
+// given QA_DEVICE at a time. Two drivers fight over the same UI hierarchy
+// and corrupt each other's taps; the parent orchestrator owns emulator
+// sessions and parallel workers must never launch journeys concurrently.
+// ---------------------------------------------------------------------------
+
+// Scroll down (viewport swipes) until ANY of `ids` is present in a fresh
+// hierarchy dump. uiautomator omits off-screen nodes entirely, so tall pages
+// (templates card, recent sessions, history) must be walked. A corrective
+// upward pass guards against flying PAST a short target.
+// Shell input is failure-tolerant here (unlike the legacy flows): a dead
+// transport must degrade into "target not found" → structured FAIL artifacts,
+// never an unhandled harness crash.
+function swipeSafe(x1, y1, x2, y2, ms) {
+  try {
+    shell(`input swipe ${x1} ${y1} ${x2} ${y2} ${ms}`);
+  } catch (e) {
+    trace("swipe", `${x1},${y1}->${x2},${y2}`, false, String(e).slice(0, 80));
+  }
+}
+async function scrollToAny(ids, tag, maxSwipes = 5) {
+  const look = async () => {
+    const xml = readFileSyncSafe(dumpHierarchy(`${tag}-${Date.now() % 100000}`));
+    if (xml && !DUMP_ERROR_RE.test(xml)) {
+      for (const id of ids) if (hasTestId(xml, id)) return { id, xml };
+    }
+    return null;
+  };
+  for (let s = 0; s <= maxSwipes; s++) {
+    const hit = await look();
+    if (hit) return hit;
+    if (s < maxSwipes) {
+      swipeSafe(540, 1700, 540, 700, 300);
+      await sleep(900);
+    }
+  }
+  for (let s = 0; s < 2; s++) {
+    swipeSafe(540, 700, 540, 1700, 300);
+    await sleep(900);
+    const hit = await look();
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// Newest recent-session row (module-level port of the proven daily-journey
+// hunt: rows sit below the fold and uiautomator hides off-screen nodes).
+async function scrollToRecentRowQa(tag) {
+  for (let s = 0; s < 5; s++) {
+    const rx = readFileSyncSafe(dumpHierarchy(`${tag}-s${s}`));
+    const m = rx ? rx.match(/home-recent-game-[A-Za-z0-9_-]+/) : null;
+    if (m) return { rx, row: m[0] };
+    swipeSafe(540, 1700, 540, 700, 300);
+    await sleep(900);
+  }
+  return null;
+}
+
+// BACK-pop from a game/results surface to Home. Never press more BACKs once
+// a home marker is seen — popping past Home's root route exits the app.
+async function backToHomeAfterLeg(tag) {
+  for (let b = 0; b < 3; b++) {
+    try {
+      shell("input keyevent 4");
+    } catch (e) {
+      trace("keyevent.BACK", tag, false, String(e).slice(0, 80));
+    }
+    await sleep(1500);
+    const hit = await waitForAny(
+      HOME_READY_IDS.concat(["home-workout-templates"]),
+      b === 2 ? 30000 : 8000,
+      `${tag}-b${b}`,
+    );
+    if (hit) return true;
+  }
+  return false;
+}
+
+// Open the newest persisted session's shared result page and wait for the
+// workout-advance CTA (`results-next-game`) or completion marker
+// (`results-workout-complete`). Retries with progressively older dumps when
+// the tapped session was not the one just forced.
+async function openNewestSessionResult(wantId, tag) {
+  let resPage = null;
+  for (let t = 0; t < 3 && !resPage; t++) {
+    const found = await scrollToRecentRowQa(`${tag}-r${t}`);
+    if (found && tapTestId(found.row, found.rx)) {
+      // /results is its own lazy Metro chunk — first build can take minutes,
+      // so this uses the full screen budget (see flowWorkout).
+      resPage = await waitFor(wantId, SCREEN_BUDGET_MS, `${tag}-wait${t}`);
+      if (!resPage) {
+        try {
+          shell("input keyevent 4");
+        } catch (e) {
+          trace("keyevent.BACK", tag, false, String(e).slice(0, 80));
+        }
+        await sleep(1000);
+      }
+    } else {
+      await sleep(1500); // recent list may still be rendering after persist
+    }
+  }
+  if (!resPage) resPage = await waitFor(wantId, 4000, `${tag}-final`);
+  return resPage ? { xml: resPage } : null;
+}
+
+// Poll fresh dumps until any catalog game screen/intro mounts (start press
+// and results-next-game pushes are async over Metro chunk loads).
+async function detectMountedGame(tag, budgetMs) {
+  const end = Date.now() + budgetMs;
+  const catIds = loadCatalog().ids;
+  while (Date.now() < end) {
+    const xml = readFileSyncSafe(
+      dumpHierarchy(`${tag}-${Date.now() % 100000}`),
+    );
+    if (xml && !DUMP_ERROR_RE.test(xml)) {
+      const gid = extractMountedGameId(xml, catIds);
+      if (gid) return gid;
+    }
+    await sleep(750);
+  }
+  return null;
+}
+
+// Select a template (+ optional explicit id) and length in the More-workouts
+// picker, then verify the selected panel rendered. Returns the resolved
+// template id, the start-button label, and XML snapshots for callers that
+// need follow-up assertions or taps.
+async function selectTemplateAndLength({ wantedTemplateId, length, tag }) {
+  const reached = await scrollToAny(
+    ["home-workout-template-row", "home-workout-templates"],
+    `${tag}-tpl`,
+  );
+  if (!reached)
+    return {
+      ok: false,
+      reason:
+        "template picker not reachable (home-workout-templates below fold?)",
+    };
+  const chipsXml = reached.xml;
+  const chips = extractTemplateChipIds(chipsXml);
+  if (chips.length === 0)
+    return { ok: false, reason: "no template chips found in hierarchy" };
+  // Default: today's rotation head — suggestions order the rotated focus
+  // slot first (rotation.ts), preferring focus-* over the daily-mix fallback.
+  const chosen =
+    wantedTemplateId || chips.find((id) => id.startsWith("focus-")) || chips[0];
+  if (!chips.includes(chosen))
+    return {
+      ok: false,
+      reason: `template chip '${chosen}' not rendered (found: ${chips.join(", ")})`,
+    };
+  if (!tapTestId(`home-workout-template-${chosen}`, chipsXml))
+    return { ok: false, reason: `could not tap template chip ${chosen}` };
+  await sleep(600);
+  const lenNode = await scrollToAny(
+    [`home-workout-length-${length}`],
+    `${tag}-len`,
+    2,
+  );
+  if (!lenNode)
+    return {
+      ok: false,
+      reason: `length chip 'home-workout-length-${length}' not visible after selection`,
+    };
+  tapTestId(`home-workout-length-${length}`, lenNode.xml);
+  await sleep(500);
+  const panel = await scrollToAny(
+    ["home-workout-selected", "home-workout-template-start"],
+    `${tag}-panel`,
+    3,
+  );
+  if (!panel)
+    return { ok: false, reason: "selected-template panel did not render after pick" };
+  const startBtn = findTestId(panel.xml, "home-workout-template-start");
+  return {
+    ok: true,
+    templateId: chosen,
+    chipsXml,
+    panelXml: panel.xml,
+    focusPresent: hasTestId(panel.xml, "home-workout-focus"),
+    selectedPresent: hasTestId(panel.xml, "home-workout-selected"),
+    startLabel: startBtn ? startBtn.contentDesc || startBtn.text || "" : "",
+  };
+}
+
+// One Workout V2 template journey. opts:
+//   modeId       result/failure id (workout-short | workout-focus | workout-resume)
+//   templateId   explicit template or null → auto-pick (first chip, prefers focus-*)
+//   length       short | standard | extended (validated offline in main())
+//   requireFocus fail unless the resolved template is focus-* (workout-focus mode)
+//   resumeProbe  kill+relaunch mid-workout after leg 0, verify durable resume
+async function flowWorkoutTemplate(opts) {
+  beginSteps();
+  const t0 = Date.now();
+  const tag = sanitizeTag(opts.modeId);
+  const length = opts.length;
+  const totalLegs = LEG_COUNT_BY_LENGTH[length] || 4;
+  const played = [];
+  const legs = [];
+  const resumeInfo = {
+    probeRequested: !!opts.resumeProbe,
+    killed: false,
+    relaunched: false,
+    resumeBlockSeen: false,
+    progress: null,
+    resumeLabelOk: false,
+  };
+  let curGame = null;
+  let entered = false; // already standing on a game screen this iteration?
+
+  const finishFail = (reason, extra = {}) =>
+    failGame(opts.modeId, reason, t0, tag, {
+      length,
+      expectedLegs: totalLegs,
+      playedGames: played,
+      legs,
+      resume: resumeInfo,
+      ...extra,
+    });
+
+  let resetOk = true;
+  try {
+    reset();
+  } catch (e) {
+    resetOk = false;
+    log(`reset error: ${e && e.message ? e.message : e}`);
+  }
+  // Entry device ops are guarded: a missing/uninstallable app or a dying adb
+  // transport must yield structured FAIL artifacts (never a raw harness crash).
+  let warmed = false;
+  try {
+    warmed = await ensureWarmHome();
+  } catch (e) {
+    log(`warm-home error: ${e && e.message ? e.message : e}`);
+  }
+  if (!warmed)
+    return finishFail(
+      resetOk ? "app did not warm to home" : "app did not warm to home (reset also failed — app installed?)",
+    );
+
+  // --- Selection ---------------------------------------------------------
+  const sel = await selectTemplateAndLength({
+    wantedTemplateId: opts.templateId || null,
+    length,
+    tag,
+  });
+  if (!sel.ok) return finishFail(sel.reason);
+  const templateId = sel.templateId;
+  if (opts.requireFocus && !templateId.startsWith("focus-"))
+    return finishFail(
+      `workout-focus resolved to non-focus template '${templateId}'`,
+    );
+  log(`selected ${templateId} · ${length} (${totalLegs} games)`);
+  log(`start label before run: "${sel.startLabel}"`);
+  screenshot(`${tag}-selection`);
+  const startLabelFresh = /^Start\b/.test(sel.startLabel);
+  if (!sel.selectedPresent || !sel.focusPresent)
+    log(
+      `WARN panel completeness: selected=${sel.selectedPresent} focus=${sel.focusPresent}`,
+    );
+
+  // --- Legs ---------------------------------------------------------------
+  for (let i = 0; i < totalLegs; i++) {
+    if (!entered) {
+      if (i === 0) {
+        const sx = await scrollToAny(
+          ["home-workout-template-start"],
+          `${tag}-go`,
+          3,
+        );
+        if (!sx || !tapTestId("home-workout-template-start", sx.xml))
+          return finishFail("start button not tappable after selection");
+        log("start pressed");
+      }
+      curGame = await detectMountedGame(`${tag}-leg${i}`, SCREEN_BUDGET_MS);
+      if (!curGame)
+        return finishFail(
+          `leg ${i}: no game screen mounted after ${i === 0 ? "start" : "advance"}`,
+        );
+      entered = true;
+      log(`leg ${i}: entered ${curGame}`);
+    }
+
+    // Tutorial bypass + start (best-effort, mirrors the daily journey).
+    const pre = readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-pre`));
+    tapTestId(`${curGame}.tutorial-skip`, pre);
+    await sleep(600);
+    tapTestId(
+      `${curGame}.start`,
+      readFileSyncSafe(dumpHierarchy(`${tag}-leg${i}-start`)),
+    );
+    await sleep(800);
+
+    const own = await driveForceWin(curGame, `${tag}-leg${i}`);
+    legs.push({ index: i, gameId: curGame, resultsReached: !!own });
+    if (!own)
+      return finishFail(
+        `leg ${i} (${curGame}): qa force-win did not reach results`,
+      );
+    played.push(curGame);
+    log(`leg ${i} complete: ${curGame} (${played.length}/${totalLegs})`);
+
+    // --- Advance via the shared session result page ----------------------
+    const finalLeg = i === totalLegs - 1;
+    if (!(await backToHomeAfterLeg(`${tag}-home${i}`)))
+      return finishFail(`leg ${i}: did not return Home after ${curGame}`);
+    const wantId = finalLeg ? "results-workout-complete" : "results-next-game";
+    const page = await openNewestSessionResult(wantId, `${tag}-adv${i}`);
+    if (!page)
+      return finishFail(`leg ${i}: ${wantId} not reached (recent-session route)`);
+    log(`leg ${i}: ${wantId} shown`);
+
+    if (opts.resumeProbe && i === 0 && !finalLeg) {
+      // Kill AFTER the leg-0 advance persisted (the results page above IS the
+      // persistence evidence), relaunch, verify durable resume state, then
+      // re-enter via the start button; the next loop iteration detects the
+      // resumed game like any other push.
+      screenshot(`${tag}-pre-kill`);
+      resumeInfo.killed = true;
+      try {
+        adb(["shell", "am", "force-stop", PKG]);
+      } catch (e) {
+        return finishFail(
+          `resume probe: force-stop failed: ${e && e.message ? e.message : e}`,
+        );
+      }
+      await sleep(2000);
+      try {
+        launch();
+      } catch (e) {
+        return finishFail(
+          `resume probe: relaunch failed: ${e && e.message ? e.message : e}`,
+        );
+      }
+      const home = await waitForHome();
+      if (!home)
+        return finishFail("resume probe: relaunch did not reach Home");
+      resumeInfo.relaunched = true;
+      log("resume probe: relaunched, verifying durable resume state");
+      const sel2 = await selectTemplateAndLength({
+        wantedTemplateId: templateId,
+        length,
+        tag: `${tag}-resume`,
+      });
+      if (!sel2.ok) return finishFail(`resume probe: ${sel2.reason}`);
+      resumeInfo.resumeBlockSeen = hasTestId(
+        sel2.panelXml,
+        "home-workout-selected-resume",
+      );
+      const chipNode = findTestId(
+        sel2.chipsXml || sel2.panelXml,
+        `home-workout-template-${templateId}`,
+      );
+      // Chip a11y label first ("<Name> · 1 of 2 done"), then any progress
+      // copy in the tree (the resume caption lives on a child Text node
+      // without its own testID).
+      resumeInfo.progress =
+        parseResumeProgress(
+          chipNode && (chipNode.contentDesc || chipNode.text),
+        ) || parseResumeProgress(sel2.panelXml);
+      resumeInfo.startLabel = sel2.startLabel || "";
+      resumeInfo.resumeLabelOk = /^Resume\b/.test(resumeInfo.startLabel);
+      screenshot(`${tag}-resume-panel`);
+      if (!resumeInfo.resumeBlockSeen)
+        return finishFail(
+          "resume probe: home-workout-selected-resume not shown after relaunch",
+        );
+      if (
+        !resumeInfo.progress ||
+        resumeInfo.progress.completed < 1 ||
+        resumeInfo.progress.completed >= resumeInfo.progress.total ||
+        resumeInfo.progress.total !== totalLegs
+      )
+        return finishFail(
+          `resume probe: implausible progress ${JSON.stringify(resumeInfo.progress)} (expected 1 of ${totalLegs})`,
+        );
+      if (!resumeInfo.resumeLabelOk)
+        return finishFail(
+          `resume probe: start label "${resumeInfo.startLabel}" does not begin with "Resume"`,
+        );
+      if (!tapTestId("home-workout-template-start", sel2.panelXml))
+        return finishFail("resume probe: could not tap start to resume");
+      log(
+        `resume probe OK: ${resumeInfo.progress.completed} of ${resumeInfo.progress.total} done, resuming`,
+      );
+      entered = false;
+      continue;
+    }
+
+    if (!finalLeg) {
+      tapTestId("results-next-game", page.xml);
+      await sleep(1400);
+      entered = false;
+    }
+  }
+
+  // --- Completion evidence -------------------------------------------------
+  if (!(await backToHomeAfterLeg(`${tag}-final`)))
+    return finishFail("did not return Home after final leg");
+  await sleep(1500); // history/completion cards refresh on focus + events
+
+  const cardHit = await scrollToAny(
+    ["home-workout-completion-card"],
+    `${tag}-card`,
+    4,
+  );
+  const outcomeRows = [];
+  if (cardHit) {
+    for (const gid of played)
+      if (
+        hasTestId(cardHit.xml, `home-workout-completion-card-outcome-${gid}`)
+      )
+        outcomeRows.push(gid);
+    screenshot(`${tag}-completion-card`);
+  }
+  const histHit = await scrollToAny(["home-workout-history"], `${tag}-hist`, 4);
+  let historyRow = null;
+  if (histHit) {
+    const rows = histHit.xml.match(/home-workout-history-[A-Za-z0-9-]+/g) || [];
+    historyRow = rows.find((r) => r.includes(templateId)) || null;
+    if (historyRow) screenshot(`${tag}-history`);
+  }
+  // Re-select the finished template: the panel must surface Completed-today.
+  const doneSel = await selectTemplateAndLength({
+    wantedTemplateId: templateId,
+    length,
+    tag: `${tag}-done`,
+  });
+  const completedState =
+    !!doneSel.ok && hasTestId(doneSel.panelXml, "home-workout-selected-done");
+  if (doneSel.ok) screenshot(`${tag}-done-panel`);
+
+  log(
+    `completion evidence: outcomes=${outcomeRows.length}/${played.length} history=${historyRow ? "yes" : "NO"} completed-state=${completedState}`,
+  );
+
+  const passed =
+    legs.length === totalLegs &&
+    played.length === totalLegs &&
+    outcomeRows.length > 0 &&
+    !!historyRow &&
+    completedState &&
+    (!opts.resumeProbe ||
+      (resumeInfo.relaunched &&
+        resumeInfo.resumeBlockSeen &&
+        resumeInfo.resumeLabelOk &&
+        !!resumeInfo.progress));
+  return {
+    id: opts.modeId,
+    passed,
+    status: passed ? "PASS" : "FAIL",
+    reason: passed
+      ? `${templateId} · ${length}: ${totalLegs}/${totalLegs} legs forced + advance chain${opts.resumeProbe ? " + mid-workout kill/relaunch resume verified" : ""}`
+      : "see details/steps",
+    details: {
+      templateId,
+      length,
+      expectedLegs: totalLegs,
+      legs,
+      playedGames: played,
+      startLabelFresh,
+      completionCard: {
+        seen: !!cardHit,
+        outcomeRowsFound: outcomeRows,
+      },
+      historyRow,
+      completedStateOnReselect: completedState,
+      resume: resumeInfo,
+    },
+    steps: stepsOut(),
+    ms: traceMs(t0),
+    artifacts: captureAll(tag),
+    trace: traceSlice(),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Reporting
 // ---------------------------------------------------------------------------
 function summaryLine(r) {
@@ -1575,6 +2136,80 @@ function selfTest() {
     findInteractionCandidates(xml, "g1").length === 0,
   );
 
+  // Workout V2 template-flow helpers (campaign 012 / W08).
+  assert(
+    "sanitizeTag strips windows-hostile chars",
+    sanitizeTag("workout-short:focus-x y") === "workout-short-focus-x-y",
+    sanitizeTag("workout-short:focus-x y"),
+  );
+  assert(
+    "normalizeWorkoutLength accepts valid (case-insensitive)",
+    normalizeWorkoutLength(" SHORT ") === "short",
+  );
+  assert(
+    "normalizeWorkoutLength rejects unknown",
+    normalizeWorkoutLength("gigantic") === null,
+  );
+  assert(
+    "leg counts match product length specs",
+    LEG_COUNT_BY_LENGTH.short === 2 &&
+      LEG_COUNT_BY_LENGTH.standard === 4 &&
+      LEG_COUNT_BY_LENGTH.extended === 6,
+  );
+  const chipXml = [
+    '<node resource-id="home-workout-templates"/>',
+    '<node resource-id="home-workout-template-row"/>',
+    '<node resource-id="home-workout-template-focus-memory"/>',
+    '<node resource-id="home-workout-template-daily-mix"/>',
+    '<node resource-id="home-workout-template-start"/>',
+  ].join("");
+  assert(
+    "template chips extracted minus row/start/container",
+    JSON.stringify(extractTemplateChipIds(chipXml)) ===
+      JSON.stringify(["focus-memory", "daily-mix"]),
+    JSON.stringify(extractTemplateChipIds(chipXml)),
+  );
+  assert(
+    "template chips empty for unrelated xml",
+    extractTemplateChipIds(xml).length === 0,
+  );
+  assert(
+    "mounted game detected from catalog",
+    extractMountedGameId('<node resource-id="memory.screen"/>', [
+      "memory",
+    ]) === "memory",
+  );
+  assert(
+    "mounted game intro variant detected",
+    extractMountedGameId('<node resource-id="memory.intro"/>', [
+      "memory",
+    ]) === "memory",
+  );
+  assert(
+    "mounted game ignores non-catalog ids",
+    extractMountedGameId('<node resource-id="ghost.screen"/>', [
+      "memory",
+    ]) === null,
+  );
+  assert(
+    "resume progress parsed from chip label",
+    (() => {
+      const p = parseResumeProgress("Memory Focus \u00b7 1 of 2 done");
+      return p && p.completed === 1 && p.total === 2;
+    })(),
+  );
+  assert(
+    "resume progress parsed from panel caption",
+    (() => {
+      const p = parseResumeProgress("In progress \u2014 2 of 4 done. Starting again picks up where you left off.");
+      return p && p.completed === 2 && p.total === 4;
+    })(),
+  );
+  assert(
+    "resume progress null on completed prose",
+    parseResumeProgress("Completed today \u2014 nice work.") === null,
+  );
+
   // Catalog derivation: scan game.json + cross-check against the generated
   // registry. Both sources must agree — any drift fails loudly here instead of
   // silently smoke-testing a stale list.
@@ -1641,23 +2276,48 @@ function selfTest() {
 // Target selection (shared by live runs and the blocked path so both report
 // exactly the same planned set)
 // ---------------------------------------------------------------------------
-function selectTargets(mode, onlyGame, category, canariesOnly) {
+function selectTargets(mode, flags = {}) {
   const cat = loadCatalog();
   const targets = [];
   if (mode === "warm-bundles") return [{ kind: "warm", id: "warm-bundles" }];
   const wantsGames = mode === "game" || mode === "all" || mode === "catalog";
   if (wantsGames) {
     let list = cat.ids;
-    if (onlyGame) list = [onlyGame];
-    else if (category && cat.categories[category])
-      list = cat.categories[category];
-    if (canariesOnly && !onlyGame) list = Object.values(cat.canaries);
+    if (flags.onlyGame) list = [flags.onlyGame];
+    else if (flags.category && cat.categories[flags.category])
+      list = cat.categories[flags.category];
+    if (flags.canariesOnly && !flags.onlyGame)
+      list = Object.values(cat.canaries);
     for (const g of list) targets.push({ kind: "game", id: g });
   }
   if (mode === "wordmatch" || mode === "all")
     targets.push({ kind: "wordmatch", id: "language-word-match (3.6)" });
   if (mode === "workout" || mode === "all")
     targets.push({ kind: "workout", id: "daily-workout (6.8/12.7)" });
+  // Workout V2 template flows (campaign 012 / W08). Length/template flags are
+  // validated OFFLINE in main() before this point; the auto-picked template
+  // resolves on-device (today's rotation head, preferring focus-*).
+  const workoutTemplateModes = {
+    "workout-short": { length: flags.workoutLength || "short" },
+    "workout-focus": {
+      length: flags.workoutLength || "standard",
+      requireFocus: true,
+    },
+    "workout-resume": { length: flags.workoutLength || "short", resumeProbe: true },
+  };
+  if (workoutTemplateModes[mode])
+    targets.push({
+      kind: "workout-template",
+      id: mode,
+      opts: {
+        modeId: mode,
+        templateId: flags.workoutTemplate || null,
+        length: workoutTemplateModes[mode].length,
+        requireFocus: !!workoutTemplateModes[mode].requireFocus,
+        resumeProbe:
+          !!workoutTemplateModes[mode].resumeProbe || flags.resumeProbe === true,
+      },
+    });
   if (mode === "canaries" || mode === "all") {
     for (const g of Object.values(cat.canaries)) {
       if (!targets.some((t) => t.kind === "game" && t.id === g))
@@ -1681,6 +2341,7 @@ async function main() {
   const category = get("--category", null);
   const pause = args.includes("--pause");
   const listGames = args.includes("--list-games");
+  const listFlows = args.includes("--list-flows");
   const self = args.includes("--self-test");
   const exitZero = args.includes("--exit-zero");
   const exitNonZero = args.includes("--exit-nonzero-on-fail") || !exitZero;
@@ -1730,12 +2391,99 @@ async function main() {
     process.exit(1);
   }
 
-  const planned = selectTargets(
-    mode,
+  // Workout V2 flow flags — validated OFFLINE before any device contact.
+  const workoutTemplate = get("--template", null);
+  const workoutLengthRaw = get("--length", null);
+  const resumeProbe = args.includes("--resume-probe");
+  const WORKOUT_MODES = new Set([
+    "workout-short",
+    "workout-focus",
+    "workout-resume",
+  ]);
+  let workoutLength = null;
+  if (WORKOUT_MODES.has(mode)) {
+    workoutLength = normalizeWorkoutLength(
+      workoutLengthRaw || (mode === "workout-focus" ? "standard" : "short"),
+    );
+    if (!workoutLength) {
+      console.error(
+        `[ERROR] unknown --length '${workoutLengthRaw}'. Valid lengths: ${WORKOUT_LENGTHS_QA.join(", ")}`,
+      );
+      process.exit(1);
+    }
+    if (workoutTemplate) {
+      if (!/^[a-z0-9-]+$/.test(workoutTemplate)) {
+        console.error(
+          `[ERROR] invalid --template '${workoutTemplate}' (expected a kebab-case template id, e.g. focus-memory)`,
+        );
+        process.exit(1);
+      }
+      if (
+        mode === "workout-focus" &&
+        (workoutTemplate === "daily-mix" || !workoutTemplate.startsWith("focus-"))
+      ) {
+        console.error(
+          `[ERROR] --mode workout-focus requires a focus template (focus-*), got '${workoutTemplate}'`,
+        );
+        process.exit(1);
+      }
+    }
+  }
+
+  // Offline dry-run: print the flow definitions the requested mode(s) would
+  // drive WITHOUT touching adb or a device.
+  if (listFlows) {
+    const flowDef = (m, len, extra = {}) => ({
+      mode: m,
+      template: workoutTemplate || extra.templatePolicy || "(auto: first rendered chip, prefers focus-*)",
+      length: len,
+      legs: LEG_COUNT_BY_LENGTH[len] ?? null,
+      resumeProbe: extra.resumeProbe ?? false,
+      steps: [
+        "reset + warm Home",
+        "scroll to More-workouts picker; tap template chip + length chip",
+        "verify home-workout-selected panel (+ home-workout-focus) and start label",
+        "start → N forced-win legs via shared session-result advance chain",
+        ...(extra.resumeSteps || []),
+        "verify results-workout-complete, completion card outcomes, history row, Completed-today state",
+      ],
+    });
+    const flows = WORKOUT_MODES.has(mode)
+      ? [
+          flowDef(mode, workoutLength, {
+            resumeProbe: mode === "workout-resume" || resumeProbe,
+            resumeSteps:
+              mode === "workout-resume" || resumeProbe
+                ? [
+                    "after leg 0 advance persists: am force-stop → relaunch → warm Home",
+                    "verify chip 'N of M done' + home-workout-selected-resume + 'Resume …' label",
+                  ]
+                : [],
+          }),
+        ]
+      : [
+          flowDef("workout-short", "short"),
+          flowDef("workout-focus", "standard", { resumeProbe: false }),
+          flowDef("workout-resume", "short", {
+            resumeProbe: true,
+            resumeSteps: [
+              "after leg 0 advance persists: am force-stop → relaunch → warm Home",
+              "verify chip 'N of M done' + home-workout-selected-resume + 'Resume …' label",
+            ],
+          }),
+        ];
+    console.log(JSON.stringify({ offline: true, deviceTouched: false, flows }, null, 2));
+    process.exit(0);
+  }
+
+  const planned = selectTargets(mode, {
     onlyGame,
     category,
-    args.includes("--canaries-only"),
-  );
+    canariesOnly: args.includes("--canaries-only"),
+    workoutTemplate,
+    workoutLength,
+    resumeProbe,
+  });
 
   // Preflight: without a usable device, report BLOCKED + NOT VALIDATED per
   // planned target and exit 2. Never fake PASS.
@@ -1793,6 +2541,8 @@ async function main() {
     else if (t.kind === "warm") report.results.push(await flowWarmBundles());
     else if (t.kind === "wordmatch") report.results.push(await flowWordMatch());
     else if (t.kind === "workout") report.results.push(await flowWorkout());
+    else if (t.kind === "workout-template")
+      report.results.push(await flowWorkoutTemplate(t.opts));
   }
 
   report.endedAt = new Date().toISOString();

@@ -208,8 +208,9 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({ type: 'resume', nowMs: clock.now() });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume', nowMs: clock.now() });
+    }
   }, [session, clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {

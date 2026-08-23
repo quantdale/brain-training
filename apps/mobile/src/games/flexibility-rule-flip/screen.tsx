@@ -280,8 +280,9 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       }
       pauseStartRef.current = null;
     }
-    session.resume();
-    dispatch({ type: 'resume' });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
+    }
   }, [session, clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {

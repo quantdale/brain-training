@@ -250,13 +250,14 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    const current = stateRef.current;
-    dispatch({ type: 'resume' });
-    if (current.phase === 'go') {
-      // The GO signal was hidden by the overlay during the pause: re-display
-      // it now and restart the measured reaction window from this moment.
-      dispatch({ type: 'go', goAtMs: clock.now() });
+    if (session.resumeIfPaused()) {
+      const current = stateRef.current;
+      dispatch({ type: 'resume' });
+      if (current.phase === 'go') {
+        // The GO signal was hidden by the overlay during the pause: re-display
+        // it now and restart the measured reaction window from this moment.
+        dispatch({ type: 'go', goAtMs: clock.now() });
+      }
     }
   }, [clock, session, dispatch]);
 

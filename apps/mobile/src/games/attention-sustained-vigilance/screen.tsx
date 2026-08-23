@@ -240,14 +240,11 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    // Mirror of the pre-migration guard: `resume()` is only legal from
-    // 'paused', so a double-tapped Resume (or resume after finish) must be
-    // dropped instead of throwing and never re-opening a finished session.
-    if (session.status() !== 'paused') {
-      return;
+    // `resumeIfPaused()` only acts from 'paused', so a double-tapped Resume
+    // (or resume after finish) is dropped instead of throwing.
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
     }
-    session.resume();
-    dispatch({ type: 'resume' });
   }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

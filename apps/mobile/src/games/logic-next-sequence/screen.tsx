@@ -234,8 +234,9 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({ type: 'resume' });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
+    }
   }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

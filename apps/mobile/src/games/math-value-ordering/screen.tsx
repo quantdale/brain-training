@@ -257,14 +257,11 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    // Mirror of the pause gate: `resume()` throws unless the lifecycle is
-    // genuinely `paused`, so consult its status rather than the possibly
-    // stale reducer ref.
-    if (session.status() !== 'paused') {
-      return;
+    // `resumeIfPaused()` consults lifecycle status rather than the possibly
+    // stale reducer ref and drops no-op resumes instead of throwing.
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
     }
-    session.resume();
-    dispatch({ type: 'resume' });
   }, [session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

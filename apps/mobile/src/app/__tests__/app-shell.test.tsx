@@ -40,6 +40,9 @@ describe('app shell', () => {
     registerGameDefinitions([]);
   });
 
+  // Full-shell renders are CPU-bound: fast in isolation but can exceed the
+  // 15s default under a fully parallel jest worker pool, so pin a generous
+  // explicit timeout on the heaviest render tests.
   it('renders the native tab shell with the home dashboard slots', async () => {
     await renderShell('/');
 
@@ -49,7 +52,7 @@ describe('app shell', () => {
     expect(screen.getByTestId('home-stat-xp')).toBeOnTheScreen();
     expect(screen.getByTestId('home-stat-level')).toBeOnTheScreen();
     expect(screen.getByTestId('home-recent-games')).toBeOnTheScreen();
-  });
+  }, 30_000);
 
   it('renders the web tab bar with the four stable tab testIDs', async () => {
     const result = renderRouter(

@@ -272,8 +272,9 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
       roundStartRef.current += clock.now() - pauseStartRef.current;
       pauseStartRef.current = null;
     }
-    session.resume();
-    dispatch({ type: 'resume' });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume' });
+    }
   }, [clock, session, dispatch]);
 
   const quitToLibrary = useCallback(() => {

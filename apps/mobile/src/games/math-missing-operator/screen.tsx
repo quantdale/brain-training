@@ -268,8 +268,9 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
   }, [session]);
 
   const resumeSession = useCallback(() => {
-    session.resume();
-    dispatch({ type: 'resume', resumedAtMs: clock.now() });
+    if (session.resumeIfPaused()) {
+      dispatch({ type: 'resume', resumedAtMs: clock.now() });
+    }
   }, [session, clock, dispatch]);
 
   const quitToLibrary = useCallback(() => {
