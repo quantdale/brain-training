@@ -359,7 +359,6 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
   return (
     <GameHost
       gameId={GAME_ID}
-      qaPanelPosition="above"
       description={gameDefinition.description}
       view={view}
       paused={state.paused}

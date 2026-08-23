@@ -29,6 +29,7 @@ import type { GameSessionRecord, WorkoutInstance } from "@/db";
 import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { shouldAdvanceWorkout } from "./advance";
+import { emitWorkoutChanged } from "./events";
 import { eligibleGameIds, reconcileWorkout } from "./reconcile";
 
 export interface WorkoutResultAdvance {
@@ -110,6 +111,13 @@ export function useWorkoutResultAdvance(
           id: updated.gameIds[updated.currentIndex] ?? null,
           completed: updated.status === "completed",
         });
+        // Notify Home (and any other subscriber) so template chips, resume
+        // state, history rows and the completion card re-read the persisted
+        // row immediately. Without this, Home kept showing the pre-advance
+        // snapshot ("0/2 · In progress", no completion card) even though the
+        // results page itself said the workout was complete — device-verified
+        // defect (campaign 012 closeout QA).
+        emitWorkoutChanged();
       })
       .catch((e: unknown) => {
         console.error("[results] workout advance failed", e);

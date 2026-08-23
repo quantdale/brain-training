@@ -70,6 +70,17 @@ export function ConfirmButton({
   const [armed, setArmed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Disarm when the action becomes unavailable. Adjusting state during render
+  // (React's documented prop-change pattern) keeps an expired context from
+  // ever leaving a live confirm behind without setState-in-effect churn.
+  const [prevDisabled, setPrevDisabled] = useState(disabled);
+  if (disabled !== prevDisabled) {
+    setPrevDisabled(disabled);
+    if (disabled && armed) {
+      setArmed(false);
+    }
+  }
+
   const disarm = useCallback(() => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -78,13 +89,6 @@ export function ConfirmButton({
     setArmed(false);
   }, []);
 
-  // Disarm when the action becomes unavailable or the control goes away —
-  // an expired context must never leave a live confirm behind.
-  useEffect(() => {
-    if (disabled) {
-      disarm();
-    }
-  }, [disabled, disarm]);
   useEffect(() => disarm, [disarm]);
 
   const onPress = useCallback(() => {

@@ -103,24 +103,18 @@ export default function DataManagementScreen() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [wipeConfirm, setWipeConfirm] = useState("");
-  // Names currently held by the transport (refreshed after save/delete/load).
-  const [savedBackups, setSavedBackups] = useState<string[]>([]);
-
-  const refreshSavedBackups = useCallback(async () => {
+  // Names currently held by the transport. Loaded through the shared db-data
+  // hook so backups saved by earlier sessions are visible on arrival and the
+  // inventory re-lists whenever `refreshKey` bumps (save/delete/load).
+  const loadSavedBackups = useCallback(async () => {
     try {
-      setSavedBackups(await backupTransport.listBackups());
+      return await backupTransport.listBackups();
     } catch {
       // Transport failures must never take the management screen down.
-      setSavedBackups([]);
+      return [];
     }
   }, []);
-
-  // Backups saved by earlier sessions must be visible on arrival — without
-  // this mount-time listing the inventory only appeared after an action,
-  // hiding exactly the files a user came here to restore.
-  useEffect(() => {
-    void refreshSavedBackups();
-  }, [refreshSavedBackups]);
+  const { data: savedBackups } = useDbData(loadSavedBackups, [refreshKey], []);
 
   const onExport = useCallback(async () => {
     if (busy) {
@@ -137,7 +131,7 @@ export default function DataManagementScreen() {
       const name = defaultBackupName();
       await backupTransport.writeBackup(name, text);
       setLastExportName(name);
-      await refreshSavedBackups();
+      refresh();
       setMessage(
         `Exported ${env.data.gameSessions.length} sessions and ${env.data.currencyLedger.length} ledger entries. Saved on this phone as ${name}.`,
       );
@@ -147,7 +141,7 @@ export default function DataManagementScreen() {
     } finally {
       setBusy(false);
     }
-  }, [busy, refreshSavedBackups]);
+  }, [busy, refresh]);
 
   /** Offer the fresh/saved export to the system share sheet when present. */
   const onShareBackup = useCallback(async (name: string) => {
@@ -201,7 +195,7 @@ export default function DataManagementScreen() {
       setMessage(null);
       try {
         await backupTransport.deleteBackup(name);
-        await refreshSavedBackups();
+        refresh();
         setMessage(`Deleted saved backup "${name}".`);
       } catch (e) {
         setMessage(`Delete failed: ${(e as Error).message}`);
@@ -209,7 +203,7 @@ export default function DataManagementScreen() {
         setBusy(false);
       }
     },
-    [busy, refreshSavedBackups],
+    [busy, refresh],
   );
 
   const onLoadFromFile = useCallback(async () => {

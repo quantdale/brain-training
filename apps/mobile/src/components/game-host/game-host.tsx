@@ -64,10 +64,10 @@ export interface GameHostProps {
    */
   readonly qaPanel?: React.ReactNode;
   /**
-   * Placement of the dev-only QA panel in the session view. `'below'` (the
-   * default) renders after the game children; `'above'` renders before them
-   * so tall boards (e.g. transform-match) cannot push the panel out of the
-   * automation-reachable viewport.
+   * Placement of the dev-only QA panel in the session view. `'above'` (the
+   * default) renders before the game children so tall boards cannot push the
+   * panel out of the automation-reachable viewport on short screens;
+   * `'below'` renders after them. Production builds never render the panel.
    */
   readonly qaPanelPosition?: 'above' | 'below';
   /** Tutorial element; mounted by the host while `tutorialOpen`. */
@@ -94,7 +94,7 @@ export function GameHost({
   header,
   score,
   qaPanel,
-  qaPanelPosition = 'below',
+  qaPanelPosition = 'above',
   tutorial,
   tutorialOpen = false,
   interceptBack = false,
@@ -201,7 +201,11 @@ export function GameHost({
         <PauseOverlay gameId={gameId} onResume={onResume} onQuit={onQuit} />
       ) : null}
 
-      {tutorialOpen && tutorial !== undefined ? tutorial : null}
+      {tutorialOpen && tutorial !== undefined ? (
+        <View style={styles.tutorialOverlay} pointerEvents="box-none">
+          {tutorial}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -209,6 +213,17 @@ export function GameHost({
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+  },
+  // Bottom-anchored overlay: guarantees tutorial controls stay reachable on
+  // short viewports where stacking the card after tall intro content used to
+  // clip the Skip/Done buttons off-screen (device-verified defect).
+  tutorialOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'flex-end',
   },
   content: {
     flex: 1,

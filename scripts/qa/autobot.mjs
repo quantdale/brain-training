@@ -834,19 +834,37 @@ async function findWithScroll(id, tag, attempts = 3) {
   }
   return node;
 }
+// How long to wait for the QA panel to appear after its toggle is pressed
+// before concluding it did not open (covers slow never-idle dumps).
+const PANEL_SETTLE_BUDGET_MS = 12000;
 // One best-effort attempt at toggle → panel → force-win. Returns true if the
 // force-win tap was issued (panel opened), false if the sequence was not
 // currently reachable (phase-gated or below the ScrollView fold).
+// After opening the panel we POLL for it instead of re-running the toggle:
+// games with per-second timers keep uiautomator "never idle", so a single
+// dump can take many seconds or fail outright — re-tapping the toggle in
+// between merely CLOSES the panel again (device-verified failure mode).
 async function tapForceWinOnce(id, tag) {
   const toggle = await findWithScroll(`${id}.qa-toggle`, `${tag}-fw`);
   if (!toggle) return false;
   tapTestId(`${id}.qa-toggle`, toggle);
   await sleep(400);
-  const panel = await findWithScroll(`${id}.qa-panel`, `${tag}-fw`);
-  if (!panel) return false;
-  tapTestId(`${id}.force-win`, panel);
-  log("force-win pressed");
-  return true;
+  const panelEnd = Date.now() + PANEL_SETTLE_BUDGET_MS;
+  while (Date.now() < panelEnd) {
+    const p = dumpHierarchy(`${tag}-panel-${Date.now() % 100000}`);
+    const xml = readFileSyncSafe(p);
+    if (xml && !DUMP_ERROR_RE.test(xml)) {
+      if (hasTestId(xml, `${id}.qa-panel`)) {
+        tapTestId(`${id}.force-win`, xml);
+        log("force-win pressed");
+        return true;
+      }
+      // Fresh VALID dump shows the panel closed → genuinely not open.
+      return false;
+    }
+    await sleep(500);
+  }
+  return false;
 }
 // Poll the QA toggle → panel → force-win sequence until results appear.
 // Returns the matching results node (with `.id`) or null on timeout. This is
@@ -856,7 +874,10 @@ async function tapForceWinOnce(id, tag) {
 // so keep pressing and step through `<id>.next-round` gates until the shared
 // results surface appears (mirrors the workout-flow fix).
 async function driveForceWin(id, tag) {
-  const budgetMs = Number(process.env.QA_FORCEWIN_BUDGET_MS || 45000);
+  // Per-cycle dump latency on this host is 5-15s under never-idle UIs
+  // (ticking timers keep uiautomator from settling), so the total budget
+  // must span several toggle→panel cycles, not one.
+  const budgetMs = Number(process.env.QA_FORCEWIN_BUDGET_MS || 90000);
   const end = Date.now() + budgetMs;
   while (Date.now() < end) {
     if (tapForceWinOnce(id, tag)) {
@@ -867,11 +888,20 @@ async function driveForceWin(id, tag) {
         `${tag}-fw`,
       );
       if (res) return res;
-      const rx = readFileSyncSafe(dumpHierarchy(`${tag}-fw-round`));
-      if (rx && hasTestId(rx, `${id}.next-round`)) {
+    }
+    // Round-gated games: while we fumbled the panel, the round may have
+    // ended onto its round-result/next-round surface. Step the gate so the
+    // next cycle opens the panel against a fresh playing phase instead of
+    // burning budget staring at a dead round.
+    const rx = readFileSyncSafe(dumpHierarchy(`${tag}-fw-round-${Date.now() % 100000}`));
+    if (rx && !DUMP_ERROR_RE.test(rx)) {
+      if (hasTestId(rx, "results-title") || hasTestId(rx, `${id}.results`) || hasTestId(rx, "results-score")) {
+        return rx;
+      }
+      if (hasTestId(rx, `${id}.next-round`)) {
         tapTestId(`${id}.next-round`, rx);
         log("next-round stepped");
-        await sleep(1000);
+        await sleep(1200);
       }
     }
     await sleep(500);
@@ -1416,26 +1446,40 @@ async function flowWorkout() {
     const gameId = order[i];
     // --- Enter game i ---
     let entered = false;
+    let hx = null;
+    const asXml = (v) => (typeof v === "string" ? v : v && v.xml ? v.xml : null);
     if (i > 0) {
       // Previous leg ended by pressing results-next-game, which deep-links
-      // straight into this game — check before navigating anywhere.
-      const cur = readFileSyncSafe(dumpHierarchy(`wk-cur-${i}`));
-      if (
-        cur &&
-        (hasTestId(cur, `${gameId}.screen`) ||
-          hasTestId(cur, `${gameId}.intro`))
-      )
+      // straight into this game — but the target is a LAZY Metro chunk that
+      // can take tens of seconds to build on a cold cache. Wait for either
+      // the game surface or Home before deciding anything (a premature BACK
+      // here lands on the just-opened game / its pause overlay and wedges
+      // the journey).
+      const cur = asXml(
+        await waitForAny(
+          [`${gameId}.screen`, `${gameId}.intro`, "home-workout-list", ...HOME_READY_IDS],
+          90000,
+          `wk-enter-${i}`,
+        ),
+      );
+      if (cur && (hasTestId(cur, `${gameId}.screen`) || hasTestId(cur, `${gameId}.intro`))) {
         entered = true;
+      } else if (cur) {
+        hx = cur; // on Home already; skip the extra BACK below
+      }
     }
     if (!entered) {
-      let hx = readFileSyncSafe(dumpHierarchy(`wk-enter-${i}`));
-      if (!hx || !hasTestId(hx, "home-workout-list")) {
+      // Fresh look first: after leg 0 we are normally already on Home.
+      hx = readFileSyncSafe(dumpHierarchy(`wk-enter-${i}`));
+      if (!hx || !(hasTestId(hx, "home-workout-list") || hasTestId(hx, "home-brand"))) {
         shell("input keyevent 4");
         await sleep(1200);
-        hx = await waitForAny(
-          ["home-workout-list", ...HOME_READY_IDS],
-          20000,
-          `wk-home-e${i}`,
+        hx = asXml(
+          await waitForAny(
+            ["home-workout-list", ...HOME_READY_IDS],
+            20000,
+            `wk-home-e${i}`,
+          ),
         );
         if (!hx)
           return wkFail(
@@ -1537,18 +1581,32 @@ async function flowWorkout() {
   await sleep(1500);
   launch();
   const resumed = await waitForHome();
+  // Home renders BEFORE the persisted instance has been read back (async db
+  // load): the first paint shows default Now/Up next markers. Poll until the
+  // four status markers reflect the durable row instead of trusting one
+  // pre-load frame (device-verified race).
   let allDone = false;
   if (resumed) {
-    const statuses =
-      resumed.match(/home-workout-game-status-([a-z0-9-]+)/g) || [];
-    allDone = statuses.length > 0;
-    for (const m of statuses) {
-      const gid = m.replace("home-workout-game-status-", "");
-      const node = findTestId(resumed, `home-workout-game-status-${gid}`);
-      if (!node || !/done|complete/i.test(node.text || "")) {
-        allDone = false;
-        break;
+    const deadline = Date.now() + 25000;
+    while (Date.now() < deadline) {
+      const xml = readFileSyncSafe(dumpHierarchy(`wk-relaunch-${Date.now() % 100000}`));
+      if (xml && !DUMP_ERROR_RE.test(xml)) {
+        const statuses = xml.match(/home-workout-game-status-([a-z0-9-]+)/g) || [];
+        let ok = statuses.length > 0;
+        for (const m of statuses) {
+          const gid = m.replace("home-workout-game-status-", "");
+          const node = findTestId(xml, `home-workout-game-status-${gid}`);
+          if (!node || !/done|complete/i.test(node.text || "")) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          allDone = true;
+          break;
+        }
       }
+      await sleep(1200);
     }
   }
   log.push(
@@ -1787,14 +1845,29 @@ async function selectTemplateAndLength({ wantedTemplateId, length, tag }) {
   );
   if (!panel)
     return { ok: false, reason: "selected-template panel did not render after pick" };
-  const startBtn = findTestId(panel.xml, "home-workout-template-start");
+  let panelXml = panel.xml;
+  let startBtn = findTestId(panelXml, "home-workout-template-start");
+  if (!startBtn) {
+    // The panel may become visible while the Start button itself is still
+    // below the fold (resume blocks make it taller); hunt for the button
+    // explicitly before concluding anything about its label.
+    const more = await findWithScroll(
+      "home-workout-template-start",
+      `${tag}-startbtn`,
+      3,
+    );
+    if (more && hasTestId(more, "home-workout-template-start")) {
+      panelXml = more;
+      startBtn = findTestId(more, "home-workout-template-start");
+    }
+  }
   return {
     ok: true,
     templateId: chosen,
     chipsXml,
-    panelXml: panel.xml,
-    focusPresent: hasTestId(panel.xml, "home-workout-focus"),
-    selectedPresent: hasTestId(panel.xml, "home-workout-selected"),
+    panelXml,
+    focusPresent: hasTestId(panelXml, "home-workout-focus"),
+    selectedPresent: hasTestId(panelXml, "home-workout-selected"),
     startLabel: startBtn ? startBtn.contentDesc || startBtn.text || "" : "",
   };
 }

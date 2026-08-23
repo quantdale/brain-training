@@ -170,4 +170,31 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
     ).toBeOnTheScreen();
     expect(screen.queryByTestId("results-next-game")).toBeNull();
   });
+
+  it("emits workoutChanged after advancing so Home re-reads the row", async () => {
+    // DEVICE-FOUND DEFECT THIS PINS (campaign 012 closeout QA): the advance
+    // hook mutated the persisted row WITHOUT emitting `workoutChanged`, so a
+    // mounted Home kept its pre-advance snapshot — template history read
+    // "0/2 · In progress" with no completion card even though the results
+    // page itself said the workout was complete.
+    const onWorkoutChanged = require("@/workout/events").onWorkoutChanged as
+      (l: () => void) => () => void;
+    const listener = jest.fn();
+    const unsubscribe = onWorkoutChanged(listener);
+    mockDbState.db = makeFakeDb(makeWorkout());
+
+    await act(async () => {
+      renderRouter(
+        {
+          index: () => null,
+          results: require("@/app/results").default,
+        },
+        { initialUrl: `/results?id=${SESSION_ID}` },
+      );
+    });
+
+    await screen.findByTestId("results-next-game", {}, { timeout: 5000 });
+    expect(listener).toHaveBeenCalled();
+    unsubscribe();
+  });
 });

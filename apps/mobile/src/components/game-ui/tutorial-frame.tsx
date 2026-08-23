@@ -6,7 +6,7 @@
  * reinvent the same surface + testID wrapper.
  */
 import type { PropsWithChildren } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedView } from '@/components/themed-view';
@@ -19,7 +19,15 @@ export interface TutorialFrameProps extends PropsWithChildren {
 export function TutorialFrame({ gameId, children }: TutorialFrameProps) {
   return (
     <ThemedView type="surface" style={styles.card} testID={testId(gameId, 'tutorial')}>
-      <View style={styles.body}>{children}</View>
+      {/* Tall tutorials (e.g. multi-step demos) scroll internally so their
+          action buttons can never be pushed out of reach on small screens. */}
+      <ScrollView
+        style={styles.bodyScroll}
+        contentContainerStyle={styles.body}
+        showsVerticalScrollIndicator={false}
+      >
+        {children}
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -28,6 +36,10 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: Radii.large,
     padding: Spacing.four,
+    maxHeight: '90%',
+  },
+  bodyScroll: {
+    flexGrow: 0,
   },
   body: {
     gap: Spacing.three,

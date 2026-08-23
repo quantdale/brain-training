@@ -209,10 +209,21 @@ export default function HomeScreen() {
     templates: allTemplates,
     history: workoutHistory,
     startTemplate,
+    refresh: refreshTemplates,
   } = useWorkoutTemplates({
     domainRatings: data.domainRatings,
     recentGameIds: data.recentGameIds,
   });
+
+  // Template history/chips/completion-card live in their own hook with
+  // db-event-driven reloads; also re-read on focus so returning from a game
+  // can never show a pre-advance snapshot (defense in depth for any mutation
+  // path that forgets to emit `workoutChanged`).
+  useFocusEffect(
+    useCallback(() => {
+      refreshTemplates();
+    }, [refreshTemplates]),
+  );
 
   // Picker state: null = follow today's rotation order (first suggestion) /
   // the engine's default length, so the section is sensible before any tap.
