@@ -381,7 +381,7 @@ describe('corrupt persisted rows never crash reads or writes', () => {
   });
 });
 
-describe('metadata_json column works both ways', () => {
+describe('metadata_json column (shipped schema v10) + legacy tolerance', () => {
   const sampleMetadata: WorkoutMetadata = {
     ...createWorkoutMetadata({
       kind: 'template',
@@ -396,27 +396,24 @@ describe('metadata_json column works both ways', () => {
     },
   };
 
-  it('silently drops metadata on today\'s schema (column absent) without error', async () => {
-    const adapter = await createMigratedDb(); // schema v9: no metadata column
+  it('persists metadata natively on the shipped schema (v10 migration provides the column)', async () => {
+    const adapter = await createMigratedDb(); // schema v10: column present
     const workouts = makeWorkouts(adapter);
+    const key = '2026-08-21::focus-memory::extended';
     const created = await workouts.getOrCreate(
-      '2026-08-21::focus-memory::extended',
+      key,
       { gameIds: ['a'], seedVersion: 2 },
       sampleMetadata,
     );
-    expect(created.metadata).toBeUndefined();
-    const reread = await workouts.getByDate('2026-08-21::focus-memory::extended');
-    expect(reread?.metadata).toBeUndefined();
+    expect(created.metadata).toEqual(sampleMetadata);
+    const reread = await workouts.getByDate(key);
+    expect(reread?.metadata).toEqual(sampleMetadata);
     expect(reread?.gameIds).toEqual(['a']);
   });
 
-  it('round-trips versioned metadata (including generation inputs) once the column exists', async () => {
+  it('round-trips versioned metadata and tolerates legacy/malformed rows', async () => {
     const adapter = await createMigratedDb();
-    // Simulate the pending migration adding the optional column.
-    await adapter.exec(
-      'ALTER TABLE workout_instances ADD COLUMN metadata_json TEXT',
-    );
-    const workouts = makeWorkouts(adapter); // fresh instance re-detects the column
+    const workouts = makeWorkouts(adapter); // fresh instance detects the column
 
     const key = '2026-08-21::focus-memory::extended';
     await workouts.getOrCreate(key, { gameIds: ['a'], seedVersion: 2 }, sampleMetadata);

@@ -54,6 +54,38 @@ describe('data survives an upgrade from the earliest version', () => {
     expect(await adapter.all('SELECT * FROM currency_ledger')).toHaveLength(1);
     expect((await adapter.get<{ display_name: string }>('SELECT display_name FROM profile'))?.display_name).toBe('Ada');
   });
+
+  it('v9 -> v10 adds workout metadata_json without touching rows (reasons persistence)', async () => {
+    const adapter = createNodeSqliteAdapter(':memory:');
+    await runMigrations(adapter, { targetVersion: 9 });
+    // A pre-v10 template instance as v9 wrote it (no metadata column).
+    await adapter.run(
+      `INSERT INTO workout_instances
+         (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at)
+       VALUES ('2026-08-21::focus-memory::extended', '["g-a","g-b"]', 'active', 1, 0, 2, 100, 200)`,
+    );
+
+    await runMigrations(adapter); // -> SCHEMA_VERSION
+    expect(await getSchemaVersion(adapter)).toBe(SCHEMA_VERSION);
+
+    // Column now exists and the legacy row is byte-identical where it counts.
+    const columns = await adapter.all<{ name: string }>(
+      'PRAGMA table_info(workout_instances)',
+    );
+    expect(columns.map((c) => c.name)).toContain('metadata_json');
+    const row = await adapter.get<{
+      date: string;
+      game_ids_json: string;
+      status: string;
+      current_index: number;
+      metadata_json: string | null;
+    }>('SELECT date, game_ids_json, status, current_index, metadata_json FROM workout_instances');
+    expect(row?.date).toBe('2026-08-21::focus-memory::extended');
+    expect(row?.game_ids_json).toBe('["g-a","g-b"]');
+    expect(row?.status).toBe('active');
+    expect(row?.current_index).toBe(1);
+    expect(row?.metadata_json).toBeNull();
+  });
 });
 
 describe('determinism and idempotency', () => {

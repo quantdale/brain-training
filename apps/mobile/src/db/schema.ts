@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from "./adapter";
 
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -317,6 +317,16 @@ export const SQL = {
   `,
 
   /**
+   * Campaign 012/013 — SCHEMA CHANGE v10. Optional Workout V2 metadata
+   * (versioned JSON: kind/templateId/length/focus + generation inputs +
+   * recorded selection reasons). Additive and nullable; readers/writers
+   * already tolerate its absence (legacy installs pre-v10 keep working).
+   */
+  addWorkoutMetadataColumn: `
+    ALTER TABLE workout_instances ADD COLUMN metadata_json TEXT;
+  `,
+
+  /**
    * Backfill a stable idempotency key onto legacy gameplay currency rows that
    * predate v8 (task A/idempotency). Newer rows already carry
    * `gameplay:<sessionId>` from `completeSession`. Two guards keep the
@@ -497,6 +507,20 @@ export const MIGRATIONS: readonly Migration[] = [
       // SQL.createRatingHistoryCreatedAtIndex for rationale; append-only,
       // collision-safe, no data change.
       await txn.exec(SQL.createRatingHistoryCreatedAtIndex);
+    },
+  },
+  {
+    version: 10,
+    up: async (txn) => {
+      // Campaign 012 closeout / 013 hardening — SCHEMA CHANGE v10: persist
+      // Workout Engine V2 instance metadata (template id, length, focus,
+      // generation inputs, recorded personalization REASONS). Additive NULL
+      // column only — no row is rewritten and legacy rows read back with
+      // metadata undefined exactly as before. The repository has always
+      // written this column opportunistically when present (runtime PRAGMA
+      // probe); shipping it in the schema makes that path real instead of
+      // permanently dormant.
+      await txn.exec(SQL.addWorkoutMetadataColumn);
     },
   },
 ];

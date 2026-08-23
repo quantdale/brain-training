@@ -168,7 +168,30 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
         { timeout: 5000 },
       ),
     ).toBeOnTheScreen();
+    // Length-aware completion copy (was hardcoded "all four games"):
+    expect(screen.getByText("You finished all 4 games today. Nice work!")).toBeOnTheScreen();
     expect(screen.queryByTestId("results-next-game")).toBeNull();
+  });
+
+  it("derives completion copy from a SHORT workout's actual length", async () => {
+    const done = makeWorkout({
+      currentIndex: 1,
+      gameIds: ["speed-color-match", GAME_ID],
+    });
+    mockDbState.db = makeFakeDb(done);
+
+    await act(async () => {
+      renderRouter(
+        {
+          index: () => null,
+          results: require("@/app/results").default,
+        },
+        { initialUrl: `/results?id=${SESSION_ID}` },
+      );
+    });
+
+    await screen.findByTestId("results-workout-complete", {}, { timeout: 5000 });
+    expect(screen.getByText("You finished all 2 games today. Nice work!")).toBeOnTheScreen();
   });
 
   it("emits workoutChanged after advancing so Home re-reads the row", async () => {

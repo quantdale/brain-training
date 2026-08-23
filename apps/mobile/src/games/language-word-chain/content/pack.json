@@ -1,7 +1,7 @@
 {
   "packId": "language-word-chain-core-v1",
-  "packVersion": "1.1.0",
-  "chainCount": 21,
+  "packVersion": "1.2.0",
+  "chainCount": 30,
   "decoyPool": [
     "apple", "brick", "cloud", "dream", "flame", "ghost", "honey", "ivory",
     "jungle", "koala", "light", "mango", "night", "olive", "pearl", "quilt",
@@ -113,6 +113,51 @@
       "id": "wc-t3-09",
       "tier": "t3",
       "words": ["penguin", "nugget", "teapot", "tunnel", "lobster", "raccoon"]
+    },
+    {
+      "id": "wc-t3-10",
+      "tier": "t3",
+      "words": ["obsidian", "nightjar", "ravioli", "iris", "sable"]
+    },
+    {
+      "id": "wc-t3-11",
+      "tier": "t3",
+      "words": ["galaxy", "yearling", "gazelle", "earwig", "gargoyle"]
+    },
+    {
+      "id": "wc-t3-12",
+      "tier": "t3",
+      "words": ["horizon", "nimbus", "sequoia", "amethyst", "tangerine"]
+    },
+    {
+      "id": "wc-t3-13",
+      "tier": "t3",
+      "words": ["opal", "lyre", "echidna", "asparagus", "starling"]
+    },
+    {
+      "id": "wc-t3-14",
+      "tier": "t3",
+      "words": ["gondola", "avocado", "ostrich", "hazel", "lemur"]
+    },
+    {
+      "id": "wc-t3-15",
+      "tier": "t3",
+      "words": ["kiwi", "indigo", "octagon", "nutria", "armadillo"]
+    },
+    {
+      "id": "wc-t3-16",
+      "tier": "t3",
+      "words": ["jasmine", "ebony", "yeast", "tinsel", "lynx"]
+    },
+    {
+      "id": "wc-t3-17",
+      "tier": "t3",
+      "words": ["meadow", "weasel", "llama", "anchovy", "yucca"]
+    },
+    {
+      "id": "wc-t3-18",
+      "tier": "t3",
+      "words": ["pelican", "narwhal", "leopard", "dolphin", "newt"]
     }
   ]
 }

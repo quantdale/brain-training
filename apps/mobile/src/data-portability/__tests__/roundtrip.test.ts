@@ -54,6 +54,67 @@ describe('export → import round trip', () => {
     expect(session.rawResult).toEqual({ correct: 5 });
     expect(session.normalizedResult).toBe(0.9);
   });
+
+  it('round-trips workout instance metadata (Workout V2 reasons/provenance) through export + replace import', async () => {
+    // Seed a template instance WITH metadata (as the engine writes it on
+    // schema v10) and one legacy row without any.
+    const src = await makeDb();
+    await src.transaction(async (txn) => {
+      await txn.run(
+        "INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          '2026-08-21::focus-memory::extended',
+          JSON.stringify(['memory', 'speed-tap-rush']),
+          'completed',
+          2,
+          0,
+          2,
+          T0,
+          T0,
+          JSON.stringify({
+            version: 1,
+            kind: 'template',
+            templateId: 'focus-memory',
+            length: 'extended',
+            focus: 'Memory',
+            reasons: [{ gameId: 'memory', kind: 'weak-domain', detail: 'Memory 950 below mean' }],
+          }),
+        ],
+      );
+      await txn.run(
+        "INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)",
+        ['2026-08-20', JSON.stringify(['memory']), 'active', 0, 0, 1, T0 - 1, T0 - 1],
+      );
+    });
+
+    const env = await exportLocalData(src, { now: () => T0 + 1 });
+    const parsed = parseAndValidateBackup(serializeBackup(env));
+    const withMeta = parsed.data.workoutInstances.find(
+      (w) => w.date === '2026-08-21::focus-memory::extended',
+    )!;
+    expect(withMeta.metadata).toMatchObject({ templateId: 'focus-memory', length: 'extended' });
+    const withoutMeta = parsed.data.workoutInstances.find((w) => w.date === '2026-08-20')!;
+    expect(withoutMeta.metadata ?? null).toBeNull();
+
+    // Replace-import into a fresh database and verify the persisted cells.
+    const target = await makeDb();
+    await applyImport(target, parsed, 'replace');
+    const rows = await target.transaction(async (txn) =>
+      txn.all<{ date: string; metadata_json: string | null }>(
+        'SELECT date, metadata_json FROM workout_instances ORDER BY date DESC',
+      ),
+    );
+    const restored = rows.find((r) => r.date === '2026-08-21::focus-memory::extended');
+    expect(restored?.metadata_json).not.toBeNull();
+    expect(JSON.parse(restored!.metadata_json!)).toMatchObject({
+      kind: 'template',
+      templateId: 'focus-memory',
+    });
+    expect(rows.find((r) => r.date === '2026-08-20')?.metadata_json).toBeNull();
+
+    // And the full snapshot is byte-stable across the round trip.
+    expect(await exportCanonical(target)).toBe(await exportCanonical(src));
+  });
 });
 
 describe('parseAndValidateBackup rejection gates', () => {

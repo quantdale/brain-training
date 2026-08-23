@@ -459,6 +459,10 @@ async function writeWorkouts(
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
+  // Workout V2 metadata (schema v10) rides with the row. Null/absent writes
+  // a null cell so an imported legacy row never fabricates provenance.
+  const metadataJson = (w: BackupData["workoutInstances"][number]) =>
+    w.metadata == null ? null : JSON.stringify(w.metadata);
   for (const w of workouts) {
     const json = JSON.stringify(w.gameIds);
     if (mode === "merge") {
@@ -471,7 +475,7 @@ async function writeWorkouts(
           continue; // keep the newer/equal existing instance
         }
         await txn.run(
-          "UPDATE workout_instances SET game_ids_json = ?, status = ?, current_index = ?, reroll_attempt = ?, seed_version = ?, updated_at = ? WHERE date = ?",
+          "UPDATE workout_instances SET game_ids_json = ?, status = ?, current_index = ?, reroll_attempt = ?, seed_version = ?, updated_at = ?, metadata_json = ? WHERE date = ?",
           [
             json,
             w.status,
@@ -479,6 +483,7 @@ async function writeWorkouts(
             w.rerollAttempt,
             w.seedVersion,
             w.updatedAt,
+            metadataJson(w),
             w.date,
           ],
         );
@@ -487,7 +492,7 @@ async function writeWorkouts(
       }
     }
     await txn.run(
-      "INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         w.date,
         json,
@@ -497,6 +502,7 @@ async function writeWorkouts(
         w.seedVersion,
         w.createdAt,
         w.updatedAt,
+        metadataJson(w),
       ],
     );
     c.workoutsUpdated += 1;

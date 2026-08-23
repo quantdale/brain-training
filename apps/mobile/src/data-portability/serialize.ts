@@ -58,7 +58,7 @@ const RAW_SELECT = {
   favorites: `SELECT game_id, created_at FROM game_favorites ORDER BY created_at ASC, game_id ASC`,
   xpAwards: `SELECT amount, reason, source, created_at FROM xp_awards ORDER BY id ASC`,
   tutorial: `SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state ORDER BY game_id ASC`,
-  workouts: `SELECT date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at FROM workout_instances ORDER BY date ASC`,
+  workouts: `SELECT date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at, metadata_json FROM workout_instances ORDER BY date ASC`,
   quests: `SELECT id, kind, title, description, criteria_json, reward_xp, reward_currency, version FROM quests ORDER BY id ASC`,
   questProgress: `SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress ORDER BY quest_id ASC, period ASC`,
   achievements: `SELECT id, title, description, criteria_json, reward_xp, reward_currency, version FROM achievements ORDER BY id ASC`,
@@ -225,17 +225,30 @@ export async function readSnapshot(db: AppDatabase): Promise<BackupData> {
         seed_version: number;
         created_at: number;
         updated_at: number;
+        metadata_json: string | null;
       }>(RAW_SELECT.workouts)
-    ).map((r) => ({
-      date: r.date,
-      gameIds: parseGameIds(r.game_ids_json),
-      status: r.status,
-      currentIndex: r.current_index,
-      rerollAttempt: r.reroll_attempt,
-      seedVersion: r.seed_version,
-      createdAt: r.created_at,
-      updatedAt: r.updated_at,
-    }));
+    ).map((r) => {
+      // Parsed Workout V2 provenance (schema v10). Malformed cells degrade to
+      // null exactly like the db reader does — provenance is never load-bearing.
+      const rawMetadata: unknown = parseJson(r.metadata_json, null);
+      const metadata =
+        rawMetadata !== null &&
+        typeof rawMetadata === 'object' &&
+        !Array.isArray(rawMetadata)
+          ? (rawMetadata as Record<string, unknown>)
+          : null;
+      return {
+        date: r.date,
+        gameIds: parseGameIds(r.game_ids_json),
+        status: r.status,
+        currentIndex: r.current_index,
+        rerollAttempt: r.reroll_attempt,
+        seedVersion: r.seed_version,
+        createdAt: r.created_at,
+        updatedAt: r.updated_at,
+        metadata,
+      };
+    });
 
     const questDefinitions: BackupQuestDefinition[] = (
       await txn.all<{

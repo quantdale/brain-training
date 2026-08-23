@@ -20,9 +20,11 @@ export const BACKUP_FORMAT_VERSION = 1;
  *   1 — campaign 009 engine (two-pass canonical serialization).
  *   2 — campaign 010 (D2): single-pass canonical serializer, incremental
  *       checksum, `engineVersion` + `manifest` metadata on export.
+ *   3 — campaign 012/013: workout instances carry optional parsed `metadata`
+ *       (Workout V2 provenance/reasons). Additive + backward compatible.
  * Readers never reject on this value; it is provenance only.
  */
-export const BACKUP_ENGINE_VERSION = 2;
+export const BACKUP_ENGINE_VERSION = 3;
 
 /** Envelope `format` discriminator — rejects anything that is not our backup. */
 export const BACKUP_FORMAT = 'brain-training-backup';
@@ -107,6 +109,14 @@ export interface BackupWorkoutInstance {
   seedVersion: number;
   createdAt: number;
   updatedAt: number;
+  /**
+   * Versioned Workout V2 instance metadata (kind/templateId/length/focus +
+   * generation inputs + recorded selection reasons), parsed from the row's
+   * `metadata_json` cell. Optional BOTH ways: pre-v10-schema exports lack it
+   * and legacy rows carry null. Provenance only — an import never derives
+   * gameplay state from it.
+   */
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface BackupQuestDefinition {

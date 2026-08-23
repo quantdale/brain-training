@@ -80,7 +80,7 @@ export default function ResultsScreen() {
 
   // Cross-feature wiring (006R hardening): advance the durable workout when this
   // session finished the current game, and surface the next game / completion.
-  const { nextGameId, completed: workoutCompleted } =
+  const { instance: workoutInstance, nextGameId, completed: workoutCompleted } =
     useWorkoutResultAdvance(session);
 
   const game = session ? getGameDefinition(session.gameId) : undefined;
@@ -181,7 +181,9 @@ export default function ResultsScreen() {
                 Workout complete
               </ThemedText>
               <ThemedText type="small" themeColor="textSecondary">
-                You finished all four games today. Nice work!
+                {workoutInstance?.gameIds.length
+                  ? `You finished all ${workoutInstance.gameIds.length} games today. Nice work!`
+                  : "You finished today's workout. Nice work!"}
               </ThemedText>
             </ThemedView>
           ) : nextGameId ? (

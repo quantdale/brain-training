@@ -235,6 +235,16 @@ function validateData(data: unknown): BackupData {
       issues.push('workoutInstances contains an invalid entry');
       return false;
     }
+    // Optional Workout V2 metadata (engine 3+): must be object-or-null when
+    // present; absent (pre-engine-3 backups) is fine.
+    if (
+      r.metadata !== undefined &&
+      r.metadata !== null &&
+      (!isObject(r.metadata) || Array.isArray(r.metadata))
+    ) {
+      issues.push('workoutInstances contains an invalid entry');
+      return false;
+    }
     return true;
   });
 
