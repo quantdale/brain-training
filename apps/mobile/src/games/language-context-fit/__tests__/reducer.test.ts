@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
+import { createRng } from '@/sdk';
 
 import { loadContentPack } from '../content-validation';
 import { filterByTiers, selectRound } from '../generator';
@@ -144,7 +145,7 @@ describe('context-fit reducer', () => {
 describe('round generation helper', () => {
   it('selectRound returns a valid round for the seeded session', () => {
     const round = selectRound({
-      rng: (require('@/sdk').createRng as any)('reducer-seed'),
+      rng: createRng('reducer-seed'),
       roundIndex: 0,
       pool: POOL,
       usedItemIds: new Set(),

@@ -61,7 +61,7 @@ function firstGoIndex(seed: string, level: DifficultyLevel): number {
 describe('response accounting', () => {
   it('records a GO hit with rt from active-ms deltas and speed-scored points', () => {
     const seed = 'hit-1';
-    const goIndex = firstGoIndex(seed, 'normal');
+    firstGoIndex(seed, 'normal');
     let s = start(seed);
     // Drive ticks up to onset+300 of the first trial (onset is 0).
     for (let at = 50; at <= 300; at += 50) {

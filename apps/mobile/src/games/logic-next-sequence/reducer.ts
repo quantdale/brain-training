@@ -12,7 +12,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   logicParamsFromProfile,
@@ -22,7 +21,7 @@ import {
 } from './difficulty';
 import { generatePuzzle } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialLogicState } from './types';
+import { INITIAL_STATS, createInitialLogicState } from './types';
 import type { LogicAction, LogicGameState, LogicStats } from './types';
 
 export { createInitialLogicState };

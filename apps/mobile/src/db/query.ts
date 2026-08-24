@@ -1,5 +1,3 @@
-import type { SQLiteValue } from './types';
-
 /**
  * Pure query-building helpers shared by the repositories (campaign 010 W11).
  *

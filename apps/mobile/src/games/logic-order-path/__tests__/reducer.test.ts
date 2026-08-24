@@ -7,7 +7,6 @@ import { createInitialOrderPathState } from '../types';
 import type { OrderPathGameState } from '../types';
 import { ORDER_PATH_DIFFICULTY_PARAMS, orderPathParamsForLevel } from '../difficulty';
 import { perfectSessionScore } from '../scoring';
-import { availableNext } from '../solver';
 
 function startSession(
   seed: string,

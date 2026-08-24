@@ -3,7 +3,6 @@ import { describe, expect, it } from '@jest/globals';
 import { createRng } from '@/sdk';
 
 import {
-  MAX_WORD_ATTEMPTS,
   generateRound,
   scrambleWord,
   selectDistractors,

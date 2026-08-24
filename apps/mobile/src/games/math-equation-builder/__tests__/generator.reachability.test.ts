@@ -78,7 +78,7 @@ describe('content reachability (campaign 010 debt class)', () => {
     // length + range filter admits a template, that level's operator mix must
     // be able to solve it — otherwise the template is unreachable dead weight.
     for (const template of PUZZLE_TEMPLATES) {
-      for (const { label, params } of allParamSets()) {
+      for (const { params } of allParamSets()) {
         if (!admittedBy(template, params)) continue;
         expect(canSolve(template.target, template.numbers, params.operators)).toBe(true);
       }

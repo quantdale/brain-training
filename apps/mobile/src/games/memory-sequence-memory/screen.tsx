@@ -397,7 +397,6 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
       state.inputIndex,
       state.roundOutcome,
       state.taps,
-      state.length,
     ],
   );
 

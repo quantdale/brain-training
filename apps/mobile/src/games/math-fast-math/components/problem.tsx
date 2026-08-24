@@ -10,7 +10,6 @@ import { StyleSheet, View } from 'react-native';
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 import type { MathProblem } from '../types';
@@ -22,7 +21,6 @@ export interface ProblemDisplayProps {
 }
 
 export function ProblemDisplay({ problem, input }: ProblemDisplayProps) {
-  const theme = useTheme();
   const hasInput = input.length > 0;
   return (
     <View style={styles.row} testID={testId(GAME_ID, 'problem-text')} accessible>

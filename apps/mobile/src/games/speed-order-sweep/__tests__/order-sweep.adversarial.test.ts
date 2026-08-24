@@ -121,7 +121,7 @@ describe('generator property sweep (5 difficulties × 30 seeds)', () => {
   const SEEDS = Array.from({ length: 30 }, (_, i) => `w02-${i + 1}`);
 
   it('every board of every session passes validateRound: unique in-range values, ascending order', () => {
-    for (const { level, params } of ALL_TUNINGS) {
+    for (const { params } of ALL_TUNINGS) {
       for (const seed of SEEDS) {
         for (const board of fullSession(
           seed,

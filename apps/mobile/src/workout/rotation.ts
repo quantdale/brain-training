@@ -16,7 +16,6 @@
  */
 
 import { createRng } from "@/sdk";
-import { WORKOUT_CHAIN_BASE } from "./today";
 import {
   DAILY_MIX_TEMPLATE,
   focusTemplates,
@@ -36,8 +35,9 @@ const ROTATION_ORDER: readonly string[] = createRng(
 ).shuffle(focusTemplates().map((template) => template.id));
 
 /**
- * Whole days between {@link WORKOUT_CHAIN_BASE} and `date` (negative before
- * the base). Dates are validated-format YYYY-MM-DD strings produced by
+ * Whole days between the workout-chain base (`WORKOUT_CHAIN_BASE` in
+ * `./today`, currently 2026-01-01) and `date` (negative before the base).
+ * Dates are validated-format YYYY-MM-DD strings produced by
  * `localDateString`; malformed input yields NaN and falls back to slot 0.
  */
 export function dayIndexFromBase(date: string): number {

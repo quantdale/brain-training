@@ -29,7 +29,6 @@ jest.mock('expo-router', () => ({
 const FIELD = 340;
 /** Normal difficulty tuning: 10 targets/round, 4 rounds, 1100 ms window. */
 const NORMAL = TAP_RUSH_DIFFICULTY_PARAMS.normal;
-const WINDOW_MS = NORMAL.initialWindowMs;
 
 /** Tutorial store that already completed the tutorial (skips first-play). */
 function completedStore() {

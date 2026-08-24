@@ -20,7 +20,7 @@ import { quickCompareParamsToRecord } from './difficulty';
 import { accuracyOf, bestOf, meanOf, meanSpeedOf } from './scoring';
 import { GAME_ID } from './types';
 import type { QuickCompareDifficultyParams, QuickCompareRawResult, QuickCompareStats } from './types';
-import { SCORING_VERSION, versionToNumber } from './versions';
+import { versionToNumber } from './versions';
 
 /** Persistence seam so tests can substitute the db layer. */
 export interface SessionPersistence {

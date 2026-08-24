@@ -17,13 +17,6 @@ import {
 } from '../scoring';
 import type { PersonalizationContext } from '../types';
 
-const CATEGORIES: GameDefinition['primaryCategory'][] = [
-  'Memory',
-  'Attention',
-  'Speed',
-  'Math',
-];
-
 function makeGame(
   id: string,
   primaryCategory: GameDefinition['primaryCategory'],

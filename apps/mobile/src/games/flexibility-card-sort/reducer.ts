@@ -23,7 +23,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   flexibilityParamsFromProfile,
@@ -32,7 +31,7 @@ import {
 } from './difficulty';
 import { generateRound, pickInitialRule } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialFlexibilityState, otherRule } from './types';
+import { INITIAL_STATS, createInitialFlexibilityState, otherRule } from './types';
 import type {
   Card,
   FlexibilityAction,

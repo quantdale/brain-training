@@ -17,7 +17,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   nextAdaptivePosition,
@@ -28,7 +27,7 @@ import {
 import { generateRound } from './generator';
 import type { RotationRound } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialSpatialState } from './types';
+import { INITIAL_STATS, createInitialSpatialState } from './types';
 import type { SpatialAction, SpatialGameState, SpatialStats } from './types';
 
 export { createInitialSpatialState };

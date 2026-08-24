@@ -6,7 +6,6 @@ import {
   createMathMissingOperatorTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { MathMissingOperatorAction } from '../types';
 
 describe('createMathMissingOperatorQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

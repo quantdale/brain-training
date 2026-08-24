@@ -15,12 +15,9 @@
  */
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
-import { createNodeSqliteAdapter } from '../adapters/node';
 import { createMigratedDb } from './helpers';
-import { initializeConnection, runMigrations } from '../migrate';
 import { SessionRepository } from '../sessions';
 import { WorkoutRepository } from '../workout';
-import type { WorkoutInstance } from '../workout';
 import type { GameSessionRecord } from '../types';
 import {
   createWorkoutMetadata,

@@ -1305,7 +1305,7 @@ async function flowWordMatch() {
     deepLink(`game/${id}`);
     const xml =
       (await waitFor(`${id}.screen`, 25000, `wm-${tier}`)) ||
-      (await waitFor(`${id}.intro`, 25025, `wm-${tier}`));
+      (await waitFor(`${id}.intro`, 25000, `wm-${tier}`));
     if (!xml) {
       results.push({
         tier,
@@ -2608,18 +2608,24 @@ async function main() {
   if (existsSync(lockPath)) {
     try {
       const lockPid = Number(readFileSync(lockPath, "utf8").trim());
-      let alive = false;
-      try {
-        process.kill(lockPid, 0);
-        alive = true;
-      } catch {
-        alive = false;
-      }
-      if (alive) {
-        console.error(
-          `REFUSED: another autobot driver (pid ${lockPid}) is already running. One exclusive device owner per QA_DEVICE.`,
-        );
-        process.exit(3);
+      if (Number.isInteger(lockPid) && lockPid > 0) {
+        // Fail CLOSED: only ESRCH proves the lock owner is gone. Any other
+        // kill() error (e.g. EPERM for a live process we may not signal) must
+        // NOT count as a stale lock, or a second driver could steal the
+        // exclusive-device lock and corrupt both runs' taps.
+        let alive;
+        try {
+          process.kill(lockPid, 0);
+          alive = true;
+        } catch (err) {
+          alive = err?.code !== "ESRCH";
+        }
+        if (alive) {
+          console.error(
+            `REFUSED: another autobot driver (pid ${lockPid}) is already running. One exclusive device owner per QA_DEVICE.`,
+          );
+          process.exit(3);
+        }
       }
     } catch {
       /* unreadable lock → treat as stale */

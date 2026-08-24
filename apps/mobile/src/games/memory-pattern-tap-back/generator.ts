@@ -60,7 +60,6 @@ export function generateRoundSequence(input: GenerateRoundInput): number[] {
       rng.fork(`round:${roundIndex}:attempt:${attempt}`),
       length,
       gridSize,
-      prevSequence,
     );
     if (!isNearDuplicate(candidate, prevSequence)) {
       return candidate;
@@ -72,19 +71,18 @@ export function generateRoundSequence(input: GenerateRoundInput): number[] {
     rng.fork(`round:${roundIndex}:attempt:${MAX_SEQUENCE_ATTEMPTS - 1}`),
     length,
     gridSize,
-    prevSequence,
   );
 }
 
 /**
  * Build a distinct-span sequence of `length` tiles over `gridSize` cells.
  *
- * The sequence starts from a seed position (the last tile of the previous
- * sequence, or a random position for round 0). At each step we pick uniformly
- * from unvisited tiles. NOTE: steps are NOT constrained to grid adjacency —
- * this is a permutation-style distinct-span sequence, not a grid path. (The
- * function keeps its historical `buildRandomWalk` name; see the file header
- * and `docs/adr/0005-memory-variant-review.md`.)
+ * Every position (including position 0) is drawn uniformly from unvisited
+ * tiles. Steps are NOT constrained to grid adjacency — this is a
+ * permutation-style distinct-span sequence, not a grid path. (The function
+ * keeps its historical `buildRandomWalk` name; see the file header and
+ * `docs/adr/0005-memory-variant-review.md`. Confusability with the previous
+ * round is handled by the caller's near-duplicate guard.)
  *
  * Invariant: no tile appears twice in the sequence.
  */
@@ -92,25 +90,16 @@ function buildRandomWalk(
   rng: Rng,
   length: number,
   gridSize: number,
-  prevSequence: readonly number[] | null,
 ): number[] {
   const sequence: number[] = [];
   const visited = new Set<number>();
 
-  // Start position: last tile of previous sequence, or random if none.
-  const startCandidate =
-    prevSequence !== null && prevSequence.length > 0
-      ? prevSequence[prevSequence.length - 1]
-      : -1;
-
-  // For the start, pick uniformly from unvisited tiles.
-  // If the previous sequence's last tile is the start, it's excluded
-  // from the "unvisited" set for position 0 to avoid trivial repetition.
-  const candidates0: number[] = [];
-  for (let i = 0; i < gridSize; i += 1) {
-    candidates0.push(i);
-  }
-  const startShuffled = rng.shuffle(candidates0);
+  // Position 0 is a uniform draw over the whole grid (the previous round's
+  // last tile is NOT specially excluded; the near-duplicate guard below is
+  // what prevents trivially confusable consecutive rounds).
+  const startShuffled = rng.shuffle(
+    Array.from({ length: gridSize }, (_, i) => i),
+  );
   const start = startShuffled[0];
   sequence.push(start);
   visited.add(start);

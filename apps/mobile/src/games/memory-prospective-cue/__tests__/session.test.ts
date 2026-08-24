@@ -22,7 +22,7 @@ import {
   INITIAL_STATS,
   createInitialProspectiveCueState,
 } from "../types";
-import type { ProspectiveCueRawResult, ProspectiveCueStats } from "../types";
+import type { ProspectiveCueStats } from "../types";
 
 const PARAMS = {
   initialSignalCount: 2,

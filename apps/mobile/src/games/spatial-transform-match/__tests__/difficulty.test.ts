@@ -8,7 +8,6 @@ import {
   nextFilledCells,
   nextOptionCount,
   paramsForLevel,
-  paramsFromProfile,
   resolveGameDifficulty,
   sessionChallengeRating,
 } from '../difficulty';

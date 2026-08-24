@@ -5,16 +5,13 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
+import { createFakeClock, createInMemoryTutorialStore, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 
-import { generateTrials } from '../generator';
 import ColorStroopScreen from '../screen';
-import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
 import type { ColorStroopRawResult } from '../types';
-import { COLOR_STROOP_DIFFICULTY_PARAMS } from '../difficulty';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -105,7 +102,7 @@ describe('ColorStroopScreen', () => {
 
   it('plays a normal session and shows correct feedback', async () => {
     const seed = 'screen-play';
-    const { persister } = await renderScreen({ seed });
+    await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
     expect(screen.getByTestId(testId(GAME_ID, 'stimulus'))).toBeOnTheScreen();

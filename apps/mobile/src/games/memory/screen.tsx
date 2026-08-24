@@ -302,7 +302,7 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
       }
       return 'idle';
     },
-    [state.phase, state.revealedIndex, state.sequence, state.inputIndex, state.roundOutcome, state.taps, state.length],
+    [state.phase, state.revealedIndex, state.sequence, state.inputIndex, state.roundOutcome, state.taps],
   );
 
   const view: GameHostView =

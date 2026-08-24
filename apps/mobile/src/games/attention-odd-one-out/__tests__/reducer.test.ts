@@ -7,7 +7,6 @@ import { generateBoard } from '../generator';
 import { oddOneOutReducer } from '../reducer';
 import { perfectSessionScore } from '../scoring';
 import {
-  ADAPTIVE_PARAMS,
   ODD_ONE_OUT_DIFFICULTY_PARAMS,
   effectiveParamsForStep,
   escalateStep,
@@ -150,6 +149,35 @@ describe('tick', () => {
 });
 
 describe('tap-tile', () => {
+  it('ignores a tap after the monotonic deadline (no post-deadline grace)', () => {
+    const state = startSession('late-tap', 'normal');
+    // Deadline is NOW + 12_000; a tap one tick later must be an exact no-op —
+    // the round stays in `playing` and the timeout path still resolves it.
+    const late = oddOneOutReducer(state, {
+      type: 'tap-tile',
+      index: expectedBoard(state, 'late-tap').oddIndex,
+      nowMs: NOW + 12_001,
+    });
+    expect(late).toBe(state);
+    expect(Object.is(late, state)).toBe(true);
+
+    // A tap exactly at the boundary is honored (tie goes to the player), and
+    // the tick-driven timeout still ends an unanswered round.
+    const atBoundary = oddOneOutReducer(state, {
+      type: 'tap-tile',
+      index: expectedBoard(state, 'late-tap').oddIndex,
+      nowMs: NOW + 12_000,
+    });
+    expect(atBoundary.phase).toBe('roundResult');
+    expect(atBoundary.roundOutcome).toBe('passed');
+
+    const timedOut = oddOneOutReducer(late, { type: 'round-timeout' });
+    expect(timedOut.phase).toBe('roundResult');
+    expect(timedOut.roundOutcome).toBe('timeout');
+    expect(timedOut.stats.timeouts).toBe(1);
+    expect(timedOut.stats.roundsPlayed).toBe(1);
+  });
+
   it('passes the round on the first try with points + bonus', () => {
     let state = startSession('tap', 'normal');
     state = oddOneOutReducer(state, { type: 'tap-tile', index: expectedBoard(state, 'tap').oddIndex, nowMs: NOW + 6_000 });

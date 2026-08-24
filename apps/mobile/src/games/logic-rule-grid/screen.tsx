@@ -130,7 +130,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       });
     }, resolved.roundTimeMs);
     return () => clearTimeout(handle);
-  }, [state.phase, state.roundIndex, state.paused, state.profile, clock, dispatch]);
+  }, [state.phase, state.roundIndex, state.paused, state.currentRound, state.profile, clock, dispatch]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.

@@ -66,8 +66,6 @@ const SELECT_ALL_SESSIONS = "SELECT * FROM game_sessions";
 const SELECT_SUMMARY_COLUMNS =
   "SELECT id, game_id AS gameId, xp, normalized_result AS normalizedResult, " +
   "duration_ms AS durationMs, completed_at AS completedAt FROM game_sessions";
-const SELECT_LEDGER_FOR_SESSION =
-  "SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE session_id = ? ORDER BY id ASC LIMIT 1";
 /** Stable idempotency key for a session's gameplay currency award. */
 const gameplayOperationId = (sessionId: string): string =>
   `gameplay:${sessionId}`;
@@ -103,8 +101,6 @@ const SELECT_AGGREGATE_BY_GAME = `
          MAX(completed_at) AS lastCompletedAt
   FROM game_sessions WHERE game_id = ? GROUP BY game_id`;
 const SELECT_BALANCE = "SELECT balance FROM currency_balance";
-const INSERT_LEDGER_ENTRY =
-  "INSERT INTO currency_ledger (amount, reason, session_id, created_at) VALUES (?, ?, ?, ?)";
 const INSERT_LEDGER_ENTRY_OP =
   "INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)";
 const PROFILE_INSERT_IF_ABSENT =

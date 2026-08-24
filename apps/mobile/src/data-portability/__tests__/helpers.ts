@@ -31,7 +31,6 @@ export interface SeedOptions {
  * control over ids/values.
  */
 export async function seedFixture(db: AppDatabase, opts: SeedOptions = {}): Promise<void> {
-  const now = opts.now ?? (() => T0);
   await db.transaction(async (txn) => {
     await txn.run(
       "INSERT OR REPLACE INTO profile (id, display_name, settings_json, created_at, updated_at) VALUES ('local', 'Tester', ?, ?, ?)",

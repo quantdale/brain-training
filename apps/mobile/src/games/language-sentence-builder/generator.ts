@@ -18,7 +18,6 @@ import type { Rng } from "@/sdk";
 import type {
  CuratedSentence,
  ScrambledSentence,
- SentenceBuilderDifficultyParams,
 } from "./types";
 
 /** Upper bound on re-draw attempts before accepting the last candidate scramble. */

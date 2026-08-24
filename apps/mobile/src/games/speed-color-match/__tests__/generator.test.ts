@@ -2,11 +2,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { createRng } from '@/sdk';
 
-import {
-  MAX_CONSECUTIVE_INCONGRUENT,
-  generateTrials,
-  satisfiesStreakConstraint,
-} from '../generator';
+import { generateTrials, satisfiesStreakConstraint } from '../generator';
 
 function countIncongruent(trials: ReturnType<typeof generateTrials>): number {
   return trials.filter((t) => t.swatchColor !== t.labelColor).length;

@@ -6,7 +6,6 @@ import {
   createLanguageTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { LanguageAction } from '../types';
 
 describe('createLanguageQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

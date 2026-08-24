@@ -17,7 +17,6 @@
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()`.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   orderPathParamsFromProfile,
@@ -26,11 +25,10 @@ import {
 import { generateRound } from './generator';
 import { availableNext } from './solver';
 import { roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialOrderPathState } from './types';
+import { INITIAL_STATS, createInitialOrderPathState } from './types';
 import type {
   OrderPathAction,
   OrderPathGameState,
-  OrderPathRound,
   OrderPathStats,
 } from './types';
 

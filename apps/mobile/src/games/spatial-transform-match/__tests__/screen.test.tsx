@@ -12,11 +12,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 
-import { applyTransform, generateRoundData, generateSourcePattern } from '../generator';
+import { generateRoundData } from '../generator';
 import SpatialTransformMatchScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
-import { GAME_ID, TRANSFORM_LABELS } from '../types';
+import { GAME_ID } from '../types';
 import type { SpatialTransformMatchRawResult } from '../types';
 import { DIFFICULTY_PARAMS } from '../difficulty';
 

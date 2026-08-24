@@ -33,7 +33,6 @@ import {
 } from "@/sdk";
 import type {
   Clock,
-  DifficultyLevel,
   TutorialStore,
   XpRatingHook,
 } from "@/sdk";
@@ -304,7 +303,6 @@ export default function SpatialTransformMatchScreen(
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? "normal";
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({

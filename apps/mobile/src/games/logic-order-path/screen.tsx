@@ -245,6 +245,7 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
     state.seed,
     state.stats,
     state.forced,
+    state.difficulty,
     session,
     xpHook,
     persistSession,

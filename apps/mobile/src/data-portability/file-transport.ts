@@ -61,6 +61,9 @@ let fsCache: FileSystemModule | undefined;
 function fileSystem(): FileSystemModule {
  fsCache ??= requireNativeModule(
   "expo-file-system",
+  // Lazy native load: keeps this module importable before the dev client is
+  // rebuilt (see LAZY NATIVE IMPORTS note above).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   () => require("expo-file-system") as FileSystemModule,
  );
  return fsCache;
@@ -70,6 +73,9 @@ let pickerCache: PickerModule | undefined;
 function documentPicker(): PickerModule {
  pickerCache ??= requireNativeModule(
   "expo-document-picker",
+  // Lazy native load: a stale dev client must surface as a typed error at
+  // first use, not crash startup (see LAZY NATIVE IMPORTS note above).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   () => require("expo-document-picker") as PickerModule,
  );
  return pickerCache;
@@ -79,6 +85,9 @@ let sharingCache: SharingModule | undefined;
 function sharing(): SharingModule {
  sharingCache ??= requireNativeModule(
   "expo-sharing",
+  // Lazy native load: same stale-dev-client hazard as above; defer until
+  // first share operation.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   () => require("expo-sharing") as SharingModule,
  );
  return sharingCache;

@@ -256,6 +256,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     state.forced,
     state.currentTier,
     state.roundOutcomes,
+    state.difficulty,
     session,
     xpHook,
     persistSession,

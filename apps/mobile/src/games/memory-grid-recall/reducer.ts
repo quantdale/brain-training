@@ -12,7 +12,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from "@/sdk";
-import type { DifficultyProfile } from "@/sdk";
 
 import {
   gridRecallParamsFromProfile,
@@ -25,7 +24,10 @@ import {
   referenceMaxTargets,
   roundScore,
 } from "./scoring";
-import { GAME_ID, INITIAL_STATS, createInitialGridRecallState } from "./types";
+import {
+  INITIAL_STATS,
+  createInitialGridRecallState,
+} from "./types";
 import type {
   GridRecallAction,
   GridRecallGameState,
@@ -135,7 +137,6 @@ export function gridRecallGameReducer(
         ) -
           25 * roundWrongTaps,
       );
-      const params = gridRecallParamsFromProfile(state.profile!);
       const streak = passed ? state.stats.streak + 1 : 0;
       const stats: GridRecallStats = {
         score: state.stats.score + roundPoints,

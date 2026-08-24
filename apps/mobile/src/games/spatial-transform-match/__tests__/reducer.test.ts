@@ -1,12 +1,10 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it } from '@jest/globals';
-import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { gameReducer } from '../reducer';
 import { createInitialState } from '../types';
 import type { SpatialTransformMatchGameState } from '../types';
-import { generateRoundData } from '../generator';
 import { perfectSessionScore } from '../scoring';
 import { DIFFICULTY_PARAMS } from '../difficulty';
 

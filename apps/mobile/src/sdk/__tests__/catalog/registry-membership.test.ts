@@ -65,8 +65,6 @@ const REQUIRED_FILES = [
   'components/qa-panel.tsx',
 ] as const;
 
-const SEMVER_PATTERN = /^\d+\.\d+\.\d+$/;
-
 /**
  * Load a game module through jest's CJS resolver. The default jest VM forbids
  * true dynamic `import()` (needs --experimental-vm-modules), so the suites

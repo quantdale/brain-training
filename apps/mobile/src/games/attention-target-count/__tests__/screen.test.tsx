@@ -9,7 +9,13 @@ import { TARGET_COUNT_DIFFICULTY_PARAMS } from '../difficulty';
 import { generateRound } from '../generator';
 import type { SessionPersistence } from '../session';
 import type { CompleteSessionResult } from '@/db';
-import { createRng, noopAudioHaptics, setLiveAudioHaptics, testId } from '@/sdk';
+import {
+  createInMemoryTutorialStore,
+  createRng,
+  noopAudioHaptics,
+  setLiveAudioHaptics,
+  testId,
+} from '@/sdk';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -17,7 +23,6 @@ jest.mock('expo-router', () => ({
 
 /** Tutorial store that already completed the tutorial (skips first-play). */
 function completedStore() {
-  const { createInMemoryTutorialStore } = require('@/sdk');
   const store = createInMemoryTutorialStore();
   store.setTutorialState(GAME_ID, { completed: true, replayRequested: false, version: '1.0.0' });
   return store;

@@ -18,7 +18,7 @@
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
-import type { ColorStroopDifficultyParams, ColorStroopRawResult, ColorStroopStats } from './types';
+import type { ColorStroopDifficultyParams, ColorStroopRawResult } from './types';
 
 /** Points for a correct trial: 100 base + speed bonus. */
 export function trialScore(responseTimeMs: number, isPostFlip: boolean): number {

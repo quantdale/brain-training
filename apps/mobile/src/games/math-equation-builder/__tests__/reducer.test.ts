@@ -1,12 +1,11 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it } from '@jest/globals';
-import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { mathEquationBuilderGameReducer } from '../reducer';
 import { createInitialMathEquationBuilderState } from '../types';
 import type { MathEquationBuilderGameState } from '../types';
-import { MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS , mathEquationBuilderParamsFromProfile } from '../difficulty';
+import { MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS } from '../difficulty';
 
 function startSession(
   seed: string,
@@ -22,24 +21,6 @@ function startSession(
     startedAtMs: 100,
   });
   return state;
-}
-
-/** Build a valid equation and submit it for the current puzzle. */
-function solveCurrentPuzzle(state: MathEquationBuilderGameState): MathEquationBuilderGameState {
-  let current = state;
-  // For simplicity, add all numbers and then submit.
-  // This may not always produce the target, but tests that need correct answers
-  // should use force-win or a known seed.
-  for (let i = 0; i < current.availableNumbers.length; i += 1) {
-    current = mathEquationBuilderGameReducer(current, { type: 'add-number', numberIndex: i });
-    if (i < current.availableNumbers.length - 1) {
-      current = mathEquationBuilderGameReducer(current, {
-        type: 'add-operator',
-        operator: current.allowedOperators[0],
-      });
-    }
-  }
-  return current;
 }
 
 describe('select-difficulty', () => {

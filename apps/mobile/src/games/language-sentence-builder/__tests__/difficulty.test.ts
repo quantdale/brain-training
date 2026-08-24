@@ -1,6 +1,5 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it } from '@jest/globals';
-import { isDifficultyLevel } from '@/sdk';
 
 import {
   ADAPTIVE_PARAMS,

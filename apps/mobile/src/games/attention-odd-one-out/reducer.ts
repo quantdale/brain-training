@@ -28,7 +28,7 @@ import {
 } from './difficulty';
 import { generateBoard } from './generator';
 import { WRONG_TAP_PENALTY, perfectSessionScore, roundPoints } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialOddOneOutState } from './types';
+import { INITIAL_STATS, createInitialOddOneOutState } from './types';
 import type { OddOneOutAction, OddOneOutGameState, OddOneOutStats } from './types';
 
 export { createInitialOddOneOutState };
@@ -122,6 +122,13 @@ export function oddOneOutReducer(
       if (state.phase !== 'playing' || state.paused || state.board === null) {
         return state;
       }
+      // Correct tap: the round is solved. A tap after the monotonic deadline
+      // is ignored — the window has closed and the next tick owns the timeout
+      // resolution (mirrors quick-compare/order-sweep's post-deadline guard).
+      if (action.nowMs > state.deadlineMs) {
+        return state;
+      }
+
       const { board } = state;
 
       if (action.index !== board.oddIndex) {

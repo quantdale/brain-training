@@ -11,7 +11,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   codeCrackerParamsFromProfile,
@@ -20,7 +19,7 @@ import {
 } from './difficulty';
 import { computeFeedback, generateSecretCode } from './generator';
 import { roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialCodeCrackerState } from './types';
+import { INITIAL_STATS, createInitialCodeCrackerState } from './types';
 import type { CodeCrackerAction, CodeCrackerGameState, CodeCrackerStats } from './types';
 
 export { createInitialCodeCrackerState };

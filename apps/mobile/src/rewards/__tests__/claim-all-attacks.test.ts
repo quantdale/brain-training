@@ -40,7 +40,6 @@ const T0 = 1_700_000_000_000;
 // Fixed LOCAL noon so SQLite DATE(completed_at,'unixepoch','localtime') lands
 // on the intended calendar date on every host timezone.
 const NOW = new Date(2026, 7, 21, 12, 0, 0); // Fri 2026-08-21
-const TODAY = '2026-08-21';
 
 let seq = 0;
 
@@ -102,7 +101,7 @@ async function seedOverlappingClaimables(db: AppDatabase): Promise<void> {
   });
 }
 
-/** Seed the 3 consecutive activity days (TODAY-2 .. TODAY) behind mil-3. */
+/** Seed the 3 consecutive activity days ending on the fixed anchor date (2026-08-19 .. 2026-08-21) behind mil-3. */
 async function seedThreeDayStreak(adapter: SQLiteAdapter): Promise<void> {
   const days: string[] = [];
   for (let i = 2; i >= 0; i -= 1) {

@@ -181,7 +181,7 @@ describe('SentenceBuilderScreen', () => {
 
   it('plays a full normal session end-to-end and persists', async () => {
     const seed = 'e2e-normal';
-    const { clock, persister } = await renderScreen({ seed });
+    const { persister } = await renderScreen({ seed });
 
     // Pre-compute the exact session the reducer will generate.
     // The reducer creates a fresh createRng(seed) per round, so we match.

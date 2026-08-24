@@ -11,7 +11,6 @@ import {
   tapRushParamsForLevel,
   tapRushParamsFromProfile,
 } from '../difficulty';
-import type { TapRushDifficultyParams } from '../types';
 
 describe('Tap Rush difficulty parameter mapping', () => {
   it('maps each fixed level to concrete count/window/size tuning', () => {

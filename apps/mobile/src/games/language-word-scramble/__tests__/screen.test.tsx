@@ -6,7 +6,7 @@
  * the sibling language-game screen tests (context-fit / word-chain).
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import {
   createFakeClock,
   createInMemoryTutorialStore,

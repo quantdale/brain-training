@@ -4,7 +4,6 @@ import { createRng } from '@/sdk';
 
 import { SENTENCE_BANK } from '../content/sentence-bank';
 import {
-  MAX_SCRAMBLE_ATTEMPTS,
   categoryDistance,
   generateRound,
   hasNoDuplicateWords,

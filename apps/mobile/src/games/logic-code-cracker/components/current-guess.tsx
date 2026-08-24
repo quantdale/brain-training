@@ -7,7 +7,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { COLOR_PALETTE } from './color-picker';

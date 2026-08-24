@@ -14,7 +14,6 @@ import type {
   DomainRatingView,
   GameAggregateView,
   PersonalizationContext,
-  PersonalizationOptions,
   RecentSessionView,
 } from './types';
 import { STALE_DOMAIN_DAYS } from './signals';

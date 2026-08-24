@@ -10,7 +10,6 @@
  * supplies `accessibilityRole="button"` and the neutral `label` text.
  */
 import { memo } from 'react';
-import { Pressable } from 'react-native';
 
 import { GameButton } from '@/components/game-ui';
 import type { GameButtonProps } from '@/components/game-ui';

@@ -16,7 +16,7 @@
  * trial wrong WITHOUT ending the session.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
-import { StyleSheet, View } from "react-native";import { useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 import {
   isDevBuild,
@@ -28,8 +28,6 @@ import {
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
 import { GameButton, StatRow } from "@/components/game-ui";
-import { Spacing } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
 import {
   GameHost,
   GameResults,
@@ -65,7 +63,6 @@ import {
 import type { SessionPersistence } from "./session";
 import {
   GAME_ID,
-  STROOP_COLOR_HEX,
   createInitialColorStroopState,
 } from "./types";
 import type { StroopColor } from "./types";
@@ -95,7 +92,6 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     persistSession = dbSessionPersister,
     xpHook = noopXpRatingHook,
   } = props;
-  const theme = useTheme();
   const router = useRouter();
   const [state, dispatch] = useReducer(
     colorStroopGameReducer,
@@ -141,6 +137,11 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     if (state.phase === "stimulus" && !state.paused) {
       trialStartRef.current = clock.now();
     }
+    // `state.paused` is deliberately excluded: this effect must fire only on
+    // stimulus ENTRY. Re-running on unpause would reset the response origin
+    // to resume time and erase the pre-pause span that resumeSession
+    // compensates for (campaign-009 RT invariant).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase, state.trialIndex, clock]);
 
   const tutorial = useMemo(
@@ -518,9 +519,3 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     </GameHost>
   );
 }
-
-const styles = StyleSheet.create({
-  section: {
-    gap: Spacing.three,
-  },
-});

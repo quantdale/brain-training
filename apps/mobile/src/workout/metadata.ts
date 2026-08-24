@@ -122,8 +122,6 @@ export interface ParsedInstanceKey {
   length: WorkoutLength | null;
 }
 
-const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
 /**
  * Decode an instance key. Unknown/malformed shapes never throw: they degrade
  * to `{ kind: 'template', templateId: null, length: null }` keyed by their

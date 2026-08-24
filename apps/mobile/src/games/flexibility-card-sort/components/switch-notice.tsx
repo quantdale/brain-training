@@ -7,7 +7,7 @@
  * `noticeMs` (SDK monotonic clock, driven by the screen's timer) or
  * immediately when the player taps "Got it".
  */
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';

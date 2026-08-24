@@ -14,17 +14,15 @@
  * `isDevBuild()` and the hooks call `assertDevOnly()` (see hooks.ts).
  */
 import { createRng, isDifficultyLevel } from "@/sdk";
-import type { DifficultyProfile } from "@/sdk";
 
 import {
   adaptiveRoundParams,
   logicDeductionParamsFromProfile,
   resolveLogicDeductionDifficulty,
 } from "./difficulty";
-import { generateRound, validateGeneratedRound } from "./generator";
+import { generateRound } from "./generator";
 import { roundScore } from "./scoring";
 import {
-  GAME_ID,
   INITIAL_STATS,
   createInitialLogicDeductionState,
 } from "./types";

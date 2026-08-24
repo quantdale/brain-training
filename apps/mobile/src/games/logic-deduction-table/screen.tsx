@@ -320,11 +320,7 @@ export default function LogicDeductionScreen(
       if (index === state.lastAnswerIndex) return "wrong";
       return "muted";
     },
-    [
-      state.phase,
-      state.round?.correctIndex,
-      state.lastAnswerIndex,
-    ],
+    [state.phase, state.round, state.lastAnswerIndex],
   );
 
   const roundResultMessage =

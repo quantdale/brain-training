@@ -19,7 +19,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import { loadContentPack } from './content-validation';
 import {
@@ -31,7 +30,7 @@ import {
 } from './difficulty';
 import { filterByTiers, selectRound } from './generator';
 import { clamp01, perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialLanguageState } from './types';
+import { INITIAL_STATS, createInitialLanguageState } from './types';
 import type {
   LanguageAction,
   LanguageGameState,

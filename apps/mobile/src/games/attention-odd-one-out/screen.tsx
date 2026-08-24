@@ -28,7 +28,7 @@ import {
   systemClock,
   testId,
 } from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
@@ -284,7 +284,6 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -335,7 +334,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
       }
       return 'idle';
     },
-    [state.phase, state.lastWrongIndex, state.board, state.roundOutcome],
+    [state.phase, state.lastWrongIndex, state.board],
   );
 
   const timeLeftText = `${(state.remainingMs / 1000).toFixed(1)}s`;

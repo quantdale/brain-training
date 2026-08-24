@@ -5,10 +5,6 @@ import type { DifficultyLevel } from '@/sdk';
 import { sentenceBuilderReducer } from '../reducer';
 import { createInitialState } from '../types';
 import type { SentenceBuilderState } from '../types';
-import { createRng } from '@/sdk';
-import { generateRound } from '../generator';
-import { SENTENCE_BANK } from '../content/sentence-bank';
-import { DIFFICULTY_PARAMS } from '../difficulty';
 
 function startSession(
   seed: string,

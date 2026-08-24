@@ -9,7 +9,6 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
 
 import { COLOR_HEX, GAME_ID, type ColorName } from '../types';
@@ -28,8 +27,6 @@ export const ColorButton = memo(function ColorButton({
   disabled = false,
   testID,
 }: ColorButtonProps) {
-  const theme = useTheme();
-
   return (
     <Pressable
       testID={testID ?? testId(GAME_ID, 'color-btn', color)}

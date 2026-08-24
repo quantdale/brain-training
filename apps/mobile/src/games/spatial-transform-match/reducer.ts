@@ -11,7 +11,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   nextFilledCells,
@@ -21,7 +20,7 @@ import {
 } from './difficulty';
 import { generateRoundData } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, TRANSFORM_LABELS, createInitialState } from './types';
+import { INITIAL_STATS, TRANSFORM_LABELS, createInitialState } from './types';
 import type {
   SpatialTransformMatchAction,
   SpatialTransformMatchGameState,
@@ -120,7 +119,6 @@ export function gameReducer(
         return state;
       }
       const correct = action.index === state.correctOptionIndex;
-      const params = paramsFromProfile(state.profile);
       const answerMs = action.answerMs;
 
       if (correct) {

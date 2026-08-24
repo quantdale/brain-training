@@ -1,5 +1,4 @@
 import { describe, expect, it } from '@jest/globals';
-import { AppDatabase } from '@/db';
 import { countLocalData, wipeLocalData } from '../index';
 import { makeDb, seedFixture } from './helpers';
 

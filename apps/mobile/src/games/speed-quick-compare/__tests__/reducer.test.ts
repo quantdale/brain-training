@@ -3,7 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { DifficultyLevel } from '@/sdk';
 
 import { quickCompareGameReducer, createInitialQuickCompareState } from '../reducer';
-import { QUICK_COMPARE_DIFFICULTY_PARAMS, quickCompareParamsFromProfile } from '../difficulty';
+import { QUICK_COMPARE_DIFFICULTY_PARAMS } from '../difficulty';
 import { perfectSessionScore } from '../scoring';
 import type { QuickCompareGameState } from '../types';
 

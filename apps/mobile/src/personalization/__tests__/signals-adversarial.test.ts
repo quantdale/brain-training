@@ -22,16 +22,10 @@ import type { GameDefinition } from '@/sdk';
 import { buildPersonalizationContext } from '../context';
 import {
   DAY_MS,
-  FATIGUE_FREE_SESSIONS,
   FATIGUE_RECENT_SESSIONS,
   FIT_BAND,
-  FORM_SESSIONS,
-  MIN_TREND_SESSIONS,
   NOVELTY_MAX_SESSIONS,
-  PB_PROXIMITY_GAP,
   STALE_DOMAIN_DAYS,
-  TREND_SATURATION,
-  UNDERTRAINED_MIN_SESSIONS,
   WEAK_DOMAIN_RATING_THRESHOLD,
   WEAKNESS_FULL_AT_DROP,
   computeDomainSignals,

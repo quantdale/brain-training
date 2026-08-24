@@ -14,7 +14,7 @@
  */
 import type { Rng } from "@/sdk";
 
-import { categoryForWord, WORD_BANK, WORD_LIST } from "./content/word-bank";
+import { categoryForWord, WORD_BANK } from "./content/word-bank";
 import type { WordScrambleRound } from "./types";
 
 /** Upper bound on re-draw attempts before the last candidate is accepted. */

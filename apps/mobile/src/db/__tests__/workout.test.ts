@@ -9,7 +9,6 @@
  */
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
-import { createNodeSqliteAdapter } from '../adapters/node';
 import { createMigratedDb } from './helpers';
 import { WorkoutRepository } from '../workout';
 

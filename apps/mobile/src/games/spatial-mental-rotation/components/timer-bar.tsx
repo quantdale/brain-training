@@ -8,7 +8,7 @@
  */
 import { StyleSheet, View } from 'react-native';
 
-import { Radii, Spacing } from '@/constants/theme';
+import { Radii } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export interface TimerBarProps {

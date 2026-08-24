@@ -5,7 +5,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 import { STROOP_COLOR_HEX } from '../types';
 import type { StroopColor } from '../types';
@@ -17,7 +16,6 @@ interface StimulusDisplayProps {
 }
 
 export function StimulusDisplay({ word, inkColor, testID }: StimulusDisplayProps) {
-  const theme = useTheme();
   const hexColor = STROOP_COLOR_HEX[inkColor];
 
   return (

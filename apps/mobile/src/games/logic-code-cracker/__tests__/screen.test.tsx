@@ -1,10 +1,10 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import CodeCrackerScreen from '../screen';
 import { GAME_ID } from '../types';
-import { testId } from '@/sdk';
+import { createInMemoryTutorialStore, testId } from '@/sdk';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -12,7 +12,6 @@ jest.mock('expo-router', () => ({
 
 /** Tutorial store that already completed the tutorial (skips first-play). */
 function completedStore() {
-  const { createInMemoryTutorialStore } = require('@/sdk');
   const store = createInMemoryTutorialStore();
   store.setTutorialState(GAME_ID, { completed: true, replayRequested: false, version: '1.0.0' });
   return store;

@@ -19,7 +19,6 @@
  * the response window — no window time, tallies, or inputs move while covered.
  */
 import { createRng, isDifficultyLevel } from "@/sdk";
-import type { DifficultyProfile } from "@/sdk";
 
 import {
   nextItemMs,
@@ -30,7 +29,6 @@ import {
 import { generateRound } from "./generator";
 import { itemPoints, perfectSessionScore } from "./scoring";
 import {
-  GAME_ID,
   INITIAL_STATS,
   createInitialProspectiveCueState,
 } from "./types";

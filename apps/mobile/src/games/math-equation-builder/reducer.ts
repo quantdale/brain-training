@@ -11,7 +11,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import { evaluateEquation } from './evaluator';
 import {
@@ -22,7 +21,6 @@ import {
 import { generatePuzzle } from './generator';
 import { partialCreditScore, perfectSessionScore, puzzleScore } from './scoring';
 import {
-  GAME_ID,
   INITIAL_STATS,
   createInitialMathEquationBuilderState,
 } from './types';
@@ -31,7 +29,6 @@ import type {
   MathEquationBuilderAction,
   MathEquationBuilderGameState,
   MathEquationBuilderStats,
-  Operator,
 } from './types';
 
 export { createInitialMathEquationBuilderState };

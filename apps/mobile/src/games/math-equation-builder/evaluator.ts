@@ -92,8 +92,6 @@ export function canSolve(
   numbers: readonly number[],
   operators: readonly Operator[],
 ): boolean {
-  const results = new Set<number>();
-
   function combine(nums: readonly number[]): Set<number> {
     if (nums.length === 1) {
       return new Set([nums[0]]);
@@ -187,8 +185,6 @@ export function getAchievableTargets(
   numbers: readonly number[],
   operators: readonly Operator[],
 ): Set<number> {
-  const results = new Set<number>();
-
   function combine(nums: readonly number[]): Set<number> {
     if (nums.length === 1) {
       return new Set([nums[0]]);

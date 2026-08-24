@@ -117,13 +117,18 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
   // Capture the round's start time (lifecycle elapsed) whenever a question
   // round begins. Pausing does not move the lifecycle elapsed time, so
   // response = elapsed(at answer) - elapsed(at round start) excludes pauses.
+  // Keyed on the phase only (as before the GameHost migration):
+  // - `session` is a per-render object; adding it would re-run on every render
+  //   and reset the baseline mid-round. Its `elapsedMs` is a stable callback,
+  //   so the captured reference stays valid.
+  // - `state.paused` must NOT re-arm the baseline: on resume the lifecycle
+  //   clock continues where it froze, so the delta still covers pre-pause
+  //   thinking time while excluding the paused span itself.
   useEffect(() => {
     if (state.phase === 'question' && !state.paused) {
       roundStartElapsedRef.current = session.elapsedMs();
     }
-    // Keyed on the phase only (as before the GameHost migration): re-running
-    // on every render would reset the baseline mid-round and collapse the
-    // measured response times.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
   // ---- First play: open the tutorial automatically.

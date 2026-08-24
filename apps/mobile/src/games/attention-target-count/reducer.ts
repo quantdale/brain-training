@@ -11,7 +11,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   resolveTargetCountDifficulty,
@@ -19,7 +18,7 @@ import {
 } from './difficulty';
 import { generateRound } from './generator';
 import { roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialTargetCountState } from './types';
+import { INITIAL_STATS, createInitialTargetCountState } from './types';
 import type { TargetCountAction, TargetCountGameState, TargetCountStats } from './types';
 
 export { createInitialTargetCountState };

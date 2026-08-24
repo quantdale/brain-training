@@ -21,7 +21,7 @@ import {
   systemClock,
   testId,
 } from '@/sdk';
-import type { Clock, DifficultyLevel, TutorialStore, XpRatingHook } from '@/sdk';
+import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
@@ -250,7 +250,6 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;
-    const level = current.difficulty ?? 'normal';
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
     const identity = session.begin();
     dispatch({
@@ -296,7 +295,7 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
       }
       return 'idle';
     },
-    [state.phase, state.selectedIndex, state.roundOutcome, state.currentRound?.correctIndex],
+    [state.phase, state.selectedIndex, state.roundOutcome, state.currentRound],
   );
 
   const view: GameHostView =

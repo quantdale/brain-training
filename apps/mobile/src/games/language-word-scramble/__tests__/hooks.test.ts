@@ -6,7 +6,6 @@ import {
   createWordScrambleTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { WordScrambleAction } from '../types';
 
 describe('createWordScrambleQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

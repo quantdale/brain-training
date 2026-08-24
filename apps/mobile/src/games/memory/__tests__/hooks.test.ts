@@ -6,7 +6,6 @@ import {
   createMemoryTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { MemoryAction } from '../types';
 
 describe('createMemoryQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

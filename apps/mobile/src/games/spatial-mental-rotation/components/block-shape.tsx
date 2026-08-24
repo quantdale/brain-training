@@ -17,7 +17,7 @@ import { testId } from '@/sdk';
 import { Radii, Spacing, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { BLOCK_COLOR_COUNT, GAME_ID } from '../types';
+import { GAME_ID } from '../types';
 import type { Block } from '../types';
 
 /** Palette slots for block colors; length must equal `BLOCK_COLOR_COUNT`. */

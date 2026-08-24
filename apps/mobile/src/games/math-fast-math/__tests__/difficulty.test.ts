@@ -16,7 +16,6 @@ import {
   sessionChallengeRating,
 } from '../difficulty';
 import { OPERATORS } from '../types';
-import type { MathDifficultyParams } from '../types';
 
 describe('Fast Math difficulty parameter mapping', () => {
   it('maps each fixed level to concrete rounds/budget/mix/ranges tuning', () => {

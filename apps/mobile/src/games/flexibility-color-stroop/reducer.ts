@@ -5,7 +5,6 @@
  * side effects — so the whole loop is unit testable without a UI.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   colorStroopParamsFromProfile,
@@ -13,8 +12,8 @@ import {
 } from './difficulty';
 import { generateTrials } from './generator';
 import { perfectSessionScore, trialScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialColorStroopState } from './types';
-import type { ColorStroopAction, ColorStroopGameState, ColorStroopStats, StroopColor } from './types';
+import { INITIAL_STATS, createInitialColorStroopState } from './types';
+import type { ColorStroopAction, ColorStroopGameState, ColorStroopStats } from './types';
 
 export { createInitialColorStroopState };
 

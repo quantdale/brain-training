@@ -6,7 +6,6 @@ import {
   createMathTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { MathAction } from '../types';
 
 describe('createMathQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

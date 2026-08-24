@@ -49,7 +49,7 @@ import {
   createPairRecallQaForceStateHooks,
   createPairRecallTutorialLifecycle,
 } from "./hooks";
-import { responseById, stimulusById } from "./pairs";
+import { stimulusById } from "./pairs";
 import { pairRecallGameReducer } from "./reducer";
 import { normalizePairRecallResult } from "./scoring";
 import {

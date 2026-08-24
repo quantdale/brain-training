@@ -8,7 +8,6 @@
  * per-game "Force timeout" dev action via `QaPanelShell.extraActions`.
  */
 import { QaPanelShell } from "@/components/game-ui";
-import { testId } from "@/sdk";
 
 import { GAME_ID } from "../types";
 

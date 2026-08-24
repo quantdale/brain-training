@@ -6,7 +6,7 @@ import type { DifficultyLevel } from '@/sdk';
 import { codeCrackerGameReducer } from '../reducer';
 import { createInitialCodeCrackerState } from '../types';
 import type { CodeCrackerGameState } from '../types';
-import { generateSecretCode, computeFeedback } from '../generator';
+import { generateSecretCode } from '../generator';
 import { perfectSessionScore } from '../scoring';
 import { CODE_CRACKER_DIFFICULTY_PARAMS } from '../difficulty';
 

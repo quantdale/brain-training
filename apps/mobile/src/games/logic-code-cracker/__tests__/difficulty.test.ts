@@ -24,8 +24,9 @@ describe('codeCrackerParamsForLevel', () => {
   });
 
   it('returns fresh objects (not the frozen defaults)', () => {
-    const params = { ...codeCrackerParamsForLevel('easy') };
+    const params = { ...codeCrackerParamsForLevel('easy') } as { codeLength: number };
     // Mutating the copy should not affect the defaults.
+    params.codeLength = 99;
     expect(codeCrackerParamsForLevel('easy').codeLength).toBe(3);
   });
 });

@@ -20,10 +20,9 @@ import { Spacing } from '@/constants/theme';
 import { computeFeedback, generateSecretCode } from '../generator';
 import { GAME_ID } from '../types';
 import { GameButton, TutorialFrame } from '@/components/game-ui';
-import { ColorPicker, COLOR_PALETTE, COLOR_NAMES } from './color-picker';
+import { ColorPicker } from './color-picker';
 import { CurrentGuess } from './current-guess';
 import { FeedbackPegs } from './feedback-pegs';
-import { SecretReveal } from './secret-reveal';
 
 /** Deterministic demo seed so the tutorial code is identical on every device. */
 export const TUTORIAL_DEMO_SEED = 'code-cracker-tutorial-demo-v1';
@@ -115,7 +114,7 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
       }
       setCurrentGuess([...currentGuess, colorIndex]);
     },
-    [currentGuess, DEMO_CODE_LENGTH],
+    [currentGuess],
   );
 
   const handleSubmit = () => {

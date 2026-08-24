@@ -11,12 +11,11 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import { ruleGridParamsFromProfile, resolveRuleGridDifficulty } from './difficulty';
 import { generateRound } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialRuleGridState } from './types';
+import { INITIAL_STATS, createInitialRuleGridState } from './types';
 import type { RuleGridAction, RuleGridGameState, RuleGridStats } from './types';
 
 export { createInitialRuleGridState };

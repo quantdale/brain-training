@@ -12,7 +12,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   adaptiveGridSize,
@@ -22,7 +21,7 @@ import {
 } from './difficulty';
 import { generateRoundSequence } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialState } from './types';
+import { INITIAL_STATS, createInitialState } from './types';
 import type { PatternTapBackAction, PatternTapBackState, PatternTapBackStats } from './types';
 
 export { createInitialState };
@@ -118,7 +117,6 @@ export function gameReducer(
           };
         }
         // Round completed successfully.
-        const params = paramsFromProfile(state.profile);
         const streak = state.stats.streak + 1;
         const score = state.stats.score + roundScore(state.length);
         const stats: PatternTapBackStats = {

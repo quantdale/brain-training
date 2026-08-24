@@ -6,7 +6,6 @@ import {
   createTapRushTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { TapRushAction } from '../types';
 
 describe('createTapRushQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

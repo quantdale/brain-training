@@ -33,7 +33,7 @@ import {
 import { generateRound } from './generator';
 import { applyRoundOutcome, perfectSessionScore } from './scoring';
 import { INITIAL_STATS, createInitialQuickCompareState } from './types';
-import type { CompareVerdict, QuickCompareAction, QuickCompareDifficultyParams, QuickCompareGameState, QuickCompareStats } from './types';
+import type { CompareVerdict, QuickCompareAction, QuickCompareGameState, QuickCompareStats } from './types';
 
 export { createInitialQuickCompareState };
 
@@ -91,7 +91,6 @@ export function quickCompareGameReducer(
       if (state.deadlineMs !== null && action.nowMs > state.deadlineMs) {
         return state;
       }
-      const params = quickCompareParamsFromProfile(state.profile);
       const reactionMs = Math.max(0, action.nowMs - (state.roundStartedAtMs ?? action.nowMs));
       const correct = action.index === state.round.correctIndex;
       const verdict: CompareVerdict = correct ? 'correct' : 'incorrect';

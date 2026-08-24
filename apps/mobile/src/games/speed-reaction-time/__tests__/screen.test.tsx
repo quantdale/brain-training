@@ -265,7 +265,7 @@ describe('SpeedScreen', () => {
 
   it('ends the session early when the false-start budget is exceeded', async () => {
     const seed = 'false-start';
-    const { clock, persister } = await renderScreen({ seed });
+    const { persister } = await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
 

@@ -25,7 +25,7 @@
  */
 import type { Rng } from '@/sdk';
 
-import type { ValueOrderingDifficultyParams, ValueOrderingRound, ValueTile } from './types';
+import type { ValueOrderingDifficultyParams, ValueOrderingRound } from './types';
 
 /** Upper bound on whole-round re-draws before the last candidate is accepted. */
 export const MAX_ROUND_ATTEMPTS = 20;

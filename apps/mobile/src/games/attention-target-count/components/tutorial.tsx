@@ -25,7 +25,6 @@ import { SYMBOLS, SYMBOL_NAMES } from '../generator';
 /** Deterministic demo content so the tutorial example is identical on every device. */
 const DEMO_TARGET_INDEX = SYMBOLS.indexOf('★');
 const DEMO_CELLS = ['★', '●', '★', '▲', '■', '★', '◆', '●', '★'];
-const DEMO_OPTIONS = [2, 3, 4, 5];
 
 type TutorialStep = 'intro' | 'demo' | 'done';
 

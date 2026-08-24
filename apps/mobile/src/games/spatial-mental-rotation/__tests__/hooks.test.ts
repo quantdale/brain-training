@@ -6,7 +6,6 @@ import {
   createSpatialTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { SpatialAction } from '../types';
 
 describe('createSpatialQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

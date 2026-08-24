@@ -12,7 +12,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from "@/sdk";
-import type { DifficultyProfile } from "@/sdk";
 
 import {
   runningOrderParamsFromProfile,
@@ -26,7 +25,6 @@ import {
   roundScore,
 } from "./scoring";
 import {
-  GAME_ID,
   INITIAL_STATS,
   createInitialRunningOrderState,
 } from "./types";

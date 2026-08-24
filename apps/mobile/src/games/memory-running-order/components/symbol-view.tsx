@@ -14,7 +14,6 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { testId } from '@/sdk';
 import { symbolById, type RunningOrderSymbol } from '../symbols';
 
 export interface SymbolViewProps {

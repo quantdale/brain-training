@@ -6,7 +6,6 @@ import {
   createMathEquationBuilderTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { MathEquationBuilderAction } from '../types';
 
 describe('createMathEquationBuilderQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

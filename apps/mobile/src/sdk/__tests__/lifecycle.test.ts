@@ -42,7 +42,8 @@ describe('SessionLifecycle transitions', () => {
       ['pause twice', (l) => { l.start(); l.pause(); l.pause(); }],
       ['resume while active', (l) => { l.start(); l.resume(); }],
     ];
-    for (const [label, act] of cases) {
+    // First tuple slot documents each illegal case in source; only the action runs.
+    for (const [, act] of cases) {
       const lifecycle = new SessionLifecycle();
       expect(() => act(lifecycle)).toThrow(IllegalTransitionError);
     }

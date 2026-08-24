@@ -18,7 +18,7 @@
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
-import type { SpeedColorMatchDifficultyParams, SpeedColorMatchRawResult } from './types';
+import type { SpeedColorMatchRawResult } from './types';
 
 /**
  * Compute the score for a single correct trial.

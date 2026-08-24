@@ -115,12 +115,24 @@ export default function SignalWatchScreen(
   if (windowElapsedState.itemIndex !== state.itemIndex) {
     setWindowElapsedState({ itemIndex: state.itemIndex, elapsedMs: 0 });
   }
-  // Pure-derived read for render/press paths (0 until the adjustment above
+  // Pure-derived read for render paths (0 until the adjustment above
   // commits for a freshly-switched item).
   const windowElapsedMs =
     windowElapsedState.itemIndex === state.itemIndex
       ? windowElapsedState.elapsedMs
       : 0;
+  /**
+   * Cross-lifecycle seed for the response-window accumulator: pausing or
+   * covering the stream must resume the REMAINING window, not grant a fresh
+   * one. Written and read ONLY inside the pacing effect below — never during
+   * render and never from event handlers — so renders stay pure per the
+   * campaign-011 rule. The press path reads the committed render state via
+   * fully-specified useCallback deps instead (see handleRespond).
+   */
+  const windowElapsedSeedRef = useRef({
+    itemIndex: state.itemIndex,
+    elapsedMs: 0,
+  });
 
   useEffect(() => {
     stateRef.current = state;
@@ -166,8 +178,9 @@ export default function SignalWatchScreen(
   // Response-window pacing with freeze-and-continue: a window of `itemMs` of
   // ACTIVE (non-paused, tutorial-closed) time, accumulated in 50ms steps.
   // While paused OR the tutorial overlay is open the interval is cleared so
-  // no window time accrues; on resume/close it continues from where it left
-  // off. Expiry dispatches an index-stamped `item-timeout` — only the
+  // no window time accrues; on resume/close the accumulator is re-seeded
+  // from the mirror so the REMAINING window continues (never a restart).
+  // Expiry dispatches an index-stamped `item-timeout` — only the
   // interval that owns the current item can expire it.
   //
   // Kept as a game-local effect (not `useGameInterval`) DELIBERATELY: the
@@ -181,15 +194,27 @@ export default function SignalWatchScreen(
       return undefined;
     }
     const itemIndex = state.itemIndex;
-    let elapsedMs = 0;
+    // Freeze-and-continue seed: same item → keep accumulated ACTIVE time
+    // across pause/tutorial coverage; fresh item → start at 0. Without this,
+    // a resume silently granted a full fresh window on every pause/resume.
+    // The accumulator lives in the seed ref itself (no outer mutable
+    // binding captured by the tick closure — keeps the value's mutable
+    // range legible to the React Compiler).
+    const seed = windowElapsedSeedRef.current;
+    const startMs = seed.itemIndex === itemIndex ? seed.elapsedMs : 0;
+    windowElapsedSeedRef.current = { itemIndex, elapsedMs: startMs };
     const interval = setInterval(() => {
-      elapsedMs = Math.min(itemMs, elapsedMs + WINDOW_TICK_MS);
+      // Accumulate UNCLAMPED ticks in the seed ref (nothing derived from
+      // itemMs is ever stored there); clamp only at the consumers.
+      const rawElapsedMs =
+        windowElapsedSeedRef.current.elapsedMs + WINDOW_TICK_MS;
+      windowElapsedSeedRef.current = { itemIndex, elapsedMs: rawElapsedMs };
       setWindowElapsedState((prev) =>
         prev.itemIndex === itemIndex
-          ? { ...prev, elapsedMs }
+          ? { ...prev, elapsedMs: Math.min(rawElapsedMs, itemMs) }
           : prev,
       );
-      if (elapsedMs >= itemMs) {
+      if (rawElapsedMs >= itemMs) {
         clearInterval(interval);
         dispatch({ type: "item-timeout", itemIndex });
       }
@@ -352,33 +377,36 @@ export default function SignalWatchScreen(
     router.back();
   }, [session, router]);
 
-  const handleRespond = useCallback(
-    (kind: "go" | "signal") => {
-      const current = stateRef.current;
-      if (
-        current.phase !== "stream" ||
-        current.paused ||
-        current.tutorialOpen ||
-        current.roundScored
-      ) {
-        return;
-      }
-      // State-carried drain (≤ one 50 ms tick stale) is the press-path truth;
-      // a press on a freshly-switched item reads 0 elapsed.
-      const pressedElapsedMs =
-        windowElapsedState.itemIndex === current.itemIndex
-          ? windowElapsedState.elapsedMs
-          : 0;
-      const elapsedFraction = Math.min(
-        1,
-        Math.max(0, pressedElapsedMs / itemMs),
-      );
-      // Stamped with the item the player actually saw; the reducer ignores
-      // presses for any other index (double-tap / late-press protection).
-      dispatch({ type: "respond", kind, elapsedFraction, itemIndex: current.itemIndex });
-    },
-    [dispatch, itemMs],
-  );
+  // NOTE: deliberately NOT wrapped in useCallback. The React Compiler
+  // cannot preserve a manual memo whose dependency chain includes the
+  // render-derived `itemMs` (preserve-manual-memoization), and freshness
+  // matters more than identity here: a per-render closure always sees the
+  // latest committed window drain, and ResponseControls is not memoized,
+  // so nothing downstream benefited from a stable identity.
+  const handleRespond = (kind: "go" | "signal") => {
+    const current = stateRef.current;
+    if (
+      current.phase !== "stream" ||
+      current.paused ||
+      current.tutorialOpen ||
+      current.roundScored
+    ) {
+      return;
+    }
+    // Committed drain (≤ one WINDOW_TICK_MS stale) is the press-path
+    // truth; a press on a freshly-switched item reads 0 elapsed.
+    const pressedElapsedMs =
+      windowElapsedState.itemIndex === current.itemIndex
+        ? windowElapsedState.elapsedMs
+        : 0;
+    const elapsedFraction = Math.min(
+      1,
+      Math.max(0, pressedElapsedMs / itemMs),
+    );
+    // Stamped with the item the player actually saw; the reducer ignores
+    // presses for any other index (double-tap / late-press protection).
+    dispatch({ type: "respond", kind, elapsedFraction, itemIndex: current.itemIndex });
+  };
 
   const handleStart = useCallback(() => {
     const current = stateRef.current;

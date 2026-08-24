@@ -3,10 +3,8 @@
  */
 import { describe, expect, it } from "@jest/globals";
 
-const {
-  parseSemver,
-  versionCodeFromSemver,
-} = require("../with-deterministic-version");
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- plugin is plain CJS .js outside tsconfig include (no type declarations for a static import)
+const { parseSemver, versionCodeFromSemver } = require("../with-deterministic-version");
 
 describe("versionCodeFromSemver", () => {
   it("encodes the current app version deterministically", () => {

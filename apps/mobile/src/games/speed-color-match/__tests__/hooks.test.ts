@@ -6,7 +6,6 @@ import {
   createSpeedColorMatchTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { SpeedColorMatchAction } from '../types';
 
 describe('createSpeedColorMatchQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

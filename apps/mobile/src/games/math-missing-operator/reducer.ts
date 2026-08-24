@@ -18,7 +18,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   adaptiveRatingAfter,
@@ -28,7 +27,7 @@ import {
 } from './difficulty';
 import { generateEquation } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialMathMissingOperatorState } from './types';
+import { INITIAL_STATS, createInitialMathMissingOperatorState } from './types';
 import type { MathMissingOperatorAction, MathMissingOperatorGameState } from './types';
 
 export { createInitialMathMissingOperatorState };

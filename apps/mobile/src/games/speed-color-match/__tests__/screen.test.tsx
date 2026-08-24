@@ -178,7 +178,7 @@ describe('SpeedColorMatchScreen', () => {
 
   it('fails the trial on a wrong tap and continues', async () => {
     const seed = 'wrong-tap';
-    const { clock } = await renderScreen({ seed });
+    await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
     expect(screen.getByTestId(testId(GAME_ID, 'color-grid'))).toBeOnTheScreen();
@@ -203,7 +203,7 @@ describe('SpeedColorMatchScreen', () => {
   });
 
   it('pauses: the opaque overlay appears and timers freeze until resume', async () => {
-    const { clock } = await renderScreen({ seed: 'pause-test' });
+    await renderScreen({ seed: 'pause-test' });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
     expect(screen.getByTestId(testId(GAME_ID, 'color-grid'))).toBeOnTheScreen();

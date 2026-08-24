@@ -23,8 +23,9 @@ describe('targetCountParamsForLevel', () => {
   });
 
   it('returns fresh objects (not the frozen defaults)', () => {
-    const params = { ...targetCountParamsForLevel('easy') };
-    expect(targetCountParamsForLevel('easy').rows).toBe(3);
+    const params = targetCountParamsForLevel('easy');
+    expect(params).not.toBe(TARGET_COUNT_DIFFICULTY_PARAMS.easy);
+    expect(params.rows).toBe(3);
   });
 });
 

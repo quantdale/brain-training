@@ -11,7 +11,6 @@
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()`.
  */
 import { createRng, isDifficultyLevel } from "@/sdk";
-import type { DifficultyProfile } from "@/sdk";
 
 import { generateRound } from "./generator";
 import { SENTENCE_BANK } from "./content/sentence-bank";
@@ -20,7 +19,7 @@ import {
   resolveSentenceBuilderDifficulty,
 } from "./difficulty";
 import { bestPositionAccuracy, computeRoundScoreForOrders, sameWord } from "./scoring";
-import { GAME_ID, INITIAL_STATS, createInitialState } from "./types";
+import { INITIAL_STATS, createInitialState } from "./types";
 import type {
   SentenceBuilderAction,
   SentenceBuilderDifficultyParams,

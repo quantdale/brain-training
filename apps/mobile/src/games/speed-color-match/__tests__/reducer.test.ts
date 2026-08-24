@@ -1,12 +1,10 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it } from '@jest/globals';
-import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { speedColorMatchReducer } from '../reducer';
 import { createInitialSpeedColorMatchState } from '../types';
 import type { SpeedColorMatchGameState } from '../types';
-import { generateTrials } from '../generator';
 
 function startSession(
   seed: string,
@@ -131,6 +129,31 @@ describe('tap-color', () => {
       tappedAtMs: 2000,
     });
     expect(after.stats.trialsPlayed).toBe(1);
+  });
+
+  it('rejects a negative reaction reading (monotonic-clock invariant)', () => {
+    // A tappedAtMs before the stimulus onset violates the monotonic clock
+    // contract; the reducer must no-op instead of recording a bogus reaction.
+    let state = startSession('negative-rt');
+    state = speedColorMatchReducer(state, { type: 'trial-shown', shownAtMs: 1000 });
+    const trial = state.trials[0];
+    const rejected = speedColorMatchReducer(state, {
+      type: 'tap-color',
+      color: trial.swatchColor,
+      tappedAtMs: 999,
+    });
+    expect(rejected).toBe(state);
+    expect(Object.is(rejected, state)).toBe(true);
+    expect(rejected.stats.trialsPlayed).toBe(0);
+
+    // The trial stays live and can still be answered with a valid reading.
+    const answered = speedColorMatchReducer(state, {
+      type: 'tap-color',
+      color: trial.swatchColor,
+      tappedAtMs: 1200,
+    });
+    expect(answered.phase).toBe('roundResult');
+    expect(answered.currentReactionMs).toBe(200);
   });
 });
 

@@ -41,17 +41,8 @@ export function generateTrials(input: GenerateTrialsInput): Trial[] {
   const pattern = generateIncongruentPattern(rng, totalTrials, targetIncongruent);
 
   const trials: Trial[] = [];
-  let consecutiveIncongruent = 0;
-
   for (let i = 0; i < totalTrials; i += 1) {
     const isIncongruent = pattern[i];
-
-    // Track consecutive incongruent count.
-    if (isIncongruent) {
-      consecutiveIncongruent += 1;
-    } else {
-      consecutiveIncongruent = 0;
-    }
 
     // Generate the swatch color.
     const swatchColor = rng.fork(`trial:${i}:swatch`).pick(COLOR_PALETTE);

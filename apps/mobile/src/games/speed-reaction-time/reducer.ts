@@ -18,7 +18,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   nextDelayMinMs,
@@ -27,7 +26,7 @@ import {
 } from './difficulty';
 import { generateRoundDelay } from './generator';
 import { bestOf, meanOf, medianOf, perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialSpeedState } from './types';
+import { INITIAL_STATS, createInitialSpeedState } from './types';
 import type { SpeedAction, SpeedGameState, SpeedStats } from './types';
 
 export { createInitialSpeedState };

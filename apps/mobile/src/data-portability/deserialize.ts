@@ -57,10 +57,6 @@ function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean';
 }
 
-function isArrayOf<T>(value: unknown, pred: (v: unknown) => v is T): value is T[] {
-  return Array.isArray(value) && value.every(pred);
-}
-
 /** Validate the data sections. Collects every problem rather than failing on the first. */
 function validateData(data: unknown): BackupData {
   const issues: string[] = [];

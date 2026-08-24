@@ -11,7 +11,7 @@ import path from 'node:path';
 
 // The validator lives in a CommonJS file so CI (`node`) and jest (`require`)
 // both load it directly without --experimental-vm-modules.
- 
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- cwd-resolved dynamic path cannot be a static import
 const validator: any = require(path.resolve(process.cwd(), '../../scripts/validate-task-ownership.cjs'));
 
 const configPath = () => path.resolve(process.cwd(), '../../.agent/task-ownership.json');

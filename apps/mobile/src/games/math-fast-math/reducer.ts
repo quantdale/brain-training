@@ -28,7 +28,7 @@ import {
 } from './difficulty';
 import { generateProblem } from './generator';
 import { perfectSessionScore, problemScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialMathState } from './types';
+import { INITIAL_STATS, createInitialMathState } from './types';
 import type { MathAction, MathGameState, MathStats } from './types';
 
 export { createInitialMathState };

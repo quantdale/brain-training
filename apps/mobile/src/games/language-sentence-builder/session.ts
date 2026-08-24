@@ -14,10 +14,10 @@ import type {
 import { getDb } from '@/db';
 import type { CompleteSessionInput, CompleteSessionResult, GameSessionRecord } from '@/db';
 
-import { accuracyOf, avgWordLengthFactor } from './scoring';
+import { accuracyOf } from './scoring';
 import { GAME_ID } from './types';
 import type { SentenceBuilderDifficultyParams, SentenceBuilderRawResult, SentenceBuilderStats } from './types';
-import { SCORING_VERSION, versionToNumber } from './versions';
+import { versionToNumber } from './versions';
 
 /** Persistence seam so tests can substitute the db layer. */
 export interface SessionPersistence {

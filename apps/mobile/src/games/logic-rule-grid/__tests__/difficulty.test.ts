@@ -23,7 +23,9 @@ describe('ruleGridParamsForLevel', () => {
   });
 
   it('returns fresh objects (not the frozen defaults)', () => {
-    const params = { ...ruleGridParamsForLevel('easy') };
+    const params = { ...ruleGridParamsForLevel('easy') } as { size: number };
+    // Mutating the copy should not affect the defaults.
+    params.size = 99;
     expect(ruleGridParamsForLevel('easy').size).toBe(3);
   });
 });

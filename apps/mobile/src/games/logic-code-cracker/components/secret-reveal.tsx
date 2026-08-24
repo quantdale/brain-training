@@ -8,7 +8,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 
 import { COLOR_PALETTE } from './color-picker';
 

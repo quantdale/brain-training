@@ -11,7 +11,6 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   memoryParamsFromProfile,
@@ -20,7 +19,7 @@ import {
 } from './difficulty';
 import { generateRoundSequence } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialMemoryState } from './types';
+import { INITIAL_STATS, createInitialMemoryState } from './types';
 import type { MemoryAction, MemoryGameState, MemoryStats } from './types';
 
 export { createInitialMemoryState };

@@ -2,7 +2,6 @@ import { describe, expect, it } from "@jest/globals";
 import {
   exportLocalData,
   serializeBackup,
-  parseAndValidateBackup,
   previewImport,
 } from "../index";
 import { makeDb, seedFixture, T0 } from "./helpers";

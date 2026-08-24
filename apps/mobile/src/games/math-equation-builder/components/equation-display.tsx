@@ -6,7 +6,6 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
 
 import { GAME_ID } from '../types';
@@ -26,8 +25,6 @@ function formatToken(token: EquationToken): string {
 }
 
 export function EquationDisplay({ target, tokens, result, isCorrect }: EquationDisplayProps) {
-  const theme = useTheme();
-
   const equationStr = tokens.length > 0
     ? tokens.map(formatToken).join(' ')
     : '?';

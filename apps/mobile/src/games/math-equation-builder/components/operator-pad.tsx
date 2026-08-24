@@ -9,7 +9,7 @@
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { testId } from '@/sdk';
 
 import { GAME_ID } from '../types';

@@ -212,6 +212,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
     state.forced,
     state.currentTier,
     state.roundOutcomes,
+    state.difficulty,
     session,
     xpHook,
     persistSession,
@@ -307,7 +308,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
       }
       return 'muted';
     },
-    [state.phase, state.round?.correctIndex, state.roundOutcome, state.lastAnswerIndex],
+    [state.phase, state.round, state.roundOutcome, state.lastAnswerIndex],
   );
 
   const roundResultMessage =

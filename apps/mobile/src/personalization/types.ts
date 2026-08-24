@@ -12,8 +12,6 @@
  * policy as `src/workout/personalize.ts`. Nothing in this module performs I/O.
  */
 
-import type { GameDefinition } from '@/sdk';
-
 /**
  * Stable keys for every recommendation signal. This union is the UI/i18n
  * contract: screens key off these values (never off prose), while the

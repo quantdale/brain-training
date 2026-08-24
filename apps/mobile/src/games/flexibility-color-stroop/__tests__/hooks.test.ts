@@ -6,7 +6,6 @@ import {
   createColorStroopTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { ColorStroopAction } from '../types';
 
 describe('createColorStroopQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

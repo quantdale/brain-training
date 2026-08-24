@@ -27,7 +27,7 @@ import type {
   PairRecallRawResult,
   PairRecallStats,
 } from "./types";
-import { SCORING_VERSION, versionToNumber } from "./versions";
+import { versionToNumber } from "./versions";
 
 /** Persistence seam so tests can substitute the db layer. */
 export interface SessionPersistence {

@@ -80,7 +80,6 @@ describe('spatialCoordinateTurnParamsFromProfile', () => {
   });
 
   it('throws on missing numeric parameters instead of producing a broken round', () => {
-    const profile = resolveSpatialCoordinateTurnDifficulty('normal');
     expect(() =>
       spatialCoordinateTurnParamsFromProfile({
         level: 'normal',

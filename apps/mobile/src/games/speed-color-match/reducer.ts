@@ -11,23 +11,19 @@
  * hooks.ts), so production builds never expose them.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   nextIncongruentRatio,
   resolveSpeedColorMatchDifficulty,
-  sessionChallengeRating,
   speedColorMatchParamsFromProfile,
 } from './difficulty';
 import { generateTrials } from './generator';
 import { trialScore, streakBonus } from './scoring';
 import {
-  GAME_ID,
   INITIAL_STATS,
   createInitialSpeedColorMatchState,
 } from './types';
 import type {
-  ColorName,
   SpeedColorMatchAction,
   SpeedColorMatchGameState,
   SpeedColorMatchStats,
@@ -105,6 +101,13 @@ export function speedColorMatchReducer(
 
       const correct = action.color === trial.swatchColor;
       const reactionMs = action.tappedAtMs - state.trialShownAtMs;
+
+      // Monotonic-clock invariant (mirrors speed-reaction-time): a negative
+      // reading can only come from a clock contract violation — reject it
+      // instead of corrupting score/average stats with a bogus reaction.
+      if (reactionMs < 0) {
+        return state;
+      }
 
       if (correct) {
         const params = speedColorMatchParamsFromProfile(state.profile);

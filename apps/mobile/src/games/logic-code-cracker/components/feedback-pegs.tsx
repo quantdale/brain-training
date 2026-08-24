@@ -7,7 +7,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 
 import type { GuessFeedback } from '../types';
 

@@ -6,7 +6,6 @@ import {
   createOddOneOutTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { OddOneOutAction } from '../types';
 
 describe('createOddOneOutQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

@@ -6,7 +6,6 @@ import {
   createQuickCompareTutorialLifecycle,
 } from '../hooks';
 import { GAME_ID } from '../types';
-import type { QuickCompareAction } from '../types';
 
 describe('createQuickCompareQaForceStateHooks', () => {
   it('dispatches the matching reducer action for each hook', () => {

@@ -10,7 +10,6 @@
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()`.
  */
 import { createRng, isDifficultyLevel } from '@/sdk';
-import type { DifficultyProfile } from '@/sdk';
 
 import {
   adaptiveRoundParams,
@@ -19,7 +18,7 @@ import {
 } from './difficulty';
 import { generateRound } from './generator';
 import { roundScore } from './scoring';
-import { GAME_ID, INITIAL_STATS, createInitialWordScrambleState } from './types';
+import { INITIAL_STATS, createInitialWordScrambleState } from './types';
 import type {
   WordScrambleAction,
   WordScrambleGameState,

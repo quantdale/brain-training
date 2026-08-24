@@ -17,7 +17,6 @@ import {
 import {
   ORDER_PATH_DIFFICULTY_PARAMS,
   orderPathParamsForLevel,
-  resolveOrderPathDifficulty,
 } from '../difficulty';
 import type { DifficultyLevel } from '@/sdk';
 import type { OrderPathDifficultyParams } from '../types';
