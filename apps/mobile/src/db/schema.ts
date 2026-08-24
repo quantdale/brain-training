@@ -520,7 +520,17 @@ export const MIGRATIONS: readonly Migration[] = [
       // written this column opportunistically when present (runtime PRAGMA
       // probe); shipping it in the schema makes that path real instead of
       // permanently dormant.
-      await txn.exec(SQL.addWorkoutMetadataColumn);
+      //
+      // Column-existence guard: ALTER TABLE ADD COLUMN is not idempotent, so
+      // a database whose user_version was rolled back below 10 while the
+      // column already exists (header corruption / botched downgrade) must
+      // not brick startup on a duplicate-column error.
+      const columns = await txn.all<{ name: string }>(
+        "PRAGMA table_info(workout_instances)",
+      );
+      if (!columns.some((column) => column.name === "metadata_json")) {
+        await txn.exec(SQL.addWorkoutMetadataColumn);
+      }
     },
   },
 ];

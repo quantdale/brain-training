@@ -53,7 +53,7 @@ async function renderTemplates() {
   return rendered;
 }
 
-describe('useWorkoutTemplates (legacy schema: no metadata column)', () => {
+describe('useWorkoutTemplates (shipped schema v10)', () => {
   beforeEach(async () => {
     mockClock.today = '2026-08-20';
     await initDatabase();
@@ -221,24 +221,21 @@ describe('useWorkoutTemplates (legacy schema: no metadata column)', () => {
     });
     expect(templateRow.outcomes[1].played).toBe(false);
     for (const summary of history) {
-      // Legacy schema (no metadata column): metadata/reasons stay null and
-      // nothing crashes — graceful degradation is part of the contract.
-      expect(summary.metadata).toBeNull();
-      expect(summary.reasons).toBeNull();
+      // Shipped schema v10: metadata persists (the daily row was created by
+      // the useWorkout hook, which records kind/inputs/reasons). Reasons are
+      // surfaced only while aligned — nothing crashes either way.
+      expect(summary.metadata).not.toBeNull();
+      expect(summary.metadata?.version).toBe(1);
     }
   });
 });
 
-describe('useWorkoutTemplates (metadata_json column present)', () => {
+describe('useWorkoutTemplates (metadata round-trip on v10)', () => {
   beforeEach(async () => {
     mockClock.today = '2026-08-20';
     await initDatabase();
     registerGameDefinitions(registry);
-    // Simulate the pending migration adding the optional column BEFORE any
-    // workout write so the repository's cached column probe detects it.
-    await getDb().rawExec(
-      'ALTER TABLE workout_instances ADD COLUMN metadata_json TEXT',
-    );
+    // The column ships with schema v10 — no simulated migration needed.
   });
 
   it('round-trips template/length metadata AND recorded reasons across a restart', async () => {

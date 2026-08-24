@@ -3,7 +3,7 @@
   "canonicalBranch": "main",
   "activeCampaign": "013-final-product-completion",
   "hardening": {
-    "automaticFullHardening": true,
+    "automaticFullHardening": false,
     "criticalHighRepairRequired": true
   },
   "swarm": {
