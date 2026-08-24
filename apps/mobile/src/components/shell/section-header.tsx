@@ -12,7 +12,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { MinTouchTarget } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 
 export function SectionHeader({
   title,

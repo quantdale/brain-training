@@ -6,7 +6,7 @@
  * - App restart (simulated by creating new db instance)
  * - Tutorial version changes
  */
-import { describe, expect, it, beforeEach, afterEach } from '@jest/globals';
+import { describe, expect, it, beforeEach } from '@jest/globals';
 
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import { TutorialRepository } from '@/db/tutorial';

@@ -87,8 +87,6 @@ export function TabButton({
 }
 
 export function CustomTabList(props: TabListProps) {
-  const theme = useTheme();
-
   return (
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>

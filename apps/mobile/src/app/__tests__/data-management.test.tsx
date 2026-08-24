@@ -195,14 +195,6 @@ async function typeImportJson(text = '{"backup":true}') {
   });
 }
 
-/** Two-tap sequence against a ConfirmButton, re-querying between taps. */
-async function tapTwice(testId: string) {
-  fireEvent.press(await screen.findByTestId(testId));
-  // The armed label proves the first tap registered before we confirm.
-  await screen.findByText(/Tap again|Tap to confirm/, { timeout: 5_000 });
-  fireEvent.press(screen.getByTestId(testId));
-}
-
 describe('data-management UX contract', () => {
   beforeEach(() => {
     jest.clearAllMocks();

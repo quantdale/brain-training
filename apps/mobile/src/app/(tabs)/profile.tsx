@@ -162,7 +162,6 @@ async function loadProfile(
   const [
     balance,
     profile,
-    achievements,
     unlockRows,
     progressRows,
     sessionXp,
@@ -170,7 +169,6 @@ async function loadProfile(
   ] = await Promise.all([
     db.ledger.getBalance(),
     db.profile.get(),
-    db.achievements.listDefinitions(),
     db.achievements.listUnlocks(),
     Promise.all(
       selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>

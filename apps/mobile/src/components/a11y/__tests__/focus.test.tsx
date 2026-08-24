@@ -11,7 +11,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { render } from '@testing-library/react-native';
-import { useRef, type RefObject } from 'react';
+import { type RefObject } from 'react';
 import { AccessibilityInfo, View } from 'react-native';
 
 import { requestAccessibilityFocus, useInitialA11yFocus } from '@/components/a11y/focus';

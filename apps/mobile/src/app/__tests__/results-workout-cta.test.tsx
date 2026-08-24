@@ -20,8 +20,10 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, renderRouter, screen } from "expo-router/testing-library";
 
 import type { AppDatabase, GameSessionRecord, WorkoutInstance } from "@/db";
+import ResultsScreen from "@/app/results";
 import { registerGameDefinitions } from "@/registry/registry";
 import { registry as generatedRegistry } from "@/registry/registry.generated";
+import { onWorkoutChanged } from "@/workout/events";
 
 /** Test-only db state holder served by the mocked `@/db` module below. */
 const mockDbState: { db: AppDatabase | null } = { db: null };
@@ -122,7 +124,7 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
       renderRouter(
         {
           index: () => null,
-          results: require("@/app/results").default,
+          results: ResultsScreen,
         },
         { initialUrl: `/results?id=${SESSION_ID}` },
       );
@@ -155,7 +157,7 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
       renderRouter(
         {
           index: () => null,
-          results: require("@/app/results").default,
+          results: ResultsScreen,
         },
         { initialUrl: `/results?id=${SESSION_ID}` },
       );
@@ -184,7 +186,7 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
       renderRouter(
         {
           index: () => null,
-          results: require("@/app/results").default,
+          results: ResultsScreen,
         },
         { initialUrl: `/results?id=${SESSION_ID}` },
       );
@@ -200,8 +202,6 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
     // mounted Home kept its pre-advance snapshot — template history read
     // "0/2 · In progress" with no completion card even though the results
     // page itself said the workout was complete.
-    const onWorkoutChanged = require("@/workout/events").onWorkoutChanged as
-      (l: () => void) => () => void;
     const listener = jest.fn();
     const unsubscribe = onWorkoutChanged(listener);
     mockDbState.db = makeFakeDb(makeWorkout());
@@ -210,7 +210,7 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
       renderRouter(
         {
           index: () => null,
-          results: require("@/app/results").default,
+          results: ResultsScreen,
         },
         { initialUrl: `/results?id=${SESSION_ID}` },
       );

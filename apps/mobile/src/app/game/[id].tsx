@@ -50,10 +50,12 @@ export default function GameScreen() {
   const game = getGameDefinition(id ?? "");
 
   // Task 10.1: Cache the lazy component identity outside render (lazy creation is intentionally memoized).
-   
+  // Deps include `game` itself: getLazyGameComponent is a pure id-keyed cache
+  // lookup, so recomputing on a new registry object is behavior-neutral while
+  // keeping the hook dependency contract honest.
   const GameScreenComponent = useMemo(
     () => (game ? getLazyGameComponent(game.id) : undefined),
-    [game?.id],
+    [game],
   );
 
   if (!game) {

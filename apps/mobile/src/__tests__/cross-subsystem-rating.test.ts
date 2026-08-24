@@ -13,7 +13,6 @@ import { describe, expect, it } from '@jest/globals';
 import type { GameSessionRecord } from '@/db';
 import { SessionRepository } from '@/db/sessions';
 import { RatingRepository } from '@/db/rating';
-import { LedgerRepository } from '@/db/ledger';
 import { createRatingPipeline, DIFFICULTY_XP_MULTIPLIER } from '@/rating/pipeline';
 import { createMigratedDb } from '@/db/__tests__/helpers';
 

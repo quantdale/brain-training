@@ -101,7 +101,7 @@ describe('useGameTimeout', () => {
 
   it('fires once after ms while active; pause cancellation prevents the fire', async () => {
     const onFire = jest.fn<() => void>();
-    const rendered = await renderHook(
+    await renderHook(
       ({ active }: { active: boolean }) => useGameTimeout(active, onFire, 1_000),
       { initialProps: { active: true } },
     );

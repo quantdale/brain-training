@@ -16,7 +16,7 @@
 // Jest globals imported explicitly (repo has no @types/jest; see orchestrator report).
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { router } from 'expo-router';
-import { act, renderRouter, screen, within } from 'expo-router/testing-library';
+import { act, renderRouter, screen } from 'expo-router/testing-library';
 
 import GameScreen from '@/app/game/[id]';
 import AppTabsWeb from '@/components/app-tabs.web';

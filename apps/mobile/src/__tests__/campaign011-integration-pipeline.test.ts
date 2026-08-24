@@ -19,10 +19,6 @@ import { describe, expect, it } from '@jest/globals';
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import { AppDatabase } from '@/db';
 import { createRatingPipeline , DIFFICULTY_XP_MULTIPLIER } from '@/rating/pipeline';
-import { SessionRepository } from '@/db/sessions';
-import { RatingRepository } from '@/db/rating';
-import { LedgerRepository } from '@/db/ledger';
-import { WorkoutRepository } from '@/db/workout';
 import type { GameSessionRecord } from '@/db';
 
 import {
@@ -175,7 +171,6 @@ describe('Campaign 011 cross-system integration pipeline', () => {
     expect(streak.current).toBeGreaterThanOrEqual(1);
 
     // --- 5. Workout reconciliation runs against real instances ---------------
-    const todayKey = utcDay(T0);
     await workouts.reconcileActiveInstances(GAMES);
     const instances = await workouts.listRecent(10);
     expect(Array.isArray(instances)).toBe(true);
