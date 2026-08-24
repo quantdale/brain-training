@@ -1,48 +1,55 @@
-# Dependency Audit Triage (006R task 11.5)
+# Dependency Audit Triage
 
-**Date:** 2026-08-18
-**Scope:** `apps/mobile` (`npm audit`, auditReportVersion 2)
-**Result:** 23 vulnerabilities (8 moderate, 15 high)
+**Date:** 2026-08-24 (Campaign 013 refresh; supersedes the 2026-08-18 006R audit)
+**Scope:** `apps/mobile` (`npm audit`, auditReportVersion 2; production-only view via `--omit=dev` produced the identical report — no dev-only dependency adds findings)
+**Context:** 42-game catalog, Expo SDK 57 / RN 0.82-era toolchain, offline-first product
+**Result:** **16 vulnerabilities (12 moderate, 4 high)** — down from 23 (8 moderate, 15 high) at the previous audit
 
-## Classification
+## Current classification
 
-| Bucket | Count | Production-reachable? |
-| --- | --- | --- |
-| Transitive via `@expo/*` build toolchain (`@expo/cli`, `@expo/config`, `@expo/config-plugins`, `@expo/inline-modules`, `@expo/local-build-cache-provider`, `@expo/prebuild-config`, `expo-splash-screen`) | 23 (all) | **No** — build/dev toolchain only |
+| Root cause | Findings | Direct? | Production/runtime reachable? |
+| --- | --- | --- | --- |
+| `image-size` (GHSA-w3rx-r6r6-pgpr ICNS loop, GHSA-5p2g-fcmc-qvqq JXL/HEIF loops) → `metro` → `metro-config`, `metro-transform-worker` | 4 high | No | **No** — Metro parses images on the build/dev machine only; nothing ships in the app bundle |
+| `uuid@<11.1.1` (GHSA-w5hq-g745-h8pq v3/v5/v6 buffer bounds) → `xcode` → `@expo/config-plugins` → `@expo/cli`, `@expo/config`, `@expo/inline-modules`, `@expo/local-build-cache-provider`, `@expo/metro-config`, `@expo/prebuild-config`, `expo-sharing`, `expo-splash-screen` | 12 moderate | No | **No** — Expo CLI/prebuild/config toolchain only |
 
-Findings are **indirect** (`isDirect: false`) and reachable only through `expo` and its
-CLI/metro/prebuild dependencies. They are **not** shipped in the app runtime that end users
-execute; they affect the local build/prebuild toolchain.
+Bucket summary per campaign rubric:
 
-## Decision: no blind forced upgrade
+1. **Production/runtime reachable:** none.
+2. **Build/dev toolchain only:** all 16.
+3. **Unreachable/false-positive context:** the `uuid` advisory requires calling `uuid.v3/v5/v6` with an explicit `buf` argument; neither first-party code nor the affected toolchain paths exercise that pattern.
+4. **Needs planned ecosystem upgrade:** yes — both roots resolve as a side effect of the next planned Expo SDK upgrade (the only remediation npm offers is a semver-major Expo change, e.g. downgrade-to-46 nonsense or a future SDK bump).
 
-The only remediation `npm audit` offers for the bulk of findings is a **major `expo` upgrade**
-(e.g. `expo@53.0.27` is the proposed fix, `isSemVerMajor: true`). Per 006R task 11.5 — *"the
-agent MUST NOT use blind forced upgrades solely to make an audit count disappear"* — we do
-**not** force this upgrade.
+## Decision: no blind forced upgrade (unchanged policy)
 
-### Accepted debt (rationale)
+`image-size@1.2.1` is already the newest release and the advisories currently cover
+all published versions (no fixed upstream release exists yet). `npm audit fix`
+(non-breaking) was run on 2026-08-24: it deduplicated the lockfile (217 lines) but
+cannot clear either root without a breaking Expo change, which remains prohibited
+solely to make an audit count disappear.
 
-- **Risk is build-time, not runtime.** The vulnerable packages are part of the Expo
-  CLI / prebuild / Metro toolchain used to compile the app. They are not embedded in the
-  installed app binary, so end-user exposure is nil for the shipped product.
-- **Forced upgrade is semver-major and breaking.** An Expo SDK/RN bump is a planned,
-  campaign-sized migration (prebuild config, native modules, SDK compatibility), not a
-  one-line fix. Doing it solely to clear an audit count would violate the no-blind-upgrade
-  rule and risk regressions across the 20-game catalog.
-- **Cadence.** Revisit on the next **planned** Expo SDK upgrade (tracked separately from this
-  integrity campaign). At that point the toolchain vulns are resolved as a side effect of the
-  supported upgrade path.
+## Accepted debt (rationale)
 
-## Actions taken
+- **Risk is build-time, not runtime.** Vulnerable packages execute only on developer/
+  CI machines during bundling/prebuild; they are not embedded in the shipped app binary.
+- **No fixed upstream exists today** for image-size; uuid remediation requires a major
+  Expo/RN migration that is planned separately from hardening campaigns.
+- **Re-audit trigger:** any direct dependency change, any Expo SDK bump, quarterly cadence,
+  or immediately if a finding becomes direct or runtime-reachable.
 
-- Added the triage gates to CI (`app-ci.yml`): lint, registry `--check`, provenance drift,
-  task-ownership, repo-state/OpenSpec integrity, typecheck, tests, web export, Expo Doctor.
-- Recorded the green-main rule (`.agent/GOVERNANCE.json` `greenMain`) so a required check may
-  be pushed only as a documented blocker, never labeled green.
+## Fresh-environment verification performed this refresh
 
-## Re-audit trigger
+- `npm audit` and `npm audit --omit=dev`: identical 16-finding report (no prod-only additions).
+- `npx expo-doctor`: **21/21 checks passed** after the lockfile dedupe.
+- `npx tsc --noEmit`: clean. Full Jest suite green (474 suites / ~5820 tests).
+- `npx expo export --platform web`: PASS (20 static routes).
+- Secrets scan over git-tracked files (AWS/GitHub/Slack/PEM/supabase patterns): zero hits.
+- Offline boundary validator: CLEAN (919 files scanned).
+- Permissions boundary: RECORD_AUDIO / SYSTEM_ALERT_WINDOW blocked at config level
+  (`app.json android.blockedPermissions` + expo-audio flags), now pinned against drift by
+  `plugins/__tests__/release-boundary-permissions.test.ts`.
 
-Re-run `npm audit` after any of: direct dependency change, Expo SDK bump, or quarterly
-schedule. Escalate to a planned upgrade only if a vulnerability becomes **direct** or
-**production-runtime reachable** (e.g. a vulnerable runtime package ships in the bundle).
+## Historical note
+
+The 2026-08-18 audit (006R task 11.5) recorded 23 vulnerabilities against the then-current
+toolchain and added the CI triage gates + green-main rule. Its "20-game catalog" reference
+was historical context even then and is superseded by this document's current 42-game state.
