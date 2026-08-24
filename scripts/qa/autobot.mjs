@@ -846,6 +846,18 @@ async function certifyPreflight() {
   } catch {}
   add("artifacts-writable", outWritable, OUT);
 
+  // The app must actually launch to the foreground on the SELECTED device.
+  // A foreign app/session holding focus produces hierarchy/tap divergence
+  // that masquerades as product failures (device-verified contamination), so
+  // certification refuses to start until our own package owns the screen.
+  let launchOk = false;
+  try {
+    launch();
+    await sleep(6000);
+    launchOk = appForeground();
+  } catch {}
+  add("app-launch-foreground", launchOk, launchOk ? PKG : "our package was not foreground after launch");
+
   const ok = checks.every((c) => c.ok);
   return { ok, checks };
 }
