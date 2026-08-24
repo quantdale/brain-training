@@ -226,5 +226,67 @@ on-device and fixed; /results Slot array-style crash fixed (had made the workout
 journey impossible); native-dep stale-dev-client hazard durably mitigated (lazy
 requires) and CNG Android config codified into committed local config plugins.
 Final gates: Jest 5750 passed, tsc/lint 0 errors, doctor 21/21, all validators PASS.
-Next campaign: owner-directed (012 scope TBD — GameHost remainder migration,
-short-template workout device traversal, expo patch-version bump audit).
+
+## Campaign 012 — Broad Convergence Release Prep (COMPLETED 2026-08-23)
+
+Owner-directed convergence campaign (`012-broad-convergence-release-prep`), 16 packets:
+
+- GameHost migration **completed** — all 42 games on the shared host; equation-builder
+  dead templates resolved; dependency audit report.
+- Workout V2 engine/UX depth; harness modes for short/focus/resume journeys;
+  resumeIfPaused adopted across 42 screens; perf baselines (evidence-negative).
+- Deterministic Android versionCode / iOS buildNumber via a committed config plugin;
+  RECORD_AUDIO/SYSTEM_ALERT_WINDOW blocked at plugin source (device-proven).
+- Device-QA defect cluster fixed: tutorial overlay clipped at viewport bottom
+  (bottom-anchored overlay), dev-QA panel defaulted below tall playfields (now above),
+  template-workout advance never notified Home (stale completion UI).
+- Catalog content integrity sweep; word-chain expert pool 9→18 validated chains;
+  SQLite schema v10 (`workout_instances.metadata_json`) with backup round-trip
+  (portability format v3) and idempotent column-existence migration guard.
+- Dependency pins lifted per W15 audit (expo/linking/router/constants/audio within SDK 57).
+
+Closeout evidence: canaries 8/8 PASS, Workout V2 short/focus/resume/daily ALL PASS,
+17 additional games terminally classified, Jest ~5800 green, tsc clean, lint 0 errors
+(~430 warnings tracked as 013 debt), doctor 21/21, all repo validators PASS.
+
+## Campaign 013 — Final Product Completion (owner-authorized hardening; ACTIVE)
+
+Explicit owner-invoked full-app completion + hardening campaign
+(`013-final-product-completion`). Delivered so far (all committed to `main`):
+
+- **Lint debt eliminated**: 474 warnings → **0 errors / 0 warnings** (autofix of
+  import-order/duplicate/array-type/stale-directive classes, eslint globals for the
+  jest setup + node scripts, then per-surface unused-import/dead-local removal across
+  every game family, db, app shell and QA scripts). No blanket suppressions; the only
+  inline disables that remain are per-site, each with a written invariant rationale.
+- **Schema v10 adversarial matrix** (+18 tests): v9→v10 with pre-existing
+  `metadata_json` (idempotency edge, mutation-proven), repeated initialization,
+  column shape pinning, 8 malformed metadata cell shapes (raw bytes preserved,
+  reads degrade, never brick), legacy backup envelopes onto current schema,
+  failure-injected atomicity (crash-after-ALTER rolls column+version back together;
+  append-only triggers restored; retry safe), newer-schema loud rejection.
+- **Game-family audits** (7 parallel workers over disjoint surfaces) found and fixed
+  4 real gameplay defects, each with mutation-verified regression tests:
+  memory-prospective-cue stale-closure scoring (max speed bonus paid regardless of
+  reaction) + pause/tutorial restart granting a fresh full response window;
+  attention-odd-one-out post-deadline tap grace; speed-color-match negative-RT guard.
+- **QA harness hardening**: exclusive-driver lock made fail-closed on ambiguous PID
+  liveness (EPERM no longer treated as stale); permissions drift pinned by test;
+  **`--mode certify` release gate** — machine-verifiable 42/42 completeness
+  (missing/duplicate/unexpected detection), atomic incremental run journal
+  (IN_PROGRESS → COMPLETED/INCOMPLETE, `certified` flag; a killed run can never
+  masquerade as certified), git/build provenance, environment preflight (device,
+  package, Metro, adb reverse, sqlite3, artifacts dir, our-app-foreground guard),
+  coarse failure taxonomy, lifecycle-aware late interaction attempt, persisted-row
+  invariant validators; harness self-test extended 28 → 49 checks.
+- **NativeTabs snapshot instability resolved**: deterministic router-tree normalizer
+  (test-only seam mapping volatile route keys to positional placeholders) plus an
+  integrated navigation snapshot proving all four tab triggers, selection wiring and
+  screen content inside the real host tree.
+- **Dependency/security refresh**: 16 remaining advisories classified build/dev-
+  toolchain-only (image-size via Metro; uuid via Expo config toolchain); no runtime-
+  reachable findings; lockfile dedupe validated (doctor 21/21, web export, full suite).
+
+Remaining gate at the time of writing: the definitive single-driver 42/42
+`--mode certify` Android run + Workout V2 re-certification on the dedicated AVD,
+then durable-state/docs reconciliation and the campaign closure checkpoint.

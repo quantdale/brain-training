@@ -793,10 +793,10 @@ async function certifyPreflight() {
 
   // Exactly one usable device, and it is the selected one, in `device` state.
   const devs = adbHostDevices();
-  const usable = devs.filter((d) => d.state === "device");
+  const ready = Array.isArray(devs.ready) ? devs.ready : [];
   add(
-    "single-usable-device",
-    usable.length >= 1 && usable.some((d) => d.serial === serial()),
+    "selected-device-usable",
+    ready.includes(serial()),
     JSON.stringify(devs),
   );
 

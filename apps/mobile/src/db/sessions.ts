@@ -207,6 +207,21 @@ export class SessionRepository {
       throw new Error("completeSession: durationMs must be >= 0");
     }
 
+    // INTEGER-declared columns (schema contract, apps/mobile/src/db/schema.ts).
+    // The SDK monotonic clock is fractional-ms (performance.now-based), so
+    // durations arrive as floats; SQLite stores lossless-inconvertible floats
+    // as REAL even in INTEGER-affinity columns. Coerce at the persistence
+    // boundary so every persisted row honors the declared column types
+    // (device-verified defect: duration_ms=27646.5688 stored as REAL).
+    const asInt = (v: number): number => Math.round(v);
+    const gameVersion = asInt(s.gameVersion);
+    const generatorVersion = asInt(s.generatorVersion);
+    const scoringVersion = asInt(s.scoringVersion);
+    const seed = asInt(s.seed);
+    const startedAt = asInt(s.startedAt);
+    const completedAt = asInt(s.completedAt);
+    const durationMs = asInt(s.durationMs);
+
     return this.adapter.transaction(async (txn) => {
       // When a rating service is configured, its outcome is authoritative for
       // XP/currency/ratings and must be computed before the session row exists
@@ -214,7 +229,7 @@ export class SessionRepository {
       const outcome = this.rating
         ? await this.rating.compute({ session: s })
         : null;
-      const xp = outcome ? outcome.xp : s.xp;
+      const xp = asInt(outcome ? outcome.xp : s.xp);
 
       // Idempotent by session id (data-integrity requirement A/H: a retried or
       // replayed completion of the same `session.id` must never award currency
@@ -227,17 +242,17 @@ export class SessionRepository {
       const insert = await txn.run(INSERT_SESSION, [
         s.id,
         s.gameId,
-        s.gameVersion,
-        s.generatorVersion,
-        s.scoringVersion,
-        s.seed,
+        gameVersion,
+        generatorVersion,
+        scoringVersion,
+        seed,
         toJson(s.difficulty),
         toJson(s.rawResult),
         s.normalizedResult,
         xp,
-        s.startedAt,
-        s.completedAt,
-        s.durationMs,
+        startedAt,
+        completedAt,
+        durationMs,
       ]);
       const isNew = insert.changes > 0;
 
@@ -252,7 +267,7 @@ export class SessionRepository {
           outcome.currency,
           "gameplay",
           s.id,
-          s.completedAt,
+          completedAt,
           gameplayOperationId(s.id),
         ]);
         ledgerEntry = {
@@ -260,14 +275,14 @@ export class SessionRepository {
           amount: outcome.currency,
           reason: "gameplay",
           sessionId: s.id,
-          createdAt: s.completedAt,
+          createdAt: completedAt,
         };
       } else if (isNew && !outcome && input.currency) {
         const result = await txn.run(INSERT_LEDGER_ENTRY_OP, [
           input.currency.amount,
           input.currency.reason,
           s.id,
-          s.completedAt,
+          completedAt,
           gameplayOperationId(s.id),
         ]);
         ledgerEntry = {
@@ -275,14 +290,14 @@ export class SessionRepository {
           amount: input.currency.amount,
           reason: input.currency.reason,
           sessionId: s.id,
-          createdAt: s.completedAt,
+          createdAt: completedAt,
         };
       }
 
       const deltas: readonly RatingDelta[] = outcome ? outcome.deltas : [];
       let appliedDeltas: readonly AppliedRatingDelta[] = [];
       if (isNew && deltas.length > 0) {
-        appliedDeltas = await this.ratingRepository.applyDeltas(txn, s.id, deltas, s.completedAt);
+        appliedDeltas = await this.ratingRepository.applyDeltas(txn, s.id, deltas, completedAt);
       }
 
       // On a duplicate completion we reflect the already-persisted row rather

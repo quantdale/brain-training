@@ -38,3 +38,4 @@ qa-artifacts/
 test-results/
 playwright-report/
 "lint-*.json"  
+"scripts/qa/.autobot.lock"  

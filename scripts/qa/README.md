@@ -142,6 +142,18 @@ node scripts/qa/autobot.mjs --mode game --game memory --pause
 # every game start/pause/force-finish/persist (gate 12.4) + one canary per category (12.9)
 node scripts/qa/autobot.mjs --mode all --pause
 
+# RELEASE CERTIFICATION GATE (campaign 013): the authoritative single-driver
+# full-catalog run. Adds: environment preflight (device/package/Metro/reverse/
+# sqlite3/artifacts/app-foreground), git+build provenance, an atomically
+# checkpointed journal (status IN_PROGRESS until the final write; a killed run
+# can never masquerade as certified), per-game persisted-row invariant
+# validation, machine-verifiable 42/42 completeness (missing/duplicate/
+# unexpected ids fail), and a certification verdict block. Pause/resume
+# evidence is included by default (--no-pause opts out and marks the run
+# non-certified). Exit 0 only when every game PASSes and the catalog is
+# exactly covered.
+node scripts/qa/autobot.mjs --mode certify
+
 # Word Match multi-round / multi-tier smoke (gate 3.6)
 node scripts/qa/autobot.mjs --mode wordmatch
 

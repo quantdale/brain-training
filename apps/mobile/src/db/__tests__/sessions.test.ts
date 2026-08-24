@@ -31,6 +31,41 @@ function makeSession(
 }
 
 describe("completeSession", () => {
+  it("coerces INTEGER-declared columns at the persistence boundary (fractional monotonic-clock durations)", async () => {
+    // Device-verified defect (campaign 013 certification): the SDK monotonic
+    // clock is fractional-ms, so durationMs arrived as e.g. 27646.5688 and
+    // SQLite stored it as REAL inside the INTEGER-declared column. The
+    // boundary must round every INTEGER-declared field so the persisted row
+    // honors the schema contract.
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+    const profile = new ProfileRepository(adapter, () => T0);
+    await profile.ensureExists();
+
+    await sessions.completeSession({
+      session: makeSession({
+        durationMs: 27646.568800000474,
+        startedAt: T0 + 0.25,
+        completedAt: T0 + 27646.818800000474,
+        xp: 12.6,
+        seed: 987.6,
+      }),
+    });
+
+    const raw = await adapter.get<{ typeofDuration: string; typeofXp: string }>(
+      "SELECT typeof(duration_ms) AS typeofDuration, typeof(xp) AS typeofXp FROM game_sessions WHERE id='session-1'",
+    );
+    expect(raw?.typeofDuration).toBe("integer");
+    expect(raw?.typeofXp).toBe("integer");
+
+    const stored = await sessions.getById("session-1");
+    expect(stored?.durationMs).toBe(27647);
+    expect(stored?.startedAt).toBe(T0);
+    expect(stored?.completedAt).toBe(T0 + 27647);
+    // completed_at >= started_at still holds after rounding.
+    expect(stored!.completedAt).toBeGreaterThanOrEqual(stored!.startedAt);
+  });
+
   it("commits session + ledger + profile touch atomically", async () => {
     const adapter = await createMigratedDb();
     let now = T0;
