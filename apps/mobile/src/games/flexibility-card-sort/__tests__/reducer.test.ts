@@ -4,9 +4,8 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { flexibilityGameReducer } from '../reducer';
-import { createInitialFlexibilityState } from '../types';
+import { createInitialFlexibilityState , otherRule } from '../types';
 import type { FlexibilityGameState } from '../types';
-import { otherRule } from '../types';
 import { generateRound, pickInitialRule } from '../generator';
 import { perfectSessionScore, roundScore } from '../scoring';
 import { FLEXIBILITY_DIFFICULTY_PARAMS } from '../difficulty';

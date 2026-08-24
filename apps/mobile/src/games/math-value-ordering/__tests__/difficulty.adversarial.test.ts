@@ -5,10 +5,7 @@
 // here (rounds ≥ 1, budgetMs > 0, operand-range sanity).
 import { describe, expect, it } from '@jest/globals';
 
-import { ADAPTIVE_PARAMS, VALUE_ORDERING_DIFFICULTY_PARAMS } from '../difficulty';
-import type { DifficultyProfile } from '@/sdk';
-
-import {
+import { ADAPTIVE_PARAMS, VALUE_ORDERING_DIFFICULTY_PARAMS ,
   nextTileCount,
   resolveValueOrderingDifficulty,
   sessionChallengeRating,
@@ -16,6 +13,8 @@ import {
   valueOrderingParamsFromProfile,
   valueOrderingParamsToRecord,
 } from '../difficulty';
+import type { DifficultyProfile } from '@/sdk';
+
 import { valueOrderingGameReducer } from '../reducer';
 import { createInitialValueOrderingState } from '../types';
 import type { ValueOrderingGameState } from '../types';

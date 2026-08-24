@@ -14,12 +14,12 @@
 export interface TaskOwnershipConfig {
   orchestratorOnlySurfaces?: string[];
   generatedFilePatterns?: string[];
-  parallelPackets: Array<{
+  parallelPackets: {
     id: string;
     coderWriteSurfaces: string[];
     sharedSurfaces?: string[];
     dependencies?: string[];
-  }>;
+  }[];
 }
 
 export interface OwnershipResult {

@@ -10,8 +10,7 @@
  * emit a non-blocking celebration. Everything degrades gracefully when the db
  * is unavailable.
  */
-import { Link } from "expo-router";
-import { useFocusEffect } from "expo-router";
+import { Link, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 

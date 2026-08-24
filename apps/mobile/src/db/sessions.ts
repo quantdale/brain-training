@@ -13,8 +13,7 @@ import {
   normalizeOffset,
   requireFiniteNumber,
 } from "./query";
-import type { SQLiteValue } from "./types";
-import type {
+import type { SQLiteValue ,
   AppliedRatingDelta,
   CompleteSessionInput,
   CompletionOutcome,

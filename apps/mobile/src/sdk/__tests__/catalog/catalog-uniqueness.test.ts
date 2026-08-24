@@ -35,7 +35,7 @@ function loadModule(specifier: string): Record<string, unknown> {
 
 
 /** Directory prefix → expected primary category. Bare `memory` maps to Memory. */
-const PREFIX_CATEGORY: ReadonlyArray<readonly [string, string]> = [
+const PREFIX_CATEGORY: readonly (readonly [string, string])[] = [
   ['attention-', 'Attention'],
   ['flexibility-', 'Flexibility'],
   ['language-', 'Language'],

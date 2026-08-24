@@ -6,8 +6,7 @@ import type { DifficultyLevel } from '@/sdk';
 import { mathEquationBuilderGameReducer } from '../reducer';
 import { createInitialMathEquationBuilderState } from '../types';
 import type { MathEquationBuilderGameState } from '../types';
-import { MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS } from '../difficulty';
-import { mathEquationBuilderParamsFromProfile } from '../difficulty';
+import { MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS , mathEquationBuilderParamsFromProfile } from '../difficulty';
 
 function startSession(
   seed: string,

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import type { SQLiteAdapter, SQLiteRunResult } from "@/db";
-import type { SQLiteValue } from "@/db";
+import type { SQLiteAdapter, SQLiteRunResult , SQLiteValue } from "@/db";
 import { AppDatabase } from "@/db";
 import { createMigratedDb } from "../../db/__tests__/helpers";
 import { createNodeSqliteAdapter } from "../../db/adapters/node";

@@ -35,9 +35,8 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { AppDatabase, initializeConnection, runMigrations } from '@/db';
+import type { CompleteSessionInput, GameSessionRecord, SQLiteAdapter } from '@/db';
 import { createNodeSqliteAdapter } from '@/db/adapters/node'; // test-only backend, never in the app bundle
-import type { SQLiteAdapter } from '@/db';
-import type { CompleteSessionInput, GameSessionRecord } from '@/db';
 import { getBundledPacks, getStorageSummary } from '@/content';
 import { evaluateQuest, evaluateQuests, QUEST_DEFINITIONS_V1 } from '@/quests';
 import type { QuestSnapshot } from '@/quests';
@@ -47,6 +46,9 @@ import { reconstructStreak } from '@/streaks';
 import type { StreakState } from '@/streaks';
 import { dailyWorkout, pickWorkoutGames } from '@/workout/today';
 
+// import at top-level so the jest mock applies (dynamic import needs --experimental-vm-modules)
+import { createExpoSqliteAdapter as expoCreateExpoSqliteAdapter } from '@/db/adapters/expo';
+
 const T0 = 1_700_000_000_000;
 const OFFLINE_ERROR = 'OFFLINE TEST: network access attempted';
 
@@ -54,7 +56,7 @@ const OFFLINE_ERROR = 'OFFLINE TEST: network access attempted';
 const SCAN_ROOTS = ['games', 'workout', 'rating', 'sdk', 'db', 'quests', 'streaks', 'content'] as const;
 
 /** Explicit allowlist for the static scan — empty by design; name + comment any exception. */
-const ALLOWLIST: ReadonlyArray<{ file: string; pattern?: string; reason: string }> = [];
+const ALLOWLIST: readonly { file: string; pattern?: string; reason: string }[] = [];
 
 /** Light substring patterns (see file header for false-positive trade-offs). */
 const NETWORK_API_PATTERN = /fetch\(|XMLHttpRequest|axios|WebSocket\(/g;
@@ -109,9 +111,6 @@ async function createMigratedAdapter(): Promise<SQLiteAdapter> {
   return adapter;
 }
 
-// import at top-level so the jest mock applies (dynamic import needs --experimental-vm-modules)
-import { createExpoSqliteAdapter as expoCreateExpoSqliteAdapter } from '@/db/adapters/expo';
-
 /** Fresh in-memory database via the Expo adapter path (jest mocks it to the Node adapter — proves the app bundle path is offline). */
 async function createMigratedExpoAdapter(): Promise<SQLiteAdapter> {
   // jest/setup.js replaces this with createNodeSqliteAdapter(':memory:'); the
@@ -133,7 +132,7 @@ const NETWORK_GLOBALS = ['fetch', 'XMLHttpRequest', 'WebSocket'] as const;
  */
 function banNetworkApis(): () => void {
   const g = globalThis as Record<string, unknown>;
-  const saved: Array<{ key: string; present: boolean; value: unknown }> = [];
+  const saved: { key: string; present: boolean; value: unknown }[] = [];
   for (const key of NETWORK_GLOBALS) {
     saved.push({ key, present: key in g, value: g[key] });
     Object.defineProperty(g, key, {

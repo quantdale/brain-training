@@ -8,12 +8,11 @@ import { describe, expect, it, beforeEach } from '@jest/globals';
 
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import { SessionRepository } from '@/db/sessions';
-import { RatingRepository } from '@/db/rating';
+import { RatingRepository , INITIAL_RATING } from '@/db/rating';
 import { LedgerRepository } from '@/db/ledger';
 import { computeComposite } from '@/rating/composite';
 import { reconstructStreak, effectiveCurrent } from '@/streaks';
 import { localDateString } from '@/workout/today';
-import { INITIAL_RATING } from '@/db/rating';
 import type { GameSessionRecord } from '@/db';
 
 const T0 = 1_700_000_000_000;

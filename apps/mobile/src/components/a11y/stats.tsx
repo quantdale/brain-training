@@ -42,7 +42,7 @@ export function StatGroup({ label, children, testID }: StatGroupProps) {
  * produce "Best streak ." fragments.
  */
 export function formatStats(
-  stats: ReadonlyArray<readonly [string, string]>,
+  stats: readonly (readonly [string, string])[],
   separator = '. ',
 ): string {
   return stats

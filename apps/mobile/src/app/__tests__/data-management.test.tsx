@@ -22,6 +22,17 @@ import {
 import type { ImportPreview } from '@/data-portability';
 import DataManagementScreen from '@/app/data-management';
 
+import {
+  applyImport,
+  exportLocalData,
+  previewImport,
+  wipeLocalData,
+} from '@/data-portability';
+import {
+  pickBackupFile,
+  shareBackupFile,
+} from '@/data-portability/file-transport';
+
 jest.mock('@/db', () => ({
   getDb: jest.fn(() => ({ __testDb: true })),
 }));
@@ -88,17 +99,6 @@ jest.mock('@/data-portability', () => ({
   })),
   wipeLocalData: jest.fn(async () => undefined),
 }));
-
-import {
-  applyImport,
-  exportLocalData,
-  previewImport,
-  wipeLocalData,
-} from '@/data-portability';
-import {
-  pickBackupFile,
-  shareBackupFile,
-} from '@/data-portability/file-transport';
 
 interface MockTransport {
   writeBackup: jest.Mock;

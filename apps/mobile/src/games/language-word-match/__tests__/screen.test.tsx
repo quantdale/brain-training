@@ -15,12 +15,11 @@ import type { CompleteSessionInput } from '@/db';
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { loadContentPack } from '../content-validation';
 import { filterByTiers, selectRound } from '../generator';
-import type { LanguageRound } from '../types';
+import type { LanguageRound , LanguageRawResult } from '../types';
 import LanguageWordMatchScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
-import type { LanguageRawResult } from '../types';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),

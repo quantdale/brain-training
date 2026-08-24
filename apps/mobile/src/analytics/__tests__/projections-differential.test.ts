@@ -991,7 +991,7 @@ pd('perf: projection vs legacy read cost (opt-in via PERF_PROBE=1)', () => {
           }),
           loadProgressSnapshot_ms: await medianMs(3, () => loadProgressSnapshot(db)),
         };
-        // eslint-disable-next-line no-console
+         
         console.log(`PERF_W10_JSON:${JSON.stringify({ sessions: n, ...report })}`);
 
         // Sanity only — never a timing gate.

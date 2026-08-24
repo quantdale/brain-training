@@ -136,7 +136,7 @@ describe('evaluate / uniqueSolutionCount', () => {
     // (4,2) — 4−2 = 4÷2 = 2. The generator excludes both by construction
     // (minA ≥ 4; explicit (4,2) rejection), so every generated equation has
     // exactly one correct operator among the four displayed buttons.
-    const ambiguous: Array<{ a: number; b: number; c: number; ops: string[] }> = [];
+    const ambiguous: { a: number; b: number; c: number; ops: string[] }[] = [];
     for (let a = 2; a <= 50; a += 1) {
       for (let b = 2; b <= 25; b += 1) {
         const byResult = new Map<number, string[]>();

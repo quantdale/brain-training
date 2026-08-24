@@ -35,7 +35,7 @@ describe('TutorialLifecycle', () => {
   });
 
   it('persists through a pluggable store', () => {
-    const writes: Array<{ gameId: string; state: unknown }> = [];
+    const writes: { gameId: string; state: unknown }[] = [];
     const store: TutorialStore = {
       getTutorialState: () => null,
       setTutorialState: (gameId, state) => writes.push({ gameId, state }),

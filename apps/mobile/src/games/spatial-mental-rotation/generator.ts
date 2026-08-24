@@ -177,7 +177,7 @@ export function hasRotationSymmetry(cells: readonly Cell[]): boolean {
  * valid targets with mutate-only DIFFERENT rounds.
  */
 export function hasReflectionSymmetry(cells: readonly Cell[]): boolean {
-  const transforms: ReadonlyArray<(c: Cell) => Cell> = [
+  const transforms: readonly ((c: Cell) => Cell)[] = [
     (c) => ({ x: -c.x, y: c.y }), // vertical
     (c) => ({ x: c.x, y: -c.y }), // horizontal
     (c) => ({ x: c.y, y: c.x }), // diagonal y = x

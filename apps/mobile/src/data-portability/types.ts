@@ -7,8 +7,7 @@
  * replace restore with validation/preview").
  */
 
-import type { Profile, GameSessionRecord, LedgerEntry } from '@/db';
-import type { DomainRating, RatingHistoryEntry } from '@/db';
+import type { Profile, GameSessionRecord, LedgerEntry , DomainRating, RatingHistoryEntry } from '@/db';
 
 /** Highest backup-format version this engine can read and write. */
 export const BACKUP_FORMAT_VERSION = 1;

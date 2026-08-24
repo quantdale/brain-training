@@ -45,6 +45,97 @@ import { FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS } from '@/games/flexibility-rul
 import * as taskSwitchGen from '@/games/flexibility-task-switch/generator';
 import { DIFFICULTY_PARAMS as TASK_SWITCH_PARAMS } from '@/games/flexibility-task-switch/difficulty';
 
+// ------------------------- LANGUAGE -------------------------
+import {
+  CONTEXT_FIT_DIFFICULTY_PARAMS,
+  tiersFromMask as cfTiersFromMask,
+} from '@/games/language-context-fit/difficulty';
+import { loadContentPack as loadContextPack } from '@/games/language-context-fit/content-validation';
+import {
+  selectRound as cfSelectRound,
+  filterByTiers as cfFilterByTiers,
+} from '@/games/language-context-fit/generator';
+
+import { DIFFICULTY_PARAMS as SENTENCE_BUILDER_PARAMS } from '@/games/language-sentence-builder/difficulty';
+import * as sentenceBuilderGen from '@/games/language-sentence-builder/generator';
+import { SENTENCE_BANK } from '@/games/language-sentence-builder/content/sentence-bank';
+
+import {
+  WORD_CHAIN_DIFFICULTY_PARAMS,
+  tiersFromMask as wcTiersFromMask,
+} from '@/games/language-word-chain/difficulty';
+import { loadContentPack as loadWordChainPack } from '@/games/language-word-chain/content-validation';
+import {
+  filterByTiers as wcFilterByTiers,
+  filterByLength as wcFilterByLength,
+  generateRound as wcGenerateRound,
+} from '@/games/language-word-chain/generator';
+
+import {
+  LANGUAGE_DIFFICULTY_PARAMS,
+  tiersFromMask as wmTiersFromMask,
+} from '@/games/language-word-match/difficulty';
+import { loadContentPack as loadWordMatchPack } from '@/games/language-word-match/content-validation';
+import {
+  filterByTiers as wmFilterByTiers,
+  selectRound as wmSelectRound,
+} from '@/games/language-word-match/generator';
+
+import * as scrambleGen from '@/games/language-word-scramble/generator';
+import { WORD_SCRAMBLE_DIFFICULTY_PARAMS } from '@/games/language-word-scramble/difficulty';
+
+// ------------------------- LOGIC -------------------------
+import * as codeCrackerGen from '@/games/logic-code-cracker/generator';
+import { CODE_CRACKER_DIFFICULTY_PARAMS } from '@/games/logic-code-cracker/difficulty';
+import * as deductionGen from '@/games/logic-deduction-table/generator';
+import { LOGIC_DEDUCTION_DIFFICULTY_PARAMS } from '@/games/logic-deduction-table/difficulty';
+import * as nextSequenceGen from '@/games/logic-next-sequence/generator';
+import { LOGIC_DIFFICULTY_PARAMS } from '@/games/logic-next-sequence/difficulty';
+import * as orderPathGen from '@/games/logic-order-path/generator';
+import { ORDER_PATH_DIFFICULTY_PARAMS } from '@/games/logic-order-path/difficulty';
+import * as ruleGridGen from '@/games/logic-rule-grid/generator';
+import { RULE_GRID_DIFFICULTY_PARAMS } from '@/games/logic-rule-grid/difficulty';
+
+// ------------------------- MEMORY -------------------------
+import * as memoryGen from '@/games/memory/generator';
+import { MEMORY_DIFFICULTY_PARAMS } from '@/games/memory/difficulty';
+import * as gridRecallGen from '@/games/memory-grid-recall/generator';
+import { GRID_RECALL_DIFFICULTY_PARAMS } from '@/games/memory-grid-recall/difficulty';
+import * as pairRecallGen from '@/games/memory-pair-recall/generator';
+import { PAIR_RECALL_DIFFICULTY_PARAMS } from '@/games/memory-pair-recall/difficulty';
+import * as patternTapGen from '@/games/memory-pattern-tap-back/generator';
+import { DIFFICULTY_PARAMS as PATTERN_TAP_PARAMS } from '@/games/memory-pattern-tap-back/difficulty';
+import * as prospectiveCueGen from '@/games/memory-prospective-cue/generator';
+import { PROSPECTIVE_CUE_DIFFICULTY_PARAMS } from '@/games/memory-prospective-cue/difficulty';
+import * as runningOrderGen from '@/games/memory-running-order/generator';
+import { RUNNING_ORDER_DIFFICULTY_PARAMS } from '@/games/memory-running-order/difficulty';
+import * as sequenceMemoryGen from '@/games/memory-sequence-memory/generator';
+import { SEQUENCE_MEMORY_DIFFICULTY_PARAMS } from '@/games/memory-sequence-memory/difficulty';
+
+// ------------------------- SPATIAL -------------------------
+import * as coordinateTurnGen from '@/games/spatial-coordinate-turn/generator';
+import { DIFFICULTY_PARAMS as COORDINATE_TURN_PARAMS } from '@/games/spatial-coordinate-turn/difficulty';
+import * as foldMatchGen from '@/games/spatial-fold-match/generator';
+import { DIFFICULTY_PARAMS as FOLD_MATCH_PARAMS } from '@/games/spatial-fold-match/difficulty';
+import * as gridNavGen from '@/games/spatial-grid-nav/generator';
+import { DIFFICULTY_PARAMS as GRID_NAV_PARAMS } from '@/games/spatial-grid-nav/difficulty';
+import * as mentalRotationGen from '@/games/spatial-mental-rotation/generator';
+import { SPATIAL_DIFFICULTY_PARAMS } from '@/games/spatial-mental-rotation/difficulty';
+import * as transformMatchGen from '@/games/spatial-transform-match/generator';
+import { DIFFICULTY_PARAMS as TRANSFORM_MATCH_PARAMS } from '@/games/spatial-transform-match/difficulty';
+
+// ------------------------- SPEED -------------------------
+import * as colorMatchGen from '@/games/speed-color-match/generator';
+import { SPEED_COLOR_MATCH_DIFFICULTY_PARAMS } from '@/games/speed-color-match/difficulty';
+import * as orderSweepGen from '@/games/speed-order-sweep/generator';
+import { ORDER_SWEEP_DIFFICULTY_PARAMS } from '@/games/speed-order-sweep/difficulty';
+import * as quickCompareGen from '@/games/speed-quick-compare/generator';
+import { QUICK_COMPARE_DIFFICULTY_PARAMS } from '@/games/speed-quick-compare/difficulty';
+import * as reactionTimeGen from '@/games/speed-reaction-time/generator';
+import { SPEED_DIFFICULTY_PARAMS } from '@/games/speed-reaction-time/difficulty';
+import * as tapRushGen from '@/games/speed-tap-rush/generator';
+import { TAP_RUSH_DIFFICULTY_PARAMS } from '@/games/speed-tap-rush/difficulty';
+
 type Level = 'easy' | 'normal' | 'hard' | 'expert';
 const LEVELS: Level[] = ['easy', 'normal', 'hard', 'expert'];
 const SEED_COUNT = 8;
@@ -254,45 +345,6 @@ const GAMES: GameAdapter[] = [
   },
 ];
 
-// ------------------------- LANGUAGE -------------------------
-import {
-  CONTEXT_FIT_DIFFICULTY_PARAMS,
-  tiersFromMask as cfTiersFromMask,
-} from '@/games/language-context-fit/difficulty';
-import { loadContentPack as loadContextPack } from '@/games/language-context-fit/content-validation';
-import {
-  selectRound as cfSelectRound,
-  filterByTiers as cfFilterByTiers,
-} from '@/games/language-context-fit/generator';
-
-import { DIFFICULTY_PARAMS as SENTENCE_BUILDER_PARAMS } from '@/games/language-sentence-builder/difficulty';
-import * as sentenceBuilderGen from '@/games/language-sentence-builder/generator';
-import { SENTENCE_BANK } from '@/games/language-sentence-builder/content/sentence-bank';
-
-import {
-  WORD_CHAIN_DIFFICULTY_PARAMS,
-  tiersFromMask as wcTiersFromMask,
-} from '@/games/language-word-chain/difficulty';
-import { loadContentPack as loadWordChainPack } from '@/games/language-word-chain/content-validation';
-import {
-  filterByTiers as wcFilterByTiers,
-  filterByLength as wcFilterByLength,
-  generateRound as wcGenerateRound,
-} from '@/games/language-word-chain/generator';
-
-import {
-  LANGUAGE_DIFFICULTY_PARAMS,
-  tiersFromMask as wmTiersFromMask,
-} from '@/games/language-word-match/difficulty';
-import { loadContentPack as loadWordMatchPack } from '@/games/language-word-match/content-validation';
-import {
-  filterByTiers as wmFilterByTiers,
-  selectRound as wmSelectRound,
-} from '@/games/language-word-match/generator';
-
-import * as scrambleGen from '@/games/language-word-scramble/generator';
-import { WORD_SCRAMBLE_DIFFICULTY_PARAMS } from '@/games/language-word-scramble/difficulty';
-
 const GAMES_LANGUAGE: GameAdapter[] = [
   {
     id: 'language-context-fit',
@@ -415,18 +467,6 @@ const GAMES_LANGUAGE: GameAdapter[] = [
   },
 ];
 
-// ------------------------- LOGIC -------------------------
-import * as codeCrackerGen from '@/games/logic-code-cracker/generator';
-import { CODE_CRACKER_DIFFICULTY_PARAMS } from '@/games/logic-code-cracker/difficulty';
-import * as deductionGen from '@/games/logic-deduction-table/generator';
-import { LOGIC_DEDUCTION_DIFFICULTY_PARAMS } from '@/games/logic-deduction-table/difficulty';
-import * as nextSequenceGen from '@/games/logic-next-sequence/generator';
-import { LOGIC_DIFFICULTY_PARAMS } from '@/games/logic-next-sequence/difficulty';
-import * as orderPathGen from '@/games/logic-order-path/generator';
-import { ORDER_PATH_DIFFICULTY_PARAMS } from '@/games/logic-order-path/difficulty';
-import * as ruleGridGen from '@/games/logic-rule-grid/generator';
-import { RULE_GRID_DIFFICULTY_PARAMS } from '@/games/logic-rule-grid/difficulty';
-
 const GAMES_LOGIC: GameAdapter[] = [
   {
     id: 'logic-code-cracker',
@@ -543,22 +583,6 @@ const GAMES_LOGIC: GameAdapter[] = [
     validator: (round) => (ruleGridGen as any).validateGeneratedRound(round),
   },
 ];
-
-// ------------------------- MEMORY -------------------------
-import * as memoryGen from '@/games/memory/generator';
-import { MEMORY_DIFFICULTY_PARAMS } from '@/games/memory/difficulty';
-import * as gridRecallGen from '@/games/memory-grid-recall/generator';
-import { GRID_RECALL_DIFFICULTY_PARAMS } from '@/games/memory-grid-recall/difficulty';
-import * as pairRecallGen from '@/games/memory-pair-recall/generator';
-import { PAIR_RECALL_DIFFICULTY_PARAMS } from '@/games/memory-pair-recall/difficulty';
-import * as patternTapGen from '@/games/memory-pattern-tap-back/generator';
-import { DIFFICULTY_PARAMS as PATTERN_TAP_PARAMS } from '@/games/memory-pattern-tap-back/difficulty';
-import * as prospectiveCueGen from '@/games/memory-prospective-cue/generator';
-import { PROSPECTIVE_CUE_DIFFICULTY_PARAMS } from '@/games/memory-prospective-cue/difficulty';
-import * as runningOrderGen from '@/games/memory-running-order/generator';
-import { RUNNING_ORDER_DIFFICULTY_PARAMS } from '@/games/memory-running-order/difficulty';
-import * as sequenceMemoryGen from '@/games/memory-sequence-memory/generator';
-import { SEQUENCE_MEMORY_DIFFICULTY_PARAMS } from '@/games/memory-sequence-memory/difficulty';
 
 const GAMES_MEMORY: GameAdapter[] = [
   {
@@ -715,18 +739,6 @@ const GAMES_MEMORY: GameAdapter[] = [
   },
 ];
 
-// ------------------------- SPATIAL -------------------------
-import * as coordinateTurnGen from '@/games/spatial-coordinate-turn/generator';
-import { DIFFICULTY_PARAMS as COORDINATE_TURN_PARAMS } from '@/games/spatial-coordinate-turn/difficulty';
-import * as foldMatchGen from '@/games/spatial-fold-match/generator';
-import { DIFFICULTY_PARAMS as FOLD_MATCH_PARAMS } from '@/games/spatial-fold-match/difficulty';
-import * as gridNavGen from '@/games/spatial-grid-nav/generator';
-import { DIFFICULTY_PARAMS as GRID_NAV_PARAMS } from '@/games/spatial-grid-nav/difficulty';
-import * as mentalRotationGen from '@/games/spatial-mental-rotation/generator';
-import { SPATIAL_DIFFICULTY_PARAMS } from '@/games/spatial-mental-rotation/difficulty';
-import * as transformMatchGen from '@/games/spatial-transform-match/generator';
-import { DIFFICULTY_PARAMS as TRANSFORM_MATCH_PARAMS } from '@/games/spatial-transform-match/difficulty';
-
 const GAMES_SPATIAL: GameAdapter[] = [
   {
     id: 'spatial-coordinate-turn',
@@ -837,18 +849,6 @@ const GAMES_SPATIAL: GameAdapter[] = [
     expectedBranches: (level) => (TRANSFORM_MATCH_PARAMS as any)[level].allowedTransforms,
   },
 ];
-
-// ------------------------- SPEED -------------------------
-import * as colorMatchGen from '@/games/speed-color-match/generator';
-import { SPEED_COLOR_MATCH_DIFFICULTY_PARAMS } from '@/games/speed-color-match/difficulty';
-import * as orderSweepGen from '@/games/speed-order-sweep/generator';
-import { ORDER_SWEEP_DIFFICULTY_PARAMS } from '@/games/speed-order-sweep/difficulty';
-import * as quickCompareGen from '@/games/speed-quick-compare/generator';
-import { QUICK_COMPARE_DIFFICULTY_PARAMS } from '@/games/speed-quick-compare/difficulty';
-import * as reactionTimeGen from '@/games/speed-reaction-time/generator';
-import { SPEED_DIFFICULTY_PARAMS } from '@/games/speed-reaction-time/difficulty';
-import * as tapRushGen from '@/games/speed-tap-rush/generator';
-import { TAP_RUSH_DIFFICULTY_PARAMS } from '@/games/speed-tap-rush/difficulty';
 
 const GAMES_SPEED: GameAdapter[] = [
   {

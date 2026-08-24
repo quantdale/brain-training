@@ -135,7 +135,7 @@ describe('hasNoDuplicateWords', () => {
 // scrambled reconstruction ambiguous, so generation must only select
 // sentences whose words are all distinct — across every difficulty tier.
 describe('sentence uniqueness (audit regression)', () => {
-  const tiers: ReadonlyArray<readonly [number, number]> = [
+  const tiers: readonly (readonly [number, number])[] = [
     [4, 5],
     [5, 7],
     [6, 9],
@@ -158,7 +158,7 @@ describe('sentence uniqueness (audit regression)', () => {
           });
           const _ok = hasNoDuplicateWords(sentence);
           if (!_ok) {
-            // eslint-disable-next-line no-console
+             
             console.log('DUP', lo, hi, JSON.stringify(sentence.text), 'wc', sentence.wordCount);
           }
           expect(_ok).toBe(true);

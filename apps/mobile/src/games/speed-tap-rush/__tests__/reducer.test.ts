@@ -4,12 +4,11 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { tapRushGameReducer } from '../reducer';
-import { tapRushParamsFromProfile } from '../difficulty';
+import { tapRushParamsFromProfile , TAP_RUSH_DIFFICULTY_PARAMS } from '../difficulty';
 import { createInitialTapRushState } from '../types';
 import type { TapRushGameState } from '../types';
 import { generateRoundTargets } from '../generator';
 import { perfectSessionScore } from '../scoring';
-import { TAP_RUSH_DIFFICULTY_PARAMS } from '../difficulty';
 
 function startSession(
   seed: string,

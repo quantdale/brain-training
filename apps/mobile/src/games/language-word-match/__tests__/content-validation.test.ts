@@ -4,8 +4,7 @@ import { describe, expect, it } from '@jest/globals';
 import {
   TIERS,
   validateContentPack,
-} from '../content-validation';
-import { loadContentPack } from '../content-validation';
+ loadContentPack } from '../content-validation';
 import packJson from '../content/pack.json';
 
 /** Deep-clone the real pack for mutation tests (no shared references). */

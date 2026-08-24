@@ -1,7 +1,6 @@
 import type { SQLiteAdapter } from './adapter';
 import { MAX_READ_LIMIT, clampLimit, joinAnd, normalizeOffset, requireFiniteNumber } from './query';
-import type { SQLiteValue } from './types';
-import type { AppliedRatingDelta, RatingDelta } from './types';
+import type { SQLiteValue , AppliedRatingDelta, RatingDelta } from './types';
 
 /**
  * Per-domain ratings and the append-only rating history (constitution §15).

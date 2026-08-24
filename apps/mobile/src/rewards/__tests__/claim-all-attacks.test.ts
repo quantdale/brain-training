@@ -25,7 +25,7 @@ import {
   claimAchievementReward,
   toDbAchievementDefinition,
 } from '@/achievements';
-import { AppDatabase, ProfileRepository } from '@/db';
+import { AppDatabase, ProfileRepository , spendCurrency } from '@/db';
 import type { SQLiteAdapter } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import {
@@ -33,7 +33,6 @@ import {
   currentPeriodKey,
   toDbQuestDefinition,
 } from '@/quests';
-import { spendCurrency } from '@/db';
 import { claimStreakMilestoneReward, readClaimedMilestones, STREAK_MILESTONES } from '@/streaks';
 import { claimAllRewards, claimReward, collectClaimableRewards } from '../inbox';
 

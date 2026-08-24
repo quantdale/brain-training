@@ -2,7 +2,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { createRng } from '@/sdk';
 
-import { SPATIAL_DIFFICULTY_PARAMS } from '../difficulty';
+import { SPATIAL_DIFFICULTY_PARAMS , anglesFromMask } from '../difficulty';
 import {
   GRID_BOUND,
   MAX_ROUND_ATTEMPTS,
@@ -29,7 +29,6 @@ import {
   validateRound,
 } from '../generator';
 import type { RotationRound } from '../generator';
-import { anglesFromMask } from '../difficulty';
 import type { Block, Cell } from '../types';
 
 /** Full deterministic session for one seed/level, chaining near-dup avoidance. */

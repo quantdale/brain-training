@@ -1,9 +1,6 @@
 /**
  * GameButton — thin re-export of the shared primitive (canary C migration).
  */
-export { GameButton } from '@/components/game-ui';
-export type { GameButtonProps } from '@/components/game-ui';
-
 /**
  * AnswerButton — the "Same" / "Different" mental-rotation answer control.
  *
@@ -19,6 +16,9 @@ import { GameButton } from '@/components/game-ui';
 import type { GameButtonProps } from '@/components/game-ui';
 
 import type { RoundKind } from '../types';
+
+export { GameButton } from '@/components/game-ui';
+export type { GameButtonProps } from '@/components/game-ui';
 
 export interface AnswerButtonProps extends Omit<GameButtonProps, 'onPress'> {
   answer: RoundKind;

@@ -7,8 +7,7 @@
  */
 import { describe, expect, it } from '@jest/globals';
 
-import { QUEST_DEFINITIONS_V1 } from '@/quests';
-import { DAILY_QUEST_SLOTS, pickStable, selectActiveQuests, WEEKLY_QUEST_SLOTS } from '@/quests';
+import { QUEST_DEFINITIONS_V1 , DAILY_QUEST_SLOTS, pickStable, selectActiveQuests, WEEKLY_QUEST_SLOTS } from '@/quests';
 
 const NOW = new Date(2026, 7, 16, 12, 0, 0); // Sunday 2026-08-16, ISO week 2026-W33
 const LATER = new Date(2026, 7, 17, 12, 0, 0); // Monday 2026-08-17, ISO week 2026-W34

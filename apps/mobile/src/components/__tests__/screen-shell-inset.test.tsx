@@ -21,6 +21,8 @@ import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import { BottomTabInset, Spacing } from '@/constants/theme';
 
+import { ScreenShell } from '@/components/screen-shell';
+
 let mockSegments: readonly string[] = [];
 
 jest.mock('expo-router', () => ({
@@ -29,8 +31,6 @@ jest.mock('expo-router', () => ({
   // Overridden per-test via `mockSegments`; default = pushed route.
   useSegments: () => mockSegments,
 }));
-
-import { ScreenShell } from '@/components/screen-shell';
 
 /** Latest render result — RNTL v14 `render` is async; traverse via `.root`. */
 let latestView: Awaited<ReturnType<typeof render>>;
@@ -73,9 +73,7 @@ function paddingBottomOfShell(): number {
     throw new Error('ScreenShell ScrollView (contentContainerStyle) not found in rendered tree');
   }
   const raw = scrollView.props.contentContainerStyle;
-  const flat = (Array.isArray(raw) ? raw : [raw]).flat(Infinity).filter(Boolean) as Array<
-    Record<string, unknown> | false | '' | null | undefined
-  >;
+  const flat = (Array.isArray(raw) ? raw : [raw]).flat(Infinity).filter(Boolean) as (Record<string, unknown> | false | '' | null | undefined)[];
   for (const entry of flat) {
     if (entry && typeof entry === 'object' && 'paddingBottom' in entry) {
       return entry.paddingBottom as number;

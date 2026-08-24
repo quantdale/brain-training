@@ -104,6 +104,6 @@ for (const [name, segments] of Object.entries(ASSETS)) {
   const wav = renderTone(segments);
   const file = join(outDir, `${name}.wav`);
   writeFileSync(file, wav);
-  // eslint-disable-next-line no-console
+   
   console.log(`wrote ${file} (${wav.length} bytes)`);
 }

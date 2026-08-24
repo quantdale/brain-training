@@ -4,12 +4,11 @@ import { createRng } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 
 import { mathGameReducer } from '../reducer';
-import { createInitialMathState } from '../types';
+import { createInitialMathState , OPERATORS } from '../types';
 import type { MathGameState } from '../types';
 import { generateProblem, generateSessionProblems } from '../generator';
 import { perfectSessionScore, problemScore } from '../scoring';
 import { ADAPTIVE_PARAMS, MATH_DIFFICULTY_PARAMS, adaptiveParamsForStep } from '../difficulty';
-import { OPERATORS } from '../types';
 
 const NORMAL = MATH_DIFFICULTY_PARAMS.normal;
 

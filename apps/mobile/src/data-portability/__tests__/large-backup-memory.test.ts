@@ -20,9 +20,8 @@ import { describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '@/db';
 import { AppDatabase } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
-import { exportLocalDataBundle } from '../serialize';
+import { exportLocalDataBundle , serializeEnvelopeWithChecksum, buildBackupManifest } from '../serialize';
 import { serializeBackup, parseAndValidateBackup } from '../index';
-import { serializeEnvelopeWithChecksum, buildBackupManifest } from '../serialize';
 import { T0 } from './helpers';
 
 const enabled = process.env.LARGE_BACKUP_PROBE === '1';

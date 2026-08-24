@@ -25,7 +25,7 @@ function resolvedStyle(style: unknown): unknown[] {
 describe('A11yDialog', () => {
   let announceSpy: ReturnType<typeof jest.spyOn>;
   let backAddSpy: ReturnType<typeof jest.spyOn>;
-  let subscriptions: Array<{ remove: jest.Mock }>;
+  let subscriptions: { remove: jest.Mock }[];
 
   beforeEach(() => {
     announceSpy = jest

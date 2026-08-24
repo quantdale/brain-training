@@ -33,7 +33,7 @@ describe('SessionLifecycle transitions', () => {
   });
 
   it('rejects illegal transitions with IllegalTransitionError', () => {
-    const cases: Array<[string, (l: SessionLifecycle) => void]> = [
+    const cases: [string, (l: SessionLifecycle) => void][] = [
       ['pause from created', (l) => l.pause()],
       ['resume from created', (l) => l.resume()],
       ['complete from created', (l) => l.complete()],
@@ -82,7 +82,7 @@ describe('SessionLifecycle transitions', () => {
   });
 
   it('invokes onStatusChange with (newStatus, previousStatus) on success only', () => {
-    const seen: Array<[SessionStatus, SessionStatus]> = [];
+    const seen: [SessionStatus, SessionStatus][] = [];
     const lifecycle = new SessionLifecycle({
       onStatusChange: (status, previous) => seen.push([status, previous]),
     });

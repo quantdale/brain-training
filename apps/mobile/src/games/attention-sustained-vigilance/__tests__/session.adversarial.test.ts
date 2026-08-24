@@ -28,10 +28,8 @@ import {
   seedToNumber,
 } from '../session';
 import { SCORING_VERSION, versionToNumber } from '../versions';
-import { GAME_ID } from '../types';
-import { INITIAL_STATS } from '../types';
-import type { CompleteSessionResult } from '@/db';
-import type { GameSessionRecord } from '@/db';
+import { GAME_ID , INITIAL_STATS } from '../types';
+import type { CompleteSessionResult , GameSessionRecord } from '@/db';
 import type { VigilanceRawResult, VigilanceStats } from '../types';
 import { extractAccuracy, extractDifficultyRating, extractReactionMs, extractScore } from '@/analytics/metrics-map';
 

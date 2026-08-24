@@ -17,6 +17,12 @@
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
+import {
+  createFileBackupTransport,
+  pickBackupFile,
+  shareBackupFile,
+} from '../file-transport';
+
 /* ------------------------------------------------------------------ */
 /* In-memory expo-file-system double                                   */
 /* ------------------------------------------------------------------ */
@@ -56,8 +62,8 @@ jest.mock('expo-file-system', () => {
     create(_opts?: unknown): void {
       mockStore.set(this.uri, { kind: 'dir' });
     }
-    list(): Array<File | Directory> {
-      const out: Array<File | Directory> = [];
+    list(): (File | Directory)[] {
+      const out: (File | Directory)[] = [];
       for (const [uri, entry] of mockStore) {
         if (!uri.startsWith(`${this.uri}/`) || entry.kind !== 'file') continue;
         if (uri.slice(this.uri.length + 1).includes('/')) continue; // nested dirs skipped
@@ -68,9 +74,6 @@ jest.mock('expo-file-system', () => {
   }
 
   class File extends Directory {
-    constructor(parent: { uri: string } | string, name?: string) {
-      super(parent, name); // Directory joins (parent, name) correctly now
-    }
     // `exists` must reflect FILE entries specifically.
     get exists(): boolean {
       return mockStore.get(this.uri)?.kind === 'file';
@@ -95,7 +98,7 @@ jest.mock('expo-file-system', () => {
 
 type MockPickerResult = {
   canceled: boolean;
-  assets: Array<{ uri: string; name: string }>;
+  assets: { uri: string; name: string }[];
 };
 
 const mockGetDocumentAsync = jest.fn(
@@ -117,12 +120,6 @@ jest.mock('expo-sharing', () => ({
   ) => mockIsAvailableAsync(...args),
   shareAsync: (...args: Parameters<typeof mockShareAsync>) => mockShareAsync(...args),
 }));
-
-import {
-  createFileBackupTransport,
-  pickBackupFile,
-  shareBackupFile,
-} from '../file-transport';
 
 beforeEach(() => {
   mockStore.clear();

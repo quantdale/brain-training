@@ -6,9 +6,8 @@
  */
 import { describe, expect, it } from '@jest/globals';
 
-import { AppDatabase } from '@/db';
+import { AppDatabase , ProfileRepository } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
-import { ProfileRepository } from '@/db';
 import {
   applyOwnedStreakItem,
   claimStreakMilestoneReward,

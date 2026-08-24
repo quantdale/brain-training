@@ -14,8 +14,7 @@ import type { CompleteSessionInput } from '@/db';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { generateRoundSequence } from '../generator';
-import { adaptiveGridSize, paramsFromProfile } from '../difficulty';
-import { resolvePatternTapBackDifficulty } from '../difficulty';
+import { adaptiveGridSize, paramsFromProfile , resolvePatternTapBackDifficulty } from '../difficulty';
 import PatternTapBackScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';

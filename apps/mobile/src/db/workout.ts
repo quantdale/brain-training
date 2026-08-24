@@ -389,7 +389,7 @@ export class WorkoutRepository {
   ): Promise<WorkoutInstance[]> {
     const limit = Math.max(1, options.limit ?? 30);
     const clauses: string[] = [];
-    const params: Array<string | number> = [];
+    const params: (string | number)[] = [];
     if (options.from) {
       clauses.push("date >= ?");
       params.push(options.from);

@@ -53,10 +53,10 @@ export const ADAPTIVE_POSITION_STEP = 0.25;
  * Adaptive angle tiers, ordered by position. Lower positions offer the
  * moderate 90°/270° angles; the hardest band (position ≥ 2/3) forces 180°.
  */
-export const ADAPTIVE_ANGLE_MASK_TIERS: ReadonlyArray<{
+export const ADAPTIVE_ANGLE_MASK_TIERS: readonly {
   readonly minPosition: number;
   readonly mask: number;
-}> = Object.freeze([
+}[] = Object.freeze([
   { minPosition: 0, mask: 10 }, // {90°, 270°}
   { minPosition: 1 / 3, mask: 14 }, // {90°, 180°, 270°}
   { minPosition: 2 / 3, mask: 4 }, // {180°}

@@ -25,9 +25,7 @@ import {
   wipeLocalData,
 } from '../index';
 import { canonicalString } from '../canonical-json';
-import { buildEnvelope } from './helpers';
-import { emptyData } from './helpers';
-import { makeDb, seedFixture, T0 } from './helpers';
+import { buildEnvelope , emptyData , makeDb, seedFixture, T0 } from './helpers';
 
 /**
  * Fault-injecting adapter: throws once counted write calls exceed a budget.
@@ -91,9 +89,9 @@ interface DbDump {
   /** table name -> full rows ordered by rowid (insertion order). */
   tables: Record<string, unknown[]>;
   /** sqlite_sequence rows (autoincrement counters), if the schema uses any. */
-  sequence: Array<{ name: string; seq: number }>;
+  sequence: { name: string; seq: number }[];
   /** trigger DDL — proves append-only guards survive a failed replace. */
-  triggers: Array<{ name: string; sql: string | null }>;
+  triggers: { name: string; sql: string | null }[];
 }
 
 async function dumpDb(db: AppDatabase): Promise<DbDump> {

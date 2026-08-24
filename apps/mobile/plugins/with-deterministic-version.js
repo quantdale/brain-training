@@ -47,12 +47,12 @@ function withDeterministicVersion(config) {
   const version = config.version;
   const versionCode = versionCodeFromSemver(version);
 
-  // eslint-disable-next-line no-param-reassign
+   
   config.android = {
     ...(config.android || {}),
     versionCode,
   };
-  // eslint-disable-next-line no-param-reassign
+   
   config.ios = {
     ...(config.ios || {}),
     buildNumber: version,

@@ -82,11 +82,11 @@ function generateSessionSentences(
   minWords: number,
   maxWords: number,
 ) {
-  const sentences: Array<{
+  const sentences: {
     original: readonly string[];
     scrambled: readonly string[];
     category: string;
-  }> = [];
+  }[] = [];
   let prevCategory: string | null = null;
   for (let round = 0; round < rounds; round += 1) {
     const rng = createRng(seed);

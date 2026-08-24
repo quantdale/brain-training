@@ -50,7 +50,7 @@ export default function GameScreen() {
   const game = getGameDefinition(id ?? "");
 
   // Task 10.1: Cache the lazy component identity outside render (lazy creation is intentionally memoized).
-  // eslint-disable-next-line react-hooks/static-components
+   
   const GameScreenComponent = useMemo(
     () => (game ? getLazyGameComponent(game.id) : undefined),
     [game?.id],

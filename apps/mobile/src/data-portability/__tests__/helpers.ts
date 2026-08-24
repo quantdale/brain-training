@@ -2,6 +2,15 @@ import { AppDatabase, SCHEMA_VERSION } from '@/db';
 import { createMigratedDb } from '../../db/__tests__/helpers';
 import type { SQLiteAdapter } from '@/db';
 
+import {
+  BACKUP_FORMAT,
+  BACKUP_FORMAT_VERSION,
+  computeChecksum,
+  canonicalString,
+  type BackupData,
+  type BackupEnvelope,
+} from '../index';
+
 export const T0 = 1_700_000_000_000;
 
 /** Build a node-backed AppDatabase (migrated, profile ensured) for tests. */
@@ -102,15 +111,6 @@ export async function seedFixture(db: AppDatabase, opts: SeedOptions = {}): Prom
 
 export { SCHEMA_VERSION };
 export type { SQLiteAdapter };
-
-import {
-  BACKUP_FORMAT,
-  BACKUP_FORMAT_VERSION,
-  computeChecksum,
-  canonicalString,
-  type BackupData,
-  type BackupEnvelope,
-} from '../index';
 
 /**
  * Build a fully-checksummed envelope from raw `data` (shared by the

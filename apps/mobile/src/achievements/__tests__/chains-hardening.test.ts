@@ -19,11 +19,10 @@ import {
   resolveChainProgress,
   TIER_ORDER,
   tierRank,
-} from '@/achievements';
+ claimAchievementReward, toDbAchievementDefinition } from '@/achievements';
 import type { AchievementDef } from '@/achievements';
 import { AppDatabase, ProfileRepository } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
-import { claimAchievementReward, toDbAchievementDefinition } from '@/achievements';
 
 describe('tier ordering', () => {
   it('is strictly increasing bronze → silver → gold → platinum', () => {

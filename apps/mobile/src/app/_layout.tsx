@@ -13,8 +13,7 @@
  *   navigator — see docs/RECOVERY_DRILL.md wave-2 convergence note).
  */
 
-import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
-import { Stack } from "expo-router";
+import { DarkTheme, DefaultTheme, ThemeProvider , Stack } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useColorScheme } from "react-native";
 
@@ -25,8 +24,7 @@ import {
 } from "@/components/settings/settings-provider";
 import { AudioHapticsProvider } from "@/components/sensory/audio-haptics-provider";
 import { createRatingPipeline } from "@/rating";
-import { initDatabase } from "@/db";
-import { getDb } from "@/db";
+import { initDatabase , getDb } from "@/db";
 import { initializeProgression } from "@/progression";
 import { registry } from "@/registry/registry.generated";
 import {

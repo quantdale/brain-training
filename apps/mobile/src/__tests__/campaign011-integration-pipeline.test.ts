@@ -18,14 +18,13 @@ import { describe, expect, it } from '@jest/globals';
 
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import { AppDatabase } from '@/db';
-import { createRatingPipeline } from '@/rating/pipeline';
+import { createRatingPipeline , DIFFICULTY_XP_MULTIPLIER } from '@/rating/pipeline';
 import { SessionRepository } from '@/db/sessions';
 import { RatingRepository } from '@/db/rating';
 import { LedgerRepository } from '@/db/ledger';
 import { WorkoutRepository } from '@/db/workout';
 import type { GameSessionRecord } from '@/db';
 
-import { DIFFICULTY_XP_MULTIPLIER } from '@/rating/pipeline';
 import {
   ACHIEVEMENT_DEFINITIONS_V1,
   evaluateAchievements,

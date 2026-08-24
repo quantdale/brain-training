@@ -14,12 +14,11 @@ import type { CompleteSessionInput } from '@/db';
 
 import { ORDER_PATH_DIFFICULTY_PARAMS, orderPathParamsForLevel } from '../difficulty';
 import { generateRound } from '../generator';
-import type { OrderPathRound } from '../types';
+import type { OrderPathRound , OrderPathRawResult } from '../types';
 import OrderPathScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
-import type { OrderPathRawResult } from '../types';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
