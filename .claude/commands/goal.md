@@ -1,0 +1,3 @@
+Resume this repository's active development goal.
+
+Read all applicable repository instructions, `.agent/PLANNER_HANDOFF.md`, and `.agent/EXECUTION_PROMPT.md` if present, plus the repository's native goal/campaign/state/OpenSpec files. Reconcile the planned baseline with current Git and implementation state. If the planner prompt is ACTIVE, continue from the first genuinely incomplete requirement through required validation, durable-state updates, commits, and pushes. If it is absent/completed, fall back to native continuation semantics. If neither exists, report that a planner pass is required. Preserve stricter repository rules, avoid unrelated rewrites, and do not finish with known Critical/High regressions.
