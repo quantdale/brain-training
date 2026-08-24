@@ -5,7 +5,7 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ["dist/*"],
+    ignores: ["dist/*", ".expo/*"],
   },
   {
     // Jest global setup runs inside the Jest runtime where `jest` is injected.

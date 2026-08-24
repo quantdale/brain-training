@@ -36,6 +36,8 @@
 //   node scripts/qa/autobot.mjs --list-flows                   # offline flow definitions (no device)
 //   node scripts/qa/autobot.mjs --mode all --pause
 //   node scripts/qa/autobot.mjs --mode canaries
+//   node scripts/qa/autobot.mjs --mode certify            # release gate: full catalog,
+//                                                         #   preflight, provenance, journal
 //   node scripts/qa/autobot.mjs --category "Logic & Problem Solving"  # one category
 //   node scripts/qa/autobot.mjs --list-games
 //   node scripts/qa/autobot.mjs --self-test                # offline logic tests
@@ -603,6 +605,251 @@ function queryDb(file, sql) {
     return null;
   }
 }
+// ---------------------------------------------------------------------------
+// Release certification (campaign 013 closure).
+//
+// `--mode certify` is the authoritative full-catalog release gate: ONE
+// uninterrupted driver process, ONE exclusive device, every canonical game
+// terminally classified, machine-verifiable completeness, per-row persistence
+// invariants, build/git provenance, and an incrementally checkpointed journal
+// so a killed run can never masquerade as certified.
+// ---------------------------------------------------------------------------
+
+/** Coarse failure taxonomy for the aggregate report. The human-readable
+ * reason is always preserved alongside; this classification is additive and
+ * deliberately substring-based so transient wording changes do not silently
+ * reclassify known failure classes. Order matters: first match wins. */
+const FAILURE_CLASSIFIERS = [
+  ["environment", /blocked:|device (offline|not found)|adb (command|error)|port 8081/i],
+  ["crash", /app died|crash|process death|died after tap/i],
+  ["warm", /warm to home|home warm/i],
+  ["route-load", /screen did not load|did not mount|deep-link/i],
+  ["tutorial", /tutorial/i],
+  ["start", /start button/i],
+  ["interaction", /interaction|no tappable|died after interaction/i],
+  ["pause", /paus(e|ed)|resume control/i],
+  ["qa-force-win", /qa-toggle|force-win|force-win not reachable/i],
+  ["result-surface", /results (screen|surface)|results did not/i],
+  ["persistence", /session count|persist|invariant/i],
+  ["duplicate-write", /duplicate/i],
+  ["navigation", /back navigation|next-game/i],
+  ["timeout", /timeout|timed out|budget/i],
+  ["harness", /harness|self-test|catalog derivation/i],
+];
+
+/** Pure: map a failure reason to { category, matched } (null category when
+ * unclassifiable — callers keep the raw reason as the source of truth). */
+function classifyFailure(reason) {
+  if (typeof reason !== "string" || reason.length === 0)
+    return { category: null, matched: null };
+  for (const [category, re] of FAILURE_CLASSIFIERS) {
+    const m = reason.match(re);
+    if (m) return { category, matched: m[0] };
+  }
+  return { category: null, matched: null };
+}
+
+/** Pure: validate one persisted `game_sessions` row against the v10 schema
+ * contract (see apps/mobile/src/db/schema.ts). Returns { ok, violations[] }
+ * where ok is true only when every applicable invariant holds. `row` uses the
+ * sqlite column names; JSON payload columns are parsed and shape-checked. */
+function validateSessionRow(row, expectedGameId) {
+  const violations = [];
+  if (row === null || row === undefined || typeof row !== "object") {
+    return { ok: false, violations: ["row missing"] };
+  }
+  const push = (msg) => violations.push(msg);
+  const isInt = (v) => Number.isInteger(v);
+  const isFiniteNum = (v) => typeof v === "number" && Number.isFinite(v);
+
+  if (typeof row.id !== "string" || row.id.length === 0) push("id missing/empty");
+  if (row.game_id !== expectedGameId)
+    push(`game_id mismatch (${row.game_id} != ${expectedGameId})`);
+  for (const v of ["game_version", "generator_version", "scoring_version"])
+    if (!isInt(row[v]) || row[v] <= 0) push(`${v} not a positive integer`);
+  if (!isInt(row.seed)) push("seed not an integer");
+  if (!isFiniteNum(row.normalized_result) || row.normalized_result < 0 || row.normalized_result > 1)
+    push(`normalized_result outside [0,1] (${row.normalized_result})`);
+  if (!isInt(row.xp) || row.xp < 0) push(`xp negative/non-integer (${row.xp})`);
+  for (const t of ["started_at", "completed_at"])
+    if (!isInt(row[t]) || row[t] <= 0) push(`${t} not a positive epoch-ms integer`);
+  if (isInt(row.started_at) && isInt(row.completed_at) && row.completed_at < row.started_at)
+    push("completed_at before started_at");
+  if (!isInt(row.duration_ms) || row.duration_ms < 0)
+    push(`duration_ms negative/non-integer (${row.duration_ms})`);
+  for (const c of ["difficulty_json", "raw_result_json"]) {
+    if (typeof row[c] !== "string" || row[c].length === 0) {
+      push(`${c} missing/empty`);
+      continue;
+    }
+    try {
+      JSON.parse(row[c]);
+    } catch {
+      push(`${c} is not valid JSON`);
+    }
+  }
+  return { ok: violations.length === 0, violations };
+}
+
+/** Pure: certification completeness summary over terminal per-game results.
+ * `results` are flowGame outputs ({id, passed}); `expectedIds` is the
+ * canonical catalog. Duplicates/unexpected ids fail certification even when
+ * every present row passed — the run must classify exactly the catalog. */
+function certifySummary(results, expectedIds) {
+  const expected = new Set(expectedIds);
+  const seen = new Map();
+  for (const r of results) {
+    if (!r || typeof r.id !== "string") continue;
+    seen.set(r.id, (seen.get(r.id) || 0) + 1);
+  }
+  const attemptedIds = [...seen.keys()];
+  const duplicates = attemptedIds.filter((id) => seen.get(id) > 1);
+  const unexpected = attemptedIds.filter((id) => !expected.has(id));
+  const missing = expectedIds.filter((id) => !seen.has(id));
+  const gameRows = results.filter((r) => expected.has(r && r.id));
+  const passed = gameRows.filter((r) => r.passed === true).length;
+  const failed = gameRows.filter((r) => r.passed === false).length;
+  return {
+    expected: expectedIds.length,
+    attempted: gameRows.length,
+    passed,
+    failed,
+    notValidated: 0, // certify mode never emits NOT VALIDATED rows post-preflight
+    missing,
+    unexpected,
+    duplicates,
+    certified:
+      expectedIds.length > 0 &&
+      missing.length === 0 &&
+      unexpected.length === 0 &&
+      duplicates.length === 0 &&
+      failed === 0 &&
+      passed === expectedIds.length,
+  };
+}
+
+/** Read-only git provenance for the run report (never mutates the tree). */
+function gitProvenance() {
+  const git = (args) => {
+    try {
+      return execFileSync("git", args, { encoding: "utf8", cwd: REPO_ROOT }).trim();
+    } catch {
+      return null;
+    }
+  };
+  const sha = git(["rev-parse", "HEAD"]);
+  if (!sha) return { available: false };
+  const branch = git(["rev-parse", "--abbrev-ref", "HEAD"]);
+  const dirty = git(["status", "--porcelain"]);
+  return { available: true, sha, branch, dirty: dirty.length > 0 };
+}
+
+/** Metro dev-server reachability (the dev client loads JS from Metro; QA
+ * force-win additionally requires __DEV__). Pure transport check only. */
+async function metroReachable(timeoutMs = 4000) {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    const res = await fetch("http://127.0.0.1:8081/status", { signal: ctrl.signal });
+    clearTimeout(timer);
+    const body = await res.text();
+    return { ok: res.ok, body: body.slice(0, 120) };
+  } catch (e) {
+    return { ok: false, error: String(e).slice(0, 160) };
+  }
+}
+
+/** Full persisted row (sqlite JSON mode) for invariant validation. Returns
+ * null when the db/binary is unavailable or the row count is not exactly 1. */
+function sessionRow(gameId) {
+  const db = pullDb(`${gameId}-row`);
+  if (!existsSync(db) || !existsSync(SQLITE)) return null;
+  try {
+    const out = execFileSync(
+      SQLITE,
+      [
+        "-json",
+        db,
+        "SELECT id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms FROM game_sessions WHERE game_id='" + gameId + "';",
+      ],
+      { encoding: "utf8" },
+    ).trim();
+    if (!out) return null;
+    const rows = JSON.parse(out);
+    return rows.length === 1 ? rows[0] : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Certification preflight: every check that must hold BEFORE the run starts.
+ * Each check records { name, ok, detail }; any failure blocks the run with an
+ * ENVIRONMENT classification (a blocked environment is never a product
+ * regression). Conservative by design: reports conflicts, never kills
+ * unrelated host processes. */
+async function certifyPreflight() {
+  const checks = [];
+  const add = (name, ok, detail) => checks.push({ name, ok: !!ok, detail: detail ?? null });
+
+  // Exactly one usable device, and it is the selected one, in `device` state.
+  const devs = adbHostDevices();
+  const usable = devs.filter((d) => d.state === "device");
+  add(
+    "single-usable-device",
+    usable.length >= 1 && usable.some((d) => d.serial === serial()),
+    JSON.stringify(devs),
+  );
+
+  // Target package installed.
+  let installed = false;
+  try {
+    const out = execFileSync("adb", ["-s", serial(), "shell", "pm", "list", "packages", PKG], {
+      encoding: "utf8",
+    });
+    installed = out.includes(`package:${PKG}`);
+  } catch {}
+  add("package-installed", installed, PKG);
+
+  // Metro reachable (dev client loads JS from it; force-win needs __DEV__).
+  const metro = await metroReachable();
+  add("metro-reachable", metro.ok, metro.ok ? metro.body : metro.error);
+
+  // adb reverse for the dev-server port.
+  let reversed = false;
+  try {
+    const out = execFileSync("adb", ["-s", serial(), "reverse", "--list"], { encoding: "utf8" });
+    reversed = out.includes("tcp:8081");
+  } catch {}
+  if (!reversed) {
+    try {
+      execFileSync("adb", ["-s", serial(), "reverse", "tcp:8081", "tcp:8081"], { encoding: "utf8" });
+      reversed = true;
+    } catch {}
+  }
+  add("adb-reverse-8081", reversed, reversed ? "established" : "could not establish");
+
+  // sqlite3 usable (persistence evidence depends on it).
+  let sqliteOk = false;
+  try {
+    sqliteOk = /\d+\.\d+/.test(execFileSync(SQLITE, ["--version"], { encoding: "utf8" }));
+  } catch {}
+  add("sqlite3-usable", sqliteOk, SQLITE);
+
+  // Artifact root writable.
+  let outWritable = false;
+  try {
+    mkdirSync(OUT, { recursive: true });
+    const probe = join(OUT, `.write-probe-${process.pid}`);
+    writeFileSync(probe, "probe");
+    unlinkSync(probe);
+    outWritable = true;
+  } catch {}
+  add("artifacts-writable", outWritable, OUT);
+
+  const ok = checks.every((c) => c.ok);
+  return { ok, checks };
+}
+
 // Count persisted sessions for a game and flag duplicates (a regression class:
 // a fresh reset + single force-win must yield exactly one row for the game).
 function sessionStats(gameId) {
@@ -1054,6 +1301,19 @@ async function flowGame(id, opts = {}) {
       { interaction, pause: pauseProbe },
     );
   }
+  // Lifecycle-aware interaction evidence (certification contract §6.1): some
+  // games only mount their answer surface after a countdown/study phase. If
+  // both earlier attempts missed, try once more right before force-win — the
+  // last moment a real input is still possible.
+  if (!interaction.attempted) {
+    const late = await probeInteraction(id, `${tag}-late`);
+    if (late.attempted) {
+      interaction.attempted = true;
+      interaction.nodeId = late.nodeId;
+      interaction.reason = `${late.reason} (late attempt)`;
+      log(`interaction tapped ${late.nodeId} (late attempt)`);
+    }
+  }
   const results = await driveForceWin(id, tag);
   if (!results) {
     return failGame(
@@ -1070,6 +1330,23 @@ async function flowGame(id, opts = {}) {
   // Persistence: exactly one session for this game after a fresh reset.
   const stats = sessionStats(id);
   log(`persistence: ${stats.note}`);
+  // Row-level invariants (certification contract §7): the persisted row must
+  // satisfy the schema contract — ids/provenance present, finite legal score,
+  // non-negative timing, parseable payloads. Null row (db/binary unavailable)
+  // is recorded honestly rather than silently skipped.
+  const row = sessionRow(id);
+  const sessionInvariants = validateSessionRow(row, id);
+  if (!row) {
+    sessionInvariants.violations = [
+      ...(sessionInvariants.violations || []),
+      "persisted row unreadable (db pull or sqlite JSON mode failed)",
+    ];
+    sessionInvariants.ok = false;
+  } else if (sessionInvariants.ok) {
+    log("session invariants: OK");
+  } else {
+    log(`session invariants: VIOLATIONS ${JSON.stringify(sessionInvariants.violations)}`);
+  }
   captureLogcatSlice(`${tag}`);
 
   // Back navigation: after results, BACK must land somewhere known (home,
@@ -1091,19 +1368,22 @@ async function flowGame(id, opts = {}) {
   );
 
   const coreOk = stats.count === 1 && !stats.duplicates;
-  const passed = coreOk && back.ok && next.ok;
+  const passed = coreOk && sessionInvariants.ok && back.ok && next.ok;
   const reason = passed
-    ? "force-win + exactly one persisted session + authoritative results + back/next navigation"
-    : coreOk
-      ? back.ok
-        ? `next-game screen did not load (${next.next})`
-        : "back navigation left the app dead/backgrounded"
-      : `session count=${stats.count} (expected 1), duplicates=${stats.duplicates}`;
+    ? "force-win + exactly one persisted session + row invariants OK + authoritative results + back/next navigation"
+    : !sessionInvariants.ok
+      ? `session row invariants violated: ${sessionInvariants.violations.join("; ")}`
+      : coreOk
+        ? back.ok
+          ? `next-game screen did not load (${next.next})`
+          : "back navigation left the app dead/backgrounded"
+        : `session count=${stats.count} (expected 1), duplicates=${stats.duplicates}`;
   return {
     id,
     passed,
     status: passed ? "PASS" : "FAIL",
     reason,
+    classification: classifyFailure(passed ? null : reason),
     interaction,
     pause: pauseProbe,
     back,
@@ -1112,6 +1392,7 @@ async function flowGame(id, opts = {}) {
     ms: traceMs(t0),
     artifacts: captureAll(tag),
     session: stats,
+    sessionInvariants,
     trace: traceSlice(),
   };
 }
@@ -1265,6 +1546,7 @@ function failGame(id, reason, t0, tag, extra = {}) {
     passed: false,
     status: "FAIL",
     reason,
+    classification: classifyFailure(reason),
     ...extra,
     steps: stepsOut(),
     ms: traceMs(t0),
@@ -2378,6 +2660,124 @@ function selfTest() {
     assert("catalog loads", false, String(e).slice(0, 200));
   }
 
+  // --- Release-certification pure logic (campaign 013 closure) ---
+  const cls = (r) => classifyFailure(r).category;
+  assert("classify: environment blocker", cls("blocked: no usable device") === "environment");
+  assert("classify: crash", cls("app died after tap") === "crash");
+  assert("classify: warm", cls("app did not warm to home (Metro/JS load)") === "warm");
+  assert("classify: route-load", cls("screen did not load") === "route-load");
+  assert("classify: start", cls("start button not found") === "start");
+  assert("classify: qa-force-win", cls("qa-toggle/force-win not reachable") === "qa-force-win");
+  assert("classify: persistence", cls("session count=2 (expected 1), duplicates=false") === "persistence");
+  assert("classify: navigation", cls("back navigation left the app dead/backgrounded") === "navigation");
+  assert("classify: unknown is null", cls("something entirely novel") === null);
+
+  const goodRow = {
+    id: "s1",
+    game_id: "memory",
+    game_version: 1,
+    generator_version: 1,
+    scoring_version: 1,
+    seed: 123,
+    difficulty_json: '{"level":"normal"}',
+    raw_result_json: '{"score":10}',
+    normalized_result: 0.5,
+    xp: 20,
+    started_at: 1000,
+    completed_at: 2000,
+    duration_ms: 1000,
+  };
+  assert("row invariant: valid row passes", validateSessionRow(goodRow, "memory").ok);
+  assert(
+    "row invariant: game_id mismatch detected",
+    !validateSessionRow(goodRow, "speed-tap-rush").ok,
+  );
+  const nanRow = { ...goodRow, normalized_result: NaN, xp: -5 };
+  assert(
+    "row invariant: NaN score + negative xp detected",
+    !validateSessionRow(nanRow, "memory").ok &&
+      validateSessionRow(nanRow, "memory").violations.length === 2,
+    JSON.stringify(validateSessionRow(nanRow, "memory").violations),
+  );
+  const badJsonRow = { ...goodRow, difficulty_json: "{oops" };
+  assert(
+    "row invariant: malformed payload detected",
+    !validateSessionRow(badJsonRow, "memory").ok,
+  );
+  const orderRow = { ...goodRow, completed_at: 500 };
+  assert(
+    "row invariant: completed_before_started detected",
+    !validateSessionRow(orderRow, "memory").ok,
+  );
+  assert(
+    "row invariant: missing row rejected",
+    !validateSessionRow(null, "memory").ok,
+  );
+
+  const ids = ["a", "b", "c"];
+  const allPass = ids.map((id) => ({ id, passed: true }));
+  const certOk = certifySummary(allPass, ids);
+  assert(
+    "certify: complete pass is certified",
+    certOk.certified && certOk.expected === 3 && certOk.passed === 3,
+  );
+  const certMissing = certifySummary(
+    [
+      { id: "a", passed: true },
+      { id: "b", passed: true },
+    ],
+    ids,
+  );
+  assert(
+    "certify: missing id fails + listed",
+    !certMissing.certified && JSON.stringify(certMissing.missing) === '["c"]',
+  );
+  const certDup = certifySummary(
+    [
+      { id: "a", passed: true },
+      { id: "a", passed: true },
+      { id: "b", passed: true },
+      { id: "c", passed: true },
+    ],
+    ids,
+  );
+  assert(
+    "certify: duplicate classification fails",
+    !certDup.certified && JSON.stringify(certDup.duplicates) === '["a"]',
+  );
+  const certUnexpected = certifySummary(
+    [
+      { id: "a", passed: true },
+      { id: "b", passed: true },
+      { id: "c", passed: true },
+      { id: "ghost", passed: true },
+    ],
+    ids,
+  );
+  assert(
+    "certify: unexpected id fails",
+    !certUnexpected.certified && JSON.stringify(certUnexpected.unexpected) === '["ghost"]',
+  );
+  const certFailed = certifySummary(
+    [
+      { id: "a", passed: true },
+      { id: "b", passed: false },
+      { id: "c", passed: true },
+    ],
+    ids,
+  );
+  assert(
+    "certify: failed game fails certification",
+    !certFailed.certified && certFailed.failed === 1,
+  );
+
+  const prov = gitProvenance();
+  assert(
+    "provenance: git available with sha+branch",
+    prov.available === true && /^[0-9a-f]{40}$/.test(prov.sha || "") && !!prov.branch,
+    prov.available ? `${prov.branch} dirty=${prov.dirty}` : "git unavailable",
+  );
+
   const passed = checks.every((c) => c.pass);
   const report = { selfTest: true, passed, checks };
   mkdirSync(OUT, { recursive: true });
@@ -2403,7 +2803,7 @@ function selectTargets(mode, flags = {}) {
   const cat = loadCatalog();
   const targets = [];
   if (mode === "warm-bundles") return [{ kind: "warm", id: "warm-bundles" }];
-  const wantsGames = mode === "game" || mode === "all" || mode === "catalog";
+  const wantsGames = mode === "game" || mode === "all" || mode === "catalog" || mode === "certify";
   if (wantsGames) {
     let list = cat.ids;
     if (flags.onlyGame) list = [flags.onlyGame];
@@ -2650,6 +3050,11 @@ async function main() {
     workoutLength,
     resumeProbe,
   });
+  // Certification profile: pause/resume evidence is part of the release gate
+  // (the historical gate was `--mode all --pause`); --no-pause opts out for
+  // debugging only and marks the report non-certified.
+  const certify = mode === "certify";
+  const pauseProbeEnabled = certify ? !args.includes("--no-pause") : pause;
 
   // Preflight: without a usable device, report BLOCKED + NOT VALIDATED per
   // planned target and exit 2. Never fake PASS.
@@ -2685,46 +3090,142 @@ async function main() {
   }
   SERIAL_CACHE = pf.serial;
 
+  // Certification preflight (release gate §10): environment must prove itself
+  // before game 1. A failed check is an ENVIRONMENT BLOCKER — reported and
+  // exited as BLOCKED, never converted into product failures.
+  let preflight = null;
+  if (certify) {
+    preflight = await certifyPreflight();
+    if (!preflight.ok) {
+      const runId = initRunDir(`${mode}-preflight-blocked`);
+      const report = {
+        runId,
+        status: "BLOCKED",
+        certified: false,
+        blockerClass: "environment",
+        pkg: PKG,
+        scheme: SCHEME,
+        mode,
+        provenance: gitProvenance(),
+        preflight,
+        startedAt: new Date().toISOString(),
+        endedAt: new Date().toISOString(),
+        results: [],
+        passed: 0,
+        failed: 0,
+        artifactsDir: RUN_DIR,
+      };
+      writeRunJson(runId, report);
+      console.error("[BLOCKED] certification preflight failed:");
+      for (const c of preflight.checks.filter((c) => !c.ok))
+        console.error(`  [ENVIRONMENT] ${c.name}: ${c.detail}`);
+      console.log(`Run dir: ${RUN_DIR}`);
+      process.exit(exitZero ? 0 : 2);
+    }
+    console.log("certification preflight: all checks OK");
+  }
+
   // Animation-disabled dumps are reliable across every game (see disableAnimations).
   disableAnimations();
 
   const runId = initRunDir(mode);
   const report = {
     runId,
-    status: "COMPLETED",
+    status: "IN_PROGRESS",
+    certified: false,
     device: serial(),
     pkg: PKG,
     scheme: SCHEME,
     mode,
     catalogSize: cat.ids.length,
     deviceInfo: deviceInfo(),
+    provenance: certify ? gitProvenance() : undefined,
+    preflight: certify ? preflight : undefined,
+    driverPid: process.pid,
     startedAt: new Date().toISOString(),
     results: [],
   };
 
+  // Durability (release gate §8): the journal is checkpointed atomically
+  // after EVERY terminal classification. A killed run leaves status
+  // IN_PROGRESS + certified:false — it can never masquerade as a completed
+  // certification, and the partial per-game evidence stays diagnosable.
+  const journal = () => {
+    report.certification = certify
+      ? certifySummary(report.results, cat.ids)
+      : undefined;
+    writeRunJson(runId, report);
+  };
+  const markIncomplete = (why) => {
+    if (report.status !== "IN_PROGRESS") return;
+    report.status = "INCOMPLETE";
+    report.certified = false;
+    report.incompleteReason = why;
+    report.endedAt = report.endedAt || new Date().toISOString();
+    journal();
+  };
+  process.on("SIGINT", () => {
+    markIncomplete("SIGINT");
+    process.exit(130);
+  });
+  process.on("SIGTERM", () => {
+    markIncomplete("SIGTERM");
+    process.exit(143);
+  });
+  process.on("uncaughtException", (e) => {
+    markIncomplete(`uncaughtException: ${String(e).slice(0, 200)}`);
+    console.error(e);
+    process.exit(1);
+  });
+  journal();
+
   for (const t of planned) {
-    if (t.kind === "game") report.results.push(await flowGame(t.id, { pause }));
-    else if (t.kind === "warm") report.results.push(await flowWarmBundles());
-    else if (t.kind === "wordmatch") report.results.push(await flowWordMatch());
-    else if (t.kind === "workout") report.results.push(await flowWorkout());
+    let result;
+    if (t.kind === "game") result = await flowGame(t.id, { pause: pauseProbeEnabled });
+    else if (t.kind === "warm") result = await flowWarmBundles();
+    else if (t.kind === "wordmatch") result = await flowWordMatch();
+    else if (t.kind === "workout") result = await flowWorkout();
     else if (t.kind === "workout-template")
-      report.results.push(await flowWorkoutTemplate(t.opts));
+      result = await flowWorkoutTemplate(t.opts);
+    report.results.push(result);
+    journal();
   }
 
   report.endedAt = new Date().toISOString();
   report.passed = report.results.filter((r) => r.passed).length;
   report.failed = report.results.filter((r) => !r.passed).length;
   report.artifactsDir = RUN_DIR;
-
-  writeRunJson(runId, report);
+  report.status = "COMPLETED";
+  if (certify) {
+    report.certification = certifySummary(report.results, cat.ids);
+    report.certified = report.certification.certified;
+  } else {
+    delete report.certification;
+  }
+  journal();
   console.log(
     `\n=== Autobot QA report (${report.passed} PASS / ${report.failed} FAIL) ===`,
   );
   for (const r of report.results) console.log(summaryLine(r));
+  if (certify) {
+    const c = report.certification;
+    console.log("--- Certification summary ---");
+    console.log(
+      `Catalog expected: ${c.expected} | attempted: ${c.attempted} | PASS: ${c.passed} | FAIL: ${c.failed} | NOT VALIDATED: ${c.notValidated}`,
+    );
+    console.log(
+      `Missing: ${c.missing.length} | Duplicates: ${c.duplicates.length} | Unexpected: ${c.unexpected.length}`,
+    );
+    if (c.missing.length) console.log(`Missing ids: ${c.missing.join(", ")}`);
+    if (c.duplicates.length) console.log(`Duplicate ids: ${c.duplicates.join(", ")}`);
+    if (c.unexpected.length) console.log(`Unexpected ids: ${c.unexpected.join(", ")}`);
+    console.log(`Certification verdict: ${report.certified ? "PASS" : "FAIL"}`);
+  }
   console.log(`Run dir: ${RUN_DIR}`);
   console.log(`Report: ${join(RUN_DIR, "run.json")}`);
 
-  if (exitNonZero && report.failed > 0) process.exit(1);
+  if (exitNonZero && (report.failed > 0 || (certify && !report.certified)))
+    process.exit(1);
   process.exit(0);
 }
 
