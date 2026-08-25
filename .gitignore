@@ -37,6 +37,6 @@ artifacts/
 qa-artifacts/
 test-results/
 playwright-report/
-"lint-*.json"  
-"scripts/qa/.autobot.lock"  
+lint-*.json
+scripts/qa/.autobot.lock
 m\[1\]\)  
