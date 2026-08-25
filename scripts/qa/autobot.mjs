@@ -1153,6 +1153,21 @@ function dismissLogBoxIfPresent(xml, tag) {
   return true;
 }
 
+/** Bottom no-tap guard: interactive nodes whose tap center sits within this
+ * many px of the viewport bottom are treated as unreachable — the system nav
+ * bar occupies that band and `input tap` hits ITS buttons instead (device-
+ * verified: word-match's Next Round renders at y=[1759,1882] on the
+ * 1080x1920 AVD; taps at its center pressed the nav BACK button, which the
+ * GameHost interprets as pause). The guard is env-tunable for other skins. */
+const NAV_GUARD_PX = Number(process.env.QA_NAV_GUARD_PX || 170);
+function inNavZone(xml, node) {
+  if (!node || !node.bounds) return false;
+  const root = xml && xml.match(/bounds="\[0,0\]\[(\d+),(\d+)\]"/);
+  const viewportH = root ? Number(root[2]) : 0;
+  if (!viewportH) return false;
+  return node.bounds.cy >= viewportH - NAV_GUARD_PX;
+}
+
 async function driveForceWin(id, tag) {
   // Per-cycle dump latency on this host is 5-15s under never-idle UIs, so
   // the total budget must span several observe→act cycles, not one.
@@ -1171,6 +1186,24 @@ async function driveForceWin(id, tag) {
       continue;
     }
     if (
+      hasTestId(xml, `${id}.pause-overlay`) ||
+      hasTestId(xml, `${id}.resume`)
+    ) {
+      // A paused session blocks everything (opaque overlay + frozen timers).
+      // Resume with fresh coordinates before any other action; the pause
+      // probe's resume can be lost to stale-coordinate taps (device-verified).
+      const rs = findTestId(xml, `${id}.resume`);
+      if (rs && inNavZone(xml, rs)) {
+        swipeDown();
+        await sleep(700);
+        continue;
+      }
+      tapTestId(`${id}.resume`, xml);
+      log("force-win: resumed paused session first");
+      await sleep(900);
+      continue;
+    }
+    if (
       hasTestId(xml, "results-title") ||
       hasTestId(xml, `${id}.results`) ||
       hasTestId(xml, "results-score")
@@ -1178,18 +1211,24 @@ async function driveForceWin(id, tag) {
       return xml;
     }
     if (hasTestId(xml, `${id}.qa-panel`)) {
+      const fw = findTestId(xml, `${id}.force-win`);
+      if (inNavZone(xml, fw)) {
+        // Force-win pushed into the nav-bar band by tall panel content —
+        // scroll it into reach instead of tapping a nav button.
+        swipeDown();
+        await sleep(700);
+        continue;
+      }
       tapTestId(`${id}.force-win`, xml);
       log("force-win pressed");
       await sleep(900);
       continue;
     }
-    if (hasTestId(xml, `${id}.next-round`)) {
-      tapTestId(`${id}.next-round`, xml);
-      log("next-round stepped");
-      panelAssumedOpen = false;
-      await sleep(1200);
-      continue;
-    }
+    // The dev QA toggle lives in the GameHost session chrome (always mounted
+    // in-session), so FORCE-WIN beats round stepping: stepping a many-round
+    // game one dump-cycle per round cannot finish inside the budget
+    // (device-verified: value-ordering reached round 7 of N while the panel
+    // sat one toggle away). Stepping stays as the fallback below.
     if (hasTestId(xml, `${id}.qa-toggle`)) {
       if (!panelAssumedOpen) {
         tapTestId(`${id}.qa-toggle`, xml);
@@ -1200,6 +1239,40 @@ async function driveForceWin(id, tag) {
         // Positive proof the panel is NOT open (toggle visible, panel not).
         panelAssumedOpen = false;
         await sleep(300);
+      }
+      continue;
+    }
+    if (hasTestId(xml, `${id}.next-round`)) {
+      const nr = findTestId(xml, `${id}.next-round`);
+      if (inNavZone(xml, nr)) {
+        // Next Round is clipped into the nav-bar band on tall round-result
+        // content — scroll before tapping (a user would). Tapping there hits
+        // the nav BACK button, which pauses the session.
+        swipeDown();
+        await sleep(700);
+        continue;
+      }
+      const roundBefore = (xml.match(new RegExp(`${id}\\.round\\.(\\d+)`)) || [])[1] || null;
+      tapTestId(`${id}.next-round`, xml);
+      log("next-round stepped");
+      panelAssumedOpen = false;
+      await sleep(1200);
+      // Stuck-guard: if the round counter did not change after the tap, the
+      // control is not actually accepting input (overlay/LogBox/nav zone) —
+      // fall through to the toggle branch on the next cycle instead of
+      // tapping the same dead control forever.
+      const p2 = dumpHierarchy(`${tag}-fw-verify-${Date.now() % 100000}`);
+      const xml2 = readFileSyncSafe(p2);
+      if (xml2 && !DUMP_ERROR_RE.test(xml2)) {
+        const roundAfter = (xml2.match(new RegExp(`${id}\\.round\\.(\\d+)`)) || [])[1] || null;
+        if (roundBefore && roundAfter && roundBefore === roundAfter && !hasTestId(xml2, `${id}.qa-panel`)) {
+          log("next-round tap did not advance (stuck control) — trying QA panel");
+          if (hasTestId(xml2, `${id}.qa-toggle`)) {
+            tapTestId(`${id}.qa-toggle`, xml2);
+            panelAssumedOpen = true;
+          }
+          continue;
+        }
       }
       continue;
     }
@@ -1322,8 +1395,29 @@ async function flowGame(id, opts = {}) {
       if (rp) {
         tapTestId(`${id}.resume`, rp);
         await sleep(700);
-        pauseProbe.resumed = true;
-        log("resumed");
+        // Verify the resume took effect (overlay gone) — tapTestId only proves
+        // the input was injected, not that the button received it. Retry with
+        // fresh coordinates before concluding.
+        for (let rv = 0; rv < 3; rv += 1) {
+          const vxml = readFileSyncSafe(dumpHierarchy(`${tag}-resume-verify-${rv}`));
+          if (!vxml || DUMP_ERROR_RE.test(vxml)) {
+            await sleep(800);
+            continue;
+          }
+          if (!hasTestId(vxml, `${id}.pause-overlay`)) {
+            pauseProbe.resumed = true;
+            log("resumed");
+            break;
+          }
+          const fresh = findTestId(vxml, `${id}.resume`);
+          if (fresh) tap(fresh);
+          await sleep(900);
+        }
+        if (pauseProbe.resumed) {
+          log("resumed");
+        } else {
+          log("resume tap did not dismiss the overlay");
+        }
       } else {
         // Patient retry: the overlay can render late under load. Without a
         // resumed state every later tap lands on the opaque overlay.
