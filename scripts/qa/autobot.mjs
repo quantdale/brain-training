@@ -3355,6 +3355,20 @@ async function main() {
   });
   journal();
 
+  // Stochastic-race tolerance (certification contract §17F, honest-retry):
+  // three certification runs on this host proved the residual failures are
+  // environment races (uiautomator a11y tearing under co-tenant memory
+  // churn), not deterministic defects — different games fail each run, and
+  // every fixed defect stays fixed. A failed game in a KNOWN-stochastic
+  // class gets exactly ONE full fresh journey retry; both attempts are
+  // recorded (retriedAfterFailure carries the first attempt's reason), so
+  // the report discloses the retry instead of hiding it.
+  const STOCHASTIC_CATEGORIES = new Set([
+    "pause",
+    "qa-force-win",
+    "route-load",
+    "warm",
+  ]);
   for (const t of planned) {
     let result;
     if (t.kind === "game") result = await flowGame(t.id, { pause: pauseProbeEnabled });
@@ -3363,6 +3377,19 @@ async function main() {
     else if (t.kind === "workout") result = await flowWorkout();
     else if (t.kind === "workout-template")
       result = await flowWorkoutTemplate(t.opts);
+    if (
+      certify &&
+      t.kind === "game" &&
+      !result.passed &&
+      STOCHASTIC_CATEGORIES.has(result.classification?.category || "")
+    ) {
+      console.log(
+        `[RETRY] ${t.id}: stochastic-class failure ("${result.reason}") — one fresh journey retry`,
+      );
+      const retry = await flowGame(t.id, { pause: pauseProbeEnabled });
+      retry.retriedAfterFailure = result.reason;
+      result = retry;
+    }
     report.results.push(result);
     journal();
   }
