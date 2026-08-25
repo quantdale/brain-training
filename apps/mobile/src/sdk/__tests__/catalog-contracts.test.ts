@@ -158,6 +158,26 @@ describe('catalog sanity', () => {
 });
 
 describe('game.json metadata contracts', () => {
+  it('every game declares a non-null generatorVersion (provenance contract)', () => {
+    // Campaign 013 certification finding: three language hybrids declared
+    // `generatorVersion: null`, which versionToNumber() persisted as 0 in
+    // game_sessions.generator_version — a provenance gap, because every one
+    // of them runs seeded procedural round selection over its content pack.
+    // Replayability requires a versioned selection algorithm, so null is
+    // only honest for a game with NO procedural step (none exist today).
+    const offenders = CATALOG.filter((game) => {
+      const json = JSON.parse(readFileSync(join(game.path, 'game.json'), 'utf8')) as {
+        generatorVersion?: string | null;
+      };
+      return (
+        json.generatorVersion === null ||
+        json.generatorVersion === undefined ||
+        json.generatorVersion === ''
+      );
+    }).map((game) => game.id);
+    expect(offenders).toEqual([]);
+  });
+
   it('every game.json parses through parseGameDefinitionJson with id === dir name', () => {
     collectViolations((game) => {
       const jsonPath = join(game.path, 'game.json');

@@ -39,7 +39,7 @@ function raw(
     difficulty: "normal",
     seed: "s",
     gameVersion: "1.0.0",
-    generatorVersion: null,
+    generatorVersion: '1.0.0',
     scoringVersion: "1.1.0",
     forced: false,
     generatorInfo: {},

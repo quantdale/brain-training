@@ -29,7 +29,7 @@ describe('session building', () => {
   it('buildContextFitRawResult carries the full reproducibility envelope', () => {
     const raw = buildContextFitRawResult({
       gameVersion: '1.0.0',
-      generatorVersion: null,
+      generatorVersion: '1.0.0',
       scoringVersion: '1.1.0',
       difficulty: 'normal',
       params: contextFitParamsForLevel('normal'),
@@ -53,7 +53,7 @@ describe('session building', () => {
   it('buildSessionRecord maps to the persistence record shape', () => {
     const raw = buildContextFitRawResult({
       gameVersion: '1.0.0',
-      generatorVersion: null,
+      generatorVersion: '1.0.0',
       scoringVersion: '1.1.0',
       difficulty: 'normal',
       params: contextFitParamsForLevel('normal'),
@@ -95,7 +95,7 @@ describe('session building', () => {
     const fail = makePersister(false);
     const raw = buildContextFitRawResult({
       gameVersion: '1.0.0',
-      generatorVersion: null,
+      generatorVersion: '1.0.0',
       scoringVersion: '1.1.0',
       difficulty: 'normal',
       params: contextFitParamsForLevel('normal'),

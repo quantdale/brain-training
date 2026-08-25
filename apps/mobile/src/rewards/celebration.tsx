@@ -154,12 +154,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    // Android has no shadow* props; elevation is required for the card to
-    // separate from the content underneath.
+    // RN 0.82: shadow* props are deprecated (their deprecation warning fires
+    // LogBox's "Open debugger to view warnings" snackbar, which docks over
+    // bottom-anchored controls and blocks taps — device-verified during the
+    // 013 certification run). boxShadow is the cross-platform replacement;
+    // elevation stays as the legacy Android separation guarantee.
+    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
     elevation: 4,
   },
   emoji: {

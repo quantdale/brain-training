@@ -621,6 +621,7 @@ function queryDb(file, sql) {
  * reclassify known failure classes. Order matters: first match wins. */
 const FAILURE_CLASSIFIERS = [
   ["environment", /blocked:|device (offline|not found)|adb (command|error)|port 8081/i],
+  ["logbox-snackbar", /logbox|open debugger to view warnings|dev-warning snackbar/i],
   ["crash", /app died|crash|process death|died after tap/i],
   ["warm", /warm to home|home warm/i],
   ["route-load", /screen did not load|did not mount|deep-link/i],
@@ -1003,7 +1004,12 @@ function deepLink(path) {
 async function ensureWarmHome() {
   const p = dumpHierarchy("home-check");
   const xml = readFileSyncSafe(p);
-  if (xml && HOME_READY_IDS.some((id) => hasTestId(xml, id))) return true;
+  if (xml && HOME_READY_IDS.some((id) => hasTestId(xml, id))) {
+    // Clear any docked LogBox dev-warning snackbar before the journey starts
+    // (it docks over bottom-anchored controls and silently intercepts taps).
+    dismissLogBoxIfPresent(xml, "home-warm");
+    return true;
+  }
   launch();
   let ready = await waitForHome();
   if (ready) return true;
@@ -1113,6 +1119,40 @@ const PANEL_SETTLE_BUDGET_MS = 12000;
  *
  * Returns the results-surface xml, or null on budget exhaustion.
  */
+/**
+ * Dismiss a RN LogBox dev-warning snackbar if one is docked on screen.
+ *
+ * Device-verified failure mode (campaign 013 certification): a single
+ * console.warn anywhere in a journey makes LogBox dock an "Open debugger to
+ * view warnings" snackbar at the BOTTOM of the screen, where it silently
+ * intercepts taps aimed at bottom-anchored controls (Next Round, force-win
+ * row) — the harness sees taps "ok" while the game never advances. The only
+ * first-party warning source is fixed (celebration shadow* -> boxShadow);
+ * this guard keeps any FUTURE warning from poisoning journeys unnoticed.
+ * Taps the snackbar's dismiss control (right-edge circle, derived from the
+ * warning text bounds); returns true when a dismissal was attempted.
+ */
+function dismissLogBoxIfPresent(xml, tag) {
+  if (!xml || DUMP_ERROR_RE.test(xml)) return false;
+  const marker = xml.indexOf("Open debugger to view warnings");
+  if (marker < 0) return false;
+  const seg = xml.slice(Math.max(0, marker - 600), marker + 900);
+  const b = seg.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+  if (!b) return false;
+  const y = Math.round((Number(b[2]) + Number(b[4])) / 2);
+  // Dismiss circle sits at the snackbar's right edge; viewport width comes
+  // from the root node bounds in the same dump.
+  const root = xml.match(/bounds="\[0,0\]\[(\d+),\d+\]"/);
+  const x = root ? Number(root[1]) - 40 : 1000;
+  try {
+    shell(`input tap ${x} ${y}`);
+    trace("tap.logbox-dismiss", "snackbar", true, `${x},${y}`);
+  } catch {
+    trace("tap.logbox-dismiss", "snackbar", false, tag);
+  }
+  return true;
+}
+
 async function driveForceWin(id, tag) {
   // Per-cycle dump latency on this host is 5-15s under never-idle UIs, so
   // the total budget must span several observe→act cycles, not one.
@@ -1124,6 +1164,10 @@ async function driveForceWin(id, tag) {
     const xml = readFileSyncSafe(p);
     if (!xml || DUMP_ERROR_RE.test(xml)) {
       await sleep(600); // no evidence → no action; keep current belief
+      continue;
+    }
+    if (dismissLogBoxIfPresent(xml, tag)) {
+      await sleep(800); // snackbar dismissed; re-dump before acting
       continue;
     }
     if (

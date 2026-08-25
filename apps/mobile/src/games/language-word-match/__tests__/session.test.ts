@@ -28,7 +28,7 @@ const STATS: LanguageStats = {
 function buildRaw(overrides: Partial<Parameters<typeof buildLanguageRawResult>[0]> = {}): LanguageRawResult {
   return buildLanguageRawResult({
     gameVersion: '1.0.0',
-    generatorVersion: null,
+    generatorVersion: '1.0.0',
     scoringVersion: '1.0.0',
     difficulty: 'normal',
     params: LANGUAGE_DIFFICULTY_PARAMS.normal,
@@ -66,7 +66,7 @@ describe('buildLanguageRawResult', () => {
     const raw = buildRaw();
     expect(raw.seed).toBe('42');
     expect(raw.gameVersion).toBe('1.0.0');
-    expect(raw.generatorVersion).toBeNull();
+    expect(raw.generatorVersion).toBe('1.0.0');
     expect(raw.scoringVersion).toBe('1.0.0');
     expect(raw.difficulty).toBe('normal');
     expect(raw.accuracy).toBeCloseTo(5 / 6);
@@ -134,7 +134,7 @@ describe('buildSessionRecord', () => {
       id: 'language-x1',
       gameId: 'language-word-match',
       gameVersion: 1000000,
-      generatorVersion: 0, // generatorVersion null → 0
+      generatorVersion: 1_000_000, // '1.0.0' seeded pack selection
       scoringVersion: 1000000,
       seed: 42,
       difficulty: expect.objectContaining({ level: 'normal', challengeRating: 0.5 }),
@@ -160,7 +160,7 @@ describe('buildSessionRecord', () => {
       pausedDurationMs: raw.diagnosticMetadata.pausedDurationMs,
     });
     expect(metadata.sdkVersion).toBe('0.1.0');
-    expect(metadata.generatorVersion).toBeNull();
+    expect(metadata.generatorVersion).toBe('1.0.0');
   });
 });
 
@@ -169,7 +169,7 @@ describe('persistLanguageSession', () => {
     id: 'language-p1',
     gameId: 'language-word-match',
     gameVersion: 1000000,
-    generatorVersion: 0,
+    generatorVersion: 1_000_000,
     scoringVersion: 1000000,
     seed: 42,
     difficulty: { level: 'normal', challengeRating: 0.5, parameters: {} },

@@ -21,7 +21,7 @@ function rawInputStats() {
 function buildRaw(): LanguageWordChainRawResult {
   return buildWordChainRawResult({
     gameVersion: "1.0.0",
-    generatorVersion: null,
+    generatorVersion: "1.0.0",
     scoringVersion: SCORING_VERSION,
     difficulty: "normal",
     params: {
@@ -50,8 +50,8 @@ describe("buildWordChainRawResult", () => {
   it("carries the full reproducibility envelope", () => {
     const raw = buildRaw();
     expect(raw.gameVersion).toBe("1.0.0");
-    // Non-procedural game: curated content pack instead of a generator.
-    expect(raw.generatorVersion).toBeNull();
+    // Seeded pack selection is procedural provenance: versioned, never null.
+    expect(raw.generatorVersion).toBe("1.0.0");
     expect(raw.scoringVersion).toBe(SCORING_VERSION);
     expect(raw.seed).toBe("seed-x");
     expect(raw.difficulty).toBe("normal");
@@ -71,7 +71,7 @@ describe("buildWordChainRawResult", () => {
     expect(raw.generatorInfo.packId).toBe(CONTENT_PACK_ID);
     expect(raw.diagnosticMetadata.gameId).toBe("language-word-chain");
     expect(raw.diagnosticMetadata.seed).toBe("seed-x");
-    expect(raw.diagnosticMetadata.generatorVersion).toBeNull();
+    expect(raw.diagnosticMetadata.generatorVersion).toBe("1.0.0");
     expect(raw.diagnosticMetadata.pausedDurationMs).toBe(50);
   });
 
@@ -125,8 +125,8 @@ describe("buildSessionRecord", () => {
     expect(record.id).toBe("sid");
     expect(record.gameId).toBe("language-word-chain");
     expect(record.gameVersion).toBe(1_000_000); // 1.0.0
-    // Null generator (curated content) is recorded as 0.
-    expect(record.generatorVersion).toBe(0);
+    // Seeded pack selection is versioned provenance (no longer null → 0).
+    expect(record.generatorVersion).toBe(1_000_000);
     expect(record.scoringVersion).toBe(1_001_000); // 1.1.0
     expect(record.seed).toBe(seedToNumber("seed-x"));
     // `GameSessionRecord.difficulty` is `unknown` at the db boundary; the

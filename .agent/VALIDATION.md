@@ -996,3 +996,85 @@ with-deterministic-version), Metro restarted clean after two wedges.
 - repo-state / registry --check / provenance --check / task-ownership /
   offline --check: PASS
 - expo-doctor: 21/21
+
+## Campaign 013 (2026-08-24) — completion + hardening waves
+
+### Wave 1+3 static/debt (commits 95fbd55, 41f44b7, 099c365)
+
+- Lint inventory: **474 warnings -> 0 errors / 0 warnings**. Mechanical classes
+  (import-first 69, import/no-duplicates 57, array-type 21, stale directives 8,
+  useless-constructor) autofixed; eslint config gained jest/node globals for
+  jest/setup.js + scripts (29 no-undef); per-surface unused-import/dead-local
+  removal across all 42 games, db, workout, portability, app shell, components,
+  QA scripts via 7 disjoint-surface workers. No blanket suppressions; remaining
+  inline disables are per-site with written invariant rationale (stroop timer
+  exclusion, next-sequence baseline capture, lazy native requires).
+- Full Jest at wave close: 474 suites / 5818 tests green; tsc clean; web export
+  green (20 static routes); expo-doctor 21/21.
+- Repository debris `m[1])` (zero-byte shell artifact from commit 24f3fb6)
+  traced through history and removed.
+
+### Wave 2 — schema v10 adversarial matrix (+18 tests, commit 41f44b7)
+
+- v9->v10 with pre-existing metadata_json (empty + populated) succeeds exactly
+  once; mutation-proven (guard removed -> duplicate-column failures).
+- Repeated initialization (x2/x3 incl. initializeConnection) idempotent.
+- Column shape pinned (TEXT affinity, nullable, no default, last column).
+- 8 malformed metadata_json cell shapes: startup healthy, reads degrade, raw
+  cells preserved byte-for-byte, history reads never throw.
+- Legacy backup envelopes (pre-engine-3) restore via merge AND replace onto v10
+  NULL metadata cells; unknown fields tolerated; malformed/tampered envelopes
+  rejected pre-mutation (BackupDataValidationError / ChecksumMismatchError /
+  MalformedBackupError).
+- Failure injection: v10 crash-after-ALTER rolls column+version back together;
+  v8 crash inside trigger-drop/backfill window restores append-only guard;
+  ledger balance untouched; retry safe. Opposite-direction mutations fail
+  (7 and 2 test failures respectively). Newer-schema rejected loudly.
+- db suite at wave close: 47 suites / 479 tests green.
+
+### Wave 3 — game-family audits (7 workers, disjoint surfaces; commit 41f44b7)
+
+Defects found and fixed, each mutation-verified with regression tests:
+
+- memory-prospective-cue (High, scoring): handleRespond memoized on per-round
+  itemMs read windowElapsedState render state -> every mid-round press read
+  elapsed~0 and paid the maximum GO speed bonus. De-memoized handler reading
+  committed render state (screen re-renders per 50ms tick).
+- memory-prospective-cue (High, timing exploit): pacing effect re-created its
+  accumulator at 0 on every resume/tutorial-close -> fresh full response
+  window after every pause. Cross-lifecycle windowElapsedSeedRef adopted.
+- attention-odd-one-out (High): taps after the monotonic deadlineMs were
+  accepted until the next 250ms tick (free time per round). Reducer now
+  rejects tap-tile with nowMs > deadlineMs (boundary tie stays with player).
+- speed-color-match (Medium): no negative-reaction guard (unlike
+  speed-reaction-time); reducer no-ops on negative deltas.
+- QA harness: exclusive-driver lock made fail-closed (EPERM != stale).
+- Permissions boundary pinned by plugins/__tests__/
+  release-boundary-permissions.test.ts.
+- NativeTabs snapshot instability RESOLVED: test-only deterministic
+  router-tree normalizer (volatile route keys -> positional placeholders) +
+  integrated navigation snapshot (four triggers, selection wiring, content).
+- Family sweeps verified intact: monotonic RT paths, freeze-and-continue
+  accumulators, solvability/uniqueness provers, seeded generators, force-win
+  terminal records.
+
+### Wave 5a — dependency/security refresh (commit 21ab438)
+
+- npm audit (+ --omit=dev): 16 findings (12 moderate, 4 high), all transitive
+  build/dev-toolchain (image-size via Metro; uuid via Expo config toolchain).
+  No production/runtime-reachable findings; image-size@1.2.1 is newest (no
+  upstream fix yet); no forced upgrade per policy. Lockfile dedupe validated
+  (doctor 21/21, tsc clean, full Jest green, web export green).
+- Secrets scan over tracked files: zero hits. Offline boundary CLEAN (919
+  files). .agent/DEPENDENCY_AUDIT.md rewritten with current state.
+
+### Wave 5d/5e — docs reconciliation
+
+- README repository-layout fixed (config plugins live at apps/mobile/plugins).
+- MASTER_PLAN brought through Campaign 012 (completed) + Campaign 013 waves;
+  obsolete "012 scope TBD" language removed.
+- PARITY_MATRIX: offline file count 768 -> 919; QA row names braintraining-qa36
+  + the certify gate.
+- KNOWN_ISSUES rebuilt (resolved items out of active debt; cross-project
+  emulator-contamination incident + foreground-ownership lesson recorded).
+- BACKLOG: lint item closed.

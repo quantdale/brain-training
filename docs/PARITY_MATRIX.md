@@ -6,7 +6,7 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 
 | Area | Capability | Status | Notes |
 | --- | --- | ---: | --- |
-| Core | Offline-first gameplay | IMPLEMENTED | Offline-boundary suite + `scripts/validate-offline.mjs` (768 files clean) |
+| Core | Offline-first gameplay | IMPLEMENTED | Offline-boundary suite + `scripts/validate-offline.mjs` (919 files clean) |
 | Core | Optional account | DEFERRED | Local profile first |
 | Core | Cross-device sync | DEFERRED | Local-first future Supabase direction |
 | Training | Daily Workout | IMPLEMENTED | Deterministic 4-game daily + rerolls |
@@ -49,6 +49,6 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 | Commercial | Paid/free tiers | DEFERRED | Model not finalized |
 | Commercial | Ads | DEFERRED | Possible future option |
 | Commercial | AI credits | DEFERRED | Separate from normal currency |
-| Platform | Android autonomous QA | IMPLEMENTED | AVD `braintraining35` + adb/uiautomator automation |
+| Platform | Android autonomous QA | IMPLEMENTED | Dedicated AVD `braintraining-qa36` + adb/uiautomator automation; `--mode certify` release gate |
 | Platform | iOS compatibility | PLANNED | Static audit PASS 2026-08-17; real build blocked on Windows host |
 | Platform | iOS autonomous QA | DEFERRED | Later |

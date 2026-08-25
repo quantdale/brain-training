@@ -8,10 +8,14 @@ any campaign.
 
 ## Still-open durable items
 
-- Lint warning inventory reduction to an explainable small set (campaign 013).
 - iOS build validation when a macOS/Xcode environment exists (static
   compatibility maintained source-level today).
 - SAF share/picker consent sheets require an interactive manual QA path
   (autobot policy forbids driving system consent UIs).
 - Deferred product decisions (see `docs/DEFERRED_DECISIONS.md`) stay untouched
   until the owner decides.
+
+## Resolved
+
+- Lint warning inventory: RESOLVED in Campaign 013 — repo lints at
+  0 errors / 0 warnings (was ~430–474); no blanket suppressions.

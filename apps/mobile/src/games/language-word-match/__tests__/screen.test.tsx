@@ -239,7 +239,7 @@ describe('LanguageWordMatchScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect(input.session.gameId).toBe('language-word-match');
     expect(input.session.seed).toBe(seedToNumber(seed));
-    expect(input.session.generatorVersion).toBe(0); // non-procedural
+    expect(input.session.generatorVersion).toBe(1_000_000); // "1.0.0" — seeded pack selection is versioned provenance
     expect(input.session.durationMs).toBe(6 * 500); // active play time only
     expect(input.session.xp).toBe(0); // no-op hook in Phase 1
     expect(input.session.normalizedResult).toBeCloseTo(0.96875); // 1 * (0.5 + 0.5 * (1 - 0.375/6))
