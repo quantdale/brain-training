@@ -746,15 +746,22 @@ function gitProvenance() {
 }
 
 /** Metro dev-server reachability (the dev client loads JS from Metro; QA
- * force-win additionally requires __DEV__). Pure transport check only. */
+ * force-win additionally requires __DEV__). Pure transport check only.
+ * QA_METRO_PORT: the HOST-side Metro port. With a co-tenant project fighting
+ * over the default 8081 (device-verified: their server answered Android
+ * bundle requests with their web build), run Metro on another port and
+ * bridge with `adb reverse tcp:8081 tcp:<host-port>` — the device keeps
+ * seeing its usual 8081. */
+const METRO_PORT = Number(process.env.QA_METRO_PORT || 8081);
 async function metroReachable(timeoutMs = 4000) {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-    const res = await fetch("http://127.0.0.1:8081/status", { signal: ctrl.signal });
+    const res = await fetch(`http://127.0.0.1:${METRO_PORT}/status`, { signal: ctrl.signal });
     clearTimeout(timer);
     const body = await res.text();
-    return { ok: res.ok, body: body.slice(0, 120) };
+    const ok = res.ok && body.includes("packager-status");
+    return { ok, body: body.slice(0, 120) };
   } catch (e) {
     return { ok: false, error: String(e).slice(0, 160) };
   }
@@ -812,22 +819,41 @@ async function certifyPreflight() {
   add("package-installed", installed, PKG);
 
   // Metro reachable (dev client loads JS from it; force-win needs __DEV__).
-  const metro = await metroReachable();
-  add("metro-reachable", metro.ok, metro.ok ? metro.body : metro.error);
-
-  // adb reverse for the dev-server port.
-  let reversed = false;
-  try {
-    const out = execFileSync("adb", ["-s", serial(), "reverse", "--list"], { encoding: "utf8" });
-    reversed = out.includes("tcp:8081");
-  } catch {}
-  if (!reversed) {
-    try {
-      execFileSync("adb", ["-s", serial(), "reverse", "tcp:8081", "tcp:8081"], { encoding: "utf8" });
-      reversed = true;
-    } catch {}
+  // The response must be Metro's own status payload — a co-tenant web server
+  // on the same port serves HTML and would poison every journey.
+  let metroOk = false;
+  let metroDetail = null;
+  if (process.env.QA_EMBEDDED_BUNDLE) {
+    metroOk = true;
+    metroDetail = "embedded-bundle (QA_EMBEDDED_BUNDLE) — no live Metro required";
+  } else {
+    const metro = await metroReachable();
+    metroOk = metro.ok;
+    metroDetail = metro.ok ? metro.body : metro.error;
   }
-  add("adb-reverse-8081", reversed, reversed ? "established" : "could not establish");
+  add("metro-reachable", metroOk, metroDetail);
+
+  // adb reverse for the dev-server port — skipped when the APK carries an
+  // embedded bundle (QA_EMBEDDED_BUNDLE=1) because the dev client loads from
+  // assets and never contacts the host Metro.
+  if (process.env.QA_EMBEDDED_BUNDLE) {
+    add("adb-reverse-8081", true, "embedded-bundle — no reverse required");
+  } else {
+    let reversed = false;
+    try {
+      const out = execFileSync("adb", ["-s", serial(), "reverse", "--list"], { encoding: "utf8" });
+      reversed = out.includes("tcp:8081");
+    } catch {}
+    if (!reversed) {
+      try {
+        execFileSync("adb", ["-s", serial(), "reverse", "tcp:8081", "tcp:8081"], {
+          encoding: "utf8",
+        });
+        reversed = true;
+      } catch {}
+    }
+    add("adb-reverse-8081", reversed, reversed ? "established" : "could not establish");
+  }
 
   // sqlite3 usable (persistence evidence depends on it).
   let sqliteOk = false;
