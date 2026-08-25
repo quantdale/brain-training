@@ -2198,7 +2198,22 @@ async function scrollToRecentRowQa(tag) {
 // BACK-pop from a game/results surface to Home. Never press more BACKs once
 // a home marker is seen — popping past Home's root route exits the app.
 async function backToHomeAfterLeg(tag) {
-  for (let b = 0; b < 3; b++) {
+  // Each completed leg leaves BOTH the game route and its /results route on
+  // the stack, so returning Home after leg N needs up to 2N+1 BACK presses —
+  // three was never enough beyond leg 1 (device-verified: focus template leg
+  // 2 bounced results→intro→older-results and the 4th press exited to the
+  // launcher). Press until Home (max 6); if the app ever leaves the
+  // foreground (launcher/foreign app), relaunch straight to Home instead of
+  // failing — the journey's goal is a usable Home, however we get there.
+  for (let b = 0; b < 6; b++) {
+    const fg = appForeground();
+    if (!fg) {
+      log(`back-nav: app left foreground (press ${b + 1}) — relaunching to Home`);
+      launch();
+      const warm = await waitForHome(30000);
+      if (warm) return true;
+      continue;
+    }
     try {
       shell("input keyevent 4");
     } catch (e) {
@@ -2207,12 +2222,14 @@ async function backToHomeAfterLeg(tag) {
     await sleep(1500);
     const hit = await waitForAny(
       HOME_READY_IDS.concat(["home-workout-templates"]),
-      b === 2 ? 30000 : 8000,
+      b >= 4 ? 20000 : 8000,
       `${tag}-b${b}`,
     );
     if (hit) return true;
   }
-  return false;
+  // Last resort: relaunch recovers Home regardless of stack depth.
+  launch();
+  return !!(await waitForHome(30000));
 }
 
 // Open the newest persisted session's shared result page and wait for the
