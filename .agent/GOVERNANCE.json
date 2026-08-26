@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "013-final-product-completion",
+  "activeCampaign": "014-experience-depth-replayability",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

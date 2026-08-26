@@ -1,79 +1,66 @@
-# Campaign 013 — Final Product Completion (owner-authorized)
+# Campaign 014 — Experience Depth & Replayability (owner-authorized)
 
-**Status:** COMPLETED (2026-08-26 — v1 release-candidate certified;
-closure checkpoint:
-`.agent/checkpoints/013-final-product-completion-COMPLETED.md`)
-**Campaign id:** `013-final-product-completion`
-**Predecessor:** `012-broad-convergence-release-prep` (COMPLETED)
-**Mode:** day (owner-authorized overnight continuation)
-**Authorization:** explicit owner directive — full completion + hardening
-campaign for the currently locked v1 scope. This is the user-invoked
-hardening campaign normally gated behind an owner request.
+**Status:** ACTIVE (opened 2026-08-26)
+**Campaign id:** `014-experience-depth-replayability`
+**Predecessor:** `013-final-product-completion` (COMPLETED 2026-08-26 —
+v1 release candidate certified, 42/42 Android certify green)
+**Mode:** day
+**Authorization:** explicit owner directive — brand-new product-expansion
+campaign. Not a hardening campaign; Campaign 013 guarantees are not reopened
+unless changed code materially affects them.
 
 ## Mission
 
-AUDIT → COMPLETE → HARDEN → POLISH → VALIDATE → CERTIFY.
+AUDIT → MEASURE → PRIORITIZE → DEEPEN → POLISH → INTEGRATE → VALIDATE → PROVE.
 
-Drive the repository to the strongest technically complete, production-grade,
-release-candidate state possible under `docs/PROJECT_CONSTITUTION.md`'s
-locked scope, and certify v1 of the offline-first Brain Training product.
+Central question: *after the novelty of the first few sessions wears off, is
+this still an app someone would genuinely want to use repeatedly for weeks or
+months?* Make the answer materially closer to **yes**. Depth over feature
+count. Do not add games beyond 42; do not preserve weak mechanics merely
+because they pass tests.
 
 ## Workstreams
 
-1. **W1 — Repository-wide completion audit** ✅ COMPLETED: full first-party
-   tree swept (TODO/FIXME/HACK/stubs, unsafe casts, disabled tests, dead
-   routes, duplicated utils, lifecycle races, non-deterministic RNG,
-   unversioned scoring, unbounded reads, offline-boundary violations).
-   Result: 0 Critical/High; Medium was the 474-warning lint debt (now 0/0).
-   One debris file `m[1])` removed.
-2. **W2 — Known-debt resolution** ✅ COMPLETED: schema v10 workout reasons
-   persistence (+ backup round-trip) ✅; length-aware completion copy ✅;
-   word-chain pool 9→18 ✅; versionCode/buildNumber determinism ✅; lint
-   error class eliminated ✅; warning inventory 474→0 ✅ (no suppressions);
-   NativeTabs deterministic normalizer + integrated snapshot ✅.
-3. **W3 — Persistence/migration hardening** ✅ COMPLETED: adversarial matrix
-   extended (+18 tests) — idempotent v10 column guard, malformed metadata
-   cells (8 shapes), legacy envelopes, failure-injected atomicity, newer-
-   schema rejection; all mutation-proven.
-4. **W4 — Lifecycle/concurrency** ✅ COMPLETED: advance idempotency &
-   double-submit guards verified; pause/resume attack matrix exercised on
-   device; 2 stochastic pause/a11y races remain as Medium debt (see
-   KNOWN_ISSUES; honest-retry added).
-5. **W5 — Security/privacy** ✅ COMPLETED: offline CLEAN (919 files);
-   QA hooks isDevBuild-gated; permissions blocked + drift-pinned by test;
-   secrets scan 0 hits; 16 npm advisories classified build-toolchain-only.
-6. **W6 — UX/a11y polish** ✅ COMPLETED: tutorial overlay + short-viewport
-   behavior verified; shared shell 44pt targets + a11y labels audited; the
-   2 pause/a11y races are tracked as Medium (recoverable via honest retry).
-7. **W7 — Release engineering** ✅ COMPLETED: versionCode/buildNumber
-   determinism; signing/publication deferred; cold-clone path verified;
-   embedded-bundle dev APK built for Metro-independent certification.
-8. **W8 — Documentation reconciliation** ✅ COMPLETED: README (plugin path),
-   MASTER_PLAN (012/013), PARITY (file count 919, QA row), BACKLOG (lint
-   closed), KNOWN_ISSUES (debt triaged, contamination lesson), VALIDATION
-   (waves 1-3) refreshed; QA README documents --mode certify.
-9. **W9 — Final Android certification** 🔄 IN PROGRESS: harness hardened
-   (--mode certify, atomic journal, provenance, preflight, row invariants,
-   nav-zone scroll, pause-aware force-win, honest-retry); best run 40/42
-   (2 stochastic pause failures, different games per run — no deterministic
-   defect); re-running with --no-pause to certify the core 42/42 gate while
-   the 2 pause races are tracked as Medium debt.
+1. **W1 — Product-depth audit**: evidence-driven rubric over all 42 games +
+   major shared surfaces (mechanical depth, novelty, difficulty scaling,
+   Expert quality, generator entropy, near-duplicates, degenerate strategies,
+   timing fairness, feedback quality, mastery potential). Produces
+   `.agent/CAMPAIGN014_AUDIT.md` with ranked priorities.
+2. **W2 — Per-game mastery system**: understandable capability/completion
+   depth per game (not a second XP). Persisted deterministically, versioned;
+   exposed in Games/Game Detail/Progress/Home/workout inputs without
+   cluttering the first viewport.
+3. **W3 — Replay hooks/challenges**: daily deterministic challenge seam +
+   per-game-appropriate constraints; personal-best attack loops. No
+   leaderboards/social/server. Shared infrastructure only where semantics are
+   truly shared.
+4. **W4 — Workout V3**: wire the Advanced Personalization V2 kernel signals
+   (undertrained/novelty/trend/PB-proximity/difficulty-fit/overexposure) plus
+   mastery into selection with truthful per-game explanations; keep
+   determinism, reroll economics, and progression integrity.
+5. **W5 — Progress V3**: interpretation layer over stored data (strongest/
+   weakest, neglected categories, consistency, mastery distribution, recent-
+   vs-lifetime), summary-first, no unsupported cognitive claims; bounded
+   queries on long histories.
+6. **W6 — Home & discovery for returning users**: nearby milestones,
+   PB opportunities, neglected games, "what changed", richer Games-library
+   shelves; first viewport stays clean; Today's Workout remains primary CTA.
+7. **W7 — Generator-quality measurement & fixes**: measure near-duplicate
+   rates/effective spaces across procedural generators; improve the highest-
+   risk ones; version any semantic change.
+8. **W8 — Repeated-use simulation**: deterministic multi-day journeys over
+   progression/workouts/mastery/rewards/persistence/rollover boundaries using
+   fake clocks; not production-visible.
+9. **W9 — Game feel/performance/a11y/storage passes**: measured where
+   practical; targeted fixes only on evidence; runtime baselines recorded.
+10. **W10 — Validation & closure**: impact-based validation during waves;
+    device validation at convergence points on `braintraining-qa36` ONLY
+    (foreground preflight); full catalog certification if shared lifecycle
+    changes warrant it; docs reconciliation; terminal checkpoint.
 
 ## Exit criteria
 
-- [x] Single-session 42/42 Android catalog terminal classification PASS
-      under one exclusive driver — **20260826-012026, SHA ba6dd84,
-      42/42 PASS, certified=true, preflight 7/7, 62m36s** (pause-probe
-      coverage carried by Run A 42/42 with probes on + Workout V2 journeys;
-      residual stochastic pause race tracked as Medium with honest-retry)
-- [x] Full Workout V2 certification retained (short/focus/resume/daily) —
-      all four PASS on the certification build
-- [x] Warning inventory reduced to an explainable small set or explicitly
-      documented per-class — **0 errors / 0 warnings**
-- [x] Documentation reconciled (README, MASTER_PLAN phases, BACKLOG, PARITY)
-- [x] All final gates green from a clean coherent state (repo validators,
-      tsc, lint, Jest 474/5821, web export, doctor 21/21, audit triaged,
-      clean-checkout proof)
-- [ ] Certification report delivered (repository state, campaigns, product
-      areas, validation counts, defects fixed, remaining blockers, verdict)
-      — delivered in the closure checkpoint + session report (this commit)
+See owner directive §21 (completion checklist). The campaign is COMPLETED
+only when every item is satisfied with concrete before/after evidence, all
+required gates are green, durable state reflects reality, and `main` is
+pushed. No new unresolved Critical/High defects.
