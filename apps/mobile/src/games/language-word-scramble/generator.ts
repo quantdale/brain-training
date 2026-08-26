@@ -9,8 +9,16 @@
  *
  * Near-duplicate avoidance: consecutive rounds do not reuse the same word
  * (checked against `prevAnswer`). The scramble always differs from the
- * original word. Distractors are drawn from words of similar length to
- * keep the difficulty consistent.
+ * original word.
+ *
+ * Distractor integrity (Campaign 014): distractors previously came from any
+ * similar-length word, so sorting options by length/letters eliminated three
+ * of four choices without ever unscrambling anything. Distractors are now
+ * chosen by maximum LETTER-OVERLAP with the answer (multiset intersection),
+ * so wrong options look like plausible rearrangements and eliminating them
+ * genuinely requires solving the scramble. True anagrams of the answer can
+ * never be distractors (they would be equally valid solutions), and the
+ * length band stays as the candidate pool filter.
  */
 import type { Rng } from "@/sdk";
 
@@ -64,9 +72,33 @@ export function scrambleWord(word: string, rng: Rng): string {
 }
 
 /**
- * Select distractor words for a round. Picks `count - 1` words from the
- * bank that are within ±1 letter of the answer's length, excluding the
- * answer itself.
+ * Size of the letter multiset shared by `a` and `b` (multiset intersection).
+ * The plausibility metric for distractors: higher overlap ⇒ harder to rule
+ * out without actually unscrambling.
+ */
+export function letterOverlap(a: string, b: string): number {
+  const counts = new Map<string, number>();
+  for (const ch of a) {
+    counts.set(ch, (counts.get(ch) ?? 0) + 1);
+  }
+  let shared = 0;
+  for (const ch of b) {
+    const left = counts.get(ch) ?? 0;
+    if (left > 0) {
+      shared += 1;
+      counts.set(ch, left - 1);
+    }
+  }
+  return shared;
+}
+
+/**
+ * Select distractor words for a round. Candidates stay within ±1 letter of
+ * the answer's length; among them, MAXIMUM letter-overlap wins so every
+ * wrong option is a near-rearrangement of the displayed letters. Ties break
+ * by a pre-shuffle (seeded), keeping selection deterministic. The answer
+ * itself is excluded by definition — and so is every other word with the
+ * SAME multiset (a true anagram would be a second correct solution).
  */
 export function selectDistractors(
   answer: string,
@@ -74,17 +106,48 @@ export function selectDistractors(
   rng: Rng,
 ): string[] {
   const answerLen = answer.length;
+  const answerCounts = new Map<string, number>();
+  for (const ch of answer) {
+    answerCounts.set(ch, (answerCounts.get(ch) ?? 0) + 1);
+  }
+  const sameMultiset = (word: string): boolean => {
+    if (word.length !== answerLen) {
+      return false;
+    }
+    const counts = new Map(answerCounts);
+    for (const ch of word) {
+      const left = counts.get(ch) ?? 0;
+      if (left === 0) {
+        return false;
+      }
+      counts.set(ch, left - 1);
+    }
+    return counts.size === 0 || [...counts.values()].every((n) => n === 0);
+  };
   const candidates = WORD_BANK.filter(
-    (e) => e.word !== answer && Math.abs(e.word.length - answerLen) <= 1,
+    (e) =>
+      e.word !== answer &&
+      !sameMultiset(e.word) &&
+      Math.abs(e.word.length - answerLen) <= 1,
   );
   if (candidates.length === 0) {
-    // Extremely rare: fall back to any word not equal to the answer.
-    const fallback = WORD_BANK.filter((e) => e.word !== answer);
+    // Extremely rare: fall back to any non-anagram word not equal to the
+    // answer (integrity rule outranks the length band).
+    const fallback = WORD_BANK.filter(
+      (e) => e.word !== answer && !sameMultiset(e.word),
+    );
     const shuffled = rng.shuffle(fallback);
     return shuffled.slice(0, count - 1).map((e) => e.word);
   }
+  // Pre-shuffle gives equal-overlap ties a seeded order; the stable sort then
+  // ranks strictly by plausibility.
   const shuffled = rng.shuffle(candidates);
-  return shuffled.slice(0, count - 1).map((e) => e.word);
+  const ranked = shuffled
+    .map((entry) => ({ word: entry.word, overlap: letterOverlap(answer, entry.word) }))
+    .sort((a, b) => b.overlap - a.overlap)
+    .slice(0, count - 1)
+    .map((entry) => entry.word);
+  return ranked;
 }
 
 /**

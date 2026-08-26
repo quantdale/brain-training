@@ -79,6 +79,7 @@ const EMPTY_COUNTS: LocalDataCounts = {
   xpAwards: 0,
   tutorialState: 0,
   workoutInstances: 0,
+  storageBytes: 0,
   questDefinitions: 0,
   questProgress: 0,
   achievementDefinitions: 0,
@@ -379,10 +380,13 @@ export default function DataManagementScreen() {
             testID="data-count-xp"
           />
         </View>
-        <ThemedText type="caption" themeColor="textSecondary">
+        <ThemedText type="caption" themeColor="textSecondary" testID="data-storage-size">
           {counts.hasProfile ? "Profile present" : "No profile"} ·{" "}
           {counts.workoutInstances} workout instances · {counts.tutorialState}{" "}
           tutorial states
+          {counts.storageBytes > 0
+            ? ` · database ${(counts.storageBytes / 1024).toFixed(1)} KB on disk`
+            : ""}
         </ThemedText>
       </ThemedView>
 

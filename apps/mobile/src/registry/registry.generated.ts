@@ -211,7 +211,7 @@ export const registry: readonly GameDefinition[] = [
     description: "Unscramble the letters to form the correct word using the category hint.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
-    generatorVersion: "1.0.0",
+    generatorVersion: "1.1.0",
     contentVersion: "1.0.0",
     hasTutorial: true,
   },

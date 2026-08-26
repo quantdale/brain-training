@@ -538,7 +538,11 @@ export class SessionRepository {
 
   /** {@link getMasteryInputs} restricted to one game (absent ⇒ unplayed). */
   async getMasteryInputByGame(gameId: string): Promise<MasteryInput | null> {
+    // Same placeholder layout as {@link getMasteryInputs} (the level
+    // expression appears twice), plus the trailing game-id filter.
     const row = await this.adapter.get<MasteryInput>(SELECT_MASTERY_INPUT_BY_GAME, [
+      ...DIFFICULTY_LEVEL_PARAMS,
+      ...DIFFICULTY_LEVEL_PARAMS,
       ...DIFFICULTY_LEVEL_PARAMS,
       ...DIFFICULTY_LEVEL_PARAMS,
       gameId,

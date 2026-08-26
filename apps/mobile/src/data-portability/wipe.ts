@@ -24,6 +24,13 @@ export interface LocalDataCounts {
   achievementDefinitions: number;
   achievementUnlocks: number;
   hasProfile: boolean;
+  /**
+   * On-disk database size in bytes (Campaign 014 W13 storage visibility):
+   * `page_count × page_size` via PRAGMA, so the Data Management screen can
+   * show how much local space the store actually occupies. 0 when the
+   * backend cannot report it.
+   */
+  storageBytes: number;
 }
 
 /**
@@ -45,6 +52,16 @@ export async function countLocalData(
       "SELECT id FROM profile WHERE id = ?",
       [LOCAL_PROFILE_ID],
     );
+    // Storage visibility (Campaign 014): page metrics never throw the count
+    // pass — a backend without PRAGA support degrades to 0 bytes.
+    let storageBytes = 0;
+    try {
+      const pages = await txn.get<{ n: number }>("PRAGMA page_count");
+      const size = await txn.get<{ n: number }>("PRAGMA page_size");
+      storageBytes = (pages?.n ?? 0) * (size?.n ?? 0);
+    } catch {
+      storageBytes = 0;
+    }
     return {
       gameSessions: await count("game_sessions"),
       domainRatings: await count("domain_ratings"),
@@ -59,6 +76,7 @@ export async function countLocalData(
       achievementDefinitions: await count("achievements"),
       achievementUnlocks: await count("achievement_unlocks"),
       hasProfile: profileRow !== null && profileRow !== undefined,
+      storageBytes,
     };
   });
 }
