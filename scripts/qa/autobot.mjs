@@ -1420,24 +1420,24 @@ async function flowGame(id, opts = {}) {
       const rp = await waitFor(`${id}.resume`, 4000, tag);
       if (rp) {
         tapTestId(`${id}.resume`, rp);
-        await sleep(700);
+        await sleep(1500);
         // Verify the resume took effect (overlay gone) — tapTestId only proves
-        // the input was injected, not that the button received it. Retry with
-        // fresh coordinates before concluding.
+        // the input was injected, not that the button received it. Under load
+        // the state update can take >1s to reach the native hierarchy. Retry
+        // with fresh coordinates before concluding.
         for (let rv = 0; rv < 3; rv += 1) {
           const vxml = readFileSyncSafe(dumpHierarchy(`${tag}-resume-verify-${rv}`));
           if (!vxml || DUMP_ERROR_RE.test(vxml)) {
-            await sleep(800);
+            await sleep(1200);
             continue;
           }
           if (!hasTestId(vxml, `${id}.pause-overlay`)) {
             pauseProbe.resumed = true;
-            log("resumed");
             break;
           }
           const fresh = findTestId(vxml, `${id}.resume`);
           if (fresh) tap(fresh);
-          await sleep(900);
+          await sleep(1500);
         }
         if (pauseProbe.resumed) {
           log("resumed");

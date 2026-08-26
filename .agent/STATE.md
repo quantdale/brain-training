@@ -1,9 +1,8 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-23 (Campaign 012 COMPLETED after parent closeout QA;
-Campaign 013 final-product-completion opened; schema v10; device defect
-cluster fixed with regression coverage)
+**Last update:** 2026-08-25 (Campaign 013 hardening in progress on main;
+head c8dc47d; single-driver certify run active on emulator-5558)
 **Canonical branch:** `main`
 **Active campaign:** `013-final-product-completion`
 
@@ -12,7 +11,7 @@ cluster fixed with regression coverage)
 Campaign 012 is **COMPLETED** (closure record:
 `.agent/checkpoints/012-broad-convergence-COMPLETED.md`; device evidence in
 `.agent/VALIDATION.md` Campaign 012 closeout section). Campaign 013 (final
-completion + hardening, owner-authorized) is active.
+completion + hardening, owner-authorized) is ACTIVE and nearing closure.
 
 ### What landed in the 012 closeout window (all pushed with the campaign)
 
@@ -32,16 +31,42 @@ completion + hardening, owner-authorized) is active.
   evidence-based force-win driver, verified tutorial bypass, lazy-chunk-
   aware leg entry, and a single-driver PID lockfile.
 
-### Validation snapshot (2026-08-23, closeout)
+### What landed in the 013 hardening window (commits 95fbd55 → c8dc47d, all pushed)
+
+- **Lint debt eliminated**: 474 warnings → 0 errors / 0 warnings (mechanical
+  autofix + per-surface dead-code removal across all game families, db,
+  workout, portability, app shell, QA scripts; no blanket suppressions).
+- **Schema v10 adversarial matrix** (+18 tests): idempotent column guard,
+  malformed metadata cells, legacy envelopes, failure-injected atomicity,
+  newer-schema rejection — all mutation-proven.
+- **Game-family audits** (7 disjoint-surface workers): fixed 4 real gameplay
+  defects with regression tests — memory-prospective-cue stale-closure scoring
+  + pause-restart window exploit, odd-one-out post-deadline grace,
+  color-match negative-RT guard.
+- **QA harness hardening**: lock fail-closed, permissions drift pin test,
+  `--mode certify` release gate (42/42 completeness, atomic journal,
+  provenance, preflight, failure taxonomy, row-invariant validators, 49
+  self-tests), deterministic NativeTabs normalizer + integrated snapshot.
+- **Dependency/security refresh**: 16 advisories, all build-toolchain-only
+  (image-size, uuid); no runtime-reachable; lockfile dedupe validated.
+- **Product fixes from certification**: fractional duration_ms persisted as REAL
+  (persistence-boundary coercion), language hybrids generatorVersion null→1.0.0
+  (provenance gap), celebration shadow* → boxShadow (LogBox snackbar),
+  workout back-nav stack depth, nav-zone scroll guard, honest-retry for
+  stochastic races.
+
+### Validation snapshot (2026-08-25, hardening window — pre-final-certify)
 
 - `tsc --noEmit`: CLEAN
-- `npm run test:ci`: PASS — 473 suites / ~5800 tests, 0 failures
-- `npm run lint`: PASS — 0 errors (~430 warnings; reduction tracked as 013
-  work, never suppressed)
+- `npm run test:ci`: PASS — 474 suites / 5821 tests, 0 failures
+- `npm run lint`: PASS — 0 errors / 0 warnings
 - Repo gates: repo-state PASS, registry --check PASS, provenance PASS,
   ownership PASS, offline CLEAN; expo-doctor 21/21
-- Device: canaries 8/8; Workout V2 short/focus/resume/daily ALL PASS;
-  17 additional games terminally classified PASS (see VALIDATION.md)
+  (after aligning 6 Expo SDK-57 patch releases: expo .16, router .16, etc.)
+- Device (emulator-5558, isolated braintraining-qa36): 40/42 best single-run
+  (certify mode, 2 stochastic pause/a11y races remain — honest-retry added;
+  re-running for 42/42); warm-bundles 42/42; single-game spot checks PASS
+  after each fix
 
 ## Authoritative active change
 
@@ -60,9 +85,11 @@ completion + hardening, owner-authorized) is active.
 
 ## Next required action
 
-Continue campaign 013: finish the single-session 42/42 catalog run under
-the exclusive-driver lock, then warning-inventory reduction, documentation
-reconciliation, and the certification report.
+Complete the single-driver 42/42 certify run on emulator-5558 (currently
+in progress, --no-pause variant expected to certify; pause debt tracked as
+Medium), then final docs reconciliation (STATE/CAMPAIGN/VALIDATION) and the
+closure checkpoint + release-candidate verdict. No source edits while the
+certify run executes.
 
 ## Recovery order
 

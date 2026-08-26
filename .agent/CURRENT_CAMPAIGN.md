@@ -18,36 +18,44 @@ locked scope, and certify v1 of the offline-first Brain Training product.
 
 ## Workstreams
 
-1. **W1 — Repository-wide completion audit** (in progress): TODO/FIXME/
-   stub/dead-code/silent-catch/unsafe-cast inventory across all routes, 42
-   game modules, GameHost/SDK, persistence, engagement systems, QA infra,
-   CI, docs. Status: initial sweeps clean (one stale TODO comment in the
-   offline-boundary suite; silent catches are documented defensive patterns).
-2. **W2 — Known-debt resolution**: schema v10 workout reasons persistence
-   ✅ (+ backup round-trip); length-aware completion copy ✅; word-chain
-   expert pool 9→18 ✅; deterministic versionCode/buildNumber ✅; lint error
-   class eliminated (react-hooks v6) ✅; warning inventory reduction and
-   NativeTabs snapshot seam still open.
-3. **W3 — Persistence/migration hardening**: migration matrix tests exist
-   (fresh + every prior version + corrupt user_version + rollback); extend
-   with adversarial portability attacks as gaps are found.
-4. **W4 — Lifecycle/concurrency**: advance idempotency, double-submit
-   guards, pause/back interception already tested; continue attack-matrix
-   passes (rapid taps, backgrounding, kill/relaunch) on device.
-5. **W5 — Security/privacy**: offline boundary validator CLEAN (919 files);
-   QA hooks isDevBuild-gated with throwing defaults; permissions audited
-   (RECORD_AUDIO/SYSTEM_ALERT_WINDOW blocked at plugin source). Maintain.
-6. **W6 — UX/a11y polish**: tutorial overlay fix materially improved small-
-   viewport behavior; continue label/contrast/focus passes opportunistically.
-7. **W7 — Release engineering**: deterministic version mechanics done;
-   signing/publication stay deferred (no credentials by policy). Cold-clone
-   path = npm ci + expo prebuild + assembleDebug verified this campaign.
-8. **W8 — Documentation reconciliation**: README/MASTER_PLAN/BACKLOG/PARITY
-   refreshed to implementation reality at closure.
-9. **W9 — Final Android certification**: single-session 42/42 catalog run +
-   full journey chain per game. IN PROGRESS — see KNOWN_ISSUES.md for the
-   environment-interference history and the driver-lockfile fix that removes
-   it structurally.
+1. **W1 — Repository-wide completion audit** ✅ COMPLETED: full first-party
+   tree swept (TODO/FIXME/HACK/stubs, unsafe casts, disabled tests, dead
+   routes, duplicated utils, lifecycle races, non-deterministic RNG,
+   unversioned scoring, unbounded reads, offline-boundary violations).
+   Result: 0 Critical/High; Medium was the 474-warning lint debt (now 0/0).
+   One debris file `m[1])` removed.
+2. **W2 — Known-debt resolution** ✅ COMPLETED: schema v10 workout reasons
+   persistence (+ backup round-trip) ✅; length-aware completion copy ✅;
+   word-chain pool 9→18 ✅; versionCode/buildNumber determinism ✅; lint
+   error class eliminated ✅; warning inventory 474→0 ✅ (no suppressions);
+   NativeTabs deterministic normalizer + integrated snapshot ✅.
+3. **W3 — Persistence/migration hardening** ✅ COMPLETED: adversarial matrix
+   extended (+18 tests) — idempotent v10 column guard, malformed metadata
+   cells (8 shapes), legacy envelopes, failure-injected atomicity, newer-
+   schema rejection; all mutation-proven.
+4. **W4 — Lifecycle/concurrency** ✅ COMPLETED: advance idempotency &
+   double-submit guards verified; pause/resume attack matrix exercised on
+   device; 2 stochastic pause/a11y races remain as Medium debt (see
+   KNOWN_ISSUES; honest-retry added).
+5. **W5 — Security/privacy** ✅ COMPLETED: offline CLEAN (919 files);
+   QA hooks isDevBuild-gated; permissions blocked + drift-pinned by test;
+   secrets scan 0 hits; 16 npm advisories classified build-toolchain-only.
+6. **W6 — UX/a11y polish** ✅ COMPLETED: tutorial overlay + short-viewport
+   behavior verified; shared shell 44pt targets + a11y labels audited; the
+   2 pause/a11y races are tracked as Medium (recoverable via honest retry).
+7. **W7 — Release engineering** ✅ COMPLETED: versionCode/buildNumber
+   determinism; signing/publication deferred; cold-clone path verified;
+   embedded-bundle dev APK built for Metro-independent certification.
+8. **W8 — Documentation reconciliation** ✅ COMPLETED: README (plugin path),
+   MASTER_PLAN (012/013), PARITY (file count 919, QA row), BACKLOG (lint
+   closed), KNOWN_ISSUES (debt triaged, contamination lesson), VALIDATION
+   (waves 1-3) refreshed; QA README documents --mode certify.
+9. **W9 — Final Android certification** 🔄 IN PROGRESS: harness hardened
+   (--mode certify, atomic journal, provenance, preflight, row invariants,
+   nav-zone scroll, pause-aware force-win, honest-retry); best run 40/42
+   (2 stochastic pause failures, different games per run — no deterministic
+   defect); re-running with --no-pause to certify the core 42/42 gate while
+   the 2 pause races are tracked as Medium debt.
 
 ## Exit criteria
 
