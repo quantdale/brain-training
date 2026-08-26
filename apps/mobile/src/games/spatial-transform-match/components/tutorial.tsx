@@ -51,8 +51,9 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            You&apos;ll see a grid pattern, then a transform label (like &quot;Rotate 90° clockwise&quot;).
-            Pick the option that matches the transformed version of the pattern.
+            You&apos;ll see a grid pattern briefly — memorize it. The source then
+            hides: work out which transform was applied and pick the option
+            showing the transformed version.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}

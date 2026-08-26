@@ -6,13 +6,13 @@
  * rating/XP logic runs.
  *
  * Raw scoring rule (documented, deterministic):
- *   round score = correct ? 100 + 50 * clamp01(1 - answerMs / speedTargetMs) : 0
+ *   speedTargetMs = answerSpeedTargetMs(sourceRevealMs) = sourceRevealMs + 10_000
+ *   round score   = correct ? 100 + 50 * clamp01(1 - answerMs / speedTargetMs) : 0
  *   (faster correct answers earn up to a 50-point speed bonus)
  *
- * Normalization rule (documented, deterministic):
- *   accuracy   = roundsPassed / roundsPlayed            (0..1)
- *   speedScore = clamp01(1 - averageAnswerMs / (sourceRevealMs + 10_000))
- *   value      = clamp01(accuracy * (0.7 + 0.3 * speedScore))
+ * The raw-score speed window shares its basis (`sourceRevealMs + 10_000`) with
+ * the normalization rule below, so the on-screen score rewards normal-fast
+ * play exactly the way normalization does.
  *
  * Difficulty itself is deliberately NOT folded into the value — it is recorded
  * on the raw result / diagnostic metadata so the Phase-2 rating pipeline can
@@ -31,6 +31,21 @@ export const SPEED_BONUS = 50;
 
 /** Max raw points available per round. */
 export const MAX_ROUND_SCORE = CORRECT_POINTS + SPEED_BONUS;
+
+/**
+ * Active-answer window added to `sourceRevealMs` to form the speed target.
+ * Shared by raw scoring AND normalization so both reward the same pacing.
+ */
+export const ANSWER_SPEED_WINDOW_MS = 10_000;
+
+/**
+ * Speed target for the answer phase: how long a correct answer may take before
+ * it stops earning any speed bonus. Deliberately identical to the
+ * normalization denominator basis (see module docs).
+ */
+export function answerSpeedTargetMs(sourceRevealMs: number): number {
+  return sourceRevealMs + ANSWER_SPEED_WINDOW_MS;
+}
 
 /** Raw score for a single answer. */
 export function roundScore(correct: boolean, answerMs: number, speedTargetMs: number): number {
@@ -72,7 +87,10 @@ export function normalizeSpatialFoldMatchResult(
   _context: NormalizeContext,
 ): NormalizedPerformance {
   const accuracy = accuracyOf(raw.roundsPassed, raw.roundsPlayed);
-  const speedScore = speedScoreOf(raw.averageAnswerMs, raw.sourceRevealMs + 10_000);
+  const speedScore = speedScoreOf(
+    raw.averageAnswerMs,
+    answerSpeedTargetMs(raw.sourceRevealMs),
+  );
   // Algebraically identical to `accuracy * (0.7 + 0.3 * speedScore)` but free
   // of float dust at the boundaries (perfect play normalizes to exactly 1).
   const value = clamp01(accuracy - 0.3 * accuracy * (1 - speedScore));

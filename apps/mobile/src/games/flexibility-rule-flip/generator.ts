@@ -60,6 +60,10 @@ export interface GenerateRoundInput {
   readonly rule: RuleId;
   /** True when this trial is the first trial of a block whose rule differs from the previous block's rule. */
   readonly isSwitch: boolean;
+  /** True when this trial belongs to an UNCUED block (rule banner hidden pre-pick). */
+  readonly uncued?: boolean;
+  /** 0-based plan-block index this trial belongs to (see GeneratedRound.blockIndex). */
+  readonly blockIndex?: number;
   readonly numShapes: number;
   readonly numColors: number;
   readonly numNumbers: number;
@@ -226,7 +230,18 @@ export function generateRound(input: GenerateRoundInput): GeneratedRound {
   const candidates = rng.fork(`round:${roundIndex}:shuffle`).shuffle([correct, ...distractors]);
   const correctIndex = candidates.findIndex((card) => sameCard(card, correct));
 
-  const round: GeneratedRound = { target, candidates, correctIndex, rule, isSwitch };
+  const round: GeneratedRound = {
+    target,
+    candidates,
+    correctIndex,
+    rule,
+    isSwitch,
+    // Uncue is a presentation-layer plan flag: it must not consume RNG or
+    // affect content generation, so the card layout of a round is identical
+    // whether its block runs cued or dark (tutorial demo stability).
+    uncued: input.uncued ?? false,
+    blockIndex: input.blockIndex,
+  };
   const violations = validateRound(round, numShapes, numColors, numNumbers);
   if (violations.length > 0) {
     throw new Error(
@@ -296,10 +311,12 @@ export function validateRound(
   return violations;
 }
 
-/** One block in the generated plan: its rule and its length (trial count). */
+/** One block in the generated plan: its rule, length (trial count) and cue mode. */
 interface BlockSpec {
   readonly rule: RuleId;
   readonly length: number;
+  /** True when the banner hides the active rule for the whole block. */
+  readonly uncued: boolean;
 }
 
 /**
@@ -325,7 +342,7 @@ function chooseBlockLength(
   return min + rng.fork(`block-len:${blockIndex}`).nextInt(max - min + 1);
 }
 
-/** Decide the full block structure (rules + lengths) deterministically. */
+/** Decide the full block structure (rules + lengths + cue modes) deterministically. */
 function planBlocks(rng: Rng, params: FlexibilityRuleFlipDifficultyParams): BlockSpec[] {
   const blocks: BlockSpec[] = [];
   let prevRule: RuleId | null = null;
@@ -338,7 +355,14 @@ function planBlocks(rng: Rng, params: FlexibilityRuleFlipDifficultyParams): Bloc
         ? pickInitialRule(rng, params.rulesPool)
         : nextBlockRule(rng, prevRule, params.flipRate, params.rulesPool);
     const length = chooseBlockLength(rng, blocks.length, params, remaining);
-    blocks.push({ rule, length });
+    // The FIRST block is always cued: the player anchors on an explicitly
+    // taught rule before any window goes dark (inference then means holding a
+    // known rule across silent flips, not guessing blind from trial 1).
+    // Fork salt is block-scoped (see chooseBlockLength): fork() depends only on
+    // the parent seed string, so a constant salt would make every block share
+    // one fate.
+    const uncued = blocks.length > 0 && params.uncuedRate > 0 && rng.fork(`block-uncued:${blocks.length}`).next() < params.uncuedRate;
+    blocks.push({ rule, length, uncued });
     totalTrials += length;
     prevRule = rule;
   }
@@ -351,6 +375,13 @@ function planBlocks(rng: Rng, params: FlexibilityRuleFlipDifficultyParams): Bloc
   if (params.flipRate > 0 && blocks.length >= 2 && !blocks.some((b, i) => i > 0 && b.rule !== blocks[i - 1].rule)) {
     const newRule = pickDifferentRule(rng, params.rulesPool, blocks[0].rule);
     blocks[1] = { ...blocks[1], rule: newRule };
+  }
+
+  // Mirror the switch guarantee for inference windows: when the tier plans
+  // uncued blocks at all, every session must contain at least one so the
+  // mechanic (and QA scenarios built on it) is reproducibly exercised.
+  if (params.uncuedRate > 0 && blocks.length >= 2 && !blocks.some((b, i) => i > 0 && b.uncued)) {
+    blocks[1] = { ...blocks[1], uncued: true };
   }
 
   return blocks;
@@ -382,6 +413,8 @@ export function generateSession(
         roundIndex: rounds.length,
         rule: block.rule,
         isSwitch,
+        uncued: block.uncued,
+        blockIndex: b,
         numShapes: params.numShapes,
         numColors: params.numColors,
         numNumbers: params.numNumbers,

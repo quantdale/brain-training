@@ -35,9 +35,11 @@ export {
 export type { GenerateStreamInput } from "./generator";
 export {
  MAX_STREAM_ATTEMPTS,
+ MIN_TARGET_HAMMING_DISTANCE,
  generateStream,
  isNearDuplicateTarget,
  streamTarget,
+ targetDistance,
 } from "./generator";
 export {
  accuracyOf,

@@ -11,10 +11,12 @@
  * earlier items are distractors the player must let go of. The "target" is
  * therefore `stream.slice(streamLen - recallLength)`.
  *
- * Near-duplicate avoidance: two consecutive rounds whose trailing targets are
- * identical give the player a free pass (they can coast on the previous
- * answer), so a candidate stream is re-drawn with an incremented attempt salt
- * until the trailing target differs from the previous round's (or the budget
+ * Near-duplicate avoidance: consecutive rounds whose trailing targets are
+ * nearly identical let the player coast (an exact repeat is a free pass, and a
+ * one-symbol difference is barely harder), so a candidate stream is re-drawn
+ * with an incremented attempt salt until its Hamming distance from the
+ * previous round's trailing target is at least `MIN_TARGET_HAMMING_DISTANCE`
+ * — mirroring the sibling Memory-family games' sequence guard (or the budget
  * is exhausted). Every step is deterministic — the same seed always yields the
  * same session.
  */
@@ -24,6 +26,9 @@ import { SYMBOL_COUNT } from "./symbols";
 
 /** Upper bound on re-draw attempts before the last candidate is accepted. */
 export const MAX_STREAM_ATTEMPTS = 12;
+
+/** Minimum Hamming distance between consecutive rounds' trailing targets. */
+export const MIN_TARGET_HAMMING_DISTANCE = 2;
 
 export interface GenerateStreamInput {
  readonly rng: Rng;
@@ -77,21 +82,41 @@ export function streamTarget(
  return stream.slice(stream.length - recallLength);
 }
 
-/** True when the new target is identical to the previous round's (too easy). */
+/**
+ * Hamming-style distance between two trailing targets: absolute length
+ * difference plus the number of positions where the symbols differ (mirrors
+ * the sibling Memory-family generators' sequence distance). A `null` previous
+ * target (round 0) counts as infinitely far.
+ */
+export function targetDistance(
+ a: readonly number[],
+ b: readonly number[] | null,
+): number {
+ if (b === null) {
+  return Number.POSITIVE_INFINITY;
+ }
+ let distance = Math.abs(a.length - b.length);
+ const shared = Math.min(a.length, b.length);
+ for (let i = 0; i < shared; i += 1) {
+  if (a[i] !== b[i]) {
+   distance += 1;
+  }
+ }
+ return distance;
+}
+
+/**
+ * True when the new target is confusable with the previous round's: closer
+ * than `MIN_TARGET_HAMMING_DISTANCE` (identical, one position off, or a
+ * one-symbol window change that would let the player coast on a shared
+ * prefix). Short (<2 symbol) windows are never flagged.
+ */
 export function isNearDuplicateTarget(
  candidate: readonly number[],
  prev: readonly number[] | null,
 ): boolean {
- if (prev === null) {
+ if (prev === null || prev.length < 2) {
   return false;
  }
- if (candidate.length !== prev.length) {
-  return false;
- }
- for (let i = 0; i < candidate.length; i += 1) {
-  if (candidate[i] !== prev[i]) {
-   return false;
-  }
- }
- return true;
+ return targetDistance(candidate, prev) < MIN_TARGET_HAMMING_DISTANCE;
 }

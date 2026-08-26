@@ -4,6 +4,10 @@
  * The rule is the game's core affordance: the player classifies under this
  * rule until it switches. The banner is color-coded by rule (color → accent,
  * shape → a neutral chip) and carries a stable semantic testID.
+ *
+ * `masked` (campaign 014) renders during DISCOVERY blocks: the rule is
+ * deliberately withheld behind a neutral placeholder — inferring it from
+ * keep/reject feedback is the trained skill, so no hint may leak pre-pick.
  */
 import { StyleSheet, View } from 'react-native';
 
@@ -17,6 +21,8 @@ import type { RuleId } from '../types';
 
 export interface RuleBannerProps {
   rule: RuleId;
+  /** True in discovery blocks: hide the rule behind a neutral placeholder. */
+  masked?: boolean;
 }
 
 /** Player-facing rule labels ("match by COLOR" / "match by SHAPE"). */
@@ -25,16 +31,22 @@ export const RULE_LABELS: Readonly<Record<RuleId, string>> = {
   shape: 'Match by SHAPE',
 };
 
-export function RuleBanner({ rule }: RuleBannerProps) {
+export function RuleBanner({ rule, masked = false }: RuleBannerProps) {
   const theme = useTheme();
   return (
     <View
       style={[styles.banner, { backgroundColor: theme.accentSoft, borderColor: theme.border }]}
       testID={testId(GAME_ID, 'rule-banner')}
-      accessibilityLabel={`Active rule: match by ${rule}`}>
-      <ThemedText type="smallBold" themeColor="text" testID={testId(GAME_ID, 'rule-banner-text')}>
-        {RULE_LABELS[rule]}
-      </ThemedText>
+      accessibilityLabel={masked ? 'Rule hidden: infer the sorting rule' : `Active rule: match by ${rule}`}>
+      {masked ? (
+        <ThemedText type="smallBold" themeColor="text" testID={testId(GAME_ID, 'rule-banner-masked')}>
+          Infer the sorting rule
+        </ThemedText>
+      ) : (
+        <ThemedText type="smallBold" themeColor="text" testID={testId(GAME_ID, 'rule-banner-text')}>
+          {RULE_LABELS[rule]}
+        </ThemedText>
+      )}
     </View>
   );
 }

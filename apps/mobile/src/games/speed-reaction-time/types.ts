@@ -43,8 +43,17 @@ export interface SpeedDifficultyParams {
   readonly passMs: number;
   /** Median reaction time at/above which the reaction component scores 0, in ms. */
   readonly failMs: number;
-  /** Time after GO without a tap after which the round times out, in ms. */
+  /** Time after GO without a tap after which the round times out, in ms.
+   *  On a NO-GO round this same window is the withhold window: surviving it
+   *  without tapping resolves the round as a correct withhold. */
   readonly timeoutMs: number;
+  /**
+   * Probability [0..1] that a round carries a NO-GO stimulus (distinct visual
+   * cue; the player must WITHHOLD). 0 = pure simple-RT (easy/tutorial);
+   * scaling up with tier is the game's inhibitory-control axis. Which rounds
+   * are NO-GO is drawn deterministically from the seed (see generator.ts).
+   */
+  readonly noGoProbability: number;
   /** Adaptive-only: per-round minimum-delay lower bound. */
   readonly minDelayBoundMs?: number;
   /** Adaptive-only: per-round minimum-delay upper bound. */
@@ -55,8 +64,18 @@ export interface SpeedDifficultyParams {
 
 export type SpeedPhase = 'intro' | 'wait' | 'go' | 'roundResult' | 'results';
 
-/** Per-round verdict shown on the round-result card. */
-export type RoundOutcome = 'passed' | 'failed' | 'false-start' | 'timeout';
+/** Per-round verdict shown on the round-result card.
+ *
+ * Go/No-Go verdicts: `withheld` = correctly withheld on a NO-GO stimulus
+ * (scores like a passed round); `no-go-false-start` = tapped a NO-GO stimulus
+ * (false-start-class penalty: consumes the budget, can abort the session). */
+export type RoundOutcome =
+  | 'passed'
+  | 'failed'
+  | 'false-start'
+  | 'timeout'
+  | 'withheld'
+  | 'no-go-false-start';
 
 /** Accumulated session statistics (all player-facing raw numbers). */
 export interface SpeedStats {
@@ -70,6 +89,12 @@ export interface SpeedStats {
   readonly falseStarts: number;
   /** Rounds failed by not tapping within `timeoutMs` of GO. */
   readonly timeouts: number;
+  /** Rounds that presented a NO-GO stimulus and reached a decision. */
+  readonly noGoTrials: number;
+  /** NO-GO rounds correctly withheld (scored like passed rounds). */
+  readonly noGoWithheld: number;
+  /** NO-GO rounds the player tapped (false-start-class penalty). */
+  readonly noGoHits: number;
   /** Fastest valid reaction, in ms; null before any valid reaction. */
   readonly bestReactionMs: number | null;
   /** Median valid reaction, in ms; null before any valid reaction. */
@@ -87,6 +112,9 @@ export const INITIAL_STATS: Readonly<SpeedStats> = Object.freeze({
   roundsPassed: 0,
   falseStarts: 0,
   timeouts: 0,
+  noGoTrials: 0,
+  noGoWithheld: 0,
+  noGoHits: 0,
   bestReactionMs: null,
   medianReactionMs: null,
   meanReactionMs: null,
@@ -105,6 +133,9 @@ export interface SpeedRawResult extends GameRawResult {
   readonly roundsPassed: number;
   readonly falseStarts: number;
   readonly timeouts: number;
+  readonly noGoTrials: number;
+  readonly noGoWithheld: number;
+  readonly noGoHits: number;
   readonly falseStartAborted: boolean;
   readonly bestReactionMs: number | null;
   readonly medianReactionMs: number | null;
@@ -112,6 +143,7 @@ export interface SpeedRawResult extends GameRawResult {
   readonly reactions: readonly number[];
   readonly minDelayMs: number;
   readonly maxDelayMs: number;
+  readonly noGoProbability: number;
   readonly falseStartBudget: number;
   readonly targetMs: number;
   readonly passMs: number;
@@ -203,6 +235,8 @@ export interface SpeedGameState {
   delayMinMs: number;
   /** Generated wait before the GO signal for the current round, in ms. */
   delayMs: number;
+  /** True when the current round's stimulus is a NO-GO (must withhold). */
+  isNoGoRound: boolean;
   /** Monotonic clock reading when GO was displayed; null before GO. */
   goAtMs: number | null;
   roundOutcome: RoundOutcome | null;
@@ -238,6 +272,7 @@ export function createInitialSpeedState(): SpeedGameState {
     roundIndex: 0,
     delayMinMs: 0,
     delayMs: 0,
+    isNoGoRound: false,
     goAtMs: null,
     roundOutcome: null,
     stats: { ...INITIAL_STATS },

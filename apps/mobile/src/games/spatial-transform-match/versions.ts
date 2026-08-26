@@ -7,8 +7,8 @@
  * columns of `game_sessions` (see `docs/PROJECT_CONSTITUTION.md` §21).
  */
 
-/** Scoring/normalization version — bump when `normalizeResult` changes. */
-export const SCORING_VERSION = '1.1.0';
+/** Scoring/normalization version — bump when `normalizeResult` or the raw-score rule changes. */
+export const SCORING_VERSION = '1.2.0';
 
 /**
  * Map a semantic version string to the integer recorded in the db

@@ -19,7 +19,7 @@ import {
   resolveSpatialFoldMatchDifficulty,
 } from './difficulty';
 import { generateRoundData } from './generator';
-import { perfectSessionScore, roundScore } from './scoring';
+import { answerSpeedTargetMs, perfectSessionScore, roundScore } from './scoring';
 import { FOLD_LABELS, INITIAL_STATS, createInitialSpatialFoldMatchState } from './types';
 import type {
   SpatialFoldMatchAction,
@@ -122,7 +122,12 @@ export function gameReducer(
       if (correct) {
         const streak = state.stats.streak + 1;
         const stats: SpatialFoldMatchStats = {
-          score: state.stats.score + roundScore(true, answerMs, params.sourceRevealMs),
+          // Speed target uses the same revealMs + 10s basis as normalization
+          // (see scoring.answerSpeedTargetMs) so the on-screen score pays a
+          // meaningful bonus for normal-fast answers instead of decaying to
+          // the base points within the ~1-1.3s reveal window alone.
+          score: state.stats.score +
+            roundScore(true, answerMs, answerSpeedTargetMs(params.sourceRevealMs)),
           roundsPlayed: state.stats.roundsPlayed + 1,
           roundsPassed: state.stats.roundsPassed + 1,
           bestStreak: Math.max(state.stats.bestStreak, streak),

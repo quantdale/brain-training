@@ -13,6 +13,7 @@
 import { createRng, isDifficultyLevel } from '@/sdk';
 
 import {
+  escalatedDistractorClasses,
   resolveTargetCountDifficulty,
   targetCountParamsFromProfile,
 } from './difficulty';
@@ -42,10 +43,15 @@ export function targetCountGameReducer(
       const profile = resolveTargetCountDifficulty(state.difficulty);
       const params = targetCountParamsFromProfile(profile);
       const rng = createRng(action.seed);
+      // Streak is 0 at session start: round 1 always plays at tier base.
+      const effectiveParams = {
+        ...params,
+        distractorClasses: escalatedDistractorClasses(params, state.stats.streak),
+      };
       const currentRound = generateRound({
         rng,
         roundIndex: 0,
-        params,
+        params: effectiveParams,
         prevRound: null,
       });
       return {
@@ -124,10 +130,15 @@ export function targetCountGameReducer(
         return { ...state, phase: 'results', selectedCount: null, roundCorrect: null, roundOutcome: null };
       }
       const rng = createRng(state.seed);
+      // Within-session escalation: the streak BEFORE this round decides how
+      // much distractor variety the next grid carries (see difficulty.ts).
       const currentRound = generateRound({
         rng,
         roundIndex: nextIndex,
-        params,
+        params: {
+          ...params,
+          distractorClasses: escalatedDistractorClasses(params, state.stats.streak),
+        },
         prevRound: state.currentRound,
       });
       return {

@@ -29,7 +29,7 @@ import {
   nextSwitchEvery,
   resolveFlexibilityDifficulty,
 } from './difficulty';
-import { generateRound, pickInitialRule } from './generator';
+import { generateRound, pickInitialRule, planDiscoveryBlocks } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
 import { INITIAL_STATS, createInitialFlexibilityState, otherRule } from './types';
 import type {
@@ -45,6 +45,22 @@ export { createInitialFlexibilityState };
 /** True when the round being played is the first of its rule block (post-switch). */
 function isPostSwitchRound(blockIndex: number, roundsInBlock: number): boolean {
   return blockIndex > 0 && roundsInBlock === 0;
+}
+
+/**
+ * The deterministic block-type plan (cued vs DISCOVERY) for a session in
+ * progress. Fixed tiers divide exactly by `switchEvery`; for adaptive the
+ * current block size is the documented approximation (it drifts at most one
+ * block when `nextSwitchEvery` shrinks/grows mid-session).
+ */
+function discoveryPlanFor(
+  seed: string,
+  rounds: number,
+  switchEvery: number,
+  discoveryRate: number,
+): readonly boolean[] {
+  const blockCount = Math.max(1, Math.ceil(rounds / Math.max(1, switchEvery)));
+  return planDiscoveryBlocks(seed, blockCount, discoveryRate);
 }
 
 /** Generate the content of `roundIndex` under `rule` with the seed's stream. */
@@ -103,6 +119,9 @@ export function flexibilityGameReducer(
         blockIndex: 0,
         roundsInBlock: 0,
         switchEvery: params.switchEvery,
+        // Block 0 of the plan is always cued (see planDiscoveryBlocks): the
+        // session opens with an explicitly taught sorting rule.
+        discoveryBlock: false,
         blockPlayed: 0,
         blockCorrect: 0,
         round,
@@ -126,6 +145,9 @@ export function flexibilityGameReducer(
       const params = flexibilityParamsFromProfile(state.profile);
       const streak = correct ? state.stats.streak + 1 : 0;
       const postSwitch = isPostSwitchRound(state.blockIndex, state.roundsInBlock);
+      // Discovery rounds are the WCST-style inference diagnostic: the rule was
+      // never announced, so a correct sort means it was genuinely inferred.
+      const discovery = state.discoveryBlock;
       const stats: FlexibilityStats = {
         score: state.stats.score + roundScore(correct, action.responseMs, params.speedTargetMs),
         roundsPlayed: state.stats.roundsPlayed + 1,
@@ -137,6 +159,8 @@ export function flexibilityGameReducer(
         scoredPicks: state.stats.scoredPicks + 1,
         postSwitchPlayed: state.stats.postSwitchPlayed + (postSwitch ? 1 : 0),
         postSwitchCorrect: state.stats.postSwitchCorrect + (postSwitch && correct ? 1 : 0),
+        discoveryPlayed: state.stats.discoveryPlayed + (discovery ? 1 : 0),
+        discoveryCorrect: state.stats.discoveryCorrect + (discovery && correct ? 1 : 0),
       };
       return {
         ...state,
@@ -170,16 +194,21 @@ export function flexibilityGameReducer(
         const newRule = otherRule(state.rule);
         const blockAccuracy = state.blockPlayed > 0 ? state.blockCorrect / state.blockPlayed : 0;
         const switchEvery = nextSwitchEvery(state.difficulty, state.switchEvery, blockAccuracy, params);
+        // Look up whether the NEW block runs as a discovery stretch. The UI
+        // reads this during the notice to mask the new rule announcement.
+        const plan = discoveryPlanFor(state.seed, params.rounds, switchEvery, params.discoveryRate);
+        const nextBlockIndex = state.blockIndex + 1;
         return {
           ...state,
           phase: 'ruleSwitchNotice',
           roundIndex: nextIndex,
           rule: newRule,
-          blockIndex: state.blockIndex + 1,
+          blockIndex: nextBlockIndex,
           roundsInBlock: 0,
           blockPlayed: 0,
           blockCorrect: 0,
           switchEvery,
+          discoveryBlock: plan[nextBlockIndex] ?? false,
           roundOutcome: null,
           round: null,
           prevTarget: state.round.target,
@@ -284,6 +313,15 @@ export function flexibilityGameReducer(
       // block size (an approximation of the played session).
       const blocks = Math.ceil(rounds / state.switchEvery);
       const postSwitchPlayed = blocks - 1;
+      // Discovery blocks replay the same deterministic plan the live session
+      // walked; their rounds count as inferred-correct in a perfect run.
+      const plan = discoveryPlanFor(state.seed, rounds, state.switchEvery, params.discoveryRate);
+      let discoveryPlayed = 0;
+      for (let b = 0; b < Math.min(blocks, plan.length); b += 1) {
+        if (plan[b]) {
+          discoveryPlayed += Math.min(state.switchEvery, rounds - b * state.switchEvery);
+        }
+      }
       return {
         ...state,
         phase: 'results',
@@ -302,6 +340,8 @@ export function flexibilityGameReducer(
           scoredPicks: rounds,
           postSwitchPlayed,
           postSwitchCorrect: postSwitchPlayed,
+          discoveryPlayed,
+          discoveryCorrect: discoveryPlayed,
         },
       };
     }
@@ -315,6 +355,7 @@ export function flexibilityGameReducer(
       // as-is; the notice phase has no round in flight.
       const countsRound = state.phase === 'roundActive' ? 1 : 0;
       const postSwitch = countsRound === 1 && isPostSwitchRound(state.blockIndex, state.roundsInBlock);
+      const discovery = countsRound === 1 && state.discoveryBlock;
       return {
         ...state,
         phase: 'results',
@@ -330,6 +371,8 @@ export function flexibilityGameReducer(
           scoredPicks: state.stats.scoredPicks + countsRound,
           postSwitchPlayed: state.stats.postSwitchPlayed + (postSwitch ? 1 : 0),
           postSwitchCorrect: state.stats.postSwitchCorrect,
+          discoveryPlayed: state.stats.discoveryPlayed + (discovery ? 1 : 0),
+          discoveryCorrect: state.stats.discoveryCorrect,
         },
       };
     }

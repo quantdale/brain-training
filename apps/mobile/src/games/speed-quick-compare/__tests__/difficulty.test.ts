@@ -29,6 +29,7 @@ describe('resolveQuickCompareDifficulty', () => {
       expect(params.windowMs).toBe(QUICK_COMPARE_DIFFICULTY_PARAMS[level].windowMs);
       expect(params.maxValue).toBe(QUICK_COMPARE_DIFFICULTY_PARAMS[level].maxValue);
       expect(params.optionCount).toBe(QUICK_COMPARE_DIFFICULTY_PARAMS[level].optionCount);
+      expect(params.spreadPct).toBe(QUICK_COMPARE_DIFFICULTY_PARAMS[level].spreadPct);
       expect(params.promptTypes).toEqual(QUICK_COMPARE_DIFFICULTY_PARAMS[level].promptTypes);
     }
   });
@@ -57,8 +58,16 @@ describe('resolveQuickCompareDifficulty', () => {
       expect(decoded.windowMs).toBe(original.windowMs);
       expect(decoded.maxValue).toBe(original.maxValue);
       expect(decoded.optionCount).toBe(original.optionCount);
+      expect(decoded.spreadPct).toBe(original.spreadPct);
       expect(decoded.promptTypes).toEqual(original.promptTypes);
     }
+  });
+
+  it('defaults spreadPct to unconstrained for pre-proximity profiles', () => {
+    const profile = resolveQuickCompareDifficulty('hard');
+    const { spreadPct: _legacy, ...legacyParameters } = profile.parameters;
+    const params = quickCompareParamsFromProfile({ ...profile, parameters: legacyParameters });
+    expect(params.spreadPct).toBe(100);
   });
 
   it('adaptive profile carries window bounds', () => {
@@ -114,6 +123,25 @@ describe('difficulty params sanity', () => {
     expect(windows[2]).toBeGreaterThan(windows[3]);
     const magnitudes = LEVELS.map((l) => quickCompareParamsForLevel(l).maxValue);
     expect(magnitudes[2]).toBeLessThan(magnitudes[3]);
+  });
+
+  it('shrinks the proximity budget monotonically with difficulty', () => {
+    // Fixed levels tighten |a−b| / |sumA−sumB| step by step; adaptive sits
+    // between normal and hard.
+    expect(quickCompareParamsForLevel('easy').spreadPct).toBeGreaterThan(
+      quickCompareParamsForLevel('normal').spreadPct!,
+    );
+    expect(quickCompareParamsForLevel('normal').spreadPct!).toBeGreaterThan(
+      quickCompareParamsForLevel('hard').spreadPct!,
+    );
+    expect(quickCompareParamsForLevel('hard').spreadPct!).toBeGreaterThan(
+      quickCompareParamsForLevel('expert').spreadPct!,
+    );
+    const adaptiveSpread = quickCompareParamsForLevel('adaptive').spreadPct!;
+    expect(adaptiveSpread).toBeGreaterThan(
+      quickCompareParamsForLevel('expert').spreadPct!,
+    );
+    expect(adaptiveSpread).toBeLessThan(quickCompareParamsForLevel('normal').spreadPct!);
   });
 
   it('never emits an option count outside the supported range', () => {

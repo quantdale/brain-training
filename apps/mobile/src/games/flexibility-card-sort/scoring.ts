@@ -14,19 +14,28 @@
  * a slow correct pick still earns the 100 base. The fastest possible session
  * scores 150 per round.
  *
- * Normalization rule (documented, deterministic):
+ * Normalization rule (documented, deterministic; v1.2 adds discovery):
  *
- *   accuracy        = correctPicks / roundsPlayed                    (0..1)
- *   speedScore      = clamp01(1 - meanResponseMs / speedTargetMs)    (0..1; 0 with no picks)
- *   switchAccuracy  = postSwitchCorrect / postSwitchPlayed           (0..1)
- *   value           = accuracy * (0.6 + 0.2 * speedScore + 0.2 * switchAccuracy)
+ *   accuracy          = correctPicks / roundsPlayed                 (0..1)
+ *   speedScore        = clamp01(1 - meanResponseMs / speedTargetMs)  (0..1)
+ *   switchAccuracy    = postSwitchCorrect / postSwitchPlayed         (0..1)
+ *   discoveryAccuracy = discoveryCorrect / discoveryPlayed           (0..1)
  *
- * Accuracy is the base; speed and switch-rule accuracy (how well the player
- * re-anchors right after a rule switch — the flexibility diagnostic) each
- * contribute up to 20% of the blend. A perfect, instant, switch-perfect run
- * reaches 1.0. Difficulty itself is deliberately NOT folded into the value —
- * it is recorded on the raw result / diagnostic metadata so the Phase-2
- * rating pipeline can weight it.
+ *   without discovery rounds played (easy tiers — exact v1 formula):
+ *     value = accuracy * (0.6 + 0.2 * speedScore + 0.2 * switchAccuracy)
+ *   with discovery rounds played, 10 points of the switchAccuracy weight are
+ *   additively re-blended into discovery accuracy (the inference diagnostic
+ *   is a strictly harder version of the same "recover the rule" skill):
+ *     value = accuracy * (0.6 + 0.2 * speedScore
+ *                          + 0.1 * switchAccuracy + 0.1 * discoveryAccuracy)
+ *
+ * Accuracy is the base; speed and switch-rule accuracy each contribute up to
+ * 20% of the blend (or 10% each once discovery stretches exist). Branching on
+ * `discoveryPlayed` keeps tier ceilings stable: sessions with no discovery
+ * blocks still reach exactly 1.0. A perfect, instant, switch-perfect run
+ * reaches 1.0 in both branches. Difficulty itself is deliberately NOT folded
+ * into the value — it is recorded on the raw result / diagnostic metadata so
+ * the Phase-2 rating pipeline can weight it.
  */
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
@@ -72,6 +81,31 @@ export function switchAccuracyOf(postSwitchCorrect: number, postSwitchPlayed: nu
   return postSwitchPlayed > 0 ? postSwitchCorrect / postSwitchPlayed : 0;
 }
 
+/** Share of discovery-block rounds answered correctly; 0 when none were played. */
+export function discoveryAccuracyOf(discoveryCorrect: number, discoveryPlayed: number): number {
+  return discoveryPlayed > 0 ? discoveryCorrect / discoveryPlayed : 0;
+}
+
+/**
+ * The combined switch+discovery contribution to the normalize multiplier.
+ *
+ * Without discovery rounds this is exactly the v1 weight (0.2 × switch), so
+ * cued-only sessions keep their historical ceiling. Once discovery stretches
+ * were played, half of that weight moves onto discovery accuracy — an
+ * additive re-blend (not a new multiplicative term) so the maximum stays
+ * exactly 1.0 and the two diagnostics remain directly comparable.
+ */
+export function switchBlendFactorOf(
+  discoveryPlayed: number,
+  switchAccuracy: number,
+  discoveryAccuracy: number,
+): number {
+  if (discoveryPlayed > 0) {
+    return 0.1 * switchAccuracy + 0.1 * discoveryAccuracy;
+  }
+  return 0.2 * switchAccuracy;
+}
+
 /** Clamp to [0, 1]; rejects non-finite input (mirrors the SDK clamp). */
 export function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
@@ -88,7 +122,13 @@ export function normalizeFlexibilityResult(
   const accuracy = accuracyOf(raw.correctPicks, raw.roundsPlayed);
   const speed = speedScoreOf(raw.totalResponseMs, raw.scoredPicks, raw.speedTargetMs);
   const switchAccuracy = switchAccuracyOf(raw.postSwitchCorrect, raw.postSwitchPlayed);
-  const value = clamp01(accuracy * (0.6 + 0.2 * speed + 0.2 * switchAccuracy));
+  const discoveryAccuracy = discoveryAccuracyOf(
+    raw.discoveryCorrect ?? 0,
+    raw.discoveryPlayed ?? 0,
+  );
+  const inner =
+    0.6 + 0.2 * speed + switchBlendFactorOf(raw.discoveryPlayed ?? 0, switchAccuracy, discoveryAccuracy);
+  const value = clamp01(accuracy * inner);
   return { value, scale: '0..1', raw: { ...raw } };
 }
 

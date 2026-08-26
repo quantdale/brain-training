@@ -277,7 +277,7 @@ describe('SymbolTrackerScreen', () => {
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as SymbolTrackerRawResult;
     expect(raw.score).toBe(perfectSessionScore(NORMAL));
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);
@@ -348,6 +348,47 @@ describe('SymbolTrackerScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  // ---- Respond-phase deadline (campaign 014): expiry submits what is
+  // selected instead of hanging forever; pausing freezes it exactly like the
+  // observe window.
+
+  it('expires the respond budget and resolves the round with current picks', async () => {
+    const { clock } = await renderScreen({ seed: 'respond-expiry' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, OBSERVE_MS); // observe → respond
+    expect(screen.getByTestId(testId(GAME_ID, 'respond-board'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'respond-budget'))).toHaveTextContent('7s to answer');
+
+    // No taps at all: the expiry must resolve (not crash) as a failed round.
+    await advanceTime(clock, NORMAL.respondDeadlineMs);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-result'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'respond-timeout'))).toBeOnTheScreen();
+  });
+
+  it('freezes the respond budget while paused (same convention as observe)', async () => {
+    const { clock } = await renderScreen({ seed: 'respond-freeze' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, OBSERVE_MS); // observe → respond
+    await advanceTime(clock, 1000); // part of the budget consumed
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    // Frozen: far beyond the remaining budget must not expire while paused.
+    await advanceTime(clock, NORMAL.respondDeadlineMs + 5_000);
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-result'))).toBeNull();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    // Only the unconsumed remainder (~6s) is left, so a short wait must NOT
+    // expire yet...
+    await advanceTime(clock, 2_000);
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-result'))).toBeNull();
+    // ...but the remainder does expire afterwards.
+    await advanceTime(clock, NORMAL.respondDeadlineMs);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-result'))).toBeOnTheScreen();
+  });
+
   it('force-timeout skips the observe countdown immediately', async () => {
     await renderScreen({ seed: 'qa-timeout' });
 
@@ -361,6 +402,21 @@ describe('SymbolTrackerScreen', () => {
     expect(
       screen.getByTestId(testId(GAME_ID, 'respond-board')),
     ).toBeOnTheScreen();
+  });
+
+  it('force-timeout during respond resolves the round via the deadline path', async () => {
+    const { clock } = await renderScreen({ seed: 'qa-respond' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, OBSERVE_MS); // observe → respond
+    expect(screen.getByTestId(testId(GAME_ID, 'respond-board'))).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-timeout')));
+
+    // The live respond window expires: picks resolve as they stand.
+    expect(screen.getByTestId(testId(GAME_ID, 'round-result'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'respond-timeout'))).toBeOnTheScreen();
   });
 
   it('force-win ends the session as a perfect run and marks it forced', async () => {

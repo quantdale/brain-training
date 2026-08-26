@@ -5,8 +5,8 @@
  * lifecycle, auto-pause, tutorial/QA gating, intro/pause/results chrome and
  * the Android back-guard live in `@/components/game-host`; this module keeps
  * only what is Reaction-Time-specific — the GO-signal timer, the
- * reaction-window timeout, trigger handling, and the scoring/persistence
- * pipeline.
+ * reaction-window timeout, trigger handling (including NO-GO withhold
+ * trials), and the scoring/persistence pipeline.
  *
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
@@ -277,6 +277,14 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
       liveAudioHaptics.haptic('warning');
       dispatch({ type: 'false-start' });
     } else if (current.phase === 'go' && current.goAtMs !== null) {
+      if (current.isNoGoRound) {
+        // Tapping a NO-GO stimulus: the reducer applies the false-start-class
+        // penalty; feedback matches the mistake, not a fast reaction.
+        liveAudioHaptics.playSfx('speed-false-start');
+        liveAudioHaptics.haptic('warning');
+        dispatch({ type: 'tap', rtMs: clock.now() - current.goAtMs });
+        return;
+      }
       // Valid reaction, measured with the monotonic clock against the moment
       // the GO signal was displayed.
       const rtMs = clock.now() - current.goAtMs;
@@ -367,7 +375,9 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
                 type="bodyLarge"
                 themeColor="text"
                 testID={testId(GAME_ID, 'wait-status')}>
-                Get ready — tap the instant it turns green
+                {state.isNoGoRound
+                  ? 'Get ready — if the button flashes red with an ✕, do NOT tap'
+                  : 'Get ready — tap the instant it turns green'}
               </ThemedText>
               <ThemedText
                 type="caption"
@@ -387,12 +397,13 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
             <View style={styles.section}>
               <ThemedText
                 type="display"
-                themeColor="text"
-                testID={testId(GAME_ID, 'go-status')}>
-                GO!
+                themeColor={state.isNoGoRound ? 'danger' : 'text'}
+                testID={testId(GAME_ID, state.isNoGoRound ? 'hold-status' : 'go-status')}>
+                {state.isNoGoRound ? 'HOLD!' : 'GO!'}
               </ThemedText>
               <TriggerButton
                 active
+                hold={state.isNoGoRound}
                 testID={testId(GAME_ID, 'trigger')}
                 onPress={handleTrigger}
               />
@@ -404,20 +415,24 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
               <ThemedText
                 type="headline"
                 themeColor={
-                  state.roundOutcome === 'passed'
+                  state.roundOutcome === 'passed' || state.roundOutcome === 'withheld'
                     ? 'success'
-                    : state.roundOutcome === 'failed'
+                    : state.roundOutcome === 'failed' || state.roundOutcome === 'no-go-false-start'
                       ? 'danger'
                       : 'warning'
                 }
                 testID={testId(GAME_ID, `round-${state.roundOutcome ?? 'failed'}`)}>
                 {state.roundOutcome === 'passed'
                   ? 'Fast!'
-                  : state.roundOutcome === 'failed'
-                    ? 'Too slow'
-                    : state.roundOutcome === 'false-start'
-                      ? 'False start!'
-                      : 'No reaction'}
+                  : state.roundOutcome === 'withheld'
+                    ? 'Held!'
+                    : state.roundOutcome === 'no-go-false-start'
+                      ? "Don't tap!"
+                      : state.roundOutcome === 'failed'
+                        ? 'Too slow'
+                        : state.roundOutcome === 'false-start'
+                          ? 'False start!'
+                          : 'No reaction'}
               </ThemedText>
               <ThemedText
                 type="bodyLarge"
@@ -425,9 +440,13 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
                 testID={testId(GAME_ID, 'reaction-ms')}>
                 {state.roundOutcome === 'passed' || state.roundOutcome === 'failed'
                   ? `Reaction ${Math.round(state.stats.reactions[state.stats.reactions.length - 1])} ms`
-                  : state.roundOutcome === 'false-start'
-                    ? 'You tapped before the signal — the round is lost.'
-                    : 'The signal went unanswered.'}
+                  : state.roundOutcome === 'withheld'
+                    ? 'You held still on the ✕ signal — nicely done.'
+                    : state.roundOutcome === 'no-go-false-start'
+                      ? 'That signal asked you to hold — it costs a false start.'
+                      : state.roundOutcome === 'false-start'
+                        ? 'You tapped before the signal — the round is lost.'
+                        : 'The signal went unanswered.'}
               </ThemedText>
               {state.roundOutcome === 'passed' || state.roundOutcome === 'failed' ? (
                 <ThemedText
@@ -502,6 +521,13 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
             value={`${state.stats.roundsPassed}/${state.stats.roundsPlayed}`}
             testID={testId(GAME_ID, 'rounds-passed')}
           />
+          {state.stats.noGoTrials > 0 ? (
+            <StatRow
+              label="✕ signals held"
+              value={`${state.stats.noGoWithheld}/${state.stats.noGoTrials}`}
+              testID={testId(GAME_ID, 'no-go-held')}
+            />
+          ) : null}
           <StatRow
             label="False starts"
             value={String(state.stats.falseStarts)}

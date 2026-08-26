@@ -49,6 +49,12 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
             The rule holds for a run of trials, then flips without warning:
             re-anchor quickly to keep your streak and speed bonus.
           </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            From normal difficulty up, some windows go dark: the banner reads
+            “Infer the active rule” instead. Pick a card anyway — being right
+            confirms your guess silently, and a miss reveals which rule was
+            active. Watch for silent rule flips inside these dark stretches.
+          </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}
             label="Try a demo"
@@ -72,7 +78,9 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <ThemedText type="headline">You’ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Ready to play for real — watch the banner: right after a “Rule
-            flipped!” cue the new rule decides which card matches.
+            flipped!” cue the new rule decides which card matches. And when the
+            banner goes dark, infer the rule from your results — uncued picks
+            score extra.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-done')}

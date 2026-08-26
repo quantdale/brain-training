@@ -13,6 +13,11 @@
  * symbols by IDENTITY. Selections are symbol ids, not cell indexes, so a
  * symbol means the same thing on both boards.
  *
+ * Respond deadline: the pick phase has a per-tier budget (`respondDeadlineMs`).
+ * `respond-deadline` resolves the round exactly like `submit` — it only marks
+ * `respondTimedOut` so the UI/diagnostics know why selections stopped — and
+ * can therefore never crash or double-count on expiry.
+ *
  * QA force actions (`qa/*`) only reshape state; the screen gates their entry
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()` (see
  * hooks.ts), so production builds never expose them.
@@ -29,11 +34,54 @@ import { perfectSessionScore, referenceMaxRecall, roundScore } from './scoring';
 import { INITIAL_STATS, createInitialSymbolTrackerState } from './types';
 import type {
   SymbolTrackerAction,
+  SymbolTrackerDifficultyParams,
   SymbolTrackerGameState,
   SymbolTrackerStats,
 } from './types';
 
 export { createInitialSymbolTrackerState };
+
+interface ResolvedRound {
+  readonly roundCorrectTargets: number;
+  readonly roundWrongTaps: number;
+  readonly passed: boolean;
+  readonly stats: SymbolTrackerStats;
+}
+
+/**
+ * Score a respond phase from its current selections. Shared by `submit` and
+ * `respond-deadline` so an expiry is EXACTLY a submission of what was
+ * selected: the score decays only through fewer correct picks (and wrong-tap
+ * penalties already inherent to the picks) — never through extra time cost.
+ */
+function resolveRespondRound(
+  state: SymbolTrackerGameState,
+  params: SymbolTrackerDifficultyParams,
+): ResolvedRound {
+  const trackedSet = new Set(state.trackedSymbolIds);
+  const roundCorrectTargets = state.selections.filter((id) => trackedSet.has(id)).length;
+  const roundWrongTaps = state.selections.filter((id) => !trackedSet.has(id)).length;
+  const passed = roundCorrectTargets === state.trackCount && roundWrongTaps === 0;
+  const fraction = state.trackCount > 0 ? roundCorrectTargets / state.trackCount : 0;
+  const roundPoints = Math.max(
+    0,
+    Math.round(roundScore(state.trackCount, params.initialTrackCount) * fraction) -
+      25 * roundWrongTaps,
+  );
+  const streak = passed ? state.stats.streak + 1 : 0;
+  const stats: SymbolTrackerStats = {
+    score: state.stats.score + roundPoints,
+    roundsPlayed: state.stats.roundsPlayed + 1,
+    roundsPassed: state.stats.roundsPassed + (passed ? 1 : 0),
+    bestStreak: Math.max(state.stats.bestStreak, streak),
+    streak,
+    bestRecall: Math.max(state.stats.bestRecall, roundCorrectTargets),
+    totalTargets: state.stats.totalTargets + state.trackCount,
+    correctTargets: state.stats.correctTargets + roundCorrectTargets,
+    wrongTaps: state.stats.wrongTaps + roundWrongTaps,
+  };
+  return { roundCorrectTargets, roundWrongTaps, passed, stats };
+}
 
 export function symbolTrackerGameReducer(
   state: SymbolTrackerGameState,
@@ -81,6 +129,7 @@ export function symbolTrackerGameReducer(
         trackedSymbolIds: round.trackedSymbolIds,
         selections: [],
         roundScored: false,
+        respondTimedOut: false,
         roundCorrectTargets: 0,
         roundWrongTaps: 0,
         roundOutcome: null,
@@ -99,7 +148,7 @@ export function symbolTrackerGameReducer(
       if (state.phase !== 'observe' || state.paused) {
         return state;
       }
-      return { ...state, phase: 'respond', selections: [] };
+      return { ...state, phase: 'respond', selections: [], respondTimedOut: false };
     }
 
     case 'tap-cell': {
@@ -121,49 +170,23 @@ export function symbolTrackerGameReducer(
       return { ...state, selections: [...state.selections, symbolId] };
     }
 
-    case 'submit': {
-      if (state.phase !== 'respond' || state.paused || state.roundScored) {
+    case 'submit':
+    case 'respond-deadline': {
+      if (state.phase !== 'respond' || state.paused || state.roundScored || state.profile === null) {
         return state;
       }
-      const trackedSet = new Set(state.trackedSymbolIds);
-      const roundCorrectTargets = state.selections.filter((id) =>
-        trackedSet.has(id),
-      ).length;
-      const roundWrongTaps = state.selections.filter(
-        (id) => !trackedSet.has(id),
-      ).length;
-      const passed =
-        roundCorrectTargets === state.trackCount && roundWrongTaps === 0;
-      const fraction =
-        state.trackCount > 0 ? roundCorrectTargets / state.trackCount : 0;
-      const params = symbolTrackerParamsFromProfile(state.profile!);
-      const roundPoints = Math.max(
-        0,
-        Math.round(
-          roundScore(state.trackCount, params.initialTrackCount) * fraction,
-        ) -
-          25 * roundWrongTaps,
-      );
-      const streak = passed ? state.stats.streak + 1 : 0;
-      const stats: SymbolTrackerStats = {
-        score: state.stats.score + roundPoints,
-        roundsPlayed: state.stats.roundsPlayed + 1,
-        roundsPassed: state.stats.roundsPassed + (passed ? 1 : 0),
-        bestStreak: Math.max(state.stats.bestStreak, streak),
-        streak,
-        bestRecall: Math.max(state.stats.bestRecall, roundCorrectTargets),
-        totalTargets: state.stats.totalTargets + state.trackCount,
-        correctTargets: state.stats.correctTargets + roundCorrectTargets,
-        wrongTaps: state.stats.wrongTaps + roundWrongTaps,
-      };
+      const params = symbolTrackerParamsFromProfile(state.profile);
+      const resolved = resolveRespondRound(state, params);
       return {
         ...state,
         phase: 'roundResult',
         roundScored: true,
-        roundCorrectTargets,
-        roundWrongTaps,
-        roundOutcome: passed ? 'passed' : 'failed',
-        stats,
+        // The deadline path resolves identically — it only records WHY.
+        respondTimedOut: action.type === 'respond-deadline',
+        roundCorrectTargets: resolved.roundCorrectTargets,
+        roundWrongTaps: resolved.roundWrongTaps,
+        roundOutcome: resolved.passed ? 'passed' : 'failed',
+        stats: resolved.stats,
       };
     }
 
@@ -207,6 +230,7 @@ export function symbolTrackerGameReducer(
         trackedSymbolIds: round.trackedSymbolIds,
         selections: [],
         roundScored: false,
+        respondTimedOut: false,
         roundCorrectTargets: 0,
         roundWrongTaps: 0,
         roundOutcome: null,

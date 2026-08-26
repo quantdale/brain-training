@@ -384,7 +384,10 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
         <>
           {state.phase === 'roundActive' && state.round !== null ? (
             <>
-              <RuleBanner rule={state.round.rule} />
+              {/* Discovery blocks withhold the rule: inferring it from
+                  keep/reject feedback is the trained skill, so no hint may
+                  leak before the pick (the banner shows a placeholder). */}
+              <RuleBanner rule={state.round.rule} masked={state.discoveryBlock} />
               <View style={styles.targetRow} testID={testId(GAME_ID, 'target')}>
                 <CardView
                   index={-1}
@@ -416,13 +419,35 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
                 testID={testId(GAME_ID, state.roundOutcome === 'correct' ? 'round-correct' : 'round-wrong')}>
                 {state.roundOutcome === 'correct' ? 'Correct!' : 'Not quite'}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'round-explainer')}>
-                {state.roundOutcome === 'correct'
-                  ? `Matched by ${state.round.rule}: ${describeCard(state.round.target)}`
-                  : `The match was ${describeCard(
-                      state.round.candidates[state.round.correctIndex],
-                    )} — matched by ${state.round.rule}.`}
-              </ThemedText>
+              {state.discoveryBlock ? (
+                // Discovery feedback is WCST-style: a correct sort confirms
+                // silently (no rule named), a miss reveals which rule was
+                // active so inference has a teaching signal.
+                state.roundOutcome === 'correct' ? (
+                  <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'round-explainer')}>
+                    Kept — sorted correctly under the hidden rule.
+                  </ThemedText>
+                ) : (
+                  <>
+                    <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'rule-reveal')}>
+                      Rejected — the match was {describeCard(
+                        state.round.candidates[state.round.correctIndex],
+                      )}, matched by {state.round.rule}.
+                    </ThemedText>
+                    <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'round-explainer')}>
+                      Infer the sorting rule from your keeps and rejections.
+                    </ThemedText>
+                  </>
+                )
+              ) : (
+                <ThemedText type="small" themeColor="textSecondary" testID={testId(GAME_ID, 'round-explainer')}>
+                  {state.roundOutcome === 'correct'
+                    ? `Matched by ${state.round.rule}: ${describeCard(state.round.target)}`
+                    : `The match was ${describeCard(
+                        state.round.candidates[state.round.correctIndex],
+                      )} — matched by ${state.round.rule}.`}
+                </ThemedText>
+              )}
               <CardGrid
                 candidates={state.round.candidates}
                 testID={testId(GAME_ID, 'round-result-grid')}
@@ -439,8 +464,12 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
           ) : null}
 
           {state.phase === 'ruleSwitchNotice' ? (
+            // The notice masks the new rule when the incoming block is a
+            // discovery stretch (state.discoveryBlock already holds the NEW
+            // block's plan flag at this point).
             <SwitchNotice
               newRule={state.rule}
+              masked={state.discoveryBlock}
               onContinue={() => dispatch({ type: 'notice-continue' })}
             />
           ) : null}
@@ -482,6 +511,15 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
                 : 0) * 100,
             )}%`}
             testID={testId(GAME_ID, 'switch-accuracy')}
+          />
+          <StatRow
+            label="Discovery rounds"
+            value={`${Math.round(
+              (state.stats.discoveryPlayed > 0
+                ? state.stats.discoveryCorrect / state.stats.discoveryPlayed
+                : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'discovery-accuracy')}
           />
           <StatRow
             label="Best streak"

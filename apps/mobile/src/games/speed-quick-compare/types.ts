@@ -11,6 +11,10 @@
  * larger/smaller → compare summed pairs), while remaining fair (the correct
  * answer is always unambiguous by construction).
  *
+ * Options (v2 generator): Same/Different rounds stay binary. Numeric rounds
+ * offer the true larger value among PLAUSIBLE numeric decoys near the shown
+ * operands/sums (never equal to the correct value — see generator.ts).
+ *
  * Timing contract: gameplay timestamps are monotonic clock values supplied by
  * the screen (`roundStartedAtMs`, `nowMs`); the reducer never reads the wall
  * clock. A round's reaction time is `answer.nowMs - roundStartedAtMs`.
@@ -41,9 +45,9 @@ export interface CompareSide {
 /** One generated round (validated at generation; see generator.ts). */
 export interface QuickCompareRound {
   readonly promptType: ComparePromptType;
-  /** Human question, e.g. "Which side is larger?". */
+  /** Human question, e.g. "Which number is larger?". */
   readonly question: string;
-  /** Option button labels, e.g. ["Left", "Right"] or ["Same", "Different"]. */
+  /** Option button labels, e.g. ["Same", "Different"] or plausible numeric values ("17", …). */
   readonly optionLabels: readonly string[];
   /** Index of the uniquely-correct option. */
   readonly correctIndex: number;
@@ -63,8 +67,15 @@ export interface QuickCompareDifficultyParams {
   readonly promptTypes: readonly ComparePromptType[];
   /** Max absolute integer magnitude for generated operands. */
   readonly maxValue: number;
-  /** Number of answer options (2, 3, or 4). */
+  /** Number of answer options for NUMERIC prompts (2–4). Same/Different stays binary. */
   readonly optionCount: number;
+  /**
+   * Proximity pressure: maximum |a−b| (magnitude) or |sumA−sumB| (sum-compare)
+   * as a percentage of the larger side's value. Lower = harder. Optional for
+   * backward compatibility with profiles persisted before v1.1; absent means
+   * unconstrained.
+   */
+  readonly spreadPct?: number;
   /** Adaptive-only: response-window lower bound (ms). */
   readonly minWindowMs?: number;
   /** Adaptive-only: response-window upper bound (ms). */

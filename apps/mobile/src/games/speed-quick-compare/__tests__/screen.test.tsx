@@ -80,10 +80,13 @@ describe('QuickCompareScreen', () => {
 
     expect(screen.getByTestId(testId(GAME_ID, 'comparison'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'round', '1'))).toBeOnTheScreen();
-    // expert uses 4 options
-    for (let i = 0; i < 4; i += 1) {
+    // Option count follows the prompt type: numeric prompts use the full
+    // optionCount (expert = 4); Same/Different rounds stay binary.
+    const firstRound = generateRound(createRng(SEED), 0, quickCompareParamsForLevel('expert'));
+    for (let i = 0; i < firstRound.optionLabels.length; i += 1) {
       expect(screen.getByTestId(testId(GAME_ID, 'option', String(i)))).toBeOnTheScreen();
     }
+    expect(screen.queryByTestId(testId(GAME_ID, 'option', String(firstRound.optionLabels.length)))).toBeNull();
   });
 
   it('opens the tutorial on first play and can skip it', async () => {

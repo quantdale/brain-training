@@ -22,6 +22,7 @@ describe('Flexibility difficulty parameter mapping', () => {
       switchEvery: 4,
       noticeMs: 2000,
       speedTargetMs: 6000,
+      discoveryRate: 0,
     });
     expect(FLEXIBILITY_DIFFICULTY_PARAMS.normal).toEqual({
       numShapes: 3,
@@ -30,6 +31,7 @@ describe('Flexibility difficulty parameter mapping', () => {
       switchEvery: 3,
       noticeMs: 1600,
       speedTargetMs: 5000,
+      discoveryRate: 0.34,
     });
     expect(FLEXIBILITY_DIFFICULTY_PARAMS.hard).toEqual({
       numShapes: 4,
@@ -38,6 +40,7 @@ describe('Flexibility difficulty parameter mapping', () => {
       switchEvery: 2,
       noticeMs: 1200,
       speedTargetMs: 4000,
+      discoveryRate: 0.5,
     });
     expect(FLEXIBILITY_DIFFICULTY_PARAMS.expert).toEqual({
       numShapes: 4,
@@ -46,7 +49,16 @@ describe('Flexibility difficulty parameter mapping', () => {
       switchEvery: 1,
       noticeMs: 900,
       speedTargetMs: 3000,
+      discoveryRate: 0.66,
     });
+  });
+
+  it('weights discovery stretches heavier on hard/expert than normal', () => {
+    const params = FLEXIBILITY_DIFFICULTY_PARAMS;
+    expect(params.easy.discoveryRate).toBe(0); // tutorial contract stays cued
+    expect(params.normal.discoveryRate).toBeGreaterThan(0);
+    expect(params.hard.discoveryRate).toBeGreaterThan(params.normal.discoveryRate);
+    expect(params.expert.discoveryRate).toBeGreaterThan(params.hard.discoveryRate);
   });
 
   it('defines adaptive tuning with switch-frequency bounds', () => {
@@ -57,6 +69,7 @@ describe('Flexibility difficulty parameter mapping', () => {
       switchEvery: 2,
       noticeMs: 1200,
       speedTargetMs: 4000,
+      discoveryRate: 0.4,
       minSwitchEvery: 1,
       maxSwitchEvery: 4,
     });

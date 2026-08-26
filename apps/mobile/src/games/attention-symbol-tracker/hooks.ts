@@ -6,9 +6,11 @@
  * corresponding reducer action. The screen only renders the entry points
  * (QA panel / skip button) behind `isDevBuild()`.
  *
- * The game's only countdown is the observe window, which expires into the
- * respond phase via `observe-tick`; `forceTimeout` drives that same path so QA
- * can skip the wait without introducing a separate fail state.
+ * `forceTimeout` expires whichever window is currently live: the observe
+ * countdown (`observe-tick`) or the respond budget (`respond-deadline`). The
+ * caller supplies a phase getter so exactly ONE action is dispatched — both
+ * reducer paths ignore foreign phases, but firing both back-to-back would
+ * cascade (observe → respond → instant resolution).
  */
 import {
   assertDevOnly,
@@ -23,17 +25,21 @@ import type {
 import type { Dispatch } from 'react';
 
 import { GAME_ID } from './types';
-import type { SymbolTrackerAction } from './types';
+import type { SymbolTrackerAction, SymbolTrackerPhase } from './types';
 
-/** QA force hooks for the Symbol Tracker game (adds the observe-timeout path). */
+/** QA force hooks for the Symbol Tracker game (expires either window). */
 export interface SymbolTrackerQaForceStateHooks extends QaForceStateHooks {
-  /** Expire the current observe window immediately (no-op outside observe). */
+  /** Expire the live window immediately (observe → respond; respond → result). */
   forceTimeout(): void;
 }
 
-/** Create the QA hooks bound to a reducer dispatch (dev-only methods). */
+/** Create the QA hooks bound to a reducer dispatch (dev-only methods).
+ *
+ * `getPhase` lets `forceTimeout` target the LIVE window; without it the hook
+ * conservatively expires the observe window (the pre-deadline behavior). */
 export function createSymbolTrackerQaForceStateHooks(
   dispatch: Dispatch<SymbolTrackerAction>,
+  getPhase?: () => SymbolTrackerPhase | null,
 ): SymbolTrackerQaForceStateHooks {
   return {
     gameId: GAME_ID,
@@ -47,7 +53,12 @@ export function createSymbolTrackerQaForceStateHooks(
     },
     forceTimeout: () => {
       assertDevOnly();
-      dispatch({ type: 'observe-tick' });
+      const phase = getPhase?.() ?? 'observe';
+      if (phase === 'respond') {
+        dispatch({ type: 'respond-deadline' });
+      } else {
+        dispatch({ type: 'observe-tick' });
+      }
     },
     forceState: (patch) => {
       assertDevOnly();

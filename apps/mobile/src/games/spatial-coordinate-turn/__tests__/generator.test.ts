@@ -86,6 +86,38 @@ describe('generateSession', () => {
   });
 });
 
+describe('heading-option shuffle', () => {
+  it('is deterministic per seed but varies across seeds (no fixed clockwise order)', () => {
+    const a = generateSession('shuf-a', DIFFICULTY_PARAMS.normal);
+    const b = generateSession('shuf-a', DIFFICULTY_PARAMS.normal);
+    expect(a.map((r) => r.options)).toEqual(b.map((r) => r.options));
+
+    const orders = new Set<string>();
+    for (const seed of ['s1', 's2', 's3', 's4']) {
+      for (const round of generateSession(seed, DIFFICULTY_PARAMS.easy)) {
+        orders.add(round.options.join(','));
+      }
+    }
+    // The pre-shuffle generator emitted exactly one fixed order.
+    expect(orders.size).toBeGreaterThan(1);
+  });
+
+  it('spreads the correct index across positions (uniformity sanity over seeds)', () => {
+    const counts = new Array<number>(4).fill(0);
+    for (let i = 0; i < 40; i += 1) {
+      for (const round of generateSession(`dist-${i}`, DIFFICULTY_PARAMS.easy)) {
+        counts[round.correctIndex] += 1;
+      }
+    }
+    // 320 heading rounds over 4 slots ≈ 80 each; every slot must occur far
+    // above noise (>30 ≈ 6σ under uniformity). Fixed seeds ⇒ deterministic
+    // assertion, never flaky; a fixed clockwise order would read [320,0,0,0].
+    for (const count of counts) {
+      expect(count).toBeGreaterThan(30);
+    }
+  });
+});
+
 describe('generateRound validity', () => {
   const levels: readonly (keyof typeof DIFFICULTY_PARAMS)[] = [
     'easy',
@@ -110,14 +142,14 @@ describe('generateRound validity', () => {
     }
   });
 
-  it('offers the full active direction set for heading tasks', () => {
+  it('offers the full active direction set for heading tasks, shuffled', () => {
     const plan = generateSession('headings', DIFFICULTY_PARAMS.normal);
     for (const round of plan) {
       expect(round.task).toBe('heading');
-      expect(round.options).toEqual(directionsOrder(4));
-      expect(round.correctIndex).toBe(
-        directionsOrder(4).indexOf(round.finalHeading),
-      );
+      // Still a permutation of the active direction set…
+      expect([...round.options].sort()).toEqual([...directionsOrder(4)].sort());
+      // …and correctIndex tracks the final heading within the shuffled order.
+      expect(round.options[round.correctIndex]).toBe(round.finalHeading);
     }
   });
 

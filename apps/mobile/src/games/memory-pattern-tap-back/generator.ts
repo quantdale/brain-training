@@ -1,23 +1,21 @@
 /**
  * Deterministic sequence generation for the Pattern Tap Back game.
  *
- * Each round's sequence is a non-repeating traversal of distinct grid tiles:
- * - No tile lit twice in the same sequence (a permutation slice of the grid).
- * - Starts from a position derived from the previous round's end (or a
- *   uniformly-drawn start for round 0).
- *
- * IMPORTANT (task 10.6 audit): this generator does NOT constrain steps to
- * grid adjacency. It picks uniformly from unvisited tiles, so it is a
- * distinct-span sequence (the same family as the Memory game) rather than a
- * grid-path/random-walk. Earlier comments claimed an adjacency-constrained
- * "random walk"; that documentation misdescribed the implementation and was
- * corrected. See `docs/adr/0005-memory-variant-review.md` for the deliberate
- * variant decision.
+ * Each round's sequence is an ADJACENCY-CONSTRAINED path — a random walk on
+ * the grid's king graph, where every successive tile shares a side or corner
+ * with the previous one (the ADR-0005 tracked differentiation from the Memory
+ * game):
+ * - No tile is lit twice in the same sequence, which also means the start tile
+ *   can never be revisited (immediately or later).
+ * - Each attempt draws a fresh uniform start; a walk that dead-ends (every
+ *   neighbor of the current tile is already visited) restarts on the same
+ *   fork stream, so retries stay cheap and fully deterministic.
  *
  * Near-duplicate avoidance: consecutive rounds that differ by only one tile
  * are confusable, so a candidate is re-drawn with an incremented attempt salt
  * until its distance from the previous round's sequence is at least
- * `MIN_SEQUENCE_HAMMING_DISTANCE` (or the budget is exhausted). Every step is
+ * `MIN_SEQUENCE_HAMMING_DISTANCE` (or the budget is exhausted; the fallback
+ * relaxes adjacency rather than the length/no-repeat contract). Every step is
  * deterministic — the same seed always yields the same session.
  */
 
@@ -28,6 +26,9 @@ export const MIN_SEQUENCE_HAMMING_DISTANCE = 2;
 
 /** Upper bound on re-draw attempts before the last candidate is accepted. */
 export const MAX_SEQUENCE_ATTEMPTS = 12;
+
+/** Fresh-start retries available to a single attempt's walk before it gives up. */
+const MAX_WALK_RESTARTS = 32;
 
 export interface GenerateRoundInput {
   readonly rng: Rng;
@@ -40,17 +41,57 @@ export interface GenerateRoundInput {
 }
 
 /**
- * Generate a round's sequence of distinct tiles.
+ * True when `a` and `b` are distinct in-range tiles sharing a side or corner
+ * (king-move adjacency on the square grid).
+ */
+export function tilesAreAdjacent(a: number, b: number, gridSize: number): boolean {
+  if (a === b || a < 0 || b < 0 || a >= gridSize || b >= gridSize) {
+    return false;
+  }
+  const side = gridSide(gridSize);
+  const rowDelta = Math.abs(Math.floor(a / side) - Math.floor(b / side));
+  const colDelta = Math.abs((a % side) - (b % side));
+  return Math.max(rowDelta, colDelta) === 1;
+}
+
+/** Side length of the square grid (9 → 3×3, 16 → 4×4). */
+function gridSide(gridSize: number): number {
+  return Math.max(1, Math.round(Math.sqrt(gridSize)));
+}
+
+/** Tiles adjacent to `tile` in the king graph over the grid. */
+function neighborTiles(tile: number, gridSize: number): number[] {
+  const side = gridSide(gridSize);
+  const row = Math.floor(tile / side);
+  const col = tile % side;
+  const neighbors: number[] = [];
+  for (let rowDelta = -1; rowDelta <= 1; rowDelta += 1) {
+    for (let colDelta = -1; colDelta <= 1; colDelta += 1) {
+      if (rowDelta === 0 && colDelta === 0) {
+        continue;
+      }
+      const nextRow = row + rowDelta;
+      const nextCol = col + colDelta;
+      if (nextRow < 0 || nextCol < 0 || nextRow >= side || nextCol >= side) {
+        continue;
+      }
+      const index = nextRow * side + nextCol;
+      if (index < gridSize) {
+        neighbors.push(index);
+      }
+    }
+  }
+  return neighbors;
+}
+
+/**
+ * Generate a round's sequence of distinct tiles forming a connected path.
  *
- * The sequence starts from a position derived from the previous round's last
- * tile (to avoid trivial repetition), then repeatedly picks a uniform random
- * unvisited tile. It does NOT constrain steps to grid adjacency (a true
- * adjacent-path generator is a documented future differentiation; see
- * `docs/adr/0005-memory-variant-review.md`).
- *
- * Determinism: `rng.fork` produces a child stream per attempt, and the
- * shuffle-then-pick logic is the same as the memory game's permutation
- * approach.
+ * Each candidate is a random walk on the grid king graph (every step moves to
+ * an adjacent tile). Determinism: `rng.fork` produces a child stream per
+ * attempt (`round:${roundIndex}:attempt:${attempt}`); trapped walks retry
+ * within their attempt's stream, and rejected candidates move to the next
+ * attempt salt — the same seed always yields the same session.
  */
 export function generateRoundSequence(input: GenerateRoundInput): number[] {
   const { rng, roundIndex, length, gridSize, prevSequence } = input;
@@ -61,13 +102,15 @@ export function generateRoundSequence(input: GenerateRoundInput): number[] {
       length,
       gridSize,
     );
-    if (!isNearDuplicate(candidate, prevSequence)) {
+    if (candidate !== null && !isNearDuplicate(candidate, prevSequence)) {
       return candidate;
     }
   }
 
-  // Extremely unlikely fallback: deterministically accept the last candidate.
-  return buildRandomWalk(
+  // Extremely unlikely fallback: deterministically accept a distinct-span
+  // sequence from the last attempt's fork — adjacency is relaxed rather than
+  // violating the exact-length / no-repeat contract.
+  return buildDistinctSpan(
     rng.fork(`round:${roundIndex}:attempt:${MAX_SEQUENCE_ATTEMPTS - 1}`),
     length,
     gridSize,
@@ -75,18 +118,70 @@ export function generateRoundSequence(input: GenerateRoundInput): number[] {
 }
 
 /**
- * Build a distinct-span sequence of `length` tiles over `gridSize` cells.
+ * Build an adjacency-constrained path of `length` distinct tiles (a random
+ * walk on the grid king graph). Returns `null` when every fresh-start retry
+ * trapped before covering `length`; the caller treats that exactly like a
+ * near-duplicate rejection and moves on to the next attempt salt.
  *
- * Every position (including position 0) is drawn uniformly from unvisited
- * tiles. Steps are NOT constrained to grid adjacency — this is a
- * permutation-style distinct-span sequence, not a grid path. (The function
- * keeps its historical `buildRandomWalk` name; see the file header and
- * `docs/adr/0005-memory-variant-review.md`. Confusability with the previous
- * round is handled by the caller's near-duplicate guard.)
- *
- * Invariant: no tile appears twice in the sequence.
+ * Invariants: consecutive tiles are adjacent (side or corner), and no tile
+ * appears twice — so the start tile is never revisited.
  */
 function buildRandomWalk(
+  rng: Rng,
+  length: number,
+  gridSize: number,
+): number[] | null {
+  if (length < 1 || length > gridSize) {
+    return null;
+  }
+  for (let restart = 0; restart < MAX_WALK_RESTARTS; restart += 1) {
+    const walk = walkFromFreshStart(rng, length, gridSize);
+    if (walk !== null) {
+      return walk;
+    }
+  }
+  return null;
+}
+
+/** One greedy walk; `null` when it dead-ends before covering `length`. */
+function walkFromFreshStart(
+  rng: Rng,
+  length: number,
+  gridSize: number,
+): number[] | null {
+  // Position 0 is a uniform draw over the whole grid; the near-duplicate
+  // guard in `generateRoundSequence` prevents trivially confusable rounds.
+  const startShuffled = rng.shuffle(
+    Array.from({ length: gridSize }, (_, i) => i),
+  );
+  const sequence: number[] = [startShuffled[0]];
+  const visited = new Set<number>(sequence);
+
+  // Extend the walk: only UNVISITED neighbors qualify, which keeps the path
+  // connected and non-repeating (excluding stepping back onto any earlier
+  // tile, including the start).
+  while (sequence.length < length) {
+    const current = sequence[sequence.length - 1];
+    const candidates = neighborTiles(current, gridSize).filter(
+      (tile) => !visited.has(tile),
+    );
+    if (candidates.length === 0) {
+      return null; // Trapped: every neighbor is already on the path.
+    }
+    const next = rng.shuffle(candidates)[0];
+    sequence.push(next);
+    visited.add(next);
+  }
+
+  return sequence;
+}
+
+/**
+ * Legacy distinct-span builder: picks uniformly among unvisited tiles with no
+ * adjacency constraint. Only used by the last-resort fallback so degenerate
+ * rounds keep the exact-length / no-repeat contract.
+ */
+function buildDistinctSpan(
   rng: Rng,
   length: number,
   gridSize: number,

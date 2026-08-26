@@ -11,11 +11,12 @@
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  *
- * Pause semantics: pausing freezes the lifecycle timer and cancels observe
- * pacing; resuming re-shows the tracked symbols for the remaining observe
- * window; the board is covered by the opaque shared PauseOverlay and hidden
- * from the accessibility tree while paused, so the answer cannot be read off
- * the UI during a pause.
+ * Pause semantics: pausing freezes the lifecycle timer and cancels both
+ * windows' pacing; resuming continues each remaining window via active-time
+ * accumulation (the observe reveal and the respond budget share the exact
+ * same freeze-and-continue convention). The board is covered by the opaque
+ * shared PauseOverlay and hidden from the accessibility tree while paused, so
+ * the answer cannot be read off the UI during a pause.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -82,6 +83,9 @@ export interface SymbolTrackerScreenProps {
 /** Observe pacing step (ms); also bounds the pause-freeze drift. */
 const OBSERVE_TICK_MS = 100;
 
+/** Respond-budget pacing step (ms); identical convention to OBSERVE_TICK_MS. */
+const RESPOND_TICK_MS = 100;
+
 export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}) {
   const {
     clock = systemClock,
@@ -103,6 +107,10 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
   // time so pausing freezes and resuming resumes the remaining window (not a restart).
   const observeElapsedRef = useRef(0);
   const observeRoundRef = useRef(-1);
+  // Per-round respond-budget baseline: same active-time accumulation as the
+  // observe window, so pausing freezes the deadline identically.
+  const respondElapsedRef = useRef(0);
+  const respondRoundRef = useRef(-1);
 
   useEffect(() => {
     stateRef.current = state;
@@ -128,8 +136,8 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     [tutorialStore],
   );
   const qaHooks = useMemo(
-    () => createSymbolTrackerQaForceStateHooks(dispatch),
-    [dispatch],
+    () => createSymbolTrackerQaForceStateHooks(dispatch, () => state.phase),
+    [dispatch, state.phase],
   );
 
   const params =
@@ -165,6 +173,31 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
       }
     },
     OBSERVE_TICK_MS,
+  );
+
+  // ---- Respond-budget pacing: mirrors the observe convention exactly — a
+  // window of `respondDeadlineMs` of ACTIVE time in RESPOND_TICK_MS steps,
+  // frozen while paused. Expiry submits whatever is selected (reducer-side);
+  // it resolves the round instead of crashing.
+  const respondDeadlineMs = params?.respondDeadlineMs ?? 7000;
+  useEffect(() => {
+    if (state.phase === 'respond' && respondRoundRef.current !== state.roundIndex) {
+      respondRoundRef.current = state.roundIndex;
+      respondElapsedRef.current = 0;
+    }
+  }, [state.phase, state.roundIndex]);
+  useGameInterval(
+    state.phase === 'respond' && !state.paused,
+    () => {
+      respondElapsedRef.current = Math.min(
+        respondDeadlineMs,
+        respondElapsedRef.current + RESPOND_TICK_MS,
+      );
+      if (respondElapsedRef.current >= respondDeadlineMs) {
+        dispatch({ type: 'respond-deadline' });
+      }
+    },
+    RESPOND_TICK_MS,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -488,6 +521,13 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
                     />
                   ))}
                 </View>
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, 'respond-budget')}
+                >
+                  {Math.round(respondDeadlineMs / 1000)}s to answer
+                </ThemedText>
               </View>
               <Board
                 gridSize={gridSize}
@@ -532,6 +572,15 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
                   ? ` (${state.roundWrongTaps} wrong pick${state.roundWrongTaps > 1 ? 's' : ''})`
                   : ''}
               </ThemedText>
+              {state.respondTimedOut ? (
+                <ThemedText
+                  type="small"
+                  themeColor="warning"
+                  testID={testId(GAME_ID, 'respond-timeout')}
+                >
+                  Time ran out — your picks were submitted as they stood.
+                </ThemedText>
+              ) : null}
               <Board
                 gridSize={gridSize}
                 board={board}

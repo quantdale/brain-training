@@ -38,8 +38,9 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             Each round shows two values and a question — Are they the same?
-            Which is larger? Which side sums to more? Pick the right answer
-            before the bar runs out. Faster, correct answers score more.
+            Which number is larger? Which sum is larger? Pick the right answer
+            before the bar runs out — at higher tiers the answer hides among
+            plausible look-alike numbers. Faster, correct answers score more.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}

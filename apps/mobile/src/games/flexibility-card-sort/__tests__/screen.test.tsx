@@ -15,7 +15,7 @@ import type { CompleteSessionInput } from '@/db';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { RULE_LABELS } from '../components/rule-banner';
-import { generateRound, pickInitialRule } from '../generator';
+import { generateRound, pickInitialRule, planDiscoveryBlocks } from '../generator';
 import { flexibilityParamsForLevel } from '../difficulty';
 import CardSortScreen from '../screen';
 import { seedToNumber } from '../session';
@@ -362,5 +362,72 @@ describe('CardSortScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect((input.session.rawResult as FlexibilityRawResult).forced).toBe(true);
     expect(input.session.normalizedResult).toBe(0);
+  });
+
+  it('runs discovery stretches: unannounced rule, masked notice, reveal on a miss', async () => {
+    // Find a normal-tier seed whose block 1 is planned as discovery.
+    const params = flexibilityParamsForLevel('normal');
+    let seed = '';
+    for (let s = 0; s < 200; s += 1) {
+      seed = `disc-screen-${s}`;
+      if (
+        planDiscoveryBlocks(seed, Math.ceil(params.rounds / params.switchEvery), params.discoveryRate)[1]
+      ) {
+        break;
+      }
+    }
+    await startRound(seed, 'normal');
+    const rounds = expectedRounds(seed, 'normal');
+
+    // Block 0 stays cued: the banner announces each rule.
+    for (let round = 0; round < 3; round += 1) {
+      expect(screen.getByTestId(testId(GAME_ID, 'rule-banner-text'))).toBeOnTheScreen();
+      await pickCorrect(rounds[round]);
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    }
+
+    // The switch notice masks the NEW rule for the discovery stretch.
+    expect(screen.getByTestId(testId(GAME_ID, 'switch-notice-masked'))).toBeOnTheScreen();
+    expect(screen.queryByTestId(testId(GAME_ID, 'switch-notice-rule'))).toBeNull();
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'switch-notice-continue')));
+
+    // Inside the stretch the banner is replaced by the neutral placeholder.
+    expect(screen.getByTestId(testId(GAME_ID, 'rule-banner-masked'))).toHaveTextContent(
+      /Infer the sorting rule/,
+    );
+    expect(screen.queryByTestId(testId(GAME_ID, 'rule-banner-text'))).toBeNull();
+
+    // A correct sort confirms silently — no rule name may leak.
+    await pickCorrect(rounds[3]);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-explainer'))).toHaveTextContent(
+      /Kept — sorted correctly under the hidden rule/,
+    );
+    expect(screen.queryByTestId(testId(GAME_ID, 'rule-reveal'))).toBeNull();
+
+    // A miss reveals exactly which rule was active (the teaching signal).
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    const missRound = rounds[4];
+    const wrongIndex = (missRound.correctIndex + 1) % missRound.candidates.length;
+    await fireEvent.press(
+      screen.getByTestId(`${testId(GAME_ID, 'card-grid')}.card.${wrongIndex}`),
+    );
+    expect(screen.getByTestId(testId(GAME_ID, 'rule-reveal'))).toHaveTextContent(
+      new RegExp(`matched by ${missRound.rule}`),
+    );
+  });
+
+  it('never enters a discovery stretch on easy (banner always labeled)', async () => {
+    const seed = 'easy-cued-screen';
+    const params = flexibilityParamsForLevel('easy');
+    expect(planDiscoveryBlocks(seed, Math.ceil(params.rounds / params.switchEvery), params.discoveryRate)).toEqual([
+      false,
+      false,
+    ]);
+    await startRound(seed, 'easy');
+    const rounds = expectedRounds(seed, 'easy');
+    expect(screen.getByTestId(testId(GAME_ID, 'rule-banner-text'))).toHaveTextContent(
+      RULE_LABELS[rounds[0].rule],
+    );
+    expect(screen.queryByTestId(testId(GAME_ID, 'rule-banner-masked'))).toBeNull();
   });
 });

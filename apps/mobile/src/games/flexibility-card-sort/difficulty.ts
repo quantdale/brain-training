@@ -12,6 +12,12 @@
  * shapes/colors = more visual load), the rule-switch frequency (fewer rounds
  * per block = more frequent re-anchoring), the notice duration (shorter
  * notices punish slow rule re-anchoring), and the speed target.
+ *
+ * A fifth dial (campaign 014, Packet F) drives rule DISCOVERY rather than
+ * switching: `discoveryRate` is the per-block probability that a block after
+ * the first runs with its sorting rule unannounced — the player must infer it
+ * from keep/reject feedback. Easy pins it to 0; hard/expert weight discovery
+ * blocks more heavily than normal.
  */
 import { resolveDifficulty } from '@/sdk';
 import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
@@ -22,10 +28,10 @@ import type { FlexibilityDifficultyParams } from './types';
 export const FLEXIBILITY_DIFFICULTY_PARAMS: Readonly<
   Record<Exclude<DifficultyLevel, 'adaptive'>, FlexibilityDifficultyParams>
 > = {
-  easy: { numShapes: 3, numColors: 3, rounds: 8, switchEvery: 4, noticeMs: 2000, speedTargetMs: 6000 },
-  normal: { numShapes: 3, numColors: 3, rounds: 10, switchEvery: 3, noticeMs: 1600, speedTargetMs: 5000 },
-  hard: { numShapes: 4, numColors: 4, rounds: 12, switchEvery: 2, noticeMs: 1200, speedTargetMs: 4000 },
-  expert: { numShapes: 4, numColors: 4, rounds: 12, switchEvery: 1, noticeMs: 900, speedTargetMs: 3000 },
+  easy: { numShapes: 3, numColors: 3, rounds: 8, switchEvery: 4, noticeMs: 2000, speedTargetMs: 6000, discoveryRate: 0 },
+  normal: { numShapes: 3, numColors: 3, rounds: 10, switchEvery: 3, noticeMs: 1600, speedTargetMs: 5000, discoveryRate: 0.34 },
+  hard: { numShapes: 4, numColors: 4, rounds: 12, switchEvery: 2, noticeMs: 1200, speedTargetMs: 4000, discoveryRate: 0.5 },
+  expert: { numShapes: 4, numColors: 4, rounds: 12, switchEvery: 1, noticeMs: 900, speedTargetMs: 3000, discoveryRate: 0.66 },
 };
 
 /**
@@ -39,6 +45,7 @@ export const ADAPTIVE_PARAMS: Readonly<FlexibilityDifficultyParams> = Object.fre
   switchEvery: 2,
   noticeMs: 1200,
   speedTargetMs: 4000,
+  discoveryRate: 0.4,
   minSwitchEvery: 1,
   maxSwitchEvery: 4,
 });
@@ -85,6 +92,7 @@ export function flexibilityParamsFromProfile(
     switchEvery: requireNumber('switchEvery'),
     noticeMs: requireNumber('noticeMs'),
     speedTargetMs: requireNumber('speedTargetMs'),
+    discoveryRate: requireNumber('discoveryRate'),
     ...(minSwitchEvery !== undefined ? { minSwitchEvery } : {}),
     ...(maxSwitchEvery !== undefined ? { maxSwitchEvery } : {}),
   };

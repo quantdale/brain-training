@@ -2,15 +2,18 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
+  MAX_SPEED_BONUS_POINTS,
+  PERFECT_RESPONSE_MS,
   accuracyOf,
   clamp01,
   flipBonusFactor,
   normalizeColorStroopResult,
   perfectSessionScore,
   speedBonus,
+  speedBonusPoints,
   trialScore,
 } from '../scoring';
-import { COLOR_STROOP_DIFFICULTY_PARAMS } from '../difficulty';
+import { ADAPTIVE_PARAMS, COLOR_STROOP_DIFFICULTY_PARAMS } from '../difficulty';
 import type { ColorStroopRawResult } from '../types';
 
 function rawResult(overrides: Partial<ColorStroopRawResult>): ColorStroopRawResult {
@@ -49,20 +52,43 @@ function rawResult(overrides: Partial<ColorStroopRawResult>): ColorStroopRawResu
 
 describe('trialScore', () => {
   it('awards base points plus speed bonus for correct answers', () => {
-    const fast = trialScore(300, false);
-    const slow = trialScore(1500, false);
+    const fast = trialScore(300, COLOR_STROOP_DIFFICULTY_PARAMS.normal.stimulusMs, false);
+    const slow = trialScore(1400, COLOR_STROOP_DIFFICULTY_PARAMS.normal.stimulusMs, false);
     expect(fast).toBeGreaterThan(slow);
     expect(fast).toBeGreaterThanOrEqual(100);
   });
 
   it('adds post-flip bonus when applicable', () => {
-    const withFlip = trialScore(500, true);
-    const withoutFlip = trialScore(500, false);
-    expect(withFlip).toBe(withoutFlip + 25);
+    const stimulusMs = COLOR_STROOP_DIFFICULTY_PARAMS.normal.stimulusMs;
+    expect(trialScore(500, stimulusMs, true)).toBe(trialScore(500, stimulusMs, false) + 25);
   });
 
-  it('never drops below base for very slow responses', () => {
-    expect(trialScore(5000, false)).toBeGreaterThanOrEqual(100);
+  it('never drops below base at or beyond the window edge', () => {
+    const stimulusMs = COLOR_STROOP_DIFFICULTY_PARAMS.easy.stimulusMs;
+    expect(trialScore(stimulusMs, stimulusMs, false)).toBe(100);
+    expect(trialScore(5000, stimulusMs, false)).toBe(100);
+  });
+
+  it('reaches the bonus ceiling on instant answers for EVERY level', () => {
+    // Campaign 014 regression guard: the bonus is normalized against each
+    // level's own stimulus window (easy 2000 … expert 1000 ms), so an instant
+    // answer always earns the full bonus and the window edge always earns 0.
+    const levels = { ...COLOR_STROOP_DIFFICULTY_PARAMS, adaptive: ADAPTIVE_PARAMS };
+    for (const [, params] of Object.entries(levels)) {
+      expect(trialScore(0, params.stimulusMs, false)).toBe(100 + MAX_SPEED_BONUS_POINTS);
+      expect(trialScore(params.stimulusMs, params.stimulusMs, false)).toBe(100);
+      expect(speedBonusPoints(0, params.stimulusMs)).toBe(MAX_SPEED_BONUS_POINTS);
+      expect(speedBonusPoints(params.stimulusMs, params.stimulusMs)).toBe(0);
+      // Monotonic within the window: halfway earns roughly half the bonus.
+      expect(speedBonusPoints(Math.floor(params.stimulusMs / 2), params.stimulusMs)).toBe(
+        Math.round(MAX_SPEED_BONUS_POINTS / 2),
+      );
+    }
+  });
+
+  it('rejects a non-positive stimulus window', () => {
+    expect(() => speedBonusPoints(100, 0)).toThrow(RangeError);
+    expect(() => speedBonusPoints(100, -5)).toThrow(RangeError);
   });
 });
 
@@ -71,6 +97,32 @@ describe('perfectSessionScore', () => {
     const score = perfectSessionScore(COLOR_STROOP_DIFFICULTY_PARAMS.normal, 3);
     // 15 trials × (100 base + speed bonus + occasional flip bonus)
     expect(score).toBeGreaterThan(15 * 100);
+  });
+
+  it('is arithmetically coherent with per-trial scoring on every level', () => {
+    // Same formula, same constants: perfect total == sum of trialScore calls
+    // at the canonical reference RT over the session's flip schedule.
+    const levels = { ...COLOR_STROOP_DIFFICULTY_PARAMS, adaptive: ADAPTIVE_PARAMS };
+    for (const params of Object.values(levels)) {
+      let flips = 0;
+      let expected = 0;
+      for (let i = 0; i < params.trials; i += 1) {
+        const isPostFlip = i > 0 && i % params.flipFrequency === 0;
+        if (isPostFlip) flips += 1;
+        expected += trialScore(PERFECT_RESPONSE_MS, params.stimulusMs, isPostFlip);
+      }
+      expect(perfectSessionScore(params, flips)).toBe(expected);
+      // The reference pace keeps a real bonus component on every level.
+      expect(perfectSessionScore(params, flips)).toBeGreaterThan(params.trials * 100);
+    }
+  });
+
+  it('normal expert session has the exact documented arithmetic', () => {
+    // normal: stimulusMs=1500 → speedBonus(300) = round(50 × 1200/1500) = 40.
+    // 15 trials, flips at i = 4, 8, 12 → 3 flip bonuses.
+    expect(perfectSessionScore(COLOR_STROOP_DIFFICULTY_PARAMS.normal, 3)).toBe(
+      15 * (100 + 40) + 3 * 25,
+    );
   });
 });
 

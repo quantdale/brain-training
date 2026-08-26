@@ -3,10 +3,12 @@ import { describe, expect, it } from '@jest/globals';
 
 import { DIFFICULTY_PARAMS } from '../difficulty';
 import {
+  ANSWER_SPEED_WINDOW_MS,
   CORRECT_POINTS,
   MAX_ROUND_SCORE,
   SPEED_BONUS,
   accuracyOf,
+  answerSpeedTargetMs,
   clamp01,
   normalizeSpatialFoldMatchResult,
   perfectSessionScore,
@@ -61,6 +63,29 @@ describe('roundScore', () => {
     expect(roundScore(true, 650, 1300)).toBe(CORRECT_POINTS + SPEED_BONUS / 2); // half window
     expect(roundScore(true, 1300, 1300)).toBe(CORRECT_POINTS); // at target
     expect(roundScore(true, 130_000, 1300)).toBe(CORRECT_POINTS); // clamped, never below base
+  });
+});
+
+describe('answerSpeedTargetMs', () => {
+  it('adds the shared 10s answer window to the reveal time', () => {
+    expect(answerSpeedTargetMs(1300)).toBe(11_300);
+    expect(answerSpeedTargetMs(0)).toBe(ANSWER_SPEED_WINDOW_MS);
+  });
+
+  it('rewards normal-fast play on the same basis normalization uses', () => {
+    // Campaign 014 regression pin: raw scoring previously targeted
+    // sourceRevealMs (~1-1.5s) while normalization targeted revealMs + 10s, so
+    // realistic answers earned no bonus on screen. The bases must stay shared.
+    const reveal = DIFFICULTY_PARAMS.normal.sourceRevealMs;
+    const fastAnswer = 2500; // normal-fast human answer, slower than the old basis
+    expect(reveal).toBeLessThan(fastAnswer);
+    expect(roundScore(true, fastAnswer, answerSpeedTargetMs(reveal))).toBeGreaterThan(
+      CORRECT_POINTS,
+    );
+    // Identical denominators ⇒ identical speed credit in raw and normalized space.
+    expect(speedScoreOf(fastAnswer, answerSpeedTargetMs(reveal))).toBe(
+      speedScoreOf(fastAnswer, reveal + 10_000),
+    );
   });
 });
 

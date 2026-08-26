@@ -14,23 +14,64 @@
  *
  * The blend weights accuracy as the primary factor, with speed and rule-tracking
  * (post-flip accuracy) as secondary factors.
+ *
+ * Raw POINT scoring (campaign 014, scoringVersion 1.3.0):
+ *
+ *   trialScore     = 100 base
+ *                  + round(MAX_SPEED_BONUS_POINTS × clamp01((stimulusMs - rt) / stimulusMs))
+ *                  + 25 when the trial is a correct post-flip answer
+ *
+ * The speed bonus is normalized against the LEVEL'S OWN stimulus window
+ * (`params.stimulusMs`), so an instant answer earns the full +50 and an answer
+ * at the window edge earns +0 on EVERY difficulty. (The previous formula,
+ * `(2000 - ms) / 40`, silently assumed a fixed 2000 ms window — expert's
+ * 1000 ms window made levels incomparable.) `perfectSessionScore` derives from
+ * the same formula at `PERFECT_RESPONSE_MS`, keeping QA force-win totals and
+ * session arithmetic coherent across difficulties.
  */
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
 import type { ColorStroopDifficultyParams, ColorStroopRawResult } from './types';
 
-/** Points for a correct trial: 100 base + speed bonus. */
-export function trialScore(responseTimeMs: number, isPostFlip: boolean): number {
+/** Maximum speed-bonus points awarded on top of the 100-point base. */
+export const MAX_SPEED_BONUS_POINTS = 50;
+
+/**
+ * Canonical reference response time (ms) of a "perfect" trial — the constant
+ * `perfectSessionScore` plugs into `trialScore`. It is a REFERENCE pace for
+ * perfect-round arithmetic, not a cap: faster real answers simply score more.
+ */
+export const PERFECT_RESPONSE_MS = 300;
+
+/**
+ * Speed-bonus points for one trial, normalized against the level's stimulus
+ * window: `MAX_SPEED_BONUS_POINTS × clamp01((stimulusMs - rt) / stimulusMs)`.
+ * Instant (rt = 0) → full bonus; rt ≥ window → 0. Throws on a non-positive
+ * window rather than silently inverting the ratio.
+ */
+export function speedBonusPoints(responseTimeMs: number, stimulusMs: number): number {
+  if (!Number.isFinite(stimulusMs) || stimulusMs <= 0) {
+    throw new RangeError(`stimulusMs must be a positive finite number, got ${stimulusMs}`);
+  }
+  const ratio = clamp01((stimulusMs - responseTimeMs) / stimulusMs);
+  return Math.round(MAX_SPEED_BONUS_POINTS * ratio);
+}
+
+/** Points for a correct trial: 100 base + speed bonus; post-flip answers earn extra. */
+export function trialScore(
+  responseTimeMs: number,
+  stimulusMs: number,
+  isPostFlip: boolean,
+): number {
   const base = 100;
-  // Speed bonus: faster responses get more points (up to +50).
-  const speedBonus = Math.max(0, Math.min(50, Math.floor((2000 - responseTimeMs) / 40)));
+  const speedBonus = speedBonusPoints(responseTimeMs, stimulusMs);
   // Post-flip bonus: correct answers after a rule flip earn extra.
   const flipBonus = isPostFlip ? 25 : 0;
   return base + speedBonus + flipBonus;
 }
 
-/** Score of a hypothetically perfect session. */
+/** Score of a hypothetically perfect session (perfect reference RT every trial). */
 export function perfectSessionScore(
   params: ColorStroopDifficultyParams,
   totalFlips: number,
@@ -38,7 +79,10 @@ export function perfectSessionScore(
   let total = 0;
   for (let i = 0; i < params.trials; i += 1) {
     const isPostFlip = i > 0 && i % params.flipFrequency === 0;
-    total += trialScore(300, isPostFlip); // Perfect speed (300ms)
+    // Same formula as live play at the canonical reference RT, so session
+    // totals stay arithmetically coherent with per-trial scoring on EVERY
+    // difficulty's stimulus window.
+    total += trialScore(PERFECT_RESPONSE_MS, params.stimulusMs, isPostFlip);
   }
   return total;
 }
@@ -56,7 +100,11 @@ export function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
 }
 
-/** Speed bonus factor: faster responses yield higher values. */
+/**
+ * Speed bonus factor for NORMALIZATION (0..1): faster average responses yield
+ * higher values. Session-level diagnostic blend — deliberately independent of
+ * the per-trial points formula above (changing this alters rating math).
+ */
 export function speedBonus(avgResponseTimeMs: number): number {
   return clamp01((2000 - avgResponseTimeMs) / 1500);
 }

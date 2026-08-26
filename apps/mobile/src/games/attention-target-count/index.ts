@@ -26,7 +26,10 @@ export { createInitialTargetCountState, INITIAL_STATS } from './types';
 
 export {
   ADAPTIVE_PARAMS,
+  ESCALATION_EVERY,
+  MAX_ESCALATION_STEPS,
   TARGET_COUNT_DIFFICULTY_PARAMS,
+  escalatedDistractorClasses,
   targetCountParamsForLevel,
   targetCountParamsFromProfile,
   resolveTargetCountDifficulty,

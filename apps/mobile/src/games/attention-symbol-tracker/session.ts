@@ -69,6 +69,7 @@ export function buildSymbolTrackerRawResult(
     observeMs: input.params.observeMs,
     rounds: input.params.rounds,
     initialTrackCount: input.params.initialTrackCount,
+    respondDeadlineMs: input.params.respondDeadlineMs,
     distractors: input.params.distractors,
     rngAlgorithm: RNG_ALGORITHM_VERSION,
   };
@@ -96,6 +97,7 @@ export function buildSymbolTrackerRawResult(
     tokenCount: input.params.tokenCount,
     gridSize: input.params.gridSize,
     observeMs: input.params.observeMs,
+    respondDeadlineMs: input.params.respondDeadlineMs,
     distractors: input.params.distractors,
     challengeRating: input.challengeRating,
     difficulty: input.difficulty,

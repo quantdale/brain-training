@@ -62,6 +62,7 @@ export function buildSpeedRawResult(input: BuildRawResultInput): SpeedRawResult 
     passMs: input.params.passMs,
     failMs: input.params.failMs,
     timeoutMs: input.params.timeoutMs,
+    noGoProbability: input.params.noGoProbability,
     rngAlgorithm: RNG_ALGORITHM_VERSION,
   };
   const diagnosticMetadata: DiagnosticMetadata = createDiagnosticMetadata({
@@ -82,6 +83,9 @@ export function buildSpeedRawResult(input: BuildRawResultInput): SpeedRawResult 
     roundsPassed: input.stats.roundsPassed,
     falseStarts: input.stats.falseStarts,
     timeouts: input.stats.timeouts,
+    noGoTrials: input.stats.noGoTrials,
+    noGoWithheld: input.stats.noGoWithheld,
+    noGoHits: input.stats.noGoHits,
     falseStartAborted: input.stats.falseStartAborted,
     bestReactionMs: bestOf(input.stats.reactions),
     medianReactionMs: medianOf(input.stats.reactions),
@@ -89,6 +93,7 @@ export function buildSpeedRawResult(input: BuildRawResultInput): SpeedRawResult 
     reactions: [...input.stats.reactions],
     minDelayMs: input.params.minDelayMs,
     maxDelayMs: input.params.maxDelayMs,
+    noGoProbability: input.params.noGoProbability,
     falseStartBudget: input.params.falseStartBudget,
     targetMs: input.params.targetMs,
     passMs: input.params.passMs,

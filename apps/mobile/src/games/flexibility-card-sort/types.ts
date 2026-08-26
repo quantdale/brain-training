@@ -10,6 +10,14 @@
  * are available — match by COLOR or match by SHAPE. The active rule switches
  * every K rounds (a "rule block"); each switch passes through an explicit
  * notice phase so the player can re-anchor before the next round.
+ *
+ * DISCOVERY stretches (campaign 014, Packet F): blocks are planned CUED or
+ * DISCOVERY per seed. In a discovery block the sorting rule is NOT announced
+ * WCST-style: the banner shows a neutral placeholder and the switch notice
+ * hides the new rule, so the player must infer it purely from keep/reject
+ * feedback (a correct sort confirms silently; a miss names the rule). Cued
+ * blocks stay interleaved so the explicit-cue contract never disappears;
+ * `easy` plans no discovery blocks at all.
  */
 import type {
   DiagnosticMetadata,
@@ -67,6 +75,13 @@ export interface FlexibilityDifficultyParams {
   readonly noticeMs: number;
   /** Reference response time (ms) that earns the full speed bonus. */
   readonly speedTargetMs: number;
+  /**
+   * Per-block probability that a block after the first runs as a DISCOVERY
+   * block (0..1): the sorting rule is unannounced and must be inferred from
+   * keep/reject feedback. 0 keeps every block cued (`easy`); hard/expert
+   * weight discovery more heavily than normal.
+   */
+  readonly discoveryRate: number;
   /** Adaptive-only: per-block switch-frequency lower bound. */
   readonly minSwitchEvery?: number;
   /** Adaptive-only: per-block switch-frequency upper bound. */
@@ -103,6 +118,10 @@ export interface FlexibilityStats {
   readonly postSwitchPlayed: number;
   /** Post-switch rounds answered correctly (the flexibility diagnostic). */
   readonly postSwitchCorrect: number;
+  /** Discovery-block rounds played (unannounced-rule inference rounds). */
+  readonly discoveryPlayed: number;
+  /** Discovery-block rounds answered correctly (the inference diagnostic). */
+  readonly discoveryCorrect: number;
 }
 
 export const INITIAL_STATS: Readonly<FlexibilityStats> = Object.freeze({
@@ -116,6 +135,8 @@ export const INITIAL_STATS: Readonly<FlexibilityStats> = Object.freeze({
   scoredPicks: 0,
   postSwitchPlayed: 0,
   postSwitchCorrect: 0,
+  discoveryPlayed: 0,
+  discoveryCorrect: 0,
 });
 
 /**
@@ -139,10 +160,16 @@ export interface FlexibilityRawResult extends GameRawResult {
   readonly postSwitchPlayed: number;
   readonly postSwitchCorrect: number;
   readonly switchAccuracy: number;
+  /** Discovery-block (unannounced-rule) rounds played and answered correctly. */
+  readonly discoveryPlayed: number;
+  readonly discoveryCorrect: number;
+  readonly discoveryAccuracy: number;
   readonly numShapes: number;
   readonly numColors: number;
   /** Effective switch frequency at session end (constant for fixed levels). */
   readonly switchEvery: number;
+  /** Per-block discovery rate this session ran with. */
+  readonly discoveryRate: number;
   readonly noticeMs: number;
   readonly speedTargetMs: number;
   readonly challengeRating: number;
@@ -231,6 +258,8 @@ export interface FlexibilityGameState {
   roundsInBlock: number;
   /** Rounds per rule block (adaptive may adjust this at block boundaries). */
   switchEvery: number;
+  /** True when the current block is a DISCOVERY block (rule unannounced). */
+  discoveryBlock: boolean;
   /** Picks inside the current rule block (adaptive block-outcome tracking). */
   blockPlayed: number;
   /** Correct picks inside the current rule block. */
@@ -279,6 +308,7 @@ export function createInitialFlexibilityState(): FlexibilityGameState {
     blockIndex: 0,
     roundsInBlock: 0,
     switchEvery: 3,
+    discoveryBlock: false,
     blockPlayed: 0,
     blockCorrect: 0,
     round: null,

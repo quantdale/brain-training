@@ -15,6 +15,13 @@
  * flexibility demand), and the speed target. Note the counterintuitive part:
  * higher difficulty uses a LARGER alphabet + LONGER runs + RARER flips, which
  * is harder because the rare flip must be noticed amid a long stable run.
+ *
+ * A fifth dial (campaign 014, Packet F) drives flip DETECTION rather than
+ * re-anchoring: `uncuedRate` is the per-block probability that a block after
+ * the first runs UNCUED — the banner hides the active rule and the player must
+ * infer it from feedback. `easy` pins it to 0 (tutorial contract: always-cued
+ * banners); expert both flips less often AND goes dark most often, so the rare
+ * flip must be detected inside a long unannounced window.
  */
 import { resolveDifficulty } from '@/sdk';
 import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
@@ -34,6 +41,7 @@ export const FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS: Readonly<
     blockMin: 1,
     blockMax: 2,
     flipRate: 0.7,
+    uncuedRate: 0,
     rulesPool: ALL_RULES,
     speedTargetMs: 6000,
     switchArmMs: 900,
@@ -46,6 +54,7 @@ export const FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS: Readonly<
     blockMin: 2,
     blockMax: 3,
     flipRate: 0.55,
+    uncuedRate: 0.35,
     rulesPool: ALL_RULES,
     speedTargetMs: 5000,
     switchArmMs: 800,
@@ -58,6 +67,7 @@ export const FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS: Readonly<
     blockMin: 3,
     blockMax: 5,
     flipRate: 0.45,
+    uncuedRate: 0.5,
     rulesPool: ALL_RULES,
     speedTargetMs: 4000,
     switchArmMs: 700,
@@ -70,6 +80,7 @@ export const FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS: Readonly<
     blockMin: 4,
     blockMax: 7,
     flipRate: 0.35,
+    uncuedRate: 0.65,
     rulesPool: ALL_RULES,
     speedTargetMs: 3000,
     switchArmMs: 600,
@@ -89,6 +100,7 @@ export const ADAPTIVE_PARAMS: Readonly<FlexibilityRuleFlipDifficultyParams> = Ob
   blockMin: 2,
   blockMax: 4,
   flipRate: 0.5,
+  uncuedRate: 0.45,
   rulesPool: ALL_RULES,
   speedTargetMs: 4000,
   switchArmMs: 700,
@@ -119,6 +131,7 @@ function numericParams(params: FlexibilityRuleFlipDifficultyParams): Record<stri
     blockMin: params.blockMin,
     blockMax: params.blockMax,
     flipRate: params.flipRate,
+    uncuedRate: params.uncuedRate,
     speedTargetMs: params.speedTargetMs,
     switchArmMs: params.switchArmMs,
   };
@@ -167,6 +180,7 @@ export function flexibilityRuleFlipParamsFromProfile(
     blockMin: requireNumber('blockMin'),
     blockMax: requireNumber('blockMax'),
     flipRate: requireNumber('flipRate'),
+    uncuedRate: requireNumber('uncuedRate'),
     rulesPool: ALL_RULES,
     speedTargetMs: requireNumber('speedTargetMs'),
     switchArmMs: requireNumber('switchArmMs'),

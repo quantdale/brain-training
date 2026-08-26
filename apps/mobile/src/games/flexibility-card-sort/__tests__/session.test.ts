@@ -25,6 +25,8 @@ const STATS: FlexibilityStats = {
   scoredPicks: 8,
   postSwitchPlayed: 2,
   postSwitchCorrect: 1,
+  discoveryPlayed: 2,
+  discoveryCorrect: 1,
 };
 
 function buildRaw(

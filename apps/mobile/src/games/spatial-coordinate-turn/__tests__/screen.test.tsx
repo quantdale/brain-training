@@ -277,6 +277,32 @@ describe('SpatialCoordinateTurnScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
   });
 
+  it('renders a brief countdown and auto-transitions to choice when study time expires', async () => {
+    const { clock } = await renderScreen({ seed: 'brief-timeout' });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    expect(screen.getByTestId(testId(GAME_ID, 'brief-countdown'))).toBeOnTheScreen();
+    expect(screen.queryByTestId(testId(GAME_ID, 'options'))).toBeNull();
+
+    // No manual "Show answers" press: the time-box advances on its own.
+    await advanceTime(clock, DIFFICULTY_PARAMS.normal.briefBudgetMs);
+    expect(screen.getByTestId(testId(GAME_ID, 'options'))).toBeOnTheScreen();
+  });
+
+  it('pausing freezes the brief countdown until resume', async () => {
+    const { clock } = await renderScreen({ seed: 'brief-freeze' });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, 4000); // partway into the study window
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
+    await advanceTime(clock, 10_000); // background time must not consume budget
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
+    expect(screen.queryByTestId(testId(GAME_ID, 'options'))).toBeNull();
+
+    // Only the unpaused remainder of the budget is still required.
+    await advanceTime(clock, DIFFICULTY_PARAMS.normal.briefBudgetMs - 4000);
+    expect(screen.getByTestId(testId(GAME_ID, 'options'))).toBeOnTheScreen();
+  });
+
   it('pauses: the opaque overlay appears, answering is blocked, timers freeze', async () => {
     const seed = 'pause-test';
     const plan = expectedPlan(seed);

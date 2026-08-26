@@ -42,6 +42,7 @@ import { OperatorPad } from './components/operator-pad';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import { mathEquationBuilderParamsFromProfile, sessionChallengeRating } from './difficulty';
+import { findSolutionTokens } from './evaluator';
 import { gameDefinition } from './game-definition';
 import {
   createMathEquationBuilderQaForceStateHooks,
@@ -60,8 +61,15 @@ import {
   GAME_ID,
   createInitialMathEquationBuilderState,
 } from './types';
-import type { Operator } from './types';
+import type { EquationToken, Operator } from './types';
 import { SCORING_VERSION } from './versions';
+
+/** Render one equation token the same way the player's input is rendered. */
+function formatSolutionToken(token: EquationToken): string {
+  if (typeof token === 'number') return String(token);
+  if (token === '-') return '−';
+  return token;
+}
 
 export interface MathEquationBuilderScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -333,6 +341,15 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
   const canInteract = state.phase === 'playing' && !state.paused;
   const canGroup = canInteract && state.equationTokens.length >= 3;
 
+  // Campaign 014: on a failed/timeout round, reveal one valid solution so the
+  // failure state actually teaches. The equation is reconstructed by the
+  // shared solver (`findSolutionTokens`), so it is guaranteed to evaluate to
+  // the target whenever the generator's solvability proof succeeded.
+  const revealedSolution = useMemo(() => {
+    if (state.phase !== 'roundResult' || state.roundCorrect) return null;
+    return findSolutionTokens(state.target, state.availableNumbers, state.allowedOperators);
+  }, [state.phase, state.roundCorrect, state.target, state.availableNumbers, state.allowedOperators]);
+
   const view: GameHostView =
     state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
@@ -453,6 +470,14 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
               <ThemedText type="small" themeColor="textSecondary">
                 Target was {state.target}
               </ThemedText>
+              {!state.roundCorrect && revealedSolution !== null ? (
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, 'solution-reveal')}>
+                  {`Solution: ${revealedSolution.map(formatSolutionToken).join(' ')} = ${state.target}`}
+                </ThemedText>
+              ) : null}
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}

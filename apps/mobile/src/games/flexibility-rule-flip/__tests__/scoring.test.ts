@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import {
   SWITCH_CORRECT_BONUS,
+  UNCUED_FIRST_PICK_BONUS,
   accuracyOf,
   clamp01,
   flexibilityRuleFlipPerformanceNormalizer,
@@ -13,6 +14,7 @@ import {
   speedScoreOf,
   switchAccuracyOf,
   trialRawScore,
+  uncuedAccuracyOf,
 } from '../scoring';
 import { FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS } from '../difficulty';
 import { GAME_ID } from '../types';
@@ -36,11 +38,15 @@ function raw(overrides: Partial<FlexibilityRuleFlipRawResult> = {}): Flexibility
     repeatPlayed: 8,
     repeatCorrect: 8,
     repeatAccuracy: 1,
+    uncuedPlayed: 0,
+    uncuedCorrect: 0,
+    uncuedAccuracy: 0,
     numShapes: 3,
     numColors: 3,
     numNumbers: 4,
     flipRate: 0.55,
     switchRate: 0.55,
+    uncuedRate: 0.35,
     speedTargetMs: 5000,
     challengeRating: 0.5,
     difficulty: 'normal',
@@ -74,6 +80,17 @@ describe('trialRawScore', () => {
     expect(trialRawScore(false, 0, 5000, true)).toBe(0);
     expect(SWITCH_CORRECT_BONUS).toBe(20);
   });
+
+  it('rewards uncued inference picks slightly higher than cued switches', () => {
+    // Every pick in an uncued window is an unaided inference, so it earns a
+    // bit more than the cued switch bonus (documented in scoring.ts).
+    expect(trialRawScore(true, 0, 5000, false, true)).toBe(150 + UNCUED_FIRST_PICK_BONUS);
+    expect(trialRawScore(true, 0, 5000, true, true)).toBe(
+      150 + SWITCH_CORRECT_BONUS + UNCUED_FIRST_PICK_BONUS,
+    );
+    expect(UNCUED_FIRST_PICK_BONUS).toBeGreaterThan(SWITCH_CORRECT_BONUS);
+    expect(trialRawScore(false, 0, 5000, false, true)).toBe(0);
+  });
 });
 
 describe('perfectSessionScore / perfectPlanScore', () => {
@@ -86,6 +103,16 @@ describe('perfectSessionScore / perfectPlanScore', () => {
     expect(perfectPlanScore(plan)).toBe(150 + 170 + 150);
     expect(perfectPlanScore([])).toBe(0);
   });
+
+  it('scores a perfect plan higher when it contains uncued windows', () => {
+    const plan = [
+      { isSwitch: false, uncued: false },
+      { isSwitch: true, uncued: true },
+      { isSwitch: false, uncued: true },
+      { isSwitch: false }, // legacy plan item without the uncued flag → cued
+    ];
+    expect(perfectPlanScore(plan)).toBe(150 + (170 + UNCUED_FIRST_PICK_BONUS) + (150 + UNCUED_FIRST_PICK_BONUS) + 150);
+  });
 });
 
 describe('accuracyOf / switchAccuracyOf', () => {
@@ -94,6 +121,8 @@ describe('accuracyOf / switchAccuracyOf', () => {
     expect(accuracyOf(3, 5)).toBeCloseTo(0.6);
     expect(switchAccuracyOf(0, 0)).toBe(0);
     expect(switchAccuracyOf(1, 2)).toBe(0.5);
+    expect(uncuedAccuracyOf(0, 0)).toBe(0);
+    expect(uncuedAccuracyOf(3, 4)).toBe(0.75);
   });
 });
 
@@ -139,7 +168,7 @@ describe('normalizeFlexibilityRuleFlipResult', () => {
 
   it('blends accuracy (base) with speed and switch accuracy', () => {
     // accuracy 0.8; mean response 2500ms of a 5000ms target → speed 0.5;
-    // switchAccuracy 0.5:
+    // switchAccuracy 0.5; NO uncued trials → v1 formula branch:
     // value = 0.8 * (0.55 + 0.25*0.5 + 0.20*0.5) = 0.8 * 0.775 = 0.62
     const result = normalizeFlexibilityRuleFlipResult(
       raw({
@@ -155,6 +184,36 @@ describe('normalizeFlexibilityRuleFlipResult', () => {
       context,
     );
     expect(result.value).toBeCloseTo(0.62);
+  });
+
+  it('blends uncued first-pick accuracy once inference windows were played', () => {
+    // accuracy 0.8; speed 0.5; switchAccuracy 0.5; uncuedAccuracy 0.5:
+    // value = 0.8 * (0.50 + 0.25*0.5 + 0.15*0.5 + 0.10*0.5) = 0.8 * 0.75 = 0.60
+    const result = normalizeFlexibilityRuleFlipResult(
+      raw({
+        correctPicks: 8,
+        accuracy: 0.8,
+        totalResponseMs: 25000,
+        scoredPicks: 10,
+        speedScore: 0.5,
+        switchPlayed: 2,
+        switchCorrect: 1,
+        switchAccuracy: 0.5,
+        uncuedPlayed: 2,
+        uncuedCorrect: 1,
+        uncuedAccuracy: 0.5,
+      }),
+      context,
+    );
+    expect(result.value).toBeCloseTo(0.6);
+  });
+
+  it('still reaches exactly 1 with uncued windows on a perfect run', () => {
+    const result = normalizeFlexibilityRuleFlipResult(
+      raw({ uncuedPlayed: 3, uncuedCorrect: 3, uncuedAccuracy: 1 }),
+      context,
+    );
+    expect(result.value).toBe(1);
   });
 
   it('stays within [0, 1] for degenerate inputs', () => {

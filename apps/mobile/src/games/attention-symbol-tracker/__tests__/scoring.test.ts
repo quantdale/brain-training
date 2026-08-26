@@ -27,6 +27,7 @@ function raw(overrides: Partial<SymbolTrackerRawResult> = {}): SymbolTrackerRawR
     tokenCount: 6,
     gridSize: 9,
     observeMs: 2200,
+    respondDeadlineMs: 7000,
     distractors: 0,
     challengeRating: 0.5,
     difficulty: 'normal',

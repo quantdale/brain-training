@@ -46,9 +46,17 @@ export { createInitialMathEquationBuilderState };
 export { evaluateEquation as evaluateEquationTokens } from './evaluator';
 
 /**
- * Validate that the equation tokens form a valid alternating sequence:
- * number, operator, number, operator, ..., number
- * with possible parentheses around numbers or sub-expressions.
+ * Validate the flattened token shape: numbers at even indices, operators at
+ * odd indices, odd length ≥ 3 (`num op num [op num]...`). Parentheses are
+ * grouping only — they are flattened away before the alternation check.
+ *
+ * NOTE: this is a structural lint helper, NOT the submit-path validator. The
+ * authoritative grammar/evaluation contract lives in `evaluator.ts`
+ * (`evaluateEquation` / its own paren-aware `isValidEquationStructure`).
+ *
+ * Campaign 014 fix: this previously returned TRUE whenever an odd index held
+ * any non-number (the operator check was inverted), so malformed input like
+ * `[3, 5, '+']` or `[3, '+', 5, 7]` passed validation.
  */
 export function isValidEquationStructure(
   tokens: readonly EquationToken[],
@@ -64,15 +72,19 @@ export function isValidEquationStructure(
     if (t !== '(' && t !== ')') flat.push(t);
   }
 
-  // Must be odd length: num, op, num, op, ..., num
-  if (flat.length % 2 === 0) return false;
-  // Must start and end with a number.
-  if (typeof flat[0] !== 'number') return false;
-  if (typeof flat[flat.length - 1] !== 'number') return false;
-  // Must alternate: num, op, num, op, ...
+  // Must be odd length ≥ 3: num, op, num, op, ..., num
+  if (flat.length < 3 || flat.length % 2 === 0) return false;
+  // Strict alternation: even index → number, odd index → operator.
   for (let i = 0; i < flat.length; i += 1) {
-    if (i % 2 === 0 && typeof flat[i] !== 'number') return false;
-    if (i % 2 === 1 && typeof flat[i] !== 'number') return true; // operator check
+    const token = flat[i];
+    if (i % 2 === 0) {
+      if (typeof token !== 'number') return false;
+    } else if (
+      typeof token !== 'string' ||
+      !['+', '-', '×', '÷'].includes(token)
+    ) {
+      return false;
+    }
   }
 
   return true;

@@ -46,7 +46,7 @@ import { TileGrid } from './components/grid';
 import type { TileVisualState } from './components/tile';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
-import { adaptiveGridSize, paramsFromProfile, sessionChallengeRating } from './difficulty';
+import { adaptiveGridSize, confirmsEachTap, paramsFromProfile, sessionChallengeRating } from './difficulty';
 import { gameDefinition } from './game-definition';
 import { createQaForceStateHooks, createTutorialLifecycle_ } from './hooks';
 import { gameReducer } from './reducer';
@@ -318,13 +318,17 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
   // recall auto-highlight tick (redundant with the matched-set branch and
   // not changing any tile's output), so the memoized grid skips
   // re-rendering tiles whose visual is unchanged.
+  // Hard/expert get no per-tap success confirm: the matched set stays hidden
+  // during recall (see `confirmsEachTap`) and only appears once the round ends.
   const visualFor = useCallback(
     (index: number): TileVisualState => {
       if (state.phase === 'observe') {
         return index === state.observeIndex ? 'observed' : 'idle';
       }
       if (state.phase === 'recall' || state.phase === 'roundResult') {
-        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
+        const showMatchedSet =
+          state.phase === 'roundResult' || confirmsEachTap(state.difficulty);
+        if (showMatchedSet && state.sequence.slice(0, state.inputIndex).includes(index)) {
           return 'selected';
         }
         if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
@@ -340,6 +344,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
       state.inputIndex,
       state.roundOutcome,
       state.taps,
+      state.difficulty,
     ],
   );
 

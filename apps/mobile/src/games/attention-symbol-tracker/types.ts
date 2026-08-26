@@ -29,6 +29,12 @@ export interface SymbolTrackerDifficultyParams {
   readonly initialTrackCount: number;
   /** Observe duration in ms before the scramble. */
   readonly observeMs: number;
+  /**
+   * Respond-phase budget in ms (generous by design: 8s→5s by tier). Expiry
+   * submits whatever is selected and marks the round incomplete — score decays
+   * only through fewer correct picks, never through an extra penalty.
+   */
+  readonly respondDeadlineMs: number;
   /** Extra distractor symbols added after the scramble. */
   readonly distractors: number;
   /** Number of rounds in a session. */
@@ -88,6 +94,8 @@ export interface SymbolTrackerRawResult extends GameRawResult {
   readonly tokenCount: number;
   readonly gridSize: number;
   readonly observeMs: number;
+  /** Respond-phase budget (ms) — expiry submits the current selections. */
+  readonly respondDeadlineMs: number;
   readonly distractors: number;
   readonly challengeRating: number;
   readonly difficulty: DifficultyLevel;
@@ -119,6 +127,10 @@ export type SymbolTrackerAction =
   | { type: 'observe-tick' }
   | { type: 'tap-cell'; index: number }
   | { type: 'submit' }
+  | {
+      /** Respond budget expired: resolve with the current selections. */
+      type: 'respond-deadline';
+    }
   | { type: 'next-round' }
   | { type: 'pause' }
   | { type: 'resume' }
@@ -177,6 +189,8 @@ export interface SymbolTrackerGameState {
   selections: readonly number[];
   /** True when the current round has been checked. */
   roundScored: boolean;
+  /** True when the round was resolved by the respond deadline expiring. */
+  respondTimedOut: boolean;
   /** Correctly identified tracked symbols in the current round (after submit). */
   roundCorrectTargets: number;
   /** Wrong (non-tracked) symbols selected in the current round. */
@@ -220,6 +234,7 @@ export function createInitialSymbolTrackerState(): SymbolTrackerGameState {
     trackedSymbolIds: [],
     selections: [],
     roundScored: false,
+    respondTimedOut: false,
     roundCorrectTargets: 0,
     roundWrongTaps: 0,
     roundOutcome: null,

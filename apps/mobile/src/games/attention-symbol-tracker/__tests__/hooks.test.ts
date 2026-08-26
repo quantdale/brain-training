@@ -18,10 +18,19 @@ describe('createSymbolTrackerQaForceStateHooks', () => {
     hooks.forceLose();
     expect(dispatch).toHaveBeenLastCalledWith({ type: 'qa/force-lose' });
 
-    // The game's only countdown is the observe window; force-timeout drives
-    // the same expiry path the pacing timer uses.
+    // forceTimeout targets the LIVE window: observe by default (back-compat),
+    // or the respond budget when the caller reports a respond phase.
     hooks.forceTimeout();
     expect(dispatch).toHaveBeenLastCalledWith({ type: 'observe-tick' });
+
+    const respondHooks = createSymbolTrackerQaForceStateHooks(
+      dispatch,
+      () => 'respond',
+    );
+    respondHooks.forceTimeout();
+    expect(dispatch).toHaveBeenLastCalledWith({ type: 'respond-deadline' });
+    // Exactly one action per call — never a cascade into the new phase.
+    expect(dispatch).toHaveBeenCalledTimes(4);
 
     hooks.forceState?.({ seed: 'abc', difficulty: 'hard' });
     expect(dispatch).toHaveBeenLastCalledWith({

@@ -99,6 +99,13 @@ async function answerCorrect(
   );
 }
 
+/** Start an easy-tier session (the always-cued tier) on the rendered screen. */
+async function startEasySession(seed: string) {
+  await renderScreen({ seed });
+  await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'easy')));
+  await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+}
+
 describe('RuleFlipScreen', () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -378,5 +385,86 @@ describe('RuleFlipScreen', () => {
     expect(raw.forced).toBe(true);
     expect(raw.roundsPlayed).toBe(1); // in-flight trial NOT scored
     expect(raw.totalRounds).toBe(plan.length);
+  });
+
+  it('hides the rule banner on uncued trials and reveals the rule on a miss', async () => {
+    // Pick a seed whose first uncued trial arrives early and is NOT a switch.
+    const params = FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.normal;
+    let seed = '';
+    let uncuedIndex = -1;
+    for (let s = 0; s < 50; s += 1) {
+      seed = `uncue-screen-${s}`;
+      const candidate = generateSession(seed, params);
+      const idx = candidate.findIndex((r) => r.uncued);
+      if (idx > 0 && !candidate[idx].isSwitch) {
+        uncuedIndex = idx;
+        break;
+      }
+    }
+    expect(uncuedIndex).toBeGreaterThan(0);
+    const plan = generateSession(seed, params);
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    for (let round = 0; round < uncuedIndex; round += 1) {
+      await answerCorrect(clock, plan, round);
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    }
+
+    // The dark window: placeholder instead of the rule, no flip announcement,
+    // no leak via the pick status line.
+    expect(screen.getByTestId(testId(GAME_ID, 'rule-banner-uncued'))).toHaveTextContent(
+      /Infer the active rule/,
+    );
+    expect(screen.queryByTestId(testId(GAME_ID, 'rule-banner-text'))).toBeNull();
+    expect(screen.queryByTestId(testId(GAME_ID, 'rule-switch'))).toBeNull();
+
+    // A wrong pick must reveal which rule was active (the teaching signal).
+    const wrongIndex = (plan[uncuedIndex].correctIndex + 1) % plan[uncuedIndex].candidates.length;
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, 'card-grid', 'card', String(wrongIndex))),
+    );
+    expect(screen.getByTestId(testId(GAME_ID, 'rule-reveal'))).toHaveTextContent(
+      `The active rule was: ${RULE_LABELS[plan[uncuedIndex].rule]}`,
+    );
+  });
+
+  it('confirms a correct uncued inference silently (no dedicated rule reveal)', async () => {
+    const params = FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.normal;
+    let seed = '';
+    let uncuedIndex = -1;
+    for (let s = 0; s < 50; s += 1) {
+      seed = `uncue-ok-${s}`;
+      const candidate = generateSession(seed, params);
+      const idx = candidate.findIndex((r) => r.uncued);
+      if (idx > 0 && !candidate[idx].isSwitch) {
+        uncuedIndex = idx;
+        break;
+      }
+    }
+    const plan = generateSession(seed, params);
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    for (let round = 0; round < uncuedIndex; round += 1) {
+      await answerCorrect(clock, plan, round);
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    }
+    await answerCorrect(clock, plan, uncuedIndex);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-correct'))).toBeOnTheScreen();
+    // Silent confirmation: the standard explainer stays, but no extra reveal.
+    expect(screen.queryByTestId(testId(GAME_ID, 'rule-reveal'))).toBeNull();
+  });
+
+  it('keeps easy fully cued: every trial shows the labeled banner', async () => {
+    const seed = 'easy-cued';
+    const params = FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.easy;
+    const plan = generateSession(seed, params);
+    expect(plan.every((r) => !r.uncued)).toBe(true);
+    await startEasySession(seed);
+    expect(screen.getByTestId(testId(GAME_ID, 'rule-banner-text'))).toHaveTextContent(
+      RULE_LABELS[plan[0].rule],
+    );
+    expect(screen.queryByTestId(testId(GAME_ID, 'rule-banner-uncued'))).toBeNull();
   });
 });

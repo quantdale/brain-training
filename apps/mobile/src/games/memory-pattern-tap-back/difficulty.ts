@@ -110,6 +110,17 @@ export function paramsFromProfile(
 }
 
 /**
+ * Whether the recall phase confirms each correct tap immediately by keeping
+ * the matched set lit. Easy/normal/adaptive stay approachable; hard/expert
+ * hide the per-tap confirm so the whole route must be held without feedback —
+ * together with the adjacency generator this is the ADR-0005 differentiation
+ * from the Memory game.
+ */
+export function confirmsEachTap(level: DifficultyLevel | null): boolean {
+  return level !== 'hard' && level !== 'expert';
+}
+
+/**
  * Sequence length of the next round. Fixed levels escalate by one on a pass
  * (capped at maxSequenceLength) and hold on a failure. Adaptive moves ±1
  * within [initialSequenceLength, maxSequenceLength].

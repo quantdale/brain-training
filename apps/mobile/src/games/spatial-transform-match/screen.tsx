@@ -15,6 +15,11 @@
  * reveal; resuming restarts the reveal from scratch. The board is covered by
  * the opaque `PauseOverlay` and hidden from the accessibility tree while paused.
  *
+ * Inference contract (campaign 014): during the choice phase neither the
+ * source pattern nor the applied transform label is rendered — the round is a
+ * memory + transform hybrid solved from recall alone. Feedback after the pick
+ * names the transform; the source stays hidden.
+ *
  * NOTE on remount-safe layout: the pattern grid uses percentage-based cell
  * sizing (see PatternGrid), so tap-area width is preserved across remounts.
  * The source-reveal timer re-fires after each remount via the host helper's
@@ -399,7 +404,11 @@ export default function SpatialTransformMatchScreen(
             </>
           ) : null}
 
-          {/* Choice phase: show source (reference) + transform label + options */}
+          {/* Choice phase: memory + transform hybrid. The source pattern and
+           * the applied-transform label are BOTH removed from the tree here:
+           * the player must recall the studied pattern and infer which
+           * transform was applied. Both are revealed in the round-result
+           * feedback below. */}
           {state.phase === "choice" ? (
             <>
               <ThemedText
@@ -407,14 +416,15 @@ export default function SpatialTransformMatchScreen(
                 themeColor="text"
                 testID={testId(GAME_ID, "choice-status")}
               >
-                {state.transformLabel}
+                Which grid is transformed correctly?
               </ThemedText>
-              <PatternGrid
-                gridSize={params?.gridSize ?? 9}
-                pattern={state.sourcePattern}
-                testID={testId(GAME_ID, "choice-source-grid")}
-                accessibilityLabel="Source pattern reference"
-              />
+              {/* A11y summary of what just happened (the source itself is no
+               * longer rendered): screen readers get the same context as
+               * sighted players without re-exposing the pattern. */}
+              <ThemedText type="small" themeColor="textSecondary">
+                The source pattern was shown briefly — recall it, work out the
+                transform, and pick its result.
+              </ThemedText>
               {/* Options unmount while paused — RN/Fabric Android a11y
                * workaround (see spatial-grid-nav screen.tsx): deep option
                * board nests inside accessibility buttons make the session

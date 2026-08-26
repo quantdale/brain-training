@@ -12,6 +12,13 @@ import { resolveDifficulty, type DifficultyLevel, type DifficultyProfile } from 
 
 import type { SpatialCoordinateTurnDifficultyParams } from './types';
 
+/**
+ * Brief-phase study budget used when a resolved profile predates the field
+ * (persisted profiles from older versions lack `briefBudgetMs`). Generous so
+ * the time-box never feels like the challenge itself.
+ */
+export const DEFAULT_BRIEF_BUDGET_MS = 12_000;
+
 /** Fixed-level tuning (see the game-design contract). */
 export const DIFFICULTY_PARAMS: Readonly<
   Record<Exclude<DifficultyLevel, 'adaptive'>, SpatialCoordinateTurnDifficultyParams>
@@ -24,6 +31,7 @@ export const DIFFICULTY_PARAMS: Readonly<
     moveMax: 2,
     askPosition: false,
     speedTargetMs: 6000,
+    briefBudgetMs: 12_000,
   },
   normal: {
     directions: 4,
@@ -33,6 +41,7 @@ export const DIFFICULTY_PARAMS: Readonly<
     moveMax: 3,
     askPosition: false,
     speedTargetMs: 5000,
+    briefBudgetMs: 12_000,
   },
   hard: {
     directions: 8,
@@ -42,6 +51,7 @@ export const DIFFICULTY_PARAMS: Readonly<
     moveMax: 3,
     askPosition: false,
     speedTargetMs: 4000,
+    briefBudgetMs: 15_000,
   },
   expert: {
     directions: 8,
@@ -51,6 +61,7 @@ export const DIFFICULTY_PARAMS: Readonly<
     moveMax: 4,
     askPosition: true,
     speedTargetMs: 3500,
+    briefBudgetMs: 20_000,
   },
 };
 
@@ -63,6 +74,8 @@ export const ADAPTIVE_PARAMS: Readonly<SpatialCoordinateTurnDifficultyParams> = 
   moveMax: 3,
   askPosition: false,
   speedTargetMs: 5000,
+  // Adaptive shares the generous normal-level study window; it does not adapt.
+  briefBudgetMs: 12_000,
   minDirections: 4,
   maxDirections: 8,
   minMaxSteps: 3,
@@ -90,6 +103,7 @@ export function resolveSpatialCoordinateTurnDifficulty(level: DifficultyLevel): 
     moveMax: params.moveMax,
     askPosition: params.askPosition ? 1 : 0,
     speedTargetMs: params.speedTargetMs,
+    briefBudgetMs: params.briefBudgetMs,
   };
   if (params.minDirections !== undefined) numericParams.minDirections = params.minDirections;
   if (params.maxDirections !== undefined) numericParams.maxDirections = params.maxDirections;
@@ -137,6 +151,10 @@ export function spatialCoordinateTurnParamsFromProfile(
     moveMax: requireNumber('moveMax'),
     askPosition,
     speedTargetMs: requireNumber('speedTargetMs'),
+    // Optional with a documented default: profiles persisted before the brief
+    // phase was time-boxed do not carry briefBudgetMs, and throwing here would
+    // break their reconstruction.
+    briefBudgetMs: optionalNumber('briefBudgetMs') ?? DEFAULT_BRIEF_BUDGET_MS,
     // Adaptive-only bounds travel with the profile; recover them when present
     // so `sessionChallengeRating` can map the reached direction count into
     // [0, 1]. Absent for fixed levels.

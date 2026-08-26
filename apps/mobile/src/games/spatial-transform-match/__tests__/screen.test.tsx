@@ -16,9 +16,10 @@ import { generateRoundData } from '../generator';
 import SpatialTransformMatchScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
-import { GAME_ID } from '../types';
+import { GAME_ID, TRANSFORM_LABELS } from '../types';
 import type { SpatialTransformMatchRawResult } from '../types';
 import { DIFFICULTY_PARAMS } from '../difficulty';
+import { MAX_ROUND_SCORE } from '../scoring';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -178,7 +179,8 @@ describe('SpatialTransformMatchScreen', () => {
     expect(input.session.normalizedResult).toBeGreaterThan(0);
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as SpatialTransformMatchRawResult;
-    expect(raw.score).toBe(500); // 5 * 100
+    // Instant answers: 5 rounds × (100 base + 50 speed bonus).
+    expect(raw.score).toBe(5 * MAX_ROUND_SCORE);
     expect(raw.roundsPassed).toBe(5);
     expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
@@ -207,6 +209,81 @@ describe('SpatialTransformMatchScreen', () => {
     // The next round button should be present.
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
     expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
+  });
+
+  it('hides the source pattern and the transform label during the choice phase', async () => {
+    const { clock } = await renderScreen({ seed: 'memory-choice' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    // Study phase shows the source alone…
+    expect(screen.getByTestId(testId(GAME_ID, 'source-grid'))).toBeOnTheScreen();
+    await advanceTime(clock, SOURCE_REVEAL_MS);
+    // …choice removes it from the tree entirely (memory + transform hybrid).
+    expect(screen.queryByTestId(testId(GAME_ID, 'source-grid'))).toBeNull();
+    expect(screen.queryByTestId(testId(GAME_ID, 'choice-source-grid'))).toBeNull();
+    // The applied transform is not announced either (infer-the-transform);
+    // only the neutral prompt and the a11y summary remain.
+    expect(screen.getByTestId(testId(GAME_ID, 'choice-status'))).toBeOnTheScreen();
+    expect(screen.queryByText(/Rotate|Mirror/)).toBeNull();
+  });
+
+  it('reveals the applied transform in the round-result feedback', async () => {
+    const seed = 'transform-feedback';
+    const params = DIFFICULTY_PARAMS.normal;
+    const side = Math.round(Math.sqrt(params.gridSize));
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, SOURCE_REVEAL_MS);
+
+    const roundData = generateRoundData({
+      rng: createRng(seed),
+      roundIndex: 0,
+      gridSize: params.gridSize,
+      side,
+      filledCells: params.filledCells,
+      allowedTransforms: params.allowedTransforms,
+      optionCount: params.optionCount,
+      prevSource: null,
+      prevTransform: null,
+    });
+    const wrongIndex = (roundData.correctOptionIndex + 1) % roundData.options.length;
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'option', String(wrongIndex))));
+
+    expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
+    // Feedback is where the applied transform is finally named.
+    expect(screen.getByText(TRANSFORM_LABELS[roundData.transformType])).toBeOnTheScreen();
+  });
+
+  it('labels every pattern-grid cell for accessibility (row/column/fill state)', async () => {
+    const seed = 'a11y-cells';
+    const params = DIFFICULTY_PARAMS.normal;
+    const side = Math.round(Math.sqrt(params.gridSize));
+    await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+
+    const roundData = generateRoundData({
+      rng: createRng(seed),
+      roundIndex: 0,
+      gridSize: params.gridSize,
+      side,
+      filledCells: params.filledCells,
+      allowedTransforms: params.allowedTransforms,
+      optionCount: params.optionCount,
+      prevSource: null,
+      prevTransform: null,
+    });
+    const filled = new Set(roundData.source);
+    for (let index = 0; index < params.gridSize; index += 1) {
+      const row = Math.floor(index / side);
+      const col = index % side;
+      expect(
+        screen.getByLabelText(
+          `Row ${row + 1} column ${col + 1} ${filled.has(index) ? 'filled' : 'empty'}`,
+        ),
+      ).toBeOnTheScreen();
+    }
   });
 
   it('pauses: the opaque overlay appears and timers freeze until resume', async () => {

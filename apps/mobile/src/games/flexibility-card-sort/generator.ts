@@ -22,6 +22,7 @@
  * hard) and "neutral" cards that match under neither rule. Every step is
  * deterministic — the same seed always yields the same session.
  */
+import { createRng } from '@/sdk';
 import type { Rng } from '@/sdk';
 
 import type { Card, RuleId, ShapeId, ColorId } from './types';
@@ -71,6 +72,46 @@ export function cardAlphabet(numShapes: number, numColors: number): Card[] {
  */
 export function pickInitialRule(rng: Rng): RuleId {
   return rng.fork('initial-rule').pick(['color', 'shape'] as const);
+}
+
+/** Salt namespace for the block-type plan. Kept separate from round content
+ * streams so changing discovery weights never reshuffles generated cards. */
+const DISCOVERY_PLAN_SEED_SALT = ':discovery-plan';
+
+/**
+ * Whether block `blockIndex` of a session runs as a DISCOVERY block (sorting
+ * rule unannounced, WCST-style inference from keep/reject feedback).
+ *
+ * Deterministic pure function of `(seed, blockIndex, discoveryRate)`: block 0
+ * is always cued (the player anchors on an explicitly taught rule first), and
+ * every later block rolls its own seeded fork — so lazy per-boundary lookups
+ * in the reducer produce exactly the same plan as an upfront pass.
+ */
+export function isDiscoveryBlock(seed: string, blockIndex: number, discoveryRate: number): boolean {
+  if (blockIndex <= 0 || discoveryRate <= 0) {
+    return false;
+  }
+  return createRng(`${seed}${DISCOVERY_PLAN_SEED_SALT}`).fork(`block:${blockIndex}`).next() < discoveryRate;
+}
+
+/**
+ * The full deterministic block-type plan for a session of `blockCount` blocks:
+ * index 0 is always cued; later blocks are seeded rolls against
+ * `discoveryRate`. When the rate admits discovery blocks but no roll came up
+ * discovery, block 1 is forced — every tier that promises inference stretches
+ * must reproducibly exercise them (QA scenario stability mirrors rule-flip's
+ * uncued-window guarantee).
+ */
+export function planDiscoveryBlocks(seed: string, blockCount: number, discoveryRate: number): readonly boolean[] {
+  const count = Math.max(0, Math.floor(blockCount));
+  const plan: boolean[] = [];
+  for (let b = 0; b < count; b += 1) {
+    plan.push(isDiscoveryBlock(seed, b, discoveryRate));
+  }
+  if (discoveryRate > 0 && count >= 2 && !plan.slice(1).some((flag) => flag)) {
+    plan[1] = true;
+  }
+  return plan;
 }
 
 function sameCard(a: Card, b: Card): boolean {

@@ -135,6 +135,52 @@ describe('next-round', () => {
     return targetCountGameReducer(state, { type: 'answer', selectedCount: correct, elapsedMs: 0 });
   }
 
+  it('escalates distractor classes after every 2 perfect rounds (ladder determinism)', () => {
+    const seed = 'ladder';
+    const base = TARGET_COUNT_DIFFICULTY_PARAMS.normal; // base classes = 2
+    let state = startSession(seed);
+
+    // Rounds 1–2 perfect → streak 2 entering round 3.
+    const round0 = state.currentRound!;
+    state = answerCorrectly(state);
+    state = targetCountGameReducer(state, { type: 'next-round' });
+    const round1 = state.currentRound!;
+    state = answerCorrectly(state);
+    state = targetCountGameReducer(state, { type: 'next-round' });
+
+    // Round 3 must replay exactly as a generation with +1 escalated class.
+    expect(state.currentRound).toEqual(
+      generateRound({
+        rng: createRng(seed),
+        roundIndex: 2,
+        params: { ...base, distractorClasses: base.distractorClasses + 1 },
+        prevRound: round1,
+      }),
+    );
+    // Sanity: the replay is NOT what base params would produce for this seed.
+    expect(round0).not.toEqual(state.currentRound);
+  });
+
+  it('drops back to tier base after a wrong answer resets the streak', () => {
+    const seed = 'ladder-reset';
+    const base = TARGET_COUNT_DIFFICULTY_PARAMS.normal;
+    let state = startSession(seed);
+    state = answerCorrectly(state); // streak 1
+    state = targetCountGameReducer(state, { type: 'next-round' });
+    state = answerCorrectly(state); // streak 2
+    state = targetCountGameReducer(state, { type: 'next-round' }); // round 3 @ +1 class
+    state = targetCountGameReducer(state, { type: 'answer', selectedCount: -7, elapsedMs: 10 }); // wrong
+    state = targetCountGameReducer(state, { type: 'next-round' }); // round 4
+    expect(state.stats.streak).toBe(0);
+    expect(state.currentRound).toEqual(
+      generateRound({
+        rng: createRng(seed),
+        roundIndex: 3,
+        params: base,
+        prevRound: state.prevRound,
+      }),
+    );
+  });
   it('advances to the next round after answering', () => {
     let state = startSession('next-solve');
     state = answerCorrectly(state);

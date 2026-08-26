@@ -54,7 +54,14 @@ export interface ColorStroopDifficultyParams {
   readonly trials: number;
   /** Fraction of trials that are incongruent (0..1). */
   readonly incongruentRatio: number;
-  /** Time budget for the entire session in ms. */
+  /**
+   * Time budget for the entire session in ms.
+   *
+   * DEPRECATED (campaign 014): no runtime logic consumes this anymore —
+   * trials pace off `stimulusMs` and session duration belongs to the shared
+   * lifecycle. Kept ONLY because it is persisted in each raw result's
+   * `generatorInfo`; do not build new mechanics on it.
+   */
   readonly timeBudgetMs: number;
   /** Number of trials between rule flips. */
   readonly flipFrequency: number;

@@ -4,6 +4,11 @@
  * The grid is always square (`gridSize` cells, side = sqrt(gridSize)); filled
  * cells are highlighted with the theme accent color.
  *
+ * Accessibility: each cell is labeled only by its position and whether it is
+ * "filled"/"empty" ('Row r column c filled/empty', mirroring fold-match's
+ * GridView). The label NEVER discloses correctness, so a11y users cannot
+ * cheat the puzzle.
+ *
  * Layout width is preserved across remounts by using percentage-based cell
  * sizing instead of onLayout-measured pixel widths (see packet warning about
  * the memory game's width-reset bug).
@@ -42,20 +47,27 @@ export const PatternGrid = memo(function PatternGrid({
       style={styles.grid}
       testID={testID}
       accessibilityLabel={accessibilityLabel}>
-      {Array.from({ length: gridSize }, (_, index) => (
-        <View key={index} style={[styles.cell, { width: `${100 / side}%` }]}>
-          <View
-            testID={testId(GAME_ID, 'cell', String(index))}
-            style={[
-              styles.tile,
-              {
-                backgroundColor: filledSet.has(index) ? theme.accent : theme.surface,
-                borderColor: theme.border,
-              },
-            ]}
-          />
-        </View>
-      ))}
+      {Array.from({ length: gridSize }, (_, index) => {
+        const row = Math.floor(index / side);
+        const col = index % side;
+        return (
+          <View key={index} style={[styles.cell, { width: `${100 / side}%` }]}>
+            <View
+              testID={testId(GAME_ID, 'cell', String(index))}
+              accessibilityLabel={
+                `Row ${row + 1} column ${col + 1} ${filledSet.has(index) ? 'filled' : 'empty'}`
+              }
+              style={[
+                styles.tile,
+                {
+                  backgroundColor: filledSet.has(index) ? theme.accent : theme.surface,
+                  borderColor: theme.border,
+                },
+              ]}
+            />
+          </View>
+        );
+      })}
     </View>
   );
 });

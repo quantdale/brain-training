@@ -50,6 +50,20 @@ describe('flexibilityRuleFlipParamsForLevel / resolve', () => {
     expect(expert.flipRate).toBeLessThan(easy.flipRate);
     expect(expert.speedTargetMs).toBeLessThan(easy.speedTargetMs);
   });
+
+  it('keeps easy always cued and raises the uncued-window rate with tier', () => {
+    const params = FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS;
+    expect(params.easy.uncuedRate).toBe(0);
+    expect(params.normal.uncuedRate).toBeGreaterThan(0);
+    expect(params.hard.uncuedRate).toBeGreaterThan(params.normal.uncuedRate);
+    expect(params.expert.uncuedRate).toBeGreaterThan(params.hard.uncuedRate);
+    // Rates are probabilities.
+    for (const level of ['normal', 'hard', 'expert', 'adaptive'] as const) {
+      const rate = flexibilityRuleFlipParamsForLevel(level).uncuedRate;
+      expect(rate).toBeGreaterThan(0);
+      expect(rate).toBeLessThan(1);
+    }
+  });
 });
 
 describe('flexibilityRuleFlipParamsFromProfile', () => {

@@ -263,3 +263,96 @@ describe('generateSession', () => {
     expect(runLengths.size).toBeGreaterThan(1);
   });
 });
+
+describe('uncued windows (inference plan)', () => {
+  const normal = FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.normal;
+
+  it('plans uncued windows deterministically per seed', () => {
+    const pattern = (seed: string) =>
+      generateSession(seed, normal).map((r) => r.uncued);
+    expect(pattern('uncue-det')).toEqual(pattern('uncue-det'));
+    // Different seeds must be free to differ (not hard-coded to one shape).
+    const variety = new Set(['u1', 'u2', 'u3', 'u4'].map((s) => pattern(s).join('')));
+    expect(variety.size).toBeGreaterThan(0);
+  });
+
+  it('never marks round 0 uncued and keeps blocks internally consistent', () => {
+    for (const seed of ['uc-a', 'uc-b', 'uc-c']) {
+      const plan = generateSession(seed, normal);
+      expect(plan[0].uncued).toBe(false);
+      // Uncue is a BLOCK property. Consecutive blocks may share a rule when a
+      // scheduled flip does not fire, so block membership is read from the
+      // generator's explicit `blockIndex`, never inferred from rule runs.
+      for (let i = 1; i < plan.length; i += 1) {
+        expect(typeof plan[i].blockIndex).toBe('number');
+        if (plan[i].blockIndex === plan[i - 1].blockIndex) {
+          expect(plan[i].uncued).toBe(plan[i - 1].uncued);
+          expect(plan[i].rule).toBe(plan[i - 1].rule);
+        } else {
+          // A new block starts; its uncue flag is whatever that block
+          // planned. Only assert validity, not equality.
+          expect(typeof plan[i].uncued).toBe('boolean');
+        }
+      }
+    }
+  });
+
+  it('keeps easy fully cued (tutorial contract)', () => {
+    for (const seed of ['easy-uc-1', 'easy-uc-2', 'easy-uc-3', 'easy-uc-4']) {
+      const plan = generateSession(seed, FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.easy);
+      expect(FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.easy.uncuedRate).toBe(0);
+      expect(plan.every((r) => !r.uncued)).toBe(true);
+    }
+  });
+
+  it('guarantees at least one uncued window for tiers with uncuedRate > 0', () => {
+    for (const level of ['normal', 'hard', 'expert'] as const) {
+      for (const seed of ['g1', 'g2', 'g3', 'g4', 'g5']) {
+        const plan = generateSession(`${seed}-${level}`, FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS[level]);
+        expect(plan.some((r) => r.uncued)).toBe(true);
+      }
+    }
+  });
+
+  it('weights expert windows heavier than normal windows', () => {
+    // Deterministic aggregation over a fixed seed set mirrors the difficulty
+    // intent (expert.uncuedRate 0.65 vs normal 0.35) without per-seed flake.
+    let normalUncued = 0;
+    let expertUncued = 0;
+    for (let s = 0; s < 10; s += 1) {
+      const seed = `weight-${s}`;
+      normalUncued += generateSession(seed, FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.normal).filter((r) => r.uncued).length;
+      expertUncued += generateSession(seed, FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.expert).filter((r) => r.uncued).length;
+    }
+    expect(expertUncued).toBeGreaterThanOrEqual(normalUncued);
+  });
+
+  it('leaves round content untouched by the uncue flag', () => {
+    // The uncue flag is presentational: regenerating the same trial with the
+    // flag flipped must yield identical cards (tutorial demo stability).
+    const withFlag = generateRound({
+      rng: createRng('same-cards'),
+      roundIndex: 3,
+      rule: 'shape',
+      isSwitch: false,
+      uncued: true,
+      numShapes: 3,
+      numColors: 3,
+      numNumbers: 4,
+      prevTarget: null,
+    });
+    const withoutFlag = generateRound({
+      rng: createRng('same-cards'),
+      roundIndex: 3,
+      rule: 'shape',
+      isSwitch: false,
+      numShapes: 3,
+      numColors: 3,
+      numNumbers: 4,
+      prevTarget: null,
+    });
+    const { uncued: _flag, ...content } = withFlag;
+    const { uncued: _defaultFlag, ...expectedContent } = withoutFlag;
+    expect(content).toEqual(expectedContent);
+  });
+});

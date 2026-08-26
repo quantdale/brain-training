@@ -92,7 +92,12 @@ export function colorStroopGameReducer(
 
       const correct = action.answer === trial.correctAnswer;
       const isPostFlip = trial.isFlipPoint && state.trialsSinceFlip <= 1;
-      const points = correct ? trialScore(action.responseTimeMs, isPostFlip) : 0;
+      // Speed bonus is normalized against THIS level's stimulus window
+      // (campaign 014) so scoring stays comparable across difficulties.
+      const params = colorStroopParamsFromProfile(state.profile);
+      const points = correct
+        ? trialScore(action.responseTimeMs, params.stimulusMs, isPostFlip)
+        : 0;
 
       const totalTries = state.stats.trialsPlayed + 1;
       const newCorrectStreak = correct ? state.stats.streak + 1 : 0;

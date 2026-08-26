@@ -4,11 +4,13 @@ import { describe, expect, it } from '@jest/globals';
 import {
   accuracyOf,
   clamp01,
+  discoveryAccuracyOf,
   normalizeFlexibilityResult,
   perfectSessionScore,
   roundScore,
   speedScoreOf,
   switchAccuracyOf,
+  switchBlendFactorOf,
 } from '../scoring';
 import { FLEXIBILITY_DIFFICULTY_PARAMS } from '../difficulty';
 import type { FlexibilityRawResult } from '../types';
@@ -28,9 +30,13 @@ function rawResult(overrides: Partial<FlexibilityRawResult>): FlexibilityRawResu
     postSwitchPlayed: 0,
     postSwitchCorrect: 0,
     switchAccuracy: 0,
+    discoveryPlayed: 0,
+    discoveryCorrect: 0,
+    discoveryAccuracy: 0,
     numShapes: 3,
     numColors: 3,
     switchEvery: 3,
+    discoveryRate: 0.34,
     noticeMs: 1600,
     speedTargetMs: 5000,
     challengeRating: 0.5,
@@ -112,6 +118,25 @@ describe('switchAccuracyOf', () => {
   it('computes the post-switch ratio and guards zero played', () => {
     expect(switchAccuracyOf(2, 3)).toBeCloseTo(2 / 3);
     expect(switchAccuracyOf(0, 0)).toBe(0);
+  });
+});
+
+describe('discoveryAccuracyOf / switchBlendFactorOf', () => {
+  it('guards discovery accuracy against zero played', () => {
+    expect(discoveryAccuracyOf(0, 0)).toBe(0);
+    expect(discoveryAccuracyOf(3, 4)).toBe(0.75);
+  });
+
+  it('keeps the exact v1 weight when no discovery rounds were played', () => {
+    // Cued-only sessions (easy) must keep their historical ceiling.
+    expect(switchBlendFactorOf(0, 1, 0)).toBe(0.2);
+    expect(switchBlendFactorOf(0, 0.5, 1)).toBe(0.1);
+  });
+
+  it('re-blends half the switch weight onto discovery once stretches ran', () => {
+    expect(switchBlendFactorOf(3, 1, 1)).toBeCloseTo(0.2); // ceiling preserved
+    expect(switchBlendFactorOf(4, 1, 0)).toBe(0.1);
+    expect(switchBlendFactorOf(4, 0, 1)).toBe(0.1);
   });
 });
 
@@ -201,6 +226,48 @@ describe('normalizeFlexibilityResult (documented formula)', () => {
       { gameId: 'flexibility-card-sort', difficulty: 'normal', durationMs: 0 },
     );
     expect(normalized.value).toBeCloseTo(0.9);
+  });
+
+  it('blends discovery accuracy once discovery stretches were played', () => {
+    // accuracy 1; speed 1; switch 1; discovery 0.5:
+    // value = 1 * (0.6 + 0.2 + 0.1*1 + 0.1*0.5) = 0.95
+    const normalized = normalizeFlexibilityResult(
+      rawResult({
+        roundsPlayed: 10,
+        correctPicks: 10,
+        totalResponseMs: 0,
+        scoredPicks: 10,
+        postSwitchPlayed: 3,
+        postSwitchCorrect: 3,
+        switchAccuracy: 1,
+        discoveryPlayed: 4,
+        discoveryCorrect: 2,
+        discoveryAccuracy: 0.5,
+        accuracy: 1,
+      }),
+      { gameId: 'flexibility-card-sort', difficulty: 'hard', durationMs: 0 },
+    );
+    expect(normalized.value).toBeCloseTo(0.95);
+  });
+
+  it('still reaches exactly 1 on a perfect run that included discovery stretches', () => {
+    const normalized = normalizeFlexibilityResult(
+      rawResult({
+        roundsPlayed: 12,
+        correctPicks: 12,
+        totalResponseMs: 0,
+        scoredPicks: 12,
+        postSwitchPlayed: 5,
+        postSwitchCorrect: 5,
+        switchAccuracy: 1,
+        discoveryPlayed: 4,
+        discoveryCorrect: 4,
+        discoveryAccuracy: 1,
+        accuracy: 1,
+      }),
+      { gameId: 'flexibility-card-sort', difficulty: 'expert', durationMs: 0 },
+    );
+    expect(normalized.value).toBe(1);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

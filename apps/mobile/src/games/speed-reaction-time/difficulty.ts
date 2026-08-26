@@ -11,12 +11,18 @@
  * Difficulty direction: harder levels raise the round count (fatigue/endurance
  * under time pressure), shorten the wait window (a sooner/more variable GO
  * signal catches the player off guard), raise the reaction bar
- * (lower `targetMs`/`passMs`/`failMs`), and shrink the false-start budget.
+ * (lower `targetMs`/`passMs`/`failMs`), shrink the false-start budget, and
+ * raise `noGoProbability` (more NO-GO trials — the inhibitory-control axis;
+ * easy stays at 0 so it and the tutorial remain pure simple-RT).
  */
 import { resolveDifficulty } from '@/sdk';
 import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
 
 import type { SpeedDifficultyParams } from './types';
+
+/** Back-compat default applied to difficulty profiles persisted before the
+ *  Go/No-Go generator (v1.1): they contained no NO-GO trials at all. */
+export const DEFAULT_NO_GO_PROBABILITY = 0;
 
 /** Fixed-level tuning: rounds, wait window, false-start budget, reaction thresholds. */
 export const SPEED_DIFFICULTY_PARAMS: Readonly<
@@ -31,6 +37,7 @@ export const SPEED_DIFFICULTY_PARAMS: Readonly<
     passMs: 700,
     failMs: 900,
     timeoutMs: 2500,
+    noGoProbability: 0,
   },
   normal: {
     rounds: 10,
@@ -41,6 +48,7 @@ export const SPEED_DIFFICULTY_PARAMS: Readonly<
     passMs: 600,
     failMs: 800,
     timeoutMs: 2200,
+    noGoProbability: 0.15,
   },
   hard: {
     rounds: 12,
@@ -51,6 +59,7 @@ export const SPEED_DIFFICULTY_PARAMS: Readonly<
     passMs: 550,
     failMs: 700,
     timeoutMs: 2000,
+    noGoProbability: 0.25,
   },
   expert: {
     rounds: 15,
@@ -61,6 +70,7 @@ export const SPEED_DIFFICULTY_PARAMS: Readonly<
     passMs: 500,
     failMs: 600,
     timeoutMs: 1800,
+    noGoProbability: 0.35,
   },
 };
 
@@ -81,6 +91,7 @@ export const ADAPTIVE_PARAMS: Readonly<SpeedDifficultyParams> = Object.freeze({
   minDelayBoundMs: 600,
   maxDelayBoundMs: 2200,
   delayStepMs: 150,
+  noGoProbability: 0.2,
 });
 
 /** Canonical parameters for a level (fresh object; never the frozen defaults). */
@@ -117,6 +128,10 @@ export function speedParamsFromProfile(profile: DifficultyProfile): SpeedDifficu
   const maxDelayBoundMs =
     p.maxDelayBoundMs === undefined ? undefined : requireNumber('maxDelayBoundMs');
   const delayStepMs = p.delayStepMs === undefined ? undefined : requireNumber('delayStepMs');
+  // Lenient for profiles persisted before the Go/No-Go generator existed:
+  // an absent probability simply means "no NO-GO trials" (the pre-1.1 behavior).
+  const noGoProbability =
+    p.noGoProbability === undefined ? DEFAULT_NO_GO_PROBABILITY : requireNumber('noGoProbability');
   return {
     rounds: requireNumber('rounds'),
     minDelayMs: requireNumber('minDelayMs'),
@@ -126,6 +141,7 @@ export function speedParamsFromProfile(profile: DifficultyProfile): SpeedDifficu
     passMs: requireNumber('passMs'),
     failMs: requireNumber('failMs'),
     timeoutMs: requireNumber('timeoutMs'),
+    noGoProbability,
     ...(minDelayBoundMs !== undefined ? { minDelayBoundMs } : {}),
     ...(maxDelayBoundMs !== undefined ? { maxDelayBoundMs } : {}),
     ...(delayStepMs !== undefined ? { delayStepMs } : {}),

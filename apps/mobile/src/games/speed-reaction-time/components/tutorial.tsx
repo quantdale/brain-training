@@ -50,6 +50,11 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
             does. Your reaction time is measured in milliseconds. Tap too early and the round
             is a false start: too many and the session ends.
           </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            From Normal upward some rounds flash red with an ✕ instead: that one asks you to
+            HOLD — keep perfectly still until it fades. Tapping it costs a false start;
+            withholding it scores like a fast round.
+          </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}
             label="Try a demo"
@@ -79,8 +84,8 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">You’ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Ready to play for real — remember: early taps are false starts, and the challenge
-            hides during pauses, so keep your finger close.
+            Ready to play for real — remember: early taps are false starts, red ✕ signals mean
+            hold still, and the challenge hides during pauses, so keep your finger close.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-done')}

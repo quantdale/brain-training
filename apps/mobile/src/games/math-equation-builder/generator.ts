@@ -44,6 +44,13 @@ export interface PuzzleTemplate {
  * `__tests__/generator.reachability.test.ts`): a template that fails the
  * length/range/solvability filter of EVERY level is dead content and must not
  * be shipped (campaign 012 removed nine such entries).
+ *
+ * Campaign 014 expanded the 5-number expert pool from 10 to 31 curated sets:
+ * with only 10 templates, expert sessions collapsed onto repeated puzzles
+ * within a few seeds (novelty collapse). Every added entry keeps the bank
+ * invariants (distinct numbers in [2, 20], target in expert's [50, 200],
+ * unique across the whole bank, not solvable with + alone) and carries a
+ * comment-verified solution expression.
  */
 export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   // 3-number sets (easy compatible: +/− only)
@@ -106,6 +113,30 @@ export const PUZZLE_TEMPLATES: readonly PuzzleTemplate[] = [
   { numbers: [6, 7, 8, 9, 10], target: 81 },   // (10 × 9) − (8 + 7 − 6)
   { numbers: [19, 11, 7, 3, 2], target: 186 }, // (19 × 11) − ((7 × 3) + 2)
   { numbers: [5, 6, 7, 8, 9], target: 118 },   // ((9 + 8) × 7) − (6 − 5)
+  // Campaign 014: +21 curated expert sets (pool 10 → 31). Each entry is
+  // hand-verified below; the reachability suite re-proves solvability under
+  // expert's full operator mix and that + alone cannot reach the target.
+  { numbers: [2, 7, 9, 3, 5], target: 89 },    // ((2 × 7) × (9 − 3)) + 5
+  { numbers: [8, 4, 11, 5, 7], target: 65 },   // ((8 + 4) × (11 − 5)) − 7
+  { numbers: [15, 5, 9, 3, 4], target: 116 },  // ((15 + 5) × (9 − 3)) − 4
+  { numbers: [14, 6, 12, 5, 19], target: 75 },  // ((14 − 6) × (12 − 5)) + 19
+  { numbers: [17, 8, 11, 3, 20], target: 92 },  // ((17 − 8) × (11 − 3)) + 20
+  { numbers: [16, 6, 10, 7, 13], target: 53 },  // ((16 + 6) × (10 − 7)) − 13
+  { numbers: [18, 3, 11, 5, 7], target: 78 },   // (((18 ÷ 3) + 11) × 5) − 7
+  { numbers: [20, 5, 13, 8, 19], target: 94 },  // ((20 − 5) × (13 − 8)) + 19
+  { numbers: [7, 6, 19, 2, 4], target: 110 },   // (7 × 6) + ((19 − 2) × 4)
+  { numbers: [9, 8, 17, 15, 3], target: 66 },   // (9 × 8) − ((17 − 15) × 3)
+  { numbers: [12, 13, 20, 4, 2], target: 148 }, // (12 × 13) − ((20 − 4) ÷ 2)
+  { numbers: [11, 14, 9, 5, 4], target: 98 },   // (11 × 14) − ((9 + 5) × 4)
+  { numbers: [6, 15, 18, 12, 7], target: 132 }, // (6 × 15) + ((18 − 12) × 7)
+  { numbers: [10, 9, 8, 2, 16], target: 174 },  // ((10 + 9) × (8 + 2)) − 16
+  { numbers: [3, 16, 20, 4, 9], target: 93 },   // (3 × 16) + ((20 ÷ 4) × 9)
+  { numbers: [13, 7, 14, 8, 2], target: 79 },   // (13 × 7) − ((14 − 8) × 2)
+  { numbers: [19, 6, 12, 4, 11], target: 64 },  // ((19 + 6) × (12 ÷ 4)) − 11
+  { numbers: [2, 11, 5, 3, 17], target: 159 },  // ((2 × 11) × (5 + 3)) − 17
+  { numbers: [18, 7, 9, 5, 20], target: 80 },   // ((18 + 7) × (9 − 5)) − 20
+  { numbers: [16, 3, 8, 5, 14], target: 183 },  // ((16 − 3) × (8 + 5)) + 14
+  { numbers: [6, 9, 15, 7, 4], target: 86 },    // (6 × 9) + ((15 − 7) × 4)
 ];
 
 export interface GeneratePuzzleInput {

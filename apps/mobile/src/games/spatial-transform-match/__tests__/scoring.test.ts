@@ -2,13 +2,17 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
+  ANSWER_SPEED_WINDOW_MS,
+  CORRECT_POINTS,
+  MAX_ROUND_SCORE,
+  SPEED_BONUS,
   accuracyOf,
+  answerSpeedTargetMs,
   clamp01,
   normalizeResult,
   perfectSessionScore,
   roundScore,
   speedProgress,
-  CORRECT_POINTS,
 } from '../scoring';
 import { DIFFICULTY_PARAMS } from '../difficulty';
 import type { SpatialTransformMatchRawResult } from '../types';
@@ -48,18 +52,50 @@ function rawResult(overrides: Partial<SpatialTransformMatchRawResult> = {}): Spa
   };
 }
 
-describe('roundScore', () => {
-  it('awards CORRECT_POINTS for a correct answer', () => {
-    expect(roundScore()).toBe(CORRECT_POINTS);
-    expect(roundScore()).toBe(100);
+describe('roundScore (documented formula)', () => {
+  it('awards nothing for a wrong answer', () => {
+    expect(roundScore(false, 0, 1500)).toBe(0);
+    expect(roundScore(false, 60_000, 1500)).toBe(0);
+  });
+
+  it('pays base + full speed bonus for an instant correct answer', () => {
+    expect(roundScore(true, 0, 1500)).toBe(MAX_ROUND_SCORE);
+    expect(MAX_ROUND_SCORE).toBe(CORRECT_POINTS + SPEED_BONUS);
+    expect(MAX_ROUND_SCORE).toBe(150);
+  });
+
+  it('decays the speed bonus linearly on the shared revealMs + 10s basis', () => {
+    // normal reveals for 1500ms ⇒ the speed window is 11_500ms.
+    expect(roundScore(true, 2875, 1500)).toBeCloseTo(CORRECT_POINTS + SPEED_BONUS * 0.75, 10);
+    expect(roundScore(true, 5750, 1500)).toBe(CORRECT_POINTS + SPEED_BONUS / 2); // half window
+    expect(roundScore(true, 11_500, 1500)).toBe(CORRECT_POINTS); // at target
+    expect(roundScore(true, 120_000, 1500)).toBe(CORRECT_POINTS); // clamped, never below base
+  });
+});
+
+describe('answerSpeedTargetMs', () => {
+  it('adds the shared 10s answer window to the reveal time', () => {
+    expect(answerSpeedTargetMs(1500)).toBe(11_500);
+    expect(answerSpeedTargetMs(0)).toBe(ANSWER_SPEED_WINDOW_MS);
+  });
+
+  it('keeps raw scoring on the same basis normalization rewards', () => {
+    // Campaign 014: the flat roundScore() previously had no speed component at
+    // all; it must mirror the sibling games' revealMs + 10s contract.
+    const reveal = DIFFICULTY_PARAMS.normal.sourceRevealMs;
+    const fastAnswer = 2500;
+    expect(roundScore(true, fastAnswer, reveal)).toBeGreaterThan(CORRECT_POINTS);
+    expect(speedProgress(fastAnswer, reveal)).toBe(
+      clamp01(1 - fastAnswer / (reveal + ANSWER_SPEED_WINDOW_MS)),
+    );
   });
 });
 
 describe('perfectSessionScore', () => {
-  it('sums round scores for a perfect run', () => {
-    expect(perfectSessionScore(DIFFICULTY_PARAMS.easy)).toBe(4 * 100);
-    expect(perfectSessionScore(DIFFICULTY_PARAMS.normal)).toBe(5 * 100);
-    expect(perfectSessionScore(DIFFICULTY_PARAMS.expert)).toBe(7 * 100);
+  it('sums max-round scores (base + full speed bonus) for a perfect run', () => {
+    expect(perfectSessionScore(DIFFICULTY_PARAMS.easy)).toBe(4 * MAX_ROUND_SCORE);
+    expect(perfectSessionScore(DIFFICULTY_PARAMS.normal)).toBe(5 * MAX_ROUND_SCORE);
+    expect(perfectSessionScore(DIFFICULTY_PARAMS.expert)).toBe(7 * MAX_ROUND_SCORE);
   });
 });
 

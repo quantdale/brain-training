@@ -38,6 +38,7 @@ export {
   otherRules,
   repeatAccuracyOf,
   switchAccuracyOf as statsSwitchAccuracyOf,
+  uncuedAccuracyOf as statsUncuedAccuracyOf,
 } from './types';
 
 export {
@@ -64,6 +65,7 @@ export {
 
 export {
   SWITCH_CORRECT_BONUS,
+  UNCUED_FIRST_PICK_BONUS,
   accuracyOf,
   clamp01,
   flexibilityRuleFlipPerformanceNormalizer,
@@ -74,6 +76,7 @@ export {
   speedScoreOf,
   switchAccuracyOf,
   trialRawScore,
+  uncuedAccuracyOf as scoreUncuedAccuracyOf,
 } from './scoring';
 
 export type {

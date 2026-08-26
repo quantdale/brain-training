@@ -73,6 +73,12 @@ export interface SpatialCoordinateTurnDifficultyParams {
   readonly askPosition: boolean;
   /** Target response time that scores full speed bonus (ms). */
   readonly speedTargetMs: number;
+  /**
+   * Generous per-tier study window for the brief phase; when it expires the
+   * game auto-transitions to the answer options so players cannot pre-solve
+   * indefinitely for a free speed bonus.
+   */
+  readonly briefBudgetMs: number;
   /** Adaptive-only: direction-count lower/upper bounds. */
   readonly minDirections?: number;
   /** Adaptive-only: direction-count lower/upper bounds. */
@@ -232,6 +238,7 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
 export type SpatialCoordinateTurnAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
   | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
+  | { type: 'brief-tick' }
   | { type: 'select-answer'; index: number; answerMs: number }
   | { type: 'next-round' }
   | { type: 'pause' }

@@ -10,13 +10,17 @@
  *   rtMs <= targetMs → 150   (elite reaction)
  *   rtMs <= passMs   → 100   (passed round)
  *   otherwise        → 0     (too slow, false start, or timeout)
+ *   withheld NO-GO   → 100   (correct inhibition scores like a passed round)
  *
  * Normalization rule (documented, deterministic — difficulty-scaled targets):
  *
- *   completion     = validReactions / totalRounds          (0..1)
+ *   completion     = (validReactions + withholds) / totalRounds   (0..1)
  *   reactionScore  = clamp01((failMs - median) / (failMs - targetMs))
- *                    — 1 at targetMs or faster, 0 at failMs or slower
+ *                    — 1 at targetMs or faster, 0 at failMs or slower;
+ *                    the median is computed over GO-trial reactions ONLY
+ *                    (withholds contribute no reaction sample)
  *   falseStartScore = 1 - clamp01(falseStarts / (falseStartBudget + 1))
+ *                    — NO-GO taps count as false starts
  *   value          = clamp01(completion * (0.5 + 0.5 * reactionScore) * falseStartScore)
  *
  * The blend is multiplicative: completion is the base (a session ended early
@@ -40,6 +44,12 @@ export function roundScore(rtMs: number, targetMs: number, passMs: number): numb
   }
   return rtMs <= passMs ? 100 : 0;
 }
+
+/**
+ * Points for correctly withholding on a NO-GO stimulus: same tier as a passed
+ * round (100). There is no reaction to measure, so the elite bonus cannot apply.
+ */
+export const WITHHELD_ROUND_SCORE = 100;
 
 /** Score of a hypothetically perfect session (all rounds at target speed). */
 export function perfectSessionScore(params: SpeedDifficultyParams): number {
@@ -119,7 +129,10 @@ export function normalizeSpeedResult(
   raw: SpeedRawResult,
   _context: NormalizeContext,
 ): NormalizedPerformance {
-  const completion = completionOf(raw.reactions.length, raw.totalRounds);
+  // Correctly withheld NO-GO rounds complete their round just like a valid
+  // reaction does — inhibition must not be punished as absence of action.
+  const completedRounds = raw.reactions.length + raw.noGoWithheld;
+  const completion = completionOf(completedRounds, raw.totalRounds);
   const reaction = reactionScore(raw.medianReactionMs, raw.targetMs, raw.failMs);
   const falseStarts = falseStartScore(raw.falseStarts, raw.falseStartBudget);
   const value = clamp01(completion * (0.5 + 0.5 * reaction) * falseStarts);

@@ -225,6 +225,78 @@ describe('tap-cell + submit', () => {
   });
 });
 
+describe('respond deadline', () => {
+  function toRespondState(seed = 'deadline'): SymbolTrackerGameState {
+    return toRespond(startSession(seed));
+  }
+
+  it('resolves the round exactly like a submit, flagged as timed out', () => {
+    let state = toRespondState();
+    for (const cell of cellsForSymbols(state, state.trackedSymbolIds)) {
+      state = symbolTrackerGameReducer(state, { type: 'tap-cell', index: cell });
+    }
+    const manual = symbolTrackerGameReducer(state, { type: 'submit' });
+    // Same selections resolved through the expiry path must produce identical
+    // scoring; only the respondTimedOut marker differs.
+    const expired = symbolTrackerGameReducer(state, { type: 'respond-deadline' });
+    expect(expired.phase).toBe('roundResult');
+    expect(expired.respondTimedOut).toBe(true);
+    expect(manual.respondTimedOut).toBe(false);
+    expect(expired.stats).toEqual(manual.stats);
+    expect(expired.roundOutcome).toBe(manual.roundOutcome);
+    expect(expired.roundCorrectTargets).toBe(manual.roundCorrectTargets);
+    expect(expired.roundWrongTaps).toBe(manual.roundWrongTaps);
+  });
+
+  it('submits an empty selection as a failed round without crashing', () => {
+    const state = symbolTrackerGameReducer(toRespondState(), { type: 'respond-deadline' });
+    expect(state.phase).toBe('roundResult');
+    expect(state.respondTimedOut).toBe(true);
+    expect(state.roundOutcome).toBe('failed');
+    expect(state.stats.roundsPlayed).toBe(1);
+    expect(state.stats.score).toBe(0);
+    expect(state.stats.correctTargets).toBe(0);
+    // The session stays fully playable afterwards.
+    const next = symbolTrackerGameReducer(state, { type: 'next-round' });
+    expect(next.phase).toBe('observe');
+    expect(next.respondTimedOut).toBe(false);
+  });
+
+  it('is ignored while paused, outside respond, and after the round scored', () => {
+    const observing = startSession('dl-guard');
+    expect(
+      symbolTrackerGameReducer(observing, { type: 'respond-deadline' }).phase,
+    ).toBe('observe');
+    const paused = symbolTrackerGameReducer(toRespondState('dl-guard'), { type: 'pause' });
+    const afterPaused = symbolTrackerGameReducer(paused, { type: 'respond-deadline' });
+    expect(afterPaused.phase).toBe('respond');
+    expect(afterPaused.stats.roundsPlayed).toBe(0);
+    let scored = toRespondState('dl-guard');
+    for (const cell of cellsForSymbols(scored, scored.trackedSymbolIds)) {
+      scored = symbolTrackerGameReducer(scored, { type: 'tap-cell', index: cell });
+    }
+    scored = symbolTrackerGameReducer(scored, { type: 'submit' });
+    const double = symbolTrackerGameReducer(scored, { type: 'respond-deadline' });
+    expect(double.stats.roundsPlayed).toBe(1); // no double count
+  });
+
+  it('never adds a time penalty beyond natural truncation', () => {
+    // One correct pick at expiry must score exactly what a manual submit of
+    // the same single pick scores (partial credit minus nothing extra).
+    let state = toRespondState('fair');
+    const firstTargetCell = cellsForSymbols(state, state.trackedSymbolIds)[0];
+    state = symbolTrackerGameReducer(state, { type: 'tap-cell', index: firstTargetCell });
+    const expired = symbolTrackerGameReducer(state, { type: 'respond-deadline' });
+    const fresh = toRespond(startSession('fair'));
+    const pickedFresh = symbolTrackerGameReducer(fresh, {
+      type: 'tap-cell',
+      index: cellsForSymbols(fresh, fresh.trackedSymbolIds)[0],
+    });
+    const manual = symbolTrackerGameReducer(pickedFresh, { type: 'submit' });
+    expect(expired.stats.score).toBe(manual.stats.score);
+  });
+});
+
 describe('next-round', () => {
   it('escalates after a pass and regenerates a distinct round', () => {
     let state = toRespond(startSession('esc'));

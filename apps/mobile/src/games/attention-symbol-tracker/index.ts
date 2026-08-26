@@ -25,6 +25,7 @@ export { createInitialSymbolTrackerState } from './types';
 
 export {
   ADAPTIVE_PARAMS,
+  DEFAULT_RESPOND_DEADLINE_MS,
   SYMBOL_TRACKER_DIFFICULTY_PARAMS,
   nextTrackCount,
   resolveSymbolTrackerDifficulty,

@@ -119,12 +119,15 @@ export function gameReducer(
         return state;
       }
       const correct = action.index === state.correctOptionIndex;
+      const params = paramsFromProfile(state.profile);
       const answerMs = action.answerMs;
 
       if (correct) {
         const streak = state.stats.streak + 1;
         const stats: SpatialTransformMatchStats = {
-          score: state.stats.score + roundScore(),
+          // roundScore applies the shared revealMs + 10s basis internally
+          // (scoring.answerSpeedTargetMs), mirroring fold-match's contract.
+          score: state.stats.score + roundScore(true, answerMs, params.sourceRevealMs),
           roundsPlayed: state.stats.roundsPlayed + 1,
           roundsPassed: state.stats.roundsPassed + 1,
           bestStreak: Math.max(state.stats.bestStreak, streak),

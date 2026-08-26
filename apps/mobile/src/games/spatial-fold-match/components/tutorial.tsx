@@ -144,9 +144,9 @@ function DemoFold({ onDone, onSkip }: DemoFoldProps) {
           ? 'Memorize the pattern…'
           : answered
             ? correct
-              ? 'Perfect — that is the folded result!'
-              : 'Not quite — that one does not match.'
-            : demo.foldLabel}
+              ? `Perfect — that is the folded result! (${demo.foldLabel})`
+              : `Not quite — the fold was: ${demo.foldLabel}`
+            : 'Pick the folded result.'}
       </ThemedText>
       {studying ? (
         <GridView

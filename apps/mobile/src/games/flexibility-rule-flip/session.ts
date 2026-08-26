@@ -17,7 +17,7 @@ import { getDb } from '@/db';
 import type { CompleteSessionInput, CompleteSessionResult, GameSessionRecord } from '@/db';
 
 import { accuracyOf, speedScoreOf, switchAccuracyOf } from './scoring';
-import { GAME_ID , repeatAccuracyOf } from './types';
+import { GAME_ID , repeatAccuracyOf, uncuedAccuracyOf as statsUncuedAccuracyOf } from './types';
 import type { FlexibilityRuleFlipDifficultyParams, FlexibilityRuleFlipRawResult, FlexibilityRuleFlipStats } from './types';
 import { versionToNumber } from './versions';
 
@@ -63,6 +63,7 @@ export function buildFlexibilityRuleFlipRawResult(input: BuildRawResultInput): F
     blockMin: input.params.blockMin,
     blockMax: input.params.blockMax,
     flipRate: input.params.flipRate,
+    uncuedRate: input.params.uncuedRate,
     speedTargetMs: input.params.speedTargetMs,
     switchArmMs: input.params.switchArmMs,
     rngAlgorithm: RNG_ALGORITHM_VERSION,
@@ -105,6 +106,12 @@ export function buildFlexibilityRuleFlipRawResult(input: BuildRawResultInput): F
     numNumbers: input.params.numNumbers,
     flipRate: input.params.flipRate,
     switchRate: input.finalSwitchRate,
+    uncuedRate: input.params.uncuedRate,
+    uncuedPlayed: input.stats.uncuedPlayed,
+    uncuedCorrect: input.stats.uncuedCorrect,
+    // Both helpers agree; the stats-side one keeps the raw result decoupled
+    // from the scoring module's internal blend weights.
+    uncuedAccuracy: statsUncuedAccuracyOf(input.stats),
     speedTargetMs: input.params.speedTargetMs,
     challengeRating: input.challengeRating,
     difficulty: input.difficulty,

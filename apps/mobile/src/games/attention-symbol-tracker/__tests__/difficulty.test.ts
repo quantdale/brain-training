@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import {
   ADAPTIVE_PARAMS,
+  DEFAULT_RESPOND_DEADLINE_MS,
   SYMBOL_TRACKER_DIFFICULTY_PARAMS,
   nextTrackCount,
   resolveSymbolTrackerDifficulty,
@@ -43,11 +44,32 @@ describe('symbolTrackerParamsFromProfile', () => {
     expect(params.gridSize).toBe(16);
     expect(params.tokenCount).toBe(8);
     expect(params.initialTrackCount).toBe(3);
+    expect(params.respondDeadlineMs).toBe(6000);
     const broken = {
       ...profile,
       parameters: { gridSize: 16 },
     } as typeof profile;
     expect(() => symbolTrackerParamsFromProfile(broken)).toThrow();
+  });
+
+  it('gives every tier a generous, shrinking respond budget', () => {
+    // 8s at easy down to 5s at expert; the budget is a safety net, not the
+    // challenge (score decays only via fewer correct picks on expiry).
+    expect(SYMBOL_TRACKER_DIFFICULTY_PARAMS.easy.respondDeadlineMs).toBe(8000);
+    expect(SYMBOL_TRACKER_DIFFICULTY_PARAMS.normal.respondDeadlineMs).toBe(7000);
+    expect(SYMBOL_TRACKER_DIFFICULTY_PARAMS.hard.respondDeadlineMs).toBe(6000);
+    expect(SYMBOL_TRACKER_DIFFICULTY_PARAMS.expert.respondDeadlineMs).toBe(5000);
+    expect(ADAPTIVE_PARAMS.respondDeadlineMs).toBe(7000);
+    expect(symbolTrackerParamsForLevel('easy').respondDeadlineMs).toBeGreaterThan(
+      symbolTrackerParamsForLevel('expert').respondDeadlineMs,
+    );
+  });
+
+  it('defaults respondDeadlineMs for profiles persisted before the deadline existed', () => {
+    const profile = resolveSymbolTrackerDifficulty('normal');
+    const { respondDeadlineMs: _legacy, ...legacyParameters } = profile.parameters;
+    const params = symbolTrackerParamsFromProfile({ ...profile, parameters: legacyParameters });
+    expect(params.respondDeadlineMs).toBe(DEFAULT_RESPOND_DEADLINE_MS);
   });
 });
 

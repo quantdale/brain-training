@@ -5,10 +5,10 @@
   "secondaryDomains": [
     "Attention"
   ],
-  "description": "Match cards by the active rule — the rule keeps switching, so stay flexible.",
+  "description": "Match cards by the active rule — the rule keeps switching, so stay flexible. Some stretches hide the rule entirely: infer it from which sorts keep or reject.",
   "sdkVersion": "0.1.0",
   "gameVersion": "1.0.0",
-  "generatorVersion": "1.0.0",
+  "generatorVersion": "1.1.0",
   "contentVersion": null,
   "hasTutorial": true
 }

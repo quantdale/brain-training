@@ -25,7 +25,7 @@ import { TileGrid } from './grid';
 import type { TileVisualState } from './tile';
 
 /** Deterministic demo seed so the tutorial board is identical on every device. */
-export const TUTORIAL_DEMO_SEED = 'pattern-tap-back-tutorial-v1';
+export const TUTORIAL_DEMO_SEED = 'pattern-tap-back-tutorial-v2';
 const DEMO_LENGTH = 3;
 const DEMO_GRID_SIZE = 9;
 const DEMO_REVEAL_MS = 600;
@@ -48,8 +48,9 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Tiles light up one by one — watch closely, then tap them back in the same order. Each
-            round adds another tile to the sequence.
+            Tiles light up one by one along a connected path — each tile sits next to the previous
+            one. Watch closely, then trace the route back in the same order. Each round adds
+            another tile to the path.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}

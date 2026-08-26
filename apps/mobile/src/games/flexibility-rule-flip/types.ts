@@ -16,6 +16,14 @@
  * matches ONLY under that rule (the cue is genuinely disambiguating), and
  * distractors never match under the active rule (preferring lures that match
  * under one of the OTHER rules to create interference).
+ *
+ * UNCUED windows (campaign 014, Packet F): from `normal` upward some BLOCKS
+ * are planned UNCUED. Inside an uncued block the banner HIDES the rule (a
+ * neutral "infer it" placeholder) until the player picks; feedback then
+ * reveals the active rule — a correct pick confirms silently, a miss names
+ * the rule. This restores the premise (noticing a rare flip amid stable runs)
+ * because flips inside a dark window carry no "Rule flipped!" cue. `easy`
+ * keeps every block cued so the tutorial contract stays intact.
  */
 import type {
   DiagnosticMetadata,
@@ -99,6 +107,14 @@ export interface FlexibilityRuleFlipDifficultyParams {
   readonly blockMax: number;
   /** Per-block rule-flip probability (0..1; higher = more re-anchoring). */
   readonly flipRate: number;
+  /**
+   * Per-block probability that a block after the first is UNCUED (0..1).
+   * Uncued blocks hide the rule banner until the first pick of each trial,
+   * forcing genuine inference of the active rule (and of any silent flip).
+   * 0 keeps every block explicitly cued (`easy`); higher tiers raise both the
+   * frequency and — via their longer blocks — the run length of dark windows.
+   */
+  readonly uncuedRate: number;
   /** Rules eligible for a block (subset of RULES). */
   readonly rulesPool: readonly RuleId[];
   /** Reference response time (ms) that earns the full speed bonus. */
@@ -125,6 +141,15 @@ export interface GeneratedRound {
   readonly correctIndex: number;
   readonly rule: RuleId;
   readonly isSwitch: boolean;
+  /** True when this trial belongs to an uncued block (banner hidden pre-pick). */
+  readonly uncued: boolean;
+  /**
+   * Index of the plan block this trial belongs to (campaign 014). Uncue is a
+   * BLOCK property, and consecutive blocks may share a rule when a scheduled
+   * flip does not fire — so `rule` + `isSwitch` alone cannot reconstruct
+   * block boundaries. Additive/optional so legacy persisted plans stay valid.
+   */
+  readonly blockIndex?: number;
 }
 
 /** Accumulated session statistics (all player-facing raw numbers). */
@@ -147,6 +172,10 @@ export interface FlexibilityRuleFlipStats {
   readonly repeatPlayed: number;
   /** Repeat trials answered correctly. */
   readonly repeatCorrect: number;
+  /** Uncued-window trials played (every pick there is an inference "first pick"). */
+  readonly uncuedPlayed: number;
+  /** Uncued-window trials answered correctly (the inference diagnostic). */
+  readonly uncuedCorrect: number;
 }
 
 export const INITIAL_STATS: Readonly<FlexibilityRuleFlipStats> = Object.freeze({
@@ -162,6 +191,8 @@ export const INITIAL_STATS: Readonly<FlexibilityRuleFlipStats> = Object.freeze({
   switchCorrect: 0,
   repeatPlayed: 0,
   repeatCorrect: 0,
+  uncuedPlayed: 0,
+  uncuedCorrect: 0,
 });
 
 /** Switch-rule accuracy; 0 when no switch trials were played. */
@@ -172,6 +203,11 @@ export function switchAccuracyOf(stats: FlexibilityRuleFlipStats): number {
 /** Repeat-rule accuracy; 0 when no repeat trials were played. */
 export function repeatAccuracyOf(stats: FlexibilityRuleFlipStats): number {
   return stats.repeatPlayed > 0 ? stats.repeatCorrect / stats.repeatPlayed : 0;
+}
+
+/** Uncued-window (inference) accuracy; 0 when no uncued trials were played. */
+export function uncuedAccuracyOf(stats: FlexibilityRuleFlipStats): number {
+  return stats.uncuedPlayed > 0 ? stats.uncuedCorrect / stats.uncuedPlayed : 0;
 }
 
 /**
@@ -198,11 +234,17 @@ export interface FlexibilityRuleFlipRawResult extends GameRawResult {
   readonly repeatPlayed: number;
   readonly repeatCorrect: number;
   readonly repeatAccuracy: number;
+  /** Uncued-window (inference) trials played and answered correctly. */
+  readonly uncuedPlayed: number;
+  readonly uncuedCorrect: number;
+  readonly uncuedAccuracy: number;
   readonly numShapes: number;
   readonly numColors: number;
   readonly numNumbers: number;
   /** Block flip probability this session was generated with. */
   readonly flipRate: number;
+  /** Per-block probability that a block after the first is uncued this session ran with. */
+  readonly uncuedRate: number;
   /** Effective per-block flip rate at session end (constant per session). */
   readonly switchRate: number;
   readonly speedTargetMs: number;

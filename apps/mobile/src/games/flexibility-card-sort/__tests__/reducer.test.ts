@@ -6,7 +6,7 @@ import type { DifficultyLevel } from '@/sdk';
 import { flexibilityGameReducer } from '../reducer';
 import { createInitialFlexibilityState , otherRule } from '../types';
 import type { FlexibilityGameState } from '../types';
-import { generateRound, pickInitialRule } from '../generator';
+import { generateRound, pickInitialRule, planDiscoveryBlocks } from '../generator';
 import { perfectSessionScore, roundScore } from '../scoring';
 import { FLEXIBILITY_DIFFICULTY_PARAMS } from '../difficulty';
 
@@ -93,9 +93,17 @@ describe('start-session', () => {
       scoredPicks: 0,
       postSwitchPlayed: 0,
       postSwitchCorrect: 0,
+      discoveryPlayed: 0,
+      discoveryCorrect: 0,
     });
     expect(state.sessionId).toBe('s1');
     expect(state.startedAtMs).toBe(100);
+  });
+
+  it('opens cued (block 0 is never a discovery stretch)', () => {
+    for (const seed of ['d-open-1', 'd-open-2', 'd-open-3']) {
+      expect(startSession(seed).discoveryBlock).toBe(false);
+    }
   });
 
   it('opens with the seed-derived rule and generates round 1 deterministically', () => {
@@ -260,6 +268,71 @@ describe('next-round', () => {
     const inActive = startSession('n');
     const after = flexibilityGameReducer(inActive, { type: 'next-round' });
     expect(after.roundIndex).toBe(0);
+  });
+});
+
+describe('discovery stretches (unannounced rule)', () => {
+  /** Find a seed where block 1 of a normal session is planned as discovery. */
+  function seedWithDiscoveryBlock1(): string {
+    for (let s = 0; s < 200; s += 1) {
+      const seed = `disc-${s}`;
+      if (planDiscoveryBlocks(seed, Math.ceil(10 / 3), FLEXIBILITY_DIFFICULTY_PARAMS.normal.discoveryRate)[1]) {
+        return seed;
+      }
+    }
+    throw new Error('no discovery seed found');
+  }
+
+  it('enters a discovery block with the rule unannounced and tracks inference stats', () => {
+    const seed = seedWithDiscoveryBlock1();
+    let state = playCorrectRounds(startSession(seed, 'normal'), 3); // first block done
+    expect(state.phase).toBe('ruleSwitchNotice');
+    // The NEW block's plan flag is already visible during the notice so the
+    // UI can mask the announcement.
+    expect(state.discoveryBlock).toBe(true);
+    state = expireNotice(state);
+    expect(state.phase).toBe('roundActive');
+    expect(state.discoveryBlock).toBe(true);
+
+    // A correct pick in the dark: counted as inferred-correct.
+    state = correctPick(state);
+    expect(state.stats.discoveryPlayed).toBe(1);
+    expect(state.stats.discoveryCorrect).toBe(1);
+  });
+
+  it('counts a missed discovery round as played but not inferred', () => {
+    const seed = seedWithDiscoveryBlock1();
+    let state = expireNotice(playCorrectRounds(startSession(seed, 'normal'), 3));
+    state = wrongPick(state);
+    expect(state.stats.discoveryPlayed).toBe(1);
+    expect(state.stats.discoveryCorrect).toBe(0);
+    expect(state.stats.mistakes).toBe(1);
+  });
+
+  it('keeps cued blocks out of the discovery stats', () => {
+    // Easy plans no discovery blocks at all.
+    let state = playCorrectRounds(startSession('cued-only', 'easy'), 4);
+    expect(state.phase).toBe('ruleSwitchNotice');
+    expect(state.discoveryBlock).toBe(false);
+    state = expireNotice(state);
+    state = correctPick(state);
+    expect(state.stats.discoveryPlayed).toBe(0);
+    expect(
+      planDiscoveryBlocks('cued-only', 2, FLEXIBILITY_DIFFICULTY_PARAMS.easy.discoveryRate),
+    ).toEqual([false, false]);
+  });
+
+  it('force-win replays the deterministic plan into the discovery stats', () => {
+    const seed = 'force-disc';
+    const params = FLEXIBILITY_DIFFICULTY_PARAMS.normal;
+    const forced = flexibilityGameReducer(startSession(seed, 'normal'), { type: 'qa/force-win' });
+    const plan = planDiscoveryBlocks(seed, Math.ceil(params.rounds / params.switchEvery), params.discoveryRate);
+    let expected = 0;
+    for (let b = 0; b < plan.length; b += 1) {
+      if (plan[b]) expected += Math.min(params.switchEvery, params.rounds - b * params.switchEvery);
+    }
+    expect(forced.stats.discoveryPlayed).toBe(expected);
+    expect(forced.stats.discoveryCorrect).toBe(expected);
   });
 });
 

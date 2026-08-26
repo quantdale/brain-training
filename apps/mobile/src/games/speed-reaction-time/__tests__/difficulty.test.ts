@@ -4,6 +4,7 @@ import { DEFAULT_CHALLENGE_RATINGS } from '@/sdk';
 
 import {
   ADAPTIVE_PARAMS,
+  DEFAULT_NO_GO_PROBABILITY,
   SPEED_DIFFICULTY_PARAMS,
   nextDelayMinMs,
   resolveSpeedDifficulty,
@@ -24,6 +25,7 @@ describe('Speed difficulty parameter mapping', () => {
       passMs: 700,
       failMs: 900,
       timeoutMs: 2500,
+      noGoProbability: 0,
     });
     expect(SPEED_DIFFICULTY_PARAMS.normal).toEqual({
       rounds: 10,
@@ -34,6 +36,7 @@ describe('Speed difficulty parameter mapping', () => {
       passMs: 600,
       failMs: 800,
       timeoutMs: 2200,
+      noGoProbability: 0.15,
     });
     expect(SPEED_DIFFICULTY_PARAMS.hard).toEqual({
       rounds: 12,
@@ -44,6 +47,7 @@ describe('Speed difficulty parameter mapping', () => {
       passMs: 550,
       failMs: 700,
       timeoutMs: 2000,
+      noGoProbability: 0.25,
     });
     expect(SPEED_DIFFICULTY_PARAMS.expert).toEqual({
       rounds: 15,
@@ -54,7 +58,19 @@ describe('Speed difficulty parameter mapping', () => {
       passMs: 500,
       failMs: 600,
       timeoutMs: 1800,
+      noGoProbability: 0.35,
     });
+  });
+
+  it('raises the no-go probability with tier and keeps easy pure simple-RT', () => {
+    const levels = ['easy', 'normal', 'hard', 'expert'] as const;
+    expect(SPEED_DIFFICULTY_PARAMS.easy.noGoProbability).toBe(0);
+    for (let i = 1; i < levels.length; i += 1) {
+      expect(SPEED_DIFFICULTY_PARAMS[levels[i]].noGoProbability).toBeGreaterThan(
+        SPEED_DIFFICULTY_PARAMS[levels[i - 1]].noGoProbability,
+      );
+    }
+    expect(ADAPTIVE_PARAMS.noGoProbability).toBe(0.2);
   });
 
   it('defines adaptive tuning with delay bounds and step', () => {
@@ -70,6 +86,7 @@ describe('Speed difficulty parameter mapping', () => {
       minDelayBoundMs: 600,
       maxDelayBoundMs: 2200,
       delayStepMs: 150,
+      noGoProbability: 0.2,
     });
   });
 
@@ -107,6 +124,14 @@ describe('Speed difficulty parameter mapping', () => {
       /targetMs/,
     );
   });
+
+  it('defaults noGoProbability to 0 for profiles persisted before Go/No-Go', () => {
+    const profile = resolveSpeedDifficulty('normal');
+    const { noGoProbability: _legacy, ...legacyParameters } = profile.parameters;
+    const params = speedParamsFromProfile({ ...profile, parameters: legacyParameters });
+    expect(params.noGoProbability).toBe(DEFAULT_NO_GO_PROBABILITY);
+    expect(params.noGoProbability).toBe(0);
+  });
 });
 
 describe('nextDelayMinMs', () => {
@@ -119,6 +144,7 @@ describe('nextDelayMinMs', () => {
     passMs: 600,
     failMs: 800,
     timeoutMs: 2200,
+    noGoProbability: 0.15,
   };
 
   it('keeps the constant minimum for fixed levels', () => {

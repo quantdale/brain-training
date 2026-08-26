@@ -431,11 +431,15 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
 
           {state.phase === 'choice' ? (
             <>
+              {/* Inference contract: the applied fold is NOT announced here —
+               * the player must infer it from the candidate grids (which stay
+               * visually distinct as before). The label is revealed in the
+               * round-result feedback below. */}
               <ThemedText
                 type="bodyLarge"
                 themeColor="text"
                 testID={testId(GAME_ID, 'choice-status')}>
-                {state.foldLabel}
+                Which grid is folded correctly?
               </ThemedText>
               {renderOptions(false)}
             </>
@@ -459,6 +463,11 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
                 {state.roundOutcome === 'passed'
                   ? 'Correct fold!'
                   : 'Not quite'}
+              </ThemedText>
+              {/* Round-result feedback is where the applied fold is named —
+               * never during the choice phase itself (inference contract). */}
+              <ThemedText type="small" themeColor="textSecondary">
+                {state.foldLabel}
               </ThemedText>
               {renderOptions(true)}
               <GameButton

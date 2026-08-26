@@ -216,3 +216,81 @@ export function getAchievableTargets(
 
   return combine(numbers);
 }
+
+interface SolutionCandidate {
+  readonly value: number;
+  readonly tokens: EquationToken[];
+}
+
+/**
+ * Find ONE token sequence that evaluates to `target` using every number in
+ * `numbers` (each exactly once, in their given order) and only the allowed
+ * operators. Returns null when no such equation exists.
+ *
+ * This is the reveal-side twin of `canSolve`: it searches the SAME space of
+ * binary trees over contiguous number slices, so whenever the generator's
+ * solvability proof (`canSolve`) succeeded, this reconstructs a witness
+ * equation. Deterministic: subranges are enumerated split-ascending and
+ * operators in list order; the first tree reaching the target wins.
+ *
+ * Composite children are wrapped in parentheses so the flat left-to-right
+ * evaluation of `evaluateEquation` reproduces the tree's value exactly.
+ */
+export function findSolutionTokens(
+  target: number,
+  numbers: readonly number[],
+  operators: readonly Operator[],
+): EquationToken[] | null {
+  if (numbers.length === 0) return null;
+
+  // Memoized enumeration per contiguous subrange [i, j). Values are deduped
+  // per subrange (first witness kept) to bound blowup without losing reach.
+  const memo = new Map<string, SolutionCandidate[]>();
+
+  function enumerate(i: number, j: number): SolutionCandidate[] {
+    const key = `${i}:${j}`;
+    const cached = memo.get(key);
+    if (cached !== undefined) return cached;
+
+    const results: SolutionCandidate[] = [];
+    if (j - i === 1) {
+      results.push({ value: numbers[i], tokens: [numbers[i]] });
+    } else {
+      const seen = new Set<number>();
+      for (let split = i + 1; split < j; split += 1) {
+        const lefts = enumerate(i, split);
+        const rights = enumerate(split, j);
+        for (const left of lefts) {
+          for (const right of rights) {
+            for (const op of operators) {
+              const value = applyOperator(left.value, op, right.value);
+              if (value === null || seen.has(value)) continue;
+              seen.add(value);
+              // Parenthesize composite children; a bare number needs none.
+              const leftTokens =
+                left.tokens.length === 1
+                  ? left.tokens
+                  : (['(', ...left.tokens, ')'] as EquationToken[]);
+              const rightTokens =
+                right.tokens.length === 1
+                  ? right.tokens
+                  : (['(', ...right.tokens, ')'] as EquationToken[]);
+              results.push({
+                value,
+                tokens: [...leftTokens, op, ...rightTokens],
+              });
+            }
+          }
+        }
+      }
+    }
+
+    memo.set(key, results);
+    return results;
+  }
+
+  for (const candidate of enumerate(0, numbers.length)) {
+    if (candidate.value === target) return candidate.tokens;
+  }
+  return null;
+}

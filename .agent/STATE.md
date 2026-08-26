@@ -1,12 +1,24 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-26 (Campaign 013 certification: definitive 42/42
---no-pause run certified=true on emulator-5558 at HEAD ba6dd84; Workout V2
-all four journeys PASS; clean-checkout proof green; final docs reconciled)
+**Last update:** 2026-08-26 (Campaign 014 opened: Experience Depth &
+Replayability. W1 product-depth audit complete — all 42 games rubric-scored,
+priority stack P0–P4 in `.agent/CAMPAIGN014_AUDIT.md`. Game-depth wave 1
+landed: 13 games mechanically deepened via six parallel packets — adjacency-
+route pattern-tap-back generator, running-order palette 6→12 + Hamming≥2,
+reaction-time Go/No-Go, quick-compare real decoys + proximity spread,
+symbol-tracker respond deadline, target-count escalation ladder, equation-
+builder expert templates ×2.5 + failure solution-reveal, deduction-table
+anti-giveaway minimal-proof selection, stroop window-normalized speed bonus,
+rule-flip uncued inference windows, card-sort WCST discovery blocks, fold-match
+speed-basis fix + hidden fold label, coordinate-turn shuffled options + timed
+brief, transform-match hidden-source choice + per-cell a11y labels.
+Full Jest 478 suites / 5947 tests PASS; tsc clean; lint 0/0; registry
+regenerated (version bumps). Language-family depth (word-chain/context-fit/
+scramble pools) and shared systems (mastery engine, Daily Spotlight, Workout
+V3 wiring, Progress V3/Home/discovery surfaces) in progress.)
 **Canonical branch:** `main`
-**Active campaign:** none (013-final-product-completion COMPLETED 2026-08-26;
-next direction owner-selected)
+**Active campaign:** 014-experience-depth-replayability
 
 ## Current status
 

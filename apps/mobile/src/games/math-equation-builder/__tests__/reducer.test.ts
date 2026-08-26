@@ -2,7 +2,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { DifficultyLevel } from '@/sdk';
 
-import { mathEquationBuilderGameReducer } from '../reducer';
+import { isValidEquationStructure, mathEquationBuilderGameReducer } from '../reducer';
 import { createInitialMathEquationBuilderState } from '../types';
 import type { MathEquationBuilderGameState } from '../types';
 import { MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS } from '../difficulty';
@@ -78,6 +78,42 @@ describe('start-session', () => {
     const easy = startSession('a', 'easy');
     expect(easy.availableNumbers.length).toBe(3);
     expect(easy.timeBudgetMs).toBe(60_000);
+  });
+});
+
+describe('isValidEquationStructure', () => {
+  it('accepts a minimal valid equation', () => {
+    expect(isValidEquationStructure([3, '+', 5], 2, 2)).toBe(true);
+  });
+
+  it('accepts longer alternating equations, with or without grouping', () => {
+    expect(isValidEquationStructure([10, '-', 2, '÷', 4, '+', 6], 4, 4)).toBe(true);
+    expect(isValidEquationStructure(['(', 3, '+', 5, ')', '×', 2], 3, 3)).toBe(true);
+    expect(
+      isValidEquationStructure(['(', '(', 7, '+', 8, ')', '×', 2, ')', '-', 4], 3, 3),
+    ).toBe(true);
+  });
+
+  it('rejects a number where an operator is expected (campaign 014 regression)', () => {
+    // The old validator returned TRUE for both of these: its odd-index check
+    // inverted the condition and accepted any non-number as an operator.
+    expect(isValidEquationStructure([3, 5, '+'], 2, 2)).toBe(false);
+    expect(isValidEquationStructure([12, 5, '-', 3, '+'], 3, 3)).toBe(false);
+  });
+
+  it('rejects an operator where a number is expected', () => {
+    expect(isValidEquationStructure(['+', 3, 5], 2, 2)).toBe(false);
+    expect(isValidEquationStructure([3, '+', '×', 5], 2, 2)).toBe(false);
+  });
+
+  it('rejects even-length or too-short flattened token streams', () => {
+    expect(isValidEquationStructure([3, '+', 5, '-'], 2, 2)).toBe(false); // even
+    expect(isValidEquationStructure([7], 1, 1)).toBe(false); // < 3 tokens
+  });
+
+  it('rejects empty input and used-count mismatches', () => {
+    expect(isValidEquationStructure([], 0, 0)).toBe(false);
+    expect(isValidEquationStructure([3, '+', 5], 1, 2)).toBe(false);
   });
 });
 

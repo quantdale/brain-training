@@ -21,21 +21,34 @@ import { RULE_LABELS } from './rule-banner';
 
 export interface SwitchNoticeProps {
   newRule: RuleId;
+  /** True when the NEW block is a discovery stretch: never announce its rule. */
+  masked?: boolean;
   onContinue: () => void;
 }
 
-export function SwitchNotice({ newRule, onContinue }: SwitchNoticeProps) {
+export function SwitchNotice({ newRule, masked = false, onContinue }: SwitchNoticeProps) {
   return (
     <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'switch-notice')}>
       <ThemedText type="headline" testID={testId(GAME_ID, 'switch-notice-title')}>
         Rule switched!
       </ThemedText>
-      <ThemedText
-        type="bodyLarge"
-        themeColor="text"
-        testID={testId(GAME_ID, 'switch-notice-rule')}>
-        {RULE_LABELS[newRule]}
-      </ThemedText>
+      {masked ? (
+        // Announcing the new rule would defeat the discovery stretch entirely:
+        // the player must infer it from keep/reject feedback instead.
+        <ThemedText
+          type="bodyLarge"
+          themeColor="text"
+          testID={testId(GAME_ID, 'switch-notice-masked')}>
+          The sorting rule changed — infer it from your results.
+        </ThemedText>
+      ) : (
+        <ThemedText
+          type="bodyLarge"
+          themeColor="text"
+          testID={testId(GAME_ID, 'switch-notice-rule')}>
+          {RULE_LABELS[newRule]}
+        </ThemedText>
+      )}
       <ThemedText type="small" themeColor="textSecondary">
         The next round starts automatically — or tap to continue now.
       </ThemedText>

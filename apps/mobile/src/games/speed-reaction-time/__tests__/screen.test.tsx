@@ -14,12 +14,13 @@ import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from 
 import type { CompleteSessionInput } from '@/db';
 
 import { TUTORIAL_DEMO_DELAY_MS } from '../components/tutorial';
-import { generateRoundDelay } from '../generator';
+import { generateRoundDelay, isNoGoRound } from '../generator';
 import SpeedScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
 import { GAME_ID } from '../types';
 import type { SpeedRawResult } from '../types';
+import { WITHHELD_ROUND_SCORE } from '../scoring';
 import { SPEED_DIFFICULTY_PARAMS } from '../difficulty';
 
 jest.mock('expo-router', () => ({
@@ -89,6 +90,40 @@ function delayFor(seed: string, roundIndex: number): number {
     minDelayMs: NORMAL.minDelayMs,
     maxDelayMs: NORMAL.maxDelayMs,
   });
+}
+
+/** Whether the normal-difficulty round `roundIndex` of `seed` is a NO-GO. */
+function isNoGoTrial(seed: string, roundIndex: number): boolean {
+  return isNoGoRound({
+    rng: createRng(seed),
+    roundIndex,
+    noGoProbability: NORMAL.noGoProbability,
+  });
+}
+
+/** First `prefix-N` seed whose early normal rounds are all plain-GO. */
+function findPlainGoSeed(prefix: string, rounds = 3): string {
+  outer: for (let i = 0; i < 100_000; i += 1) {
+    const candidate = `${prefix}-${i}`;
+    for (let round = 0; round < rounds; round += 1) {
+      if (isNoGoTrial(candidate, round)) {
+        continue outer;
+      }
+    }
+    return candidate;
+  }
+  throw new Error(`findPlainGoSeed: exhausted seed space for ${prefix}`);
+}
+
+/** First `prefix-N` seed whose round 0 is a NO-GO trial. */
+function findNoGoSeed(prefix: string): string {
+  for (let i = 0; i < 100_000; i += 1) {
+    const candidate = `${prefix}-${i}`;
+    if (isNoGoTrial(candidate, 0)) {
+      return candidate;
+    }
+  }
+  throw new Error(`findNoGoSeed: exhausted seed space for ${prefix}`);
 }
 
 /** Wait out the current round's GO delay and assert the signal is displayed. */
@@ -196,17 +231,33 @@ describe('SpeedScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
 
     let expectedActiveMs = 0;
+    let expectedScore = 0;
+    let goTrials = 0;
+    let withholds = 0;
     for (let round = 0; round < NORMAL.rounds; round += 1) {
       const delay = delayFor(seed, round);
       expectedActiveMs += delay;
-      await reachGo(clock, seed, round);
-      await advanceClock(clock, 400); // measured reaction: exactly 400 ms
-      expectedActiveMs += 400;
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'trigger')));
-      expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
-      expect(screen.getByTestId(testId(GAME_ID, 'reaction-ms'))).toHaveTextContent(
-        /Reaction 400 ms/,
-      );
+      await advanceTime(clock, delay);
+      if (isNoGoTrial(seed, round)) {
+        // ✕ stimulus: HOLD — survive the withhold window.
+        expect(screen.getByTestId(testId(GAME_ID, 'hold-status'))).toBeOnTheScreen();
+        expectedActiveMs += NORMAL.timeoutMs;
+        await advanceTime(clock, NORMAL.timeoutMs);
+        expect(screen.getByTestId(testId(GAME_ID, 'round-withheld'))).toBeOnTheScreen();
+        expectedScore += WITHHELD_ROUND_SCORE;
+        withholds += 1;
+      } else {
+        expect(screen.getByTestId(testId(GAME_ID, 'go-status'))).toBeOnTheScreen();
+        await advanceClock(clock, 400); // measured reaction: exactly 400 ms
+        expectedActiveMs += 400;
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'trigger')));
+        expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
+        expect(screen.getByTestId(testId(GAME_ID, 'reaction-ms'))).toHaveTextContent(
+          /Reaction 400 ms/,
+        );
+        expectedScore += 150;
+        goTrials += 1;
+      }
       if (round < NORMAL.rounds - 1) {
         await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
       }
@@ -218,8 +269,15 @@ describe('SpeedScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'rounds-passed'))).toHaveTextContent(
       `${NORMAL.rounds}/${NORMAL.rounds}`,
     );
-    expect(screen.getByTestId(testId(GAME_ID, 'median-reaction'))).toHaveTextContent('400 ms');
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent('1500');
+    if (goTrials > 0) {
+      expect(screen.getByTestId(testId(GAME_ID, 'median-reaction'))).toHaveTextContent('400 ms');
+    }
+    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(String(expectedScore));
+    if (withholds > 0) {
+      expect(screen.getByTestId(testId(GAME_ID, 'no-go-held'))).toHaveTextContent(
+        `${withholds}/${withholds}`,
+      );
+    }
 
     // Flush the async persistence chain.
     await act(async () => {});
@@ -232,10 +290,11 @@ describe('SpeedScreen', () => {
     expect(input.session.xp).toBe(0); // no-op hook in Phase 1
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as SpeedRawResult;
-    expect(raw.medianReactionMs).toBe(400);
-    expect(raw.bestReactionMs).toBe(400);
-    expect(raw.reactions).toHaveLength(NORMAL.rounds);
-    expect(raw.diagnosticMetadata.gameVersion).toBe('1.0.0');
+    expect(raw.medianReactionMs).toBe(goTrials > 0 ? 400 : null);
+    expect(raw.bestReactionMs).toBe(goTrials > 0 ? 400 : null);
+    expect(raw.reactions).toHaveLength(goTrials);
+    expect(raw.noGoWithheld).toBe(withholds);
+    expect(raw.diagnosticMetadata.gameVersion).toBe('1.1.0');
     expect(raw.diagnosticMetadata.seed).toBe(seed);
     expect(raw.difficulty).toBe('normal');
     expect(raw.forced).toBe(false);
@@ -245,7 +304,7 @@ describe('SpeedScreen', () => {
   });
 
   it('marks a slow reaction as a failed round and continues', async () => {
-    const seed = 'slow-tap';
+    const seed = findPlainGoSeed('slow-tap');
     const { clock } = await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
@@ -293,7 +352,7 @@ describe('SpeedScreen', () => {
   });
 
   it('times out the round when no tap arrives in time', async () => {
-    const seed = 'timeout';
+    const seed = findPlainGoSeed('timeout', 1);
     const { clock } = await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
@@ -305,8 +364,48 @@ describe('SpeedScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
   });
 
+  it('withholds correctly on a NO-GO stimulus (✕ HOLD) without tapping', async () => {
+    const seed = findNoGoSeed('hold-win');
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, delayFor(seed, 0));
+
+    // The danger cue is shown instead of GO.
+    expect(screen.getByTestId(testId(GAME_ID, 'hold-status'))).toBeOnTheScreen();
+    expect(screen.queryByTestId(testId(GAME_ID, 'go-status'))).toBeNull();
+
+    // Surviving the withhold window resolves the round as a correct withhold.
+    await advanceTime(clock, NORMAL.timeoutMs);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-withheld'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(
+      `Score ${WITHHELD_ROUND_SCORE}`,
+    );
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
+  });
+
+  it('penalizes tapping a NO-GO stimulus like a false start', async () => {
+    const seed = findNoGoSeed('hold-fail');
+    const { clock, persister } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, delayFor(seed, 0));
+    expect(screen.getByTestId(testId(GAME_ID, 'hold-status'))).toBeOnTheScreen();
+
+    // Tapping the ✕ costs a false start (normal budget 1 → within budget here).
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'trigger')));
+    expect(screen.getByTestId(testId(GAME_ID, 'round-no-go-false-start'))).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
+    await act(async () => {});
+    expect(persister.completeSession).toHaveBeenCalledTimes(0); // still running
+  });
+
   it('pauses during the wait: the overlay appears, timers freeze, and the full delay restarts on resume', async () => {
-    const seed = 'pause-wait';
+    const seed = findPlainGoSeed('pause-wait');
     const { clock } = await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
@@ -327,7 +426,7 @@ describe('SpeedScreen', () => {
   });
 
   it('pauses during the GO phase: the reaction window restarts on resume', async () => {
-    const seed = 'pause-go';
+    const seed = findPlainGoSeed('pause-go', 1);
     const { clock } = await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
@@ -386,7 +485,8 @@ describe('SpeedScreen', () => {
   });
 
   it('force-timeout fails the current round and the session continues', async () => {
-    const { clock, persister } = await renderScreen({ seed: 'qa-to' });
+    const seed = findPlainGoSeed('qa-to', 2);
+    const { clock, persister } = await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
@@ -398,7 +498,7 @@ describe('SpeedScreen', () => {
 
     // Round 2 is a normal round (the force hook did not end the session):
     // reach the GO and react; persistence must not have run yet.
-    await reachGo(clock, 'qa-to', 1);
+    await reachGo(clock, seed, 1);
     await reactFast(clock, 400);
     await act(async () => {});
     expect(persister.completeSession).toHaveBeenCalledTimes(0); // still in session

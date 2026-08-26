@@ -15,13 +15,17 @@
  * 'sum-compare':4). `quickCompareParamsFromProfile` decodes and validates
  * strictly.
  *
- * Difficulty direction: a SMALLER response window is HARDER. Fixed levels use
- * a constant window; adaptive shrinks the window after a fully-correct round
- * and grows it after a missed round, within [minWindowMs, maxWindowMs].
+ * Difficulty direction: a SMALLER response window is HARDER, a TIGHTER
+ * proximity (`spreadPct`: max |a−b| / |sumA−sumB| as % of the larger side) is
+ * HARDER, and a higher `optionCount` is harder for the numeric prompts.
+ * Fixed levels use a constant window; adaptive shrinks the window after a
+ * fully-correct round and grows it after a missed round, within
+ * [minWindowMs, maxWindowMs].
  */
 import { resolveDifficulty } from '@/sdk';
 import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
 
+import { UNCONSTRAINED_SPREAD_PCT } from './generator';
 import type { ComparePromptType, QuickCompareDifficultyParams } from './types';
 
 /** Fixed-level tuning: rounds, window, decision types, magnitude, options. */
@@ -34,6 +38,7 @@ export const QUICK_COMPARE_DIFFICULTY_PARAMS: Readonly<
     promptTypes: ['same-different', 'magnitude'],
     maxValue: 9,
     optionCount: 2,
+    spreadPct: 60,
   },
   normal: {
     rounds: 10,
@@ -41,6 +46,7 @@ export const QUICK_COMPARE_DIFFICULTY_PARAMS: Readonly<
     promptTypes: ['same-different', 'magnitude', 'sum-compare'],
     maxValue: 20,
     optionCount: 3,
+    spreadPct: 40,
   },
   hard: {
     rounds: 12,
@@ -48,6 +54,7 @@ export const QUICK_COMPARE_DIFFICULTY_PARAMS: Readonly<
     promptTypes: ['magnitude', 'sum-compare'],
     maxValue: 50,
     optionCount: 3,
+    spreadPct: 25,
   },
   expert: {
     rounds: 14,
@@ -55,6 +62,7 @@ export const QUICK_COMPARE_DIFFICULTY_PARAMS: Readonly<
     promptTypes: ['magnitude', 'sum-compare'],
     maxValue: 99,
     optionCount: 4,
+    spreadPct: 15,
   },
 };
 
@@ -69,6 +77,7 @@ export const ADAPTIVE_PARAMS: Readonly<QuickCompareDifficultyParams> = Object.fr
   promptTypes: ['same-different', 'magnitude', 'sum-compare'] as ComparePromptType[],
   maxValue: 30,
   optionCount: 3,
+  spreadPct: 35,
   minWindowMs: 1200,
   maxWindowMs: 3200,
 });
@@ -108,6 +117,9 @@ export function quickCompareParamsToRecord(
     windowMs: params.windowMs,
     maxValue: params.maxValue,
     optionCount: params.optionCount,
+    // Absent spread means unconstrained; always write the resolved value so
+    // fresh profiles carry the axis explicitly.
+    spreadPct: params.spreadPct ?? UNCONSTRAINED_SPREAD_PCT,
     promptTypeMask: mask,
   };
   if (params.minWindowMs !== undefined) {
@@ -148,12 +160,17 @@ export function quickCompareParamsFromProfile(
   const promptTypes = PROMPT_TYPES.filter((type) => (mask & PROMPT_TYPE_MASK[type]) !== 0);
   const minWindowMs = p.minWindowMs === undefined ? undefined : requireNumber('minWindowMs');
   const maxWindowMs = p.maxWindowMs === undefined ? undefined : requireNumber('maxWindowMs');
+  // Lenient for profiles persisted before the proximity axis existed (v1.1):
+  // an absent spread simply means unconstrained operand gaps.
+  const spreadPct =
+    p.spreadPct === undefined ? UNCONSTRAINED_SPREAD_PCT : requireNumber('spreadPct');
   return {
     rounds: requireNumber('rounds'),
     windowMs: requireNumber('windowMs'),
     promptTypes,
     maxValue: requireNumber('maxValue'),
     optionCount: requireNumber('optionCount'),
+    spreadPct,
     ...(minWindowMs !== undefined ? { minWindowMs } : {}),
     ...(maxWindowMs !== undefined ? { maxWindowMs } : {}),
   };

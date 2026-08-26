@@ -1,10 +1,11 @@
 /**
  * Symbol alphabet for the Running Order game.
  *
- * The stimulus stream is drawn from this fixed palette of six distinct
- * symbols. Every symbol is distinguishable by BOTH shape (glyph) and color, so
- * color-blind or low-vision players can still tell them apart, and the
- * accessibility label describes the symbol's identity (never "this is the
+ * The stimulus stream is drawn from this fixed palette of twelve distinct
+ * symbols (campaign 014 memory-depth wave: six made consecutive target windows
+ * feel samey). Every symbol is distinguishable by BOTH shape (glyph) and
+ * color, so color-blind or low-vision players can still tell them apart, and
+ * the accessibility label describes the symbol's identity (never "this is the
  * answer"). Keeping the palette small and fixed makes generation deterministic
  * and the working-memory load driven purely by stream length / recall length.
  */
@@ -27,6 +28,12 @@ export const RUNNING_ORDER_SYMBOLS: readonly RunningOrderSymbol[] =
   { id: 3, glyph: "★", color: "#F59E0B", label: "orange star" },
   { id: 4, glyph: "◆", color: "#A855F7", label: "purple diamond" },
   { id: 5, glyph: "♥", color: "#EC4899", label: "pink heart" },
+  { id: 6, glyph: "▼", color: "#06B6D4", label: "cyan inverted triangle" },
+  { id: 7, glyph: "♠", color: "#6366F1", label: "indigo spade" },
+  { id: 8, glyph: "♣", color: "#84CC16", label: "lime club" },
+  { id: 9, glyph: "✖", color: "#EAB308", label: "yellow cross" },
+  { id: 10, glyph: "☀", color: "#6B7280", label: "gray sun" },
+  { id: 11, glyph: "▶", color: "#0D9488", label: "teal arrowhead" },
  ]);
 
 export const SYMBOL_COUNT = RUNNING_ORDER_SYMBOLS.length;

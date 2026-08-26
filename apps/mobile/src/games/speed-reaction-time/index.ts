@@ -34,7 +34,7 @@ export {
   speedParamsFromProfile,
 } from './difficulty';
 export type { GenerateRoundDelayInput } from './generator';
-export { generateRoundDelay } from './generator';
+export { generateRoundDelay, isNoGoRound } from './generator';
 export {
   bestOf,
   clamp01,
@@ -47,6 +47,7 @@ export {
   reactionScore,
   roundScore,
   speedPerformanceNormalizer,
+  WITHHELD_ROUND_SCORE,
 } from './scoring';
 export type {
   BuildRawResultInput,

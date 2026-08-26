@@ -2,8 +2,11 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
+  ESCALATION_EVERY,
+  MAX_ESCALATION_STEPS,
   ADAPTIVE_PARAMS,
   TARGET_COUNT_DIFFICULTY_PARAMS,
+  escalatedDistractorClasses,
   targetCountParamsForLevel,
   targetCountParamsFromProfile,
   resolveTargetCountDifficulty,
@@ -83,6 +86,39 @@ describe('targetCountParamsFromProfile', () => {
       } as Readonly<Record<string, number>>,
     };
     expect(() => targetCountParamsFromProfile(badProfile)).toThrow('missing numeric parameter');
+  });
+});
+
+describe('escalatedDistractorClasses (within-session ladder)', () => {
+  const { easy, normal, hard, expert } = TARGET_COUNT_DIFFICULTY_PARAMS;
+
+  it('steps +1 class every ESCALATION_EVERY consecutive perfect rounds', () => {
+    expect(ESCALATION_EVERY).toBe(2);
+    expect(MAX_ESCALATION_STEPS).toBe(2);
+    // normal base = 2
+    expect(escalatedDistractorClasses(normal, 0)).toBe(2);
+    expect(escalatedDistractorClasses(normal, 1)).toBe(2); // not yet
+    expect(escalatedDistractorClasses(normal, 2)).toBe(3); // first step
+    expect(escalatedDistractorClasses(normal, 3)).toBe(3);
+    expect(escalatedDistractorClasses(normal, 4)).toBe(4); // second step
+  });
+
+  it('is bounded by tier caps and the symbol-palette ceiling', () => {
+    // Palette has 6 glyphs → at most 5 DISTINCT non-target classes exist.
+    expect(escalatedDistractorClasses(easy, 100)).toBe(3); // base 1 + 2
+    expect(escalatedDistractorClasses(normal, 100)).toBe(4); // base 2 + 2
+    expect(escalatedDistractorClasses(hard, 100)).toBe(5); // base 3 + 2
+    expect(escalatedDistractorClasses(expert, 100)).toBe(5); // clamped by palette
+    // Adaptive shares the same contract.
+    expect(escalatedDistractorClasses(ADAPTIVE_PARAMS, 0)).toBe(
+      ADAPTIVE_PARAMS.distractorClasses,
+    );
+    expect(escalatedDistractorClasses(ADAPTIVE_PARAMS, 100)).toBeLessThanOrEqual(5);
+  });
+
+  it('rejects invalid streak inputs loudly', () => {
+    expect(() => escalatedDistractorClasses(normal, -1)).toThrow(RangeError);
+    expect(() => escalatedDistractorClasses(normal, 1.5)).toThrow(RangeError);
   });
 });
 

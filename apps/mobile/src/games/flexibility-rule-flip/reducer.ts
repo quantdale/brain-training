@@ -10,7 +10,9 @@
  * "flip". The reducer simply advances through the pre-built `plan` (built by
  * `generateSession`), which encodes, for each trial, whether it is the first
  * trial of a block whose rule differs from the previous block's rule (a SWITCH
- * trial) or a REPEAT trial.
+ * trial) or a REPEAT trial — and whether the trial belongs to an UNCUED block,
+ * where the rule banner hides until the first pick and feedback reveals the
+ * rule (the flip-detection/inference mechanic).
  *
  * Every transition is a pure function of `(state, action)` — no timers, no
  * side effects — so the whole loop (including the QA force paths) is unit
@@ -29,7 +31,7 @@ import {
   resolveFlexibilityRuleFlipDifficulty,
 } from './difficulty';
 import { generateSession } from './generator';
-import { perfectPlanScore, roundScore, SWITCH_CORRECT_BONUS } from './scoring';
+import { perfectPlanScore, trialRawScore } from './scoring';
 import { INITIAL_STATS, createInitialFlexibilityRuleFlipState } from './types';
 import type {
   FlexibilityRuleFlipAction,
@@ -102,12 +104,14 @@ export function flexibilityRuleFlipReducer(
       const correct = action.index === state.round.correctIndex;
       const params = flexibilityRuleFlipParamsFromProfile(state.profile);
       const isSwitch = state.round.isSwitch;
+      // Uncued-window trials hide the banner pre-pick, so every pick there is
+      // an inference "first pick" — scored (and counted) via its own bonus.
+      const isUncued = state.round.uncued === true;
       const streak = correct ? state.stats.streak + 1 : 0;
       const stats: FlexibilityRuleFlipStats = {
         score:
           state.stats.score +
-          roundScore(correct, action.responseMs, params.speedTargetMs) +
-          (isSwitch && correct ? SWITCH_CORRECT_BONUS : 0),
+          trialRawScore(correct, action.responseMs, params.speedTargetMs, isSwitch, isUncued),
         roundsPlayed: state.stats.roundsPlayed + 1,
         correctPicks: state.stats.correctPicks + (correct ? 1 : 0),
         mistakes: state.stats.mistakes + (correct ? 0 : 1),
@@ -119,6 +123,8 @@ export function flexibilityRuleFlipReducer(
         switchCorrect: state.stats.switchCorrect + (isSwitch && correct ? 1 : 0),
         repeatPlayed: state.stats.repeatPlayed + (isSwitch ? 0 : 1),
         repeatCorrect: state.stats.repeatCorrect + (!isSwitch && correct ? 1 : 0),
+        uncuedPlayed: state.stats.uncuedPlayed + (isUncued ? 1 : 0),
+        uncuedCorrect: state.stats.uncuedCorrect + (isUncued && correct ? 1 : 0),
       };
       return {
         ...state,
@@ -215,12 +221,14 @@ export function flexibilityRuleFlipReducer(
         return state;
       }
       // Perfect run: every round correct and instant; switch trials also earn
-      // the switch-correct bonus (exactly what the plan encodes).
+      // the switch-correct bonus and uncued trials the inference bonus
+      // (exactly what the plan encodes).
       const plan = state.plan;
       const switchPlayed = plan.filter((r) => r.isSwitch).length;
       const switchCorrect = switchPlayed;
       const repeatPlayed = plan.length - switchPlayed;
       const repeatCorrect = repeatPlayed;
+      const uncuedPlayed = plan.filter((r) => r.uncued === true).length;
       return {
         ...state,
         phase: 'results',
@@ -241,6 +249,8 @@ export function flexibilityRuleFlipReducer(
           switchCorrect,
           repeatPlayed,
           repeatCorrect,
+          uncuedPlayed,
+          uncuedCorrect: uncuedPlayed,
         },
       };
     }
@@ -254,6 +264,7 @@ export function flexibilityRuleFlipReducer(
       // as-is.
       const countsRound = state.phase === 'trialActive' ? 1 : 0;
       const isSwitch = countsRound === 1 && state.round !== null ? state.round.isSwitch : false;
+      const isUncued = countsRound === 1 && state.round !== null ? state.round.uncued === true : false;
       const switchPlayed = state.stats.switchPlayed + (isSwitch ? 1 : 0);
       const repeatPlayed = state.stats.repeatPlayed + (isSwitch ? 0 : 1);
       return {
@@ -273,6 +284,8 @@ export function flexibilityRuleFlipReducer(
           switchCorrect: state.stats.switchCorrect,
           repeatPlayed,
           repeatCorrect: state.stats.repeatCorrect,
+          uncuedPlayed: state.stats.uncuedPlayed + (isUncued ? 1 : 0),
+          uncuedCorrect: state.stats.uncuedCorrect,
         },
       };
     }

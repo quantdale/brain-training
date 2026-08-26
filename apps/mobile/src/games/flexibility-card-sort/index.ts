@@ -43,18 +43,22 @@ export {
   MAX_GENERATE_ATTEMPTS,
   cardAlphabet,
   generateRound,
+  isDiscoveryBlock,
   pickInitialRule,
+  planDiscoveryBlocks,
   validateRound,
 } from './generator';
 export {
   accuracyOf,
   clamp01,
+  discoveryAccuracyOf,
   flexibilityPerformanceNormalizer,
   normalizeFlexibilityResult,
   perfectSessionScore,
   roundScore,
   speedScoreOf,
   switchAccuracyOf,
+  switchBlendFactorOf,
 } from './scoring';
 export type {
   BuildRawResultInput,

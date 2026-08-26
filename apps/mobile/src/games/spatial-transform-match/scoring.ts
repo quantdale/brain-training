@@ -5,6 +5,14 @@
  * canonical `NormalizedPerformance` (scale 0..1) before any shared rating/XP
  * logic runs.
  *
+ * Raw scoring rule (documented, deterministic):
+ *   speedTargetMs = answerSpeedTargetMs(sourceRevealMs) = sourceRevealMs + 10_000
+ *   round score   = correct ? 100 + 50 * clamp01(1 - answerMs / speedTargetMs) : 0
+ *   (faster correct answers earn up to a 50-point speed bonus)
+ *
+ * The raw-score speed window shares its basis (`sourceRevealMs + 10_000`) with
+ * the normalization rule below, mirroring the fold-match scoring contract.
+ *
  * Normalization rule (documented, deterministic):
  *
  *   accuracy      = roundsPassed / roundsPlayed            (0..1)
@@ -25,14 +33,45 @@ import type { SpatialTransformMatchDifficultyParams, SpatialTransformMatchRawRes
 /** Points for a correct answer: 100 base. */
 export const CORRECT_POINTS = 100;
 
-/** Points for a correct answer. */
-export function roundScore(): number {
-  return CORRECT_POINTS;
+/** Max speed bonus for a fast correct answer. */
+export const SPEED_BONUS = 50;
+
+/** Max raw points available per round. */
+export const MAX_ROUND_SCORE = CORRECT_POINTS + SPEED_BONUS;
+
+/**
+ * Active-answer window added to `sourceRevealMs` to form the speed target.
+ * Shared by raw scoring AND normalization so both reward the same pacing.
+ */
+export const ANSWER_SPEED_WINDOW_MS = 10_000;
+
+/**
+ * Speed target for the answer phase: how long a correct answer may take before
+ * it stops earning any speed bonus. Identical to the normalization denominator
+ * basis used by `speedProgress` (see module docs).
+ */
+export function answerSpeedTargetMs(sourceRevealMs: number): number {
+  return sourceRevealMs + ANSWER_SPEED_WINDOW_MS;
 }
 
-/** Score of a hypothetically perfect session (all rounds correct). */
+/**
+ * Raw score for a single answer:
+ *   correct ? CORRECT_POINTS + SPEED_BONUS * clamp01(1 - answerMs / answerSpeedTargetMs(sourceRevealMs)) : 0
+ */
+export function roundScore(
+  correct: boolean,
+  answerMs: number,
+  sourceRevealMs: number,
+): number {
+  if (!correct) {
+    return 0;
+  }
+  return CORRECT_POINTS + SPEED_BONUS * clamp01(1 - answerMs / answerSpeedTargetMs(sourceRevealMs));
+}
+
+/** Score of a hypothetically perfect session (all rounds fast-correct). */
 export function perfectSessionScore(params: SpatialTransformMatchDifficultyParams): number {
-  return params.rounds * CORRECT_POINTS;
+  return params.rounds * MAX_ROUND_SCORE;
 }
 
 /** Share of rounds passed; 0 when nothing was played (division guard). */
@@ -54,7 +93,7 @@ export function clamp01(value: number): number {
  * negative.
  */
 export function speedProgress(averageAnswerMs: number, sourceRevealMs: number): number {
-  const maxMs = sourceRevealMs + 10_000;
+  const maxMs = answerSpeedTargetMs(sourceRevealMs);
   return clamp01(1 - averageAnswerMs / maxMs);
 }
 

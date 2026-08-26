@@ -47,8 +47,12 @@ export {
   patternDistance,
 } from './generator';
 export {
+  ANSWER_SPEED_WINDOW_MS,
   CORRECT_POINTS,
+  MAX_ROUND_SCORE,
+  SPEED_BONUS,
   accuracyOf,
+  answerSpeedTargetMs,
   clamp01,
   normalizeResult,
   perfectSessionScore,

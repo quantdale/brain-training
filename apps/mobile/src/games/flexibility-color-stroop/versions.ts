@@ -8,7 +8,7 @@
  */
 
 /** Scoring/normalization version — bump when `normalizeColorStroopResult` changes. */
-export const SCORING_VERSION = '1.2.0';
+export const SCORING_VERSION = '1.3.0';
 
 /**
  * Map a semantic version string to the integer recorded in the db.

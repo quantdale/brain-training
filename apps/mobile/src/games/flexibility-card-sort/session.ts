@@ -16,7 +16,7 @@ import type {
 import { getDb } from '@/db';
 import type { CompleteSessionInput, CompleteSessionResult, GameSessionRecord } from '@/db';
 
-import { accuracyOf, speedScoreOf, switchAccuracyOf } from './scoring';
+import { accuracyOf, discoveryAccuracyOf, speedScoreOf, switchAccuracyOf } from './scoring';
 import { GAME_ID } from './types';
 import type { FlexibilityDifficultyParams, FlexibilityRawResult, FlexibilityStats } from './types';
 import { versionToNumber } from './versions';
@@ -60,6 +60,7 @@ export function buildFlexibilityRawResult(input: BuildRawResultInput): Flexibili
     numColors: input.params.numColors,
     rounds: input.params.rounds,
     switchEvery: input.params.switchEvery,
+    discoveryRate: input.params.discoveryRate,
     noticeMs: input.params.noticeMs,
     speedTargetMs: input.params.speedTargetMs,
     finalSwitchEvery: input.finalSwitchEvery,
@@ -95,8 +96,12 @@ export function buildFlexibilityRawResult(input: BuildRawResultInput): Flexibili
     postSwitchPlayed: input.stats.postSwitchPlayed,
     postSwitchCorrect: input.stats.postSwitchCorrect,
     switchAccuracy: switchAccuracyOf(input.stats.postSwitchCorrect, input.stats.postSwitchPlayed),
+    discoveryPlayed: input.stats.discoveryPlayed,
+    discoveryCorrect: input.stats.discoveryCorrect,
+    discoveryAccuracy: discoveryAccuracyOf(input.stats.discoveryCorrect, input.stats.discoveryPlayed),
     numShapes: input.params.numShapes,
     numColors: input.params.numColors,
+    discoveryRate: input.params.discoveryRate,
     switchEvery: input.finalSwitchEvery,
     noticeMs: input.params.noticeMs,
     speedTargetMs: input.params.speedTargetMs,

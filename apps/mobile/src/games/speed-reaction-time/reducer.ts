@@ -13,6 +13,12 @@
  *   `clock.now() - goAtMs` at tap time, so timer jitter never distorts a
  *   measured reaction.
  *
+ * Go/No-Go (v1.1): some rounds carry a NO-GO stimulus (`isNoGoRound`, drawn
+ * from the seed). Tapping it is a false-start-class penalty — it consumes the
+ * shared false-start budget and can abort the session — while surviving the
+ * withhold window scores like a passed round (`withheld`). Withholds never
+ * enter the reaction list, so median/best/mean stay pure GO-trial measures.
+ *
  * QA force actions (`qa/*`) only reshape state; the screen gates their entry
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()` (see
  * hooks.ts), so production builds never expose them.
@@ -24,8 +30,8 @@ import {
   resolveSpeedDifficulty,
   speedParamsFromProfile,
 } from './difficulty';
-import { generateRoundDelay } from './generator';
-import { bestOf, meanOf, medianOf, perfectSessionScore, roundScore } from './scoring';
+import { generateRoundDelay, isNoGoRound } from './generator';
+import { bestOf, meanOf, medianOf, perfectSessionScore, roundScore, WITHHELD_ROUND_SCORE } from './scoring';
 import { INITIAL_STATS, createInitialSpeedState } from './types';
 import type { SpeedAction, SpeedGameState, SpeedStats } from './types';
 
@@ -57,6 +63,11 @@ export function speedGameReducer(
         minDelayMs: delayMinMs,
         maxDelayMs: params.maxDelayMs,
       });
+      const isNoGo = isNoGoRound({
+        rng: createRng(action.seed),
+        roundIndex: 0,
+        noGoProbability: params.noGoProbability,
+      });
       return {
         ...state,
         phase: 'wait',
@@ -71,6 +82,7 @@ export function speedGameReducer(
         roundIndex: 0,
         delayMinMs,
         delayMs,
+        isNoGoRound: isNoGo,
         goAtMs: null,
         roundOutcome: null,
         stats: { ...INITIAL_STATS },
@@ -95,6 +107,37 @@ export function speedGameReducer(
       if (state.phase !== 'go' || state.profile === null || state.goAtMs === null) {
         return state;
       }
+      // NO-GO stimulus displayed: tapping it is a false-start-class penalty.
+      // It consumes the shared budget (and can abort the session); no reaction
+      // is recorded because inhibition, not speed, is what is scored here.
+      if (state.isNoGoRound) {
+        const params = speedParamsFromProfile(state.profile);
+        const falseStarts = state.stats.falseStarts + 1;
+        const baseStats: SpeedStats = {
+          ...state.stats,
+          roundsPlayed: state.stats.roundsPlayed + 1,
+          falseStarts,
+          noGoTrials: state.stats.noGoTrials + 1,
+          noGoHits: state.stats.noGoHits + 1,
+        };
+        if (falseStarts > params.falseStartBudget) {
+          // Budget exhausted: the session ends immediately (early abort),
+          // mirroring the pre-GO false-start contract.
+          return {
+            ...state,
+            phase: 'results',
+            paused: false,
+            roundOutcome: null,
+            stats: { ...baseStats, falseStartAborted: true },
+          };
+        }
+        return {
+          ...state,
+          phase: 'roundResult',
+          roundOutcome: 'no-go-false-start',
+          stats: baseStats,
+        };
+      }
       // Monotonic-clock invariant: a reaction can never be negative in
       // practice; reject such readings instead of corrupting the stats.
       if (action.rtMs < 0) {
@@ -104,6 +147,7 @@ export function speedGameReducer(
       const reactions = [...state.stats.reactions, action.rtMs];
       const passed = action.rtMs <= params.passMs;
       const stats: SpeedStats = {
+        ...state.stats,
         reactions,
         roundsPlayed: state.stats.roundsPlayed + 1,
         roundsPassed: state.stats.roundsPassed + (passed ? 1 : 0),
@@ -160,6 +204,23 @@ export function speedGameReducer(
       if (state.phase !== 'go') {
         return state;
       }
+      // On a NO-GO round the withhold window expiring without a tap is
+      // SUCCESS: score it like a passed round (no reaction sample).
+      if (state.isNoGoRound) {
+        return {
+          ...state,
+          phase: 'roundResult',
+          roundOutcome: 'withheld',
+          stats: {
+            ...state.stats,
+            roundsPlayed: state.stats.roundsPlayed + 1,
+            roundsPassed: state.stats.roundsPassed + 1,
+            score: state.stats.score + WITHHELD_ROUND_SCORE,
+            noGoTrials: state.stats.noGoTrials + 1,
+            noGoWithheld: state.stats.noGoWithheld + 1,
+          },
+        };
+      }
       return {
         ...state,
         phase: 'roundResult',
@@ -197,6 +258,11 @@ export function speedGameReducer(
         roundIndex: nextIndex,
         delayMinMs,
         delayMs,
+        isNoGoRound: isNoGoRound({
+          rng: createRng(state.seed),
+          roundIndex: nextIndex,
+          noGoProbability: params.noGoProbability,
+        }),
         goAtMs: null,
         roundOutcome: null,
       };
@@ -273,6 +339,9 @@ export function speedGameReducer(
           roundsPassed: params.rounds,
           falseStarts: 0,
           timeouts: 0,
+          noGoTrials: 0,
+          noGoWithheld: 0,
+          noGoHits: 0,
           bestReactionMs: params.targetMs,
           medianReactionMs: params.targetMs,
           meanReactionMs: params.targetMs,
@@ -300,6 +369,9 @@ export function speedGameReducer(
           roundsPassed: 0,
           falseStarts: params.falseStartBudget + 1,
           timeouts: 0,
+          noGoTrials: 0,
+          noGoWithheld: 0,
+          noGoHits: 0,
           bestReactionMs: null,
           medianReactionMs: null,
           meanReactionMs: null,

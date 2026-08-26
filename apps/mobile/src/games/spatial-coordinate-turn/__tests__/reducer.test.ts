@@ -208,6 +208,28 @@ describe('next-round', () => {
   });
 });
 
+describe('brief-tick', () => {
+  it('auto-transitions the brief phase to choice when study time expires', () => {
+    const state = gameReducer(startSession('brief-tick'), { type: 'brief-tick' });
+    expect(state.phase).toBe('choice');
+  });
+
+  it('is ignored outside brief or while paused', () => {
+    const intro = gameReducer(createInitialSpatialCoordinateTurnState(), {
+      type: 'brief-tick',
+    });
+    expect(intro.phase).toBe('intro');
+
+    const paused = gameReducer(startSession('brief-paused'), { type: 'pause' });
+    const ticked = gameReducer(paused, { type: 'brief-tick' });
+    expect(ticked.phase).toBe('brief');
+    expect(ticked.paused).toBe(true);
+
+    const chosen = toChoice(startSession('brief-chosen'));
+    expect(gameReducer(chosen, { type: 'brief-tick' }).phase).toBe('choice');
+  });
+});
+
 describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
     const intro = gameReducer(createInitialSpatialCoordinateTurnState(), { type: 'pause' });

@@ -7,11 +7,51 @@
  * carry the SDK default challenge ratings; `adaptive` starts at the neutral
  * 0.5 baseline and the final rating is derived from how many rounds the
  * player counted correctly relative to how many they played.
+ *
+ * Within-session escalation (campaign 014) — mirrors the visual-search grid
+ * ladder (`GRID_ESCALATION_EVERY` pattern): after every
+ * `ESCALATION_EVERY` consecutive PERFECT rounds, the session escalates one
+ * step by widening distractor variety (+1 `distractorClass`), bounded by
+ * `MAX_ESCALATION_STEPS` above the tier's base and by the symbol palette
+ * itself (there are only `SYMBOLS.length - 1` non-target glyphs). A wrong
+ * answer resets the streak and therefore the ladder. The ladder is a pure
+ * function of `(tier params, current streak)` so any round is reproducible
+ * from the seed plus the recorded streak at that round (stats travel with the
+ * raw result), exactly like the sibling track-count escalation in
+ * attention-symbol-tracker.
  */
 import { resolveDifficulty } from '@/sdk';
 import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
 
 import type { TargetCountDifficultyParams } from './types';
+import { SYMBOLS } from './generator';
+
+/** Consecutive perfect rounds required per escalation step (visual-search parity). */
+export const ESCALATION_EVERY = 2;
+
+/** Maximum steps above the tier's base `distractorClasses`. */
+export const MAX_ESCALATION_STEPS = 2;
+
+/**
+ * Effective distractor-class count for the NEXT round given the player's
+ * current consecutive-correct streak: base tier value, +1 per
+ * `ESCALATION_EVERY` perfect rounds, capped at `base + MAX_ESCALATION_STEPS`
+ * and by the palette ceiling (`SYMBOLS.length - 1` distinct non-target glyphs).
+ */
+export function escalatedDistractorClasses(
+  params: TargetCountDifficultyParams,
+  streak: number,
+): number {
+  if (!Number.isInteger(streak) || streak < 0) {
+    throw new RangeError(
+      `escalatedDistractorClasses: streak must be a non-negative integer, got ${streak}`,
+    );
+  }
+  const paletteCeiling = SYMBOLS.length - 1;
+  const cap = Math.min(params.distractorClasses + MAX_ESCALATION_STEPS, paletteCeiling);
+  const steps = Math.min(MAX_ESCALATION_STEPS, Math.floor(streak / ESCALATION_EVERY));
+  return Math.min(cap, params.distractorClasses + steps);
+}
 
 /** Fixed-level tuning: grid size, distractor variety, target range, time, rounds. */
 export const TARGET_COUNT_DIFFICULTY_PARAMS: Readonly<

@@ -7,6 +7,7 @@ import {
   generateRound,
   validateGeneratedRound,
 } from "../generator";
+import { answerSet } from "../solver";
 import { LOGIC_DEDUCTION_DIFFICULTY_PARAMS } from "../difficulty";
 import type {
   LogicDeductionDifficultyParams,
@@ -130,5 +131,46 @@ describe("validateGeneratedRound", () => {
     const base = roundFor("ambig", 0, params);
     expect(base.clues.length).toBeGreaterThanOrEqual(1);
     expect(validateGeneratedRound({ ...base, clues: [] })).toBe(false);
+  });
+});
+
+describe("anti-giveaway clue filter (campaign 014)", () => {
+  // A shipped clue must never ALONE determine the asked cell: the direct
+  // equality naming the asked entity+attribute (or, on tiny domains, an
+  // exclusion collapsing it to one value) converts deduction into reading.
+  function aloneDetermines(round: LogicDeductionRound): boolean {
+    return round.clues.some(
+      (clue) => answerSet({ ...round, clues: [clue] }, round.question).size <= 1,
+    );
+  }
+
+  it("ships no lone-giveaway clue across all levels and many seeds", () => {
+    for (const [level, params] of Object.entries(LOGIC_DEDUCTION_DIFFICULTY_PARAMS)) {
+      for (let seed = 1; seed <= 40; seed += 1) {
+        const round = roundFor(`giveaway-${level}-${seed}`, seed % 3, params);
+        expect(validateGeneratedRound(round)).toBe(true);
+        expect(aloneDetermines(round)).toBe(false);
+      }
+    }
+  });
+
+  it("keeps uniqueness proven while allowing fewer than clueCount clues", () => {
+    for (const [level, params] of Object.entries(LOGIC_DEDUCTION_DIFFICULTY_PARAMS)) {
+      for (let seed = 1; seed <= 10; seed += 1) {
+        const round = roundFor(`pad-${level}-${seed}`, 0, params);
+        expect(validateGeneratedRound(round)).toBe(true);
+        // The safe-pool pad may legitimately exhaust before clueCount; it
+        // never overshoots, and uniqueness stays solver-proven either way.
+        expect(round.clues.length).toBeLessThanOrEqual(params.clueCount);
+      }
+    }
+  });
+
+  it("stays deterministic under the filter", () => {
+    for (const [level, params] of Object.entries(LOGIC_DEDUCTION_DIFFICULTY_PARAMS)) {
+      const a = roundFor(`filter-det-${level}`, 2, params);
+      const b = roundFor(`filter-det-${level}`, 2, params);
+      expect(a).toEqual(b);
+    }
   });
 });

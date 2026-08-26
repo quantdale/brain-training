@@ -23,6 +23,9 @@ function rawResult(overrides: Partial<SpeedRawResult>): SpeedRawResult {
     roundsPassed: 0,
     falseStarts: 0,
     timeouts: 0,
+    noGoTrials: 0,
+    noGoWithheld: 0,
+    noGoHits: 0,
     falseStartAborted: false,
     bestReactionMs: null,
     medianReactionMs: null,
@@ -30,6 +33,7 @@ function rawResult(overrides: Partial<SpeedRawResult>): SpeedRawResult {
     reactions: [],
     minDelayMs: 1000,
     maxDelayMs: 3000,
+    noGoProbability: 0.15,
     falseStartBudget: 1,
     targetMs: 400,
     passMs: 600,
@@ -168,6 +172,45 @@ describe('normalizeSpeedResult (documented formula)', () => {
     );
     expect(normalized.scale).toBe('0..1');
     expect(normalized.value).toBe(1);
+  });
+
+  it('counts correct no-go withholds toward completion', () => {
+    // 6 go reactions + 4 correct withholds = 10/10 completed; the median over
+    // go-only reactions still drives the reaction component.
+    const normalized = normalizeSpeedResult(
+      rawResult({
+        reactions: [600, 600, 600, 600, 600, 600],
+        roundsPlayed: 10,
+        roundsPassed: 10,
+        noGoTrials: 4,
+        noGoWithheld: 4,
+        bestReactionMs: 600,
+        medianReactionMs: 600,
+        meanReactionMs: 600,
+      }),
+      { gameId: 'speed-reaction-time', difficulty: 'normal', durationMs: 0 },
+    );
+    // completion 1.0 * (0.5 + 0.5 * reaction(600 → 0.5)) = 0.75
+    expect(normalized.value).toBeCloseTo(0.75);
+  });
+
+  it('does not let withholds mask missed go rounds', () => {
+    // 2 reactions + 2 withholds out of 10 rounds → completion 0.4.
+    const normalized = normalizeSpeedResult(
+      rawResult({
+        reactions: [600, 600],
+        roundsPlayed: 10,
+        roundsPassed: 4,
+        noGoTrials: 2,
+        noGoWithheld: 2,
+        bestReactionMs: 600,
+        medianReactionMs: 600,
+        meanReactionMs: 600,
+      }),
+      { gameId: 'speed-reaction-time', difficulty: 'normal', durationMs: 0 },
+    );
+    // 0.4 * (0.5 + 0.25) = 0.3
+    expect(normalized.value).toBeCloseTo(0.3);
   });
 
   it('is 0 when no round was completed with a valid reaction', () => {

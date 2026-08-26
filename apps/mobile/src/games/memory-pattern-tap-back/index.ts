@@ -27,6 +27,7 @@ export {
   ADAPTIVE_PARAMS,
   DIFFICULTY_PARAMS,
   adaptiveGridSize,
+  confirmsEachTap,
   nextSequenceLength,
   paramsForLevel,
   paramsFromProfile,
@@ -40,6 +41,7 @@ export {
   generateRoundSequence,
   isNearDuplicate,
   sequenceDistance,
+  tilesAreAdjacent,
 } from './generator';
 export {
   accuracyOf,

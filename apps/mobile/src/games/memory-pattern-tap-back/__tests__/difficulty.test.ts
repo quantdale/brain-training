@@ -6,6 +6,7 @@ import {
   ADAPTIVE_PARAMS,
   DIFFICULTY_PARAMS,
   adaptiveGridSize,
+  confirmsEachTap,
   nextSequenceLength,
   paramsForLevel,
   paramsFromProfile,
@@ -152,5 +153,19 @@ describe('adaptiveGridSize', () => {
     const params = DIFFICULTY_PARAMS.normal;
     expect(adaptiveGridSize(0, params)).toBe(9);
     expect(adaptiveGridSize(10, params)).toBe(9);
+  });
+});
+
+describe('confirmsEachTap', () => {
+  it('keeps the per-tap success confirm on approachable levels (and pre-session null)', () => {
+    expect(confirmsEachTap('easy')).toBe(true);
+    expect(confirmsEachTap('normal')).toBe(true);
+    expect(confirmsEachTap('adaptive')).toBe(true);
+    expect(confirmsEachTap(null)).toBe(true);
+  });
+
+  it('hides the per-tap confirm on hard/expert so the route must be held unaided', () => {
+    expect(confirmsEachTap('hard')).toBe(false);
+    expect(confirmsEachTap('expert')).toBe(false);
   });
 });

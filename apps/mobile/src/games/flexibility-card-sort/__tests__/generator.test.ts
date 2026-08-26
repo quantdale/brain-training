@@ -7,7 +7,9 @@ import {
   MAX_GENERATE_ATTEMPTS,
   cardAlphabet,
   generateRound,
+  isDiscoveryBlock,
   pickInitialRule,
+  planDiscoveryBlocks,
   validateRound,
 } from '../generator';
 import { FLEXIBILITY_DIFFICULTY_PARAMS } from '../difficulty';
@@ -166,6 +168,64 @@ describe('pickInitialRule', () => {
   it('produces variety across seeds', () => {
     const rules = new Set(Array.from({ length: 24 }, (_, i) => pickInitialRule(createRng(`v${i}`))));
     expect(rules.size).toBeGreaterThan(1);
+  });
+});
+
+describe('planDiscoveryBlocks (block-type plan)', () => {
+  it('is deterministic: same seed → same cued/discovery pattern', () => {
+    expect(planDiscoveryBlocks('disc-det', 4, 0.5)).toEqual(planDiscoveryBlocks('disc-det', 4, 0.5));
+    expect(planDiscoveryBlocks('disc-a', 6, 0.34)).not.toEqual(planDiscoveryBlocks('disc-b', 6, 0.34));
+  });
+
+  it('always cues block 0 (the anchor rule is explicitly taught)', () => {
+    for (let s = 0; s < 20; s += 1) {
+      expect(isDiscoveryBlock(`anchor-${s}`, 0, 0.9)).toBe(false);
+      expect(planDiscoveryBlocks(`anchor-${s}`, 4, 0.9)[0]).toBe(false);
+      // Negative/absent indices are never discovery either.
+      expect(isDiscoveryBlock(`anchor-${s}`, -1, 0.9)).toBe(false);
+    }
+  });
+
+  it('plans no discovery blocks when the rate is 0 (easy contract)', () => {
+    for (let s = 0; s < 10; s += 1) {
+      const plan = planDiscoveryBlocks(`cued-only-${s}`, 4, 0);
+      expect(plan.every((flag) => !flag)).toBe(true);
+    }
+  });
+
+  it('guarantees at least one discovery stretch when the rate admits them', () => {
+    // The forced fallback keeps QA scenarios reproducible: a tier that promises
+    // inference stretches must always exercise at least one.
+    for (const rate of [0.05, 0.34]) {
+      for (let s = 0; s < 30; s += 1) {
+        const plan = planDiscoveryBlocks(`guarantee-${rate}-${s}`, 3, rate);
+        expect(plan.slice(1).some((flag) => flag)).toBe(true);
+      }
+    }
+  });
+
+  it('weights hard/expert discovery heavier than normal across seeds', () => {
+    const countDiscovery = (seed: string, rate: number) =>
+      planDiscoveryBlocks(seed, 8, rate).filter((flag) => flag).length;
+    let normalTotal = 0;
+    let expertTotal = 0;
+    for (let s = 0; s < 12; s += 1) {
+      const seed = `weight-${s}`;
+      normalTotal += countDiscovery(seed, 0.34); // normal tier rate
+      expertTotal += countDiscovery(seed, 0.66); // expert tier rate
+    }
+    expect(expertTotal).toBeGreaterThan(normalTotal);
+  });
+
+  it('keeps round content independent of the block-type plan', () => {
+    // Discovery affects only presentation (banner/notice masking): the seeded
+    // card stream must be identical regardless of the planned block types.
+    const rngA = createRng('content-stability');
+    const rngB = createRng('content-stability');
+    expect(isDiscoveryBlock('any-plan', 1, 0.9)).toBeDefined();
+    const roundA = generateRound({ rng: rngA, roundIndex: 2, rule: 'shape', numShapes: 3, numColors: 3, prevTarget: null });
+    const roundB = generateRound({ rng: rngB, roundIndex: 2, rule: 'shape', numShapes: 3, numColors: 3, prevTarget: null });
+    expect(roundB).toEqual(roundA);
   });
 });
 

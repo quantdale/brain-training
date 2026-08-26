@@ -55,6 +55,11 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
             under the active rule — by color, or by shape. The rule keeps switching, so keep
             an eye on the banner.
           </ThemedText>
+          <ThemedText type="small" themeColor="textSecondary">
+            On higher difficulties some stretches hide the banner entirely:
+            infer the sorting rule from which sorts are kept or rejected — a
+            miss always reveals the rule you were looking for.
+          </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}
             label="Try a demo"

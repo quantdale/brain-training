@@ -147,8 +147,9 @@ describe('content reachability (campaign 010 debt class)', () => {
   it('expert pool stays meaningful: 5-number sets need the full operator mix', () => {
     const params = MATH_EQUATION_BUILDER_DIFFICULTY_PARAMS.expert;
     const expertPool = PUZZLE_TEMPLATES.filter((t) => t.numbers.length === params.numbersCount);
-    // Expert must have real curated depth (it once had none).
-    expect(expertPool.length).toBeGreaterThanOrEqual(10);
+    // Expert must have real curated depth (it once had none; campaign 014
+    // grew the pool 10 → 31 to stop expert sessions collapsing onto repeats).
+    expect(expertPool.length).toBeGreaterThanOrEqual(25);
     for (const t of expertPool) {
       expect(t.target).toBeGreaterThanOrEqual(params.targetMin);
       expect(canSolve(t.target, t.numbers, ['+'])).toBe(false);

@@ -127,7 +127,8 @@ describe('buildSessionRecord', () => {
     expect(record.gameId).toBe('flexibility-rule-flip');
     expect(record.gameVersion).toBe(1_000_000);
     expect(record.generatorVersion).toBe(1_000_000);
-    expect(record.scoringVersion).toBe(1_000_000);
+    // SCORING_VERSION bumped to 2.0.0 with the uncued blend (campaign 014).
+    expect(record.scoringVersion).toBe(2_000_000);
     expect(record.seed).toBe(seedToNumber('rec-seed'));
     // `GameSessionRecord.difficulty` is `unknown` at the db boundary; the
     // session builder stores the resolved profile document.

@@ -42,6 +42,7 @@ export {
   evaluateAllResults,
   generatePuzzle,
 } from './generator';
+export { findSolutionTokens } from './evaluator';
 export {
   evaluateEquationTokens,
   insertGroupParens,

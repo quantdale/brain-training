@@ -8,6 +8,7 @@ import {
   generateRoundSequence,
   isNearDuplicate,
   sequenceDistance,
+  tilesAreAdjacent,
 } from '../generator';
 
 function fullSession(seed: string, gridSize = 9, startLength = 4, rounds = 5): number[][] {
@@ -68,6 +69,30 @@ describe('generateRoundSequence', () => {
     }
   });
 
+  it('forms a connected path: every step moves to an adjacent tile', () => {
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const sequences = fullSession(String(seed));
+      for (const seq of sequences) {
+        for (let step = 1; step < seq.length; step += 1) {
+          expect(tilesAreAdjacent(seq[step - 1], seq[step], 9)).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('never revisits any earlier tile, including the start tile', () => {
+    // Stronger phrasing of the distinctness invariant: with no repeats, the
+    // walk can never step straight back onto its start.
+    for (let seed = 100; seed <= 140; seed += 1) {
+      const sequences = fullSession(String(seed));
+      for (const seq of sequences) {
+        for (let step = 1; step < seq.length; step += 1) {
+          expect(seq.slice(0, step)).not.toContain(seq[step]);
+        }
+      }
+    }
+  });
+
   it('avoids near-duplicates between consecutive rounds for many seeds', () => {
     for (let seed = 1; seed <= 40; seed += 1) {
       const sessions = fullSession(String(seed));
@@ -83,17 +108,23 @@ describe('generateRoundSequence', () => {
     }
   });
 
-  it('works on the 16-tile grid too', () => {
-    const rng = createRng('grid-16');
-    const sequence = generateRoundSequence({
-      rng,
-      roundIndex: 0,
-      length: 6,
-      gridSize: 16,
-      prevSequence: null,
-    });
-    expect(sequence).toHaveLength(6);
-    expect(Math.max(...sequence)).toBeLessThan(16);
+  it('holds adjacency on the 16-tile grid at expert depth too', () => {
+    for (let seed = 1; seed <= 40; seed += 1) {
+      const sequence = generateRoundSequence({
+        rng: createRng(`grid-16-${seed}`),
+        roundIndex: 0,
+        // Expert caps at maxSequenceLength 12 — the deepest walk we ship.
+        length: 12,
+        gridSize: 16,
+        prevSequence: null,
+      });
+      expect(sequence).toHaveLength(12);
+      expect(new Set(sequence).size).toBe(12);
+      expect(Math.max(...sequence)).toBeLessThan(16);
+      for (let step = 1; step < sequence.length; step += 1) {
+        expect(tilesAreAdjacent(sequence[step - 1], sequence[step], 16)).toBe(true);
+      }
+    }
   });
 
   it('is bounded: generation always terminates deterministically', () => {

@@ -7,20 +7,61 @@
  * carry the SDK default challenge ratings; `adaptive` starts at the neutral
  * 0.5 baseline and the final rating is derived from how far the player
  * escalated (see `sessionChallengeRating`).
+ *
+ * Respond deadline (`respondDeadlineMs`): a per-tier budget on the pick phase
+ * (8s → 5s as tiers rise). Expiry resolves the round with whatever is
+ * selected — the score decays only via fewer correct picks; pausing freezes
+ * it with the exact same active-time accumulation used by the observe window.
  */
 import { resolveDifficulty } from '@/sdk';
 import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
 
 import type { SymbolTrackerDifficultyParams } from './types';
 
+/** Back-compat default for profiles persisted before the respond deadline
+ *  existed (pre-1.1): they never truncated the respond phase. */
+export const DEFAULT_RESPOND_DEADLINE_MS = 7000;
+
 /** Fixed-level tuning: board size, token count, track count, observe timing, distractors. */
 export const SYMBOL_TRACKER_DIFFICULTY_PARAMS: Readonly<
   Record<Exclude<DifficultyLevel, 'adaptive'>, SymbolTrackerDifficultyParams>
 > = {
-  easy: { gridSize: 9, tokenCount: 4, initialTrackCount: 1, observeMs: 2500, distractors: 0, rounds: 4 },
-  normal: { gridSize: 9, tokenCount: 6, initialTrackCount: 2, observeMs: 2200, distractors: 0, rounds: 5 },
-  hard: { gridSize: 16, tokenCount: 8, initialTrackCount: 3, observeMs: 2000, distractors: 2, rounds: 6 },
-  expert: { gridSize: 16, tokenCount: 9, initialTrackCount: 3, observeMs: 1800, distractors: 3, rounds: 7 },
+  easy: {
+    gridSize: 9,
+    tokenCount: 4,
+    initialTrackCount: 1,
+    observeMs: 2500,
+    respondDeadlineMs: 8000,
+    distractors: 0,
+    rounds: 4,
+  },
+  normal: {
+    gridSize: 9,
+    tokenCount: 6,
+    initialTrackCount: 2,
+    observeMs: 2200,
+    respondDeadlineMs: 7000,
+    distractors: 0,
+    rounds: 5,
+  },
+  hard: {
+    gridSize: 16,
+    tokenCount: 8,
+    initialTrackCount: 3,
+    observeMs: 2000,
+    respondDeadlineMs: 6000,
+    distractors: 2,
+    rounds: 6,
+  },
+  expert: {
+    gridSize: 16,
+    tokenCount: 9,
+    initialTrackCount: 3,
+    observeMs: 1800,
+    respondDeadlineMs: 5000,
+    distractors: 3,
+    rounds: 7,
+  },
 };
 
 /** Adaptive tuning: neutral 3×3 board; track count moves within [1, 4]. */
@@ -29,6 +70,7 @@ export const ADAPTIVE_PARAMS: Readonly<SymbolTrackerDifficultyParams> = Object.f
   tokenCount: 6,
   initialTrackCount: 2,
   observeMs: 2200,
+  respondDeadlineMs: 7000,
   distractors: 1,
   rounds: 6,
   minTrackCount: 1,
@@ -66,11 +108,18 @@ export function symbolTrackerParamsFromProfile(
   };
   const minTrackCount = p.minTrackCount === undefined ? undefined : requireNumber('minTrackCount');
   const maxTrackCount = p.maxTrackCount === undefined ? undefined : requireNumber('maxTrackCount');
+  // Lenient for profiles persisted before the deadline axis (v1.1): an absent
+  // budget means the generous normal-tier default rather than a broken board.
+  const respondDeadlineMs =
+    p.respondDeadlineMs === undefined
+      ? DEFAULT_RESPOND_DEADLINE_MS
+      : requireNumber('respondDeadlineMs');
   return {
     gridSize: requireNumber('gridSize'),
     tokenCount: requireNumber('tokenCount'),
     initialTrackCount: requireNumber('initialTrackCount'),
     observeMs: requireNumber('observeMs'),
+    respondDeadlineMs,
     distractors: requireNumber('distractors'),
     rounds: requireNumber('rounds'),
     ...(minTrackCount !== undefined ? { minTrackCount } : {}),

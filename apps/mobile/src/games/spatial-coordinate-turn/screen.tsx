@@ -7,13 +7,14 @@
  * only what is Coordinate-Turn-specific — the choice-phase answer timing,
  * compass/options view, and the scoring/persistence pipeline.
  *
- * Round flow: intro → start → brief (read commands + compass) → next-round →
+ * Round flow: intro → start → brief (read commands + compass; time-boxed per
+ * tier — a countdown auto-transitions to answering, pausing freezes it) →
  * choice (options revealed) → select-answer → roundResult → next-round → …
  * The route renders this component with no props; every prop is an optional
  * injection seam for deterministic tests. Pause freezes the lifecycle timer;
  * the board is covered by the opaque `PauseOverlay` while paused.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -33,6 +34,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
+  useGameInterval,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -41,6 +43,7 @@ import { CompassView, CommandList, OptionArrow, OptionCoord } from './components
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import {
+  DEFAULT_BRIEF_BUDGET_MS,
   sessionChallengeRating,
   spatialCoordinateTurnParamsFromProfile,
 } from './difficulty';
@@ -72,6 +75,9 @@ export interface SpatialCoordinateTurnScreenProps {
   xpHook?: XpRatingHook;
 }
 
+/** Pacing step (ms): active brief-phase study time accrues in these increments. */
+const PACING_STEP_MS = 100;
+
 export default function SpatialCoordinateTurnScreen(
   props: SpatialCoordinateTurnScreenProps = {},
 ) {
@@ -88,6 +94,13 @@ export default function SpatialCoordinateTurnScreen(
   const stateRef = useRef(state);
   /** Monotonic timestamp (clock.now()) of when the choice became active. */
   const choiceStartedAtRef = useRef(0);
+  // Per-round brief timer baseline: tracks elapsed ACTIVE study time so pause
+  // freezes and resume continues the remaining window (fold-match convention).
+  const briefElapsedRef = useRef(0);
+  const briefRoundRef = useRef(-1);
+  // Mirrored into state so the visible countdown re-renders; null until the
+  // round's budget is initialized (avoids flashing a stale value).
+  const [briefRemainingMs, setBriefRemainingMs] = useState<number | null>(null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -114,6 +127,7 @@ export default function SpatialCoordinateTurnScreen(
 
   const params = state.profile !== null ? spatialCoordinateTurnParamsFromProfile(state.profile) : null;
   const rounds = params?.rounds ?? 0;
+  const briefBudgetMs = params?.briefBudgetMs ?? DEFAULT_BRIEF_BUDGET_MS;
   const inSession = state.phase === 'brief' || state.phase === 'choice' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
@@ -123,6 +137,32 @@ export default function SpatialCoordinateTurnScreen(
       choiceStartedAtRef.current = clock.now();
     }
   }, [state.phase, state.paused, clock]);
+
+  // Reset the per-round brief budget when a new brief phase begins.
+  useEffect(() => {
+    if (state.phase === 'brief' && briefRoundRef.current !== state.roundIndex) {
+      briefRoundRef.current = state.roundIndex;
+      briefElapsedRef.current = 0;
+      setBriefRemainingMs(briefBudgetMs);
+    }
+  }, [state.phase, state.roundIndex, briefBudgetMs]);
+
+  // Brief-phase study window: a generous per-tier budget of ACTIVE (non-paused)
+  // time accumulated in PACING_STEP_MS steps; while paused the interval is
+  // cleared so no budget is consumed, and on resume the remaining window is
+  // preserved. Expiry auto-transitions to the answer options ('brief-tick').
+  useGameInterval(
+    state.phase === 'brief' && !state.paused,
+    () => {
+      briefElapsedRef.current += PACING_STEP_MS;
+      const remaining = Math.max(0, briefBudgetMs - briefElapsedRef.current);
+      setBriefRemainingMs(remaining);
+      if (remaining <= 0) {
+        dispatch({ type: 'brief-tick' });
+      }
+    },
+    PACING_STEP_MS,
+  );
 
   // First play: open the tutorial automatically.
   useEffect(() => {
@@ -385,11 +425,21 @@ export default function SpatialCoordinateTurnScreen(
           />
 
           {state.phase === 'brief' ? (
-            <GameButton
-              testID={testId(GAME_ID, 'choice-begin')}
-              label="Show answers"
-              onPress={() => dispatch({ type: 'next-round' })}
-            />
+            <>
+              {briefRemainingMs !== null ? (
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, 'brief-countdown')}>
+                  {`Answers in ${Math.ceil(briefRemainingMs / 1000)}s`}
+                </ThemedText>
+              ) : null}
+              <GameButton
+                testID={testId(GAME_ID, 'choice-begin')}
+                label="Show answers"
+                onPress={() => dispatch({ type: 'next-round' })}
+              />
+            </>
           ) : null}
 
           {state.phase === 'choice' || state.phase === 'roundResult' ? (

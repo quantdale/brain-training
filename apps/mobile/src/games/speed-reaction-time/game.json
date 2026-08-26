@@ -7,8 +7,8 @@
   ],
   "description": "Watch for the signal and tap as fast as you can — how quick is your reaction?",
   "sdkVersion": "0.1.0",
-  "gameVersion": "1.0.0",
-  "generatorVersion": "1.0.0",
+  "gameVersion": "1.1.0",
+  "generatorVersion": "1.1.0",
   "contentVersion": null,
   "hasTutorial": true
 }

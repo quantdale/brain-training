@@ -8,7 +8,13 @@ import {
   resolveSpatialFoldMatchDifficulty,
 } from '../difficulty';
 import { gameReducer } from '../reducer';
-import { perfectSessionScore } from '../scoring';
+import {
+  CORRECT_POINTS,
+  MAX_ROUND_SCORE,
+  answerSpeedTargetMs,
+  perfectSessionScore,
+  roundScore,
+} from '../scoring';
 import { FOLD_LABELS, createInitialSpatialFoldMatchState } from '../types';
 import type { SpatialFoldMatchGameState } from '../types';
 
@@ -167,6 +173,21 @@ describe('select-option', () => {
     expect(state.stats.streak).toBe(0);
     expect(state.stats.bestStreak).toBe(1);
     expect(state.selectedOptionIndex).not.toBe(state.correctOptionIndex);
+  });
+
+  it('pays part of the speed bonus for a normal-fast answer (shared basis with normalization)', () => {
+    const params = DIFFICULTY_PARAMS.normal;
+    // 2s is slower than the old reveal-only target (~1.3s) — under the old
+    // basis this answer scored base points only; it must now keep most of the
+    // bonus because raw scoring shares normalization's revealMs + 10s window.
+    expect(params.sourceRevealMs).toBeLessThan(2000);
+    const state = answerCorrect(toChoice('bonus-basis'), 2000);
+    expect(state.stats.score).toBeGreaterThan(CORRECT_POINTS);
+    expect(state.stats.score).toBeLessThan(MAX_ROUND_SCORE);
+    expect(state.stats.score).toBeCloseTo(
+      roundScore(true, 2000, answerSpeedTargetMs(params.sourceRevealMs)),
+      10,
+    );
   });
 
   it('guards: ignored outside choice or while paused', () => {

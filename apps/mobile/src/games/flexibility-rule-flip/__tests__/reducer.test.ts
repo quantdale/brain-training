@@ -4,7 +4,12 @@ import type { DifficultyLevel } from '@/sdk';
 
 import { generateSession } from '../generator';
 import { flexibilityRuleFlipReducer } from '../reducer';
-import { perfectPlanScore, roundScore, SWITCH_CORRECT_BONUS } from '../scoring';
+import {
+  perfectPlanScore,
+  roundScore,
+  SWITCH_CORRECT_BONUS,
+  UNCUED_FIRST_PICK_BONUS,
+} from '../scoring';
 import { createInitialFlexibilityRuleFlipState } from '../types';
 import type { FlexibilityRuleFlipGameState } from '../types';
 import {
@@ -290,6 +295,67 @@ describe('session finalization + persistence states', () => {
     expect(state.authoritativeXp).toBe(7);
     expect(state.authoritativeCurrency).toBe(3);
     expect(state.authoritativeDeltas).toEqual([{ domain: 'flexibility', delta: 0.02, ratingAfter: 0.52 }]);
+  });
+});
+
+describe('uncued-window trials (inference)', () => {
+  function advanceToUncuedTrial(seed: string): FlexibilityRuleFlipGameState {
+    let state = startSession(seed);
+    const target = state.plan.findIndex((r) => r.uncued);
+    expect(target).toBeGreaterThan(0); // plan guarantees ≥1 uncued window past trial 0
+    for (let i = 0; i < target; i += 1) {
+      state = playRound(state, state.plan[i].correctIndex);
+    }
+    return state;
+  }
+
+  it('scores a correct uncued first pick with the inference bonus', () => {
+    const state = advanceToUncuedTrial('uncue-correct');
+    expect(state.round?.uncued).toBe(true);
+    const before = state.stats;
+    const scored = flexibilityRuleFlipReducer(state, {
+      type: 'pick-card',
+      index: state.round!.correctIndex,
+      responseMs: 0,
+    });
+    // 150 base + uncued bonus (no switch bonus unless the hidden block also flipped).
+    const expectedBonus = state.round!.isSwitch ? SWITCH_CORRECT_BONUS : 0;
+    expect(scored.stats.score).toBe(before.score + 150 + UNCUED_FIRST_PICK_BONUS + expectedBonus);
+    expect(scored.stats.uncuedPlayed).toBe(before.uncuedPlayed + 1);
+    expect(scored.stats.uncuedCorrect).toBe(before.uncuedCorrect + 1);
+  });
+
+  it('counts an uncued miss as played-but-not-correct and keeps the rule for reveal', () => {
+    const state = advanceToUncuedTrial('uncue-wrong');
+    const before = state.stats;
+    const wrongIndex = (state.round!.correctIndex + 1) % state.round!.candidates.length;
+    const scored = flexibilityRuleFlipReducer(state, { type: 'pick-card', index: wrongIndex, responseMs: 100 });
+    // A miss adds nothing to the cumulative session score.
+    expect(scored.stats.score).toBe(before.score);
+    expect(scored.stats.uncuedPlayed).toBe(before.uncuedPlayed + 1);
+    expect(scored.stats.uncuedCorrect).toBe(before.uncuedCorrect);
+    expect(scored.stats.mistakes).toBe(before.mistakes + 1);
+    // The reveal is presentation-layer: the round keeps its rule so feedback
+    // can name it (screen renders `rule-reveal` from this).
+    expect(scored.round?.rule).toBe(state.plan[state.roundIndex].rule);
+  });
+
+  it('force-win fills uncued stats from the plan and scores them perfectly', () => {
+    const seed = 'uncue-force-win';
+    const forced = flexibilityRuleFlipReducer(startSession(seed), { type: 'qa/force-win' });
+    const plan = generateSession(seed, FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS.normal);
+    const uncuedPlayed = plan.filter((r) => r.uncued).length;
+    expect(forced.stats.uncuedPlayed).toBe(uncuedPlayed);
+    expect(forced.stats.uncuedCorrect).toBe(uncuedPlayed);
+    expect(forced.stats.score).toBe(perfectPlanScore(plan));
+  });
+
+  it('force-lose counts an in-flight uncued round as played but missed', () => {
+    const state = advanceToUncuedTrial('uncue-force-lose');
+    const before = state.stats;
+    const forced = flexibilityRuleFlipReducer(state, { type: 'qa/force-lose' });
+    expect(forced.stats.uncuedPlayed).toBe(before.uncuedPlayed + 1);
+    expect(forced.stats.uncuedCorrect).toBe(before.uncuedCorrect);
   });
 });
 

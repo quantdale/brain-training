@@ -41,7 +41,10 @@ export {
 } from './difficulty';
 export type { RoundValidation } from './generator';
 export {
+  DECOY_BAND,
   MAX_ROUND_ATTEMPTS,
+  UNCONSTRAINED_SPREAD_PCT,
+  buildDecoyValues,
   generateRound,
   generateSessionRounds,
   validateRound,

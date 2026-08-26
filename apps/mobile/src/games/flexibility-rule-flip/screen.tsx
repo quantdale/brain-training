@@ -12,8 +12,18 @@
  * flip. When it does, the first trial of the new block is a SWITCH trial: an
  * explicit "Rule Flipped" cue fires and input is briefly DISABLED (the
  * "arm" window, `params.switchArmMs`) so the player cannot react before they
- * have read the new rule — then input re-arms. The route (`app/game/[id].tsx`)
- * renders this component with no props; every prop is an optional injection
+ * have read the new rule — then input re-arms.
+ *
+ * Uncued windows (campaign 014, Packet F): trials from UNCUED blocks hide the
+ * rule banner behind a neutral "Infer the active rule" placeholder and NEVER
+ * announce flips — detection of the flip is the skill under test. Feedback
+ * reveals the active rule: a correct pick confirms silently (the standard
+ * explainer), a wrong pick names the rule that was active (see the
+ * `rule-reveal` element). The switch-arm window still paces every switch
+ * trial, cued or not: it equalizes response-time baselines and reveals only
+ * THAT something changed, never WHICH rule is active.
+ *
+ * The route (`app/game/[id].tsx`) renders this component with no props; every prop is an optional injection
  * seam for deterministic tests.
  *
  * Pause semantics: pausing freezes the lifecycle timer; response time measured
@@ -393,43 +403,63 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       }>
       {inSession ? (
         <>
-          {state.phase === 'trialActive' && state.round !== null ? (
-            <>
-              <View style={styles.cueBanner} testID={testId(GAME_ID, 'rule-banner')}>
+          {state.phase === 'trialActive' && state.round !== null ? (() => {
+            // Inside an uncued window the banner hides the rule until the pick:
+            // showing it (or announcing the flip) would nullify detection.
+            const uncuedHidden = state.round.uncued === true;
+            return (
+              <>
+                <View style={styles.cueBanner} testID={testId(GAME_ID, 'rule-banner')}>
+                  {uncuedHidden ? (
+                    <ThemedText
+                      type="headline"
+                      themeColor="textSecondary"
+                      testID={testId(GAME_ID, 'rule-banner-uncued')}>
+                      Infer the active rule
+                    </ThemedText>
+                  ) : (
+                    <ThemedText
+                      type="headline"
+                      themeColor="accent"
+                      testID={testId(GAME_ID, 'rule-banner-text')}>
+                      {RULE_LABELS[state.round.rule]}
+                    </ThemedText>
+                  )}
+                  {/* The flip cue only exists in cued windows by design. */}
+                  {state.round.isSwitch && !uncuedHidden ? (
+                    <ThemedText type="caption" themeColor="warning" testID={testId(GAME_ID, 'rule-switch')}>
+                      Rule flipped! Get ready…
+                    </ThemedText>
+                  ) : null}
+                </View>
+                <View style={styles.targetRow} testID={testId(GAME_ID, 'target')}>
+                  <Stimulus card={state.round.target} testID={testId(GAME_ID, 'target-card')} disabled />
+                </View>
                 <ThemedText
-                  type="headline"
-                  themeColor="accent"
-                  testID={testId(GAME_ID, 'rule-banner-text')}>
-                  {RULE_LABELS[state.round.rule]}
+                  type="bodyLarge"
+                  themeColor="text"
+                  testID={testId(GAME_ID, 'pick-status')}>
+                  {uncuedHidden
+                    ? 'Infer the rule — pick the matching card'
+                    : state.round.isSwitch
+                      ? 'New rule — pick the matching card'
+                      : 'Pick the matching card'}
                 </ThemedText>
-                {state.round.isSwitch ? (
-                  <ThemedText type="caption" themeColor="warning" testID={testId(GAME_ID, 'rule-switch')}>
-                    Rule flipped! Get ready…
-                  </ThemedText>
-                ) : null}
-              </View>
-              <View style={styles.targetRow} testID={testId(GAME_ID, 'target')}>
-                <Stimulus card={state.round.target} testID={testId(GAME_ID, 'target-card')} disabled />
-              </View>
-              <ThemedText
-                type="bodyLarge"
-                themeColor="text"
-                testID={testId(GAME_ID, 'pick-status')}>
-                {state.round.isSwitch ? 'New rule — pick the matching card' : 'Pick the matching card'}
-              </ThemedText>
-              <View style={styles.grid} testID={cardGridTestID}>
-                {state.round.candidates.map((card, index) => (
-                  <Stimulus
-                    key={index}
-                    card={card}
-                    testID={`${cardGridTestID}.card.${index}`}
-                    onPress={() => handlePick(index)}
-                    state={visualFor(index)}
-                  />
-                ))}
-              </View>
-            </>
-          ) : null}
+                <View style={styles.grid} testID={cardGridTestID}>
+                  {state.round.candidates.map((card, index) => (
+                    <Stimulus
+                      key={index}
+                      card={card}
+                      testID={`${cardGridTestID}.card.${index}`}
+                      // eslint-disable-next-line react-hooks/refs -- handlePick reads refs only at press-time; this arrow is never invoked during render (same shape as flexibility-cue-shift's card grid).
+                      onPress={() => handlePick(index)}
+                      state={visualFor(index)}
+                    />
+                  ))}
+                </View>
+              </>
+            );
+          })() : null}
 
           {state.phase === 'trialResult' && state.round !== null ? (
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
@@ -446,6 +476,14 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
                       state.round.candidates[state.round.correctIndex],
                     )} — matched by ${state.round.rule}.`}
               </ThemedText>
+              {/* Uncued reveal: after a miss, name the rule that was active so
+                  inference has a teaching signal (correct picks confirm via
+                  the standard explainer above — silent confirmation). */}
+              {state.round.uncued && state.roundOutcome === 'wrong' ? (
+                <ThemedText type="small" themeColor="warning" testID={testId(GAME_ID, 'rule-reveal')}>
+                  The active rule was: {RULE_LABELS[state.round.rule]}
+                </ThemedText>
+              ) : null}
               <View style={styles.grid} testID={testId(GAME_ID, 'round-result-grid')}>
                 {state.round.candidates.map((card, index) => (
                   <Stimulus
@@ -512,6 +550,15 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
                 : 0) * 100,
             )}%`}
             testID={testId(GAME_ID, 'repeat-accuracy')}
+          />
+          <StatRow
+            label="Uncued first picks"
+            value={`${Math.round(
+              (state.stats.uncuedPlayed > 0
+                ? state.stats.uncuedCorrect / state.stats.uncuedPlayed
+                : 0) * 100,
+            )}%`}
+            testID={testId(GAME_ID, 'uncued-accuracy')}
           />
           <StatRow
             label="Best streak"

@@ -5,7 +5,7 @@ import type { DifficultyLevel } from '@/sdk';
 import { gameReducer } from '../reducer';
 import { createInitialState } from '../types';
 import type { SpatialTransformMatchGameState } from '../types';
-import { perfectSessionScore } from '../scoring';
+import { CORRECT_POINTS, SPEED_BONUS, perfectSessionScore } from '../scoring';
 import { DIFFICULTY_PARAMS } from '../difficulty';
 
 function startSession(
@@ -27,7 +27,7 @@ function advanceSource(state: SpatialTransformMatchGameState): SpatialTransformM
 /** Simulate a correct answer in the choice phase. */
 function answerCorrectly(
   state: SpatialTransformMatchGameState,
-  answerMs = 1000,
+  answerMs = 0,
 ): SpatialTransformMatchGameState {
   return gameReducer(state, {
     type: 'select-option',
@@ -121,7 +121,20 @@ describe('select-option', () => {
     expect(state.stats.roundsPlayed).toBe(1);
     expect(state.stats.streak).toBe(1);
     expect(state.stats.bestStreak).toBe(1);
-    expect(state.stats.score).toBe(100);
+    expect(state.stats.score).toBe(150); // instant answer → base + full speed bonus
+  });
+
+  it('pays part of the speed bonus for a normal-fast answer (shared revealMs + 10s basis)', () => {
+    let state = advanceSource(startSession('speed-component'));
+    // normal reveals for 1500ms ⇒ speed window is 11_500ms; a half-window
+    // answer scores exactly base + half bonus per the documented formula.
+    state = gameReducer(state, {
+      type: 'select-option',
+      index: state.correctOptionIndex,
+      answerMs: 5750,
+    });
+    expect(state.roundOutcome).toBe('passed');
+    expect(state.stats.score).toBe(CORRECT_POINTS + SPEED_BONUS / 2);
   });
 
   it('fails the round on a wrong selection', () => {

@@ -8,10 +8,10 @@
  *   2. A command sequence (left/right/about/forward/back).
  *   3. The simulated final heading + final position on the free plane.
  *   4. An option set:
- *        - heading task → ALL directions in the active set; correctIndex is
- *          the final heading.
+ *        - heading task → ALL directions in the active set, SHUFFLED per round
+ *          with a forked RNG (correctIndex recomputed from the shuffled order);
  *        - position task → the final coordinate + plausible distractors
- *          (start, after-first-command, neighbours, mirrored).
+ *          (start, after-first-command, neighbours, mirrored), shuffled.
  *
  * Invariants:
  *   - The plane is unbounded, so every integer position is valid; there is no
@@ -20,6 +20,8 @@
  *   - finalHeading/finalPos equal simulate(start, startDir, commands, directions).
  *   - Options are distinct; exactly one is correct; correctIndex points at it.
  *   - For a heading task, every option is a valid direction in the active set.
+ *   - Option ORDER never leaks correctness: both tasks shuffle their options
+ *     per round and recompute correctIndex from the shuffled array.
  */
 import { createRng } from '@/sdk';
 import type { Rng } from '@/sdk';
@@ -248,6 +250,10 @@ export function generateRound(
 
   if (task === 'heading') {
     const all = directionsOrder(directions);
+    // Shuffle per round (forked RNG) so the correct heading never sits at a
+    // deterministic clockwise position. correctIndex is recomputed from the
+    // shuffled order, so the draw order can never leak the answer.
+    const shuffled = rng.fork(`round:${roundIndex}:options`).shuffle([...all]);
     return {
       task: 'heading',
       start,
@@ -258,8 +264,8 @@ export function generateRound(
       directions,
       commandCount: commands.length,
       turnCount: sim.turnCount,
-      options: all,
-      correctIndex: all.indexOf(sim.finalHeading),
+      options: shuffled,
+      correctIndex: shuffled.indexOf(sim.finalHeading),
     } satisfies HeadingRound;
   }
 

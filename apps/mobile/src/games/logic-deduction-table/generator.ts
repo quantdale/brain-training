@@ -13,14 +13,17 @@
  *      in the full assignment.
  *   3. Derive candidate clues from the assignment (equalities, exclusions,
  *      and — for ordered attributes — pairwise inequalities).
- *   4. Add candidates (shuffled) until the INDEPENDENT solver
- *      (`isUniquelySolvable`) confirms the target has exactly one answer.
- *      Because adding clues can only shrink the solution space, once a
- *      uniquely-solvable subset is found, further clues (up to `clueCount`)
- *      keep it uniquely solvable. A full set of equalities always determines
- *      everything, so uniqueness is ALWAYS achievable → the loop can never
- *      spin forever.
- *   5. Outer retries (bounded) re-draw with a fresh attempt salt and avoid
+ *   4. Split candidates into SAFE vs GIVEAWAY: a clue that ALONE determines
+ *      the asked cell (campaign 014) is never shipped while safe clues can
+ *      carry the round.
+ *   5. Add safe candidates (shuffled) until the INDEPENDENT solver
+ *      (`isUniquelySolvable`) confirms the target has exactly one answer,
+ *      then pad with further safe candidates up to `clueCount`. Because adding
+ *      clues can only shrink the solution space, once a uniquely-solvable
+ *      subset is found, further clues keep it uniquely solvable. A full set
+ *      of equalities always determines everything, so uniqueness is ALWAYS
+ *      achievable → the loop can never spin forever.
+ *   6. Outer retries (bounded) re-draw with a fresh attempt salt and avoid
  *      near-duplicate (same entities + question) rounds.
  *
  * `validateGeneratedRound` reuses the solver so callers/tests can verify any
@@ -28,7 +31,7 @@
  */
 import type { Rng } from "@/sdk";
 
-import { isUniquelySolvable } from "./solver";
+import { answerSet, isUniquelySolvable } from "./solver";
 import type {
   AttributeDef,
   Clue,
@@ -209,11 +212,32 @@ function isNearDuplicate(
   );
 }
 
+/**
+ * True when this clue BY ITSELF already forces a unique answer to the round's
+ * question — e.g. the direct equality naming the asked entity+attribute, or
+ * (on tiny domains) an exclusion collapsing the asked cell to one value.
+ *
+ * Campaign 014: such clues used to leak in via post-uniqueness padding and
+ * converted a deduction puzzle into reading comprehension. We reuse the
+ * solver's candidate tracking (`answerSet`) on the single-clue probe to test
+ * the asked CELL specifically; anything that collapses it to one value is a
+ * giveaway and must not ship while safe clues can carry the round.
+ */
+function aloneDeterminesAskedCell(
+  entities: readonly string[],
+  attributes: readonly AttributeDef[],
+  candidate: Clue,
+  question: Question,
+): boolean {
+  const probe = roundWith(entities, attributes, [candidate], question, "");
+  return answerSet(probe, question).size <= 1;
+}
+
 function buildRound(
   rng: Rng,
   _roundIndex: number,
   params: LogicDeductionDifficultyParams,
-): LogicDeductionRound {
+): LogicDeductionRound | null {
   const entities = Array.from({ length: params.entityCount }, (_, i) =>
     entityLabel(i),
   );
@@ -234,28 +258,106 @@ function buildRound(
 
   const candidates = deriveCandidates(rng, entities, attributes, assignment);
 
-  // Add clues until uniquely solvable (always reachable), then pad up to clueCount.
-  const chosen: Clue[] = [];
-  let unique = false;
-  for (const cand of candidates) {
-    chosen.push(cand);
-    const probe = roundWith(entities, attributes, chosen, question, answer);
-    if (isUniquelySolvable(probe)) {
-      unique = true;
+  // Anti-giveaway partition (campaign 014): both the uniqueness phase and the
+  // padding draw only from safe candidates. When the safe pool cannot prove
+  // uniqueness WITHIN the clueCount reading-load budget, we retry from the
+  // full candidate list under the same cap, and finally signal failure so
+  // `generateRound` retries with a fresh question/assignment. A round that is
+  // over budget or ambiguous must never ship (the old defensive fallback
+  // pushed every candidate, shipping 25-clue rounds against clueCount=11).
+  const safeCandidates = candidates.filter(
+    (cand) => !aloneDeterminesAskedCell(entities, attributes, cand, question),
+  );
+  const cap = Math.max(1, params.clueCount);
+
+  /**
+   * Two-phase minimal proof over `pool`, capped at `cap`:
+   * 1. Asked-cell exclusions first — each strictly removes one candidate
+   *    answer, and they only combine into a proof in PAIRS+ (no single one
+   *    narrows anything until its siblings arrive), so they must be taken
+   *    before greedy scoring can see progress.
+   * 2. Greedy max-reduction over the remaining pool (ties by pool order,
+   *    deterministic) — equalities/pins/inequalities on other cells.
+   * Null when uniqueness stays unreachable within the cap.
+   */
+  const proveWithinCap = (pool: readonly Clue[]): Clue[] | null => {
+    const chosen: Clue[] = [];
+    const used = new Set<Clue>();
+    let currentSize = Infinity;
+    const probeSize = (extra: Clue): number =>
+      answerSet(roundWith(entities, attributes, [...chosen, extra], question, answer), question)
+        .size;
+
+    // Phase 1: asked-cell exclusions (never alone-determining when the value
+    // pool has ≥3 entries, so they survive the anti-giveaway filter).
+    for (const cand of pool) {
+      if (chosen.length >= cap) {
+        break;
+      }
+      if (
+        used.has(cand) ||
+        cand.entity !== question.entity ||
+        cand.attribute !== question.attribute ||
+        cand.kind !== "exclusion"
+      ) {
+        continue;
+      }
+      used.add(cand);
+      chosen.push(cand);
+      currentSize = Math.min(currentSize, probeSize(cand));
+      if (currentSize === 1) {
+        return chosen;
+      }
+    }
+
+    // Phase 2: greedy max-reduction.
+    while (chosen.length < cap && currentSize > 1) {
+      let best: Clue | null = null;
+      let bestSize = currentSize;
+      for (const cand of pool) {
+        if (used.has(cand)) {
+          continue;
+        }
+        const size = probeSize(cand);
+        if (size < bestSize) {
+          best = cand;
+          bestSize = size;
+          if (size === 1) {
+            break;
+          }
+        }
+      }
+      if (best === null) {
+        return null; // stalled: nothing narrows the solution space anymore
+      }
+      chosen.push(best);
+      used.add(best);
+      currentSize = bestSize;
+    }
+    return currentSize === 1 ? chosen : null;
+  };
+
+  let chosen = proveWithinCap(safeCandidates);
+  if (chosen === null) {
+    // The anti-giveaway property is absolute (campaign 014): we never ship a
+    // clue that alone reveals the asked cell, even if that costs this
+    // assignment. Signal failure so `generateRound` redraws entity/attribute
+    // assignment + question and retries — a compliant configuration is
+    // almost always found on the next attempt.
+    return null;
+  }
+  // Pad toward the reading-load target, preferring SAFE candidates so the
+  // anti-giveaway property survives padding. Shipping fewer than `clueCount`
+  // clues is acceptable — uniqueness stays proven either way.
+  const used = new Set(chosen);
+  for (const cand of [...safeCandidates, ...candidates]) {
+    if (chosen.length >= cap) {
       break;
     }
-  }
-  // Pad with remaining candidates to increase reading load (keeps uniqueness).
-  if (unique) {
-    let idx = candidates.indexOf(chosen[chosen.length - 1]) + 1;
-    while (chosen.length < params.clueCount && idx < candidates.length) {
-      chosen.push(candidates[idx]);
-      idx += 1;
+    if (!used.has(cand)) {
+      chosen.push(cand);
+      used.add(cand);
     }
-  } else {
-    // Defensive fallback: use all candidates (full equalities always determine).
-    chosen.length = 0;
-    chosen.push(...candidates);
   }
 
   const options = rng.shuffle(targetAttr.values.slice());
@@ -280,13 +382,26 @@ export function generateRound(input: GenerateRoundInput): LogicDeductionRound {
   for (let attempt = 0; attempt < MAX_GENERATION_ATTEMPTS; attempt += 1) {
     const fork = rng.fork(`round:${roundIndex}:attempt:${attempt}`);
     const round = buildRound(fork, roundIndex, params);
+    // buildRound returns null when no compliant (unique, in-budget) round
+    // exists for that assignment — a fresh attempt redraws entity/attribute
+    // assignment and question, which changes the safe-candidate structure.
+    if (round === null) {
+      continue;
+    }
     last = round;
     if (validateGeneratedRound(round) && !isNearDuplicate(round, prevRound)) {
       return round;
     }
   }
-  // Extremely unlikely fallback: accept the last deterministically built round.
-  return last!;
+  // Extremely unlikely fallback: accept the last deterministically built
+  // round (legacy behavior). `last` is null only if EVERY attempt failed to
+  // build any round at all, which requires a structurally impossible param set.
+  if (last === null) {
+    throw new Error(
+      `logic-deduction-table: generation produced no round after ${MAX_GENERATION_ATTEMPTS} attempts`,
+    );
+  }
+  return last;
 }
 
 /** Independent validation: the round is uniquely solvable per the solver. */

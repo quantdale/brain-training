@@ -5,7 +5,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import TargetCountScreen from '../screen';
 import { GAME_ID } from '../types';
 import type { TargetCountRound } from '../types';
-import { TARGET_COUNT_DIFFICULTY_PARAMS } from '../difficulty';
+import { TARGET_COUNT_DIFFICULTY_PARAMS, escalatedDistractorClasses } from '../difficulty';
 import { generateRound } from '../generator';
 import type { SessionPersistence } from '../session';
 import type { CompleteSessionResult } from '@/db';
@@ -28,16 +28,25 @@ function completedStore() {
   return store;
 }
 
-/** Replicate the reducer's deterministic round generation to know correct answers. */
+/** Replicate the reducer's deterministic round generation to know correct
+ *  answers. Assumes the all-correct playback the callers drive, so the
+ *  within-session distractor ladder escalates exactly like the reducer's. */
 function sessionRounds(seed: string, level: keyof typeof TARGET_COUNT_DIFFICULTY_PARAMS = 'normal'): TargetCountRound[] {
   const rng = createRng(seed);
   const params = TARGET_COUNT_DIFFICULTY_PARAMS[level];
   const rounds: TargetCountRound[] = [];
   let prev = null as TargetCountRound | null;
+  let streak = 0;
   for (let r = 0; r < params.rounds; r += 1) {
-    const round = generateRound({ rng, roundIndex: r, params, prevRound: prev });
+    const round = generateRound({
+      rng,
+      roundIndex: r,
+      params: { ...params, distractorClasses: escalatedDistractorClasses(params, streak) },
+      prevRound: prev,
+    });
     rounds.push(round);
     prev = round;
+    streak += 1;
   }
   return rounds;
 }

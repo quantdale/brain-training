@@ -20,7 +20,7 @@ import SpatialFoldMatchScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
 import { perfectSessionScore } from '../scoring';
-import { GAME_ID } from '../types';
+import { FOLD_LABELS, GAME_ID } from '../types';
 import type { FoldType, SpatialFoldMatchRawResult } from '../types';
 
 jest.mock('expo-router', () => ({
@@ -298,6 +298,31 @@ describe('SpatialFoldMatchScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'round', '2'))).toBeOnTheScreen();
     await advanceTime(clock, REVEAL_MS);
     expect(screen.getByTestId(testId(GAME_ID, 'choice-status'))).toBeOnTheScreen();
+  });
+
+  it('hides the applied fold during choice and reveals it in the round result', async () => {
+    const seed = 'fold-label';
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, REVEAL_MS);
+
+    const expected = expectedRound(seed, 0, null, null);
+    const label = FOLD_LABELS[expected.foldType];
+
+    // Inference contract: the announced fold must not leak into the choice UI…
+    expect(screen.queryByText(label)).toBeNull();
+    // …and the choice prompt stays generic.
+    expect(screen.getByTestId(testId(GAME_ID, 'choice-status'))).not.toHaveTextContent(label);
+    expect(screen.getByTestId(testId(GAME_ID, 'options'))).toBeOnTheScreen();
+
+    // A wrong pick ends the round; the feedback then names the applied fold.
+    const wrongIndex = (expected.correctOptionIndex + 1) % expected.options.length;
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, 'option', String(wrongIndex))),
+    );
+    expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
+    expect(screen.getByText(label)).toBeOnTheScreen();
   });
 
   it('pauses: the opaque overlay appears and timers freeze until resume', async () => {

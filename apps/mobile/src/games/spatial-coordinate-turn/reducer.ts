@@ -7,7 +7,8 @@
  * `SessionLifecycle`, tutorial state, and persistence.
  *
  * Round flow: `intro` → start-session → `brief` (read the command list +
- * compass) → `next-round` → `choice` (options revealed) → `select-answer` →
+ * compass; time-boxed per tier, auto-advances when study time expires) →
+ * `brief-tick`/`next-round` → `choice` (options revealed) → `select-answer` →
  * `roundResult` → `next-round` → next `brief` … → `results`. This two-step
  * per round keeps the answer hidden until the player has studied the brief.
  *
@@ -75,6 +76,16 @@ export function gameReducer(
         normalized: null,
         persistState: 'idle',
       };
+    }
+
+    case 'brief-tick': {
+      // The screen paces active (non-paused) study ticks and dispatches this
+      // when the per-tier brief budget is spent: auto-transition to answering
+      // so players cannot pre-solve indefinitely for a free speed bonus.
+      if (state.phase !== 'brief' || state.paused) {
+        return state;
+      }
+      return { ...state, phase: 'choice' };
     }
 
     case 'select-answer': {
