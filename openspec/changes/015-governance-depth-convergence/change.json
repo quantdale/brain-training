@@ -1,0 +1,20 @@
+{
+  "id": "015-governance-depth-convergence",
+  "status": "PROPOSED",
+  "baselineAuditCommit": "c8acadceb46ad6ba3f90b0c4222583a9a2912f49",
+  "predecessor": "014-experience-depth-replayability",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "campaign-governance",
+    "repository-state-integrity",
+    "game-depth-convergence",
+    "runtime-evidence"
+  ],
+  "activationRule": "Campaign 014 must be durably COMPLETED and validated before this change may become ACTIVE.",
+  "newGameModulesAllowed": false,
+  "fullHardening": false
+}
