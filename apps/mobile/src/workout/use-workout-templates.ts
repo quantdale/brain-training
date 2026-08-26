@@ -31,10 +31,15 @@ import {
   type WorkoutLength,
 } from "./metadata";
 import type { DomainRating } from "./personalize";
-import { alignedRecordedReasons, explainTemplateWorkout } from "./reasons";
+import { alignedRecordedReasons } from "./reasons";
 import { eligibleGameIds, eligibleGames } from "./reconcile";
 import { localDateString } from "./today";
 import { rotationSuggestions } from "./rotation";
+import {
+  buildWorkoutV3Context,
+  explainSignalOrder,
+  orderDailyBySignals,
+} from "./v3";
 import {
   allWorkoutTemplates,
   applyTemplatePersonalization,
@@ -170,22 +175,29 @@ export function useWorkoutTemplates(
       });
       // Personalization reorders through the existing seam (read-only); the
       // seeded member set stays reproducible regardless of the inputs.
-      const ordered = applyTemplatePersonalization(selection.games, {
+      const orderedV2 = applyTemplatePersonalization(selection.games, {
         domainRatings,
         recentGameIds,
         seed: selection.seed,
         options: { nowMs },
       });
+      // Workout V3 (Campaign 014 W4): rank the template members by the full
+      // personalization signal set, then record those truthful reasons.
+      const [aggregates, recentSessions] = await Promise.all([
+        db.sessions.getAggregates(),
+        db.sessions.listSummaries({ limit: 20 }),
+      ]);
+      const v3Context = buildWorkoutV3Context({
+        ratings: domainRatings,
+        aggregates,
+        recentSessions,
+        nowMs,
+      });
+      const ordered = orderDailyBySignals(orderedV2, v3Context);
       // Explainability companion (constitution §14): record WHY each game sits
       // where it does, in final selection order, at creation time. Persisted
       // inside metadata when the schema allows; surfaced back through history.
-      const reasons = explainTemplateWorkout(
-        ordered,
-        domainRatings,
-        recentGameIds,
-        [],
-        { nowMs },
-      );
+      const reasons = explainSignalOrder(ordered, v3Context);
       const key = templateInstanceKey(date, template.id, length);
       const instance = await db.workouts.getOrCreate(
         key,

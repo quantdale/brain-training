@@ -224,8 +224,9 @@ describe('useWorkoutTemplates (shipped schema v10)', () => {
       // Shipped schema v10: metadata persists (the daily row was created by
       // the useWorkout hook, which records kind/inputs/reasons). Reasons are
       // surfaced only while aligned — nothing crashes either way.
+      // Campaign 014 Workout V3: fresh instances record metadata v2.
       expect(summary.metadata).not.toBeNull();
-      expect(summary.metadata?.version).toBe(1);
+      expect(summary.metadata?.version).toBe(2);
     }
   });
 });

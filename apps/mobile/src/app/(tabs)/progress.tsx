@@ -62,6 +62,7 @@ import {
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
+import { MasteryInsights } from '@/components/mastery/mastery-insights';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
@@ -785,6 +786,10 @@ export default function ProgressScreen() {
           </ThemedText>
         )}
       </ThemedView>
+
+      {/* Campaign 014 (W5): mastery distribution + closest milestones —
+          the forward-looking interpretation layer, one scroll away. */}
+      <MasteryInsights />
         </>
       )}
     </ScreenShell>

@@ -72,6 +72,10 @@ import type { WorkoutCompletionSummary } from "@/workout/summary";
 import { localDateString } from "@/workout/today";
 import { useWorkout } from "@/workout/use-workout";
 import { useWorkoutTemplates } from "@/workout/use-workout-templates";
+import { MilestoneStrip } from "@/components/mastery/mastery-card";
+import { useMasterySummaries } from "@/mastery/use-mastery";
+import { registry } from "@/registry/registry.generated";
+import { SpotlightCard } from "@/components/spotlight/spotlight-card";
 
 interface HomeData {
   /** Load-time clock for relative-day formatting (set outside render). */
@@ -192,6 +196,30 @@ export default function HomeScreen() {
   const nextRerollCost = workoutFlow.rerollCostNow;
   const rerollAffordable = canAffordReroll(data.balance, rerollAttempt);
   const rerollExhausted = rerollAttempt >= MAX_REROLLS_PER_DAY;
+
+  // Campaign 014 (W6): closest mastery milestones for the return-user strip.
+  // Games still climbing (not new, not mastered) with a concrete next step.
+  const { byGame: masteryByGame } = useMasterySummaries();
+  const milestoneItems = useMemo(() => {
+    const items: {
+      gameId: string;
+      name: string;
+      summary: import("@/mastery").MasterySummary;
+    }[] = [];
+    for (const game of registry) {
+      const summary = masteryByGame.get(game.id);
+      if (
+        !summary ||
+        summary.tier === "unplayed" ||
+        summary.tier === "mastered" ||
+        !summary.nextMilestone
+      ) {
+        continue;
+      }
+      items.push({ gameId: game.id, name: game.name, summary });
+    }
+    return items;
+  }, [masteryByGame]);
 
   // Durable workout progress markers (006R hardening): reflect the persisted
   // current index so completed/current positions are visually distinct. The
@@ -807,6 +835,14 @@ export default function HomeScreen() {
           </View>
         </View>
       )}
+
+      {/* Campaign 014 (W6): daily Spotlight challenge + closest mastery
+          milestones — return-user hooks that stay out of the first
+          viewport's workout/stats priority. */}
+      {loaded && error == null ? <SpotlightCard /> : null}
+      {loaded && error == null && milestoneItems.length > 0 ? (
+        <MilestoneStrip items={milestoneItems} testIDPrefix="home-milestone" />
+      ) : null}
 
       {/* Recent games slot — task 9.6: real recent session/game data */}
       <ThemedView

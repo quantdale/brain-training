@@ -1,5 +1,6 @@
 import type { SQLiteAdapter } from "./adapter";
 import { DIFFICULTY_LEVELS } from "@/sdk/types/difficulty";
+import type { MasteryInput } from "@/mastery/engine";
 import { LOCAL_PROFILE_ID } from "./profile";
 import { RatingRepository } from "./rating";
 import {
@@ -99,6 +100,36 @@ const SELECT_AGGREGATE_BY_GAME = `
          AVG(normalized_result) AS avgNormalized,
          MAX(normalized_result) AS bestNormalized,
          MAX(completed_at) AS lastCompletedAt
+  FROM game_sessions WHERE game_id = ? GROUP BY game_id`;
+/**
+ * Per-game mastery evidence pushdown (Campaign 014 W2): one GROUP BY over the
+ * sessions table computes the whole ladder's inputs for every game at once —
+ * volume, best/avg normalized, and strong-clear counts per difficulty level
+ * (level extracted with the same expression as the Progress projection so
+ * object/bare-string difficulty forms both resolve). No JS-side row scan.
+ */
+const SELECT_MASTERY_INPUTS = `
+  SELECT game_id AS gameId,
+         COUNT(*) AS sessions,
+         COALESCE(MAX(normalized_result), 0) AS bestNormalized,
+         COALESCE(AVG(normalized_result), 0) AS avgNormalized,
+         COALESCE(SUM(CASE WHEN ${difficultyLevelExpr()} = 'hard'
+                           AND normalized_result >= 0.6 THEN 1 ELSE 0 END), 0) AS hardStrong,
+         COALESCE(SUM(CASE WHEN ${difficultyLevelExpr()} = 'expert'
+                           AND normalized_result >= 0.65 THEN 1 ELSE 0 END), 0) AS expertStrong,
+         COALESCE(MAX(completed_at), 0) AS lastCompletedAt
+  FROM game_sessions GROUP BY game_id`;
+/** Single-game variant of {@link SELECT_MASTERY_INPUTS} (walks the game index). */
+const SELECT_MASTERY_INPUT_BY_GAME = `
+  SELECT game_id AS gameId,
+         COUNT(*) AS sessions,
+         COALESCE(MAX(normalized_result), 0) AS bestNormalized,
+         COALESCE(AVG(normalized_result), 0) AS avgNormalized,
+         COALESCE(SUM(CASE WHEN ${difficultyLevelExpr()} = 'hard'
+                           AND normalized_result >= 0.6 THEN 1 ELSE 0 END), 0) AS hardStrong,
+         COALESCE(SUM(CASE WHEN ${difficultyLevelExpr()} = 'expert'
+                           AND normalized_result >= 0.65 THEN 1 ELSE 0 END), 0) AS expertStrong,
+         COALESCE(MAX(completed_at), 0) AS lastCompletedAt
   FROM game_sessions WHERE game_id = ? GROUP BY game_id`;
 const SELECT_BALANCE = "SELECT balance FROM currency_balance";
 const INSERT_LEDGER_ENTRY_OP =
@@ -486,6 +517,33 @@ export class SessionRepository {
       [gameId],
     );
     return row ? mapAggregateRow(row) : null;
+  }
+
+  /**
+   * Mastery evidence for every game in one pushdown (Campaign 014 W2).
+   * Games with zero sessions are simply absent — the engine maps that to the
+   * `unplayed` tier at the call site.
+   */
+  async getMasteryInputs(): Promise<MasteryInput[]> {
+    // The level-extraction expression embeds one IN-group per form (object
+    // + bare string) and appears TWICE in the statement (hard + expert CASE),
+    // so each occurrence needs its own parameter group, in textual order.
+    return this.adapter.all<MasteryInput>(SELECT_MASTERY_INPUTS, [
+      ...DIFFICULTY_LEVEL_PARAMS,
+      ...DIFFICULTY_LEVEL_PARAMS,
+      ...DIFFICULTY_LEVEL_PARAMS,
+      ...DIFFICULTY_LEVEL_PARAMS,
+    ]);
+  }
+
+  /** {@link getMasteryInputs} restricted to one game (absent ⇒ unplayed). */
+  async getMasteryInputByGame(gameId: string): Promise<MasteryInput | null> {
+    const row = await this.adapter.get<MasteryInput>(SELECT_MASTERY_INPUT_BY_GAME, [
+      ...DIFFICULTY_LEVEL_PARAMS,
+      ...DIFFICULTY_LEVEL_PARAMS,
+      gameId,
+    ]);
+    return row ?? null;
   }
 
   /**

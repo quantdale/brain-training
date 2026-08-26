@@ -120,7 +120,9 @@ describe('selectTemplateWorkout', () => {
         templateId: 'focus-memory',
         length,
         focus: 'Memory',
-        version: 1,
+        // Campaign 014 Workout V3: metadata v2 records the signal-ranked
+        // ordering + its extended reason vocabulary.
+        version: 2,
       });
     }
   });

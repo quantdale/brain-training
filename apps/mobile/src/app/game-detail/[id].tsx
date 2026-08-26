@@ -31,6 +31,8 @@ import { ThemedView } from "@/components/themed-view";
 import { Radii, Spacing } from "@/constants/theme";
 import { getDb, type AppDatabase } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
+import { MasteryCard } from "@/components/mastery/mastery-card";
+import { computeMastery, type MasteryInput } from "@/mastery";
 import { getGameDefinition } from "@/registry/registry";
 
 interface DetailData {
@@ -44,16 +46,19 @@ interface DetailData {
     lastCompletedAt: number;
   } | null;
   recent: readonly unknown[];
+  /** Campaign 014: mastery evidence for this game (null ⇒ unplayed). */
+  masteryInput: MasteryInput | null;
 }
 
 function loadDetail(db: AppDatabase, id: string): Promise<DetailData> {
   return (async () => {
-    const [favorite, aggregate, recent] = await Promise.all([
+    const [favorite, aggregate, recent, masteryInput] = await Promise.all([
       db.favorites.isFavorite(id),
       db.sessions.getGameAggregate(id),
       db.sessions.listByGame(id, 10),
+      db.sessions.getMasteryInputByGame(id),
     ]);
-    return { nowMs: Date.now(), favorite, aggregate, recent };
+    return { nowMs: Date.now(), favorite, aggregate, recent, masteryInput };
   })();
 }
 
@@ -62,6 +67,7 @@ const EMPTY_DETAIL: DetailData = {
   favorite: false,
   aggregate: null,
   recent: [],
+  masteryInput: null,
 };
 
 export default function GameDetailScreen() {
@@ -277,6 +283,21 @@ export default function GameDetailScreen() {
               </Link>
             ) : null}
           </ThemedView>
+
+          {/* Campaign 014 (W2): per-game mastery ladder + next milestone. */}
+          <MasteryCard
+            summary={computeMastery(
+              data.masteryInput ?? {
+                gameId: game.id,
+                sessions: 0,
+                bestNormalized: 0,
+                avgNormalized: 0,
+                hardStrong: 0,
+                expertStrong: 0,
+                lastCompletedAt: 0,
+              },
+            )}
+          />
 
           <ThemedView
             type="surface"

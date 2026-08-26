@@ -19,6 +19,7 @@ import { memo, useCallback, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { MinTouchTarget } from '@/components/a11y';
+import { DiscoveryShelves } from '@/components/discovery/discovery-shelves';
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
@@ -159,6 +160,13 @@ export default function GamesScreen() {
               onPress={() => setFavOnly(!favOnly)}
             />
           </View>
+
+          {/* Campaign 014 (W6): rule-based discovery rails — shown only when
+              no search/filter is narrowing the list, so they never compete
+              with an intentional lookup. */}
+          {normalizedQuery.length === 0 && category === null && !favOnly ? (
+            <DiscoveryShelves />
+          ) : null}
 
           {/* Live result count so filtering feedback is explicit. */}
           <ThemedText type="caption" themeColor="textSecondary" testID="games-count">

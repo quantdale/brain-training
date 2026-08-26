@@ -29,7 +29,7 @@ import type { WorkoutSelectionReason } from "./personalize";
  * Schema version of {@link WorkoutMetadata}. Bump whenever the shape changes
  * so persisted/serialized metadata can be interpreted correctly.
  */
-export const WORKOUT_METADATA_VERSION = 1;
+export const WORKOUT_METADATA_VERSION = 2;
 
 /**
  * Selector version stamped onto template-workout instances. The legacy daily
@@ -270,6 +270,15 @@ const REASON_KINDS: readonly WorkoutSelectionReason["kind"][] = [
   "recency-avoided",
   "selected",
   "excluded",
+  // Workout V3 (campaign 014, metadata v2): personalization-signal kinds.
+  // V1 producers never wrote these; v1 readers that encounter them degrade
+  // the whole recorded-reasons array to null (documented policy above).
+  "undertrained-domain",
+  "novelty",
+  "performance-trend",
+  "personal-best-proximity",
+  "difficulty-fit",
+  "overexposure",
 ];
 
 function parseRecordedReasons(

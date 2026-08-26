@@ -243,15 +243,28 @@ export function personalizedWorkout(
 
 /** One line of human-readable rationale for why a game sits where it does. */
 export interface WorkoutSelectionReason {
- gameId: string;
- /** 'weak-domain' | 'stale-domain' | 'recency-avoided' | 'selected' | 'excluded' */
- kind:
-  | "weak-domain"
-  | "stale-domain"
-  | "recency-avoided"
-  | "selected"
-  | "excluded";
- detail: string;
+  gameId: string;
+  /**
+   * V2 kinds: 'weak-domain' | 'stale-domain' | 'recency-avoided' |
+   * 'selected' | 'excluded'. V3 (campaign 014) adds the personalization
+   * signal kinds ('undertrained-domain', 'novelty', 'performance-trend',
+   * 'personal-best-proximity', 'difficulty-fit', 'overexposure') — see
+   * `v3.ts` + `metadata.ts` (metadata version 2). Old readers drop unknown
+   * kinds gracefully (the whole reasons array degrades to null).
+   */
+  kind:
+   | "weak-domain"
+   | "stale-domain"
+   | "recency-avoided"
+   | "selected"
+   | "excluded"
+   | "undertrained-domain"
+   | "novelty"
+   | "performance-trend"
+   | "personal-best-proximity"
+   | "difficulty-fit"
+   | "overexposure";
+  detail: string;
 }
 
 /**

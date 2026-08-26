@@ -22,8 +22,12 @@ import {
   createWorkoutMetadata,
   dailySelectionSeed,
 } from "./metadata";
-import { explainDailyWorkout } from "./reasons";
 import { personalizedWorkout, type DomainRating } from "@/workout/personalize";
+import {
+  buildWorkoutV3Context,
+  explainSignalOrder,
+  orderDailyBySignals,
+} from "./v3";
 import { eligibleGameIds, eligibleGames } from "@/workout/reconcile";
 import { localDateString } from "@/workout/today";
 import {
@@ -87,7 +91,23 @@ export function useWorkout(args: {
       // clock itself; the value is captured here so the selection stays
       // stable for the rest of the day.
       const nowMs = Date.now();
-      const seed = personalizedWorkout(
+      // Workout V3 evidence (Campaign 014 W4): lifetime per-game aggregates
+      // plus a bounded page of recent normalized sessions feed the richer
+      // signal-ranked ordering. One aggregate pushdown + one indexed page.
+      const [aggregates, recentSessions] = await Promise.all([
+        db.sessions.getAggregates(),
+        db.sessions.listSummaries({ limit: 20 }),
+      ]);
+      const v3Context = buildWorkoutV3Context({
+        ratings: domainRatings,
+        aggregates,
+        recentSessions,
+        nowMs,
+      });
+      // Base member set stays the pinned deterministic V2 pick (chain
+      // avoidance + reroll seeding untouched); V3 reorders it by the weighted
+      // personalization signals.
+      const base = personalizedWorkout(
         eligibleGames(),
         date,
         domainRatings,
@@ -96,21 +116,13 @@ export function useWorkout(args: {
         [],
         { nowMs },
       );
+      const seed = orderDailyBySignals(base, v3Context);
       // Explainability companion (constitution §14): record WHY each game was
-      // chosen at creation time. Same inputs + same clock as the selection
-      // above, so the recorded reasons describe exactly this instance's
-      // ordered list; they ride inside metadata (dropped silently on legacy
-      // schemas) and are surfaced back through history summaries.
-      const reasons = explainDailyWorkout(
-        eligibleGames(),
-        date,
-        domainRatings,
-        recentGameIds,
-        0,
-        [],
-        // Same creation clock as the selection call above.
-        { nowMs },
-      );
+      // chosen at creation time, from the SAME context the ordering used, so
+      // the recorded reasons describe exactly this instance's ordered list;
+      // they ride inside metadata (dropped silently on legacy schemas) and
+      // are surfaced back through history summaries.
+      const reasons = explainSignalOrder(seed, v3Context);
       const created = await db.workouts.getOrCreate(
         date,
         {
@@ -193,14 +205,30 @@ export function useWorkout(args: {
     // completion never reintroduces a game the player has already finished
     // (Queue A: reroll replacing already-played games).
     const completedPrefix = current.gameIds.slice(0, current.currentIndex);
-    const selection = nextWorkoutAfterReroll(
+    const nowMs = Date.now();
+    const selectionBase = nextWorkoutAfterReroll(
       eligibleGames(),
       date,
       domainRatings,
       recentGameIds,
       current.rerollAttempt,
       completedPrefix,
-      { nowMs: Date.now() },
+      { nowMs },
+    );
+    // V3: rank the fresh members by current evidence so a paid reroll buys
+    // the most relevant remaining games first (same signals as creation).
+    const [aggregates, recentSessions] = await Promise.all([
+      db.sessions.getAggregates(),
+      db.sessions.listSummaries({ limit: 20 }),
+    ]);
+    const selection = orderDailyBySignals(
+      selectionBase,
+      buildWorkoutV3Context({
+        ratings: domainRatings,
+        aggregates,
+        recentSessions,
+        nowMs,
+      }),
     );
     // `applyReroll` is POSITION-based: it keeps game_ids [0, currentIndex)
     // verbatim and replaces [currentIndex, len) with
