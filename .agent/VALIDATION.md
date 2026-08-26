@@ -5,6 +5,59 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 014 — Experience Depth & Replayability (2026-08-26, waves at
+## commits eb348dd → f4aa44c)
+
+- W1 audit: five read-only family audits + shared-surfaces audit; rubric for
+  all 42 games recorded in `.agent/CAMPAIGN014_AUDIT.md`. No code changed.
+- W2 game-depth wave (13 games, six parallel packets + orchestrator
+  convergence, commit 968554a): tsc CLEAN · eslint 0/0 · Jest targeted suites
+  green then FULL suite 478 suites / 5947 tests PASS · registry regenerated
+  (14 game.json version bumps) · repo-state/provenance/ownership/offline
+  validators PASS. Packet-authored defects found & fixed during convergence:
+  quick-compare spread-window violation (collapsed-window fallback broke the
+  proximity contract) and sum-repair clamp overshoot (generator 2.0.0);
+  deduction-table fallback shipped 25-clue rounds against clueCount=11 and a
+  giveaway clue class survived filtering — replaced with capped two-phase
+  minimal-proof selection + retry-on-infeasible (generator 1.2.0); rule-flip
+  block-consistency test rebuilt on an explicit additive `blockIndex`
+  (consecutive blocks may share a rule when a scheduled flip does not fire);
+  reaction-time abort test rewritten to burn the shared false-start budget
+  deterministically before the no-go tap.
+- W3–W6 shared systems (commit b36ac42): tsc CLEAN · eslint 0/0 · Jest 482
+  suites / 5972 tests PASS · visual baselines 5/5 unchanged (first-run tree;
+  new Home slots are data-gated). Two integration defects found by app-shell
+  tests and fixed: a whitespace-only JSX text node inside the Games filter
+  row (Invariant Violation across every tab), and array styles passed through
+  `Link asChild` → Slot in SpotlightCard/DiscoveryShelves (flattened).
+- W7–W9 (commit f4aa44c): tsc CLEAN · eslint 0/0 · Jest 483 suites / 5973
+  tests PASS incl. the new repeated-use simulation · registry --check,
+  provenance, ownership, offline (928 files) all PASS.
+- W8 repeated-use simulation (`src/__tests__/repeated-use-simulation.test.ts`,
+  deterministic, file-backed sqlite): consecutive daily workouts ×5, paid
+  reroll debit (ledger −25 exactly), missed day covered by proactive Freeze
+  (settings-namespaced streaks block round-trips), genuine close/reopen
+  relaunch, mastery climbing developing→proficient→advanced→**mastered** via
+  strong Expert clears, PB aggregates, Daily-Spotlight per-date determinism +
+  rotation, quest daily period-key rollover across the ISO-week boundary, and
+  export→wipe→replace-import restoring sessions/balance/mastery byte-for-byte
+  semantics. PASS.
+- Performance: statement-count guards stayed green throughout (fixed-statement
+  tests always-on); mastery reads are one GROUP BY pushdown per load (no JS
+  row scans); workout creation adds one aggregate pushdown + one indexed page
+  read (`listSummaries limit 20`). Opt-in probe baselines NOT re-run this
+  session (PERF_PROBE=1 suites skipped in CI mode) — recorded as such.
+- **Android device journeys: NOT VALIDATED this session.** The dedicated AVD
+  `braintraining-qa36` (emulator-5558) was attached at session start but went
+  offline mid-session; only the foreign co-tenant AVD (`Nitro_API_36`,
+  emulator-5556) remained, which policy forbids adopting (KNOWN_ISSUES
+  contamination lesson). Workout V3 E2E + representative canary journeys must
+  be re-run on the dedicated AVD, e.g.:
+  `QA_DEVICE=emulator-555X node scripts/qa/autobot.mjs --mode workout-focus`
+  (plus catalog/canaries; certify if shared-lifecycle risk warrants).
+- Web export / expo-doctor / npm audit: not re-run this session (no
+  dependency or routing changes); last known-green at Campaign 013 closure.
+
 ## Bootstrap (2026-08-16, commit `68b2f23`)
 
 - `node scripts/validate-repo-state.mjs`: PASS.

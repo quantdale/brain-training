@@ -8,6 +8,16 @@
 
 ## Open debt (tracked, non-blocking)
 
+- **Campaign 014 remaining items (ACTIVE campaign)**: Android Workout V3 /
+  canary journeys NOT VALIDATED this session (dedicated AVD `braintraining-
+  qa36` went offline mid-run; foreign `Nitro_API_36` must not be adopted);
+  language content-pool growth (word-chain ≥90 chains, context-fit ≥60/tier)
+  and the logic-rule-grid chained-deduction redesign remain the top audited
+  depth gaps (see `.agent/CAMPAIGN014_AUDIT.md` P2/P3); transform-match
+  hidden-source mode can make multi-transform distractor rounds ambiguous
+  when ≥2 options are exact transforms of the source (packet-flagged; needs a
+  distractor-preference generator tweak, generatorVersion bump). Opt-in perf
+  timing probes not re-run (statement-count guards green throughout).
 - **SAF share-sheet/document-picker system consent sheets**: cannot be driven
   emulator-locally by autobot policy; engine round-trips are device-proven via pulled
   DB. Requires interactive/manual validation path (NOT VALIDATED, by design).

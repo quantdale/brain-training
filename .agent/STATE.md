@@ -1,22 +1,14 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-26 (Campaign 014 opened: Experience Depth &
-Replayability. W1 product-depth audit complete — all 42 games rubric-scored,
-priority stack P0–P4 in `.agent/CAMPAIGN014_AUDIT.md`. Game-depth wave 1
-landed: 13 games mechanically deepened via six parallel packets — adjacency-
-route pattern-tap-back generator, running-order palette 6→12 + Hamming≥2,
-reaction-time Go/No-Go, quick-compare real decoys + proximity spread,
-symbol-tracker respond deadline, target-count escalation ladder, equation-
-builder expert templates ×2.5 + failure solution-reveal, deduction-table
-anti-giveaway minimal-proof selection, stroop window-normalized speed bonus,
-rule-flip uncued inference windows, card-sort WCST discovery blocks, fold-match
-speed-basis fix + hidden fold label, coordinate-turn shuffled options + timed
-brief, transform-match hidden-source choice + per-cell a11y labels.
-Full Jest 478 suites / 5947 tests PASS; tsc clean; lint 0/0; registry
-regenerated (version bumps). Language-family depth (word-chain/context-fit/
-scramble pools) and shared systems (mastery engine, Daily Spotlight, Workout
-V3 wiring, Progress V3/Home/discovery surfaces) in progress.)
+**Last update:** 2026-08-26 (Campaign 014 ACTIVE at f4aa44c: W1 depth audit;
+W2 13-game mechanical deepening; W3-W6 mastery engine + Daily Spotlight +
+Workout V3 signal-ranked ordering + Progress/Home/discovery surfaces; W7
+word-scramble distractor integrity; W8 two-week repeated-use simulation over
+real sqlite; storage-size visibility. Gates green: tsc, lint 0/0, Jest 483
+suites / 5973 tests, registry/provenance/ownership/offline. REMAINING:
+Android device journeys (dedicated AVD dropped offline mid-session; foreign
+AVD must not be adopted) + docs-final sweep + terminal checkpoint.)
 **Canonical branch:** `main`
 **Active campaign:** 014-experience-depth-replayability
 
