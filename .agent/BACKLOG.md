@@ -1,7 +1,8 @@
 # Durable Backlog
 
 Historical phase list — superseded by implementation reality (42-game
-catalog, Workout V2, full progression/portability shipped; see
+catalog, Workout V3 signal-ranked templates over the V2 template engine,
+full progression/portability shipped; see
 `docs/PARITY_MATRIX.md`). Active work is owned by the campaign in
 `.agent/CURRENT_CAMPAIGN.md`; this file only records durable work outside
 any campaign.

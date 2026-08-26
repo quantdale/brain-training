@@ -4,8 +4,9 @@ Closed-source, offline-first brain-training application for Android and iOS
 (React Native + Expo + TypeScript), built autonomously by coding agents.
 
 > **Status:** mature implementation. A 42-game catalog ships on a shared
-> GameHost architecture, with Workout V2 (short/standard/extended/domain-focus),
-> adaptive progression, achievements, quests, rewards/cosmetics, analytics,
+> GameHost architecture, with Workout V3 (signal-ranked selection over
+> short/standard/extended/domain-focus templates, truthful per-game reasons,
+> reroll economics), adaptive progression, achievements, quests, rewards/cosmetics, analytics,
 > and backup/data-portability. Android is the primary validated platform;
 > iOS source compatibility is maintained but builds are NOT VALIDATED on this
 > Windows host (requires macOS/Xcode).

@@ -14,51 +14,55 @@ AVD must not be adopted) + docs-final sweep + terminal checkpoint.)
 
 ## Current status
 
-Campaign 013's release gate is **GREEN**: the definitive single-driver
-`--mode certify` run (20260826-012026, SHA ba6dd84, emulator-5558,
-62m36s) reached **42/42 attempted / 42 PASS / certified=true** with
-preflight 7/7 and zero missing/duplicates/unexpected. Workout V2 daily,
-short, focus and resume journeys all PASS on the same build. Pause-probe
-coverage is carried by Run A (42/42 with probes on, one disclosed retry);
-the residual pause/resume a11y race is tracked as Medium debt (honest-
-retry converts it; see KNOWN_ISSUES).
+Campaign 014 — Experience Depth & Replayability is **ACTIVE** at
+`f4aa44c` (W1–W9 landed and pushed; remaining: Workout V3/canary device
+journeys + docs-final reconciliation + game-feel/perf evidence before the
+terminal checkpoint). Campaign 013's release gate remains GREEN as the
+v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
 
-### What landed in the 013 hardening window (commits 95fbd55 → HEAD, pushed)
+### What landed in 014 (commits eb348dd → f4aa44c, pushed)
 
-- Lint 474 → 0 errors / 0 warnings (no suppressions).
-- Schema v10 adversarial matrix (+18 tests, mutation-proven).
-- Game-family audits: 4 real gameplay defects fixed with regressions
-  (prospective-cue stale closure + pause-restart exploit, odd-one-out
-  post-deadline grace, color-match negative-RT guard).
-- Certification-driven product fixes: fractional duration_ms REAL bug
-  (persistence-boundary coercion), language hybrids generatorVersion
-  provenance, celebration boxShadow (LogBox snackbar tap interception).
-- QA harness: `--mode certify` release profile (completeness, atomic
-  journal, provenance, 7-check preflight, failure taxonomy, row-invariant
-  validators, nav-zone scroll guard, pause-aware force-win, honest-retry);
-  self-test 28 → 49; lock fail-closed; permissions drift pin.
-- NativeTabs deterministic normalizer + integrated navigation snapshot.
-- Dependency refresh: 6 Expo SDK-57 patch alignments (doctor 21/21);
-  16 advisories classified build-toolchain-only.
-- Docs reconciled: README, MASTER_PLAN (through 013), PARITY_MATRIX,
-  BACKLOG, KNOWN_ISSUES, VALIDATION, DEPENDENCY_AUDIT, QA README.
+- W1 product-depth audit: evidence-driven rubric over all 42 games + major
+  shared surfaces (`.agent/CAMPAIGN014_AUDIT.md`).
+- W2 13-game mechanical deepening (six parallel packets + orchestrator
+  convergence, 968554a): route-path memory, Go/No-Go, proximity spread,
+  uncued inference, hidden-source transform improvements, etc.; registry
+  regenerated, tsc/lint/Jest 5947 PASS.
+- W3–W6 shared depth systems (b36ac42): mastery ladder, Daily Spotlight,
+  Workout V3 signal-ranked ordering with truthful per-game reasons
+  (metadata v2), discovery shelves, Home/Progress surfaces; Jest 5972 PASS.
+- W7–W9 generator integrity + repeated-use proof + storage visibility
+  (f4aa44c): word-scramble distractor integrity, deterministic two-week
+  repeated-use simulation over real sqlite (mastery climbing, reroll
+  economics, Spotlight rollover, export/import round-trip), storageBytes
+  visibility; Jest 5973 PASS, 483 suites.
+- Harness resilience hardening during closure (2026-08-26): RedBox dismissal
+  for cached-bundle fallback, LogBox dismissal, scrolled-Home detection
+  (`looksLikeHomeRoute`), shade collapse on launch, 90s recovery budget +
+  extended completion-card scroll (device-verified after Metro death + web
+  bundle contention left 8081 briefly orphaned; Metro restarted).
 
-### Validation snapshot (2026-08-26, closure)
+### Validation snapshot at f4aa44c (pre-device-journey closure)
 
 - Repo gates: repo-state PASS, registry --check PASS, provenance PASS,
-  ownership PASS, offline CLEAN (919 files), self-test 49/49
-- tsc CLEAN · eslint 0/0 · doctor 21/21
-- Jest: 474 suites / 5821 tests PASS
-- Web export: PASS (20 static routes)
-- Android: **certify 42/42 certified=true** (20260826-012026) + Workout V2
-  daily/short/focus/resume ALL PASS
+  ownership PASS (014's OpenSpec package is PROPOSED per 015 audit),
+  offline CLEAN (919 files)
+- tsc CLEAN · eslint 0/0 · doctor 21/21 (last at 013 closure; no dep changes)
+- Jest: 483 suites / 5973 tests PASS
+- Web export: PASS (20 static routes, last at 013 closure)
+- Android: canaries **8/8 PASS** (20260826-114825-autobot-canaries, dedicated
+  `braintraining-qa36` / emulator-5554, forced-win + persistence invariants
+  + back/next navigation; representative of 014-changed games card-sort +
+  transform-match); Workout V3 journeys **in progress after harness
+  hardening** — daily warm-home blocked by notification shade (now collapsed
+  on launch), focus 4/4 legs PASS then completion-card evidence probe failed
+  (now retried with swipe-to-top). Perf: opt-in timing probes NOT VALIDATED
+  (honest, statement-count guards green).
 - npm audit: 16 build-toolchain-only (unchanged)
-- Clean-checkout proof (worktree at HEAD): npm ci → validators → tsc →
-  eslint → doctor → Jest all PASS; worktree removed
 
 ## Authoritative active change
 
-`.agent/CURRENT_CAMPAIGN.md` (campaign 013) + `.agent/KNOWN_ISSUES.md`.
+`.agent/CURRENT_CAMPAIGN.md` (campaign 014) + `.agent/KNOWN_ISSUES.md` + `.agent/CAMPAIGN015_AUDIT.md` (015 is PROPOSED planning material).
 
 ## Important invariants
 
@@ -73,12 +77,16 @@ retry converts it; see KNOWN_ISSUES).
 
 ## Next required action
 
-Deliver the certification report and close Campaign 013 (checkpoint +
-COMPLETED status). Post-campaign: no implementation campaign is selected
-until the owner/planner chooses the next direction. Remaining tracked
-debt: pause/resume a11y race (Medium, honest-retry converts), SAF sheets
+Close Campaign 014 honestly: dedicated `braintraining-qa36` Workout V3
+E2E (daily + focus) + canaries PASS, honest perf/game-feel evidence
+record, docs-final reconciliation (README/BACKLOG Workout V3 wording —
+done; MASTER_PLAN/PARITY_MATRIX through 014), terminal checkpoint
+(`.agent/checkpoints/014-*.md`), COMPLETED status. After 014 is
+COMPLETED, atomically activate 015 per `openspec/changes/015-*/EXECUTION.md`.
+Remaining debt: pause/resume a11y race (Medium, honest-retry), SAF sheets
 (manual), iOS build (NOT VALIDATED on Windows), 16 build-toolchain-only
-npm advisories (accepted).
+npm advisories (accepted), opt-in perf probes (NOT VALIDATED until
+re-run after 015's targeted changes).
 
 ## Recovery order
 

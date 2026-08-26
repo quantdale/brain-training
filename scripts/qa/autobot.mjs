@@ -963,6 +963,16 @@ async function waitForHome(timeoutMs = 120000) {
   while (Date.now() < end) {
     const p = dumpHierarchy("home-warm");
     const xml = readFileSyncSafe(p);
+    // Dev overlays are checked BEFORE the dump-error filter: their own error
+    // text trips /ERROR:/i in DUMP_ERROR_RE and would never be dismissed.
+    if (dismissRedBoxIfPresent(xml, "home-warm")) {
+      await sleep(1200);
+      continue;
+    }
+    if (dismissLogBoxIfPresent(xml, "home-warm")) {
+      await sleep(800);
+      continue;
+    }
     if (
       xml &&
       !DUMP_ERROR_RE.test(xml) &&
@@ -998,6 +1008,10 @@ function disableAnimations() {
   }
 }
 function launch() {
+  // Collapse any pulled notification shade: device-verified 2026-08-26, after
+  // a cold boot the "Serial console enabled" shade was left open and caused
+  // ensureWarmHome to fail (home markers hidden behind shade).
+  try { adb(["shell", "cmd", "statusbar", "collapse"]); } catch {}
   adb(["shell", "am", "start", "-n", `${PKG}/.MainActivity`]);
 }
 function reset() {
@@ -1158,6 +1172,40 @@ const PANEL_SETTLE_BUDGET_MS = 12000;
  * Taps the snackbar's dismiss control (right-edge circle, derived from the
  * warning text bounds); returns true when a dismissal was attempted.
  */
+/**
+ * Dismiss a full-screen RN RedBox (fatal/dev error overlay with DISMISS and
+ * RELOAD buttons) if one is docked on screen.
+ *
+ * Device-verified trigger (2026-08-26, campaign 014 closure): when Metro is
+ * busy building an unrelated platform bundle at cold start, the dev client
+ * can fall back to its cached bundle; expo's messageSocket then throws
+ * "Cannot create devtools websocket connections in embedded environments"
+ * (`!devServer.bundleLoadedFromServer`) and a RedBox blocks the whole UI.
+ * The app itself runs fine from the cached bundle once the overlay is
+ * dismissed — tapping DISMISS lets journeys continue instead of false-failing.
+ */
+function dismissRedBoxIfPresent(xml, tag) {
+  // NOTE: deliberately does NOT consult DUMP_ERROR_RE — the RedBox's own
+  // error text ("[runtime not ready]: Error: ...") matches /ERROR:/i and
+  // made every dump look like a failed capture, so the overlay could never
+  // be dismissed (device-verified 2026-08-26). Anchored on the dev-overlay
+  // button resource-id instead of display text.
+  if (!xml) return false;
+  const m = xml.match(
+    /resource-id="com\.braintraining\.app:id\/rn_redbox_dismiss_button"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/,
+  );
+  if (!m) return false;
+  const x = Math.round((Number(m[1]) + Number(m[3])) / 2);
+  const y = Math.round((Number(m[2]) + Number(m[4])) / 2);
+  try {
+    shell(`input tap ${x} ${y}`);
+    trace("tap.redbox-dismiss", "redbox", true, `${x},${y}`);
+  } catch {
+    trace("tap.redbox-dismiss", "redbox", false, tag);
+  }
+  return true;
+}
+
 function dismissLogBoxIfPresent(xml, tag) {
   if (!xml || DUMP_ERROR_RE.test(xml)) return false;
   const marker = xml.indexOf("Open debugger to view warnings");
@@ -1205,6 +1253,10 @@ async function driveForceWin(id, tag) {
     const xml = readFileSyncSafe(p);
     if (!xml || DUMP_ERROR_RE.test(xml)) {
       await sleep(600); // no evidence → no action; keep current belief
+      continue;
+    }
+    if (dismissRedBoxIfPresent(xml, tag)) {
+      await sleep(1200); // overlay dismissed; re-dump before acting
       continue;
     }
     if (dismissLogBoxIfPresent(xml, tag)) {
@@ -2195,22 +2247,42 @@ async function scrollToRecentRowQa(tag) {
   return null;
 }
 
+// True when a hierarchy dump proves the app's HOME ROUTE is showing.
+//
+// Campaign 014's discovery surfaces (spotlight/milestones/shelves) made Home
+// much taller: returning from a completed leg can land on a SCROLLED Home
+// whose above-fold markers (home-brand/home-title/home-workout-list) sit
+// outside the dumped viewport — uiautomator omits off-screen scrollable
+// children — so marker-only detection misread "Home, scrolled" as "not Home"
+// and coaxed one extra BACK that popped the root route to the launcher
+// (device-verified 2026-08-26: 3/3 workout journeys lost the app this way).
+// Any home-* testID proves the Home route regardless of scroll position;
+// other routes never emit that prefix (games use <id>.*, results uses
+// results-*, other tabs do not use home-*).
+function looksLikeHomeRoute(xml) {
+  if (!xml || DUMP_ERROR_RE.test(xml)) return false;
+  return /resource-id="home-/.test(xml);
+}
+
 // BACK-pop from a game/results surface to Home. Never press more BACKs once
 // a home marker is seen — popping past Home's root route exits the app.
 async function backToHomeAfterLeg(tag) {
   // Each completed leg leaves BOTH the game route and its /results route on
-  // the stack, so returning Home after leg N needs up to 2N+1 BACK presses —
-  // three was never enough beyond leg 1 (device-verified: focus template leg
+  // the stack, so returning Home after leg N can need up to 2N+1 BACK presses
+  // — three was never enough beyond leg 1 (device-verified: focus template leg
   // 2 bounced results→intro→older-results and the 4th press exited to the
-  // launcher). Press until Home (max 6); if the app ever leaves the
-  // foreground (launcher/foreign app), relaunch straight to Home instead of
-  // failing — the journey's goal is a usable Home, however we get there.
+  // launcher). Press until the Home ROUTE is proven (max 6); if the app ever
+  // leaves the foreground (launcher/foreign app), relaunch straight to Home
+  // instead of failing — the journey's goal is a usable Home, however we get
+  // there. Relaunch waits use 90s because a post-exit cold start measured
+  // just past the old 30s budget (home-warm dump captured ready Home one
+  // poll AFTER the timeout had already failed the journey).
   for (let b = 0; b < 6; b++) {
     const fg = appForeground();
     if (!fg) {
       log(`back-nav: app left foreground (press ${b + 1}) — relaunching to Home`);
       launch();
-      const warm = await waitForHome(30000);
+      const warm = await waitForHome(90000);
       if (warm) return true;
       continue;
     }
@@ -2220,16 +2292,38 @@ async function backToHomeAfterLeg(tag) {
       trace("keyevent.BACK", tag, false, String(e).slice(0, 80));
     }
     await sleep(1500);
-    const hit = await waitForAny(
-      HOME_READY_IDS.concat(["home-workout-templates"]),
-      b >= 4 ? 20000 : 8000,
-      `${tag}-b${b}`,
-    );
-    if (hit) return true;
+    // Poll dumps ourselves (instead of waitForAny) so dev overlays can be
+    // dismissed in-loop and the scrolled-Home rule applies. Overlay checks
+    // run BEFORE the dump-error filter: the RedBox's own error text trips
+    // /ERROR:/i in DUMP_ERROR_RE and would otherwise never be dismissed.
+    const end = Date.now() + (b >= 4 ? 20000 : 12000);
+    while (Date.now() < end) {
+      const xml = readFileSyncSafe(
+        dumpHierarchy(`${tag}-b${b}-${Date.now() % 100000}`),
+      );
+      if (dismissRedBoxIfPresent(xml, tag)) {
+        await sleep(1200); // overlay dismissed; re-dump before deciding
+        continue;
+      }
+      if (dismissLogBoxIfPresent(xml, tag)) {
+        await sleep(800); // snackbar dismissed; re-dump before deciding
+        continue;
+      }
+      if (
+        xml &&
+        !DUMP_ERROR_RE.test(xml) &&
+        (HOME_READY_IDS.some((id) => hasTestId(xml, id)) ||
+          hasTestId(xml, "home-workout-templates") ||
+          looksLikeHomeRoute(xml))
+      ) {
+        return true;
+      }
+      await sleep(750);
+    }
   }
   // Last resort: relaunch recovers Home regardless of stack depth.
   launch();
-  return !!(await waitForHome(30000));
+  return !!(await waitForHome(90000));
 }
 
 // Open the newest persisted session's shared result page and wait for the
@@ -2588,11 +2682,15 @@ async function flowWorkoutTemplate(opts) {
   if (!(await backToHomeAfterLeg(`${tag}-final`)))
     return finishFail("did not return Home after final leg");
   await sleep(1500); // history/completion cards refresh on focus + events
+  // Ensure Home is at top before searching for the completion card which
+  // lives near the top (Today's Workout area). After a scrolled Home hunt
+  // the viewport may be at the bottom where the card is off-screen.
+  for (let up = 0; up < 3; up++) { swipeUp(); await sleep(700); }
 
   const cardHit = await scrollToAny(
     ["home-workout-completion-card"],
     `${tag}-card`,
-    4,
+    5,
   );
   const outcomeRows = [];
   if (cardHit) {
