@@ -1,72 +1,56 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-25 (Campaign 013 hardening in progress on main;
-head c8dc47d; single-driver certify run active on emulator-5558)
+**Last update:** 2026-08-26 (Campaign 013 certification: definitive 42/42
+--no-pause run certified=true on emulator-5558 at HEAD ba6dd84; Workout V2
+all four journeys PASS; clean-checkout proof green; final docs reconciled)
 **Canonical branch:** `main`
-**Active campaign:** `013-final-product-completion`
+**Active campaign:** none (013-final-product-completion COMPLETED 2026-08-26;
+next direction owner-selected)
 
 ## Current status
 
-Campaign 012 is **COMPLETED** (closure record:
-`.agent/checkpoints/012-broad-convergence-COMPLETED.md`; device evidence in
-`.agent/VALIDATION.md` Campaign 012 closeout section). Campaign 013 (final
-completion + hardening, owner-authorized) is ACTIVE and nearing closure.
+Campaign 013's release gate is **GREEN**: the definitive single-driver
+`--mode certify` run (20260826-012026, SHA ba6dd84, emulator-5558,
+62m36s) reached **42/42 attempted / 42 PASS / certified=true** with
+preflight 7/7 and zero missing/duplicates/unexpected. Workout V2 daily,
+short, focus and resume journeys all PASS on the same build. Pause-probe
+coverage is carried by Run A (42/42 with probes on, one disclosed retry);
+the residual pause/resume a11y race is tracked as Medium debt (honest-
+retry converts it; see KNOWN_ISSUES).
 
-### What landed in the 012 closeout window (all pushed with the campaign)
+### What landed in the 013 hardening window (commits 95fbd55 → HEAD, pushed)
 
-- **Critical**: template-workout advance never notified Home — completion UI
-  stayed stale forever (`useWorkoutResultAdvance` now emits
-  `workoutChanged`; jest regression pins it). Campaign 011's DB-state-only
-  assertions had masked this.
-- **High**: tutorial controls clipped at the viewport bottom edge on small
-  screens (tutorials now render as a bottom-anchored overlay); dev-QA panel
-  defaulted below tall playfields (now defaults above; dev-build gated).
-- **Hardening**: SQLite schema v10 ships the Workout V2 `metadata_json`
-  column (personalization reasons persist across restarts AND backup/
-  restore — portability format v3 round-trips them); /results completion
-  copy derives from actual workout length; word-chain expert pool doubled
-  (9→18 validated chains); deterministic Android versionCode/iOS
-  buildNumber via a committed config plugin; autobot harness gained an
-  evidence-based force-win driver, verified tutorial bypass, lazy-chunk-
-  aware leg entry, and a single-driver PID lockfile.
+- Lint 474 → 0 errors / 0 warnings (no suppressions).
+- Schema v10 adversarial matrix (+18 tests, mutation-proven).
+- Game-family audits: 4 real gameplay defects fixed with regressions
+  (prospective-cue stale closure + pause-restart exploit, odd-one-out
+  post-deadline grace, color-match negative-RT guard).
+- Certification-driven product fixes: fractional duration_ms REAL bug
+  (persistence-boundary coercion), language hybrids generatorVersion
+  provenance, celebration boxShadow (LogBox snackbar tap interception).
+- QA harness: `--mode certify` release profile (completeness, atomic
+  journal, provenance, 7-check preflight, failure taxonomy, row-invariant
+  validators, nav-zone scroll guard, pause-aware force-win, honest-retry);
+  self-test 28 → 49; lock fail-closed; permissions drift pin.
+- NativeTabs deterministic normalizer + integrated navigation snapshot.
+- Dependency refresh: 6 Expo SDK-57 patch alignments (doctor 21/21);
+  16 advisories classified build-toolchain-only.
+- Docs reconciled: README, MASTER_PLAN (through 013), PARITY_MATRIX,
+  BACKLOG, KNOWN_ISSUES, VALIDATION, DEPENDENCY_AUDIT, QA README.
 
-### What landed in the 013 hardening window (commits 95fbd55 → c8dc47d, all pushed)
+### Validation snapshot (2026-08-26, closure)
 
-- **Lint debt eliminated**: 474 warnings → 0 errors / 0 warnings (mechanical
-  autofix + per-surface dead-code removal across all game families, db,
-  workout, portability, app shell, QA scripts; no blanket suppressions).
-- **Schema v10 adversarial matrix** (+18 tests): idempotent column guard,
-  malformed metadata cells, legacy envelopes, failure-injected atomicity,
-  newer-schema rejection — all mutation-proven.
-- **Game-family audits** (7 disjoint-surface workers): fixed 4 real gameplay
-  defects with regression tests — memory-prospective-cue stale-closure scoring
-  + pause-restart window exploit, odd-one-out post-deadline grace,
-  color-match negative-RT guard.
-- **QA harness hardening**: lock fail-closed, permissions drift pin test,
-  `--mode certify` release gate (42/42 completeness, atomic journal,
-  provenance, preflight, failure taxonomy, row-invariant validators, 49
-  self-tests), deterministic NativeTabs normalizer + integrated snapshot.
-- **Dependency/security refresh**: 16 advisories, all build-toolchain-only
-  (image-size, uuid); no runtime-reachable; lockfile dedupe validated.
-- **Product fixes from certification**: fractional duration_ms persisted as REAL
-  (persistence-boundary coercion), language hybrids generatorVersion null→1.0.0
-  (provenance gap), celebration shadow* → boxShadow (LogBox snackbar),
-  workout back-nav stack depth, nav-zone scroll guard, honest-retry for
-  stochastic races.
-
-### Validation snapshot (2026-08-25, hardening window — pre-final-certify)
-
-- `tsc --noEmit`: CLEAN
-- `npm run test:ci`: PASS — 474 suites / 5821 tests, 0 failures
-- `npm run lint`: PASS — 0 errors / 0 warnings
 - Repo gates: repo-state PASS, registry --check PASS, provenance PASS,
-  ownership PASS, offline CLEAN; expo-doctor 21/21
-  (after aligning 6 Expo SDK-57 patch releases: expo .16, router .16, etc.)
-- Device (emulator-5558, isolated braintraining-qa36): 40/42 best single-run
-  (certify mode, 2 stochastic pause/a11y races remain — honest-retry added;
-  re-running for 42/42); warm-bundles 42/42; single-game spot checks PASS
-  after each fix
+  ownership PASS, offline CLEAN (919 files), self-test 49/49
+- tsc CLEAN · eslint 0/0 · doctor 21/21
+- Jest: 474 suites / 5821 tests PASS
+- Web export: PASS (20 static routes)
+- Android: **certify 42/42 certified=true** (20260826-012026) + Workout V2
+  daily/short/focus/resume ALL PASS
+- npm audit: 16 build-toolchain-only (unchanged)
+- Clean-checkout proof (worktree at HEAD): npm ci → validators → tsc →
+  eslint → doctor → Jest all PASS; worktree removed
 
 ## Authoritative active change
 
@@ -85,11 +69,12 @@ completion + hardening, owner-authorized) is ACTIVE and nearing closure.
 
 ## Next required action
 
-Complete the single-driver 42/42 certify run on emulator-5558 (currently
-in progress, --no-pause variant expected to certify; pause debt tracked as
-Medium), then final docs reconciliation (STATE/CAMPAIGN/VALIDATION) and the
-closure checkpoint + release-candidate verdict. No source edits while the
-certify run executes.
+Deliver the certification report and close Campaign 013 (checkpoint +
+COMPLETED status). Post-campaign: no implementation campaign is selected
+until the owner/planner chooses the next direction. Remaining tracked
+debt: pause/resume a11y race (Medium, honest-retry converts), SAF sheets
+(manual), iOS build (NOT VALIDATED on Windows), 16 build-toolchain-only
+npm advisories (accepted).
 
 ## Recovery order
 

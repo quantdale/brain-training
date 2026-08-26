@@ -1,9 +1,11 @@
 # Campaign 013 — Final Product Completion (owner-authorized)
 
-**Status:** ACTIVE (opened 2026-08-23 at Campaign 012 closure)
+**Status:** COMPLETED (2026-08-26 — v1 release-candidate certified;
+closure checkpoint:
+`.agent/checkpoints/013-final-product-completion-COMPLETED.md`)
 **Campaign id:** `013-final-product-completion`
 **Predecessor:** `012-broad-convergence-release-prep` (COMPLETED)
-**Mode:** day
+**Mode:** day (owner-authorized overnight continuation)
 **Authorization:** explicit owner directive — full completion + hardening
 campaign for the currently locked v1 scope. This is the user-invoked
 hardening campaign normally gated behind an owner request.
@@ -59,12 +61,19 @@ locked scope, and certify v1 of the offline-first Brain Training product.
 
 ## Exit criteria
 
-- [ ] Single-session 42/42 Android catalog terminal classification PASS
-      under one exclusive driver
-- [ ] Full Workout V2 certification retained (short/focus/resume/daily)
-- [ ] Warning inventory reduced to an explainable small set or explicitly
-      documented per-class
-- [ ] Documentation reconciled (README, MASTER_PLAN phases, BACKLOG, PARITY)
-- [ ] All final gates green from a clean coherent state
+- [x] Single-session 42/42 Android catalog terminal classification PASS
+      under one exclusive driver — **20260826-012026, SHA ba6dd84,
+      42/42 PASS, certified=true, preflight 7/7, 62m36s** (pause-probe
+      coverage carried by Run A 42/42 with probes on + Workout V2 journeys;
+      residual stochastic pause race tracked as Medium with honest-retry)
+- [x] Full Workout V2 certification retained (short/focus/resume/daily) —
+      all four PASS on the certification build
+- [x] Warning inventory reduced to an explainable small set or explicitly
+      documented per-class — **0 errors / 0 warnings**
+- [x] Documentation reconciled (README, MASTER_PLAN phases, BACKLOG, PARITY)
+- [x] All final gates green from a clean coherent state (repo validators,
+      tsc, lint, Jest 474/5821, web export, doctor 21/21, audit triaged,
+      clean-checkout proof)
 - [ ] Certification report delivered (repository state, campaigns, product
       areas, validation counts, defects fixed, remaining blockers, verdict)
+      — delivered in the closure checkpoint + session report (this commit)

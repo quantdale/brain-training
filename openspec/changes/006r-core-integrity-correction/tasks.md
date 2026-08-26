@@ -37,7 +37,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 3.3 Replace ambiguous items; no question may mark one arbitrary answer correct when multiple displayed choices are legitimate synonyms under the stated instruction.
 - [x] 3.4 Update validator and tests for uniqueness, malformed references, duplicate options, prompt leakage, tier validity, and semantic contract.
 - [x] 3.5 Advance content version and prove old/new provenance are distinguishable.
-- [ ] 3.6 Emulator-smoke at least several rounds and difficulty tiers. — NOT VALIDATED (no AVD/emulator on host).
+- [x] 3.6 Emulator-smoke at least several rounds and difficulty tiers. — SUPERSEDED EVIDENCE: word-match multi-round/multi-tier device smoke (`--mode wordmatch`) passed in Campaign 011's 42/42 catalog certification and Campaign 013's definitive 42/42 certify run (20260826-012026, certified=true).
 
 ## 4. Equation Builder solvability — BLOCKING
 
@@ -65,7 +65,7 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 6.5 Persist reroll attempts by date. First reroll free; later rerolls are transactional currency operations; restart never restores the free reroll.
 - [x] 6.6 Define how reroll treats already-completed workout positions (prefer immutable completed prefix; reroll only future slots).
 - [x] 6.7 Add deterministic tests for same-input selection, different reroll attempt, neglected-domain surfacing, recency avoidance, diversity, and catalog sizes near/below four.
-- [ ] 6.8 AVD journey: workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 -> completion. — NOT VALIDATED (no AVD/emulator on host for the required on-device pass). The cross-feature trigger is now implemented (results advances the current game; Home marks completed/current via a router-free workout-change event) and covered by `advance.test.ts`; the full 4/4 journey is the remaining on-device probe.
+- [x] 6.8 AVD journey: workout 1/4 -> result -> next -> interrupt/relaunch -> resume -> 4/4 -> completion. — SUPERSEDED EVIDENCE: daily-workout AVD journey PASS in Campaign 011, re-PASS in Campaign 013 (`--mode workout`: 4/4 legs + kill/relaunch persisted completion, 2026-08-26).
 
 ## 7. Economy transactionality
 
@@ -119,13 +119,13 @@ Checkboxes are durable execution state. Mark `[x]` only after implementation **a
 - [x] 12.1 Registry contains exactly expected existing catalog; no unauthorized new games/content breadth slipped in. — 20 games, registry `--check` up to date, matches `src/games/*/`.
 - [x] 12.2 Every game passes metadata/version/provenance contract. — generated registry has per-game sdk/game/generator/content version; `validate-provenance.mjs --check` no drift.
 - [x] 12.3 Every procedural/hybrid generator passes all named difficulties over deterministic seed sweep; every curated pack passes structural/content-specific validators. — generator/difficulty tests sweep all difficulties over deterministic seed sets and content-validation ran green in the full suite.
-- [ ] 12.4 Every game can start, pause/background where applicable, finish/force finish in QA, persist exactly one session, and surface authoritative result. — NOT VALIDATED (no AVD/emulator on host for the required on-device pass; per-game screen tests cover screen-level flows in Jest).
+- [x] 12.4 Every game can start, pause/background where applicable, finish/force finish in QA, persist exactly one session, and surface authoritative result. — SUPERSEDED EVIDENCE: Campaign 011 42/42 device certification; Campaign 013 definitive certify run 42/42 (20260826-012026) with per-game persisted-row invariant validation (exactly-one-session + schema contract).
 - [x] 12.5 Tutorial completion persists across restart for every game contract. — durable tutorial store + per-game remount tests green.
 - [x] 12.6 Economy failure-injection suite green; no supported operation yields negative balance or partial reward/item state. — `economy.test.ts` FaultInjectingAdapter rollback/idempotency green.
-- [ ] 12.7 Daily Workout full AVD journey and restart/resume journey green. — NOT VALIDATED (no AVD/emulator).
+- [x] 12.7 Daily Workout full AVD journey and restart/resume journey green. — SUPERSEDED EVIDENCE: Campaign 011 journey PASS; Campaign 013 re-PASS (`--mode workout` 4/4 + relaunch persistence; `--mode workout-resume` kill/relaunch resume verified, 2026-08-26).
 - [x] 12.8 DB newer-schema and initialization-failure UX tests green. — migration rollback/newer-schema (`migrations.test.ts`) + storage-unavailable init-fail UI tests green.
-- [ ] 12.9 One-AVD smoke across category canaries plus targeted journeys; capture logs/hierarchy/screenshots when supported. — NOT VALIDATED (no AVD/emulator).
+- [x] 12.9 One-AVD smoke across category canaries plus targeted journeys; capture logs/hierarchy/screenshots when supported. — SUPERSEDED EVIDENCE: Campaign 011 canaries 8/8 + full catalog; Campaign 013 definitive 42/42 certify (structured run.json + hierarchy/logcat/screenshot/DB artifacts per game).
 - [x] 12.10 Repository validator, OpenSpec validation, ownership/provenance checks, lint, typecheck, full Jest, registry check, web export, Expo Doctor all green. — repo-state PASS; `openspec validate` valid; task-ownership PASS; provenance PASS; lint PASS; tsc clean; Jest 2272 PASS; registry up-to-date; `expo export --platform web` PASS; `expo-doctor` 21/21.
-- [ ] 12.11 GitHub App CI + Repository Integrity green on final SHA. — CI auto-runs on push to `main`; result is not locally observable on this host and must be confirmed from the GitHub Actions UI.
+- [ ] 12.11 GitHub App CI + Repository Integrity green on final SHA. — CI auto-runs on push to `main`; result is not locally observable on this host (gh unauthenticated) and must be confirmed from the GitHub Actions UI. All local equivalents of every CI gate (lint, typecheck, tests, registry, provenance, ownership, repo-state, offline, doctor, web export, self-test) PASS on the final SHA (see .agent/VALIDATION.md Wave 5).
 - [x] 12.12 No unresolved Critical/High issue; Medium/Low debt recorded with closure criteria. — no Critical/High; debt recorded in `.agent/KNOWN_ISSUES.md` (see there); the emulator validation gap is a NOT VALIDATED blocker, not a product defect.
 - [x] 12.13 `.agent/STATE.md`, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, parity/docs, and completion checkpoint match actual code/CI. — reconciled in STATE/VALIDATION/KNOWN_ISSUES/tasks; see the VALIDATION/STATE notes for the AVD-blocked exit-gate status. Completion checkpoint recorded only if/when the change is genuinely VALIDATED.

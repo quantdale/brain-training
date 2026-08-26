@@ -1,6 +1,7 @@
 {
   "id": "006r-core-integrity-correction",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
+  "validationNote": "All tasks complete except 12.11 (CI-on-final-SHA is GitHub-UI-observable only; every local CI-equivalent gate passes on the final SHA). Superseding device evidence: Campaign 011 42/42, Campaign 013 definitive certify 42/42 certified=true (qa-artifacts/20260826-012026-autobot-certify). Archive after UI-side CI confirmation.",
   "baselineAuditCommit": "2871e5ab0137b1c6475d21100344280ea9927419",
   "parentCampaign": "006-platform-hardening-and-polish",
   "canonicalBranch": "main",
