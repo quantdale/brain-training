@@ -4,6 +4,19 @@ Unchecked tasks are executable only after their dependencies and lifecycle
 preconditions are satisfied. Evidence goes in `.agent/VALIDATION.md` and the
 terminal checkpoint. Do not check a task from assumption.
 
+## P0. Current-head green recovery — blocks every later phase
+
+These tasks repair the audited `main` state before predecessor closure. They are not permission to activate Campaign 015.
+
+- [ ] P0.1 Pull current `main`, record exact SHA, inspect App CI + Repository Integrity for that SHA, and reproduce the two audited workout failures locally (`workout-v2.test.ts`, `advance.test.ts`) before editing. If HEAD moved, re-audit the changed files and use current evidence.
+- [ ] P0.2 Preserve the historical/equal-session safety expectations. Do not make CI green by simply accepting stale sessions or deleting/weakening those tests.
+- [ ] P0.3 Trace game launch → session persistence → results → `useWorkoutResultAdvance` → repository routing/advance for daily and template workouts. Write a short invariant note before implementation.
+- [ ] P0.4 Replace the 10-second ownership heuristic with the smallest correctness-preserving causal attribution design. No arbitrary positive fixed-duration grace window may be the decisive proof of ownership.
+- [ ] P0.5 Remove duplicated ownership logic/magic timing values once the invariant is centralized. If schema/provenance changes, add forward migration + legacy/read/export-import/rollback coverage.
+- [ ] P0.6 Add adversarial tests for equal timestamps, historical result within 10s, rapid first completion, clock skew, two active instances sharing a game, repeated IDs, standalone play, duplicate delivery, stale hook state, results re-view, relaunch, and reconciliation.
+- [ ] P0.7 Run targeted workout suites, then full CI-mode Jest, typecheck/lint, repo-state, registry, provenance, task-ownership, offline, and QA self-test. Record exact counts; 4 skipped suites / 5 skipped tests from the audited run must be classified rather than ignored.
+- [ ] P0.8 Push the coherent repair and require App CI + Repository Integrity green on the exact repair SHA before proceeding to Campaign 014 closure.
+- [ ] P0.9 Synchronize STATE/KNOWN_ISSUES/VALIDATION so already-pushed code is not described as `working/unpushed`; record the audited failed run and the repair evidence honestly.
 ## 0. Predecessor closure — Campaign 014 (blocking activation gate)
 
 - [ ] 0.1 Re-read Campaign 014 exit criteria and current validation/known issues
@@ -96,6 +109,15 @@ Depends on: 1.1–1.6.
       to close a historical final-SHA requirement without documentation.
 - [ ] 4.5 Run repository/OpenSpec integrity after cleanup.
 
+## 4A. Test and integration truthfulness
+
+Depends on: 4.5. May run in parallel with later disjoint product packets after ownership is valid.
+
+- [ ] 4A.1 Inventory the 4 skipped suites / 5 skipped tests reported by audited App CI; classify each as intentional environment-gated, obsolete, flaky, or accidental. Remove obsolete/accidental skips; document justified ones.
+- [ ] 4A.2 Reproduce and eliminate actionable overlapping-`act()` warning noise in component/accessibility tests so warnings do not hide real async-test defects. Do not silence console globally.
+- [ ] 4A.3 Audit high-risk orchestration in the five `app/(tabs)` screens. Add focused integration tests for routing/persistence/error/reload semantics that are not already proven below the screen layer; avoid snapshot-count padding.
+- [ ] 4A.4 Inventory typed-route `as any` escapes in app navigation. Remove safe-to-remove escapes with compile-time coverage; document any Expo Router limitation that genuinely requires one.
+- [ ] 4A.5 Capture a clean Jest summary at convergence, including pass/fail/skip counts and unexpected console warnings.
 ## 5. Logic Rule Grid chained-deduction redesign
 
 Depends on: 2.7, 3.9.
@@ -174,9 +196,20 @@ Depends on: 2.7, 3.9.
 - [ ] 8.9 Run reducer/screen/session/a11y regressions and a targeted Android
       canary.
 
+## 8A. Workout completion attribution integrity
+
+Depends on: P0.1–P0.9, 2.7, 3.9. If the P0 repair already satisfies these requirements, prove and check them rather than reimplementing.
+
+- [ ] 8A.1 Prove the final causal ownership model against `specs/workout-integrity/spec.md`; document the authoritative instance/leg identity and legacy policy.
+- [ ] 8A.2 Ensure ownership provenance survives process death and results re-opening and is persisted atomically enough to prevent mismatched session/ownership state.
+- [ ] 8A.3 Ensure concurrent active workouts sharing the same current game route completion only to the actual owner; recency is not ownership.
+- [ ] 8A.4 Make duplicate session processing idempotent at the durable boundary, including after React/local refs are lost on relaunch.
+- [ ] 8A.5 Run migration/data-portability/reconciliation fixtures if storage shape changed.
+- [ ] 8A.6 Run the complete adversarial attribution matrix plus daily/focus template Android journeys when the dedicated AVD is available.
+- [ ] 8A.7 Record before/after routing semantics and remove obsolete timestamp-grace comments/tests/constants.
 ## 9. Performance and game-feel evidence
 
-Depends on: 5.9, 6.7, 7.8, 8.9.
+Depends on: 5.9, 6.7, 7.8, 8.9, 8A.7.
 
 - [ ] 9.1 Run relevant existing opt-in performance probes before any evidence-
       driven optimization beyond work already required for correctness.
@@ -207,7 +240,7 @@ Depends on: 5.9, 8.9.
 
 ## 11. Convergence and exit gate
 
-Depends on: 4.5, 5.9, 6.7, 7.8, 8.9, 9.1–9.6, 10.1–10.5.
+Depends on: 4.5, 4A.1–4A.5, 5.9, 6.7, 7.8, 8.9, 8A.1–8A.7, 9.1–9.6, 10.1–10.5.
 
 - [ ] 11.1 Re-run `node scripts/validate-repo-state.mjs`.
 - [ ] 11.2 Re-run pinned OpenSpec `validate --all`.
@@ -229,3 +262,5 @@ Depends on: 4.5, 5.9, 6.7, 7.8, 8.9, 9.1–9.6, 10.1–10.5.
 - [ ] 11.15 Mark change lifecycle accurately, write terminal checkpoint, update
       STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION, and leave clean canonical
       `main`.
+- [ ] 11.16 Final App CI log has zero failing tests; skipped suites/tests and unexpected console warnings are explicitly classified in validation evidence.
+- [ ] 11.17 Verify the final pushed SHA still satisfies `workout-integrity` adversarial tests and both App CI + Repository Integrity are green on that exact SHA.

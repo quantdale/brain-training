@@ -99,3 +99,16 @@ Campaign 015 succeeds only when:
   checks, web export, and Expo Doctor are green as required by impact;
 - final GitHub App CI and Repository Integrity are green on the pushed final SHA;
 - no unresolved Critical/High regression remains.
+
+## 2026-08-27 current-HEAD re-audit
+
+Current HEAD `366a098527876e2c4c7448526bcdebcb686a59c6` changes the activation risk materially:
+
+- App CI is red at Jest while Repository Integrity is green.
+- The two failing tests prove the new 10-second workout timestamp tolerance accepts stale/equal sessions.
+- Workout/session ownership is inferred from game id + time + most-recent active instance because persisted sessions carry no workout instance identity.
+- Durable STATE describes already-pushed repair work as unpushed.
+
+Therefore the predecessor-close phase now includes a mandatory current-head green recovery. Campaign 015 also adds the normative `workout-integrity` spec so this failure class cannot be solved by another arbitrary timing tolerance. The full evidence is `.agent/CAMPAIGN015_REAUDIT_2026-08-27.md`.
+
+The 12-hour handoff remains bounded by lifecycle rules: restore green main and close 014 first; only then activate 015.

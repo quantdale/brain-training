@@ -240,3 +240,22 @@ Layered evidence:
 8. GitHub App CI + Repository Integrity green on the final pushed SHA.
 
 No blind retries, no borrowed foreign emulator, no fake green.
+
+## Current-head design correction: workout attribution
+
+The August 27 re-audit found that workout completion routing currently solves identity through timing: `findActiveInstanceForGame(gameId, completedAt)` searches active instances and the result hook applies a second timestamp guard. The new 10-second tolerance made first-leg device behavior more permissive but broke the repository's historical/equal-timestamp safety tests and App CI.
+
+Campaign design now treats workout ownership as a causal provenance problem:
+
+1. establish one authoritative identity for the workout instance (existing instance key is a natural candidate);
+2. carry ownership/leg provenance through the launch boundary into the persisted session or an atomically associated record;
+3. route results using that provenance, not newest-matching-game heuristics;
+4. make repeated processing idempotent at the durable boundary, not only with React refs/local state;
+5. migrate old databases/data-portability formats compatibly; legacy sessions without provenance remain displayable but cannot ambiguously advance workouts;
+6. eliminate duplicated timing constants/heuristics once causal attribution is established.
+
+Implementation details may differ if a simpler invariant proves all normative scenarios. Any schema change requires migration, round-trip/export-import, rollback/failure, and legacy fixtures. Do not widen the schema merely because it is convenient; choose the smallest design that proves ownership.
+
+### Harness principle
+
+QA wait budgets are diagnostic/recovery mechanisms, not correctness. For workout flows, record time-to-template-ready/time-to-durable-completed state and classify timeouts. A longer sleep/poll is not an acceptable substitute for a missing state notification or stale persistence read.

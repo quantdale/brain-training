@@ -5,6 +5,12 @@ This is the short autonomous execution entrypoint.
 **Current lifecycle state:** PROPOSED.  
 **Do not activate until Campaign 014 is durably COMPLETED.**
 
+## 12-hour execution envelope
+
+This handoff is sized for one autonomous ~12-hour run. Continue through dependency-ready work for the full useful session; do not stop after one successful wave. Do not idle merely to reach a clock. If all in-scope implementation finishes early, spend remaining useful time on deterministic/adversarial validation, warning/flake cleanup tied to changed surfaces, state/docs reconciliation, and exact-SHA CI confirmation. Never use the time budget as permission to start an unrelated hardening or breadth campaign.
+
+Before any termination, write/push a durable checkpoint with start/end SHA, commits, completed/remaining tasks, exact validation results, CI run IDs, device evidence/blockers, and next action.
+
 ## Recovery
 
 1. Synchronize canonical `main` without discarding unrelated user work.
@@ -20,6 +26,22 @@ This is the short autonomous execution entrypoint.
    - `npx --yes @fission-ai/openspec@1.6.0 validate --all`
 6. Inspect git status/history/remote and reconcile documentation with code
    before editing.
+
+## Phase -1 — current-head red-main recovery
+
+At the audited baseline `366a098`, App CI run `33051125658` failed Jest (2 suites / 2 tests) while Repository Integrity passed. The failures are the 10-second workout timestamp-grace regression in `findActiveInstanceForGame` and `shouldAdvanceWorkout`.
+
+Before any other phase:
+
+- reproduce current failures on the pulled SHA;
+- preserve stale/equal-session rejection;
+- establish causal workout/session ownership instead of a positive fixed-duration grace heuristic;
+- run the adversarial attribution matrix from the `workout-integrity` spec;
+- restore full local green and push;
+- require App CI + Repository Integrity green on the exact repair SHA;
+- synchronize durable state so committed/pushed work is not described as unpushed.
+
+If HEAD has moved, re-audit the relevant diff/CI first. Current code and CI outrank this recorded baseline.
 
 ## Phase 0 — predecessor closure gate
 

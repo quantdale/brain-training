@@ -11,10 +11,13 @@
   "specOrder": [
     "campaign-governance",
     "repository-state-integrity",
+    "workout-integrity",
     "game-depth-convergence",
     "runtime-evidence"
   ],
   "activationRule": "Campaign 014 must be durably COMPLETED and validated before this change may become ACTIVE.",
   "newGameModulesAllowed": false,
-  "fullHardening": false
+  "fullHardening": false,
+  "latestAuditBaseline": "366a098527876e2c4c7448526bcdebcb686a59c6",
+  "latestAuditDate": "2026-08-27"
 }

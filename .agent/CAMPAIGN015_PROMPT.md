@@ -1,50 +1,55 @@
-# Next-Campaign Handoff — Campaign 015: Governance & Depth Convergence
+# Next-Campaign Handoff — Campaign 015: Governance, Workout Integrity & Depth Convergence
 
 **Change:** `015-governance-depth-convergence`  
 **Status:** PROPOSED — DO NOT activate while Campaign 014 is ACTIVE.  
-**Planned from:** `c8acadceb46ad6ba3f90b0c4222583a9a2912f49`
+**Re-audited from HEAD:** `366a098527876e2c4c7448526bcdebcb686a59c6`  
+**Execution envelope:** one autonomous ~12-hour session, bounded by lifecycle/safety gates.
 
-This file is intentionally short. OpenSpec is the executable source of truth.
+## One-shot agent instruction
 
-## Agent instruction
+Pull canonical `main`. Do not assume it is green. Read, in order:
 
-Pull canonical `main`, then:
+1. `AGENTS.md` and `docs/PROJECT_CONSTITUTION.md`.
+2. `.agent/GOVERNANCE.json`, `.agent/STATE.md`, `.agent/CURRENT_CAMPAIGN.md`, `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`.
+3. `.agent/CAMPAIGN015_AUDIT.md` and `.agent/CAMPAIGN015_REAUDIT_2026-08-27.md`.
+4. `openspec/changes/015-governance-depth-convergence/EXECUTION.md`, `proposal.md`, `design.md`, `audit-map.md`, every `specs/**/spec.md`, then `tasks.md`.
+5. Current git history/status plus GitHub Actions for the exact pulled SHA.
 
-1. Read `AGENTS.md`, `docs/PROJECT_CONSTITUTION.md`,
-   `.agent/GOVERNANCE.json`, `.agent/STATE.md`,
-   `.agent/CURRENT_CAMPAIGN.md`, `.agent/KNOWN_ISSUES.md`, and
-   `.agent/VALIDATION.md`.
-2. Read `.agent/CAMPAIGN015_AUDIT.md`.
-3. Read
-   `openspec/changes/015-governance-depth-convergence/EXECUTION.md`,
-   `proposal.md`, `design.md`, every `specs/**/spec.md`, and `tasks.md`.
-4. **Do not bypass Campaign 014.** If 014 is still ACTIVE, execute only the
-   predecessor-close phase defined in the 015 execution file: restore the
-   dedicated project AVD, run the required Workout V3/canary journeys, complete
-   the docs-final reconciliation, synchronize durable state, write the terminal
-   checkpoint, validate, commit, and push.
-5. Only after Campaign 014 is honestly COMPLETED, perform the atomic 014→015
-   transition required by OpenSpec. There must never be two active campaigns.
-6. Execute Campaign 015 tasks in dependency order. Use up to the repository's
-   normal coder concurrency only for disjoint write surfaces. The orchestrator
-   owns governance/state/OpenSpec/schema/shared-registry/CI convergence.
-7. After each coherent wave, run the risk-based checks owed by the changed
-   surfaces, fix Critical/High regressions immediately, update OpenSpec task
-   evidence plus durable state, commit, and push `main`.
-8. Never convert an unavailable Android/iOS/manual check into PASS.
+Then execute the OpenSpec dependency graph autonomously. Do not ask for routine confirmation. Re-read every file before editing it; current code outranks planning prose.
 
-## Mission
+## Mandatory first action — restore green main
 
-Make the autonomous campaign system mechanically trustworthy, then close the
-small set of verified depth/replayability gaps that remain after Campaign 014:
-Rule Grid chained deduction, language content starvation, Transform Match
-semantic/invariant safety, and measured runtime/accessibility evidence.
+At audited HEAD `366a098`, App CI run `33051125658` is red at Jest: 2 failed suites / 2 failed tests. Both failures are caused by the new 10-second workout timestamp grace window. Start with the P0 recovery tasks in `tasks.md`.
 
-Do not add games or unrelated features.
+Do not paper over the regression by changing expectations to accept stale/equal sessions. Establish a causal workout/session attribution invariant. Prefer durable instance/leg identity carried from launch through persisted session/results. If another design is used, it must prove equivalent safety and must not depend on an arbitrary positive fixed-duration grace window.
 
-## Completion
+After the repair, run the exact targeted suites, full `npm run test:ci`, typecheck/lint, repository/registry/provenance/ownership/offline/QA gates, then push a coherent green repair and verify App CI on that exact SHA.
 
-Campaign 015 is complete only when its normative OpenSpec requirements and exit
-gate are validated, the final pushed `main` SHA is green in App CI and
-Repository Integrity, durable state is mutually consistent, and no unresolved
-Critical/High regression remains.
+## Predecessor gate
+
+Campaign 014 remains ACTIVE. Do not implement Campaign 015 feature/depth packets until 014 is honestly COMPLETED. Finish its required dedicated-project AVD Workout V3/focus journey, representative canaries, required perf/game-feel evidence, docs/state reconciliation, and terminal checkpoint. Never borrow a foreign emulator and never convert unavailable device/iOS/manual evidence into PASS.
+
+If a genuine external device blocker persists, keep 015 PROPOSED. You may fix current-head correctness and improve predecessor-safe diagnostics/state, but you may not bypass the lifecycle gate.
+
+## 12-hour autonomous execution contract
+
+Treat this as a ~12-hour execution envelope from agent start. Continue working until the envelope is exhausted, the full campaign is VALIDATED, or a genuine blocking condition leaves no safe in-scope work.
+
+- Use up to the repository's normal coder concurrency only for disjoint write surfaces after ownership is valid.
+- Orchestrator owns governance/OpenSpec/state, shared schema/registry/generated outputs, CI convergence, and final integration.
+- At every coherent wave: determine affected areas, run cheap/targeted gates, fix Critical/High regressions immediately, update evidence/state, commit, and push.
+- If a wave finishes early, advance to the next dependency-ready packet. Do not idle to satisfy the 12-hour request.
+- If Campaign 015 itself completes before the envelope, spend remaining useful time on repeated deterministic validation, adversarial cases tied to changed surfaces, flake/warning elimination, documentation reconciliation, and exact-SHA CI confirmation. Do not silently start a new full hardening campaign.
+- Preserve user work; no autonomous force-push to `main`.
+
+## Mission after 014 closes
+
+Make the campaign control plane mechanically truthful; replace heuristic workout ownership with a durable correctness invariant; remove root residue; close the verified Rule Grid / Word Chain / Context Fit / Transform Match depth gaps; strengthen risk-based affected-area coverage; and produce measured runtime/accessibility evidence without speculative rewrites.
+
+Do not add games, cloud/auth/social/leaderboards/AI/ads/payments/store work, or unrelated visual redesign.
+
+## Completion standard
+
+Do not call the campaign complete unless all normative OpenSpec requirements are satisfied, all checked tasks carry evidence, no unresolved Critical/High regression remains, dedicated Android evidence is honestly classified, durable state is mutually consistent, and **both App CI and Repository Integrity are green on the exact final pushed SHA**.
+
+Before ending the session for any reason, write a durable checkpoint with: starting SHA, ending SHA, commits, tasks completed/remaining, exact commands/results, CI run IDs/conclusions, device artifacts or blocker evidence, and the next executable action. Push all coherent work.
