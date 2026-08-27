@@ -50,8 +50,25 @@ export function shouldAdvanceWorkout(
   if (!currentGameId || currentGameId !== signal.gameId) {
     return false;
   }
+  // Historical guard: session must not be older than the workout itself.
+  // This closes the hole where a 10s grace would otherwise accept a
+  // yesterday-session whose game coincidentally matches today's current game
+  // (the test uses 500 vs 1000) — those are far beyond a legitimate
+  // creation-vs-completion skew and must not advance.
+  if (signal.completedAt < instance.createdAt) {
+    return false;
+  }
   // Idempotency gate: only advance for a session newer than the last advance.
-  return signal.completedAt > instance.updatedAt - ADVANCE_TIMESTAMP_SLACK_MS;
+  // A small slack is allowed ONLY for the very first game of a never-advanced
+  // instance (createdAt === updatedAt, currentIndex 0) to absorb the
+  // creation-vs-first-completion skew (updatedAt ≈ now, completedAt ≤ now).
+  // After the first advance, or for any other leg, strict ordering is required
+  // so historical re-views (days old) cannot slip through a blanket window.
+  const slack =
+    instance.currentIndex === 0 && instance.createdAt === instance.updatedAt
+      ? ADVANCE_TIMESTAMP_SLACK_MS
+      : 0;
+  return signal.completedAt > instance.updatedAt - slack;
 }
 
 /** Game id at the current resume position, or null when the list is exhausted. */
