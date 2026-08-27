@@ -1,0 +1,22 @@
+{
+  "id": "016-release-certification-hardening",
+  "status": "PROPOSED",
+  "predecessor": "015-governance-depth-convergence",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "release-certification",
+    "platform-evidence",
+    "ci-signal-integrity",
+    "runtime-resilience"
+  ],
+  "activationRule": "Campaign 015 must be truthfully closed on an exact green main SHA before 016 may become ACTIVE.",
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": true,
+  "auditBaseline": "1b5802d62447c44e58d0f0bdb36ada740b05d023",
+  "auditDate": "2026-08-28"
+}
