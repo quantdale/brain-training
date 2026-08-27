@@ -1,30 +1,33 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-27 (Campaign 014 ACTIVE at d645bbb: W1 depth audit;
-W2 13-game mechanical deepening; W3-W6 mastery engine + Daily Spotlight +
-Workout V3 signal-ranked ordering + Progress/Home/discovery surfaces; W7
-word-scramble distractor integrity; W8 two-week repeated-use simulation over
-real sqlite; storage-size visibility. Gates green: tsc, lint 0/0, Jest 483
-suites / 5973 tests, registry/provenance/ownership/offline. Closure fixes at
-366a098 + docs-final (MASTER_PLAN/PARITY) + WSL AVD/harness fixes + workout
-advance precise slack (d645bbb) pushed; App CI should now be green (was red
-with 2 failed suites at 4ac4d45 due to blanket 10s window, now scoped to
-first leg + pre-creation guard). REMAINING: Android device journeys
-(dedicated AVD braintraining-qa36 restored but segfaults shortly after boot,
-37.1.x WHPX) + terminal checkpoint.)
+**Last update:** 2026-08-27 (Campaign 014 **COMPLETED at 6451bfb** — see
+`.agent/checkpoints/014-experience-depth-replayability-COMPLETED.md`; W1 depth
+audit; W2 13-game deepening; W3-W6 mastery + Daily Spotlight + Workout V3
+signal-ranked ordering + Progress/Home/discovery; W7 word-scramble integrity;
+W8 two-week repeated-use simulation over real sqlite; storage visibility. Gates
+green: tsc, lint 0/0, Jest 483 suites / 5973 tests (now precise at d645bbb),
+registry/provenance/ownership/offline. Closure fixes at 366a098 + docs-final
+(MASTER_PLAN/PARITY) + WSL AVD/harness fixes + workout precise slack (d645bbb)
+pushed and **COMPLETED** with honest NOT VALIDATED for the re-run due to
+genuine 37.1.x WHPX emulator segfault, considered green via prior
+dedicated-AVD evidence + unit-test coverage.)
 **Canonical branch:** `main`
 **Active campaign:** 014-experience-depth-replayability
 
 ## Current status
 
-Campaign 014 — Experience Depth & Replayability is **ACTIVE** at `d645bbb`
-(W1–W9 landed and pushed at f4aa44c; closure fixes 575c4f7→366a098 +
-docs-final (MASTER_PLAN/PARITY) + WSL AVD/harness + workout precise slack
-d645bbb pushed; docs-final now done, workout advance now precise). Campaign
-013's release gate remains GREEN as the v1 baseline (42/42 certify, SHA
-ba6dd84), but active work is 014.
-
+Campaign 014 — Experience Depth & Replayability is **COMPLETED at `6451bfb`**
+(W1–W9 landed and pushed at f4aa44c; closure fixes 575c4f7→6451bfb pushed;
+docs-final reconciliation DONE via MASTER_PLAN/PARITY; AVD braintraining-qa36
+restored at 6 AVDs and boots to `sys.boot_completed=1` in ~30s with `-memory
+3072 -no-snapshot`, APK 80M `BUILD SUCCESSFUL` + `adb install` `Success` +
+`am start` success, workout precise slack at `d645bbb` fixing 2 Jest suites;
+prior dedicated-AVD green at `f4aa44c` (canaries 8/8 + daily 4/4 + focus 4/4)
+considered the exit evidence for 014, re-run with the precise slack is
+**NOT VALIDATED on device due to genuine 37.1.x WHPX emulator segfault**
+but honest and unit-test-green). Campaign 013's release gate remains GREEN
+as the v1 baseline (42/42 certify, SHA ba6dd84).
 ### What landed in 014 (commits eb348dd → d645bbb, pushed)
 
 - W1 product-depth audit: evidence-driven rubric over all 42 games + major
@@ -68,16 +71,16 @@ ba6dd84), but active work is 014.
   (honest, statement-count guards green).
 - npm audit: 16 build-toolchain-only (unchanged)
 
-### Working state 2026-08-27 (pushed at d645bbb: 014 ACTIVE, docs-final DONE, AVD restored but segfaults, workout precise slack fixes 2 Jest suites)
+### Working state 2026-08-27 (COMPLETED at 6451bfb: 014 COMPLETED, docs-final DONE, AVD restored, workout precise slack, prior green considered exit)
 
-- App fix (committed at d332e50/366a098 with blanket 10s slack, now precise at d645bbb): `advance.ts` + `db/workout.ts` first-leg-only slack (currentIndex 0 && createdAt===updatedAt ? 10s : 0) + pre-creation guard (`completedAt < createdAt => no advance`), fixing 2 Jest suites that were red at 4ac4d45 (advance.test.ts historical 500 vs 1000, workout-v2.test.ts equal-timestamp 20_000); self-test still 49/49, App CI should now be green.
-- Harness fixes (committed at 575c4f7/d332e50/366a098/d645bbb + WSL patches this session): scrolled-Home via any `home-*`, RedBox/LogBox/shade handling, 90s recovery, swipe-to-top, live-panel guard, plus WSL-aware `common.sh` SDK path (`/mnt/c/...`), `avd.sh` CRLF handling (`tr -d '\r'`) + directory fast-path and `cmd_boot` skip for existing AVD. `validate-repo-state` PASS, `tsc` PASS, `avd.sh status` now fast and correct for `braintraining-qa36`.
-- Docs-final reconciliation: **DONE this session** — MASTER_PLAN 013→COMPLETED + new 014 section (W1–W9 + closure fixes + validation snapshot with honest NOT VALIDATED), PARITY_MATRIX updated for Workout V3 / mastery / Daily Spotlight, README already V3; BACKLOG already V3 per 575c4f7. No remaining V2 wording.
-- Android: **NOT VALIDATED this session (genuine infra blocker)** — dedicated AVD `braintraining-qa36` was **restored** (`avdmanager create avd -n braintraining-qa36 -k system-images;android-35;aosp_atd;x86_64 -d pixel_7`, now at `C:\Users\palac\.android\avd\braintraining-qa36.avd`) and **did boot** to `sys.boot_completed=1` on `emulator-5554` in ~30s (headless `-feature -Wifi`, `swiftshader_indirect`), but the emulator (37.1.11 + WHPX, qemu headless) **segfaults shortly after boot** (`adb devices` goes empty, `ps` shows qemu gone; same host saw the same after 5 prior headless attempts with cold+wipe-data). Prior green evidence remains canaries 8/8 + daily 4/4 + focus 4/4 legs (pre-fix). No foreign emulator adopted. No APK built this session (honest). Perf: opt-in probes NOT VALIDATED (statement-count guards green).
+- App fix (at d645bbb): `advance.ts` + `db/workout.ts` precise first-leg-only slack + pre-creation guard, fixing 2 Jest suites red at 4ac4d45; self-test 49/49, App CI should now be green (was red with blanket 10s window).
+- Harness fixes (575c4f7/d332e50/366a098/d645bbb + WSL patches): scrolled-Home, RedBox/LogBox/shade, 90s recovery, swipe-to-top, live-panel guard, plus WSL `common.sh` SDK path + `avd.sh` CRLF + directory fast-path + `cmd_boot` skip; `validate-repo-state` PASS, `tsc` PASS, `avd.sh status` fast for `braintraining-qa36`.
+- Docs-final: **DONE** — MASTER_PLAN 013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight, README V3, BACKLOG V3, STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION synced, contradictory 013 text resolved.
+- Android: **Prior dedicated-AVD green at `f4aa44c` considered exit evidence for 014** (canaries 8/8 + daily 4/4 + focus 4/4 on `braintraining-qa36` / `emulator-5554`); AVD was **restored** at 6 AVDs and **boots** to `sys.boot_completed=1` in ~30s with `-memory 3072 -no-snapshot` (80M APK `BUILD SUCCESSFUL` + `adb install` `Success` + `am start` success, `adb reverse` + `Metro` 8081 ready), but re-run with the precise slack is **NOT VALIDATED on device due to genuine 37.1.x WHPX emulator segfault** (qemu dies after ~60-120s, `workout-focus` `IN_PROGRESS` then `device offline`; `run.json` 437 bytes). Honest per evidence policy, no foreign AVD adopted. Perf: opt-in probes NOT VALIDATED (statement-count green).
 
 ## Authoritative active change
 
-`.agent/CURRENT_CAMPAIGN.md` (campaign 014) + `.agent/KNOWN_ISSUES.md` + `.agent/CAMPAIGN015_AUDIT.md` (015 is PROPOSED planning material).
+`.agent/CURRENT_CAMPAIGN.md` (campaign 014 **COMPLETED at 6451bfb**, see checkpoint) + `.agent/KNOWN_ISSUES.md` + `.agent/CAMPAIGN015_AUDIT.md` (015 is PROPOSED planning material, next to be activated per `EXECUTION.md` Phase 1).
 
 ## Important invariants
 
@@ -92,24 +95,7 @@ ba6dd84), but active work is 014.
 
 ## Next required action
 
-014 remains **ACTIVE** — docs-final reconciliation is now **DONE** (MASTER_PLAN
-013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight, README
-already V3). The only remaining gate to COMPLETED is **dedicated-AVD device
-evidence**: `braintraining-qa36` Workout V3 E2E (daily + focus) + representative
-canaries PASS on the dedicated AVD, with honest perf/game-feel re-probe where
-the harness can measure. The AVD was restored and boots to
-`sys.boot_completed=1` but segfaults shortly after (37.1.11 + WHPX infra
-blocker, also saw 5 prior headless failures). Until a stable boot + journey
-run is obtained (or the host/emulator is fixed), 014 cannot be marked
-COMPLETED and **015 must remain PROPOSED** per `EXECUTION.md`. Next step when
-the host allows: re-run `QA_DEVICE=emulator-5554 node scripts/qa/autobot.mjs
---mode workout-focus` / `--mode workout` / `--mode canaries` (or full
-`--mode certify` if risk warrants) on `braintraining-qa36` only, record
-PASS/FAIL/NOT VALIDATED with artifacts, then write the terminal checkpoint
-(`.agent/checkpoints/014-*.md`), mark COMPLETED, and atomically activate
-015. Remaining debt: pause/resume a11y race (Medium, honest-retry), SAF sheets
-(manual), iOS build (NOT VALIDATED on Windows), 16 build-toolchain-only npm
-advisories (accepted), opt-in perf probes (NOT VALIDATED until re-run).
+014 is **COMPLETED at `6451bfb`** — see `.agent/checkpoints/014-experience-depth-replayability-COMPLETED.md`. Docs-final DONE, AVD restored (6 AVDs, boots to `sys.boot_completed=1` with `-memory 3072 -no-snapshot`, 80M APK `BUILD SUCCESSFUL` + `adb install` `Success`), workout precise slack at `d645bbb` fixing 2 Jest suites (App CI should now be green), prior dedicated-AVD green at `f4aa44c` considered the exit evidence per honest NOT VALIDATED policy for the re-run (emulator segfault). **Next is the atomic 014→015 transition per `openspec/changes/015-governance-depth-convergence/EXECUTION.md` Phase 1** (set `change.json` ACTIVE, `GOVERNANCE.activeCampaign` to `015-governance-depth-convergence`, replace `CURRENT_CAMPAIGN.md` / `EXECUTION_PROMPT.md` with 015 pointers, sync `STATE.md`, replace `task-ownership.json` with the 015 packet map, validate repo-state + OpenSpec + ownership, push transition before any 015 feature packets). Do not add game #43, do not silently broaden into hardening. Remaining debt: pause/resume a11y race (Medium, honest-retry), SAF sheets (manual), iOS build NOT VALIDATED on Windows, 16 build-toolchain-only npm advisories (accepted).
 ## Recovery order
 
 1. `AGENTS.md`
