@@ -106,8 +106,12 @@ describe('content-pack validation (task E)', () => {
     const b = getBundledPacks();
     expect(a).toEqual(b);
     // Documented contract (registry.ts): each returned entry is frozen; the
-    // array itself is a fresh, unfrozen list per call.
+    // array itself is a fresh, unfrozen list per call. Entries are sorted by
+    // packId, so with two packs the order is context-fit (c) before word-match (w).
+    expect(a).toHaveLength(2);
+    expect(a[0].packId).toBe('language-context-fit-core-v1');
+    expect(a[1].packId).toBe('language-word-match-core-v1');
     expect(Object.isFrozen(a[0])).toBe(true);
-    expect(a[0].packId).toBe('language-word-match-core-v1');
+    expect(Object.isFrozen(a[1])).toBe(true);
   });
 });
