@@ -49,3 +49,6 @@ No new campaign should add game breadth or open final branding, Supabase/auth, A
 
 ## Recommended execution
 Use the OpenSpec 016 package. Close 015 first, then activate 016 and execute through exact-SHA final certification.
+## Planning-package validation note
+
+The initial Campaign 016 planning commit exposed an OpenSpec-format error in the four new delta specs. The specs were corrected to the repository's required `ADDED Requirements -> Requirement -> Scenario` structure before this audit package was finalized. This note intentionally creates one final coherent documentation-only head so App CI and Repository Integrity can validate the complete planning package without concurrency cancellation from the sequential repair commits.
