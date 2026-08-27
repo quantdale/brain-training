@@ -1,29 +1,31 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-27 (Campaign 014 ACTIVE at 366a098: W1 depth audit;
+**Last update:** 2026-08-27 (Campaign 014 ACTIVE at d645bbb: W1 depth audit;
 W2 13-game mechanical deepening; W3-W6 mastery engine + Daily Spotlight +
 Workout V3 signal-ranked ordering + Progress/Home/discovery surfaces; W7
 word-scramble distractor integrity; W8 two-week repeated-use simulation over
 real sqlite; storage-size visibility. Gates green: tsc, lint 0/0, Jest 483
 suites / 5973 tests, registry/provenance/ownership/offline. Closure fixes at
-366a098 (template-advance race + harness resilience + WSL AVD fixes) pushed;
-docs-final reconciliation now done (MASTER_PLAN/PARITY through 014). REMAINING:
-Android device journeys (dedicated AVD braintraining-qa36 restored but segfaults
-shortly after boot, 37.1.x WHPX) + terminal checkpoint.)
+366a098 + docs-final (MASTER_PLAN/PARITY) + WSL AVD/harness fixes + workout
+advance precise slack (d645bbb) pushed; App CI should now be green (was red
+with 2 failed suites at 4ac4d45 due to blanket 10s window, now scoped to
+first leg + pre-creation guard). REMAINING: Android device journeys
+(dedicated AVD braintraining-qa36 restored but segfaults shortly after boot,
+37.1.x WHPX) + terminal checkpoint.)
 **Canonical branch:** `main`
 **Active campaign:** 014-experience-depth-replayability
 
 ## Current status
 
-Campaign 014 — Experience Depth & Replayability is **ACTIVE** at `366a098`
-(W1–W9 landed and pushed at f4aa44c; closure fixes 575c4f7→366a098 landed
-and pushed; docs-final reconciliation now done via MASTER_PLAN/PARITY;
-remaining: Workout V3/canary device journeys + game-feel/perf re-probe
-before the terminal checkpoint). Campaign 013's release gate remains GREEN as
-the v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
+Campaign 014 — Experience Depth & Replayability is **ACTIVE** at `d645bbb`
+(W1–W9 landed and pushed at f4aa44c; closure fixes 575c4f7→366a098 +
+docs-final (MASTER_PLAN/PARITY) + WSL AVD/harness + workout precise slack
+d645bbb pushed; docs-final now done, workout advance now precise). Campaign
+013's release gate remains GREEN as the v1 baseline (42/42 certify, SHA
+ba6dd84), but active work is 014.
 
-### What landed in 014 (commits eb348dd → 366a098, pushed)
+### What landed in 014 (commits eb348dd → d645bbb, pushed)
 
 - W1 product-depth audit: evidence-driven rubric over all 42 games + major
   shared surfaces (`.agent/CAMPAIGN014_AUDIT.md`).
@@ -39,13 +41,14 @@ the v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
   repeated-use simulation over real sqlite (mastery climbing, reroll
   economics, Spotlight rollover, export/import round-trip), storageBytes
   visibility; Jest 5973 PASS, 483 suites.
-- Harness & app closure fixes (575c4f7 → 366a098): docs reconciliation
+- Harness & app closure fixes (575c4f7 → d645bbb): docs reconciliation
   (README V2→V3, MASTER_PLAN/PARITY through 014), harness resilience
   (RedBox/LogBox dismissal, scrolled-Home via any `home-*`, shade collapse,
   90s recovery, completion-card swipe-to-top, live-panel no-toggle guard),
-  app template-instance advance race fix (`advance.ts` + `db/workout.ts` 10s
-  slack), and WSL-aware SDK/AVD fixes for `braintraining-qa36` (SDK path,
-  CRLF, directory fast-path, boot skip).
+  app template-instance advance race fix (initial 10s slack at d332e50, now
+  precise first-leg-only slack + pre-creation guard at d645bbb, fixing 2 Jest
+  suites that were red at 4ac4d45), and WSL-aware SDK/AVD fixes for
+  `braintraining-qa36` (SDK path, CRLF, directory fast-path, boot skip).
 
 ### Validation snapshot at f4aa44c (pre-device-journey closure)
 
@@ -65,10 +68,10 @@ the v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
   (honest, statement-count guards green).
 - npm audit: 16 build-toolchain-only (unchanged)
 
-### Working state 2026-08-27 (pushed at 366a098 + WSL AVD/harness fixes; device journeys still blocked)
+### Working state 2026-08-27 (pushed at d645bbb: 014 ACTIVE, docs-final DONE, AVD restored but segfaults, workout precise slack fixes 2 Jest suites)
 
-- App fix (committed at d332e50/366a098, not yet device-proven): `advance.ts` + `db/workout.ts` 10s slack for template-instance first-advance race; self-test still 49/49.
-- Harness fixes (committed at 575c4f7/d332e50/366a098 + WSL patches this session): scrolled-Home via any `home-*`, RedBox/LogBox/shade handling, 90s recovery, swipe-to-top, live-panel guard, plus WSL-aware `common.sh` SDK path (`/mnt/c/...`), `avd.sh` CRLF handling (`tr -d '\r'`) + directory fast-path and `cmd_boot` skip for existing AVD. `validate-repo-state` PASS, `tsc` PASS, `avd.sh status` now fast and correct for `braintraining-qa36`.
+- App fix (committed at d332e50/366a098 with blanket 10s slack, now precise at d645bbb): `advance.ts` + `db/workout.ts` first-leg-only slack (currentIndex 0 && createdAt===updatedAt ? 10s : 0) + pre-creation guard (`completedAt < createdAt => no advance`), fixing 2 Jest suites that were red at 4ac4d45 (advance.test.ts historical 500 vs 1000, workout-v2.test.ts equal-timestamp 20_000); self-test still 49/49, App CI should now be green.
+- Harness fixes (committed at 575c4f7/d332e50/366a098/d645bbb + WSL patches this session): scrolled-Home via any `home-*`, RedBox/LogBox/shade handling, 90s recovery, swipe-to-top, live-panel guard, plus WSL-aware `common.sh` SDK path (`/mnt/c/...`), `avd.sh` CRLF handling (`tr -d '\r'`) + directory fast-path and `cmd_boot` skip for existing AVD. `validate-repo-state` PASS, `tsc` PASS, `avd.sh status` now fast and correct for `braintraining-qa36`.
 - Docs-final reconciliation: **DONE this session** — MASTER_PLAN 013→COMPLETED + new 014 section (W1–W9 + closure fixes + validation snapshot with honest NOT VALIDATED), PARITY_MATRIX updated for Workout V3 / mastery / Daily Spotlight, README already V3; BACKLOG already V3 per 575c4f7. No remaining V2 wording.
 - Android: **NOT VALIDATED this session (genuine infra blocker)** — dedicated AVD `braintraining-qa36` was **restored** (`avdmanager create avd -n braintraining-qa36 -k system-images;android-35;aosp_atd;x86_64 -d pixel_7`, now at `C:\Users\palac\.android\avd\braintraining-qa36.avd`) and **did boot** to `sys.boot_completed=1` on `emulator-5554` in ~30s (headless `-feature -Wifi`, `swiftshader_indirect`), but the emulator (37.1.11 + WHPX, qemu headless) **segfaults shortly after boot** (`adb devices` goes empty, `ps` shows qemu gone; same host saw the same after 5 prior headless attempts with cold+wipe-data). Prior green evidence remains canaries 8/8 + daily 4/4 + focus 4/4 legs (pre-fix). No foreign emulator adopted. No APK built this session (honest). Perf: opt-in probes NOT VALIDATED (statement-count guards green).
 
