@@ -1,141 +1,73 @@
 {
   "schemaVersion": 1,
-  "change": "006r-core-integrity-correction",
-  "description": "Machine-readable ownership of the 006R parallel task packets. Each packet declares coder-write surfaces (globs a swarm coder may edit), shared surfaces (read/merge by multiple coders, never exclusively owned), and orchestrator-only surfaces (must not be edited by a coder bot). Validation (task 11.2) rejects overlapping coder surfaces, coder edits to orchestrator-only surfaces, and direct edits to generated files.",
+  "change": "015-governance-depth-convergence",
+  "description": "Machine-readable ownership for 015-governance-depth-convergence. Each packet declares coder-write surfaces (globs a swarm coder may edit), shared surfaces (read/merge by multiple coders, never exclusively owned), and orchestrator-only surfaces (must not be edited by a coder bot). Validation rejects overlapping coder surfaces, coder edits to orchestrator-only surfaces, direct edits to generated files, and missing per-packet validation.",
   "orchestratorOnlySurfaces": [
-    "src/app/_layout.tsx",
-    "src/registry/registry.generated.ts",
+    "openspec/changes/015-governance-depth-convergence/**",
+    ".agent/GOVERNANCE.json",
+    ".agent/STATE.md",
+    ".agent/CURRENT_CAMPAIGN.md",
+    ".agent/EXECUTION_PROMPT.md",
+    ".agent/task-ownership.json",
+    ".agent/VALIDATION.md",
+    ".agent/KNOWN_ISSUES.md",
+    ".agent/IMPACT_MAP.md",
+    "scripts/validate-repo-state.mjs",
+    "scripts/validate-task-ownership.cjs",
+    "scripts/validate-affected.mjs",
+    "scripts/generate-game-registry.mjs",
+    "scripts/qa/**",
+    "apps/mobile/src/registry/registry.generated.ts",
     "**/*.generated.ts",
-    "**/__tests__/**/*.test.ts",
-    "**/__tests__/**/*.test.tsx"
+    "**/registry.generated.ts",
+    "package.json",
+    "package-lock.json",
+    "apps/mobile/package.json",
+    "apps/mobile/package-lock.json",
+    "docs/**",
+    ".github/**"
   ],
   "generatedFilePatterns": [
     "**/*.generated.ts",
-    "**/registry.generated.ts"
+    "**/registry.generated.ts",
+    "apps/mobile/src/registry/registry.generated.ts"
   ],
   "parallelPackets": [
     {
-      "id": "packet-0",
-      "tasks": ["0.1-0.5"],
-      "title": "Restore trustworthy baseline",
-      "coderWriteSurfaces": ["src/db/sessions.ts", "src/db/rating.ts"],
-      "sharedSurfaces": ["src/db/index.ts", "src/rating/index.ts"],
-      "dependencies": []
+      "id": "packet-rule-grid",
+      "tasks": ["5.1-5.9"],
+      "title": "Rule Grid chained-deduction redesign",
+      "coderWriteSurfaces": ["apps/mobile/src/games/logic-rule-grid/**"],
+      "sharedSurfaces": [],
+      "dependencies": [],
+      "validation": "npm run typecheck && npm run test:ci -- src/games/logic-rule-grid --no-coverage && node scripts/validate-repo-state.mjs"
     },
     {
-      "id": "packet-1",
-      "tasks": ["1.1-1.8"],
-      "title": "Progression/rating authority",
-      "coderWriteSurfaces": ["src/rating/pipeline.ts", "src/progression/**"],
-      "sharedSurfaces": ["src/db/rating.ts", "src/rating/index.ts"],
-      "dependencies": ["packet-0"]
+      "id": "packet-word-chain",
+      "tasks": ["6.1-6.7"],
+      "title": "Word Chain curated expansion to >=90 chains",
+      "coderWriteSurfaces": ["apps/mobile/src/games/language-word-chain/**"],
+      "sharedSurfaces": [],
+      "dependencies": [],
+      "validation": "npm run typecheck && npm run test:ci -- src/games/language-word-chain --no-coverage && node scripts/validate-repo-state.mjs"
     },
     {
-      "id": "packet-2",
-      "tasks": ["2.1-2.6"],
-      "title": "Content/generator provenance",
-      "coderWriteSurfaces": ["src/content/**", "src/sdk/generator-types.ts"],
-      "sharedSurfaces": ["src/sdk/index.ts"],
-      "dependencies": []
+      "id": "packet-context-fit",
+      "tasks": ["7.1-7.8"],
+      "title": "Context Fit curated expansion to >=60/tier",
+      "coderWriteSurfaces": ["apps/mobile/src/games/language-context-fit/**"],
+      "sharedSurfaces": [],
+      "dependencies": [],
+      "validation": "npm run typecheck && npm run test:ci -- src/games/language-context-fit --no-coverage && node scripts/validate-repo-state.mjs"
     },
     {
-      "id": "packet-3",
-      "tasks": ["3.1-3.5"],
-      "title": "Word Match semantics",
-      "coderWriteSurfaces": ["src/games/language-word-match/**"],
-      "sharedSurfaces": ["src/games/language-word-match/generator.ts"],
-      "dependencies": ["packet-2"]
-    },
-    {
-      "id": "packet-4",
-      "tasks": ["4.1-4.6"],
-      "title": "Equation Builder solvability",
-      "coderWriteSurfaces": ["src/games/math-equation-builder/**"],
-      "sharedSurfaces": ["src/games/math-equation-builder/generator.ts"],
-      "dependencies": ["packet-2"]
-    },
-    {
-      "id": "packet-5",
-      "tasks": ["5.1-5.5"],
-      "title": "Tutorial persistence",
-      "coderWriteSurfaces": [
-        "src/tutorials/**",
-        "src/games/memory/session.ts",
-        "src/games/memory/tutorial.ts",
-        "src/games/memory/tutorial.tsx"
-      ],
-      "sharedSurfaces": ["src/tutorials/index.ts"],
-      "dependencies": ["packet-0", "packet-2"]
-    },
-    {
-      "id": "packet-6",
-      "tasks": ["6.1-6.8"],
-      "title": "Real daily workout + personalization",
-      "coderWriteSurfaces": ["src/db/workout.ts", "src/workout/**", "src/app/(tabs)/index.tsx"],
-      "sharedSurfaces": ["src/db/index.ts", "src/registry/registry.generated.ts", "src/workout/use-workout.ts"],
-      "dependencies": ["packet-0", "packet-1", "packet-2", "packet-7"]
-    },
-    {
-      "id": "packet-7",
-      "tasks": ["7.1-7.7"],
-      "title": "Economy transactionality",
-      "coderWriteSurfaces": [
-        "src/db/economy.ts",
-        "src/db/ledger.ts",
-        "src/db/achievements.ts",
-        "src/db/quests.ts",
-        "src/db/xp-awards.ts"
-      ],
-      "sharedSurfaces": ["src/db/index.ts", "src/db/ledger.ts"],
-      "dependencies": ["packet-0"]
-    },
-    {
-      "id": "packet-8",
-      "tasks": ["8.1-8.6"],
-      "title": "Database integrity",
-      "coderWriteSurfaces": ["src/db/schema.ts", "src/db/migrate.ts", "src/db/adapter.ts", "src/db/types.ts"],
-      "sharedSurfaces": ["src/db/index.ts"],
-      "dependencies": ["packet-0"]
-    },
-    {
-      "id": "packet-9",
-      "tasks": ["9.1-9.7"],
-      "title": "Rating/progress correctness",
-      "coderWriteSurfaces": [
-        "src/rating/composite.ts",
-        "src/rating/levels.ts",
-        "src/app/(tabs)/progress.tsx",
-        "src/app/progress-detail.tsx"
-      ],
-      "sharedSurfaces": ["src/rating/index.ts", "src/db/rating.ts"],
-      "dependencies": ["packet-1"]
-    },
-    {
-      "id": "packet-10",
-      "tasks": ["10.1-10.6"],
-      "title": "Game-platform convergence",
-      "coderWriteSurfaces": ["src/components/**"],
-      "sharedSurfaces": ["src/sdk/index.ts", "src/registry/registry.generated.ts"],
-      "dependencies": ["packet-2"]
-    },
-    {
-      "id": "packet-11",
-      "tasks": ["11.1-11.6"],
-      "title": "Autonomous governance + CI semantic gates",
-      "coderWriteSurfaces": [".agent/task-ownership.json", "scripts/validate-task-ownership.mjs", "scripts/validate-task-ownership.test.ts"],
-      "sharedSurfaces": [".agent/GOVERNANCE.json"],
-      "dependencies": ["packet-0", "packet-7", "packet-8"]
-    },
-    {
-      "id": "packet-12",
-      "tasks": ["12.1-12.13"],
-      "title": "Full 20-game exit gate",
-      "coderWriteSurfaces": [
-        "openspec/changes/006r-core-integrity-correction/specs/**",
-        "openspec/changes/006r-core-integrity-correction/tasks.md"
-      ],
-      "sharedSurfaces": ["openspec/changes/006r-core-integrity-correction/EXECUTION.md"],
-      "dependencies": ["packet-0", "packet-1", "packet-2", "packet-3", "packet-4", "packet-5", "packet-6", "packet-7", "packet-8", "packet-9", "packet-10"]
+      "id": "packet-transform-match",
+      "tasks": ["8.1-8.9"],
+      "title": "Transform Match invariant and hidden-source repair",
+      "coderWriteSurfaces": ["apps/mobile/src/games/spatial-transform-match/**"],
+      "sharedSurfaces": [],
+      "dependencies": [],
+      "validation": "npm run typecheck && npm run test:ci -- src/games/spatial-transform-match --no-coverage && node scripts/validate-repo-state.mjs"
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "014-experience-depth-replayability",
+  "activeCampaign": "015-governance-depth-convergence",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

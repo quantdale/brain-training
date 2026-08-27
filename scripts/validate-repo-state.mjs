@@ -59,11 +59,14 @@ if (governance?.activeCampaign && activeNumber && !campaign.toLowerCase().includ
   errors.push(`CURRENT_CAMPAIGN.md does not appear to match active campaign ${activeNumber}`);
 }
 
-// Spec-driven campaign integrity. When an active campaign has a matching
-// OpenSpec change directory, require its complete execution surface.
+// Spec-driven campaign integrity. Every active campaign must have a matching
+// OpenSpec change directory with a complete execution surface, regardless of
+// whether the directory happens to exist. No single-campaign special cases.
 if (governance?.activeCampaign) {
   const changeDir = path.join(root, 'openspec', 'changes', governance.activeCampaign);
-  if (fs.existsSync(changeDir)) {
+  if (!fs.existsSync(changeDir)) {
+    errors.push(`Missing active OpenSpec change directory: openspec/changes/${governance.activeCampaign}`);
+  } else {
     const changeRequired = ['change.json', 'proposal.md', 'design.md', 'tasks.md', 'EXECUTION.md', 'audit-map.md'];
     for (const rel of changeRequired) {
       const p = path.join(changeDir, rel);
@@ -85,8 +88,6 @@ if (governance?.activeCampaign) {
     } catch (error) {
       errors.push(`Invalid active OpenSpec change.json: ${error.message}`);
     }
-  } else if (governance.activeCampaign === '006r-core-integrity-correction') {
-    errors.push(`Missing active OpenSpec change directory: openspec/changes/${governance.activeCampaign}`);
   }
 }
 

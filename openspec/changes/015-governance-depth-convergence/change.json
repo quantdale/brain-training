@@ -1,6 +1,6 @@
 {
   "id": "015-governance-depth-convergence",
-  "status": "PROPOSED",
+  "status": "ACTIVE",
   "baselineAuditCommit": "c8acadceb46ad6ba3f90b0c4222583a9a2912f49",
   "predecessor": "014-experience-depth-replayability",
   "canonicalBranch": "main",

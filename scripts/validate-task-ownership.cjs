@@ -46,6 +46,10 @@ function normalize(glob) {
 function globOverlap(a, b) {
   const na = normalize(a);
   const nb = normalize(b);
+  // If one is a concrete file and the other is a recursive directory, check
+  // if the file is actually under the directory via globMatch, not just base prefix.
+  if (na.concrete && nb.recursive) return globMatch(b, a);
+  if (nb.concrete && na.recursive) return globMatch(a, b);
   if (na.base === nb.base) {
     if (na.recursive || nb.recursive) return true;
     return na.concrete && nb.concrete && na.full === nb.full;
@@ -61,19 +65,57 @@ function validateTaskOwnership(config) {
   const orchestratorOnly = config.orchestratorOnlySurfaces || [];
   const generated = config.generatedFilePatterns || [];
 
+  // 015: change binding — must equal governance and active OpenSpec
+  try {
+    const gov = JSON.parse(require('node:fs').readFileSync(require('node:path').resolve(process.cwd(), '.agent/GOVERNANCE.json'), 'utf8'));
+    if (config.change !== gov.activeCampaign) {
+      errors.push(`Ownership change '${config.change}' does not match GOVERNANCE.activeCampaign '${gov.activeCampaign}'.`);
+    }
+    const changePath = require('node:path').resolve(process.cwd(), 'openspec', 'changes', gov.activeCampaign, 'change.json');
+    if (require('node:fs').existsSync(changePath)) {
+      const meta = JSON.parse(require('node:fs').readFileSync(changePath, 'utf8'));
+      if (config.change !== meta.id) {
+        errors.push(`Ownership change '${config.change}' does not match active OpenSpec change id '${meta.id}'.`);
+      }
+      if (meta.status !== 'ACTIVE') {
+        errors.push(`Active OpenSpec change status is '${meta.status}', expected 'ACTIVE' for ownership validation.`);
+      }
+    }
+  } catch (e) {
+    // If governance or change.json cannot be read, surface the underlying error
+    // but do not hide other ownership errors.
+    errors.push(`Failed to validate change binding: ${e.message}`);
+  }
+
+  // 015: unique packet IDs
+  const seenIds = new Set();
+  for (const packet of packets) {
+    if (seenIds.has(packet.id)) {
+      errors.push(`Duplicate packet id '${packet.id}'.`);
+    }
+    seenIds.add(packet.id);
+  }
+
+  // 015: per-packet validation field
+  for (const packet of packets) {
+    if (!packet.validation || typeof packet.validation !== 'string' || packet.validation.trim() === '') {
+      errors.push(`Packet ${packet.id}: missing or empty 'validation' field (cheap completion validation required).`);
+    }
+  }
+
   for (const packet of packets) {
     for (const surface of packet.coderWriteSurfaces || []) {
       for (const pattern of orchestratorOnly) {
-        if (globMatch(pattern, surface)) {
+        if (globOverlap(pattern, surface) || globMatch(pattern, surface)) {
           errors.push(
-            `Packet ${packet.id}: coder write surface '${surface}' is orchestrator-only (matches '${pattern}').`,
+            `Packet ${packet.id}: coder write surface '${surface}' overlaps orchestrator-only surface '${pattern}' (intersection semantics).`,
           );
         }
       }
       for (const pattern of generated) {
-        if (globMatch(pattern, surface)) {
+        if (globOverlap(pattern, surface) || globMatch(pattern, surface)) {
           errors.push(
-            `Packet ${packet.id}: coder write surface '${surface}' is a generated file (matches '${pattern}').`,
+            `Packet ${packet.id}: coder write surface '${surface}' overlaps generated file pattern '${pattern}' (intersection semantics).`,
           );
         }
       }
@@ -102,6 +144,30 @@ function validateTaskOwnership(config) {
       if (!ids.has(dep)) {
         errors.push(`Packet ${packet.id}: dependency '${dep}' is not a declared packet.`);
       }
+    }
+  }
+
+  for (const p of packets) {
+    // Use a fresh DFS per packet to detect any cycle reachable from it
+    const cycleStack = new Set();
+    const recStack = new Set();
+    function dfs(curr) {
+      if (recStack.has(curr)) return true;
+      if (cycleStack.has(curr)) return false;
+      cycleStack.add(curr);
+      recStack.add(curr);
+      const cur = packets.find((x) => x.id === curr);
+      if (cur) {
+        for (const d of cur.dependencies || []) {
+          if (dfs(d)) return true;
+        }
+      }
+      recStack.delete(curr);
+      return false;
+    }
+    if (dfs(p.id)) {
+      errors.push(`Packet ${p.id}: dependency graph contains a cycle.`);
+      break;
     }
   }
 
