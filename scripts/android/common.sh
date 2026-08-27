@@ -14,7 +14,7 @@ BT_COMMON_SOURCED=1
 # --- configuration (env-overridable) ---------------------------------------
 
 # Dedicated AVD created by avd.sh.
-BT_AVD_NAME="${BT_AVD_NAME:-braintraining35}"
+BT_AVD_NAME="${BT_AVD_NAME:-braintraining-qa36}"
 # Android application id (matches apps/mobile/app.json -> android.package).
 BT_APP_ID="${BT_APP_ID:-com.braintraining.app}"
 # Default launch activity relative to the application id.
@@ -55,8 +55,9 @@ bt_find_sdk() {
     "${USERPROFILE:-}/AppData/Local/Android/Sdk" \
     "${HOME:-}/Android/Sdk" \
     "${HOME:-}/Library/Android/sdk" \
-    "/opt/android-sdk" \
-    "/usr/local/share/android-sdk"; do
+    "/usr/local/share/android-sdk" \
+    "/mnt/c/Users/palac/AppData/Local/Android/Sdk" \
+    "/mnt/d/Android/Sdk"; do
     if [ -n "$candidate" ] && [ -d "$candidate/platform-tools" ] && [ -d "$candidate/emulator" ]; then
       BT_SDK="$candidate"
       export BT_SDK
@@ -79,10 +80,22 @@ bt_run_cmdline_tool() {
   if [ -f "$bin/$name" ]; then
     "$bin/$name" "$@"
   elif [ -f "$bin/$name.bat" ]; then
+    local bat="$bin/$name.bat"
+    local winbat="$bat"
     if command -v cygpath >/dev/null 2>&1; then
-      cmd //c "$(cygpath -w "$bin/$name.bat")" "$@"
+      winbat="$(cygpath -w "$bat")"
+    elif [[ "$bat" == /mnt/c/* ]]; then
+      # WSL: /mnt/c/Users/... -> C:\Users\...
+      winbat="C:${bat#/mnt/c}"
+      winbat="${winbat//\//\\}"
+    elif [[ "$bat" == /mnt/d/* ]]; then
+      winbat="D:${bat#/mnt/d}"
+      winbat="${winbat//\//\\}"
+    fi
+    if command -v cmd >/dev/null 2>&1; then
+      cmd //c "$winbat" "$@"
     else
-      cmd //c "$bin/$name.bat" "$@"
+      cmd.exe /c "$winbat" "$@"
     fi
   else
     bt_die "SDK tool '$name' not found under $bin (install Android SDK cmdline-tools: 'sdkmanager \"cmdline-tools;latest\"')."

@@ -33,7 +33,11 @@ usage() {
 }
 
 bt_avd_exists() {
-  bt_emulator -list-avds 2>/dev/null | grep -qx "$BT_AVD_NAME"
+  # Fast path: check AVD directory directly (avoids slow emulator -list-avds and CRLF issues in WSL)
+  if [ -d "$HOME/.android/avd/$BT_AVD_NAME.avd" ] || [ -d "/mnt/c/Users/palac/.android/avd/$BT_AVD_NAME.avd" ] || [ -d "C:/Users/palac/.android/avd/$BT_AVD_NAME.avd" ]; then
+    return 0
+  fi
+  bt_emulator -list-avds 2>/dev/null | tr -d '\r' | grep -qx "$BT_AVD_NAME"
 }
 
 # Pick the system image: prefer the lightweight aosp_atd (headless test
@@ -105,8 +109,14 @@ cmd_boot() {
     return 0
   fi
 
-  cmd_create
-
+  # Fast path: if AVD directory exists, skip cmd_create (which would otherwise
+  # try to run avdmanager and may hang on WSL path handling). The directory
+  # existence is sufficient proof that the AVD was created.
+  if [ -d "$HOME/.android/avd/$BT_AVD_NAME.avd" ] || [ -d "/mnt/c/Users/palac/.android/avd/$BT_AVD_NAME.avd" ]; then
+    bt_log "AVD '$BT_AVD_NAME' already exists (directory check)"
+  else
+    cmd_create
+  fi
   local attempt=1
   while :; do
     local flags

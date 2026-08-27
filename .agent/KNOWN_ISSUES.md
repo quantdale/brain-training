@@ -2,21 +2,13 @@
 
 ## Current blockers
 
-- **Campaign 014 device-journey closure blocked by host emulator (2026-08-27, genuine infrastructure blocker, not product):** dedicated AVD `braintraining-qa36` failed to boot after 5 headless attempts (cold + wipe-data, 12 GB free, "did not register with adb within 60s" → no running emulator, emulator 37.1.x WHPX segfault, `docs/ANDROID_AUTOMATION.md`). `braintraining35` also missing image. Prior dedicated-AVD green evidence remains (canaries 8/8, daily-workout 4/4 + relaunch), but the required Workout V3 E2E re-run with the new template-advance fix (focus 0/4 → completed) is NOT VALIDATED this session. Honest perf: opt-in probes NOT VALIDATED. Blocks 014 terminal checkpoint and 015 activation; leave 015 PROPOSED per `EXECUTION.md`.
-- Campaign 013 release gate (`--mode certify` 42/42) remains GREEN (see `VALIDATION.md`).
+- **Campaign 014 device-journey closure still blocked by host emulator (2026-08-27 update, genuine infra blocker, not product):** dedicated AVD `braintraining-qa36` was **restored** this session (`avdmanager create avd -n braintraining-qa36 -k system-images;android-35;aosp_atd;x86_64 -d pixel_7`, now at `C:\Users\palac\.android\avd\braintraining-qa36.avd`) and **did boot** to `sys.boot_completed=1` on `emulator-5554` in ~30s (headless `-feature -Wifi`, `swiftshader_indirect`), but the emulator (37.1.11 + WHPX, `qemu-system-x86_64-headless.exe`) **segfaults shortly after boot** (`adb devices` goes empty, `ps` shows qemu gone; `netsimd` WiFi channel `CANCELLED` → segfault). Same host previously saw 5 headless attempts fail with "did not register with adb within 60s". Prior dedicated-AVD green remains canaries 8/8 + daily-workout 4/4 + focus 4/4 legs (pre-template-fix). The template-advance fix (10s slack) and harness WSL fixes (SDK path, CRLF, directory fast-path) are committed at 366a098 + this session, but **Workout V3 E2E re-run + representative canaries remain NOT VALIDATED**. Honest perf: opt-in probes NOT VALIDATED (statement-count guards green). Docs-final reconciliation is now **DONE** (MASTER_PLAN/PARITY/STATE/VALIDATION synced), so the only remaining gate to 014 COMPLETED is a stable device journey. Blocks 015 activation; leave 015 PROPOSED per `EXECUTION.md`.
+- Campaign 013 release gate (`--mode certify` 42/42, SHA ba6dd84) remains GREEN (see `VALIDATION.md`).
 
 ## Open debt (tracked, non-blocking)
 
-- **Campaign 014 remaining items (ACTIVE campaign)**: Android Workout V3 /
-  canary journeys NOT VALIDATED this session (dedicated AVD `braintraining-
-  qa36` went offline mid-run; foreign `Nitro_API_36` must not be adopted);
-  language content-pool growth (word-chain ≥90 chains, context-fit ≥60/tier)
-  and the logic-rule-grid chained-deduction redesign remain the top audited
-  depth gaps (see `.agent/CAMPAIGN014_AUDIT.md` P2/P3); transform-match
-  hidden-source mode can make multi-transform distractor rounds ambiguous
-  when ≥2 options are exact transforms of the source (packet-flagged; needs a
-  distractor-preference generator tweak, generatorVersion bump). Opt-in perf
-  timing probes not re-run (statement-count guards green throughout).
+- **Campaign 014 remaining (ACTIVE, docs-final now DONE):** Android Workout V3 E2E (daily + focus) + representative canaries on dedicated `braintraining-qa36` remain **NOT VALIDATED** due to genuine 37.1.x WHPX emulator segfault shortly after boot (AVD was restored this session and boots to `sys.boot_completed=1` in ~30s, then qemu dies). Docs-final reconciliation is **DONE** (MASTER_PLAN 013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight, README already V3). The template-advance fix (10s slack) is committed but not device-proven. Until a stable journey run is obtained, 014 cannot be marked COMPLETED and 015 stays PROPOSED.
+- **Campaign 015 planned depth gaps (PROPOSED, not 014 blockers):** language Word Chain ≥90 chains (currently 30, 6/tier) and Context Fit ≥60/tier (currently 60 total) remain content-starved; Logic Rule Grid is still one-cell Latin-square lookup (needs solver-proven chained deduction); Spatial Transform Match has invariant-risk fallbacks and hidden-source ambiguity (needs final-boundary validation, exact option count, semantic unambiguity). See `.agent/CAMPAIGN015_AUDIT.md` P1.4–P1.7 and `openspec/changes/015-*/specs/game-depth-convergence/spec.md`. Opt-in perf timing probes not re-run (statement-count guards green throughout) — 015 will rerun targeted probes after its changes.
 - **SAF share-sheet/document-picker system consent sheets**: cannot be driven
   emulator-locally by autobot policy; engine round-trips are device-proven via pulled
   DB. Requires interactive/manual validation path (NOT VALIDATED, by design).

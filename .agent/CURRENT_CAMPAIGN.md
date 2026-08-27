@@ -1,8 +1,12 @@
 # Campaign 014 — Experience Depth & Replayability (owner-authorized)
 
-**Status:** ACTIVE — waves W1–W9 landed and pushed (head f4aa44c);
-remaining: Android device journeys + docs-final reconciliation before the
-terminal checkpoint. NOT COMPLETED yet.
+**Status:** ACTIVE — waves W1–W9 landed and pushed at f4aa44c; closure fixes
+575c4f7→366a098 pushed; docs-final reconciliation **DONE** (MASTER_PLAN
+013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight); remaining:
+dedicated-AVD `braintraining-qa36` Workout V3/canary journeys + perf/game-feel
+re-probe before the terminal checkpoint. NOT COMPLETED yet (genuine 37.1.x WHPX
+emulator segfault after boot — AVD was restored and boots to
+`sys.boot_completed=1` in ~30s, then qemu dies).
 **Campaign id:** `014-experience-depth-replayability`
 **Predecessor:** `013-final-product-completion` (COMPLETED 2026-08-26 —
 v1 release candidate certified, 42/42 Android certify green)
@@ -56,14 +60,11 @@ because they pass tests.
 9. **W9 — Game feel/performance/a11y/storage passes**: measured where
    practical; targeted fixes only on evidence; runtime baselines recorded.
 10. **W10 — Validation & closure**: impact-based validation during waves;
-    device validation at convergence points on `braintraining-qa36` ONLY
-    (foreground preflight); full catalog certification if shared lifecycle
-    changes warrant it; docs reconciliation; terminal checkpoint.
-
 ## Exit criteria
 
 See owner directive §21 (completion checklist). Progress against §21 at
-f4aa44c:
+**366a098 (2026-08-27 closure attempt, docs-final DONE, AVD restored but
+segfaults):**
 
 - [x] Durable audit covering all 42 games + shared surfaces with evidence-
       based prioritization (`.agent/CAMPAIGN014_AUDIT.md`).
@@ -88,24 +89,37 @@ f4aa44c:
 - [ ] Game-feel improvements measurable/observable — targeted fixes shipped
       inside game packets (respond deadline, timed brief, hidden-source
       pacing, normalized speed bonuses) but no dedicated latency measurement
-      pass was performed this session.
+      pass was performed this session (honest NOT VALIDATED; statement-count
+      guards green, wall-clock probes not re-run).
 - [x] Runtime performance baselines: statement-count guards green throughout;
       new reads are bounded pushdowns (documented in VALIDATION). Opt-in
-      timing probes not re-run (recorded honestly).
+      timing probes not re-run (recorded honestly as NOT VALIDATED).
 - [x] Repeated-use / simulated multi-day journeys PASS through progression,
       workouts, mastery, rewards economics, persistence, app restarts, and
       rollover boundaries (`repeated-use-simulation.test.ts`).
 - [x] No new unresolved Critical/High defects (two Medium-class integration
-      defects found by app-shell tests were fixed same-session).
+      defects found by app-shell tests were fixed same-session; harness/docs
+      fixes this session are not product regressions).
 - [x] Repo validators, typecheck, lint, full Jest suite, offline boundary,
-      registry/provenance checks green at head f4aa44c.
+      registry/provenance checks green at head f4aa44c (working tree after
+      366a098 + WSL fixes: repo-state PASS, tsc PASS, self-test 49/49;
+      full Jest 5973 not re-run this session but last at f4aa44c was green).
 - [x] Changed persistent formats/calculation semantics properly versioned
       (workout metadata v2; generator/scoring version bumps on all changed
       games; mastery is a derived view with MASTERY_VERSION=1).
 - [x] Deferred product decisions untouched.
 - [ ] **Required Android journeys (Workout V3 E2E + canaries): NOT VALIDATED
-      this session** — dedicated AVD went offline mid-run; foreign AVD must
-      not be adopted per policy. Exact commands recorded in VALIDATION.md.
-- [ ] Docs-final reconciliation sweep (README/PARITY/BACKLOG refresh beyond
-      STATE/CAMPAIGN/VALIDATION/KNOWN_ISSUES) + terminal checkpoint.
+      this session (genuine infra blocker)** — dedicated AVD
+      `braintraining-qa36` was restored (`avdmanager create avd` now shows 6
+      AVDs, `avd.sh status` STOPPED→RUNNING) and booted to
+      `sys.boot_completed=1` on `emulator-5554` in ~30s, but the emulator
+      (37.1.11 + WHPX, `qemu-system-x86_64-headless.exe`) segfaults shortly
+      after (`adb devices` empty, qemu gone). Prior green remains canaries
+      8/8 + daily 4/4 + focus 4/4 legs (pre-template-fix). No foreign AVD
+      adopted. Exact commands and `ps`/`adb` evidence in VALIDATION.md and
+      STATE.md.
+- [x] Docs-final reconciliation sweep (README V3, BACKLOG V3, MASTER_PLAN
+      013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight,
+      STATE/KNOWN_ISSUES/VALIDATION/CURRENT_CAMPAIGN synced) — **DONE** this
+      session. Terminal checkpoint still pending (requires device journeys).
 

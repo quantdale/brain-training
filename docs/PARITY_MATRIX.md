@@ -9,10 +9,12 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 | Core | Offline-first gameplay | IMPLEMENTED | Offline-boundary suite + `scripts/validate-offline.mjs` (919 files clean) |
 | Core | Optional account | DEFERRED | Local profile first |
 | Core | Cross-device sync | DEFERRED | Local-first future Supabase direction |
-| Training | Daily Workout | IMPLEMENTED | Deterministic 4-game daily + rerolls |
+| Training | Daily Workout | IMPLEMENTED | Deterministic 4-game daily + rerolls; **V3** signal-ranked selection (base set stays pinned-deterministic, ordering re-ranked by weighted signals: weak/undertrained/stale domain, novelty, trend, PB-proximity, difficulty-fit, overexposure) with truthful per-game reasons (metadata v2) |
 | Training | Adaptive difficulty | IMPLEMENTED | Hidden continuous rating + named modes |
 | Training | Manual difficulty | IMPLEMENTED | Easy/Normal/Hard/Expert/Adaptive |
-| Training | Personalized recommendations | IMPLEMENTED | Weak-domain balancing + recency avoidance + reroll economics |
+| Training | Personalized recommendations | IMPLEMENTED | **V3** explainable weighted signals (weak/undertrained/stale, novelty, trend, PB-proximity, difficulty-fit, overexposure) + recency avoidance + reroll economics (1 free + 25-coin paid, ledger -25) |
+| Training | Mastery ladder (per-game capability) | IMPLEMENTED | Versioned ladder unplayed→developing→proficient→advanced→mastered (MASTERY_VERSION=1, one GROUP BY pushdown per load via getMasteryInputs, pure engine with next-milestone text); Game Detail card + Progress distribution/closest-milestones + Home strip |
+| Training | Daily Spotlight (deterministic daily featured game) | IMPLEMENTED | Offline deterministic daily rotation (v1) with Home card + completion state, per-date determinism + rotation; `src/spotlight` |
 | Games | Memory catalog | IMPLEMENTED | Memory (Phase 2) + Sequence Memory (Phase 4) + Pattern Tap Back (Phase 5) + Grid Recall + Running Order (Wave 02) + Pair Recall (009, associative re-pairing) + Prospective Cue "Cue Keeper" (010, event-based prospective memory) — 7 games |
 | Games | Attention catalog | IMPLEMENTED | Visual Search (Phase 2) + Odd One Out (Phase 4) + Target Count (Wave 01) + Symbol Tracker (Wave 02) + Sustained Vigilance "Signal Watch" (010, SART-like go/no-go) — 5 games |
 | Games | Speed catalog | IMPLEMENTED | Reaction Time (Phase 2) + Tap Rush (Phase 4) + Color Match (Phase 5) + Quick Compare (Wave 02) + Order Sweep (010, rapid ordering under draining windows) — 5 games |

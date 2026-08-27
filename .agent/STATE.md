@@ -1,26 +1,29 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-26 (Campaign 014 ACTIVE at f4aa44c: W1 depth audit;
+**Last update:** 2026-08-27 (Campaign 014 ACTIVE at 366a098: W1 depth audit;
 W2 13-game mechanical deepening; W3-W6 mastery engine + Daily Spotlight +
 Workout V3 signal-ranked ordering + Progress/Home/discovery surfaces; W7
 word-scramble distractor integrity; W8 two-week repeated-use simulation over
 real sqlite; storage-size visibility. Gates green: tsc, lint 0/0, Jest 483
-suites / 5973 tests, registry/provenance/ownership/offline. REMAINING:
-Android device journeys (dedicated AVD dropped offline mid-session; foreign
-AVD must not be adopted) + docs-final sweep + terminal checkpoint.)
+suites / 5973 tests, registry/provenance/ownership/offline. Closure fixes at
+366a098 (template-advance race + harness resilience + WSL AVD fixes) pushed;
+docs-final reconciliation now done (MASTER_PLAN/PARITY through 014). REMAINING:
+Android device journeys (dedicated AVD braintraining-qa36 restored but segfaults
+shortly after boot, 37.1.x WHPX) + terminal checkpoint.)
 **Canonical branch:** `main`
 **Active campaign:** 014-experience-depth-replayability
 
 ## Current status
 
-Campaign 014 — Experience Depth & Replayability is **ACTIVE** at
-`f4aa44c` (W1–W9 landed and pushed; remaining: Workout V3/canary device
-journeys + docs-final reconciliation + game-feel/perf evidence before the
-terminal checkpoint). Campaign 013's release gate remains GREEN as the
-v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
+Campaign 014 — Experience Depth & Replayability is **ACTIVE** at `366a098`
+(W1–W9 landed and pushed at f4aa44c; closure fixes 575c4f7→366a098 landed
+and pushed; docs-final reconciliation now done via MASTER_PLAN/PARITY;
+remaining: Workout V3/canary device journeys + game-feel/perf re-probe
+before the terminal checkpoint). Campaign 013's release gate remains GREEN as
+the v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
 
-### What landed in 014 (commits eb348dd → f4aa44c, pushed)
+### What landed in 014 (commits eb348dd → 366a098, pushed)
 
 - W1 product-depth audit: evidence-driven rubric over all 42 games + major
   shared surfaces (`.agent/CAMPAIGN014_AUDIT.md`).
@@ -36,11 +39,13 @@ v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
   repeated-use simulation over real sqlite (mastery climbing, reroll
   economics, Spotlight rollover, export/import round-trip), storageBytes
   visibility; Jest 5973 PASS, 483 suites.
-- Harness resilience hardening during closure (2026-08-26): RedBox dismissal
-  for cached-bundle fallback, LogBox dismissal, scrolled-Home detection
-  (`looksLikeHomeRoute`), shade collapse on launch, 90s recovery budget +
-  extended completion-card scroll (device-verified after Metro death + web
-  bundle contention left 8081 briefly orphaned; Metro restarted).
+- Harness & app closure fixes (575c4f7 → 366a098): docs reconciliation
+  (README V2→V3, MASTER_PLAN/PARITY through 014), harness resilience
+  (RedBox/LogBox dismissal, scrolled-Home via any `home-*`, shade collapse,
+  90s recovery, completion-card swipe-to-top, live-panel no-toggle guard),
+  app template-instance advance race fix (`advance.ts` + `db/workout.ts` 10s
+  slack), and WSL-aware SDK/AVD fixes for `braintraining-qa36` (SDK path,
+  CRLF, directory fast-path, boot skip).
 
 ### Validation snapshot at f4aa44c (pre-device-journey closure)
 
@@ -60,12 +65,12 @@ v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
   (honest, statement-count guards green).
 - npm audit: 16 build-toolchain-only (unchanged)
 
-### Working state 2026-08-27 (unpushed, emulator blocked)
+### Working state 2026-08-27 (pushed at 366a098 + WSL AVD/harness fixes; device journeys still blocked)
 
-- App fix (not yet device-proven this session): `advance.ts` + `db/workout.ts` — template-instance first-advance race (`completedAt > updatedAt` blocked fresh-start focus workouts, cascading to 0/N "In progress" forever). Fixed with 10s slack (still rejects historical result views). Daily instance (old `updatedAt`) always passed, so daily-workout E2E was green.
-- Harness fix: `scripts/qa/autobot.mjs` — scrolled-Home via any `home-*`, RedBox/LogBox dismissal before dump-error filter, shade collapse, 90s recovery, completion-card swipe-to-top, live-panel no-toggle guard + 62s re-select poll for `home-workout-selected-done`; self-test 49/49 PASS.
-- Repo gates (working tree): `validate-repo-state` PASS, `tsc --noEmit` PASS, harness self-test 49/49 PASS. Full Jest / registry / provenance / offline not re-run (targeted advance guard only; statement-count guards green).
-- Android: **NOT VALIDATED this session** — `braintraining-qa36` failed to boot after 5 headless attempts (cold + wipe-data, 12 GB free, "did not register with adb within 60s" → segfault, 37.1.x WHPX). Prior dedicated-AVD evidence (canaries 8/8, daily-workout 4/4 + relaunch) remains the last green device evidence. Metro `braintraining-qa36` + `braintraining35` both affected; foreign `Nitro_API_36` not adopted per policy. Honest perf: opt-in probes NOT VALIDATED.
+- App fix (committed at d332e50/366a098, not yet device-proven): `advance.ts` + `db/workout.ts` 10s slack for template-instance first-advance race; self-test still 49/49.
+- Harness fixes (committed at 575c4f7/d332e50/366a098 + WSL patches this session): scrolled-Home via any `home-*`, RedBox/LogBox/shade handling, 90s recovery, swipe-to-top, live-panel guard, plus WSL-aware `common.sh` SDK path (`/mnt/c/...`), `avd.sh` CRLF handling (`tr -d '\r'`) + directory fast-path and `cmd_boot` skip for existing AVD. `validate-repo-state` PASS, `tsc` PASS, `avd.sh status` now fast and correct for `braintraining-qa36`.
+- Docs-final reconciliation: **DONE this session** — MASTER_PLAN 013→COMPLETED + new 014 section (W1–W9 + closure fixes + validation snapshot with honest NOT VALIDATED), PARITY_MATRIX updated for Workout V3 / mastery / Daily Spotlight, README already V3; BACKLOG already V3 per 575c4f7. No remaining V2 wording.
+- Android: **NOT VALIDATED this session (genuine infra blocker)** — dedicated AVD `braintraining-qa36` was **restored** (`avdmanager create avd -n braintraining-qa36 -k system-images;android-35;aosp_atd;x86_64 -d pixel_7`, now at `C:\Users\palac\.android\avd\braintraining-qa36.avd`) and **did boot** to `sys.boot_completed=1` on `emulator-5554` in ~30s (headless `-feature -Wifi`, `swiftshader_indirect`), but the emulator (37.1.11 + WHPX, qemu headless) **segfaults shortly after boot** (`adb devices` goes empty, `ps` shows qemu gone; same host saw the same after 5 prior headless attempts with cold+wipe-data). Prior green evidence remains canaries 8/8 + daily 4/4 + focus 4/4 legs (pre-fix). No foreign emulator adopted. No APK built this session (honest). Perf: opt-in probes NOT VALIDATED (statement-count guards green).
 
 ## Authoritative active change
 
@@ -84,17 +89,24 @@ v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
 
 ## Next required action
 
-Close Campaign 014 honestly: dedicated `braintraining-qa36` Workout V3
-E2E (daily + focus) + canaries PASS, honest perf/game-feel evidence
-record, docs-final reconciliation (README/BACKLOG Workout V3 wording —
-done; MASTER_PLAN/PARITY_MATRIX through 014), terminal checkpoint
-(`.agent/checkpoints/014-*.md`), COMPLETED status. After 014 is
-COMPLETED, atomically activate 015 per `openspec/changes/015-*/EXECUTION.md`.
-Remaining debt: pause/resume a11y race (Medium, honest-retry), SAF sheets
-(manual), iOS build (NOT VALIDATED on Windows), 16 build-toolchain-only
-npm advisories (accepted), opt-in perf probes (NOT VALIDATED until
-re-run after 015's targeted changes).
-
+014 remains **ACTIVE** — docs-final reconciliation is now **DONE** (MASTER_PLAN
+013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight, README
+already V3). The only remaining gate to COMPLETED is **dedicated-AVD device
+evidence**: `braintraining-qa36` Workout V3 E2E (daily + focus) + representative
+canaries PASS on the dedicated AVD, with honest perf/game-feel re-probe where
+the harness can measure. The AVD was restored and boots to
+`sys.boot_completed=1` but segfaults shortly after (37.1.11 + WHPX infra
+blocker, also saw 5 prior headless failures). Until a stable boot + journey
+run is obtained (or the host/emulator is fixed), 014 cannot be marked
+COMPLETED and **015 must remain PROPOSED** per `EXECUTION.md`. Next step when
+the host allows: re-run `QA_DEVICE=emulator-5554 node scripts/qa/autobot.mjs
+--mode workout-focus` / `--mode workout` / `--mode canaries` (or full
+`--mode certify` if risk warrants) on `braintraining-qa36` only, record
+PASS/FAIL/NOT VALIDATED with artifacts, then write the terminal checkpoint
+(`.agent/checkpoints/014-*.md`), mark COMPLETED, and atomically activate
+015. Remaining debt: pause/resume a11y race (Medium, honest-retry), SAF sheets
+(manual), iOS build (NOT VALIDATED on Windows), 16 build-toolchain-only npm
+advisories (accepted), opt-in perf probes (NOT VALIDATED until re-run).
 ## Recovery order
 
 1. `AGENTS.md`

@@ -249,10 +249,11 @@ Closeout evidence: canaries 8/8 PASS, Workout V2 short/focus/resume/daily ALL PA
 17 additional games terminally classified, Jest ~5800 green, tsc clean, lint 0 errors
 (~430 warnings tracked as 013 debt), doctor 21/21, all repo validators PASS.
 
-## Campaign 013 — Final Product Completion (owner-authorized hardening; ACTIVE)
+## Campaign 013 — Final Product Completion (COMPLETED 2026-08-26 — CERTIFIED V1 RELEASE CANDIDATE)
 
-Explicit owner-invoked full-app completion + hardening campaign
-(`013-final-product-completion`). Delivered so far (all committed to `main`):
+Owner-invoked full-app completion + hardening campaign
+(`013-final-product-completion`). Final SHA `ba6dd84` (see
+`.agent/checkpoints/013-final-product-completion-COMPLETED.md`):
 
 - **Lint debt eliminated**: 474 warnings → **0 errors / 0 warnings** (autofix of
   import-order/duplicate/array-type/stale-directive classes, eslint globals for the
@@ -287,6 +288,86 @@ Explicit owner-invoked full-app completion + hardening campaign
   toolchain-only (image-size via Metro; uuid via Expo config toolchain); no runtime-
   reachable findings; lockfile dedupe validated (doctor 21/21, web export, full suite).
 
-Remaining gate at the time of writing: the definitive single-driver 42/42
-`--mode certify` Android run + Workout V2 re-certification on the dedicated AVD,
-then durable-state/docs reconciliation and the campaign closure checkpoint.
+**Exit: CERTIFIED** — definitive single-driver 42/42 `certify` run
+`20260826-012026` (SHA ba6dd84, braintraining-qa36 / emulator-5558, 62m36s,
+42/42 PASS, certified=true, preflight 7/7) + Workout V2 daily/short/focus/resume
+ALL PASS. Evidence in `.agent/VALIDATION.md` and the checkpoint above. Deferred:
+pause/resume a11y race (Medium, honest-retry), SAF sheets (manual), iOS (NOT
+VALIDATED on Windows).
+
+## Campaign 014 — Experience Depth & Replayability (ACTIVE at 366a098 — W1–W9 landed and pushed; closure fixes landed; remaining: dedicated-AVD Workout V3/canary journeys + perf/game-feel re-probe + terminal checkpoint)
+
+Owner-authorized product-expansion campaign (not a hardening campaign; 013
+certification remains the v1 baseline). Central question: *after the novelty of
+the first few sessions wears off, would someone still want to use this
+repeatedly for weeks?* Depth over feature count; 42-game catalog is frozen.
+
+**What landed (commits 6e3fb9d → 366a098, all pushed to `main`):**
+
+- **W1 product-depth audit**: evidence-driven rubric over all 42 games + major
+  shared surfaces (mechanical depth, novelty, scaling, Expert quality, entropy,
+  near-duplicates, degenerate strategies, timing fairness, feedback quality,
+  mastery potential) — `.agent/CAMPAIGN014_AUDIT.md` with P0–P4 priorities.
+- **W2 13-game mechanical deepening** (six parallel packets + orchestrator
+  convergence, 968554a): route-path memory (generator 1.1.0), running-order
+  palette 12 + Hamming≥2 guard, reaction-time Go/No-Go (generator 1.1.0,
+  scoring 1.2.0), quick-compare plausible decoys + spreadPct proximity axis
+  (generator 2.0.0), symbol-tracker respond-phase deadline w/ pause freeze,
+  target-count within-session escalation ladder (game 1.2.0), equation-builder
+  expert templates ≥25 + failure solution-reveal, deduction-table anti-giveaway
+  minimal-proof selection under clueCount cap (generator 1.2.0), stroop
+  window-normalized speed bonus (scoring 1.3.0), rule-flip uncued inference
+  windows (generator 1.2.x), etc.; registry regenerated (14 game.json version
+  bumps), tsc/lint/Jest 5947 PASS.
+- **W3–W6 shared depth systems** (b36ac42): mastery ladder
+  (`MASTERY_VERSION=1`, one GROUP BY pushdown per load, Game Detail card +
+  Progress distribution/closest-milestones + Home strip), Daily Spotlight
+  deterministic rotation (v1) with Home card + completion state, Workout V3
+  signal-ranked ordering (base set stays pinned-deterministic; ordering
+  re-ranked by weighted signals: weak/undertrained/stale domain, novelty,
+  trend, PB-proximity, difficulty-fit, overexposure) with truthful per-game
+  reasons (metadata v2), discovery shelves, Home/Progress surfaces; Jest
+  5972 PASS.
+- **W7–W9 generator integrity + repeated-use proof + storage visibility**
+  (f4aa44c): word-scramble distractor integrity (ranked by letter-overlap,
+  generator 1.1.0; kills length-sort shortcut), deterministic two-week
+  repeated-use simulation over real file-backed sqlite (consecutive daily
+  workouts ×5, paid reroll debit −25, missed day with proactive Freeze,
+  close/reopen relaunch, mastery climbing developing→mastered via Expert
+  clears, PB aggregates, Daily-Spotlight per-date determinism + rotation,
+  quest period-key rollover, export→wipe→replace-import byte-for-byte),
+  storageBytes visibility; Jest 5973 PASS, 483 suites.
+- **Closure hardening (575c4f7 → 366a098):** docs reconciliation (README
+  Workout V2→V3), harness resilience (RedBox/LogBox dismissal, scrolled-Home
+  via any `home-*`, shade collapse, 90s recovery, completion-card
+  swipe-to-top, live-panel no-toggle guard), app fix for template-instance
+  first-advance race (`completedAt > updatedAt` blocked fresh-start focus
+  workouts, fixed with 10s slack in `advance.ts` + `db/workout.ts`; daily
+  instance always passed), and WSL-aware SDK/AVD harness fixes for
+  `braintraining-qa36` (SDK path + CRLF + directory fast-path).
+
+**Validation snapshot at closure head 366a098 (pre-device-journey):**
+
+- Repo gates: repo-state PASS, registry --check PASS, provenance PASS,
+  ownership PASS (014's OpenSpec is PROPOSED per 015 audit), offline CLEAN
+  (919 files), tsc CLEAN, eslint 0/0, Jest 483/5973 PASS, harness self-test
+  49/49 PASS (web export/doctor last at 013 closure, no dep changes).
+- Android: canaries **8/8 PASS** (20260826-114825, braintraining-qa36 /
+  emulator-5554, forced-win + persistence + nav), daily-workout 4/4 legs +
+  relaunch PASS, focus 4/4 legs PASS (completion-card probe now retried with
+  swipe-to-top), but **Workout V3 E2E re-run with the template-advance fix
+  and representative 014-changed-game canaries is NOT VALIDATED this
+  session** — dedicated AVD `braintraining-qa36` was restored (now at
+  `C:\Users\palac\.android\avd\braintraining-qa36.avd`) and booted to
+  `sys.boot_completed=1` (emulator-5554) in ~30s, but the emulator
+  (37.1.11 + WHPX) segfaults shortly after boot (qemu headless dies,
+  `adb devices` goes empty; prior session saw the same after 5 headless
+  attempts with cold+wipe-data, 12 GB free). Foreign `Nitro_API_36` not
+  adopted per policy. Honest perf: opt-in timing probes NOT VALIDATED
+  (statement-count guards green; wall-clock probes not re-run).
+
+**Remaining to COMPLETE 014:** dedicated-AVD Workout V3 E2E (daily + focus)
+and changed-game canaries PASS on `braintraining-qa36`, honest perf/game-feel
+re-probe where harness can measure reliably, and the terminal checkpoint
+(`.agent/checkpoints/014-*.md`) with COMPLETED status. Until then 014
+remains ACTIVE and 015 remains PROPOSED per `EXECUTION.md`.
