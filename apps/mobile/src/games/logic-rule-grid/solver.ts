@@ -22,13 +22,13 @@
 
 export interface PropagationTraceStep {
   readonly depth: number;
-  readonly cells: ReadonlyArray<{ readonly r: number; readonly c: number; readonly val: number }>;
+  readonly cells: readonly { readonly r: number; readonly c: number; readonly val: number }[];
 }
 
 export interface PropagationResult {
   /** Number of singleton layers; 0 when no cell was directly deducible. */
   readonly depth: number;
-  readonly trace: ReadonlyArray<PropagationTraceStep>;
+  readonly trace: readonly PropagationTraceStep[];
   /** True when every blank became singleton via propagation alone. */
   readonly fullyPropagated: boolean;
   /** Number of blanks that propagation could not solve (0 when fullyPropagated). */
@@ -85,7 +85,7 @@ export function computePropagationDepth(
   let depth = 0;
 
   while (remaining.size > 0) {
-    const singletons: Array<{ idx: number; r: number; c: number; val: number }> = [];
+    const singletons: { idx: number; r: number; c: number; val: number }[] = [];
     for (const idx of remaining) {
       const r = Math.floor(idx / n);
       const c = idx % n;
