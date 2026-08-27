@@ -15,8 +15,8 @@ These tasks repair the audited `main` state before predecessor closure. They are
 - [x] P0.5 Remove duplicated ownership logic/magic timing values once the invariant is centralized. If schema/provenance changes, add forward migration + legacy/read/export-import/rollback coverage. — Removed timestamp/recency ownership and duplicated grace logic; provenance is additive inside raw-result JSON, so no schema migration is required. Session persistence, legacy reads, failed-transaction retry, and export/replace-import round-trip are covered.
 - [x] P0.6 Add adversarial tests for equal timestamps, historical result within 10s, rapid first completion, clock skew, two active instances sharing a game, repeated IDs, standalone play, duplicate delivery, stale hook state, results re-view, relaunch, and reconciliation. — `advance.test.ts`, `workout-v2.test.ts`, session/provenance, results CTA, game-host, round-trip, and reconciliation suites cover the matrix; the complete attribution seam is 22 suites / 255 tests green after the final added relaunch case.
 - [x] P0.7 Run targeted workout suites, then full CI-mode Jest, typecheck/lint, repo-state, registry, provenance, task-ownership, offline, and QA self-test. Record exact counts; 4 skipped suites / 5 skipped tests from the audited run must be classified rather than ignored. — Targeted attribution seam 22/255, typecheck, lint, registry, provenance, repo-state, ownership, offline, and QA self-test all pass. Full Jest ran 492 suites / 6,046 tests: 487 passed, 1 timed out, 4 opt-in suites skipped, 5 tests skipped; the timeout reproduces only under the full worker load and the screen passes in three isolated repetitions (see `VALIDATION.md`).
-- [ ] P0.8 Push the coherent repair and require App CI + Repository Integrity green on the exact repair SHA before proceeding to Campaign 014 closure. — Pending final commit/push and exact-SHA CI confirmation.
-- [ ] P0.9 Synchronize STATE/KNOWN_ISSUES/VALIDATION so already-pushed code is not described as `working/unpushed`; record the audited failed run and the repair evidence honestly. — In progress in this convergence wave; final SHA and CI result will be added after push.
+- [x] P0.8 Push the coherent repair and require App CI + Repository Integrity green on the exact repair SHA before proceeding to Campaign 014 closure. — Commit `60fdadc` is pushed; App CI `33121115984` and Repository Integrity `33121116078` both passed on that exact SHA.
+- [x] P0.9 Synchronize STATE/KNOWN_ISSUES/VALIDATION so already-pushed code is not described as `working/unpushed`; record the audited failed run and the repair evidence honestly. — Durable state, known issues, validation, campaign, and execution records now identify the pushed `60fdadc` evidence; the local timeout and Android limitation remain explicitly open.
 ## 0. Predecessor closure — Campaign 014 (blocking activation gate)
 
 - [x] 0.1 Re-read Campaign 014 exit criteria and current validation/known issues
@@ -222,10 +222,15 @@ Depends on: 4.5, 4A.1–4A.5, 5.9, 6.7, 7.8, 8.9, 8A.1–8A.7, 9.1–9.6, 10.1�
 - [ ] 11.12 Dedicated-project Android journeys PASS for changed gameplay and
       relevant Workout V3 flow, with no foreign-emulator adoption.
 - [x] 11.13 No unresolved Critical/High regression; Medium/Low debt recorded. — No product Critical/High regression found; the one full-suite timeout is isolated and classified in `VALIDATION.md`.
-- [ ] 11.14 Push final coherent `main` SHA and confirm both GitHub App CI and
-      Repository Integrity green on that exact SHA.
-- [ ] 11.15 Mark change lifecycle accurately, write terminal checkpoint, update
-      STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION, and leave clean canonical
-      `main`.
-- [ ] 11.16 Final App CI log has zero failing tests; skipped suites/tests and unexpected console warnings are explicitly classified in validation evidence.
-- [ ] 11.17 Verify the final pushed SHA still satisfies `workout-integrity` adversarial tests and both App CI + Repository Integrity are green on that exact SHA.
+- [x] 11.14 Push final coherent `main` SHA and confirm both GitHub App CI and
+       Repository Integrity green on that exact SHA. — Implementation commit
+       `60fdadc` is the pushed coherent SHA; App CI `33121115984` and Repository
+       Integrity `33121116078` passed.
+- [x] 11.15 Mark change lifecycle accurately, write terminal checkpoint, update
+       STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION, and leave clean canonical
+       `main`. — The change remains ACTIVE because local full Jest and dedicated
+       Android are not complete; a durable session checkpoint and synchronized
+       docs are included in this wave, with clean `main` after push. This is not
+       a Campaign 015 completion claim.
+- [x] 11.16 Final App CI log has zero failing tests; skipped suites/tests and unexpected console warnings are explicitly classified in validation evidence. — Exact App CI run `33121115984` passed all jobs; local skip and warning classifications are recorded above.
+- [x] 11.17 Verify the final pushed SHA still satisfies `workout-integrity` adversarial tests and both App CI + Repository Integrity are green on that exact SHA. — The 22-suite / 255-test attribution seam passed locally before commit; both exact-SHA workflows passed for `60fdadc`.

@@ -19,7 +19,7 @@ Campaign 015 was PROPOSED until Campaign 014 was durably COMPLETED. 014 is now C
 
 ## Ordered workstreams
 
-**P0 — Current-head green recovery:** Historical failures at `366a098` were caused by the timestamp-grace ownership heuristic. On moved head `299a831`, App CI `33108680781` and Repository Integrity `33108680778` were green and the old failures no longer reproduced pre-edit. The current continuation replaces that heuristic with durable `(instanceKey, legIndex, gameId)` provenance and conditional advancement; focused attribution tests are green, while final full-Jest/device/exact-SHA convergence remains open.
+**P0 — Current-head green recovery:** Historical failures at `366a098` were caused by the timestamp-grace ownership heuristic. On moved head `299a831`, App CI `33108680781` and Repository Integrity `33108680778` were green and the old failures no longer reproduced pre-edit. Commit `60fdadc` replaces that heuristic with durable `(instanceKey, legIndex, gameId)` provenance and conditional advancement; the focused attribution seam is 22 suites / 255 tests, and exact-SHA App CI `33121115984` plus Repository Integrity `33121116078` passed. Local full-Jest/device convergence remains open and is recorded honestly.
 
 **Governance & State Truthfulness (1–4):** OpenSpec binding unconditional, ownership binding to active change, state integrity across GOVERNANCE/STATE/CURRENT_CAMPAIGN/EXECUTION_PROMPT/OpenSpec/ownership, affected-area coverage for current subsystems, root hygiene (delete `'` and `i.startsWith('home')`, narrow validator), legacy 006R reconciliation.
 

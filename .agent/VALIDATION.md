@@ -1333,5 +1333,10 @@ therefore **NOT VALIDATED** pending emulator stability. iOS and manual system
 sheet validation remain **NOT VALIDATED** under the existing Windows/policy
 limitations.
 
-Final commit/push and exact-SHA App CI/Repository Integrity confirmation remain
-pending. Campaign 015 remains ACTIVE; proposed Campaign 016 is not activated.
+Implementation commit `60fdadc` was pushed to `main`. App CI run
+`33121115984` and Repository Integrity run `33121116078` both passed on that
+exact SHA; the App CI job's typecheck, lint, Jest, web export, and Doctor steps
+were all green. The Node 20 action deprecation annotation is an infrastructure
+warning, not a failed check. Campaign 015 remains ACTIVE because local full
+Jest still has the single classified resource-sensitive timeout and dedicated
+Android is NOT VALIDATED; proposed Campaign 016 is not activated.

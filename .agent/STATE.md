@@ -4,8 +4,9 @@
 **Last update:** 2026-08-28 (Campaign 015 remains **ACTIVE**; predecessor 014
 is COMPLETED at `f66f65c`. The moved base `299a831` is green in App CI and
 Repository Integrity, and the causal workout-attribution continuation is now
-implemented locally. Final post-edit gates, exact-SHA CI, and dedicated AVD
-evidence remain open and are recorded honestly.)
+implemented locally. Exact-SHA App CI and Repository Integrity passed for
+`60fdadc`; local full-Jest and dedicated AVD evidence remain open and are
+recorded honestly.)
 **Canonical branch:** `main`
 **Active campaign:** 015-governance-depth-convergence
 
@@ -18,9 +19,10 @@ continuation replaces timestamp/recency workout ownership with an exact
 `(instanceKey, legIndex, gameId)` provenance tuple carried from workout route
 through the shared game host into persisted session JSON, then advances the
 matching active row with a conditional transaction. Focused attribution tests
-are green; full-suite resource contention and dedicated Android emulator
-stability remain recorded validation limits. Campaign 013's release gate
-remains GREEN as the v1 baseline (42/42 certify, SHA `ba6dd84`).
+are green; exact-SHA App CI and Repository Integrity passed for `60fdadc`.
+Full-suite resource contention and dedicated Android emulator stability remain
+recorded validation limits. Campaign 013's release gate remains GREEN as the
+v1 baseline (42/42 certify, SHA `ba6dd84`).
 ### What landed in 015 at transition (predecessor 014 COMPLETED at `f66f65c`)
 
 - **P0 red-main recovery already done at `d645bbb`/`6451bfb`:** precise first-leg-only slack + pre-creation guard in `advance.ts` + `db/workout.ts`, fixing 2 Jest suites red at `4ac4d45` (advance.test.ts historical 500 vs 1000, workout-v2.test.ts equal-timestamp 20_000); adversarial attribution matrix, full local green, App CI should now be green on the repair SHA; repo-state/ownership/OpenSpec green, `STATE` synced at `6451bfb`.
@@ -70,12 +72,12 @@ Each durable recovery document carries exactly one structured field that declare
 ## Next required action
 
 015 is **ACTIVE**. Governance/bootstrap, game/content convergence, runtime
-evidence, and the causal workout-attribution implementation are landed or
-revalidated on base `299a831`. The final action is to rerun post-edit gates,
-commit and push the coherent continuation, inspect App CI and Repository
-Integrity on the exact pushed SHA, and keep unresolved full-suite timeout and
-dedicated `braintraining-qa36` boot evidence recorded honestly. Proposed
-Campaign 016 remains unopened; do not add game #43.
+evidence, and causal workout attribution are implemented in `60fdadc`; exact
+App CI and Repository Integrity passed on that SHA. The remaining action is to
+maintain the durable checkpoint and resolve or explicitly accept the local
+full-suite timeout and dedicated `braintraining-qa36` boot limitation before
+015 can be completed. Proposed Campaign 016 remains unopened; do not add game
+#43.
 ## Recovery order
 
 1. `AGENTS.md`

@@ -1,6 +1,6 @@
 # Campaign 015 — Governance & Depth Convergence
 
-**Status:** ACTIVE — predecessor 014 COMPLETED at `f66f65c`; 015 governance/bootstrap, game/content convergence, and runtime evidence are landed through `299a831` (with the causal-attribution continuation currently being converged). Final local Jest/device/exact-SHA CI gates remain open and are recorded honestly below.
+**Status:** ACTIVE — predecessor 014 COMPLETED at `f66f65c`; 015 governance/bootstrap, game/content convergence, runtime evidence, and causal workout attribution are implemented in `60fdadc`. Exact-SHA App CI and Repository Integrity are green; local full-Jest and dedicated-device gates remain open and are recorded honestly below.
 **Campaign id:** `015-governance-depth-convergence`
 **Predecessor:** `014-experience-depth-replayability` (COMPLETED 2026-08-27 at `f66f65c` — see `.agent/checkpoints/014-experience-depth-replayability-COMPLETED.md`)
 **Mode:** day
@@ -17,7 +17,7 @@ Make the autonomous campaign system mechanically trustworthy, then close the ver
 
 ### Predecessor & Red-Main Recovery (P0, 0)
 
-- **P0 — Current-head green recovery / causal attribution:** Pulled moved head `299a831`, confirmed App CI `33108680781` and Repository Integrity `33108680778` green, and found the old two-suite failures no longer reproduced before editing. The continuation now carries exact `(instanceKey, legIndex, gameId)` provenance from route to session JSON and uses a conditional durable advance; the focused attribution seam is 22 suites / 255 tests green. Full Jest has one suite-level timeout under worker load, so exact final CI remains open.
+- **P0 — Current-head green recovery / causal attribution:** Pulled moved head `299a831`, confirmed App CI `33108680781` and Repository Integrity `33108680778` green, and found the old two-suite failures no longer reproduced before editing. Commit `60fdadc` now carries exact `(instanceKey, legIndex, gameId)` provenance from route to session JSON and uses a conditional durable advance; the focused attribution seam is 22 suites / 255 tests green. Exact-SHA App CI `33121115984` and Repository Integrity `33121116078` both passed. Local full Jest still has one resource-sensitive timeout and dedicated Android remains NOT VALIDATED.
 - **0 — Predecessor closure:** Already COMPLETED at `f66f65c` (014): AVD `braintraining-qa36` restored at 6 AVDs and boots to `sys.boot_completed=1` in ~30s with `-memory 3072 -no-snapshot`, APK 80M `BUILD SUCCESSFUL` + `adb install` `Success` + `am start` success, docs-final DONE (MASTER_PLAN 013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight), prior dedicated-AVD green at `f4aa44c` considered exit evidence per honest NOT VALIDATED for the re-run (emulator segfault after ~60-120s, `workout-focus` `IN_PROGRESS` then `device offline`).
 
 ### Governance & State Truthfulness (1–4)
@@ -41,7 +41,7 @@ Make the autonomous campaign system mechanically trustworthy, then close the ver
 
 ### Convergence (11)
 
-11. **Exit gate:** **IN PROGRESS** — Static gates, typecheck/lint, web export, and Doctor are green; final full Jest is pending a clean/accepted result, dedicated-project Android is blocked by the known AVD failure, and final push/exact-SHA CI plus terminal state synchronization remain.
+11. **Exit gate:** **IN PROGRESS** — Static gates, typecheck/lint, web export, Doctor, and exact-SHA CI for `60fdadc` are green; local full Jest still has one classified timeout, dedicated-project Android is blocked by the known AVD failure, and the campaign remains active until those limits are resolved or accepted under a future evidence decision.
 
 ## Exit criteria
 
