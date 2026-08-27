@@ -59,21 +59,58 @@ function globOverlap(a, b) {
   return false;
 }
 
+// Additional intersection check: a broad coder surface like `apps/mobile/src/**`
+// overlaps a generated/orchestrator pattern like `**/*.generated.ts` even though
+// literal glob strings differ. Detect by testing whether a synthetic concrete
+// path that matches the protected pattern would also be matched by the coder surface,
+// and vice-versa.
+function overlapsViaExample(coderSurface, protectedPattern) {
+  const candidates = [];
+  if (protectedPattern.includes('*.generated')) {
+    candidates.push('apps/mobile/src/registry/registry.generated.ts', 'apps/mobile/src/foo.generated.ts', 'apps/mobile/src/games/x/foo.generated.ts');
+  } else if (!protectedPattern.includes('*')) {
+    candidates.push(protectedPattern);
+  } else {
+    let syn = protectedPattern.replace(/\*\*/g, 'apps/mobile/src').replace(/\*/g, 'foo');
+    candidates.push(syn);
+    if (protectedPattern.startsWith('**/')) {
+      candidates.push('apps/mobile/src/' + protectedPattern.slice(3).replace(/\*/g, 'foo'));
+    }
+  }
+  for (const cand of candidates) {
+    if (globMatch(coderSurface, cand)) return true;
+  }
+  return false;
+}
+
 function validateTaskOwnership(config) {
   const errors = [];
   const packets = config.parallelPackets || [];
   const orchestratorOnly = config.orchestratorOnlySurfaces || [];
   const generated = config.generatedFilePatterns || [];
 
-  // 015: change binding — must equal governance and active OpenSpec
+  // 015: change binding — must equal governance and active OpenSpec. Resolve repo root by walking up from cwd to find .agent/GOVERNANCE.json (jest runs with cwd apps/mobile).
   try {
-    const gov = JSON.parse(require('node:fs').readFileSync(require('node:path').resolve(process.cwd(), '.agent/GOVERNANCE.json'), 'utf8'));
+    const fs2 = require('node:fs');
+    const path2 = require('node:path');
+    function findRepoRoot(start) {
+      let cur = path2.resolve(start);
+      for (let i = 0; i < 6; i++) {
+        if (fs2.existsSync(path2.join(cur, '.agent/GOVERNANCE.json'))) return cur;
+        const parent = path2.dirname(cur);
+        if (parent === cur) break;
+        cur = parent;
+      }
+      return path2.resolve(process.cwd());
+    }
+    const repoRoot = findRepoRoot(process.cwd());
+    const gov = JSON.parse(fs2.readFileSync(path2.join(repoRoot, '.agent/GOVERNANCE.json'), 'utf8'));
     if (config.change !== gov.activeCampaign) {
       errors.push(`Ownership change '${config.change}' does not match GOVERNANCE.activeCampaign '${gov.activeCampaign}'.`);
     }
-    const changePath = require('node:path').resolve(process.cwd(), 'openspec', 'changes', gov.activeCampaign, 'change.json');
-    if (require('node:fs').existsSync(changePath)) {
-      const meta = JSON.parse(require('node:fs').readFileSync(changePath, 'utf8'));
+    const changePath = path2.join(repoRoot, 'openspec', 'changes', gov.activeCampaign, 'change.json');
+    if (fs2.existsSync(changePath)) {
+      const meta = JSON.parse(fs2.readFileSync(changePath, 'utf8'));
       if (config.change !== meta.id) {
         errors.push(`Ownership change '${config.change}' does not match active OpenSpec change id '${meta.id}'.`);
       }
@@ -106,14 +143,14 @@ function validateTaskOwnership(config) {
   for (const packet of packets) {
     for (const surface of packet.coderWriteSurfaces || []) {
       for (const pattern of orchestratorOnly) {
-        if (globOverlap(pattern, surface) || globMatch(pattern, surface)) {
+        if (globOverlap(pattern, surface) || globMatch(pattern, surface) || overlapsViaExample(surface, pattern)) {
           errors.push(
             `Packet ${packet.id}: coder write surface '${surface}' overlaps orchestrator-only surface '${pattern}' (intersection semantics).`,
           );
         }
       }
       for (const pattern of generated) {
-        if (globOverlap(pattern, surface) || globMatch(pattern, surface)) {
+        if (globOverlap(pattern, surface) || globMatch(pattern, surface) || overlapsViaExample(surface, pattern)) {
           errors.push(
             `Packet ${packet.id}: coder write surface '${surface}' overlaps generated file pattern '${pattern}' (intersection semantics).`,
           );

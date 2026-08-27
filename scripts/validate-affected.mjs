@@ -67,7 +67,61 @@ const RULES = [
     ],
   },
   {
+    name: 'workout',
+    impact: 'workout',
+    match: ['apps/mobile/src/workout/**', 'apps/mobile/src/db/workout*.ts', 'apps/mobile/src/db/__tests__/workout*.ts'],
+    checks: [
+      'cd apps/mobile && npm run test:ci -- src/workout src/db/__tests__/workout --no-coverage',
+      'cd apps/mobile && npm run typecheck',
+      'Workout attribution/adversarial matrix if routing/ownership touched',
+    ],
+  },
+  {
+    name: 'personalization / mastery / spotlight',
+    impact: 'personalization/mastery/spotlight',
+    match: ['apps/mobile/src/personalization/**', 'apps/mobile/src/mastery/**', 'apps/mobile/src/spotlight/**'],
+    checks: [
+      'cd apps/mobile && npm run test:ci -- src/personalization src/mastery src/spotlight --no-coverage',
+      'cd apps/mobile && npm run typecheck',
+      'Determinism/repetition checks for personalized selection',
+    ],
+  },
+  {
+    name: 'sync / data-portability',
+    impact: 'sync/data-portability',
+    match: ['apps/mobile/src/sync/**', 'apps/mobile/src/data-portability/**', 'apps/mobile/src/persistence/**'],
+    checks: [
+      'cd apps/mobile && npm run test:ci -- src/sync src/data-portability --no-coverage',
+      'cd apps/mobile && npm run typecheck',
+      'Export/wipe/import round-trip smoke if envelope changed',
+    ],
+  },
+  {
+    name: 'content / registry / provenance',
+    impact: 'content/registry/provenance',
+    match: ['apps/mobile/src/content/**', 'apps/mobile/src/registry/**', 'apps/mobile/src/games/**/content/**', 'apps/mobile/src/games/**/registry/**', 'scripts/generate-game-registry.mjs', 'scripts/validate-provenance.mjs'],
+    checks: [
+      'cd apps/mobile && npm run test:ci -- src/content --no-coverage',
+      'node scripts/generate-game-registry.mjs --check',
+      'node scripts/validate-provenance.mjs (or provenance check)',
+      'Content validation for affected packs (duplicate/ordering/tier checks)',
+    ],
+  },
+  {
+    name: 'OpenSpec / governance',
+    impact: 'OpenSpec/governance',
+    match: ['openspec/**', '.agent/**', 'AGENTS.md', 'docs/**', 'apps/mobile/src/governance/**'],
+    checks: [
+      'node scripts/validate-repo-state.mjs',
+      'node scripts/validate-task-ownership.cjs',
+      'npx --yes @fission-ai/openspec@1.6.0 validate --all',
+      'Doc/reference consistency check (paths, commands, conventions cited in docs must exist)',
+    ],
+  },
+  {
     name: 'SQLite / schema / migrations',
+    impact: 'SQLite/schema/migrations',
+    match: ['apps/mobile/src/db/**', 'apps/mobile/src/persistence/**', 'apps/mobile/src/storage/**'],
     impact: 'SQLite/schema/migrations',
     match: ['apps/mobile/src/db/**', 'apps/mobile/src/persistence/**', 'apps/mobile/src/storage/**'],
     checks: [
@@ -131,15 +185,6 @@ const RULES = [
       'cd apps/mobile && npm ci  # clean dependency install',
       'node scripts/validate-repo-state.mjs',
       'cd apps/mobile && npm run typecheck',
-    ],
-  },
-  {
-    name: 'repository governance / docs',
-    impact: 'AGENTS.md, .agent/**, docs/**',
-    match: ['AGENTS.md', '.agent/**', 'docs/**'],
-    checks: [
-      'node scripts/validate-repo-state.mjs',
-      'Doc/reference consistency check (paths, commands, conventions cited in docs must exist)',
     ],
   },
 ];

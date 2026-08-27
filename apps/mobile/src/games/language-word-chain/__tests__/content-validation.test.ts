@@ -13,14 +13,16 @@ describe("loadContentPack", () => {
   it("loads and validates the bundled pack (memoized)", () => {
     const pack = loadContentPack();
     expect(pack.packId).toBe("language-word-chain-core-v1");
-    expect(pack.packVersion).toBe("1.2.0");
+    expect(pack.packVersion).toBe("1.3.0");
+    expect(pack.chainCount).toBe(90);
+    expect(pack.chains.length).toBe(90);
     expect(pack.chainCount).toBe(pack.chains.length);
     expect(loadContentPack()).toBe(pack); // memoized
   });
 
   it("every chain satisfies the lexical adjacency rule", () => {
     const pack = loadContentPack();
-    expect(pack.chains.length).toBeGreaterThanOrEqual(12);
+    expect(pack.chains.length).toBeGreaterThanOrEqual(90);
     for (const chain of pack.chains) {
       expect(TIERS).toContain(chain.tier);
       expect(chain.words.length).toBeGreaterThanOrEqual(4);
@@ -46,7 +48,29 @@ describe("loadContentPack", () => {
       expect(seen.has(decoy)).toBe(false);
     }
     // Enough decoys to fill the largest option row with valid distractors.
-    expect(pack.decoyPool.length).toBeGreaterThanOrEqual(12);
+    expect(pack.decoyPool.length).toBeGreaterThanOrEqual(30);
+  });
+
+  it("pack-count gate: declared==actual, >=90 total, >=30 per tier", () => {
+    const pack = loadContentPack();
+    expect(pack.chainCount).toBe(pack.chains.length);
+    expect(pack.chains.length).toBeGreaterThanOrEqual(90);
+    const counts = { t1: 0, t2: 0, t3: 0 } as Record<string, number>;
+    for (const c of pack.chains) counts[c.tier] += 1;
+    expect(counts.t1).toBeGreaterThanOrEqual(30);
+    expect(counts.t2).toBeGreaterThanOrEqual(30);
+    expect(counts.t3).toBeGreaterThanOrEqual(30);
+  });
+
+  it("decoy diversity: ≥30 decoys, ≥15 distinct initials, balanced", () => {
+    const pack = loadContentPack();
+    expect(pack.decoyPool.length).toBeGreaterThanOrEqual(30);
+    const initials = new Set(pack.decoyPool.map((w) => w[0]));
+    expect(initials.size).toBeGreaterThanOrEqual(15);
+    const counts = new Map<string, number>();
+    for (const w of pack.decoyPool) counts.set(w[0], (counts.get(w[0]) ?? 0) + 1);
+    const max = Math.max(...counts.values());
+    expect(max).toBeLessThanOrEqual(Math.ceil(pack.decoyPool.length * 0.25));
   });
 });
 
@@ -58,6 +82,9 @@ function basePack(): Record<string, unknown> {
     decoyPool: [
       "apple", "brick", "cloud", "dream", "flame", "ghost",
       "honey", "ivory", "jungle", "koala", "light", "mango",
+      "night", "olive", "pearl", "quilt", "robin", "stone",
+      "umbrella", "velvet", "whale", "yogurt", "pencil", "mirror",
+      "basket", "garden", "window", "pillow", "silver", "autumn",
     ],
     chains: [{ id: "c1", tier: "t1", words: ["sun", "nest", "train", "north"] }],
   };
@@ -137,29 +164,113 @@ describe("validateWordChainPack rejections", () => {
   });
 
   it("rejects a decoy that collides with a chain word or duplicates itself", () => {
-    const twelve = [
-      "apple", "brick", "cloud", "dream", "flame", "ghost",
-      "honey", "ivory", "jungle", "koala", "light", "mango",
-    ];
+    const thirty = basePack().decoyPool as string[];
+    expect(thirty.length).toBeGreaterThanOrEqual(30);
     expect(() =>
       validateWordChainPack({
         ...basePack(),
         // "sun" is a chain word; swap it in for the last decoy.
-        decoyPool: [...twelve.slice(0, 11), "sun"],
+        decoyPool: [...thirty.slice(0, 29), "sun"],
       }),
     ).toThrow(/decoyPool/);
     expect(() =>
       validateWordChainPack({
         ...basePack(),
-        decoyPool: ["apple", "apple", ...twelve.slice(2)],
+        decoyPool: ["apple", "apple", ...thirty.slice(2)],
       }),
     ).toThrow(/duplicate/);
     expect(() =>
       validateWordChainPack({
         ...basePack(),
-        decoyPool: ["ab", ...twelve.slice(1)],
+        decoyPool: ["ab", ...thirty.slice(1)],
       }),
     ).toThrow(/single-token/);
+  });
+
+  it("rejects reordered / near-duplicate chains", () => {
+    // Two chains sharing ≥2 words must be rejected as near-duplicates.
+    // Build a 90-chain core pack by cloning the real pack and replacing two t1 chains with near-duplicates using fresh words not in the pack.
+    const base = [...loadContentPack().chains];
+    base[0] = { id: "wc-near-01", tier: "t1", words: ["abed", "dawn", "nexus", "sycamore"] };
+    base[1] = { id: "wc-near-02", tier: "t1", words: ["abed", "dawn", "nexus", "solace"] }; // shares abed,dawn,nexus → ≥2
+    const coreNearDup = {
+      packId: "language-word-chain-core-v1",
+      packVersion: "1.0.0",
+      chainCount: 90,
+      decoyPool: [...loadContentPack().decoyPool] as unknown as string[],
+      chains: base,
+    };
+    expect(() => validateWordChainPack(coreNearDup)).toThrow(/near-duplicate|more than one chain/);
+
+    // Duplicate sequence is also rejected (exact same order) – already covered, but verify near-duplicate threshold.
+    const dupSeq = {
+      packId: "test-pack",
+      packVersion: "1.0.0",
+      chainCount: 2,
+      decoyPool: basePack().decoyPool as string[],
+      chains: [
+        { id: "c1", tier: "t1", words: ["sun", "nest", "train", "north"] },
+        { id: "c2", tier: "t1", words: ["sun", "nest", "train", "north"] },
+      ],
+    };
+    expect(() => validateWordChainPack(dupSeq)).toThrow(/more than one chain|duplicate/);
+  });
+
+  it("rejects tier-constraint violations for the core pack", () => {
+    // Core pack with only 30 total should fail ≥90 gate.
+    const smallCore = {
+      packId: "language-word-chain-core-v1",
+      packVersion: "1.0.0",
+      chainCount: 30,
+      decoyPool: [...loadContentPack().decoyPool] as unknown as string[],
+      chains: loadContentPack().chains.slice(0, 30),
+    };
+    expect(() => validateWordChainPack(smallCore)).toThrow(/at least 90/);
+
+    // Core pack with 90 but uneven tiers (t1 only 10) should fail per-tier gate.
+    // Take real 90 and re-label 20 t1 chains to t2 so t1 drops to 10.
+    const unevenChains = loadContentPack().chains.map((c, idx) => {
+      if (c.tier === "t1" && idx < 20) {
+        return { ...c, tier: "t2" as const };
+      }
+      return { ...c };
+    });
+    const uneven = {
+      packId: "language-word-chain-core-v1",
+      packVersion: "1.0.0",
+      chainCount: 90,
+      decoyPool: [...loadContentPack().decoyPool] as unknown as string[],
+      chains: unevenChains,
+    };
+    expect(() => validateWordChainPack(uneven)).toThrow(/tier t1 must have at least 30/);
+  });
+  it("rejects inadequate decoy diversity", () => {
+    // Too few decoys
+    expect(() =>
+      validateWordChainPack({
+        packId: "test-pack",
+        packVersion: "1.0.0",
+        chainCount: 1,
+        decoyPool: ["apple", "brick", "cloud", "dream", "flame", "ghost", "honey", "ivory", "jungle", "koala", "light", "mango"],
+        chains: [{ id: "c1", tier: "t1", words: ["sun", "nest", "train", "north"] }],
+      }),
+    ).toThrow(/at least 30/);
+
+    // Not enough distinct initials (30 words all starting with 'a' – distinct initials =1)
+    const monoInitialPool = Array.from({ length: 30 }, (_, i) => {
+      const a = String.fromCharCode(98 + (i % 24)); // b..y
+      const b = String.fromCharCode(97 + (i % 26));
+      return `a${a}${b}x`; // all start with 'a', distinct e.g., abax, acbx...
+    });
+    expect(() =>
+      validateWordChainPack({
+        packId: "test-pack",
+        packVersion: "1.0.0",
+        chainCount: 1,
+        decoyPool: monoInitialPool,
+        chains: [{ id: "c1", tier: "t1", words: ["sun", "nest", "train", "north"] }],
+      }),
+    ).toThrow(/distinct initials/);
   });
 });
 

@@ -1,26 +1,34 @@
 /**
- * Deterministic round generation for the Rule Grid game.
+ * Deterministic round generation for the Rule Grid game — chained deduction.
  *
- * A session's seed is recorded with its result, so the full session is
- * reproducible from `(RNG_ALGORITHM_VERSION, gameVersion, generatorVersion,
- * seed, difficulty)` per the SDK generator rule.
+ * Session seed provenance: `(RNG_ALGORITHM_VERSION, gameVersion, generatorVersion,
+ * seed, difficulty)` per SDK generator rule.
  *
- * The board is a Latin square: every row and every column is a permutation of
- * the symbols 0..n-1. Exactly one cell is blanked; because each row already
- * contains every symbol except the one removed from the blank, the missing
- * symbol is the UNIQUE valid completion (see `isUniquelySolvable`). The player
- * applies the row-column constraint to deduce it.
+ * Puzzle model: an n×n Latin square (each row/col a permutation of 0..n-1) with
+ * `B` hidden cells. The player answers one primary blank, but the puzzle
+ * requires deducing interacting unknowns. Hard/Expert puzzles MUST have a
+ * dependent chain (depth ≥2) — not merely multiple independent one-step blanks.
  *
- * All randomness is drawn from a per-round RNG fork, so changing one round's
- * seed source cannot affect the others. Near-duplicate avoidance (same blank
- * position two rounds in a row) keeps rounds from feeling identical.
+ * Solver provenance: every returned puzzle is proved to have exactly one Latin
+ * completion (exhaustive enumeration, limit 2) and its dependency depth is
+ * measured via iterative singleton propagation. Final validation proves both;
+ * there is no weakened fallback that returns a puzzle skipping that proof.
+ *
+ * Determinism: all randomness draws from a per-round RNG fork
+ * `rng.fork(round:attempt)`, so seeds reproduce exactly.
  */
+
 import type { Rng } from '@/sdk';
 
 import type { RuleGridDifficultyParams, RuleGridRound } from './types';
+import {
+  buildVisibleBoard,
+  computePropagationDepth,
+  countSolutions,
+} from './solver';
 
-/** Upper bound on re-draw attempts before the last candidate is accepted. */
-export const MAX_ATTEMPTS = 12;
+/** Attempts before giving up — there is no weakened fallback after this. */
+export const MAX_ATTEMPTS = 100;
 
 export interface GenerateRoundInput {
   readonly rng: Rng;
@@ -38,8 +46,7 @@ export interface GenerateRoundInput {
  * (r + c) % n`, so every row/column is already a permutation. We then:
  *   1. relabel symbols via a random permutation `perm` of 0..n-1, and
  *   2. permute the rows and columns via `rowPerm` / `colPerm`.
- * Both relabeling and row/column permutation preserve the Latin-square
- * property, giving a uniformly-ish distributed valid board from the seed.
+ * Both preserve the Latin property, giving a distributed board from the seed.
  */
 export function generateSquare(n: number, rng: Rng): number[][] {
   const base: number[][] = [];
@@ -69,12 +76,9 @@ export function generateSquare(n: number, rng: Rng): number[][] {
 }
 
 /**
- * Count how many symbols, placed in the blank cell, leave the blank's row and
- * column with all-distinct values. A well-formed Latin square always yields
- * exactly one (the removed symbol); this is the uniqueness oracle used to
- * validate generated rounds.
- *
- * `expectedAnswer` is the symbol originally removed at `blankIndex`.
+ * Legacy single-blank uniqueness oracle (kept for compatibility).
+ * Counts how many symbols, placed in the blank cell, leave the blank's row and
+ * column with all-distinct values.
  */
 export function isUniquelySolvable(
   square: readonly (readonly number[])[],
@@ -124,37 +128,85 @@ export function buildSymbolOptions(fork: Rng, answer: number, n: number): number
   return fork.shuffle([...options]);
 }
 
+/** Desired blank count for a given board size (mirrors difficulty.ts scaling). */
+export function blanksForSize(n: number): number {
+  switch (n) {
+    case 3:
+      return 2;
+    case 4:
+      return 3;
+    case 5:
+      return 4;
+    case 6:
+      return 6;
+    default:
+      return Math.min(4, Math.floor((n * n) / 3));
+  }
+}
+
+/** Minimum propagation depth for a given board size. Hard (5) and Expert (6) require ≥2. */
+export function minDepthForSize(n: number): number {
+  if (n >= 5) return 2;
+  return 1;
+}
+
 /**
- * Generate one round: a Latin square with a uniquely-solvable blank cell.
- * Re-draws (deterministically, via an incremented attempt salt) until the
- * blank is uniquely solvable and not confusable with the previous round
- * (same blank row & column). Falls back to the last candidate if the budget
- * is exhausted — but every valid Latin square is uniquely solvable, so the
- * fallback is always acceptable.
+ * Generate one round: a Latin square with multiple interacting blanks and a
+ * provably unique solution plus minimum deduction depth.
+ *
+ * Deterministic: same `(rng.seed, roundIndex, params)` always yields the same
+ * puzzle. Final validation proves uniqueness (exhaustive count ==1) and
+ * depth (singleton propagation layers). If no depth-satisfying puzzle is found
+ * within `MAX_ATTEMPTS`, the function throws — it NEVER returns a weakened
+ * puzzle that skipped validation.
  */
 export function generateRound(input: GenerateRoundInput): RuleGridRound {
   const { rng, roundIndex, params, prevRound } = input;
   const n = params.size;
   const cellCount = n * n;
+  const desiredBlanks = blanksForSize(n);
+  const minDepth = minDepthForSize(n);
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     const fork = rng.fork(`round:${roundIndex}:attempt:${attempt}`);
     const square = generateSquare(n, fork);
-    const blankIndex = fork.nextInt(cellCount);
+
+    // Choose distinct blank positions.
+    const shuffled = fork.shuffle(range(cellCount));
+    const blanks = shuffled.slice(0, desiredBlanks).sort((a, b) => a - b);
+
+    // Primary asked cell: random among blanks (so answer varies).
+    const blankIndex = fork.pick(blanks);
     const blankRow = Math.floor(blankIndex / n);
     const blankCol = blankIndex % n;
     const answer = square[blankRow][blankCol];
 
-    if (!isUniquelySolvable(square, blankIndex, n, answer)) {
-      continue;
+    // Near-duplicate avoidance: don't repeat the same primary cell consecutively,
+    // and avoid identical blank sets back-to-back.
+    if (prevRound !== null) {
+      if (prevRound.blankIndex === blankIndex) continue;
+      if (
+        prevRound.blanks.length === blanks.length &&
+        prevRound.blanks.every((v, i) => v === blanks[i])
+      ) {
+        continue;
+      }
     }
-    if (
-      prevRound !== null &&
-      prevRound.blankRow === blankRow &&
-      prevRound.blankCol === blankCol
-    ) {
-      continue;
-    }
+
+    const visible = buildVisibleBoard(square, blanks, n);
+
+    // Prove uniqueness: exactly one Latin completion.
+    if (countSolutions(visible, n, 2) !== 1) continue;
+
+    // Prove depth: singleton propagation must solve all blanks and meet min depth.
+    const prop = computePropagationDepth(visible, blanks, n);
+    if (!prop.fullyPropagated) continue;
+    if (prop.depth < minDepth) continue;
+
+    // Explicitly reject Hard/Expert puzzles where every blank is independent.
+    // For n>=5, minDepth>=2 already rejects depth==1, but add defensive check:
+    // if all blanks were singleton on first layer, depth would be 1, so rejected.
+    // No extra condition needed beyond depth check.
 
     const options = buildSymbolOptions(fork, answer, n);
     return {
@@ -165,34 +217,29 @@ export function generateRound(input: GenerateRoundInput): RuleGridRound {
       blankCol,
       answer,
       options,
+      blanks: [...blanks],
+      depth: prop.depth,
+      fullyPropagated: prop.fullyPropagated,
     };
   }
 
-  // Extremely unlikely fallback: accept the last deterministically drawn round.
-  const fork = rng.fork(`round:${roundIndex}:attempt:${MAX_ATTEMPTS - 1}`);
-  const square = generateSquare(n, fork);
-  const blankIndex = fork.nextInt(cellCount);
-  const blankRow = Math.floor(blankIndex / n);
-  const blankCol = blankIndex % n;
-  const answer = square[blankRow][blankCol];
-  const options = buildSymbolOptions(fork, answer, n);
-  return {
-    size: n,
-    square: square.map((row) => [...row]),
-    blankIndex,
-    blankRow,
-    blankCol,
-    answer,
-    options,
-  };
+  throw new Error(
+    `generateRound: failed to generate a valid chained-deduction puzzle after ${MAX_ATTEMPTS} attempts (size=${n}, minDepth=${minDepth}, blanks=${desiredBlanks}, round:${roundIndex})`,
+  );
 }
 
-/** Validate a generated round: options include the answer and it's uniquely solvable. */
+/** Validate a generated round: options include answer, uniqueness holds, and depth meets contract. */
 export function validateGeneratedRound(round: RuleGridRound): boolean {
-  if (!round.options.includes(round.answer)) {
-    return false;
-  }
-  return isUniquelySolvable(round.square, round.blankIndex, round.size, round.answer);
+  if (!round.options.includes(round.answer)) return false;
+  if (!round.blanks.includes(round.blankIndex)) return false;
+  const visible = buildVisibleBoard(round.square, round.blanks, round.size);
+  if (countSolutions(visible, round.size, 2) !== 1) return false;
+  const prop = computePropagationDepth(visible, round.blanks, round.size);
+  if (!prop.fullyPropagated) return false;
+  if (prop.depth !== round.depth) return false;
+  if (prop.depth < minDepthForSize(round.size)) return false;
+  if (round.depth < minDepthForSize(round.size)) return false;
+  return true;
 }
 
 /** Helper: [0, 1, ..., n-1]. */

@@ -11,8 +11,7 @@ import {
   isNearDuplicateRound,
   validateGeneratedRound,
 } from "../generator";
-import type { WordChainDifficultyParams } from "../types";
-
+import type { WordChainDifficultyParams, WordChainRound } from "../types";
 const PACK = loadContentPack();
 
 const PARAMS: WordChainDifficultyParams = {
@@ -108,7 +107,7 @@ describe("generateRound", () => {
 
   it("produces valid rounds with a unique correct link per step", () => {
     for (const seed of ["v1", "v2", "v3", "v4", "v5"]) {
-      let previous: ReturnType<typeof generateRound> | null = null;
+      let previous: WordChainRound | null = null;
       const used = new Set<string>();
       for (let roundIndex = 0; roundIndex < 6; roundIndex += 1) {
         const round = generateRound({
@@ -277,5 +276,127 @@ describe("isNearDuplicateRound / MAX_GENERATION_ATTEMPTS", () => {
     });
     expect(next.chainId).toBe(previous.chainId);
     expect(validateGeneratedRound(next)).toBe(true);
+  });
+});
+
+describe("deterministic selection and repetition over repeated sessions", () => {
+  it("same seed yields identical chain sequence across repeated sessions", () => {
+    const seed = "deterministic-session-seed";
+    function runSession(): string[] {
+      const used = new Set<string>();
+      let previous: WordChainRound | null = null;
+      const ids: string[] = [];
+      for (let roundIndex = 0; roundIndex < 8; roundIndex += 1) {
+        const round = generateRound({
+          rng: createRng(seed),
+          roundIndex,
+          pool: PACK.chains,
+          decoyPool: PACK.decoyPool,
+          params: PARAMS,
+          usedChainIds: used,
+          previousRound: previous,
+        });
+        expect(validateGeneratedRound(round)).toBe(true);
+        ids.push(round.chainId);
+        used.add(round.chainId);
+        previous = round;
+      }
+      return ids;
+    }
+    const first = runSession();
+    const second = runSession();
+    expect(first).toEqual(second);
+    // Determinism across seeds: different seed diverges.
+    const other = (() => {
+      const used = new Set<string>();
+      let prev: WordChainRound | null = null;
+      const ids: string[] = [];
+      for (let i = 0; i < 8; i += 1) {
+        const r = generateRound({
+          rng: createRng("other-seed"),
+          roundIndex: i,
+          pool: PACK.chains,
+          decoyPool: PACK.decoyPool,
+          params: PARAMS,
+          usedChainIds: used,
+          previousRound: prev,
+        });
+        ids.push(r.chainId);
+        used.add(r.chainId);
+        prev = r;
+      }
+      return ids;
+    })();
+    expect(other).not.toEqual(first);
+  });
+
+  it("never repeats a chain within a session while the pool allows it", () => {
+    const used = new Set<string>();
+    let previous: WordChainRound | null = null;
+    const seen = new Set<string>();
+    for (let roundIndex = 0; roundIndex < 8; roundIndex += 1) {
+      const round = generateRound({
+        rng: createRng("no-repeat"),
+        roundIndex,
+        pool: PACK.chains,
+        decoyPool: PACK.decoyPool,
+        params: PARAMS,
+        usedChainIds: used,
+        previousRound: previous,
+      });
+      expect(seen.has(round.chainId)).toBe(false);
+      seen.add(round.chainId);
+      used.add(round.chainId);
+      previous = round;
+    }
+    expect(seen.size).toBe(8);
+  });
+
+  it("covers each tier deterministically over many seeds", () => {
+    // Over many seeds, each tier's chains are reachable (at least one seed picks each tier).
+    // This guards against tier starvation after expansion.
+    const tierSeen: Record<string, Set<string>> = { t1: new Set<string>(), t2: new Set<string>(), t3: new Set<string>() };
+    for (let s = 0; s < 30; s += 1) {
+      const seed = `tier-seed-${s}`;
+      const used = new Set<string>();
+      let prev: WordChainRound | null = null;
+      for (let i = 0; i < 6; i += 1) {
+        const r = generateRound({
+          rng: createRng(seed),
+          roundIndex: i,
+          pool: PACK.chains,
+          decoyPool: PACK.decoyPool,
+          params: PARAMS,
+          usedChainIds: used,
+          previousRound: prev,
+        });
+        tierSeen[r.tier].add(r.chainId);
+        used.add(r.chainId);
+        prev = r;
+      }
+    }
+    expect(tierSeen.t1.size).toBeGreaterThan(5);
+    expect(tierSeen.t2.size).toBeGreaterThan(5);
+    expect(tierSeen.t3.size).toBeGreaterThan(5);
+  });
+
+  it("pack provides ≥30 chains per tier and ≥90 total (curated, not filler)", () => {
+    expect(PACK.chains.length).toBeGreaterThanOrEqual(90);
+    const counts: Record<string, number> = { t1: 0, t2: 0, t3: 0 };
+    for (const c of PACK.chains) counts[c.tier] += 1;
+    expect(counts.t1).toBeGreaterThanOrEqual(30);
+    expect(counts.t2).toBeGreaterThanOrEqual(30);
+    expect(counts.t3).toBeGreaterThanOrEqual(30);
+    // Curated quality: no chain is a low-quality filler of single-letter repeats; each word ≥3 and chains are disjoint.
+    const allWords = new Set<string>();
+    for (const c of PACK.chains) {
+      for (const w of c.words) {
+        expect(w.length).toBeGreaterThanOrEqual(3);
+        expect(/^[a-z]+$/.test(w)).toBe(true);
+        expect(allWords.has(w)).toBe(false);
+        allWords.add(w);
+      }
+    }
+    expect(allWords.size).toBeGreaterThanOrEqual(90 * 4);
   });
 });

@@ -3,6 +3,7 @@ import { describe, expect, it } from "@jest/globals";
 import {
   TIERS,
   blankCount,
+  isGrammarCompatible,
   loadContentPack,
   validateContentPack,
 } from "../content-validation";
@@ -31,17 +32,18 @@ describe("bundled content pack", () => {
   it("validates and is the expected curated pack", () => {
     const pack = loadContentPack();
     expect(pack.packId).toBe("language-context-fit-core-v1");
-    expect(pack.packVersion).toBe("1.1.0");
+    expect(pack.packVersion).toBe("2.0.0");
     expect(pack.itemCount).toBe(pack.items.length);
   });
 
-  it("meets the packet floor: >= 40 items with >= 12 per tier", () => {
+  it("meets the packet floor: >= 60 items per tier and >= 180 total, declared==actual", () => {
     const pack = loadContentPack();
-    expect(pack.items.length).toBeGreaterThanOrEqual(40);
+    expect(pack.itemCount).toBe(pack.items.length);
+    expect(pack.items.length).toBeGreaterThanOrEqual(180);
     for (const tier of TIERS) {
       expect(
         pack.items.filter((item) => item.tier === tier).length,
-      ).toBeGreaterThanOrEqual(12);
+      ).toBeGreaterThanOrEqual(60);
     }
   });
 
@@ -79,6 +81,129 @@ describe("bundled content pack", () => {
     );
     expect(answers.size).toBe(pack.items.length);
     expect(contexts.size).toBe(pack.items.length);
+  });
+
+  it("every item carries curated POS metadata and is grammar-compatible", () => {
+    const pack = loadContentPack();
+    for (const item of pack.items) {
+      expect(["noun", "verb", "adj", "adv"]).toContain(item.pos);
+    }
+    for (const item of pack.items) {
+      expect(isGrammarCompatible(item.answer, item.distractors, item.pos)).toBe(true);
+    }
+  });
+
+  it("tier structure is valid: every tier value is t1/t2/t3 and counts are balanced", () => {
+    const pack = loadContentPack();
+    for (const item of pack.items) {
+      expect(TIERS).toContain(item.tier);
+    }
+    const byTier = new Map(TIERS.map((t) => [t, pack.items.filter((i) => i.tier === t).length] as const));
+    for (const tier of TIERS) {
+      expect(byTier.get(tier)).toBeGreaterThanOrEqual(60);
+    }
+  });
+});
+
+describe("POS / morphology heuristic rejection", () => {
+  it("rejects grammar-leaking distractors (plural/singular mismatch for noun slot)", () => {
+    const p = clonePack();
+    p.packVersion = "2.0.0";
+    p.items = Array.from({ length: 180 }, (_, i) => ({
+      id: `id-${i}`,
+      tier: (["t1", "t2", "t3"] as const)[i % 3],
+      context: `Sentence ${i} with a ___ here.`,
+      answer: `answer${i}`,
+      distractors: [`d${i}a`, `d${i}b`, `d${i}c`],
+      pos: "noun" as const,
+    }));
+    p.items[0] = {
+      id: "leak-plural",
+      tier: "t1",
+      context: "Birds build their ___ high in the trees.",
+      answer: "nests",
+      distractors: ["shadow", "tunnel", "recipe"],
+      pos: "noun",
+    };
+    p.itemCount = p.items.length;
+    expect(() => validateContentPack(p)).toThrow(/grammar-leaking/);
+  });
+
+  it("rejects grammar-leaking distractors (gerund mismatch for verb slot)", () => {
+    const p = clonePack();
+    p.packVersion = "2.0.0";
+    p.items = Array.from({ length: 180 }, (_, i) => ({
+      id: `id-${i}`,
+      tier: (["t1", "t2", "t3"] as const)[i % 3],
+      context: `Sentence ${i} with a ___ here.`,
+      answer: `answer${i}`,
+      distractors: [`d${i}a`, `d${i}b`, `d${i}c`],
+      pos: "verb" as const,
+    }));
+    p.items[0] = {
+      id: "leak-gerund",
+      tier: "t2",
+      context: "She kept ___ the data until it was correct.",
+      answer: "checking",
+      distractors: ["check", "checked", "checks"],
+      pos: "verb",
+    };
+    p.itemCount = p.items.length;
+    expect(() => validateContentPack(p)).toThrow(/grammar-leaking/);
+  });
+
+  it("requires POS metadata for packVersion >=2.0.0", () => {
+    const p = clonePack();
+    p.packVersion = "2.0.0";
+    p.itemCount = 180;
+    p.items = Array.from({ length: 180 }, (_, i) => ({
+      id: `id-${i}`,
+      tier: (["t1", "t2", "t3"] as const)[i % 3],
+      context: `Sentence ${i} with a ___ here.`,
+      answer: `answer${i}`,
+      distractors: [`d${i}a`, `d${i}b`, `d${i}c`],
+    }));
+    expect(() => validateContentPack(p)).toThrow(/\.pos is required/);
+  });
+});
+
+describe("curated ambiguity review fixtures — semantic single-answer audit", () => {
+  const RISKY_REVIEWED: readonly { id: string; contextMustContain: string; answer: string; distractors: readonly string[] }[] = [
+    { id: "cf-t2-05", contextMustContain: "small businesses", answer: "affect", distractors: ["decorate", "harvest", "forgive"] },
+    { id: "cf-t3-02", contextMustContain: "evidence remained", answer: "anecdotal", distractors: ["empirical", "theoretical", "clinical"] },
+    { id: "cf-t3-05", contextMustContain: "merely", answer: "overlapping", distractors: ["diverging", "rivaling", "collapsing"] },
+    { id: "cf-t3-08", contextMustContain: "subtext was unmistakably", answer: "sardonic", distractors: ["serene", "symmetric", "sincere"] },
+    { id: "cf-t3-21", contextMustContain: "allowing multiple readings", answer: "ambiguous", distractors: ["coherent", "rigorous", "explicit"] },
+    { id: "cf-t3-28", contextMustContain: "classic", answer: "paradox", distractors: ["paradigm", "consensus", "doctrine"] },
+    { id: "cf-t3-37", contextMustContain: "opposing views", answer: "synthesis", distractors: ["hypothesis", "dilemma", "paradox"] },
+    { id: "cf-t3-41", contextMustContain: "cramped space", answer: "mitigate", distractors: ["exacerbate", "corroborate", "delineate"] },
+    { id: "cf-t1-05", contextMustContain: "high in the trees", answer: "nests", distractors: ["shadows", "tunnels", "recipes"] },
+    { id: "cf-t1-27", contextMustContain: "on the wall", answer: "mirror", distractors: ["harbor", "pebble", "canyon"] },
+  ];
+
+  it("all risky reviewed items are present, unchanged, and still have exactly one defensible answer", () => {
+    const pack = loadContentPack();
+    const byId = new Map(pack.items.map((i) => [i.id, i]));
+    for (const fixture of RISKY_REVIEWED) {
+      const item = byId.get(fixture.id);
+      expect(item).toBeDefined();
+      expect(item!.context).toContain(fixture.contextMustContain);
+      expect(item!.answer).toBe(fixture.answer);
+      expect(item!.distractors.slice().sort()).toEqual(fixture.distractors.slice().sort());
+      expect(item!.distractors).not.toContain(item!.answer);
+      expect(new Set(item!.distractors).size).toBe(item!.distractors.length);
+    }
+  });
+
+  it("documents that mechanical validation alone is insufficient for these items", () => {
+    const pack = loadContentPack();
+    const riskyIds = new Set(RISKY_REVIEWED.map((r) => r.id));
+    for (const item of pack.items) {
+      if (riskyIds.has(item.id)) {
+        expect(() => validateContentPack({ packId: pack.packId, packVersion: pack.packVersion, itemCount: pack.items.length, items: pack.items })).not.toThrow();
+      }
+    }
+    expect(riskyIds.size).toBeGreaterThanOrEqual(10);
   });
 });
 

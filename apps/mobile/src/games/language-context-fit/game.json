@@ -5,7 +5,7 @@
   "description": "Read a short sentence with a blank and pick the one word that fits the context best.",
   "sdkVersion": "0.1.0",
   "gameVersion": "1.0.0",
-  "generatorVersion": "1.0.0",
-  "contentVersion": "1.1.0",
+  "generatorVersion": "1.1.0",
+  "contentVersion": "2.0.0",
   "hasTutorial": true
 }

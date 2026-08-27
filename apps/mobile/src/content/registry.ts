@@ -20,6 +20,7 @@
  * seam's purpose is relative storage accounting, not byte-exact on-disk size.
  */
 import { loadContentPack } from '@/games/language-word-match/content-validation';
+import { loadContentPack as loadContextFitPack } from '@/games/language-context-fit/content-validation';
 import type { ContentPack } from '@/games/language-word-match/content-validation';
 
 import type { PackInfo, StorageSummary } from './types';
@@ -35,6 +36,7 @@ export interface BundledPackSource {
 /** Static enumeration of known bundled packs. Extend here for future packs. */
 const BUNDLED_PACK_SOURCES: readonly BundledPackSource[] = [
   { sourceGameId: 'language-word-match', load: loadContentPack },
+  { sourceGameId: 'language-context-fit', load: loadContextFitPack as unknown as () => ContentPack },
 ];
 
 /**
@@ -71,8 +73,8 @@ function utf8ByteLength(value: string): number {
  * for the documented heuristic). Exported so future on-disk pack readers can
  * reuse the same accounting for downloaded packs.
  */
-export function estimatePackSizeBytes(items: readonly ContentPack['items'][number][]): number {
-  return items.reduce((total, item) => total + utf8ByteLength(JSON.stringify(item)), 0);
+export function estimatePackSizeBytes(items: readonly unknown[]): number {
+  return (items as readonly object[]).reduce((total: number, item) => total + utf8ByteLength(JSON.stringify(item)), 0);
 }
 
 /**

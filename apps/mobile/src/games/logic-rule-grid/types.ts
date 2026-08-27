@@ -32,22 +32,28 @@ export type RuleGridPhase =
   | 'roundResult'
   | 'results';
 
-/** One generated round: a valid Latin square with exactly one blank cell. */
+/** One generated round: a Latin square puzzle with chained deduction. */
 export interface RuleGridRound {
   /** Side length (n). */
   readonly size: number;
-  /** The full grid; each inner row is a permutation of 0..size-1. */
+  /** The full solution grid; each inner row is a permutation of 0..size-1. */
   readonly square: readonly (readonly number[])[];
-  /** Flat index of the blank cell (0..size*size-1). */
+  /** Flat index of the primary blank cell the player must answer (0..size*size-1). */
   readonly blankIndex: number;
-  /** Row of the blank cell (floor(blankIndex / size)). */
+  /** Row of the primary blank cell (floor(blankIndex / size)). */
   readonly blankRow: number;
-  /** Column of the blank cell (blankIndex % size). */
+  /** Column of the primary blank cell (blankIndex % size). */
   readonly blankCol: number;
-  /** The unique symbol that belongs in the blank cell. */
+  /** The unique symbol that belongs in the primary blank cell. */
   readonly answer: number;
   /** Answer candidates shown to the player (includes `answer`). */
   readonly options: readonly number[];
+  /** All hidden cells (flat indices); includes `blankIndex`. At least one. */
+  readonly blanks: readonly number[];
+  /** Dependency depth: number of singleton propagation layers needed to solve all blanks (≥1). */
+  readonly depth: number;
+  /** Whether the puzzle was solved by singleton propagation alone (true when fullyPropagated). */
+  readonly fullyPropagated: boolean;
 }
 
 /** Accumulated session statistics (all player-facing raw numbers). */

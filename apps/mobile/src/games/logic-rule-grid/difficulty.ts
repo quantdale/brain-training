@@ -6,6 +6,10 @@
  * parameters) is exactly what gets persisted with each session. Fixed levels
  * carry the SDK default challenge ratings; `adaptive` starts at the neutral
  * 0.5 baseline and the final rating is derived from the player's accuracy.
+ *
+ * Chained-deduction scaling: difficulty also varies inference depth and
+ * interacting constraint count (blanks) in addition to size/rounds/time.
+ * See solver `minDepthForLevel` / `blanksForLevel`.
  */
 import { resolveDifficulty } from '@/sdk';
 import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
@@ -28,6 +32,41 @@ export const ADAPTIVE_PARAMS: Readonly<RuleGridDifficultyParams> = Object.freeze
   rounds: 7,
   roundTimeMs: 20000,
 });
+
+/** Number of hidden cells (blanks) per level — scales interacting constraints. */
+export function blanksForLevel(level: DifficultyLevel): number {
+  switch (level) {
+    case 'easy':
+      return 2;
+    case 'normal':
+      return 3;
+    case 'hard':
+      return 4;
+    case 'expert':
+      return 6;
+    case 'adaptive':
+      return 3;
+    default:
+      return 3;
+  }
+}
+
+/** Minimum deduction depth required per level (≥2 for Hard/Expert enforces chain). */
+export function minDepthForLevel(level: DifficultyLevel): number {
+  switch (level) {
+    case 'easy':
+      return 1;
+    case 'normal':
+      return 1;
+    case 'hard':
+      return 2;
+    case 'expert':
+      return 2;
+    default:
+      return 1;
+  }
+}
+
 
 /** Canonical parameters for a level (fresh object; never the frozen defaults). */
 export function ruleGridParamsForLevel(level: DifficultyLevel): RuleGridDifficultyParams {

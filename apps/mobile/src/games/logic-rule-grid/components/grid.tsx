@@ -18,6 +18,8 @@ export interface GridProps {
   readonly size: number;
   readonly square: readonly (readonly number[])[];
   readonly blankIndex: number;
+  /** All hidden cells; when provided, every cell in this set shows '?' . */
+  readonly blanks?: readonly number[];
   /** Map a symbol value (0-based) to the player-facing label. */
   readonly renderSymbol: (value: number) => string;
   /** Stable testID for cell `i` (flat index). */
@@ -25,13 +27,14 @@ export interface GridProps {
   readonly disabled?: boolean;
 }
 
-export function Grid({ size, square, blankIndex, renderSymbol, testIdCell }: GridProps) {
+export function Grid({ size, square, blankIndex, blanks, renderSymbol, testIdCell }: GridProps) {
   const theme = useTheme();
+  const blankSet = blanks !== undefined ? new Set(blanks) : new Set([blankIndex]);
   const cells: React.ReactNode[] = [];
   for (let r = 0; r < size; r += 1) {
     for (let c = 0; c < size; c += 1) {
       const i = r * size + c;
-      const isBlank = i === blankIndex;
+      const isBlank = blankSet.has(i);
       cells.push(
         <View
           key={i}
@@ -47,6 +50,7 @@ export function Grid({ size, square, blankIndex, renderSymbol, testIdCell }: Gri
 
   return <View style={styles.grid} testID={testId(GAME_ID, 'grid')}>{cells}</View>;
 }
+
 
 const styles = StyleSheet.create({
   grid: {

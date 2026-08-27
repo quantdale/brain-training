@@ -47,8 +47,10 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Every row and every column contains each symbol exactly once. One cell
-            is blank — use the rule to find the only symbol that can fit there.
+            Every row and every column contains each symbol exactly once. Several
+            cells are hidden — on harder grids you must chain deductions: a fact
+            you prove first unlocks the next. Find the only symbol that can fit
+            the asked cell.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}

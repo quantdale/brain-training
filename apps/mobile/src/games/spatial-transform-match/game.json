@@ -6,7 +6,7 @@
   "description": "A grid pattern is transformed — pick the correct rotated or mirrored version from the options.",
   "sdkVersion": "0.1.0",
   "gameVersion": "1.0.0",
-  "generatorVersion": "1.1.0",
+  "generatorVersion": "1.2.0",
   "contentVersion": null,
   "hasTutorial": true
 }

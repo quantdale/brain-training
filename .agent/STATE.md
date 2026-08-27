@@ -50,7 +50,21 @@ certify, SHA `ba6dd84`), but active work is now 015 per the 12-hour envelope.
 
 `.agent/CURRENT_CAMPAIGN.md` (campaign 015 **ACTIVE at this transition**, `change.json` ACTIVE, `GOVERNANCE` 015) + `.agent/KNOWN_ISSUES.md` + `.agent/CAMPAIGN015_AUDIT.md` (now active, not PROPOSED) + `openspec/changes/015-governance-depth-convergence/` (5 delta specs, `EXECUTION.md` Phase 1).
 
-## Important invariants
+### Authoritative machine-readable campaign fields (3.1)
+
+Each durable recovery document carries exactly one structured field that declares the active campaign — surrounding human prose is NOT authoritative:
+
+| Source | Field | Example |
+|---|---|---|
+| `.agent/GOVERNANCE.json` | `activeCampaign` (JSON) | `"015-governance-depth-convergence"` |
+| `.agent/STATE.md` | `**Active campaign:** <id>` | `**Active campaign:** 015-governance-depth-convergence` |
+| `.agent/CURRENT_CAMPAIGN.md` | `**Campaign id:** `<id>`` + `**Status:** ACTIVE` | `**Campaign id:** `015-governance-depth-convergence`` |
+| `.agent/EXECUTION_PROMPT.md` | `**Change:** `<id>`` + `**Status:** ACTIVE` | `**Change:** `015-governance-depth-convergence`` |
+| `openspec/changes/<id>/change.json` | `id` + `status` | `"id": "015-governance-depth-convergence", "status": "ACTIVE"` |
+| `.agent/task-ownership.json` | `change` | `"change": "015-governance-depth-convergence"` |
+
+`scripts/validate-repo-state.mjs` parses these structured fields (not substring presence). All six must agree on exactly one ACTIVE campaign; any contradiction is a validation failure. Historical prose mentioning old campaign IDs does not satisfy or override the structured field. See `openspec/changes/015-governance-depth-convergence/design.md` §1 and `scripts/validate-repo-state.mjs` header for the full invariant.
+
 
 - GitHub `main` is canonical; coherent green waves pushed.
 - Android-first autonomous QA; one AVD; one Metro; ONE driver per device

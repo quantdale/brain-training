@@ -1,163 +1,1058 @@
 {
   "packId": "language-word-chain-core-v1",
-  "packVersion": "1.2.0",
-  "chainCount": 30,
+  "packVersion": "1.3.0",
+  "chainCount": 90,
   "decoyPool": [
-    "apple", "brick", "cloud", "dream", "flame", "ghost", "honey", "ivory",
-    "jungle", "koala", "light", "mango", "night", "olive", "pearl", "quilt",
-    "robin", "stone", "umbrella", "velvet", "whale", "yogurt", "pencil",
-    "mirror", "basket", "garden", "window", "pillow", "silver", "autumn"
+    "apple",
+    "brick",
+    "cloud",
+    "dream",
+    "flame",
+    "ghost",
+    "honey",
+    "ivory",
+    "jungle",
+    "koala",
+    "light",
+    "mango",
+    "night",
+    "olive",
+    "pearl",
+    "quilt",
+    "robin",
+    "stone",
+    "umbrella",
+    "velvet",
+    "whale",
+    "yogurt",
+    "pencil",
+    "mirror",
+    "basket",
+    "garden",
+    "window",
+    "pillow",
+    "silver",
+    "autumn",
+    "amber",
+    "boulder",
+    "cavern",
+    "dapper",
+    "fennel",
+    "garnet",
+    "hearth",
+    "icicle",
+    "kettle",
+    "lagoon",
+    "magnet",
+    "zinc"
   ],
   "chains": [
     {
       "id": "wc-t1-01",
       "tier": "t1",
-      "words": ["cat", "tree", "eagle", "earth", "house"]
+      "words": [
+        "cat",
+        "tree",
+        "eagle",
+        "earth",
+        "house"
+      ]
     },
     {
       "id": "wc-t1-02",
       "tier": "t1",
-      "words": ["dog", "goat", "tiger", "river", "road"]
+      "words": [
+        "dog",
+        "goat",
+        "tiger",
+        "river",
+        "road"
+      ]
     },
     {
       "id": "wc-t1-03",
       "tier": "t1",
-      "words": ["sun", "nest", "train", "north", "horse"]
+      "words": [
+        "sun",
+        "nest",
+        "train",
+        "north",
+        "horse"
+      ]
     },
     {
       "id": "wc-t1-04",
       "tier": "t1",
-      "words": ["fish", "hen", "nine", "east", "table"]
+      "words": [
+        "fish",
+        "hen",
+        "nine",
+        "east",
+        "table"
+      ]
     },
     {
       "id": "wc-t1-05",
       "tier": "t1",
-      "words": ["moon", "nose", "egg", "gold", "drum"]
+      "words": [
+        "moon",
+        "nose",
+        "egg",
+        "gold",
+        "drum"
+      ]
     },
     {
       "id": "wc-t1-06",
       "tier": "t1",
-      "words": ["lion", "nut", "town", "nail", "leaf"]
+      "words": [
+        "lion",
+        "nut",
+        "town",
+        "nail",
+        "leaf"
+      ]
     },
     {
       "id": "wc-t2-01",
       "tier": "t2",
-      "words": ["bread", "dance", "ember", "raven", "needle", "engine"]
+      "words": [
+        "bread",
+        "dance",
+        "ember",
+        "raven",
+        "needle",
+        "engine"
+      ]
     },
     {
       "id": "wc-t2-02",
       "tier": "t2",
-      "words": ["piano", "ocean", "nickel", "lemon", "napkin", "nurse"]
+      "words": [
+        "piano",
+        "ocean",
+        "nickel",
+        "lemon",
+        "napkin",
+        "nurse"
+      ]
     },
     {
       "id": "wc-t2-03",
       "tier": "t2",
-      "words": ["smile", "elbow", "wagon", "noble", "eight", "tulip"]
+      "words": [
+        "smile",
+        "elbow",
+        "wagon",
+        "noble",
+        "eight",
+        "tulip"
+      ]
     },
     {
       "id": "wc-t2-04",
       "tier": "t2",
-      "words": ["grape", "easel", "lotus", "storm", "maple"]
+      "words": [
+        "grape",
+        "easel",
+        "lotus",
+        "storm",
+        "maple"
+      ]
     },
     {
       "id": "wc-t2-05",
       "tier": "t2",
-      "words": ["candle", "eraser", "ribbon", "nectar", "radish", "hammer"]
+      "words": [
+        "candle",
+        "eraser",
+        "ribbon",
+        "nectar",
+        "radish",
+        "hammer"
+      ]
     },
     {
       "id": "wc-t2-06",
       "tier": "t2",
-      "words": ["planet", "turnip", "plaza", "apricot", "trumpet", "temple"]
+      "words": [
+        "planet",
+        "turnip",
+        "plaza",
+        "apricot",
+        "trumpet",
+        "temple"
+      ]
     },
     {
       "id": "wc-t3-01",
       "tier": "t3",
-      "words": ["quartz", "zebra", "anchor", "rocket", "throne", "exile"]
+      "words": [
+        "quartz",
+        "zebra",
+        "anchor",
+        "rocket",
+        "throne",
+        "exile"
+      ]
     },
     {
       "id": "wc-t3-02",
       "tier": "t3",
-      "words": ["phantom", "marble", "echo", "orchid", "dahlia", "almond"]
+      "words": [
+        "phantom",
+        "marble",
+        "echo",
+        "orchid",
+        "dahlia",
+        "almond"
+      ]
     },
     {
       "id": "wc-t3-03",
       "tier": "t3",
-      "words": ["jigsaw", "walnut", "tundra", "asphalt", "thistle", "enzyme"]
+      "words": [
+        "jigsaw",
+        "walnut",
+        "tundra",
+        "asphalt",
+        "thistle",
+        "enzyme"
+      ]
     },
     {
       "id": "wc-t3-04",
       "tier": "t3",
-      "words": ["waltz", "zephyr", "rhubarb", "basil", "lichen", "nutmeg"]
+      "words": [
+        "waltz",
+        "zephyr",
+        "rhubarb",
+        "basil",
+        "lichen",
+        "nutmeg"
+      ]
     },
     {
       "id": "wc-t3-05",
       "tier": "t3",
-      "words": ["glacier", "rustic", "cactus", "saddle", "escrow", "willow"]
+      "words": [
+        "glacier",
+        "rustic",
+        "cactus",
+        "saddle",
+        "escrow",
+        "willow"
+      ]
     },
     {
       "id": "wc-t3-06",
       "tier": "t3",
-      "words": ["beacon", "neuron", "nimble", "enigma", "avatar", "ruler"]
+      "words": [
+        "beacon",
+        "neuron",
+        "nimble",
+        "enigma",
+        "avatar",
+        "ruler"
+      ]
     },
     {
       "id": "wc-t3-07",
       "tier": "t3",
-      "words": ["fossil", "lantern", "nectarine", "espresso", "oregano", "onyx"]
+      "words": [
+        "fossil",
+        "lantern",
+        "nectarine",
+        "espresso",
+        "oregano",
+        "onyx"
+      ]
     },
     {
       "id": "wc-t3-08",
       "tier": "t3",
-      "words": ["harbor", "rafter", "ripple", "elm", "mosaic", "cobalt"]
+      "words": [
+        "harbor",
+        "rafter",
+        "ripple",
+        "elm",
+        "mosaic",
+        "cobalt"
+      ]
     },
     {
       "id": "wc-t3-09",
       "tier": "t3",
-      "words": ["penguin", "nugget", "teapot", "tunnel", "lobster", "raccoon"]
+      "words": [
+        "penguin",
+        "nugget",
+        "teapot",
+        "tunnel",
+        "lobster",
+        "raccoon"
+      ]
     },
     {
       "id": "wc-t3-10",
       "tier": "t3",
-      "words": ["obsidian", "nightjar", "ravioli", "iris", "sable"]
+      "words": [
+        "obsidian",
+        "nightjar",
+        "ravioli",
+        "iris",
+        "sable"
+      ]
     },
     {
       "id": "wc-t3-11",
       "tier": "t3",
-      "words": ["galaxy", "yearling", "gazelle", "earwig", "gargoyle"]
+      "words": [
+        "galaxy",
+        "yearling",
+        "gazelle",
+        "earwig",
+        "gargoyle"
+      ]
     },
     {
       "id": "wc-t3-12",
       "tier": "t3",
-      "words": ["horizon", "nimbus", "sequoia", "amethyst", "tangerine"]
+      "words": [
+        "horizon",
+        "nimbus",
+        "sequoia",
+        "amethyst",
+        "tangerine"
+      ]
     },
     {
       "id": "wc-t3-13",
       "tier": "t3",
-      "words": ["opal", "lyre", "echidna", "asparagus", "starling"]
+      "words": [
+        "opal",
+        "lyre",
+        "echidna",
+        "asparagus",
+        "starling"
+      ]
     },
     {
       "id": "wc-t3-14",
       "tier": "t3",
-      "words": ["gondola", "avocado", "ostrich", "hazel", "lemur"]
+      "words": [
+        "gondola",
+        "avocado",
+        "ostrich",
+        "hazel",
+        "lemur"
+      ]
     },
     {
       "id": "wc-t3-15",
       "tier": "t3",
-      "words": ["kiwi", "indigo", "octagon", "nutria", "armadillo"]
+      "words": [
+        "kiwi",
+        "indigo",
+        "octagon",
+        "nutria",
+        "armadillo"
+      ]
     },
     {
       "id": "wc-t3-16",
       "tier": "t3",
-      "words": ["jasmine", "ebony", "yeast", "tinsel", "lynx"]
+      "words": [
+        "jasmine",
+        "ebony",
+        "yeast",
+        "tinsel",
+        "lynx"
+      ]
     },
     {
       "id": "wc-t3-17",
       "tier": "t3",
-      "words": ["meadow", "weasel", "llama", "anchovy", "yucca"]
+      "words": [
+        "meadow",
+        "weasel",
+        "llama",
+        "anchovy",
+        "yucca"
+      ]
     },
     {
       "id": "wc-t3-18",
       "tier": "t3",
-      "words": ["pelican", "narwhal", "leopard", "dolphin", "newt"]
+      "words": [
+        "pelican",
+        "narwhal",
+        "leopard",
+        "dolphin",
+        "newt"
+      ]
+    },
+    {
+      "id": "wc-t1-07",
+      "tier": "t1",
+      "words": [
+        "jute",
+        "emery",
+        "yew",
+        "welkin"
+      ]
+    },
+    {
+      "id": "wc-t1-08",
+      "tier": "t1",
+      "words": [
+        "serenade",
+        "escarpment",
+        "topaz",
+        "zinnia"
+      ]
+    },
+    {
+      "id": "wc-t1-09",
+      "tier": "t1",
+      "words": [
+        "tower",
+        "ridge",
+        "endeavor",
+        "realm",
+        "mild"
+      ]
+    },
+    {
+      "id": "wc-t1-10",
+      "tier": "t1",
+      "words": [
+        "legacy",
+        "yodel",
+        "labyrinth",
+        "hammock",
+        "knoll"
+      ]
+    },
+    {
+      "id": "wc-t1-11",
+      "tier": "t1",
+      "words": [
+        "sago",
+        "orbit",
+        "tarragon",
+        "nautilus"
+      ]
+    },
+    {
+      "id": "wc-t1-12",
+      "tier": "t1",
+      "words": [
+        "harvest",
+        "terrace",
+        "evening",
+        "grotto"
+      ]
+    },
+    {
+      "id": "wc-t1-13",
+      "tier": "t1",
+      "words": [
+        "cairn",
+        "nook",
+        "keystone",
+        "ester"
+      ]
+    },
+    {
+      "id": "wc-t1-14",
+      "tier": "t1",
+      "words": [
+        "blanket",
+        "thicket",
+        "temper",
+        "rabbit",
+        "tapestry"
+      ]
+    },
+    {
+      "id": "wc-t1-15",
+      "tier": "t1",
+      "words": [
+        "moss",
+        "shawl",
+        "lumen",
+        "nurture",
+        "eureka"
+      ]
+    },
+    {
+      "id": "wc-t1-16",
+      "tier": "t1",
+      "words": [
+        "endless",
+        "sheaf",
+        "flora",
+        "ardor",
+        "rainbow"
+      ]
+    },
+    {
+      "id": "wc-t1-17",
+      "tier": "t1",
+      "words": [
+        "coda",
+        "aster",
+        "rubble",
+        "errand"
+      ]
+    },
+    {
+      "id": "wc-t1-18",
+      "tier": "t1",
+      "words": [
+        "sardine",
+        "elder",
+        "rain",
+        "nacre",
+        "eternal"
+      ]
+    },
+    {
+      "id": "wc-t1-19",
+      "tier": "t1",
+      "words": [
+        "mirage",
+        "exotic",
+        "cherry",
+        "yarrow"
+      ]
+    },
+    {
+      "id": "wc-t1-20",
+      "tier": "t1",
+      "words": [
+        "orchard",
+        "deposit",
+        "tabletop",
+        "prism"
+      ]
+    },
+    {
+      "id": "wc-t1-21",
+      "tier": "t1",
+      "words": [
+        "heat",
+        "tessera",
+        "ascent",
+        "tallow",
+        "wicker"
+      ]
+    },
+    {
+      "id": "wc-t1-22",
+      "tier": "t1",
+      "words": [
+        "dune",
+        "ether",
+        "rivulet",
+        "thread",
+        "darrow"
+      ]
+    },
+    {
+      "id": "wc-t1-23",
+      "tier": "t1",
+      "words": [
+        "pebble",
+        "endive",
+        "eponym",
+        "mesa"
+      ]
+    },
+    {
+      "id": "wc-t1-24",
+      "tier": "t1",
+      "words": [
+        "calico",
+        "oasis",
+        "squire",
+        "equinox",
+        "xylograph"
+      ]
+    },
+    {
+      "id": "wc-t1-25",
+      "tier": "t1",
+      "words": [
+        "flicker",
+        "ramble",
+        "escape",
+        "erosion"
+      ]
+    },
+    {
+      "id": "wc-t1-26",
+      "tier": "t1",
+      "words": [
+        "harp",
+        "parley",
+        "yellow",
+        "wash"
+      ]
+    },
+    {
+      "id": "wc-t1-27",
+      "tier": "t1",
+      "words": [
+        "cape",
+        "encore",
+        "eskimo",
+        "origin",
+        "nylon"
+      ]
+    },
+    {
+      "id": "wc-t1-28",
+      "tier": "t1",
+      "words": [
+        "island",
+        "dorsal",
+        "ledger",
+        "rapeseed",
+        "deckle"
+      ]
+    },
+    {
+      "id": "wc-t1-29",
+      "tier": "t1",
+      "words": [
+        "pine",
+        "estuary",
+        "yacht",
+        "terracotta",
+        "abbey"
+      ]
+    },
+    {
+      "id": "wc-t1-30",
+      "tier": "t1",
+      "words": [
+        "selene",
+        "eucalyptus",
+        "sound",
+        "defile"
+      ]
+    },
+    {
+      "id": "wc-t2-07",
+      "tier": "t2",
+      "words": [
+        "claret",
+        "thimble",
+        "eclipse",
+        "emerald",
+        "dynamo"
+      ]
+    },
+    {
+      "id": "wc-t2-08",
+      "tier": "t2",
+      "words": [
+        "voyage",
+        "elixir",
+        "radar",
+        "resin",
+        "nova",
+        "aurora"
+      ]
+    },
+    {
+      "id": "wc-t2-09",
+      "tier": "t2",
+      "words": [
+        "flux",
+        "xanadu",
+        "umlaut",
+        "torrent",
+        "tribute",
+        "epoch"
+      ]
+    },
+    {
+      "id": "wc-t2-10",
+      "tier": "t2",
+      "words": [
+        "variable",
+        "elmwood",
+        "diver",
+        "rialto",
+        "observatory"
+      ]
+    },
+    {
+      "id": "wc-t2-11",
+      "tier": "t2",
+      "words": [
+        "globe",
+        "emblem",
+        "molecule",
+        "everest",
+        "turquoise",
+        "enamel"
+      ]
+    },
+    {
+      "id": "wc-t2-12",
+      "tier": "t2",
+      "words": [
+        "glimpse",
+        "epic",
+        "cliff",
+        "ferret",
+        "tide"
+      ]
+    },
+    {
+      "id": "wc-t2-13",
+      "tier": "t2",
+      "words": [
+        "silhouette",
+        "ethos",
+        "south",
+        "hansom",
+        "marsh"
+      ]
+    },
+    {
+      "id": "wc-t2-14",
+      "tier": "t2",
+      "words": [
+        "slate",
+        "electric",
+        "cataract",
+        "torch",
+        "hidden",
+        "northern"
+      ]
+    },
+    {
+      "id": "wc-t2-15",
+      "tier": "t2",
+      "words": [
+        "savanna",
+        "albatross",
+        "sonnet",
+        "trail",
+        "legend"
+      ]
+    },
+    {
+      "id": "wc-t2-16",
+      "tier": "t2",
+      "words": [
+        "buckthorn",
+        "nadir",
+        "ranch",
+        "heather",
+        "ranger",
+        "radiance"
+      ]
+    },
+    {
+      "id": "wc-t2-17",
+      "tier": "t2",
+      "words": [
+        "salt",
+        "talon",
+        "nebula",
+        "arbor",
+        "rumor",
+        "relic"
+      ]
+    },
+    {
+      "id": "wc-t2-18",
+      "tier": "t2",
+      "words": [
+        "lever",
+        "reef",
+        "filament",
+        "thunder",
+        "rosin"
+      ]
+    },
+    {
+      "id": "wc-t2-19",
+      "tier": "t2",
+      "words": [
+        "brass",
+        "summit",
+        "twilight",
+        "tornado",
+        "oak"
+      ]
+    },
+    {
+      "id": "wc-t2-20",
+      "tier": "t2",
+      "words": [
+        "outpost",
+        "threshold",
+        "dauntless",
+        "semi",
+        "icon"
+      ]
+    },
+    {
+      "id": "wc-t2-21",
+      "tier": "t2",
+      "words": [
+        "mirth",
+        "harrow",
+        "woodland",
+        "delphi",
+        "ironwood",
+        "daisy"
+      ]
+    },
+    {
+      "id": "wc-t2-22",
+      "tier": "t2",
+      "words": [
+        "quartet",
+        "tempo",
+        "odyssey",
+        "yelp",
+        "patent",
+        "tint"
+      ]
+    },
+    {
+      "id": "wc-t2-23",
+      "tier": "t2",
+      "words": [
+        "kiosk",
+        "khaki",
+        "inlet",
+        "tacit",
+        "timber",
+        "renaissance"
+      ]
+    },
+    {
+      "id": "wc-t2-24",
+      "tier": "t2",
+      "words": [
+        "sash",
+        "hawk",
+        "kernel",
+        "lark",
+        "kith"
+      ]
+    },
+    {
+      "id": "wc-t2-25",
+      "tier": "t2",
+      "words": [
+        "spark",
+        "kestrel",
+        "lily",
+        "yield",
+        "deer"
+      ]
+    },
+    {
+      "id": "wc-t2-26",
+      "tier": "t2",
+      "words": [
+        "lacquer",
+        "regal",
+        "lens",
+        "sparrow",
+        "wonder",
+        "rose"
+      ]
+    },
+    {
+      "id": "wc-t2-27",
+      "tier": "t2",
+      "words": [
+        "larch",
+        "harmony",
+        "yonder",
+        "rift",
+        "teak",
+        "kite"
+      ]
+    },
+    {
+      "id": "wc-t2-28",
+      "tier": "t2",
+      "words": [
+        "plateau",
+        "upland",
+        "dew",
+        "wheat",
+        "trillium",
+        "mahogany"
+      ]
+    },
+    {
+      "id": "wc-t2-29",
+      "tier": "t2",
+      "words": [
+        "oval",
+        "lava",
+        "ash",
+        "helix",
+        "xylem"
+      ]
+    },
+    {
+      "id": "wc-t2-30",
+      "tier": "t2",
+      "words": [
+        "bistro",
+        "omega",
+        "arrow",
+        "wavelength",
+        "hemp",
+        "petal"
+      ]
+    },
+    {
+      "id": "wc-t3-19",
+      "tier": "t3",
+      "words": [
+        "laurel",
+        "lapel",
+        "lilac",
+        "coast",
+        "twine"
+      ]
+    },
+    {
+      "id": "wc-t3-20",
+      "tier": "t3",
+      "words": [
+        "wild",
+        "dogwood",
+        "denim",
+        "marshal",
+        "linen"
+      ]
+    },
+    {
+      "id": "wc-t3-21",
+      "tier": "t3",
+      "words": [
+        "brook",
+        "kayak",
+        "kinetic",
+        "creek",
+        "kit",
+        "tavern"
+      ]
+    },
+    {
+      "id": "wc-t3-22",
+      "tier": "t3",
+      "words": [
+        "iceberg",
+        "gothic",
+        "charm",
+        "marigold",
+        "diadem",
+        "mire"
+      ]
+    },
+    {
+      "id": "wc-t3-23",
+      "tier": "t3",
+      "words": [
+        "gulf",
+        "fig",
+        "gloom",
+        "mentor",
+        "ravine"
+      ]
+    },
+    {
+      "id": "wc-t3-24",
+      "tier": "t3",
+      "words": [
+        "jovial",
+        "lend",
+        "dusk",
+        "karma",
+        "alloy"
+      ]
+    },
+    {
+      "id": "wc-t3-25",
+      "tier": "t3",
+      "words": [
+        "zenith",
+        "haystack",
+        "kindred",
+        "dory",
+        "yearn"
+      ]
+    },
+    {
+      "id": "wc-t3-26",
+      "tier": "t3",
+      "words": [
+        "pagoda",
+        "amigo",
+        "oxbow",
+        "well",
+        "lattice"
+      ]
+    },
+    {
+      "id": "wc-t3-27",
+      "tier": "t3",
+      "words": [
+        "crocus",
+        "seaglass",
+        "silk",
+        "kelp",
+        "pastel"
+      ]
+    },
+    {
+      "id": "wc-t3-28",
+      "tier": "t3",
+      "words": [
+        "garnish",
+        "harness",
+        "sail",
+        "leather",
+        "rapture"
+      ]
+    },
+    {
+      "id": "wc-t3-29",
+      "tier": "t3",
+      "words": [
+        "pampas",
+        "sloop",
+        "parcel",
+        "lavender",
+        "rattan"
+      ]
+    },
+    {
+      "id": "wc-t3-30",
+      "tier": "t3",
+      "words": [
+        "farina",
+        "atlas",
+        "sumac",
+        "cardamom",
+        "medal"
+      ]
     }
   ]
 }

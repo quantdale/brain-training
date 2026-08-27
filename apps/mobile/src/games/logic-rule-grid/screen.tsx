@@ -321,13 +321,16 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
       {state.phase === 'showGrid' && state.currentRound !== null ? (
         <View style={styles.section} testID={testId(GAME_ID, 'show-grid')}>
           <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
-            One symbol is missing. Which fits?
+            {state.currentRound.blanks.length > 1
+              ? 'Several cells are hidden. Deduce the marked one (?) by chaining row and column constraints.'
+              : 'One symbol is missing. Which fits?'}
           </ThemedText>
 
           <Grid
             size={state.currentRound.size}
             square={state.currentRound.square}
             blankIndex={state.currentRound.blankIndex}
+            blanks={state.currentRound.blanks}
             renderSymbol={renderSymbol}
             testIdCell={(i) => testId(GAME_ID, 'cell', String(i))}
           />

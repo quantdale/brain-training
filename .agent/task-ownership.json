@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "change": "015-governance-depth-convergence",
-  "description": "Machine-readable ownership for 015-governance-depth-convergence. Each packet declares coder-write surfaces (globs a swarm coder may edit), shared surfaces (read/merge by multiple coders, never exclusively owned), and orchestrator-only surfaces (must not be edited by a coder bot). Validation rejects overlapping coder surfaces, coder edits to orchestrator-only surfaces, direct edits to generated files, and missing per-packet validation.",
+  "description": "Machine-readable ownership for 015-governance-depth-convergence. Each packet declares coder-write surfaces (globs a swarm coder may edit), shared surfaces (read/merge by multiple coders, never exclusively owned), and orchestrator-only surfaces (must not be edited by a coder bot). Validation rejects overlapping coder surfaces, coder edits to orchestrator-only surfaces, direct edits to generated files, and missing per-packet validation. Decision 3.6: packets do NOT carry expected affected-area checks — affected-area planning remains advisory/risk-based via scripts/validate-affected.mjs; packets carry cheap completion validation instead, avoiding automatic full hardening for localized work (see repository-state-integrity spec).",
   "orchestratorOnlySurfaces": [
     "openspec/changes/015-governance-depth-convergence/**",
     ".agent/GOVERNANCE.json",

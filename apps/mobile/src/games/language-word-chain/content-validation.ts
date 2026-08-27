@@ -14,6 +14,17 @@
  * word-chain rule). The generator blanks some positions and offers options;
  * because distractors are drawn only from words that do NOT start with the
  * required letter, exactly one option is ever a valid link (see generator.ts).
+ *
+ * Near-duplicate / reordered-chain rule (mechanical):
+ * two chains are "near-duplicates" if they share ≥2 normalized words in
+ * common OR they contain the same multiset of words irrespective of order
+ * (i.e., one is a reordering/permutation of the other). Such packs are
+ * rejected because they reduce effective diversity and enable memorization
+ * shortcuts. Exact duplicate sequences are also rejected. Tier constraints
+ * require ≥30 chains per tier (t1/t2/t3) and ≥90 total, with tier-appropriate
+ * length bands (t1: 4-5, t2/t3: 5-6). Decoy diversity requires ≥30 decoys,
+ * all disjoint from chain words, with ≥15 distinct initials and no single
+ * initial dominating the pool.
  */
 import packJson from "./content/pack.json";
 
@@ -107,11 +118,13 @@ export function validateWordChainPack(json: unknown): WordChainPack {
   }
 
   // ---- decoyPool: single-token a–z words, disjoint from all chain words.
+  // Decoy diversity contract: ≥30 decoys, ≥15 distinct initials, balanced
+  // distribution so every required first-letter can find valid distractors.
   if (!Array.isArray(json.decoyPool)) {
     fail("decoyPool must be an array of words");
   }
-  if (json.decoyPool.length < 12) {
-    fail("decoyPool must contain at least 12 words");
+  if (json.decoyPool.length < 30) {
+    fail(`decoyPool must contain at least 30 words, got ${json.decoyPool.length}`);
   }
   const decoys = new Set<string>();
   for (const raw of json.decoyPool) {
@@ -125,6 +138,29 @@ export function validateWordChainPack(json: unknown): WordChainPack {
       fail(`decoyPool contains a duplicate word "${w}"`);
     }
     decoys.add(w);
+  }
+  // Decoy initial-letter diversity: at least 15 distinct initials and no
+  // single initial may cover more than 25% of the pool (avoids one-letter
+  // dominance that would starve option generation for that letter).
+  {
+    const initials = new Map<string, number>();
+    for (const w of decoys) {
+      const ch = w[0];
+      initials.set(ch, (initials.get(ch) ?? 0) + 1);
+    }
+    if (initials.size < 15) {
+      fail(
+        `decoyPool must cover at least 15 distinct initials, got ${initials.size}`,
+      );
+    }
+    const maxPerInitial = Math.ceil(decoys.size * 0.25);
+    for (const [ch, count] of initials) {
+      if (count > maxPerInitial) {
+        fail(
+          `decoyPool initial "${ch}" appears ${count} times, exceeds ${maxPerInitial} (25% of pool)`,
+        );
+      }
+    }
   }
 
   // ---- chains.
@@ -216,6 +252,65 @@ export function validateWordChainPack(json: unknown): WordChainPack {
     chains.push(
       Object.freeze({ id, tier: raw.tier, words: Object.freeze(words) }),
     );
+  }
+
+  // ---- tier-count and tier-length constraints (≥30 per tier, ≥90 total).
+  // Enforced for the active core pack (packId === "language-word-chain-core-v1");
+  // generic test packs with other ids may be smaller but must still satisfy
+  // decoy diversity and adjacency invariants.
+  if (packId === "language-word-chain-core-v1") {
+    if (chains.length < 90) {
+      fail(`pack must contain at least 90 chains, got ${chains.length}`);
+    }
+    const tierCounts: Record<Tier, number> = { t1: 0, t2: 0, t3: 0 };
+    for (const chain of chains) {
+      tierCounts[chain.tier] += 1;
+    }
+    for (const tier of TIERS) {
+      if (tierCounts[tier] < 30) {
+        fail(`tier ${tier} must have at least 30 chains, got ${tierCounts[tier]}`);
+      }
+    }
+    // Tier-appropriate length bands: t1 4-5, t2/t3 5-6 (t1 easier, shorter).
+    for (const chain of chains) {
+      const len = chain.words.length;
+      if (chain.tier === "t1" && (len < 4 || len > 5)) {
+        fail(`chain ${chain.id} tier t1 must have 4-5 words, got ${len}`);
+      }
+      if ((chain.tier === "t2" || chain.tier === "t3") && (len < 5 || len > 6)) {
+        fail(`chain ${chain.id} tier ${chain.tier} must have 5-6 words, got ${len}`);
+      }
+    }
+  }
+
+  // ---- near-duplicate / reordered-chain detection.
+  // Two chains are near-duplicates if they share ≥2 words OR have the same
+  // word multiset irrespective of order (reordered duplicate). Documented
+  // threshold: ≥2 shared words.
+  for (let i = 0; i < chains.length; i += 1) {
+    for (let j = i + 1; j < chains.length; j += 1) {
+      const a = chains[i];
+      const b = chains[j];
+      const setA = new Set(a.words);
+      const setB = new Set(b.words);
+      let shared = 0;
+      for (const w of setA) {
+        if (setB.has(w)) shared += 1;
+      }
+      if (shared >= 2) {
+        fail(
+          `chains ${a.id} and ${b.id} are near-duplicates: share ${shared} words (threshold ≥2)`,
+        );
+      }
+      // Reordered duplicate: same multiset, different order.
+      if (a.words.length === b.words.length) {
+        const sortedA = [...a.words].sort().join("|");
+        const sortedB = [...b.words].sort().join("|");
+        if (sortedA === sortedB && JSON.stringify(a.words) !== JSON.stringify(b.words)) {
+          fail(`chains ${a.id} and ${b.id} are reordered duplicates (same words, different order)`);
+        }
+      }
+    }
   }
 
   return Object.freeze({
