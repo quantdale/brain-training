@@ -2,8 +2,10 @@
 
 This is the short autonomous execution entrypoint.
 
-**Current lifecycle state:** PROPOSED.  
-**Do not activate until Campaign 014 is durably COMPLETED.**
+**Current lifecycle state:** ACTIVE.
+Campaign 014 is durably COMPLETED at `f66f65c`; Campaign 015 activation was
+completed atomically at `6e72338`. Do not reactivate or activate proposed
+Campaign 016 from this entrypoint.
 
 ## 12-hour execution envelope
 
@@ -29,15 +31,21 @@ Before any termination, write/push a durable checkpoint with start/end SHA, comm
 
 ## Phase -1 — current-head red-main recovery
 
-At the audited baseline `366a098`, App CI run `33051125658` failed Jest (2 suites / 2 tests) while Repository Integrity passed. The failures are the 10-second workout timestamp-grace regression in `findActiveInstanceForGame` and `shouldAdvanceWorkout`.
+At the historical audited baseline `366a098`, App CI run `33051125658` failed
+Jest (2 suites / 2 tests) while Repository Integrity passed. The failures were
+the 10-second workout timestamp-grace regression in `findActiveInstanceForGame`
+and `shouldAdvanceWorkout`. After the repository moved to `299a831`, the
+pre-edit targeted run was 33 suites / 397 tests green; this continuation
+re-audits the moved tree and replaces the remaining timestamp/recency routing
+with durable causal provenance.
 
-Before any other phase:
+Before final convergence:
 
-- reproduce current failures on the pulled SHA;
+- record the moved-head result and preserve the historical failing evidence;
 - preserve stale/equal-session rejection;
 - establish causal workout/session ownership instead of a positive fixed-duration grace heuristic;
 - run the adversarial attribution matrix from the `workout-integrity` spec;
-- restore full local green and push;
+- restore a clean full local result where the environment permits and push;
 - require App CI + Repository Integrity green on the exact repair SHA;
 - synchronize durable state so committed/pushed work is not described as unpushed.
 

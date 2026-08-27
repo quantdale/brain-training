@@ -72,6 +72,7 @@ import type { WorkoutCompletionSummary } from "@/workout/summary";
 import { localDateString } from "@/workout/today";
 import { useWorkout } from "@/workout/use-workout";
 import { useWorkoutTemplates } from "@/workout/use-workout-templates";
+import { gameHref } from "@/workout/routing";
 import { MilestoneStrip } from "@/components/mastery/mastery-card";
 import { useMasterySummaries } from "@/mastery/use-mastery";
 import { registry } from "@/registry/registry.generated";
@@ -420,11 +421,17 @@ export default function HomeScreen() {
       // target has nothing left to launch, so stay on Home (the completion
       // card below picks it up).
       const nextGameId =
-        instance && instance.status === "active"
+        instance?.status === "active"
           ? (instance.gameIds[instance.currentIndex] ?? null)
           : null;
-      if (nextGameId) {
-        router.push(`/game/${nextGameId}`);
+      if (instance && nextGameId) {
+        router.push(
+          gameHref(nextGameId, {
+            instanceKey: instance.date,
+            legIndex: instance.currentIndex,
+            gameId: nextGameId,
+          }),
+        );
       }
     } catch (error) {
       console.error("[home] template workout start failed", error);
@@ -544,7 +551,20 @@ export default function HomeScreen() {
                 const isCurrent =
                   workoutStatus === "active" && index === workoutIndex;
                 return (
-                  <Link key={game.id} href={`/game/${game.id}`} asChild>
+                  <Link
+                    key={`${game.id}-${index}`}
+                    href={gameHref(
+                      game.id,
+                      workoutFlow.instance
+                        ? {
+                            instanceKey: workoutFlow.instance.date,
+                            legIndex: index,
+                            gameId: game.id,
+                          }
+                        : null,
+                    )}
+                    asChild
+                  >
                     <Pressable
                       testID={`home-workout-game-${game.id}`}
                       accessibilityRole="button"
@@ -586,7 +606,19 @@ export default function HomeScreen() {
             </View>
             {/* Primary resume affordance: jumps straight to the current game. */}
             {workoutStatus === "active" && workoutFlow.currentGameId ? (
-              <Link href={`/game/${workoutFlow.currentGameId}`} asChild>
+              <Link
+                href={gameHref(
+                  workoutFlow.currentGameId,
+                  workoutFlow.instance
+                    ? {
+                        instanceKey: workoutFlow.instance.date,
+                        legIndex: workoutFlow.instance.currentIndex,
+                        gameId: workoutFlow.currentGameId,
+                      }
+                    : null,
+                )}
+                asChild
+              >
                 <Pressable
                   testID="home-workout-continue"
                   accessibilityRole="button"

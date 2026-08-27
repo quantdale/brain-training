@@ -6,6 +6,7 @@
  * docs/PROJECT_CONSTITUTION.md §6 (profiles), §9 (session model),
  * §17 (XP/level/currency: "Currency uses an append-only transaction ledger").
  */
+import type { WorkoutSessionProvenance } from "@/workout/session-provenance";
 
 /** Values we ever bind into SQLite queries. Kept to the common dialect subset. */
 export type SQLiteValue = string | number | null;
@@ -40,6 +41,8 @@ export interface GameSessionRecord {
   startedAt: number;
   completedAt: number;
   durationMs: number;
+  /** Exact workout instance/leg that launched this session, when applicable. */
+  workoutProvenance?: WorkoutSessionProvenance;
 }
 
 /** One immutable currency ledger entry. `id` is strictly monotonic. */

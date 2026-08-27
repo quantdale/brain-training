@@ -80,7 +80,18 @@ function makeWorkout(
 }
 
 function makeFakeDb(workout: WorkoutInstance | null): AppDatabase {
-  const session = makeSession();
+  const session = {
+    ...makeSession(),
+    ...(workout
+      ? {
+          workoutProvenance: {
+            instanceKey: workout.date,
+            legIndex: workout.currentIndex,
+            gameId: GAME_ID,
+          },
+        }
+      : {}),
+  } as GameSessionRecord;
   return {
     sessions: {
       getById: async (id: string) => (id === SESSION_ID ? session : null),
@@ -88,17 +99,20 @@ function makeFakeDb(workout: WorkoutInstance | null): AppDatabase {
     },
     ratings: { getHistoryForSession: async () => [] },
     workouts: {
-      findActiveInstanceForGame: async () => workout,
+      findActiveInstanceForSession: async () => workout,
       // Mirror the real repository: advancing past the last game completes
       // the workout; otherwise currentIndex moves to the next position.
-      advance: jest.fn(async () => {
-        if (!workout) return null;
+      advanceForSession: jest.fn(async () => {
+        if (!workout) return { advanced: false, instance: null };
         const nextIndex = workout.currentIndex + 1;
         const finished = nextIndex >= workout.gameIds.length;
         return {
-          ...workout,
-          currentIndex: nextIndex,
-          status: finished ? "completed" : workout.status,
+          advanced: true,
+          instance: {
+            ...workout,
+            currentIndex: nextIndex,
+            status: finished ? "completed" : workout.status,
+          },
         };
       }),
     },

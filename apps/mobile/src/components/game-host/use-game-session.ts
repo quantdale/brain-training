@@ -26,6 +26,8 @@ import type { Clock, SessionStatus } from '@/sdk';
 
 import { markGameSessionStart } from '@/sdk/perf';
 import { createSessionId } from './session-identity';
+import { useWorkoutSessionLaunch } from '@/workout/session-launch-context';
+import { registerWorkoutSessionLaunch } from '@/workout/session-provenance';
 
 /** Identity of a freshly begun session, dispatched into the game reducer. */
 export interface SessionStartIdentity {
@@ -101,6 +103,7 @@ export interface GameSessionController {
 
 export function useGameSession(options: UseGameSessionOptions): GameSessionController {
   const { gameId, clock = systemClock } = options;
+  const workoutLaunch = useWorkoutSessionLaunch();
 
   const lifecycleRef = useRef<SessionLifecycle | null>(null);
   // Once-per-session finalization guard (same role as the old per-screen
@@ -149,8 +152,15 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
       // interaction latency window that <GameHost>'s session-body touch
       // observer closes (campaign 010, debt D4).
       markGameSessionStart(gameId);
-      return { sessionId: createSessionId(gameId), startedAtMs: Date.now() };
-    }, [clock, gameId]),
+      const sessionId = createSessionId(gameId);
+      // Query parameters are untrusted input. The route parser already
+      // validates their shape; the game-id check here prevents a tampered
+      // launch tuple from claiming a different game's completion.
+      if (workoutLaunch?.gameId === gameId) {
+        registerWorkoutSessionLaunch(sessionId, workoutLaunch);
+      }
+      return { sessionId, startedAtMs: Date.now() };
+    }, [clock, gameId, workoutLaunch]),
 
     requestPause,
 

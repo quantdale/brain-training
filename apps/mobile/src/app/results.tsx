@@ -29,6 +29,7 @@ import type { AppDatabase, GameSessionRecord } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { getGameDefinition } from "@/registry/registry";
 import { useWorkoutResultAdvance } from "@/workout/use-workout-result-advance";
+import { gameHref } from "@/workout/routing";
 
 interface ResultsData {
   session: GameSessionRecord | null;
@@ -80,8 +81,12 @@ export default function ResultsScreen() {
 
   // Cross-feature wiring (006R hardening): advance the durable workout when this
   // session finished the current game, and surface the next game / completion.
-  const { instance: workoutInstance, nextGameId, completed: workoutCompleted } =
-    useWorkoutResultAdvance(session);
+  const {
+    instance: workoutInstance,
+    nextGameId,
+    nextProvenance,
+    completed: workoutCompleted,
+  } = useWorkoutResultAdvance(session);
 
   const game = session ? getGameDefinition(session.gameId) : undefined;
   // Task 9.4: ratingHistory is already filtered to the selected session
@@ -187,7 +192,7 @@ export default function ResultsScreen() {
               </ThemedText>
             </ThemedView>
           ) : nextGameId ? (
-            <Link href={`/game/${nextGameId}`} asChild>
+            <Link href={gameHref(nextGameId, nextProvenance)} asChild>
               <Pressable
                 testID="results-next-game"
                 accessibilityRole="button"

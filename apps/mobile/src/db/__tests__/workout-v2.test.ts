@@ -6,7 +6,7 @@
  *   - `listHistory` / `listRecent` key ordering (daily-before-template within
  *     a day — the documented campaign-010 W22 contract),
  *   - `countCompleted` daily/template exclusion,
- *   - `findActiveInstanceForGame` advance routing across workout kinds,
+ *   - persisted session-provenance routing across workout kinds,
  *   - `reconcileActiveInstances` batch repair (incl. completed-row immunity),
  *   - completion summaries matched against REAL persisted session records,
  *   - corrupt persisted rows (garbage JSON, drifted indexes) never crash,
@@ -175,7 +175,7 @@ describe('V2 history ordering (listHistory / listRecent)', () => {
   });
 });
 
-describe('V2 advance routing (findActiveInstanceForGame)', () => {
+describe('V2 advance routing (persisted session provenance)', () => {
   let adapter: SQLiteAdapter;
   let workouts: WorkoutRepository;
 
@@ -198,21 +198,52 @@ describe('V2 advance routing (findActiveInstanceForGame)', () => {
     await workouts.advance('2026-08-21::focus-memory::short'); // resume point -> 'shared'
   });
 
-  it('routes a finished session to the MOST RECENTLY UPDATED matching active instance', async () => {
-    const routed = await workouts.findActiveInstanceForGame('shared', 25_000);
+  it('routes by the exact instance key and leg, not recency', async () => {
+    const routed = await workouts.findActiveInstanceForSession({
+      gameId: 'shared',
+      workoutProvenance: {
+        instanceKey: '2026-08-21::focus-memory::short',
+        legIndex: 1,
+        gameId: 'shared',
+      },
+    });
     expect(routed?.date).toBe('2026-08-21::focus-memory::short');
   });
 
   it('falls back to the daily instance when only it matches', async () => {
-    const routed = await workouts.findActiveInstanceForGame('daily-next', 25_000);
+    const routed = await workouts.findActiveInstanceForSession({
+      gameId: 'daily-next',
+      workoutProvenance: {
+        instanceKey: '2026-08-21',
+        legIndex: 1,
+        gameId: 'daily-next',
+      },
+    });
     expect(routed?.date).toBe('2026-08-21');
   });
 
-  it('never routes a session that did not finish after the instance was touched', async () => {
+  it('rejects missing, wrong-key and wrong-leg ownership', async () => {
+    expect(await workouts.findActiveInstanceForSession({ gameId: 'shared' })).toBeNull();
     expect(
-      await workouts.findActiveInstanceForGame('shared', 20_000),
-    ).toBeNull(); // equal timestamps: strict > gate
-    expect(await workouts.findActiveInstanceForGame('shared', 5_000)).toBeNull();
+      await workouts.findActiveInstanceForSession({
+        gameId: 'shared',
+        workoutProvenance: {
+          instanceKey: '2026-08-21',
+          legIndex: 0,
+          gameId: 'shared',
+        },
+      }),
+    ).toBeNull();
+    expect(
+      await workouts.findActiveInstanceForSession({
+        gameId: 'shared',
+        workoutProvenance: {
+          instanceKey: '2026-08-21::focus-memory::short',
+          legIndex: 0,
+          gameId: 'shared',
+        },
+      }),
+    ).toBeNull();
   });
 
   it('matches ONLY the current resume position (position rule)', async () => {
@@ -220,14 +251,28 @@ describe('V2 advance routing (findActiveInstanceForGame)', () => {
     // routes to the daily instance; but a session for an UNPLAYED template
     // slot ('template-first', already passed) must not route anywhere.
     expect(
-      await workouts.findActiveInstanceForGame('template-first', 30_000),
+      await workouts.findActiveInstanceForSession({
+        gameId: 'template-first',
+        workoutProvenance: {
+          instanceKey: '2026-08-21::focus-memory::short',
+          legIndex: 0,
+          gameId: 'template-first',
+        },
+      }),
     ).toBeNull();
   });
 
   it('never routes into completed instances', async () => {
     clock.now = 30_000;
     await workouts.advance('2026-08-21'); // completes the 2-game daily
-    const routed = await workouts.findActiveInstanceForGame('daily-next', 35_000);
+    const routed = await workouts.findActiveInstanceForSession({
+      gameId: 'daily-next',
+      workoutProvenance: {
+        instanceKey: '2026-08-21',
+        legIndex: 1,
+        gameId: 'daily-next',
+      },
+    });
     expect(routed).toBeNull();
   });
 });

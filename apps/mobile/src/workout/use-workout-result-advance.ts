@@ -1,28 +1,10 @@
 /**
- * `useWorkoutResultAdvance` — cross-feature wiring that closes the 006R
- * hardening gap: the durable daily workout was implemented and unit-tested but
- * no screen ever advanced it, so `current_index` stayed at 0 on-device.
+ * `useWorkoutResultAdvance` — result-screen wiring for the durable workout.
  *
- * Given the session shown on the result screen, this hook finds the workout
- * instance the session belongs to and advances it exactly once via
- * `WorkoutRepository.advance`. Workout Engine V2 extends routing beyond the
- * default daily mix: the candidate is ANY active instance whose CURRENT
- * (resume) position equals the session's game — the daily mix or a template
- * workout (`focus-*`, short/standard/extended). When several qualify, the
- * repository picks the most recently updated one (the player's latest
- * intent). Sessions that belong to no active workout advance nothing.
- *
- * Idempotency (Queue A — completion idempotency / rapid navigation races): the
- * `shouldAdvanceWorkout` guard alone is not enough, because `useDbData` does
- * NOT refresh the instance after we advance it, so a re-render can hand us a
- * STALE instance object (currentIndex still 0) and the guard would pass again,
- * advancing twice. To prevent that we (1) remember the advanced instance in
- * local state (updated only inside the async callback, never synchronously in an
- * effect) so the guard always sees the post-advance instance, (2) remember the
- * session id we already advanced for so the exact same session can never advance
- * twice, and (3) reconcile the loaded instance against the current eligible
- * catalog so a stored instance that references a retired/renamed game id
- * advances past the dead slot instead of stalling on it.
+ * A completed session is routed by its persisted launch tuple, not by a game
+ * id/timestamp heuristic. The repository repeats the ownership check inside a
+ * conditional transaction, so duplicate result effects, process relaunch and
+ * concurrent workout screens cannot skip or double-advance a leg.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameSessionRecord, WorkoutInstance } from "@/db";
@@ -31,6 +13,7 @@ import { useDbData } from "@/hooks/use-db-data";
 import { shouldAdvanceWorkout } from "./advance";
 import { emitWorkoutChanged } from "./events";
 import { eligibleGameIds, reconcileWorkout } from "./reconcile";
+import type { WorkoutSessionProvenance } from "./session-provenance";
 
 export interface WorkoutResultAdvance {
   /** The matched (reconciled) workout instance (null until loaded/matched). */
@@ -39,85 +22,78 @@ export interface WorkoutResultAdvance {
   nextGameId: string | null;
   /** True when the matched workout is finished (already, or just completed). */
   completed: boolean;
+  /** Exact ownership tuple for the next leg, when one was advanced. */
+  nextProvenance: WorkoutSessionProvenance | null;
 }
-
 export function useWorkoutResultAdvance(
   session: GameSessionRecord | null,
 ): WorkoutResultAdvance {
   const sessionId = session?.id ?? null;
 
-  // Route the session to its owning workout across ALL template types: any
-  // active instance whose current resume game matches, touched before the
-  // session finished. Null when the session belongs to no workout.
+  // Missing provenance intentionally yields null: legacy/standalone sessions
+  // are displayable in Results but can never claim a current workout leg.
   const { data: loadedInstance } = useDbData(
     async (db) =>
-      session
-        ? db.workouts.findActiveInstanceForGame(
-            session.gameId,
-            session.completedAt,
-          )
-        : null,
+      session ? db.workouts.findActiveInstanceForSession(session) : null,
     [sessionId],
     null as WorkoutInstance | null,
   );
 
-  // `useDbData` does not refresh the instance after we advance it, so a re-render
-  // can hand us a stale instance (currentIndex still 0). We keep the advanced
-  // instance in local state (set only inside the async callback below, never
-  // synchronously in an effect) so the idempotency guard always sees the
-  // post-advance instance (fixes the double-advance on result re-view, Queue A).
   const [advancedInstance, setAdvancedInstance] =
     useState<WorkoutInstance | null>(null);
   const effective = advancedInstance ?? loadedInstance;
 
-  // Reconcile against the current eligible catalog in-memory so a stored
-  // instance referencing a retired/renamed game id (registry drift between
-  // sessions) advances past the dead slot instead of stalling on it (Queue A).
+  // Reconcile the loaded row in memory so catalog drift cannot leave the
+  // result surface pointed at a retired current game. The durable transition
+  // still rechecks the original exact tuple before writing.
   const reconciled = useMemo(
     () => reconcileWorkout(effective, eligibleGameIds()).instance,
     [effective],
   );
 
   const advancingRef = useRef(false);
-  // Remember the session id we already advanced for, so the exact same session
-  // can never advance the workout twice (belt-and-suspenders with the local
-  // instance mirror + the completedAt/updatedAt guard in shouldAdvanceWorkout).
   const advancedForSessionRef = useRef<string | null>(null);
   const [next, setNext] = useState<{
     id: string | null;
     completed: boolean;
+    provenance: WorkoutSessionProvenance | null;
   } | null>(null);
 
   useEffect(() => {
     if (advancingRef.current || !session || !reconciled) {
       return;
     }
-    // Already advanced for this exact session — never advance it twice.
     if (advancedForSessionRef.current === session.id) {
       return;
     }
     if (!shouldAdvanceWorkout(session, reconciled)) {
       return;
     }
+
     advancingRef.current = true;
-    // `instance.date` is the instance KEY (daily date or namespaced template
-    // key), so one advance call serves every workout kind.
     getDb()
-      .workouts.advance(reconciled.date)
-      .then((updated) => {
+      .workouts.advanceForSession(session)
+      .then(({ advanced, instance: updated }) => {
+        if (!updated) {
+          return;
+        }
         advancedForSessionRef.current = session.id;
-        setAdvancedInstance(updated); // keep the guard honest for any re-run
+        const nextGameId = updated.gameIds[updated.currentIndex] ?? null;
+        setAdvancedInstance(updated);
         setNext({
-          id: updated.gameIds[updated.currentIndex] ?? null,
+          id: nextGameId,
           completed: updated.status === "completed",
+          provenance: nextGameId
+            ? {
+                instanceKey: updated.date,
+                legIndex: updated.currentIndex,
+                gameId: nextGameId,
+              }
+            : null,
         });
-        // Notify Home (and any other subscriber) so template chips, resume
-        // state, history rows and the completion card re-read the persisted
-        // row immediately. Without this, Home kept showing the pre-advance
-        // snapshot ("0/2 · In progress", no completion card) even though the
-        // results page itself said the workout was complete — device-verified
-        // defect (campaign 012 closeout QA).
-        emitWorkoutChanged();
+        if (advanced) {
+          emitWorkoutChanged();
+        }
       })
       .catch((e: unknown) => {
         console.error("[results] workout advance failed", e);
@@ -131,5 +107,6 @@ export function useWorkoutResultAdvance(
     instance: reconciled,
     nextGameId: next?.id ?? null,
     completed: reconciled?.status === "completed" || next?.completed === true,
+    nextProvenance: next?.provenance ?? null,
   };
 }

@@ -23,6 +23,7 @@
  * reads parse it defensively.
  */
 import type { SQLiteAdapter } from "./adapter";
+import type { GameSessionRecord } from "./types";
 import { reconcileWorkout } from "@/workout/reconcile";
 import {
   parseWorkoutMetadata,
@@ -35,6 +36,10 @@ import {
 } from "@/workout/summary";
 import type { WorkoutSelectionReason } from "@/workout/personalize";
 import { nextDate } from "@/workout/today";
+import {
+  isWorkoutSessionProvenance,
+  type WorkoutSessionProvenance,
+} from "@/workout/session-provenance";
 
 export type WorkoutStatus = "active" | "completed";
 
@@ -55,6 +60,14 @@ export interface WorkoutInstance {
   updatedAt: number;
   /** Versioned V2 metadata; undefined on legacy rows / legacy schemas. */
   metadata?: WorkoutMetadata;
+}
+
+/** Result of the ownership-checked, one-shot workout transition. */
+export interface WorkoutAdvanceResult {
+  /** True only for the caller that changed the durable resume position. */
+  advanced: boolean;
+  /** Current persisted instance after the conditional transition, if present. */
+  instance: WorkoutInstance | null;
 }
 
 interface WorkoutRow {
@@ -99,6 +112,20 @@ function rowToInstance(row: WorkoutRow): WorkoutInstance {
     updatedAt: row.updated_at,
     ...(metadata ? { metadata } : {}),
   };
+}
+
+/** Exact ownership predicate shared by lookup and the conditional write path. */
+function ownsCurrentLeg(
+  instance: WorkoutInstance | null,
+  provenance: WorkoutSessionProvenance,
+): boolean {
+  return (
+    instance !== null &&
+    instance.status === "active" &&
+    instance.date === provenance.instanceKey &&
+    instance.currentIndex === provenance.legIndex &&
+    instance.gameIds[provenance.legIndex] === provenance.gameId
+  );
 }
 
 /** Session columns needed to build completion summaries. */
@@ -253,11 +280,10 @@ export class WorkoutRepository {
   }
 
   /**
-   * Advance to the next game after a durably completed session. When the last
-   * game completes, the instance becomes 'completed'. Never skips ahead on a
-   * crash: callers must persist the session first (006R task 6.2/6.3).
-   * Works for ANY instance kind — pass the instance key (daily date or
-   * namespaced template key).
+   * Legacy/manual direct advance primitive. Result completion must use
+   * `advanceForSession`, which proves the persisted session's ownership and
+   * performs a conditional one-shot transition. This helper remains for
+   * explicit workout controls and historical callers.
    */
   async advance(date: string): Promise<WorkoutInstance> {
     const current = await this.getByDate(date);
@@ -433,9 +459,9 @@ export class WorkoutRepository {
   }
 
   /**
-   * Active instances, most recently touched first (bounded). Used by advance
-   * routing (which workout does this completed session belong to?) and by
-   * {@link reconcileActiveInstances}.
+   * Active instances, most recently touched first (bounded). Used for bounded
+   * inspection and by {@link reconcileActiveInstances}; recency is never an
+   * ownership decision for completed game sessions.
    */
   async listActiveInstances(limit = 20): Promise<WorkoutInstance[]> {
     const rows = await this.adapter.all<WorkoutRow>(
@@ -446,47 +472,99 @@ export class WorkoutRepository {
   }
 
   /**
-   * Find the ACTIVE instance whose CURRENT (resume) position is `gameId` and
-   * whose last touch predates `completedAt` — i.e. the workout a freshly
-   * completed session should advance. When several instances qualify (daily +
-   * a focus template both containing the game), the MOST RECENTLY UPDATED
-   * one wins: it reflects the player's latest intent. Returns null when no
-   * active instance matches (standalone play / stale session).
-   *
-   * Candidate pre-filter uses a LIKE over the JSON array; game ids are
-   * kebab-case (`^[a-z0-9-]+$`, enforced by the SDK), so no LIKE wildcards
-   * can be injected through `gameId`. Exact matching happens in JS below.
+   * Resolve the exact workout row and leg that launched a completed session.
+   * No timestamp, recency or game-id-only fallback is allowed: an old or
+   * standalone session has no ownership and therefore cannot advance anything.
    */
-  async findActiveInstanceForGame(
-    gameId: string,
-    completedAt: number,
+  async findActiveInstanceForSession(
+    session: Pick<GameSessionRecord, "gameId" | "workoutProvenance">,
   ): Promise<WorkoutInstance | null> {
-    const candidates = await this.listActiveInstances(20);
-    for (const instance of candidates) {
-      const index = Math.min(
-        Math.max(Math.trunc(instance.currentIndex), 0),
-        instance.gameIds.length,
-      );
-      // 10s slack is allowed ONLY for the very first game of a never-advanced
-      // instance (createdAt === updatedAt, currentIndex 0) to absorb the
-      // creation-vs-first-completion skew. Otherwise strict ordering is
-      // required so historical re-views (days old) cannot slip through a
-      // blanket window. Also reject sessions older than the workout itself.
-      if (completedAt < instance.createdAt) {
-        continue;
-      }
-      const slack =
-        instance.currentIndex === 0 && instance.createdAt === instance.updatedAt
-          ? 10_000
-          : 0;
-      if (
-        instance.gameIds[index] === gameId &&
-        completedAt > instance.updatedAt - slack
-      ) {
-        return instance;
-      }
+    const provenance = session.workoutProvenance;
+    if (
+      !isWorkoutSessionProvenance(provenance) ||
+      provenance.gameId !== session.gameId
+    ) {
+      return null;
     }
-    return null;
+    const instance = await this.getByDate(provenance.instanceKey);
+    return ownsCurrentLeg(instance, provenance) ? instance : null;
+  }
+
+  /**
+   * Advance exactly one owned leg at the persistence boundary. The conditional
+   * UPDATE makes duplicate result effects, process relaunch and concurrent
+   * daily/focus result hooks harmless: only the transaction that still sees
+   * the same instance key, index, game list and row version can move it.
+   */
+  async advanceForSession(
+    session: Pick<GameSessionRecord, "gameId" | "workoutProvenance">,
+  ): Promise<WorkoutAdvanceResult> {
+    const provenance = session.workoutProvenance;
+    if (
+      !isWorkoutSessionProvenance(provenance) ||
+      provenance.gameId !== session.gameId
+    ) {
+      return { advanced: false, instance: null };
+    }
+
+    return this.adapter.transaction(async (txn) => {
+      const row = await txn.get<WorkoutRow>(
+        "SELECT * FROM workout_instances WHERE date = ?",
+        [provenance.instanceKey],
+      );
+      const current = row ? rowToInstance(row) : null;
+      if (!row || !current) {
+        return { advanced: false, instance: current };
+      }
+      if (!ownsCurrentLeg(current, provenance)) {
+        return { advanced: false, instance: current };
+      }
+
+      const nextIndex = Math.min(
+        current.currentIndex + 1,
+        current.gameIds.length,
+      );
+      const status: WorkoutStatus =
+        nextIndex >= current.gameIds.length ? "completed" : "active";
+      const updatedAt = this.now();
+      const update = await txn.run(
+        `UPDATE workout_instances
+         SET current_index = ?, status = ?, updated_at = ?
+         WHERE date = ? AND status = 'active' AND current_index = ?
+           AND updated_at = ? AND reroll_attempt = ? AND seed_version = ?
+           AND game_ids_json = ?`,
+        [
+          nextIndex,
+          status,
+          updatedAt,
+          provenance.instanceKey,
+          current.currentIndex,
+          current.updatedAt,
+          current.rerollAttempt,
+          current.seedVersion,
+          row.game_ids_json,
+        ],
+      );
+      if (update.changes === 0) {
+        const latestRow = await txn.get<WorkoutRow>(
+          "SELECT * FROM workout_instances WHERE date = ?",
+          [provenance.instanceKey],
+        );
+        return {
+          advanced: false,
+          instance: latestRow ? rowToInstance(latestRow) : null,
+        };
+      }
+      return {
+        advanced: true,
+        instance: {
+          ...current,
+          currentIndex: nextIndex,
+          status,
+          updatedAt,
+        },
+      };
+    });
   }
 
   /**

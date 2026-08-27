@@ -26,6 +26,8 @@ import { ThemedView } from "@/components/themed-view";
 import { Radii, Spacing } from "@/constants/theme";
 import { getGameDefinition } from "@/registry/registry";
 import { gameScreenLoaders } from "@/registry/registry.generated";
+import { WorkoutSessionLaunchProvider } from "@/workout/session-launch-context";
+import { parseWorkoutLaunchProvenance } from "@/workout/session-provenance";
 
 /** Cache lazy-loaded game components to prevent unnecessary remounts */
 const lazyComponentCache = new Map<string, React.ComponentType>();
@@ -46,8 +48,21 @@ function getLazyGameComponent(gameId: string): React.ComponentType | undefined {
 }
 
 export default function GameScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, workoutKey, workoutIndex } = useLocalSearchParams<{
+    id: string;
+    workoutKey?: string | string[];
+    workoutIndex?: string | string[];
+  }>();
   const game = getGameDefinition(id ?? "");
+  const workoutProvenance = useMemo(
+    () =>
+      parseWorkoutLaunchProvenance({
+        gameId: id,
+        instanceKey: workoutKey,
+        legIndex: workoutIndex,
+      }),
+    [id, workoutKey, workoutIndex],
+  );
 
   // Task 10.1: Cache the lazy component identity outside render (lazy creation is intentionally memoized).
   // Deps include `game` itself: getLazyGameComponent is a pure id-keyed cache
@@ -108,8 +123,10 @@ export default function GameScreen() {
           }}
         >
           <Suspense fallback={<GameNotReady variant="loading" />}>
-            {/* eslint-disable-next-line react-hooks/static-components */}
-            <GameScreenComponent />
+            <WorkoutSessionLaunchProvider provenance={workoutProvenance}>
+              {/* eslint-disable-next-line react-hooks/static-components */}
+              <GameScreenComponent />
+            </WorkoutSessionLaunchProvider>
           </Suspense>
         </ErrorBoundary>
       ) : (

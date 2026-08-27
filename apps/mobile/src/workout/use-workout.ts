@@ -5,8 +5,10 @@
  * personalization layer. On mount it loads-or-creates today's instance (seeding
  * the selection when absent) so the workout survives restart/resume. Reroll is
  * transactional: the currency debit and the workout transition commit together
- * via `paidReroll` (the free first reroll omits the debit). `advance` is called
- * by the result screen after a durably persisted session.
+ * via `paidReroll` (the free first reroll omits the debit). The result screen
+ * uses the provenance-checked `WorkoutRepository.advanceForSession`; this
+ * hook's `advance` remains a direct/manual helper for local workout controls
+ * and legacy callers.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SQLiteAdapter } from "@/db/adapter";
@@ -49,7 +51,7 @@ export interface UseWorkoutResult {
   rerollExhausted: boolean;
   /** Apply a reroll (persisted + currency-debited when paid). */
   reroll: () => Promise<void>;
-  /** Advance to the next game after a durably persisted session. */
+  /** Legacy/manual direct advance helper; result UI uses advanceForSession. */
   advance: () => Promise<void>;
   /** Re-read the persisted instance (call when the screen regains focus). */
   refresh: () => void;

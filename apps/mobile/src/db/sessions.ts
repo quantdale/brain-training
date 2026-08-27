@@ -23,6 +23,13 @@ import type { SQLiteValue ,
   RatingDelta,
   RatingService,
 } from "./types";
+import {
+  attachWorkoutProvenance,
+  clearWorkoutSessionLaunch,
+  extractWorkoutProvenance,
+  isWorkoutSessionProvenance,
+  peekWorkoutSessionLaunch,
+} from "@/workout/session-provenance";
 
 /**
  * Completed game sessions (constitution §9: "Completed sessions persist
@@ -156,6 +163,8 @@ function fromJson(raw: string): unknown {
 }
 
 function mapRow(row: SessionRow): GameSessionRecord {
+  const rawResult = fromJson(row.raw_result_json);
+  const workoutProvenance = extractWorkoutProvenance(rawResult);
   return {
     id: row.id,
     gameId: row.game_id,
@@ -164,12 +173,13 @@ function mapRow(row: SessionRow): GameSessionRecord {
     scoringVersion: row.scoring_version,
     seed: row.seed,
     difficulty: fromJson(row.difficulty_json),
-    rawResult: fromJson(row.raw_result_json),
+    rawResult,
     normalizedResult: row.normalized_result,
     xp: row.xp,
     startedAt: row.started_at,
     completedAt: row.completed_at,
     durationMs: row.duration_ms,
+    ...(workoutProvenance ? { workoutProvenance } : {}),
   };
 }
 
@@ -225,7 +235,26 @@ export class SessionRepository {
   async completeSession(
     input: CompleteSessionInput,
   ): Promise<CompleteSessionResult> {
-    const s = input.session;
+    const explicitProvenance = isWorkoutSessionProvenance(
+      input.session.workoutProvenance,
+    )
+      ? input.session.workoutProvenance
+      : undefined;
+    const launchProvenance =
+      explicitProvenance ?? peekWorkoutSessionLaunch(input.session.id);
+    // The existing game-specific persisters all pass through this one DB
+    // boundary. Decorating here keeps the ownership tuple coupled to the
+    // durable session even when a game module knows nothing about workouts.
+    const s: GameSessionRecord = launchProvenance
+      ? {
+          ...input.session,
+          rawResult: attachWorkoutProvenance(
+            input.session.rawResult,
+            launchProvenance,
+          ),
+          workoutProvenance: launchProvenance,
+        }
+      : input.session;
 
     // Friendly validation up front; DB CHECK constraints back this up.
     if (!s.id) {
@@ -253,7 +282,7 @@ export class SessionRepository {
     const completedAt = asInt(s.completedAt);
     const durationMs = asInt(s.durationMs);
 
-    return this.adapter.transaction(async (txn) => {
+    const result = await this.adapter.transaction(async (txn) => {
       // When a rating service is configured, its outcome is authoritative for
       // XP/currency/ratings and must be computed before the session row exists
       // (the history rows reference the session id).
@@ -387,6 +416,13 @@ export class SessionRepository {
         completionOutcome,
       };
     });
+    // A failed transaction intentionally leaves the launch map intact so the
+    // same completion retry can recover its ownership. Clear only after the
+    // transaction has committed (including duplicate/relaunch paths).
+    if (launchProvenance) {
+      clearWorkoutSessionLaunch(input.session.id);
+    }
+    return result;
   }
 
   async getById(id: string): Promise<GameSessionRecord | null> {

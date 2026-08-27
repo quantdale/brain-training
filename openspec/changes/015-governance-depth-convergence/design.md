@@ -256,6 +256,28 @@ Campaign design now treats workout ownership as a causal provenance problem:
 
 Implementation details may differ if a simpler invariant proves all normative scenarios. Any schema change requires migration, round-trip/export-import, rollback/failure, and legacy fixtures. Do not widen the schema merely because it is convenient; choose the smallest design that proves ownership.
 
+### Implemented attribution invariant (current tree)
+
+The authoritative ownership tuple is `(instanceKey, legIndex, gameId)`: `instanceKey`
+is the persisted `WorkoutInstance.date` key (bare date for daily workouts or the
+namespaced template key), and `legIndex` is the zero-based position selected at
+launch. Workout links encode that tuple as `workoutKey`/`workoutIndex`; the game
+route validates it and provides it to the shared `useGameSession` host. The host
+associates the generated session id with the tuple, and the single session DB
+boundary atomically embeds it in `rawResult` under the reserved
+`workoutProvenance` key. Reads reconstruct the typed provenance from that JSON,
+so results reopening, backup round-trips, and process relaunch do not depend on
+React refs or route state.
+
+`findActiveInstanceForSession` and the conditional `advanceForSession` transaction
+require the exact tuple, the same current leg, the matching game id, and the
+active row version. Only the transaction that changes that row returns
+`advanced: true`; duplicate delivery, stale hook state, re-view, or a concurrent
+owner therefore cannot move a leg twice. Legacy/standalone sessions without the
+reserved tuple remain readable/displayable and are never eligible for advancement.
+No timestamp, recency ordering, or positive grace interval participates in
+ownership.
+
 ### Harness principle
 
 QA wait budgets are diagnostic/recovery mechanisms, not correctness. For workout flows, record time-to-template-ready/time-to-durable-completed state and classify timeouts. A longer sleep/poll is not an acceptable substitute for a missing state notification or stale persistence read.

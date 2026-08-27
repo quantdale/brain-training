@@ -1225,9 +1225,9 @@ From the final coherent tree (HEAD 691c2ce):
 - **Workout V3 E2E + canaries:** **NOT VALIDATED this session (genuine infra blocker, not product)** — emulator segfaults shortly after boot, so `node scripts/qa/autobot.mjs --mode workout` / `--mode workout-focus` / `--mode canaries` could not be run. No APK built this session (honest). Prior green remains canaries 8/8 (20260826-114825, braintraining-qa36 / emulator-5554, forced-win + persistence + nav) and daily-workout 4/4 + relaunch + focus 4/4 legs (pre-template-fix; focus completion-card probe now retried with swipe-to-top, but not re-proven on device). The template-advance fix (10s slack) is committed but not device-proven.
 - **Perf / game-feel:** **NOT VALIDATED** — opt-in timing probes (`PERF_PROBE=1`, `sdk/perf` mark/measure) not re-run this session (statement-count guards remain green: mastery reads are one GROUP BY pushdown per load, workout creation adds one aggregate pushdown + one indexed page read `listSummaries limit 20`). No wall-clock or interaction-latency claim is made. Targeted input→feedback observability for changed timed games (symbol-tracker deadline, reaction Go/No-Go, etc.) was shipped inside W2 packets but not re-measured on device.
 - **Docs-final reconciliation:** **DONE** — `README.md` already V3 (575c4f7), `MASTER_PLAN.md` updated 013→COMPLETED + new 014 section with honest validation snapshot (including NOT VALIDATED), `PARITY_MATRIX.md` updated for Workout V3 / mastery / Daily Spotlight, `BACKLOG.md` already V3, `STATE.md` header + Current status + Working state + Next required action synchronized to 366a098 + WSL fixes + docs-final.
-- **Contradictory state:** resolved — `STATE.md` header now says 014 ACTIVE at 366a098, `Current status` says 014 ACTIVE at 366a098, `Authoritative active change` says 014, `GOVERNANCE.json` says 014, `CURRENT_CAMPAIGN.md` says Campaign 014 ACTIVE; no remaining 013-active prose.
+- **Historical contradictory-state snapshot:** resolved at the governance/bootstrap checkpoint — that earlier snapshot recorded 014 ACTIVE at 366a098 before the atomic 014→015 transition; the current structured state is 015 ACTIVE and is validated below.
 - **Builds:** `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk` **NOT VALIDATED** (no build this session; last at 013 closure). Web export / Expo Doctor not re-run (no dep/routing changes) — last 20 routes / 21/21 at 013 closure. `npm audit` not re-run (last 16 build-toolchain-only).
-- **Summary:** repo gates (repo-state, tsc, self-test, harness status) PASS; docs-final DONE; AVD restored but **device journeys + perf probes remain NOT VALIDATED due to genuine 37.1.x WHPX emulator segfault**; 014 therefore remains **ACTIVE** and 015 remains **PROPOSED** per `EXECUTION.md`. No Critical/High product regression introduced this session (harness/docs only).
+- **Historical summary:** repo gates (repo-state, tsc, self-test, harness status) PASS; docs-final DONE; AVD restored but **device journeys + perf probes remained NOT VALIDATED due to genuine 37.1.x WHPX emulator segfault**. At that checkpoint 014 was still **ACTIVE** and 015 **PROPOSED**; the later atomic transition made 015 ACTIVE. No Critical/High product regression was introduced by the harness/docs wave.
 
 ## Campaign 015 — Governance & Depth Convergence — governance/bootstrap wave (2026-08-28, 015 ACTIVE at 6e72338, P0/0 already COMPLETED)
 
@@ -1235,7 +1235,7 @@ From the final coherent tree (HEAD 691c2ce):
 
 **Governance surfaces changed:** `scripts/validate-repo-state.mjs` (deterministic parsing + 6-source contradiction detection + unconditional OpenSpec + root hygiene allowlist + 5-spec validation), `scripts/validate-task-ownership.cjs` (walk-up repo root, overlap/intersection via candidate-generated paths, per-packet validation), `scripts/validate-affected.mjs` (5 new RULES: workout, personalization/mastery/spotlight, sync/data-portability, content/registry/provenance, OpenSpec/governance + `apps/mobile/src/governance/**`), `.agent/IMPACT_MAP.md` (15 rows, mirrors RULES), `.agent/STATE.md` (§Authoritative machine-readable campaign fields table), `.agent/task-ownership.json` (Decision 3.6: no expected affected-area checks on packets), `apps/mobile/src/governance/__tests__/repo-state.test.ts` + `affected.test.ts` + `task-ownership.test.ts` extensions.
 
-**Repo gates (2026-08-28, working tree with parallel game packets in progress):**
+**Historical repo gates (2026-08-28, before the parallel game packets were converged):**
 - `node scripts/validate-repo-state.mjs` — **PASS** (Active campaign: 015-governance-depth-convergence; 5 delta specs; root hygiene PASS with `'` + `i.startsWith('home')` deleted)
 - `node scripts/validate-task-ownership.cjs` — **PASS** (4 packets, no overlaps, no protected/generated intersection, acyclic, per-packet validation present)
 - `npx --yes @fission-ai/openspec@1.6.0 validate --all` — **PASS** (2 changes: 006r-core-integrity-correction + 015-governance-depth-convergence, 0 failed)
@@ -1250,6 +1250,88 @@ From the final coherent tree (HEAD 691c2ce):
 
 **Durable state agreement:** GOVERNANCE 015, STATE **Active campaign:** 015, CURRENT_CAMPAIGN **Campaign id:** `015-governance-depth-convergence` **Status:** ACTIVE, EXECUTION_PROMPT **Change:** `015-governance-depth-convergence` **Status:** ACTIVE, OpenSpec change id 015 status ACTIVE, task-ownership change 015 — all 6 agree, exactly one ACTIVE campaign. Tested via contradictory fixtures (STATE vs GOVERNANCE, CURRENT_CAMPAIGN vs GOVERNANCE, EXECUTION_PROMPT vs GOVERNANCE, 014/013 regression).
 
-**Typecheck/lint/full suite:** `cd apps/mobile && npx tsc --noEmit` currently fails only due to in-progress parallel game packets (ContextFit file mid-edit, brace 80 vs 79) — not a governance regression; governance-only `tsc` for `src/governance/**` is clean (tests are TS-clean). Full Jest not re-run for governance wave; governance focused suite is the gate. Lint not re-run (no new lint-relevant governance logic beyond validators).
+**Historical typecheck/lint/full-suite snapshot:** `cd apps/mobile && npx tsc --noEmit` failed only due to the then-in-progress parallel game packets (ContextFit file mid-edit, brace 80 vs 79) — not a governance regression; governance-only `tsc` for `src/governance/**` was clean (tests were TS-clean). Full Jest was not re-run for that governance wave; the governance focused suite was its gate. The current continuation's typecheck/lint/full-suite evidence is recorded below.
 
 **No Critical/High regression; Medium/Low debt remains per audit-map G/D/R/T rows (now covered by tasks 5–11).**
+
+## Campaign 015 — causal workout attribution continuation (2026-08-28, base `299a831`)
+
+This continuation pulled `origin/main` fast-forward from `1b5802d` to
+`299a8313cd403f0255caae7af27f850f2fac7e16` before editing. The pulled SHA was
+green in App CI run `33108680781` and Repository Integrity run `33108680778`.
+The two audited timestamp-grace failures did not reproduce on the moved-head
+pre-edit targeted run (33 suites / 397 tests), so the changed workout path was
+re-audited before implementation.
+
+### Causal attribution implementation
+
+- Workout links now carry the exact `(instanceKey, legIndex, gameId)` tuple
+  through daily/template routes. The game route validates query values, the
+  shared Game Host associates the generated session id, and the canonical
+  session persistence boundary embeds the tuple in raw-result JSON under
+  `workoutProvenance`.
+- Session reads reconstruct typed provenance, including after a process
+  relaunch or data-portability replace import. Legacy/standalone sessions stay
+  readable but cannot advance a workout.
+- `findActiveInstanceForSession` and transactional `advanceForSession` use
+  exact tuple/current-leg matching plus a conditional row-version predicate;
+  only the successful writer returns `advanced: true`. Timestamp, recency, and
+  positive grace-window ownership were removed.
+- The attribution seam is covered by **22 suites / 255 tests PASS**, including
+  route parsing, raw-result persistence, failed-completion retry, duplicate
+  delivery, process-relaunch readback, two active instances sharing a game,
+  repeated IDs, stale/current-leg rejection, reconciliation, and backup
+  round-trip.
+
+### Convergence gates
+
+- `node scripts/validate-repo-state.mjs`: **PASS**.
+- `node scripts/validate-task-ownership.cjs`: **PASS**.
+- `npx --yes @fission-ai/openspec@1.6.0 validate --all`: **PASS**, 3/3
+  changes validated (015 active; proposed 016 remains unopened).
+- `node scripts/validate-affected.mjs --strict`: **PASS**, six affected areas,
+  zero unmatched paths after including `components/game-host/**` in the app
+  navigation/shell rule.
+- Registry generation check, provenance check, offline-boundary check, and
+  `node scripts/qa/autobot.mjs --self-test`: **PASS** (49/49 self-test).
+- `npm run typecheck`: **PASS**; `npm run lint`: **PASS** (0 errors / 0
+  warnings).
+- `npx expo export --platform web`: **PASS**, 20 static routes / 47 bundles.
+  Metro reported an unreadable cache and recovered with a full crawl; export
+  completed successfully. `npx expo-doctor`: **PASS**, 21/21 checks.
+
+### Jest evidence and classification
+
+The required full command `npm run test:ci -- --no-coverage` completed with
+**487 passed suites, 1 failed suite, 4 intentionally skipped opt-in suites;
+6,040 passed tests, 1 failed test, 5 skipped tests** (492 suites / 6,046
+tests total). The one failure was the existing
+`language-word-scramble/__tests__/screen.test.tsx` intro test exceeding the
+15-second per-test budget under the full two-worker load. It is not reproduced
+in the focused path: three isolated `--runInBand` repetitions passed all 5
+tests, with the intro taking 555–671 ms. No production change was made to hide
+this resource-sensitive suite-level timeout.
+
+The four skipped suites are the opt-in `PERF_PROBE` suites
+(`perf-sync-scan-probe`, `perf-quest-eval-ab`, `perf-baseline-probe`, and
+`large-backup-memory` which requires `LARGE_BACKUP_PROBE=1`); the fifth skipped
+test is the opt-in projection measurement in
+`analytics/projections-differential.test.ts`. Console output was classified as
+expected dev-only perf marks, intentional failure-injection diagnostics, and
+pre-existing React test-harness warnings; no new attribution warning was
+observed.
+
+### Android and remaining blocker
+
+Only the designated `braintraining-qa36` AVD was attempted. Both
+`bash scripts/android/avd.sh boot --no-snapshot --retry 1` and the bounded
+quickboot retry failed because the AVD did not register with ADB within 60
+seconds; the repository script identifies the known emulator 37.1.x/WHPX
+failure. No foreign emulator was used, and no current-head Android install,
+game canary, or daily/focus Workout V3 journey is claimed. Device validation is
+therefore **NOT VALIDATED** pending emulator stability. iOS and manual system
+sheet validation remain **NOT VALIDATED** under the existing Windows/policy
+limitations.
+
+Final commit/push and exact-SHA App CI/Repository Integrity confirmation remain
+pending. Campaign 015 remains ACTIVE; proposed Campaign 016 is not activated.

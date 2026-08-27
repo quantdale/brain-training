@@ -83,12 +83,16 @@ describe('workout lifecycle (real db + real registry)', () => {
     await waitFor(() => expect(result.current.instance).not.toBeNull());
     const ids = result.current.instance!.gameIds;
 
-    // Play the whole day: each session finishes the CURRENT resume game.
-    // Timestamps sit in the near future so every session is newer than the
-    // instance's real-clock updatedAt (the idempotency gate).
-    const t0 = Date.now();
+    // Play the whole day: each session carries the exact CURRENT resume leg.
     for (let i = 0; i < ids.length; i += 1) {
-      const session = { gameId: ids[i], completedAt: t0 + 60_000 + i * 1_000 };
+      const session = {
+        gameId: ids[i],
+        workoutProvenance: {
+          instanceKey: result.current.instance!.date,
+          legIndex: i,
+          gameId: ids[i],
+        },
+      };
       expect(result.current.status).toBe('active');
       expect(
         shouldAdvanceWorkout(session, result.current.instance),
@@ -117,7 +121,14 @@ describe('workout lifecycle (real db + real registry)', () => {
     expect(await getDb().workouts.countCompleted()).toBe(1);
     expect(
       shouldAdvanceWorkout(
-        { gameId: ids[ids.length - 1], completedAt: t0 + 300_000 },
+        {
+          gameId: ids[ids.length - 1],
+          workoutProvenance: {
+            instanceKey: result.current.instance!.date,
+            legIndex: ids.length - 1,
+            gameId: ids[ids.length - 1],
+          },
+        },
         result.current.instance,
       ),
     ).toBe(false);

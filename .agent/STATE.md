@@ -1,40 +1,32 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-27 (Campaign 015 **ACTIVE at this transition** — see
-`openspec/changes/015-governance-depth-convergence/EXECUTION.md` Phase 1;
-predecessor 014 COMPLETED at `f66f65c` (6451bfb head, prior green at `f4aa44c`
-+ precise workout slack at `d645bbb`, docs-final DONE, AVD braintraining-qa36
-restored at 6 AVDs and boots to `sys.boot_completed=1` with `-memory 3072
--no-snapshot`, honest NOT VALIDATED for the re-run due to 37.1.x WHPX
-segfault, considered green per evidence policy). P0 red-main recovery already
-done at `d645bbb`/`6451bfb` (2 suites fixed, App CI should now be green);
-governance binding, state integrity, hygiene, and game/content convergence
-are now ACTIVE per `change.json` ACTIVE and `GOVERNANCE.activeCampaign` 015.)
+**Last update:** 2026-08-28 (Campaign 015 remains **ACTIVE**; predecessor 014
+is COMPLETED at `f66f65c`. The moved base `299a831` is green in App CI and
+Repository Integrity, and the causal workout-attribution continuation is now
+implemented locally. Final post-edit gates, exact-SHA CI, and dedicated AVD
+evidence remain open and are recorded honestly.)
 **Canonical branch:** `main`
 **Active campaign:** 015-governance-depth-convergence
 
 ## Current status
 
-Campaign 015 — Governance & Depth Convergence is **ACTIVE at this transition**
-(predecessor 014 COMPLETED at `f66f65c` / `6451bfb` head; P0 red-main recovery
-already done at `d645bbb`/`6451bfb` with precise first-leg-only slack + pre-
-creation guard, fixing 2 Jest suites red at `4ac4d45`; docs-final DONE at
-`f66f65c`; AVD `braintraining-qa36` restored at 6 AVDs and boots to
-`sys.boot_completed=1` in ~30s with `-memory 3072 -no-snapshot`, honest NOT
-VALIDATED for the re-run due to 37.1.x WHPX segfault, considered green per
-evidence policy). This transition atomically sets `change.json` ACTIVE,
-`GOVERNANCE.activeCampaign` 015, `CURRENT_CAMPAIGN.md` + `EXECUTION_PROMPT.md`
-to 015, `STATE.md` synced, and `task-ownership.json` to the 015 packet map.
-Next is governance/bootstrap workstreams (1–4) before any parallel game/content
-packets. Campaign 013's release gate remains GREEN as the v1 baseline (42/42
-certify, SHA `ba6dd84`), but active work is now 015 per the 12-hour envelope.
-### What landed in 015 at transition (this commit, predecessor 014 COMPLETED at `f66f65c`)
+Campaign 015 — Governance & Depth Convergence is **ACTIVE**. Predecessor 014
+is COMPLETED at `f66f65c`; governance/bootstrap, game/content convergence, and
+runtime evidence are landed through moved base `299a831`. The current
+continuation replaces timestamp/recency workout ownership with an exact
+`(instanceKey, legIndex, gameId)` provenance tuple carried from workout route
+through the shared game host into persisted session JSON, then advances the
+matching active row with a conditional transaction. Focused attribution tests
+are green; full-suite resource contention and dedicated Android emulator
+stability remain recorded validation limits. Campaign 013's release gate
+remains GREEN as the v1 baseline (42/42 certify, SHA `ba6dd84`).
+### What landed in 015 at transition (predecessor 014 COMPLETED at `f66f65c`)
 
 - **P0 red-main recovery already done at `d645bbb`/`6451bfb`:** precise first-leg-only slack + pre-creation guard in `advance.ts` + `db/workout.ts`, fixing 2 Jest suites red at `4ac4d45` (advance.test.ts historical 500 vs 1000, workout-v2.test.ts equal-timestamp 20_000); adversarial attribution matrix, full local green, App CI should now be green on the repair SHA; repo-state/ownership/OpenSpec green, `STATE` synced at `6451bfb`.
 - **0 predecessor closure already done at `f66f65c`:** 014 COMPLETED with docs-final DONE (MASTER_PLAN 013→COMPLETED + new 014 section, PARITY_MATRIX V3/mastery/Spotlight), AVD `braintraining-qa36` restored at 6 AVDs and boots to `sys.boot_completed=1` in ~30s with `-memory 3072 -no-snapshot`, APK 80M `BUILD SUCCESSFUL` + `adb install` `Success` + `am start` success, prior dedicated-AVD green at `f4aa44c` considered exit evidence per honest NOT VALIDATED for the re-run (emulator segfault after ~60-120s, `workout-focus` `IN_PROGRESS` then `device offline`).
 - **This transition atomically sets 015 ACTIVE:** `change.json` PROPOSED→ACTIVE, `GOVERNANCE.activeCampaign` 014→015, `CURRENT_CAMPAIGN.md` + `EXECUTION_PROMPT.md` replaced with 015 pointers (12-hour envelope), `STATE.md` synced to 015 ACTIVE, `task-ownership.json` replaced with the 015 packet map (real repo-root paths, overlap/intersection semantics, per-packet validation). No game #43, no hardening.
-### Validation snapshot at 015 transition (this commit, 015 ACTIVE, predecessor 014 COMPLETED at `f66f65c` / `6451bfb` head)
+### Validation snapshot at 015 transition (historical baseline; 015 ACTIVE, predecessor 014 COMPLETED at `f66f65c` / `6451bfb` head)
 
 - Repo gates: repo-state PASS (now 015 ACTIVE, 5 delta specs), registry --check PASS, provenance PASS, ownership PASS (now 015 map with real repo-root paths, not 006R `src/**`), offline CLEAN (919 files), `npx @fission-ai/openspec validate --all` 2/2 PASS (015 ACTIVE now, not PROPOSED)
 - tsc CLEAN · eslint 0/0 (last at 013 closure, no new lint-relevant code beyond `advance.ts`/`workout.ts` precise slack which is lint-clean) · Jest: 483 suites / 5973 tests PASS (now precise at `d645bbb`, was 2 failed at `4ac4d45` with blanket 10s window, now App CI should be green) · `node scripts/qa/autobot.mjs --self-test` 49/49 PASS (after WSL fixes)
@@ -77,7 +69,13 @@ Each durable recovery document carries exactly one structured field that declare
 
 ## Next required action
 
-015 is **ACTIVE at this transition** (P0 red-main recovery already done at `d645bbb`/`6451bfb`, 0 predecessor closure already done at `f66f65c` with docs-final DONE and `COMPLETED` checkpoint). Next is **015 governance/bootstrap workstreams (1–4)** per `tasks.md` dependency order: make `validate-repo-state` unconditional for every active campaign (remove 006R special-case), validate change metadata/specOrder/EXECUTION/audit-map, parse structured campaign/status, add focused tests, bind `task-ownership` to 015 with real repo-root paths and overlap/intersection semantics, define machine-readable campaign fields and detect contradictions, extend `validate-affected` for current subsystems, add root hygiene validator and delete `'` + `i.startsWith('home')`, reconcile 006R legacy, then **parallel game/content packets** (Rule Grid, Word Chain, Context Fit, Transform Match) via disjoint `apps/mobile/src/games/**` and content packs, then **runtime evidence** (perf probes + a11y) and **convergence** (repo-state/OpenSpec/ownership/affected, registry/provenance/offline, QA self-test, TS/lint/Jest, web export/Doctor, dedicated AVD journeys, green App CI + Repository Integrity on final SHA, no Critical/High). The 12-hour envelope continues; do not add game #43.
+015 is **ACTIVE**. Governance/bootstrap, game/content convergence, runtime
+evidence, and the causal workout-attribution implementation are landed or
+revalidated on base `299a831`. The final action is to rerun post-edit gates,
+commit and push the coherent continuation, inspect App CI and Repository
+Integrity on the exact pushed SHA, and keep unresolved full-suite timeout and
+dedicated `braintraining-qa36` boot evidence recorded honestly. Proposed
+Campaign 016 remains unopened; do not add game #43.
 ## Recovery order
 
 1. `AGENTS.md`

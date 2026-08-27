@@ -3,7 +3,7 @@
 **Status:** ACTIVE
 **Change:** `015-governance-depth-convergence` (`change.json` ACTIVE)
 **Planned-From:** `c8acadceb46ad6ba3f90b0c4222583a9a2912f49` (audited baseline) → `366a098` (current-head re-audit at `4ac4d45`) → `f66f65c` (014 COMPLETED)
-**Planned-At:** 2026-08-27
+**Planned-At:** 2026-08-28 continuation
 **Target-Branch:** `main`
 **Authorization:** explicit owner directive — `CAMPAIGN015_PROMPT.md` / `EXECUTION.md` 12-hour execution envelope; predecessor 014 COMPLETED at `f66f65c`.
 **Predecessor:** `014-experience-depth-replayability` (COMPLETED 2026-08-27 at `f66f65c`)
@@ -11,7 +11,7 @@
 
 ## Mission
 
-Make the autonomous campaign system mechanically trustworthy, then close the small set of verified depth/replayability gaps that remain after Campaign 014: Rule Grid chained deduction, language content starvation, Transform Match semantic/invariant safety, and measured runtime/accessibility evidence. Do not add games or unrelated features. Make green mean the active plan.
+Make the autonomous campaign system mechanically trustworthy, then close the small set of verified depth/replayability gaps that remain after Campaign 014: Rule Grid chained deduction, language content starvation, Transform Match semantic/invariant safety, measured runtime/accessibility evidence, and causal workout completion attribution. Do not add games or unrelated features. Make green mean the active plan.
 
 ## Activation precondition (now satisfied)
 
@@ -19,7 +19,7 @@ Campaign 015 was PROPOSED until Campaign 014 was durably COMPLETED. 014 is now C
 
 ## Ordered workstreams
 
-**P0 — Current-head green recovery (already done at `d645bbb`/`6451bfb`):** 2-suite workout routing failures at `366a098` are fixed with precise first-leg-only slack + pre-creation guard (no blanket 10s window), adversarial attribution matrix, full local green, App CI + Repository Integrity should now be green on the repair SHA. If HEAD moved, re-audit the diff/CI first.
+**P0 — Current-head green recovery:** Historical failures at `366a098` were caused by the timestamp-grace ownership heuristic. On moved head `299a831`, App CI `33108680781` and Repository Integrity `33108680778` were green and the old failures no longer reproduced pre-edit. The current continuation replaces that heuristic with durable `(instanceKey, legIndex, gameId)` provenance and conditional advancement; focused attribution tests are green, while final full-Jest/device/exact-SHA convergence remains open.
 
 **Governance & State Truthfulness (1–4):** OpenSpec binding unconditional, ownership binding to active change, state integrity across GOVERNANCE/STATE/CURRENT_CAMPAIGN/EXECUTION_PROMPT/OpenSpec/ownership, affected-area coverage for current subsystems, root hygiene (delete `'` and `i.startsWith('home')`, narrow validator), legacy 006R reconciliation.
 

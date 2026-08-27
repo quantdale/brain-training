@@ -10,7 +10,7 @@ Executable rules live in `scripts/validate-affected.mjs` (`RULES`). This table i
 | `apps/mobile/src/sync/**`, `apps/mobile/src/data-portability/**` | `npm run test:ci -- src/sync src/data-portability`; typecheck; export/wipe/import round-trip if envelope changed |
 | `apps/mobile/src/content/**`, `apps/mobile/src/registry/**`, `scripts/generate-game-registry.mjs` (content/registry/provenance) | `npm run test:ci -- src/content`; `node scripts/generate-game-registry.mjs --check`; provenance check; content validation |
 | package manifest/lockfile | clean dependency install; repository validator; available typecheck/build |
-| app navigation/shell | typecheck; affected unit tests; app launch + navigation smoke |
+| app navigation/shell (`apps/mobile/src/app/**`, `apps/mobile/src/components/game-host/**`) | typecheck; affected unit tests; app launch + navigation smoke |
 | SQLite/schema/migrations | migration tests; persistence tests; launch; representative read/write smoke |
 | Game SDK shared contracts | typecheck; SDK unit/contract tests; representative canary games; app launch |
 | individual game module | typecheck; game unit/contract tests; targeted emulator smoke for that game |

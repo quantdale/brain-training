@@ -6,6 +6,11 @@ import { INITIAL_RATING, RatingRepository } from "../rating";
 import { SessionRepository } from "../sessions";
 import type { CompleteSessionInput, GameSessionRecord } from "../types";
 import { createMigratedDb } from "./helpers";
+import {
+  clearWorkoutSessionLaunch,
+  peekWorkoutSessionLaunch,
+  registerWorkoutSessionLaunch,
+} from "@/workout/session-provenance";
 
 const T0 = 1_700_000_000_000;
 
@@ -31,6 +36,47 @@ function makeSession(
 }
 
 describe("completeSession", () => {
+  it("persists workout ownership at the completion boundary and restores it", async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+    const provenance = {
+      instanceKey: "2026-08-28",
+      legIndex: 0,
+      gameId: "game-memoria",
+    } as const;
+    registerWorkoutSessionLaunch("session-1", provenance);
+
+    const result = await sessions.completeSession({ session: makeSession() });
+
+    expect(result.session.workoutProvenance).toEqual(provenance);
+    const raw = await adapter.get<{ raw_result_json: string }>(
+      "SELECT raw_result_json FROM game_sessions WHERE id = ?",
+      ["session-1"],
+    );
+    expect(JSON.parse(raw!.raw_result_json).workoutProvenance).toEqual(provenance);
+    expect((await sessions.getById("session-1"))?.workoutProvenance).toEqual(provenance);
+    expect(peekWorkoutSessionLaunch("session-1")).toBeUndefined();
+  });
+
+  it("leaves launch ownership available when completion validation fails", async () => {
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+    const provenance = {
+      instanceKey: "2026-08-28",
+      legIndex: 0,
+      gameId: "game-memoria",
+    } as const;
+    registerWorkoutSessionLaunch("session-1", provenance);
+
+    await expect(
+      sessions.completeSession({
+        session: makeSession({ completedAt: T0 - 1 }),
+      }),
+    ).rejects.toThrow(/completedAt/);
+    expect(peekWorkoutSessionLaunch("session-1")).toEqual(provenance);
+    clearWorkoutSessionLaunch("session-1");
+  });
+
   it("coerces INTEGER-declared columns at the persistence boundary (fractional monotonic-clock durations)", async () => {
     // Device-verified defect (campaign 013 certification): the SDK monotonic
     // clock is fractional-ms, so durationMs arrived as e.g. 27646.5688 and

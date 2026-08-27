@@ -55,6 +55,49 @@ describe('export → import round trip', () => {
     expect(session.normalizedResult).toBe(0.9);
   });
 
+  it('round-trips workout session ownership embedded in rawResult JSON', async () => {
+    const src = await makeDb();
+    const provenance = {
+      instanceKey: '2026-08-28::focus-memory::short',
+      legIndex: 1,
+      gameId: 'memory-grid-recall',
+    };
+    await src.transaction(async (txn) => {
+      await txn.run(
+        `INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          'owned-session',
+          provenance.gameId,
+          1,
+          1,
+          1,
+          7,
+          '{}',
+          JSON.stringify({ score: 8, workoutProvenance: provenance }),
+          0.8,
+          20,
+          T0,
+          T0 + 100,
+          100,
+        ],
+      );
+    });
+
+    const env = await exportLocalData(src, { now: () => T0 + 1 });
+    const parsed = parseAndValidateBackup(serializeBackup(env));
+    expect(
+      (parsed.data.gameSessions.find((s) => s.id === 'owned-session')?.rawResult as Record<string, unknown>)
+        .workoutProvenance,
+    ).toEqual(provenance);
+
+    const target = await makeDb();
+    await applyImport(target, parsed, 'replace');
+    expect((await target.sessions.getById('owned-session'))?.workoutProvenance).toEqual(
+      provenance,
+    );
+  });
+
   it('round-trips workout instance metadata (Workout V2 reasons/provenance) through export + replace import', async () => {
     // Seed a template instance WITH metadata (as the engine writes it on
     // schema v10) and one legacy row without any.

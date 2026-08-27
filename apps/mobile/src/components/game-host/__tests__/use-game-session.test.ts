@@ -15,12 +15,18 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook } from '@testing-library/react-native';
+import { createElement } from 'react';
 import { AppState } from 'react-native';
 
 import { createFakeClock } from '@/sdk';
 
 import { useGameSession } from '../use-game-session';
 import type { GameSessionController, UseGameSessionOptions } from '../use-game-session';
+import { WorkoutSessionLaunchProvider } from '@/workout/session-launch-context';
+import {
+  clearWorkoutSessionLaunch,
+  peekWorkoutSessionLaunch,
+} from '@/workout/session-provenance';
 
 type ChangeHandler = (state: string) => void;
 
@@ -73,6 +79,30 @@ describe('useGameSession', () => {
 
     clock.advance(500);
     expect(controller.elapsedMs()).toBe(500);
+  });
+
+  it('registers exact workout launch ownership under the generated session id', async () => {
+    const clock = createFakeClock(1_000);
+    const provenance = {
+      instanceKey: '2026-08-28',
+      legIndex: 1,
+      gameId: 'host-test-game',
+    } as const;
+    const rendered = await renderHook(
+      () => useGameSession({ gameId: 'host-test-game', clock }),
+      {
+        wrapper: ({ children }) =>
+          createElement(
+            WorkoutSessionLaunchProvider,
+            { provenance },
+            children,
+          ),
+      },
+    );
+
+    const identity = rendered.result.current.begin();
+    expect(peekWorkoutSessionLaunch(identity.sessionId)).toEqual(provenance);
+    clearWorkoutSessionLaunch(identity.sessionId);
   });
 
   it('claimFinalize returns true exactly once per session; begin() re-arms it', async () => {

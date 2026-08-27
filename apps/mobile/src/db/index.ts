@@ -34,6 +34,7 @@ export type {
   RatingService,
   SQLiteValue,
 } from './types';
+export type { WorkoutSessionProvenance } from '@/workout/session-provenance';
 export { SCHEMA_VERSION, SQL, MIGRATIONS } from './schema';
 export type { Migration } from './schema';
 export { runMigrations, getSchemaVersion, initializeConnection } from './migrate';
@@ -57,7 +58,7 @@ export { SessionRepository } from './sessions';
 export { TutorialRepository } from './tutorial';
 export type { CompleteSessionResult, GameAggregate } from './sessions';
 export { WorkoutRepository } from './workout';
-export type { WorkoutInstance, WorkoutStatus } from './workout';
+export type { WorkoutAdvanceResult, WorkoutInstance, WorkoutStatus } from './workout';
 export { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 export {
   spendCurrency,

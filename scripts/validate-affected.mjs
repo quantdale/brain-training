@@ -59,7 +59,11 @@ const RULES = [
   {
     name: 'app navigation / shell',
     impact: 'app navigation/shell',
-    match: ['apps/mobile/src/app/**', 'apps/mobile/src/components/app-tabs*.tsx'],
+    match: [
+      'apps/mobile/src/app/**',
+      'apps/mobile/src/components/app-tabs*.tsx',
+      'apps/mobile/src/components/game-host/**',
+    ],
     checks: [
       'cd apps/mobile && npm run typecheck',
       'cd apps/mobile && npm run test:ci',
