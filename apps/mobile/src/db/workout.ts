@@ -467,9 +467,14 @@ export class WorkoutRepository {
         Math.max(Math.trunc(instance.currentIndex), 0),
         instance.gameIds.length,
       );
+      // 10s slack: a freshly-started instance has updatedAt ≈ now, so the first
+      // force-completed game's completedAt can land at/before it and block the
+      // first advance (cascading to a stuck 0/N "In progress" for template
+      // workouts). The slack matches advance.ts's ADVANCE_TIMESTAMP_SLACK_MS and
+      // still rejects genuinely historical result views (days old).
       if (
         instance.gameIds[index] === gameId &&
-        completedAt > instance.updatedAt
+        completedAt > instance.updatedAt - 10_000
       ) {
         return instance;
       }

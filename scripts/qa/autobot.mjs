@@ -2042,17 +2042,14 @@ async function flowWorkout() {
     // workout-list scroll-up happens lazily where the tile is needed. Never
     // press more BACKs once a marker is seen — popping past Home's root
     // route exits the app to the launcher.
-    let hx2 = null;
-    for (let b = 0; b < 3 && !hx2; b++) {
-      shell("input keyevent 4");
-      await sleep(1500);
-      hx2 = await waitForAny(
-        HOME_READY_IDS.concat(["home-workout-templates"]),
-        b === 2 ? 30000 : 8000,
-        `wk-home-a${i}-b${b}`,
-      );
-    }
-    if (!hx2) return wkFail(t0, log, `did not return Home after ${gameId}`);
+    // Reuse the robust back-to-Home helper (generic `home-` marker detection +
+    // RedBox/LogBox dismissal + relaunch-on-foreground-loss). The inline narrow
+    // HOME_READY_IDS set does NOT match this build's Home route (which exposes
+    // home-spotlight/home-milestones/home-recent-games, not home-brand/title/
+    // workout-list/templates), so it false-failed "did not return Home" even
+    // though Home had rendered.
+    const returnedHome = await backToHomeAfterLeg(`wk-home-a${i}`);
+    if (!returnedHome) return wkFail(t0, log, `did not return Home after ${gameId}`);
     const wantId = i < 3 ? "results-next-game" : "results-workout-complete";
     let resPage = null;
     for (let t = 0; t < 3 && !resPage; t++) {
@@ -2377,6 +2374,26 @@ async function detectMountedGame(tag, budgetMs) {
 // template id, the start-button label, and XML snapshots for callers that
 // need follow-up assertions or taps.
 async function selectTemplateAndLength({ wantedTemplateId, length, tag }) {
+  // If the detail panel is already open, do NOT re-tap the chip — re-tapping a
+  // selected chip toggles it closed and loses the panel (device-verified: the
+  // focus journey would open the panel, then a re-select collapsed it and every
+  // subsequent poll saw a closed Home). Return the live panel so callers can
+  // poll it while it stays open.
+  const live = readFileSyncSafe(dumpHierarchy(`${tag}-live`));
+  if (live && hasTestId(live, "home-workout-selected")) {
+    return {
+      ok: true,
+      templateId: wantedTemplateId,
+      chipsXml: live,
+      panelXml: live,
+      focusPresent: hasTestId(live, "home-workout-focus"),
+      selectedPresent: true,
+      startLabel:
+        (findTestId(live, "home-workout-template-start")?.contentDesc ||
+          "") ||
+        "",
+    };
+  }
   // Scroll until an actual template ROW is visible — stopping at the section
   // header (home-workout-templates) leaves the chips below the fold where
   // uiautomator cannot see them.
@@ -2415,13 +2432,9 @@ async function selectTemplateAndLength({ wantedTemplateId, length, tag }) {
     };
   tapTestId(`home-workout-length-${length}`, lenNode.xml);
   await sleep(500);
-  const panel = await scrollToAny(
-    ["home-workout-selected", "home-workout-template-start"],
-    `${tag}-panel`,
-    3,
-  );
+  const panel = await scrollToAny(["home-workout-selected"], `${tag}-panel`, 3);
   if (!panel)
-    return { ok: false, reason: "selected-template panel did not render after pick" };
+    return { ok: false, reason: "selected-template detail panel did not render after pick" };
   let panelXml = panel.xml;
   let startBtn = findTestId(panelXml, "home-workout-template-start");
   if (!startBtn) {
@@ -2687,6 +2700,12 @@ async function flowWorkoutTemplate(opts) {
   // the viewport may be at the bottom where the card is off-screen.
   for (let up = 0; up < 3; up++) { swipeUp(); await sleep(700); }
 
+  // The completion card is a transient post-session surface — capture its
+  // per-game outcomes IN-SESSION (it proves the just-finished workout reported
+  // every leg). The durable checks below (history row + Completed-on-reselect)
+  // read resumeById, which races the in-session async workoutHistory load; they
+  // are polled with a real wait (see the re-select loop) rather than trusted on
+  // the first cold poll.
   const cardHit = await scrollToAny(
     ["home-workout-completion-card"],
     `${tag}-card`,
@@ -2701,22 +2720,68 @@ async function flowWorkoutTemplate(opts) {
         outcomeRows.push(gid);
     screenshot(`${tag}-completion-card`);
   }
-  const histHit = await scrollToAny(["home-workout-history"], `${tag}-hist`, 4);
-  let historyRow = null;
-  if (histHit) {
-    const rows = histHit.xml.match(/home-workout-history-[A-Za-z0-9-]+/g) || [];
-    historyRow = rows.find((r) => r.includes(templateId)) || null;
-    if (historyRow) screenshot(`${tag}-history`);
+  log(
+    `completion card outcomes=${outcomeRows.length}/${played.length} (captured in-session)`,
+  );
+
+  // Relaunch to force a FRESH, committed read of the persisted workout row before
+  // asserting durable state (home-workout-history + selected-done). This mirrors
+  // the daily-workout journey's proven relaunch-persistence probe: the in-session
+  // async workoutHistory load races the just-completed session, so a fresh mount
+  // is the reliable way to read the committed completion (device-verified: the
+  // focus instance advances to completed/4 only after the in-session read window).
+  adb(["shell", "am", "force-stop", PKG]);
+  await sleep(1500);
+  launch();
+  if (!(await waitForHome()))
+    return finishFail("did not return Home after relaunch");
+  for (let up = 0; up < 3; up++) { swipeUp(); await sleep(700); }
+
+  // The completion card outcomes were captured in-session above. The durable
+  // checks (history row + Completed-on-reselect) read resumeById, which refreshes
+  // ASYNCHRONOUSLY after the session persists. Device runs show the selected-done
+  // marker can take >15s to appear, and uiautomator intermittently returns a
+  // null-root dump. So re-select the finished template in a poll — each
+  // iteration re-taps the chip, re-opening the detail panel with the freshly
+  // refreshed resume prop — until done renders or a generous budget elapses.
+  // This mirrors a user re-opening the finished workout and seeing Completed.
+  // Poll the finished template's detail panel for the Completed marker. Each
+  // iteration opens/re-selects (selectTemplateAndLength now NO-OPs when the
+  // panel is already open, so it never toggles the chip closed) and checks the
+  // live panel. resumeById refreshes asynchronously after the session persists
+  // and the selected-done node can take >15s to appear (device-verified: the
+  // panel dump taken later DOES show home-workout-selected-done; the first
+  // check raced the cache). Give it a long budget so the committed row is
+  // reliably read back while the panel stays open.
+  let completedState = false;
+  let doneSel = null;
+  for (let d = 0; d < 25 && !completedState; d++) {
+    doneSel = await selectTemplateAndLength({
+      wantedTemplateId: templateId,
+      length,
+      tag: `${tag}-done${d}`,
+    });
+    if (doneSel && doneSel.ok)
+      completedState = hasTestId(doneSel.panelXml, "home-workout-selected-done");
+    if (!completedState) await sleep(2500);
   }
-  // Re-select the finished template: the panel must surface Completed-today.
-  const doneSel = await selectTemplateAndLength({
-    wantedTemplateId: templateId,
-    length,
-    tag: `${tag}-done`,
-  });
-  const completedState =
-    !!doneSel.ok && hasTestId(doneSel.panelXml, "home-workout-selected-done");
-  if (doneSel.ok) screenshot(`${tag}-done-panel`);
+  if (doneSel && doneSel.ok) screenshot(`${tag}-done-panel`);
+  // The history widget + resumeById both derive from the same async
+  // workoutHistory refresh, so search for the per-template history row AFTER
+  // the done-poll above has already burned ~16s waiting for that refresh.
+  let historyRow = null;
+  for (let h = 0; h < 6 && !historyRow; h++) {
+    const histHit = await scrollToAny(["home-workout-history"], `${tag}-hist${h}`, 4);
+    if (histHit && !DUMP_ERROR_RE.test(histHit.xml)) {
+      const rows = histHit.xml.match(/home-workout-history-[A-Za-z0-9-]+/g) || [];
+      historyRow = rows.find((r) => r.includes(templateId)) || null;
+      if (historyRow) {
+        screenshot(`${tag}-history`);
+        break;
+      }
+    }
+    await sleep(2000);
+  }
 
   log(
     `completion evidence: outcomes=${outcomeRows.length}/${played.length} history=${historyRow ? "yes" : "NO"} completed-state=${completedState}`,

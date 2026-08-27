@@ -60,6 +60,13 @@ v1 baseline (42/42 certify, SHA ba6dd84), but active work is 014.
   (honest, statement-count guards green).
 - npm audit: 16 build-toolchain-only (unchanged)
 
+### Working state 2026-08-27 (unpushed, emulator blocked)
+
+- App fix (not yet device-proven this session): `advance.ts` + `db/workout.ts` — template-instance first-advance race (`completedAt > updatedAt` blocked fresh-start focus workouts, cascading to 0/N "In progress" forever). Fixed with 10s slack (still rejects historical result views). Daily instance (old `updatedAt`) always passed, so daily-workout E2E was green.
+- Harness fix: `scripts/qa/autobot.mjs` — scrolled-Home via any `home-*`, RedBox/LogBox dismissal before dump-error filter, shade collapse, 90s recovery, completion-card swipe-to-top, live-panel no-toggle guard + 62s re-select poll for `home-workout-selected-done`; self-test 49/49 PASS.
+- Repo gates (working tree): `validate-repo-state` PASS, `tsc --noEmit` PASS, harness self-test 49/49 PASS. Full Jest / registry / provenance / offline not re-run (targeted advance guard only; statement-count guards green).
+- Android: **NOT VALIDATED this session** — `braintraining-qa36` failed to boot after 5 headless attempts (cold + wipe-data, 12 GB free, "did not register with adb within 60s" → segfault, 37.1.x WHPX). Prior dedicated-AVD evidence (canaries 8/8, daily-workout 4/4 + relaunch) remains the last green device evidence. Metro `braintraining-qa36` + `braintraining35` both affected; foreign `Nitro_API_36` not adopted per policy. Honest perf: opt-in probes NOT VALIDATED.
+
 ## Authoritative active change
 
 `.agent/CURRENT_CAMPAIGN.md` (campaign 014) + `.agent/KNOWN_ISSUES.md` + `.agent/CAMPAIGN015_AUDIT.md` (015 is PROPOSED planning material).

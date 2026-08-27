@@ -2,9 +2,8 @@
 
 ## Current blockers
 
-- **None blocking.** The Campaign 013 release gate (`--mode certify` 42/42
-  single-driver Android run) is executed on the dedicated isolated AVD; see
-  `.agent/VALIDATION.md` for the authoritative evidence.
+- **Campaign 014 device-journey closure blocked by host emulator (2026-08-27, genuine infrastructure blocker, not product):** dedicated AVD `braintraining-qa36` failed to boot after 5 headless attempts (cold + wipe-data, 12 GB free, "did not register with adb within 60s" → no running emulator, emulator 37.1.x WHPX segfault, `docs/ANDROID_AUTOMATION.md`). `braintraining35` also missing image. Prior dedicated-AVD green evidence remains (canaries 8/8, daily-workout 4/4 + relaunch), but the required Workout V3 E2E re-run with the new template-advance fix (focus 0/4 → completed) is NOT VALIDATED this session. Honest perf: opt-in probes NOT VALIDATED. Blocks 014 terminal checkpoint and 015 activation; leave 015 PROPOSED per `EXECUTION.md`.
+- Campaign 013 release gate (`--mode certify` 42/42) remains GREEN (see `VALIDATION.md`).
 
 ## Open debt (tracked, non-blocking)
 

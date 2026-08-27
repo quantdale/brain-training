@@ -21,6 +21,17 @@ export interface CompletedGameSignal {
   completedAt: number;
 }
 
+// A freshly-started instance is created with `updatedAt ≈ now`; the very first
+// game can be force-completed (or simply finished) at an instant at/before that
+// creation timestamp, which would make `completedAt > updatedAt` FALSE and block
+// the FIRST advance. Once blocked, currentIndex never moves and every later leg
+// fails the `gameIds[currentIndex] === gameId` match, so a template workout
+// (unlike the long-lived daily instance, whose updatedAt is old) stays 0/N
+// "In progress" forever. A small slack absorbs that creation-vs-first-completion
+// skew without re-opening the historical-result hole the guard exists to close
+// (those are days old, far beyond this window).
+const ADVANCE_TIMESTAMP_SLACK_MS = 10_000;
+
 /**
  * Whether a completed session should advance the durable daily workout.
  * Returns false unless every gate below holds:
@@ -40,7 +51,7 @@ export function shouldAdvanceWorkout(
     return false;
   }
   // Idempotency gate: only advance for a session newer than the last advance.
-  return signal.completedAt > instance.updatedAt;
+  return signal.completedAt > instance.updatedAt - ADVANCE_TIMESTAMP_SLACK_MS;
 }
 
 /** Game id at the current resume position, or null when the list is exhausted. */
