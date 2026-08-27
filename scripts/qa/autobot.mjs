@@ -2737,6 +2737,17 @@ async function flowWorkoutTemplate(opts) {
     return finishFail("did not return Home after relaunch");
   for (let up = 0; up < 3; up++) { swipeUp(); await sleep(700); }
 
+  // Wait for the More-workouts templates section to render after the fresh mount
+  // (useWorkoutTemplates hook does async DB reads + reconciliation; waitForHome
+  // only waits for home-brand, not for templates). Without this, selectTemplateAndLength
+  // fails to find home-workout-template-row and never opens the detail.
+  const templatesReady = await waitForAny(["home-workout-template-row", "home-workout-templates"], 30000, `${tag}-templates-ready`);
+  if (templatesReady) {
+    log(`templates ready after relaunch: ${templatesReady.id}`);
+  } else {
+    log(`templates not ready after relaunch (will retry in select poll)`);
+  }
+
   // The completion card outcomes were captured in-session above. The durable
   // checks (history row + Completed-on-reselect) read resumeById, which refreshes
   // ASYNCHRONOUSLY after the session persists. Device runs show the selected-done
