@@ -1,9 +1,9 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 terminal blocked checkpoint at local
-source head `87f43c2`; terminal checkpoint is being committed. GitHub push
-remains blocked by the token's missing `workflow` scope. Static validators,
+**Last update:** 2026-08-29 (Campaign 016 terminal blocked checkpoint committed
+at local `fdbf145`, based on source head `87f43c2`. GitHub push remains blocked
+by the token's missing `workflow` scope. Static validators,
 typecheck/lint, web export (20 routes), Expo Doctor (21/21), bounded failure
 path (5 suites/20 tests), accessibility (6/6 and 2/2), and dependency
 classification (0 critical; 16 toolchain-only findings) pass. Android inventory
