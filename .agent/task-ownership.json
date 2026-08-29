@@ -1,9 +1,10 @@
 {
   "schemaVersion": 1,
-  "change": "015-governance-depth-convergence",
-  "description": "Machine-readable ownership for 015-governance-depth-convergence. Each packet declares coder-write surfaces (globs a swarm coder may edit), shared surfaces (read/merge by multiple coders, never exclusively owned), and orchestrator-only surfaces (must not be edited by a coder bot). Validation rejects overlapping coder surfaces, coder edits to orchestrator-only surfaces, direct edits to generated files, and missing per-packet validation. Decision 3.6: packets do NOT carry expected affected-area checks — affected-area planning remains advisory/risk-based via scripts/validate-affected.mjs; packets carry cheap completion validation instead, avoiding automatic full hardening for localized work (see repository-state-integrity spec).",
+  "change": "016-release-certification-hardening",
+  "description": "Machine-readable ownership for Campaign 016 release certification and hardening. Packets use disjoint coder surfaces; shared lifecycle, CI, generated, dependency, and documentation surfaces remain orchestrator-owned. Full hardening is explicit in the active campaign and is not inferred for localized packets.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/015-governance-depth-convergence/**",
+    "openspec/changes/016-release-certification-hardening/**",
     ".agent/GOVERNANCE.json",
     ".agent/STATE.md",
     ".agent/CURRENT_CAMPAIGN.md",
@@ -34,40 +35,40 @@
   ],
   "parallelPackets": [
     {
-      "id": "packet-rule-grid",
-      "tasks": ["5.1-5.9"],
-      "title": "Rule Grid chained-deduction redesign",
-      "coderWriteSurfaces": ["apps/mobile/src/games/logic-rule-grid/**"],
+      "id": "packet-clean-checkout",
+      "tasks": ["1.1-1.6"],
+      "title": "Clean-checkout reproducibility and certification runner",
+      "coderWriteSurfaces": ["scripts/certification/**"],
       "sharedSurfaces": [],
       "dependencies": [],
-      "validation": "npm run typecheck && npm run test:ci -- src/games/logic-rule-grid --no-coverage && node scripts/validate-repo-state.mjs"
+      "validation": "node scripts/validate-repo-state.mjs && node scripts/validate-task-ownership.cjs"
     },
     {
-      "id": "packet-word-chain",
-      "tasks": ["6.1-6.7"],
-      "title": "Word Chain curated expansion to >=90 chains",
-      "coderWriteSurfaces": ["apps/mobile/src/games/language-word-chain/**"],
+      "id": "packet-native-build",
+      "tasks": ["2.1-2.7"],
+      "title": "Native build reproducibility and production boundary audit",
+      "coderWriteSurfaces": ["apps/mobile/plugins/**", "apps/mobile/app.json"],
       "sharedSurfaces": [],
       "dependencies": [],
-      "validation": "npm run typecheck && npm run test:ci -- src/games/language-word-chain --no-coverage && node scripts/validate-repo-state.mjs"
+      "validation": "cd apps/mobile && npx expo-doctor"
     },
     {
-      "id": "packet-context-fit",
-      "tasks": ["7.1-7.8"],
-      "title": "Context Fit curated expansion to >=60/tier",
-      "coderWriteSurfaces": ["apps/mobile/src/games/language-context-fit/**"],
+      "id": "packet-android-certification",
+      "tasks": ["3.1-3.10"],
+      "title": "Dedicated Android recovery and current-head certification",
+      "coderWriteSurfaces": ["scripts/android/**"],
       "sharedSurfaces": [],
       "dependencies": [],
-      "validation": "npm run typecheck && npm run test:ci -- src/games/language-context-fit --no-coverage && node scripts/validate-repo-state.mjs"
+      "validation": "bash -n scripts/android/*.sh && node scripts/validate-repo-state.mjs"
     },
     {
-      "id": "packet-transform-match",
-      "tasks": ["8.1-8.9"],
-      "title": "Transform Match invariant and hidden-source repair",
-      "coderWriteSurfaces": ["apps/mobile/src/games/spatial-transform-match/**"],
+      "id": "packet-runtime-resilience",
+      "tasks": ["5.1-5.8"],
+      "title": "Runtime persistence, recovery, and boundary resilience",
+      "coderWriteSurfaces": ["apps/mobile/src/backup/**", "apps/mobile/src/workout/**", "apps/mobile/src/db/**"],
       "sharedSurfaces": [],
       "dependencies": [],
-      "validation": "npm run typecheck && npm run test:ci -- src/games/spatial-transform-match --no-coverage && node scripts/validate-repo-state.mjs"
+      "validation": "cd apps/mobile && npm run typecheck && npm run test:ci -- src/backup src/workout src/db --no-coverage"
     }
   ]
 }

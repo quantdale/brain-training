@@ -1,7 +1,7 @@
 {
   "id": "015-governance-depth-convergence",
-  "status": "ACTIVE",
-  "validationNote": "Closure candidate records exact-head App CI 33121632955 and Repository Integrity 33121632951 PASS on ea144d7 (488 suites passed, 4 skipped; 6043 tests passed, 5 skipped; 5 snapshots). Local Linux full-suite execution is NOT VALIDATED due to reproducible host Node SIGSEGV under resource contention; isolated affected suite passed 3/3. Dedicated Android changed-surface journeys are BLOCKED/NOT VALIDATED because this environment has no Android SDK/ADB/emulator and prior bounded braintraining-qa36 Windows/WHPX attempts failed before ADB registration. Closure candidate `9ef2531` had Repository Integrity `33225677246` PASS and App CI `33225677247` fail only at Expo Doctor (`20/21`) due to stale Expo SDK patch versions. Corrective graph updates pass local `npm ci` and Expo Doctor `21/21`; verify both workflows on the corrective SHA before transitioning to VALIDATED and activating 016.",
+  "status": "VALIDATED",
+  "validationNote": "Validated on exact pushed main SHA fc9899e. App CI 33226167744 and Repository Integrity 33226167736 both passed on that SHA. App CI passed validation, registry, provenance, ownership, offline boundary, QA self-test, typecheck, lint, Jest, web export, and Expo Doctor; the archive reported 488 passed / 4 skipped suites and 6043 passed / 5 skipped tests. Local Linux full-suite execution remains NOT VALIDATED after host Node SIGSEGV under contention; dedicated Android remains BLOCKED/NOT VALIDATED because this environment has no SDK/ADB/emulator and prior designated braintraining-qa36 Windows/WHPX attempts failed before ADB registration. No Critical/High product regression is known. Campaign 016 may now become ACTIVE.",
   "baselineAuditCommit": "c8acadceb46ad6ba3f90b0c4222583a9a2912f49",
   "predecessor": "014-experience-depth-replayability",
   "canonicalBranch": "main",

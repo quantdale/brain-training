@@ -1,23 +1,24 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 015 remains **ACTIVE** pending
-corrective-SHA workflow verification; predecessor 014 is COMPLETED at
-`f66f65c`. Closure candidate `9ef2531` passed Repository Integrity
-`33225677246`, while App CI `33225677247` failed only at Expo Doctor because
-three Expo SDK patch dependencies were stale. The corrective patch graph is
-validated locally with Expo Doctor 21/21 and `npm ci`; local Linux full-suite
-execution is host-crash `NOT VALIDATED`; dedicated Android is externally
-BLOCKED/NOT VALIDATED.)
+**Last update:** 2026-08-29 (Campaign 015 VALIDATED and Campaign 016 ACTIVE
+on exact green SHA `fc9899e`; predecessor 014 is COMPLETED at `f66f65c`.
+App CI `33226167744` and Repository Integrity `33226167736` both passed on
+`fc9899e`. 015 local Linux full-suite execution remains host-crash NOT
+VALIDATED and dedicated Android remains externally BLOCKED/NOT VALIDATED;
+these limitations are carried into 016 and are not represented as PASS.)
 **Canonical branch:** `main`
-**Active campaign:** 015-governance-depth-convergence
+**Active campaign:** 016-release-certification-hardening
 
 ## Current status
 
-Campaign 015 — Governance & Depth Convergence is **ACTIVE**. Predecessor 014
-is COMPLETED at `f66f65c`; governance/bootstrap, game/content convergence, and
-runtime evidence are landed through moved base `299a831`. The current
-continuation replaces timestamp/recency workout ownership with an exact
+Campaign 016 — Release Certification & Hardening is **ACTIVE**. Campaign 015
+is VALIDATED on exact green SHA `fc9899e`; its implementation, governance, and
+causal workout-attribution work are complete. 016 now owns clean-checkout
+reproducibility, native/platform evidence, bounded Android recovery, CI signal
+integrity, runtime resilience/security, performance/accessibility evidence, and
+final certification. Android/iOS/manual-sheet limitations remain explicitly
+classified and must not be relabeled without evidence.
 `(instanceKey, legIndex, gameId)` provenance tuple carried from workout route
 through the shared game host into persisted session JSON, then advances the
 matching active row with a conditional transaction. Focused attribution tests
@@ -73,12 +74,13 @@ Each durable recovery document carries exactly one structured field that declare
 
 ## Next required action
 
-015 is **ACTIVE pending closure-SHA verification**. The exact-head CI evidence
-is green; local Linux full-suite crashes and dedicated Android unavailability
-are explicitly classified `NOT VALIDATED`/`BLOCKED`, not PASS. Commit and push
-this closure checkpoint, verify App CI and Repository Integrity on that exact
-closure SHA, then atomically mark 015 `VALIDATED` and activate proposed 016.
-Do not add game #43.
+016 is **ACTIVE** after 015 was validated on exact green SHA `fc9899e`.
+Execute the 016 release-certification and hardening phases in order: clean
+checkout, native build evidence, bounded dedicated-Android recovery, CI signal
+integrity, runtime resilience/security, performance/accessibility evidence, and
+final exact-SHA certification. Preserve Android/iOS/manual-sheet
+`BLOCKED`/`NOT VALIDATED` classifications until fresh evidence exists. Do not
+add game #43 or broaden the product scope.
 ## Recovery order
 
 1. `AGENTS.md`

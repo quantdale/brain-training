@@ -1,6 +1,6 @@
 {
   "id": "016-release-certification-hardening",
-  "status": "PROPOSED",
+  "status": "ACTIVE",
   "predecessor": "015-governance-depth-convergence",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -13,7 +13,7 @@
     "ci-signal-integrity",
     "runtime-resilience"
   ],
-  "activationRule": "Campaign 015 must be truthfully closed on an exact green main SHA before 016 may become ACTIVE.",
+  "activationRule": "Campaign 015 was truthfully closed on exact green main SHA fc9899e before 016 became ACTIVE.",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
   "fullHardening": true,

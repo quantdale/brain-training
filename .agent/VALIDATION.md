@@ -1342,8 +1342,9 @@ warning, not a failed check. Local Linux full-suite execution is NOT VALIDATED
 after Node SIGSEGV crashes under host contention; the isolated affected suite
 passed 3/3. Dedicated Android is BLOCKED/NOT VALIDATED because this environment
 has no Android SDK/ADB/emulator, consistent with prior bounded 37.1.x/WHPX
-failures. 015 remains ACTIVE until both workflows are verified on its closure
-SHA; proposed Campaign 016 is not activated yet.
+failures. Campaign 015 was later validated on exact green closure SHA
+`fc9899e`; Campaign 016 is now the sole active campaign. The historical
+platform limitations remain explicitly classified and are carried into 016.
 
 ### Campaign 015 closure-SHA CI repair — 2026-08-29
 
@@ -1361,8 +1362,20 @@ SHA; proposed Campaign 016 is not activated yet.
   OpenSpec, and focused governance/Context Fit tests (11 suites / 100 tests)
   **PASS**. The local Node engine warnings are pre-existing and the accepted
   dependency audit remains unchanged.
-- The repair is not yet the final green closure SHA until both workflows are
-  rerun on its pushed commit.
+- Corrective closure SHA `fc9899e` exact workflow result: App CI
+  `33226167744` **PASS** and Repository Integrity `33226167736` **PASS**.
+  Campaign 015 is therefore **VALIDATED**; Campaign 016 was activated only
+  after this exact-SHA verification.
+
+### Campaign 015 → 016 lifecycle transition — 2026-08-29
+
+- 015 `change.json` is `VALIDATED`; 016 `change.json` and
+  `EXECUTION.md` are `ACTIVE`.
+- GOVERNANCE, STATE, CURRENT_CAMPAIGN, EXECUTION_PROMPT, task ownership, and
+  OpenSpec agree on exactly one active campaign: `016-release-certification-hardening`.
+- Android dedicated-device evidence remains BLOCKED/NOT VALIDATED; iOS native
+  build and manual system-sheet evidence remain NOT VALIDATED. These are 016
+  work items, not PASS claims.
 
 ### Campaign 015 closure candidate — 2026-08-28
 
@@ -1375,5 +1388,6 @@ SHA; proposed Campaign 016 is not activated yet.
 - Platform evidence: Android BLOCKED/NOT VALIDATED (no SDK/ADB/emulator here;
   prior designated AVD attempts failed before ADB registration/segfaulted), iOS
   and manual system sheets NOT VALIDATED.
-- Next action: push the closure candidate, verify both workflows on its exact
-  SHA, then perform a separate 015 VALIDATED → 016 ACTIVE transition.
+- Historical next action completed: corrective closure SHA `fc9899e` was pushed,
+  both exact-SHA workflows passed, 015 was marked VALIDATED, and 016 was
+  activated in the separate lifecycle transition.

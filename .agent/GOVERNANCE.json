@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "015-governance-depth-convergence",
+  "activeCampaign": "016-release-certification-hardening",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

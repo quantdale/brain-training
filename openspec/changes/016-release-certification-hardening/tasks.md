@@ -1,13 +1,13 @@
 # Tasks — Campaign 016 Release Certification & Hardening
 
 ## 0. Predecessor truth closure — P1
-- [ ] 0.1 Confirm baseline exact-head App CI + Repository Integrity success.
-- [ ] 0.2 Diff 015 checkpoint claims against actual 015 code/tests/tasks.
-- [ ] 0.3 Update 015 task checkboxes only where evidence exists; classify unavailable runtime items explicitly.
-- [ ] 0.4 Reconcile 015 change lifecycle and all machine-readable active-campaign fields.
-- [ ] 0.5 Reconcile STATE/CURRENT_CAMPAIGN/EXECUTION_PROMPT/KNOWN_ISSUES/VALIDATION.
-- [ ] 0.6 Push 015 closure SHA and require both workflows green on that exact SHA.
-- [ ] 0.7 Atomically activate 016 only after 0.6.
+- [x] 0.1 Confirm exact-head App CI + Repository Integrity success — App CI `33226167744` and Repository Integrity `33226167736` both PASS on `fc9899e`.
+- [x] 0.2 Diff 015 checkpoint claims against actual 015 code/tests/tasks — 015 tasks/checkpoint and exact CI archive reconciled; no unresolved Critical/High product regression is known.
+- [x] 0.3 Update 015 task checkboxes only where evidence exists; classify unavailable runtime items explicitly — 015 tasks 4A.5 and 11.10–11.17 carry PASS, BLOCKED, or NOT VALIDATED evidence; Android/iOS/manual-sheet gaps remain explicit.
+- [x] 0.4 Reconcile 015 change lifecycle and all machine-readable active-campaign fields — 015 `VALIDATED`; 016 is the sole `ACTIVE` change; GOVERNANCE, STATE, CURRENT_CAMPAIGN, EXECUTION_PROMPT, ownership, and OpenSpec agree.
+- [x] 0.5 Reconcile STATE/CURRENT_CAMPAIGN/EXECUTION_PROMPT/KNOWN_ISSUES/VALIDATION — synchronized in the 2026-08-29 transition.
+- [x] 0.6 Push 015 closure SHA and require both workflows green on that exact SHA — corrective closure SHA `fc9899e` pushed; exact workflow runs `33226167744` and `33226167736` PASS.
+- [x] 0.7 Atomically activate 016 only after 0.6 — completed in this transition; 016 is now ACTIVE and 015 is VALIDATED.
 
 ## 1. Clean-checkout reproducibility — P1
 - [ ] 1.1 Create a fresh worktree/clone with no inherited caches or generated native folders.

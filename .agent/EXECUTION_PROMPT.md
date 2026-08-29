@@ -1,21 +1,26 @@
-# Execution Prompt — Campaign 015: Governance & Depth Convergence
+# Execution Prompt — Campaign 016: Release Certification & Hardening
 
-**Status:** ACTIVE — closure checkpoint pending exact-SHA CI verification
-**Change:** `015-governance-depth-convergence` (`change.json` ACTIVE)
+**Status:** ACTIVE
+**Change:** `016-release-certification-hardening` (`change.json` ACTIVE)
 **Planned-From:** `c8acadceb46ad6ba3f90b0c4222583a9a2912f49` (audited baseline) → `366a098` (current-head re-audit at `4ac4d45`) → `f66f65c` (014 COMPLETED)
 **Planned-At:** 2026-08-28 continuation
 **Target-Branch:** `main`
-**Authorization:** explicit owner directive — `CAMPAIGN015_PROMPT.md` / `EXECUTION.md` 12-hour execution envelope; predecessor 014 COMPLETED at `f66f65c`.
-**Predecessor:** `014-experience-depth-replayability` (COMPLETED 2026-08-27 at `f66f65c`)
+**Authorization:** explicit owner directive for Campaign 016 release certification and hardening; predecessor 015 VALIDATED at exact SHA `fc9899e`.
+**Predecessor:** `015-governance-depth-convergence` (VALIDATED 2026-08-29 at `fc9899e`)
 **12-hour envelope:** Continue through dependency-ready work for the full useful session; do not stop after one wave. If all in-scope implementation finishes early, spend remaining time on deterministic/adversarial validation, warning/flake cleanup tied to changed surfaces, state/docs reconciliation, and exact-SHA CI confirmation. Never use the budget as permission to start an unrelated hardening or breadth campaign. Before termination, write/push a durable checkpoint with start/end SHA, commits, completed/remaining tasks, exact validation results, CI run IDs, device evidence/blockers, and next action.
 
 ## Mission
 
-Make the autonomous campaign system mechanically trustworthy, then close the small set of verified depth/replayability gaps that remain after Campaign 014: Rule Grid chained deduction, language content starvation, Transform Match semantic/invariant safety, measured runtime/accessibility evidence, and causal workout completion attribution. Do not add games or unrelated features. Make green mean the active plan.
+Make the mature offline-first product release-certifiable through reproducible clean-checkout, native/platform, runtime-resilience, CI-signal, security, performance, and accessibility evidence. Do not add games or unrelated features. Make green mean the active plan and never convert unavailable platform evidence into PASS.
 
-## Activation precondition (now satisfied)
+## Activation precondition (satisfied)
 
-Campaign 015 was PROPOSED until Campaign 014 was durably COMPLETED. 014 is now COMPLETED at `f66f65c` (prior green at `f4aa44c` + precise workout slack at `d645bbb` fixing 2 Jest suites, docs-final DONE, AVD `braintraining-qa36` restored at 6 AVDs and boots to `sys.boot_completed=1` with `-memory 3072 -no-snapshot`, honest NOT VALIDATED for the re-run due to 37.1.x WHPX segfault, considered green per evidence policy). The 014→015 transition is now atomic: `change.json` ACTIVE, `GOVERNANCE.activeCampaign` 015, `CURRENT_CAMPAIGN.md` + `EXECUTION_PROMPT.md` point to 015, `STATE.md` synced, `task-ownership.json` replaced with the 015 packet map, validations run, transition pushed before feature packets. There is exactly one ACTIVE campaign.
+Campaign 015 was validated on exact green main SHA `fc9899e` after corrective
+Expo SDK patch alignment. App CI `33226167744` and Repository Integrity
+`33226167736` both passed on that SHA. The 015 terminal checkpoint, lifecycle
+metadata, governance pointers, ownership map, and validation evidence were
+reconciled; 016 is now the sole ACTIVE campaign. Android/iOS/manual-sheet
+limitations remain explicitly BLOCKED or NOT VALIDATED.
 
 ## Ordered workstreams
 
