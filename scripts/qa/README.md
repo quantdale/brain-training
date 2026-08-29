@@ -207,12 +207,23 @@ which is why screen waits are env-tunable instead of fixed:
 `--mode warm-bundles` once after a Metro restart to move that one-time build
 cost out of timed runs (`QA_WARM_STEP_MS`, `QA_WARM_CAP_MS` tune its pacing).
 
-## Reproducibility
+## Reproducible clean-checkout certification
 
-All artifacts (hierarchy XML, screenshots, logcat, pulled DB, JSON report) are
-written under `qa-artifacts/`. Re-running any mode creates a fresh timestamped
-run directory; commit the directory (or a tagged subset) as evidence for exit
-gates.
+The repository's install boundary is `apps/mobile` because the root contains no
+package manifest or lockfile. From a fresh checkout/worktree with no inherited
+`node_modules`, `.expo`, coverage, or native folders, run:
+
+```bash
+node scripts/certification/certify-clean-checkout.mjs
+```
+
+The runner executes app-boundary `npm ci`, root repository/OpenSpec/ownership/
+registry/provenance/offline/QA gates, app typecheck/lint, web export, and Expo
+Doctor, then checks for tracked-file mutation. Full Jest is required to pass by
+default. On a host with the documented Node worker SIGSEGV limitation, use
+`--allow-jest-not-validated` only after capturing the failure; the runner then
+prints `full_jest=NOT_VALIDATED` and still fails any other gate.
+
 
 ## Dev-client freshness (native dependencies)
 
