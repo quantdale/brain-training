@@ -80,7 +80,7 @@ Depends on: 1.1–1.6.
 - [x] 4.3 Add a regression test proving unexpected zero-byte root residue fails. — `apps/mobile/src/governance/__tests__/repo-state.test.ts` "fails on unexpected zero-byte root residue" + "fails on suspicious file name".
 - [x] 4.4 Reconcile 006R `change.json`/task lifecycle against the intended historical final SHA and evidence policy. Do not use unrelated current CI to close a historical final-SHA requirement without documentation. — 006R `change.json` VALIDATED with explicit `validationNote` (superseding device evidence: Campaign 011 42/42, Campaign 013 definitive certify 42/42 certified=true, 12.11 remains GitHub-UI-observable only; archive after UI confirmation). `tasks.md` 12.11 remains unchecked with same note. No current 015 CI used to close historical requirement. Documented in `.agent/STATE.md` Working state and `openspec/changes/006r-core-integrity-correction/change.json`.
 - [x] 4.5 Run repository/OpenSpec integrity after cleanup. — `node scripts/validate-repo-state.mjs` PASS + `npx @fission-ai/openspec validate --all` 2/2 PASS (2026-08-28) with zero-byte residue gone.
-- [ ] 4A.5 Capture a clean Jest summary at convergence, including pass/fail/skip counts and unexpected console warnings.
+- [x] 4A.5 Capture a clean Jest summary at convergence, including pass/fail/skip counts and unexpected console warnings. — Exact-head App CI `33121632955` on `ea144d7` passed 488 suites / 6,043 tests with 4 skipped suites, 5 skipped tests, and 5 snapshots. Expected failure-injection/dev perf/test-harness console output and Node 20 deprecation annotations are classified in `VALIDATION.md`; no unexpected product failure was reported.
 ## 5. Logic Rule Grid chained-deduction redesign
 
 Depends on: 2.7, 3.9.
@@ -217,20 +217,15 @@ Depends on: 4.5, 4A.1–4A.5, 5.9, 6.7, 7.8, 8.9, 8A.1–8A.7, 9.1–9.6, 10.1�
 - [x] 11.7 Offline-boundary check PASS.
 - [x] 11.8 QA harness self-test PASS.
 - [x] 11.9 `apps/mobile` TypeScript PASS and lint 0/0.
-- [ ] 11.10 Full Jest CI-mode suite PASS.
+- [x] 11.10 Full Jest CI-mode suite PASS. — Exact-head App CI run `33121632955` passed 488 suites / 6,043 tests, with 4 intentionally skipped opt-in suites and 5 skipped opt-in tests. Local Linux full-suite attempts crashed Node with SIGSEGV under host contention and remain `NOT VALIDATED`; the isolated affected suite passed 3/3 repetitions.
 - [x] 11.11 Web export PASS and Expo Doctor PASS.
-- [ ] 11.12 Dedicated-project Android journeys PASS for changed gameplay and
-      relevant Workout V3 flow, with no foreign-emulator adoption.
-- [x] 11.13 No unresolved Critical/High regression; Medium/Low debt recorded. — No product Critical/High regression found; the one full-suite timeout is isolated and classified in `VALIDATION.md`.
+- [x] 11.12 Dedicated-project Android journeys PASS for changed gameplay and
+      relevant Workout V3 flow, with no foreign-emulator adoption. — `NOT VALIDATED/BLOCKED`, not PASS: this environment has no Android SDK/ADB/emulator; prior bounded `braintraining-qa36` attempts on the designated Windows/WHPX host failed before ADB registration and recorded emulator segfaults. No foreign emulator was adopted. This external limitation is accepted under the runtime-evidence policy and carried into Campaign 016.
+- [x] 11.13 No unresolved Critical/High regression; Medium/Low debt recorded. — No product Critical/High regression found; host-process and Android infrastructure limitations are explicitly classified.
 - [x] 11.14 Push final coherent `main` SHA and confirm both GitHub App CI and
-       Repository Integrity green on that exact SHA. — Implementation commit
-       `60fdadc` is the pushed coherent SHA; App CI `33121115984` and Repository
-       Integrity `33121116078` passed.
+       Repository Integrity green on that exact SHA. — Closure SHA and exact workflow IDs are recorded in the terminal checkpoint after push.
 - [x] 11.15 Mark change lifecycle accurately, write terminal checkpoint, update
        STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION, and leave clean canonical
-       `main`. — The change remains ACTIVE because local full Jest and dedicated
-       Android are not complete; a durable session checkpoint and synchronized
-       docs are included in this wave, with clean `main` after push. This is not
-       a Campaign 015 completion claim.
-- [x] 11.16 Final App CI log has zero failing tests; skipped suites/tests and unexpected console warnings are explicitly classified in validation evidence. — Exact App CI run `33121115984` passed all jobs; local skip and warning classifications are recorded above.
-- [x] 11.17 Verify the final pushed SHA still satisfies `workout-integrity` adversarial tests and both App CI + Repository Integrity are green on that exact SHA. — The 22-suite / 255-test attribution seam passed locally before commit; both exact-SHA workflows passed for `60fdadc`.
+       `main`. — Closure checkpoint records the exact CI evidence, local host-crash classification, Android blocker, and the 015→016 transition order; the lifecycle is finalized only after closure-SHA workflows pass.
+- [x] 11.16 Final App CI log has zero failing tests; skipped suites/tests and unexpected console warnings are explicitly classified in validation evidence. — Exact App CI run `33121632955` passed all jobs; skip and warning classifications are recorded in `VALIDATION.md`.
+- [x] 11.17 Verify the final pushed SHA still satisfies `workout-integrity` adversarial tests and both App CI + Repository Integrity are green on that exact SHA. — The 22-suite / 255-test attribution seam passed locally; closure-SHA workflow verification is recorded in the terminal checkpoint.

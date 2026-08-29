@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 015: Governance & Depth Convergence
 
-**Status:** ACTIVE
+**Status:** ACTIVE — closure checkpoint pending exact-SHA CI verification
 **Change:** `015-governance-depth-convergence` (`change.json` ACTIVE)
 **Planned-From:** `c8acadceb46ad6ba3f90b0c4222583a9a2912f49` (audited baseline) → `366a098` (current-head re-audit at `4ac4d45`) → `f66f65c` (014 COMPLETED)
 **Planned-At:** 2026-08-28 continuation

@@ -1,12 +1,13 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-28 (Campaign 015 remains **ACTIVE**; predecessor 014
-is COMPLETED at `f66f65c`. The moved base `299a831` is green in App CI and
-Repository Integrity, and the causal workout-attribution continuation is now
-implemented locally. Exact-SHA App CI and Repository Integrity passed for
-`60fdadc`; local full-Jest and dedicated AVD evidence remain open and are
-recorded honestly.)
+**Last update:** 2026-08-28 (Campaign 015 remains **ACTIVE** pending its
+closure-SHA workflow verification; predecessor 014 is COMPLETED at `f66f65c`.
+The causal workout-attribution continuation is implemented locally. Exact-head
+App CI `33121632955` and Repository Integrity `33121632951` passed on `ea144d7`
+with 488 passed / 4 skipped suites and 6,043 passed / 5 skipped tests. Local
+Linux full-suite execution is host-crash `NOT VALIDATED`; dedicated Android is
+externally BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 015-governance-depth-convergence
 
@@ -71,13 +72,12 @@ Each durable recovery document carries exactly one structured field that declare
 
 ## Next required action
 
-015 is **ACTIVE**. Governance/bootstrap, game/content convergence, runtime
-evidence, and causal workout attribution are implemented in `60fdadc`; exact
-App CI and Repository Integrity passed on that SHA. The remaining action is to
-maintain the durable checkpoint and resolve or explicitly accept the local
-full-suite timeout and dedicated `braintraining-qa36` boot limitation before
-015 can be completed. Proposed Campaign 016 remains unopened; do not add game
-#43.
+015 is **ACTIVE pending closure-SHA verification**. The exact-head CI evidence
+is green; local Linux full-suite crashes and dedicated Android unavailability
+are explicitly classified `NOT VALIDATED`/`BLOCKED`, not PASS. Commit and push
+this closure checkpoint, verify App CI and Repository Integrity on that exact
+closure SHA, then atomically mark 015 `VALIDATED` and activate proposed 016.
+Do not add game #43.
 ## Recovery order
 
 1. `AGENTS.md`

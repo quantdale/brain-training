@@ -1333,10 +1333,28 @@ therefore **NOT VALIDATED** pending emulator stability. iOS and manual system
 sheet validation remain **NOT VALIDATED** under the existing Windows/policy
 limitations.
 
-Implementation commit `60fdadc` was pushed to `main`. App CI run
-`33121115984` and Repository Integrity run `33121116078` both passed on that
-exact SHA; the App CI job's typecheck, lint, Jest, web export, and Doctor steps
-were all green. The Node 20 action deprecation annotation is an infrastructure
-warning, not a failed check. Campaign 015 remains ACTIVE because local full
-Jest still has the single classified resource-sensitive timeout and dedicated
-Android is NOT VALIDATED; proposed Campaign 016 is not activated.
+Implementation commit `60fdadc` was pushed to `main`. Exact-head App CI run
+`33121632955` and Repository Integrity run `33121632951` both passed on
+`ea144d7`; the App CI archive reports 488 passed / 4 skipped suites, 6,043
+passed / 5 skipped tests, 5 snapshots, web export with 20 routes, and Expo
+Doctor 21/21. The Node 20 action deprecation annotation is an infrastructure
+warning, not a failed check. Local Linux full-suite execution is NOT VALIDATED
+after Node SIGSEGV crashes under host contention; the isolated affected suite
+passed 3/3. Dedicated Android is BLOCKED/NOT VALIDATED because this environment
+has no Android SDK/ADB/emulator, consistent with prior bounded 37.1.x/WHPX
+failures. 015 remains ACTIVE until both workflows are verified on its closure
+SHA; proposed Campaign 016 is not activated yet.
+
+### Campaign 015 closure candidate — 2026-08-28
+
+- Starting SHA: `ea144d7`; implementation baseline: `60fdadc`.
+- Local lifecycle validators: pending final pre-commit run; expected to remain
+  PASS with 015 ACTIVE and 016 PROPOSED.
+- CI evidence: App CI `33121632955` PASS and Repository Integrity `33121632951`
+  PASS on `ea144d7`; no local CI count was substituted for this authoritative
+  result.
+- Platform evidence: Android BLOCKED/NOT VALIDATED (no SDK/ADB/emulator here;
+  prior designated AVD attempts failed before ADB registration/segfaulted), iOS
+  and manual system sheets NOT VALIDATED.
+- Next action: push the closure candidate, verify both workflows on its exact
+  SHA, then perform a separate 015 VALIDATED → 016 ACTIVE transition.

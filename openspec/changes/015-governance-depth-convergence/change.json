@@ -1,6 +1,7 @@
 {
   "id": "015-governance-depth-convergence",
   "status": "ACTIVE",
+  "validationNote": "Closure candidate records exact-head App CI 33121632955 and Repository Integrity 33121632951 PASS on ea144d7 (488 suites passed, 4 skipped; 6043 tests passed, 5 skipped; 5 snapshots). Local Linux full-suite execution is NOT VALIDATED due to reproducible host Node SIGSEGV under resource contention; isolated affected suite passed 3/3. Dedicated Android changed-surface journeys are BLOCKED/NOT VALIDATED because this environment has no Android SDK/ADB/emulator and prior bounded braintraining-qa36 Windows/WHPX attempts failed before ADB registration. Verify both workflows on the closure SHA before transitioning to VALIDATED and activating 016.",
   "baselineAuditCommit": "c8acadceb46ad6ba3f90b0c4222583a9a2912f49",
   "predecessor": "014-experience-depth-replayability",
   "canonicalBranch": "main",
