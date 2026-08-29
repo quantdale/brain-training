@@ -1562,3 +1562,16 @@ platform limitations remain explicitly classified and are carried into 016.
   8.6/8.7 are **BLOCKED/NOT VALIDATED** for missing macOS/Xcode and
   Android/ADB/device tooling; 8.10/8.11 await a token with GitHub `workflow`
   scope. Migration/backup/database-lock/recovery and final CI remain open.
+
+### Campaign 016 — terminal blocked checkpoint (2026-08-29, source head `87f43c2`)
+
+- Terminal checkpoint `.agent/checkpoints/016-release-certification-hardening-BLOCKED.md`
+  records the complete local evidence, external blockers, and exact resumption
+  actions. OpenSpec task 8.12 is **PASS**; Campaign 016 remains ACTIVE rather
+  than being falsely marked VALIDATED/COMPLETED because final push/CI,
+  Android/iOS platform evidence, and host-SIGSEGV-affected Jest/persistence/
+  performance matrices remain unresolved.
+- Final local convergence after writing the checkpoint passed repository state,
+  task ownership, OpenSpec 3/3, registry, provenance, offline, Jest-signal,
+  autobot self-test 49/49, typecheck, lint, and the focused failure-path set
+  (5 suites / 20 tests). No additional crash/device retry was made.

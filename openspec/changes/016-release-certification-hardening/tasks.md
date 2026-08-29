@@ -87,5 +87,5 @@
 - [ ] 8.9 No material data-loss/corruption/recovery defect remains — NOT VALIDATED: migration/backup/database-lock/full recovery matrices remain blocked by host SIGSEGV.
 - [ ] 8.10 Push final coherent main SHA — BLOCKED: GitHub rejects workflow-file updates because the OAuth token lacks the `workflow` scope.
 - [ ] 8.11 Confirm App CI + Repository Integrity green on exact final SHA — NOT VALIDATED until the current workflow changes can be pushed.
-- [ ] 8.12 Write terminal checkpoint and synchronize STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION/OpenSpec lifecycle.
+- [x] 8.12 Write terminal checkpoint and synchronize STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION/OpenSpec lifecycle — terminal blocked checkpoint added at `.agent/checkpoints/016-release-certification-hardening-BLOCKED.md`; Campaign 016 remains ACTIVE because 8.10/8.11 and platform/recovery gates require external conditions.
 - [x] 8.13 Leave deferred systems explicitly deferred, not represented as missing blockers — signing/store submission, iOS/manual UX, SAF sheets, cloud/auth, telemetry, and monetization remain deferred or NOT VALIDATED by design.
