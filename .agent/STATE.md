@@ -1,19 +1,16 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 terminal blocked checkpoint committed
-at local `fdbf145`, based on source head `87f43c2`. GitHub push remains blocked
-by the token's missing `workflow` scope. Static validators,
-typecheck/lint, web export (20 routes), Expo Doctor (21/21), bounded failure
-path (5 suites/20 tests), accessibility (6/6 and 2/2), and dependency
-classification (0 critical; 16 toolchain-only findings) pass. Android inventory
-found emulator 37.1.11/ADB 37.0.1 but no Java, no connected device, no running
-emulator, and only foreign AVD `study-maker-api35`; prior designated AVD
-software/headless/recreation attempts reproduced WHPX/qemu failure. The bounded
-DB integrity/idempotency probe reproduced host Node SIGSEGV exit 139 before
-Jest output; Android runtime/canary/Workout V3/42-game certification,
-persistence/recovery matrices, performance probes, and full Jest remain NOT
-VALIDATED. iOS native/manual evidence remains BLOCKED/NOT VALIDATED.)
+**Last update:** 2026-08-29 (Campaign 016 platform-certification convergence
+checkpoint at source head `ce0a58f`, pushed to `origin/main`). Android release
+Build Smoke `33237247511`, iOS Simulator Build Smoke `33237247498`, App CI
+`33237247509`, and Repository Integrity `33237247488` all PASS on the exact SHA.
+The release APK permission boundary and artifact upload passed. Full Jest,
+DB integrity/idempotency, migration, backup/rollback, database-lock, and
+opt-in performance probes remain NOT VALIDATED after reproducible host Node
+SIGSEGV/exit 139; dedicated Android runtime/canaries/Workout V3/42-game
+certification and manual UX remain BLOCKED/NOT VALIDATED. No foreign AVD was
+adopted.
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 
@@ -21,18 +18,17 @@ VALIDATED. iOS native/manual evidence remains BLOCKED/NOT VALIDATED.)
 
 Campaign 016 — Release Certification & Hardening is **ACTIVE**. Campaign 015
 is VALIDATED on exact green SHA `fc9899e`; its implementation, governance, and
-causal workout-attribution work are complete. 016 now owns clean-checkout
-reproducibility, native/platform evidence, bounded Android recovery, CI signal
-integrity, runtime resilience/security, performance/accessibility evidence, and
-final certification. Android/iOS/manual-sheet limitations remain explicitly
-classified and must not be relabeled without evidence.
+causal workout-attribution work are complete. 016 platform certification has
+now converged on exact SHA `ce0a58f`: Android release build/permission
+validation and artifact upload PASS, iOS unsigned simulator compile PASS, and
+App CI plus Repository Integrity PASS. Remaining scope is explicitly limited
+to full Jest and host-SIGSEGV-affected persistence/recovery/performance
+matrices, dedicated Android runtime journeys, and manual UX evidence. These
+remain NOT VALIDATED/BLOCKED and must not be relabeled without evidence.
 `(instanceKey, legIndex, gameId)` provenance tuple carried from workout route
 through the shared game host into persisted session JSON, then advances the
-matching active row with a conditional transaction. Focused attribution tests
-are green; exact-SHA App CI and Repository Integrity passed for `60fdadc`.
-Full-suite resource contention and dedicated Android emulator stability remain
-recorded validation limits. Campaign 013's release gate remains GREEN as the
-v1 baseline (42/42 certify, SHA `ba6dd84`).
+matching active row with a conditional transaction. Campaign 013's release
+ gate remains GREEN as the v1 baseline (42/42 certify, SHA `ba6dd84`).
 ### What landed in 015 at transition (predecessor 014 COMPLETED at `f66f65c`)
 
 - **P0 red-main recovery already done at `d645bbb`/`6451bfb`:** precise first-leg-only slack + pre-creation guard in `advance.ts` + `db/workout.ts`, fixing 2 Jest suites red at `4ac4d45` (advance.test.ts historical 500 vs 1000, workout-v2.test.ts equal-timestamp 20_000); adversarial attribution matrix, full local green, App CI should now be green on the repair SHA; repo-state/ownership/OpenSpec green, `STATE` synced at `6451bfb`.

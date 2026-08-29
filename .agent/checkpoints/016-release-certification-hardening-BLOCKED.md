@@ -1,6 +1,6 @@
-# Campaign 016 — Terminal Release Certification Checkpoint
+# Campaign 016 — Terminal Release Certification Checkpoint (Historical Snapshot)
 
-**Status:** ACTIVE / BLOCKED by external validation conditions
+**Status:** Superseded for push/native-platform status by `016-release-certification-hardening-platform-convergence-20260829.md`; residual runtime/device blockers remain current.
 **Campaign:** `016-release-certification-hardening`
 **Pre-checkpoint source head:** `87f43c2`
 **Date:** 2026-08-29
