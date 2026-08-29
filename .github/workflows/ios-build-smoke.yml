@@ -1,0 +1,108 @@
+name: iOS Build Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-build-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios-build-smoke:
+    name: iOS Simulator compile smoke
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Validate repository state
+        working-directory: ${{ github.workspace }}
+        run: node scripts/validate-repo-state.mjs
+
+      - name: Validate registry and provenance
+        working-directory: ${{ github.workspace }}
+        run: |
+          node scripts/generate-game-registry.mjs --check
+          node scripts/validate-provenance.mjs --check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Generate clean iOS native project
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Install CocoaPods dependencies
+        run: pod install --project-directory=ios --repo-update
+
+      - name: Discover workspace and scheme
+        id: discover
+        shell: bash
+        run: |
+          set -euo pipefail
+          workspace="$(find ios -maxdepth 1 -type d -name '*.xcworkspace' -print -quit)"
+          if [[ -z "$workspace" ]]; then
+            echo 'No generated Xcode workspace found' >&2
+            exit 1
+          fi
+          scheme="$(xcodebuild -list -json -workspace "$workspace" | node -e '
+            let input = "";
+            process.stdin.on("data", chunk => { input += chunk; });
+            process.stdin.on("end", () => {
+              const data = JSON.parse(input);
+              const schemes = data.workspace?.schemes ?? [];
+              const scheme = schemes.find(value => !value.endsWith("-Pods")) ?? schemes[0] ?? "";
+              process.stdout.write(scheme);
+            });
+          ')"
+          if [[ -z "$scheme" ]]; then
+            echo "No buildable scheme found in $workspace" >&2
+            exit 1
+          fi
+          echo "workspace=$workspace" >> "$GITHUB_OUTPUT"
+          echo "scheme=$scheme" >> "$GITHUB_OUTPUT"
+          echo "Selected workspace: $workspace"
+          echo "Selected scheme: $scheme"
+
+      - name: Build iOS Simulator target
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p ios/build-logs
+          xcodebuild \
+            -workspace "${{ steps.discover.outputs.workspace }}" \
+            -scheme "${{ steps.discover.outputs.scheme }}" \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build 2>&1 | tee ios/build-logs/xcodebuild.log
+
+      - name: Upload iOS build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-build-smoke-logs-${{ github.run_id }}
+          path: apps/mobile/ios/build-logs
+          retention-days: 14
+          if-no-files-found: warn
