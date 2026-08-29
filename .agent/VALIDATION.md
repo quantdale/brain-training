@@ -1460,3 +1460,28 @@ platform limitations remain explicitly classified and are carried into 016.
   **PASS** as documented deferred scope.
 - Next action: continue with CI/test-signal integrity, beginning with exact
   skip conditions and an explicit allowlist/gate.
+
+### Campaign 016 — runtime resilience and security evidence (2026-08-29, local SHA `0566364`)
+
+- Bounded `--runInBand` runtime matrix reached PASS for `storage-unavailable`,
+  `use-game-session`, `timers`, `session-provenance`, `reconcile`, and `v3`
+  before the host Node process SIGSEGV. These suites cover recoverable storage
+  initialization/retry, workout ownership identity, process-death/relaunch
+  lifecycle contracts where exercised, exact provenance/reconcile behavior,
+  pause/background timing exclusion, resume, timer cleanup, and no orphan
+  timers. A fresh isolated `advance.test.ts` invocation then SIGSEGVed before
+  Jest output; no blind retries followed.
+- Migration, backup/import/rollback, database-lock, and the complete workout
+  adversarial matrix are **NOT VALIDATED** in this checkpoint because the host
+  SIGSEGV occurred before those suites produced results. Existing migration,
+  backup, checksum, rollback, round-trip, and adversarial tests remain present.
+- `node scripts/qa/autobot.mjs --self-test` **PASS** (49/49). Offline boundary
+  validation is **CLEAN**; the tracked-source secret-pattern scan produced no
+  hits. QA-hook inspection confirms GameHost panels/tutorial bypasses are behind
+  `isDevBuild()` and force-state methods call `assertDevOnly()`; the focused
+  production/config boundary suite remained **PASS** at 6 suites / 34 tests.
+- `npm audit` and `npm audit --omit=dev` both report 16 findings (12 moderate,
+  4 high, 0 critical), identical and classified in `.agent/DEPENDENCY_AUDIT.md`
+  as Expo/Metro/Xcode build-toolchain-only with no runtime-reachable finding.
+  No dependency churn was applied. Current-head full Jest remains **NOT
+  VALIDATED** due reproducible host SIGSEGV/resource failure.

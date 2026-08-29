@@ -49,22 +49,22 @@
 - [x] 4.8 Preserve a machine-readable Jest summary artifact — App CI runs Jest with `--json --outputFile=jest-summary.json`, validates it, and uploads it with 14-day retention on every outcome.
 
 ## 5. Runtime resilience and data integrity — P1/P2
-- [ ] 5.1 Re-run workout ownership/idempotency adversarial matrix after process death/reopen.
-- [ ] 5.2 Stress duplicate completion delivery and concurrent same-game workout instances.
-- [ ] 5.3 Re-run SQLite migration matrix from representative historical schemas.
-- [ ] 5.4 Re-run backup export/import preview/replace/rollback and malformed/corrupt input cases.
-- [ ] 5.5 Verify storage-unavailable and database-lock failure UX does not corrupt state.
-- [ ] 5.6 Re-run background/pause/resume timing fairness canaries.
-- [ ] 5.7 Verify production build does not expose dangerous QA mutation hooks.
-- [ ] 5.8 Re-run offline/network and permission boundaries after native prebuild.
+- [ ] 5.1 Re-run workout ownership/idempotency adversarial matrix after process death/reopen — PARTIAL: `session-provenance`, `reconcile`, `v3`, and session lifecycle coverage passed before the host SIGSEGV; `advance`/full matrix did not produce a result on the bounded rerun.
+- [ ] 5.2 Stress duplicate completion delivery and concurrent same-game workout instances — NOT VALIDATED as a complete matrix; existing targeted contracts are present, but the bounded run was interrupted by host SIGSEGV.
+- [ ] 5.3 Re-run SQLite migration matrix from representative historical schemas — NOT VALIDATED: migration suites did not produce results before the reproducible host SIGSEGV.
+- [ ] 5.4 Re-run backup export/import preview/replace/rollback and malformed/corrupt input cases — NOT VALIDATED: backup suites did not produce results before the reproducible host SIGSEGV; existing adversarial/rollback/round-trip tests remain in place.
+- [ ] 5.5 Verify storage-unavailable and database-lock failure UX does not corrupt state — storage-unavailable recovery passed (2 tests); database-lock behavior has no completed current-head evidence.
+- [x] 5.6 Re-run background/pause/resume timing fairness canaries — `use-game-session` and timer suites passed in the bounded run, covering pause exclusion, auto-pause on background, resume, timer cancellation, and no orphan timers.
+- [x] 5.7 Verify production build does not expose dangerous QA mutation hooks — static source inspection shows GameHost QA panels/tutorial bypasses behind `isDevBuild()` and hook methods behind `assertDevOnly()`; focused production/config boundary suite passed 34/34 and non-migrated QA gate passed.
+- [x] 5.8 Re-run offline/network and permission boundaries after native prebuild — offline validator is CLEAN; focused permission/config boundary tests passed 34/34 after the clean prebuild evidence.
 
 ## 6. Dependency/security/privacy classification — P2
-- [ ] 6.1 Run full dependency audit and runtime-only audit separately.
-- [ ] 6.2 Map each advisory to runtime/build/dev reachability and fix availability.
-- [ ] 6.3 Apply only safe, in-SDK fixes; do not force incompatible major upgrades for a green number.
-- [ ] 6.4 Check committed files for accidental secrets/private keys/tokens.
-- [ ] 6.5 Verify no analytics/crash telemetry/network path was accidentally introduced.
-- [ ] 6.6 Verify backup/export contains only intended local user data and integrity metadata.
+- [x] 6.1 Run full dependency audit and runtime-only audit separately — both `npm audit` and `npm audit --omit=dev` produced the same 16 findings (12 moderate, 4 high, 0 critical).
+- [x] 6.2 Map each advisory to runtime/build/dev reachability and fix availability — `.agent/DEPENDENCY_AUDIT.md` classifies all findings as Expo/Metro/Xcode build-toolchain-only, with no production/runtime-reachable finding and no safe fixed upstream release for the roots.
+- [x] 6.3 Apply only safe, in-SDK fixes; do not force incompatible major upgrades for a green number — no risky dependency churn applied; accepted debt remains tied to the planned Expo upgrade and image-size upstream status.
+- [x] 6.4 Check committed files for accidental secrets/private keys/tokens — tracked-source secret-pattern scan produced no hits.
+- [x] 6.5 Verify no analytics/crash telemetry/network path was accidentally introduced — offline static boundary is CLEAN and no telemetry/network implementation was added in the current wave.
+- [ ] 6.6 Verify backup/export contains only intended local user data and integrity metadata — NOT VALIDATED in the current bounded run because backup suites were interrupted by host SIGSEGV.
 
 ## 7. Performance and accessibility evidence — P2
 - [ ] 7.1 Re-run existing perf probes with identical workloads and record runtime context.

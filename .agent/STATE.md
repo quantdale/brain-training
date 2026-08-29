@@ -1,13 +1,15 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local CI-signal checkpoint
-from exact green SHA `75f81fe`; App CI `33228018746` and Repository Integrity
-`33228018738` passed before the unpushed signal changes. Clean-checkout and
-Android prebuild/config-boundary evidence passed all available gates. Full
-Jest remains NOT VALIDATED after host Node worker SIGSEGVs; Android APK/device
-and iOS native evidence remain externally BLOCKED/NOT VALIDATED. CI-signal
-changes are locally validated and awaiting exact-SHA CI.)
+**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local runtime/security
+checkpoint from local SHA `0566364`; CI-signal changes are committed locally
+but GitHub push is blocked by the token's missing `workflow` scope. Clean-
+checkout and Android prebuild/config-boundary evidence passed all available
+gates. Runtime evidence is partial: bounded storage/session/timing/workout
+contracts, QA-hook boundary, offline, secret scan, and dependency classification
+passed; migration/backup/database-lock/full Jest remain NOT VALIDATED after
+reproducible host Node SIGSEGVs. Android APK/device and iOS native evidence
+remain externally BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 

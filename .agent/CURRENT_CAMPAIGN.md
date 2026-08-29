@@ -22,6 +22,7 @@ Turn the mature offline-first product into an evidence-backed release candidate 
 - Native boundary evidence at `75f81fe`: clean Android prebuild, generated permission/backup/version inspection, and 34/34 production/config boundary tests PASS. Android APK compilation/install/device and iOS Xcode build remain BLOCKED/NOT VALIDATED because this host lacks Java/Android SDK/ADB/device and macOS/Xcode.
 - Exact-SHA App CI and Repository Integrity are green for `75f81fe` (`33228018746`, `33228018738`).
 - CI-signal hardening is implemented locally: four skipped suites / five skipped tests are classified by `scripts/certification/jest-skip-allowlist.json`; App CI now emits/validates/uploads `jest-summary.json`, uses fail-closed skip matching, exposes `npm run perf:probe`, and upgrades Actions to checkout/setup-node v7, cache v6, upload-artifact v7. Full current-head Jest remains NOT VALIDATED after host SIGSEGV; expected-console warning classification remains open.
+- Runtime/security evidence is partially converged: bounded PASS for storage recovery, session lifecycle/timing, workout provenance/reconcile, autobot self-test 49/49, offline boundary, secret scan, QA-hook gating, and 16-finding build-toolchain-only audit classification. Migration/backup/database-lock/full workout matrix execution remains NOT VALIDATED after reproducible host SIGSEGV; no blind retries were used.
 
 ## Ordered workstreams
 1. **Predecessor truth closure:** completed by the 015→016 transition; 015 is VALIDATED and 016 is the sole ACTIVE campaign.
