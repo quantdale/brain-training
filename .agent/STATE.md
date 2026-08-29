@@ -2,8 +2,8 @@
 
 **State schema:** 1
 **Last update:** 2026-08-29 (Campaign 016 ACTIVE at local DB-integrity
-checkpoint after `d74869f`; latest local evidence is being committed. GitHub
-push remains blocked by the token's missing `workflow` scope. Static validators,
+checkpoint after committed local `4f3ad2d`. GitHub push remains blocked by the
+token's missing `workflow` scope. Static validators,
 typecheck/lint, web export (20 routes), Expo Doctor (21/21), bounded failure
 path (5 suites/20 tests), accessibility (6/6 and 2/2), and dependency
 classification (0 critical; 16 toolchain-only findings) pass. Android inventory

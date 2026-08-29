@@ -1534,7 +1534,7 @@ platform limitations remain explicitly classified and are carried into 016.
   3.3, 3.6, 3.7, 3.8, and 3.9 remain **NOT VALIDATED/BLOCKED**. No Android
   runtime, hierarchy, Workout V3, or 42/42 certification PASS is claimed.
 
-### Campaign 016 — bounded DB integrity probe (2026-08-29, local `d74869f`)
+### Campaign 016 — bounded DB integrity probe (2026-08-29, committed local `4f3ad2d`)
 
 - The distinct DB integrity target (`db-integrity`, `integrity-hardening`,
   `sessions`, and DB fixture tests) was executed once with `--runInBand`; the
