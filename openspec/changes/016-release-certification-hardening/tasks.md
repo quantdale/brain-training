@@ -67,13 +67,13 @@
 - [ ] 6.6 Verify backup/export contains only intended local user data and integrity metadata — NOT VALIDATED in the current bounded run because backup suites were interrupted by host SIGSEGV.
 
 ## 7. Performance and accessibility evidence — P2
-- [ ] 7.1 Re-run existing perf probes with identical workloads and record runtime context.
-- [ ] 7.2 Reproduce the multi-second backup/export path at realistic history sizes.
-- [ ] 7.3 Profile only if 7.2 is user-relevant; optimize with before/after evidence.
-- [ ] 7.4 Re-run loadProgressSnapshot and sync scans to prevent regression.
-- [ ] 7.5 Re-run changed-surface accessibility labels/roles/state/focus checks.
-- [ ] 7.6 Capture Android hierarchy evidence when a stable device exists.
-- [ ] 7.7 Keep TalkBack/manual and iOS UX evidence NOT VALIDATED unless actually performed.
+- [ ] 7.1 Re-run existing perf probes with identical workloads and record runtime context — NOT VALIDATED: the single bounded `npm run perf:probe` attempt reproduced host SIGSEGVs in both measurement processes and emitted no baseline JSON; no retry was made.
+- [ ] 7.2 Reproduce the multi-second backup/export path at realistic history sizes — NOT VALIDATED: the required opt-in measurement process crashed before producing timing evidence.
+- [ ] 7.3 Profile only if 7.2 is user-relevant; optimize with before/after evidence — NOT STARTED because 7.2 produced no usable timing evidence and no performance defect was established.
+- [ ] 7.4 Re-run loadProgressSnapshot and sync scans to prevent regression — NOT VALIDATED for wall-clock measurement; always-on query/projection guards and sync seam contracts remain covered.
+- [x] 7.5 Re-run changed-surface accessibility labels/roles/state/focus checks — focus contract 6/6 and shared game-ui accessibility contract 2/2 PASS; targeted ESLint and typecheck PASS. The focus test uses a deterministic queued-timeout seam to avoid React 19/RNTL async-act timer races.
+- [ ] 7.6 Capture Android hierarchy evidence when a stable device exists — BLOCKED/NOT VALIDATED: no stable dedicated device is available on this host.
+- [x] 7.7 Keep TalkBack/manual and iOS UX evidence NOT VALIDATED unless actually performed — no manual TalkBack, iOS UX, or system-sheet evidence was claimed.
 
 ## 8. Final release-candidate certification — P1
 - [ ] 8.1 Clean checkout install and all repository validators PASS.

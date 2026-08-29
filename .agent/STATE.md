@@ -1,15 +1,15 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local runtime/security
-checkpoint from local SHA `0566364`; CI-signal changes are committed locally
-but GitHub push is blocked by the token's missing `workflow` scope. Clean-
-checkout and Android prebuild/config-boundary evidence passed all available
-gates. Runtime evidence is partial: bounded storage/session/timing/workout
-contracts, QA-hook boundary, offline, secret scan, and dependency classification
-passed; migration/backup/database-lock/full Jest remain NOT VALIDATED after
-reproducible host Node SIGSEGVs. Android APK/device and iOS native evidence
-remain externally BLOCKED/NOT VALIDATED.)
+**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local performance/accessibility
+checkpoint; local runtime/security checkpoint is committed at `b6672c7`.
+CI-signal commits remain local because GitHub push is blocked by the token's
+missing `workflow` scope. Changed-surface focus and shared game-ui accessibility
+contracts pass 6/6 and 2/2 with typecheck/targeted lint. The single opt-in
+performance probe attempt reproduced host Node SIGSEGVs with no JSON output;
+wall-clock probes remain NOT VALIDATED. Migration/backup/database-lock/full Jest
+remain NOT VALIDATED; Android device hierarchy and iOS native/manual evidence
+remain BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 

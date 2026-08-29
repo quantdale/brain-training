@@ -10,7 +10,7 @@
  * RNTL v14 `render` is async — every render is awaited. No host/device needed.
  */
 import { describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 import { PauseOverlay, QaPanelShell } from "@/components/game-ui";
 import { createPauseOverlaySpec } from "@/sdk";
@@ -62,7 +62,9 @@ describe("QaPanelShell accessibility", () => {
           // Panel is collapsed until toggled.
           expect(screen.queryByTestId("memory.qa-panel")).toBeNull();
 
-          fireEvent.press(toggle);
+          await act(async () => {
+               fireEvent.press(toggle);
+          });
           const panel = await screen.findByTestId("memory.qa-panel");
           expect(panel).toBeTruthy();
 
@@ -71,9 +73,13 @@ describe("QaPanelShell accessibility", () => {
           expect(win.props.accessibilityRole).toBe("button");
           expect(lose.props.accessibilityRole).toBe("button");
 
-          fireEvent.press(win);
+          await act(async () => {
+               fireEvent.press(win);
+          });
           expect(onForceWin).toHaveBeenCalledTimes(1);
-          fireEvent.press(lose);
+          await act(async () => {
+               fireEvent.press(lose);
+          });
           expect(onForceLose).toHaveBeenCalledTimes(1);
      });
 });

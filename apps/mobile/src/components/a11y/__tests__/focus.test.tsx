@@ -7,7 +7,9 @@
  * The legacy `setAccessibilityFocus(reactTag)` takes a NUMERIC tag; feeding
  * it the ref's object instance silently no-ops on Fabric/Android, so the
  * assistive cursor never moved onto Resume and TalkBack users were stranded
- * behind the pause overlay. Uses fake timers for the retry cadence.
+ * behind the pause overlay. Retry callbacks are queued explicitly here so the
+ * contract stays deterministic without entering React 19's async act/timer
+ * interaction.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { render } from '@testing-library/react-native';
@@ -17,6 +19,7 @@ import { AccessibilityInfo, View } from 'react-native';
 import { requestAccessibilityFocus, useInitialA11yFocus } from '@/components/a11y/focus';
 
 const RETRY_DELAY_MS = 250;
+type TimerCallback = () => void;
 
 function HostTarget({ targetRef }: { targetRef: RefObject<View | null> }) {
   return <View ref={targetRef} testID="focus-target" />;
@@ -30,22 +33,34 @@ function HookTarget({ active }: { active: boolean }) {
 describe('requestAccessibilityFocus', () => {
   let sendSpy: ReturnType<typeof jest.spyOn>;
   let legacySpy: ReturnType<typeof jest.spyOn>;
+  let timeoutSpy: ReturnType<typeof jest.spyOn>;
+  let pendingTimers: TimerCallback[];
 
   beforeEach(() => {
+    pendingTimers = [];
     sendSpy = jest
       .spyOn(AccessibilityInfo, 'sendAccessibilityEvent')
       .mockImplementation(() => undefined as unknown as void);
     legacySpy = jest
       .spyOn(AccessibilityInfo, 'setAccessibilityFocus')
       .mockImplementation(() => undefined as unknown as void);
-    jest.useFakeTimers();
+    timeoutSpy = jest.spyOn(globalThis, 'setTimeout').mockImplementation(((callback: TimerCallback) => {
+      pendingTimers.push(callback);
+      return 0 as unknown as ReturnType<typeof setTimeout>;
+    }) as typeof setTimeout);
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    timeoutSpy.mockRestore();
     sendSpy.mockRestore();
     legacySpy.mockRestore();
   });
+
+  function runNextRetry(): void {
+    const callback = pendingTimers.shift();
+    expect(callback).toBeDefined();
+    callback?.();
+  }
 
   it('routes the focus event through the renderer API with the mounted host instance', async () => {
     const targetRef: RefObject<View | null> = { current: null };
@@ -69,19 +84,15 @@ describe('requestAccessibilityFocus', () => {
 
     requestAccessibilityFocus(targetRef);
     expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), RETRY_DELAY_MS);
 
-    jest.advanceTimersByTime(RETRY_DELAY_MS - 1);
-    expect(sendSpy).toHaveBeenCalledTimes(1);
-
-    jest.advanceTimersByTime(1);
+    runNextRetry();
     expect(sendSpy).toHaveBeenCalledTimes(2);
+    expect(pendingTimers).toHaveLength(1);
 
-    jest.advanceTimersByTime(RETRY_DELAY_MS);
+    runNextRetry();
     expect(sendSpy).toHaveBeenCalledTimes(3);
-
-    // No fourth attempt after the default budget is spent.
-    jest.advanceTimersByTime(RETRY_DELAY_MS * 5);
-    expect(sendSpy).toHaveBeenCalledTimes(3);
+    expect(pendingTimers).toHaveLength(0);
   });
 
   it('honors a custom attempt budget', async () => {
@@ -89,8 +100,8 @@ describe('requestAccessibilityFocus', () => {
     await render(<HostTarget targetRef={targetRef} />);
 
     requestAccessibilityFocus(targetRef, 1);
-    jest.advanceTimersByTime(RETRY_DELAY_MS * 10);
     expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(timeoutSpy).not.toHaveBeenCalled();
   });
 
   it('stops retrying once the ref detaches (unmount)', async () => {
@@ -106,32 +117,39 @@ describe('requestAccessibilityFocus', () => {
     // the detached state at the exact seam the retry loop reads.
     targetRef.current = null;
 
-    jest.advanceTimersByTime(RETRY_DELAY_MS * 5);
+    runNextRetry();
     // Only the initial attempt ever fired; pending retries saw the detached
     // ref and bailed out instead of focusing a dead node.
     expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(pendingTimers).toHaveLength(0);
   });
 
-  it('is a no-op for an already-detached ref', () => {
+  it('is a no-op for an already-detached ref', async () => {
     const detached: RefObject<View | null> = { current: null };
     requestAccessibilityFocus(detached);
-    jest.advanceTimersByTime(RETRY_DELAY_MS * 5);
     expect(sendSpy).not.toHaveBeenCalled();
+    expect(timeoutSpy).not.toHaveBeenCalled();
   });
 });
 
 describe('useInitialA11yFocus', () => {
   let sendSpy: ReturnType<typeof jest.spyOn>;
+  let timeoutSpy: ReturnType<typeof jest.spyOn>;
+  let pendingTimers: TimerCallback[];
 
   beforeEach(() => {
+    pendingTimers = [];
     sendSpy = jest
       .spyOn(AccessibilityInfo, 'sendAccessibilityEvent')
       .mockImplementation(() => undefined as unknown as void);
-    jest.useFakeTimers();
+    timeoutSpy = jest.spyOn(globalThis, 'setTimeout').mockImplementation(((callback: TimerCallback) => {
+      pendingTimers.push(callback);
+      return 0 as unknown as ReturnType<typeof setTimeout>;
+    }) as typeof setTimeout);
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    timeoutSpy.mockRestore();
     sendSpy.mockRestore();
   });
 
@@ -154,7 +172,17 @@ describe('useInitialA11yFocus', () => {
     // ref-detachment-based (unmount), and repeat-focusing a live node is
     // harmless by design.
     await rerender(<HookTarget active={false} />);
-    jest.advanceTimersByTime(RETRY_DELAY_MS * 5);
+    runNextRetry(pendingTimers, sendSpy);
+    runNextRetry(pendingTimers, sendSpy);
     expect(sendSpy).toHaveBeenCalledTimes(3);
   });
 });
+
+function runNextRetry(pendingTimers: TimerCallback[], sendSpy: ReturnType<typeof jest.spyOn>): void {
+  const callback = pendingTimers.shift();
+  expect(callback).toBeDefined();
+  callback?.();
+  // Keep the parameter in the helper's contract explicit: the callback itself
+  // owns the platform call; this assertion catches accidental empty retries.
+  expect(sendSpy).toHaveBeenCalled();
+}

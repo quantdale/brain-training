@@ -1485,3 +1485,22 @@ platform limitations remain explicitly classified and are carried into 016.
   as Expo/Metro/Xcode build-toolchain-only with no runtime-reachable finding.
   No dependency churn was applied. Current-head full Jest remains **NOT
   VALIDATED** due reproducible host SIGSEGV/resource failure.
+
+### Campaign 016 — performance and accessibility evidence (2026-08-29, local working state after `b6672c7`)
+
+- The single bounded `cd apps/mobile && npm run perf:probe` attempt ran both
+  measurement processes (`perf-baseline-probe` and `perf-sync-scan-probe`), but
+  each reproduced the host Node SIGSEGV and emitted no `PERF_BASELINE_JSON` or
+  `PERF_SYNC_JSON`. No retry, threshold change, or measurement suppression was
+  made; wall-clock performance and realistic backup/export timing remain
+  **NOT VALIDATED**.
+- Changed-surface accessibility contracts are **PASS**: focus helper 6/6 and
+  shared game-ui accessibility 2/2. The focus test now uses a deterministic
+  queued-timeout test seam for immediate/retry/detach behavior, avoiding React
+  19/RNTL async-act timer races; production focus code was not changed. Targeted
+  ESLint and TypeScript typecheck passed, and the repaired suites emitted no
+  console warnings.
+- Offline static validation remained **CLEAN** and repository-state validation
+  **PASS**. Android hierarchy, TalkBack/manual, iOS UX, and system-sheet
+  evidence remain **BLOCKED/NOT VALIDATED** because the required device/platform
+  interactions were not available; no such evidence is claimed.
