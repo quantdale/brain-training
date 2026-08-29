@@ -63,19 +63,19 @@ jobs:
       - name: Generate clean Android native project
         run: npx expo prebuild --platform android --clean --no-install
 
-      - name: Build debug APK from clean native state
+      - name: Build release APK from clean native state
         shell: bash
         run: |
           set -o pipefail
           mkdir -p android/build-logs
           cd android
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build-logs/gradle-assemble-debug.log
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee build-logs/gradle-assemble-release.log
 
       - name: Verify APK and generated release boundaries
         shell: bash
         run: |
           set -euo pipefail
-          apk="android/app/build/outputs/apk/debug/app-debug.apk"
+          apk="android/app/build/outputs/apk/release/app-release.apk"
           test -s "$apk"
           test "$(stat -c '%s' "$apk")" -gt 1000000
           permissions="$($ANDROID_HOME/build-tools/35.0.0/aapt2 dump permissions "$apk")"
@@ -107,7 +107,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v7
         with:
-          name: android-debug-apk-${{ github.run_id }}
-          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          name: android-release-apk-${{ github.run_id }}
+          path: apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 14
           if-no-files-found: error
