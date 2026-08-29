@@ -80,12 +80,12 @@
 - [x] 8.2 TypeScript PASS; lint 0 errors / 0 warnings — current head typecheck and `expo lint` pass; targeted changed-surface ESLint also passes.
 - [ ] 8.3 Jest PASS with only allowlisted skips and zero unexpected console noise — PARTIAL: bounded failure-path set is quiet and 20/20 PASS; full current-head Jest remains NOT VALIDATED.
 - [x] 8.4 Web export + Expo Doctor PASS — web export produced 20 static routes; Expo Doctor passed 21/21.
-- [x] 8.5 Android clean prebuild/native build PASS — exact SHA `1b87619` Android Build Smoke `33238211582` passed clean prebuild, release APK compilation, packaged permission boundary, and artifact upload.
-- [x] 8.6 iOS macOS build-smoke PASS or externally BLOCKED with evidence — exact SHA `1b87619` iOS Build Smoke `33238211591` passed clean prebuild, CocoaPods, and unsigned simulator compile.
+- [ ] 8.5 Android clean prebuild/native build PASS — historical exact SHA `1b87619` Build Smoke `33238211582` passed clean prebuild, release APK compilation, packaged permission boundary, and artifact upload; latest exact SHA `31a6143` Build Smoke `33239131146` timed out during release compilation before a current-head result.
+- [x] 8.6 iOS macOS build-smoke PASS or externally BLOCKED with evidence — exact SHA `31a6143` iOS Build Smoke `33239131153` passed clean prebuild, CocoaPods, and unsigned simulator compile.
 - [ ] 8.7 Android current-head journeys/certify PASS or externally BLOCKED after bounded recovery matrix — BLOCKED/NOT VALIDATED: dedicated Android runtime/canaries/Workout V3/42-game certification remain unavailable after the documented AVD failure; no foreign emulator was adopted.
 - [x] 8.8 Security/dependency classification contains no unresolved Critical/High runtime issue — full and `--omit=dev` audits both report 0 critical; all 16 findings are classified as build/dev-toolchain-only with no runtime-reachable Critical/High issue.
 - [ ] 8.9 No material data-loss/corruption/recovery defect remains — NOT VALIDATED: migration/backup/database-lock/full recovery matrices remain blocked by host SIGSEGV.
-- [x] 8.10 Push final coherent main SHA — PASS: `1b87619` is pushed to `origin/main`.
-- [x] 8.11 Confirm App CI + Repository Integrity green on exact final SHA — PASS: App CI `33238211577` and Repository Integrity `33238211576` both succeeded for `1b87619`; iOS `33238211591` and Android `33238211582` also succeeded.
+- [x] 8.10 Push final coherent main SHA — PASS: `31a6143` is pushed to `origin/main`.
+- [ ] 8.11 Confirm App CI + Repository Integrity and native smokes green on exact final SHA — PARTIAL: App CI `33239131160`, Repository Integrity `33239131170`, and iOS `33239131153` PASS on `31a6143`; Android Build Smoke `33239131146` exceeded the 60-minute timeout and was cancelled. Historical Android PASS at `1b87619` is not substituted for latest-SHA evidence.
 - [x] 8.12 Write terminal checkpoint and synchronize STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION/OpenSpec lifecycle — platform convergence checkpoint written; Campaign 016 remains ACTIVE because residual Jest/recovery/performance/device evidence is still BLOCKED/NOT VALIDATED.
 - [x] 8.13 Leave deferred systems explicitly deferred, not represented as missing blockers — signing/store submission, iOS/manual UX, SAF sheets, cloud/auth, telemetry, and monetization remain deferred or NOT VALIDATED by design.

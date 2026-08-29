@@ -3,7 +3,7 @@
 **Status:** ACTIVE — residual runtime/recovery evidence remains BLOCKED or NOT VALIDATED
 **Campaign:** `016-release-certification-hardening`
 **Date:** 2026-08-29
-**Source head:** `1b876191a1d3d2567a6db5bd6c7daa742e86a8ed` (refreshed from prior `ce0a58f` convergence)
+**Source head:** `31a6143588a4c2dfeb4e57b57ea343b120ddae5c` (latest CI convergence; prior `1b87619` Android artifact evidence retained)
 
 ## Verdict
 
@@ -30,5 +30,11 @@ Campaign 016 has closed the previously blocked native-platform and exact-SHA CI 
 1. On a host with a stable dedicated `braintraining-qa36` AVD or physical ADB device, run the bounded current-head Android journeys without adopting a foreign emulator.
 2. On a host that does not reproduce the Node SIGSEGV, run the full Jest and blocked persistence/recovery/performance matrices once, retaining honest classifications if unavailable.
 3. Keep the campaign ACTIVE until the remaining in-scope P1/P2 evidence is either obtained or explicitly closed by a later campaign decision; do not mark this checkpoint COMPLETED.
+
+## Latest exact-SHA CI update — `31a6143`
+
+- App CI `33239131160`, Repository Integrity `33239131170`, and iOS Build Smoke `33239131153` **PASS**.
+- Android Build Smoke `33239131146` was **CANCELLED/TIMED OUT** at the workflow's 60-minute limit while Gradle was stalled after `:app:compressReleaseAssets`; no APK verification or upload ran. This latest Android result is **BLOCKED/NOT VALIDATED**. No blind retry was made.
+- The Android artifact PASS on `1b87619` remains historical valid evidence and is not substituted for the latest SHA.
 
 No feature expansion, game #43, cloud/auth/AI/monetization/social, or store-release implementation was added.

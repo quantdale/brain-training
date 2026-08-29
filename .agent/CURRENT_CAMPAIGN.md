@@ -1,6 +1,6 @@
 # Campaign 016 — Release Certification & Hardening
 
-**Status:** ACTIVE — native/platform and exact-SHA CI gates PASS; residual runtime/recovery evidence remains BLOCKED/NOT VALIDATED.
+**Status:** ACTIVE — App CI/iOS/Repository Integrity PASS on latest SHA; Android latest build timed out; residual runtime/recovery evidence remains BLOCKED/NOT VALIDATED.
 **Campaign id:** `016-release-certification-hardening`
 **Predecessor:** `015-governance-depth-convergence` (VALIDATED 2026-08-29; closure SHA `fc9899e`)
 **Mode:** day
@@ -22,7 +22,7 @@ Turn the mature offline-first product into an evidence-backed release candidate 
 - CI-signal hardening is implemented: four skipped suites / five skipped tests are classified by `scripts/certification/jest-skip-allowlist.json`; App CI emits/validates/uploads `jest-summary.json`, uses fail-closed skip matching, exposes `npm run perf:probe`, and uses current action majors. The bounded failure-path set passes 5 suites / 20 tests with expected diagnostics asserted and suppressed.
 - Runtime/security evidence is partially converged: bounded PASS for storage recovery, session lifecycle/timing, workout provenance/reconcile, autobot self-test 49/49, offline boundary, secret scan, QA-hook boundary, and 16-finding build-toolchain-only audit classification. Full Jest, DB integrity/idempotency, migration, backup/rollback, database-lock, and full workout matrix remain NOT VALIDATED after host Node SIGSEGV/exit 139.
 - Accessibility contracts pass (focus 6/6 and shared game UI 2/2); opt-in wall-clock performance probes remain NOT VALIDATED after the same host SIGSEGV. Manual TalkBack, SAF/system sheets, and iOS UX remain BLOCKED/NOT VALIDATED.
-- Exact-SHA platform certification is current at `1b87619`: Android Build Smoke `33238211582` passed clean Expo prebuild, `:app:assembleRelease`, packaged permission checks, and uploaded release artifact `9710800639` (`APK_BYTES=109245513`). iOS Build Smoke `33238211591`, App CI `33238211577`, and Repository Integrity `33238211576` also PASS. The APK SHA-256 remains `be21bb375d75eda9331f5d8d66958944ea3f91754e9ed3c33f1e81f25194db16`.
+- Latest exact-SHA CI status at `31a6143`: App CI `33239131160`, iOS Build Smoke `33239131153`, and Repository Integrity `33239131170` PASS. Android Build Smoke `33239131146` was cancelled by the 60-minute job timeout after stalling in `:app:compressReleaseAssets`; it is BLOCKED/NOT VALIDATED, not a product-build PASS. The prior Android release artifact PASS at `1b87619` remains valid historical evidence (`APK_BYTES=109245513`, SHA-256 `be21bb375d75eda9331f5d8d66958944ea3f91754e9ed3c33f1e81f25194db16`).
 - Android dedicated-device installation/startup, post-015 canaries, Workout V3 journeys, hierarchy evidence, and 42/42 certification remain NOT VALIDATED. The designated AVD recovery attempts reproduced the documented 37.1.11/WHPX/qemu failure; the foreign `study-maker-api35` AVD was not adopted.
 - Platform convergence checkpoint: `.agent/checkpoints/016-release-certification-hardening-platform-convergence-20260829.md`. The earlier `-BLOCKED` checkpoint is a historical pre-push/pre-platform snapshot; Campaign 016 remains ACTIVE because residual runtime/recovery/device evidence is unresolved.
 ## Ordered workstreams

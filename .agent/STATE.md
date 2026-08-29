@@ -1,11 +1,12 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 platform-certification convergence
-checkpoint refreshed at source head `1b87619`, pushed to `origin/main`). Android
-release Build Smoke `33238211582`, iOS Simulator Build Smoke `33238211591`, App
-CI `33238211577`, and Repository Integrity `33238211576` all PASS on the exact
-SHA. The prior `ce0a58f` platform evidence remains valid historical evidence.
+**Last update:** 2026-08-29 (Campaign 016 latest exact-SHA CI convergence
+at source head `31a6143`, pushed to `origin/main`). App CI `33239131160`, iOS
+Simulator Build Smoke `33239131153`, and Repository Integrity `33239131170` PASS.
+Android Build Smoke `33239131146` was cancelled by the 60-minute job timeout
+while stalled in `:app:compressReleaseAssets`; it is BLOCKED/NOT VALIDATED.
+The Android release artifact PASS at `1b87619` remains valid historical evidence.
 The release APK permission boundary and artifact upload passed. Full Jest,
 DB integrity/idempotency, migration, backup/rollback, database-lock, and
 opt-in performance probes remain NOT VALIDATED after reproducible host Node
@@ -20,9 +21,10 @@ adopted.
 Campaign 016 — Release Certification & Hardening is **ACTIVE**. Campaign 015
 is VALIDATED on exact green SHA `fc9899e`; its implementation, governance, and
 causal workout-attribution work are complete. 016 platform certification has
-now converged on exact SHA `1b87619`: Android release build/permission
-validation and artifact upload PASS, iOS unsigned simulator compile PASS, and
-App CI plus Repository Integrity PASS. Remaining scope is explicitly limited
+latest partial convergence at `31a6143`: iOS unsigned simulator compile, App CI,
+and Repository Integrity PASS; the Android release job timed out before a
+current-head artifact result. Android release/permission PASS remains available
+on historical exact SHA `1b87619`. Remaining scope is explicitly limited
 to full Jest and host-SIGSEGV-affected persistence/recovery/performance
 matrices, dedicated Android runtime journeys, and manual UX evidence. These
 remain NOT VALIDATED/BLOCKED and must not be relabeled without evidence.
