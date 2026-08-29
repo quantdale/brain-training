@@ -67,6 +67,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          mkdir -p android/build-logs
           cd android
           ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build-logs/gradle-assemble-debug.log
 
