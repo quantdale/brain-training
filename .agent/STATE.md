@@ -1,12 +1,12 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 015 VALIDATED and Campaign 016 ACTIVE
-on exact green SHA `fc9899e`; predecessor 014 is COMPLETED at `f66f65c`.
-App CI `33226167744` and Repository Integrity `33226167736` both passed on
-`fc9899e`. 015 local Linux full-suite execution remains host-crash NOT
-VALIDATED and dedicated Android remains externally BLOCKED/NOT VALIDATED;
-these limitations are carried into 016 and are not represented as PASS.)
+**Last update:** 2026-08-29 (Campaign 016 ACTIVE at exact green SHA
+`8b05941`; App CI `33227462365` and Repository Integrity `33227462354` both
+passed. Two independent clean-checkout certification runs passed every
+available install/static/app gate and tracked-mutation check. Full Jest remains
+NOT VALIDATED after host Node worker SIGSEGVs; dedicated Android remains
+externally BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 

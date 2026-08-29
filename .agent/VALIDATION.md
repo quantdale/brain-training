@@ -1409,6 +1409,28 @@ platform limitations remain explicitly classified and are carried into 016.
   The full local Jest run is **NOT VALIDATED**: it reached extensive passing
   output but ended with the documented host-level Node SIGSEGV/resource
   failure; no threshold, retry, or test suppression was introduced.
-- Next action: push the corrective repair and require fresh App CI and
-  Repository Integrity results on its exact SHA before continuing 016 feature
-  work.
+- Exact repair SHA `b0b262b` passed App CI `33226923137` and Repository
+  Integrity `33226923126`; the governance regression is closed.
+
+### Campaign 016 — clean-checkout reproducibility (2026-08-29, SHA `8b05941`)
+
+- Added `scripts/certification/certify-clean-checkout.mjs`, documented in
+  `scripts/qa/README.md`. It uses the canonical `apps/mobile` lockfile
+  boundary, runs root/app certification gates, checks tracked-file mutation,
+  and never converts a Jest failure to PASS unless the explicit
+  `--allow-jest-not-validated` flag is supplied.
+- Two independent disposable worktrees at `8b05941` ran the certification
+  runner with that explicit allowance. Both passed app `npm ci --ignore-scripts`,
+  repository-state, ownership, OpenSpec 3/3, registry, provenance, offline
+  boundary, QA self-test, typecheck, lint, web export, Expo Doctor, and
+  `tracked_mutation_after_clean_run=PASS`.
+- Full Jest is **NOT VALIDATED**, not PASS: both runs exited nonzero in Jest
+  after broad execution with host-level Node worker SIGSEGVs. The first clean
+  run observed 429/488 suites passing; the second observed the same class of
+  resource failure. No retries, threshold changes, or test suppression were
+  introduced. App CI `33227462365` and Repository Integrity `33227462354`
+  both passed on exact SHA `8b05941`.
+- Phase 1 status: 1.1, 1.2, 1.3, 1.5, and 1.6 **PASS**; 1.4 is **PARTIAL / NOT
+  VALIDATED** solely for full Jest.
+- Next action: run clean Android prebuild and production-boundary inspection;
+  native build/device evidence remains separate from these clean-checkout gates.
