@@ -11,7 +11,6 @@
  * Empty states: `games-empty` when nothing is registered; `games-no-results`
  * when filters match nothing (with a one-tap Clear-filters recovery action).
  * The search field carries an inline clear button once a query is typed.
- * when filters match nothing (with a one-tap Clear-filters recovery action).
  */
 
 import { Link, useFocusEffect } from 'expo-router';
