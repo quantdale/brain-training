@@ -27,16 +27,16 @@
 - [x] 2.7 Document that signing/store submission remains intentionally deferred — constitution-deferred scope is preserved in `design.md`, `proposal.md`, and the platform/release specs.
 
 ## 3. Android environment recovery & fresh certification — P1
-- [ ] 3.1 Capture current emulator/SDK/WHPX/graphics/AVD versions and segfault logs.
-- [ ] 3.2 Reproduce failure once; do not blind-retry.
-- [ ] 3.3 Test a pinned known-stable emulator/toolchain candidate.
-- [ ] 3.4 Test software-rendering/headless-safe configuration.
-- [ ] 3.5 Recreate the dedicated AVD from scriptable inputs.
-- [ ] 3.6 If available, use a physical ADB device as a non-host-input fallback.
-- [ ] 3.7 Once stable, run Rule Grid + Transform Match + representative post-015 canaries.
-- [ ] 3.8 Run Workout V3 daily/focus/relaunch journeys.
-- [ ] 3.9 Run one full 42/42 `autobot --mode certify` pass on the candidate SHA.
-- [ ] 3.10 If 3.3–3.6 all fail for infrastructure reasons, record BLOCKED with evidence; never mark PASS.
+- [x] 3.1 Capture current emulator/SDK/WHPX/graphics/AVD versions and segfault logs — bounded inventory captured: Linux host, Android emulator 37.1.11, platform-tools/ADB 37.0.1, SDK platform 35, no Java/Gradle on PATH, no connected device, and only foreign local AVD `study-maker-api35`; prior designated Windows `braintraining-qa36` 37.1.11/WHPX failure logs are recorded in the 014/015 checkpoints.
+- [x] 3.2 Reproduce failure once; do not blind-retry — prior bounded designated-AVD boot reproduced `sys.boot_completed=1` followed by emulator/qemu exit, empty `adb devices`, and `device offline`/WHPX segfault evidence; this checkpoint performed no retry.
+- [ ] 3.3 Test a pinned known-stable emulator/toolchain candidate — NOT VALIDATED: no known-stable candidate is available on this host; the installed 37.1.11 toolchain is the documented failing environment.
+- [x] 3.4 Test software-rendering/headless-safe configuration — prior designated-AVD bounded attempts used headless/no-window, software GPU, disabled Wi-Fi/netsim, cold/wipe-data variants; the emulator still failed, as documented.
+- [x] 3.5 Recreate the dedicated AVD from scriptable inputs — prior bounded Windows recovery recreated `braintraining-qa36` from the committed API-35 `aosp_atd`/x86_64 inputs; it remained unstable after boot.
+- [ ] 3.6 If available, use a physical ADB device as a non-host-input fallback — BLOCKED/NOT AVAILABLE: no physical device is connected.
+- [ ] 3.7 Once stable, run Rule Grid + Transform Match + representative post-015 canaries — NOT VALIDATED because the dedicated device is not stable/available.
+- [ ] 3.8 Run Workout V3 daily/focus/relaunch journeys — NOT VALIDATED because the dedicated device is not stable/available.
+- [ ] 3.9 Run one full 42/42 `autobot --mode certify` pass on the candidate SHA — NOT VALIDATED because the dedicated device is not stable/available.
+- [x] 3.10 If 3.3–3.6 all fail for infrastructure reasons, record BLOCKED with evidence; never mark PASS — Android runtime certification remains BLOCKED/NOT VALIDATED by missing Java/device plus reproducible 37.1.11/WHPX emulator failure; no foreign AVD was adopted.
 
 ## 4. CI and test-signal integrity — P2
 - [x] 4.1 Enumerate exact 4 skipped suites / 5 skipped tests and their skip conditions — four opt-in measurement suites (`PERF_PROBE=1` or `LARGE_BACKUP_PROBE=1`) plus one opt-in projection measurement block; exact records are represented in the allowlist.

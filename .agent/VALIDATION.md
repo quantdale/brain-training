@@ -1517,7 +1517,23 @@ platform limitations remain explicitly classified and are carried into 016.
   repository-wide classifier for unexpected warnings/errors and full Jest
   remains constrained by the host Node SIGSEGV behavior.
 
-### Campaign 016 — app-level release-candidate gates (2026-08-29, local `9181f0f`)
+### Campaign 016 — Android recovery classification (2026-08-29, local `de5de16`)
+
+- Read-only host inventory found Linux `6.12.94`, Android emulator `37.1.11.0`,
+  platform-tools/ADB `37.0.1`, SDK platform 35, no Java/Gradle commands, no
+  connected ADB device, and no running emulator. The only local AVD is the
+  foreign `study-maker-api35` (Google APIs, API 35, x86_64); it was not adopted.
+- Existing designated-device evidence records one bounded recovery attempt on
+  `braintraining-qa36`: headless/no-window + software GPU + disabled Wi-Fi and
+  cold/wipe-data variants reached boot on the documented Windows/WHPX host, then
+  reproduced qemu/emulator exit, empty ADB, and `device offline`/Netsim failure.
+  The dedicated AVD was recreated from scriptable API-35 inputs during that
+  recovery, but remained unstable. No emulator was launched in this checkpoint
+  and no blind retry was made.
+- Android recovery tasks 3.1, 3.2, 3.4, 3.5, and 3.10 are now evidence-backed;
+  3.3, 3.6, 3.7, 3.8, and 3.9 remain **NOT VALIDATED/BLOCKED**. No Android
+  runtime, hierarchy, Workout V3, or 42/42 certification PASS is claimed.
+
 
 - Current-head static/repository gates passed: repo-state, ownership, OpenSpec
   3/3, registry, provenance, and offline boundary. `npm run typecheck` and
