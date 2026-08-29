@@ -1,13 +1,14 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-28 (Campaign 015 remains **ACTIVE** pending its
-closure-SHA workflow verification; predecessor 014 is COMPLETED at `f66f65c`.
-The causal workout-attribution continuation is implemented locally. Exact-head
-App CI `33121632955` and Repository Integrity `33121632951` passed on `ea144d7`
-with 488 passed / 4 skipped suites and 6,043 passed / 5 skipped tests. Local
-Linux full-suite execution is host-crash `NOT VALIDATED`; dedicated Android is
-externally BLOCKED/NOT VALIDATED.)
+**Last update:** 2026-08-29 (Campaign 015 remains **ACTIVE** pending
+corrective-SHA workflow verification; predecessor 014 is COMPLETED at
+`f66f65c`. Closure candidate `9ef2531` passed Repository Integrity
+`33225677246`, while App CI `33225677247` failed only at Expo Doctor because
+three Expo SDK patch dependencies were stale. The corrective patch graph is
+validated locally with Expo Doctor 21/21 and `npm ci`; local Linux full-suite
+execution is host-crash `NOT VALIDATED`; dedicated Android is externally
+BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 015-governance-depth-convergence
 

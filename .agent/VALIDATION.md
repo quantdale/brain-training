@@ -1345,6 +1345,25 @@ has no Android SDK/ADB/emulator, consistent with prior bounded 37.1.x/WHPX
 failures. 015 remains ACTIVE until both workflows are verified on its closure
 SHA; proposed Campaign 016 is not activated yet.
 
+### Campaign 015 closure-SHA CI repair — 2026-08-29
+
+- Pushed closure candidate `9ef2531`; Repository Integrity `33225677246`
+  **PASS**.
+- App CI `33225677247` **FAIL** only at Expo Doctor after all earlier gates
+  passed. Doctor reported `20/21`: `expo` expected `~57.0.18` but found
+  `57.0.17`, `expo-constants` expected `~57.0.16` but found `57.0.15`, and
+  `expo-font` expected `~57.0.2` but found `57.0.1`.
+- Corrective dependency repair updates only those Expo SDK patch constraints
+  and their required resolved graph (`@expo/env 2.4.3`, `@expo/fingerprint
+  0.20.11`, `@expo/metro-config 57.0.12`, Expo CLI `57.0.20`, and matching
+  package entries). `npm ci --ignore-scripts --prefer-offline` **PASS**;
+  `npx expo-doctor` **PASS 21/21**; typecheck, lint, lifecycle validators,
+  OpenSpec, and focused governance/Context Fit tests (11 suites / 100 tests)
+  **PASS**. The local Node engine warnings are pre-existing and the accepted
+  dependency audit remains unchanged.
+- The repair is not yet the final green closure SHA until both workflows are
+  rerun on its pushed commit.
+
 ### Campaign 015 closure candidate — 2026-08-28
 
 - Starting SHA: `ea144d7`; implementation baseline: `60fdadc`.

@@ -1,6 +1,6 @@
 # Campaign 015 — Governance & Depth Convergence
 
-**Status:** ACTIVE — closure checkpoint in progress. Predecessor 014 COMPLETED at `f66f65c`; 015 implementation is complete through `60fdadc`. Exact-head App CI `33121632955` and Repository Integrity `33121632951` are green on `ea144d7`; local Linux full-suite execution is host-crash `NOT VALIDATED`, and dedicated Android is externally BLOCKED/NOT VALIDATED.
+**Status:** ACTIVE — corrective closure repair in progress. Predecessor 014 COMPLETED at `f66f65c`; 015 implementation is complete through `60fdadc`. Closure candidate `9ef2531` passed Repository Integrity `33225677246`, while App CI `33225677247` failed only at Expo Doctor (`20/21`) for stale Expo SDK patch dependencies; the repair passes local Expo Doctor `21/21`. Local Linux full-suite execution is host-crash `NOT VALIDATED`, and dedicated Android is externally BLOCKED/NOT VALIDATED.
 **Campaign id:** `015-governance-depth-convergence`
 **Predecessor:** `014-experience-depth-replayability` (COMPLETED 2026-08-27 at `f66f65c` — see `.agent/checkpoints/014-experience-depth-replayability-COMPLETED.md`)
 **Mode:** day
