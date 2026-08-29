@@ -1,18 +1,19 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local Android-recovery
-checkpoint after `de5de16`; latest local evidence is committed. GitHub push
-remains blocked by the token's missing `workflow` scope. Static validators,
+**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local DB-integrity
+checkpoint after `d74869f`; latest local evidence is being committed. GitHub
+push remains blocked by the token's missing `workflow` scope. Static validators,
 typecheck/lint, web export (20 routes), Expo Doctor (21/21), bounded failure
 path (5 suites/20 tests), accessibility (6/6 and 2/2), and dependency
 classification (0 critical; 16 toolchain-only findings) pass. Android inventory
 found emulator 37.1.11/ADB 37.0.1 but no Java, no connected device, no running
 emulator, and only foreign AVD `study-maker-api35`; prior designated AVD
-software/headless/recreation attempts reproduced WHPX/qemu failure. Android
-runtime/canary/Workout V3/42-game certification remains BLOCKED/NOT VALIDATED.
-Performance probes, migration/backup/database-lock/full Jest remain NOT
-VALIDATED; iOS native/manual evidence remains BLOCKED/NOT VALIDATED.)
+software/headless/recreation attempts reproduced WHPX/qemu failure. The bounded
+DB integrity/idempotency probe reproduced host Node SIGSEGV exit 139 before
+Jest output; Android runtime/canary/Workout V3/42-game certification,
+persistence/recovery matrices, performance probes, and full Jest remain NOT
+VALIDATED. iOS native/manual evidence remains BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 

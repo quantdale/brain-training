@@ -50,10 +50,10 @@
 
 ## 5. Runtime resilience and data integrity — P1/P2
 - [ ] 5.1 Re-run workout ownership/idempotency adversarial matrix after process death/reopen — PARTIAL: `session-provenance`, `reconcile`, `v3`, and session lifecycle coverage passed before the host SIGSEGV; `advance`/full matrix did not produce a result on the bounded rerun.
-- [ ] 5.2 Stress duplicate completion delivery and concurrent same-game workout instances — NOT VALIDATED as a complete matrix; existing targeted contracts are present, but the bounded run was interrupted by host SIGSEGV.
+- [ ] 5.2 Stress duplicate completion delivery and concurrent same-game workout instances — NOT VALIDATED as a complete matrix; the bounded DB integrity/idempotency probe reproduced host Node `SIGSEGV` exit 139 before Jest emitted any suite result.
 - [ ] 5.3 Re-run SQLite migration matrix from representative historical schemas — NOT VALIDATED: migration suites did not produce results before the reproducible host SIGSEGV.
 - [ ] 5.4 Re-run backup export/import preview/replace/rollback and malformed/corrupt input cases — NOT VALIDATED: backup suites did not produce results before the reproducible host SIGSEGV; existing adversarial/rollback/round-trip tests remain in place.
-- [ ] 5.5 Verify storage-unavailable and database-lock failure UX does not corrupt state — storage-unavailable recovery passed (2 tests); database-lock behavior has no completed current-head evidence.
+- [ ] 5.5 Verify storage-unavailable and database-lock failure UX does not corrupt state — storage-unavailable recovery passed (2 tests); database-lock behavior has no completed current-head evidence, and the bounded DB integrity probe crashed before producing evidence.
 - [x] 5.6 Re-run background/pause/resume timing fairness canaries — `use-game-session` and timer suites passed in the bounded run, covering pause exclusion, auto-pause on background, resume, timer cancellation, and no orphan timers.
 - [x] 5.7 Verify production build does not expose dangerous QA mutation hooks — static source inspection shows GameHost QA panels/tutorial bypasses behind `isDevBuild()` and hook methods behind `assertDevOnly()`; focused production/config boundary suite passed 34/34 and non-migrated QA gate passed.
 - [x] 5.8 Re-run offline/network and permission boundaries after native prebuild — offline validator is CLEAN; focused permission/config boundary tests passed 34/34 after the clean prebuild evidence.

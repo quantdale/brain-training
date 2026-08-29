@@ -1534,6 +1534,18 @@ platform limitations remain explicitly classified and are carried into 016.
   3.3, 3.6, 3.7, 3.8, and 3.9 remain **NOT VALIDATED/BLOCKED**. No Android
   runtime, hierarchy, Workout V3, or 42/42 certification PASS is claimed.
 
+### Campaign 016 — bounded DB integrity probe (2026-08-29, local `d74869f`)
+
+- The distinct DB integrity target (`db-integrity`, `integrity-hardening`,
+  `sessions`, and DB fixture tests) was executed once with `--runInBand`; the
+  host Node process exited `139` (`SIGSEGV`) before Jest emitted any suite or
+  test result. No blind retry or test splitting followed.
+- Transaction rollback, duplicate-completion idempotency, corrupt-data
+  degradation, schema/constraint, migration-adjacent, and database-lock
+  evidence therefore remain **NOT VALIDATED**. Existing targeted contracts are
+  present, but this checkpoint makes no current-head persistence or recovery
+  PASS claim.
+
 
 - Current-head static/repository gates passed: repo-state, ownership, OpenSpec
   3/3, registry, provenance, and offline boundary. `npm run typecheck` and
