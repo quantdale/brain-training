@@ -8,6 +8,8 @@ baselines from the same machine only.
 
 ```bash
 node scripts/perf/run-probes.mjs
+# equivalent from the app boundary:
+cd apps/mobile && npm run perf:probe
 ```
 
 This executes `apps/mobile/src/__tests__/perf-baseline-probe.test.ts` under

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "campaign": "016-release-certification-hardening",
+  "entries": [
+    {
+      "file": "apps/mobile/src/data-portability/__tests__/large-backup-memory.test.ts",
+      "testPattern": "20k-session large-backup behavior",
+      "suitePattern": "20k-session large-backup behavior",
+      "enableWith": "LARGE_BACKUP_PROBE=1",
+      "rationale": "20k-session memory measurement; correctness is covered by ordinary backup suites and the probe is expensive.",
+      "owner": "Campaign 016 orchestrator"
+    },
+    {
+      "file": "apps/mobile/src/__tests__/perf-quest-eval-ab.test.ts",
+      "testPattern": "perf quest eval A/B",
+      "suitePattern": "perf quest eval A/B",
+      "enableWith": "PERF_PROBE=1",
+      "rationale": "Opt-in quest evaluation A/B measurement; timing is machine-relative and is not a correctness gate.",
+      "owner": "Campaign 016 orchestrator"
+    },
+    {
+      "file": "apps/mobile/src/__tests__/perf-baseline-probe.test.ts",
+      "testPattern": "perf baselines",
+      "suitePattern": "perf baselines",
+      "enableWith": "PERF_PROBE=1",
+      "rationale": "Opt-in history-read/export performance baseline; timing is machine-relative and is not a correctness gate.",
+      "owner": "Campaign 016 orchestrator"
+    },
+    {
+      "file": "apps/mobile/src/__tests__/perf-sync-scan-probe.test.ts",
+      "testPattern": "perf sync scans",
+      "suitePattern": "perf sync scans",
+      "enableWith": "PERF_PROBE=1",
+      "rationale": "Opt-in progression/achievement sync measurement at 100 to 20k sessions; timing is machine-relative.",
+      "owner": "Campaign 016 orchestrator"
+    },
+    {
+      "file": "apps/mobile/src/analytics/__tests__/projections-differential.test.ts",
+      "testPattern": "perf: projection vs legacy read cost",
+      "suitePattern": "perf: projection vs legacy read cost",
+      "enableWith": "PERF_PROBE=1",
+      "rationale": "Opt-in projection-vs-legacy timing block; deterministic differential correctness tests in the same file always run.",
+      "owner": "Campaign 016 orchestrator"
+    }
+  ]
+}

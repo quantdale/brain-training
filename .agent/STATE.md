@@ -1,12 +1,13 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 ACTIVE at exact green SHA
-`75f81fe`; App CI `33228018746` and Repository Integrity `33228018738` both
-passed. Two independent clean-checkout certification runs and clean Android
-prebuild/config-boundary inspection passed all available gates. Full Jest
-remains NOT VALIDATED after host Node worker SIGSEGVs; Android APK/device and
-iOS native evidence remain externally BLOCKED/NOT VALIDATED.)
+**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local CI-signal checkpoint
+from exact green SHA `75f81fe`; App CI `33228018746` and Repository Integrity
+`33228018738` passed before the unpushed signal changes. Clean-checkout and
+Android prebuild/config-boundary evidence passed all available gates. Full
+Jest remains NOT VALIDATED after host Node worker SIGSEGVs; Android APK/device
+and iOS native evidence remain externally BLOCKED/NOT VALIDATED. CI-signal
+changes are locally validated and awaiting exact-SHA CI.)
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 

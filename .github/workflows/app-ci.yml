@@ -24,10 +24,10 @@ jobs:
         working-directory: apps/mobile
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -79,7 +79,7 @@ jobs:
       # untouched; the flag is workflow-owned). Big suites re-transform far
       # less, shortening future campaigns' CI feedback loops.
       - name: Restore jest transform cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: apps/mobile/.jest-cache
           key: jest-${{ runner.os }}-${{ hashFiles('apps/mobile/package-lock.json') }}
@@ -87,7 +87,31 @@ jobs:
             jest-${{ runner.os }}-
 
       - name: Unit tests (jest, CI mode)
-        run: npm run test:ci -- --cacheDirectory=.jest-cache
+        id: jest
+        continue-on-error: true
+        run: npm run test:ci -- --json --outputFile=jest-summary.json --cacheDirectory=.jest-cache
+
+      - name: Validate Jest signal integrity
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: node scripts/certification/validate-jest-signal.mjs --summary apps/mobile/jest-summary.json
+
+      - name: Enforce Jest result
+        if: always()
+        run: |
+          if [ "${{ steps.jest.outcome }}" != "success" ]; then
+            echo "Jest failed; see the machine-readable summary artifact."
+            exit 1
+          fi
+
+      - name: Upload Jest summary
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: jest-summary-${{ github.run_id }}
+          path: apps/mobile/jest-summary.json
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Web export build smoke
         run: npx expo export --platform web
@@ -96,7 +120,7 @@ jobs:
       # regressions. Short retention; never needed on green runs.
       - name: Upload web-export output on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-export-dist-${{ github.run_id }}
           path: apps/mobile/dist

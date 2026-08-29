@@ -39,14 +39,14 @@
 - [ ] 3.10 If 3.3–3.6 all fail for infrastructure reasons, record BLOCKED with evidence; never mark PASS.
 
 ## 4. CI and test-signal integrity — P2
-- [ ] 4.1 Enumerate exact 4 skipped suites / 5 skipped tests and their skip conditions.
-- [ ] 4.2 Create explicit skip allowlist with rationale and owner.
-- [ ] 4.3 Add CI gate that fails on any unexpected/new skip.
-- [ ] 4.4 Add/standardize a dedicated performance-test command for opt-in perf suites.
-- [ ] 4.5 Spy/assert expected `console.error` in failure-path tests so green CI is quiet.
-- [ ] 4.6 Fail or classify unexpected console warnings/errors.
-- [ ] 4.7 Upgrade GitHub Actions to current Node-compatible majors after checking release compatibility.
-- [ ] 4.8 Preserve a machine-readable Jest summary artifact.
+- [x] 4.1 Enumerate exact 4 skipped suites / 5 skipped tests and their skip conditions — four opt-in measurement suites (`PERF_PROBE=1` or `LARGE_BACKUP_PROBE=1`) plus one opt-in projection measurement block; exact records are represented in the allowlist.
+- [x] 4.2 Create explicit skip allowlist with rationale and owner — `scripts/certification/jest-skip-allowlist.json`, five exact file/pattern entries with enablement flags, rationale, and Campaign 016 owner.
+- [x] 4.3 Add CI gate that fails on any unexpected/new skip — `scripts/certification/validate-jest-signal.mjs` parses Jest JSON, matches each pending record to exactly one entry, and fails closed; self-test covers all five entries plus an unknown skip.
+- [x] 4.4 Add/standardize a dedicated performance-test command for opt-in perf suites — `cd apps/mobile && npm run perf:probe` delegates to the existing `scripts/perf/run-probes.mjs`; command and measurement-only semantics documented in `scripts/perf/README.md`.
+- [ ] 4.5 Spy/assert expected `console.error` in failure-path tests so green CI is quiet — existing failure-path tests suppress/assert many expected emissions, but full current-head CI-wide console inventory is not validated because host Jest SIGSEGV prevents a complete local run.
+- [ ] 4.6 Fail or classify unexpected console warnings/errors — NOT VALIDATED; the JSON gate reports warning fields when supplied, but Jest does not emit a repository-wide warning classification field in the current setup and no safe blanket console policy was added.
+- [x] 4.7 Upgrade GitHub Actions to current Node-compatible majors after checking release compatibility — verified release tags via GitHub API and upgraded checkout v7, setup-node v7, cache v6, and upload-artifact v7 in both workflows.
+- [x] 4.8 Preserve a machine-readable Jest summary artifact — App CI runs Jest with `--json --outputFile=jest-summary.json`, validates it, and uploads it with 14-day retention on every outcome.
 
 ## 5. Runtime resilience and data integrity — P1/P2
 - [ ] 5.1 Re-run workout ownership/idempotency adversarial matrix after process death/reopen.
