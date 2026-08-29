@@ -18,13 +18,13 @@
 - [x] 1.6 Verify repeated clean runs do not mutate tracked files or generated artifacts — two independent runs at `8b05941` ended with `tracked_mutation_after_clean_run=PASS`; both were repeatable for install, static/app gates, export, and Doctor.
 
 ## 2. Native build reproducibility — P1
-- [ ] 2.1 Android clean Expo prebuild from committed config.
-- [ ] 2.2 Verify generated manifest permissions and production QA/debug-hook boundaries.
-- [ ] 2.3 Build native Android release/build-smoke artifact from clean generated state.
-- [ ] 2.4 Install/start the artifact on the dedicated project device when available.
-- [ ] 2.5 Add macOS iOS CI build-smoke: prebuild, pods, Xcode simulator build, signing disabled.
-- [ ] 2.6 Archive concise failure logs/artifacts for both native build paths.
-- [ ] 2.7 Document that signing/store submission remains intentionally deferred.
+- [x] 2.1 Android clean Expo prebuild from committed config — disposable worktree at `75f81fe`; `npx expo prebuild --platform android --clean --no-install` PASS.
+- [x] 2.2 Verify generated manifest permissions and production QA/debug-hook boundaries — generated manifest removes `RECORD_AUDIO` and `SYSTEM_ALERT_WINDOW`; backup/data-extraction rules, deterministic version metadata, and no native QA literals verified; focused boundary/config suite 34/34 PASS.
+- [ ] 2.3 Build native Android release/build-smoke artifact from clean generated state — NOT VALIDATED: host has no Java/Gradle/Android SDK tooling (`java`, `adb`, `emulator`, and `sdkmanager` absent).
+- [ ] 2.4 Install/start the artifact on the dedicated project device when available — BLOCKED/NOT VALIDATED: no ADB, emulator, or physical device is available on this host.
+- [ ] 2.5 Add macOS iOS CI build-smoke: prebuild, pods, Xcode simulator build, signing disabled — NOT VALIDATED: this host is not macOS and no Xcode runner is available in the current environment.
+- [ ] 2.6 Archive concise failure logs/artifacts for both native build paths — NOT VALIDATED: Android compilation and iOS Xcode paths were not executable here; prebuild/config evidence is recorded in `.agent/VALIDATION.md`.
+- [x] 2.7 Document that signing/store submission remains intentionally deferred — constitution-deferred scope is preserved in `design.md`, `proposal.md`, and the platform/release specs.
 
 ## 3. Android environment recovery & fresh certification — P1
 - [ ] 3.1 Capture current emulator/SDK/WHPX/graphics/AVD versions and segfault logs.

@@ -1434,3 +1434,29 @@ platform limitations remain explicitly classified and are carried into 016.
   VALIDATED** solely for full Jest.
 - Next action: run clean Android prebuild and production-boundary inspection;
   native build/device evidence remains separate from these clean-checkout gates.
+
+### Campaign 016 — native prebuild and production boundary (2026-08-29, SHA `75f81fe`)
+
+- In a disposable worktree, app `npm ci --ignore-scripts` and
+  `npx expo prebuild --platform android --clean --no-install` **PASS**. Generated
+  Android config contained package `com.braintraining.app`, deterministic
+  `versionCode 1000` / `versionName 0.1.0`, backup and data-extraction rules,
+  and no native QA literals.
+- Generated `AndroidManifest.xml` retained only expected baseline permissions
+  (`INTERNET`, `MODIFY_AUDIO_SETTINGS`, storage compatibility, `VIBRATE`) and
+  explicitly removed `RECORD_AUDIO` and `SYSTEM_ALERT_WINDOW`. Focused config,
+  backup, deterministic-version, and production QA-boundary suites **PASS**:
+  6 suites / 34 tests.
+- Android APK/build-smoke, install/start, and device journeys are **NOT
+  VALIDATED/BLOCKED**: this host has no `java`, `gradle`, Android SDK,
+  `sdkmanager`, `adb`, emulator, or physical device. iOS prebuild/CocoaPods/
+  Xcode simulator build is **NOT VALIDATED** because no macOS/Xcode runner is
+  available. No signing, provisioning, store, or submission work was added;
+  those remain constitution-deferred.
+- Exact-SHA App CI `33228018746` and Repository Integrity `33228018738` both
+  **PASS** on `75f81fe`.
+- Native phase status: 2.1 and 2.2 **PASS**; 2.3–2.6 remain
+  **NOT VALIDATED/BLOCKED** with the infrastructure evidence above; 2.7
+  **PASS** as documented deferred scope.
+- Next action: continue with CI/test-signal integrity, beginning with exact
+  skip conditions and an explicit allowlist/gate.

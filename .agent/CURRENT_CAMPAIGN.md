@@ -17,6 +17,11 @@ Turn the mature offline-first product into an evidence-backed release candidate 
 - 015 local Linux full-suite execution remains NOT VALIDATED after host Node SIGSEGV under contention; this is not converted to PASS.
 - Dedicated Android and iOS/manual system-sheet evidence remain BLOCKED/NOT VALIDATED under the documented host/platform limitations; 016 must pursue the bounded recovery/build evidence plan without adopting a foreign emulator or claiming unavailable UX evidence.
 
+## Progress checkpoint — 2026-08-29
+- Clean-checkout reproducibility is materially complete: two disposable runs at `8b05941` passed all available install/static/app gates and tracked-mutation checks; full Jest remains NOT VALIDATED due host Node worker SIGSEGVs.
+- Native boundary evidence at `75f81fe`: clean Android prebuild, generated permission/backup/version inspection, and 34/34 production/config boundary tests PASS. Android APK compilation/install/device and iOS Xcode build remain BLOCKED/NOT VALIDATED because this host lacks Java/Android SDK/ADB/device and macOS/Xcode.
+- Exact-SHA App CI and Repository Integrity are green for `75f81fe` (`33228018746`, `33228018738`).
+
 ## Ordered workstreams
 1. **Predecessor truth closure:** completed by the 015→016 transition; 015 is VALIDATED and 016 is the sole ACTIVE campaign.
 2. **Clean-checkout reproducibility:** fresh install, repository/OpenSpec/ownership/registry/provenance/offline/QA gates, typecheck, lint, full Jest, web export, Doctor, and tracked-file mutation check.
