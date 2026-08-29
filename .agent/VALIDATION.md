@@ -1504,3 +1504,15 @@ platform limitations remain explicitly classified and are carried into 016.
   **PASS**. Android hierarchy, TalkBack/manual, iOS UX, and system-sheet
   evidence remain **BLOCKED/NOT VALIDATED** because the required device/platform
   interactions were not available; no such evidence is claimed.
+
+### Campaign 016 — CI failure-path console signal (2026-08-29, local working state after `41f5d2d`)
+
+- `error-boundary.test.tsx` now scopes, asserts, and restores the expected
+  React renderer `console.error` diagnostics. The focused failure-path set
+  (`shell-a11y`, storage-unavailable, error-boundary, focus, and shared
+  accessibility contracts) passed **5 suites / 20 tests** with no emitted
+  console noise. Targeted ESLint and TypeScript typecheck also passed.
+- OpenSpec task 4.5 is **PASS** for this bounded failure-path set. Task 4.6
+  remains **NOT VALIDATED** because the repository still has no safe,
+  repository-wide classifier for unexpected warnings/errors and full Jest
+  remains constrained by the host Node SIGSEGV behavior.

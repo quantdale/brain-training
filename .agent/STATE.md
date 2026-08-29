@@ -1,15 +1,15 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local performance/accessibility
-checkpoint; local runtime/security checkpoint is committed at `b6672c7`.
-CI-signal commits remain local because GitHub push is blocked by the token's
-missing `workflow` scope. Changed-surface focus and shared game-ui accessibility
-contracts pass 6/6 and 2/2 with typecheck/targeted lint. The single opt-in
-performance probe attempt reproduced host Node SIGSEGVs with no JSON output;
-wall-clock probes remain NOT VALIDATED. Migration/backup/database-lock/full Jest
-remain NOT VALIDATED; Android device hierarchy and iOS native/manual evidence
-remain BLOCKED/NOT VALIDATED.)
+**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local CI-signal checkpoint;
+latest local evidence is being committed after `41f5d2d`. GitHub push remains
+blocked by the token's missing `workflow` scope. The bounded failure-path set
+passes 5 suites / 20 tests with expected React renderer errors asserted and
+suppressed; targeted typecheck/lint and repository gates pass. Accessibility
+contracts pass 6/6 and 2/2. The single opt-in performance probe reproduced host
+Node SIGSEGVs with no JSON output; wall-clock probes remain NOT VALIDATED.
+Migration/backup/database-lock/full Jest remain NOT VALIDATED; Android device
+hierarchy and iOS native/manual evidence remain BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 

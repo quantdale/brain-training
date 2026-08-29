@@ -14,7 +14,7 @@
  * Note: RNTL v14 `render`/`fireEvent` are async and must be awaited.
  */
 import { Component, type ReactNode } from 'react';
-import { describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { ErrorBoundary } from '../error-boundary';
@@ -46,6 +46,19 @@ class CrashOnMount extends Component<{ tracker: Tracker }, { crash: boolean }> {
 }
 
 describe('ErrorBoundary', () => {
+  let rendererErrorSpy: ReturnType<typeof jest.spyOn>;
+
+  beforeEach(() => {
+    rendererErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    const calls = rendererErrorSpy.mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.every((call: unknown[]) => String(call[0]).startsWith('Caught error:'))).toBe(true);
+    rendererErrorSpy.mockRestore();
+  });
+
   it('captures diagnostics and renders retry on a crash', async () => {
     const onError = jest.fn();
     const tracker: Tracker = { instances: 0 };
