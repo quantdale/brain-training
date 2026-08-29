@@ -1516,3 +1516,21 @@ platform limitations remain explicitly classified and are carried into 016.
   remains **NOT VALIDATED** because the repository still has no safe,
   repository-wide classifier for unexpected warnings/errors and full Jest
   remains constrained by the host Node SIGSEGV behavior.
+
+### Campaign 016 — app-level release-candidate gates (2026-08-29, local `9181f0f`)
+
+- Current-head static/repository gates passed: repo-state, ownership, OpenSpec
+  3/3, registry, provenance, and offline boundary. `npm run typecheck` and
+  `npm run lint` passed. Web export passed with **20 static routes** and Expo
+  Doctor passed **21/21**. The export generated ignored `dist/` output only;
+  tracked files remained unchanged.
+- Full `npm audit` and `npm audit --omit=dev` both report **0 critical, 0 low,
+  12 moderate, 4 high, 16 total**. `.agent/DEPENDENCY_AUDIT.md` classifies
+  these as Expo/Metro/Xcode build-toolchain-only; no runtime-reachable Critical
+  or High issue was identified and no risky dependency churn was applied.
+- App-level certification status: 8.2, 8.4, 8.8, and 8.13 are **PASS**;
+  8.1/8.3 are partial because full Jest is **NOT VALIDATED**; 8.5 remains
+  partial because clean prebuild passed but native compilation is unavailable;
+  8.6/8.7 are **BLOCKED/NOT VALIDATED** for missing macOS/Xcode and
+  Android/ADB/device tooling; 8.10/8.11 await a token with GitHub `workflow`
+  scope. Migration/backup/database-lock/recovery and final CI remain open.

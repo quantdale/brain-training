@@ -1,15 +1,16 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local CI-signal checkpoint;
-latest local evidence is being committed after `41f5d2d`. GitHub push remains
-blocked by the token's missing `workflow` scope. The bounded failure-path set
-passes 5 suites / 20 tests with expected React renderer errors asserted and
-suppressed; targeted typecheck/lint and repository gates pass. Accessibility
-contracts pass 6/6 and 2/2. The single opt-in performance probe reproduced host
-Node SIGSEGVs with no JSON output; wall-clock probes remain NOT VALIDATED.
-Migration/backup/database-lock/full Jest remain NOT VALIDATED; Android device
-hierarchy and iOS native/manual evidence remain BLOCKED/NOT VALIDATED.)
+**Last update:** 2026-08-29 (Campaign 016 ACTIVE at local app-gates
+checkpoint after `9181f0f`; latest local evidence is committed. GitHub push
+remains blocked by the token's missing `workflow` scope. Static validators,
+typecheck/lint, web export (20 routes), Expo Doctor (21/21), bounded failure
+path (5 suites/20 tests), accessibility (6/6 and 2/2), and dependency
+classification (0 critical; 16 toolchain-only findings) pass. The single opt-in
+performance probe reproduced host Node SIGSEGVs with no JSON output;
+wall-clock probes, migration/backup/database-lock/full Jest remain NOT
+VALIDATED. Android native/device and iOS native/manual evidence remain
+BLOCKED/NOT VALIDATED.)
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 

@@ -76,16 +76,16 @@
 - [x] 7.7 Keep TalkBack/manual and iOS UX evidence NOT VALIDATED unless actually performed — no manual TalkBack, iOS UX, or system-sheet evidence was claimed.
 
 ## 8. Final release-candidate certification — P1
-- [ ] 8.1 Clean checkout install and all repository validators PASS.
-- [ ] 8.2 TypeScript PASS; lint 0 errors / 0 warnings.
-- [ ] 8.3 Jest PASS with only allowlisted skips and zero unexpected console noise.
-- [ ] 8.4 Web export + Expo Doctor PASS.
-- [ ] 8.5 Android clean prebuild/native build PASS.
-- [ ] 8.6 iOS macOS build-smoke PASS or externally BLOCKED with evidence.
-- [ ] 8.7 Android current-head journeys/certify PASS or externally BLOCKED after bounded recovery matrix.
-- [ ] 8.8 Security/dependency classification contains no unresolved Critical/High runtime issue.
-- [ ] 8.9 No material data-loss/corruption/recovery defect remains.
-- [ ] 8.10 Push final coherent main SHA.
-- [ ] 8.11 Confirm App CI + Repository Integrity green on exact final SHA.
+- [ ] 8.1 Clean checkout install and all repository validators PASS — PARTIAL: clean-checkout install/static/app gates passed, but full Jest remains NOT VALIDATED after reproducible host SIGSEGV.
+- [x] 8.2 TypeScript PASS; lint 0 errors / 0 warnings — current head typecheck and `expo lint` pass; targeted changed-surface ESLint also passes.
+- [ ] 8.3 Jest PASS with only allowlisted skips and zero unexpected console noise — PARTIAL: bounded failure-path set is quiet and 20/20 PASS; full current-head Jest remains NOT VALIDATED.
+- [x] 8.4 Web export + Expo Doctor PASS — web export produced 20 static routes; Expo Doctor passed 21/21.
+- [ ] 8.5 Android clean prebuild/native build PASS — clean prebuild/config inspection passed; native APK compilation remains NOT VALIDATED because Java/Gradle/Android SDK tooling is absent.
+- [ ] 8.6 iOS macOS build-smoke PASS or externally BLOCKED with evidence — BLOCKED/NOT VALIDATED: this host is not macOS and has no Xcode runner.
+- [ ] 8.7 Android current-head journeys/certify PASS or externally BLOCKED after bounded recovery matrix — BLOCKED/NOT VALIDATED: no ADB, emulator, or physical device is available; prior WHPX failures are recorded.
+- [x] 8.8 Security/dependency classification contains no unresolved Critical/High runtime issue — full and `--omit=dev` audits both report 0 critical; all 16 findings are classified as build/dev-toolchain-only with no runtime-reachable Critical/High issue.
+- [ ] 8.9 No material data-loss/corruption/recovery defect remains — NOT VALIDATED: migration/backup/database-lock/full recovery matrices remain blocked by host SIGSEGV.
+- [ ] 8.10 Push final coherent main SHA — BLOCKED: GitHub rejects workflow-file updates because the OAuth token lacks the `workflow` scope.
+- [ ] 8.11 Confirm App CI + Repository Integrity green on exact final SHA — NOT VALIDATED until the current workflow changes can be pushed.
 - [ ] 8.12 Write terminal checkpoint and synchronize STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION/OpenSpec lifecycle.
-- [ ] 8.13 Leave deferred systems explicitly deferred, not represented as missing blockers.
+- [x] 8.13 Leave deferred systems explicitly deferred, not represented as missing blockers — signing/store submission, iOS/manual UX, SAF sheets, cloud/auth, telemetry, and monetization remain deferred or NOT VALIDATED by design.
