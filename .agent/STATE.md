@@ -2,9 +2,10 @@
 
 **State schema:** 1
 **Last update:** 2026-08-29 (Campaign 016 platform-certification convergence
-checkpoint at source head `ce0a58f`, pushed to `origin/main`). Android release
-Build Smoke `33237247511`, iOS Simulator Build Smoke `33237247498`, App CI
-`33237247509`, and Repository Integrity `33237247488` all PASS on the exact SHA.
+checkpoint refreshed at source head `1b87619`, pushed to `origin/main`). Android
+release Build Smoke `33238211582`, iOS Simulator Build Smoke `33238211591`, App
+CI `33238211577`, and Repository Integrity `33238211576` all PASS on the exact
+SHA. The prior `ce0a58f` platform evidence remains valid historical evidence.
 The release APK permission boundary and artifact upload passed. Full Jest,
 DB integrity/idempotency, migration, backup/rollback, database-lock, and
 opt-in performance probes remain NOT VALIDATED after reproducible host Node
@@ -19,7 +20,7 @@ adopted.
 Campaign 016 — Release Certification & Hardening is **ACTIVE**. Campaign 015
 is VALIDATED on exact green SHA `fc9899e`; its implementation, governance, and
 causal workout-attribution work are complete. 016 platform certification has
-now converged on exact SHA `ce0a58f`: Android release build/permission
+now converged on exact SHA `1b87619`: Android release build/permission
 validation and artifact upload PASS, iOS unsigned simulator compile PASS, and
 App CI plus Repository Integrity PASS. Remaining scope is explicitly limited
 to full Jest and host-SIGSEGV-affected persistence/recovery/performance

@@ -20,9 +20,9 @@
 ## 2. Native build reproducibility — P1
 - [x] 2.1 Android clean Expo prebuild from committed config — disposable worktree at `75f81fe`; `npx expo prebuild --platform android --clean --no-install` PASS.
 - [x] 2.2 Verify generated manifest permissions and production QA/debug-hook boundaries — generated manifest removes `RECORD_AUDIO` and `SYSTEM_ALERT_WINDOW`; backup/data-extraction rules, deterministic version metadata, and no native QA literals verified; focused boundary/config suite 34/34 PASS.
-- [x] 2.3 Build native Android release/build-smoke artifact from clean generated state — PASS on exact SHA `ce0a58f`: Android Build Smoke `33237247511` ran clean prebuild, `:app:assembleRelease`, packaged release permission checks, and uploaded `android-release-apk-33237247511` (artifact ID `9710511121`).
+- [x] 2.3 Build native Android release/build-smoke artifact from clean generated state — PASS on exact SHA `1b87619`: Android Build Smoke `33238211582` ran clean prebuild, `:app:assembleRelease`, packaged release permission checks, and uploaded `android-release-apk-33238211582` (artifact ID `9710800639`).
 - [ ] 2.4 Install/start the artifact on the dedicated project device when available — BLOCKED/NOT VALIDATED: no stable dedicated device is available; prior `braintraining-qa36` recovery reproduced the documented emulator failure and no foreign AVD was adopted.
-- [x] 2.5 Add macOS iOS CI build-smoke: prebuild, pods, Xcode simulator build, signing disabled — PASS on exact SHA `ce0a58f`: iOS Build Smoke `33237247498` completed clean prebuild, CocoaPods, and unsigned simulator `xcodebuild` compile.
+- [x] 2.5 Add macOS iOS CI build-smoke: prebuild, pods, Xcode simulator build, signing disabled — PASS on exact SHA `1b87619`: iOS Build Smoke `33238211591` completed clean prebuild, CocoaPods, and unsigned simulator `xcodebuild` compile.
 - [x] 2.6 Archive concise failure logs/artifacts for both native build paths — PASS for successful artifact paths: Android release APK artifact uploaded; iOS build-smoke completed with its failure-log upload path configured; no failure artifact was required on the passing run.
 - [x] 2.7 Document that signing/store submission remains intentionally deferred — constitution-deferred scope is preserved in `design.md`, `proposal.md`, and the platform/release specs.
 
@@ -80,12 +80,12 @@
 - [x] 8.2 TypeScript PASS; lint 0 errors / 0 warnings — current head typecheck and `expo lint` pass; targeted changed-surface ESLint also passes.
 - [ ] 8.3 Jest PASS with only allowlisted skips and zero unexpected console noise — PARTIAL: bounded failure-path set is quiet and 20/20 PASS; full current-head Jest remains NOT VALIDATED.
 - [x] 8.4 Web export + Expo Doctor PASS — web export produced 20 static routes; Expo Doctor passed 21/21.
-- [x] 8.5 Android clean prebuild/native build PASS — exact SHA `ce0a58f` Android Build Smoke `33237247511` passed clean prebuild, release APK compilation, packaged permission boundary, and artifact upload.
-- [x] 8.6 iOS macOS build-smoke PASS or externally BLOCKED with evidence — exact SHA `ce0a58f` iOS Build Smoke `33237247498` passed clean prebuild, CocoaPods, and unsigned simulator compile.
+- [x] 8.5 Android clean prebuild/native build PASS — exact SHA `1b87619` Android Build Smoke `33238211582` passed clean prebuild, release APK compilation, packaged permission boundary, and artifact upload.
+- [x] 8.6 iOS macOS build-smoke PASS or externally BLOCKED with evidence — exact SHA `1b87619` iOS Build Smoke `33238211591` passed clean prebuild, CocoaPods, and unsigned simulator compile.
 - [ ] 8.7 Android current-head journeys/certify PASS or externally BLOCKED after bounded recovery matrix — BLOCKED/NOT VALIDATED: dedicated Android runtime/canaries/Workout V3/42-game certification remain unavailable after the documented AVD failure; no foreign emulator was adopted.
 - [x] 8.8 Security/dependency classification contains no unresolved Critical/High runtime issue — full and `--omit=dev` audits both report 0 critical; all 16 findings are classified as build/dev-toolchain-only with no runtime-reachable Critical/High issue.
 - [ ] 8.9 No material data-loss/corruption/recovery defect remains — NOT VALIDATED: migration/backup/database-lock/full recovery matrices remain blocked by host SIGSEGV.
-- [x] 8.10 Push final coherent main SHA — PASS: `ce0a58f` is pushed to `origin/main`.
-- [x] 8.11 Confirm App CI + Repository Integrity green on exact final SHA — PASS: App CI `33237247509` and Repository Integrity `33237247488` both succeeded for `ce0a58f`; iOS `33237247498` and Android `33237247511` also succeeded.
+- [x] 8.10 Push final coherent main SHA — PASS: `1b87619` is pushed to `origin/main`.
+- [x] 8.11 Confirm App CI + Repository Integrity green on exact final SHA — PASS: App CI `33238211577` and Repository Integrity `33238211576` both succeeded for `1b87619`; iOS `33238211591` and Android `33238211582` also succeeded.
 - [x] 8.12 Write terminal checkpoint and synchronize STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION/OpenSpec lifecycle — platform convergence checkpoint written; Campaign 016 remains ACTIVE because residual Jest/recovery/performance/device evidence is still BLOCKED/NOT VALIDATED.
 - [x] 8.13 Leave deferred systems explicitly deferred, not represented as missing blockers — signing/store submission, iOS/manual UX, SAF sheets, cloud/auth, telemetry, and monetization remain deferred or NOT VALIDATED by design.

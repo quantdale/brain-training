@@ -2,7 +2,7 @@
 
 ## Current blockers
 
-- **Campaign 016 remains ACTIVE with platform gates converged:** `.agent/checkpoints/016-release-certification-hardening-platform-convergence-20260829.md` records exact-SHA `ce0a58f` evidence. Android release build/permission validation and artifact upload, iOS macOS simulator compile smoke, App CI, and Repository Integrity all PASS. The prior terminal-blocked snapshot is historical and superseded for push/native-platform status.
+- **Campaign 016 remains ACTIVE with platform gates converged:** `.agent/checkpoints/016-release-certification-hardening-platform-convergence-20260829.md` records the platform evidence, refreshed on exact SHA `1b87619`. Android release build/permission validation and artifact upload, iOS macOS simulator compile smoke, App CI, and Repository Integrity all PASS. The prior terminal-blocked snapshot is historical and superseded for push/native-platform status.
 - **Residual 016 validation debt is explicit:** full Jest plus DB integrity/idempotency, migration, backup/rollback, database-lock, and opt-in performance probes remain NOT VALIDATED after host Node SIGSEGV/exit 139; dedicated Android device journeys remain NOT VALIDATED after the documented 37.1.11/WHPX failure and no safe device is available. Manual TalkBack, SAF/system sheets, iOS UX, signing/store, cloud/auth, telemetry, and monetization remain deferred or NOT VALIDATED. No Critical/High product regression is currently known.
 - **Historical 014 device limitation (COMPLETED at 6451bfb):** 014's exit evidence is prior dedicated-AVD green at `f4aa44c` (canaries 8/8 + daily 4/4 + focus 4/4 on `braintraining-qa36` / `emulator-5554`) plus `BUILD SUCCESSFUL` 80M APK + `adb install` `Success` + `am start` success + `adb reverse` + `Metro` 8081 ready + precise workout slack at `d645bbb` (unit-test-green, fixing 2 suites red at `4ac4d45`). The re-run with the precise slack was **NOT VALIDATED on device due to genuine 37.1.x WHPX emulator segfault**; it was accepted for 014 under the documented evidence policy.
 - Campaign 013 release gate (`--mode certify` 42/42, SHA ba6dd84) remains GREEN (see `VALIDATION.md`).
@@ -13,9 +13,7 @@
 - **SAF share-sheet/document-picker system consent sheets**: cannot be driven
   emulator-locally by autobot policy; engine round-trips are device-proven via pulled
   DB. Requires interactive/manual validation path (NOT VALIDATED, by design).
-- **iOS build unverifiable on this host (NOT VALIDATED)**: Windows host has no
-  Xcode/macOS. Static audit refreshed in Campaign 012 W16; platform seams are
-  source-level only.
+- **iOS manual/runtime UX remains NOT VALIDATED**: the macOS simulator compile smoke passes in CI, but manual TalkBack-equivalent accessibility review, iOS runtime UX, and system-sheet flows were not performed.
 - **Achievements sync scope (Low)**: quest/achievement evaluation scans up
   to 5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`); measured flat ~78ms at cap
   (W13 baselines); far above realistic foundations-phase history, documented cap.

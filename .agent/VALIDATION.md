@@ -1576,9 +1576,9 @@ platform limitations remain explicitly classified and are carried into 016.
   autobot self-test 49/49, typecheck, lint, and the focused failure-path set
   (5 suites / 20 tests). No additional crash/device retry was made.
 
-### Campaign 016 — exact-SHA platform certification convergence (2026-08-29, `ce0a58f`)
+### Campaign 016 — exact-SHA platform certification convergence (2026-08-29, refreshed `1b87619`; prior `ce0a58f`)
 
-- Android Build Smoke `33237247511` **PASS** on exact SHA `ce0a58f`: clean Expo prebuild, `:app:assembleRelease`, packaged permission inspection, and release artifact upload. Gradle reported `BUILD SUCCESSFUL` after 531 actionable tasks. `aapt2 dump permissions` showed no `android.permission.RECORD_AUDIO` or `android.permission.SYSTEM_ALERT_WINDOW`. APK: `app-release.apk`, `APK_BYTES=109245513`, SHA-256 `be21bb375d75eda9331f5d8d66958944ea3f91754e9ed3c33f1e81f25194db16`; artifact `android-release-apk-33237247511`, ID `9710511121`, upload PASS.
-- iOS Build Smoke `33237247498` **PASS**: macOS clean prebuild, CocoaPods installation, and unsigned iOS Simulator `xcodebuild` compile smoke completed.
-- App CI `33237247509` and Repository Integrity `33237247488` **PASS** on the same exact SHA. Final branch state was clean and `main` matched `origin/main` at `ce0a58f`.
+- Android Build Smoke `33238211582` **PASS** on exact SHA `1b87619`: clean Expo prebuild, `:app:assembleRelease`, packaged permission inspection, and release artifact upload. Gradle reported `BUILD SUCCESSFUL` after 531 actionable tasks. `aapt2 dump permissions` showed no `android.permission.RECORD_AUDIO` or `android.permission.SYSTEM_ALERT_WINDOW`. APK: `app-release.apk`, `APK_BYTES=109245513`, SHA-256 `be21bb375d75eda9331f5d8d66958944ea3f91754e9ed3c33f1e81f25194db16`; artifact `android-release-apk-33238211582`, ID `9710800639`, upload PASS.
+- iOS Build Smoke `33238211591` **PASS**: macOS clean prebuild, CocoaPods installation, and unsigned iOS Simulator `xcodebuild` compile smoke completed.
+- App CI `33238211577` and Repository Integrity `33238211576` **PASS** on the same exact SHA `1b87619`. Android, iOS, App CI, and Repository Integrity all passed for the refreshed exact-SHA platform certification.
 - The prior `016-release-certification-hardening-BLOCKED.md` is retained as a historical pre-push/pre-platform snapshot, not current evidence. Residual full Jest, DB/recovery, opt-in performance, dedicated Android runtime, and manual UX classifications remain **NOT VALIDATED/BLOCKED**; no unavailable check was converted to PASS.

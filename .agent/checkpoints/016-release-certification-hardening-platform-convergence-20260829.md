@@ -3,21 +3,21 @@
 **Status:** ACTIVE — residual runtime/recovery evidence remains BLOCKED or NOT VALIDATED
 **Campaign:** `016-release-certification-hardening`
 **Date:** 2026-08-29
-**Source head:** `ce0a58f0c2bea1af86ba188d6233a8a50325be07`
+**Source head:** `1b876191a1d3d2567a6db5bd6c7daa742e86a8ed` (refreshed from prior `ce0a58f` convergence)
 
 ## Verdict
 
 Campaign 016 has closed the previously blocked native-platform and exact-SHA CI gates that were executable through GitHub-hosted runners. It remains ACTIVE because full Jest, persistence/recovery matrices, opt-in performance probes, dedicated Android device journeys, and manual UX evidence still lack valid current-head results. No unavailable check is represented as PASS.
 
-## Newly validated on exact SHA `ce0a58f`
+## Newly validated on exact SHA `1b87619` (prior `ce0a58f` evidence retained below)
 
-- Android Build Smoke `33237247511`: **PASS**. Clean Expo Android prebuild, `:app:assembleRelease`, release APK boundary validation, and success artifact upload all passed.
+- Android Build Smoke `33238211582`: **PASS**. Clean Expo Android prebuild, `:app:assembleRelease`, release APK boundary validation, and success artifact upload all passed.
 - Android release artifact: `app-release.apk`, `APK_BYTES=109245513`, SHA-256 `be21bb375d75eda9331f5d8d66958944ea3f91754e9ed3c33f1e81f25194db16`.
 - Packaged release permissions contained no `RECORD_AUDIO` or `SYSTEM_ALERT_WINDOW`; the debug-only manifest marker was not used as release evidence.
-- Release artifact `android-release-apk-33237247511` uploaded successfully (artifact ID `9710511121`, 14-day retention).
-- iOS Build Smoke `33237247498`: **PASS**. macOS clean prebuild, CocoaPods installation, and unsigned iOS Simulator `xcodebuild` compile smoke passed.
-- App CI `33237247509`: **PASS**. Repository Integrity `33237247488`: **PASS**.
-- Local validation before the final workflow change: `git diff --check`, `node scripts/validate-repo-state.mjs`, and OpenSpec validation all **PASS**. Final worktree is clean and `main` matches `origin/main` at `ce0a58f`.
+- Release artifact `android-release-apk-33238211582` uploaded successfully (artifact ID `9710800639`, 14-day retention).
+- iOS Build Smoke `33238211591`: **PASS**. macOS clean prebuild, CocoaPods installation, and unsigned iOS Simulator `xcodebuild` compile smoke passed.
+- App CI `33238211577`: **PASS**. Repository Integrity `33238211576`: **PASS**.
+- Local validation before the refresh commit: `git diff --check`, `node scripts/validate-repo-state.mjs`, and OpenSpec validation all **PASS**. The refreshed platform evidence is recorded against `1b87619`.
 
 ## Remaining BLOCKED / NOT VALIDATED evidence
 
