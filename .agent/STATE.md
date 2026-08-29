@@ -1,18 +1,21 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-29 (Campaign 016 latest exact-SHA CI convergence
-at source head `31a6143`, pushed to `origin/main`). App CI `33239131160`, iOS
-Simulator Build Smoke `33239131153`, and Repository Integrity `33239131170` PASS.
-Android Build Smoke `33239131146` was cancelled by the 60-minute job timeout
-while stalled in `:app:compressReleaseAssets`; it is BLOCKED/NOT VALIDATED.
-The Android release artifact PASS at `1b87619` remains valid historical evidence.
-The release APK permission boundary and artifact upload passed. Full Jest,
-DB integrity/idempotency, migration, backup/rollback, database-lock, and
-opt-in performance probes remain NOT VALIDATED after reproducible host Node
-SIGSEGV/exit 139; dedicated Android runtime/canaries/Workout V3/42-game
-certification and manual UX remain BLOCKED/NOT VALIDATED. No foreign AVD was
-adopted.
+**Last update:** 2026-08-29 (Campaign 016 convergence extended at source head
+`022dccb`, pushed to `origin/main`). App CI `33239131160`, iOS Simulator Build
+Smoke `33239131153`, and Repository Integrity `33239131170` PASS on prior SHA
+`31a6143`; Android Build Smoke `33239131146` was cancelled by the 60-minute job
+timeout while stalled in `:app:compressReleaseAssets`; it is BLOCKED/NOT
+VALIDATED. The Android release artifact PASS at `1b87619` remains valid
+historical evidence. **Full Jest now PASS** (489 suites / 6055 tests, 0 failures,
+4 opt-in skips matching allowlist exactly). **DB integrity/idempotency PASS**,
+**migration matrix/robustness/v10-hardening PASS**, **backup/rollback PASS**,
+**opt-in performance probes PASS** (baseline + sync scan emitted clean JSON).
+**Jest signal validation PASS** (0 unclassified skips, 0 unexpected warnings).
+Dedicated Android runtime/canaries/Workout V3/42-game certification and manual
+UX remain BLOCKED/NOT VALIDATED after the documented 37.1.11/WHPX emulator
+failure; no foreign AVD was adopted. No Critical/High product regression is
+currently known.
 **Canonical branch:** `main`
 **Active campaign:** 016-release-certification-hardening
 
