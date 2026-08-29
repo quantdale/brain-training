@@ -1391,3 +1391,24 @@ platform limitations remain explicitly classified and are carried into 016.
 - Historical next action completed: corrective closure SHA `fc9899e` was pushed,
   both exact-SHA workflows passed, 015 was marked VALIDATED, and 016 was
   activated in the separate lifecycle transition.
+
+### Campaign 016 — activation regression repair (2026-08-29)
+
+- Transition SHA `d1d4ba8` passed Repository Integrity `33226421083`, but App
+  CI `33226421087` failed in Unit tests: two positive ownership fixtures in
+  `task-ownership.test.ts` still hardcoded the retired 015 campaign after 016
+  activation. The validator correctly rejected those stale bindings; this was
+  a test-fixture regression, not a production ownership weakness.
+- Repair: `apps/mobile/src/governance/__tests__/task-ownership.test.ts` now
+  reads `.agent/GOVERNANCE.json` for the active campaign in positive fixtures;
+  the intentional stale-change negative fixture remains hardcoded. Focused
+  governance suites (`task-ownership`, `repo-state`, `affected`) **PASS** —
+  35/35 tests.
+- Static gates after the repair: repository-state, task-ownership, OpenSpec
+  (3/3), registry, provenance, offline boundary, typecheck, and lint **PASS**.
+  The full local Jest run is **NOT VALIDATED**: it reached extensive passing
+  output but ended with the documented host-level Node SIGSEGV/resource
+  failure; no threshold, retry, or test suppression was introduced.
+- Next action: push the corrective repair and require fresh App CI and
+  Repository Integrity results on its exact SHA before continuing 016 feature
+  work.
