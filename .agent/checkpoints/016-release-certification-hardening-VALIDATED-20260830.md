@@ -6,10 +6,12 @@
 **Branch:** `main`
 **Convergence start SHA:** `f0d301bc1b80ed657c75af81c476ee87dbeea540`
 **Final certified source SHA:** `d987ab4dc058ee64b137490495b86b573f9764fa`
-**Final main SHA:** the terminal checkpoint commit containing this file; its
-exact value is verified by the final `git rev-parse HEAD` and exact-SHA GitHub
-Actions wave recorded at handoff. The certified source SHA above contains all
-implementation and lifecycle changes; this checkpoint is documentation-only.
+**Final certified terminal-source SHA:** `2663ec6d1f8052dde1364a8cdad35daea85b788f`
+This is the pushed terminal source/checkpoint handoff whose exact-SHA Actions
+wave is recorded below. Any later amendment to this file is documentation-only
+and must receive its own exact-SHA CI wave before final handoff; the exact final
+repository SHA is always verified with `git rev-parse HEAD` and
+`HEAD == origin/main`.
 **Origin parity:** required and verified at final handoff with `HEAD ==
 origin/main`.
 **Working tree:** required clean at final handoff; generated test/export
@@ -87,8 +89,17 @@ failure or a reason to relabel the passing CI evidence.
 | Repository Integrity | PASS — `33293614543`, same exact source SHA, job `durable-state` |
 
 These four runs are independently verified current-head evidence for the
-source SHA, and the final pushed terminal SHA receives a new exact-SHA wave
-before handoff. iOS compile success is not manual iOS runtime UX success.
+source SHA. The final pushed terminal-source SHA
+`2663ec6d1f8052dde1364a8cdad35daea85b788f` also received this exact-SHA wave:
+
+| Final terminal-source workflow | Run | Result |
+| --- | ---: | --- |
+| App CI | `33312838064` | PASS |
+| Repository Integrity | `33312838054` | PASS |
+| Android Build Smoke | `33312838028` | PASS — clean generation, release APK, boundaries, artifact upload |
+| iOS Build Smoke | `33312838019` | PASS — clean prebuild, CocoaPods, unsigned simulator compile |
+
+iOS compile success is not manual iOS runtime UX success.
 
 ## Device and manual matrix
 
