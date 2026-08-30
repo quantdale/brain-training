@@ -1,19 +1,7 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-30 (Campaign 016 terminal convergence began from exact
-source head `f0d301bc1b80ed657c75af81c476ee87dbeea540`, which is also the latest
-independently verified all-green CI source before this documentation-only
-closure). Full Jest is PASS (489 suites / 6056 tests, 0 failures, 4 opt-in suite
-skips and 5 opt-in test skips, all allowlisted); DB integrity/idempotency,
-migrations, backup/rollback, and both opt-in performance probes are PASS.
-Jest signal validation is PASS (0 unclassified skips, 0 unexpected warnings).
-Android clean native generation/release build and iOS simulator compile are
-PASS on that exact source head in GitHub Actions. Dedicated Android runtime,
-hierarchy, and manual UX remain BLOCKED/NOT VALIDATED because no designated
-project device is available and the documented emulator failure persists. No
-Critical/High product regression or material data-loss/corruption defect is
-currently known.
+**Last update:** 2026-08-30 post-validation Android device pass (exact head `0e5eb34c13d87f2e4a8dfa40acb44e8d27e614a8`, `HEAD == origin/main`, clean tree; re-validated after dedicated AVD provisioning). Full Jest is PASS (489 suites / 6056 tests, 0 failures, 4 opt-in suite skips and 5 opt-in test skips, all allowlisted); DB integrity/idempotency, migrations, backup/rollback, and both opt-in performance probes are PASS. Jest signal validation is PASS (0 unclassified skips, 0 unexpected warnings). Android clean native generation/release build and iOS simulator compile are PASS on the historical exact source head `f0d301bc1b80ed657c75af81c476ee87dbeea540` (re-validated on `0e5eb34` with no native code change). Dedicated Android runtime, hierarchy, and manual UX remain BLOCKED/NOT VALIDATED after a bounded Linux TCG 37.1.11 matrix: dedicated `braintraining-qa36` (ATD) and `braintraining-qa35` (google_apis) now exist (plus foreign `study-maker-api35` not used) but each TCG boot reaches `adb device` after ~65–80 s then qemu exits before `sys.boot_completed=1` (`Netsim Wifi gone due to CANCELLED`); `/dev/kvm` missing (accel=8) and `sdkmanager` offers only 37.1.11, so no stable candidate exists on this machine. No Critical/High product regression or material data-loss/corruption defect is currently known.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** 016-release-certification-hardening
@@ -39,16 +27,7 @@ performance probes. The local host required `npm ci --ignore-scripts` under
 Node 22 because the ordinary install cannot compile `better-sqlite3` without
 `make`; GitHub's clean runner completed its normal install and native builds.
 
-The current device inventory found only the foreign `study-maker-api35` AVD
-(`emulator-5554`); it was not used or adopted. The designated
-`braintraining-qa36` AVD is unavailable on this host, and prior bounded
-37.1.11/WHPX/qemu recovery remains the external blocker. Therefore dedicated
-Android install/start, Rule Grid/Transform Match canaries, Workout V3
-daily/focus/relaunch, 42/42 current-head autobot certification, Android
-hierarchy, TalkBack, SAF/system sheets, and manual iOS UX remain
-**BLOCKED / NOT VALIDATED**. iOS compile PASS is not runtime UX PASS. Signing,
-store submission, cloud/auth, telemetry, monetization, and other deferred
-product decisions remain out of scope.
+The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7, `image.sysdir.1=system-images/android-35/aosp_atd/x86_64`) and `braintraining-qa35` (google_apis, same API) alongside the foreign `study-maker-api35`; both dedicated AVDs were created via `avdmanager` from committed inputs and booted headless with TCG (`-accel off -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). A bounded matrix of 4 configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) all reproduced the same external failure: `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exit (`Netsim Wifi … gone due to CANCELLED` / `cannnot unmap ptr` / `TCG avx`); `/dev/kvm` missing (`accel=8`, `modprobe` unavailable) and only emulator 37.1.11 is available via `sdkmanager`, so no stable TCG configuration exists on this container host. Therefore dedicated Android install/start, Rule Grid/Transform Match canaries, Workout V3 daily/focus/relaunch, 42/42 `autobot --mode certify`, Android hierarchy, TalkBack, SAF/system sheets, and manual iOS UX remain **BLOCKED / NOT VALIDATED**. iOS compile PASS is not runtime UX PASS. Signing, store submission, cloud/auth, telemetry, monetization, and other deferred product decisions remain out of scope.
 
 ## Authoritative campaign state
 

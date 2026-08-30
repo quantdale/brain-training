@@ -6,12 +6,7 @@
   campaign; `.agent/GOVERNANCE.json.activeCampaign` is explicitly `null`, and
   the last campaign is `016-release-certification-hardening` with status
   `VALIDATED`. No Campaign 017 was created.
-- **Android device certification remains BLOCKED / NOT VALIDATED:** the
-  designated `braintraining-qa36` AVD is unavailable on this host, the bounded
-  37.1.11/WHPX/qemu failure remains documented, and no physical ADB device is
-  connected. The connected `study-maker-api35` emulator belongs to another
-  project and was not used. This is an external environment limitation, not a
-  current product-build failure.
+- **Android device certification remains BLOCKED / NOT VALIDATED (2026-08-30 post-validation matrix):** dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7) and `braintraining-qa35` (google_apis) now exist on this Linux host and were both booted headless with TCG (`-accel off`, `-no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). All 4 hypothesis-driven configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) reached `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exited at ~5 min with `Netsim Wifi … gone due to CANCELLED` / `stop: Not implemented` / `cannnot unmap ptr` (same signature as 37.1.11 WHPX failure, now also reproduced on Linux TCG). `/dev/kvm` missing (`accel=8`, `modprobe` unavailable, VT disabled), so no KVM acceleration was possible; `sdkmanager --list` offers only emulator 37.1.11 (no pin to older stable version). The foreign `study-maker-api35` (API 35 google_apis pixel_2) still exists but was not adopted. No physical ADB device is connected. This remains an external environment/toolchain limitation, not a product-build failure; see checkpoint addendum 2026-08-30 and `VALIDATION.md`.
 - **Manual platform evidence remains NOT VALIDATED / DEFERRED:** TalkBack,
   SAF/share/document-picker system sheets, physical-device behavior, and manual
   iOS runtime UX were not performed. iOS simulator compile PASS is kept

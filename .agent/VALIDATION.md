@@ -1697,3 +1697,36 @@ toolchain limitation, not a product test failure.
   no guarantee not already covered by the repository QA/validator surface.
   Neither stale addon branch was merged; both are deleted during final Git
   cleanup.
+## Campaign 016 — Post-validation Android device pass (2026-08-30, SHA `0e5eb34`)
+
+**Host:** Linux Debian 13 trixie, kernel 6.12.94+, 8 vCPU, hypervisor KVM (VT-x) but `/dev/kvm` missing (`emulator -accel-check` accel=8, `modprobe` unavailable, TCG required), 15 GiB RAM / 7.9 Gi used / 7.8 Gi available, 31 GiB disk free, adb 37.0.1, emulator 37.1.11.0 (15917651), JDK Temurin 17.0.20.1.
+
+**Scope:** post-validation platform evidence pass on exact head `0e5eb34c13d87f2e4a8dfa40acb44e8d27e614a8` (`HEAD == origin/main`, clean tree, `GOVERNANCE.activeCampaign == null`, Campaign 016 remains `VALIDATED`, no Campaign 017). This run does **not** reopen Campaign 016.
+
+**Dedicated AVD provisioning:**
+
+- Inventory at start: only foreign `study-maker-api35` (google_apis API 35); designated `braintraining-qa36` absent; no physical device.
+- Created `braintraining-qa36` (pixel_7, `google_apis;x86_64` → auto-switched to `aosp_atd;x86_64` after `aosp_atd` image became available) and `braintraining-qa35` (google_apis) via `avdmanager create avd -n <name> -k system-images;android-35;…;x86_64 -d pixel_7 --force`; verified via `emulator -list-avds` (`braintraining-qa35`, `braintraining-qa36`, `study-maker-api35`) and `config.ini` `image.sysdir.1`. No foreign AVD was adopted.
+
+**Emulator stability matrix (bounded, hypothesis-driven, headless TCG `-accel off`):**
+
+- All launches used repository-approved headless flags: `-no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -accel off -cores N -memory M -no-snapshot-load -no-snapshot-save` (plus `-wipe-data` for one attempt); pure adb, no host mouse/keyboard.
+- `#1 braintraining-qa36 aosp_atd 3072/6c swiftshader_indirect`: `offline` → `device` after ~65 s, `bootanim=stopped` but `sys.boot_completed` empty and `pm`/`window` unavailable for ~3 min, then `device` → `offline`/`not found` and qemu exited at ~05:12 qemu time (15:38 UTC) with tail `Wait for emulator … 20 s to shutdown… Saving snapshot default_boot… stop: Not implemented… Netsim Wifi … gone due to CANCELLED` + `WARNING cannnot unmap ptr …` + `TCG doesn't support CPUID avx/f16c`.
+- `#2 braintraining-qa36 aosp_atd 2048/4c swiftshader_indirect wipe-data`: crash ~80 s while still `offline` (same tail).
+- `#3 braintraining-qa35 google_apis 3072/6c gpu off`: crash ~50 s while `offline` (same tail; reproduces documented `google_apis` instability).
+- `#4 braintraining-qa36 aosp_atd 1536/2c swiftshader_indirect`: `offline` → `device` ~80 s, stayed `device` ~5 min (`uptime` 2–4 min, `bootanim=stopped`, `sys.boot_completed` empty, `pm`/`window` unavailable), then `device` → `offline`/`not found` and qemu exited at ~05:12 (15:47 UTC, same tail).
+- No run reached `sys.boot_completed=1`; therefore no `adb install`/`am start`, no `autobot` game/Workout/hierarchy evidence could be collected. `sdkmanager --list` offers only emulator 37.1.11 (no pin to older stable version); `/dev/kvm` unavailable (`accel=8`), so no KVM acceleration was possible on this container host.
+
+**Physical ADB:** `adb devices -l` empty aside from transient `emulator-5554` during attempts; no physical device connected (not required per instruction when emulator matrix is attempted).
+
+**Automated re-validation on `0e5eb34` (no code change):**
+
+- `node scripts/validate-repo-state.mjs` PASS (terminal 016 VALIDATED).
+- `node scripts/generate-game-registry.mjs --check` PASS; `validate-provenance --check` PASS; `validate-task-ownership.cjs` PASS; `validate-offline --check` PASS (932 files CLEAN).
+- `npm run typecheck` PASS; `npm run lint` (expo lint) PASS 0/0.
+- `npm run test:ci` PASS: 489 suites passed / 4 skipped allowlisted, 6056 tests passed / 5 skipped allowlisted, 0 failures, 5 snapshots.
+- `npx expo-doctor` 21/21 PASS; `npx expo export --platform web` 20 routes PASS.
+- No code fix was needed; no new product defect was exposed (harness never reached app launch). The bounded emulator failure is an external infrastructure limitation, not a product regression.
+
+**Classification remains:** **LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING** on this machine (dedicated AVDs now exist but 37.1.11 TCG cannot complete cold boot before qemu instability; a KVM-enabled Linux host or physical device is required to close the remaining Android runtime evidence).
+

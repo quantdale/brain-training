@@ -150,3 +150,74 @@ Do not reopen Campaign 016 or create Campaign 017 solely for the unavailable
 device/manual evidence. If the owner later authorizes new scope, open a new
 OpenSpec campaign deliberately and preserve this checkpoint as the terminal
 016 record.
+## Addendum — Post-validation Android device certification pass (2026-08-30)
+
+**Session:** post-validation platform evidence/certification pass on dedicated Linux host (Debian 13 trixie, kernel 6.12.94+, 8 vCPU, 15 GiB RAM, 31 GiB disk free). `HEAD == origin/main == 0e5eb34` at session start; working tree clean; canonical branch `main`; `GOVERNANCE.activeCampaign == null`, Campaign 016 remains `VALIDATED` (no Campaign 017 created, per instruction).
+**Host Android toolchain inventory (start):**
+`- ANDROID_HOME=/home/box/Android/Sdk, ANDROID_SDK_ROOT=/home/box/Android/Sdk`
+`- adb 37.0.1-15733141, emulator 37.1.11.0 (15917651), JDK Temurin 17.0.20.1, platforms android-35/36, build-tools 35.0.0/36.0.0, NDK 28.2.13676358`
+`- Installed system-images at start: only `system-images;android-35;google_apis;x86_64` (9); `aosp_atd` not yet installed`
+`- AVD inventory at start: only foreign `study-maker-api35` (google_apis API 35 pixel_2); designated `braintraining-qa36` absent; no physical ADB device (`adb devices -l` empty aside from foreign emulator when running)`
+`- Hypervisor: KVM vendor present but `/dev/kvm` missing (`emulator -accel-check` reports accel=8, VT disabled / module not loaded; `modprobe` unavailable in container); host flags include `vmx` but no nested KVM; TCG/software emulation required (`-accel off`)`
+`- Host memory at start: 7.9 Gi used / 7.8 Gi available / 7.2 Gi buff/cache, swap 3.6 Gi used`
+
+**Dedicated AVD provisioning (this session):**
+`- Created `braintraining-qa36` (pixel_7, `system-images;android-35;google_apis;x86_64`, `--force`) at 15:30 UTC; `emulator -list-avds` then showed `braintraining-qa36` + `study-maker-api35`; config `hw.ramSize=1536M` default, overridden at runtime via `-memory`.`
+`- Initial launch used Linux TCG headless flags per project guidance (`-no-window -no-audio -no-boot-anim -no-skin -gpu off -accel off -cores 8 -memory 3072 -no-snapshot-load -no-snapshot-save -feature -Wifi`) — device registered as `emulator-5554 offline` within 5 s, then `device` after ~65 s, but never reached `sys.boot_completed=1` before qemu exit.`
+`- After first attempt, `system-images;android-35;aosp_atd;x86_64` was found installed (installed during session via prior `avd.sh sdk-install-image` fallback path); `braintraining-qa36` config now points to `image.sysdir.1=system-images/android-35/aosp_atd/x86_64/` (lightweight ATD, preferred for headless).`
+`- Created second dedicated AVD `braintraining-qa35` (`google_apis` x86_64) for bounded matrix comparison; final `emulator -list-avds` shows `braintraining-qa35`, `braintraining-qa36`, `study-maker-api35` — both `braintraining-*` are repository-dedicated and were never used as foreign certification targets.`
+`- No foreign AVD was adopted, renamed, or mutated for certification; every boot targeted a `braintraining-*` AVD, verified via `BT_AVD_NAME` and `bt_our_serial` ownership checks.`
+
+**Emulator stability — bounded matrix (4 attempts, hypothesis-driven, logs retained):**
+`| # | AVD | Image | Flags | Result | Signature |`
+`|---|-----|-------|-------|--------|-----------|`
+`| 1 | braintraining-qa36 | aosp_atd x86_64 (auto-switched from google_apis) | `-gpu swiftshader_indirect -accel off -cores 6 -memory 3072 -no-snapshot-load -no-snapshot-save -feature -Wifi` (via `avd.sh` + `BT_EMULATOR_EXTRA_ARGS`) | `adb` saw `offline` → `device` after ~65 s, `init.svc.bootanim=stopped` but `sys.boot_completed` stayed empty, `pm` `Can't find service: package` for ~3 min, then `adb` flipped `device` → `offline`/`not found` and qemu exited at ~05:12 qemu time (15:38 UTC) | `tail` shows `Wait for emulator pid … 20 s to shutdown… Saving snapshot default_boot… stop: Not implemented… Netsim Wifi … gone due to CANCELLED` (graceful shutdown path after external kill/crash) + `WARNING: cannnot unmap ptr …` + `TCG doesn't support CPUID avx/f16c`; no kernel OOM for qemu in `dmesg` |`
+`| 2 | braintraining-qa36 | aosp_atd | same image, `-cores 4 -memory 2048 -wipe-data` | `offline` persisted ~80 s then qemu exited while still `offline` (never reached `device`), same tail signature with `Netsim Wifi … gone due to CANCELLED` |`
+`| 3 | braintraining-qa35 | google_apis x86_64 | `-gpu off -cores 6 -memory 3072` | `offline` ~50 s then qemu exited while `offline`, same tail | Docs predicted `google_apis` instability on 37.1.x — reproduced, as expected |`
+`| 4 | braintraining-qa36 | aosp_atd | `-cores 2 -memory 1536 -gpu swiftshader_indirect` | `offline` → `device` after ~80 s, stayed `device` for ~5 min (`uptime` 2–4 min, `bootanim=stopped`, `sys.boot_completed` empty, `pm` still unavailable), then flipped `device` → `offline`/`not found` and qemu exited at ~05:12 qemu time (15:47 UTC) with same tail | Longest survival (device online ~5 min) but still before `sys.boot_completed`; validates that TCG cold boot (expected 8–20 min per docs) cannot complete before qemu instability |`
+`All four launches used the repository-approved headless path (`emulator -avd … -no-window -no-audio -no-boot-anim -gpu … -no-metrics -feature -Wifi -accel off … -no-snapshot-load -no-snapshot-save`) and omitted host-mouse/keyboard; hierarchy/screenshot/input were not exercised because the device never completed `sys.boot_completed`.`
+`Installed SDK at session end: `system-images;android-35;aosp_atd;x86_64` plus `google_apis;x86_64` now both present; platforms 35/36, build-tools 35/36, emulator 37.1.11 unchanged — no downgrade to older emulator was feasible via `sdkmanager --list` (only 37.1.11 offered; no pin to prior stable version without manual archive download). Therefore no stable configuration could be established with the current 37.1.11 TCG stack.`
+
+**Physical ADB fallback:**
+`- `adb devices -l` throughout session showed only `emulator-*` when an emulator was running, otherwise empty; no authorized physical device was connected (as expected on this Linux container host). This matches the instruction to not require physical evidence when emulator certification is attempted and to clearly distinguish emulator vs physical evidence.`
+
+**Current-head runtime / build:**
+`- Exact SHA at session start and end: `0e5eb34c13d87f2e4a8dfa40acb44e8d27e614a8` (`HEAD == origin/main`, clean tree before and after). No repository-owned code changes were required; no new product defects were discovered because the runtime harness never reached app install/launch.`
+`- Automated gates re-validated on this SHA after the device matrix: `validate-repo-state` PASS (terminal 016 VALIDATED), `typecheck` PASS, `lint` PASS (0/0), `generate-game-registry --check` PASS, `validate-provenance --check` PASS, `validate-task-ownership` PASS, `validate-offline --check` PASS (932 files CLEAN), `full Jest` PASS (489 suites passed / 4 skipped allowlisted, 6056 tests passed / 5 skipped allowlisted, 0 failures), `expo-doctor` 21/21 PASS, `web export` 20 routes PASS. The Jest/doctor/export results reproduce the terminal checkpoint exactly.`
+`- Native build smoke: not re-run locally this session (no code change); GitHub exact-SHA evidence remains `33293614561` (Android) and `33293614540` (iOS) on `f0d301bc1b80ed657c75af81c476ee87dbeea540` plus final terminal SHA `33312838028`/`33312838019` — documented as historical current-head remains. No new build artifact was produced because the device never reached `pm` readiness for install.`
+
+**Device-test results on the dedicated AVD (all require `sys.boot_completed=1` and `pm`):**
+`- Basic canaries (Home, navigation, game host, session persistence): NOT VALIDATED — device never completed boot, so no app install/launch was attempted.`
+`- Rule Grid / Transform Match / post-015 canaries: NOT VALIDATED — same blocker.`
+`- Workout V3 daily / focus / relaunch-process-death: NOT VALIDATED — same blocker.`
+`- Full 42/42 `autobot --mode certify`: NOT VALIDATED — same blocker.`
+`- Android hierarchy/accessibility dumps: NOT VALIDATED — `uiautomator dump` requires a booted `device` with `sys.boot_completed=1`; the device reached `device` state briefly after ~65–80 s but `sys.boot_completed` never became `1` and `pm`/`window` services never appeared, so hierarchy evidence could not be captured on a stable booted system.`
+`- TalkBack manual UX: NOT VALIDATED (no manual session, as instructed not to fake hierarchy as TalkBack PASS).`
+`- SAF/share/document-picker system sheets: NOT VALIDATED / MANUAL — outside autobot policy, unchanged.`
+
+**Reassessment of the 8 previously open items (tasks.md §2.4, §3.3, §3.6, §3.7, §3.8, §3.9, §7.6, §8.7):**
+`- 2.4 dedicated install/start: remains **BLOCKED/NOT VALIDATED** — dedicated AVD now exists (`braintraining-qa36` ATD + `braintraining-qa35` google_apis) but never reached stable `sys.boot_completed=1`/`pm` readiness, so `scripts/android/install.sh` was not executed on this SHA; prior `BUILD SUCCESSFUL` 80 M APK evidence at `f4aa44c` remains historical only.`
+`- 3.3 known-stable emulator/toolchain candidate: remains **NOT VALIDATED** — bounded matrix of 4 hypothesis-driven configs on emulator 37.1.11 TCG (varying image `aosp_atd` vs `google_apis`, memory 3072→2048→1536, cores 6→4→2, gpu `swiftshader_indirect` vs `off`, wipe-data) all reproduced the same `Netsim Wifi gone due to CANCELLED` / graceful-shutdown exit before boot completion; no downgrade to older emulator is offered via `sdkmanager`; KVM (`/dev/kvm`) unavailable in this container (VT disabled / `modprobe` unavailable, `accel=8`), so no stable candidate exists on this machine. The documented 37.1.11 WHPX/qemu failure from 016 is now also reproduced on Linux TCG and remains the external blocker.`
+`- 3.6 physical ADB fallback: **NOT AVAILABLE** — `adb devices -l` empty (no physical device), as documented; not required when emulator certification is attempted, per instruction.`
+`- 3.7 Rule Grid/Transform Match/post-015 canaries: **NOT VALIDATED** — dedicated device never reached stable boot, so no canary was run.`
+`- 3.8 Workout V3 daily/focus/relaunch: **NOT VALIDATED** — same blocker.`
+`- 3.9 full 42/42 certify: **NOT VALIDATED** — same blocker.`
+`- 7.6 Android hierarchy: **NOT VALIDATED** — no stable booted device to dump hierarchy; the transient `device` state before crash never yielded `sys.boot_completed=1`.`
+`- 8.7 current-head Android journeys/certify: **NOT VALIDATED** — same blocker; the current-head SHA `0e5eb34` has no new Android runtime evidence beyond the bounded emulator matrix.`
+`- Tasks 3.1, 3.2, 3.4, 3.5, 3.10 remain PASS with refreshed evidence (SDK inventory captured, failure reproduced once without blind retry, software-rendering/headless flags tested, dedicated AVD recreated from scriptable inputs, and BLOCKED honestly recorded).`
+
+**Defects discovered in this pass:**
+`- None — no repository-owned product or QA-harness defect was exposed because the harness never progressed to app install/launch/hierarchy. The only failures observed are the external emulator/qemu instability described above, which is not a product defect. Therefore 0 Critical, 0 High, 0 data-loss/corruption defects remain, unchanged from the terminal checkpoint.`
+
+**Manual-only remainder (unchanged truthfully):**
+`- TalkBack manual UX — NOT VALIDATED`
+`- SAF/share/document-picker system sheets — NOT VALIDATED / MANUAL`
+`- Physical-device-only behavior / refresh rate — NOT VALIDATED`
+`- iOS interactive UX — NOT VALIDATED`
+`- Signing / store publication — DEFERRED`
+
+**Git at addendum close:**
+`- Start SHA: `0e5eb34c13d87f2e4a8dfa40acb44e8d27e614a8``
+`- Final SHA after documentation-only amendment: (to be recorded at push; `HEAD == origin/main` required, `git status` clean, only `origin/main` remote branch, no active campaign, Campaign 016 remains VALIDATED, no Campaign 017).`
+`- This addendum is documentation-only; it does not reopen Campaign 016 to ACTIVE and does not create Campaign 017. The classification remains **LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING** on this machine until a stable device (different host, KVM-enabled Linux, or physical device) completes the Android runtime matrix.`
+
