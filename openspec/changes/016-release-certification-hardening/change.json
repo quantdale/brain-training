@@ -1,6 +1,6 @@
 {
   "id": "016-release-certification-hardening",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "015-governance-depth-convergence",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -14,6 +14,9 @@
     "runtime-resilience"
   ],
   "activationRule": "Campaign 015 was truthfully closed on exact green main SHA fc9899e before 016 became ACTIVE.",
+  "validationNote": "Validated after exact source head f0d301bc1b80ed657c75af81c476ee87dbeea540 passed App CI 33293614545, Repository Integrity 33293614543, Android Build Smoke 33293614561 (clean native generation, release APK build, release-boundary checks, artifact upload), and iOS Build Smoke 33293614540 (clean prebuild, CocoaPods, unsigned simulator compile). Local full Jest passed 489 suites / 6056 tests with only 4 suites / 5 tests skipped by the explicit allowlist; DB integrity/idempotency, migrations, backup/rollback, performance probes, TypeScript, lint, web export, Expo Doctor, repository validators, and QA self-test passed. Dedicated Android runtime and manual platform evidence remain BLOCKED / NOT VALIDATED because the designated project device is unavailable and the bounded 37.1.11/WHPX/qemu failure persists; no foreign emulator was used. No unresolved Critical/High or material data-loss/corruption defect is known. The repository is terminal with no active campaign; no Campaign 017 was created.",
+  "terminalClassification": "LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING",
+  "terminalCheckpoint": ".agent/checkpoints/016-release-certification-hardening-VALIDATED-20260830.md",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
   "fullHardening": true,

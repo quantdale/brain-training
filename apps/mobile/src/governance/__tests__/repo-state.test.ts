@@ -20,6 +20,7 @@ function runValidator(cwd: string) {
 
 function makeFixture(overrides: {
   governanceActive?: string | null;
+  terminalCampaign?: string;
   stateCampaign?: string | null;
   currentId?: string | null;
   currentStatus?: string | null;
@@ -35,18 +36,21 @@ function makeFixture(overrides: {
 } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-state-fixture-'));
   // Minimal required files for validator to reach campaign checks
-  const govActive = overrides.governanceActive === null ? null : (overrides.governanceActive ?? '015-governance-depth-convergence');
-  const stateCamp = overrides.stateCampaign === null ? null : (overrides.stateCampaign ?? govActive);
-  const curId = overrides.currentId === null ? null : (overrides.currentId ?? govActive);
-  const curStatus = overrides.currentStatus === null ? null : (overrides.currentStatus ?? 'ACTIVE');
-  const execCh = overrides.execChange === null ? null : (overrides.execChange ?? govActive);
-  const execStatus = overrides.execStatus === null ? null : (overrides.execStatus ?? 'ACTIVE');
-  const changeId = overrides.changeId === null ? null : (overrides.changeId ?? govActive);
-  const changeStatus = overrides.changeStatus === null ? null : (overrides.changeStatus ?? 'ACTIVE');
+  const terminal = overrides.governanceActive === null;
+  const govActive = terminal ? null : (overrides.governanceActive ?? '015-governance-depth-convergence');
+  const terminalCampaign = overrides.terminalCampaign ?? '014-experience-depth-replayability';
+  const governedCampaign: string = terminal ? terminalCampaign : (govActive ?? '015-governance-depth-convergence');
+  const stateCamp = overrides.stateCampaign === null ? null : (overrides.stateCampaign ?? governedCampaign);
+  const curId = overrides.currentId === null ? null : (overrides.currentId ?? governedCampaign);
+  const curStatus = overrides.currentStatus === null ? null : (overrides.currentStatus ?? (terminal ? 'VALIDATED' : 'ACTIVE'));
+  const execCh = overrides.execChange === null ? null : (overrides.execChange ?? governedCampaign);
+  const execStatus = overrides.execStatus === null ? null : (overrides.execStatus ?? (terminal ? 'VALIDATED' : 'ACTIVE'));
+  const changeId = overrides.changeId === null ? null : (overrides.changeId ?? governedCampaign);
+  const changeStatus = overrides.changeStatus === null ? null : (overrides.changeStatus ?? (terminal ? 'VALIDATED' : 'ACTIVE'));
 
   // Governance
   fs.mkdirSync(path.join(dir, '.agent'), { recursive: true });
-  if (govActive !== null) {
+  if (!terminal) {
     fs.writeFileSync(path.join(dir, '.agent/GOVERNANCE.json'), JSON.stringify({
       canonicalBranch: 'main',
       activeCampaign: govActive,
@@ -56,10 +60,23 @@ function makeFixture(overrides: {
       hardening: { automaticFullHardening: false },
     }, null, 2));
   } else {
-    fs.writeFileSync(path.join(dir, '.agent/GOVERNANCE.json'), JSON.stringify({ canonicalBranch: 'main' }));
+    fs.writeFileSync(path.join(dir, '.agent/GOVERNANCE.json'), JSON.stringify({
+      canonicalBranch: 'main',
+      activeCampaign: null,
+      lastCampaign: terminalCampaign,
+      lastCampaignStatus: 'VALIDATED',
+      swarm: { defaultMaxCoderAgents: 7 },
+      runtimeQa: { defaultAndroidEmulators: 1, hostMouseKeyboardAutomationAllowed: false },
+      git: { autonomousForcePushMainAllowed: false },
+      hardening: { automaticFullHardening: false },
+    }, null, 2));
   }
   let stateContent = '# Durable Project State\n';
-  if (stateCamp !== null) stateContent += `**Active campaign:** ${stateCamp}\n`;
+  if (terminal) {
+    stateContent += '**Active campaign:** none\n';
+    stateContent += `**Last campaign:** ${terminalCampaign}\n`;
+    stateContent += '**Last campaign status:** VALIDATED\n';
+  } else if (stateCamp !== null) stateContent += `**Active campaign:** ${stateCamp}\n`;
   if (overrides.historicalProseWithOtherId) stateContent += `\nHistorical note: campaign ${overrides.historicalProseWithOtherId} was once active.\n`;
   stateContent += '\n## Current status\nplaceholder\n';
   fs.writeFileSync(path.join(dir, '.agent/STATE.md'), stateContent);
@@ -77,9 +94,9 @@ function makeFixture(overrides: {
     fs.mkdirSync(path.join(dir, path.dirname(f)), { recursive: true });
     fs.writeFileSync(path.join(dir, f), 'placeholder');
   }
-  fs.writeFileSync(path.join(dir, '.agent/task-ownership.json'), JSON.stringify({ change: govActive ?? '015-governance-depth-convergence', parallelPackets: [], orchestratorOnlySurfaces: [], generatedFilePatterns: [] }));
-  if (!overrides.removeChangeDir && govActive) {
-    const changeDir = path.join(dir, 'openspec/changes', govActive);
+  fs.writeFileSync(path.join(dir, '.agent/task-ownership.json'), JSON.stringify({ change: governedCampaign, parallelPackets: [], orchestratorOnlySurfaces: [], generatedFilePatterns: [] }));
+  if (!overrides.removeChangeDir && governedCampaign) {
+    const changeDir = path.join(dir, 'openspec/changes', governedCampaign);
     fs.mkdirSync(path.join(changeDir, 'specs/campaign-governance'), { recursive: true });
     if (changeId !== null) {
       fs.writeFileSync(path.join(changeDir, 'change.json'), JSON.stringify({ id: changeId, status: changeStatus ?? 'ACTIVE', specOrder: ['campaign-governance'] }));
@@ -99,10 +116,17 @@ function makeFixture(overrides: {
 }
 
 describe('repo-state validator (015 1.3-1.5, 3.2-3.3, 4.2-4.3)', () => {
-  it('passes for the real repository (015 ACTIVE)', () => {
+  it('passes for the real repository', () => {
     const r = runValidator(repoRoot);
     expect(r.status).toBe(0);
     expect(r.stdout).toMatch(/PASS/);
+  });
+
+  it('passes for an explicit validated terminal state with no active campaign', () => {
+    const dir = makeFixture({ governanceActive: null });
+    const r = runValidator(dir);
+    expect(r.status).toBe(0);
+    expect(r.stdout).toMatch(/No active campaign; last campaign: .*VALIDATED/);
   });
 
   it('fails when the active change directory is missing (1.3/1.5)', () => {

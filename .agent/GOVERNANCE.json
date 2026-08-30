@@ -1,7 +1,9 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "016-release-certification-hardening",
+  "activeCampaign": null,
+  "lastCampaign": "016-release-certification-hardening",
+  "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

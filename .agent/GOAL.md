@@ -21,3 +21,11 @@ The repository must remain continuously recoverable and autonomously developable
 ## Hardening
 
 Full hardening is user-invoked only. When requested, first clarify scope from the user's explicit command if it is not already specified: affected subsystem, current milestone, entire app, or production hardening.
+
+## Terminal campaign state
+
+When `GOVERNANCE.activeCampaign` is `null` and the durable state records a
+validated last campaign, the repository is terminal for the currently
+authorized scope. Do not create a successor campaign merely to hold external
+device/manual certification or deferred product decisions. A new campaign
+requires explicit owner authorization and genuinely new scope.

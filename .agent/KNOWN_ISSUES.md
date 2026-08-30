@@ -1,16 +1,37 @@
 # Known Issues / Blockers
 
-## Current blockers
+## Current status — Campaign 016 terminal limitations
 
-- **Latest Android CI gate is blocked by timeout:** Android Build Smoke `33239131146` for exact SHA `31a6143` exceeded the workflow's 60-minute job limit while stalled in `:app:compressReleaseAssets` and was cancelled. This is not a product-build PASS or failure diagnosis; no blind retry was made. Historical Android release artifact/build boundary evidence at `1b87619` remains valid.
-- **Campaign 016 remains ACTIVE with partial latest platform convergence:** `.agent/checkpoints/016-release-certification-hardening-platform-convergence-20260829.md` records the evidence. App CI `33239131160`, iOS macOS simulator compile `33239131153`, and Repository Integrity `33239131170` PASS on `31a6143`; latest Android is BLOCKED/NOT VALIDATED.
-- **Residual 016 validation debt:** dedicated Android runtime/canaries/Workout V3/42-game certification remains BLOCKED/NOT VALIDATED after the documented 37.1.11/WHPX emulator failure and no safe device is available. Manual TalkBack, SAF/system sheets, iOS UX, signing/store, cloud/auth, telemetry, and monetization remain deferred or NOT VALIDATED. **All previously-SIGSEGV-blocked test matrices now PASS:** full Jest (489 suites / 6055 tests), DB integrity/idempotency, migration matrix/robustness/v10-hardening, backup/rollback, and opt-in performance probes (baseline + sync scan). Jest signal validation PASS (0 unclassified skips, 0 unexpected warnings). No Critical/High product regression is currently known.
+- **Campaign 016 is VALIDATED, not ACTIVE.** The repository has no active
+  campaign; `.agent/GOVERNANCE.json.activeCampaign` is explicitly `null`, and
+  the last campaign is `016-release-certification-hardening` with status
+  `VALIDATED`. No Campaign 017 was created.
+- **Android device certification remains BLOCKED / NOT VALIDATED:** the
+  designated `braintraining-qa36` AVD is unavailable on this host, the bounded
+  37.1.11/WHPX/qemu failure remains documented, and no physical ADB device is
+  connected. The connected `study-maker-api35` emulator belongs to another
+  project and was not used. This is an external environment limitation, not a
+  current product-build failure.
+- **Manual platform evidence remains NOT VALIDATED / DEFERRED:** TalkBack,
+  SAF/share/document-picker system sheets, physical-device behavior, and manual
+  iOS runtime UX were not performed. iOS simulator compile PASS is kept
+  separate from runtime UX. Signing/store, cloud/auth, telemetry, and
+  monetization remain constitution-deferred.
+- **Automated evidence is converged:** exact source head
+  `f0d301bc1b80ed657c75af81c476ee87dbeea540` passed App CI `33293614545`,
+  Repository Integrity `33293614543`, Android Build Smoke `33293614561`, and
+  iOS Build Smoke `33293614540`; local full Jest, persistence/recovery,
+  migration, backup/rollback, performance, and signal gates also pass. No
+  unresolved Critical/High product regression or material data-loss/corruption
+  defect is known.
+- The older Android timeout (`33239131146` on `31a6143`) is retained below as
+  historical evidence only; it is not the current Android result.
 - **Historical 014 device limitation (COMPLETED at 6451bfb):** 014's exit evidence is prior dedicated-AVD green at `f4aa44c` (canaries 8/8 + daily 4/4 + focus 4/4 on `braintraining-qa36` / `emulator-5554`) plus `BUILD SUCCESSFUL` 80M APK + `adb install` `Success` + `am start` success + `adb reverse` + `Metro` 8081 ready + precise workout slack at `d645bbb` (unit-test-green, fixing 2 suites red at `4ac4d45`). The re-run with the precise slack was **NOT VALIDATED on device due to genuine 37.1.x WHPX emulator segfault**; it was accepted for 014 under the documented evidence policy.
 - Campaign 013 release gate (`--mode certify` 42/42, SHA ba6dd84) remains GREEN (see `VALIDATION.md`).
 
 ## Open debt (tracked, non-blocking)
 
-- **Campaign 014 COMPLETED at 6451bfb (docs-final DONE, prior green considered exit):** No remaining 014 product debt beyond the Medium emulator stability noted above. The 015 continuation has landed the planned Rule Grid, Word Chain, Context Fit, Transform Match, runtime-evidence, and causal workout-attribution work; remaining validation debt is the full-suite timeout/resource finding, Android 37.1.x/WHPX instability, manual SAF sheets, iOS unavailability, and accepted npm audit findings.
+- **Campaign 014 COMPLETED at 6451bfb (docs-final DONE, prior green considered exit):** No remaining 014 product debt beyond the Medium emulator stability noted above. The 015 continuation landed the planned Rule Grid, Word Chain, Context Fit, Transform Match, runtime-evidence, and causal workout-attribution work; remaining platform/manual limitations and accepted npm audit findings are tracked below. The former full-suite timeout/resource finding was resolved by the later isolated Node 22 run and is historical.
 - **SAF share-sheet/document-picker system consent sheets**: cannot be driven
   emulator-locally by autobot policy; engine round-trips are device-proven via pulled
   DB. Requires interactive/manual validation path (NOT VALIDATED, by design).

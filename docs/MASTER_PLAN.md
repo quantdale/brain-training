@@ -295,7 +295,7 @@ ALL PASS. Evidence in `.agent/VALIDATION.md` and the checkpoint above. Deferred:
 pause/resume a11y race (Medium, honest-retry), SAF sheets (manual), iOS (NOT
 VALIDATED on Windows).
 
-## Campaign 014 — Experience Depth & Replayability (ACTIVE at 366a098 — W1–W9 landed and pushed; closure fixes landed; remaining: dedicated-AVD Workout V3/canary journeys + perf/game-feel re-probe + terminal checkpoint)
+## Campaign 014 — Experience Depth & Replayability (historical snapshot; COMPLETED at `6451bfb`)
 
 Owner-authorized product-expansion campaign (not a hardening campaign; 013
 certification remains the v1 baseline). Central question: *after the novelty of
@@ -366,8 +366,28 @@ repeatedly for weeks?* Depth over feature count; 42-game catalog is frozen.
   adopted per policy. Honest perf: opt-in timing probes NOT VALIDATED
   (statement-count guards green; wall-clock probes not re-run).
 
-**Remaining to COMPLETE 014:** dedicated-AVD Workout V3 E2E (daily + focus)
-and changed-game canaries PASS on `braintraining-qa36`, honest perf/game-feel
-re-probe where harness can measure reliably, and the terminal checkpoint
-(`.agent/checkpoints/014-*.md`) with COMPLETED status. Until then 014
-remains ACTIVE and 015 remains PROPOSED per `EXECUTION.md`.
+The closing paragraph above is a historical pre-transition snapshot. Campaign
+014 was subsequently completed at `6451bfb` under its documented evidence
+policy, then 015 and 016 were activated and validated in order. Its later
+37.1.11/WHPX device limitation is retained as historical platform evidence,
+not as the current campaign state.
+
+## Campaign 016 — Release Certification & Hardening (VALIDATED 2026-08-30)
+
+Campaign 016 is terminally validated with no active successor. The exact source
+head `f0d301bc1b80ed657c75af81c476ee87dbeea540` passed App CI `33293614545`,
+Repository Integrity `33293614543`, Android Build Smoke `33293614561`, and iOS
+Build Smoke `33293614540`. The Android job completed clean native generation,
+release APK compilation, release-boundary checks, and artifact upload; the iOS
+job completed clean prebuild, CocoaPods, and unsigned simulator compilation.
+
+Local automated certification also passed: 489 Jest suites / 6,055 tests with
+only the four-suite/five-test explicit opt-in allowlist, Jest signal validation,
+database integrity and migrations, backup/rollback, performance probes,
+TypeScript, lint, web export, Expo Doctor, registry/provenance/offline/
+ownership/repository validators, and QA self-test 49/49. Dedicated Android
+runtime/hierarchy and manual TalkBack, SAF/system-sheet, physical-device, and
+iOS runtime UX evidence remain `BLOCKED`/`NOT VALIDATED` because the designated
+device/manual environments are unavailable. The older Android CI timeout is
+retained in `.agent/VALIDATION.md` as historical evidence only. See the
+terminal checkpoint and `.agent/CURRENT_CAMPAIGN.md` for the complete matrix.

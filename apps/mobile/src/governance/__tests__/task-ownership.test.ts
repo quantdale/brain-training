@@ -16,14 +16,15 @@ const validator = require(path.resolve(process.cwd(), '../../scripts/validate-ta
   globMatch: (p: string, s: string) => boolean;
 };
 
-const activeCampaign = (JSON.parse(
+const governance = JSON.parse(
   fs.readFileSync(path.resolve(process.cwd(), '../../.agent/GOVERNANCE.json'), 'utf8'),
-) as { activeCampaign: string }).activeCampaign;
+) as { activeCampaign: string | null; lastCampaign?: string };
+const boundCampaign = governance.activeCampaign ?? governance.lastCampaign;
 
 describe('validateTaskOwnership (task 11.2)', () => {
   it('accepts disjoint coder surfaces', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       parallelPackets: [
         { id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/a/**'], validation: 'npm run typecheck' },
         { id: 'b', coderWriteSurfaces: ['apps/mobile/src/games/b/**'], validation: 'npm run typecheck' },
@@ -36,7 +37,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects overlapping coder write surfaces', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       parallelPackets: [
         { id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/a/**'], validation: 'x' },
         { id: 'b', coderWriteSurfaces: ['apps/mobile/src/games/a/foo.ts'], validation: 'x' },
@@ -50,7 +51,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('permits a shared surface to be touched by multiple packets', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       parallelPackets: [
         { id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/a/**'], sharedSurfaces: ['apps/mobile/src/games/shared.ts'], validation: 'x' },
         { id: 'b', coderWriteSurfaces: ['apps/mobile/src/games/b/**'], sharedSurfaces: ['apps/mobile/src/games/shared.ts'], validation: 'x' },
@@ -63,7 +64,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects coder edits to orchestrator-only surfaces', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       orchestratorOnlySurfaces: ['.agent/GOVERNANCE.json'],
       generatedFilePatterns: [],
       parallelPackets: [{ id: 'a', coderWriteSurfaces: ['.agent/GOVERNANCE.json'], validation: 'x' }],
@@ -74,7 +75,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects coder edits to generated files', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       generatedFilePatterns: ['**/*.generated.ts'],
       orchestratorOnlySurfaces: [],
       parallelPackets: [{ id: 'a', coderWriteSurfaces: ['apps/mobile/src/registry/registry.generated.ts'], validation: 'x' }],
@@ -85,7 +86,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects broad glob that contains generated file via intersection (015 2.4)', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       generatedFilePatterns: ['**/*.generated.ts'],
       orchestratorOnlySurfaces: [],
       parallelPackets: [{ id: 'a', coderWriteSurfaces: ['apps/mobile/src/**'], validation: 'x' }],
@@ -96,7 +97,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects broad glob that contains orchestrator-only surface via intersection', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       orchestratorOnlySurfaces: ['.agent/GOVERNANCE.json'],
       generatedFilePatterns: [],
       parallelPackets: [{ id: 'a', coderWriteSurfaces: ['.agent/**'], validation: 'x' }],
@@ -107,7 +108,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects duplicate packet IDs', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       parallelPackets: [
         { id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/a/**'], validation: 'x' },
         { id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/b/**'], validation: 'x' },
@@ -119,7 +120,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects undeclared dependencies', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       parallelPackets: [{ id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/a/**'], dependencies: ['missing'], validation: 'x' }],
     });
     expect(res.valid).toBe(false);
@@ -128,7 +129,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects cyclic dependencies', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       parallelPackets: [
         { id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/a/**'], dependencies: ['b'], validation: 'x' },
         { id: 'b', coderWriteSurfaces: ['apps/mobile/src/games/b/**'], dependencies: ['a'], validation: 'x' },
@@ -140,7 +141,7 @@ describe('validateTaskOwnership (task 11.2)', () => {
 
   it('rejects packet missing validation field', () => {
     const res = validator.validateTaskOwnership({
-      change: activeCampaign,
+      change: boundCampaign,
       parallelPackets: [{ id: 'a', coderWriteSurfaces: ['apps/mobile/src/games/a/**'] }],
     });
     expect(res.valid).toBe(false);

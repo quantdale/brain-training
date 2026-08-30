@@ -1,52 +1,80 @@
 # Execution Prompt — Campaign 016: Release Certification & Hardening
 
-**Status:** ACTIVE
-**Change:** `016-release-certification-hardening` (`change.json` ACTIVE)
-**Planned-From:** `c8acadceb46ad6ba3f90b0c4222583a9a2912f49` (audited baseline) → `366a098` (current-head re-audit at `4ac4d45`) → `f66f65c` (014 COMPLETED)
-**Planned-At:** 2026-08-28 continuation
+**Status:** VALIDATED — terminal closure
+**Change:** `016-release-certification-hardening` (`change.json` VALIDATED)
+**Start-SHA:** `f0d301bc1b80ed657c75af81c476ee87dbeea540`
+**Planned-At:** 2026-08-30 final convergence
 **Target-Branch:** `main`
-**Authorization:** explicit owner directive for Campaign 016 release certification and hardening; predecessor 015 VALIDATED at exact SHA `fc9899e`.
-**Predecessor:** `015-governance-depth-convergence` (VALIDATED 2026-08-29 at `fc9899e`)
-**12-hour envelope:** Continue through dependency-ready work for the full useful session; do not stop after one wave. If all in-scope implementation finishes early, spend remaining time on deterministic/adversarial validation, warning/flake cleanup tied to changed surfaces, state/docs reconciliation, and exact-SHA CI confirmation. Never use the budget as permission to start an unrelated hardening or breadth campaign. Before termination, write/push a durable checkpoint with start/end SHA, commits, completed/remaining tasks, exact validation results, CI run IDs, device evidence/blockers, and next action.
+**Predecessor:** `015-governance-depth-convergence` (VALIDATED at `fc9899e`)
+**Authorization:** explicit owner directive to converge and close Campaign 016. No Campaign 017 was created, and no new product scope was opened.
 
-## Mission
+## Mission and closure decision
 
-Make the mature offline-first product release-certifiable through reproducible clean-checkout, native/platform, runtime-resilience, CI-signal, security, performance, and accessibility evidence. Do not add games or unrelated features. Make green mean the active plan and never convert unavailable platform evidence into PASS.
+Campaign 016 was an evidence-first release-certification and hardening
+campaign. It did not add game #43 or implement cloud/auth/AI/monetization,
+social, signing, or store functionality. Repository-owned implementation and
+automated/native compile evidence are complete. The campaign is terminally
+`VALIDATED`; no executable campaign is active.
 
-## Activation precondition (satisfied)
+Final classification:
 
-Campaign 015 was validated on exact green main SHA `fc9899e` after corrective
-Expo SDK patch alignment. App CI `33226167744` and Repository Integrity
-`33226167736` both passed on that SHA. The 015 terminal checkpoint, lifecycle
-metadata, governance pointers, ownership map, and validation evidence were
-reconciled; 016 is now the sole ACTIVE campaign. Android/iOS/manual-sheet
-limitations remain explicitly BLOCKED or NOT VALIDATED.
+> LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING
 
-## Ordered workstreams
+Unavailable device and manual evidence is retained as `BLOCKED` or `NOT
+VALIDATED`, never inferred from compilation or prior device runs.
 
-**P0 — Current-head green recovery:** Historical failures at `366a098` were caused by the timestamp-grace ownership heuristic. On moved head `299a831`, App CI `33108680781` and Repository Integrity `33108680778` were green and the old failures no longer reproduced pre-edit. Commit `60fdadc` replaces that heuristic with durable `(instanceKey, legIndex, gameId)` provenance and conditional advancement; the focused attribution seam is 22 suites / 255 tests, and exact-SHA App CI `33121115984` plus Repository Integrity `33121116078` passed. Local full-Jest/device convergence remains open and is recorded honestly.
+## Exact-source evidence
 
-**Governance & State Truthfulness (1–4):** OpenSpec binding unconditional, ownership binding to active change, state integrity across GOVERNANCE/STATE/CURRENT_CAMPAIGN/EXECUTION_PROMPT/OpenSpec/ownership, affected-area coverage for current subsystems, root hygiene (delete `'` and `i.startsWith('home')`, narrow validator), legacy 006R reconciliation.
+The independently verified source head
+`f0d301bc1b80ed657c75af81c476ee87dbeea540` passed all four required workflows:
 
-**Game/Content Convergence (5–8):** Rule Grid chained deduction (solver-proven, Hard/Expert dependent chain, difficulty scales inference), Word Chain ≥90 (≥30/tier), Context Fit ≥60/tier (≥180 total) with morphology/POS heuristic and curated ambiguity fixtures, Transform Match final-boundary invariants (source, transform, options, count, distinctness, hidden-source unambiguity, exact option count for every production profile).
+- App CI `33293614545` — PASS, `Mobile app build/typecheck/tests`.
+- Repository Integrity `33293614543` — PASS, `durable-state`.
+- Android Build Smoke `33293614561` — PASS, `Android clean native build`,
+  including clean native generation, release APK compilation,
+  release-boundary checks, and artifact upload.
+- iOS Build Smoke `33293614540` — PASS, `iOS simulator compile smoke`,
+  including clean prebuild, CocoaPods, and unsigned simulator compile.
 
-**Runtime Evidence (9–10):** Perf probes before/after on changed hot paths with dataset/workload/runtime context, no generic rewrite, wall-clock vs statement-count separate, input→feedback observability for changed timed games; a11y re-audit for changed puzzle surfaces, reuse shared primitives, record Android tree/device evidence honestly, keep manual/iOS as NOT VALIDATED when unavailable.
+The final pushed SHA and its post-closure CI run IDs are recorded in the
+terminal checkpoint. The older Android timeout `33239131146` on `31a6143` is
+historical only and remains explicitly labeled as such.
 
-**Convergence (11):** Re-run repo-state, OpenSpec, ownership, affected-area planning for the complete diff and execute every required light gate; registry/provenance/offline/QA self-test/TS/lint/Jest/web export/Expo Doctor green; dedicated-project Android journeys PASS for changed gameplay + relevant Workout V3 flow (no foreign emulator); no unresolved Critical/High; push final coherent `main` SHA and confirm both GitHub App CI and Repository Integrity green on that exact SHA; mark change lifecycle accurately, write terminal checkpoint, update STATE/CURRENT_CAMPAIGN/KNOWN_ISSUES/VALIDATION, leave clean canonical `main`.
+## Automated completion gate
 
-## Test/validation requirements
+- Repository state, OpenSpec, ownership, registry, provenance, and offline
+  validators: PASS.
+- QA self-test: 49/49 PASS.
+- TypeScript: PASS. Lint: 0 errors / 0 warnings.
+- Jest: 489 suites and 6,056 tests passed; 4 suites and 5 tests skipped by the
+  explicit allowlist; 0 failures. Jest signal: 0 unclassified skips and 0
+  unexpected warnings.
+- Web export: 20 static routes PASS. Expo Doctor: 21/21 PASS.
+- DB integrity/idempotency, migration matrix/robustness/v10 hardening,
+  backup/import/rollback, storage/database-lock, workout attribution/lifecycle,
+  production-boundary/offline, and accessibility contract tests: PASS.
+- Opt-in performance probes: PASS on Node 22.23.2; current measurements are
+  recorded in the terminal checkpoint and `.agent/VALIDATION.md`.
+- Dependency/security: 0 critical, 0 low, 12 moderate, 4 high, all 16
+  classified as build/dev-toolchain-only in `.agent/DEPENDENCY_AUDIT.md`.
 
-Layered evidence: (1) validator unit tests for governance/ownership/state, (2) deterministic generator/content validators + many-seed sweeps, (3) targeted app/unit/integration for changed systems, (4) full Jest/typecheck/lint at convergence, (5) registry/provenance/offline/QA self-test, (6) web export + Expo Doctor, (7) dedicated-project AVD journeys for changed gameplay/workout, (8) GitHub App CI + Repository Integrity green on final pushed SHA. Never fake green, never adopt foreign emulator, never hide flakes with blind retries.
+## External and manual boundary
 
-## Completion gate
+The designated `braintraining-qa36` AVD is unavailable on the current host;
+the bounded 37.1.11/WHPX/qemu failure remains documented. The only connected
+ADB emulator is the foreign `study-maker-api35` and was not used. Android
+dedicated install/start, changed-surface canaries, Workout V3 daily/focus/
+relaunch, current-head 42/42 certification, hierarchy capture, manual
+TalkBack, SAF/system sheets, physical-device behavior, and manual iOS runtime
+UX remain `BLOCKED`/`NOT VALIDATED`. iOS compile PASS is not runtime UX PASS.
 
-All normative specs in `openspec/changes/015-governance-depth-convergence/specs/**/spec.md` satisfied, every checked task has concrete evidence, active OpenSpec/GOVERNANCE/STATE/EXECUTION_PROMPT/ownership agree, targeted generator/content property suites PASS, required Android changed-surface journeys PASS or honest NOT VALIDATED with blocker, repository validators/typecheck/lint/Jest/registry/provenance/offline/QA self-test/web export/Expo Doctor green as required by impact, final GitHub App CI + Repository Integrity green on pushed final SHA, no unresolved Critical/High, terminal checkpoint + durable state synced, `main` clean. See `tasks.md` and `EXECUTION.md` for the exact task list and 12-hour envelope.
+Signing, store publication, cloud/auth, telemetry, monetization, and other
+constitution-deferred decisions remain deferred and are not defects.
 
-## Recovery order
+## Terminal artifact and recovery
 
-1. `AGENTS.md`
-2. `docs/PROJECT_CONSTITUTION.md`
-3. `.agent/GOVERNANCE.json`
-4. `.agent/STATE.md`
-5. `.agent/checkpoints/014-experience-depth-replayability-COMPLETED.md`
-6. `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`
+The terminal artifact is
+`.agent/checkpoints/016-release-certification-hardening-VALIDATED-20260830.md`.
+No unresolved Critical or High defect and no material data-loss/corruption
+defect is known. A successor campaign requires explicit owner authorization
+and genuinely new scope.

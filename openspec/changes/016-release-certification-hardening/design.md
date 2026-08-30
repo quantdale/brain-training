@@ -6,7 +6,14 @@
 
 Phase 0 closes 015 first. Only after `GOVERNANCE.activeCampaign`, `STATE`, `CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, task ownership, and OpenSpec lifecycle agree that 015 is closed may 016 be activated atomically.
 
-This preserves the repository invariant of exactly one top-level active campaign.
+This preserves the repository invariant of exactly one top-level active campaign
+while work is executable. Once 016 is validated and no successor is authorized,
+the explicit terminal state is `GOVERNANCE.activeCampaign: null` with
+`lastCampaign` and `lastCampaignStatus: VALIDATED`; the campaign identity and
+status in STATE, CURRENT_CAMPAIGN, EXECUTION_PROMPT, OpenSpec, and task
+ownership remain synchronized. This prevents an unavailable external device
+from keeping a completed campaign ACTIVE forever without pretending that
+manual/device evidence passed.
 
 ## 2. Hardening philosophy
 

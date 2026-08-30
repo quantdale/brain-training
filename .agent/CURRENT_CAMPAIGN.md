@@ -1,51 +1,88 @@
 # Campaign 016 — Release Certification & Hardening
 
-**Status:** ACTIVE — App CI/iOS/Repository Integrity PASS on latest SHA; Android latest build timed out; residual runtime/recovery evidence remains BLOCKED/NOT VALIDATED.
+**Status:** VALIDATED — terminal repository state; external device/manual certification remains pending
 **Campaign id:** `016-release-certification-hardening`
 **Predecessor:** `015-governance-depth-convergence` (VALIDATED 2026-08-29; closure SHA `fc9899e`)
 **Mode:** day
-**Change:** `016-release-certification-hardening` (ACTIVE, `change.json` ACTIVE, `GOVERNANCE.activeCampaign` 016, `STATE` synced, `task-ownership` 016 map)
-**Authorization:** explicit continuation of the active campaign; hardening is now authorized by the 016 change definition. No game #43, no feature expansion, no cloud/auth/AI/monetization/store work.
+**Change:** `016-release-certification-hardening` (VALIDATED; `change.json` VALIDATED, `GOVERNANCE.activeCampaign` null, `STATE` and terminal ownership synchronized)
+**Authorization:** owner-authorized Campaign 016 closure after repository-owned implementation and automated certification converged. No Campaign 017 was created. No game #43, feature expansion, cloud/auth/AI/monetization/store work.
 
-## Mission
-Turn the mature offline-first product into an evidence-backed release candidate without adding breadth. Reproduce from a clean checkout, obtain native/platform evidence where available, harden failure and recovery paths, make CI skips/warnings interpretable, and preserve honest BLOCKED/NOT VALIDATED classifications.
+## Final classification
 
-## Entry evidence
-- Campaign 015 exact closure SHA: `fc9899e`.
-- App CI `33226167744`: PASS on `fc9899e`; validation, registry, provenance, ownership, offline boundary, QA self-test, typecheck, lint, Jest, web export, and Expo Doctor all passed.
-- Repository Integrity `33226167736`: PASS on `fc9899e`.
-- 015 local Linux full-suite execution remains NOT VALIDATED after host Node SIGSEGV under contention; this is not converted to PASS.
-- Dedicated Android and iOS/manual system-sheet evidence remain BLOCKED/NOT VALIDATED under the documented host/platform limitations; 016 must pursue the bounded recovery/build evidence plan without adopting a foreign emulator or claiming unavailable UX evidence.
+**LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING**
 
-## Progress checkpoint — 2026-08-29
-- Clean-checkout reproducibility is materially complete: two disposable runs at `8b05941` passed all available install/static/app gates and tracked-mutation checks; full Jest remains NOT VALIDATED due host Node worker SIGSEGVs.
-- CI-signal hardening is implemented: four skipped suites / five skipped tests are classified by `scripts/certification/jest-skip-allowlist.json`; App CI emits/validates/uploads `jest-summary.json`, uses fail-closed skip matching, exposes `npm run perf:probe`, and uses current action majors. The bounded failure-path set passes 5 suites / 20 tests with expected diagnostics asserted and suppressed.
-- Runtime/security evidence is partially converged: bounded PASS for storage recovery, session lifecycle/timing, workout provenance/reconcile, autobot self-test 49/49, offline boundary, secret scan, QA-hook boundary, and 16-finding build-toolchain-only audit classification. Full Jest, DB integrity/idempotency, migration, backup/rollback, database-lock, and full workout matrix remain NOT VALIDATED after host Node SIGSEGV/exit 139.
-- Accessibility contracts pass (focus 6/6 and shared game UI 2/2); opt-in wall-clock performance probes remain NOT VALIDATED after the same host SIGSEGV. Manual TalkBack, SAF/system sheets, and iOS UX remain BLOCKED/NOT VALIDATED.
-- Latest exact-SHA CI status at `31a6143`: App CI `33239131160`, iOS Build Smoke `33239131153`, and Repository Integrity `33239131170` PASS. Android Build Smoke `33239131146` was cancelled by the 60-minute job timeout after stalling in `:app:compressReleaseAssets`; it is BLOCKED/NOT VALIDATED, not a product-build PASS. The prior Android release artifact PASS at `1b87619` remains valid historical evidence (`APK_BYTES=109245513`, SHA-256 `be21bb375d75eda9331f5d8d66958944ea3f91754e9ed3c33f1e81f25194db16`).
-- Android dedicated-device installation/startup, post-015 canaries, Workout V3 journeys, hierarchy evidence, and 42/42 certification remain NOT VALIDATED. The designated AVD recovery attempts reproduced the documented 37.1.11/WHPX/qemu failure; the foreign `study-maker-api35` AVD was not adopted.
-- Platform convergence checkpoint: `.agent/checkpoints/016-release-certification-hardening-platform-convergence-20260829.md`. The earlier `-BLOCKED` checkpoint is a historical pre-push/pre-platform snapshot; Campaign 016 remains ACTIVE because residual runtime/recovery/device evidence is unresolved.
-## Ordered workstreams
-1. **Predecessor truth closure:** completed by the 015→016 transition; 015 is VALIDATED and 016 is the sole ACTIVE campaign.
-2. **Clean-checkout reproducibility:** fresh install, repository/OpenSpec/ownership/registry/provenance/offline/QA gates, typecheck, lint, full Jest, web export, Doctor, and tracked-file mutation check.
-3. **Native build reproducibility:** Android clean prebuild/build smoke and production boundary checks; macOS iOS compile smoke where the external runner is available; signing/store submission remain deferred.
-4. **Android current-head certification:** bounded dedicated-AVD recovery matrix, changed-surface canaries, Workout V3 daily/focus/relaunch, and full 42/42 certification only if the designated device is stable.
-5. **CI/test-signal integrity:** explicit skip allowlist, no silent skip growth, expected failure-path console assertions, and machine-readable Jest evidence.
-6. **Runtime resilience/security:** persistence, attribution/idempotency, backup/import/rollback, storage-unavailable, process-death/relaunch, pause/background, offline, permissions, and production QA-hook boundaries.
-7. **Performance/accessibility evidence:** identical probes and changed-surface semantics/hierarchy evidence; manual TalkBack/iOS UX remains NOT VALIDATED unless actually performed.
-8. **Final certification:** exact-SHA local/native/platform gates, green App CI + Repository Integrity, terminal checkpoint, and synchronized durable state.
+Campaign 016 is terminally `VALIDATED` under the repository's OpenSpec
+lifecycle. All repository-owned implementation, automated certification,
+security/privacy classification, native build-smoke, and exact-source CI work
+that is available through automation is complete. Unavailable device and
+manual evidence remains explicitly `BLOCKED` or `NOT VALIDATED`; it is not
+represented as a product defect or a fabricated PASS.
 
-## Guardrails
-- Full hardening is explicitly active for 016, but scope remains evidence and resilience, not feature breadth.
-- Do not add game #43 or reopen locked product decisions.
-- Do not use host mouse/keyboard automation, foreign emulators, blind retries, arbitrary sleeps, or false PASS labels.
-- Stop on genuine external blockers only after bounded evidence is recorded and safe work is pushed.
+## Exact-source CI evidence independently verified before closure
+
+Source head `f0d301bc1b80ed657c75af81c476ee87dbeea540` was clean and had four
+green workflows:
+
+- App CI `33293614545` — PASS, job `Mobile app build/typecheck/tests`.
+- Repository Integrity `33293614543` — PASS, job `durable-state`.
+- Android Build Smoke `33293614561` — PASS, job `Android clean native build`;
+  clean native generation, release APK compilation, release-boundary checks,
+  and artifact upload completed.
+- iOS Build Smoke `33293614540` — PASS, job `iOS simulator compile smoke`;
+  clean prebuild, CocoaPods, and unsigned simulator compile completed.
+
+The older Android timeout (`33239131146` on `31a6143`) remains historical
+evidence only. It is not the current Android result and is not erased.
+
+## Closure evidence
+
+- Full Jest: 489 suites passed / 4 allowlisted skipped; 6,056 tests passed / 5
+  allowlisted skipped; 0 failures. Jest signal validation: 0 unclassified
+  skips, 0 unexpected warnings.
+- DB integrity/idempotency, migration matrix/robustness/v10 hardening,
+  backup/import/rollback, storage/database-lock boundaries, workout
+  attribution/lifecycle, and production-boundary/offline tests passed.
+- TypeScript passed; lint passed with 0 errors / 0 warnings; Expo Doctor passed
+  21/21; web export produced 20 static routes; QA self-test passed 49/49.
+- Both opt-in performance probes passed on Node 22.23.2. Current measurements
+  include `loadProgressSnapshot_20000_ms=112.691259`,
+  `exportLocalData_5000_incl_checksum_canonical_ms=5155.865523`,
+  `syncQuestProgress_20000_total_ms=37.63658`, and
+  `syncAchievements_20000_total_ms=98.749851`.
+- Full and runtime-only npm audits report 0 critical, 0 low, 12 moderate, and
+  4 high findings. `.agent/DEPENDENCY_AUDIT.md` classifies all 16 as
+  Expo/Metro/Xcode build-toolchain-only with no runtime-reachable Critical or
+  High finding; no risky dependency churn was applied.
+
+## Device and manual classifications
+
+- Android dedicated install/start, Rule Grid and Transform Match canaries,
+  Workout V3 daily/focus/relaunch, current-head 42/42 `autobot --mode certify`,
+  and Android hierarchy: **BLOCKED / NOT VALIDATED**. The designated
+  `braintraining-qa36` AVD is unavailable on this host; the bounded
+  emulator-37.1.11/WHPX/qemu recovery failure remains documented. The only
+  connected ADB device is the foreign `study-maker-api35` and was not used.
+- Manual TalkBack, SAF/share/document-picker system sheets, physical-device
+  behavior, and manual iOS runtime UX: **NOT VALIDATED / DEFERRED**. iOS
+  simulator compile PASS is not manual iOS UX PASS.
+- Signing, provisioning, store publication, cloud/auth, telemetry,
+  monetization, and other constitution-deferred decisions: **DEFERRED**, not
+  missing implementation requirements.
+
+## Exit state
+
+No unresolved Critical defects, High defects, or material data-loss/corruption
+defects are known. Remaining Medium/Low items are external/manual platform
+limitations or accepted build-toolchain audit findings. The terminal checkpoint
+is `.agent/checkpoints/016-release-certification-hardening-VALIDATED-20260830.md`.
+No future campaign is implied; a successor requires explicit owner
+authorization and genuinely new scope.
 
 ## Recovery order
+
 1. `AGENTS.md`
 2. `docs/PROJECT_CONSTITUTION.md`
 3. `.agent/GOVERNANCE.json`
 4. `.agent/STATE.md`
-5. `.agent/KNOWN_ISSUES.md`
-6. `.agent/VALIDATION.md`
-7. `openspec/changes/016-release-certification-hardening/EXECUTION.md`
+5. `.agent/checkpoints/016-release-certification-hardening-VALIDATED-20260830.md`
+6. `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`

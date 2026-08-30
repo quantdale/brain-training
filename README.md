@@ -26,7 +26,10 @@ docs/                 PROJECT_CONSTITUTION.md, ADRs, audits
 
 ## Fast start with Kimi Code CLI
 
-Clone the repository, open Kimi Code CLI from the repository root, then start the active campaign with one of:
+Clone the repository, open Kimi Code CLI from the repository root, then start
+the active campaign with one of the following commands when `.agent/STATE.md`
+declares one. If `GOVERNANCE.activeCampaign` is `null`, the repository is in a
+terminal validated state; do not invent a successor campaign.
 
 ```text
 /goal Continue development using day mode. Complete the active campaign in .agent/CURRENT_CAMPAIGN.md according to AGENTS.md and the committed project constitution. Stop only when the campaign exit criteria are satisfied or a genuine blocker has been durably recorded and pushed.

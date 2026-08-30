@@ -4,13 +4,28 @@
 
 ### Requirement: Exact-state truth is durable
 
-The repository MUST expose one unambiguous active campaign and MUST NOT contain a terminal COMPLETED checkpoint whose corresponding machine-readable lifecycle remains ACTIVE without an explicit transition reason.
+The repository MUST expose one unambiguous ACTIVE campaign while executable
+work exists, or an explicit terminal `VALIDATED` state with no active campaign
+and one recorded last campaign. It MUST NOT contain a terminal checkpoint whose
+corresponding machine-readable lifecycle remains ACTIVE without an explicit
+transition reason.
 
 #### Scenario: Completed checkpoint conflicts with active lifecycle
 - GIVEN a campaign has a terminal COMPLETED checkpoint
 - AND its OpenSpec change or durable campaign fields still declare ACTIVE
 - WHEN repository state is audited
 - THEN the discrepancy is classified as a blocking lifecycle-truth defect and reconciled before successor activation.
+
+#### Scenario: Validated repository has no authorized successor
+- GIVEN the current campaign has passed all repository-owned and available
+  automated exit gates
+- AND remaining evidence is explicitly BLOCKED or NOT VALIDATED because the
+  required device/manual environment is unavailable
+- AND no successor campaign is authorized
+- WHEN terminal state is recorded
+- THEN `GOVERNANCE.activeCampaign` is `null`, the last campaign and
+  `VALIDATED` status are recorded in the durable fields, and no new campaign is
+  invented solely to hold external evidence.
 
 ### Requirement: Clean-checkout validation is reproducible
 

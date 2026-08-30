@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
+  "lifecycleStatus": "VALIDATED",
   "change": "016-release-certification-hardening",
-  "description": "Machine-readable ownership for Campaign 016 release certification and hardening. Packets use disjoint coder surfaces; shared lifecycle, CI, generated, dependency, and documentation surfaces remain orchestrator-owned. Full hardening is explicit in the active campaign and is not inferred for localized packets.",
+  "description": "Terminal ownership record for validated Campaign 016. No coder packets remain active; historical packet ownership and validation evidence remain in the Campaign 016 task log and checkpoints.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/015-governance-depth-convergence/**",
     "openspec/changes/016-release-certification-hardening/**",
@@ -33,42 +34,5 @@
     "**/registry.generated.ts",
     "apps/mobile/src/registry/registry.generated.ts"
   ],
-  "parallelPackets": [
-    {
-      "id": "packet-clean-checkout",
-      "tasks": ["1.1-1.6"],
-      "title": "Clean-checkout reproducibility and certification runner",
-      "coderWriteSurfaces": ["scripts/certification/**"],
-      "sharedSurfaces": [],
-      "dependencies": [],
-      "validation": "node scripts/validate-repo-state.mjs && node scripts/validate-task-ownership.cjs"
-    },
-    {
-      "id": "packet-native-build",
-      "tasks": ["2.1-2.7"],
-      "title": "Native build reproducibility and production boundary audit",
-      "coderWriteSurfaces": ["apps/mobile/plugins/**", "apps/mobile/app.json"],
-      "sharedSurfaces": [],
-      "dependencies": [],
-      "validation": "cd apps/mobile && npx expo-doctor"
-    },
-    {
-      "id": "packet-android-certification",
-      "tasks": ["3.1-3.10"],
-      "title": "Dedicated Android recovery and current-head certification",
-      "coderWriteSurfaces": ["scripts/android/**"],
-      "sharedSurfaces": [],
-      "dependencies": [],
-      "validation": "bash -n scripts/android/*.sh && node scripts/validate-repo-state.mjs"
-    },
-    {
-      "id": "packet-runtime-resilience",
-      "tasks": ["5.1-5.8"],
-      "title": "Runtime persistence, recovery, and boundary resilience",
-      "coderWriteSurfaces": ["apps/mobile/src/backup/**", "apps/mobile/src/workout/**", "apps/mobile/src/db/**"],
-      "sharedSurfaces": [],
-      "dependencies": [],
-      "validation": "cd apps/mobile && npm run typecheck && npm run test:ci -- src/backup src/workout src/db --no-coverage"
-    }
-  ]
+  "parallelPackets": []
 }

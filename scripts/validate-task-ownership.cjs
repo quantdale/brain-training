@@ -89,7 +89,11 @@ function validateTaskOwnership(config) {
   const orchestratorOnly = config.orchestratorOnlySurfaces || [];
   const generated = config.generatedFilePatterns || [];
 
-  // 015: change binding — must equal governance and active OpenSpec. Resolve repo root by walking up from cwd to find .agent/GOVERNANCE.json (jest runs with cwd apps/mobile).
+  // Change binding — while work is executable, bind to the ACTIVE campaign;
+  // after a terminal VALIDATED closure, bind to the recorded last campaign so
+  // the historical ownership record remains attributable without pretending
+  // that packets are still active. Resolve repo root by walking up from cwd to
+  // find .agent/GOVERNANCE.json (jest runs with cwd apps/mobile).
   try {
     const fs2 = require('node:fs');
     const path2 = require('node:path');
@@ -105,17 +109,25 @@ function validateTaskOwnership(config) {
     }
     const repoRoot = findRepoRoot(process.cwd());
     const gov = JSON.parse(fs2.readFileSync(path2.join(repoRoot, '.agent/GOVERNANCE.json'), 'utf8'));
-    if (config.change !== gov.activeCampaign) {
-      errors.push(`Ownership change '${config.change}' does not match GOVERNANCE.activeCampaign '${gov.activeCampaign}'.`);
+    const terminal = gov.activeCampaign === null;
+    const governedCampaign = terminal ? gov.lastCampaign : gov.activeCampaign;
+    const governedStatus = terminal ? gov.lastCampaignStatus : 'ACTIVE';
+    if (typeof governedCampaign !== 'string' || governedCampaign.trim() === '') {
+      errors.push('Governance has no active or terminal campaign binding.');
     }
-    const changePath = path2.join(repoRoot, 'openspec', 'changes', gov.activeCampaign, 'change.json');
-    if (fs2.existsSync(changePath)) {
+    if (config.change !== governedCampaign) {
+      errors.push(`Ownership change '${config.change}' does not match GOVERNANCE ${terminal ? 'lastCampaign' : 'activeCampaign'} '${governedCampaign}'.`);
+    }
+    const changePath = typeof governedCampaign === 'string'
+      ? path2.join(repoRoot, 'openspec', 'changes', governedCampaign, 'change.json')
+      : null;
+    if (changePath && fs2.existsSync(changePath)) {
       const meta = JSON.parse(fs2.readFileSync(changePath, 'utf8'));
       if (config.change !== meta.id) {
-        errors.push(`Ownership change '${config.change}' does not match active OpenSpec change id '${meta.id}'.`);
+        errors.push(`Ownership change '${config.change}' does not match governed OpenSpec change id '${meta.id}'.`);
       }
-      if (meta.status !== 'ACTIVE') {
-        errors.push(`Active OpenSpec change status is '${meta.status}', expected 'ACTIVE' for ownership validation.`);
+      if (meta.status !== governedStatus) {
+        errors.push(`Governed OpenSpec change status is '${meta.status}', expected '${governedStatus}' for ownership validation.`);
       }
     }
   } catch (e) {

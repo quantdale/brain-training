@@ -82,21 +82,35 @@ if (governance) {
 }
 
 // ——— Deterministic campaign field extraction (3.1 / 1.4) ———
-// Each durable document has exactly one authoritative machine-readable field
-// that declares the active campaign. Human prose elsewhere is NOT authoritative
-// and substring presence is NOT sufficient. The authoritative fields are:
-//   GOVERNANCE.json:  .activeCampaign (JSON)
-//   STATE.md:         `**Active campaign:** <id>`  (first match)
-//   CURRENT_CAMPAIGN.md: `**Campaign id:** `<id>``  (or **Campaign id:** <id>)
-//   EXECUTION_PROMPT.md: `**Change:** `<id>``  (or **Change:** <id>)
+// Each durable document has authoritative machine-readable campaign fields.
+// Human prose elsewhere is NOT authoritative and substring presence is NOT
+// sufficient. An executable repository has one ACTIVE campaign. A terminal
+// repository has no active campaign and records the last VALIDATED campaign so
+// a future owner can deliberately open a successor instead of an agent
+// mistaking historical state for executable work.
+//   GOVERNANCE.json:  .activeCampaign (JSON), or .lastCampaign + status
+//   STATE.md:         `**Active campaign:** <id|none>` + terminal last campaign
+//   CURRENT_CAMPAIGN.md: `**Campaign id:** `<id>`` + status
+//   EXECUTION_PROMPT.md: `**Change:** `<id>`` + status
 //   OpenSpec:         change.json .id + .status
 //   task-ownership.json: .change
-// See STATE.md "Authoritative active change" section and design.md §1 for relation
-// between these structured fields and surrounding human Markdown.
+// See STATE.md "Authoritative campaign state" section for the relation between
+// these structured fields and surrounding human Markdown.
 function parseStateCampaignMd(content) {
-  // STATE.md authoritative line: "**Active campaign:** 015-..."
+  // STATE.md authoritative line: "**Active campaign:** 015-..." or "none".
   const m = content.match(/^\*\*Active campaign:\*\*\s*([^\s*\n]+)/m);
+  if (!m) return undefined;
+  const value = m[1].trim().replace(/^`|`$/g, '');
+  return value.toLowerCase() === 'none' ? null : value;
+}
+function parseStateLastCampaignMd(content) {
+  const m = content.match(/^\*\*Last campaign:\*\*\s*`([^`]+)`/m)
+    ?? content.match(/^\*\*Last campaign:\*\*\s*([^\s*\n]+)/m);
   return m ? m[1].trim().replace(/^`|`$/g, '') : null;
+}
+function parseStateLastCampaignStatus(content) {
+  const m = content.match(/^\*\*Last campaign status:\*\*\s*([A-Z]+)/m);
+  return m ? m[1].trim() : null;
 }
 function parseCurrentCampaignId(content) {
   // CURRENT_CAMPAIGN.md: "**Campaign id:** `015-...`"  (backticked) or plain
@@ -125,34 +139,42 @@ const campaignRaw = fs.existsSync(path.join(root, '.agent/CURRENT_CAMPAIGN.md'))
 const executionRaw = fs.existsSync(path.join(root, '.agent/EXECUTION_PROMPT.md')) ? fs.readFileSync(path.join(root, '.agent/EXECUTION_PROMPT.md'), 'utf8') : '';
 
 const stateCampaign = parseStateCampaignMd(stateRaw);
+const stateLastCampaign = parseStateLastCampaignMd(stateRaw);
+const stateLastCampaignStatus = parseStateLastCampaignStatus(stateRaw);
 const currentCampaignId = parseCurrentCampaignId(campaignRaw);
 const currentCampaignStatus = parseCurrentCampaignStatus(campaignRaw);
 const executionChange = parseExecutionPromptChange(executionRaw);
 const executionStatus = parseExecutionPromptStatus(executionRaw);
+const governanceHasActiveField = Object.prototype.hasOwnProperty.call(governance ?? {}, 'activeCampaign');
+const activeCampaign = governanceHasActiveField ? governance.activeCampaign : undefined;
+const terminalCampaign = governance?.lastCampaign;
+const terminalStatus = governance?.lastCampaignStatus;
 
-// 3.2 — Detect contradictions across all 6 authoritative sources.
-// Collect identifiers from each source and ensure they agree on the single
-// active campaign. Substring presence in historical prose does NOT satisfy this.
-if (!governance?.activeCampaign) {
-  errors.push('GOVERNANCE.activeCampaign is missing or empty — exactly one active campaign is required');
-} else {
+// 3.2 — Detect contradictions across all authoritative sources.
+// Collect identifiers from each source and ensure they agree on one executable
+// campaign, or on one explicit terminal campaign. Substring presence in
+// historical prose does NOT satisfy this invariant.
+if (!governanceHasActiveField) {
+  errors.push('GOVERNANCE.activeCampaign field is missing — use a campaign id while active or null in a terminal state');
+} else if (typeof activeCampaign === 'string' && activeCampaign.trim()) {
+  const campaign = activeCampaign.trim();
   if (!stateCampaign) {
     errors.push('STATE.md missing authoritative field `**Active campaign:** <id>` — deterministic campaign field required (do not rely on substring)');
-  } else if (stateCampaign !== governance.activeCampaign) {
-    errors.push(`STATE.md active campaign '${stateCampaign}' contradicts GOVERNANCE.activeCampaign '${governance.activeCampaign}'`);
+  } else if (stateCampaign !== campaign) {
+    errors.push(`STATE.md active campaign '${stateCampaign}' contradicts GOVERNANCE.activeCampaign '${campaign}'`);
   }
   if (!currentCampaignId) {
     errors.push('CURRENT_CAMPAIGN.md missing authoritative field `**Campaign id:** `<id>``');
-  } else if (currentCampaignId !== governance.activeCampaign) {
-    errors.push(`CURRENT_CAMPAIGN.md campaign id '${currentCampaignId}' contradicts GOVERNANCE.activeCampaign '${governance.activeCampaign}'`);
+  } else if (currentCampaignId !== campaign) {
+    errors.push(`CURRENT_CAMPAIGN.md campaign id '${currentCampaignId}' contradicts GOVERNANCE.activeCampaign '${campaign}'`);
   }
   if (currentCampaignStatus && currentCampaignStatus !== 'ACTIVE') {
     errors.push(`CURRENT_CAMPAIGN.md status is '${currentCampaignStatus}', expected 'ACTIVE' for the active campaign`);
   }
   if (!executionChange) {
     errors.push('EXECUTION_PROMPT.md missing authoritative field `**Change:** `<id>``');
-  } else if (executionChange !== governance.activeCampaign) {
-    errors.push(`EXECUTION_PROMPT.md change '${executionChange}' contradicts GOVERNANCE.activeCampaign '${governance.activeCampaign}'`);
+  } else if (executionChange !== campaign) {
+    errors.push(`EXECUTION_PROMPT.md change '${executionChange}' contradicts GOVERNANCE.activeCampaign '${campaign}'`);
   }
   if (executionStatus && executionStatus !== 'ACTIVE') {
     errors.push(`EXECUTION_PROMPT.md status is '${executionStatus}', expected 'ACTIVE'`);
@@ -162,34 +184,84 @@ if (!governance?.activeCampaign) {
     const ownershipPath = path.join(root, '.agent/task-ownership.json');
     if (fs.existsSync(ownershipPath)) {
       const ownership = JSON.parse(fs.readFileSync(ownershipPath, 'utf8'));
-      if (ownership.change !== governance.activeCampaign) {
-        errors.push(`task-ownership.json change '${ownership.change}' contradicts GOVERNANCE.activeCampaign '${governance.activeCampaign}'`);
+      if (ownership.change !== campaign) {
+        errors.push(`task-ownership.json change '${ownership.change}' contradicts GOVERNANCE.activeCampaign '${campaign}'`);
       }
     }
   } catch {}
+} else if (activeCampaign === null) {
+  if (typeof terminalCampaign !== 'string' || !terminalCampaign.trim()) {
+    errors.push('Terminal governance state requires a non-empty lastCampaign');
+  }
+  if (terminalStatus !== 'VALIDATED') {
+    errors.push(`Terminal governance state requires lastCampaignStatus 'VALIDATED', got '${terminalStatus ?? 'missing'}'`);
+  }
+  const campaign = typeof terminalCampaign === 'string' ? terminalCampaign.trim() : null;
+  if (stateCampaign !== null) {
+    errors.push(`STATE.md active campaign must be 'none' in terminal state, got '${stateCampaign ?? 'missing'}'`);
+  }
+  if (stateLastCampaign !== campaign) {
+    errors.push(`STATE.md last campaign '${stateLastCampaign ?? 'missing'}' contradicts terminal lastCampaign '${campaign ?? 'missing'}'`);
+  }
+  if (stateLastCampaignStatus !== terminalStatus) {
+    errors.push(`STATE.md last campaign status '${stateLastCampaignStatus ?? 'missing'}' contradicts terminal lastCampaignStatus '${terminalStatus ?? 'missing'}'`);
+  }
+  if (!currentCampaignId) {
+    errors.push('CURRENT_CAMPAIGN.md missing authoritative terminal campaign id');
+  } else if (currentCampaignId !== campaign) {
+    errors.push(`CURRENT_CAMPAIGN.md campaign id '${currentCampaignId}' contradicts terminal lastCampaign '${campaign}'`);
+  }
+  if (currentCampaignStatus !== terminalStatus) {
+    errors.push(`CURRENT_CAMPAIGN.md status '${currentCampaignStatus ?? 'missing'}' contradicts terminal status '${terminalStatus ?? 'missing'}'`);
+  }
+  if (!executionChange) {
+    errors.push('EXECUTION_PROMPT.md missing authoritative terminal change id');
+  } else if (executionChange !== campaign) {
+    errors.push(`EXECUTION_PROMPT.md change '${executionChange}' contradicts terminal lastCampaign '${campaign}'`);
+  }
+  if (executionStatus !== terminalStatus) {
+    errors.push(`EXECUTION_PROMPT.md status '${executionStatus ?? 'missing'}' contradicts terminal status '${terminalStatus ?? 'missing'}'`);
+  }
+  try {
+    const ownershipPath = path.join(root, '.agent/task-ownership.json');
+    if (fs.existsSync(ownershipPath)) {
+      const ownership = JSON.parse(fs.readFileSync(ownershipPath, 'utf8'));
+      if (ownership.change !== campaign) {
+        errors.push(`task-ownership.json change '${ownership.change}' contradicts terminal lastCampaign '${campaign}'`);
+      }
+    }
+  } catch {}
+} else {
+  errors.push('GOVERNANCE.activeCampaign must be a non-empty campaign id or null in an explicit terminal state');
 }
 
-// Spec-driven campaign integrity. Every active campaign must have a matching
-// OpenSpec change directory with a complete execution surface, regardless of
-// whether the directory happens to exist. No single-campaign special cases.
-if (governance?.activeCampaign) {
-  const changeDir = path.join(root, 'openspec', 'changes', governance.activeCampaign);
+// Spec-driven campaign integrity. An active or terminal campaign must have a
+// matching OpenSpec change directory with a complete execution surface,
+// regardless of whether the directory happens to exist. No campaign special
+// cases.
+const governedCampaign = typeof activeCampaign === 'string' && activeCampaign.trim()
+  ? activeCampaign.trim()
+  : activeCampaign === null && typeof terminalCampaign === 'string' ? terminalCampaign.trim() : null;
+if (governedCampaign) {
+  const changeDir = path.join(root, 'openspec', 'changes', governedCampaign);
+  const expectedStatus = activeCampaign === null ? terminalStatus : 'ACTIVE';
   if (!fs.existsSync(changeDir)) {
-    errors.push(`Missing active OpenSpec change directory: openspec/changes/${governance.activeCampaign}`);
+    errors.push(`Missing active OpenSpec change directory (governed campaign): openspec/changes/${governedCampaign}`);
   } else {
     const changeRequired = ['change.json', 'proposal.md', 'design.md', 'tasks.md', 'EXECUTION.md', 'audit-map.md'];
     for (const rel of changeRequired) {
       const p = path.join(changeDir, rel);
       if (!fs.existsSync(p) || fs.statSync(p).size === 0) {
-        errors.push(`Active OpenSpec change missing/empty: openspec/changes/${governance.activeCampaign}/${rel}`);
+        errors.push(`Governed OpenSpec change missing/empty: openspec/changes/${governedCampaign}/${rel}`);
       }
     }
     try {
       const meta = JSON.parse(fs.readFileSync(path.join(changeDir, 'change.json'), 'utf8'));
-      if (meta.id !== governance.activeCampaign) errors.push('OpenSpec change id does not match governance activeCampaign');
-      if (meta.status !== 'ACTIVE') errors.push('Active OpenSpec change metadata status must be ACTIVE');
-      // 3.2 extended: OpenSpec id/status must also agree with the other 5 sources
-      if (stateCampaign && meta.id !== stateCampaign) errors.push(`OpenSpec change id '${meta.id}' contradicts STATE.md active campaign '${stateCampaign}'`);
+      if (meta.id !== governedCampaign) errors.push('OpenSpec change id does not match governance campaign binding');
+      if (meta.status !== expectedStatus) errors.push(`Governed OpenSpec change metadata status must be ${expectedStatus}`);
+      // 3.2 extended: OpenSpec id/status must also agree with the other sources.
+      if (activeCampaign !== null && stateCampaign && meta.id !== stateCampaign) errors.push(`OpenSpec change id '${meta.id}' contradicts STATE.md active campaign '${stateCampaign}'`);
+      if (activeCampaign === null && stateLastCampaign && meta.id !== stateLastCampaign) errors.push(`OpenSpec change id '${meta.id}' contradicts STATE.md last campaign '${stateLastCampaign}'`);
       if (currentCampaignId && meta.id !== currentCampaignId) errors.push(`OpenSpec change id '${meta.id}' contradicts CURRENT_CAMPAIGN.md campaign id '${currentCampaignId}'`);
       if (executionChange && meta.id !== executionChange) errors.push(`OpenSpec change id '${meta.id}' contradicts EXECUTION_PROMPT.md change '${executionChange}'`);
       if (!Array.isArray(meta.specOrder) || meta.specOrder.length === 0) errors.push('Active OpenSpec change specOrder must be non-empty');
@@ -200,7 +272,7 @@ if (governance?.activeCampaign) {
         }
       }
     } catch (error) {
-      errors.push(`Invalid active OpenSpec change.json: ${error.message}`);
+      errors.push(`Invalid governed OpenSpec change.json: ${error.message}`);
     }
   }
 }
@@ -212,6 +284,7 @@ if (errors.length) {
 }
 
 console.log('Repository state validation PASS');
-console.log(`Active campaign: ${governance.activeCampaign}`);
+if (activeCampaign) console.log(`Active campaign: ${activeCampaign}`);
+else console.log(`No active campaign; last campaign: ${terminalCampaign} (${terminalStatus})`);
 console.log(`Default coder concurrency: ${governance.swarm.defaultMaxCoderAgents}`);
 console.log(`Default Android emulators: ${governance.runtimeQa.defaultAndroidEmulators}`);

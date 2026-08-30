@@ -1583,8 +1583,117 @@ platform limitations remain explicitly classified and are carried into 016.
 - App CI `33238211577` and Repository Integrity `33238211576` **PASS** on the same exact SHA `1b87619`. Android, iOS, App CI, and Repository Integrity all passed for the refreshed exact-SHA platform certification.
 - The prior `016-release-certification-hardening-BLOCKED.md` is retained as a historical pre-push/pre-platform snapshot. Residual full Jest, DB/recovery, opt-in performance, dedicated Android runtime, and manual UX classifications remain **NOT VALIDATED/BLOCKED**; no unavailable check was converted to PASS.
 
-### Campaign 016 — latest exact-SHA CI convergence with Android timeout (2026-08-29, `31a6143`)
+### Historical Campaign 016 — exact-SHA CI convergence with Android timeout (2026-08-29, `31a6143`; superseded)
 
 - App CI `33239131160`, Repository Integrity `33239131170`, and iOS Build Smoke `33239131153` **PASS** on exact SHA `31a6143`.
 - Android Build Smoke `33239131146` was **CANCELLED/TIMED OUT** by its 60-minute job limit. The Gradle process reached `:app:compressReleaseAssets` at approximately `07:04Z`, made no further usable progress, and the job was cancelled at `07:43Z`; no APK verification or artifact upload ran. This is **BLOCKED/NOT VALIDATED**, not PASS and not a diagnosed product failure. No blind retry was made.
 - Historical Android Build Smoke `33238211582` on `1b87619` remains valid release-artifact evidence: `BUILD SUCCESSFUL`, packaged permission boundary PASS, APK artifact `9710800639`, and SHA-256 `be21bb375d75eda9331f5d8d66958944ea3f91754e9ed3c33f1e81f25194db16`.
+
+### Campaign 016 — terminal convergence (2026-08-30)
+
+**Convergence start:** `f0d301bc1b80ed657c75af81c476ee87dbeea540` on `main`.
+The terminal checkpoint commit is the final source of the exact pushed SHA and
+post-push workflow IDs; this record intentionally distinguishes the exact
+source SHA already verified below from the later documentation-only lifecycle
+commit(s).
+
+#### Repository and automated gates
+
+- `node scripts/validate-repo-state.mjs`: **PASS** after terminal-state
+  support; it reports no active campaign and last campaign
+  `016-release-certification-hardening (VALIDATED)`.
+- `node scripts/validate-task-ownership.cjs`: **PASS** with no active coder
+  packets and terminal ownership bound to Campaign 016.
+- `npx --yes @fission-ai/openspec@1.6.0 validate --all`: **PASS**, 3/3
+  changes (006R, 015, 016).
+- `node scripts/generate-game-registry.mjs --check`: **PASS**; generated
+  registry up to date.
+- `node scripts/validate-provenance.mjs --check`: **PASS**.
+- `node scripts/validate-offline.mjs --check`: **PASS / CLEAN**, 932 source
+  files scanned.
+- `node scripts/qa/autobot.mjs --self-test`: **PASS**, 49/49.
+- `npm run typecheck`: **PASS**. `npm run lint`: **PASS**, 0 errors / 0
+  warnings.
+- `npm run test:ci`: **PASS**, 489 suites passed / 4 allowlisted skipped;
+  6,056 tests passed / 5 allowlisted skipped; 0 failures; 5 snapshots passed.
+- `node scripts/certification/validate-jest-signal.mjs --summary
+  apps/mobile/jest-summary.json`: **PASS**; 0 unclassified skips, 0
+  ambiguous matches, and 0 unexpected warnings. The generated summary was
+  removed from the working tree after validation.
+- `npx expo-doctor`: **PASS**, 21/21. `npx expo export --platform web`:
+  **PASS**, 20 static routes.
+- Focused DB/migration/portability/workout matrix: **PASS**, 37 suites / 390
+  tests, with one allowlisted opt-in skip. Focused production-boundary and
+  offline set: **PASS**, 6 suites / 28 tests.
+- `npm run perf:probe`: **PASS** on Node 22.23.2. Baseline measurements:
+  `loadProgressSnapshot_20000_ms=112.691259`,
+  `exportLocalData_5000_incl_checksum_canonical_ms=5155.865523`,
+  `serializeBackup_5000_second_canonical_ms=936.613833`. Sync measurements:
+  `syncQuestProgress_20000_total_ms=37.63658`,
+  `syncAchievements_20000_total_ms=98.749851`. Generated timestamped probe
+  files were captured in this record and removed from the worktree.
+- `npm audit` and `npm audit --omit=dev`: each exits with the accepted audit
+  findings count **0 critical, 0 low, 12 moderate, 4 high, 16 total**.
+  `.agent/DEPENDENCY_AUDIT.md` classifies all 16 as Expo/Metro/Xcode
+  build-toolchain-only with no runtime-reachable Critical/High issue. No
+  dependency churn was applied.
+- Tracked-source secret scan: **PASS**, no private keys/tokens/secrets found.
+  Offline/network and production QA-hook boundary checks: **PASS**.
+
+The ordinary local `npm ci` path was attempted and could not build the
+`better-sqlite3` native dependency because this host lacks `make`; the
+documented clean-run `npm ci --ignore-scripts` path passed under Node 22.23.2,
+and the GitHub clean runners completed their normal install. This is a host
+toolchain limitation, not a product test failure.
+
+#### Native/platform gates
+
+- Android Build Smoke `33293614561`: **PASS** on exact source SHA
+  `f0d301bc1b80ed657c75af81c476ee87dbeea540`, job `Android clean native
+  build`; clean native generation, release APK compilation,
+  release-boundary verification, and artifact upload completed.
+- iOS Build Smoke `33293614540`: **PASS** on the same exact source SHA, job
+  `iOS simulator compile smoke`; clean prebuild, CocoaPods, and unsigned
+  simulator compile completed.
+- App CI `33293614545` and Repository Integrity `33293614543`: **PASS** on
+  the same exact source SHA.
+- The older Android timeout `33239131146` on `31a6143` is preserved as
+  historical evidence only; the current Android result is the successful
+  `33293614561` run above.
+
+#### Device/manual evidence
+
+- Android dedicated install/start, Rule Grid, Transform Match, post-015
+  canaries, Workout V3 daily/focus/relaunch, current-head 42/42
+  `autobot --mode certify`, and Android hierarchy: **BLOCKED / NOT
+  VALIDATED**. Bounded inventory found no designated `braintraining-qa36`
+  AVD and no physical ADB fallback. The only connected device was the foreign
+  `study-maker-api35` emulator, which was not used. Prior designated
+  37.1.11/WHPX/qemu failure evidence remains historical and current.
+- Manual TalkBack, SAF/share/document-picker system sheets, physical-device
+  behavior, and manual iOS runtime UX: **NOT VALIDATED / DEFERRED**. iOS
+  compile PASS is not iOS runtime UX PASS.
+- Signing, provisioning, store publication, cloud/auth, telemetry,
+  monetization, and future product decisions: **DEFERRED**, not defects.
+
+#### Defect and lifecycle decision
+
+- Unresolved Critical defects: **0**.
+- Unresolved High defects: **0**.
+- Material data-loss/corruption defects: **0**.
+- Remaining Medium/Low limitations are external/manual platform constraints
+  or accepted build-toolchain audit findings.
+- `openspec/changes/016-release-certification-hardening/change.json` is
+  `VALIDATED`; `GOVERNANCE.activeCampaign` is `null`, with
+  `lastCampaign=016-release-certification-hardening` and
+  `lastCampaignStatus=VALIDATED`. STATE, CURRENT_CAMPAIGN,
+  EXECUTION_PROMPT, and terminal task ownership agree. No Campaign 017 was
+  created.
+- Final classification: **LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE /
+  MANUAL CERTIFICATION PENDING**.
+- Stale addon branch comparison found no reusable content: the branch's root
+  `.mcp.json` conflicts with the current onboarding policy, its plan/handoff
+  duplicates obsolete integration assumptions, and its validation scripts add
+  no guarantee not already covered by the repository QA/validator surface.
+  Neither stale addon branch was merged; both are deleted during final Git
+  cleanup.

@@ -20,7 +20,12 @@ If two documents conflict, stop the conflicting work and reconcile the higher-au
 
 `PROPOSED -> ACTIVE -> IMPLEMENTED -> VALIDATED -> ARCHIVED`
 
-An ACTIVE change is executable. An IMPLEMENTED change is not complete until its required validation passes. A change may be ARCHIVED only after durable evidence is recorded and the active campaign advances.
+An ACTIVE change is executable. An IMPLEMENTED change is not complete until its
+required validation passes. A change may be ARCHIVED only after durable
+evidence is recorded and a successor campaign advances. If a validated change
+has no authorized successor, it remains `VALIDATED` and the repository records
+`GOVERNANCE.activeCampaign: null` plus the last validated campaign; this is the
+explicit terminal state and does not imply unfinished executable work.
 
 ## Agent rule
 
