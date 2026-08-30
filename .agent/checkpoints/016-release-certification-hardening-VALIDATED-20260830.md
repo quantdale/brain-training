@@ -217,7 +217,7 @@ OpenSpec campaign deliberately and preserve this checkpoint as the terminal
 `- Signing / store publication — DEFERRED`
 
 **Git at addendum close:**
-`- Start SHA: `0e5eb34c13d87f2e4a8dfa40acb44e8d27e614a8``
-`- Final SHA after documentation-only amendment: (to be recorded at push; `HEAD == origin/main` required, `git status` clean, only `origin/main` remote branch, no active campaign, Campaign 016 remains VALIDATED, no Campaign 017).`
-`- This addendum is documentation-only; it does not reopen Campaign 016 to ACTIVE and does not create Campaign 017. The classification remains **LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING** on this machine until a stable device (different host, KVM-enabled Linux, or physical device) completes the Android runtime matrix.`
+- Start SHA: `0e5eb34c13d87f2e4a8dfa40acb44e8d27e614a8`
+- Final SHA after documentation-only amendment: `d48019dc9e3736c6ceb47497db5b2f2a7d8be9b8` (`HEAD == origin/main` verified, `git status` clean, only `origin/main` remote branch, no active campaign, Campaign 016 remains VALIDATED, no Campaign 017).
+- This addendum is documentation-only; it does not reopen Campaign 016 to ACTIVE and does not create Campaign 017. The classification remains **LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING** on this machine until a stable device (different host, KVM-enabled Linux, or physical device) completes the Android runtime matrix.
 
