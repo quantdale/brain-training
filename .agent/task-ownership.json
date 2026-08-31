@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "020-release-qa-convergence",
-  "description": "Orchestrator-owned release-QA convergence hardening wave. Certification, source identity, security, durable state, and generated/config surfaces remain protected; no coder packets are active in this transition.",
+  "description": "Terminal ownership record for validated Campaign 020. Certification, source identity, security, durable state, and generated/config surfaces remain protected; no coder packets remain active.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/**",
     ".agent/GOVERNANCE.json",

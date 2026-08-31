@@ -1,8 +1,8 @@
 # Dependency Audit Triage
 
-**Date:** 2026-08-24 (Campaign 013 refresh; supersedes the 2026-08-18 006R audit)
+**Date:** 2026-08-31 (Campaign 020 refresh; supersedes the 2026-08-24 Campaign 013 audit)
 **Scope:** `apps/mobile` (`npm audit`, auditReportVersion 2; production-only view via `--omit=dev` produced the identical report — no dev-only dependency adds findings)
-**Context:** 42-game catalog, Expo SDK 57 / RN 0.82-era toolchain, offline-first product
+**Context:** 42-game catalog, Expo SDK 57 / React Native 0.86.3 toolchain, offline-first product
 **Result:** **16 vulnerabilities (12 moderate, 4 high)** — down from 23 (8 moderate, 15 high) at the previous audit
 
 ## Current classification
@@ -38,12 +38,13 @@ solely to make an audit count disappear.
 
 ## Fresh-environment verification performed this refresh
 
-- `npm audit` and `npm audit --omit=dev`: identical 16-finding report (no prod-only additions).
+- `npm audit` and `npm audit --omit=dev`: identical 16-finding report (no prod-only additions); both remain limited to the build/dev toolchain.
 - `npx expo-doctor`: **21/21 checks passed** after the lockfile dedupe.
-- `npx tsc --noEmit`: clean. Full Jest suite green (474 suites / ~5820 tests).
+- `npm run typecheck`: clean; `npm run lint`: **0 errors / 0 warnings**.
+- Full Node 22 Jest: **490/494 suites, 6096/6101 tests, 5 snapshots**; 4 suites / 5 tests skipped by the explicit measurement allowlist.
 - `npx expo export --platform web`: PASS (20 static routes).
-- Secrets scan over git-tracked files (AWS/GitHub/Slack/PEM/supabase patterns): zero hits.
-- Offline boundary validator: CLEAN (919 files scanned).
+- `node scripts/validate-secrets.mjs --self-test`: PASS; tracked-file scan CLEAN (1826 text files; no high-confidence AWS/GitHub/Slack/OpenAI/Supabase/PEM patterns).
+- Offline boundary validator: CLEAN (932 source files scanned).
 - Permissions boundary: RECORD_AUDIO / SYSTEM_ALERT_WINDOW blocked at config level
   (`app.json android.blockedPermissions` + expo-audio flags), now pinned against drift by
   `plugins/__tests__/release-boundary-permissions.test.ts`.

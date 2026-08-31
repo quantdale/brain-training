@@ -5,7 +5,7 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-## Campaign 017 closure → 018 closure → 019 closure → Campaign 020 activation (2026-08-31, source working state from `27c9174`)
+## Campaign 017 closure → 018 closure → 019 closure → Campaign 020 closure (2026-08-31, source state `388e10f`)
 
 - The owner explicitly authorized a whole-codebase hardening pass followed by
   autonomous Campaigns 017–020. Terminal Campaign 016 was reopened only by
@@ -40,11 +40,22 @@ unavailable checks into PASS.
   game screens. Focused lifecycle and workout suites pass 8 suites / 68 tests;
   the full Node 22 Jest run passed 490/494 suites and 6096/6101 tests with
   4 suites / 5 tests skipped by the explicit measurement allowlist.
-- Campaign 020 is ACTIVE and owns release certification, source/build identity,
-  tracked-file secret scanning, dependency classification, and final
+- Campaign 020 is VALIDATED and closes release certification, source/build
+  identity, tracked-file secret scanning, dependency classification, and final
   whole-codebase convergence. The executable secret scanner self-test and
-  clean scan pass; its remaining exit evidence is recorded after the final
-  validation matrix.
+  clean scan pass over 1826 tracked text files. The certification harness
+  fails closed from a non-clean dependency-populated checkout; its diagnostic
+  `--skip-install`/`--allow-jest-not-validated` paths remain non-certifying.
+- Final Campaign 020 matrix: TypeScript PASS; Expo lint PASS (0 errors / 0
+  warnings); Expo web export PASS (20 static routes); Expo Doctor PASS (21/21);
+  full Node 22 Jest PASS (490/494 suites, 6096/6101 tests, 5 snapshots, with
+  4 suites / 5 tests skipped by the explicit measurement allowlist); repository
+  state, ownership, OpenSpec (7/7), registry, provenance, offline boundary,
+  secret scan, and QA self-test (51/51) PASS. The second whole-codebase review
+  found no new in-scope Critical/High regression.
+- Full and runtime-only `npm audit --audit-level=moderate` report the same 16
+  accepted build/dev-toolchain findings (12 moderate, 4 high), with no
+  production/runtime-reachable finding; no unsafe major upgrade was applied.
 - Android runtime/manual accessibility, SAF/system-sheet, physical-device,
   and manual iOS UX evidence remains BLOCKED/NOT VALIDATED from the bounded
   Campaign 016 environment matrix. No foreign emulator is used.

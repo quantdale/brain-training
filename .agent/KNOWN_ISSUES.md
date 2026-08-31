@@ -1,22 +1,22 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 020 active hardening
+## Current status — Campaign 020 validated; terminal repository state
 
-- **Campaign 020 is ACTIVE by explicit owner authorization.** Campaigns
+- **Campaign 020 is VALIDATED by explicit owner authorization.** Campaigns
   017–019 are validated across persistence/portability/sync/as-of boundaries,
   strict quest/streak inputs, canonical calendar coverage, time-safe reward
   claims, progression reconciliation, shared game lifecycle, pause timing,
   Workout V3 provenance, and catalog reconciliation. Campaign 020 now owns
   release certification signals, source identity, tracked-file secret scanning,
   dependency classification, and final whole-codebase convergence. No game or
-  deferred external system is in scope.
+  deferred external system is in scope; no campaign is currently active.
 - **Android device certification remains BLOCKED / NOT VALIDATED (2026-08-30 post-validation matrix):** dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7) and `braintraining-qa35` (google_apis) now exist on this Linux host and were both booted headless with TCG (`-accel off`, `-no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). All 4 hypothesis-driven configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) reached `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exited at ~5 min with `Netsim Wifi … gone due to CANCELLED` / `stop: Not implemented` / `cannnot unmap ptr` (same signature as 37.1.11 WHPX failure, now also reproduced on Linux TCG). `/dev/kvm` missing (`accel=8`, `modprobe` unavailable, VT disabled), so no KVM acceleration was possible; `sdkmanager --list` offers only emulator 37.1.11 (no pin to older stable version). The foreign `study-maker-api35` (API 35 google_apis pixel_2) still exists but was not adopted. No physical ADB device is connected. This remains an external environment/toolchain limitation, not a product-build failure; see checkpoint addendum 2026-08-30 and `VALIDATION.md`.
 - **Manual platform evidence remains NOT VALIDATED / DEFERRED:** TalkBack,
   SAF/share/document-picker system sheets, physical-device behavior, and manual
   iOS runtime UX were not performed. iOS simulator compile PASS is kept
   separate from runtime UX. Signing/store, cloud/auth, telemetry, and
   monetization remain constitution-deferred.
-- **Campaigns 017–019 automated evidence is closed:** repository, OpenSpec,
+- **Campaigns 017–020 automated evidence is closed:** repository, OpenSpec,
   ownership, registry, provenance, offline, TypeScript, lint, and QA self-test
   51/51 pass; full Node 22 Jest passed 490 suites / 6096 tests with 4 suites /
   5 tests skipped by the explicit measurement allowlist. The Campaign 020

@@ -1,6 +1,6 @@
 {
   "id": "020-release-qa-convergence",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "019-game-lifecycle-resilience",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -14,6 +14,8 @@
     "final-risk-audit"
   ],
   "activationRule": "Explicit owner directive on 2026-08-30 authorizes successor campaigns 017 through 020; 020 follows the validated 019 lifecycle wave.",
+  "validationNote": "Validated on 2026-08-31 after executable fail-closed certification review, source/build identity review, and addition of a non-leaking high-confidence tracked-file secret scanner. Full Node 22 Jest passed 490/494 suites and 6096/6101 tests with 4 suites / 5 tests skipped by the explicit measurement allowlist; TypeScript, lint, Expo web export (20 routes), Expo Doctor (21/21), repository state, ownership, OpenSpec, registry, provenance, offline boundary, secret scan, and QA self-test 51/51 passed. Full and runtime-only npm audits both report the accepted 16 build/dev-toolchain findings (12 moderate, 4 high) with no production/runtime-reachable findings. Android runtime and manual platform evidence remain BLOCKED / NOT VALIDATED under documented external constraints.",
+  "validatedAt": "2026-08-31",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
   "fullHardening": true,
