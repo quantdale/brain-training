@@ -25,7 +25,7 @@ non-certifying.
 |---|---|
 | Repository state, task ownership, OpenSpec | PASS — 7/7 OpenSpec changes |
 | Generated registry, provenance, offline boundary | PASS |
-| Secret scanner | PASS — self-test; CLEAN over 1826 tracked text files |
+| Secret scanner | PASS — self-test; CLEAN over 1827 tracked text files |
 | TypeScript and lint | PASS — 0 lint errors / 0 warnings |
 | Full Node 22 Jest | PASS — 490/494 suites, 6096/6101 tests, 5 snapshots; 4 suites / 5 tests skipped by the explicit measurement allowlist |
 | Expo web export and Doctor | PASS — 20 static routes; 21/21 checks |

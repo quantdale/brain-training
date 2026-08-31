@@ -43,7 +43,7 @@ unavailable checks into PASS.
 - Campaign 020 is VALIDATED and closes release certification, source/build
   identity, tracked-file secret scanning, dependency classification, and final
   whole-codebase convergence. The executable secret scanner self-test and
-  clean scan pass over 1826 tracked text files. The certification harness
+  clean scan pass over 1827 tracked text files. The certification harness
   fails closed from a non-clean dependency-populated checkout; its diagnostic
   `--skip-install`/`--allow-jest-not-validated` paths remain non-certifying.
 - Final Campaign 020 matrix: TypeScript PASS; Expo lint PASS (0 errors / 0

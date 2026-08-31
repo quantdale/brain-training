@@ -43,7 +43,7 @@ solely to make an audit count disappear.
 - `npm run typecheck`: clean; `npm run lint`: **0 errors / 0 warnings**.
 - Full Node 22 Jest: **490/494 suites, 6096/6101 tests, 5 snapshots**; 4 suites / 5 tests skipped by the explicit measurement allowlist.
 - `npx expo export --platform web`: PASS (20 static routes).
-- `node scripts/validate-secrets.mjs --self-test`: PASS; tracked-file scan CLEAN (1826 text files; no high-confidence AWS/GitHub/Slack/OpenAI/Supabase/PEM patterns).
+- `node scripts/validate-secrets.mjs --self-test`: PASS; tracked-file scan CLEAN (1827 text files; no high-confidence AWS/GitHub/Slack/OpenAI/Supabase/PEM patterns).
 - Offline boundary validator: CLEAN (932 source files scanned).
 - Permissions boundary: RECORD_AUDIO / SYSTEM_ALERT_WINDOW blocked at config level
   (`app.json android.blockedPermissions` + expo-audio flags), now pinned against drift by
