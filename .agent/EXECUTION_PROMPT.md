@@ -1,26 +1,26 @@
-# Execution Prompt — Campaign 019: Game Lifecycle Resilience
+# Execution Prompt — Campaign 020: Release-QA Convergence
 
 **Status:** ACTIVE
-**Change:** `019-game-lifecycle-resilience`
+**Change:** `020-release-qa-convergence`
 **Start-SHA:** `27c9174` (owner-authorized sequence baseline)
 **Planned-At:** 2026-08-31
 **Target-Branch:** `main`
-**Predecessor:** `018-engagement-temporal-integrity` (VALIDATED)
+**Predecessor:** `019-game-lifecycle-resilience` (VALIDATED)
 
 ## Objective
 
-Close the shared game/workout lifecycle gaps: stale async callback isolation,
-pause/background timing fairness, exact Workout V3 provenance, and robust
-catalog reconciliation for all existing 42 games.
+Finish the sequence with fail-closed certification signals, source/build
+identity, executable secret scanning, dependency classification, and a final
+whole-codebase hardening audit.
 
 ## Required order
 
 1. Reconcile repository and campaign state.
-2. Audit/fix shared lifecycle, timer, provenance, and reconciliation seams.
-3. Run focused lifecycle/workout/catalog tests.
-4. Run the complete static/test matrix and classify platform/manual limits.
-5. Update durable state, commit and push a coherent 019 closure, then activate
-   020 atomically.
+2. Verify/fix certification, source identity, artifact, and security gates.
+3. Run the final static/test/build/dependency matrix and repair any in-scope
+   Critical/High regression.
+4. Update durable evidence, commit and push a coherent 020 closure, then
+   perform the owner-requested second whole-codebase hardening report.
 
 ## Stop conditions
 

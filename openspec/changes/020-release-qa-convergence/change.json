@@ -1,0 +1,21 @@
+{
+  "id": "020-release-qa-convergence",
+  "status": "ACTIVE",
+  "predecessor": "019-game-lifecycle-resilience",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "certification-signal",
+    "source-identity",
+    "security-boundary",
+    "final-risk-audit"
+  ],
+  "activationRule": "Explicit owner directive on 2026-08-30 authorizes successor campaigns 017 through 020; 020 follows the validated 019 lifecycle wave.",
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": true,
+  "auditBaseline": "27c9174"
+}

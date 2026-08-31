@@ -25,6 +25,15 @@ grows and can never silently smoke-test a stale list.
   If a category loses its preferred representative, its alphabetically-first id
   is used instead — coverage never depends on manual upkeep.
 
+## Release-QA repository boundaries
+
+Run `node scripts/validate-secrets.mjs --check` from the repository root to
+scan Git-tracked text files for high-confidence private-key, AWS, GitHub,
+Slack, OpenAI-style, and Supabase service-key formats. The command reports
+only file/line/pattern and never prints a matched value. `--self-test` verifies
+the scanner's positive and negative fixtures without embedding a live token.
+Repository Integrity runs the same check on every push and pull request.
+
 ## What it does
 
 - Boots/provisions against one dedicated AVD (uses `QA_DEVICE`, defaults to the

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "lifecycleStatus": "ACTIVE",
-  "change": "019-game-lifecycle-resilience",
-  "description": "Orchestrator-owned game lifecycle resilience hardening wave. Shared game-host, workout, provenance, durable state, and generated/config surfaces remain protected; no coder packets are active in this transition.",
+  "change": "020-release-qa-convergence",
+  "description": "Orchestrator-owned release-QA convergence hardening wave. Certification, source identity, security, durable state, and generated/config surfaces remain protected; no coder packets are active in this transition.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/**",
     ".agent/GOVERNANCE.json",

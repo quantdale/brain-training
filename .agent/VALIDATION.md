@@ -5,12 +5,12 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-## Campaign 017 closure → 018 closure → Campaign 019 activation (2026-08-31, source working state from `27c9174`)
+## Campaign 017 closure → 018 closure → 019 closure → Campaign 020 activation (2026-08-31, source working state from `27c9174`)
 
 - The owner explicitly authorized a whole-codebase hardening pass followed by
   autonomous Campaigns 017–020. Terminal Campaign 016 was reopened only by
   this new scope; no external-device gap was relabeled as a product PASS.
-- Campaign 017 is VALIDATED and Campaign 018 is ACTIVE. The 017 repair set
+- Campaign 017 and Campaign 018 are VALIDATED. The 017 repair set
   adds schema v11/v12 integrity guards, safe numeric validation, atomic file
   replacement, canonical profile export, deterministic conflict ties, no-op
   cursor preservation, and user-facing as-of filters across
@@ -27,7 +27,7 @@ unavailable checks into PASS.
   expectation, and missing XP-award mocks). Those were repaired and the full
   run was restarted and passed with the exact totals above. Those repairs are
   recorded in the 017 closure checkpoint.
-- Campaign 018 now owns strict quest/streak input validation, canonical
+- Campaign 018 owned strict quest/streak input validation, canonical
   covered-date state, as-of reward claims, and progression reconciliation.
 - Campaign 018 closure evidence: focused engagement suites passed 12 suites /
   127 tests; lifecycle/workout convergence suites passed 8 suites / 68 tests;
@@ -35,11 +35,16 @@ unavailable checks into PASS.
   tests with 4 suites / 5 tests skipped by the explicit measurement allowlist.
   New 018 coverage rejects malformed quest values before writes, filters
   impossible covered dates, and preserves idempotent future-safe claims.
-- Campaign 019 is ACTIVE and owns shared game lifecycle, pause timing, exact
-  Workout V3 provenance, and catalog reconciliation. Its first repair set
-  rejects unsafe provenance indices, repairs non-finite resume indices, and
-  adds a source-level check over all 42 game screens. Focused lifecycle and
-  workout suites pass 8 suites / 68 tests.
+- Campaign 019 is VALIDATED. Its repair set rejects unsafe provenance indices,
+  repairs non-finite resume indices, and adds a source-level check over all 42
+  game screens. Focused lifecycle and workout suites pass 8 suites / 68 tests;
+  the full Node 22 Jest run passed 490/494 suites and 6096/6101 tests with
+  4 suites / 5 tests skipped by the explicit measurement allowlist.
+- Campaign 020 is ACTIVE and owns release certification, source/build identity,
+  tracked-file secret scanning, dependency classification, and final
+  whole-codebase convergence. The executable secret scanner self-test and
+  clean scan pass; its remaining exit evidence is recorded after the final
+  validation matrix.
 - Android runtime/manual accessibility, SAF/system-sheet, physical-device,
   and manual iOS UX evidence remains BLOCKED/NOT VALIDATED from the bounded
   Campaign 016 environment matrix. No foreign emulator is used.

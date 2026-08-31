@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "019-game-lifecycle-resilience",
-  "lastCampaign": "018-engagement-temporal-integrity",
+  "activeCampaign": "020-release-qa-convergence",
+  "lastCampaign": "019-game-lifecycle-resilience",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

@@ -30,6 +30,11 @@ jobs:
       - name: Validate durable repository state
         run: node scripts/validate-repo-state.mjs
 
+      # High-confidence tracked-file secret patterns; fail closed without
+      # printing matched values.
+      - name: Validate tracked-file secret boundary
+        run: node scripts/validate-secrets.mjs --check
+
       # OpenSpec change/spec validation. The CLI is pinned to an exact
       # version so CI validation is deterministic across runners; it runs
       # here (not app-ci) because it validates repository docs/specs and

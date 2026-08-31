@@ -1,29 +1,31 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-31 Campaign 019 activation after Campaign 018 closure. Campaigns 017 and 018 are validated; 019 now owns shared game lifecycle, timer, workout provenance, and catalog reconciliation hardening. Android runtime and manual evidence remain BLOCKED/NOT VALIDATED under the previously recorded bounded emulator matrix.
+**Last update:** 2026-08-31 Campaign 020 activation after Campaign 019 closure. Campaigns 017–019 are validated; 020 now owns release-QA certification, source identity, security boundaries, dependency classification, and final whole-codebase convergence. Android runtime and manual evidence remain BLOCKED/NOT VALIDATED under the previously recorded bounded emulator matrix.
 **Canonical branch:** `main`
-**Active campaign:** 019-game-lifecycle-resilience
-**Last campaign:** 018-engagement-temporal-integrity
+**Active campaign:** 020-release-qa-convergence
+**Last campaign:** 019-game-lifecycle-resilience
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 019 — Game Lifecycle Resilience is **ACTIVE** under the owner-
-authorized successor sequence 017–020. Campaign 017 is validated with local
-persistence/portability/sync/as-of boundaries, and 018 is validated with
-strict quest/streak inputs, canonical covered dates, time-safe reward claims,
-and progression reconciliation. Campaign 019 owns shared game lifecycle,
-pause timing, Workout V3 provenance, and catalog drift repair. SQLite remains
-canonical and no new game or deferred external system is in scope.
+Campaign 020 — Release-QA Convergence is **ACTIVE** under the owner-authorized
+successor sequence 017–020. Campaigns 017–019 are validated across local
+persistence/portability/sync/as-of boundaries, strict engagement inputs,
+shared game lifecycle, pause timing, Workout V3 provenance, and catalog drift
+repair. Campaign 020 owns release certification signals, source/build identity,
+tracked-file secret detection, dependency classification, and final
+whole-codebase convergence. SQLite remains canonical and no new game or
+deferred external system is in scope.
 
-Current evidence is the validated 017/018 baseline plus the newly activated
-019 scope: repository validators, TypeScript, lint, QA self-test 51/51,
+Current evidence is the validated 017–019 baseline plus the newly activated
+020 scope: repository validators, TypeScript, lint, QA self-test 51/51,
 projection/session/rating/migration, portability, reward, streak, achievement,
-and lifecycle/workout suites pass; full Node 22 Jest passed 489 suites /
-6094 tests with 4 suites / 5 tests skipped by the explicit measurement
-allowlist. Android runtime and manual platform evidence remain
-BLOCKED/NOT VALIDATED; 019's focused lifecycle gate is the next executable
+and lifecycle/workout suites pass; full Node 22 Jest passed 490/494 suites /
+6096/6101 tests with 4 suites / 5 tests skipped by the explicit measurement
+allowlist. The tracked-file secret scanner self-test and clean scan also pass.
+Android runtime and manual platform evidence remain BLOCKED/NOT VALIDATED;
+020's final certification and whole-codebase gates are the next executable
 work.
 
 The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7, `image.sysdir.1=system-images/android-35/aosp_atd/x86_64`) and `braintraining-qa35` (google_apis, same API) alongside the foreign `study-maker-api35`; both dedicated AVDs were created via `avdmanager` from committed inputs and booted headless with TCG (`-accel off -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). A bounded matrix of 4 configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) all reproduced the same external failure: `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exit (`Netsim Wifi … gone due to CANCELLED` / `cannnot unmap ptr` / `TCG avx`); `/dev/kvm` missing (`accel=8`, `modprobe` unavailable) and only emulator 37.1.11 is available via `sdkmanager`, so no stable TCG configuration exists on this container host. Therefore dedicated Android install/start, Rule Grid/Transform Match canaries, Workout V3 daily/focus/relaunch, 42/42 `autobot --mode certify`, Android hierarchy, TalkBack, SAF/system sheets, and manual iOS UX remain **BLOCKED / NOT VALIDATED**. iOS compile PASS is not runtime UX PASS. Signing, store submission, cloud/auth, telemetry, monetization, and other deferred product decisions remain out of scope.
@@ -32,10 +34,10 @@ The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (
 
 An executable repository has one ACTIVE campaign in `GOVERNANCE.activeCampaign`,
 `STATE`, `CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, OpenSpec, and task ownership.
-Those fields now agree on `019-game-lifecycle-resilience`; the recorded
-last validated predecessor is `018-engagement-temporal-integrity`. The owner
-directive explicitly authorizes the successor sequence, so this is executable
-work rather than a terminal state.
+Those fields now agree on `020-release-qa-convergence`; the recorded last
+validated predecessor is `019-game-lifecycle-resilience`. The owner directive
+explicitly authorizes the successor sequence, so this is executable work rather
+than a terminal state.
 
 ## Campaign 017 closure and Campaign 018 activation — 2026-08-30
 
@@ -61,6 +63,25 @@ convergence suites passed 8 suites / 68 tests; the full Node 22 Jest run passed
 explicit measurement allowlist. TypeScript, lint, repository validators,
 registry, provenance, offline boundary, and QA self-test 51/51 passed. The
 owner directive then atomically activated 019 with no feature expansion.
+
+## Campaign 019 closure and Campaign 020 activation — 2026-08-31
+
+Campaign 019 closed after the shared lifecycle audit repaired unsafe Workout V3
+provenance indices and non-finite catalog resume state, and after a source-level
+tripwire covered all 42 game screens. Focused lifecycle/workout suites passed
+8 suites / 68 tests; the full Node 22 Jest run passed 490/494 suites and
+6096/6101 tests with 4 suites / 5 tests skipped by the explicit measurement
+allowlist. TypeScript, lint, repository-state, ownership, OpenSpec, registry,
+provenance, offline-boundary, and QA self-test 51/51 gates passed. Android
+runtime, manual platform, physical-device, and manual iOS UX evidence remain
+BLOCKED / NOT VALIDATED under the documented external constraints.
+
+The owner-authorized sequence then activated Campaign 020 with no feature
+expansion. Campaign 020 adds a fail-closed, non-leaking high-confidence secret
+scanner over Git-tracked text files, with positive/negative self-tests and a
+Repository Integrity workflow gate. Its remaining work is final certification
+signal review, dependency classification, and the requested second
+whole-codebase hardening report.
 
 Historical Campaign 015/016 transition prose below is retained for recovery
 and is historical; it does not override the terminal fields above.

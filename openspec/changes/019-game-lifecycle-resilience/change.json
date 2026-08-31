@@ -1,6 +1,6 @@
 {
   "id": "019-game-lifecycle-resilience",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "018-engagement-temporal-integrity",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -14,6 +14,8 @@
     "catalog-reconciliation"
   ],
   "activationRule": "Explicit owner directive on 2026-08-30 authorizes successor campaigns 017 through 020; 019 follows the validated 018 engagement wave.",
+  "validationNote": "Validated on 2026-08-31 after shared lifecycle audit and repairs for unsafe workout provenance indices and non-finite catalog resume state, with a source-level tripwire covering all 42 game screens. Focused lifecycle/workout suites passed 8 suites / 68 tests; full Node 22 Jest passed 490/494 suites and 6096/6101 tests with 4 suites / 5 tests skipped by the explicit measurement allowlist. TypeScript, lint, repository validators, registry, provenance, offline boundary, and QA self-test 51/51 passed. Android runtime, manual platform, physical-device, and manual iOS UX evidence remain BLOCKED / NOT VALIDATED under documented external constraints.",
+  "validatedAt": "2026-08-31",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
   "fullHardening": true,
