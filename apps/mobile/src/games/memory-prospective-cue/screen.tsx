@@ -326,6 +326,7 @@ export default function SignalWatchScreen(
     dispatch({ type: "persistence-started" });
     void persistProspectiveCueSession(record, persistSession).then(
       (outcome) => {
+        if (!session.isCurrentSession(record.id)) return;
         if (outcome.ok) {
           dispatch({ type: "persistence-succeeded" });
           const co = outcome.result.completionOutcome;

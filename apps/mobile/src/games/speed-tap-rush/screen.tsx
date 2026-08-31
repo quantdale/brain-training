@@ -192,6 +192,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistTapRushSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

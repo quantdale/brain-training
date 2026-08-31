@@ -56,7 +56,11 @@ import { useDbData } from "@/hooks/use-db-data";
 import { levelForXp } from "@/rating";
 import { getAllGameDefinitions } from "@/registry/registry";
 import { collectClaimableRewards } from "@/rewards/inbox";
-import { effectiveCurrent, reconstructStreak } from "@/streaks";
+import {
+  effectiveCurrent,
+  readCoveredDates,
+  reconstructStreak,
+} from "@/streaks";
 import { parseInstanceKey, type WorkoutLength } from "@/workout/metadata";
 import type { WorkoutSelectionReason } from "@/workout/personalize";
 import { canAffordReroll, MAX_REROLLS_PER_DAY } from "@/workout/reroll";
@@ -78,6 +82,14 @@ import { useMasterySummaries } from "@/mastery/use-mastery";
 import { registry } from "@/registry/registry.generated";
 import { SpotlightCard } from "@/components/spotlight/spotlight-card";
 
+// Certification-only source binding. The marker is injected by Metro through
+// Expo's EXPO_PUBLIC_* environment handling and is rendered only in dev
+// builds, so a certification run can prove the installed JS bundle came from
+// the clean checkout SHA without adding release UI or product state.
+const QA_BUILD_SHA = /^[0-9a-f]{40}$/.test(process.env.EXPO_PUBLIC_BUILD_SHA ?? "")
+  ? process.env.EXPO_PUBLIC_BUILD_SHA
+  : null;
+
 interface HomeData {
   /** Load-time clock for relative-day formatting (set outside render). */
   nowMs: number;
@@ -85,6 +97,8 @@ interface HomeData {
   recentGameIds: string[];
   /** Local YYYY-MM-DD of each recent session (for streak reconstruction). */
   activityDates: string[];
+  /** Freeze/recovery dates that count as activity in the shared streak model. */
+  coveredDates: string[];
   balance: number;
   totalXp: number;
   /** Task 9.6: Recent sessions with game details for display */
@@ -105,6 +119,7 @@ const EMPTY_HOME: HomeData = {
   domainRatings: [],
   recentGameIds: [],
   activityDates: [],
+  coveredDates: [],
   balance: 0,
   totalXp: 0,
   recentSessions: [],
@@ -120,18 +135,26 @@ interface TemplateResumeEntry {
 }
 
 async function loadHome(db: AppDatabase): Promise<HomeData> {
-  const [domainRatings, recent, balance, sessionXp, awardsXp, activityDates] =
+  const nowMs = Date.now();
+  const [
+    domainRatings,
+    recent,
+    balance,
+    sessionXp,
+    awardsXp,
+    activityDates,
+    profile,
+  ] =
     await Promise.all([
       db.ratings.getRatings(),
-      db.sessions.listRecent(30),
+      db.sessions.listRecent(30, nowMs),
       db.ledger.getBalance(),
-      db.sessions.getTotalXp(),
-      db.xpAwards.getTotalAwardedXp(),
+      db.sessions.getTotalXp(nowMs),
+      db.xpAwards.getTotalAwardedXp(nowMs),
       // Task 9.3: Use distinct activity dates for streak calculation
-      db.sessions.getDistinctActivityDates(),
+      db.sessions.getDistinctActivityDates(nowMs),
+      db.profile.get(),
     ]);
-
-  const nowMs = Date.now();
 
   // Task 9.6: Build recent sessions with game names
   const { getGameDefinition } = await import("@/registry/registry");
@@ -149,6 +172,7 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
     domainRatings,
     recentGameIds: recent.map((session) => session.gameId),
     activityDates,
+    coveredDates: readCoveredDates(profile?.settings ?? {}),
     balance,
     totalXp: sessionXp + awardsXp,
     recentSessions,
@@ -453,7 +477,11 @@ export default function HomeScreen() {
     ? allGames.find((g) => g.id === workoutFlow.currentGameId)
     : undefined;
 
-  const streak = reconstructStreak(data.activityDates, today);
+  const streak = reconstructStreak(
+    data.activityDates,
+    today,
+    data.coveredDates,
+  );
   const currentStreak = effectiveCurrent(streak, today);
   const level = levelForXp(data.totalXp);
 
@@ -496,6 +524,14 @@ export default function HomeScreen() {
       <ThemedText type="title" testID="home-title">
         Home
       </ThemedText>
+      {__DEV__ && QA_BUILD_SHA ? (
+        <View
+          collapsable={false}
+          pointerEvents="none"
+          style={styles.qaBuildMarker}
+          testID={`home-build-sha-${QA_BUILD_SHA}`}
+        />
+      ) : null}
 
       {/* Loading state: brief inline hint while the first db read settles. */}
       {!loaded && (
@@ -969,6 +1005,14 @@ function sanitizeTestId(key: string): string {
 }
 
 const styles = StyleSheet.create({
+  qaBuildMarker: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
   ctaCard: {
     borderRadius: Radii.large,
     padding: Spacing.four,

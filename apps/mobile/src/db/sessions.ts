@@ -21,6 +21,7 @@ import type { SQLiteValue ,
   GameSessionRecord,
   LedgerEntry,
   RatingDelta,
+  RatingOutcome,
   RatingService,
 } from "./types";
 import {
@@ -78,9 +79,8 @@ const SELECT_SUMMARY_COLUMNS =
 const gameplayOperationId = (sessionId: string): string =>
   `gameplay:${sessionId}`;
 const SELECT_SESSIONS_BY_GAME =
-  "SELECT * FROM game_sessions WHERE game_id = ? ORDER BY completed_at DESC LIMIT ?";
-const SELECT_SESSIONS_RECENT =
-  "SELECT * FROM game_sessions ORDER BY completed_at DESC LIMIT ?";
+  "SELECT * FROM game_sessions";
+const SELECT_SESSIONS_RECENT = "SELECT * FROM game_sessions";
 const SELECT_TOTAL_XP =
   "SELECT COALESCE(SUM(xp), 0) AS total FROM game_sessions";
 const SELECT_COUNT = "SELECT COUNT(*) AS n FROM game_sessions";
@@ -89,25 +89,25 @@ const SELECT_DISTINCT_GAME_COUNT =
 const SELECT_DISTINCT_ACTIVITY_DATE_COUNT =
   "SELECT COUNT(DISTINCT DATE(completed_at / 1000, 'unixepoch', 'localtime')) AS n FROM game_sessions";
 const SELECT_ACCURACY_SESSION_COUNT =
-  "SELECT COUNT(*) AS n FROM game_sessions WHERE normalized_result >= ?";
+  "SELECT COUNT(*) AS n FROM game_sessions";
 const SELECT_BEST_NORMALIZED =
   "SELECT COALESCE(MAX(normalized_result), 0) AS n FROM game_sessions";
 const SELECT_GAME_ID_COUNTS =
-  "SELECT game_id AS gameId, COUNT(*) AS n FROM game_sessions GROUP BY game_id";
+  "SELECT game_id AS gameId, COUNT(*) AS n FROM game_sessions";
 const SELECT_LIGHTWEIGHT =
-  "SELECT game_id AS gameId, xp, completed_at AS completedAt FROM game_sessions ORDER BY completed_at DESC LIMIT ?";
+  "SELECT game_id AS gameId, xp, completed_at AS completedAt FROM game_sessions";
 const SELECT_AGGREGATES = `
   SELECT game_id AS gameId, COUNT(*) AS count,
          AVG(normalized_result) AS avgNormalized,
          MAX(normalized_result) AS bestNormalized,
          MAX(completed_at) AS lastCompletedAt
-  FROM game_sessions GROUP BY game_id ORDER BY lastCompletedAt DESC`;
+  FROM game_sessions`;
 const SELECT_AGGREGATE_BY_GAME = `
   SELECT game_id AS gameId, COUNT(*) AS count,
          AVG(normalized_result) AS avgNormalized,
          MAX(normalized_result) AS bestNormalized,
          MAX(completed_at) AS lastCompletedAt
-  FROM game_sessions WHERE game_id = ? GROUP BY game_id`;
+  FROM game_sessions`;
 /**
  * Per-game mastery evidence pushdown (Campaign 014 W2): one GROUP BY over the
  * sessions table computes the whole ladder's inputs for every game at once —
@@ -125,7 +125,7 @@ const SELECT_MASTERY_INPUTS = `
          COALESCE(SUM(CASE WHEN ${difficultyLevelExpr()} = 'expert'
                            AND normalized_result >= 0.65 THEN 1 ELSE 0 END), 0) AS expertStrong,
          COALESCE(MAX(completed_at), 0) AS lastCompletedAt
-  FROM game_sessions GROUP BY game_id`;
+  FROM game_sessions`;
 /** Single-game variant of {@link SELECT_MASTERY_INPUTS} (walks the game index). */
 const SELECT_MASTERY_INPUT_BY_GAME = `
   SELECT game_id AS gameId,
@@ -137,7 +137,7 @@ const SELECT_MASTERY_INPUT_BY_GAME = `
          COALESCE(SUM(CASE WHEN ${difficultyLevelExpr()} = 'expert'
                            AND normalized_result >= 0.65 THEN 1 ELSE 0 END), 0) AS expertStrong,
          COALESCE(MAX(completed_at), 0) AS lastCompletedAt
-  FROM game_sessions WHERE game_id = ? GROUP BY game_id`;
+  FROM game_sessions`;
 const SELECT_BALANCE = "SELECT balance FROM currency_balance";
 const INSERT_LEDGER_ENTRY_OP =
   "INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)";
@@ -160,6 +160,94 @@ function fromJson(raw: string): unknown {
     // game ids) so the rest of the history stays readable.
     return null;
   }
+}
+
+/**
+ * Optional read boundary used by user-facing projections. The persistence
+ * layer deliberately keeps the no-argument methods as all-history reads for
+ * export/repair callers; callers that render state "as of now" pass this
+ * boundary so clock-skewed/future rows cannot grant progression early.
+ */
+function completedAtCondition(throughMs: number | undefined): {
+  sql: string;
+  params: SQLiteValue[];
+} {
+  if (throughMs === undefined) {
+    return { sql: "", params: [] };
+  }
+  if (!Number.isSafeInteger(throughMs)) {
+    throw new Error("completedAt upper bound must be a safe integer");
+  }
+  return { sql: "completed_at <= ?", params: [throughMs] };
+}
+
+function appendWhere(
+  condition: string,
+  throughMs: number | undefined,
+): { sql: string; params: SQLiteValue[] } {
+  const bound = completedAtCondition(throughMs);
+  return {
+    sql: bound.sql ? `${condition} AND ${bound.sql}` : condition,
+    params: bound.params,
+  };
+}
+
+/**
+ * Canonicalize a value destined for an INTEGER-affinity column. SQLite will
+ * happily store a fractional JavaScript number in such a column as REAL, so
+ * callers may provide the fractional monotonic-clock values produced by the
+ * SDK, but non-finite/unsafe values and values outside the domain are rejected
+ * before the transaction opens.
+ */
+function canonicalInteger(value: unknown, field: string, minimum?: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`completeSession: ${field} must be finite`);
+  }
+  if (minimum !== undefined && value < minimum) {
+    throw new Error(`completeSession: ${field} must be >= ${minimum}`);
+  }
+  const rounded = Math.round(value);
+  if (!Number.isSafeInteger(rounded)) {
+    throw new Error(`completeSession: ${field} must round to a safe integer`);
+  }
+  return rounded;
+}
+
+function safeInteger(value: unknown, field: string, minimum?: number): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value)) {
+    throw new Error(`completeSession: ${field} must be a safe integer`);
+  }
+  if (minimum !== undefined && value < minimum) {
+    throw new Error(`completeSession: ${field} must be >= ${minimum}`);
+  }
+  return value;
+}
+
+function canonicalNormalizedResult(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) {
+    throw new Error("completeSession: normalizedResult must be a finite number in [0, 1]");
+  }
+  return value;
+}
+
+function requireNonEmptyString(value: unknown, field: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`completeSession: ${field} must be a non-empty string`);
+  }
+  return value;
+}
+
+function normalizeRatingOutcome(outcome: RatingOutcome): RatingOutcome {
+  const xp = safeInteger(outcome.xp, "rating.xp", 0);
+  const currency = safeInteger(outcome.currency, "rating.currency", 0);
+  if (!Array.isArray(outcome.deltas)) {
+    throw new Error("completeSession: rating.deltas must be an array");
+  }
+  const deltas = outcome.deltas.map((delta) => ({
+    domain: requireNonEmptyString(delta?.domain, "rating delta domain"),
+    delta: safeInteger(delta?.delta, "rating delta"),
+  }));
+  return { xp, currency, deltas };
 }
 
 function mapRow(row: SessionRow): GameSessionRecord {
@@ -235,61 +323,113 @@ export class SessionRepository {
   async completeSession(
     input: CompleteSessionInput,
   ): Promise<CompleteSessionResult> {
+    const rawSession = (input as CompleteSessionInput | null | undefined)?.session;
+    if (
+      rawSession === null ||
+      typeof rawSession !== "object" ||
+      Array.isArray(rawSession)
+    ) {
+      throw new Error("completeSession: session must be an object");
+    }
+
+    const id = requireNonEmptyString(rawSession.id, "session.id");
+    const gameId = requireNonEmptyString(rawSession.gameId, "session.gameId");
+    const gameVersion = canonicalInteger(rawSession.gameVersion, "session.gameVersion", 0);
+    const generatorVersion = canonicalInteger(
+      rawSession.generatorVersion,
+      "session.generatorVersion",
+      0,
+    );
+    const scoringVersion = canonicalInteger(
+      rawSession.scoringVersion,
+      "session.scoringVersion",
+      0,
+    );
+    const seed = canonicalInteger(rawSession.seed, "session.seed", 0);
+    const normalizedResult = canonicalNormalizedResult(rawSession.normalizedResult);
+    const xp = canonicalInteger(rawSession.xp, "session.xp", 0);
+    const startedAt = canonicalInteger(rawSession.startedAt, "session.startedAt");
+    const completedAt = canonicalInteger(rawSession.completedAt, "session.completedAt");
+    const durationMs = canonicalInteger(rawSession.durationMs, "session.durationMs", 0);
+    if (completedAt < startedAt) {
+      throw new Error("completeSession: completedAt must be >= startedAt");
+    }
+
+    // A caller-supplied currency row is only meaningful without the rating
+    // service. Validate it before opening the transaction so a malformed
+    // reward cannot reach SQLite or be changed into a credit by coercion.
+    let requestedCurrency: CompleteSessionInput["currency"];
+    if (this.rating === undefined && input?.currency !== undefined) {
+      const currency = input.currency;
+      if (currency === null || typeof currency !== "object" || Array.isArray(currency)) {
+        throw new Error("completeSession: currency must be an object");
+      }
+      requestedCurrency = {
+        amount: safeInteger(currency.amount, "currency.amount"),
+        reason: requireNonEmptyString(currency.reason, "currency.reason"),
+      };
+    }
+
     const explicitProvenance = isWorkoutSessionProvenance(
-      input.session.workoutProvenance,
+      rawSession.workoutProvenance,
     )
-      ? input.session.workoutProvenance
+      ? rawSession.workoutProvenance
       : undefined;
     const launchProvenance =
-      explicitProvenance ?? peekWorkoutSessionLaunch(input.session.id);
+      explicitProvenance ?? peekWorkoutSessionLaunch(id);
     // The existing game-specific persisters all pass through this one DB
     // boundary. Decorating here keeps the ownership tuple coupled to the
     // durable session even when a game module knows nothing about workouts.
-    const s: GameSessionRecord = launchProvenance
+    const decoratedSession: GameSessionRecord = launchProvenance
       ? {
-          ...input.session,
+          ...rawSession,
           rawResult: attachWorkoutProvenance(
-            input.session.rawResult,
+            rawSession.rawResult,
             launchProvenance,
           ),
           workoutProvenance: launchProvenance,
         }
-      : input.session;
-
-    // Friendly validation up front; DB CHECK constraints back this up.
-    if (!s.id) {
-      throw new Error("completeSession: session.id is required");
-    }
-    if (s.completedAt < s.startedAt) {
-      throw new Error("completeSession: completedAt must be >= startedAt");
-    }
-    if (s.durationMs < 0) {
-      throw new Error("completeSession: durationMs must be >= 0");
-    }
-
-    // INTEGER-declared columns (schema contract, apps/mobile/src/db/schema.ts).
-    // The SDK monotonic clock is fractional-ms (performance.now-based), so
-    // durations arrive as floats; SQLite stores lossless-inconvertible floats
-    // as REAL even in INTEGER-affinity columns. Coerce at the persistence
-    // boundary so every persisted row honors the declared column types
-    // (device-verified defect: duration_ms=27646.5688 stored as REAL).
-    const asInt = (v: number): number => Math.round(v);
-    const gameVersion = asInt(s.gameVersion);
-    const generatorVersion = asInt(s.generatorVersion);
-    const scoringVersion = asInt(s.scoringVersion);
-    const seed = asInt(s.seed);
-    const startedAt = asInt(s.startedAt);
-    const completedAt = asInt(s.completedAt);
-    const durationMs = asInt(s.durationMs);
+      : rawSession;
+    // Return the canonical values too; otherwise a fractional input would
+    // appear different from the row that was actually committed.
+    const s: GameSessionRecord = {
+      ...decoratedSession,
+      id,
+      gameId,
+      gameVersion,
+      generatorVersion,
+      scoringVersion,
+      seed,
+      normalizedResult,
+      xp,
+      startedAt,
+      completedAt,
+      durationMs,
+    };
 
     const result = await this.adapter.transaction(async (txn) => {
+      // Check the id before invoking the rating service. Retries must be
+      // observationally idempotent even when a custom rating implementation
+      // performs expensive work or has side effects while computing.
+      const existingBefore = await txn.get<SessionRow>(SELECT_SESSION_BY_ID, [s.id]);
+      if (existingBefore) {
+        const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
+        return {
+          session: mapRow(existingBefore),
+          ledgerEntry: null,
+          balance: balanceRow?.balance ?? 0,
+          rating: null,
+          completionOutcome: null,
+        };
+      }
+
       // When a rating service is configured, its outcome is authoritative for
       // XP/currency/ratings and must be computed before the session row exists
       // (the history rows reference the session id).
       const outcome = this.rating
-        ? await this.rating.compute({ session: s })
+        ? normalizeRatingOutcome(await this.rating.compute({ session: s }))
         : null;
-      const xp = asInt(outcome ? outcome.xp : s.xp);
+      const storedXp = outcome?.xp ?? s.xp;
 
       // Idempotent by session id (data-integrity requirement A/H: a retried or
       // replayed completion of the same `session.id` must never award currency
@@ -309,12 +449,30 @@ export class SessionRepository {
         toJson(s.difficulty),
         toJson(s.rawResult),
         s.normalizedResult,
-        xp,
+        storedXp,
         startedAt,
         completedAt,
         durationMs,
       ]);
       const isNew = insert.changes > 0;
+
+      // A second writer may have committed the same id after the pre-check.
+      // Treat that race exactly like the fast duplicate path; in particular,
+      // do not apply the just-computed rating/currency to the winner's row.
+      if (!isNew) {
+        const existing = await txn.get<SessionRow>(SELECT_SESSION_BY_ID, [s.id]);
+        if (!existing) {
+          throw new Error(`completeSession: missing existing row for duplicate id ${s.id}`);
+        }
+        const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
+        return {
+          session: mapRow(existing),
+          ledgerEntry: null,
+          balance: balanceRow?.balance ?? 0,
+          rating: null,
+          completionOutcome: null,
+        };
+      }
 
       // Ownership (task 7.6): when a rating service is configured it owns the
       // gameplay currency award; a caller-supplied `input.currency` is ignored
@@ -337,18 +495,18 @@ export class SessionRepository {
           sessionId: s.id,
           createdAt: completedAt,
         };
-      } else if (isNew && !outcome && input.currency) {
+      } else if (isNew && !outcome && requestedCurrency) {
         const result = await txn.run(INSERT_LEDGER_ENTRY_OP, [
-          input.currency.amount,
-          input.currency.reason,
+          requestedCurrency.amount,
+          requestedCurrency.reason,
           s.id,
           completedAt,
           gameplayOperationId(s.id),
         ]);
         ledgerEntry = {
           id: result.lastInsertRowId,
-          amount: input.currency.amount,
-          reason: input.currency.reason,
+          amount: requestedCurrency.amount,
+          reason: requestedCurrency.reason,
           sessionId: s.id,
           createdAt: completedAt,
         };
@@ -358,17 +516,6 @@ export class SessionRepository {
       let appliedDeltas: readonly AppliedRatingDelta[] = [];
       if (isNew && deltas.length > 0) {
         appliedDeltas = await this.ratingRepository.applyDeltas(txn, s.id, deltas, completedAt);
-      }
-
-      // On a duplicate completion we reflect the already-persisted row rather
-      // than re-awarding; no ledger entry or rating deltas are produced.
-      let existing: SessionRow | null = null;
-      if (!isNew) {
-        existing = await txn.get<SessionRow>(SELECT_SESSION_BY_ID, [s.id]);
-        if (!existing) {
-          // Should be unreachable: INSERT OR IGNORE only skips on a conflict.
-          throw new Error(`completeSession: missing existing row for duplicate id ${s.id}`);
-        }
       }
 
       // Profile touch: record activity so consumers can detect "last active".
@@ -384,18 +531,14 @@ export class SessionRepository {
 
       const balanceRow = await txn.get<{ balance: number }>(SELECT_BALANCE);
       const balance = balanceRow?.balance ?? 0;
-      // `existing` is non-null only on the duplicate path (the re-read above
-      // throws if it somehow missed), so the non-null assertion is safe.
-      const stored: GameSessionRecord = isNew
-        ? { ...s, xp }
-        : mapRow(existing!);
+      const stored: GameSessionRecord = { ...s, xp: storedXp };
 
       // Build the authoritative completion outcome when a rating service is
       // configured and this is a fresh completion (constitution §15). On a
       // duplicate replay we report no freshly-applied outcome (the persisted
       // state is unchanged) but still surface the existing balance.
       const completionOutcome: CompletionOutcome | null =
-        isNew && outcome
+        outcome
           ? {
               session: stored,
               xp: outcome.xp,
@@ -410,7 +553,7 @@ export class SessionRepository {
         ledgerEntry,
         balance,
         rating:
-          isNew && outcome
+          outcome
             ? { xp: outcome.xp, currency: outcome.currency, deltas, balance }
             : null,
         completionOutcome,
@@ -420,7 +563,7 @@ export class SessionRepository {
     // same completion retry can recover its ownership. Clear only after the
     // transaction has committed (including duplicate/relaunch paths).
     if (launchProvenance) {
-      clearWorkoutSessionLaunch(input.session.id);
+      clearWorkoutSessionLaunch(s.id);
     }
     return result;
   }
@@ -431,69 +574,95 @@ export class SessionRepository {
   }
 
   /** Most recent sessions for one game, newest first. */
-  async listByGame(gameId: string, limit = 50): Promise<GameSessionRecord[]> {
-    const rows = await this.adapter.all<SessionRow>(SELECT_SESSIONS_BY_GAME, [
-      gameId,
-      limit,
-    ]);
+  async listByGame(
+    gameId: string,
+    limit = 50,
+    throughMs?: number,
+  ): Promise<GameSessionRecord[]> {
+    const where = appendWhere("game_id = ?", throughMs);
+    const rows = await this.adapter.all<SessionRow>(
+      `${SELECT_SESSIONS_BY_GAME} WHERE ${where.sql} ORDER BY completed_at DESC, id DESC LIMIT ?`,
+      [gameId, ...where.params, limit],
+    );
     return rows.map(mapRow);
   }
 
   /** Most recent sessions across all games, newest first. */
-  async listRecent(limit = 50): Promise<GameSessionRecord[]> {
-    const rows = await this.adapter.all<SessionRow>(SELECT_SESSIONS_RECENT, [
-      limit,
-    ]);
+  async listRecent(limit = 50, throughMs?: number): Promise<GameSessionRecord[]> {
+    const bound = completedAtCondition(throughMs);
+    const rows = await this.adapter.all<SessionRow>(
+      `${SELECT_SESSIONS_RECENT}${bound.sql ? ` WHERE ${bound.sql}` : ""} ORDER BY completed_at DESC, id DESC LIMIT ?`,
+      [...bound.params, limit],
+    );
     return rows.map(mapRow);
   }
 
   /** Lifetime XP across all completed sessions (constitution §17). */
-  async getTotalXp(): Promise<number> {
-    const row = await this.adapter.get<{ total: number }>(SELECT_TOTAL_XP);
+  async getTotalXp(throughMs?: number): Promise<number> {
+    const bound = completedAtCondition(throughMs);
+    const row = await this.adapter.get<{ total: number }>(
+      `${SELECT_TOTAL_XP}${bound.sql ? ` WHERE ${bound.sql}` : ""}`,
+      bound.params,
+    );
     return row?.total ?? 0;
   }
 
   /** Total completed sessions (O(1) aggregate; constitution §17). */
-  async getCount(): Promise<number> {
-    const row = await this.adapter.get<{ n: number }>(SELECT_COUNT);
+  async getCount(throughMs?: number): Promise<number> {
+    const bound = completedAtCondition(throughMs);
+    const row = await this.adapter.get<{ n: number }>(
+      `${SELECT_COUNT}${bound.sql ? ` WHERE ${bound.sql}` : ""}`,
+      bound.params,
+    );
     return row?.n ?? 0;
   }
 
   /** Number of distinct games ever played (breadth, §B). */
-  async getDistinctGameCount(): Promise<number> {
+  async getDistinctGameCount(throughMs?: number): Promise<number> {
+    const bound = completedAtCondition(throughMs);
     const row = await this.adapter.get<{ n: number }>(
-      SELECT_DISTINCT_GAME_COUNT,
+      `${SELECT_DISTINCT_GAME_COUNT}${bound.sql ? ` WHERE ${bound.sql}` : ""}`,
+      bound.params,
     );
     return row?.n ?? 0;
   }
 
   /** Number of distinct local calendar days with at least one session (consistency, §B). */
-  async getDistinctActivityDateCount(): Promise<number> {
+  async getDistinctActivityDateCount(throughMs?: number): Promise<number> {
+    const bound = completedAtCondition(throughMs);
     const row = await this.adapter.get<{ n: number }>(
-      SELECT_DISTINCT_ACTIVITY_DATE_COUNT,
+      `${SELECT_DISTINCT_ACTIVITY_DATE_COUNT}${bound.sql ? ` WHERE ${bound.sql}` : ""}`,
+      bound.params,
     );
     return row?.n ?? 0;
   }
 
   /** Count of sessions whose normalized performance reached `threshold` (accuracy, §B). */
-  async getAccuracySessionCount(threshold: number): Promise<number> {
+  async getAccuracySessionCount(threshold: number, throughMs?: number): Promise<number> {
+    const where = appendWhere("normalized_result >= ?", throughMs);
     const row = await this.adapter.get<{ n: number }>(
-      SELECT_ACCURACY_SESSION_COUNT,
-      [threshold],
+      `${SELECT_ACCURACY_SESSION_COUNT} WHERE ${where.sql}`,
+      [threshold, ...where.params],
     );
     return row?.n ?? 0;
   }
 
   /** Best single-session normalized performance ever reached (0..1, personal best, §B). */
-  async getBestNormalized(): Promise<number> {
-    const row = await this.adapter.get<{ n: number }>(SELECT_BEST_NORMALIZED);
+  async getBestNormalized(throughMs?: number): Promise<number> {
+    const bound = completedAtCondition(throughMs);
+    const row = await this.adapter.get<{ n: number }>(
+      `${SELECT_BEST_NORMALIZED}${bound.sql ? ` WHERE ${bound.sql}` : ""}`,
+      bound.params,
+    );
     return row?.n ?? 0;
   }
 
   /** Per-game session counts (at most one row per game; cheap for the catalog). */
-  async getGameIdCounts(): Promise<Record<string, number>> {
+  async getGameIdCounts(throughMs?: number): Promise<Record<string, number>> {
+    const bound = completedAtCondition(throughMs);
     const rows = await this.adapter.all<{ gameId: string; n: number }>(
-      SELECT_GAME_ID_COUNTS,
+      `${SELECT_GAME_ID_COUNTS}${bound.sql ? ` WHERE ${bound.sql}` : ""} GROUP BY game_id`,
+      bound.params,
     );
     const out: Record<string, number> = {};
     for (const row of rows) {
@@ -511,12 +680,17 @@ export class SessionRepository {
    */
   async listLightweight(
     limit = 5000,
+    throughMs?: number,
   ): Promise<{ gameId: string; xp: number; completedAt: number }[]> {
+    const bound = completedAtCondition(throughMs);
     return this.adapter.all<{
       gameId: string;
       xp: number;
       completedAt: number;
-    }>(SELECT_LIGHTWEIGHT, [limit]);
+    }>(
+      `${SELECT_LIGHTWEIGHT}${bound.sql ? ` WHERE ${bound.sql}` : ""} ORDER BY completed_at DESC LIMIT ?`,
+      [...bound.params, limit],
+    );
   }
 
   /**
@@ -528,11 +702,16 @@ export class SessionRepository {
    * local calendar ("repo local-calendar convention"), so a session counts for
    * the day the user actually played it, not its UTC date.
    */
-  async getDistinctActivityDates(): Promise<string[]> {
-    const rows = await this.adapter.all<{ date: string }>(
+  async getDistinctActivityDates(
+    throughMs?: number,
+    txn?: SQLiteAdapter,
+  ): Promise<string[]> {
+    const bound = completedAtCondition(throughMs);
+    const rows = await (txn ?? this.adapter).all<{ date: string }>(
       `SELECT DISTINCT DATE(completed_at / 1000, 'unixepoch', 'localtime') as date
-       FROM game_sessions
+       FROM game_sessions${bound.sql ? ` WHERE ${bound.sql}` : ""}
        ORDER BY date DESC`,
+      bound.params,
     );
     return rows.map((row) => row.date);
   }
@@ -541,16 +720,21 @@ export class SessionRepository {
    * Per-game aggregates (constitution §21: per-game analytics). `avgNormalized`
    * and `bestNormalized` are on the shared 0..1 normalized scale.
    */
-  async getAggregates(): Promise<GameAggregate[]> {
-    const rows = await this.adapter.all<GameAggregateRow>(SELECT_AGGREGATES);
+  async getAggregates(throughMs?: number): Promise<GameAggregate[]> {
+    const bound = completedAtCondition(throughMs);
+    const rows = await this.adapter.all<GameAggregateRow>(
+      `${SELECT_AGGREGATES}${bound.sql ? ` WHERE ${bound.sql}` : ""} GROUP BY game_id ORDER BY lastCompletedAt DESC`,
+      bound.params,
+    );
     return rows.map(mapAggregateRow);
   }
 
   /** Aggregate for one game, or null when it has no sessions yet. */
-  async getGameAggregate(gameId: string): Promise<GameAggregate | null> {
+  async getGameAggregate(gameId: string, throughMs?: number): Promise<GameAggregate | null> {
+    const where = appendWhere("game_id = ?", throughMs);
     const row = await this.adapter.get<GameAggregateRow>(
-      SELECT_AGGREGATE_BY_GAME,
-      [gameId],
+      `${SELECT_AGGREGATE_BY_GAME} WHERE ${where.sql} GROUP BY game_id`,
+      [gameId, ...where.params],
     );
     return row ? mapAggregateRow(row) : null;
   }
@@ -560,29 +744,42 @@ export class SessionRepository {
    * Games with zero sessions are simply absent — the engine maps that to the
    * `unplayed` tier at the call site.
    */
-  async getMasteryInputs(): Promise<MasteryInput[]> {
+  async getMasteryInputs(throughMs?: number): Promise<MasteryInput[]> {
+    const bound = completedAtCondition(throughMs);
     // The level-extraction expression embeds one IN-group per form (object
     // + bare string) and appears TWICE in the statement (hard + expert CASE),
     // so each occurrence needs its own parameter group, in textual order.
-    return this.adapter.all<MasteryInput>(SELECT_MASTERY_INPUTS, [
+    return this.adapter.all<MasteryInput>(
+      `${SELECT_MASTERY_INPUTS}${bound.sql ? ` WHERE ${bound.sql}` : ""} GROUP BY game_id`,
+      [
       ...DIFFICULTY_LEVEL_PARAMS,
       ...DIFFICULTY_LEVEL_PARAMS,
       ...DIFFICULTY_LEVEL_PARAMS,
       ...DIFFICULTY_LEVEL_PARAMS,
-    ]);
+        ...bound.params,
+      ],
+    );
   }
 
   /** {@link getMasteryInputs} restricted to one game (absent ⇒ unplayed). */
-  async getMasteryInputByGame(gameId: string): Promise<MasteryInput | null> {
+  async getMasteryInputByGame(
+    gameId: string,
+    throughMs?: number,
+  ): Promise<MasteryInput | null> {
+    const where = appendWhere("game_id = ?", throughMs);
     // Same placeholder layout as {@link getMasteryInputs} (the level
     // expression appears twice), plus the trailing game-id filter.
-    const row = await this.adapter.get<MasteryInput>(SELECT_MASTERY_INPUT_BY_GAME, [
-      ...DIFFICULTY_LEVEL_PARAMS,
-      ...DIFFICULTY_LEVEL_PARAMS,
-      ...DIFFICULTY_LEVEL_PARAMS,
-      ...DIFFICULTY_LEVEL_PARAMS,
-      gameId,
-    ]);
+    const row = await this.adapter.get<MasteryInput>(
+      `${SELECT_MASTERY_INPUT_BY_GAME} WHERE ${where.sql} GROUP BY game_id`,
+      [
+        ...DIFFICULTY_LEVEL_PARAMS,
+        ...DIFFICULTY_LEVEL_PARAMS,
+        ...DIFFICULTY_LEVEL_PARAMS,
+        ...DIFFICULTY_LEVEL_PARAMS,
+        gameId,
+        ...where.params,
+      ],
+    );
     return row ?? null;
   }
 
@@ -753,13 +950,25 @@ export class SessionRepository {
    * falls back — this read can never make Progress less available than the
    * legacy full-row reads it supplements.
    */
-  async listProgressProjection(limit: number): Promise<SessionProgressRow[]> {
+  async listProgressProjection(
+    limit: number,
+    throughMs?: number,
+  ): Promise<SessionProgressRow[]> {
     requireFiniteNumber(limit, "limit");
+    const bound = completedAtCondition(throughMs);
+    const sql = bound.sql
+      ? PROJECTED_SESSIONS_ALL_SQL.replace(
+          "  ORDER BY",
+          "  WHERE completed_at <= ?\n  ORDER BY",
+        )
+      : PROJECTED_SESSIONS_ALL_SQL;
     // Binding order follows placeholder textual order: the select list's two
-    // difficulty-level IN-groups first, then the limit.
-    return this.adapter.all<SessionProgressRow>(PROJECTED_SESSIONS_ALL_SQL, [
+    // difficulty-level IN-groups first, then the optional time bound, then the
+    // limit.
+    return this.adapter.all<SessionProgressRow>(sql, [
       ...DIFFICULTY_LEVEL_PARAMS,
       ...DIFFICULTY_LEVEL_PARAMS,
+      ...bound.params,
       Math.floor(limit),
     ]);
   }
@@ -768,12 +977,21 @@ export class SessionRepository {
   async listProgressProjectionByGame(
     gameId: string,
     limit: number,
+    throughMs?: number,
   ): Promise<SessionProgressRow[]> {
     requireFiniteNumber(limit, "limit");
-    return this.adapter.all<SessionProgressRow>(PROJECTED_SESSIONS_BY_GAME_SQL, [
+    const bound = completedAtCondition(throughMs);
+    const sql = bound.sql
+      ? PROJECTED_SESSIONS_BY_GAME_SQL.replace(
+          "  ORDER BY",
+          "  AND completed_at <= ?\n  ORDER BY",
+        )
+      : PROJECTED_SESSIONS_BY_GAME_SQL;
+    return this.adapter.all<SessionProgressRow>(sql, [
       ...DIFFICULTY_LEVEL_PARAMS,
       ...DIFFICULTY_LEVEL_PARAMS,
       gameId,
+      ...bound.params,
       Math.floor(limit),
     ]);
   }
@@ -1130,7 +1348,7 @@ const SESSION_PROGRESS_COLUMNS = [
 export const PROJECTED_SESSIONS_ALL_SQL = `
   SELECT ${SESSION_PROGRESS_COLUMNS}
   FROM game_sessions
-  ORDER BY completed_at DESC
+  ORDER BY completed_at DESC, id DESC
   LIMIT ?`;
 
 /** Newest-first projection for one game (uses idx_game_sessions_game_id). */
@@ -1138,5 +1356,5 @@ export const PROJECTED_SESSIONS_BY_GAME_SQL = `
   SELECT ${SESSION_PROGRESS_COLUMNS}
   FROM game_sessions
   WHERE game_id = ?
-  ORDER BY completed_at DESC
+  ORDER BY completed_at DESC, id DESC
   LIMIT ?`;

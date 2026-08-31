@@ -65,6 +65,7 @@ export {
   purchaseStreakItem,
   paidReroll,
   InsufficientFundsError,
+  InvalidCurrencyAmountError,
 } from './economy';
 export type { SpendInput, PurchaseStreakItemInput, PaidRerollInput } from './economy';
 
@@ -158,10 +159,11 @@ export class AppDatabase {
   /**
    * Run a single statement directly on the underlying connection, OUTSIDE any
    * transaction. Used by the data-portability reset/restore path to toggle
-   * connection-level pragmas (e.g. `PRAGMA triggers = OFF`) that are intentionally
-   * no-ops when changed *inside* a transaction — the append-only DELETE triggers
-   * must be disabled at the connection level before a replace/wipe transaction
-   * begins. Added as an isolated, intentional core-DB API convenience.
+   * connection-level schema operations that are intentionally unsafe or
+   * ineffective when attempted *inside* a transaction. The data-portability
+   * replace path uses this seam to drop append-only DELETE triggers before its
+   * wipe transaction and recreates the exact captured definitions afterward.
+   * Added as an isolated, intentional core-DB API convenience.
    */
   rawExec(sql: string): Promise<void> {
     return this.adapter.exec(sql);

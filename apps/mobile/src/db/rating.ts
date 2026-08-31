@@ -80,8 +80,13 @@ const SELECT_ONE = 'SELECT domain, rating, sessions, updated_at FROM domain_rati
  */
 const HISTORY_COLUMNS =
   'SELECT id, session_id, domain, delta, rating_after, created_at FROM rating_history';
-const SELECT_HISTORY = `${HISTORY_COLUMNS} ORDER BY id DESC LIMIT ?`;
-const SELECT_HISTORY_BY_SESSION = `${HISTORY_COLUMNS} WHERE session_id = ? ORDER BY id ASC`;
+
+function requireHistoryThroughMs(value: number | undefined): number | undefined {
+  if (value !== undefined && !Number.isSafeInteger(value)) {
+    throw new Error('rating history upper bound must be a safe integer');
+  }
+  return value;
+}
 
 function mapRatingRow(row: DomainRatingRow): DomainRating {
   return { domain: row.domain, rating: row.rating, sessions: row.sessions, updatedAt: row.updated_at };
@@ -133,6 +138,18 @@ export class RatingRepository {
     deltas: readonly RatingDelta[],
     eventAtMs: number,
   ): Promise<AppliedRatingDelta[]> {
+    const domains = new Set<string>();
+    for (const delta of deltas) {
+      if (typeof delta.domain !== 'string' || delta.domain.length === 0) {
+        throw new Error('rating delta domain must be a non-empty string');
+      }
+      if (domains.has(delta.domain)) {
+        throw new Error(
+          `rating deltas must contain at most one entry per domain (${delta.domain})`,
+        );
+      }
+      domains.add(delta.domain);
+    }
     const applied: AppliedRatingDelta[] = [];
 
     for (const delta of deltas) {
@@ -171,8 +188,12 @@ export class RatingRepository {
   }
 
   /** Most recent rating movements, newest first. */
-  async getHistory(limit = 100): Promise<RatingHistoryEntry[]> {
-    const rows = await this.adapter.all<RatingHistoryRow>(SELECT_HISTORY, [limit]);
+  async getHistory(limit = 100, throughMs?: number): Promise<RatingHistoryEntry[]> {
+    const bound = requireHistoryThroughMs(throughMs);
+    const rows = await this.adapter.all<RatingHistoryRow>(
+      `${HISTORY_COLUMNS}${bound === undefined ? '' : ' WHERE created_at <= ?'} ORDER BY id DESC LIMIT ?`,
+      bound === undefined ? [limit] : [bound, limit],
+    );
     return rows.map(mapHistoryRow);
   }
 
@@ -217,8 +238,15 @@ export class RatingRepository {
   }
 
   /** One session's rating movements, in application order (oldest first). */
-  async getHistoryForSession(sessionId: string): Promise<RatingHistoryEntry[]> {
-    const rows = await this.adapter.all<RatingHistoryRow>(SELECT_HISTORY_BY_SESSION, [sessionId]);
+  async getHistoryForSession(
+    sessionId: string,
+    throughMs?: number,
+  ): Promise<RatingHistoryEntry[]> {
+    const bound = requireHistoryThroughMs(throughMs);
+    const rows = await this.adapter.all<RatingHistoryRow>(
+      `${HISTORY_COLUMNS} WHERE session_id = ?${bound === undefined ? '' : ' AND created_at <= ?'} ORDER BY id ASC`,
+      bound === undefined ? [sessionId] : [sessionId, bound],
+    );
     return rows.map(mapHistoryRow);
   }
 }

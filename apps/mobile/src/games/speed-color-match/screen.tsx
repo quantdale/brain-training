@@ -36,7 +36,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameTimeout,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -91,6 +91,7 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
   const [state, dispatch] = useReducer(speedColorMatchReducer, undefined, createInitialSpeedColorMatchState);
 
   const stateRef = useRef(state);
+  const pauseStartedAtRef = useRef<number | null>(null);
 
   // Keep a ref of the latest state for event handlers.
   useEffect(() => {
@@ -104,7 +105,10 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
       const current = stateRef.current;
       return (current.phase === 'trial' || current.phase === 'roundResult') && !current.paused;
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => {
+      pauseStartedAtRef.current = clock.now();
+      dispatch({ type: 'pause' });
+    },
   });
 
   const tutorial = useMemo(() => createSpeedColorMatchTutorialLifecycle(tutorialStore), [tutorialStore]);
@@ -125,16 +129,15 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
   }, [state.phase, state.trialShownAtMs, state.paused, clock]);
 
   // ---- Stimulus timeout: auto-fail trial on expiry. Scheduled from the
-  // monotonic onset (`trialShownAtMs`); pausing deactivates the timer, and
-  // resume re-baselines the onset (below) before the timer re-arms, so paused
-  // time never counts against the response window.
-  useGameTimeout(
+  // monotonic onset (`trialShownAtMs`); pausing deactivates the timer and the
+  // deadline helper resumes from the remaining active budget, so paused time
+  // never counts against the response window.
+  useGameDeadlineTimeout(
     state.phase === 'trial' && !state.paused && state.trialShownAtMs !== null,
     () => dispatch({ type: 'trial-timeout', timedOutAtMs: clock.now() }),
-    Math.max(
-      0,
-      state.trialShownAtMs !== null ? stimulusTimeoutMs - (clock.now() - state.trialShownAtMs) : 0,
-    ),
+    stimulusTimeoutMs,
+    clock,
+    `trial:${state.sessionId ?? 'idle'}:${state.trialIndex}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -210,6 +213,7 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
     });
     dispatch({ type: 'persistence-started' });
     void persistSpeedColorMatchSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;
@@ -246,13 +250,13 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
-      dispatch({ type: 'resume' });
-      if (stateRef.current.phase === 'trial') {
-        // Re-baseline the stimulus window at the resume moment: paused time must
-        // never count against the player's response window (constitution §11).
-        // Mirrors speed-reaction-time's fresh-`goAtMs` resume path.
-        dispatch({ type: 'trial-shown', shownAtMs: clock.now() });
-      }
+      const pausedMs =
+        pauseStartedAtRef.current === null
+          ? 0
+          : Math.max(0, clock.now() - pauseStartedAtRef.current);
+      pauseStartedAtRef.current = null;
+      const current = stateRef.current;
+      dispatch({ type: 'resume', pausedMs: current.phase === 'trial' ? pausedMs : undefined });
     }
   }, [session, clock, dispatch]);
 

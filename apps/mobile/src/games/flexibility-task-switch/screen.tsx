@@ -256,6 +256,7 @@ export default function TaskSwitchScreen(
     dispatch({ type: "persistence-started" });
     void persistFlexibilityTaskSwitchSession(record, persistSession).then(
       (outcome) => {
+        if (!session.isCurrentSession(record.id)) return;
         if (outcome.ok) {
           dispatch({ type: "persistence-succeeded" });
           const co = outcome.result.completionOutcome;

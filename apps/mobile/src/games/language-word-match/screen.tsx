@@ -186,6 +186,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
     });
     dispatch({ type: 'persistence-started' });
     void persistLanguageSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

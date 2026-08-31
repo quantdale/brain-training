@@ -60,33 +60,53 @@ export function useWorkoutResultAdvance(
   } | null>(null);
 
   useEffect(() => {
-    if (advancingRef.current || !session || !reconciled) {
+    // Ownership must be checked against the exact persisted row returned by
+    // `findActiveInstanceForSession`. Reconciliation can remove a retired
+    // game or shift the index; using that repaired in-memory shape for the
+    // guard strands a legitimately launched result after catalog drift.
+    if (advancingRef.current || !session || !loadedInstance) {
       return;
     }
     if (advancedForSessionRef.current === session.id) {
       return;
     }
-    if (!shouldAdvanceWorkout(session, reconciled)) {
+    if (!shouldAdvanceWorkout(session, loadedInstance)) {
       return;
     }
 
     advancingRef.current = true;
-    getDb()
-      .workouts.advanceForSession(session)
-      .then(({ advanced, instance: updated }) => {
+    getDb().workouts
+      .advanceForSession(session)
+      .then(async ({ advanced, instance: updated }) => {
         if (!updated) {
           return;
         }
+        // The current leg has now been consumed under its original ownership
+        // tuple. Repair any retired future legs before exposing the next
+        // provenance to the UI, otherwise the next launch could point at an
+        // index that the durable row no longer considers playable.
+        let displayUpdated = updated;
+        if (updated.status === "active") {
+          try {
+            displayUpdated =
+              (await getDb().workouts.reconcile(updated.date, eligibleGameIds())) ??
+              updated;
+          } catch (error) {
+            // Advancement is already durable; a transient reconciliation read
+            // failure must not hide the result or make the completion retry.
+            console.error("[results] workout reconciliation failed", error);
+          }
+        }
         advancedForSessionRef.current = session.id;
-        const nextGameId = updated.gameIds[updated.currentIndex] ?? null;
-        setAdvancedInstance(updated);
+        const nextGameId = displayUpdated.gameIds[displayUpdated.currentIndex] ?? null;
+        setAdvancedInstance(displayUpdated);
         setNext({
           id: nextGameId,
-          completed: updated.status === "completed",
+          completed: displayUpdated.status === "completed",
           provenance: nextGameId
             ? {
-                instanceKey: updated.date,
-                legIndex: updated.currentIndex,
+                instanceKey: displayUpdated.date,
+                legIndex: displayUpdated.currentIndex,
                 gameId: nextGameId,
               }
             : null,
@@ -101,7 +121,7 @@ export function useWorkoutResultAdvance(
       .finally(() => {
         advancingRef.current = false;
       });
-  }, [session, reconciled]);
+  }, [session, loadedInstance]);
 
   return {
     instance: reconciled,

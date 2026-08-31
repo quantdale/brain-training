@@ -172,6 +172,15 @@ describe('V2 history ordering (listHistory / listRecent)', () => {
     await workouts.advance('2026-08-21');
     await workouts.advance('2026-08-21');
     expect(await workouts.countCompleted()).toBe(2);
+
+    const future = await workouts.getOrCreate('2099-01-01', {
+      gameIds: ['memory-grid-recall'],
+      seedVersion: 1,
+    });
+    expect(future.status).toBe('active');
+    await workouts.advance('2099-01-01');
+    expect(await workouts.countCompleted('2026-08-21')).toBe(2);
+    expect(await workouts.countCompleted('2099-01-01')).toBe(3);
   });
 });
 

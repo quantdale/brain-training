@@ -78,7 +78,7 @@ describe('fresh initialization lands directly at the current schema', () => {
     await runMigrations(adapter);
 
     expect(await getSchemaVersion(adapter)).toBe(SCHEMA_VERSION);
-    expect(await getSchemaVersion(adapter)).toBe(10); // pins the concrete value
+    expect(await getSchemaVersion(adapter)).toBe(SCHEMA_VERSION);
     // The v10 column exists immediately — the repository never needs its
     // runtime probe fallback on a freshly initialized database.
     expect(await workoutColumnNames(adapter)).toContain('metadata_json');
@@ -91,6 +91,48 @@ describe('fresh initialization lands directly at the current schema', () => {
     expect(created.metadata).toBeUndefined(); // nothing fabricated
     expect(await workoutColumnNames(adapter)).toContain('metadata_json');
     await adapter.close();
+  });
+});
+
+describe('v12 rating-history natural-key repair', () => {
+  it('keeps the earliest duplicate and adds a unique session/domain index', async () => {
+    const adapter = createNodeSqliteAdapter(':memory:');
+    await runMigrations(adapter, { targetVersion: 11 });
+    await adapter.run(
+      `INSERT INTO game_sessions
+        (id, game_id, game_version, generator_version, scoring_version, seed,
+         difficulty_json, raw_result_json, normalized_result, xp, started_at,
+         completed_at, duration_ms)
+       VALUES ('s1', 'memory', 1, 1, 1, 1, '{}', '{}', 0.5, 0, 100, 100, 0)`,
+    );
+    await adapter.run(
+      'INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at) VALUES (?, ?, ?, ?, ?)',
+      ['s1', 'Memory', 5, 1005, 100],
+    );
+    await adapter.run(
+      'INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at) VALUES (?, ?, ?, ?, ?)',
+      ['s1', 'Memory', 99, 1099, 200],
+    );
+
+    await runMigrations(adapter);
+
+    expect(await getSchemaVersion(adapter)).toBe(SCHEMA_VERSION);
+    expect(
+      await adapter.all('SELECT session_id, domain, delta FROM rating_history'),
+    ).toEqual([{ session_id: 's1', domain: 'Memory', delta: 5 }]);
+    expect(
+      await adapter.all("PRAGMA index_list('rating_history')"),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'idx_rating_history_session_domain', unique: 1 }),
+      ]),
+    );
+    await expect(
+      adapter.run(
+        'DELETE FROM rating_history WHERE session_id = ? AND domain = ?',
+        ['s1', 'Memory'],
+      ),
+    ).rejects.toThrow(/append-only/);
   });
 });
 

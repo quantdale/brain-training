@@ -30,6 +30,31 @@ export class InsufficientFundsError extends Error {
   }
 }
 
+/** Thrown when a currency spend/cost is not a positive SQLite-safe integer. */
+export class InvalidCurrencyAmountError extends Error {
+  readonly field: string;
+  readonly value: number;
+
+  constructor(field: string, value: number) {
+    super(`${field}: must be a positive safe integer (got ${String(value)})`);
+    this.name = 'InvalidCurrencyAmountError';
+    this.field = field;
+    this.value = value;
+  }
+}
+
+/**
+ * Currency is persisted in SQLite INTEGER columns. Validate at the public
+ * economy boundary before opening a transaction so negative, fractional, or
+ * non-finite caller input can never turn a debit into an unintended credit.
+ */
+function requireCurrencyAmount(value: number, field: string): number {
+  if (!Number.isSafeInteger(value) || value <= 0) {
+    throw new InvalidCurrencyAmountError(field, value);
+  }
+  return value;
+}
+
 /** Inputs for {@link spendCurrency}. */
 export interface SpendInput {
   /** Positive amount of currency to spend (the entry is stored as `-amount`). */
@@ -77,6 +102,7 @@ export interface PaidRerollInput {
  * returned instead of being applied twice.
  */
 export async function spendCurrency(db: AppDatabase, input: SpendInput): Promise<LedgerEntry> {
+  const amount = requireCurrencyAmount(input.amount, 'amount');
   return db.transaction(async (txn) => {
     if (input.operationId) {
       const existing = await db.ledger.getByOperation(input.operationId, txn);
@@ -85,12 +111,12 @@ export async function spendCurrency(db: AppDatabase, input: SpendInput): Promise
       }
     }
     const balance = await db.ledger.getBalance(txn);
-    if (balance < input.amount) {
-      throw new InsufficientFundsError(input.amount, balance);
+    if (balance < amount) {
+      throw new InsufficientFundsError(amount, balance);
     }
     return db.ledger.append(
       {
-        amount: -input.amount,
+        amount: -amount,
         reason: input.reason,
         sessionId: input.sessionId ?? null,
         operationId: input.operationId ?? null,
@@ -110,6 +136,7 @@ export async function purchaseStreakItem(
   db: AppDatabase,
   input: PurchaseStreakItemInput,
 ): Promise<{ ledgerEntry: LedgerEntry; inventory: StreakInventory }> {
+  const cost = requireCurrencyAmount(input.cost, 'cost');
   const reason = input.reason ?? 'streak_item';
   return db.transaction(async (txn) => {
     if (input.operationId) {
@@ -120,15 +147,15 @@ export async function purchaseStreakItem(
       }
     }
     const balance = await db.ledger.getBalance(txn);
-    if (balance < input.cost) {
-      throw new InsufficientFundsError(input.cost, balance);
+    if (balance < cost) {
+      throw new InsufficientFundsError(cost, balance);
     }
     const profile = await db.profile.get(txn);
     const settings = profile?.settings ?? {};
     const nextSettings = grantItems(settings, { [input.kind]: 1 });
     await db.profile.update({ settings: nextSettings }, txn);
     const ledgerEntry = await db.ledger.append(
-      { amount: -input.cost, reason, operationId: input.operationId ?? null },
+      { amount: -cost, reason, operationId: input.operationId ?? null },
       txn,
     );
     return { ledgerEntry, inventory: readInventory(nextSettings) };
@@ -145,6 +172,7 @@ export async function paidReroll(
   db: AppDatabase,
   input: PaidRerollInput,
 ): Promise<{ ledgerEntry: LedgerEntry }> {
+  const cost = requireCurrencyAmount(input.cost, 'cost');
   const reason = input.reason ?? 'reroll';
   return db.transaction(async (txn) => {
     if (input.operationId) {
@@ -157,12 +185,12 @@ export async function paidReroll(
     // pre-check runs against a possibly stale UI balance, so a race could
     // otherwise drive the ledger negative.
     const balance = await db.ledger.getBalance(txn);
-    if (balance < input.cost) {
-      throw new InsufficientFundsError(input.cost, balance);
+    if (balance < cost) {
+      throw new InsufficientFundsError(cost, balance);
     }
     await input.mutateWorkout(txn);
     const ledgerEntry = await db.ledger.append(
-      { amount: -input.cost, reason, operationId: input.operationId ?? null },
+      { amount: -cost, reason, operationId: input.operationId ?? null },
       txn,
     );
     return { ledgerEntry };

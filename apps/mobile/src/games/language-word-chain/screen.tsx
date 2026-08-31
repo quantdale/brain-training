@@ -227,6 +227,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistWordChainSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

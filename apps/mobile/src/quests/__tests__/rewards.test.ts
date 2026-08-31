@@ -33,7 +33,7 @@ describe('applyQuestReward', () => {
     expect(awards[0]).toMatchObject({
       amount: 20,
       reason: 'quest',
-      source: 'quest:qd3',
+      source: `quest:qd3:${PERIOD}`,
       createdAt: T0,
     });
 
@@ -79,6 +79,24 @@ describe('applyQuestReward', () => {
     await db.quests.recordProgress({ questId: def.id, period: PERIOD, progress: 3 });
 
     await expect(applyQuestReward(db, def, PERIOD)).rejects.toBeInstanceOf(QuestNotCompleteError);
+  });
+
+  it('refuses a completion stamped in the future of an explicit as-of clock', async () => {
+    const db = await createDb();
+    const def = QUEST_DEFINITIONS_V1[0];
+    await db.quests.upsertDefinition(toDbQuestDefinition(def));
+    await db.quests.recordProgress({
+      questId: def.id,
+      period: PERIOD,
+      progress: 3,
+      completedAt: T0 + 86_400_000,
+    });
+
+    await expect(applyQuestReward(db, def, PERIOD, new Date(T0))).rejects.toBeInstanceOf(
+      QuestNotCompleteError,
+    );
+    expect(await db.xpAwards.list()).toHaveLength(0);
+    expect(await db.ledger.list()).toHaveLength(0);
   });
 
   it('refuses when the stored progress is below the criteria goal', async () => {

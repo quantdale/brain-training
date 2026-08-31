@@ -70,7 +70,7 @@ export default function ProgressGameScreen() {
   );
 
   const { data, loaded, error } = useDbData(
-    useCallback((db: AppDatabase) => loadGameSessions(db, gameId), [gameId]),
+    useCallback((db: AppDatabase) => loadGameSessions(db, gameId, Date.now()), [gameId]),
     [refreshKey, gameId],
     EMPTY,
   );

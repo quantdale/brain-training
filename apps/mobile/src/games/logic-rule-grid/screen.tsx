@@ -28,6 +28,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -76,6 +77,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
 
   const stateRef = useRef(state);
   const roundStartedAtRef = useRef<number>(0);
+  const pauseStartedAtRef = useRef<number | null>(null);
 
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
@@ -92,7 +94,10 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => {
+      pauseStartedAtRef.current = clock.now();
+      dispatch({ type: 'pause' });
+    },
   });
 
   const tutorial = useMemo(() => createRuleGridTutorialLifecycle(tutorialStore), [tutorialStore]);
@@ -112,25 +117,32 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
     }
   }, [tutorial]);
 
-  // ---- Per-round timeout: auto-answer null when the budget is exhausted.
-  // Kept as a plain effect (not `useGameTimeout`): it deliberately restarts on
-  // every activation — including resume — anchoring `roundStartedAtRef` to the
-  // current monotonic time, which is exactly the pre-migration behavior.
+  // ---- Per-round start timestamp: set only when a new round enters the
+  // answer phase. It is intentionally not keyed by `paused`, so resume cannot
+  // grant a fresh response window.
   useEffect(() => {
-    if (state.phase !== 'showGrid' || state.paused || state.currentRound === null || state.profile === null) {
+    if (state.phase !== 'showGrid' || state.currentRound === null || state.profile === null) {
       return;
     }
-    const resolved = ruleGridParamsFromProfile(state.profile);
     roundStartedAtRef.current = clock.now();
-    const handle = setTimeout(() => {
-      dispatch({
-        type: 'answer',
-        selectedValue: null,
-        elapsedMs: clock.now() - roundStartedAtRef.current,
-      });
-    }, resolved.roundTimeMs);
-    return () => clearTimeout(handle);
-  }, [state.phase, state.roundIndex, state.paused, state.currentRound, state.profile, clock, dispatch]);
+  }, [state.phase, state.roundIndex, state.currentRound, state.profile, clock]);
+
+  // ---- Per-round timeout: auto-answer null when the active budget is
+  // exhausted. The deadline helper retains the remainder across pauses.
+  const roundTimeMs = state.profile === null
+    ? 2_000
+    : ruleGridParamsFromProfile(state.profile).roundTimeMs;
+  useGameDeadlineTimeout(
+    state.phase === 'showGrid' && !state.paused && state.currentRound !== null && state.profile !== null,
+    () => dispatch({
+      type: 'answer',
+      selectedValue: null,
+      elapsedMs: Math.max(0, clock.now() - roundStartedAtRef.current),
+    }),
+    roundTimeMs,
+    clock,
+    `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
+  );
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -201,6 +213,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistRuleGridSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;
@@ -237,9 +250,13 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
+      if (pauseStartedAtRef.current !== null) {
+        roundStartedAtRef.current += Math.max(0, clock.now() - pauseStartedAtRef.current);
+        pauseStartedAtRef.current = null;
+      }
       dispatch({ type: 'resume' });
     }
-  }, [session, dispatch]);
+  }, [clock, session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();

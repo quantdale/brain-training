@@ -141,6 +141,49 @@ describe('DB-range violations are rejected at validation time', () => {
     const parsed = parseAndValidateBackup(serializeBackup(buildEnvelope(data)));
     expect(parsed.data.gameSessions).toHaveLength(2);
   });
+
+  it('rejects fractional values for persisted integer fields', () => {
+    const data = emptyData();
+    data.gameSessions.push(sessionWith({ gameVersion: 1.5 }) as never);
+    expect(() => parseAndValidateBackup(serializeBackup(buildEnvelope(data)))).toThrow(
+      /invalid fields/,
+    );
+  });
+
+  it('rejects invalid workout progress metadata before replace can mutate a database', () => {
+    const data = emptyData();
+    data.workoutInstances.push({
+      date: '2026-08-20',
+      gameIds: ['memory'],
+      status: 'active',
+      currentIndex: 2,
+      rerollAttempt: 0,
+      seedVersion: 1,
+      createdAt: T0,
+      updatedAt: T0,
+    });
+    expect(() => parseAndValidateBackup(serializeBackup(buildEnvelope(data)))).toThrow(
+      /invalid progress metadata/,
+    );
+  });
+
+  it('rejects zero or fractional XP awards and invalid reward definitions', () => {
+    const data = emptyData();
+    data.xpAwards.push({ amount: 0, reason: 'bad', source: 'bad', createdAt: T0 });
+    data.questDefinitions.push({
+      id: 'q1',
+      kind: 'daily',
+      title: 'Q1',
+      description: 'desc',
+      criteria: { target: 1 },
+      rewardXp: 1.5,
+      rewardCurrency: 1,
+      version: 1,
+    });
+    expect(() => parseAndValidateBackup(serializeBackup(buildEnvelope(data)))).toThrow(
+      BackupDataValidationError,
+    );
+  });
 });
 
 describe('relational integrity against the same backup', () => {

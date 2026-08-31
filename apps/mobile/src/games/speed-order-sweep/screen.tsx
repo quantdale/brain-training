@@ -237,6 +237,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistOrderSweepSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

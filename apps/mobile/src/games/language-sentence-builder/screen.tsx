@@ -33,7 +33,7 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameSession,
-  useGameTimeout,
+  useGameDeadlineTimeout,
 } from '@/components/game-host';
 
 import { CATEGORY_LABELS } from './content/sentence-bank';
@@ -114,13 +114,14 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   // ---- Per-sentence timer: one budget timeout while the puzzle phase is
-  // live; pause cancels (frozen), resume re-arms. Every round entry passes
-  // through a phase transition (puzzle → roundResult → puzzle), so keying on
-  // the active flag alone restarts the budget per round exactly as before.
-  useGameTimeout(
+  // live; pause cancels it and resume continues the remaining active budget.
+  // The round key starts a fresh budget for each new sentence.
+  useGameDeadlineTimeout(
     state.phase === 'puzzle' && !state.paused,
     () => dispatch({ type: 'timer-expired' }),
     timeBudgetMs,
+    clock,
+    `round:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -199,6 +200,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     });
     dispatch({ type: 'persistence-started' });
     void persistSessionFn(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

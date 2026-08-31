@@ -209,6 +209,7 @@ export default function LogicDeductionScreen(
     dispatch({ type: "persistence-started" });
     void persistLogicDeductionSession(record, persistSession).then(
       (outcome) => {
+        if (!session.isCurrentSession(record.id)) return;
         if (outcome.ok) {
           dispatch({ type: "persistence-succeeded" });
           const co = outcome.result.completionOutcome;

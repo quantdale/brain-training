@@ -237,6 +237,7 @@ export default function SpatialCoordinateTurnScreen(
     });
     dispatch({ type: 'persistence-started' });
     void persistSpatialCoordinateTurnSession(record, persisterProp).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

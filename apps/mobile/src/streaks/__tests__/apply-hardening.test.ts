@@ -36,6 +36,23 @@ async function makeDb(
   return db;
 }
 
+async function seedActivity(db: AppDatabase, dates: readonly string[]): Promise<void> {
+  await db.transaction(async (txn) => {
+    for (const [index, date] of dates.entries()) {
+      const completedAt = new Date(`${date}T12:00:00`).getTime();
+      await txn.run(
+        `INSERT INTO game_sessions
+          (id, game_id, game_version, generator_version, scoring_version, seed,
+           difficulty_json, raw_result_json, normalized_result, xp, started_at,
+           completed_at, duration_ms)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [`streak-${index}-${date}`, 'memory', 1, 1, 1, index + 1, '{}', '{}', 0.5, 1,
+          completedAt - 1_000, completedAt, 1_000],
+      );
+    }
+  });
+}
+
 /** 10-day run ending 2026-08-13; today is 2026-08-16 → broken, 2 missed days. */
 const BROKEN_HISTORY = [
   '2026-08-13',
@@ -53,6 +70,7 @@ const BROKEN_HISTORY = [
 describe('streak apply duplicate-application hardening', () => {
   it('a second freeze on an already-covered day consumes nothing extra', async () => {
     const db = await makeDb({ streaks: { freeze: 2, shield: 0, recovery: 0 } });
+    await seedActivity(db, ['2026-08-15']);
     const state = reconstructStreak(['2026-08-15'], TODAY); // at risk
 
     expect(await applyOwnedStreakItem(db, 'freeze' as StreakItemKind, state, NOW)).toBe('applied');
@@ -66,6 +84,7 @@ describe('streak apply duplicate-application hardening', () => {
 
   it('a second recovery on already-covered missed days consumes nothing extra', async () => {
     const db = await makeDb({ streaks: { freeze: 0, shield: 0, recovery: 2 } });
+    await seedActivity(db, BROKEN_HISTORY);
     const broken = reconstructStreak(BROKEN_HISTORY, TODAY);
 
     expect(await applyOwnedStreakItem(db, 'recovery' as StreakItemKind, broken, NOW)).toBe('applied');
@@ -82,6 +101,7 @@ describe('streak apply duplicate-application hardening', () => {
 
   it('a second shield application consumes nothing extra (either window)', async () => {
     const db = await makeDb({ streaks: { freeze: 0, shield: 2, recovery: 0 } });
+    await seedActivity(db, ['2026-08-15']);
     const atRisk = reconstructStreak(['2026-08-15'], TODAY);
 
     expect(await applyOwnedStreakItem(db, 'shield' as StreakItemKind, atRisk, NOW)).toBe('applied');
@@ -95,6 +115,7 @@ describe('streak apply duplicate-application hardening', () => {
 
   it('a shield-only inventory can protect an at-risk streak (freeze-window)', async () => {
     const db = await makeDb({ streaks: { freeze: 0, shield: 1, recovery: 0 } });
+    await seedActivity(db, ['2026-08-15']);
     const state = reconstructStreak(['2026-08-15'], TODAY);
     expect(await applyOwnedStreakItem(db, 'shield' as StreakItemKind, state, NOW)).toBe('applied');
 
@@ -108,6 +129,7 @@ describe('streak apply duplicate-application hardening', () => {
 
   it('a shield-only inventory can restore a broken streak (recovery-window)', async () => {
     const db = await makeDb({ streaks: { freeze: 0, shield: 1, recovery: 0 } });
+    await seedActivity(db, BROKEN_HISTORY);
     const broken = reconstructStreak(BROKEN_HISTORY, TODAY); // 2 missed days
     expect(await applyOwnedStreakItem(db, 'shield' as StreakItemKind, broken, NOW)).toBe('applied');
 
@@ -120,6 +142,7 @@ describe('streak apply duplicate-application hardening', () => {
 
   it('concurrent apply attempts consume at most one item each', async () => {
     const db = await makeDb({ streaks: { freeze: 3, shield: 0, recovery: 0 } });
+    await seedActivity(db, ['2026-08-15']);
     const state = reconstructStreak(['2026-08-15'], TODAY);
 
     // Fire two applies without awaiting the first (double-tap race). The node
@@ -142,6 +165,7 @@ describe('streak apply duplicate-application hardening', () => {
 
   it('a refusal leaves inventory and coverage untouched', async () => {
     const db = await makeDb({ streaks: { freeze: 1, shield: 0, recovery: 0 } });
+    await seedActivity(db, ['2026-08-15']);
     const state = reconstructStreak(['2026-08-15'], TODAY);
     await applyOwnedStreakItem(db, 'freeze' as StreakItemKind, state, NOW);
 
@@ -152,10 +176,36 @@ describe('streak apply duplicate-application hardening', () => {
     expect(readCoveredDates(settings)).toEqual([TODAY]);
   });
 
+  it('revalidates a stale snapshot against sessions committed after the screen loaded', async () => {
+    const db = await makeDb({ streaks: { freeze: 1, shield: 0, recovery: 0 } });
+    const staleState = reconstructStreak(['2026-08-15'], TODAY);
+
+    // The player completed today after the Profile screen captured its state;
+    // a Freeze is no longer eligible and must not be consumed.
+    await db.transaction(async (txn) => {
+      await txn.run(
+        `INSERT INTO game_sessions
+          (id, game_id, game_version, generator_version, scoring_version, seed,
+           difficulty_json, raw_result_json, normalized_result, xp, started_at,
+           completed_at, duration_ms)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ['today', 'memory', 1, 1, 1, 1, '{}', '{}', 0.5, 1, NOW.getTime(), NOW.getTime(), 0],
+      );
+    });
+
+    expect(await applyOwnedStreakItem(db, 'freeze' as StreakItemKind, staleState, NOW)).toBe(
+      'not-allowed',
+    );
+    const settings = (await db.profile.get())?.settings ?? {};
+    expect(readInventory(settings).freeze).toBe(1);
+    expect(readCoveredDates(settings)).toEqual([]);
+  });
+
   it('coverage from a previous day does not block protecting a NEW day', async () => {
     const db = await makeDb({
       streaks: { freeze: 2, shield: 0, recovery: 0, coveredDates: ['2026-08-10'] },
     });
+    await seedActivity(db, ['2026-08-15']);
     const state = reconstructStreak(['2026-08-15'], TODAY);
     expect(await applyOwnedStreakItem(db, 'freeze' as StreakItemKind, state, NOW)).toBe('applied');
 
@@ -172,6 +222,7 @@ describe('streak apply duplicate-application hardening', () => {
     const db = await makeDb({
       streaks: { freeze: 0, shield: 0, recovery: 1, coveredDates: ['2026-08-14'] },
     });
+    await seedActivity(db, BROKEN_HISTORY);
     const broken = reconstructStreak(BROKEN_HISTORY, TODAY);
     expect(await applyOwnedStreakItem(db, 'recovery' as StreakItemKind, broken, NOW)).toBe('applied');
 

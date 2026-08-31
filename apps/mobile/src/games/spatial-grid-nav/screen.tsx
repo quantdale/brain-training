@@ -218,6 +218,7 @@ export default function SpatialGridNavScreen(
     });
     dispatch({ type: "persistence-started" });
     void persistSpatialGridNavSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: "persistence-succeeded" });
         const co = outcome.result.completionOutcome;

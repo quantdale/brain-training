@@ -37,7 +37,8 @@ grows and can never silently smoke-test a stale list.
   (`tutorial-skip`/`tutorial-done`/`tutorial-next`) → start → **real gameplay
   interaction** (taps one tappable in-game item: `<id>.option.N`, `<id>.tile.N`,
   `<id>.cell.X`, `<id>.choice.*`, `<id>.trigger.*`, `<id>.card-grid.card.N`;
-  best-effort, recorded either way) → optional pause/resume → dev-only QA
+  certification requires semantic gameplay-state evidence, not timer/layout
+  churn) → optional pause/resume → dev-only QA
   force-state path (`<id>.qa-toggle` → `<id>.qa-panel` → `<id>.force-win`) →
   results screen → persistence evidence (exactly one `game_sessions` row after
   a clean reset) → **BACK navigation** (app must stay foreground on a known
@@ -151,7 +152,10 @@ node scripts/qa/autobot.mjs --mode all --pause
 # unexpected ids fail), and a certification verdict block. Pause/resume
 # evidence is included by default (--no-pause opts out and marks the run
 # non-certified). Exit 0 only when every game PASSes and the catalog is
-# exactly covered.
+# exactly covered. Start Metro from this checkout with its SHA marker
+# injected first: `export EXPO_PUBLIC_BUILD_SHA="$(git rev-parse HEAD)"`.
+# The preflight observes that marker in Home and refuses a stale/co-tenant JS
+# bundle.
 node scripts/qa/autobot.mjs --mode certify
 
 # Word Match multi-round / multi-tier smoke (gate 3.6)

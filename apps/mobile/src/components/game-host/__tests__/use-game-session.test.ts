@@ -81,6 +81,19 @@ describe('useGameSession', () => {
     expect(controller.elapsedMs()).toBe(500);
   });
 
+  it('invalidates async completion callbacks when a new session begins', async () => {
+    const { controller } = await makeHook();
+
+    expect(controller.isCurrentSession('never-started')).toBe(false);
+    const first = controller.begin();
+    expect(controller.isCurrentSession(first.sessionId)).toBe(true);
+
+    const second = controller.begin();
+    expect(controller.isCurrentSession(first.sessionId)).toBe(false);
+    expect(controller.isCurrentSession(second.sessionId)).toBe(true);
+    expect(controller.isCurrentSession(null)).toBe(false);
+  });
+
   it('registers exact workout launch ownership under the generated session id', async () => {
     const clock = createFakeClock(1_000);
     const provenance = {

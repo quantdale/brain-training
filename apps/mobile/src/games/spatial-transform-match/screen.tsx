@@ -49,7 +49,7 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameSession,
-  useGameTimeout,
+  useGameDeadlineTimeout,
 } from "@/components/game-host";
 import type { GameHostView } from "@/components/game-host";
 
@@ -108,6 +108,7 @@ export default function SpatialTransformMatchScreen(
   const stateRef = useRef(state);
   /** Monotonic timestamp (clock.now()) of when the choice phase started. */
   const choiceStartedAtRef = useRef(0);
+  const pauseStartedAtRef = useRef<number | null>(null);
 
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
@@ -126,7 +127,10 @@ export default function SpatialTransformMatchScreen(
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: "pause" }),
+    onPause: () => {
+      pauseStartedAtRef.current = clock.now();
+      dispatch({ type: "pause" });
+    },
   });
 
   const tutorial = useMemo(
@@ -146,19 +150,21 @@ export default function SpatialTransformMatchScreen(
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   // ---- Source reveal pacing: single tick after sourceRevealMs. Pause
-  // deactivates the timer; resume restarts the reveal from scratch.
-  useGameTimeout(
+  // deactivates the timer; resume continues its remaining active budget.
+  useGameDeadlineTimeout(
     state.phase === "source" && !state.paused,
     () => dispatch({ type: "source-tick" }),
     sourceRevealMs,
+    clock,
+    `source:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
   );
 
   // ---- Record the monotonic time when the choice phase begins.
   useEffect(() => {
-    if (state.phase === "choice" && !state.paused) {
+    if (state.phase === "choice") {
       choiceStartedAtRef.current = clock.now();
     }
-  }, [state.phase, state.paused, clock]);
+  }, [state.phase, state.roundIndex, clock]);
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -239,6 +245,7 @@ export default function SpatialTransformMatchScreen(
     });
     dispatch({ type: "persistence-started" });
     void persistSession(record, persisterProp).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: "persistence-succeeded" });
         const co = outcome.result.completionOutcome;
@@ -278,9 +285,13 @@ export default function SpatialTransformMatchScreen(
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
+      if (pauseStartedAtRef.current !== null) {
+        choiceStartedAtRef.current += Math.max(0, clock.now() - pauseStartedAtRef.current);
+        pauseStartedAtRef.current = null;
+      }
       dispatch({ type: "resume" });
     }
-  }, [session, dispatch]);
+  }, [clock, session, dispatch]);
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();

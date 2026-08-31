@@ -144,7 +144,7 @@ describe('claimAllRewards — double-pass idempotency (overlapping kinds)', () =
     // Exactly one XP award row per source.
     const awards = await db.xpAwards.list();
     expect(awards.filter((a) => a.source === 'achievement:ach-first')).toHaveLength(1);
-    expect(awards.filter((a) => a.source === 'quest:qd3')).toHaveLength(1);
+    expect(awards.filter((a) => a.source.startsWith('quest:qd3:'))).toHaveLength(1);
     expect(awards.filter((a) => a.source === 'milestone:mil-3')).toHaveLength(1);
 
     // Immediate retry: the inbox is empty and the second pass grants nothing.
@@ -152,6 +152,47 @@ describe('claimAllRewards — double-pass idempotency (overlapping kinds)', () =
     expect(second).toEqual({ attempted: 0, claimedCount: 0, totalXp: 0, totalCoins: 0 });
     expect(await db.ledger.getBalance()).toBe(expectedCoins); // unchanged
     expect(await db.xpAwards.getTotalAwardedXp()).toBe(expectedXp); // unchanged
+  });
+
+  it('quarantines future unlocks, quest completions, and streak activity', async () => {
+    const { db, adapter } = await makeDb();
+    const future = NOW.getTime() + 86_400_000;
+
+    const achievement = ACHIEVEMENT_DEFINITIONS_V1.find((d) => d.id === 'ach-first')!;
+    await db.achievements.upsertDefinition(toDbAchievementDefinition(achievement));
+    await adapter.run(
+      'INSERT INTO achievement_unlocks (achievement_id, unlocked_at, claimed_at) VALUES (?, ?, NULL)',
+      [achievement.id, future],
+    );
+
+    const quest = QUEST_DEFINITIONS_V1.find((d) => d.id === 'qd3')!;
+    await db.quests.upsertDefinition(toDbQuestDefinition(quest));
+    await db.quests.recordProgress({
+      questId: quest.id,
+      period: currentPeriodKey(quest.kind, NOW),
+      progress: quest.criteria.goal,
+      completedAt: future,
+    });
+    await seedSession(adapter, '2026-08-22');
+
+    expect(await collectClaimableRewards(db, NOW)).toEqual([]);
+    expect(
+      await claimReward(
+        db,
+        {
+          key: `achievement:${achievement.id}`,
+          kind: 'achievement',
+          id: achievement.id,
+          title: achievement.title,
+          description: achievement.description,
+          rewardXp: achievement.rewardXp,
+          rewardCurrency: achievement.rewardCurrency,
+        },
+        NOW,
+      ),
+    ).toEqual({ status: 'unavailable' });
+    expect(await db.xpAwards.list()).toHaveLength(0);
+    expect(await db.ledger.list()).toHaveLength(0);
   });
 
   it('keeps the ledger append-only across both passes (UPDATE/DELETE triggers intact)', async () => {
@@ -369,6 +410,34 @@ describe('operationId replay attacks (backup re-import shape)', () => {
 });
 
 describe('inbox aggregation + restart persistence', () => {
+  it('keeps a completed quest claimable after its daily period rolls over', async () => {
+    const { db } = await makeDb();
+    const quest = QUEST_DEFINITIONS_V1.find((d) => d.id === 'qd3')!;
+    await db.quests.upsertDefinition(toDbQuestDefinition(quest));
+
+    const oldPeriod = '2026-08-20';
+    await db.quests.recordProgress({
+      questId: quest.id,
+      period: oldPeriod,
+      progress: quest.criteria.goal,
+      completedAt: NOW.getTime() - 60_000,
+    });
+
+    const items = await collectClaimableRewards(db, NOW);
+    expect(items).toEqual([
+      expect.objectContaining({
+        key: `quest:${quest.id}:${oldPeriod}`,
+        periodKey: oldPeriod,
+      }),
+    ]);
+    expect(await claimReward(db, items[0]!, NOW)).toEqual({
+      status: 'claimed',
+      xp: quest.reward.xp,
+      coins: quest.reward.coins,
+    });
+    expect(await collectClaimableRewards(db, NOW)).toEqual([]);
+  });
+
   it('aggregates overlapping kinds in deterministic order with distinct keys', async () => {
     const { db, adapter } = await makeDb();
     await seedOverlappingClaimables(db);

@@ -276,7 +276,16 @@ export function speedGameReducer(
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      if (!state.paused) return state;
+      const pausedMs = Math.max(0, action.pausedMs ?? 0);
+      return {
+        ...state,
+        paused: false,
+        // `goAtMs` is a monotonic timestamp. Shift it by the paused span so
+        // the response measurement excludes background/overlay time while
+        // preserving the remaining reaction budget.
+        goAtMs: state.goAtMs === null ? null : state.goAtMs + pausedMs,
+      };
     }
 
     case 'tutorial-open': {

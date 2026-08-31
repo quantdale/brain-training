@@ -20,11 +20,11 @@
  * measurement works identically on 60 Hz and 120 Hz displays (the displayed
  * signal and the measured timestamp share one event).
  *
- * Pause semantics: pausing freezes both timers (the host helpers deactivate
- * them while paused). Resuming during the wait restarts the full seeded
- * delay; resuming after GO re-displays the signal with a fresh `goAtMs`, so a
- * pause can never manufacture reaction time. The trigger is covered by the
- * opaque `PauseOverlay` and hidden from the accessibility tree while paused.
+ * Pause semantics: pausing freezes both timers. Resuming continues each
+ * active window from its remaining budget and shifts the monotonic GO origin
+ * by the paused span, so a pause can neither grant extra response time nor
+ * manufacture reaction time. The trigger is covered by the opaque
+ * `PauseOverlay` and hidden from the accessibility tree while paused.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -45,7 +45,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameTimeout,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -93,6 +93,7 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
   const [state, dispatch] = useReducer(speedGameReducer, undefined, createInitialSpeedState);
 
   const stateRef = useRef(state);
+  const pauseStartedAtRef = useRef<number | null>(null);
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
     stateRef.current = state;
@@ -108,7 +109,10 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
         !current.paused
       );
     },
-    onPause: () => dispatch({ type: 'pause' }),
+    onPause: () => {
+      pauseStartedAtRef.current = clock.now();
+      dispatch({ type: 'pause' });
+    },
   });
 
   const tutorial = useMemo(() => createSpeedTutorialLifecycle(tutorialStore), [tutorialStore]);
@@ -124,20 +128,24 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
 
   // ---- GO timer: after the seeded delay the signal appears; `goAtMs` is the
   // monotonic clock reading at the actual display moment (timer jitter-safe).
-  // Pause deactivates the timer; resume re-arms it from scratch.
-  useGameTimeout(
+  // Pause deactivates the timer; resume continues its remaining budget.
+  useGameDeadlineTimeout(
     state.phase === 'wait' && !state.paused,
     () => dispatch({ type: 'go', goAtMs: clock.now() }),
     state.delayMs,
+    clock,
+    `wait:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
   );
 
   // ---- Reaction-window timeout: no tap within timeoutMs of GO → the round
-  // fails as a timeout. Pause cancels it; resuming re-displays GO (fresh
-  // goAtMs via the resume path below) and restarts the window.
-  useGameTimeout(
+  // fails as a timeout. Pause cancels it; resuming continues the remaining
+  // window instead of restarting it.
+  useGameDeadlineTimeout(
     state.phase === 'go' && !state.paused,
     () => dispatch({ type: 'round-timeout' }),
     timeoutMs,
+    clock,
+    `go:${state.sessionId ?? 'idle'}:${state.roundIndex}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -215,6 +223,7 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistSpeedSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;
@@ -251,13 +260,13 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
 
   const resumeSession = useCallback(() => {
     if (session.resumeIfPaused()) {
+      const pausedMs =
+        pauseStartedAtRef.current === null
+          ? 0
+          : Math.max(0, clock.now() - pauseStartedAtRef.current);
+      pauseStartedAtRef.current = null;
       const current = stateRef.current;
-      dispatch({ type: 'resume' });
-      if (current.phase === 'go') {
-        // The GO signal was hidden by the overlay during the pause: re-display
-        // it now and restart the measured reaction window from this moment.
-        dispatch({ type: 'go', goAtMs: clock.now() });
-      }
+      dispatch({ type: 'resume', pausedMs: current.phase === 'go' ? pausedMs : undefined });
     }
   }, [clock, session, dispatch]);
 

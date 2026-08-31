@@ -1,24 +1,24 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 016 terminal limitations
+## Current status — Campaign 018 active hardening
 
-- **Campaign 016 is VALIDATED, not ACTIVE.** The repository has no active
-  campaign; `.agent/GOVERNANCE.json.activeCampaign` is explicitly `null`, and
-  the last campaign is `016-release-certification-hardening` with status
-  `VALIDATED`. No Campaign 017 was created.
+- **Campaign 018 is ACTIVE by explicit owner authorization.** Campaign 017
+  closed with its persistence, portability, sync, and temporal read-boundary
+  repair set validated; 018 now owns quest/streak input validation, canonical
+  calendar coverage, time-safe reward claims, and progression reconciliation.
+  The successor sequence 017–020 is being executed autonomously; no game or
+  deferred external system is in scope.
 - **Android device certification remains BLOCKED / NOT VALIDATED (2026-08-30 post-validation matrix):** dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7) and `braintraining-qa35` (google_apis) now exist on this Linux host and were both booted headless with TCG (`-accel off`, `-no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). All 4 hypothesis-driven configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) reached `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exited at ~5 min with `Netsim Wifi … gone due to CANCELLED` / `stop: Not implemented` / `cannnot unmap ptr` (same signature as 37.1.11 WHPX failure, now also reproduced on Linux TCG). `/dev/kvm` missing (`accel=8`, `modprobe` unavailable, VT disabled), so no KVM acceleration was possible; `sdkmanager --list` offers only emulator 37.1.11 (no pin to older stable version). The foreign `study-maker-api35` (API 35 google_apis pixel_2) still exists but was not adopted. No physical ADB device is connected. This remains an external environment/toolchain limitation, not a product-build failure; see checkpoint addendum 2026-08-30 and `VALIDATION.md`.
 - **Manual platform evidence remains NOT VALIDATED / DEFERRED:** TalkBack,
   SAF/share/document-picker system sheets, physical-device behavior, and manual
   iOS runtime UX were not performed. iOS simulator compile PASS is kept
   separate from runtime UX. Signing/store, cloud/auth, telemetry, and
   monetization remain constitution-deferred.
-- **Automated evidence is converged:** exact source head
-  `f0d301bc1b80ed657c75af81c476ee87dbeea540` passed App CI `33293614545`,
-  Repository Integrity `33293614543`, Android Build Smoke `33293614561`, and
-  iOS Build Smoke `33293614540`; local full Jest, persistence/recovery,
-  migration, backup/rollback, performance, and signal gates also pass. No
-  unresolved Critical/High product regression or material data-loss/corruption
-  defect is known.
+- **Campaign 017 automated evidence is closed:** repository, OpenSpec,
+  ownership, registry, provenance, offline, TypeScript, lint, and QA self-test
+  51/51 pass; full Node 22 Jest passed 489 suites / 6087 tests with 4 suites /
+  5 tests skipped by the explicit measurement allowlist. Campaign 018's
+  focused engagement gate is now active; no failure is hidden or allowlisted.
 - The older Android timeout (`33239131146` on `31a6143`) is retained below as
   historical evidence only; it is not the current Android result.
 - **Historical 014 device limitation (COMPLETED at 6451bfb):** 014's exit evidence is prior dedicated-AVD green at `f4aa44c` (canaries 8/8 + daily 4/4 + focus 4/4 on `braintraining-qa36` / `emulator-5554`) plus `BUILD SUCCESSFUL` 80M APK + `adb install` `Success` + `am start` success + `adb reverse` + `Metro` 8081 ready + precise workout slack at `d645bbb` (unit-test-green, fixing 2 suites red at `4ac4d45`). The re-run with the precise slack was **NOT VALIDATED on device due to genuine 37.1.x WHPX emulator segfault**; it was accepted for 014 under the documented evidence policy.

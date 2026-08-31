@@ -99,6 +99,13 @@ export interface GameSessionController {
    * once per session (double-submission guard); `begin()` re-arms it.
    */
   claimFinalize(): boolean;
+  /**
+   * Return whether an async completion still belongs to the current session.
+   * `begin()` changes this identity synchronously, before React renders the
+   * restarted screen, so late persistence callbacks cannot update the new
+   * session through a stale closure.
+   */
+  isCurrentSession(sessionId: string | null | undefined): boolean;
 }
 
 export function useGameSession(options: UseGameSessionOptions): GameSessionController {
@@ -109,6 +116,7 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
   // Once-per-session finalization guard (same role as the old per-screen
   // `finalizedRef`; kept under the same name deliberately).
   const finalizedRef = useRef(false);
+  const currentSessionIdRef = useRef<string | null>(null);
 
   // Latest options via refs: the AppState subscription below is mounted once,
   // while canPause/onPause closures may change every render.
@@ -153,6 +161,7 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
       // observer closes (campaign 010, debt D4).
       markGameSessionStart(gameId);
       const sessionId = createSessionId(gameId);
+      currentSessionIdRef.current = sessionId;
       // Query parameters are untrusted input. The route parser already
       // validates their shape; the game-id check here prevents a tampered
       // launch tuple from claiming a different game's completion.
@@ -214,5 +223,12 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
       finalizedRef.current = true;
       return true;
     }, []),
+    isCurrentSession: useCallback(
+      (sessionId: string | null | undefined) =>
+        sessionId !== null &&
+        sessionId !== undefined &&
+        currentSessionIdRef.current === sessionId,
+      [],
+    ),
   };
 }

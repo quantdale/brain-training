@@ -49,7 +49,7 @@ const EMPTY: ProgressSnapshot = {
 };
 
 function load(db: AppDatabase): Promise<ProgressSnapshot> {
-  return loadProgressSnapshot(db);
+  return loadProgressSnapshot(db, Date.now());
 }
 
 export default function ProgressActivityScreen() {

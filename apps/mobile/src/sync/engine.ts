@@ -125,8 +125,11 @@ export function createNoopSyncEngine(): SyncEngine {
       };
     },
 
-    async pull(_cursor): Promise<SyncPullResult> {
-      return { cursor: null, changes: [], hasMore: false };
+    async pull(cursor): Promise<SyncPullResult> {
+      // Even a no-op engine must preserve the caller's opaque cursor. This
+      // keeps a future adapter's "no changes" response composable and avoids
+      // accidentally rewinding durable sync progress during offline cycles.
+      return { cursor, changes: [], hasMore: false };
     },
   };
 }

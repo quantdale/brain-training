@@ -215,6 +215,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistOddOneOutSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

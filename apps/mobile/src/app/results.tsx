@@ -47,13 +47,14 @@ function loadResults(
   id: string | undefined,
 ): Promise<ResultsData> {
   return (async () => {
+    const throughMs = Date.now();
     const session = id
       ? await db.sessions.getById(id)
-      : ((await db.sessions.listRecent(1))[0] ?? null);
-    const recent = await db.sessions.listRecent(20);
+      : ((await db.sessions.listRecent(1, throughMs))[0] ?? null);
+    const recent = await db.sessions.listRecent(20, throughMs);
     // Task 9.4: Load exact rating history for selected session
     const ratingHistory = session
-      ? await db.ratings.getHistoryForSession(session.id)
+      ? await db.ratings.getHistoryForSession(session.id, throughMs)
       : [];
     return { session, recent, ratingHistory };
   })();

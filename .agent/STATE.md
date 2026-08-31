@@ -1,31 +1,29 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-30 post-validation Android device pass (exact head `0e5eb34c13d87f2e4a8dfa40acb44e8d27e614a8`, `HEAD == origin/main`, clean tree; re-validated after dedicated AVD provisioning). Full Jest is PASS (489 suites / 6056 tests, 0 failures, 4 opt-in suite skips and 5 opt-in test skips, all allowlisted); DB integrity/idempotency, migrations, backup/rollback, and both opt-in performance probes are PASS. Jest signal validation is PASS (0 unclassified skips, 0 unexpected warnings). Android clean native generation/release build and iOS simulator compile are PASS on the historical exact source head `f0d301bc1b80ed657c75af81c476ee87dbeea540` (re-validated on `0e5eb34` with no native code change). Dedicated Android runtime, hierarchy, and manual UX remain BLOCKED/NOT VALIDATED after a bounded Linux TCG 37.1.11 matrix: dedicated `braintraining-qa36` (ATD) and `braintraining-qa35` (google_apis) now exist (plus foreign `study-maker-api35` not used) but each TCG boot reaches `adb device` after ~65–80 s then qemu exits before `sys.boot_completed=1` (`Netsim Wifi gone due to CANCELLED`); `/dev/kvm` missing (accel=8) and `sdkmanager` offers only 37.1.11, so no stable candidate exists on this machine. No Critical/High product regression or material data-loss/corruption defect is currently known.
+**Last update:** 2026-08-30 Campaign 018 activation after Campaign 017 closure. The owner-authorized sequence has validated the persistence/portability/sync/temporal repair set; 018 now owns engagement input, calendar, reward-claim, and progression reconciliation hardening. Android runtime and manual evidence remain BLOCKED/NOT VALIDATED under the previously recorded bounded emulator matrix.
 **Canonical branch:** `main`
-**Active campaign:** none
-**Last campaign:** 016-release-certification-hardening
+**Active campaign:** 018-engagement-temporal-integrity
+**Last campaign:** 017-persistence-boundary-hardening
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 016 — Release Certification & Hardening is **VALIDATED**. The
-repository is in a terminal state with no active campaign; no Campaign 017 was
-created. The final classification is **LOCALLY / AUTOMATED COMPLETE — EXTERNAL
-DEVICE / MANUAL CERTIFICATION PENDING**. This closes repository-owned
-implementation, automated certification, native build-smoke, and exact-SHA CI
-work while preserving unavailable runtime/manual evidence as explicit
-non-PASS classifications.
+Campaign 018 — Engagement Temporal Integrity is **ACTIVE** under the
+owner-authorized successor sequence 017–020. Campaign 017 is validated with
+safe-integer storage, rating/session identity, backup/restore rollback,
+deterministic sync, canonical profile export, and user-facing as-of reads.
+Campaign 018 owns strict quest/streak inputs, canonical covered dates,
+time-safe reward claims, and progression reconciliation. SQLite remains
+canonical and no new game or deferred external system is in scope.
 
-Current automated evidence includes repository/OpenSpec/ownership/registry/
-provenance/offline validators, QA self-test 49/49, TypeScript, lint, full Jest,
-Jest-signal validation, web export (20 static routes), Expo Doctor (21/21), DB
-integrity/idempotency, migration matrix/robustness/v10 hardening,
-backup/import/rollback, storage/database-lock boundaries, workout attribution
-and lifecycle tests, the 6-suite/28-test production-boundary set, and both
-performance probes. The local host required `npm ci --ignore-scripts` under
-Node 22 because the ordinary install cannot compile `better-sqlite3` without
-`make`; GitHub's clean runner completed its normal install and native builds.
+Current evidence is the validated 017 baseline plus the newly activated 018
+scope: repository validators, TypeScript, lint, QA self-test 51/51,
+projection/session/rating/migration, portability, reward, streak, and
+achievement suites pass; full Node 22 Jest passed 489 suites / 6087 tests with
+4 suites / 5 tests skipped by the explicit measurement allowlist. Android
+runtime and manual platform evidence remain BLOCKED/NOT VALIDATED; 018's
+focused engagement gate is the next executable work.
 
 The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7, `image.sysdir.1=system-images/android-35/aosp_atd/x86_64`) and `braintraining-qa35` (google_apis, same API) alongside the foreign `study-maker-api35`; both dedicated AVDs were created via `avdmanager` from committed inputs and booted headless with TCG (`-accel off -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). A bounded matrix of 4 configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) all reproduced the same external failure: `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exit (`Netsim Wifi … gone due to CANCELLED` / `cannnot unmap ptr` / `TCG avx`); `/dev/kvm` missing (`accel=8`, `modprobe` unavailable) and only emulator 37.1.11 is available via `sdkmanager`, so no stable TCG configuration exists on this container host. Therefore dedicated Android install/start, Rule Grid/Transform Match canaries, Workout V3 daily/focus/relaunch, 42/42 `autobot --mode certify`, Android hierarchy, TalkBack, SAF/system sheets, and manual iOS UX remain **BLOCKED / NOT VALIDATED**. iOS compile PASS is not runtime UX PASS. Signing, store submission, cloud/auth, telemetry, monetization, and other deferred product decisions remain out of scope.
 
@@ -33,11 +31,23 @@ The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (
 
 An executable repository has one ACTIVE campaign in `GOVERNANCE.activeCampaign`,
 `STATE`, `CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, OpenSpec, and task ownership.
-This repository is terminal instead: `GOVERNANCE.activeCampaign` is `null`,
-`lastCampaign` is `016-release-certification-hardening`, and its OpenSpec status
-is `VALIDATED`. The structured fields in the other documents identify that same
-last campaign and terminal status. This is an explicit no-successor state, not
-an omitted or contradictory active campaign.
+Those fields now agree on `018-engagement-temporal-integrity`; the recorded
+last validated predecessor is `017-persistence-boundary-hardening`. The owner
+directive explicitly authorizes the successor sequence, so this is executable
+work rather than a terminal state.
+
+## Campaign 017 closure and Campaign 018 activation — 2026-08-30
+
+Campaign 017 closed with all tasks checked after the full current-head
+convergence. Node 22 Jest passed 489/493 suites and 6087/6092 tests (4 suites
+and 5 tests skipped by the existing explicit measurement allowlist); the
+repository-state, ownership, OpenSpec, registry, provenance, offline,
+TypeScript, lint, and QA self-test 51/51 gates passed. Focused real-DB
+persistence, migration, projection, portability, reward, streak, and sync
+suites passed. Android runtime, manual accessibility/system-sheet,
+physical-device, and manual iOS UX evidence remain BLOCKED/NOT VALIDATED, and
+the accepted 16 build-toolchain npm advisories remain documented. The owner
+directive then atomically activated 018 with no feature expansion.
 
 Historical Campaign 015/016 transition prose below is retained for recovery
 and is historical; it does not override the terminal fields above.
@@ -96,14 +106,12 @@ satisfy or override either state.
 - Deferred product decisions untouched (branding, accounts, cloud sync,
   pricing, ads, AI, social, notifications, store listing).
 
-## Next action
+## Historical Campaign 016 next action
 
-No executable campaign is active. Campaign 016 is terminal `VALIDATED`; a
-future campaign requires explicit owner authorization and genuinely new scope.
-If a designated project device or manual platform session becomes available,
-record the pending Android/manual evidence under this validated campaign or a
-future owner-authorized campaign. Do not create Campaign 017 merely to hold
-manual/device work, add game #43, or broaden product scope.
+The preceding terminal Campaign 016 record required a future owner-authorized
+campaign. That authorization is now explicit and 018 is the sole active
+campaign; its device/manual limitations remain separate from the local
+engagement work.
 
 ## Recovery order
 
@@ -111,5 +119,5 @@ manual/device work, add game #43, or broaden product scope.
 2. `docs/PROJECT_CONSTITUTION.md`
 3. `.agent/GOVERNANCE.json`
 4. `.agent/STATE.md`
-5. `.agent/checkpoints/016-release-certification-hardening-VALIDATED-20260830.md`
+5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`

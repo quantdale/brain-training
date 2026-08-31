@@ -25,6 +25,18 @@ describe('XpAwardsRepository', () => {
     await expect(xp.award(-5, 'nope', 'system')).rejects.toThrow(/positive integer/);
   });
 
+  it('can exclude future-dated awards from as-of totals', async () => {
+    const adapter = await createMigratedDb();
+    let now = T0;
+    const xp = new XpAwardsRepository(adapter, () => now);
+    await xp.award(10, 'past', 'system');
+    now = T0 + 10_000;
+    await xp.award(20, 'future', 'system');
+
+    expect(await xp.getTotalAwardedXp(T0)).toBe(10);
+    expect(await xp.getTotalAwardedXp(T0 + 10_000)).toBe(30);
+  });
+
   it('is append-only: UPDATE and DELETE are rejected', async () => {
     const adapter = await createMigratedDb();
     const xp = new XpAwardsRepository(adapter, () => T0);

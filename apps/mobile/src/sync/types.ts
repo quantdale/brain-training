@@ -150,7 +150,11 @@ export const SYNC_TABLE_DESCRIPTORS: readonly SyncTableDescriptor[] = [
   {
     table: 'xp_awards',
     mergeClass: 'append-only',
-    naturalKey: ['source', 'reason', 'created_at'],
+    // New quest rewards include the period in `source` (`quest:<id>:<period>`)
+    // and achievement/milestone rewards are one-shot. Legacy/generic awards
+    // fall back to their full event payload until a future durable event id is
+    // available.
+    naturalKey: ['source', 'reason'],
   },
   { table: 'tutorial_state', mergeClass: 'field-merge' },
   {

@@ -43,6 +43,15 @@ describe('resolveLastWriteWins', () => {
     expect(resolveLastWriteWins(tieLow, tieHigh)).toBe(tieHigh);
     expect(resolveLastWriteWins(tieHigh, tieLow)).toBe(tieHigh);
   });
+
+  it('breaks same-id, same-time payload ties canonically and symmetrically', () => {
+    const local = row({ note: 'local', updatedAt: 100 });
+    const remote = row({ note: 'remote', updatedAt: 100 });
+    const forward = resolveLastWriteWins(local, remote);
+    const reverse = resolveLastWriteWins(remote, local);
+    expect(forward).toEqual(reverse);
+    expect(forward.note).toBe('remote');
+  });
 });
 
 describe('resolveFieldMerge', () => {
@@ -120,6 +129,12 @@ describe('createNoopSyncEngine', () => {
 
     const pull = await engine.pull(null);
     expect(pull).toEqual({ cursor: null, changes: [], hasMore: false });
+
+    await expect(engine.pull('cursor-7')).resolves.toEqual({
+      cursor: 'cursor-7',
+      changes: [],
+      hasMore: false,
+    });
   });
 });
 

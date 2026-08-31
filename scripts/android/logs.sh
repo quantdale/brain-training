@@ -50,9 +50,17 @@ buffers="main"
 } >"$out"
 
 if [ "$BT_CRASH" -eq 1 ]; then
-  timeout 60 "$adb_bin" -s "$serial" logcat -d -b crash >>"$out" || true
+  if ! timeout 60 "$adb_bin" -s "$serial" logcat -d -b crash >>"$out"; then
+    bt_die "crash-buffer logcat capture failed or timed out"
+  fi
 else
-  timeout 60 "$adb_bin" -s "$serial" logcat -d >>"$out" || true
+  if ! timeout 60 "$adb_bin" -s "$serial" logcat -d >>"$out"; then
+    bt_die "logcat capture failed or timed out"
+  fi
+fi
+
+if [ ! -s "$out" ]; then
+  bt_die "logcat capture produced an empty artifact: $out"
 fi
 
 if [ -n "$BT_TAIL" ]; then

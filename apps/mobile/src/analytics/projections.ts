@@ -84,7 +84,11 @@ export async function tryLoadProjectedSessionRows(
   db: AppDatabase,
   gameId: string | null,
   limit: number,
+  throughMs?: number,
 ): Promise<ProjectedSessionRow[] | null> {
+  if (throughMs !== undefined && !Number.isSafeInteger(throughMs)) {
+    throw new Error('projection upper bound must be a safe integer');
+  }
   // Dev-only perf mark (campaign 010 W21, debt D4): duration of the whole
   // projection load path, with the resolved tier so QA artifacts can tell
   // fast-path repository reads from the transaction-seam fallback. Pure
@@ -97,8 +101,8 @@ export async function tryLoadProjectedSessionRows(
   try {
     const rows =
       gameId === null
-        ? await db.sessions.listProgressProjection(limit)
-        : await db.sessions.listProgressProjectionByGame(gameId, limit);
+        ? await db.sessions.listProgressProjection(limit, throughMs)
+        : await db.sessions.listProgressProjectionByGame(gameId, limit, throughMs);
     measure.end({ outcome: 'rows', path: 'repository', rowCount: rows.length });
     return rows;
   } catch {
@@ -117,9 +121,18 @@ export async function tryLoadProjectedSessionRows(
         ...DIFFICULTY_LEVEL_PARAMS,
         ...DIFFICULTY_LEVEL_PARAMS,
         ...(gameId === null ? [] : [gameId]),
+        ...(throughMs === undefined ? [] : [throughMs]),
         limit,
       ];
-      const sql = gameId === null ? PROJECTED_SESSIONS_ALL_SQL : PROJECTED_SESSIONS_BY_GAME_SQL;
+      let sql = gameId === null ? PROJECTED_SESSIONS_ALL_SQL : PROJECTED_SESSIONS_BY_GAME_SQL;
+      if (throughMs !== undefined) {
+        sql = sql.replace(
+          "  ORDER BY",
+          gameId === null
+            ? "  WHERE completed_at <= ?\n  ORDER BY"
+            : "  AND completed_at <= ?\n  ORDER BY",
+        );
+      }
       return txn.all<ProjectedSessionRow>(sql, params);
     });
     measure.end({

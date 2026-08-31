@@ -52,13 +52,14 @@ interface DetailData {
 
 function loadDetail(db: AppDatabase, id: string): Promise<DetailData> {
   return (async () => {
+    const nowMs = Date.now();
     const [favorite, aggregate, recent, masteryInput] = await Promise.all([
       db.favorites.isFavorite(id),
-      db.sessions.getGameAggregate(id),
-      db.sessions.listByGame(id, 10),
-      db.sessions.getMasteryInputByGame(id),
+      db.sessions.getGameAggregate(id, nowMs),
+      db.sessions.listByGame(id, 10, nowMs),
+      db.sessions.getMasteryInputByGame(id, nowMs),
     ]);
-    return { nowMs: Date.now(), favorite, aggregate, recent, masteryInput };
+    return { nowMs, favorite, aggregate, recent, masteryInput };
   })();
 }
 

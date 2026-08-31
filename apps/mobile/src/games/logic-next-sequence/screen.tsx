@@ -203,6 +203,7 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistLogicSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

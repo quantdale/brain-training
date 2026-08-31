@@ -186,7 +186,7 @@ export type SpeedAction =
   | { type: 'round-timeout' }
   | { type: 'next-round' }
   | { type: 'pause' }
-  | { type: 'resume' }
+  | { type: 'resume'; pausedMs?: number }
   | { type: 'tutorial-open' }
   | { type: 'tutorial-close' }
   | {

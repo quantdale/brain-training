@@ -11,7 +11,9 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { renderHook } from '@testing-library/react-native';
 
-import { useGameInterval, useGameTimeout } from '../timers';
+import { createFakeClock } from '@/sdk';
+
+import { useGameDeadlineTimeout, useGameInterval, useGameTimeout } from '../timers';
 
 describe('useGameInterval', () => {
   beforeEach(() => {
@@ -178,5 +180,37 @@ describe('useGameTimeout', () => {
     await rendered.unmount();
     jest.advanceTimersByTime(60_000);
     expect(onFire).toHaveBeenCalledTimes(callsAtUnmount);
+  });
+
+  it('preserves the active remainder while paused and resets only for a new key', async () => {
+    const clock = createFakeClock(0);
+    const onFire = jest.fn<() => void>();
+    const rendered = await renderHook(
+      ({ active, keyName }: { active: boolean; keyName: string }) =>
+        useGameDeadlineTimeout(active, onFire, 1_000, clock, keyName),
+      { initialProps: { active: true, keyName: 'round-1' } },
+    );
+
+    clock.advance(400);
+    jest.advanceTimersByTime(400);
+    await rendered.rerender({ active: false, keyName: 'round-1' });
+    clock.advance(5_000);
+    jest.advanceTimersByTime(5_000);
+    expect(onFire).not.toHaveBeenCalled();
+
+    await rendered.rerender({ active: true, keyName: 'round-1' });
+    clock.advance(599);
+    jest.advanceTimersByTime(599);
+    expect(onFire).not.toHaveBeenCalled();
+    clock.advance(1);
+    jest.advanceTimersByTime(1);
+    expect(onFire).toHaveBeenCalledTimes(1);
+
+    await rendered.rerender({ active: false, keyName: 'round-1' });
+    await rendered.rerender({ active: true, keyName: 'round-2' });
+    jest.advanceTimersByTime(999);
+    expect(onFire).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(1);
+    expect(onFire).toHaveBeenCalledTimes(2);
   });
 });

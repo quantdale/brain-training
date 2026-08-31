@@ -29,7 +29,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameInterval,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
@@ -111,12 +111,14 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Reveal pacing: one tick per revealMs; pause deactivates the interval
-  // (timers frozen); resume re-schedules from the current tile.
-  useGameInterval(
+  // ---- Reveal pacing: one tick per revealMs. The deadline preserves the
+  // current tile's remaining exposure across pause/resume.
+  useGameDeadlineTimeout(
     state.phase === 'reveal' && !state.paused,
     () => dispatch({ type: 'reveal-tick' }),
     revealMs,
+    clock,
+    `reveal:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.revealedIndex}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -190,6 +192,7 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistMemorySession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

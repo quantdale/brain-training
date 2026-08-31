@@ -26,7 +26,7 @@ export interface RewardHistoryEntry {
 
 /**
  * Map an xp_award onto a label. `source` values follow the `<kind>:<id>`
- * convention used by the claim flows (`quest:qd3`, `achievement:ach-first`,
+ * convention used by the claim flows (`quest:qd3:2026-08-30`, `achievement:ach-first`,
  * `milestone:mil-7`).
  */
 export function describeXpSource(source: string): { label: string; detail?: string } {
@@ -112,10 +112,11 @@ export function mergeRewardHistory(
 export async function loadRewardHistory(
   db: AppDatabase,
   limit = 20,
+  throughMs = Date.now(),
 ): Promise<RewardHistoryEntry[]> {
   const [xpAwards, ledgerEntries] = await Promise.all([
-    db.xpAwards.list(limit),
-    db.ledger.listRecent(limit),
+    db.xpAwards.list(limit, throughMs),
+    db.ledger.listRecent(limit, throughMs),
   ]);
   return mergeRewardHistory(xpAwards, ledgerEntries, limit);
 }

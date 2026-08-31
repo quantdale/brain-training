@@ -42,13 +42,24 @@ export function toDbAchievementDefinition(
 export async function claimAchievementReward(
   db: AppDatabase,
   definition: AchievementDef,
+  now: Date = new Date(),
 ): Promise<AchievementClaimResult> {
+  const nowMs = now.getTime();
+  if (!Number.isSafeInteger(nowMs)) {
+    throw new RangeError('claimAchievementReward: now must be a valid safe-integer Date');
+  }
   // All reads/claims/awards run inside one transaction (task 7.3): the claim
   // marker, the XP award, and the currency ledger entry commit together or roll
   // back as one, so a crash can never leave a partial reward.
   return db.transaction(async (txn) => {
     const unlock = await db.achievements.getUnlock(definition.id, txn);
     if (!unlock) {
+      return { status: 'not-unlocked' };
+    }
+    // A clock-skewed/imported unlock is not claimable before its recorded
+    // event time. This keeps direct claims consistent with the inbox and
+    // prevents a future unlock from granting progression early.
+    if (unlock.unlockedAt > nowMs) {
       return { status: 'not-unlocked' };
     }
     if (unlock.claimedAt !== null) {

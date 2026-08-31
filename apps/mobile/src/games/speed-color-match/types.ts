@@ -129,7 +129,7 @@ export type SpeedColorMatchAction =
   | { type: 'trial-timeout'; timedOutAtMs: number }
   | { type: 'next-trial' }
   | { type: 'pause' }
-  | { type: 'resume' }
+  | { type: 'resume'; pausedMs?: number }
   | { type: 'tutorial-open' }
   | { type: 'tutorial-close' }
   | {

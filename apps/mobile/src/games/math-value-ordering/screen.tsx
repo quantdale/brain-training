@@ -215,6 +215,7 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     });
     dispatch({ type: 'persistence-started' });
     void persistValueOrderingSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

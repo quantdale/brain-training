@@ -226,7 +226,18 @@ export function speedColorMatchReducer(
     }
 
     case 'resume': {
-      return state.paused ? { ...state, paused: false } : state;
+      if (!state.paused) return state;
+      const pausedMs = Math.max(0, action.pausedMs ?? 0);
+      return {
+        ...state,
+        paused: false,
+        // Preserve the original stimulus and exclude the paused span from
+        // the monotonic reaction-time measurement.
+        trialShownAtMs:
+          state.trialShownAtMs === null
+            ? null
+            : state.trialShownAtMs + pausedMs,
+      };
     }
 
     case 'tutorial-open': {

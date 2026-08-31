@@ -20,10 +20,8 @@ import {
 } from '@/achievements';
 import {
   applyQuestReward,
-  currentPeriodKey,
   QuestNotCompleteError,
   QUEST_DEFINITIONS_V1,
-  selectActiveQuests,
 } from '@/quests';
 import {
   claimStreakMilestoneReward,
@@ -70,8 +68,12 @@ export interface ClaimAllResult {
  * Home/Profile display and the milestone engine's expectations.
  */
 async function currentBestStreak(db: AppDatabase, now: Date): Promise<number> {
+  const nowMs = now.getTime();
+  if (!Number.isSafeInteger(nowMs)) {
+    throw new RangeError('currentBestStreak: now must be a valid safe-integer Date');
+  }
   const [activityDates, profile] = await Promise.all([
-    db.sessions.getDistinctActivityDates(),
+    db.sessions.getDistinctActivityDates(nowMs),
     db.profile.get(),
   ]);
   const settings = profile?.settings ?? {};
@@ -84,7 +86,7 @@ async function currentBestStreak(db: AppDatabase, now: Date): Promise<number> {
 
 /**
  * Collect every currently claimable reward. Deterministic order:
- * achievements (definition order), then quests (active selection order),
+ * achievements (definition order), then quests (definition/period order),
  * then milestones (catalog order).
  */
 export async function collectClaimableRewards(
@@ -96,12 +98,18 @@ export async function collectClaimableRewards(
     db.profile.get(),
   ]);
   const settings = profile?.settings ?? {};
+  const nowMs = now.getTime();
+  if (!Number.isSafeInteger(nowMs)) {
+    throw new RangeError('collectClaimableRewards: now must be a valid safe-integer Date');
+  }
 
   const items: RewardInboxItem[] = [];
 
   // Achievements: unlocked but never claimed.
   const unclaimedUnlockIds = new Set(
-    unlockRows.filter((row) => row.claimedAt === null).map((row) => row.achievementId),
+    unlockRows
+      .filter((row) => row.claimedAt === null && row.unlockedAt <= nowMs)
+      .map((row) => row.achievementId),
   );
   for (const def of ACHIEVEMENT_DEFINITIONS_V1) {
     if (unclaimedUnlockIds.has(def.id)) {
@@ -117,28 +125,30 @@ export async function collectClaimableRewards(
     }
   }
 
-  // Quests: completed in the current period but never claimed.
-  const activeDefs = selectActiveQuests(QUEST_DEFINITIONS_V1, now);
-  for (const def of activeDefs) {
-    const periodKey = currentPeriodKey(def.kind, now);
-    const rows = await db.quests.listProgressForPeriod(periodKey);
-    const row = rows.find((r) => r.questId === def.id);
-    if (
-      row &&
-      row.completedAt !== null &&
-      row.claimedAt === null &&
-      row.progress >= def.criteria.goal
-    ) {
-      items.push({
-        key: `quest:${def.id}:${periodKey}`,
-        kind: 'quest',
-        id: def.id,
-        periodKey,
-        title: def.title,
-        description: def.description,
-        rewardXp: def.reward.xp,
-        rewardCurrency: def.reward.coins,
-      });
+  // Quests: scan every persisted period, not only the active/current pool.
+  // Rotation changes what is surfaced, but must never make an already-earned
+  // reward unreachable. `listProgressForQuest` is ordered by period, giving
+  // the inbox a stable definition-then-period order across rollovers.
+  for (const def of QUEST_DEFINITIONS_V1) {
+    const rows = await db.quests.listProgressForQuest(def.id);
+    for (const row of rows) {
+      if (
+        row.completedAt !== null &&
+        row.completedAt <= nowMs &&
+        row.claimedAt === null &&
+        row.progress >= def.criteria.goal
+      ) {
+        items.push({
+          key: `quest:${def.id}:${row.period}`,
+          kind: 'quest',
+          id: def.id,
+          periodKey: row.period,
+          title: def.title,
+          description: def.description,
+          rewardXp: def.reward.xp,
+          rewardCurrency: def.reward.coins,
+        });
+      }
     }
   }
 
@@ -181,7 +191,7 @@ export async function claimReward(
       if (!def) {
         return { status: 'unavailable' };
       }
-      const result = await claimAchievementReward(db, def);
+      const result = await claimAchievementReward(db, def, now);
       if (result.status === 'claimed') {
         return { status: 'claimed', xp: def.rewardXp, coins: def.rewardCurrency };
       }
@@ -195,7 +205,7 @@ export async function claimReward(
         return { status: 'unavailable' };
       }
       try {
-        const result = await applyQuestReward(db, def, item.periodKey);
+        const result = await applyQuestReward(db, def, item.periodKey, now);
         if (result.status === 'claimed') {
           return {
             status: 'claimed',

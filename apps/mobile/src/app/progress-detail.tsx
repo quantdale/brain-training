@@ -59,10 +59,11 @@ interface ProgressDetailData {
 }
 
 async function loadProgressDetail(db: AppDatabase): Promise<ProgressDetailData> {
+  const throughMs = Date.now();
   const [history, aggregates, recent] = await Promise.all([
-    db.ratings.getHistory(HISTORY_LIMIT),
-    db.sessions.getAggregates(),
-    db.sessions.listRecent(ANALYTICS_WINDOW),
+    db.ratings.getHistory(HISTORY_LIMIT, throughMs),
+    db.sessions.getAggregates(throughMs),
+    db.sessions.listRecent(ANALYTICS_WINDOW, throughMs),
   ]);
   return { history, aggregates, recent };
 }

@@ -100,6 +100,13 @@ describe('createRng helpers', () => {
     expect(max).toBe(3);
   });
 
+  it('nextIntRange rejects fractional or unsafe bounds', () => {
+    const rng = createRng('fractional-range');
+    expect(() => rng.nextIntRange(0.5, 3)).toThrow(RangeError);
+    expect(() => rng.nextIntRange(0, 3.5)).toThrow(RangeError);
+    expect(() => rng.nextIntRange(0, Number.MAX_SAFE_INTEGER + 1)).toThrow(RangeError);
+  });
+
   it('nextInt rejects non-positive maxExclusive', () => {
     expect(() => createRng('x').nextInt(0)).toThrow(RangeError);
     expect(() => createRng('x').nextInt(-1)).toThrow(RangeError);

@@ -210,9 +210,12 @@ bt_wait_for_boot() {
     return 1
   }
   bt_log "waiting for device $serial ..."
-  bt_adb -s "$serial" wait-for-device
   local adb
   adb="$(bt_adb_bin)"
+  if ! timeout 60 "$adb" -s "$serial" wait-for-device >/dev/null 2>&1; then
+    bt_warn "adb wait-for-device timed out for $serial"
+    return 1
+  fi
   until [ "$(timeout 20 "$adb" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do
     waited=$((waited + 1))
     if [ "$waited" -ge "$timeout" ]; then
@@ -226,14 +229,22 @@ bt_wait_for_boot() {
   done
   # Package manager may lag a few seconds behind boot_completed.
   waited=0
-  until timeout 20 "$adb" -s "$serial" shell pm path android >/dev/null 2>&1; do
+  local pm_ready=0
+  while :; do
+    if timeout 20 "$adb" -s "$serial" shell pm path android >/dev/null 2>&1; then
+      pm_ready=1
+      break
+    fi
     waited=$((waited + 1))
     if [ "$waited" -ge 60 ]; then
-      bt_warn "package manager did not answer within 60s after boot_completed; continuing anyway"
+      bt_warn "package manager did not answer within 60s after boot_completed"
       break
     fi
     sleep 1
   done
+  if [ "$pm_ready" -ne 1 ]; then
+    return 1
+  fi
   bt_log "device $serial is booted"
 }
 

@@ -244,6 +244,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistFlexibilityRuleFlipSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

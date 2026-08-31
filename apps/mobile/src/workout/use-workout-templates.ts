@@ -1,5 +1,5 @@
 /**
- * `useWorkoutTemplates` — engine hook for template workouts (Workout V2).
+ * `useWorkoutTemplates` — engine hook for template workouts (Workout V3).
  *
  * Exposes everything a screen needs to present and run NON-daily workouts
  * without knowing the storage/selection internals:
@@ -184,8 +184,8 @@ export function useWorkoutTemplates(
       // Workout V3 (Campaign 014 W4): rank the template members by the full
       // personalization signal set, then record those truthful reasons.
       const [aggregates, recentSessions] = await Promise.all([
-        db.sessions.getAggregates(),
-        db.sessions.listSummaries({ limit: 20 }),
+        db.sessions.getAggregates(nowMs),
+        db.sessions.listSummaries({ limit: 20, toMs: nowMs }),
       ]);
       const v3Context = buildWorkoutV3Context({
         ratings: domainRatings,
@@ -213,7 +213,25 @@ export function useWorkoutTemplates(
             ),
             recentGameIds: [...recentGameIds],
             seed: selection.seed,
+            aggregates: aggregates.map(
+              ({ gameId, count, avgNormalized, bestNormalized, lastCompletedAt }) => ({
+                gameId,
+                count,
+                avgNormalized,
+                bestNormalized,
+                lastCompletedAt,
+              }),
+            ),
+            recentSessions: recentSessions.map(
+              ({ gameId, normalizedResult, completedAt }) => ({
+                gameId,
+                normalizedResult,
+                completedAt,
+              }),
+            ),
+            nowMs,
           },
+          selectionVersion: WORKOUT_SELECTION_SEED_VERSION,
           reasons,
         },
       );

@@ -29,6 +29,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
+  useGameDeadlineTimeout,
   useGameSession,
 } from '@/components/game-host';
 
@@ -106,18 +107,15 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // ---- Reveal pacing: one tick per symbol, re-scheduled on every
-  // `revealedIndex` change so each flash lasts the full `flashMs`; pause
-  // cancels (frozen), resume re-schedules from the current symbol. A plain
-  // chained timeout (not `useGameTimeout`) because the timer must restart
-  // per symbol, which the single-shot host helper cannot key on.
-  useEffect(() => {
-    if (state.phase !== 'reveal' || state.paused) {
-      return;
-    }
-    const timer = setTimeout(() => dispatch({ type: 'reveal-tick' }), flashMs);
-    return () => clearTimeout(timer);
-  }, [state.phase, state.paused, state.revealedIndex, flashMs, dispatch]);
+  // ---- Reveal pacing: one tick per symbol. The deadline preserves the
+  // current symbol's remaining flash time across pause/resume.
+  useGameDeadlineTimeout(
+    state.phase === 'reveal' && !state.paused,
+    () => dispatch({ type: 'reveal-tick' }),
+    flashMs,
+    clock,
+    `reveal:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.revealedIndex}`,
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -188,6 +186,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
     });
     dispatch({ type: 'persistence-started' });
     void persistRunningOrderSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

@@ -222,6 +222,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistFlexibilityCueSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

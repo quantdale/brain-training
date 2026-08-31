@@ -286,6 +286,7 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     });
     dispatch({ type: 'persistence-started' });
     void persistSymbolTrackerSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

@@ -175,8 +175,8 @@ async function loadProfile(
         db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
       ),
     ),
-    db.sessions.getTotalXp(),
-    db.xpAwards.getTotalAwardedXp(),
+    db.sessions.getTotalXp(now.getTime()),
+    db.xpAwards.getTotalAwardedXp(now.getTime()),
   ]);
 
   const profileSettings = profile?.settings ?? {};
@@ -185,7 +185,10 @@ async function loadProfile(
   // Lightweight projection only: quest evaluation needs (gameId, xp,
   // completedAt) — no JSON blobs. Full-row listRecent here was a per-focus
   // scalability hazard on large histories.
-  const sessions = await db.sessions.listLightweight(5000);
+  const sessions = await db.sessions.listLightweight(
+    Number.MAX_SAFE_INTEGER,
+    now.getTime(),
+  );
   const samples: QuestSessionSample[] = sessions.map((session) => ({
     completedAt: session.completedAt,
     gameId: session.gameId,

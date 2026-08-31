@@ -9,7 +9,7 @@
  * | -------------------------- | -------------------------------- | ----------- |
  * | session rows (snapshot)    | `listRecent(ALL)`: full rows incl. both JSON blobs + 2×`JSON.parse` per row — ≈108 ms @20k | JSON1 projection (`./projections`): narrow scalar scan + in-SQL metric extraction, shimmed records — same class as `listLightweight` (≈15 ms @20k); legacy full-row fallback when JSON1 is unavailable |
  * | session rows (per game)    | `listByGame(ALL)` full rows      | same projection with `WHERE game_id = ?` (uses `idx_game_sessions_game_id`) |
- * | rating history             | `getHistory(ALL)`                | unchanged: rows are already slim (6 scalar columns), and consumers need unbounded evidence (all-time personal bests, all-time trend fallback), so bounding would change visible data. Remaining pushdown candidate, see NEEDS_PARENT in the packet |
+ * | rating history             | `getHistory(ALL)`                | bounded by the snapshot clock; rows remain slim and export/repair callers retain the no-bound all-history API |
  * | aggregates / totalXp / balance / ratings | SQL-side already   | unchanged |
  *
  * Statement count stays constant regardless of history size (guarded by
@@ -41,14 +41,18 @@ export interface ProgressSnapshot {
   balance: number;
 }
 
-export async function loadProgressSnapshot(db: AppDatabase): Promise<ProgressSnapshot> {
-  const [ratings, ratingHistory, projectedSessions, aggregates, totalXp, balance] =
+export async function loadProgressSnapshot(
+  db: AppDatabase,
+  throughMs?: number,
+): Promise<ProgressSnapshot> {
+  const [ratings, ratingHistory, projectedSessions, aggregates, sessionXp, awardsXp, balance] =
     await Promise.all([
       db.ratings.getRatings(),
-      db.ratings.getHistory(ALL_SESSIONS_LIMIT),
-      tryLoadProjectedSessionRows(db, null, ALL_SESSIONS_LIMIT),
-      db.sessions.getAggregates(),
-      db.sessions.getTotalXp(),
+      db.ratings.getHistory(ALL_SESSIONS_LIMIT, throughMs),
+      tryLoadProjectedSessionRows(db, null, ALL_SESSIONS_LIMIT, throughMs),
+      db.sessions.getAggregates(throughMs),
+      db.sessions.getTotalXp(throughMs),
+      db.xpAwards.getTotalAwardedXp(throughMs),
       db.ledger.getBalance(),
     ]);
   // Fast path: projected rows rebuilt as blob-shimmed records. Fallback:
@@ -57,18 +61,24 @@ export async function loadProgressSnapshot(db: AppDatabase): Promise<ProgressSna
   const sessions =
     projectedSessions !== null
       ? projectedSessions.map(sessionRecordFromProjection)
-      : await db.sessions.listRecent(ALL_SESSIONS_LIMIT);
-  return { ratings, ratingHistory, sessions, aggregates, totalXp, balance };
+      : await db.sessions.listRecent(ALL_SESSIONS_LIMIT, throughMs);
+  return { ratings, ratingHistory, sessions, aggregates, totalXp: sessionXp + awardsXp, balance };
 }
 
 /** All sessions for one game, newest first (projection fast path, large limit). */
 export async function loadGameSessions(
   db: AppDatabase,
   gameId: string,
+  throughMs?: number,
 ): Promise<GameSessionRecord[]> {
-  const projected = await tryLoadProjectedSessionRows(db, gameId, ALL_SESSIONS_LIMIT);
+  const projected = await tryLoadProjectedSessionRows(
+    db,
+    gameId,
+    ALL_SESSIONS_LIMIT,
+    throughMs,
+  );
   if (projected !== null) {
     return projected.map(sessionRecordFromProjection);
   }
-  return db.sessions.listByGame(gameId, ALL_SESSIONS_LIMIT);
+  return db.sessions.listByGame(gameId, ALL_SESSIONS_LIMIT, throughMs);
 }

@@ -23,6 +23,7 @@ import { emitWorkoutChanged, onWorkoutChanged } from "./events";
 import {
   createWorkoutMetadata,
   dailySelectionSeed,
+  WORKOUT_SELECTION_SEED_VERSION,
 } from "./metadata";
 import { personalizedWorkout, type DomainRating } from "@/workout/personalize";
 import {
@@ -97,8 +98,8 @@ export function useWorkout(args: {
       // plus a bounded page of recent normalized sessions feed the richer
       // signal-ranked ordering. One aggregate pushdown + one indexed page.
       const [aggregates, recentSessions] = await Promise.all([
-        db.sessions.getAggregates(),
-        db.sessions.listSummaries({ limit: 20 }),
+        db.sessions.getAggregates(nowMs),
+        db.sessions.listSummaries({ limit: 20, toMs: nowMs }),
       ]);
       const v3Context = buildWorkoutV3Context({
         ratings: domainRatings,
@@ -129,9 +130,9 @@ export function useWorkout(args: {
         date,
         {
           gameIds: seed.map((g) => g.id),
-          seedVersion: 1,
+          seedVersion: WORKOUT_SELECTION_SEED_VERSION,
         },
-        // V2 metadata (versioned; see metadata.ts). Persisted when the schema
+        // V3 metadata (versioned; see metadata.ts). Persisted when the schema
         // carries the optional metadata_json column, dropped silently on
         // legacy schemas — the daily selection itself is unchanged.
         createWorkoutMetadata({
@@ -145,7 +146,25 @@ export function useWorkout(args: {
             ),
             recentGameIds: [...recentGameIds],
             seed: dailySelectionSeed(date, 0),
+            aggregates: aggregates.map(
+              ({ gameId, count, avgNormalized, bestNormalized, lastCompletedAt }) => ({
+                gameId,
+                count,
+                avgNormalized,
+                bestNormalized,
+                lastCompletedAt,
+              }),
+            ),
+            recentSessions: recentSessions.map(
+              ({ gameId, normalizedResult, completedAt }) => ({
+                gameId,
+                normalizedResult,
+                completedAt,
+              }),
+            ),
+            nowMs,
           },
+          selectionVersion: WORKOUT_SELECTION_SEED_VERSION,
           reasons,
         }),
       );
@@ -220,8 +239,8 @@ export function useWorkout(args: {
     // V3: rank the fresh members by current evidence so a paid reroll buys
     // the most relevant remaining games first (same signals as creation).
     const [aggregates, recentSessions] = await Promise.all([
-      db.sessions.getAggregates(),
-      db.sessions.listSummaries({ limit: 20 }),
+      db.sessions.getAggregates(nowMs),
+      db.sessions.listSummaries({ limit: 20, toMs: nowMs }),
     ]);
     const selection = orderDailyBySignals(
       selectionBase,

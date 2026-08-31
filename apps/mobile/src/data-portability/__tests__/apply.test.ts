@@ -11,7 +11,7 @@ import {
   applyImport,
 } from "../index";
 import { canonicalString } from "../canonical-json";
-import { makeDb, seedFixture, T0 } from "./helpers";
+import { buildEnvelope, emptyData, makeDb, seedFixture, T0 } from "./helpers";
 
 /** Fault-injecting adapter: throws once write (`run`) calls exceed a budget. */
 class FaultInjectingAdapter implements SQLiteAdapter {
@@ -54,6 +54,60 @@ async function exportParsed(src: AppDatabase) {
 }
 
 describe("merge import", () => {
+  it("restores linked history and legacy ledger rows when the session already exists", async () => {
+    const source = await makeDb();
+    await seedFixture(source);
+    const exported = await exportParsed(source);
+    const session = exported.data.gameSessions.find((s) => s.id === "s1")!;
+    const partial = {
+      ...exported.data,
+      gameSessions: [session],
+      ratingHistory: exported.data.ratingHistory.filter((r) => r.sessionId === "s1"),
+      // Legacy rows can lack an operation id, so exercise the session-based
+      // natural-key path as well as the rating-history path.
+      currencyLedger: exported.data.currencyLedger
+        .filter((e) => e.sessionId === "s1")
+        .map((e) => ({ ...e, operationId: null })),
+    };
+
+    const target = await makeDb();
+    await target.transaction(async (txn) => {
+      await txn.run(
+        `INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          session.id,
+          session.gameId,
+          session.gameVersion,
+          session.generatorVersion,
+          session.scoringVersion,
+          session.seed,
+          JSON.stringify(session.difficulty),
+          JSON.stringify(session.rawResult),
+          session.normalizedResult,
+          session.xp,
+          session.startedAt,
+          session.completedAt,
+          session.durationMs,
+        ],
+      );
+    });
+
+    const result = await applyImport(
+      target,
+      parseAndValidateBackup(
+        serializeBackup(buildEnvelope(partial)),
+      ),
+      "merge",
+    );
+
+    expect(result.sessionsAdded).toBe(0);
+    expect(result.ratingHistoryAdded).toBe(1);
+    expect(result.ledgerAdded).toBe(1);
+    expect(await target.ratings.getHistoryForSession("s1")).toHaveLength(1);
+    expect((await target.ledger.list(100)).filter((e) => e.sessionId === "s1")).toHaveLength(1);
+  });
+
   it("is idempotent — re-importing the same backup adds nothing", async () => {
     const src = await makeDb();
     await seedFixture(src);
@@ -70,6 +124,38 @@ describe("merge import", () => {
     expect(second.ledgerAdded).toBe(0);
     expect(second.xpAwardsAdded).toBe(0);
     expect(second.ratingHistoryAdded).toBe(0);
+  });
+
+  it("does not let an older tutorial backup undo completion", async () => {
+    const target = await makeDb();
+    await target.transaction(async (txn) => {
+      await txn.run(
+        "INSERT INTO tutorial_state (game_id, completed, replay_requested, version, updated_at) VALUES (?, ?, ?, ?, ?)",
+        ["memory", 1, 0, "2.0.0", T0 + 100],
+      );
+    });
+
+    const data = emptyData();
+    data.tutorialState = [
+      {
+        gameId: "memory",
+        completed: false,
+        replayRequested: true,
+        version: "1.0.0",
+        updatedAt: T0,
+      },
+    ];
+    await applyImport(
+      target,
+      parseAndValidateBackup(serializeBackup(buildEnvelope(data))),
+      "merge",
+    );
+
+    expect(await target.tutorials.getTutorialState("memory")).toEqual({
+      completed: true,
+      replayRequested: false,
+      version: "2.0.0",
+    });
   });
 
   it("keeps both completed sessions when merging a second backup", async () => {

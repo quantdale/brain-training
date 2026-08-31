@@ -222,6 +222,7 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistTargetCountSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

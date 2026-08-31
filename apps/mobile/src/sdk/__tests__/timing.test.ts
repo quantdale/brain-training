@@ -1,6 +1,6 @@
 // Jest globals imported explicitly (repo has no @types/jest; see orchestrator report).
 import { describe, expect, it } from '@jest/globals';
-import { createFakeClock, Stopwatch, systemClock } from '../timing';
+import { createFakeClock, createMonotonicClock, Stopwatch, systemClock } from '../timing';
 
 describe('createFakeClock', () => {
   it('starts at the given time and tracks advance/set', () => {
@@ -58,5 +58,15 @@ describe('systemClock', () => {
     const a = systemClock.now();
     const b = systemClock.now();
     expect(b).toBeGreaterThanOrEqual(a);
+  });
+
+  it('clamps a wall-clock rollback in the fallback source', () => {
+    const samples = [1000, 1200, 900, 950, 1400];
+    const clock = createMonotonicClock(() => samples.shift() ?? 1400);
+    expect(clock.now()).toBe(1000);
+    expect(clock.now()).toBe(1200);
+    expect(clock.now()).toBe(1200);
+    expect(clock.now()).toBe(1200);
+    expect(clock.now()).toBe(1400);
   });
 });

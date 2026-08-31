@@ -209,6 +209,7 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
     });
     dispatch({ type: 'persistence-started' });
     void persistVisualSearchSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

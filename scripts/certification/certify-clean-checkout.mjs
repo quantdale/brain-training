@@ -3,7 +3,7 @@
  * Reproducible clean-checkout certification for Campaign 016.
  *
  * Run from the repository root after creating a fresh checkout/worktree:
- *   node scripts/certify-clean-checkout.mjs
+ *   node scripts/certification/certify-clean-checkout.mjs
  *
  * The repository has no root package manifest/lockfile. The Expo app is the
  * install boundary, so npm ci and app commands deliberately run in
@@ -21,6 +21,10 @@ const root = process.cwd();
 const app = path.join(root, 'apps', 'mobile');
 const allowJestNotValidated = process.argv.includes('--allow-jest-not-validated');
 const skipInstall = process.argv.includes('--skip-install');
+// These switches are useful for diagnostics on constrained hosts, but they
+// deliberately make this invocation non-certifying. A release gate must not
+// report PASS when a required boundary was skipped or could not be validated.
+const nonCertifyingOptions = allowJestNotValidated || skipInstall;
 
 function fail(message) {
   console.error(`certify-clean-checkout: FAIL — ${message}`);
@@ -103,6 +107,9 @@ if (root !== path.resolve(root)) {
   // Keep the failure message above as the actionable result.
 } else {
   const results = [];
+  if (skipInstall) {
+    console.warn('app npm ci=NOT_VALIDATED (--skip-install is diagnostic-only)');
+  }
   if (!skipInstall) results.push(run('app npm ci', 'npm', ['ci', '--ignore-scripts'], app));
   results.push(run('repository state', 'node', ['scripts/validate-repo-state.mjs']));
   results.push(run('task ownership', 'node', ['scripts/validate-task-ownership.cjs']));
@@ -120,15 +127,16 @@ if (root !== path.resolve(root)) {
   if (!jestOk) {
     if (allowJestNotValidated) {
       console.warn('full_jest=NOT_VALIDATED (explicitly allowed; inspect and record the failure evidence)');
-    } else {
-      results.push(false);
     }
+    // An explicitly allowed NOT VALIDATED result is still a failed
+    // certification gate; the flag only lets the remaining diagnostics run.
+    results.push(false);
   } else {
     results.push(true);
   }
   results.push(trackedMutation());
 
-  if (results.some((result) => !result)) {
+  if (nonCertifyingOptions || results.some((result) => !result)) {
     fail('clean-checkout certification did not pass all required gates');
   } else {
     console.log('\ncertify-clean-checkout: PASS');

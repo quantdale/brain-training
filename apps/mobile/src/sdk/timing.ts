@@ -13,17 +13,35 @@ export interface Clock {
   now(): number;
 }
 
+/** Wrap any finite clock source so wall-clock rollback cannot move time back. */
+export function createMonotonicClock(readNow: () => number): Clock {
+  let lastNow = Number.NEGATIVE_INFINITY;
+  return {
+    now: () => {
+      const candidate = readNow();
+      if (!Number.isFinite(candidate)) {
+        return lastNow === Number.NEGATIVE_INFINITY ? 0 : lastNow;
+      }
+      lastNow = Math.max(lastNow, candidate);
+      return lastNow;
+    },
+  };
+}
+
 /**
  * Real monotonic clock. Prefers `performance.now()` (monotonic, high
  * resolution, available on Hermes/RN, Node ≥ 16, and browsers) and falls back
- * to `Date.now()` where unavailable.
+ * to a rollback-safe `Date.now()` source where unavailable.
  */
-export const systemClock: Clock = {
-  now: () =>
-    typeof performance !== 'undefined' && typeof performance.now === 'function'
-      ? performance.now()
-      : Date.now(),
+const readSystemNow = () => {
+  if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+    const perfNow = performance.now();
+    if (Number.isFinite(perfNow)) return perfNow;
+  }
+  return Date.now();
 };
+
+export const systemClock: Clock = createMonotonicClock(readSystemNow);
 
 /** Fake clock for tests: manual `advance`/`set` control over time. */
 export interface FakeClock extends Clock {

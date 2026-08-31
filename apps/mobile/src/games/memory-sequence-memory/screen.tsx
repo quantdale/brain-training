@@ -35,6 +35,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
+  useGameDeadlineTimeout,
   useGameInterval,
   useGameSession,
 } from '@/components/game-host';
@@ -154,18 +155,15 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   const inSession =
     state.phase === 'reveal' || state.phase === 'input' || state.phase === 'roundResult';
 
-  // ---- Reveal pacing: one tick per tile, re-scheduled on every
-  // `revealedIndex` change so each flash lasts the full `revealMs`; pause
-  // cancels (frozen), resume re-schedules from the current tile. A plain
-  // chained timeout (not `useGameTimeout`) because the timer must restart
-  // per tile, which the single-shot host helper cannot key on.
-  useEffect(() => {
-    if (state.phase !== 'reveal' || state.paused) {
-      return;
-    }
-    const timer = setTimeout(() => dispatch({ type: 'reveal-tick' }), revealMs);
-    return () => clearTimeout(timer);
-  }, [state.phase, state.paused, state.revealedIndex, revealMs, dispatch]);
+  // ---- Reveal pacing: one tick per tile. The deadline preserves the current
+  // tile's remaining flash time across pause/resume.
+  useGameDeadlineTimeout(
+    state.phase === 'reveal' && !state.paused,
+    () => dispatch({ type: 'reveal-tick' }),
+    revealMs,
+    clock,
+    `reveal:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.revealedIndex}`,
+  );
 
   // ---- Score-attack countdown: while in session and unpaused, check the
   // monotonic budget every 250ms; expire the session when it is exhausted and
@@ -265,6 +263,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
     });
     dispatch({ type: 'persistence-started' });
     void persistSequenceMemorySession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

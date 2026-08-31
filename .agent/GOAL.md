@@ -22,6 +22,14 @@ The repository must remain continuously recoverable and autonomously developable
 
 Full hardening is user-invoked only. When requested, first clarify scope from the user's explicit command if it is not already specified: affected subsystem, current milestone, entire app, or production hardening.
 
+## Current owner directive
+
+On 2026-08-30 the owner explicitly authorized a whole-codebase hardening
+pass, followed by autonomous execution of Campaigns 017 through 020, with a
+second whole-codebase hardening pass after Campaign 020. The agent may choose
+the concrete campaign packets within the constitution and must preserve
+honest `PASS` / `NOT VALIDATED` / `BLOCKED` classifications.
+
 ## Terminal campaign state
 
 When `GOVERNANCE.activeCampaign` is `null` and the durable state records a

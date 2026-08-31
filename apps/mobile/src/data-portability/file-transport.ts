@@ -30,6 +30,21 @@ import type { BackupTransport } from "./transport";
 /** Backups live in a dedicated folder so listing/deleting stays scoped. */
 export const BACKUP_DIRECTORY_NAME = "backups";
 
+/** Keep transport names inside the app-owned backup directory. */
+function validateBackupName(name: string): void {
+ if (
+  typeof name !== "string" ||
+  name.length === 0 ||
+  name === "." ||
+  name === ".." ||
+  name.includes("/") ||
+  name.includes("\\") ||
+  name.includes("\u0000")
+ ) {
+  throw new Error("Backup name must be a non-empty file name inside the backups directory");
+ }
+}
+
 type FileSystemModule = typeof import("expo-file-system");
 type PickerModule = typeof import("expo-document-picker");
 type SharingModule = typeof import("expo-sharing");
@@ -108,21 +123,42 @@ function ensureBackupDirectory(): FsDirectory {
 
 /**
  * Production `BackupTransport` backed by the app document directory.
- * Overwrite semantics: writing an existing name replaces it (delete-then-
- * write; checksums and rollback safety live in the engine layers above).
+ * Overwrite semantics: writing an existing name replaces it with a temp-file
+ * write followed by an atomic same-directory move. A failed write therefore
+ * leaves the previous complete backup available for recovery.
  */
 export function createFileBackupTransport(): BackupTransport {
  return {
   async writeBackup(name, contents) {
+   validateBackupName(name);
    const fs = fileSystem();
-   const file = new fs.File(ensureBackupDirectory(), name);
-   if (file.exists) {
-    file.delete();
+   const dir = ensureBackupDirectory();
+   const file = new fs.File(dir, name);
+   // A same-directory rename is atomic on the app's private filesystem. The
+   // nonce is only for the temporary path; it is never exposed by listing.
+   const temporaryName = `.${name}.${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2)}.tmp`;
+   const temporary = new fs.File(dir, temporaryName);
+   try {
+    temporary.write(contents);
+    await temporary.move(file, { overwrite: true });
+   } catch (error) {
+    // Best-effort cleanup must never mask the original storage failure, and
+    // importantly never deletes the prior destination.
+    try {
+     if (temporary.exists) {
+      temporary.delete();
+     }
+    } catch {
+     // The orphaned temp is harmless and remains scoped to the backup folder.
+    }
+    throw error;
    }
-   file.write(contents);
   },
 
   async readBackup(name) {
+   validateBackupName(name);
    const fs = fileSystem();
    const file = new fs.File(ensureBackupDirectory(), name);
    if (!file.exists) {
@@ -142,6 +178,7 @@ export function createFileBackupTransport(): BackupTransport {
   },
 
   async deleteBackup(name) {
+   validateBackupName(name);
    const fs = fileSystem();
    const file = new fs.File(ensureBackupDirectory(), name);
    // Contract: no-op when the name does not exist.
@@ -193,6 +230,7 @@ export async function shareBackupFile(
  name: string,
  dialogTitle = "Share backup",
 ): Promise<boolean> {
+ validateBackupName(name);
  const share = sharing();
  const fs = fileSystem();
  const file = new fs.File(backupDirectory(), name);

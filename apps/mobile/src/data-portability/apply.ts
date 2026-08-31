@@ -17,9 +17,9 @@
  *               entire backup. The whole operation runs in one transaction, so
  *               a failure leaves the database exactly as it was.
  *
- * The clear path disables triggers with `PRAGMA triggers = OFF` and re-enables
- * them in a `catch` as well as on success, so a half-failed replace never
- * leaves the shared connection with triggers disabled.
+ * The clear path temporarily drops the connection's triggers and recreates
+ * them in a `finally`, so a half-failed replace never leaves the shared
+ * connection without its integrity guards.
  */
 
 import {
@@ -103,6 +103,22 @@ function dedupeNonNullKey<T>(
     out.push(item);
   }
   return out;
+}
+
+/**
+ * Stable identity for XP awards whose producer has a logical one-shot key.
+ * Legacy/generic awards intentionally return null: two unrelated system
+ * awards may legitimately share source/reason/time and must remain distinct.
+ */
+function xpAwardIdentity(
+  award: BackupData["xpAwards"][number],
+): string | null {
+  const source = award.source;
+  const stable =
+    source.startsWith("achievement:") ||
+    source.startsWith("milestone:") ||
+    /^quest:[^:]+:.+$/.test(source);
+  return stable ? composite(source, award.reason) : null;
 }
 
 /** Composite key helper (entries are kept distinct unless every field matches). */
@@ -220,8 +236,7 @@ async function writeSessions(
   sessions: BackupData["gameSessions"],
   mode: ImportMode,
   c: ImportCounters,
-): Promise<Set<string>> {
-  const newIds = new Set<string>();
+): Promise<void> {
   const INSERT =
     "INSERT INTO game_sessions (id, game_id, game_version, generator_version, scoring_version, seed, difficulty_json, raw_result_json, normalized_result, xp, started_at, completed_at, duration_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   for (const s of sessions) {
@@ -248,12 +263,13 @@ async function writeSessions(
       s.xp,
       s.startedAt,
       s.completedAt,
-      s.durationMs,
+      // Older app versions briefly persisted the monotonic-clock fraction in
+      // this INTEGER-declared column. Preserve those backups while restoring
+      // the current storage invariant at the import boundary.
+      Math.round(s.durationMs),
     ]);
-    newIds.add(s.id);
     c.sessionsAdded += 1;
   }
-  return newIds;
 }
 
 async function writeRatingHistory(
@@ -261,16 +277,10 @@ async function writeRatingHistory(
   history: BackupData["ratingHistory"],
   mode: ImportMode,
   c: ImportCounters,
-  newSessionIds: Set<string>,
 ): Promise<void> {
   const INSERT =
     "INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at) VALUES (?, ?, ?, ?, ?)";
   for (const r of history) {
-    // Only import history for sessions we actually inserted (or the whole
-    // backup in replace mode, where every session was inserted).
-    if (!newSessionIds.has(r.sessionId)) {
-      continue;
-    }
     if (mode === "merge") {
       const existing = await txn.get<{ id: number }>(
         "SELECT id FROM rating_history WHERE session_id = ? AND domain = ?",
@@ -294,7 +304,6 @@ async function writeLedger(
   ledger: BackupData["currencyLedger"],
   mode: ImportMode,
   c: ImportCounters,
-  newSessionIds: Set<string>,
 ): Promise<void> {
   const INSERT =
     "INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)";
@@ -307,7 +316,6 @@ async function writeLedger(
         );
         if (ex) continue;
       } else if (e.sessionId) {
-        if (!newSessionIds.has(e.sessionId)) continue; // session already present → its ledger is too
         const ex = await txn.get<{ id: number }>(
           "SELECT id FROM currency_ledger WHERE session_id = ? AND reason = ? AND amount = ? AND created_at = ?",
           [e.sessionId, e.reason, e.amount, e.createdAt],
@@ -342,10 +350,16 @@ async function writeXpAwards(
     "INSERT INTO xp_awards (amount, reason, source, created_at) VALUES (?, ?, ?, ?)";
   for (const a of awards) {
     if (mode === "merge") {
-      const ex = await txn.get<{ id: number }>(
-        "SELECT id FROM xp_awards WHERE source = ? AND amount = ? AND reason = ? AND created_at = ?",
-        [a.source, a.amount, a.reason, a.createdAt],
-      );
+      const stable = xpAwardIdentity(a);
+      const ex = stable
+        ? await txn.get<{ id: number }>(
+            "SELECT id FROM xp_awards WHERE source = ? AND reason = ?",
+            [a.source, a.reason],
+          )
+        : await txn.get<{ id: number }>(
+            "SELECT id FROM xp_awards WHERE source = ? AND amount = ? AND reason = ? AND created_at = ?",
+            [a.source, a.amount, a.reason, a.createdAt],
+          );
       if (ex) continue;
     }
     await txn.run(INSERT, [a.amount, a.reason, a.source, a.createdAt]);
@@ -418,6 +432,33 @@ async function writeTutorial(
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
+  const incomingWins = (
+    existing: {
+      updated_at: number;
+      completed: number;
+      replay_requested: number;
+      version: string | null;
+    },
+    incoming: BackupData["tutorialState"][number],
+  ): boolean => {
+    if (incoming.updatedAt !== existing.updated_at) {
+      return incoming.updatedAt > existing.updated_at;
+    }
+    // Backups do not carry an origin-device id, so equal timestamps need a
+    // stable value tie-breaker rather than depending on import array order.
+    const existingKey = JSON.stringify([
+      existing.version,
+      existing.completed === 1,
+      existing.replay_requested === 1,
+    ]);
+    const incomingKey = JSON.stringify([
+      incoming.version,
+      incoming.completed,
+      incoming.replayRequested,
+    ]);
+    return incomingKey > existingKey;
+  };
+
   for (const t of states) {
     if (mode === "merge") {
       const ex = await txn.get<{ game_id: string }>(
@@ -425,13 +466,41 @@ async function writeTutorial(
         [t.gameId],
       );
       if (ex) {
+        const current = await txn.get<{
+          completed: number;
+          replay_requested: number;
+          version: string | null;
+          updated_at: number;
+        }>(
+          "SELECT completed, replay_requested, version, updated_at FROM tutorial_state WHERE game_id = ?",
+          [t.gameId],
+        );
+        if (!current) {
+          throw new Error(`tutorial state disappeared during merge (${t.gameId})`);
+        }
+        const winnerIsIncoming = incomingWins(current, t);
+        const winner = winnerIsIncoming
+          ? {
+              replayRequested: t.replayRequested,
+              version: t.version,
+              updatedAt: t.updatedAt,
+            }
+          : {
+              replayRequested: current.replay_requested === 1,
+              version: current.version,
+              updatedAt: current.updated_at,
+            };
+        // Completion is monotonic: a stale/hand-edited backup must never make
+        // an already-finished tutorial appear unseen again. The other fields
+        // follow the newer (or deterministic equal-time) row.
+        const completed = current.completed === 1 || t.completed;
         await txn.run(
           "UPDATE tutorial_state SET completed = ?, replay_requested = ?, version = ?, updated_at = ? WHERE game_id = ?",
           [
-            t.completed ? 1 : 0,
-            t.replayRequested ? 1 : 0,
-            t.version,
-            t.updatedAt,
+            completed ? 1 : 0,
+            winner.replayRequested ? 1 : 0,
+            winner.version,
+            winner.updatedAt,
             t.gameId,
           ],
         );
@@ -459,8 +528,8 @@ async function writeWorkouts(
   mode: ImportMode,
   c: ImportCounters,
 ): Promise<void> {
-  // Workout V2 metadata (schema v10) rides with the row. Null/absent writes
-  // a null cell so an imported legacy row never fabricates provenance.
+  // Workout V3 metadata (current schema v12) rides with the row. Null/absent
+  // writes a null cell so an imported legacy row never fabricates provenance.
   const metadataJson = (w: BackupData["workoutInstances"][number]) =>
     w.metadata == null ? null : JSON.stringify(w.metadata);
   for (const w of workouts) {
@@ -712,17 +781,17 @@ export async function applyData(
     data.achievementUnlocks,
     (a) => a.achievementId,
   );
-  // `xp_awards` has no stable natural key (two legit awards can coincide), so it
-  // is intentionally NOT deduped here.
-  const xpAwards = data.xpAwards;
+  // Stable reward sources are deduped by their logical identity; generic
+  // awards remain distinct even when their payload fields happen to match.
+  const xpAwards = dedupeNonNullKey(data.xpAwards, xpAwardIdentity);
 
   if (mode === "replace") {
     // The append-only DELETE triggers are dropped at the CONNECTION level by the
     // caller (`applyImport` / `clearTablesIgnoringTriggers`) before this
-    // transaction opens — `PRAGMA triggers = OFF` is a removed/no-op pragma in
-    // modern SQLite and cannot be used inside a transaction, so we rely solely
-    // on the connection-level drop. The clear runs in this same transaction, so
-    // any failure rolls it back and the caller re-creates the triggers.
+    // transaction opens — the old `PRAGMA triggers = OFF` approach is a
+    // removed/no-op pragma in modern SQLite and cannot be used inside a
+    // transaction. The clear runs in this same transaction, so any failure
+    // rolls it back and the caller re-creates the triggers.
     for (const table of FK_DELETE_ORDER) {
       await txn.exec(`DELETE FROM ${table}`);
     }
@@ -731,9 +800,9 @@ export async function applyData(
   await writeProfile(txn, data.profile, mode, c);
   await writeFavorites(txn, gameFavorites, mode, c);
   await writeDomainRatings(txn, domainRatings, mode, c);
-  const newSessionIds = await writeSessions(txn, gameSessions, mode, c);
-  await writeRatingHistory(txn, ratingHistory, mode, c, newSessionIds);
-  await writeLedger(txn, currencyLedger, mode, c, newSessionIds);
+  await writeSessions(txn, gameSessions, mode, c);
+  await writeRatingHistory(txn, ratingHistory, mode, c);
+  await writeLedger(txn, currencyLedger, mode, c);
   await writeXpAwards(txn, xpAwards, mode, c);
   await writeTutorial(txn, tutorialState, mode, c);
   await writeWorkouts(txn, workoutInstances, mode, c);

@@ -152,16 +152,16 @@ describe('keyset pagination over tied sort keys', () => {
   it('getHistoryWindowed paginates deterministically over equal created_at values', async () => {
     const adapter = await createMigratedDb();
     // 23 history rows sharing THREE created_at values (FK parent sessions first).
+    // Each row uses its own session because the v12 uniqueness invariant allows
+    // only one rating entry per (session_id, domain).
     await adapter.transaction(async (txn) => {
       for (let i = 0; i < 23; i++) {
-        if (i < 3) {
-          await insertSessionRow(txn, { id: `h${i}`, gameId: 'memory', xp: 0, normalizedResult: 0.5, durationMs: 1, completedAt: T0 });
-        }
+        await insertSessionRow(txn, { id: `h${i}`, gameId: 'memory', xp: 0, normalizedResult: 0.5, durationMs: 1, completedAt: T0 });
       }
       for (let i = 0; i < 23; i++) {
         await txn.run(
           'INSERT INTO rating_history (session_id, domain, delta, rating_after, created_at) VALUES (?, ?, ?, ?, ?)',
-          [`h${i % 3}`, 'Memory', 1, 1000 + i, T0 + (i % 3) * 1000],
+          [`h${i}`, 'Memory', 1, 1000 + i, T0 + (i % 3) * 1000],
         );
       }
     });

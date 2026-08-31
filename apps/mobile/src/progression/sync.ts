@@ -49,8 +49,9 @@ export const PERFECT_SESSIONS_THRESHOLD = 0.9;
 export async function buildQuestSamples(
   db: AppDatabase,
   limit = SYNC_SESSION_SCAN_LIMIT,
+  throughMs?: number,
 ): Promise<QuestSessionSample[]> {
-  const rows = await db.sessions.listLightweight(limit);
+  const rows = await db.sessions.listLightweight(limit, throughMs);
   return rows.map((row) => ({
     completedAt: row.completedAt,
     gameId: row.gameId,
@@ -71,7 +72,15 @@ export async function syncQuestProgress(
   db: AppDatabase,
   now: Date = new Date(),
 ): Promise<void> {
-  const samples = await buildQuestSamples(db);
+  // Long-term quests are lifetime counters; a bounded recent sample would
+  // silently strand progress once a player crossed the scan cap. The rows are
+  // still a narrow SQL projection, and the upper bound quarantines future
+  // clock-skew/import artifacts from every quest kind.
+  const samples = await buildQuestSamples(
+    db,
+    Number.MAX_SAFE_INTEGER,
+    now.getTime(),
+  );
   const active = selectActiveQuests(QUEST_DEFINITIONS_V1, now);
   const evaluations = evaluateQuests(active, { sessions: samples }, now);
   for (const evaluation of evaluations) {
@@ -96,6 +105,7 @@ export async function buildAchievementSnapshot(
   db: AppDatabase,
   now: Date = new Date(),
 ): Promise<AchievementSnapshot> {
+  const throughMs = now.getTime();
   const [
     sessionCount,
     sessionXp,
@@ -109,17 +119,17 @@ export async function buildAchievementSnapshot(
     gameIdCounts,
     activityDates,
   ] = await Promise.all([
-    db.sessions.getCount(),
-    db.sessions.getTotalXp(),
-    db.xpAwards.getTotalAwardedXp(),
-    db.sessions.getDistinctGameCount(),
-    db.sessions.getDistinctActivityDateCount(),
-    db.sessions.getAccuracySessionCount(ACCURACY_SESSIONS_THRESHOLD),
-    db.sessions.getAccuracySessionCount(PERFECT_SESSIONS_THRESHOLD),
-    db.sessions.getBestNormalized(),
-    db.workouts.countCompleted(),
-    db.sessions.getGameIdCounts(),
-    db.sessions.getDistinctActivityDates(),
+    db.sessions.getCount(throughMs),
+    db.sessions.getTotalXp(throughMs),
+    db.xpAwards.getTotalAwardedXp(throughMs),
+    db.sessions.getDistinctGameCount(throughMs),
+    db.sessions.getDistinctActivityDateCount(throughMs),
+    db.sessions.getAccuracySessionCount(ACCURACY_SESSIONS_THRESHOLD, throughMs),
+    db.sessions.getAccuracySessionCount(PERFECT_SESSIONS_THRESHOLD, throughMs),
+    db.sessions.getBestNormalized(throughMs),
+    db.workouts.countCompleted(localDateString(now)),
+    db.sessions.getGameIdCounts(throughMs),
+    db.sessions.getDistinctActivityDates(throughMs),
   ]);
 
   // Per-domain lifetime counts (for the `domain-sessions` achievements) and the

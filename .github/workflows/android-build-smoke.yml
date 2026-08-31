@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
-          yes | sdkmanager --licenses >/dev/null || true
+          yes | sdkmanager --licenses >/dev/null
 
       - name: Install JavaScript dependencies
         run: npm ci

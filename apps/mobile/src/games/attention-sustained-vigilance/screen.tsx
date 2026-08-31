@@ -203,6 +203,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistVigilanceSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

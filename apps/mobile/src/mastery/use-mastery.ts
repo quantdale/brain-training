@@ -51,7 +51,7 @@ function summarize(inputs: MasteryInput[]): Map<string, MasterySummary> {
 const EMPTY_MAP = new Map<string, MasterySummary>();
 
 async function loadMastery(): Promise<Map<string, MasterySummary>> {
-  const inputs = await getDb().sessions.getMasteryInputs();
+  const inputs = await getDb().sessions.getMasteryInputs(Date.now());
   return summarize(inputs);
 }
 

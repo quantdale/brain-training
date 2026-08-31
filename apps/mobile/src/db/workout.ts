@@ -15,12 +15,11 @@
  * queries and builds completion summaries. Keeping selection pure and
  * persistence here lets the data layer be unit-tested without UI/emulator.
  *
- * V2 metadata (`templateId`, length, focus, generation inputs) persists into
- * an OPTIONAL `metadata_json` column, detected once per connection via
- * `PRAGMA table_info`. Until a migration adds that column the repository
- * works unchanged and simply does not round-trip metadata (documented gap in
- * `.agent/_tasks/campaign010/W06.md`); once present, writes include it and
- * reads parse it defensively.
+ * V3 metadata (`templateId`, length, focus, generation inputs) persists into
+ * the schema-v10 `metadata_json` column, detected once per connection for
+ * compatibility with legacy adapters. If an older adapter omits the column,
+ * the repository keeps the core instance usable and simply omits metadata;
+ * current migrated databases round-trip it and parse it defensively.
  */
 import type { SQLiteAdapter } from "./adapter";
 import type { GameSessionRecord } from "./types";
@@ -58,7 +57,7 @@ export interface WorkoutInstance {
   seedVersion: number;
   createdAt: number;
   updatedAt: number;
-  /** Versioned V2 metadata; undefined on legacy rows / legacy schemas. */
+  /** Versioned V3 metadata; undefined on legacy rows / legacy schemas. */
   metadata?: WorkoutMetadata;
 }
 
@@ -79,7 +78,7 @@ interface WorkoutRow {
   seed_version: number;
   created_at: number;
   updated_at: number;
-  /** Present only after the (pending) metadata migration lands. */
+  /** Present on current schema rows; optional for legacy adapter fixtures. */
   metadata_json?: string | null;
 }
 
@@ -194,9 +193,17 @@ export class WorkoutRepository {
    * streak/achievement consumers (`progression/sync.ts`) keep counting daily
    * completions exactly as before template workouts exist.
    */
-  async countCompleted(): Promise<number> {
+  async countCompleted(throughDate?: string): Promise<number> {
+    if (
+      throughDate !== undefined &&
+      !/^\d{4}-\d{2}-\d{2}$/.test(throughDate)
+    ) {
+      throw new Error(`workout completion upper bound must be YYYY-MM-DD (got ${throughDate})`);
+    }
+    const dateBound = throughDate === undefined ? "" : " AND date <= ?";
     const row = await this.adapter.get<{ n: number }>(
-      "SELECT COUNT(*) AS n FROM workout_instances WHERE status = 'completed' AND instr(date, '::') = 0",
+      `SELECT COUNT(*) AS n FROM workout_instances WHERE status = 'completed' AND instr(date, '::') = 0${dateBound}`,
+      throughDate === undefined ? [] : [throughDate],
     );
     return row?.n ?? 0;
   }

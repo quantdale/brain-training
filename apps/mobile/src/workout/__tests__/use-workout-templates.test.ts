@@ -85,7 +85,7 @@ describe('useWorkoutTemplates (shipped schema v10)', () => {
     );
     expect(instance).not.toBeNull();
     expect(instance!.date).toBe(`${date}::focus-memory::short`);
-    expect(instance!.seedVersion).toBe(2);
+    expect(instance!.seedVersion).toBe(3);
     expect(instance!.gameIds).toHaveLength(2); // short = 2 games
     expect(new Set(instance!.gameIds).size).toBe(2);
 
@@ -226,7 +226,7 @@ describe('useWorkoutTemplates (shipped schema v10)', () => {
       // surfaced only while aligned — nothing crashes either way.
       // Campaign 014 Workout V3: fresh instances record metadata v2.
       expect(summary.metadata).not.toBeNull();
-      expect(summary.metadata?.version).toBe(2);
+      expect(summary.metadata?.version).toBe(3);
     }
   });
 });

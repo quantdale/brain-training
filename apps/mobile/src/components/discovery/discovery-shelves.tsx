@@ -51,12 +51,13 @@ interface ShelfData {
 }
 
 async function loadShelfData(db: AppDatabase): Promise<ShelfData> {
+  const nowMs = Date.now();
   const [ratings, aggregates, recent] = await Promise.all([
     db.ratings.getRatings(),
-    db.sessions.getAggregates(),
-    db.sessions.listSummaries({ limit: 30 }),
+    db.sessions.getAggregates(nowMs),
+    db.sessions.listSummaries({ limit: 30, toMs: nowMs }),
   ]);
-  return { nowMs: Date.now(), ratings, aggregates, recentSessions: recent };
+  return { nowMs, ratings, aggregates, recentSessions: recent };
 }
 
 const EMPTY: ShelfData = {

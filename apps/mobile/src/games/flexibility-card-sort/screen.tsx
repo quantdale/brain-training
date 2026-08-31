@@ -230,6 +230,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
     });
     dispatch({ type: 'persistence-started' });
     void persistFlexibilitySession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

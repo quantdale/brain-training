@@ -9,11 +9,13 @@
  * Determinism rules baked into every policy:
  * 1. `updatedAt` is the primary ordering authority.
  * 2. Ties NEVER depend on which device resolves or argument order — the
- *    record with the lexicographically greater `id` wins, identically on
- *    both devices.
+ *    record with the lexicographically greater `id` wins. If the same logical
+ *    id also has the same timestamp, a canonical payload key breaks the final
+ *    tie so concurrent edits still resolve identically on both devices.
  */
 
 import type { SyncDto } from './types';
+import { canonicalString } from '../data-portability/canonical-json';
 
 /* ------------------------------------------------------------------ */
 /* Policy descriptors                                                  */
@@ -78,13 +80,22 @@ export interface MergeResult<T> {
 
 /**
  * Whole-row LWW. Later `updatedAt` wins; an exact tie is broken by the
- * lexicographically greater `id`, which both devices compute identically.
+ * lexicographically greater `id`, then by canonical payload order when the
+ * same logical row is written at the same timestamp.
  */
 export function resolveLastWriteWins<T extends SyncDto>(local: T, remote: T): T {
   if (local.updatedAt !== remote.updatedAt) {
     return local.updatedAt > remote.updatedAt ? local : remote;
   }
-  return local.id >= remote.id ? local : remote;
+  if (local.id !== remote.id) {
+    return local.id > remote.id ? local : remote;
+  }
+
+  // Same-row, same-time writes are possible when two devices use coarse
+  // clocks. Canonical JSON makes this final tie symmetric in argument order;
+  // `>=` is intentional because equal payloads are semantically identical and
+  // returning either reference is safe.
+  return canonicalString(local) >= canonicalString(remote) ? local : remote;
 }
 
 /**
@@ -155,7 +166,7 @@ export function resolveFieldMerge<
   const merged: Record<string, unknown> = { ...winner };
   const resolutions: FieldResolution[] = [];
 
-  const keys = new Set([...Object.keys(local), ...Object.keys(remote)]);
+  const keys = [...new Set([...Object.keys(local), ...Object.keys(remote)])].sort();
   for (const key of keys) {
     const localValue = local[key];
     const remoteValue = remote[key];

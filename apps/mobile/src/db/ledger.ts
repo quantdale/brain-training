@@ -21,12 +21,26 @@ interface LedgerRow {
 const SELECT_ORDERED = `SELECT id, amount, reason, session_id, created_at, operation_id
   FROM currency_ledger ORDER BY id ASC LIMIT ?`;
 const SELECT_RECENT = `SELECT id, amount, reason, session_id, created_at, operation_id
-  FROM currency_ledger ORDER BY id DESC LIMIT ?`;
+  FROM currency_ledger`;
 const SELECT_BALANCE = 'SELECT balance FROM currency_balance';
 const SELECT_BY_OPERATION =
   'SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE operation_id = ?';
 const INSERT_ENTRY =
   'INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)';
+
+function requireLedgerInteger(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
+    throw new Error(`ledger ${field} must be a safe integer`);
+  }
+  return value;
+}
+
+function requireLedgerString(value: unknown, field: string): string {
+  if (typeof value !== 'string' || value.trim() === '') {
+    throw new Error(`ledger ${field} must be a non-empty string`);
+  }
+  return value;
+}
 
 function mapRow(row: LedgerRow): LedgerEntry {
   return {
@@ -61,17 +75,25 @@ export class LedgerRepository {
     txn?: SQLiteAdapter,
   ): Promise<LedgerEntry> {
     const a = txn ?? this.adapter;
-    const createdAt = entry.createdAt ?? this.now();
+    const amount = requireLedgerInteger(entry.amount, 'amount');
+    const reason = requireLedgerString(entry.reason, 'reason');
+    const createdAt = requireLedgerInteger(entry.createdAt ?? this.now(), 'createdAt');
     const sessionId = entry.sessionId ?? null;
     const operationId = entry.operationId ?? null;
+    if (sessionId !== null) {
+      requireLedgerString(sessionId, 'sessionId');
+    }
+    if (operationId !== null) {
+      requireLedgerString(operationId, 'operationId');
+    }
     if (operationId !== null) {
       const existing = await a.get<LedgerRow>(SELECT_BY_OPERATION, [operationId]);
       if (existing) {
         return mapRow(existing);
       }
     }
-    const result = await a.run(INSERT_ENTRY, [entry.amount, entry.reason, sessionId, createdAt, operationId]);
-    return { id: result.lastInsertRowId, amount: entry.amount, reason: entry.reason, sessionId, createdAt };
+    const result = await a.run(INSERT_ENTRY, [amount, reason, sessionId, createdAt, operationId]);
+    return { id: result.lastInsertRowId, amount, reason, sessionId, createdAt };
   }
 
   /** Current balance derived from the whole ledger (0 when empty). */
@@ -101,8 +123,14 @@ export class LedgerRepository {
    * Most recent entries first (engagement V2 reward-history feed). Additive —
    * `list` keeps its append-order contract for existing callers.
    */
-  async listRecent(limit = 100): Promise<LedgerEntry[]> {
-    const rows = await this.adapter.all<LedgerRow>(SELECT_RECENT, [limit]);
+  async listRecent(limit = 100, throughMs?: number): Promise<LedgerEntry[]> {
+    if (throughMs !== undefined && !Number.isSafeInteger(throughMs)) {
+      throw new Error('ledger history upper bound must be a safe integer');
+    }
+    const rows = await this.adapter.all<LedgerRow>(
+      `${SELECT_RECENT}${throughMs === undefined ? '' : ' WHERE created_at <= ?'} ORDER BY id DESC LIMIT ?`,
+      throughMs === undefined ? [limit] : [throughMs, limit],
+    );
     return rows.map(mapRow);
   }
 }

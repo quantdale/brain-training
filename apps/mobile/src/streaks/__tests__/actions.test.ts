@@ -33,9 +33,27 @@ async function makeDb(settings: Record<string, unknown> = {}): Promise<AppDataba
   return db;
 }
 
+async function seedActivity(db: AppDatabase, dates: readonly string[]): Promise<void> {
+  await db.transaction(async (txn) => {
+    for (const [index, date] of dates.entries()) {
+      const completedAt = new Date(`${date}T12:00:00`).getTime();
+      await txn.run(
+        `INSERT INTO game_sessions
+          (id, game_id, game_version, generator_version, scoring_version, seed,
+           difficulty_json, raw_result_json, normalized_result, xp, started_at,
+           completed_at, duration_ms)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [`streak-${index}-${date}`, 'memory', 1, 1, 1, index + 1, '{}', '{}', 0.5, 1,
+          completedAt - 1_000, completedAt, 1_000],
+      );
+    }
+  });
+}
+
 describe('applyOwnedStreakItem — freeze', () => {
   it('covers today, consumes a freeze, and persists a covered date', async () => {
     const db = await makeDb({ streaks: { freeze: 1, shield: 0, recovery: 0 } });
+    await seedActivity(db, ['2026-08-15']);
     const state = reconstructStreak(['2026-08-15'], TODAY); // at risk
     const result = await applyOwnedStreakItem(db, 'freeze' as StreakItemKind, state, NOW);
     expect(result).toBe('applied');
@@ -61,6 +79,18 @@ describe('applyOwnedStreakItem — freeze', () => {
 describe('applyOwnedStreakItem — recovery', () => {
   it('restores a broken streak by persisting the missed days as covered', async () => {
     const db = await makeDb({ streaks: { freeze: 0, shield: 0, recovery: 1 } });
+    await seedActivity(db, [
+      '2026-08-13',
+      '2026-08-12',
+      '2026-08-11',
+      '2026-08-10',
+      '2026-08-09',
+      '2026-08-08',
+      '2026-08-07',
+      '2026-08-06',
+      '2026-08-05',
+      '2026-08-04',
+    ]);
     // 10-day run ending 2026-08-13; today is 2026-08-16 → 2 missed days.
     const broken = reconstructStreak(
       [

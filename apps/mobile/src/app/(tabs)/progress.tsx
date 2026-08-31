@@ -79,6 +79,7 @@ import { GAME_CATEGORIES as DOMAINS } from '@/sdk';
 import { levelForXp, levelProgress, xpIntoLevel, xpForNextLevel } from '@/rating';
 import { getGameDefinition } from '@/registry/registry';
 import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned } from '@/analytics/format';
+import { localDateString } from '@/workout/today';
 
 /** Rolling-average width (sessions) for the overview refinement. */
 const ROLLING_AVERAGE_SESSIONS = 5;
@@ -111,7 +112,7 @@ const EMPTY_DATA: ProgressData = {
 const OVERVIEW_CALENDAR_DAYS = 84; // ~12 weeks
 
 async function load(db: AppDatabase): Promise<ProgressData> {
-  const snapshot = await loadProgressSnapshot(db);
+  const snapshot = await loadProgressSnapshot(db, Date.now());
   // Read-only workout consumption through the existing repository API: one
   // bounded newest-first read (`WorkoutRepository.listRecent`, campaign 010
   // W22) replaces the former per-day getByDate walk, plus the O(1) completed
@@ -119,7 +120,8 @@ async function load(db: AppDatabase): Promise<ProgressData> {
   // itself is unavailable (partial fakes, degraded db) — the workout card
   // just hides.
   const workouts = (await db.workouts?.listRecent?.(WORKOUT_RECENT_LIMIT)) ?? [];
-  const workoutsCompletedLifetime = (await db.workouts?.countCompleted?.()) ?? 0;
+  const workoutsCompletedLifetime =
+    (await db.workouts?.countCompleted?.(localDateString(new Date()))) ?? 0;
   return { ...snapshot, workouts, workoutsCompletedLifetime };
 }
 

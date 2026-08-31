@@ -17,6 +17,7 @@ import {
   AppDatabase,
   AchievementRepository,
   InsufficientFundsError,
+  InvalidCurrencyAmountError,
   LedgerRepository,
   ProfileRepository,
   QuestRepository,
@@ -138,6 +139,18 @@ describe('spendCurrency', () => {
     expect(await db.ledger.getBalance()).toBe(70);
     expect(await db.ledger.list()).toHaveLength(2); // seed + exactly one debit
   });
+
+  it('rejects a non-positive/non-integer amount before opening a transaction', async () => {
+    const db = await healthy(100);
+    await expect(spendCurrency(db, { amount: -5, reason: 'invalid' })).rejects.toBeInstanceOf(
+      InvalidCurrencyAmountError,
+    );
+    await expect(spendCurrency(db, { amount: 1.5, reason: 'invalid' })).rejects.toThrow(
+      /positive safe integer/,
+    );
+    expect(await db.ledger.getBalance()).toBe(100);
+    expect(await db.ledger.list()).toHaveLength(1);
+  });
 });
 
 describe('purchaseStreakItem', () => {
@@ -190,6 +203,15 @@ describe('purchaseStreakItem', () => {
     expect(second.inventory.freeze).toBe(1);
     expect(await db.ledger.getBalance()).toBe(90);
     expect(await db.ledger.list()).toHaveLength(2); // seed + exactly one debit
+  });
+
+  it('rejects a non-positive cost without granting inventory or crediting the ledger', async () => {
+    const db = await healthy(100);
+    await expect(
+      purchaseStreakItem(db, { kind: 'freeze', cost: 0 }),
+    ).rejects.toBeInstanceOf(InvalidCurrencyAmountError);
+    expect(await db.ledger.getBalance()).toBe(100);
+    expect((await db.profile.get())?.settings).toEqual({});
   });
 });
 
@@ -267,6 +289,22 @@ describe('paidReroll', () => {
     expect(mutations).toBe(0); // workout untouched when unaffordable
     expect(await db.ledger.getBalance()).toBe(5);
     expect(await db.ledger.list()).toHaveLength(1); // no debit appended
+  });
+
+  it('rejects a non-finite cost before invoking the workout mutation', async () => {
+    const db = await healthy(100);
+    let mutations = 0;
+    await expect(
+      paidReroll(db, {
+        cost: Number.NaN,
+        mutateWorkout: async () => {
+          mutations += 1;
+        },
+      }),
+    ).rejects.toBeInstanceOf(InvalidCurrencyAmountError);
+    expect(mutations).toBe(0);
+    expect(await db.ledger.getBalance()).toBe(100);
+    expect(await db.ledger.list()).toHaveLength(1);
   });
 });
 

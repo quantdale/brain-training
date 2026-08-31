@@ -18,6 +18,7 @@
  */
 import type { AppDatabase } from '@/db';
 import type { StreakItemKind, StreakState } from './types';
+import { reconstructStreak } from './reconstruct';
 import {
   applyFreezeToSettings,
   applyRecoveryToSettings,
@@ -32,6 +33,7 @@ import {
   readClaimedMilestones,
   type StreakMilestone,
 } from './milestones';
+import { localDateString } from '@/workout/today';
 
 export type StreakApplyResult = 'applied' | 'not-allowed' | 'no-item';
 
@@ -44,7 +46,7 @@ export type StreakApplyResult = 'applied' | 'not-allowed' | 'no-item';
 export async function applyOwnedStreakItem(
   db: AppDatabase,
   kind: StreakItemKind,
-  state: StreakState,
+  _state: StreakState,
   now: Date,
 ): Promise<StreakApplyResult> {
   // Run the read-precondition-check + transform + write inside one transaction
@@ -55,6 +57,20 @@ export async function applyOwnedStreakItem(
   return db.transaction(async (txn) => {
     const settings0 = (await db.profile.get(txn))?.settings ?? {};
     const inventory = readInventory(settings0);
+    const nowMs = now.getTime();
+    if (!Number.isSafeInteger(nowMs)) {
+      throw new RangeError('applyOwnedStreakItem: now must be a valid safe-integer Date');
+    }
+    // The screen supplies a snapshot for rendering, but the action may run
+    // after another session or protection item changed the underlying state.
+    // Rebuild the streak from the same transaction snapshot so a stale UI can
+    // never apply an item to the wrong window or restore the wrong gap.
+    const activityDates = await db.sessions.getDistinctActivityDates(nowMs, txn);
+    const state = reconstructStreak(
+      activityDates,
+      localDateString(now),
+      readCoveredDates(settings0),
+    );
 
     const allowed =
       kind === 'freeze'

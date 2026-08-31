@@ -11,7 +11,7 @@ export interface XpAward {
   id: number;
   amount: number;
   reason: string;
-  /** Stable source identifier, e.g. `quest:play-three` or `achievement:first`. */
+  /** Stable source identifier, e.g. `quest:play-three:2026-08-30` or `achievement:first`. */
   source: string;
   /** Unix epoch milliseconds. */
   createdAt: number;
@@ -28,7 +28,14 @@ interface XpAwardRow {
 const INSERT = 'INSERT INTO xp_awards (amount, reason, source, created_at) VALUES (?, ?, ?, ?)';
 const SELECT_TOTAL = 'SELECT COALESCE(SUM(amount), 0) AS total FROM xp_awards';
 const SELECT_RECENT =
-  'SELECT id, amount, reason, source, created_at FROM xp_awards ORDER BY id DESC LIMIT ?';
+  'SELECT id, amount, reason, source, created_at FROM xp_awards';
+
+function requireThroughMs(value: number): number {
+  if (!Number.isSafeInteger(value)) {
+    throw new Error(`xp awards upper bound must be a safe integer (got ${String(value)})`);
+  }
+  return value;
+}
 
 export class XpAwardsRepository {
   /**
@@ -47,20 +54,31 @@ export class XpAwardsRepository {
     // Capture the clock once so the returned timestamp always equals the
     // stored `created_at` even if the injectable clock advances mid-call.
     const createdAt = this.now();
+    if (!Number.isSafeInteger(createdAt)) {
+      throw new Error(`xp award createdAt must be a safe integer (got ${String(createdAt)})`);
+    }
     const a = txn ?? this.adapter;
     const result = await a.run(INSERT, [amount, reason, source, createdAt]);
     return { id: result.lastInsertRowId, amount, reason, source, createdAt };
   }
 
   /** Total XP awarded outside sessions (0 when none). */
-  async getTotalAwardedXp(): Promise<number> {
-    const row = await this.adapter.get<{ total: number }>(SELECT_TOTAL);
+  async getTotalAwardedXp(throughMs?: number): Promise<number> {
+    const params = throughMs === undefined ? [] : [requireThroughMs(throughMs)];
+    const row = await this.adapter.get<{ total: number }>(
+      `${SELECT_TOTAL}${throughMs === undefined ? '' : ' WHERE created_at <= ?'}`,
+      params,
+    );
     return row?.total ?? 0;
   }
 
   /** Most recent awards, newest first. */
-  async list(limit = 100): Promise<XpAward[]> {
-    const rows = await this.adapter.all<XpAwardRow>(SELECT_RECENT, [limit]);
+  async list(limit = 100, throughMs?: number): Promise<XpAward[]> {
+    const bound = throughMs === undefined ? undefined : requireThroughMs(throughMs);
+    const rows = await this.adapter.all<XpAwardRow>(
+      `${SELECT_RECENT}${bound === undefined ? '' : ' WHERE created_at <= ?'} ORDER BY id DESC LIMIT ?`,
+      bound === undefined ? [limit] : [bound, limit],
+    );
     return rows.map((r) => ({
       id: r.id,
       amount: r.amount,

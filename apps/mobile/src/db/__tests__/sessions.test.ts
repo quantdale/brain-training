@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "@jest/globals";
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import type { SQLiteAdapter } from "../adapter";
 import { LedgerRepository } from "../ledger";
 import { ProfileRepository } from "../profile";
@@ -88,7 +88,7 @@ describe("completeSession", () => {
     const profile = new ProfileRepository(adapter, () => T0);
     await profile.ensureExists();
 
-    await sessions.completeSession({
+    const result = await sessions.completeSession({
       session: makeSession({
         durationMs: 27646.568800000474,
         startedAt: T0 + 0.25,
@@ -110,6 +110,9 @@ describe("completeSession", () => {
     expect(stored?.completedAt).toBe(T0 + 27647);
     // completed_at >= started_at still holds after rounding.
     expect(stored!.completedAt).toBeGreaterThanOrEqual(stored!.startedAt);
+    expect(result.session.seed).toBe(988);
+    expect(result.session.xp).toBe(13);
+    expect(result.session.durationMs).toBe(27647);
   });
 
   it("commits session + ledger + profile touch atomically", async () => {
@@ -433,6 +436,20 @@ describe("completeSession with rating service", () => {
     expect(result.session.xp).toBe(50);
     expect(await adapter.all("SELECT * FROM rating_history")).toHaveLength(0);
   });
+
+  it("does not recompute a rating outcome when a completion is replayed", async () => {
+    const adapter = await createMigratedDb();
+    const compute = jest.fn(async () => ({ xp: 77, currency: 15, deltas: [] }));
+    const sessions = new SessionRepository(adapter, () => T0, { compute });
+
+    await sessions.completeSession({ session: makeSession() });
+    const replay = await sessions.completeSession({ session: makeSession() });
+
+    expect(compute).toHaveBeenCalledTimes(1);
+    expect(replay.completionOutcome).toBeNull();
+    expect(replay.session.xp).toBe(77);
+    expect(await adapter.all("SELECT * FROM rating_history")).toHaveLength(0);
+  });
 });
 
 describe("session queries", () => {
@@ -492,6 +509,26 @@ describe("session queries", () => {
       "a",
     ]);
     expect((await sessions.listRecent(2)).map((s) => s.id)).toEqual(["c", "b"]);
+  });
+
+  it("applies an as-of bound before limiting recent and per-game rows", async () => {
+    await sessions.completeSession({
+      session: makeSession({ id: "old", gameId: "g1", completedAt: T0 + 1_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: "future", gameId: "g1", completedAt: T0 + 9_000 }),
+    });
+    await sessions.completeSession({
+      session: makeSession({ id: "current", gameId: "g1", completedAt: T0 + 2_000 }),
+    });
+
+    // The future row must be filtered in SQL before LIMIT, otherwise a small
+    // recent page can hide an otherwise eligible current row.
+    expect((await sessions.listRecent(1, T0 + 3_000)).map((s) => s.id)).toEqual(["current"]);
+    expect((await sessions.listByGame("g1", 1, T0 + 3_000)).map((s) => s.id)).toEqual([
+      "current",
+    ]);
+    await expect(sessions.listRecent(10, T0 + 0.5)).rejects.toThrow(/safe integer/);
   });
 
   it("getAggregates summarizes per-game analytics", async () => {

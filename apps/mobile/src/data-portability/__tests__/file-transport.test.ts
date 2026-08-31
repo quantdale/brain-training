@@ -91,6 +91,18 @@ jest.mock('expo-file-system', () => {
     delete(): void {
       mockStore.delete(this.uri);
     }
+    async move(destination: File, options?: { overwrite?: boolean }): Promise<void> {
+      const entry = mockStore.get(this.uri);
+      if (!entry || entry.kind !== 'file') {
+        throw new Error(`ENOENT: no such file "${this.uri}"`);
+      }
+      if (mockStore.has(destination.uri) && !options?.overwrite) {
+        throw new Error(`EEXIST: file already exists "${destination.uri}"`);
+      }
+      mockStore.set(destination.uri, entry);
+      mockStore.delete(this.uri);
+      this.uri = destination.uri;
+    }
   }
 
   return { Directory, File, Paths };
@@ -164,6 +176,13 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
   it('delete of a missing name is a no-op', async () => {
     const t = createFileBackupTransport();
     await expect(t.deleteBackup('ghost.json')).resolves.toBeUndefined();
+  });
+
+  it('rejects path traversal names before touching storage', async () => {
+    const t = createFileBackupTransport();
+    await expect(t.writeBackup('../escape.json', 'bad')).rejects.toThrow(/file name inside/);
+    await expect(t.readBackup('nested/backup.json')).rejects.toThrow(/file name inside/);
+    await expect(t.deleteBackup('..')).rejects.toThrow(/file name inside/);
   });
 
   it('listBackups orders newest-first (descending names)', async () => {

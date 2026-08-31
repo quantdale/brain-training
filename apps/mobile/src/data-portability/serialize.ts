@@ -16,7 +16,7 @@
  * hash. Output bytes are identical to the legacy writer.
  */
 
-import { SCHEMA_VERSION, type AppDatabase } from '@/db';
+import { LOCAL_PROFILE_ID, SCHEMA_VERSION, type AppDatabase } from '@/db';
 import { canonicalChunks, writeCanonicalJson } from './canonical-json';
 import { CHECKSUM_ALGORITHM, Sha256 } from './checksum';
 import {
@@ -50,7 +50,7 @@ export interface ExportOptions {
 }
 
 const RAW_SELECT = {
-  profile: `SELECT id, display_name, settings_json, created_at, updated_at FROM profile`,
+  profile: `SELECT id, display_name, settings_json, created_at, updated_at FROM profile WHERE id = ?`,
   sessions: `SELECT * FROM game_sessions ORDER BY completed_at ASC, id ASC`,
   domainRatings: `SELECT domain, rating, sessions, updated_at FROM domain_ratings ORDER BY domain ASC`,
   ratingHistory: `SELECT session_id, domain, delta, rating_after, created_at FROM rating_history ORDER BY id ASC`,
@@ -113,7 +113,10 @@ interface RawSessionRow {
  */
 export async function readSnapshot(db: AppDatabase): Promise<BackupData> {
   return db.transaction(async (txn) => {
-    const profileRow = await txn.get<RawProfileRow>(RAW_SELECT.profile);
+    // The profile table is expected to be a singleton, but selecting by the
+    // canonical id keeps export safe even if a hand-edited/legacy database
+    // contains an invisible foreign profile row.
+    const profileRow = await txn.get<RawProfileRow>(RAW_SELECT.profile, [LOCAL_PROFILE_ID]);
     const profile: BackupProfile | null = profileRow
       ? {
           id: profileRow.id,
@@ -228,7 +231,7 @@ export async function readSnapshot(db: AppDatabase): Promise<BackupData> {
         metadata_json: string | null;
       }>(RAW_SELECT.workouts)
     ).map((r) => {
-      // Parsed Workout V2 provenance (schema v10). Malformed cells degrade to
+      // Parsed Workout V3 provenance (schema v12). Malformed cells degrade to
       // null exactly like the db reader does — provenance is never load-bearing.
       const rawMetadata: unknown = parseJson(r.metadata_json, null);
       const metadata =

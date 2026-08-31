@@ -32,7 +32,7 @@ import {
   GameHost,
   GameResults,
   resolveSessionSeed,
-  useGameTimeout,
+  useGameDeadlineTimeout,
   useGameSession,
 } from "@/components/game-host";
 import type { GameHostView } from "@/components/game-host";
@@ -167,19 +167,23 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
   // full window recorded as its response time — never a fabricated fast RT),
   // then the session continues with the next trial (a slow trial must never
   // end the whole session).
-  useGameTimeout(
+  useGameDeadlineTimeout(
     state.phase === "stimulus" && !state.paused,
     () => dispatch({ type: "trial-timeout", responseTimeMs: stimulusMs }),
     stimulusMs,
+    clock,
+    `stimulus:${state.sessionId ?? 'idle'}:${state.trialIndex}`,
   );
 
   // ---- Flip-cue auto-advance: the rule-change banner shows briefly, then the
   // next stimulus appears. Without this the flipCue phase has no continue
   // affordance and the session would dead-end mid-run.
-  useGameTimeout(
+  useGameDeadlineTimeout(
     state.phase === "flipCue" && !state.paused,
     () => dispatch({ type: "dismiss-flip-cue" }),
     FLIP_CUE_MS,
+    clock,
+    `flip:${state.sessionId ?? 'idle'}:${state.trialIndex}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -262,6 +266,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     });
     dispatch({ type: "persistence-started" });
     void persistColorStroopSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: "persistence-succeeded" });
         const co = outcome.result.completionOutcome;

@@ -216,6 +216,7 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     });
     dispatch({ type: 'persistence-started' });
     void persistMathEquationBuilderSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         // Use the authoritative outcome from the rating pipeline for display.

@@ -22,6 +22,7 @@ import {
 import { buildAchievementSnapshot, syncAchievements } from "@/progression";
 import { registry } from "@/registry/registry.generated";
 import { registerGameDefinitions } from "@/registry/registry";
+import { localDateString } from "@/workout/today";
 
 // The root layout normally registers the game catalog during bootstrap; the
 // snapshot builder maps game ids to cognitive domains through it, so register
@@ -263,11 +264,15 @@ describe("buildAchievementSnapshot — aggregation integration", () => {
     );
     // One completed workout: advance past both games through the repository
     // API, which flips the instance to 'completed' on the final advance.
-    await db.workouts.getOrCreate("2026-08-16", {
+    // The snapshot is evaluated as-of the seeded session clock. Keep the
+    // workout date on or before that clock so temporal quarantine does not
+    // count a future imported workout.
+    const workoutDate = localDateString(new Date(T0 + 2 * 86_400_000));
+    await db.workouts.getOrCreate(workoutDate, {
       gameIds: ["memory", "math-fast-math"],
     });
-    await db.workouts.advance("2026-08-16");
-    await db.workouts.advance("2026-08-16");
+    await db.workouts.advance(workoutDate);
+    await db.workouts.advance(workoutDate);
   }
 
   it("derives every field from aggregation queries without a full-history scan", async () => {
@@ -332,7 +337,9 @@ describe("buildAchievementSnapshot — aggregation integration", () => {
     for (const def of ACHIEVEMENT_DEFINITIONS_V1) {
       await db.achievements.upsertDefinition(toDbAchievementDefinition(def));
     }
-    await syncAchievements(db, new Date(T0));
+    // Evaluate after the final seeded activity day; future activity is
+    // intentionally excluded by the snapshot's as-of boundary.
+    await syncAchievements(db, new Date(T0 + 2 * 86_400_000));
 
     // Unlocked: 5 distinct games played. Not unlocked: 8-domain coverage,
     // 7 active days, and 10 completed workouts are all still out of reach.

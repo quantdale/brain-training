@@ -404,7 +404,7 @@ describe('SpeedScreen', () => {
     expect(persister.completeSession).toHaveBeenCalledTimes(0); // still running
   });
 
-  it('pauses during the wait: the overlay appears, timers freeze, and the full delay restarts on resume', async () => {
+  it('pauses during the wait: the overlay appears, timers freeze, and the remaining delay resumes', async () => {
     const seed = findPlainGoSeed('pause-wait');
     const { clock } = await renderScreen({ seed });
 
@@ -419,18 +419,26 @@ describe('SpeedScreen', () => {
     expect(screen.queryByTestId(testId(GAME_ID, 'go-status'))).toBeNull();
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
-    expect(screen.queryByTestId(testId(GAME_ID, 'go-status'))).toBeNull();
-
-    // Resuming restarts the FULL seeded delay.
-    await reachGo(clock, seed, 0);
+    const remainingDelay = Math.max(0, delayFor(seed, 0) - 500);
+    if (remainingDelay > 0) {
+      expect(screen.queryByTestId(testId(GAME_ID, 'go-status'))).toBeNull();
+      await advanceTime(clock, remainingDelay - 1);
+      expect(screen.queryByTestId(testId(GAME_ID, 'go-status'))).toBeNull();
+      await advanceTime(clock, 1);
+    } else {
+      await advanceTime(clock, 0);
+    }
+    expect(screen.getByTestId(testId(GAME_ID, 'go-status'))).toBeOnTheScreen();
   });
 
-  it('pauses during the GO phase: the reaction window restarts on resume', async () => {
+  it('pauses during the GO phase: the remaining reaction window resumes', async () => {
     const seed = findPlainGoSeed('pause-go', 1);
     const { clock } = await renderScreen({ seed });
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
     await reachGo(clock, seed, 0);
+    const elapsedBeforePause = 200;
+    await advanceClock(clock, elapsedBeforePause);
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'pause')));
     expect(screen.getByTestId('speed-reaction-time.pause-overlay')).toBeOnTheScreen();
@@ -440,15 +448,12 @@ describe('SpeedScreen', () => {
     expect(screen.queryByTestId(testId(GAME_ID, 'round-timeout'))).toBeNull();
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
-    // The GO signal is re-displayed with a fresh goAtMs: the reaction window
-    // restarts at the resume moment, so a 350 ms reaction still passes.
     expect(screen.getByTestId(testId(GAME_ID, 'go-status'))).toBeOnTheScreen();
-    await advanceClock(clock, 350);
-    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'trigger')));
-    expect(screen.getByTestId(testId(GAME_ID, 'round-passed'))).toBeOnTheScreen();
-    expect(screen.getByTestId(testId(GAME_ID, 'reaction-ms'))).toHaveTextContent(
-      /Reaction 350 ms/,
-    );
+    const remainingWindow = NORMAL.timeoutMs - elapsedBeforePause;
+    await advanceTime(clock, remainingWindow - 1);
+    expect(screen.queryByTestId(testId(GAME_ID, 'round-timeout'))).toBeNull();
+    await advanceTime(clock, 1);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeOnTheScreen();
   });
 
   it('force-win ends the session as a perfect run and marks it forced', async () => {

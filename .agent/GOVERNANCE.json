@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
-  "lastCampaign": "016-release-certification-hardening",
+  "activeCampaign": "018-engagement-temporal-integrity",
+  "lastCampaign": "017-persistence-boundary-hardening",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

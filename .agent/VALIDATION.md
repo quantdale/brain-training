@@ -5,6 +5,34 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 017 closure → Campaign 018 activation (2026-08-31, source working state from `27c9174`)
+
+- The owner explicitly authorized a whole-codebase hardening pass followed by
+  autonomous Campaigns 017–020. Terminal Campaign 016 was reopened only by
+  this new scope; no external-device gap was relabeled as a product PASS.
+- Campaign 017 is VALIDATED and Campaign 018 is ACTIVE. The 017 repair set
+  adds schema v11/v12 integrity guards, safe numeric validation, atomic file
+  replacement, canonical profile export, deterministic conflict ties, no-op
+  cursor preservation, and user-facing as-of filters across
+  sessions/ratings/XP/ledger/workout reads.
+- Focused real-DB validation passed for migrations, projections, sessions,
+  rating history, rewards, streak actions, achievement snapshots, and backup
+  paths. QA self-test is 51/51 PASS; repository, ownership, registry,
+  provenance, offline, TypeScript, and lint gates are PASS. The full Node 22
+  Jest run passed 489/493 suites and 6087/6092 tests, with 4 suites / 5 tests
+  skipped by the explicit measurement allowlist.
+- A first full Node 22 Jest run exposed seven genuine regressions caused by
+  the new contracts (fixed-date fixtures missing the required temporal bound,
+  stale streak test fixtures, a v12 uniqueness fixture, a V3 version
+  expectation, and missing XP-award mocks). Those were repaired and the full
+  run was restarted and passed with the exact totals above. Those repairs are
+  recorded in the 017 closure checkpoint.
+- Campaign 018 now owns strict quest/streak input validation, canonical
+  covered-date state, as-of reward claims, and progression reconciliation.
+- Android runtime/manual accessibility, SAF/system-sheet, physical-device,
+  and manual iOS UX evidence remains BLOCKED/NOT VALIDATED from the bounded
+  Campaign 016 environment matrix. No foreign emulator is used.
+
 ## Campaign 014 — Experience Depth & Replayability (2026-08-26, waves at
 ## commits eb348dd → f4aa44c)
 
@@ -1729,4 +1757,3 @@ toolchain limitation, not a product test failure.
 - No code fix was needed; no new product defect was exposed (harness never reached app launch). The bounded emulator failure is an external infrastructure limitation, not a product regression.
 
 **Classification remains:** **LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING** on this machine (dedicated AVDs now exist but 37.1.11 TCG cannot complete cold boot before qemu instability; a KVM-enabled Linux host or physical device is required to close the remaining Android runtime evidence).
-

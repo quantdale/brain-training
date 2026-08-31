@@ -171,6 +171,29 @@ describe('RatingRepository', () => {
     const rating = await ratings.getRating('Memory');
     expect(rating?.rating).toBe(INITIAL_RATING + 5);
   });
+
+  it('rejects duplicate domain deltas for one session before writing any history', async () => {
+    const adapter = await createMigratedDb();
+    const ratings = new RatingRepository(adapter, () => T0);
+    await seedSession(adapter, 'duplicate-session');
+
+    await expect(
+      adapter.transaction((txn) =>
+        ratings.applyDeltas(
+          txn,
+          'duplicate-session',
+          [
+            { domain: 'Memory', delta: 5 },
+            { domain: 'Memory', delta: 7 },
+          ],
+          T0,
+        ),
+      ),
+    ).rejects.toThrow(/at most one entry per domain/);
+
+    expect(await ratings.getHistoryForSession('duplicate-session')).toEqual([]);
+    expect(await ratings.getRating('Memory')).toBeNull();
+  });
 });
 
 describe('isRatingStale', () => {

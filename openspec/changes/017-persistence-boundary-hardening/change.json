@@ -1,0 +1,23 @@
+{
+  "id": "017-persistence-boundary-hardening",
+  "status": "VALIDATED",
+  "predecessor": "016-release-certification-hardening",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "persistence-integrity",
+    "portability-rollback",
+    "temporal-read-boundaries",
+    "deterministic-sync"
+  ],
+  "activationRule": "Explicit owner directive on 2026-08-30 authorizes successor campaigns 017 through 020 after terminal Campaign 016; 017 is the first persistence-integrity wave.",
+  "validationNote": "Validated on the current source head after the owner-authorized persistence hardening set. Full Node 22 Jest passed 489 suites / 6087 tests with 4 suites / 5 tests skipped by the existing explicit measurement allowlist; TypeScript, lint, repository-state, ownership, OpenSpec, registry, provenance, offline, and QA self-test 51/51 passed. Focused real-DB persistence, migration, projection, reward, streak, sync, and portability suites passed. Android runtime, manual accessibility/system-sheet, physical-device, and manual iOS UX evidence remain BLOCKED / NOT VALIDATED under the documented emulator and platform constraints; no Critical/High data-integrity defect is known.",
+  "validatedAt": "2026-08-30",
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": true,
+  "auditBaseline": "27c9174"
+}

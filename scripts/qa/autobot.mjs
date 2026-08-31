@@ -51,9 +51,12 @@
 
 import { execFileSync } from "node:child_process";
 import {
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   writeFileSync,
+  writeSync,
   readFileSync,
   readdirSync,
   renameSync,
@@ -406,7 +409,8 @@ function centerOf(node) {
 // Pure selector for the generic gameplay-interaction probe: collect tappable
 // in-game item nodes (`<id>.option.N`, `<id>.tile.N`, `<id>.cell.X`,
 // `<id>.choice.*`, `<id>.trigger.*`, `<id>.card-grid.card.N`) from a hierarchy
-// dump, excluding tutorial/QA/result surfaces. Clickable nodes sort first.
+// dump, excluding tutorial/QA/result surfaces. Only enabled, clickable nodes
+// are candidates: bounds alone do not prove that a control accepts input.
 function findInteractionCandidates(xml, gameId) {
   if (!xml) return [];
   const re = interactiveRe(gameId);
@@ -422,9 +426,55 @@ function findInteractionCandidates(xml, gameId) {
       id: idm[1],
       bounds: b,
       clickable: /clickable="true"/.test(node),
+      enabled: !/enabled="false"/.test(node),
     });
   }
-  return out.sort((a, b) => (b.clickable ? 1 : 0) - (a.clickable ? 1 : 0));
+  return out
+    .filter((node) => node.clickable && node.enabled)
+    .sort((a, b) => (b.clickable ? 1 : 0) - (a.clickable ? 1 : 0));
+}
+
+// Remove layout-only churn before comparing gameplay evidence. React Native
+// legitimately changes bounds while a screen settles, and timer labels change
+// every tick; neither proves that the tapped control was handled.
+function normalizedNodeTag(tag) {
+  return tag ? tag.replace(/\s+bounds="[^"]*"/g, "") : null;
+}
+
+function nodeTagByResourceId(xml, resourceId) {
+  if (!xml) return null;
+  const escaped = resourceId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return xml.match(new RegExp(`<node\\b[^>]*resource-id="${escaped}"[^>]*>`))?.[0] ?? null;
+}
+
+// Fingerprint mounted gameplay state while excluding controls/timers whose
+// presence or text may change without the input being accepted. This stays
+// generic across the catalog: a valid answer must either mutate the tapped
+// node (selected/checked/text/enabled) or advance a game-owned state node.
+function gameplayStateFingerprint(xml, gameId) {
+  if (!xml) return "";
+  const escaped = gameId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const ignored = /\.(?:timer|pause|resume|qa(?:-.*)?|force-(?:win|lose)|help)(?:\.|"|$)/;
+  return (xml.match(/<node\b[^>]*>/g) || [])
+    .filter((tag) => {
+      const id = tag.match(/resource-id="([^"]+)"/)?.[1] ?? "";
+      return id.startsWith(`${gameId}.`) && !ignored.test(id);
+    })
+    .map(normalizedNodeTag)
+    .sort()
+    .join("\n")
+    .replace(new RegExp(`^${escaped}\\.timer\\b.*$`, "gm"), "");
+}
+
+function interactionEvidenceChanged(beforeXml, afterXml, gameId, tappedId) {
+  if (!afterXml || DUMP_ERROR_RE.test(afterXml)) return false;
+  const beforeTapped = normalizedNodeTag(nodeTagByResourceId(beforeXml, tappedId));
+  const afterTapped = normalizedNodeTag(nodeTagByResourceId(afterXml, tappedId));
+  return (
+    afterTapped === null ||
+    beforeTapped !== afterTapped ||
+    gameplayStateFingerprint(beforeXml, gameId) !== gameplayStateFingerprint(afterXml, gameId)
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -696,7 +746,7 @@ function validateSessionRow(row, expectedGameId) {
  * `results` are flowGame outputs ({id, passed}); `expectedIds` is the
  * canonical catalog. Duplicates/unexpected ids fail certification even when
  * every present row passed — the run must classify exactly the catalog. */
-function certifySummary(results, expectedIds) {
+function certifySummary(results, expectedIds, options = {}) {
   const expected = new Set(expectedIds);
   const seen = new Map();
   for (const r of results) {
@@ -710,6 +760,14 @@ function certifySummary(results, expectedIds) {
   const gameRows = results.filter((r) => expected.has(r && r.id));
   const passed = gameRows.filter((r) => r.passed === true).length;
   const failed = gameRows.filter((r) => r.passed === false).length;
+  const interactionMissing = options.requireInteraction
+    ? gameRows.filter((r) => r.interaction?.accepted !== true).map((r) => r.id)
+    : [];
+  const pauseMissing = options.requirePause
+    ? gameRows
+        .filter((r) => !(r.pause?.paused === true && r.pause?.resumed === true))
+        .map((r) => r.id)
+    : [];
   return {
     expected: expectedIds.length,
     attempted: gameRows.length,
@@ -719,13 +777,17 @@ function certifySummary(results, expectedIds) {
     missing,
     unexpected,
     duplicates,
+    interactionMissing,
+    pauseMissing,
     certified:
       expectedIds.length > 0 &&
       missing.length === 0 &&
       unexpected.length === 0 &&
       duplicates.length === 0 &&
       failed === 0 &&
-      passed === expectedIds.length,
+      passed === expectedIds.length &&
+      interactionMissing.length === 0 &&
+      pauseMissing.length === 0,
   };
 }
 
@@ -802,10 +864,39 @@ async function certifyPreflight() {
   // Exactly one usable device, and it is the selected one, in `device` state.
   const devs = adbHostDevices();
   const ready = Array.isArray(devs.ready) ? devs.ready : [];
+  const requestedDevice = process.env.QA_DEVICE?.trim() || null;
+  add(
+    "single-explicit-device",
+    requestedDevice !== null && ready.length === 1 && ready[0] === serial(),
+    requestedDevice
+      ? `QA_DEVICE=${requestedDevice}; ready=[${ready.join(", ") || "none"}]`
+      : "certification requires QA_DEVICE and exactly one ready device",
+  );
   add(
     "selected-device-usable",
     ready.includes(serial()),
     JSON.stringify(devs),
+  );
+
+  // A clean source checkout is a mandatory release boundary. Otherwise the
+  // report can name one commit while Metro/APK execute uncommitted code.
+  const provenance = gitProvenance();
+  add(
+    "source-checkout-clean",
+    provenance.available === true && provenance.dirty === false,
+    provenance,
+  );
+
+  // Metro and the installed dev client are separate mutable state. Require a
+  // SHA marker from the clean checkout to be injected into Metro and then
+  // observe the same marker in the running Home hierarchy. This closes the
+  // old gap where a clean source tree could certify a stale/co-tenant bundle.
+  const expectedSha = provenance.available ? provenance.sha : null;
+  const injectedSha = process.env.EXPO_PUBLIC_BUILD_SHA?.trim() || null;
+  add(
+    "source-binding-env",
+    !!expectedSha && injectedSha === expectedSha,
+    `expected=${expectedSha || "unavailable"}; injected=${injectedSha || "missing"}`,
   );
 
   // Target package installed.
@@ -824,8 +915,7 @@ async function certifyPreflight() {
   let metroOk = false;
   let metroDetail = null;
   if (process.env.QA_EMBEDDED_BUNDLE) {
-    metroOk = true;
-    metroDetail = "embedded-bundle (QA_EMBEDDED_BUNDLE) — no live Metro required";
+    metroDetail = "embedded-bundle is diagnostic-only; certification requires live Metro";
   } else {
     const metro = await metroReachable();
     metroOk = metro.ok;
@@ -837,7 +927,7 @@ async function certifyPreflight() {
   // embedded bundle (QA_EMBEDDED_BUNDLE=1) because the dev client loads from
   // assets and never contacts the host Metro.
   if (process.env.QA_EMBEDDED_BUNDLE) {
-    add("adb-reverse-8081", true, "embedded-bundle — no reverse required");
+    add("adb-reverse-8081", false, "embedded-bundle is diagnostic-only; no live source binding");
   } else {
     let reversed = false;
     try {
@@ -884,6 +974,27 @@ async function certifyPreflight() {
     launchOk = appForeground();
   } catch {}
   add("app-launch-foreground", launchOk, launchOk ? PKG : "our package was not foreground after launch");
+
+  let sourceMarker = null;
+  if (expectedSha && injectedSha === expectedSha && launchOk) {
+    const markerId = `home-build-sha-${expectedSha}`;
+    const deadline = Date.now() + 10000;
+    while (Date.now() < deadline && !sourceMarker) {
+      try {
+        const xml = adbRetry(["exec-out", "uiautomator", "dump", "/dev/tty"], {
+          tries: 2,
+          opts: { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 },
+        });
+        if (dumpIsUsable(xml)) sourceMarker = findTestId(xml, markerId);
+      } catch {}
+      if (!sourceMarker) await sleep(500);
+    }
+  }
+  add(
+    "source-bundle-bound",
+    sourceMarker !== null,
+    sourceMarker ? `observed ${sourceMarker.id}` : "expected Home SHA marker not observed",
+  );
 
   const ok = checks.every((c) => c.ok);
   return { ok, checks };
@@ -1538,6 +1649,8 @@ async function flowGame(id, opts = {}) {
     if (late.attempted) {
       interaction.attempted = true;
       interaction.nodeId = late.nodeId;
+      interaction.accepted = late.accepted === true;
+      interaction.crashedAfterTap = late.crashedAfterTap === true;
       interaction.reason = `${late.reason} (late attempt)`;
       log(`interaction tapped ${late.nodeId} (late attempt)`);
     }
@@ -1596,11 +1709,24 @@ async function flowGame(id, opts = {}) {
   );
 
   const coreOk = stats.count === 1 && !stats.duplicates;
-  const passed = coreOk && sessionInvariants.ok && back.ok && next.ok;
+  const interactionOk = interaction.accepted === true;
+  const pauseOk =
+    !opts.pause || (pauseProbe.paused === true && pauseProbe.resumed === true);
+  const passed =
+    coreOk &&
+    interactionOk &&
+    pauseOk &&
+    sessionInvariants.ok &&
+    back.ok &&
+    next.ok;
   const reason = passed
-    ? "force-win + exactly one persisted session + row invariants OK + authoritative results + back/next navigation"
+    ? "interaction + force-win + exactly one persisted session + row invariants OK + authoritative results + back/next navigation"
     : !sessionInvariants.ok
       ? `session row invariants violated: ${sessionInvariants.violations.join("; ")}`
+      : !interactionOk
+        ? `interaction evidence failed: ${interaction.reason || "no accepted gameplay tap"}`
+        : !pauseOk
+          ? "pause/resume evidence failed"
       : coreOk
         ? back.ok
           ? `next-game screen did not load (${next.next})`
@@ -1627,27 +1753,50 @@ async function flowGame(id, opts = {}) {
 
 // Generic gameplay-interaction probe. Taps the first tappable in-game item
 // found right after start; retries once just before force-win (some games only
-// mount their answer grid after a countdown/study phase). Non-gating.
+// mount their answer grid after a countdown/study phase). Acceptance requires
+// both a live app and semantic gameplay evidence: the tapped node or a mounted
+// game-state node must change. A timer/layout-only hierarchy diff is not enough.
 async function probeInteraction(id, tag) {
   const attemptAt = async (label) => {
     const xml = readFileSyncSafe(dumpHierarchy(`${tag}-ix-${label}`));
+    if (!xml || DUMP_ERROR_RE.test(xml)) return null;
     const candidates = findInteractionCandidates(xml, id);
     if (candidates.length === 0) return null;
     const c = candidates[0];
-    tap(c);
-    trace("tap.interaction", c.id, true, `${c.bounds.cx},${c.bounds.cy}`);
-    await sleep(500);
-    if (!appForeground()) {
-      return { nodeId: c.id, crashedAfterTap: true };
+    let tapped = false;
+    try {
+      tapped = tap(c);
+    } catch (error) {
+      trace("tap.interaction", c.id, false, String(error).slice(0, 120));
+      return { nodeId: c.id, accepted: false, reason: "tap command failed" };
     }
-    return { nodeId: c.id };
+    trace("tap.interaction", c.id, tapped, `${c.bounds.cx},${c.bounds.cy}`);
+    if (!tapped) {
+      return { nodeId: c.id, accepted: false, reason: "tap command failed" };
+    }
+    await sleep(700);
+    const after = readFileSyncSafe(
+      dumpHierarchy(`${tag}-ix-${label}-after`),
+    );
+    const alive = appForeground();
+    const changed = interactionEvidenceChanged(xml, after, id, c.id);
+    return {
+      nodeId: c.id,
+      crashedAfterTap: !alive,
+      accepted: alive && changed,
+      reason: !alive
+        ? "app died after tap"
+        : changed
+          ? "tap produced observable hierarchy change"
+          : "tap produced no observable hierarchy change",
+    };
   };
   const first = await attemptAt("post-start");
   if (first) {
     return {
       attempted: true,
       ...first,
-      reason: first.crashedAfterTap ? "app died after tap" : "tapped",
+      reason: first.reason,
     };
   }
   const second = await attemptAt("retry");
@@ -1655,15 +1804,50 @@ async function probeInteraction(id, tag) {
     return {
       attempted: true,
       ...second,
-      reason: second.crashedAfterTap
-        ? "app died after tap"
-        : "tapped (late mount)",
+      reason: `${second.reason} (late mount)`,
     };
   }
   return {
     attempted: false,
     reason: "no interactive item mounted at probe time",
   };
+}
+
+// One force-win step for the legacy multi-round Word Match flow. The generic
+// driver above intentionally runs through the shared results page; this flow
+// needs a single round at a time so it can verify the next-round gate.
+async function tapForceWinOnce(id, tag) {
+  const xml = readFileSyncSafe(dumpHierarchy(`${tag}-before`));
+  if (!xml || DUMP_ERROR_RE.test(xml)) return false;
+  if (
+    hasTestId(xml, "results-title") ||
+    hasTestId(xml, `${id}.results`) ||
+    hasTestId(xml, "results-score")
+  ) {
+    return false;
+  }
+  if (dismissRedBoxIfPresent(xml, tag) || dismissLogBoxIfPresent(xml, tag)) {
+    await sleep(700);
+    return false;
+  }
+  const panel = findTestId(xml, `${id}.qa-panel`);
+  if (panel) {
+    const forceWin = findTestId(xml, `${id}.force-win`);
+    if (!forceWin || inNavZone(xml, forceWin)) return false;
+    tapTestId(`${id}.force-win`, xml);
+    log("word-match force-win pressed");
+    return true;
+  }
+  if (!hasTestId(xml, `${id}.qa-toggle`)) return false;
+  if (!tapTestId(`${id}.qa-toggle`, xml)) return false;
+  await sleep(700);
+  const opened = readFileSyncSafe(dumpHierarchy(`${tag}-panel`));
+  if (!opened || DUMP_ERROR_RE.test(opened)) return false;
+  const forceWin = findTestId(opened, `${id}.force-win`);
+  if (!forceWin || inNavZone(opened, forceWin)) return false;
+  tapTestId(`${id}.force-win`, opened);
+  log("word-match force-win pressed after opening QA panel");
+  return true;
 }
 
 // BACK navigation probe: press KEYCODE_BACK (emulator-local), then require the
@@ -2865,7 +3049,7 @@ function selfTest() {
   const fixtureXml = [
     '<node resource-id="g1.qa-toggle" clickable="true" bounds="[0,0][100,40]" text=""/>',
     '<node resource-id="g1.option.2" clickable="true" bounds="[10,60][110,160]" text=""/>',
-    '<node resource-id="g1.tile.5" clickable="false" bounds="[0,200][50,250]" text=""/>',
+    '<node resource-id="g1.tile.5" clickable="true" bounds="[0,200][50,250]" text=""/>',
     '<node resource-id="g1.card-grid.card.1" clickable="true" bounds="[0,260][80,340]" text=""/>',
     '<node resource-id="g1.tutorial-grid.option.0" clickable="true" bounds="[0,350][90,430]" text=""/>',
   ].join("");
@@ -2906,6 +3090,27 @@ function selfTest() {
   assert(
     "interaction candidates empty for unrelated xml",
     findInteractionCandidates(xml, "g1").length === 0,
+  );
+  const interactionBefore = [
+    '<node resource-id="g1.screen" text="Round 1" bounds="[0,0][100,100]"/>',
+    '<node resource-id="g1.option.2" text="A" clickable="true" enabled="true" selected="false" bounds="[0,0][40,40]"/>',
+    '<node resource-id="g1.score" text="Score 0" bounds="[0,100][100,140]"/>',
+    '<node resource-id="g1.timer" text="4" bounds="[0,140][100,180]"/>',
+  ].join("");
+  const interactionAfter = [
+    '<node resource-id="g1.screen" text="Round 1" bounds="[0,0][100,100]"/>',
+    '<node resource-id="g1.option.2" text="A" clickable="true" enabled="true" selected="true" bounds="[0,0][40,40]"/>',
+    '<node resource-id="g1.score" text="Score 1" bounds="[0,100][100,140]"/>',
+    '<node resource-id="g1.timer" text="3" bounds="[0,140][100,180]"/>',
+  ].join("");
+  const timerOnlyAfter = interactionBefore.replace('text="4"', 'text="3"');
+  assert(
+    "interaction evidence requires gameplay state change",
+    interactionEvidenceChanged(interactionBefore, interactionAfter, "g1", "g1.option.2"),
+  );
+  assert(
+    "interaction evidence rejects timer-only hierarchy churn",
+    !interactionEvidenceChanged(interactionBefore, timerOnlyAfter, "g1", "g1.option.2"),
   );
 
   // Workout V2 template-flow helpers (campaign 012 / W08).
@@ -3372,33 +3577,77 @@ async function main() {
   // 7,200,000 ms and every journey starved on warm-home). The lock is a
   // PID liveness file; a stale lock from a killed driver is auto-cleared.
   const lockPath = join(REPO_ROOT, "scripts", "qa", ".autobot.lock");
-  if (existsSync(lockPath)) {
+  let lockAcquired = false;
+  for (let attempt = 0; attempt < 2 && !lockAcquired; attempt += 1) {
+    let fd;
     try {
-      const lockPid = Number(readFileSync(lockPath, "utf8").trim());
-      if (Number.isInteger(lockPid) && lockPid > 0) {
-        // Fail CLOSED: only ESRCH proves the lock owner is gone. Any other
-        // kill() error (e.g. EPERM for a live process we may not signal) must
-        // NOT count as a stale lock, or a second driver could steal the
-        // exclusive-device lock and corrupt both runs' taps.
-        let alive;
+      // O_EXCL makes the check-and-create atomic. A separate exists/read/write
+      // sequence allowed two drivers to pass the check simultaneously.
+      fd = openSync(lockPath, "wx");
+      writeSync(fd, `${process.pid}\n`);
+      closeSync(fd);
+      lockAcquired = true;
+    } catch (error) {
+      if (fd !== undefined) {
         try {
-          process.kill(lockPid, 0);
-          alive = true;
-        } catch (err) {
-          alive = err?.code !== "ESRCH";
-        }
-        if (alive) {
-          console.error(
-            `REFUSED: another autobot driver (pid ${lockPid}) is already running. One exclusive device owner per QA_DEVICE.`,
-          );
-          process.exit(3);
+          closeSync(fd);
+        } catch {
+          // The descriptor may already have been closed by the failed write.
         }
       }
-    } catch {
-      /* unreadable lock → treat as stale */
+      if (error?.code !== "EEXIST") {
+        console.error(`REFUSED: could not acquire autobot lock: ${String(error)}`);
+        process.exit(3);
+      }
+
+      let rawPid;
+      try {
+        rawPid = readFileSync(lockPath, "utf8").trim();
+      } catch (readError) {
+        console.error(
+          `REFUSED: autobot lock exists but is unreadable: ${String(readError)}`,
+        );
+        process.exit(3);
+      }
+      const lockPid = Number(rawPid);
+      if (!Number.isInteger(lockPid) || lockPid <= 0) {
+        console.error(
+          `REFUSED: autobot lock contains an invalid owner pid (${JSON.stringify(rawPid)}); remove it only after verifying no QA driver is running.`,
+        );
+        process.exit(3);
+      }
+
+      // Fail CLOSED: only ESRCH proves the lock owner is gone. Any other
+      // kill() error (e.g. EPERM for a live process we may not signal) must
+      // NOT count as a stale lock, or a second driver could steal the
+      // exclusive-device lock and corrupt both runs' taps.
+      let alive;
+      try {
+        process.kill(lockPid, 0);
+        alive = true;
+      } catch (killError) {
+        alive = killError?.code !== "ESRCH";
+      }
+      if (alive) {
+        console.error(
+          `REFUSED: another autobot driver (pid ${lockPid}) is already running. One exclusive device owner per QA_DEVICE.`,
+        );
+        process.exit(3);
+      }
+      try {
+        unlinkSync(lockPath);
+      } catch (unlinkError) {
+        console.error(
+          `REFUSED: stale autobot lock owner ${lockPid} is gone, but lock removal failed: ${String(unlinkError)}`,
+        );
+        process.exit(3);
+      }
     }
   }
-  writeFileSync(lockPath, String(process.pid));
+  if (!lockAcquired) {
+    console.error("REFUSED: could not acquire exclusive autobot lock after stale-lock recovery");
+    process.exit(3);
+  }
   process.on("exit", () => {
     try {
       if (readFileSync(lockPath, "utf8").trim() === String(process.pid)) {
@@ -3512,6 +3761,10 @@ async function main() {
     startedAt: new Date().toISOString(),
     results: [],
   };
+  const certificationOptions = {
+    requireInteraction: certify,
+    requirePause: certify,
+  };
 
   // Durability (release gate §8): the journal is checkpointed atomically
   // after EVERY terminal classification. A killed run leaves status
@@ -3519,7 +3772,7 @@ async function main() {
   // certification, and the partial per-game evidence stays diagnosable.
   const journal = () => {
     report.certification = certify
-      ? certifySummary(report.results, cat.ids)
+      ? certifySummary(report.results, cat.ids, certificationOptions)
       : undefined;
     writeRunJson(runId, report);
   };
@@ -3591,7 +3844,11 @@ async function main() {
   report.artifactsDir = RUN_DIR;
   report.status = "COMPLETED";
   if (certify) {
-    report.certification = certifySummary(report.results, cat.ids);
+    report.certification = certifySummary(
+      report.results,
+      cat.ids,
+      certificationOptions,
+    );
     report.certified = report.certification.certified;
   } else {
     delete report.certification;
@@ -3613,6 +3870,10 @@ async function main() {
     if (c.missing.length) console.log(`Missing ids: ${c.missing.join(", ")}`);
     if (c.duplicates.length) console.log(`Duplicate ids: ${c.duplicates.join(", ")}`);
     if (c.unexpected.length) console.log(`Unexpected ids: ${c.unexpected.join(", ")}`);
+    if (c.interactionMissing.length)
+      console.log(`Missing interaction evidence: ${c.interactionMissing.join(", ")}`);
+    if (c.pauseMissing.length)
+      console.log(`Missing pause/resume evidence: ${c.pauseMissing.join(", ")}`);
     console.log(`Certification verdict: ${report.certified ? "PASS" : "FAIL"}`);
   }
   console.log(`Run dir: ${RUN_DIR}`);

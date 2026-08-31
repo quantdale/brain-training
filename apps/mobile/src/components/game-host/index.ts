@@ -35,6 +35,6 @@ export type {
   UseGameSessionOptions,
 } from './use-game-session';
 
-export { useGameInterval, useGameTimeout } from './timers';
+export { useGameDeadlineTimeout, useGameInterval, useGameTimeout } from './timers';
 
 export { createSessionId, randomSeed, resolveSessionSeed } from './session-identity';

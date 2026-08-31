@@ -72,7 +72,7 @@ function mulberry32(state: number): () => number {
 }
 
 function assertInt(value: number, name: string): void {
-  if (!Number.isInteger(value) || value <= 0) {
+  if (!Number.isSafeInteger(value) || value <= 0) {
     throw new RangeError(`${name} must be a positive integer, got ${value}`);
   }
 }
@@ -91,6 +91,12 @@ export function createRng(seed: string | number): Rng {
       return Math.floor(next() * maxExclusive);
     },
     nextIntRange: (minInclusive: number, maxExclusive: number) => {
+      if (!Number.isSafeInteger(minInclusive)) {
+        throw new RangeError(`minInclusive must be an integer, got ${minInclusive}`);
+      }
+      if (!Number.isSafeInteger(maxExclusive)) {
+        throw new RangeError(`maxExclusive must be an integer, got ${maxExclusive}`);
+      }
       assertInt(maxExclusive - minInclusive, 'maxExclusive - minInclusive');
       return minInclusive + rng.nextInt(maxExclusive - minInclusive);
     },

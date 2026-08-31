@@ -1,0 +1,21 @@
+{
+  "id": "018-engagement-temporal-integrity",
+  "status": "ACTIVE",
+  "predecessor": "017-persistence-boundary-hardening",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "progress-input-validation",
+    "streak-calendar-integrity",
+    "reward-claim-time",
+    "progression-reconciliation"
+  ],
+  "activationRule": "Explicit owner directive on 2026-08-30 authorizes successor campaigns 017 through 020; 018 follows the validated 017 persistence wave.",
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": true,
+  "auditBaseline": "27c9174"
+}

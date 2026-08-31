@@ -8,7 +8,7 @@
  *   2. re-record progress in the completed state (idempotent by repo
  *      contract: monotonic-MAX progress, `completedAt` sticks);
  *   3. claim *first* (`claim` returns false when the row is already claimed)
- *      and only then append the XP award (`source: quest:<id>`,
+ *      and only then append the XP award (`source: quest:<id>:<period>`,
  *      `reason: 'quest'`) and the currency ledger entry.
  *
  * The facade does not expose the adapter, so cross-repo atomicity comes from
@@ -48,14 +48,24 @@ export async function applyQuestReward(
   db: AppDatabase,
   definition: QuestDefinition,
   periodKey: string,
+  now: Date = new Date(),
 ): Promise<QuestRewardResult> {
+  const nowMs = now.getTime();
+  if (!Number.isSafeInteger(nowMs)) {
+    throw new RangeError('applyQuestReward: now must be a valid safe-integer Date');
+  }
   // All reads/claims/awards run inside one transaction (task 7.3): the claim
   // marker, the XP award, and the currency ledger entry commit together or roll
   // back as one, so a crash can never leave a partial reward.
   return db.transaction(async (txn) => {
     const rows = await db.quests.listProgressForPeriod(periodKey, txn);
     const row = rows.find((r) => r.questId === definition.id);
-    if (!row || row.completedAt === null || row.progress < definition.criteria.goal) {
+    if (
+      !row ||
+      row.completedAt === null ||
+      row.completedAt > nowMs ||
+      row.progress < definition.criteria.goal
+    ) {
       throw new QuestNotCompleteError(definition.id, periodKey);
     }
     if (row.claimedAt !== null) {
@@ -72,7 +82,10 @@ export async function applyQuestReward(
     const xpAward = await db.xpAwards.award(
       definition.reward.xp,
       'quest',
-      `quest:${definition.id}`,
+      // The period is part of the XP identity. A quest legitimately pays once
+      // per period, so `quest:<id>` alone would collide when two periods are
+      // exported at the same timestamp or merged on another device.
+      `quest:${definition.id}:${periodKey}`,
       txn,
     );
     const ledgerEntry = await db.ledger.append(

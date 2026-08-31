@@ -354,6 +354,38 @@ describe('foreign keys and uniqueness constraints', () => {
   });
 });
 
+describe('INTEGER storage integrity', () => {
+  it('rejects fractional ledger values at both the repository and SQLite boundary', async () => {
+    const adapter = await createMigratedDb();
+    const ledger = new LedgerRepository(adapter);
+
+    await expect(ledger.append({ amount: 1.5, reason: 'fractional' })).rejects.toThrow(
+      /safe integer/,
+    );
+    await expect(
+      adapter.run(
+        "INSERT INTO currency_ledger (amount, reason, session_id, created_at) VALUES (?, ?, NULL, ?)",
+        [1.5, 'fractional', T0],
+      ),
+    ).rejects.toThrow(/INTEGER columns/);
+    expect(await adapter.all('SELECT * FROM currency_ledger')).toHaveLength(0);
+  });
+
+  it('rejects fractional session integer columns when bypassing the repository', async () => {
+    const adapter = await createMigratedDb();
+    await expect(
+      adapter.run(
+        `INSERT INTO game_sessions (
+          id, game_id, game_version, generator_version, scoring_version, seed,
+          difficulty_json, raw_result_json, normalized_result, xp,
+          started_at, completed_at, duration_ms
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ['fractional', 'memory', 1, 1, 1, 42, '{}', '{}', 0.5, 10.5, T0, T0 + 1, 1],
+      ),
+    ).rejects.toThrow(/INTEGER columns/);
+  });
+});
+
 describe('timestamp consistency under an advancing injectable clock', () => {
   it('xp award returns the timestamp that was actually stored', async () => {
     const adapter = await createMigratedDb();

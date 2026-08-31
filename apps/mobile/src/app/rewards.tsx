@@ -49,11 +49,7 @@ import {
 } from "@/rewards/history";
 import { celebrateReward, RewardCelebrationHost } from "@/rewards/celebration";
 import { reconstructStreak, readCoveredDates } from "@/streaks";
-import {
-  currentPeriodKey,
-  QUEST_DEFINITIONS_V1,
-  selectActiveQuests,
-} from "@/quests";
+import { QUEST_DEFINITIONS_V1 } from "@/quests";
 import { localDateString } from "@/workout/today";
 
 const SLOT_LABELS: Record<CosmeticSlot, string> = {
@@ -88,20 +84,19 @@ async function loadRewards(
   db: AppDatabase,
   now = new Date(),
 ): Promise<RewardsData> {
-  const [balance, profile, unlockRows, questProgressAll, sessions, inbox, history] =
+  const [balance, profile, unlockRows, questProgressAll, activityDates, inbox, history] =
     await Promise.all([
       db.ledger.getBalance(),
       db.profile.get(),
       db.achievements.listUnlocks(),
       Promise.all(
-        selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>
-          db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
+        QUEST_DEFINITIONS_V1.map((def) =>
+          db.quests.listProgressForQuest(def.id),
         ),
       ),
-      // Lightweight projection only: streak reconstruction needs just the
-      // completion timestamps, not every session's JSON blobs (large
-      // histories stay cheap to load on this screen).
-      db.sessions.listLightweight(5000),
+      // Distinct dates are an unbounded, indexed projection. A capped session
+      // sample made the displayed longest streak regress after long histories.
+      db.sessions.getDistinctActivityDates(),
       collectClaimableRewards(db, now),
       loadRewardHistory(db, 8),
     ]);
@@ -124,9 +119,6 @@ async function loadRewards(
   }
 
   const today = localDateString(now);
-  const activityDates = sessions.map((s) =>
-    localDateString(new Date(s.completedAt)),
-  );
   const longestStreak = reconstructStreak(
     activityDates,
     today,

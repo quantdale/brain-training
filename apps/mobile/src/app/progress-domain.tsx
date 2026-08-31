@@ -64,7 +64,7 @@ const EMPTY: ProgressSnapshot = {
 };
 
 function load(db: AppDatabase): Promise<ProgressSnapshot> {
-  return loadProgressSnapshot(db);
+  return loadProgressSnapshot(db, Date.now());
 }
 
 /** Sessions whose game's primary or secondary domain matches. */

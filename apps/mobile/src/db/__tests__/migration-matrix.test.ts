@@ -1,5 +1,5 @@
 /**
- * Campaign 011 W11 — schema v9 migration matrix (BLOCKER-class owner).
+ * Campaign 011 W11 — schema migration matrix (BLOCKER-class owner).
  *
  * Extends migration-robustness.test.ts / migrations.test.ts with the full
  * adversarial matrix the packet requires, on real better-sqlite3:
@@ -165,6 +165,7 @@ describe('campaign 011 W11 migration matrix', () => {
       expect.arrayContaining([
         'index:idx_game_sessions_completed_at',
         'index:idx_rating_history_created_at',
+        'index:idx_rating_history_session_domain',
         'trigger:trg_currency_ledger_no_update',
         'trigger:trg_currency_ledger_no_delete',
         'trigger:trg_rating_history_no_update',
@@ -215,6 +216,7 @@ describe('campaign 011 W11 migration matrix', () => {
         expect.arrayContaining([
           'index:idx_game_sessions_completed_at',
           'index:idx_rating_history_created_at',
+          'index:idx_rating_history_session_domain',
           'trigger:trg_currency_ledger_no_update',
           'trigger:trg_currency_ledger_no_delete',
           'trigger:trg_rating_history_no_update',

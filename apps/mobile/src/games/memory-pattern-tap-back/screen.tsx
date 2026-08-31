@@ -38,7 +38,7 @@ import {
   GameResults,
   resolveSessionSeed,
   useGameSession,
-  useGameTimeout,
+  useGameDeadlineTimeout,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
 
@@ -128,19 +128,23 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
   const observeDuration = (step: number) => baseObserveMs + stepObserveMs * step;
 
   // ---- Observe pacing: one tick per tile with scaling duration. Pause
-  // deactivates the timer; resume re-flashes the current tile from its start.
-  useGameTimeout(
+  // deactivates the timer; resume continues the current tile's remainder.
+  useGameDeadlineTimeout(
     state.phase === 'observe' && !state.paused,
     () => dispatch({ type: 'observe-tick' }),
     observeDuration(state.observeIndex),
+    clock,
+    `observe:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.observeIndex}`,
   );
 
   // ---- Recall auto-highlight: after a correct tap, briefly show the tile
-  // selected, then clear to allow the next tap. Pause cancels the highlight.
-  useGameTimeout(
+  // selected, then clear to allow the next tap. Pause preserves its remainder.
+  useGameDeadlineTimeout(
     state.phase === 'recall' && !state.paused && state.recallHighlight,
     () => dispatch({ type: 'recall-tick' }),
     200,
+    clock,
+    `highlight:${state.sessionId ?? 'idle'}:${state.roundIndex}:${state.inputIndex}`,
   );
 
   // ---- First play: open the tutorial automatically.
@@ -215,6 +219,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
     });
     dispatch({ type: 'persistence-started' });
     void persistSession(record, persister).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

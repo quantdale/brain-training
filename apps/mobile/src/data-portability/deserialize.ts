@@ -45,12 +45,24 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function hasOwn(value: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
+}
+
 function isString(value: unknown): value is string {
   return typeof value === 'string';
 }
 
 function isNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
+}
+
+function isSafeInteger(value: unknown): value is number {
+  return Number.isSafeInteger(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
 }
 
 function isBoolean(value: unknown): value is boolean {
@@ -80,17 +92,20 @@ function validateData(data: unknown): BackupData {
       return false;
     }
     if (
-      !isString(s.id) ||
-      !isString(s.gameId) ||
-      !isNumber(s.gameVersion) ||
-      !isNumber(s.generatorVersion) ||
-      !isNumber(s.scoringVersion) ||
-      !isNumber(s.seed) ||
+      !isNonEmptyString(s.id) ||
+      !isNonEmptyString(s.gameId) ||
+      !isSafeInteger(s.gameVersion) ||
+      !isSafeInteger(s.generatorVersion) ||
+      !isSafeInteger(s.scoringVersion) ||
+      !isSafeInteger(s.seed) ||
+      !hasOwn(s, 'difficulty') ||
+      !hasOwn(s, 'rawResult') ||
       !isNumber(s.normalizedResult) ||
-      !isNumber(s.xp) ||
-      !isNumber(s.startedAt) ||
-      !isNumber(s.completedAt) ||
-      !isNumber(s.durationMs)
+      !isSafeInteger(s.xp) ||
+      !isSafeInteger(s.startedAt) ||
+      !isSafeInteger(s.completedAt) ||
+      !isNumber(s.durationMs) ||
+      !Number.isSafeInteger(Math.round(s.durationMs))
     ) {
       issues.push(`gameSessions entry ${JSON.stringify(s?.id ?? '?')} is missing/invalid fields`);
       return false;
@@ -126,10 +141,10 @@ function validateData(data: unknown): BackupData {
   const domainRatings = domainRatingsRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.domain) ||
-      !isNumber(r.rating) ||
-      !isNumber(r.sessions) ||
-      !isNumber(r.updatedAt)
+      !isNonEmptyString(r.domain) ||
+      !isSafeInteger(r.rating) ||
+      !isSafeInteger(r.sessions) ||
+      !isSafeInteger(r.updatedAt)
     ) {
       issues.push('domainRatings contains an invalid entry');
       return false;
@@ -146,11 +161,11 @@ function validateData(data: unknown): BackupData {
   const ratingHistory = ratingHistoryRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.sessionId) ||
-      !isString(r.domain) ||
-      !isNumber(r.delta) ||
-      !isNumber(r.ratingAfter) ||
-      !isNumber(r.createdAt)
+      !isNonEmptyString(r.sessionId) ||
+      !isNonEmptyString(r.domain) ||
+      !isSafeInteger(r.delta) ||
+      !isSafeInteger(r.ratingAfter) ||
+      !isSafeInteger(r.createdAt)
     ) {
       issues.push('ratingHistory contains an invalid entry');
       return false;
@@ -162,11 +177,15 @@ function validateData(data: unknown): BackupData {
   const currencyLedger = ledgerRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isNumber(r.amount) ||
-      !isString(r.reason) ||
-      !(r.sessionId === null || isString(r.sessionId)) ||
-      !isNumber(r.createdAt) ||
-      !(r.operationId === null || r.operationId === undefined || isString(r.operationId))
+      !isSafeInteger(r.amount) ||
+      !isNonEmptyString(r.reason) ||
+      !(r.sessionId === null || isNonEmptyString(r.sessionId)) ||
+      !isSafeInteger(r.createdAt) ||
+      !(
+        r.operationId === null ||
+        r.operationId === undefined ||
+        isNonEmptyString(r.operationId)
+      )
     ) {
       issues.push('currencyLedger contains an invalid entry');
       return false;
@@ -176,7 +195,7 @@ function validateData(data: unknown): BackupData {
 
   const favoritesRaw = requireArray('gameFavorites');
   const gameFavorites = favoritesRaw.filter((r): r is Record<string, unknown> => {
-    if (!isObject(r) || !isString(r.gameId) || !isNumber(r.createdAt)) {
+    if (!isObject(r) || !isNonEmptyString(r.gameId) || !isSafeInteger(r.createdAt)) {
       issues.push('gameFavorites contains an invalid entry');
       return false;
     }
@@ -187,10 +206,11 @@ function validateData(data: unknown): BackupData {
   const xpAwards = xpRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isNumber(r.amount) ||
-      !isString(r.reason) ||
-      !isString(r.source) ||
-      !isNumber(r.createdAt)
+      !isSafeInteger(r.amount) ||
+      r.amount <= 0 ||
+      !isNonEmptyString(r.reason) ||
+      !isNonEmptyString(r.source) ||
+      !isSafeInteger(r.createdAt)
     ) {
       issues.push('xpAwards contains an invalid entry');
       return false;
@@ -202,11 +222,11 @@ function validateData(data: unknown): BackupData {
   const tutorialState = tutorialRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.gameId) ||
+      !isNonEmptyString(r.gameId) ||
       !isBoolean(r.completed) ||
       !isBoolean(r.replayRequested) ||
       !(r.version === null || r.version === undefined || isString(r.version)) ||
-      !isNumber(r.updatedAt)
+      !isSafeInteger(r.updatedAt)
     ) {
       issues.push('tutorialState contains an invalid entry');
       return false;
@@ -218,20 +238,31 @@ function validateData(data: unknown): BackupData {
   const workoutInstances = workoutsRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.date) ||
+      !isNonEmptyString(r.date) ||
       !Array.isArray(r.gameIds) ||
-      !r.gameIds.every((g) => isString(g)) ||
-      !isString(r.status) ||
-      !isNumber(r.currentIndex) ||
-      !isNumber(r.rerollAttempt) ||
-      !isNumber(r.seedVersion) ||
-      !isNumber(r.createdAt) ||
-      !isNumber(r.updatedAt)
+      r.gameIds.length === 0 ||
+      !r.gameIds.every((g) => isNonEmptyString(g)) ||
+      !(r.status === 'active' || r.status === 'completed') ||
+      !isSafeInteger(r.currentIndex) ||
+      !isSafeInteger(r.rerollAttempt) ||
+      !isSafeInteger(r.seedVersion) ||
+      !isSafeInteger(r.createdAt) ||
+      !isSafeInteger(r.updatedAt)
     ) {
       issues.push('workoutInstances contains an invalid entry');
       return false;
     }
-    // Optional Workout V2 metadata (engine 3+): must be object-or-null when
+    if (
+      r.currentIndex < 0 ||
+      r.currentIndex > r.gameIds.length ||
+      r.rerollAttempt < 0 ||
+      r.seedVersion < 0 ||
+      r.updatedAt < r.createdAt
+    ) {
+      issues.push(`workoutInstances entry ${JSON.stringify(r.date)} has invalid progress metadata`);
+      return false;
+    }
+    // Optional Workout V3 metadata (engine 3+): must be object-or-null when
     // present; absent (pre-engine-3 backups) is fine.
     if (
       r.metadata !== undefined &&
@@ -248,13 +279,16 @@ function validateData(data: unknown): BackupData {
   const questDefinitions = questDefsRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.id) ||
-      !isString(r.kind) ||
-      !isString(r.title) ||
-      !isString(r.description) ||
-      !isNumber(r.rewardXp) ||
-      !isNumber(r.rewardCurrency) ||
-      !isNumber(r.version)
+      !isNonEmptyString(r.id) ||
+      !(r.kind === 'daily' || r.kind === 'weekly' || r.kind === 'longterm') ||
+      !isNonEmptyString(r.title) ||
+      !isNonEmptyString(r.description) ||
+      !isSafeInteger(r.rewardXp) ||
+      !isSafeInteger(r.rewardCurrency) ||
+      !isSafeInteger(r.version) ||
+      r.rewardXp < 0 ||
+      r.rewardCurrency < 0 ||
+      r.version < 1
     ) {
       issues.push('questDefinitions contains an invalid entry');
       return false;
@@ -266,11 +300,20 @@ function validateData(data: unknown): BackupData {
   const questProgress = questProgRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.questId) ||
-      !isString(r.period) ||
-      !isNumber(r.progress) ||
-      !(r.completedAt === null || r.completedAt === undefined || isNumber(r.completedAt)) ||
-      !(r.claimedAt === null || r.claimedAt === undefined || isNumber(r.claimedAt))
+      !isNonEmptyString(r.questId) ||
+      !isNonEmptyString(r.period) ||
+      !isSafeInteger(r.progress) ||
+      r.progress < 0 ||
+      !(
+        r.completedAt === null ||
+        r.completedAt === undefined ||
+        isSafeInteger(r.completedAt)
+      ) ||
+      !(
+        r.claimedAt === null ||
+        r.claimedAt === undefined ||
+        isSafeInteger(r.claimedAt)
+      )
     ) {
       issues.push('questProgress contains an invalid entry');
       return false;
@@ -282,12 +325,15 @@ function validateData(data: unknown): BackupData {
   const achievementDefinitions = achDefsRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.id) ||
-      !isString(r.title) ||
-      !isString(r.description) ||
-      !isNumber(r.rewardXp) ||
-      !isNumber(r.rewardCurrency) ||
-      !isNumber(r.version)
+      !isNonEmptyString(r.id) ||
+      !isNonEmptyString(r.title) ||
+      !isNonEmptyString(r.description) ||
+      !isSafeInteger(r.rewardXp) ||
+      !isSafeInteger(r.rewardCurrency) ||
+      !isSafeInteger(r.version) ||
+      r.rewardXp < 0 ||
+      r.rewardCurrency < 0 ||
+      r.version < 1
     ) {
       issues.push('achievementDefinitions contains an invalid entry');
       return false;
@@ -299,9 +345,13 @@ function validateData(data: unknown): BackupData {
   const achievementUnlocks = achUnlocksRaw.filter((r): r is Record<string, unknown> => {
     if (
       !isObject(r) ||
-      !isString(r.achievementId) ||
-      !isNumber(r.unlockedAt) ||
-      !(r.claimedAt === null || r.claimedAt === undefined || isNumber(r.claimedAt))
+      !isNonEmptyString(r.achievementId) ||
+      !isSafeInteger(r.unlockedAt) ||
+      !(
+        r.claimedAt === null ||
+        r.claimedAt === undefined ||
+        isSafeInteger(r.claimedAt)
+      )
     ) {
       issues.push('achievementUnlocks contains an invalid entry');
       return false;
@@ -315,11 +365,11 @@ function validateData(data: unknown): BackupData {
   if (profileRaw !== null && profileRaw !== undefined) {
     if (
       !isObject(profileRaw) ||
-      !isString(profileRaw.id) ||
+      !isNonEmptyString(profileRaw.id) ||
       !isString(profileRaw.displayName) ||
       !isObject(profileRaw.settings) ||
-      !isNumber(profileRaw.createdAt) ||
-      !isNumber(profileRaw.updatedAt)
+      !isSafeInteger(profileRaw.createdAt) ||
+      !isSafeInteger(profileRaw.updatedAt)
     ) {
       issues.push('profile is present but invalid');
     } else {

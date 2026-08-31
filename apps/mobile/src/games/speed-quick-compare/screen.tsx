@@ -211,6 +211,7 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
     });
     dispatch({ type: 'persistence-started' });
     void persistQuickCompareSession(record, persistSession).then((outcome) => {
+      if (!session.isCurrentSession(record.id)) return;
       if (outcome.ok) {
         dispatch({ type: 'persistence-succeeded' });
         const co = outcome.result.completionOutcome;

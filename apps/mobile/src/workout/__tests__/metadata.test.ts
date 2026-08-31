@@ -72,8 +72,8 @@ describe('instance keys', () => {
   it('pins the version constants', () => {
     // Campaign 014 Workout V3 bumped metadata to v2 (signal-ranked ordering +
     // the extended reason vocabulary); the parser still accepts v1 rows.
-    expect(WORKOUT_METADATA_VERSION).toBe(2);
-    expect(WORKOUT_SELECTION_SEED_VERSION).toBe(2); // daily path persists seedVersion 1
+    expect(WORKOUT_METADATA_VERSION).toBe(3);
+    expect(WORKOUT_SELECTION_SEED_VERSION).toBe(3);
   });
 });
 

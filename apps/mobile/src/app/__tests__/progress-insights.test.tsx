@@ -92,6 +92,7 @@ function makeFakeDb(over: {
       getRatings: async () => over.ratings ?? [],
       getRating: async () => null,
     },
+    xpAwards: { getTotalAwardedXp: async () => 0 },
     ledger: { getBalance: async () => over.balance ?? 0 },
     favorites: { isFavorite: async () => false },
   } as unknown as AppDatabase;

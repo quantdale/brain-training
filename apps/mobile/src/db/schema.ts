@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from "./adapter";
 
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 12;
 
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
@@ -317,6 +317,26 @@ export const SQL = {
   `,
 
   /**
+   * One rating movement per `(session_id, domain)` is the identity contract
+   * used by restore and future sync. A completed session cannot legitimately
+   * contribute the same domain twice; without this index a replayed or
+   * hand-merged backup could append duplicate evidence forever.
+   */
+  createRatingHistorySessionDomainIndex: `
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_rating_history_session_domain
+      ON rating_history (session_id, domain);
+  `,
+
+  /** Recreate the delete guard after migration-time duplicate cleanup. */
+  createRatingHistoryNoDeleteTrigger: `
+    CREATE TRIGGER IF NOT EXISTS trg_rating_history_no_delete
+    BEFORE DELETE ON rating_history
+    BEGIN
+      SELECT RAISE(ABORT, 'rating_history is append-only: DELETE forbidden');
+    END;
+  `,
+
+  /**
    * Campaign 012/013 — SCHEMA CHANGE v10. Optional Workout V2 metadata
    * (versioned JSON: kind/templateId/length/focus + generation inputs +
    * recorded selection reasons). Additive and nullable; readers/writers
@@ -412,6 +432,109 @@ export const SQL = {
       SELECT CASE
         WHEN NEW.rating < 0 THEN
           RAISE(ABORT, 'rating must be nonnegative')
+      END;
+    END;
+  `,
+
+  /** Reject REAL/TEXT values in INTEGER-declared persistence columns. */
+  addIntegerStorageChecks: `
+    CREATE TRIGGER IF NOT EXISTS trg_game_sessions_integer_storage_insert
+    BEFORE INSERT ON game_sessions
+    BEGIN
+      SELECT CASE
+        WHEN typeof(NEW.game_version) <> 'integer'
+          OR typeof(NEW.generator_version) <> 'integer'
+          OR typeof(NEW.scoring_version) <> 'integer'
+          OR typeof(NEW.seed) <> 'integer'
+          OR typeof(NEW.xp) <> 'integer'
+          OR typeof(NEW.started_at) <> 'integer'
+          OR typeof(NEW.completed_at) <> 'integer'
+          OR typeof(NEW.duration_ms) <> 'integer'
+        THEN RAISE(ABORT, 'game_sessions INTEGER columns must contain integers')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_game_sessions_integer_storage_update
+    BEFORE UPDATE ON game_sessions
+    BEGIN
+      SELECT CASE
+        WHEN typeof(NEW.game_version) <> 'integer'
+          OR typeof(NEW.generator_version) <> 'integer'
+          OR typeof(NEW.scoring_version) <> 'integer'
+          OR typeof(NEW.seed) <> 'integer'
+          OR typeof(NEW.xp) <> 'integer'
+          OR typeof(NEW.started_at) <> 'integer'
+          OR typeof(NEW.completed_at) <> 'integer'
+          OR typeof(NEW.duration_ms) <> 'integer'
+        THEN RAISE(ABORT, 'game_sessions INTEGER columns must contain integers')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_game_sessions_normalized_update_check
+    BEFORE UPDATE ON game_sessions
+    BEGIN
+      SELECT CASE
+        WHEN NEW.normalized_result < 0 OR NEW.normalized_result > 1
+        THEN RAISE(ABORT, 'normalized_result must be in [0, 1]')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_game_sessions_xp_update_check
+    BEFORE UPDATE ON game_sessions
+    BEGIN
+      SELECT CASE
+        WHEN NEW.xp < 0 THEN RAISE(ABORT, 'xp must be nonnegative')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_currency_ledger_integer_storage_insert
+    BEFORE INSERT ON currency_ledger
+    BEGIN
+      SELECT CASE
+        WHEN typeof(NEW.amount) <> 'integer' OR typeof(NEW.created_at) <> 'integer'
+        THEN RAISE(ABORT, 'currency_ledger INTEGER columns must contain integers')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_rating_history_integer_storage_insert
+    BEFORE INSERT ON rating_history
+    BEGIN
+      SELECT CASE
+        WHEN typeof(NEW.delta) <> 'integer'
+          OR typeof(NEW.rating_after) <> 'integer'
+          OR typeof(NEW.created_at) <> 'integer'
+        THEN RAISE(ABORT, 'rating_history INTEGER columns must contain integers')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_domain_ratings_integer_storage_insert
+    BEFORE INSERT ON domain_ratings
+    BEGIN
+      SELECT CASE
+        WHEN typeof(NEW.rating) <> 'integer'
+          OR typeof(NEW.sessions) <> 'integer'
+          OR typeof(NEW.updated_at) <> 'integer'
+        THEN RAISE(ABORT, 'domain_ratings INTEGER columns must contain integers')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_domain_ratings_integer_storage_update
+    BEFORE UPDATE ON domain_ratings
+    BEGIN
+      SELECT CASE
+        WHEN typeof(NEW.rating) <> 'integer'
+          OR typeof(NEW.sessions) <> 'integer'
+          OR typeof(NEW.updated_at) <> 'integer'
+        THEN RAISE(ABORT, 'domain_ratings INTEGER columns must contain integers')
+      END;
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS trg_xp_awards_integer_storage_insert
+    BEFORE INSERT ON xp_awards
+    BEGIN
+      SELECT CASE
+        WHEN typeof(NEW.amount) <> 'integer' OR typeof(NEW.created_at) <> 'integer'
+        THEN RAISE(ABORT, 'xp_awards INTEGER columns must contain integers')
       END;
     END;
   `,
@@ -531,6 +654,43 @@ export const MIGRATIONS: readonly Migration[] = [
       if (!columns.some((column) => column.name === "metadata_json")) {
         await txn.exec(SQL.addWorkoutMetadataColumn);
       }
+    },
+  },
+  {
+    version: 11,
+    up: async (txn) => {
+      // Keep SQLite's dynamic typing from silently turning fractional JS
+      // values into REAL rows in INTEGER-affinity columns. Existing legacy
+      // rows are left untouched; all new writes are validated at the boundary.
+      await txn.exec(SQL.addIntegerStorageChecks);
+    },
+  },
+  {
+    version: 12,
+    up: async (txn) => {
+      // Repair the only known invalid shape before adding the natural-key
+      // index. Keep the earliest physical row for each session/domain pair so
+      // the repair is deterministic and preserves the original evidence
+      // ordering. The delete guard is absent only inside this transaction;
+      // rollback restores both rows and trigger DDL together.
+      const duplicateRows = await txn.all<{ id: number }>(`
+        SELECT duplicate.id
+        FROM rating_history AS duplicate
+        WHERE EXISTS (
+          SELECT 1
+          FROM rating_history AS keeper
+          WHERE keeper.session_id = duplicate.session_id
+            AND keeper.domain = duplicate.domain
+            AND keeper.id < duplicate.id
+        )
+        ORDER BY duplicate.id ASC
+      `);
+      await txn.exec("DROP TRIGGER IF EXISTS trg_rating_history_no_delete");
+      for (const row of duplicateRows) {
+        await txn.run("DELETE FROM rating_history WHERE id = ?", [row.id]);
+      }
+      await txn.exec(SQL.createRatingHistorySessionDomainIndex);
+      await txn.exec(SQL.createRatingHistoryNoDeleteTrigger);
     },
   },
 ];
