@@ -104,15 +104,32 @@ export class QuestRepository {
 
   /** Seed/replace a quest definition (idempotent upsert). */
   async upsertDefinition(definition: QuestDefinition): Promise<void> {
-    await this.adapter.run(UPSERT_DEFINITION, [
-      definition.id,
-      definition.kind,
-      definition.title,
+    const id = requireNonEmptyString(definition.id, 'quest definition id');
+    const kind = requireQuestKind(definition.kind);
+    const title = requireNonEmptyString(definition.title, 'quest definition title');
+    const description = requireNonEmptyString(
       definition.description,
-      JSON.stringify(definition.criteria),
+      'quest definition description',
+    );
+    const criteriaJson = serializeCriteria(definition.criteria);
+    const rewardXp = requireNonNegativeSafeInteger(
       definition.rewardXp,
+      'quest definition rewardXp',
+    );
+    const rewardCurrency = requireNonNegativeSafeInteger(
       definition.rewardCurrency,
-      definition.version,
+      'quest definition rewardCurrency',
+    );
+    const version = requirePositiveSafeInteger(definition.version, 'quest definition version');
+    await this.adapter.run(UPSERT_DEFINITION, [
+      id,
+      kind,
+      title,
+      description,
+      criteriaJson,
+      rewardXp,
+      rewardCurrency,
+      version,
     ]);
   }
 
@@ -139,34 +156,42 @@ export class QuestRepository {
    * reduces stored progress; `completedAt` sticks once set. Returns the row.
    */
   async recordProgress(update: QuestProgressUpdate): Promise<QuestProgress> {
+    const questId = requireNonEmptyString(update.questId, 'quest progress questId');
+    const period = requireNonEmptyString(update.period, 'quest progress period');
+    const progress = requireNonNegativeSafeInteger(update.progress, 'quest progress progress');
+    const explicitCompletedAt =
+      update.completedAt === undefined
+        ? undefined
+        : requireSafeIntegerOrNull(update.completedAt, 'quest progress completedAt');
     const current = await this.adapter.get<QuestProgressRow>(SELECT_PROGRESS, [
-      update.questId,
-      update.period,
+      questId,
+      period,
     ]);
     const completedAt =
-      update.completedAt !== undefined
-        ? update.completedAt
+      explicitCompletedAt !== undefined
+        ? explicitCompletedAt
         : (current?.completed_at ?? null);
     await this.adapter.run(UPSERT_PROGRESS, [
-      update.questId,
-      update.period,
-      Math.max(0, update.progress),
+      questId,
+      period,
+      progress,
       completedAt,
       current?.claimed_at ?? null,
     ]);
     const row = await this.adapter.get<QuestProgressRow>(SELECT_PROGRESS, [
-      update.questId,
-      update.period,
+      questId,
+      period,
     ]);
     if (!row) {
-      throw new Error(`quest progress row missing after upsert (${update.questId}/${update.period})`);
+      throw new Error(`quest progress row missing after upsert (${questId}/${period})`);
     }
     return mapProgressRow(row);
   }
 
   /** Progress for all quests in one period. `txn` reads inside a transaction (task 7.3). */
   async listProgressForPeriod(period: string, txn?: SQLiteAdapter): Promise<QuestProgress[]> {
-    const rows = await (txn ?? this.adapter).all<QuestProgressRow>(SELECT_PERIOD_PROGRESS, [period]);
+    const validPeriod = requireNonEmptyString(period, 'quest progress period');
+    const rows = await (txn ?? this.adapter).all<QuestProgressRow>(SELECT_PERIOD_PROGRESS, [validPeriod]);
     return rows.map(mapProgressRow);
   }
 
@@ -176,7 +201,8 @@ export class QuestRepository {
    * existing callers are unaffected.
    */
   async listProgressForQuest(questId: string): Promise<QuestProgress[]> {
-    const rows = await this.adapter.all<QuestProgressRow>(SELECT_QUEST_PROGRESS, [questId]);
+    const validQuestId = requireNonEmptyString(questId, 'quest progress questId');
+    const rows = await this.adapter.all<QuestProgressRow>(SELECT_QUEST_PROGRESS, [validQuestId]);
     return rows.map(mapProgressRow);
   }
 
@@ -195,9 +221,61 @@ export class QuestRepository {
    * transaction (task 7.3).
    */
   async claim(questId: string, period: string, txn?: SQLiteAdapter): Promise<boolean> {
-    const result = await (txn ?? this.adapter).run(CLAIM_PROGRESS, [this.now(), questId, period]);
+    const validQuestId = requireNonEmptyString(questId, 'quest claim questId');
+    const validPeriod = requireNonEmptyString(period, 'quest claim period');
+    const now = this.now();
+    if (!Number.isSafeInteger(now)) {
+      throw new RangeError('quest claim timestamp must be a safe integer');
+    }
+    const result = await (txn ?? this.adapter).run(CLAIM_PROGRESS, [now, validQuestId, validPeriod]);
     return result.changes > 0;
   }
+}
+
+function requireNonEmptyString(value: unknown, field: string): string {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    throw new TypeError(`${field} must be a non-empty string`);
+  }
+  return value;
+}
+
+function requireQuestKind(value: unknown): QuestKind {
+  if (value !== 'daily' && value !== 'weekly' && value !== 'longterm') {
+    throw new TypeError('quest definition kind is invalid');
+  }
+  return value;
+}
+
+function requireNonNegativeSafeInteger(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
+    throw new RangeError(`${field} must be a non-negative safe integer`);
+  }
+  return value;
+}
+
+function requirePositiveSafeInteger(value: unknown, field: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1) {
+    throw new RangeError(`${field} must be a positive safe integer`);
+  }
+  return value;
+}
+
+function requireSafeIntegerOrNull(value: unknown, field: string): number | null {
+  if (value === null) {
+    return null;
+  }
+  if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
+    throw new RangeError(`${field} must be a safe integer or null`);
+  }
+  return value;
+}
+
+function serializeCriteria(criteria: unknown): string {
+  const serialized = JSON.stringify(criteria);
+  if (serialized === undefined) {
+    throw new TypeError('quest definition criteria must be JSON-serializable');
+  }
+  return serialized;
 }
 
 function mapProgressRow(row: QuestProgressRow): QuestProgress {

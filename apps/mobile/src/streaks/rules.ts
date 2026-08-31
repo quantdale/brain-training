@@ -50,6 +50,7 @@ export const RECOVERY_MAX_STREAK_RESTORE_DAYS = 3;
  * deterministic on every host.
  */
 export function streakPeriodKey(now: Date): string {
+  requireValidDate(now, 'streakPeriodKey');
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   return `${year}-${month}`;
@@ -67,7 +68,7 @@ export function readFreezeUsage(settings: Record<string, unknown>): StreakFreeze
   }
   const raw = usage as Record<string, unknown>;
   return {
-    period: typeof raw.period === 'string' ? raw.period : '',
+    period: isValidStreakPeriod(raw.period) ? raw.period : '',
     count:
       typeof raw.count === 'number' && Number.isFinite(raw.count) && raw.count > 0
         ? Math.floor(raw.count)
@@ -225,10 +226,29 @@ export function canApplyRecovery(
 
 /** Local `YYYY-MM-DD` key for a clock date (repo local-calendar convention). */
 function localDateOf(now: Date): string {
+  requireValidDate(now, 'streak date');
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function requireValidDate(value: Date, field: string): void {
+  if (!(value instanceof Date) || !Number.isSafeInteger(value.getTime())) {
+    throw new RangeError(`${field}: expected a valid safe-integer Date`);
+  }
+}
+
+function isValidStreakPeriod(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const match = /^(\d{4})-(\d{2})$/.exec(value);
+  if (!match) {
+    return false;
+  }
+  const month = Number(match[2]);
+  return month >= 1 && month <= 12;
 }
 
 /**

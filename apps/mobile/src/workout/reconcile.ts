@@ -90,8 +90,11 @@ export function reconcileWorkout(
  // negative index would otherwise feed `slice(0, oldIndex)` its negative-
  // from-the-end semantics and mis-place the resume point (Queue A: no crash /
  // no silent mis-repair on drifted rows).
+ const rawIndex = Number.isFinite(instance.currentIndex)
+  ? Math.trunc(instance.currentIndex)
+  : 0;
  const oldIndex = Math.min(
-  Math.max(Math.trunc(instance.currentIndex), 0),
+  Math.max(rawIndex, 0),
   instance.gameIds.length,
  );
  const oldCurrentId = instance.gameIds[oldIndex];

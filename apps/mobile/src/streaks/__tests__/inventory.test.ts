@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { consumeItem, grantItems, readInventory } from '../inventory';
+import { addCoveredDates, consumeItem, grantItems, readCoveredDates, readInventory } from '../inventory';
 
 describe('readInventory', () => {
   it('returns all zeros when the streaks block is missing', () => {
@@ -99,5 +99,32 @@ describe('consumeItem', () => {
     const next = consumeItem(settings, 'recovery');
     expect(next).toEqual({ theme: 'dark', streaks: { freeze: 0, shield: 0, recovery: 0 } });
     expect(next).not.toBe(settings);
+  });
+
+  it('rejects an unknown runtime item kind before changing settings', () => {
+    expect(() => consumeItem({ streaks: { freeze: 1 } }, 'potion' as never)).toThrow(
+      /unknown streak item kind/,
+    );
+  });
+});
+
+describe('covered dates', () => {
+  it('drops impossible dates, deduplicates, and returns canonical order', () => {
+    const settings = {
+      streaks: {
+        coveredDates: ['2026-08-16', '2026-02-30', '2026-08-14', '2026-08-16', 'nope'],
+      },
+    };
+    expect(readCoveredDates(settings)).toEqual(['2026-08-14', '2026-08-16']);
+  });
+
+  it('adds only valid dates and serializes them deterministically', () => {
+    expect(
+      addCoveredDates({ streaks: { coveredDates: ['2026-08-16'] } }, [
+        '2026-08-15',
+        '2026-02-30',
+        '2026-08-15',
+      ]),
+    ).toEqual({ streaks: { coveredDates: ['2026-08-15', '2026-08-16'] } });
   });
 });

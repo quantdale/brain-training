@@ -10,6 +10,7 @@
  */
 
 import type { StreakInventory, StreakItemKind } from './types';
+import { toUtcDate } from './reconstruct';
 
 /** Clamp an unknown count value to a sane non-negative integer (0 for garbage). */
 function normalizeCount(value: unknown): number {
@@ -70,6 +71,9 @@ export function consumeItem(
   settings: Record<string, unknown>,
   kind: StreakItemKind,
 ): Record<string, unknown> {
+  if (!isStreakItemKind(kind)) {
+    throw new TypeError(`consumeItem: unknown streak item kind "${String(kind)}"`);
+  }
   const block = readStreaksBlock(settings);
   const current = readInventory(settings);
   return {
@@ -82,6 +86,11 @@ export function consumeItem(
       [kind]: Math.max(0, current[kind] - 1),
     },
   };
+}
+
+/** Runtime guard for values crossing JS/UI or imported-settings boundaries. */
+export function isStreakItemKind(value: unknown): value is StreakItemKind {
+  return value === 'freeze' || value === 'shield' || value === 'recovery';
 }
 
 /**
@@ -97,16 +106,14 @@ export function readCoveredDates(settings: Record<string, unknown>): string[] {
   if (!Array.isArray(raw)) {
     return [];
   }
-  const dates: string[] = [];
+  const dates = new Set<string>();
   for (const value of raw) {
-    if (typeof value === 'string' && DATE_RE.test(value)) {
-      dates.push(value);
+    if (typeof value === 'string' && toUtcDate(value) !== null) {
+      dates.add(value);
     }
   }
-  return dates;
+  return [...dates].sort();
 }
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Add covered dates (a Freeze/Recovery application) and return the next
@@ -121,7 +128,7 @@ export function addCoveredDates(
   const block = readStreaksBlock(settings);
   const existing = new Set(readCoveredDates(settings));
   for (const date of dates) {
-    if (typeof date === 'string' && DATE_RE.test(date)) {
+    if (typeof date === 'string' && toUtcDate(date) !== null) {
       existing.add(date);
     }
   }
@@ -129,7 +136,7 @@ export function addCoveredDates(
     ...settings,
     streaks: {
       ...block,
-      coveredDates: [...existing],
+      coveredDates: [...existing].sort(),
     },
   };
 }

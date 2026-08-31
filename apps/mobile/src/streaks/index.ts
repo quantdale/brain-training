@@ -25,6 +25,7 @@ export {
 } from './reconstruct';
 export {
   readInventory,
+  isStreakItemKind,
   grantItems,
   consumeItem,
   addCoveredDates,

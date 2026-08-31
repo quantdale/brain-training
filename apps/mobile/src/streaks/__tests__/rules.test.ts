@@ -42,6 +42,7 @@ describe('streakPeriodKey', () => {
     expect(streakPeriodKey(new Date(2026, 11, 31))).toBe('2026-12');
     expect(streakPeriodKey(new Date(2025, 11, 31))).toBe('2025-12');
     expect(streakPeriodKey(new Date(2026, 0, 1))).toBe('2026-01');
+    expect(() => streakPeriodKey(new Date(Number.NaN))).toThrow(/valid safe-integer Date/);
   });
 });
 
@@ -57,6 +58,14 @@ describe('freeze usage bookkeeping', () => {
     expect(readFreezeUsage({ streaks: { freezeUsed: { period: 7, count: '2' } } })).toEqual({
       period: '',
       count: 0,
+    });
+    expect(readFreezeUsage({ streaks: { freezeUsed: { period: '2026-02', count: 2 } } })).toEqual({
+      period: '2026-02',
+      count: 2,
+    });
+    expect(readFreezeUsage({ streaks: { freezeUsed: { period: '2026-13', count: 2 } } })).toEqual({
+      period: '',
+      count: 2,
     });
   });
 

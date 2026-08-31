@@ -33,11 +33,11 @@ export function isWorkoutSessionProvenance(
   const candidate = value as Record<string, unknown>;
   return (
     typeof candidate.instanceKey === "string" &&
-    candidate.instanceKey.length > 0 &&
+    candidate.instanceKey.trim().length > 0 &&
     typeof candidate.gameId === "string" &&
-    candidate.gameId.length > 0 &&
+    candidate.gameId.trim().length > 0 &&
     typeof candidate.legIndex === "number" &&
-    Number.isInteger(candidate.legIndex) &&
+    Number.isSafeInteger(candidate.legIndex) &&
     candidate.legIndex >= 0
   );
 }

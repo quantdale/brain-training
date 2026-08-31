@@ -152,6 +152,88 @@ describe('QuestRepository', () => {
       (await quests.listProgressForPeriod('2026-08-18'))[0].claimedAt,
     ).toBeNull();
   });
+
+  it('rejects malformed progress and identities before mutating the row', async () => {
+    const adapter = await createMigratedDb();
+    const quests = new QuestRepository(adapter, () => T0);
+    await quests.upsertDefinition({
+      id: 'bounded',
+      kind: 'daily',
+      title: 'Bounded',
+      description: 'Boundary test',
+      criteria: { type: 'session-count', goal: 2 },
+      rewardXp: 1,
+      rewardCurrency: 1,
+      version: 1,
+    });
+    await quests.recordProgress({ questId: 'bounded', period: '2026-08-16', progress: 1 });
+
+    for (const progress of [-1, 1.5, Number.NaN, Number.MAX_SAFE_INTEGER + 1]) {
+      await expect(
+        quests.recordProgress({
+          questId: 'bounded',
+          period: '2026-08-16',
+          progress,
+        }),
+      ).rejects.toThrow(/progress.*safe integer/i);
+    }
+    await expect(
+      quests.recordProgress({ questId: '', period: '2026-08-16', progress: 2 }),
+    ).rejects.toThrow(/questId.*non-empty/i);
+    await expect(
+      quests.recordProgress({ questId: 'bounded', period: ' ', progress: 2 }),
+    ).rejects.toThrow(/period.*non-empty/i);
+    await expect(
+      quests.recordProgress({
+        questId: 'bounded',
+        period: '2026-08-16',
+        progress: 2,
+        completedAt: 1.25,
+      }),
+    ).rejects.toThrow(/completedAt.*safe integer/i);
+
+    expect(await quests.listProgressForPeriod('2026-08-16')).toEqual([
+      expect.objectContaining({ progress: 1, completedAt: null, claimedAt: null }),
+    ]);
+  });
+
+  it('rejects malformed definitions and invalid claim clocks without writes', async () => {
+    const adapter = await createMigratedDb();
+    const quests = new QuestRepository(adapter, () => Number.NaN);
+    await expect(
+      quests.upsertDefinition({
+        id: 'bad-reward',
+        kind: 'daily',
+        title: 'Bad',
+        description: 'Bad',
+        criteria: {},
+        rewardXp: 1.5,
+        rewardCurrency: 1,
+        version: 1,
+      }),
+    ).rejects.toThrow(/rewardXp.*safe integer/i);
+    expect(await quests.listDefinitions()).toHaveLength(0);
+
+    const valid = new QuestRepository(adapter, () => T0);
+    await valid.upsertDefinition({
+      id: 'claim-clock',
+      kind: 'daily',
+      title: 'Claim clock',
+      description: 'Claim clock',
+      criteria: { type: 'session-count', goal: 1 },
+      rewardXp: 1,
+      rewardCurrency: 1,
+      version: 1,
+    });
+    await valid.recordProgress({
+      questId: 'claim-clock',
+      period: '2026-08-16',
+      progress: 1,
+      completedAt: T0,
+    });
+    await expect(quests.claim('claim-clock', '2026-08-16')).rejects.toThrow(/timestamp.*safe integer/i);
+    expect((await valid.listProgressForPeriod('2026-08-16'))[0].claimedAt).toBeNull();
+  });
 });
 
 describe('AchievementRepository', () => {

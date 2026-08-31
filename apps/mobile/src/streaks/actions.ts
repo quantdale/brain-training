@@ -27,7 +27,7 @@ import {
   canApplyRecovery,
   canApplyShield,
 } from './rules';
-import { readInventory, readCoveredDates } from './inventory';
+import { isStreakItemKind, readInventory, readCoveredDates } from './inventory';
 import {
   markMilestoneClaimed,
   readClaimedMilestones,
@@ -49,6 +49,9 @@ export async function applyOwnedStreakItem(
   _state: StreakState,
   now: Date,
 ): Promise<StreakApplyResult> {
+  if (!isStreakItemKind(kind)) {
+    return 'not-allowed';
+  }
   // Run the read-precondition-check + transform + write inside one transaction
   // so a concurrent apply (or any interleaved settings write) cannot race the
   // read against the write and silently lose a freeze/coverage update. The
@@ -121,6 +124,13 @@ export async function claimStreakMilestoneReward(
   bestStreak: number,
   now: Date,
 ): Promise<MilestoneClaimStatus> {
+  const nowMs = now.getTime();
+  if (!Number.isSafeInteger(nowMs)) {
+    throw new RangeError('claimStreakMilestoneReward: now must be a valid safe-integer Date');
+  }
+  if (!Number.isSafeInteger(bestStreak) || bestStreak < 0) {
+    throw new RangeError('claimStreakMilestoneReward: bestStreak must be a non-negative safe integer');
+  }
   if (bestStreak < milestone.days) {
     return 'not-reached';
   }

@@ -1,29 +1,30 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-30 Campaign 018 activation after Campaign 017 closure. The owner-authorized sequence has validated the persistence/portability/sync/temporal repair set; 018 now owns engagement input, calendar, reward-claim, and progression reconciliation hardening. Android runtime and manual evidence remain BLOCKED/NOT VALIDATED under the previously recorded bounded emulator matrix.
+**Last update:** 2026-08-31 Campaign 019 activation after Campaign 018 closure. Campaigns 017 and 018 are validated; 019 now owns shared game lifecycle, timer, workout provenance, and catalog reconciliation hardening. Android runtime and manual evidence remain BLOCKED/NOT VALIDATED under the previously recorded bounded emulator matrix.
 **Canonical branch:** `main`
-**Active campaign:** 018-engagement-temporal-integrity
-**Last campaign:** 017-persistence-boundary-hardening
+**Active campaign:** 019-game-lifecycle-resilience
+**Last campaign:** 018-engagement-temporal-integrity
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 018 — Engagement Temporal Integrity is **ACTIVE** under the
-owner-authorized successor sequence 017–020. Campaign 017 is validated with
-safe-integer storage, rating/session identity, backup/restore rollback,
-deterministic sync, canonical profile export, and user-facing as-of reads.
-Campaign 018 owns strict quest/streak inputs, canonical covered dates,
-time-safe reward claims, and progression reconciliation. SQLite remains
+Campaign 019 — Game Lifecycle Resilience is **ACTIVE** under the owner-
+authorized successor sequence 017–020. Campaign 017 is validated with local
+persistence/portability/sync/as-of boundaries, and 018 is validated with
+strict quest/streak inputs, canonical covered dates, time-safe reward claims,
+and progression reconciliation. Campaign 019 owns shared game lifecycle,
+pause timing, Workout V3 provenance, and catalog drift repair. SQLite remains
 canonical and no new game or deferred external system is in scope.
 
-Current evidence is the validated 017 baseline plus the newly activated 018
-scope: repository validators, TypeScript, lint, QA self-test 51/51,
-projection/session/rating/migration, portability, reward, streak, and
-achievement suites pass; full Node 22 Jest passed 489 suites / 6087 tests with
-4 suites / 5 tests skipped by the explicit measurement allowlist. Android
-runtime and manual platform evidence remain BLOCKED/NOT VALIDATED; 018's
-focused engagement gate is the next executable work.
+Current evidence is the validated 017/018 baseline plus the newly activated
+019 scope: repository validators, TypeScript, lint, QA self-test 51/51,
+projection/session/rating/migration, portability, reward, streak, achievement,
+and lifecycle/workout suites pass; full Node 22 Jest passed 489 suites /
+6094 tests with 4 suites / 5 tests skipped by the explicit measurement
+allowlist. Android runtime and manual platform evidence remain
+BLOCKED/NOT VALIDATED; 019's focused lifecycle gate is the next executable
+work.
 
 The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7, `image.sysdir.1=system-images/android-35/aosp_atd/x86_64`) and `braintraining-qa35` (google_apis, same API) alongside the foreign `study-maker-api35`; both dedicated AVDs were created via `avdmanager` from committed inputs and booted headless with TCG (`-accel off -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). A bounded matrix of 4 configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) all reproduced the same external failure: `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exit (`Netsim Wifi … gone due to CANCELLED` / `cannnot unmap ptr` / `TCG avx`); `/dev/kvm` missing (`accel=8`, `modprobe` unavailable) and only emulator 37.1.11 is available via `sdkmanager`, so no stable TCG configuration exists on this container host. Therefore dedicated Android install/start, Rule Grid/Transform Match canaries, Workout V3 daily/focus/relaunch, 42/42 `autobot --mode certify`, Android hierarchy, TalkBack, SAF/system sheets, and manual iOS UX remain **BLOCKED / NOT VALIDATED**. iOS compile PASS is not runtime UX PASS. Signing, store submission, cloud/auth, telemetry, monetization, and other deferred product decisions remain out of scope.
 
@@ -31,8 +32,8 @@ The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (
 
 An executable repository has one ACTIVE campaign in `GOVERNANCE.activeCampaign`,
 `STATE`, `CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, OpenSpec, and task ownership.
-Those fields now agree on `018-engagement-temporal-integrity`; the recorded
-last validated predecessor is `017-persistence-boundary-hardening`. The owner
+Those fields now agree on `019-game-lifecycle-resilience`; the recorded
+last validated predecessor is `018-engagement-temporal-integrity`. The owner
 directive explicitly authorizes the successor sequence, so this is executable
 work rather than a terminal state.
 
@@ -48,6 +49,18 @@ suites passed. Android runtime, manual accessibility/system-sheet,
 physical-device, and manual iOS UX evidence remain BLOCKED/NOT VALIDATED, and
 the accepted 16 build-toolchain npm advisories remain documented. The owner
 directive then atomically activated 018 with no feature expansion.
+
+## Campaign 018 closure and Campaign 019 activation — 2026-08-31
+
+Campaign 018 closed after strict quest definition/progress/claim validation,
+real calendar-date filtering, deterministic covered-date serialization,
+time-safe reward claim coverage, and engagement/progression reconciliation.
+Focused engagement suites passed 12 suites / 127 tests; lifecycle/workout
+convergence suites passed 8 suites / 68 tests; the full Node 22 Jest run passed
+489/493 suites and 6094/6099 tests with 4 suites / 5 tests skipped by the
+explicit measurement allowlist. TypeScript, lint, repository validators,
+registry, provenance, offline boundary, and QA self-test 51/51 passed. The
+owner directive then atomically activated 019 with no feature expansion.
 
 Historical Campaign 015/016 transition prose below is retained for recovery
 and is historical; it does not override the terminal fields above.

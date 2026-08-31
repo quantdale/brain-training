@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "lifecycleStatus": "ACTIVE",
-  "change": "018-engagement-temporal-integrity",
-  "description": "Orchestrator-owned engagement integrity hardening wave. Quest, streak, reward, progression, durable state, and generated/config surfaces remain protected; no coder packets are active in this transition.",
+  "change": "019-game-lifecycle-resilience",
+  "description": "Orchestrator-owned game lifecycle resilience hardening wave. Shared game-host, workout, provenance, durable state, and generated/config surfaces remain protected; no coder packets are active in this transition.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/**",
     ".agent/GOVERNANCE.json",

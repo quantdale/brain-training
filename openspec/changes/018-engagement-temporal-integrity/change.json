@@ -1,6 +1,6 @@
 {
   "id": "018-engagement-temporal-integrity",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "017-persistence-boundary-hardening",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -14,6 +14,8 @@
     "progression-reconciliation"
   ],
   "activationRule": "Explicit owner directive on 2026-08-30 authorizes successor campaigns 017 through 020; 018 follows the validated 017 persistence wave.",
+  "validationNote": "Validated on 2026-08-31 after strict quest definition/progress/claim validation, real calendar-date filtering and deterministic covered-date serialization, time-safe reward claim coverage, and engagement/progression reconciliation tests. Focused engagement suites passed 12 suites / 127 tests; lifecycle/workout convergence suites passed 8 suites / 68 tests; the full Node 22 Jest run passed 489/493 suites and 6094/6099 tests with 4 suites / 5 tests skipped by the explicit measurement allowlist. TypeScript, lint, repository validators, registry, provenance, offline boundary, and QA self-test 51/51 passed. Android runtime, manual platform, physical-device, and manual iOS UX evidence remain BLOCKED / NOT VALIDATED under the documented environment constraints.",
+  "validatedAt": "2026-08-31",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
   "fullHardening": true,

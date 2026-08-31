@@ -167,6 +167,14 @@ describe("reconcileWorkout", () => {
     expect(instance?.gameIds[instance.currentIndex]).toBe("b");
   });
 
+  it("repairs a non-finite currentIndex instead of propagating NaN", () => {
+    const inst = makeInstance({ currentIndex: Number.NaN });
+    const { instance, changed } = reconcileWorkout(inst, ["a", "b", "c", "d"]);
+    expect(changed).toBe(true);
+    expect(instance?.currentIndex).toBe(0);
+    expect(instance?.status).toBe("active");
+  });
+
   it("handles an empty stored game list by signalling regeneration", () => {
     const inst = makeInstance({ gameIds: [] });
     const { instance, changed } = reconcileWorkout(inst, ["a", "b"]);

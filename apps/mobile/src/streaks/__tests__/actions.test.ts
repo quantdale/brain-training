@@ -167,4 +167,23 @@ describe('claimStreakMilestoneReward', () => {
     expect(await claimStreakMilestoneReward(db, milestone, 1, NOW)).toBe('not-reached');
     expect(await db.ledger.getBalance()).toBe(0);
   });
+
+  it('rejects fractional or negative best-streak values before writing rewards', async () => {
+    const db = await makeDb();
+    await expect(claimStreakMilestoneReward(db, milestone, 3.5, NOW)).rejects.toThrow(
+      /bestStreak.*safe integer/,
+    );
+    await expect(claimStreakMilestoneReward(db, milestone, -1, NOW)).rejects.toThrow(
+      /bestStreak.*safe integer/,
+    );
+    expect(await db.xpAwards.getTotalAwardedXp()).toBe(0);
+    expect(await db.ledger.getBalance()).toBe(0);
+  });
+
+  it('rejects an unknown runtime item kind without consuming inventory', async () => {
+    const db = await makeDb({ streaks: { freeze: 1, shield: 0, recovery: 0 } });
+    const result = await applyOwnedStreakItem(db, 'potion' as never, reconstructStreak([], TODAY), NOW);
+    expect(result).toBe('not-allowed');
+    expect(readInventory((await db.profile.get())?.settings ?? {}).freeze).toBe(1);
+  });
 });

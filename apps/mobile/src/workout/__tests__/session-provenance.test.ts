@@ -21,8 +21,10 @@ describe("workout session provenance", () => {
   it("accepts only a complete non-negative integer tuple", () => {
     expect(isWorkoutSessionProvenance(PROVENANCE)).toBe(true);
     expect(isWorkoutSessionProvenance({ ...PROVENANCE, legIndex: 1.5 })).toBe(false);
+    expect(isWorkoutSessionProvenance({ ...PROVENANCE, legIndex: Number.MAX_SAFE_INTEGER + 1 })).toBe(false);
     expect(isWorkoutSessionProvenance({ ...PROVENANCE, legIndex: -1 })).toBe(false);
     expect(isWorkoutSessionProvenance({ ...PROVENANCE, gameId: "" })).toBe(false);
+    expect(isWorkoutSessionProvenance({ ...PROVENANCE, gameId: "  " })).toBe(false);
     expect(isWorkoutSessionProvenance(null)).toBe(false);
   });
 

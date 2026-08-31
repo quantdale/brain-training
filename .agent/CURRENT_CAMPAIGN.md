@@ -1,41 +1,40 @@
-# Campaign 018 — Engagement Temporal Integrity
+# Campaign 019 — Game Lifecycle Resilience
 
 **Status:** ACTIVE
-**Campaign id:** `018-engagement-temporal-integrity`
-**Predecessor:** `017-persistence-boundary-hardening` (VALIDATED)
+**Campaign id:** `019-game-lifecycle-resilience`
+**Predecessor:** `018-engagement-temporal-integrity` (VALIDATED)
 **Mode:** day
-**Change:** `018-engagement-temporal-integrity` (ACTIVE)
+**Change:** `019-game-lifecycle-resilience` (ACTIVE)
 **Authorization:** explicit owner directive on 2026-08-30 authorizes whole-codebase hardening followed by autonomous Campaigns 017–020.
 
 ## Mission
 
-Harden quest progress inputs, streak calendar state, reward claims, and
-progression reconciliation against malformed values, impossible dates,
-future-dated events, rollover races, retries, and catalog drift. Preserve the
-offline-first product and add no feature breadth.
+Harden all 42 existing game sessions and Workout V3 ownership against stale
+async callbacks, pause/background transitions, malformed provenance, process
+relaunch, and catalog drift. No feature breadth is in scope.
 
 ## Current execution state
 
-Campaign 017 is validated with its persistence, portability, sync, and temporal
-read boundary repair set. Campaign 018 is now the sole active campaign. Its
-first implementation packet is repository/action input validation followed by
-focused real-DB engagement tests and projection reconciliation.
+Campaign 018 is validated with strict quest/streak inputs, canonical covered
+dates, time-safe claims, and engagement/progression checks. Campaign 019 is the
+sole active campaign. Its first audit found and repaired unsafe provenance
+indices and non-finite workout resume state, and added a source-level tripwire
+over every catalog screen.
 
 ## Exit criteria
 
-- Malformed quest and streak inputs cannot create authoritative state.
-- All engagement claims use one validated as-of clock and remain idempotent.
-- Home, Rewards, workout, and progression projections converge on bounded
-  SQLite truth across rollover and catalog changes.
+- Every game persistence callback is guarded by the current session identity.
+- Paused/background time cannot change active gameplay deadlines or elapsed
+  session time, and timer cleanup is verified.
+- Workout advancement requires exact persisted instance/leg/game provenance.
+- Catalog drift and corrupt resume state repair deterministically and idempotently.
 - Full automated/static validation is rerun and platform/manual limits remain
-  honestly classified.
-- Durable state, OpenSpec, ownership, and validation records agree before 019
-  is activated.
+  honestly classified before 020 is activated.
 
 ## Scope guard
 
-No game #43, cloud/auth/AI/monetization/social system, signing, store
-publication, or unrelated feature expansion is in scope.
+No game #43, content expansion, cloud/auth/AI/monetization/social system,
+signing, store publication, or unrelated feature expansion is in scope.
 
 ## Recovery order
 
@@ -45,4 +44,4 @@ publication, or unrelated feature expansion is in scope.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`
-7. `openspec/changes/018-engagement-temporal-integrity/EXECUTION.md`
+7. `openspec/changes/019-game-lifecycle-resilience/EXECUTION.md`

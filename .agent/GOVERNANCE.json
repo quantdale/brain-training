@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "018-engagement-temporal-integrity",
-  "lastCampaign": "017-persistence-boundary-hardening",
+  "activeCampaign": "019-game-lifecycle-resilience",
+  "lastCampaign": "018-engagement-temporal-integrity",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,
