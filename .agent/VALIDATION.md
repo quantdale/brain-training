@@ -5,6 +5,40 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Whole-Codebase Completion Audit & Platform Verification (2026-09-05)
+
+- **Scope:** Complete repository audit and verification across all 42 games, core SDK, local SQLite persistence, progression, analytics, data portability, navigation, and build/runtime tooling.
+- **Dependencies:** Aligned Expo SDK 57 patch versions (`expo ~57.0.20`, `expo-linking ~57.0.9`, `expo-router ~57.0.19`, `expo-sharing ~57.0.18`), resolving `npx expo-doctor` patch warnings and cleaning up `@xmldom/xmldom` vulnerability. `npx expo-doctor` passed **21/21 checks**.
+- **Static and Governance Gates:**
+  - `node scripts/validate-repo-state.mjs`: PASS
+  - `node scripts/validate-secrets.mjs --check`: PASS (1827 tracked text files scanned, clean)
+  - `node scripts/generate-game-registry.mjs --check`: PASS (42 games registered, up to date)
+  - `node scripts/validate-provenance.mjs --check`: PASS (no drift against `origin/main`)
+  - `node scripts/validate-task-ownership.cjs`: PASS
+  - `node scripts/validate-offline.mjs --check`: PASS (932 files scanned, clean)
+  - `node scripts/qa/autobot.mjs --self-test`: PASS (51/51 assertions)
+  - `npx --yes @fission-ai/openspec@1.6.0 validate --all`: PASS (7/7 changes valid)
+  - `npm run typecheck` (`tsc --noEmit`): PASS (0 errors)
+  - `npm run lint` (`expo lint`): PASS (0 errors / 0 warnings)
+  - `npx expo export --platform web`: PASS (20 static routes exported)
+- **Unit & Integration Test Suite:**
+  - Full Node 22 Jest: **490 passed / 494 suites**, **6096 passed / 6101 tests**, 5 snapshots, 0 failed.
+  - 4 suites / 5 tests skipped match the explicit opt-in measurement allowlist (`scripts/certification/jest-skip-allowlist.json`).
+  - `node scripts/certification/validate-jest-signal.mjs`: PASS (classified 5/5 skips, 0 unclassified).
+- **Certification Pipeline:**
+  - `scripts/certification/certify-clean-checkout.mjs`: Added Windows cross-platform support for child process spawning. All verification stages pass; `tracked_mutation_after_clean_run=PASS`.
+- **Android On-Device Verification:**
+  - Dedicated AVD `braintraining-qa36` (ATD x86_64 API 35, pixel_7) was booted with WHPX hardware acceleration to `sys.boot_completed=1`. Live Metro connection established and reverse-mapped on port 8081.
+  - Interaction probe regex in `scripts/qa/autobot.mjs` was expanded to recognize real in-game controls (`digit`, `target`, `next-problem`, `next-round`).
+  - Canary journeys verified on device:
+    - `math-fast-math`: PASS (interaction, force-win, exactly 1 SQLite session, invariants OK, authoritative results, back/next navigation)
+    - `memory`: PASS (interaction, force-win, exactly 1 SQLite session, invariants OK, authoritative results, back/next navigation)
+    - `flexibility-card-sort`: PASS (interaction, force-win, exactly 1 SQLite session, invariants OK, authoritative results, back/next navigation)
+    - `language-word-match`: PASS (interaction, force-win, exactly 1 SQLite session, invariants OK, authoritative results, back/next navigation)
+    - `logic-next-sequence`: PASS (interaction, force-win, exactly 1 SQLite session, invariants OK, authoritative results, back/next navigation)
+    - `spatial-transform-match`: PASS (interaction, force-win, exactly 1 SQLite session, invariants OK, authoritative results, back/next navigation)
+  - On-device SQLite database rows and invariants were inspected and verified via pulled SQLite artifacts.
+
 ## Campaign 017 closure → 018 closure → 019 closure → Campaign 020 closure (2026-08-31, source state `388e10f`)
 
 - The owner explicitly authorized a whole-codebase hardening pass followed by

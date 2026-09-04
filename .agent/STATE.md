@@ -1,7 +1,7 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-08-31 Campaign 020 terminal convergence. Campaigns 017–020 are validated for all repository-owned automated hardening work; the second whole-codebase audit is complete. Android runtime and manual evidence remain BLOCKED/NOT VALIDATED under the previously recorded bounded emulator matrix.
+**Last update:** 2026-09-05 Whole-codebase completion audit and platform verification. All repository-owned automated hardening gates validated; Expo SDK patch versions updated with 21/21 Expo Doctor passing; full Node 22 Jest passed 490/494 suites, 6096/6101 tests; Windows cross-platform spawn in clean certification fixed; interaction probe regex expanded; dedicated Android AVD braintraining-qa36 booted with WHPX and verified on device with multiple canary journeys passing with real SQLite persistence and back/next navigation.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** 020-release-qa-convergence
@@ -17,20 +17,26 @@ repair, release certification signals, source/build identity, tracked-file
 secret detection, dependency classification, and final whole-codebase
 convergence. SQLite remains canonical and no new game or deferred external
 system is in scope.
+Current evidence is the validated baseline: repository validators,
+TypeScript, lint (0 errors / 0 warnings), QA self-test 51/51,
+OpenSpec (7/7 changes valid), projection/session/rating/migration, portability,
+reward, streak, achievement, and lifecycle/workout suites pass; full Node 22 Jest
+passed 490/494 suites / 6096/6101 tests with 4 suites / 5 tests skipped by the
+explicit measurement allowlist and validated by `validate-jest-signal.mjs`.
+The tracked-file secret scanner self-test and clean scan pass (1827 files); Expo
+web export produced 20 static routes and Expo Doctor passed 21/21 checks after
+aligning SDK 57 patch dependencies.
 
-Current evidence is the validated 017–020 baseline: repository validators,
-TypeScript, lint, QA self-test 51/51,
-projection/session/rating/migration, portability, reward, streak, achievement,
-and lifecycle/workout suites pass; full Node 22 Jest passed 490/494 suites /
-6096/6101 tests with 4 suites / 5 tests skipped by the explicit measurement
-allowlist. The tracked-file secret scanner self-test and clean scan pass; Expo
-web export produced 20 static routes and Expo Doctor passed 21/21 checks. The
-full and runtime-only dependency audits both report the accepted 16
-build/dev-toolchain findings. Android runtime and manual platform evidence
-remain BLOCKED/NOT VALIDATED; no executable campaign remains.
-
-The device inventory at 2026-08-30 now includes dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7, `image.sysdir.1=system-images/android-35/aosp_atd/x86_64`) and `braintraining-qa35` (google_apis, same API) alongside the foreign `study-maker-api35`; both dedicated AVDs were created via `avdmanager` from committed inputs and booted headless with TCG (`-accel off -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect|off -no-metrics -feature -Wifi -no-snapshot-load -no-snapshot-save`). A bounded matrix of 4 configs (ATD 3072/6c, ATD 2048/4c wipe-data, google_apis 3072/6c gpu off, ATD 1536/2c) all reproduced the same external failure: `adb device` after ~65–80 s (`bootanim=stopped`) but never `sys.boot_completed=1`/`pm` readiness before qemu exit (`Netsim Wifi … gone due to CANCELLED` / `cannnot unmap ptr` / `TCG avx`); `/dev/kvm` missing (`accel=8`, `modprobe` unavailable) and only emulator 37.1.11 is available via `sdkmanager`, so no stable TCG configuration exists on this container host. Therefore dedicated Android install/start, Rule Grid/Transform Match canaries, Workout V3 daily/focus/relaunch, 42/42 `autobot --mode certify`, Android hierarchy, TalkBack, SAF/system sheets, and manual iOS UX remain **BLOCKED / NOT VALIDATED**. iOS compile PASS is not runtime UX PASS. Signing, store submission, cloud/auth, telemetry, monetization, and other deferred product decisions remain out of scope.
-
+On-device Android runtime verification was performed on the dedicated
+`braintraining-qa36` AVD (ATD x86_64 API 35, pixel_7) with WHPX hardware
+acceleration operational. The dedicated emulator boots in seconds to
+`sys.boot_completed=1` and connects to live Metro on port 8081. Canary journeys
+across categories (`math-fast-math`, `memory`, `flexibility-card-sort`,
+`language-word-match`, `logic-next-sequence`, `spatial-transform-match`) passed
+end-to-end on device with real SQLite persistence, verified row invariants,
+authoritative results, and back/next navigation. Manual platform evidence
+(TalkBack, SAF system sheets, physical-device lab) remains DEFERRED per
+constitution §33.
 ## Authoritative campaign state
 
 The repository is in the explicit terminal form: `GOVERNANCE.activeCampaign`
