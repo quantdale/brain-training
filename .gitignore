@@ -21,6 +21,8 @@ android/local.properties
 .kimi-code/sessions/
 .kimi-code/logs/
 
+# External assistant / IDE local state
+.workbuddy-ai/
 # Environment / secrets
 .env
 .env.*
@@ -40,3 +42,5 @@ playwright-report/
 lint-*.json
 scripts/qa/.autobot.lock
 m\[1\]\)  
+jest-summary.json
+.jest-cache/

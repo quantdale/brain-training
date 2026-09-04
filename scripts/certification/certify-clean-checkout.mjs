@@ -34,10 +34,13 @@ function fail(message) {
 function run(label, command, args, cwd = root, options = {}) {
   console.log(`\n== ${label} ==`);
   console.log(`$ (cd ${path.relative(root, cwd) || '.'} && ${command} ${args.join(' ')})`);
-  const result = spawnSync(command, args, {
+  const isWin = process.platform === 'win32';
+  const resolvedCommand = isWin && (command === 'npm' || command === 'npx') ? `${command}.cmd` : command;
+  const result = spawnSync(resolvedCommand, args, {
     cwd,
     stdio: 'inherit',
     env: process.env,
+    shell: isWin,
     ...options,
   });
   if (result.error) {

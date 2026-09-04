@@ -216,7 +216,7 @@ const HOME_READY_IDS = ["home-brand", "home-title", "home-workout-list"];
 // probe taps one of these to prove real gameplay input works before the
 // force-win shortcut. Tutorial/QA/result surfaces are excluded on purpose.
 const INTERACTIVE_SUFFIXES =
-  "(?:tile|option|cell|trigger|choice|(?:card-grid\\.card))\\.";
+  "(?:(?:tile|option|cell|trigger|choice|digit|target|(?:card-grid\\.card))\\.|next-problem|next-round)";
 function interactiveRe(gameId) {
   const esc = gameId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(`^${esc}\\.${INTERACTIVE_SUFFIXES}`);
@@ -1549,7 +1549,7 @@ async function flowGame(id, opts = {}) {
     }
   }
   log("started");
-  await sleep(400);
+  await sleep(1000);
 
   // Real gameplay interaction probe: tap one in-game item (option/tile/cell/
   // choice/trigger/card) so the smoke proves actual input handling, not just
@@ -1774,7 +1774,7 @@ async function probeInteraction(id, tag) {
     if (!tapped) {
       return { nodeId: c.id, accepted: false, reason: "tap command failed" };
     }
-    await sleep(700);
+    await sleep(1500);
     const after = readFileSyncSafe(
       dumpHierarchy(`${tag}-ix-${label}-after`),
     );
@@ -1799,6 +1799,7 @@ async function probeInteraction(id, tag) {
       reason: first.reason,
     };
   }
+  await sleep(1500);
   const second = await attemptAt("retry");
   if (second) {
     return {
