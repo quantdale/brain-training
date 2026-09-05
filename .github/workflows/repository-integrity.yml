@@ -35,6 +35,14 @@ jobs:
       - name: Validate tracked-file secret boundary
         run: node scripts/validate-secrets.mjs --check
 
+      # Shell-hygiene guard for the `yes |` SIGPIPE / `|| true` masking
+      # failure class that red-flagged the Android release gate (campaign 021).
+      # Self-test first so the guard itself cannot silently regress.
+      - name: Validate workflow shell hygiene
+        run: |
+          node scripts/validate-workflows.mjs --self-test
+          node scripts/validate-workflows.mjs
+
       # OpenSpec change/spec validation. The CLI is pinned to an exact
       # version so CI validation is deterministic across runners; it runs
       # here (not app-ci) because it validates repository docs/specs and

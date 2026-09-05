@@ -1,35 +1,43 @@
 # Durable Project State
 
 **State schema:** 1
-**Last update:** 2026-09-05 Whole-codebase completion audit and platform verification. All repository-owned automated hardening gates validated; Expo SDK patch versions updated with 21/21 Expo Doctor passing; full Node 22 Jest passed 490/494 suites, 6096/6101 tests; Windows cross-platform spawn in clean certification fixed; interaction probe regex expanded; dedicated Android AVD braintraining-qa36 booted with WHPX and verified on device with multiple canary journeys passing with real SQLite persistence and back/next navigation.
+**Last update:** 2026-09-05 Campaign 021 activation. The repository is NOT terminal: the declared terminal/VALIDATED status at `e77da39` contradicted current-head executable evidence (`Android Build Smoke` run `33930455910` red). Campaign 021 re-converges the release gate, the full automated matrix, and durable status claims on one final candidate SHA.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** 021-release-gate-reconvergence
 **Last campaign:** 020-release-qa-convergence
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 020 — Release-QA Convergence is **VALIDATED** and the repository is
-terminal with no active campaign. Campaigns 017–020 are validated across local
-persistence/portability/sync/as-of boundaries, strict engagement inputs,
-shared game lifecycle, pause timing, Workout V3 provenance, catalog drift
-repair, release certification signals, source/build identity, tracked-file
-secret detection, dependency classification, and final whole-codebase
-convergence. SQLite remains canonical and no new game or deferred external
-system is in scope.
-Current evidence is the validated baseline: repository validators,
-TypeScript, lint (0 errors / 0 warnings), QA self-test 51/51,
-OpenSpec (7/7 changes valid), projection/session/rating/migration, portability,
-reward, streak, achievement, and lifecycle/workout suites pass; full Node 22 Jest
-passed 490/494 suites / 6096/6101 tests with 4 suites / 5 tests skipped by the
-explicit measurement allowlist and validated by `validate-jest-signal.mjs`.
-The tracked-file secret scanner self-test and clean scan pass (1827 files); Expo
-web export produced 20 static routes and Expo Doctor passed 21/21 checks after
-aligning SDK 57 patch dependencies.
+Campaign 020 remains VALIDATED for the scope it actually evidenced (local
+persistence, engagement, lifecycle, provenance, secret boundary, dependency
+classification). Its terminal declaration was, however, **contradicted by
+executable CI evidence**: `Android Build Smoke` has failed deterministically
+on every push since `c491c2b` at the redundant
+`yes | sdkmanager --licenses` step, most recently at head `e77da39`
+(run `33930455910`). App CI, Repository Integrity, and iOS Build Smoke are
+green at that head.
 
-On-device Android runtime verification was performed on the dedicated
-`braintraining-qa36` AVD (ATD x86_64 API 35, pixel_7) with WHPX hardware
-acceleration operational. The dedicated emulator boots in seconds to
+Campaign 021 is ACTIVE to close that contradiction: root-cause gate repair
+(fail-closed preserved), a static workflow-hygiene guard for the SIGPIPE /
+exit-masking class, the complete local regression matrix on the candidate SHA,
+dedicated-AVD runtime non-regression, current-head convergence of all four
+workflows, and durable-state truth repair. No product breadth is in scope.
+The most recent pre-021 baseline (campaign 020 era, local evidence at
+`929788b`/`e77da39` working state): repository validators, TypeScript, lint
+(0 errors / 0 warnings), QA self-test 51/51, OpenSpec changes valid,
+projection/session/rating/migration, portability, reward, streak, achievement,
+and lifecycle/workout suites pass; full Node 22 Jest passed 490/494 suites /
+6096/6101 tests with 4 suites / 5 tests skipped by the explicit measurement
+allowlist and validated by `validate-jest-signal.mjs`. The tracked-file secret
+scanner self-test and clean scan pass (1827 files); Expo web export produced
+20 static routes and Expo Doctor passed 21/21 checks after aligning SDK 57
+patch dependencies. Campaign 021 MUST re-run this matrix on its final
+candidate SHA; this section is baseline context, not current-head proof.
+
+On-device Android runtime verification (2026-09-05, pre-021) was performed on
+the dedicated `braintraining-qa36` AVD (ATD x86_64 API 35, pixel_7) with WHPX
+hardware acceleration operational. The dedicated emulator boots in seconds to
 `sys.boot_completed=1` and connects to live Metro on port 8081. Canary journeys
 across categories (`math-fast-math`, `memory`, `flexibility-card-sort`,
 `language-word-match`, `logic-next-sequence`, `spatial-transform-match`) passed
@@ -37,13 +45,15 @@ end-to-end on device with real SQLite persistence, verified row invariants,
 authoritative results, and back/next navigation. Manual platform evidence
 (TalkBack, SAF system sheets, physical-device lab) remains DEFERRED per
 constitution §33.
+
 ## Authoritative campaign state
 
-The repository is in the explicit terminal form: `GOVERNANCE.activeCampaign`
-is `null`, and `STATE`, `CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, OpenSpec, and
-task ownership agree that `020-release-qa-convergence` is the last VALIDATED
-campaign. Historical campaign prose below is retained for recovery and does
-not reopen an executable campaign.
+The repository is executable, not terminal: `GOVERNANCE.activeCampaign` is
+`021-release-gate-reconvergence`, and `STATE`, `CURRENT_CAMPAIGN`,
+`EXECUTION_PROMPT`, OpenSpec, and task ownership agree it is the sole ACTIVE
+campaign following the VALIDATED `020-release-qa-convergence`. Historical
+campaign prose below (including 020-era "terminal" wording) is retained for
+recovery and does not override these structured fields.
 
 ## Campaign 017 closure and Campaign 018 activation — 2026-08-30
 
@@ -149,9 +159,9 @@ satisfy or override either state.
 ## Historical Campaign 016 next action
 
 The preceding terminal Campaign 016 record required a future owner-authorized
-campaign. That authorization is now explicit and 018 is the sole active
-campaign; its device/manual limitations remain separate from the local
-engagement work.
+campaign; that authorization produced 017–020. The 2026-09-05 owner directive
+activated 021 (release-gate re-convergence) as the sole ACTIVE campaign; its
+device/manual limitations remain separate from the local gate work.
 
 ## Recovery order
 

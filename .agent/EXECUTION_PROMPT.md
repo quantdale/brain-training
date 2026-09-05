@@ -1,36 +1,32 @@
-# Execution Prompt — Campaign 020: Release-QA Convergence
+# Execution Prompt — Campaign 021: Release-Gate Re-convergence
 
-**Status:** VALIDATED — terminal closure
-**Change:** `020-release-qa-convergence`
-**Start-SHA:** `27c9174` (owner-authorized sequence baseline)
-**Planned-At:** 2026-08-31
+**Status:** ACTIVE
+**Change:** `021-release-gate-reconvergence`
+**Start-SHA:** `e77da39` (head declaring 020 terminal with Android Build Smoke red at run `33930455910`)
+**Planned-At:** 2026-09-05
 **Target-Branch:** `main`
-**Predecessor:** `019-game-lifecycle-resilience` (VALIDATED)
+**Predecessor:** `020-release-qa-convergence` (VALIDATED)
 
 ## Objective
 
-Finish the sequence with fail-closed certification signals, source/build
-identity, executable secret scanning, dependency classification, and a final
-whole-codebase hardening audit.
+Repair the red Android release gate at root cause without weakening it, add a
+permanent static guard for the SIGPIPE/exit-masking failure class, re-prove the
+full automated matrix and all four repository workflows on the final candidate
+SHA, verify Android runtime non-regression on the dedicated AVD, and reconcile
+every durable status claim with SHA/run-attributed evidence.
 
 ## Required order
 
-1. Reconcile repository and campaign state.
-2. Verify/fix certification, source identity, artifact, and security gates.
-3. Run the final static/test/build/dependency matrix and repair any in-scope
-   Critical/High regression.
-4. Update durable evidence, commit and push a coherent 020 closure, then
-   record the owner-requested second whole-codebase hardening report.
-
-## Final classification
-
-Campaign 020 is terminally `VALIDATED`. Repository-owned automated hardening
-is complete. Android runtime, manual accessibility/system sheets,
-physical-device, and manual iOS UX remain `BLOCKED` / `NOT VALIDATED` under the
-documented external constraints.
+1. Root-cause fix + workflow hygiene validator (fail-closed).
+2. Complete local regression matrix on the candidate SHA.
+3. Dedicated-AVD canaries when the host can boot `braintraining-qa36`.
+4. Push coherent waves; converge all four workflows at current head.
+5. Targeted whole-codebase release-readiness audit; fix real defects.
+6. Truth-repair durable state; close 021 only on current-head green evidence.
 
 ## Stop conditions
 
-Do not claim success for unavailable Android/manual/iOS UX checks. Stop for a
-real blocker only after safe local alternatives are exhausted and the blocker
-has been recorded durably. Do not add games or deferred systems.
+Stop for a user decision only on a genuine external blocker (infrastructure,
+credentials, absent platform hardware) proven with concrete evidence. Never
+convert unavailable evidence into PASS. No games, no deferred systems, no gate
+weakening.

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "020-release-qa-convergence",
-  "description": "Terminal ownership record for validated Campaign 020. Certification, source identity, security, durable state, and generated/config surfaces remain protected; no coder packets remain active.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "021-release-gate-reconvergence",
+  "description": "Active ownership record for campaign 021 release-gate re-convergence. Orchestrator owns governance, OpenSpec, CI workflows, validators and QA harness; CI/native-build repair is orchestrator-executed (single-writer surfaces), so no parallel coder packets are open.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/**",
     ".agent/GOVERNANCE.json",

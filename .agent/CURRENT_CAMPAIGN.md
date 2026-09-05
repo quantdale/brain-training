@@ -1,51 +1,47 @@
-# Campaign 020 — Release-QA Convergence
+# Campaign 021 — Release-Gate Re-convergence
 
-**Status:** VALIDATED — terminal repository state; external device/manual certification remains pending
-**Campaign id:** `020-release-qa-convergence`
-**Predecessor:** `019-game-lifecycle-resilience` (VALIDATED)
+**Status:** ACTIVE
+**Campaign id:** `021-release-gate-reconvergence`
+**Predecessor:** `020-release-qa-convergence` (VALIDATED)
 **Mode:** day
-**Change:** `020-release-qa-convergence` (VALIDATED; `change.json` VALIDATED, `GOVERNANCE.activeCampaign` null, `STATE` and terminal ownership synchronized)
-**Authorization:** explicit owner directive on 2026-08-30 authorizes whole-codebase hardening followed by autonomous Campaigns 017–020.
+**Change:** `021-release-gate-reconvergence` (ACTIVE)
+**Authorization:** explicit owner directive on 2026-09-05 activating a whole-repository current-head convergence campaign.
 
 ## Mission
 
-Converge release certification, source/build identity, security scanning,
-dependency classification, and final whole-codebase hardening signals into an
-exact evidence set. No product breadth is in scope.
+Eliminate the contradiction between a declared terminal/VALIDATED repository
+and its real executable evidence: repair the red `Android Build Smoke` release
+gate at root cause without weakening it, guard the failure class statically,
+re-prove the full automated matrix and all four workflows on the final
+candidate SHA, verify Android runtime non-regression on the dedicated AVD, and
+make durable status claims cite SHA/run-attributed evidence.
 
 ## Current execution state
 
-Campaigns 017–019 are validated across persistence, engagement, shared game
-lifecycle, timing, Workout V3 provenance, and catalog reconciliation. Campaign
-020 is validated after adding an executable high-confidence tracked-file secret
-gate, completing certification/source-identity review, re-running dependency
-classification, and completing the requested second whole-codebase audit. No
-campaign is active.
-
-## Final classification
-
-**LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING**
-
-All repository-owned implementation and automated hardening evidence available
-in this environment is complete. Android runtime, manual accessibility/system
-sheet, physical-device, and manual iOS UX evidence remains explicitly
-BLOCKED/NOT VALIDATED and is not inferred from static, web, or compile checks.
+At activation baseline `e77da39`: App CI, Repository Integrity and iOS Build
+Smoke are green; Android Build Smoke is deterministically red since `c491c2b`
+at the redundant `yes | sdkmanager --licenses` step. The root-cause fix and the
+`scripts/validate-workflows.mjs` guard are landed; the full convergence wave,
+runtime re-verification, and durable truth repair remain.
 
 ## Exit criteria
 
-- Certification fails closed on skipped tests, diagnostic bypasses, missing
-  artifacts, and semantic interaction failures.
-- Running/source identity is bound before runtime evidence is trusted.
-- Tracked-file secret detection is executable, self-tested, and non-leaking.
-- Dependency findings are reclassified honestly; unsafe major churn is avoided.
-- Final static/test/build/dependency evidence is exact and durable, with no
-  known Critical/High in-scope regression; the second whole-codebase hardening
-  report is recorded in `VALIDATION.md` and the Campaign 020 checkpoint.
+- Android clean native release build executes successfully end-to-end on the
+  final pushed SHA, with APK size/permission boundaries and SHA-256 provenance.
+- The workflow hygiene guard is self-tested and gated in Repository Integrity.
+- Full local matrix passes on the candidate SHA under the existing explicit
+  Jest skip-measurement policy (never widened).
+- All four repository workflows green at current head, or explicitly classified
+  external with evidence.
+- Android runtime evidence not regressed on `braintraining-qa36`, or honest
+  NOT VALIDATED.
+- Durable state matches observed evidence with no terminal-status contradiction.
 
 ## Scope guard
 
 No game #43, content expansion, cloud/auth/AI/monetization/social system,
 signing, store publication, or unrelated feature expansion is in scope.
+Validators, tests, and build gates may be strengthened, never weakened.
 
 ## Recovery order
 
@@ -55,4 +51,4 @@ signing, store publication, or unrelated feature expansion is in scope.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`
-7. `openspec/changes/020-release-qa-convergence/EXECUTION.md`
+7. `openspec/changes/021-release-gate-reconvergence/EXECUTION.md`

@@ -43,9 +43,20 @@ jobs:
 
       - name: Install pinned Android build dependencies
         shell: bash
+        # License acceptance is owned by android-actions/setup-android@v3
+        # (`accept-android-sdk-licenses` defaults to true). A redundant
+        # `yes | sdkmanager --licenses` here is a deterministic pipefail
+        # failure once licenses are pre-accepted: sdkmanager exits without
+        # reading stdin, `yes` dies of EPIPE, and the runner reports the
+        # producer status despite sdkmanager succeeding (run 33930455910).
+        # Keep the pinned install fail-closed and prove it via postcondition.
         run: |
+          set -euo pipefail
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
-          yes | sdkmanager --licenses >/dev/null
+          installed="$(sdkmanager --list_installed)"
+          for pkg in "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"; do
+            grep -qF "$pkg" <<< "$installed" || { echo "Missing installed SDK package: $pkg" >&2; exit 1; }
+          done
 
       - name: Install JavaScript dependencies
         run: npm ci

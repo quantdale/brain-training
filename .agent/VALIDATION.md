@@ -5,6 +5,37 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 021 — Release-Gate Re-convergence (2026-09-05, baseline `e77da39`)
+
+- **Trigger (current-head contradiction):** `Android Build Smoke` run
+  `33930455910` on head `e77da39` = failure, while `STATE` declared the
+  repository terminal/VALIDATED. Run history: green at `27c9174`
+  (`33320890688`, all 12 steps incl. clean prebuild + release Gradle assembly +
+  APK boundary), then failure on every push from `785b04f` through `e77da39`.
+  App CI, Repository Integrity, and iOS Build Smoke were green at `e77da39`.
+- **Root cause:** step `Install pinned Android build dependencies` ran
+  `yes | sdkmanager --licenses >/dev/null` under the runner's default
+  `bash -eo pipefail`. `android-actions/setup-android@v3` already accepts
+  licenses (`accept-android-sdk-licenses: true` default), so on the failing
+  runs `sdkmanager --licenses` found nothing left to accept, exited without
+  draining stdin, and `yes` died writing to the closed pipe
+  (`yes: standard output: Broken pipe`). `pipefail` propagated the producer
+  status: step exit 1 although `sdkmanager` returned 0 and the pinned SDK/NDK
+  install succeeded. Latent since the step's introduction; exposed when
+  `c491c2b` (017→018 closure) removed the masking `|| true`.
+- **Fix:** removed the redundant license pass (license ownership stays with
+  setup-android), kept the pinned install fail-closed, and added a
+  `sdkmanager --list_installed` postcondition that fails the step if any
+  pinned package (`platforms;android-35`, `build-tools;35.0.0`,
+  `ndk;27.0.12077973`) is absent. No `|| true`, no `continue-on-error`, no
+  boundary removed.
+- **Guard:** `scripts/validate-workflows.mjs` (+ `--self-test`, 16 assertions
+  PASS locally) rejects `yes |` producers, `|| true` masks, and redundant
+  `sdkmanager --licenses` inside `run:` blocks; wired into Repository
+  Integrity. Self-test proves detection and non-detection.
+- **Status:** IN PROGRESS — full matrix, runtime, and current-head workflow
+  evidence appended below as executed on the final candidate SHA.
+
 ## Whole-Codebase Completion Audit & Platform Verification (2026-09-05)
 
 - **Scope:** Complete repository audit and verification across all 42 games, core SDK, local SQLite persistence, progression, analytics, data portability, navigation, and build/runtime tooling.

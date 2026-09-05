@@ -1,0 +1,21 @@
+{
+  "id": "021-release-gate-reconvergence",
+  "status": "ACTIVE",
+  "predecessor": "020-release-qa-convergence",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "android-release-gate",
+    "ci-shell-hygiene",
+    "current-head-convergence"
+  ],
+  "activationRule": "Explicit owner directive on 2026-09-05 activates a whole-repository current-head convergence campaign: repair the red Android Build Smoke release gate without weakening it, re-prove the full automated matrix and GitHub Actions state on the final candidate SHA, and reconcile durable state with real evidence.",
+  "validatedAt": null,
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": false,
+  "auditBaseline": "e77da39"
+}

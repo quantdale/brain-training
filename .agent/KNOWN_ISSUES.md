@@ -1,15 +1,24 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 020 validated; terminal repository state
+## Current status — Campaign 021 ACTIVE (release-gate re-convergence)
 
-- **Campaign 020 is VALIDATED by explicit owner authorization.** Campaigns
-  017–019 are validated across persistence/portability/sync/as-of boundaries,
-  strict quest/streak inputs, canonical calendar coverage, time-safe reward
-  claims, progression reconciliation, shared game lifecycle, pause timing,
-  Workout V3 provenance, and catalog reconciliation. Campaign 020 now owns
-  release certification signals, source identity, tracked-file secret scanning,
-  dependency classification, and final whole-codebase convergence. No game or
-  deferred external system is in scope; no campaign is currently active.
+- **The repository is NOT terminal.** The 020-era terminal/VALIDATED
+  declaration contradicted current-head CI: `Android Build Smoke` failed
+  deterministically on every push since `c491c2b` (latest red at head
+  `e77da39`, run `33930455910`) in the redundant
+  `yes | sdkmanager --licenses` step — producer-side `EPIPE` under the
+  runner's `bash -eo pipefail`; `sdkmanager` itself exited 0 and licenses
+  were already accepted by `android-actions/setup-android@v3`. The red gate
+  was latent until `c491c2b` removed a masking `|| true`; it is a CI
+  construction defect, not an application-build defect (the same workflow
+  completed the full clean native build green at `27c9174`, run
+  `33320890688`).
+- **Campaign 021** (activated 2026-09-05 by explicit owner directive) owns:
+  fail-closed gate repair, the `scripts/validate-workflows.mjs` hygiene
+  guard, the full regression matrix on the final candidate SHA, dedicated
+  AVD runtime non-regression, current-head four-workflow convergence, and
+  durable-state truth repair. Campaigns 017–020 remain VALIDATED for the
+  scope they evidenced. No game or deferred external system is in scope.
 - **Android device verification on dedicated AVD (2026-09-05 verified):** dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7) was successfully booted on Windows with WHPX hardware acceleration to `sys.boot_completed=1` and connected to Metro on port 8081. End-to-end canary journeys across categories (`math-fast-math`, `memory`, `flexibility-card-sort`, `language-word-match`, `logic-next-sequence`, `spatial-transform-match`) pass on device with verified real SQLite persistence, row invariants, and back/next navigation. The historical Linux TCG (-accel off) timeout is resolved by running on the hardware-accelerated Windows host.
 - **Manual platform evidence remains NOT VALIDATED / DEFERRED:** TalkBack,
   SAF/share/document-picker system sheets, physical-device behavior, and manual
