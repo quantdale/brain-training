@@ -540,6 +540,63 @@ export const SQL = {
   `,
 };
 
+/**
+ * Extract every complete `CREATE TRIGGER IF NOT EXISTS ... END;` statement
+ * from a SQL script. Balanced-token scan: `BEGIN` and `CASE` open, `END`
+ * closes; the statement ends at the `END` that returns depth to zero plus
+ * its terminating `;`. (A naive non-greedy `[\s\S]*?END;` would truncate
+ * every CASE-style CHECK trigger at the CASE's own `END;`.)
+ */
+function extractCreateTriggerStatements(sqlText: string): string[] {
+  const out: string[] = [];
+  const openRe = /\b(CREATE TRIGGER IF NOT EXISTS|BEGIN|CASE)\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = openRe.exec(sqlText)) !== null) {
+    if (m[1] !== 'CREATE TRIGGER IF NOT EXISTS') continue;
+    let depth = 0;
+    const tok = /\b(BEGIN|CASE|END)\b/g;
+    tok.lastIndex = m.index;
+    let t: RegExpExecArray | null;
+    while ((t = tok.exec(sqlText)) !== null) {
+      if (t[1] === 'END') {
+        depth -= 1;
+        if (depth === 0) {
+          const semi = sqlText.indexOf(';', t.index + t[0].length);
+          if (semi === -1) break;
+          out.push(sqlText.slice(m.index, semi + 1));
+          openRe.lastIndex = semi + 1;
+          break;
+        }
+      } else {
+        depth += 1;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Every append-only / CHECK / INTEGER-storage trigger declared in `SQL`,
+ * deduplicated by trigger name (a few are intentionally restated for
+ * migration drop/recreate pairs). DERIVED from `SQL` at module load — it can
+ * never drift from the schema, which is why there is no hand-maintained list.
+ *
+ * Consumed by `ensureSchemaGuards()` at steady-state startup so a crash
+ * between the replace-import/wipe `DROP TRIGGER` phase and its recreate
+ * self-heals on the next boot instead of leaving the connection permanently
+ * without its append-only guarantees (campaign 021 whole-codebase audit).
+ */
+export const CANONICAL_TRIGGER_DDL: readonly string[] = (() => {
+  const byName = new Map<string, string>();
+  for (const value of Object.values(SQL)) {
+    for (const ddl of extractCreateTriggerStatements(value)) {
+      const name = /IF NOT EXISTS (\w+)/.exec(ddl)?.[1];
+      if (name && !byName.has(name)) byName.set(name, ddl);
+    }
+  }
+  return Object.freeze([...byName.values()]);
+})();
+
 /** Ordered migrations from version 0 to SCHEMA_VERSION. Never reorder/patch old entries. */
 export const MIGRATIONS: readonly Migration[] = [
   {

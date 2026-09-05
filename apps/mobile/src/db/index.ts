@@ -11,7 +11,7 @@ import { AchievementRepository } from './achievements';
 import { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 import { FavoritesRepository } from './favorites';
 import { LedgerRepository } from './ledger';
-import { initializeConnection, runMigrations } from './migrate';
+import { ensureSchemaGuards, initializeConnection, runMigrations } from './migrate';
 import { ProfileRepository } from './profile';
 import { QuestRepository } from './quests';
 import { RatingRepository } from './rating';
@@ -37,7 +37,7 @@ export type {
 export type { WorkoutSessionProvenance } from '@/workout/session-provenance';
 export { SCHEMA_VERSION, SQL, MIGRATIONS } from './schema';
 export type { Migration } from './schema';
-export { runMigrations, getSchemaVersion, initializeConnection } from './migrate';
+export { runMigrations, getSchemaVersion, initializeConnection, ensureSchemaGuards } from './migrate';
 export { ProfileRepository, LOCAL_PROFILE_ID } from './profile';
 export { LedgerRepository } from './ledger';
 export { RatingRepository, INITIAL_RATING, MIN_RATING, isRatingStale } from './rating';
@@ -182,6 +182,9 @@ export async function initDatabase(options: AppDatabaseOptions = {}): Promise<Ap
   const adapter = createExpoSqliteAdapter(openExpoDatabase(APP_DATABASE_NAME));
   await initializeConnection(adapter);
   await runMigrations(adapter);
+  // Self-heal any schema guard lost to a crash during a previous
+  // replace-import/wipe (drop-then-recreate window). No-op on healthy DBs.
+  await ensureSchemaGuards(adapter);
   const app = new AppDatabase(adapter, options);
   await app.profile.ensureExists(); // create-on-first-launch
   instance = app;

@@ -1,5 +1,5 @@
 import type { SQLiteAdapter } from './adapter';
-import { MIGRATIONS, SCHEMA_VERSION, SQL, type Migration } from './schema';
+import { CANONICAL_TRIGGER_DDL, MIGRATIONS, SCHEMA_VERSION, SQL, type Migration } from './schema';
 
 /**
  * Migration runner driven by `PRAGMA user_version`.
@@ -69,6 +69,31 @@ export async function runMigrations(
       // same transaction as the DDL and rolls back with it.
       await txn.exec(`PRAGMA user_version = ${migration.version}`);
     });
+  }
+}
+
+/**
+ * Re-create every schema guard (append-only / CHECK / INTEGER-storage
+ * trigger) that is currently missing. `IF NOT EXISTS` makes existing guards
+ * a cheap no-op, so this is safe on every boot.
+ *
+ * Why this exists: the replace-import and wipe paths temporarily DROP the
+ * append-only triggers at connection level to clear their tables, then
+ * recreate them in a `finally`. A process kill between the drop and the
+ * recreate leaves the database permanently without its guards, and no
+ * migration would ever restore them (schema version unchanged). Re-checking
+ * the derived canonical set on startup closes that crash window.
+ */
+export async function ensureSchemaGuards(adapter: SQLiteAdapter): Promise<void> {
+  const present = await adapter.all<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type = 'trigger'",
+  );
+  const existing = new Set(present.map((r) => r.name));
+  for (const ddl of CANONICAL_TRIGGER_DDL) {
+    const name = /IF NOT EXISTS (\w+)/.exec(ddl)?.[1];
+    if (name && !existing.has(name)) {
+      await adapter.exec(ddl);
+    }
   }
 }
 
