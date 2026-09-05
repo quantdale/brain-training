@@ -135,3 +135,50 @@ describe('ScreenShell bottom inset math (campaign009 B5 regression)', () => {
     }
   });
 });
+
+/**
+ * Release-APK device defect (campaign022): ScrollView content containers
+ * size to intrinsic height, so the shell row never reached viewport height.
+ * GameHost (`flex: 1`) and tutorial cards (clamped by `maxHeight: '88%'`)
+ * collapsed to content height, laying first-run tutorial buttons outside
+ * their own card with zero rendered height — untappable on fresh installs.
+ * The contract: the content container must grow to fill the viewport.
+ */
+function contentStyleField<K extends string>(field: K): unknown {
+  const root = latestView.root;
+  if (!root) {
+    throw new Error('Render root unavailable');
+  }
+  const matches = root.queryAll(
+    (instance) =>
+      typeof instance.props === 'object' &&
+      instance.props !== null &&
+      'contentContainerStyle' in instance.props,
+  );
+  const scrollView = matches.at(-1);
+  if (!scrollView) {
+    throw new Error('ScreenShell ScrollView (contentContainerStyle) not found in rendered tree');
+  }
+  const raw = scrollView.props.contentContainerStyle;
+  const flat = (Array.isArray(raw) ? raw : [raw]).flat(Infinity).filter(Boolean) as Record<string, unknown>[];
+  for (const entry of flat) {
+    if (entry && typeof entry === 'object' && field in entry) {
+      return entry[field];
+    }
+  }
+  return undefined;
+}
+
+describe('ScreenShell viewport growth (release-APK tutorial-clip regression)', () => {
+  beforeEach(() => {
+    mockSegments = [];
+  });
+
+  it('content container grows to fill the viewport (flexGrow, not flex)', async () => {
+    await renderShell(0);
+    // flexGrow is the safe form: flex: 1 on a contentContainer breaks
+    // scroll-when-taller measurement (RN documented pattern).
+    expect(contentStyleField('flexGrow')).toBe(1);
+    expect(contentStyleField('flex')).toBeUndefined();
+  });
+});

@@ -74,6 +74,14 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: 'row',
     justifyContent: 'center',
+    // ScrollView content containers size to intrinsic height by default, so
+    // this row never reached viewport height; children that rely on flex
+    // growth (GameHost flex:1, tutorial cards clamped by maxHeight %)
+    // collapsed to content height, pushing first-run tutorial buttons past
+    // the card bottom with zero rendered height (release-APK device defect).
+    // flexGrow: 1 is the documented RN "fill viewport, scroll when taller"
+    // contentContainer pattern (flex: 1 would break scroll measurement).
+    flexGrow: 1,
   },
   inner: {
     flexGrow: 1,
