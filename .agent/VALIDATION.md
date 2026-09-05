@@ -33,8 +33,8 @@ unavailable checks into PASS.
   PASS locally) rejects `yes |` producers, `|| true` masks, and redundant
   `sdkmanager --licenses` inside `run:` blocks; wired into Repository
   Integrity. Self-test proves detection and non-detection.
-- **Status:** IN PROGRESS — full matrix, runtime, and current-head workflow
-  evidence appended below as executed on the final candidate SHA.
+- **Status:** VALIDATED 2026-09-05 — final-wave evidence below; all four
+  workflows green at final SHA `05c16bc`.
 
 ### Final candidate wave (2026-09-05, candidate SHA `4734fa0`)
 
@@ -71,10 +71,18 @@ unavailable checks into PASS.
   PASS on the patched build: interaction + force-win + exactly one persisted
   session + row invariants + authoritative results + back/next
   (`qa-artifacts/20260905-012848-autobot-game`).
-- **Current head CI at `4734fa0`:** Repository Integrity PASS (run
-  `33936169975`), App CI PASS (run `33936169885`); Android Build Smoke
-  (`33936169819`) and iOS Build Smoke (`33936169828`) results appended below
-  when completed.
+- **Current head CI convergence:** all four workflows green at final SHA
+  `05c16bc` — App CI `33936913057`, Repository Integrity `33936913032`,
+  Android Build Smoke `33936913090`, iOS Build Smoke `33936913050`. At
+  `4734fa0`: Repository Integrity `33936169975` PASS, App CI `33936169885`
+  PASS, Android Build Smoke `33936169819` PASS (APK permission boundary
+  logged; artifact SHA-256 `50ebd847…`); iOS Build Smoke `33936169828`
+  cancelled by the concurrency group when `05c16bc` superseded it (recorded
+  truthfully — the green iOS proof is `33936913050`).
+- **Jest skip-signal:** `validate-jest-signal.mjs` PASS against a fresh
+  `--json` summary (5 skips exactly match the allowlist); `--self-test` PASS.
+- **Campaign status:** VALIDATED; terminal governance/STATE/CURRENT_CAMPAIGN/
+  EXECUTION_PROMPT/OpenSpec closure committed in this set.
 
 ## Whole-Codebase Completion Audit & Platform Verification (2026-09-05)
 

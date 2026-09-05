@@ -1,64 +1,52 @@
 # Durable Project State
 
-**State schema:** 1
-**Last update:** 2026-09-05 Campaign 021 activation. The repository is NOT terminal: the declared terminal/VALIDATED status at `e77da39` contradicted current-head executable evidence (`Android Build Smoke` run `33930455910` red). Campaign 021 re-converges the release gate, the full automated matrix, and durable status claims on one final candidate SHA.
+**Last update:** 2026-09-05 Campaign 021 validated on final SHA `05c16bc`. The release-gate contradiction is closed with executable evidence: the Android Build Smoke root-cause fix, the static workflow-hygiene guard, the schema-guard crash-window self-heal, the full local matrix + clean-checkout certification, dedicated-AVD runtime re-verification, and all four GitHub workflows green at current head.
 **Canonical branch:** `main`
-**Active campaign:** 021-release-gate-reconvergence
-**Last campaign:** 020-release-qa-convergence
+**Active campaign:** none
+**Last campaign:** 021-release-gate-reconvergence
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 020 remains VALIDATED for the scope it actually evidenced (local
-persistence, engagement, lifecycle, provenance, secret boundary, dependency
-classification). Its terminal declaration was, however, **contradicted by
-executable CI evidence**: `Android Build Smoke` has failed deterministically
-on every push since `c491c2b` at the redundant
-`yes | sdkmanager --licenses` step, most recently at head `e77da39`
-(run `33930455910`). App CI, Repository Integrity, and iOS Build Smoke are
-green at that head.
+Campaign 021 — Release-Gate Re-convergence is **VALIDATED** and the repository
+is terminal with no active campaign. Its full evidence chain (SHA/run
+attributed) is in `.agent/VALIDATION.md` under "Campaign 021":
 
-Campaign 021 is ACTIVE to close that contradiction: root-cause gate repair
-(fail-closed preserved), a static workflow-hygiene guard for the SIGPIPE /
-exit-masking class, the complete local regression matrix on the candidate SHA,
-dedicated-AVD runtime non-regression, current-head convergence of all four
-workflows, and durable-state truth repair. No product breadth is in scope.
-**Candidate status (`4734fa0`):** the gate fix, hygiene guard, QA probe fixes,
-and the whole-codebase audit F1 fix (schema-guard crash-window self-heal) are
-landed; the full local matrix and clean-checkout certification PASS; runtime
-re-verified on `braintraining-qa36`; App CI + Repository Integrity green at
-`4734fa0`. Android/iOS Build Smoke completion is the only open exit evidence.
-The most recent pre-021 baseline (campaign 020 era, local evidence at
-`929788b`/`e77da39` working state): repository validators, TypeScript, lint
-(0 errors / 0 warnings), QA self-test 51/51, OpenSpec changes valid,
-projection/session/rating/migration, portability, reward, streak, achievement,
-and lifecycle/workout suites pass; full Node 22 Jest passed 490/494 suites /
-6096/6101 tests with 4 suites / 5 tests skipped by the explicit measurement
-allowlist and validated by `validate-jest-signal.mjs`. The tracked-file secret
-scanner self-test and clean scan pass (1827 files); Expo web export produced
-20 static routes and Expo Doctor passed 21/21 checks after aligning SDK 57
-patch dependencies. Campaign 021 MUST re-run this matrix on its final
-candidate SHA; this section is baseline context, not current-head proof.
+- Red Android release gate root-caused (producer-side SIGPIPE from the
+  redundant `yes | sdkmanager --licenses` under the runner's default
+  `bash -eo pipefail`; latent since the step's introduction, exposed when
+  `c491c2b` removed the masking `|| true`) and fixed fail-closed at `1a946a9`
+  with an installed-packages postcondition — no `|| true`, no weakened gate.
+- The failure class is statically guarded by `scripts/validate-workflows.mjs`
+  (16-assertion self-test) wired into Repository Integrity.
+- Whole-codebase audit: F1 schema-guard crash window fixed (`4734fa0`:
+  `CANONICAL_TRIGGER_DDL` derived from the schema + `ensureSchemaGuards()` on
+  startup, proven self-healing on the live device DB); F2 write-path integer
+  canonicalization audited — already fail-closed.
+- Full local matrix on `4734fa0`: Jest 6100/6105 (only the 5 allowlisted
+  skips, validated by `validate-jest-signal.mjs`), all validators, TypeScript,
+  lint, QA self-test, web export, Expo Doctor 21/21, and clean-checkout
+  certification PASS.
+- All four workflows green at final SHA `05c16bc` (App CI `33936913057`,
+  Repository Integrity `33936913032`, Android Build Smoke `33936913090` with
+  APK/permission/SHA-256 artifact boundaries, iOS Build Smoke `33936913050`).
+- Android runtime non-regression on the dedicated `braintraining-qa36` AVD:
+  on-device guard self-heal (live DB trigger drop → restart → restored) plus
+  `math-fast-math`, `speed-tap-rush`, `attention-odd-one-out` canaries PASS on
+  the patched build with real SQLite persistence and row invariants.
 
-On-device Android runtime verification (2026-09-05, pre-021) was performed on
-the dedicated `braintraining-qa36` AVD (ATD x86_64 API 35, pixel_7) with WHPX
-hardware acceleration operational. The dedicated emulator boots in seconds to
-`sys.boot_completed=1` and connects to live Metro on port 8081. Canary journeys
-across categories (`math-fast-math`, `memory`, `flexibility-card-sort`,
-`language-word-match`, `logic-next-sequence`, `spatial-transform-match`) passed
-end-to-end on device with real SQLite persistence, verified row invariants,
-authoritative results, and back/next navigation. Manual platform evidence
-(TalkBack, SAF system sheets, physical-device lab) remains DEFERRED per
-constitution §33.
+Manual platform evidence (TalkBack, SAF system sheets, physical-device lab,
+iOS runtime UX) remains DEFERRED per constitution §33; the accepted 16
+build-toolchain npm advisories remain documented in
+`.agent/DEPENDENCY_AUDIT.md`.
 
 ## Authoritative campaign state
 
-The repository is executable, not terminal: `GOVERNANCE.activeCampaign` is
-`021-release-gate-reconvergence`, and `STATE`, `CURRENT_CAMPAIGN`,
-`EXECUTION_PROMPT`, OpenSpec, and task ownership agree it is the sole ACTIVE
-campaign following the VALIDATED `020-release-qa-convergence`. Historical
-campaign prose below (including 020-era "terminal" wording) is retained for
-recovery and does not override these structured fields.
+`GOVERNANCE.activeCampaign` is `null`, `lastCampaign` is
+`021-release-gate-reconvergence` (VALIDATED), and `STATE`,
+`CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, OpenSpec, and task ownership agree on
+that terminal form. Historical campaign prose below is retained for recovery
+and does not override these structured fields.
 
 ## Campaign 017 closure and Campaign 018 activation — 2026-08-30
 

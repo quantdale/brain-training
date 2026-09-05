@@ -1,6 +1,6 @@
 {
   "id": "021-release-gate-reconvergence",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "020-release-qa-convergence",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -13,7 +13,8 @@
     "current-head-convergence"
   ],
   "activationRule": "Explicit owner directive on 2026-09-05 activates a whole-repository current-head convergence campaign: repair the red Android Build Smoke release gate without weakening it, re-prove the full automated matrix and GitHub Actions state on the final candidate SHA, and reconcile durable state with real evidence.",
-  "validatedAt": null,
+  "validatedAt": "2026-09-05",
+  "validationNote": "Validated 2026-09-05 on final SHA 05c16bc: the red Android Build Smoke was root-caused (producer-side SIGPIPE under the runner's pipefail from the redundant `yes | sdkmanager --licenses`) and fixed fail-closed at 1a946a9 with an installed-packages postcondition; a static workflow-hygiene guard (16-assertion self-test) is wired into Repository Integrity; the whole-codebase audit fixed the schema-guard crash window (CANONICAL_TRIGGER_DDL + ensureSchemaGuards at 4734fa0, proven on-device) and confirmed write-path integer canonicalization already fail-closed. Full local matrix PASS at 4734fa0 (Jest 6100/6105 with only the 5 allowlisted skips; clean-checkout certification PASS). All four workflows green at 05c16bc (App CI 33936913057, Repository Integrity 33936913032, Android Build Smoke 33936913090, iOS Build Smoke 33936913050). Manual platform evidence (TalkBack, SAF sheets, physical devices, iOS runtime UX) remains DEFERRED per the constitution.",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
   "fullHardening": false,

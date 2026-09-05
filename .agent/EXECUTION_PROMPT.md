@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 021: Release-Gate Re-convergence
 
-**Status:** ACTIVE
+**Status:** VALIDATED — terminal closure on final SHA `05c16bc`
 **Change:** `021-release-gate-reconvergence`
 **Start-SHA:** `e77da39` (head declaring 020 terminal with Android Build Smoke red at run `33930455910`)
 **Planned-At:** 2026-09-05

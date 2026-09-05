@@ -1,6 +1,6 @@
 # Execution Entry — Campaign 021 Release-Gate Re-convergence
 
-**Status:** ACTIVE
+**Status:** VALIDATED — closed 2026-09-05 on final SHA `05c16bc`
 **Change:** `021-release-gate-reconvergence`
 **Baseline:** `e77da39` (head declaring 020 terminal while Android Build Smoke was red)
 **Target branch:** `main`

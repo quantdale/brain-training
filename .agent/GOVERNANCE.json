@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "021-release-gate-reconvergence",
-  "lastCampaign": "020-release-qa-convergence",
+  "activeCampaign": null,
+  "lastCampaign": "021-release-gate-reconvergence",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

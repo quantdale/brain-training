@@ -24,9 +24,10 @@
 - [x] 3.2 Android runtime non-regression on the dedicated `braintraining-qa36`
       AVD. Evidence: guard self-heal proven on the live DB (19→drop→19 after
       restart); canary `math-fast-math` PASS on the patched build.
-- [ ] 3.3 Verify all four workflows on the final pushed SHA; repair every newly
-      exposed repository-owned failure. (App CI + Repository Integrity green at
-      `4734fa0`; Android/iOS Build Smoke in progress.)
+- [x] 3.3 Verify all four workflows on the final pushed SHA; repair every newly
+      exposed repository-owned failure. Evidence: all four green at `05c16bc`
+      (App CI `33936913057`, Repository Integrity `33936913032`, Android Build
+      Smoke `33936913090`, iOS Build Smoke `33936913050`).
 - [x] 3.4 Targeted whole-codebase audit (CI/shell/env assumptions, native
       pins, persistence invariants, provenance, governance references); fix
       real in-scope defects. F1 crash-window fix landed (`4734fa0`); F2 audit
@@ -34,8 +35,10 @@
 
 ## 4. Truth repair and closure
 
-- [ ] 4.1 Synchronize `STATE`, `VALIDATION`, `KNOWN_ISSUES`, `GOVERNANCE`,
+- [x] 4.1 Synchronize `STATE`, `VALIDATION`, `KNOWN_ISSUES`, `GOVERNANCE`,
       `CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, and OpenSpec to observed
       evidence with SHA/run attribution.
-- [ ] 4.2 Close 021 only on green current-head evidence; return the repository
-      to the explicit terminal form.
+- [x] 4.2 Close 021 only on green current-head evidence; return the repository
+      to the explicit terminal form. All four workflows green at final SHA
+      `05c16bc`; closure governance/terminal-state commit follows and its own
+      workflow wave must be observed green.
