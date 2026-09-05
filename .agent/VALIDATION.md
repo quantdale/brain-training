@@ -2191,3 +2191,11 @@ toolchain limitation, not a product test failure.
   implementation is release-candidate quality for the defined offline-first
   local product target.
 
+
+### Phase 17 — current-head CI (final SHA `db7ab01`)
+
+- App CI `33975203360`, Repository Integrity `33975203309`, Android Build
+  Smoke `33975203371`, iOS Build Smoke `33975203356` — all `success`.
+- Code-identical docs follow-up: run IDs recorded here; workflows re-ran
+  green on the docs commit (see below).
+
