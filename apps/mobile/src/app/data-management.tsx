@@ -796,6 +796,10 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 120,
+    // Cap growth: a loaded backup is ~20KB of JSON; uncapped, the field
+    // grows to full-screen height and buries the Preview/Import buttons
+    // below the fold with all touches intercepted (device-verified).
+    maxHeight: 240,
     borderWidth: 1,
     borderColor: "rgba(120,120,140,0.2)",
     borderRadius: Radii.medium,
