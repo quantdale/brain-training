@@ -23,6 +23,11 @@ Campaign 021 is ACTIVE to close that contradiction: root-cause gate repair
 exit-masking class, the complete local regression matrix on the candidate SHA,
 dedicated-AVD runtime non-regression, current-head convergence of all four
 workflows, and durable-state truth repair. No product breadth is in scope.
+**Candidate status (`4734fa0`):** the gate fix, hygiene guard, QA probe fixes,
+and the whole-codebase audit F1 fix (schema-guard crash-window self-heal) are
+landed; the full local matrix and clean-checkout certification PASS; runtime
+re-verified on `braintraining-qa36`; App CI + Repository Integrity green at
+`4734fa0`. Android/iOS Build Smoke completion is the only open exit evidence.
 The most recent pre-021 baseline (campaign 020 era, local evidence at
 `929788b`/`e77da39` working state): repository validators, TypeScript, lint
 (0 errors / 0 warnings), QA self-test 51/51, OpenSpec changes valid,

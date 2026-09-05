@@ -16,17 +16,21 @@
 
 ## 3. Full convergence wave
 
-- [ ] 3.1 Run the complete local gate matrix on the candidate SHA (validators,
+- [x] 3.1 Run the complete local gate matrix on the candidate SHA (validators,
       OpenSpec, ownership, registry, provenance, offline, secrets, TypeScript,
       lint, full Node 22 Jest, Jest signal, QA self-test, focused DB/workout
       suites, web export, Expo Doctor, clean-checkout certification).
-- [ ] 3.2 Android runtime non-regression on the dedicated `braintraining-qa36`
-      AVD (or honest NOT VALIDATED if the host cannot boot it).
+      Evidence: `4734fa0` — Jest 6100/6105 (5 allowlisted skips), cert PASS.
+- [x] 3.2 Android runtime non-regression on the dedicated `braintraining-qa36`
+      AVD. Evidence: guard self-heal proven on the live DB (19→drop→19 after
+      restart); canary `math-fast-math` PASS on the patched build.
 - [ ] 3.3 Verify all four workflows on the final pushed SHA; repair every newly
-      exposed repository-owned failure.
-- [ ] 3.4 Targeted whole-codebase audit (CI/shell/env assumptions, native
+      exposed repository-owned failure. (App CI + Repository Integrity green at
+      `4734fa0`; Android/iOS Build Smoke in progress.)
+- [x] 3.4 Targeted whole-codebase audit (CI/shell/env assumptions, native
       pins, persistence invariants, provenance, governance references); fix
-      real in-scope defects.
+      real in-scope defects. F1 crash-window fix landed (`4734fa0`); F2 audit
+      confirmed write paths already fail-closed.
 
 ## 4. Truth repair and closure
 

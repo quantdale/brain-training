@@ -36,6 +36,46 @@ unavailable checks into PASS.
 - **Status:** IN PROGRESS — full matrix, runtime, and current-head workflow
   evidence appended below as executed on the final candidate SHA.
 
+### Final candidate wave (2026-09-05, candidate SHA `4734fa0`)
+
+- **Whole-codebase audit findings fixed:**
+  - **F1 (Crash window — schema guard loss):** Replace-import/wipe paths DROP
+    append-only triggers at connection level and recreate them in `finally`; a
+    kill inside that window previously left guards gone forever (schema
+    version unchanged). Fix: `CANONICAL_TRIGGER_DDL` derived at module load
+    from the `SQL` constants (balanced `BEGIN/CASE/END` token scan — a naive
+    non-greedy `END;` match truncates CASE-style CHECK triggers), plus
+    `ensureSchemaGuards()` run by `initDatabase` after `runMigrations`
+    (commit `4734fa0`).
+  - **F2 (Write-path INTEGER canonicalization):** audit confirmed
+    `completeSession` (`canonicalInteger`/`safeInteger` reject non-finite /
+    unsafe values, bind minimums), `XpAwardsRepository` (`Number.isInteger`
+    + positive), and ledger paths already fail-closed before reaching SQLite.
+    No defect; no change.
+- **Regression tests:** `src/db/__tests__/schema-guards.test.ts` — 4 PASS
+  (exact-name coverage vs migrated DB, healthy no-op, drop/recreate crash
+  window self-heal with enforcement re-proof, complete CASE trigger
+  extraction).
+- **Full Node 22 Jest (`--silent`):** PASS — 491 suites / 6100 tests; 4
+  suites / 5 tests remain skipped only by the existing explicit allowlist
+  (`validate-jest-signal.mjs`), never widened.
+- **Validators:** repository-state, task-ownership, OpenSpec, registry
+  `--check`, provenance `--check`, offline-boundary `--check`, secret scan +
+  self-test, workflow hygiene (4 files) — all PASS.
+- **TypeScript:** PASS (0 errors). **Expo Doctor:** PASS 21/21.
+  **Clean web export:** PASS (6.0 MB dist).
+- **Android runtime (`braintraining-qa36`, dedicated AVD, one Metro, one
+  driver):** `ensureSchemaGuards` executed on-device via real startup;
+  deliberate trigger-drop on the live `brain-training.db` (`19 → 18`, then
+  restart → name restored, count back to `19`). Canary `math-fast-math`
+  PASS on the patched build: interaction + force-win + exactly one persisted
+  session + row invariants + authoritative results + back/next
+  (`qa-artifacts/20260905-012848-autobot-game`).
+- **Current head CI at `4734fa0`:** Repository Integrity PASS (run
+  `33936169975`), App CI PASS (run `33936169885`); Android Build Smoke
+  (`33936169819`) and iOS Build Smoke (`33936169828`) results appended below
+  when completed.
+
 ## Whole-Codebase Completion Audit & Platform Verification (2026-09-05)
 
 - **Scope:** Complete repository audit and verification across all 42 games, core SDK, local SQLite persistence, progression, analytics, data portability, navigation, and build/runtime tooling.

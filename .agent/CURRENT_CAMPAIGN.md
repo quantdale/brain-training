@@ -18,11 +18,16 @@ make durable status claims cite SHA/run-attributed evidence.
 
 ## Current execution state
 
-At activation baseline `e77da39`: App CI, Repository Integrity and iOS Build
-Smoke are green; Android Build Smoke is deterministically red since `c491c2b`
-at the redundant `yes | sdkmanager --licenses` step. The root-cause fix and the
-`scripts/validate-workflows.mjs` guard are landed; the full convergence wave,
-runtime re-verification, and durable truth repair remain.
+At candidate `4734fa0`: the root-cause gate fix (`1a946a9`), workflow-hygiene
+guard, QA probe fixes, and the whole-codebase audit F1 fix (`4734fa0`, schema-
+guard crash-window self-heal) are landed. The full local matrix passed at the
+candidate SHA (Jest 6100/6105 with only the 5 allowlisted skips; validators,
+TypeScript, lint, Expo Doctor 21/21, web export, autobot self-test, and clean-
+checkout certification all PASS). Android runtime re-verified on the dedicated
+`braintraining-qa36` AVD: on-device guard self-heal proven on the live DB and
+canary `math-fast-math` PASS. App CI and Repository Integrity are green at
+`4734fa0`; Android and iOS Build Smoke completion remains the only open exit
+evidence before closure.
 
 ## Exit criteria
 
