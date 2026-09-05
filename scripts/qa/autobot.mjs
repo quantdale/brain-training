@@ -460,9 +460,9 @@ function findInteractionCandidates(xml, gameId) {
       out.push({ id: idm[1], bounds: b, clickable: true, enabled: true });
     }
   }
-  const clickable = out.filter((node) => node.clickable && node.enabled);
-  if (clickable.length > 0) return clickable;
-  return out.filter((node) => node.enabled);
+  return out
+    .filter((node) => node.clickable && node.enabled)
+    .sort((a, b) => (b.clickable ? 1 : 0) - (a.clickable ? 1 : 0));
 }
 
 // Remove layout-only churn before comparing gameplay evidence. React Native
@@ -1960,7 +1960,7 @@ async function probeInteraction(id, tag) {
   }
   // Try scrolling down once to reveal options below the fold (e.g. spatial-grid-nav 5x5 board):
   try {
-    adb(["shell", "input", "swipe", "540", "1600", "540", "800", "350"]);
+    swipeDown();
     await sleep(1000);
   } catch {}
   const third = await attemptAt("post-scroll");
