@@ -48,12 +48,18 @@
 
 ## Open debt (tracked, non-blocking)
 
-- **`xp_awards` lacks a schema-level idempotency guard (Medium)**:
-  `currency_ledger` has a UNIQUE partial index on `operation_id`, but
-  `xp_awards` has no UNIQUE constraint on `source`. No known live
-  double-award path (claims are transaction-guarded via `claimed_at`), so
-  this is defense-in-depth debt; closing it needs a migration plus a
-  legacy-duplicate audit, so it is deliberately not shipped mid-review.
+- **`xp_awards` lacks a schema-level idempotency guard (reclassified
+  NON-BLOCKING MAINTENANCE in campaign 022, was Medium)**: Campaign 022's
+  adversarial audit proved every production writer
+  (`achievements/rewards.ts`, `quests/rewards.ts`, `streaks/actions.ts`)
+  commits inside one serialized transaction behind a CAS claim gate, with the
+  currency half additionally schema-guarded by the ledger's
+  `UNIQUE(operation_id)` partial index; crash-after-insert rolls back
+  atomically and racing claim-all passes land exactly-once (69 tests green).
+  A `UNIQUE(source)` would be incorrect: legacy/generic awards (e.g.
+  `source='system'`) legitimately repeat per `data-portability/apply.ts`, so
+  the constraint would break merge/replace restores. Full proof:
+  `openspec/changes/022-release-candidate-certification/audit-map.md` C-01.
 - **Offline validator bypass heuristic gap (Low)**: `validate-offline.mjs`
   strips string literals/comments before scanning for network calls;
   runtime-reassembled URLs (`const a="ht"; b=fetch(a+"tp://…")`) slip
