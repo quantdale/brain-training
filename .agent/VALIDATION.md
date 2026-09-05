@@ -2192,10 +2192,10 @@ toolchain limitation, not a product test failure.
   local product target.
 
 
-### Phase 17 — current-head CI (final SHA `db7ab01`)
+### Phase 17 — current-head CI (terminal SHA, docs-only)
 
-- App CI `33975203360`, Repository Integrity `33975203309`, Android Build
-  Smoke `33975203371`, iOS Build Smoke `33975203356` — all `success`.
-- Code-identical docs follow-up: run IDs recorded here; workflows re-ran
-  green on the docs commit (see below).
+- Terminal head: App CI `33976140781`, Repository Integrity `33976140778`,
+  Android Build Smoke `33976140755`, iOS Build Smoke `33976140741` — all
+  `success` at `21e4ced` (code-identical to `db7ab01` except this evidence
+  record; code matrix was green at `61aea07`/`db7ab01` and unchanged since).
 
