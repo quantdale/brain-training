@@ -2242,20 +2242,20 @@ toolchain limitation, not a product test failure.
 - **Closure validation:** repo-state, task-ownership, OpenSpec validate
   --all, offline, secrets, workflow hygiene + self-test, registry,
   provenance all PASS locally on the closure tree before commit.
-- **Terminal exact-head CI (established pointer convention):** the closure
-  commit carries the lifecycle reconciliation and receives its own
-  four-workflow exact-head wave; that wave's run IDs are recorded by exactly
-  ONE final docs-only evidence-pointer commit — the same terminating pattern
-  the repository already used when `1094a20` recorded the `21e4ced` wave
-  while its own wave remained externally verifiable. The pointer commit's own
-  wave must complete `success` on the exact terminal SHA (observed
-  in-session via `gh run list -R quantdale/brain-training --commit <sha>`);
-  its run IDs are deliberately NOT recorded in any file. **Recursion rule
-  (first durable statement):** the Phase-17 chain
-  `db7ab01 → 21e4ced → 1094a20` shows that committing run-ID pointers into
-  the file they describe never terminates; the loop ends here — after the
-  pointer commit, the terminal head's own GitHub runs are the authoritative
-  externally verifiable exact-head evidence, and NO further pointer-update
-  commits are permitted.
+- **Terminal exact-head CI (established pointer convention, terminal):**
+  the lifecycle-reconciliation commit `7032af8` received its own exact-head
+  four-workflow wave, all `completed`/`success`: App CI `33980559387`,
+  Repository Integrity `33980559312`, Android Build Smoke `33980559291`,
+  iOS Build Smoke `33980559315`. This line is recorded by the single
+  terminating docs-only pointer commit — the same pattern `1094a20` used to
+  record the `21e4ced` wave. The pointer commit's own wave must complete
+  `success` on the exact terminal SHA (observed in-session via
+  `gh run list -R quantdale/brain-training --commit <sha>`); its run IDs are
+  deliberately NOT recorded in any file. **Recursion rule (first durable
+  statement):** the Phase-17 chain `db7ab01 → 21e4ced → 1094a20` shows that
+  committing run-ID pointers into the file they describe never terminates;
+  the loop ends here — the pointer commit's own GitHub runs are the
+  authoritative, externally verifiable exact-head evidence for the terminal
+  SHA, and NO further pointer-update commits are ever permitted.
 - **Successor state:** no active campaign; no Campaign 023; any future
   campaign requires a new explicit owner directive.
