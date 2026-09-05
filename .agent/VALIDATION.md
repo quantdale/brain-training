@@ -5,6 +5,43 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Whole-codebase review wave (2026-09-05, head `e8e975a`, no active campaign)
+
+- **Scope:** owner-requested thorough review of the entire codebase. Full
+  local matrix re-run at head: Jest `6105 pass / 5 skip` (allowlisted),
+  exit 0; `tsc --noEmit` 0 errors; `expo lint` 0/0; all validators
+  (repo-state, registry, provenance, offline, secrets, task-ownership,
+  workflow hygiene + self-test, Jest-signal) PASS; QA autobot self-test
+  51/51. Four parallel read-only deep audits (persistence/sync, SDK +
+  scoring loop, games + UI, CI/governance/docs) reported; findings
+  individually verified against code before acceptance or rejection.
+- **High finding fixed — inert provenance gate:** every provenance-checking
+  CI run diffed HEAD against a base that equals HEAD (shallow checkout; on
+  push `origin/main` == pushed commit), so drift could never fire; run
+  `33938100850` logged "No changed files detected" for a push containing
+  workflow+docs changes. Fix (this wave): `fetch-depth: 0` + per-event base
+  resolution (`github.event.before` → `pull_request.base.sha` → `HEAD^`,
+  each `rev-parse --verify`-validated) in app-ci, android-build-smoke,
+  ios-build-smoke; validator honors `PROVENANCE_BASE_REF`.
+- **Verification:** base-resolution simulated for push/PR/dispatch-fallback
+  (all resolve; `PROVENANCE_BASE_REF=<bogus>` fails closed exit 1); drift
+  detection proven firing (synthetic `attention-odd-one-out/generator.ts`
+  edit vs `--base=HEAD` → "Generator version bump needed", exit 1; probe
+  reverted); `validate-workflows.mjs` PASS; all four YAML files parse via
+  js-yaml. GitHub CI confirmation deferred to the push runs below.
+- **Accepted-as-debt (documented, non-blocking):** `xp_awards` missing
+  UNIQUE(source) idempotency guard (Medium; transaction-guarded today);
+  offline-validator literal-reassembly gap, dead permanent allowlist
+  entries, seeding.ts mock-seam noise, qa-artifacts accumulation (Low).
+- **Rejected findings (verified false):** PauseOverlay "players can peek"
+  (overlay is `position:absolute inset:0` opaque `theme.background` —
+  strictly ≥ blur protection; contract comment/doc clarified instead);
+  root `package-lock.json` needed by tooling (nothing references it;
+  certification asserts its absence — removed).
+- **Doc-truth repairs:** KNOWN_ISSUES header/status sync, task-ownership
+  `lifecycleStatus` ACTIVE→VALIDATED, `pause.ts` strongBlur semantics,
+  `docs/GAME_SDK.md` pause line.
+
 ## Campaign 021 — Release-Gate Re-convergence (2026-09-05, baseline `e77da39`)
 
 - **Trigger (current-head contradiction):** `Android Build Smoke` run

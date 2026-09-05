@@ -14,7 +14,10 @@ export interface PauseOverlaySpec {
   readonly opaque: true;
   /** Challenge content (text, state, answer hints) hidden, including from the accessibility tree. */
   readonly hidesChallenge: true;
-  /** Strong blur behind the overlay (e.g. blurRadius ≥ 20 where supported). */
+  /** Contract marker: strong blur where a blur surface is used (e.g. blurRadius ≥ 20).
+   *  Decorative only — the enforced anti-peek property is `opaque`: the shared
+   *  PauseOverlay ships a fully opaque full-screen cover, so nothing peeks through
+   *  with or without a blur layer. */
   readonly strongBlur: true;
   /** Screen-reader label for the paused state. */
   readonly accessibilityLabel: string;

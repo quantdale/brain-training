@@ -92,7 +92,7 @@ lifecycle.complete(); // or abandon(); both terminal
 // Difficulty mapping (game supplies internal parameters).
 const diff = resolveDifficulty('hard', { sequenceLength: 8, windowMs: 1500 });
 
-// Pause overlay MUST satisfy the spec: opaque + strong blur + challenge hidden.
+// Pause overlay MUST satisfy the spec: opaque + challenge hidden (strongBlur is a decorative contract marker; the enforced anti-peek property is the opaque cover — constitution §11 allows "opaque blur/overlay").
 const pause = createPauseOverlaySpec(gameId); // { opaque: true, strongBlur: true, hidesChallenge: true, testID: 'game.pause-overlay' }
 
 // Results: game converts raw → normalized, then XP/rating hooks (no-op until Phase 2).

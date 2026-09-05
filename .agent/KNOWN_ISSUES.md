@@ -1,24 +1,34 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 021 ACTIVE (release-gate re-convergence)
+## Current status — Campaign 021 VALIDATED (terminal, 2026-09-05)
 
-- **The repository is NOT terminal.** The 020-era terminal/VALIDATED
-  declaration contradicted current-head CI: `Android Build Smoke` failed
-  deterministically on every push since `c491c2b` (latest red at head
-  `e77da39`, run `33930455910`) in the redundant
-  `yes | sdkmanager --licenses` step — producer-side `EPIPE` under the
-  runner's `bash -eo pipefail`; `sdkmanager` itself exited 0 and licenses
-  were already accepted by `android-actions/setup-android@v3`. The red gate
-  was latent until `c491c2b` removed a masking `|| true`; it is a CI
-  construction defect, not an application-build defect (the same workflow
-  completed the full clean native build green at `27c9174`, run
-  `33320890688`).
-- **Campaign 021** (activated 2026-09-05 by explicit owner directive) owns:
-  fail-closed gate repair, the `scripts/validate-workflows.mjs` hygiene
-  guard, the full regression matrix on the final candidate SHA, dedicated
-  AVD runtime non-regression, current-head four-workflow convergence, and
-  durable-state truth repair. Campaigns 017–020 remain VALIDATED for the
-  scope they evidenced. No game or deferred external system is in scope.
+- **The repository is terminal.** Campaign 021 closed VALIDATED on final
+  SHA `05c16bc`; `GOVERNANCE.activeCampaign` is `null`. All four workflows
+  are green at current head `e8e975a` (App CI `33938100850`, Repository
+  Integrity `33938101035`, Android Build Smoke `33938100831`, iOS Build
+  Smoke `33938100810`). SHA/run-attributed evidence lives in
+  `.agent/VALIDATION.md` under "Campaign 021".
+- **Closed contradiction (whole-codebase review, 2026-09-05):** the CI
+  provenance/version-drift gate was structurally inert — all three
+  provenance-checking workflows diffed against a base that always equals
+  HEAD (shallow clone, `origin/main` == pushed commit), so
+  `git diff --name-only origin/main` was empty on every run and the gate
+  reported "No changed files detected" (confirmed in run `33938100850`).
+  Fixed by checking out with `fetch-depth: 0` and resolving a real
+  pre-change base per event (`github.event.before` →
+  `pull_request.base.sha` → `HEAD^`, each validated; unresolvable base
+  fails closed). Drift detection proven firing with a synthetic
+  generator edit + `--base=HEAD`.
+- **Closed contradiction (historical):** the 020-era terminal/VALIDATED
+  declaration had contradicted current-head CI: `Android Build Smoke` failed
+  deterministically on every push from `c491c2b` to `e77da39` (red at run
+  `33930455910`) in the redundant `yes | sdkmanager --licenses` step —
+  producer-side `EPIPE` under the runner's `bash -eo pipefail`; `sdkmanager`
+  itself exited 0 and licenses were already accepted by
+  `android-actions/setup-android@v3`. Campaign 021 root-caused and fixed it
+  fail-closed with an installed-packages postcondition (`1a946a9`) and added
+  the `scripts/validate-workflows.mjs` hygiene guard. Campaigns 017–020
+  remain VALIDATED for the scope they evidenced.
 - **Android device verification on dedicated AVD (2026-09-05 verified):** dedicated `braintraining-qa36` (ATD x86_64 API 35, pixel_7) was successfully booted on Windows with WHPX hardware acceleration to `sys.boot_completed=1` and connected to Metro on port 8081. End-to-end canary journeys across categories (`math-fast-math`, `memory`, `flexibility-card-sort`, `language-word-match`, `logic-next-sequence`, `spatial-transform-match`) pass on device with verified real SQLite persistence, row invariants, and back/next navigation. The historical Linux TCG (-accel off) timeout is resolved by running on the hardware-accelerated Windows host.
 - **Manual platform evidence remains NOT VALIDATED / DEFERRED:** TalkBack,
   SAF/share/document-picker system sheets, physical-device behavior, and manual
@@ -37,6 +47,29 @@
 - Campaign 013 release gate (`--mode certify` 42/42, SHA ba6dd84) remains GREEN (see `VALIDATION.md`).
 
 ## Open debt (tracked, non-blocking)
+
+- **`xp_awards` lacks a schema-level idempotency guard (Medium)**:
+  `currency_ledger` has a UNIQUE partial index on `operation_id`, but
+  `xp_awards` has no UNIQUE constraint on `source`. No known live
+  double-award path (claims are transaction-guarded via `claimed_at`), so
+  this is defense-in-depth debt; closing it needs a migration plus a
+  legacy-duplicate audit, so it is deliberately not shipped mid-review.
+- **Offline validator bypass heuristic gap (Low)**: `validate-offline.mjs`
+  strips string literals/comments before scanning for network calls;
+  runtime-reassembled URLs (`const a="ht"; b=fetch(a+"tp://…")`) slip
+  through. Documented tradeoff; acceptable for the foundations phase.
+- **Test-fixture seam noise in `seeding.ts` (Low)**: upsert `undefined`
+  definition errors surface in unit tests whose jest DB mock partially
+  implements quests/achievements; startup catch works as intended (logged,
+  non-fatal) but the mock lacks the full facade.
+- **`provenance-allowlist.json` dead permanent entries (Low)**: the 21
+  "Initial version baseline" entries carry no expiry and are deliberately
+  ignored by design (permanent exemptions cannot become a silent bypass),
+  so they are misleading dead weight in a config file. Cleanup deferred;
+  removing them risks nothing today but touches an identity-adjacent file.
+- **`qa-artifacts/` accumulation (Low)**: 700+ transient run directories
+  (screenshots/traces) are gitignored but never pruned; add a retention
+  sweep before store-build automation multiplies them.
 
 - **Campaign 014 COMPLETED at 6451bfb (docs-final DONE, prior green considered exit):** No remaining 014 product debt beyond the Medium emulator stability noted above. The 015 continuation landed the planned Rule Grid, Word Chain, Context Fit, Transform Match, runtime-evidence, and causal workout-attribution work; remaining platform/manual limitations and accepted npm audit findings are tracked below. The former full-suite timeout/resource finding was resolved by the later isolated Node 22 run and is historical.
 - **SAF share-sheet/document-picker system consent sheets**: cannot be driven

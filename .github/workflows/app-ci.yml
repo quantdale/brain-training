@@ -25,6 +25,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        # Full history: the provenance drift check needs the push's `before`
+        # SHA (or, for PRs, `origin/main`) as a resolvable git base. Without
+        # this, `git diff <base>` is always empty and the gate is a no-op.
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v7
@@ -43,9 +48,28 @@ jobs:
         run: node scripts/generate-game-registry.mjs --check
 
       # Provenance/version drift must be detected (task 2.6 / 11.3).
+      # The base must be the real pre-change SHA: on push events
+      # `origin/main` equals HEAD (the push already landed), so diffing
+      # against it is always empty and the gate silently no-ops. Resolve
+      # github.event.before (push) → PR base sha (pull_request) → HEAD^
+      # (workflow_dispatch / branch creation), each validated before use,
+      # and let an unresolvable base fail closed inside the validator.
       - name: Provenance/version drift check
         working-directory: ${{ github.workspace }}
-        run: node scripts/validate-provenance.mjs --check
+        env:
+          EVENT_BEFORE: ${{ github.event.before }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -eu
+          base="$EVENT_BEFORE"
+          if ! git rev-parse --verify "${base}^{commit}" >/dev/null 2>&1; then
+            base="$PR_BASE_SHA"
+          fi
+          if ! git rev-parse --verify "${base}^{commit}" >/dev/null 2>&1; then
+            base="$(git rev-parse HEAD^)"
+          fi
+          echo "Provenance base: $base"
+          PROVENANCE_BASE_REF="$base" node scripts/validate-provenance.mjs --check
 
       # Parallel task-packet ownership must be non-overlapping (task 11.2).
       - name: Task-ownership check

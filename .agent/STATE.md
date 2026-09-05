@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-05 Campaign 021 validated on final SHA `05c16bc`. The release-gate contradiction is closed with executable evidence: the Android Build Smoke root-cause fix, the static workflow-hygiene guard, the schema-guard crash-window self-heal, the full local matrix + clean-checkout certification, dedicated-AVD runtime re-verification, and all four GitHub workflows green at current head.
+**Last update:** 2026-09-05 (whole-codebase review wave on top of `e8e975a`): full local matrix re-run green at head; four parallel deep audits dispositioned; the inert CI provenance-drift gate root-caused and fixed fail-closed in all three checking workflows; doc-truth repairs landed. Evidence: `.agent/VALIDATION.md` "Whole-codebase review wave". Prior milestone: Campaign 021 validated on final SHA `05c16bc` — the release-gate contradiction closed with executable evidence (Android Build Smoke root-cause fix, workflow-hygiene guard, schema-guard self-heal, full local matrix + clean-checkout certification, dedicated-AVD runtime re-verification, all four GitHub workflows green).
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** 021-release-gate-reconvergence
