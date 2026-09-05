@@ -1,6 +1,6 @@
 {
   "id": "022-release-candidate-certification",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "021-release-gate-reconvergence",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -14,8 +14,10 @@
     "platform-evidence-classification",
     "release-readiness-matrix"
   ],
-  "activationRule": "Explicit owner directive on 2026-09-05 authorizes the release-readiness campaign after Campaign 021 closed VALIDATED at 05c16bc with all four workflows green at head 76a58dc. Campaign 022 pursues real-runtime release certification, dispositioning of tracked release-relevant debt, and an evidence-backed GO / CONDITIONAL GO / NO-GO verdict.",
+  "activationRule": "Explicit owner directive on 2026-09-05 authorized the release-readiness campaign after Campaign 021 closed VALIDATED. Campaign 022 pursued real-runtime release certification, dispositioning of tracked release-relevant debt, and an evidence-backed GO / CONDITIONAL GO / NO-GO verdict.",
   "baselineAuditCommit": "76a58dccf819c57364d5531c2ca4c2bc3c375e46",
+  "validatedAt": "2026-09-05",
+  "validationNote": "Campaign 022 reached its terminal objective with a CONDITIONAL GO verdict. Repository-owned certification completed, including 42/42 Android game certification and release-artifact/runtime/data/offline/security evidence recorded in .agent/VALIDATION.md. Production/store signing plus manual TalkBack, SAF/system-sheet, physical-device, and manual iOS runtime evidence remain external/deferred and were not converted into PASS. Terminal evidence records were pushed through 1094a20 before the subsequent docs/governance reconciliation.",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
   "fullHardening": false

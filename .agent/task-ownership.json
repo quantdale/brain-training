@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "022-release-candidate-certification",
-  "description": "Campaign 022 release-candidate certification. Orchestrator owns governance, OpenSpec, durable state, CI/native build, device/AVD certification, DB/portability/progression hotspots, and QA harness. Parallel capacity reserved for read-only investigations; no concurrent coder packets are open at activation.",
+  "description": "Campaign 022 release-candidate certification is terminal/VALIDATED. This packet is retained as historical ownership evidence; it authorizes no new implementation work.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/**",
     ".agent/GOVERNANCE.json",

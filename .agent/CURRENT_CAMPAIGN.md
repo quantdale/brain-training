@@ -1,45 +1,21 @@
 # Campaign 022 — Release-Candidate Certification
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `022-release-candidate-certification`
 **Predecessor:** `021-release-gate-reconvergence` (VALIDATED)
 **Mode:** day
-**Change:** `022-release-candidate-certification` (ACTIVE; `change.json` ACTIVE, `GOVERNANCE.activeCampaign` set, `STATE` and ownership synchronized)
-**Authorization:** explicit owner directive on 2026-09-05 after Campaign 021 closed VALIDATED at `05c16bc` with all four workflows green at head `76a58dc`.
+**Change:** `022-release-candidate-certification` (VALIDATED; no active campaign)
+**Authorization:** explicit owner directive on 2026-09-05 after Campaign 021 closed VALIDATED.
 **Baseline SHA:** `76a58dccf819c57364d5531c2ca4c2bc3c375e46`
+**Terminal evidence tip:** `1094a20a7679a6d95fb1d1836d515ee1f18aaf98` before the documentation/governance reconciliation commit.
+**Release verdict:** **CONDITIONAL GO**
 
-## Mission
+## Terminal outcome
 
-Produce and certify the strongest release candidate currently possible from
-this machine: disposition release-relevant tracked debt with adversarial
-proof; build, inspect, and standalone-run a clean Android release artifact;
-execute broad real-runtime certification (registry-wide games, Workout V3,
-lifecycle/process death, real SQLite, backup/restore, offline, accessibility,
-SAF, physical device, performance); classify every platform-evidence domain
-honestly (PASS / FAIL / NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED);
-re-prove the full automated matrix and all four workflows at the exact final
-SHA; and issue an evidence-backed GO / CONDITIONAL GO / NO-GO verdict.
+Campaign 022 completed its mission: release-relevant debt was dispositioned with adversarial proof, a clean Android release artifact was built/inspected/standalone-run, broad real-runtime certification was executed, platform evidence was classified honestly, final automated/CI evidence was recorded, and a release-readiness verdict was issued.
 
-## Scope guard
+No repository-owned release blocker remains. Public/store release still depends on external/manual gates that this repository cannot truthfully manufacture: production/store signing credentials, manual TalkBack and SAF/system-sheet evidence, physical-device evidence, and manual iOS runtime UX where applicable.
 
-No game #43+, new gameplay systems, cloud/auth/backend/social/ads/monetization/
-AI/push/telemetry, visual redesign, architecture/database/framework replacement,
-unrelated dependency upgrades, or speculative cleanups. Validators, tests, and
-gates may be strengthened, never weakened.
+## Do not restart
 
-## Stop conditions
-
-Stop for a user decision only on a proven external blocker (credentials,
-absent platform hardware, irreversible publication). Never convert
-unavailable evidence into PASS. Absent physical device or macOS host must not
-stall executable Android certification work.
-
-## Recovery order
-
-1. `AGENTS.md`
-2. `docs/PROJECT_CONSTITUTION.md`
-3. `.agent/GOVERNANCE.json`
-4. `.agent/STATE.md`
-5. `.agent/CURRENT_CAMPAIGN.md`
-6. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`
-7. `openspec/changes/022-release-candidate-certification/EXECUTION.md`
+This campaign is terminal. Use `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `openspec/changes/022-release-candidate-certification/` as evidence/history. A future campaign requires new authorization or a fresh evidence-backed plan; do not treat an old unchecked task list, historical prose, or a new chat session as authorization to resume 022.

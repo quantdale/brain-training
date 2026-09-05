@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "022-release-candidate-certification",
-  "lastCampaign": "021-release-gate-reconvergence",
+  "activeCampaign": null,
+  "lastCampaign": "022-release-candidate-certification",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,
