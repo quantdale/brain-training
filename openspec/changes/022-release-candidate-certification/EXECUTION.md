@@ -43,3 +43,43 @@ Stop for a user decision only on a proven external blocker (credentials,
 absent platform hardware, irreversible publication). Never convert
 unavailable evidence into PASS. Physical-device/iOS/macOS absence must not
 stall executable Android certification work.
+
+## Progress log
+
+### Phase 1 — debt triage (complete, `7461f6b`)
+
+`xp_awards` idempotency: proven safe or repaired per adversarial matrix; see
+`VALIDATION.md` Phase-1 entry. Remaining tracked debt classified NON-BLOCKING
+MAINTENANCE unless re-opened by certification findings.
+
+### Phase 2/3 — release artifact + standalone run (in progress)
+
+- Release APK rebuilt from fixed head (14:46 local): SHA-256
+  `574998fd7212bad09c8c8ae81fd2d789acbe9bade137cda7aa538a6983035a30`,
+  109,292,277 bytes. Metadata + manifest inspection recorded in
+  `VALIDATION.md`.
+- Standalone release install on `braintraining-qa36` executed through the new
+  `scripts/qa/release-driver.mjs` hierarchy driver (Metro-independent).
+- **Release blocker found + fixed** (`c8826c6`): `ScreenShell` ScrollView
+  content row lacked `flexGrow`, so game screens collapsed to intrinsic
+  height; the first-run tutorial card's `maxHeight: 88%` clamp then laid the
+  "Try a demo" button OUTSIDE its own card with zero rendered height —
+  fresh-install users could not start any game requiring a tutorial.
+  Dev-build autobot missed it (persisted tutorial state + dev-only QA skip).
+  Device-reverified on the fixed bundle: tutorial completable; legitimate
+  8-round card-sort completion (0 wrong picks, score 800 = normalized 0.8,
+  xp 34, duration 193,850 ms), exactly-once session row, `integrity_check ok`,
+  row survives `am force-stop` + relaunch.
+- **Certify preflight defect found + fixed** (`4a7a699`): the Home
+  `source-bundle-bound` marker was 1×1 `opacity: 0`; uiautomator drops
+  alpha-0 views, so `--mode certify` could never observe it. Raised to
+  2×2 `opacity: 0.01` (imperceptible, present in the hierarchy).
+
+### Phase 4 — registry-wide certification
+
+- Full `autobot --mode certify` on the fixed dev client at the bound SHA:
+  result recorded below when complete (see `qa-artifacts/`).
+- Standalone release legitimate-play certification: card-sort journey proven
+  end-to-end; release-driver resource-id matching fixed (Expo testIDs carry
+  no package prefix) in `44f74ad`.
+

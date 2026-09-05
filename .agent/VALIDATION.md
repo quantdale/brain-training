@@ -5,6 +5,69 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 022 — Release-Candidate Certification evidence (2026-09-05)
+
+### Phase 2 — release artifact (`4a7a699`-era build, 2026-09-05 14:46 local)
+
+- **Artifact:** `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`
+  — SHA-256 `574998fd7212bad09c8c8ae81fd2d789acbe9bade137cda7aa538a6983035a30`,
+  109,292,277 bytes; gradle `:app:assembleRelease` BUILD SUCCESSFUL, clean
+  generated android/ from committed prebuild config.
+- **Identity:** package `com.braintraining.app`, versionName `0.1.0`,
+  versionCode `1000`, minSdk `24`, targetSdk/compileSdk `36`.
+  ABIs: `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`.
+- **Permissions (complete list):** INTERNET, MODIFY_AUDIO_SETTINGS,
+  READ/WRITE_EXTERNAL_STORAGE (`maxSdkVersion=32` only), VIBRATE,
+  ACCESS_NETWORK_STATE, WAKE_LOCK, app-scoped
+  DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION. No location/camera/contacts/
+  phone/SMS. **PASS — no prohibited/unexpected permission.**
+- **Debug-free:** no `android:debuggable`; manifest binary contains no debug
+  flags; no dev-menu/inspector/dev-only assets in the APK entry list.
+- **Signing:** `CN=Android Debug` — release-local signing ONLY. No upload or
+  Play keystore exists on this machine (by design; credentials are owner-held).
+  **Classification: NOT equivalent to a Play Store-signed artifact.**
+  Store-signing reproducibility: BLOCKED (external credential boundary).
+- **AAB:** not built — no store credentials exist; assembling an unsigned
+  AAB adds no certification value. Classified NOT VALIDATED (external).
+
+### Phase 3 — standalone release-artifact runtime (AVD `braintraining-qa36`)
+
+- Installed from clean/uninstalled state; launch succeeded with **no Metro
+  dependency** (hierarchy driven purely via uiautomator; Metro never started
+  for these journeys — first bundle request log timestamps postdate runs).
+- **Release blocker found + fixed (`c8826c6`):** `ScreenShell` ScrollView
+  content row lacked `flexGrow`, so game screens collapsed to intrinsic
+  height. First-run tutorial cards (clamped `maxHeight: 88%`) overflowed and
+  the "Try a demo"/tutorial CTA laid out OUTSIDE its own card with zero
+  rendered height (`[126,1265][447,1261]`) — untappable. Fresh-install users
+  could never start tutorial-gated games. Dev autobot had never caught it:
+  dev QA skip button + persisted tutorial state. Regression test added in
+  `screen-shell-inset.test.tsx` (contract: content container `flexGrow: 1`,
+  never `flex`).
+- **Legitimate play proven on the fixed release artifact path**
+  (flexibility-card-sort, Easy, Metro-free hierarchy reads): tutorial demo
+  completed, 8 rounds, **0 wrong picks**, results "Session complete"
+  Score 800 / Accuracy 100% / After-rule-switches 100%.
+- **Persistence exactly-once:** `game_sessions` count 1; row `xp=34`,
+  `normalized_result=0.8` (matches displayed 800), `duration_ms=193,850 ≥ 0`,
+  integer-storage triggers satisfied; `PRAGMA integrity_check` = ok; row
+  survives `am force-stop` + cold relaunch (count still 1).
+- `xp_awards` count 0 after first session (award cadence not due) — no
+  spurious award rows.
+
+### Certify harness defects found + fixed
+
+- `scripts/qa/release-driver.mjs` (new, `44f74ad`): standalone hierarchy
+  driver; matches Expo bare `resource-id` testIDs (prefix-only matching
+  silently found nothing on release builds).
+- Home `source-bundle-bound` marker (`4a7a699`): 1×1 `opacity: 0` views are
+  dropped by uiautomator's visible-to-user tree, so `autobot --mode certify`
+  preflight could never observe it (gate added 2026-08-31, never satisfiable).
+  Now 2×2 `opacity: 0.01`; marker observed on-device post-fix.
+- Environment hygiene: stray second emulator (`emulator-5564`) killed for
+  certification; `QA_DEVICE` + `EXPO_PUBLIC_BUILD_SHA` (40-hex, clean tree)
+  are mandatory certify inputs.
+
 ## Whole-codebase review wave (2026-09-05, head `e8e975a`, no active campaign)
 
 - **Scope:** owner-requested thorough review of the entire codebase. Full
