@@ -28,7 +28,12 @@ unavailable checks into PASS.
   detection proven firing (synthetic `attention-odd-one-out/generator.ts`
   edit vs `--base=HEAD` → "Generator version bump needed", exit 1; probe
   reverted); `validate-workflows.mjs` PASS; all four YAML files parse via
-  js-yaml. GitHub CI confirmation deferred to the push runs below.
+  js-yaml. **CI confirmation on push `6df0a97`: all four workflows green** —
+  App CI `33942716376` (provenance step logged
+  `Provenance base: e8e975a2542867015199312ac9ffb803fb552bbf` — the first
+  real, non-tautological base the gate ever saw — then "No provenance drift
+  detected"), Repository Integrity `33942716408`, Android Build Smoke
+  `33942716338`, iOS Build Smoke `33942716325`.
 - **Accepted-as-debt (documented, non-blocking):** `xp_awards` missing
   UNIQUE(source) idempotency guard (Medium; transaction-guarded today);
   offline-validator literal-reassembly gap, dead permanent allowlist
