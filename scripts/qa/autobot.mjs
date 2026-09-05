@@ -1763,6 +1763,7 @@ async function probeInteraction(id, tag) {
     const candidates = findInteractionCandidates(xml, id);
     if (candidates.length === 0) return null;
     const c = candidates[0];
+    let tappedNode = c;
     let tapped = false;
     try {
       tapped = tap(c);
@@ -1775,13 +1776,37 @@ async function probeInteraction(id, tag) {
       return { nodeId: c.id, accepted: false, reason: "tap command failed" };
     }
     await sleep(1500);
-    const after = readFileSyncSafe(
+    let after = readFileSyncSafe(
       dumpHierarchy(`${tag}-ix-${label}-after`),
     );
-    const alive = appForeground();
-    const changed = interactionEvidenceChanged(xml, after, id, c.id);
+    let alive = appForeground();
+    let changed = interactionEvidenceChanged(xml, after, id, c.id);
+    if (alive && !changed) {
+      // A touch delivered in the same frame a control mounts is dropped by the
+      // RN responder chain (the node exists in the hierarchy but its host view
+      // is not yet attached). Re-dump and re-tap the same node once before
+      // declaring non-acceptance. A genuinely dead control still fails both
+      // taps, so this stays fail-closed.
+      trace("tap.interaction.retry", c.id, true, "first tap showed no change");
+      await sleep(700);
+      const fresh = readFileSyncSafe(
+        dumpHierarchy(`${tag}-ix-${label}-fresh`),
+      );
+      const again = fresh ? findInteractionCandidates(fresh, id) : [];
+      const c2 = again.find((n) => n.id === c.id) || again[0];
+      if (c2 && tap(c2)) {
+        trace("tap.interaction.retry", c2.id, true, `${c2.bounds.cx},${c2.bounds.cy}`);
+        await sleep(1500);
+        after = readFileSyncSafe(
+          dumpHierarchy(`${tag}-ix-${label}-after2`),
+        );
+        alive = appForeground();
+        changed = interactionEvidenceChanged(fresh || xml, after, id, c2.id);
+        if (changed) tappedNode = c2;
+      }
+    }
     return {
-      nodeId: c.id,
+      nodeId: tappedNode.id,
       crashedAfterTap: !alive,
       accepted: alive && changed,
       reason: !alive

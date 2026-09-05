@@ -9,9 +9,10 @@
 
 ## 2. Regression guard
 
-- [ ] 2.1 Add `scripts/validate-workflows.mjs` with `--self-test` covering
+- [x] 2.1 Add `scripts/validate-workflows.mjs` with `--self-test` covering
       `yes |` pipes, `|| true` masking, and redundant `sdkmanager --licenses`.
-- [ ] 2.2 Wire it into Repository Integrity and verify green on GitHub.
+- [x] 2.2 Wire it into Repository Integrity and verify green on GitHub
+      (run 33930455858 at 1a946a9: 16/16 self-test, integrity green).
 
 ## 3. Full convergence wave
 
