@@ -1,0 +1,22 @@
+{
+  "id": "022-release-candidate-certification",
+  "status": "ACTIVE",
+  "predecessor": "021-release-gate-reconvergence",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "release-artifact",
+    "runtime-certification",
+    "data-portability-certification",
+    "platform-evidence-classification",
+    "release-readiness-matrix"
+  ],
+  "activationRule": "Explicit owner directive on 2026-09-05 authorizes the release-readiness campaign after Campaign 021 closed VALIDATED at 05c16bc with all four workflows green at head 76a58dc. Campaign 022 pursues real-runtime release certification, dispositioning of tracked release-relevant debt, and an evidence-backed GO / CONDITIONAL GO / NO-GO verdict.",
+  "baselineAuditCommit": "76a58dccf819c57364d5531c2ca4c2bc3c375e46",
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": false
+}

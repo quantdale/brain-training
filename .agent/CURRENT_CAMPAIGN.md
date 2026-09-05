@@ -1,56 +1,38 @@
-# Campaign 021 — Release-Gate Re-convergence
+# Campaign 022 — Release-Candidate Certification
 
-**Status:** VALIDATED — terminal repository state; external device/manual certification remains deferred
-**Campaign id:** `021-release-gate-reconvergence`
-**Predecessor:** `020-release-qa-convergence` (VALIDATED)
+**Status:** ACTIVE
+**Campaign id:** `022-release-candidate-certification`
+**Predecessor:** `021-release-gate-reconvergence` (VALIDATED)
 **Mode:** day
-**Change:** `021-release-gate-reconvergence` (VALIDATED; `change.json` VALIDATED, `GOVERNANCE.activeCampaign` null, `STATE` and terminal ownership synchronized)
-**Authorization:** explicit owner directive on 2026-09-05 activating a whole-repository current-head convergence campaign.
+**Change:** `022-release-candidate-certification` (ACTIVE; `change.json` ACTIVE, `GOVERNANCE.activeCampaign` set, `STATE` and ownership synchronized)
+**Authorization:** explicit owner directive on 2026-09-05 after Campaign 021 closed VALIDATED at `05c16bc` with all four workflows green at head `76a58dc`.
+**Baseline SHA:** `76a58dccf819c57364d5531c2ca4c2bc3c375e46`
 
 ## Mission
 
-Eliminate the contradiction between a declared terminal/VALIDATED repository
-and its real executable evidence: repair the red `Android Build Smoke` release
-gate at root cause without weakening it, guard the failure class statically,
-re-prove the full automated matrix and all four workflows on the final
-candidate SHA, verify Android runtime non-regression on the dedicated AVD, and
-make durable status claims cite SHA/run-attributed evidence.
-
-## Current execution state
-
-Closed on final SHA `05c16bc` (2026-09-05). No campaign is active.
-
-## Exit criteria — evidence
-
-- Android clean native release build executes successfully end-to-end on the
-  final pushed SHA, with APK size/permission boundaries and SHA-256 provenance.
-  **MET** — run `33936913090` (also `33936169819`/`33935472497` on the fix
-  waves): clean prebuild, release Gradle assembly, APK + permission checks,
-  artifact upload with SHA-256 digest.
-- The workflow hygiene guard is self-tested and gated in Repository Integrity.
-  **MET** — `scripts/validate-workflows.mjs` 16-assertion self-test; green at
-  `05c16bc` (`33936913032`).
-- Full local matrix passes on the candidate SHA under the existing explicit
-  Jest skip-measurement policy (never widened). **MET** — `4734fa0`: Jest
-  6100/6105 (5 allowlisted skips only, `validate-jest-signal.mjs` PASS),
-  validators, TypeScript, lint, Expo Doctor 21/21, web export, autobot
-  self-test, clean-checkout certification.
-- All four repository workflows green at current head. **MET** — App CI
-  `33936913057`, Repository Integrity `33936913032`, Android Build Smoke
-  `33936913090`, iOS Build Smoke `33936913050`.
-- Android runtime evidence not regressed on `braintraining-qa36`. **MET** —
-  on-device guard self-heal on the live DB plus `math-fast-math`,
-  `speed-tap-rush`, `attention-odd-one-out` canaries PASS on the patched
-  build. Physical-device/TalkBack/SAF/iOS-runtime evidence: DEFERRED per
-  constitution, never recorded as PASS.
-- Durable state matches observed evidence with no terminal-status
-  contradiction. **MET** — this closure commit set.
+Produce and certify the strongest release candidate currently possible from
+this machine: disposition release-relevant tracked debt with adversarial
+proof; build, inspect, and standalone-run a clean Android release artifact;
+execute broad real-runtime certification (registry-wide games, Workout V3,
+lifecycle/process death, real SQLite, backup/restore, offline, accessibility,
+SAF, physical device, performance); classify every platform-evidence domain
+honestly (PASS / FAIL / NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED);
+re-prove the full automated matrix and all four workflows at the exact final
+SHA; and issue an evidence-backed GO / CONDITIONAL GO / NO-GO verdict.
 
 ## Scope guard
 
-No game #43, content expansion, cloud/auth/AI/monetization/social system,
-signing, store publication, or unrelated feature expansion is in scope.
-Validators, tests, and build gates may be strengthened, never weakened.
+No game #43+, new gameplay systems, cloud/auth/backend/social/ads/monetization/
+AI/push/telemetry, visual redesign, architecture/database/framework replacement,
+unrelated dependency upgrades, or speculative cleanups. Validators, tests, and
+gates may be strengthened, never weakened.
+
+## Stop conditions
+
+Stop for a user decision only on a proven external blocker (credentials,
+absent platform hardware, irreversible publication). Never convert
+unavailable evidence into PASS. Absent physical device or macOS host must not
+stall executable Android certification work.
 
 ## Recovery order
 
@@ -60,4 +42,4 @@ Validators, tests, and build gates may be strengthened, never weakened.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`
-7. `openspec/changes/021-release-gate-reconvergence/EXECUTION.md`
+7. `openspec/changes/022-release-candidate-certification/EXECUTION.md`

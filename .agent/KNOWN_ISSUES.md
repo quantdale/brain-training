@@ -1,13 +1,13 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 021 VALIDATED (terminal, 2026-09-05)
+## Current status — Campaign 022 ACTIVE (2026-09-05)
 
-- **The repository is terminal.** Campaign 021 closed VALIDATED on final
-  SHA `05c16bc`; `GOVERNANCE.activeCampaign` is `null`. All four workflows
-  are green at current head `e8e975a` (App CI `33938100850`, Repository
-  Integrity `33938101035`, Android Build Smoke `33938100831`, iOS Build
-  Smoke `33938100810`). SHA/run-attributed evidence lives in
-  `.agent/VALIDATION.md` under "Campaign 021".
+- **Campaign 022 (release-candidate certification) is ACTIVE** on baseline
+  `76a58dc`. Predecessor Campaign 021 closed VALIDATED on final SHA
+  `05c16bc`; all four workflows remain green at current head `76a58dc`
+  (App CI `33944241059`, Repository Integrity `33944241055`, Android Build
+  Smoke `33944241051`, iOS Build Smoke `33944241057`). SHA/run-attributed
+  evidence lives in `.agent/VALIDATION.md` under "Campaign 021".
 - **Closed contradiction (whole-codebase review, 2026-09-05):** the CI
   provenance/version-drift gate was structurally inert — all three
   provenance-checking workflows diffed against a base that always equals

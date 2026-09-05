@@ -1,51 +1,31 @@
 # Durable Project State
 
-**Last update:** 2026-09-05 (whole-codebase review wave at `6df0a97`): full local matrix green at head; four parallel deep audits dispositioned; the inert CI provenance-drift gate root-caused, fixed fail-closed in all three checking workflows, and CI-confirmed green (App CI `33942716376` logged its first real provenance base `e8e975a`; Repository Integrity `33942716408`, Android `33942716338`, iOS `33942716325` green). Evidence: `.agent/VALIDATION.md` "Whole-codebase review wave". Prior milestone: Campaign 021 validated on final SHA `05c16bc` — the release-gate contradiction closed with executable evidence (Android Build Smoke root-cause fix, workflow-hygiene guard, schema-guard self-heal, full local matrix + clean-checkout certification, dedicated-AVD runtime re-verification).
+**Last update:** 2026-09-05 (Campaign 022 activated): owner directive authorizes release-candidate certification after 021 closed VALIDATED. Baseline `76a58dc` verified: clean tree, `main == origin/main`, all four workflows green at head (App CI `33944241059`, Repository Integrity `33944241055`, Android Build Smoke `33944241051`, iOS Build Smoke `33944241057`), `validate-repo-state` PASS.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `022-release-candidate-certification`
 **Last campaign:** 021-release-gate-reconvergence
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 021 — Release-Gate Re-convergence is **VALIDATED** and the repository
-is terminal with no active campaign. Its full evidence chain (SHA/run
-attributed) is in `.agent/VALIDATION.md` under "Campaign 021":
+Campaign 022 — Release-Candidate Certification is **ACTIVE**. Mission: move
+from repository-owned automation completeness to a defensible release candidate
+via real-runtime certification, release-artifact validation, honest
+platform-evidence classification, and disposition of tracked release-relevant
+debt, ending in a GO / CONDITIONAL GO / NO-GO verdict. Execution surface:
+`openspec/changes/022-release-candidate-certification/` (proposal, design,
+tasks, EXECUTION, audit-map, 5 delta specs).
 
-- Red Android release gate root-caused (producer-side SIGPIPE from the
-  redundant `yes | sdkmanager --licenses` under the runner's default
-  `bash -eo pipefail`; latent since the step's introduction, exposed when
-  `c491c2b` removed the masking `|| true`) and fixed fail-closed at `1a946a9`
-  with an installed-packages postcondition — no `|| true`, no weakened gate.
-- The failure class is statically guarded by `scripts/validate-workflows.mjs`
-  (16-assertion self-test) wired into Repository Integrity.
-- Whole-codebase audit: F1 schema-guard crash window fixed (`4734fa0`:
-  `CANONICAL_TRIGGER_DDL` derived from the schema + `ensureSchemaGuards()` on
-  startup, proven self-healing on the live device DB); F2 write-path integer
-  canonicalization audited — already fail-closed.
-- Full local matrix on `4734fa0`: Jest 6100/6105 (only the 5 allowlisted
-  skips, validated by `validate-jest-signal.mjs`), all validators, TypeScript,
-  lint, QA self-test, web export, Expo Doctor 21/21, and clean-checkout
-  certification PASS.
-- All four workflows green at final SHA `05c16bc` (App CI `33936913057`,
-  Repository Integrity `33936913032`, Android Build Smoke `33936913090` with
-  APK/permission/SHA-256 artifact boundaries, iOS Build Smoke `33936913050`).
-- Android runtime non-regression on the dedicated `braintraining-qa36` AVD:
-  on-device guard self-heal (live DB trigger drop → restart → restored) plus
-  `math-fast-math`, `speed-tap-rush`, `attention-odd-one-out` canaries PASS on
-  the patched build with real SQLite persistence and row invariants.
-
-Manual platform evidence (TalkBack, SAF system sheets, physical-device lab,
-iOS runtime UX) remains DEFERRED per constitution §33; the accepted 16
-build-toolchain npm advisories remain documented in
-`.agent/DEPENDENCY_AUDIT.md`.
+Predecessor Campaign 021 is **VALIDATED** on final SHA `05c16bc`; its full
+SHA/run-attributed evidence chain remains in `.agent/VALIDATION.md` under
+"Campaign 021" and is historical evidence that must not be rewritten.
 
 ## Authoritative campaign state
 
-`GOVERNANCE.activeCampaign` is `null`, `lastCampaign` is
-`021-release-gate-reconvergence` (VALIDATED), and `STATE`,
+`GOVERNANCE.activeCampaign` is `022-release-candidate-certification`,
+`lastCampaign` is `021-release-gate-reconvergence` (VALIDATED), and `STATE`,
 `CURRENT_CAMPAIGN`, `EXECUTION_PROMPT`, OpenSpec, and task ownership agree on
-that terminal form. Historical campaign prose below is retained for recovery
+that ACTIVE form. Historical campaign prose below is retained for recovery
 and does not override these structured fields.
 
 ## Campaign 017 closure and Campaign 018 activation — 2026-08-30
