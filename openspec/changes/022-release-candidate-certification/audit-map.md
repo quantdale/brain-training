@@ -54,7 +54,18 @@
   intended, logged, non-fatal; production facade is complete. QA artifact
   retention: 700+ gitignored transient run dirs; no release impact; retention
   sweep belongs with store-build automation. All three deferred with rationale.
-## Dispositions
+## Dispositions — C-04…C-18 certification rows (closed at validation)
 
-(Filled during execution; every row closed with evidence pointer or honest
-classification before campaign closure.)
+Every remaining row closed with evidence in `.agent/VALIDATION.md`
+"Campaign 022" phase sections and the inline dispositions in
+`tasks.md`: C-04 artifact inspection PASS (`2487a2fd…` from `61aea07`);
+C-05 standalone Metro-free runtime PASS; C-06 42/42 certify PASS; C-07
+Workout V3 PASS; C-08 lifecycle torture PASS; C-09 SQLite integrity PASS;
+C-10 backup/restore equivalence PASS; C-11 a11y static+hierarchy PASS,
+manual TalkBack NOT VALIDATED; C-12 SAF app-side PASS / system sheet NOT
+VALIDATED with manual steps; C-13 physical device NOT VALIDATED (no
+authorized hardware); C-14 perf no pathology; C-15 offline PASS; C-16
+security/privacy PASS; C-17 iOS compile PASS via CI / runtime NOT VALIDATED;
+C-18 full matrix green at `61aea07` + four workflows green at code-identical
+heads `db7ab01`/`21e4ced`/`1094a20` (concurrency supersession at `61aea07`
+documented in `tasks.md` 6.2) → verdict CONDITIONAL GO.

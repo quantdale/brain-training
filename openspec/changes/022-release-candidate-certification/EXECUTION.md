@@ -1,6 +1,6 @@
 # Execution Entry — Campaign 022 Release-Candidate Certification
 
-**Status:** ACTIVE
+**Status:** VALIDATED — closed 2026-09-06; release verdict CONDITIONAL GO
 **Change:** `022-release-candidate-certification`
 **Baseline:** `76a58dccf819c57364d5531c2ca4c2bc3c375e46` (head declaring 021 VALIDATED with all four workflows green)
 **Target branch:** `main`

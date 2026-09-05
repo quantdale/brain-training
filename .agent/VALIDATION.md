@@ -2192,10 +2192,70 @@ toolchain limitation, not a product test failure.
   local product target.
 
 
-### Phase 17 — current-head CI (terminal SHA, docs-only)
+### Phase 17 — current-head CI (historical pre-closure heads)
 
-- Terminal head: App CI `33976140781`, Repository Integrity `33976140778`,
-  Android Build Smoke `33976140755`, iOS Build Smoke `33976140741` — all
-  `success` at `21e4ced` (code-identical to `db7ab01` except this evidence
-  record; code matrix was green at `61aea07`/`db7ab01` and unchanged since).
+- At `21e4ced` (docs-only): App CI `33976140781`, Repository Integrity
+  `33976140778`, Android Build Smoke `33976140755`, iOS Build Smoke
+  `33976140741` — all `success`.
+- At pre-closure head `1094a20` (docs-only, code-identical to `61aea07`):
+  App CI `33976979912`, Repository Integrity `33976979879`, Android Build
+  Smoke `33976979893`, iOS Build Smoke `33976979880` — all `success`
+  (independently verified). These are historical: the terminal closure
+  commits that reconcile the ACTIVE→VALIDATED lifecycle contradiction become
+  the new head and receive their own exact-head wave (Phase 18). Code was
+  unchanged from `61aea07` across all of these heads.
+- **Task 6.2 concurrency supersession (truthful disposition):** at the
+  code-final SHA `61aea07` itself, Repository Integrity `33975014777` was
+  `success` while App CI `33975014862`, Android Build Smoke `33975014708`,
+  and iOS Build Smoke `33975014704` were `cancelled` — killed by the
+  workflows' `cancel-in-progress` concurrency group when the immediately
+  following code-identical docs push superseded them. All four are `success`
+  on every exact head since (`db7ab01`, `21e4ced`, `1094a20`), on
+  byte-identical product code. Superseded-by-later-exact-head-run is the
+  repository's documented concurrency semantics (precedent: Campaign 021),
+  so 6.2 is PASS with this note rather than a fabricated all-green claim at
+  `61aea07`.
 
+### Phase 18 — terminal closure reconciliation (2026-09-06)
+
+- **Contradiction closed:** Campaign 022 had fully executed with verdict
+  CONDITIONAL GO, yet the authoritative lifecycle surfaces still declared it
+  ACTIVE (`GOVERNANCE.activeCampaign`, `CURRENT_CAMPAIGN`/`EXECUTION_PROMPT`
+  status, `change.json`, `task-ownership.lifecycleStatus`, unchecked
+  `tasks.md`, `STATE`/`KNOWN_ISSUES` present-tense prose). Closure landed in
+  two commits on 2026-09-06: the owner-pushed `6d535b4` transitioned the
+  governance core to the repository's established terminal form (validator
+  `scripts/validate-repo-state.mjs` terminal branch; precedent: Campaign 021
+  closure): `activeCampaign: null`, `lastCampaign:
+  022-release-candidate-certification`, `lastCampaignStatus: VALIDATED`,
+  `STATE` terminal fields + continuation rule, terminal
+  `CURRENT_CAMPAIGN`/`EXECUTION_PROMPT` with do-not-restart notices,
+  `change.json` VALIDATED with `validatedAt`/`validationNote`, ownership
+  VALIDATED terminal attribution record with zero packets, and `tasks.md`
+  truthfully dispositioned (checked = certification work completed; NOT
+  VALIDATED/DEFERRED/EXTERNALLY BLOCKED classifications preserved, nothing
+  falsified). The follow-up reconciliation commit completes the remainder:
+  OpenSpec `EXECUTION.md` status ACTIVE→VALIDATED, `audit-map.md` C-04…C-18
+  disposition rows closed, this Phase 17/18 evidence record, and
+  `KNOWN_ISSUES` additions (achievements sync-cap Low debt, explicit
+  constitution-deferred section, branch-protection ops recommendation).
+- **Closure validation:** repo-state, task-ownership, OpenSpec validate
+  --all, offline, secrets, workflow hygiene + self-test, registry,
+  provenance all PASS locally on the closure tree before commit.
+- **Terminal exact-head CI (established pointer convention):** the closure
+  commit carries the lifecycle reconciliation and receives its own
+  four-workflow exact-head wave; that wave's run IDs are recorded by exactly
+  ONE final docs-only evidence-pointer commit — the same terminating pattern
+  the repository already used when `1094a20` recorded the `21e4ced` wave
+  while its own wave remained externally verifiable. The pointer commit's own
+  wave must complete `success` on the exact terminal SHA (observed
+  in-session via `gh run list -R quantdale/brain-training --commit <sha>`);
+  its run IDs are deliberately NOT recorded in any file. **Recursion rule
+  (first durable statement):** the Phase-17 chain
+  `db7ab01 → 21e4ced → 1094a20` shows that committing run-ID pointers into
+  the file they describe never terminates; the loop ends here — after the
+  pointer commit, the terminal head's own GitHub runs are the authoritative
+  externally verifiable exact-head evidence, and NO further pointer-update
+  commits are permitted.
+- **Successor state:** no active campaign; no Campaign 023; any future
+  campaign requires a new explicit owner directive.
