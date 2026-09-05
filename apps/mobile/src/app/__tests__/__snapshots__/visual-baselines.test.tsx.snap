@@ -312,6 +312,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                   [
                     {
                       "flexDirection": "row",
+                      "flexGrow": 1,
                       "justifyContent": "center",
                     },
                     {
@@ -1086,6 +1087,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                   [
                     {
                       "flexDirection": "row",
+                      "flexGrow": 1,
                       "justifyContent": "center",
                     },
                     {
@@ -1519,6 +1521,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                   [
                     {
                       "flexDirection": "row",
+                      "flexGrow": 1,
                       "justifyContent": "center",
                     },
                     {
@@ -6412,6 +6415,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                   [
                     {
                       "flexDirection": "row",
+                      "flexGrow": 1,
                       "justifyContent": "center",
                     },
                     {
@@ -12344,6 +12348,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
           [
             {
               "flexDirection": "row",
+              "flexGrow": 1,
               "justifyContent": "center",
             },
             {
@@ -12558,6 +12563,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
           [
             {
               "flexDirection": "row",
+              "flexGrow": 1,
               "justifyContent": "center",
             },
             {
@@ -13113,6 +13119,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
           [
             {
               "flexDirection": "row",
+              "flexGrow": 1,
               "justifyContent": "center",
             },
             {
@@ -19041,6 +19048,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
           [
             {
               "flexDirection": "row",
+              "flexGrow": 1,
               "justifyContent": "center",
             },
             {
