@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-05 (Campaign 022 activated): owner directive authorizes release-candidate certification after 021 closed VALIDATED. Baseline `76a58dc` verified: clean tree, `main == origin/main`, all four workflows green at head (App CI `33944241059`, Repository Integrity `33944241055`, Android Build Smoke `33944241051`, iOS Build Smoke `33944241057`), `validate-repo-state` PASS.
+**Last update:** 2026-09-05 (Campaign 022 certification executed): 42/42 autobot certify PASS (`d82c57e`), Workout V3 PASS, lifecycle/DB/backup/offline/security PASS, full Jest 6101/5-skip green, final release APK `2487a2fd` (109.3 MB) from `61aea07` re-verified standalone. Verdict issued in `.agent/VALIDATION.md`: **CONDITIONAL GO** (debug-local signing; manual TalkBack/SAF/physical/iOS-runtime external). Tree clean at `61aea07`, `main == origin/main` pending docs push.
 **Canonical branch:** `main`
 **Active campaign:** `022-release-candidate-certification`
 **Last campaign:** 021-release-gate-reconvergence

@@ -2004,3 +2004,190 @@ toolchain limitation, not a product test failure.
 - No code fix was needed; no new product defect was exposed (harness never reached app launch). The bounded emulator failure is an external infrastructure limitation, not a product regression.
 
 **Classification remains:** **LOCALLY / AUTOMATED COMPLETE — EXTERNAL DEVICE / MANUAL CERTIFICATION PENDING** on this machine (dedicated AVDs now exist but 37.1.11 TCG cannot complete cold boot before qemu instability; a KVM-enabled Linux host or physical device is required to close the remaining Android runtime evidence).
+
+## Campaign 022 — release-candidate certification evidence (2026-09-05, final SHA `61aea07`)
+
+### Phase 4 — broad game certification: `autobot --mode certify` 42/42 PASS
+
+- **Definitive run:** `qa-artifacts/20260905-114509-autobot-certify/run.json` —
+  status COMPLETED, `certified: true`, 42 attempted / 42 passed / 0 failed /
+  0 missing / 0 duplicates / 0 unexpected, bound to source SHA `d82c57e`
+  (Home `home-build-sha` marker observed on-device; clean tree; QA_DEVICE +
+  EXPO_PUBLIC_BUILD_SHA enforced by preflight).
+- Each game: open → tutorial bypass → start → legitimate interaction tap with
+  observable hierarchy change → pause/resume → QA force-win → results →
+  exactly-one session row + row invariants → back/next navigation.
+- **First full run 24/42** exposed two failure classes, each investigated
+  individually (no skips, no weakened selectors):
+  - 14× "no interactive item mounted": probe regex covered only a subset of
+    control families (`go-button`, `color-btn`, `palette`, `word-grid.word`,
+    `symbol-option`, `next`/`next-trial`, …). Fixed by expanding
+    INTERACTIVE_SUFFIXES + generic clickable fallback; fail-closed evidence
+    (tap must change gameplay state) preserved.
+  - 6× pause/resume: probe ran interaction first, committing answers into
+    non-pausable feedback phases. Fixed by probing pause on the fresh session
+    before interaction.
+  - `spatial-grid-nav`: non-clickable display tiles selected as candidates;
+    fixed by enforcing clickable && enabled (revealed below-fold options via
+    scroll, swipeUp recovery in force-win).
+  - `attention-sustained-vigilance` + never-idle tickers: 100 ms
+    `useGameInterval` kept the a11y event queue permanently busy so
+    `uiautomator dump` hit its 10 s idle timeout and returned stale trees.
+    Product fix: TIMER_TICK_MS 100 → 250 ms (gcd of trial params; no behavior
+    change, all 76 vigilance tests green). Harness: `--compressed` dumps +
+    stale-file unlinking.
+  - `memory-running-order` SymbolView: testID sat on the inner View while the
+    outer Pressable carried clickability → testID moved onto the Pressable.
+  - `interactionOk`/`pauseOk` contradicted the documented best-effort
+    contracts (c491c2b): reconciled so unattempted probes on
+    countdown/stream phases and games without pause controls record misses
+    without failing; attempted taps still fail closed.
+- All 18 previously-failing games re-proven PASS individually before the
+  definitive run. `scripts/qa/autobot.mjs --self-test` 51/51 throughout.
+
+### Phase 5 — Workout V3 runtime: PASS
+
+- `daily-workout` 4/4 + relaunch persisted completion; `workout-focus`
+  (focus-language standard) 4/4 legs; `workout-short` 2/2 legs;
+  `workout-resume` 2/2 legs incl. **mid-workout `am force-stop` → relaunch →
+  durable resume surface verified**, then completion.
+- Harness fix: template chips live in a horizontal/wrapped row invisible to
+  uiautomator when off-screen; added in-row sweep + vertical hunt before
+  declaring a chip missing.
+
+### Phase 6 — lifecycle torture: ALL-PASS (custom driver, dev client)
+
+- Mid-session `force-stop`: no partial row (count unchanged).
+- `force-stop` ON results screen: exactly one row; relaunch adds no duplicate.
+- Pause → HOME → foreground → resume: paused state survives, resume works.
+- 3× force-stop/relaunch cycles: counts stable, `integrity_check` ok, zero
+  negative-duration / inverted-timestamp rows.
+- Environment notes (not product defects): qemu died twice under sustained
+  automation load (restarted via supervisor; data intact both times —
+  unplanned cold-boot persistence proof); post-reboot `adb reverse` must be
+  re-established or the dev client shows its redbox (adb-side, not product);
+  never use BACK key in drivers (backgrounds/freezes the app).
+
+### Phase 7 — DB/persistence soak: PASS
+
+- Jest `src/db` + `src/data-portability`: 32 suites / 338 tests PASS
+  (migrations incl. matrix + v10 hardening, scale, adversarial archives).
+- On-device: `PRAGMA integrity_check` ok across every phase; 14-table schema
+  introspected; integer-storage triggers satisfied; zero bad rows.
+
+### Phase 8 — backup/export/restore (user-facing path): PASS
+
+- Export → versioned checksummed JSON in app backups (13 files created across
+  runs, incl. one created in airplane mode).
+- Duplicate merge over populated DB: idempotent, zero new rows.
+- Truncated (50%) backup: preview shows Invalid + kind, zero writes, no crash.
+- UI wipe (typed DELETE): erases all training data, **keeps saved backups**.
+- Replace-restore after wipe: exact pre-wipe state (2 sessions / 80 XP /
+  2 workouts per preview counters), restart-stable, integrity ok.
+- Product fix (`61aea07`): import TextInput had no maxHeight — a loaded ~20KB
+  backup grew it to full-screen height, burying Preview/Import buttons with
+  touches intercepted (device-verified). Now `maxHeight: 240` with internal
+  scroll; buttons reachable.
+- Jest adversarial archives (missing/truncated/malformed/incompatible) PASS.
+- SAF/share **system sheets**: app-side PASS (export/share entry points
+  verified); the OS consent sheet itself NOT VALIDATED (manual steps:
+  Data Management → Export → Share… → system share sheet → destination).
+
+### Phase 9 — accessibility: static + hierarchy PASS, manual NOT VALIDATED
+
+- Static contracts PASS (scout audit): 44pt touch targets, roles, pause
+  overlay focus parking, dialog containment, live regions, result
+  announcements, labeled backup controls.
+- Runtime hierarchy audit (Home + game intro): 0 unlabeled clickable nodes;
+  meaningful content-descriptions; native tab bar standard.
+- Manual TalkBack / VoiceOver: NOT VALIDATED (cannot be driven autonomously).
+
+### Phase 12 — performance: no pathology
+
+- Cold launch (dev client + Metro, emulator): 4.4–5.9 s across 3 runs;
+  warm launch 9 ms. Catalog/home render + workout generation within autobot
+  budgets; no progressive slowdown across 42-game + workout runs; no runaway
+  timers (vigilance 10 Hz flood eliminated by 250 ms alignment).
+- No benchmark requirements exist; recorded as informational.
+
+### Phase 13 — offline proof (airplane mode): PASS
+
+- Cold launch, one full game journey, one full workout, and backup export
+  all PASS with `airplane_mode_on=1`. Static validator CLEAN (932 files) +
+  runtime offline-boundary suite green. No network escape found.
+
+### Phase 14 — security/privacy: PASS (scout audit at `d82c57e`)
+
+- Secret scanner CLEAN (1849 files); permissions boundary verified (no
+  location/camera/contacts/SMS); backup envelope progression-data only;
+  logging error-context-only; no shared-storage/network exfiltration paths.
+
+### Phase 15 — iOS: compile via CI, runtime NOT VALIDATED
+
+- No macOS/Xcode on this Windows host. iOS Build Smoke (CI macOS) is the
+  compile gate; simulator/runtime/VoiceOver NOT VALIDATED.
+
+### Phase 2/3 (final) — release artifact from `61aea07`
+
+- `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`:
+  SHA-256 `2487a2fda5eef489c4fa205d7dd124ce8cdd3b862353ef61c112d7e5181c316d`,
+  109,292,293 bytes, `BUILD SUCCESSFUL` (one transient `packageRelease`
+  failure from a host file lock, green on retry — infra flake, not product).
+- Identity: `com.braintraining.app`, versionCode 1000, versionName 0.1.0,
+  minSdk 24, targetSdk/compileSdk 36; 8 permissions (no
+  location/camera/contacts/SMS); not debuggable; ABIs arm64-v8a,
+  armeabi-v7a, x86, x86_64.
+- Signing: Android **debug** certificate (local). No upload/Play keystore
+  exists on this machine — NOT equivalent to a store-signed artifact.
+- Standalone re-verified Metro-free: fresh install → launch → tabs →
+  card-sort intro fills viewport, tutorial CTA real height
+  `[126,2088][447,2212]`, demo board (target + 4 cards + rule banner)
+  mounts on tap. Legitimate 8-round completion proven on the same code path
+  earlier (score 800, exactly-once row).
+
+### Phase 16 — full regression matrix at `61aea07`: GREEN
+
+- Jest: 491 suites passed / 4 skipped (allowlisted), 6101 tests passed /
+  5 skipped, 5 snapshots passed.
+- `tsc --noEmit` 0 errors; `expo lint` 0/0; `expo-doctor` 21/21.
+- Validators: repo-state, registry, provenance, offline, secrets,
+  task-ownership, workflow hygiene — all PASS. QA self-test 51/51.
+
+### Release-readiness matrix
+
+| Area | Verdict |
+|---|---|
+| Android automated tests | PASS |
+| Android release build | PASS (debug-signed local artifact) |
+| Android emulator runtime | PASS |
+| 42-game certification | PASS (42/42 + row invariants) |
+| Workout V3 | PASS (daily/focus/resume/short) |
+| Lifecycle/process death | PASS |
+| Real SQLite | PASS |
+| Migrations | PASS (Jest matrix) |
+| Backup/restore | PASS (user-facing path) |
+| Offline behavior | PASS |
+| Accessibility (static + hierarchy) | PASS |
+| Manual TalkBack/VoiceOver | NOT VALIDATED |
+| Android SAF/system sheets | NOT VALIDATED (app-side PASS) |
+| Physical Android device | NOT VALIDATED (no hardware) |
+| iOS compile | PASS (via CI smoke) |
+| iOS runtime | NOT VALIDATED (no macOS) |
+| Signing | EXTERNALLY BLOCKED (debug-local only) |
+| Store submission readiness | EXTERNALLY BLOCKED (no credentials) |
+| Privacy/data boundary | PASS |
+| Dependency state | PASS (doctor 21/21; 16 build-toolchain advisories documented) |
+
+### Verdict: CONDITIONAL GO
+
+- No known repository-owned release blocker remains. Three product defects
+  found and fixed with regression proof (ScreenShell viewport collapse,
+  vigilance 10 Hz ticker flood, import TextInput unbounded growth) plus
+  testID placement (SymbolView) and tutorial/harness hardening.
+- CONDITIONAL (not GO) because: store signing needs owner-held credentials;
+  manual TalkBack, SAF/system-sheet, physical-device, and iOS-runtime
+  evidence require human/hardware/Apple-host execution outside this machine.
+- These conditions are external/manual, not repository defects. The
+  implementation is release-candidate quality for the defined offline-first
+  local product target.
+

@@ -83,3 +83,42 @@ MAINTENANCE unless re-opened by certification findings.
   end-to-end; release-driver resource-id matching fixed (Expo testIDs carry
   no package prefix) in `44f74ad`.
 
+
+### Phase 4 — registry-wide certification: 42/42 PASS (`d82c57e`)
+
+- Definitive run `qa-artifacts/20260905-114509-autobot-certify/run.json`:
+  COMPLETED, certified true, 42/42 PASS with row invariants. All 18 earlier
+  failures individually root-caused (probe coverage, probe ordering,
+  stale-dump pulls, never-idle tickers, testID placement, pass-criteria
+  contracts) and re-proven PASS individually before the clean run.
+- Product fixes: vigilance TIMER_TICK_MS 100→250 ms; SymbolView testID onto
+  Pressable. Harness hardened with fail-closed evidence preserved.
+
+### Phases 5–8 — workout/lifecycle/DB/backup: PASS
+
+- Workout V3: daily 4/4, focus 4/4, resume 2/2 (mid-workout kill/relaunch),
+  short 2/2. Template-chip hunt fix in harness.
+- Lifecycle torture ALL-PASS: mid-session kill (no partial row),
+  results-screen kill (exactly one row), pause→background→resume, 3×
+  relaunch stable, integrity ok.
+- Backup/restore user path PASS: export, idempotent merge, corrupt rejection,
+  wipe (keeps backups), replace-restore exact, restart stable. Product fix:
+  import TextInput `maxHeight: 240` (`61aea07`).
+
+### Phases 9–15 — platform classification (evidence in VALIDATION.md)
+
+- Offline airplane-mode PASS (launch/game/workout/export). Security scout
+  PASS. A11y static + hierarchy PASS (0 unlabeled); manual TalkBack NOT
+  VALIDATED. SAF sheets NOT VALIDATED (app-side PASS). Physical device NOT
+  VALIDATED. iOS runtime NOT VALIDATED (no macOS); compile via CI.
+- Perf: cold 4.4–5.9 s dev/emulator, warm 9 ms; no pathology.
+
+### Phases 16–18 — convergence (`61aea07`)
+
+- Full matrix green: Jest 6101/5-skip, tsc, lint, doctor 21/21, all
+  validators, self-test 51/51.
+- Final release APK `2487a2fd` (109,292,293 B) rebuilt from `61aea07`;
+  standalone re-verified (tutorial demo mounts, first-run gate opens).
+- Verdict: **CONDITIONAL GO** — no repository-owned blocker remains;
+  store signing + manual TalkBack/SAF/physical/iOS-runtime are external.
+

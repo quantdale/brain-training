@@ -1,6 +1,6 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 022 ACTIVE (2026-09-05)
+## Current status — Campaign 022 executed, verdict CONDITIONAL GO (2026-09-05)
 
 - **Campaign 022 (release-candidate certification) is ACTIVE** on baseline
   `76a58dc`. Predecessor Campaign 021 closed VALIDATED on final SHA
