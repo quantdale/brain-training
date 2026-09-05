@@ -1009,9 +1009,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     top: 0,
-    width: 1,
-    height: 1,
-    opacity: 0,
+    width: 2,
+    height: 2,
+    // Must stay non-zero: uiautomator drops alpha-0 views from its
+    // visible-to-user tree, so a fully transparent marker is invisible to
+    // the certify preflight's `source-bundle-bound` probe (device-verified:
+    // marker present in hierarchy only after opacity raised). Imperceptible
+    // on-device at 0.01.
+    opacity: 0.01,
   },
   ctaCard: {
     borderRadius: Radii.large,
