@@ -1762,8 +1762,45 @@ async function probeInteraction(id, tag) {
     if (!xml || DUMP_ERROR_RE.test(xml)) return null;
     const candidates = findInteractionCandidates(xml, id);
     if (candidates.length === 0) return null;
-    const c = candidates[0];
-    let tappedNode = c;
+    // Prefer real answer controls over round-gates (next-round/next-problem):
+    // a gate only exists after a round already ended, and tapping it starts a
+    // fresh timed round — bad probe target when a tappable board exists.
+    const gateRe = /\.(?:next-round|next-problem)$/;
+    const c = candidates.find((n) => !gateRe.test(n.id)) || candidates[0];
+
+    // Count-bounded evidence polling. Each hierarchy dump on this host costs
+    // 1-3 s through uiautomator, so a wall-clock budget can expire BEFORE a
+    // transition the tap already caused becomes visible (observed:
+    // attention-odd-one-out and speed-tap-rush taps demonstrably advanced the
+    // round — round.1 → round.2 — while a 7 s window sampled only pre-change
+    // dumps). Poll a fixed number of samples, then one final confirm dump;
+    // fail-closed is preserved: a dead control still produces no evidence in
+    // ANY sample. Liveness rides on the dump itself (package attr) instead of
+    // an extra dumpsys per sample.
+    const waitForEvidence = async (baseXml, tappedId, suffix) => {
+      const samples = 5;
+      for (let n = 0; n < samples; n += 1) {
+        await sleep(n === 0 ? 1500 : 1000);
+        const after = readFileSyncSafe(
+          dumpHierarchy(`${tag}-ix-${label}-${suffix}${n}`),
+        );
+        if (!after || DUMP_ERROR_RE.test(after)) continue;
+        if (!after.includes(PKG)) return { alive: false, changed: false };
+        if (interactionEvidenceChanged(baseXml, after, id, tappedId)) {
+          return { alive: true, changed: true };
+        }
+      }
+      await sleep(1200);
+      const final = readFileSyncSafe(
+        dumpHierarchy(`${tag}-ix-${label}-${suffix}-final`),
+      );
+      const alive = !!final && !DUMP_ERROR_RE.test(final) && final.includes(PKG);
+      return {
+        alive,
+        changed: alive && interactionEvidenceChanged(baseXml, final, id, tappedId),
+      };
+    };
+
     let tapped = false;
     try {
       tapped = tap(c);
@@ -1775,20 +1812,15 @@ async function probeInteraction(id, tag) {
     if (!tapped) {
       return { nodeId: c.id, accepted: false, reason: "tap command failed" };
     }
-    await sleep(1500);
-    let after = readFileSyncSafe(
-      dumpHierarchy(`${tag}-ix-${label}-after`),
-    );
-    let alive = appForeground();
-    let changed = interactionEvidenceChanged(xml, after, id, c.id);
-    if (alive && !changed) {
+    let res = await waitForEvidence(xml, c.id, "after");
+    let tappedNode = c;
+    if (res.alive && !res.changed) {
       // A touch delivered in the same frame a control mounts is dropped by the
       // RN responder chain (the node exists in the hierarchy but its host view
-      // is not yet attached). Re-dump and re-tap the same node once before
-      // declaring non-acceptance. A genuinely dead control still fails both
-      // taps, so this stays fail-closed.
+      // is not yet attached). Re-dump and re-tap the same node once, then poll
+      // again. A genuinely dead control still fails both taps.
       trace("tap.interaction.retry", c.id, true, "first tap showed no change");
-      await sleep(700);
+      await sleep(400);
       const fresh = readFileSyncSafe(
         dumpHierarchy(`${tag}-ix-${label}-fresh`),
       );
@@ -1796,22 +1828,17 @@ async function probeInteraction(id, tag) {
       const c2 = again.find((n) => n.id === c.id) || again[0];
       if (c2 && tap(c2)) {
         trace("tap.interaction.retry", c2.id, true, `${c2.bounds.cx},${c2.bounds.cy}`);
-        await sleep(1500);
-        after = readFileSyncSafe(
-          dumpHierarchy(`${tag}-ix-${label}-after2`),
-        );
-        alive = appForeground();
-        changed = interactionEvidenceChanged(fresh || xml, after, id, c2.id);
-        if (changed) tappedNode = c2;
+        tappedNode = c2;
+        res = await waitForEvidence(fresh || xml, c2.id, "after2");
       }
     }
     return {
       nodeId: tappedNode.id,
-      crashedAfterTap: !alive,
-      accepted: alive && changed,
-      reason: !alive
+      crashedAfterTap: !res.alive,
+      accepted: res.alive && res.changed,
+      reason: !res.alive
         ? "app died after tap"
-        : changed
+        : res.changed
           ? "tap produced observable hierarchy change"
           : "tap produced no observable hierarchy change",
     };
