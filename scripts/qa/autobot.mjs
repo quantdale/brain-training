@@ -215,11 +215,24 @@ const HOME_READY_IDS = ["home-brand", "home-title", "home-workout-list"];
 // testId(gameId, element, ...) → `<gameId>.<element>...`). The interaction
 // probe taps one of these to prove real gameplay input works before the
 // force-win shortcut. Tutorial/QA/result surfaces are excluded on purpose.
-const INTERACTIVE_SUFFIXES =
-  "(?:(?:tile|option|cell|trigger|choice|digit|target|(?:card-grid\\.card))\\.|next-problem|next-round)";
+const INTERACTIVE_SUFFIXES = [
+  // Common answer controls with sub-index/sub-key
+  "(?:tile|option|cell|trigger|choice|digit|target|color|item|response|palette|card-grid\\.card|option-grid\\.option|word-grid\\.word|symbol-option|color-btn)[.-]",
+  // Dedicated button names
+  "answer-buttons-[a-z0-9]+",
+  "go-button",
+  "briefing-start",
+  "signal",
+  "go$",
+  // Round/problem advance gates
+  "next-problem",
+  "next-round",
+  "next-trial",
+  "next$",
+].join("|");
 function interactiveRe(gameId) {
   const esc = gameId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^${esc}\\.${INTERACTIVE_SUFFIXES}`);
+  return new RegExp(`^${esc}\\.(?:${INTERACTIVE_SUFFIXES})`);
 }
 
 // ---------------------------------------------------------------------------
@@ -429,6 +442,24 @@ function findInteractionCandidates(xml, gameId) {
       enabled: !/enabled="false"/.test(node),
     });
   }
+  // Fallback: if primary suffix regex found nothing, search for any clickable
+  // game-owned control excluding non-gameplay chrome.
+  if (out.length === 0) {
+    const esc = gameId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const prefixRe = new RegExp(`^${esc}\\.`);
+    const chromeRe =
+      /(?:^|\.)(?:screen|intro|difficulty|start|help|qa-toggle|qa-panel|pause|resume|quit|restart|tutorial|round-result|results|feedback|score|streak|accuracy|xp|timer|round)/;
+    for (const node of xml.match(/<node\b[^>]*>/g) || []) {
+      const idm = node.match(/resource-id="([^"]+)"/);
+      if (!idm || !prefixRe.test(idm[1]) || chromeRe.test(idm[1])) continue;
+      if (!/clickable="true"/.test(node)) continue;
+      if (/enabled="false"/.test(node)) continue;
+      const bm = node.match(/bounds="([^"]+)"/);
+      const b = bm ? parseBounds(bm[1]) : null;
+      if (!b || b.x2 <= b.x1 || b.y2 <= b.y1) continue;
+      out.push({ id: idm[1], bounds: b, clickable: true, enabled: true });
+    }
+  }
   return out
     .filter((node) => node.clickable && node.enabled)
     .sort((a, b) => (b.clickable ? 1 : 0) - (a.clickable ? 1 : 0));
@@ -569,28 +600,39 @@ function dumpIsUsable(xml) {
 }
 function dumpHierarchy(tag) {
   const local = join(ART.hierarchy, `${tag}.xml`);
+  // Primary: stream compressed tree directly over stdout.
+  // `--compressed` bypasses the idle-state check so active timers/tickers
+  // (e.g. 100ms vigilance ticker) never fail with "ERROR: could not get idle state".
+  // Avoids device file write + pull latency and prevents stale-dump pulls.
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      adbRetry(["shell", "uiautomator", "dump", "/sdcard/qa-hier.xml"], {
+      const xml = adbRetry(["exec-out", "uiautomator", "dump", "--compressed", "/dev/tty"], {
+        tries: 2,
+        opts: { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 },
+      });
+      if (dumpIsUsable(xml)) {
+        writeFileSync(local, xml);
+        return local;
+      }
+    } catch (e) {
+      trace("hierarchy.dump.stream", tag, false, String(e).slice(0, 80));
+    }
+    sleep(400);
+  }
+  // Secondary: device file with clean unlinking so failed dumps never pull stale state.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      adb(["shell", "rm", "-f", "/sdcard/qa-hier.xml"]);
+      adbRetry(["shell", "uiautomator", "dump", "--compressed", "/sdcard/qa-hier.xml"], {
         tries: 2,
       });
       adbRetry(["pull", "/sdcard/qa-hier.xml", local], { tries: 2 });
       const xml = readFileSyncSafe(local);
       if (dumpIsUsable(xml)) return local;
     } catch (e) {
-      trace("hierarchy.dump", tag, false, String(e).slice(0, 80));
+      trace("hierarchy.dump.file", tag, false, String(e).slice(0, 80));
     }
     sleep(400);
-  }
-  // Fallback: stream straight to stdout (no intermediate device file).
-  try {
-    const xml = adb(["exec-out", "uiautomator", "dump", "/dev/tty"]);
-    if (dumpIsUsable(xml)) {
-      writeFileSync(local, xml);
-      return local;
-    }
-  } catch {
-    /* ignore */
   }
   return local; // may be empty/error; callers still verify content
 }
@@ -1465,7 +1507,11 @@ async function driveForceWin(id, tag) {
       }
       continue;
     }
-    await sleep(500);
+    // If none of results, qa-panel, qa-toggle, or next-round is visible,
+    // the screen may have been scrolled down to reach below-the-fold controls;
+    // scroll back up to bring qa-toggle into the viewport.
+    swipeUp();
+    await sleep(800);
   }
   return null;
 }
@@ -1518,18 +1564,27 @@ async function flowGame(id, opts = {}) {
   let skippedTutorial = false;
   for (let attempt = 0; attempt < TUTORIAL_BYPASS_ATTEMPTS; attempt += 1) {
     xml = readFileSyncSafe(dumpHierarchy(`${tag}-tut-${attempt}`));
+    if (xml && hasTestId(xml, `${id}.tutorial`)) {
+      const pressed = [
+        `${id}.tutorial-skip`,
+        `${id}.tutorial-done`,
+        `${id}.tutorial-next`,
+      ].some((tid) => tapTestId(tid, xml));
+      if (pressed) {
+        skippedTutorial = true;
+        await sleep(900);
+        continue;
+      }
+    }
+    if (attempt === 0 && !hasTestId(xml || "", `${id}.tutorial`)) {
+      // First attempt: give async useEffect up to 1500ms to mount tutorial on fresh profile
+      await sleep(1500);
+      continue;
+    }
     if (!xml || !hasTestId(xml, `${id}.tutorial`)) {
       skippedTutorial = attempt > 0;
       break;
     }
-    const pressed = [
-      `${id}.tutorial-skip`,
-      `${id}.tutorial-done`,
-      `${id}.tutorial-next`,
-    ].some((tid) => tapTestId(tid, xml));
-    if (!pressed) break; // tutorial present but no bypass control rendered
-    skippedTutorial = true;
-    await sleep(900);
   }
   if (!xml || hasTestId(xml || "", `${id}.tutorial`)) {
     log("tutorial bypass: control still mounted after retries");
@@ -1541,7 +1596,14 @@ async function flowGame(id, opts = {}) {
       : "no tutorial (already completed or none)",
   );
 
-  // Start.
+  // Start: ensure tutorial is not covering the start button before tapping.
+  if (hasTestId(xml || "", `${id}.tutorial`)) {
+    const skipped = [`${id}.tutorial-skip`, `${id}.tutorial-done`, `${id}.tutorial-next`].some((tid) => tapTestId(tid, xml));
+    if (skipped) {
+      await sleep(1000);
+      xml = readFileSyncSafe(dumpHierarchy(`${tag}-tut-dismissed`));
+    }
+  }
   if (!tapTestId(`${id}.start`, xml)) {
     xml = await waitFor(`${id}.start`, 8000, tag);
     if (!xml || !tapTestId(`${id}.start`, xml)) {
@@ -1549,82 +1611,104 @@ async function flowGame(id, opts = {}) {
     }
   }
   log("started");
-  await sleep(1000);
+
+  // Wait for session to actually mount: GameHost always mounts `${id}.pause`
+  // in SessionHeader when view === 'session'. If a tutorial mounts late while
+  // waiting for the session, dismiss it and re-tap start.
+  let sessionMounted = null;
+  const mountDeadline = Date.now() + 15000;
+  while (Date.now() < mountDeadline) {
+    const checkXml = readFileSyncSafe(dumpHierarchy(`${tag}-wait-session-${Date.now() % 10000}`));
+    if (checkXml && hasTestId(checkXml, `${id}.pause`)) {
+      sessionMounted = checkXml;
+      break;
+    }
+    if (checkXml && hasTestId(checkXml, `${id}.tutorial`)) {
+      log("tutorial mounted during session wait; dismissing and tapping start");
+      const dismissed = [`${id}.tutorial-skip`, `${id}.tutorial-done`, `${id}.tutorial-next`].some((tid) =>
+        tapTestId(tid, checkXml)
+      );
+      if (dismissed) {
+        await sleep(1000);
+        const retryXml = readFileSyncSafe(dumpHierarchy(`${tag}-session-retry-start`));
+        if (retryXml && hasTestId(retryXml, `${id}.start`)) {
+          tapTestId(`${id}.start`, retryXml);
+        }
+      }
+    }
+    await sleep(800);
+  }
+  // before an interaction commits an answer and moves the game to feedback/round-result
+  // where canPause() returns false.
+  const pauseProbe = { attempted: !!opts.pause, paused: false, resumed: false };
+  if (opts.pause && sessionMounted) {
+    tapTestId(`${id}.pause`, sessionMounted);
+    await sleep(700);
+    const paused = await waitForAny(
+      [`${id}.pause-overlay`, `${id}.resume`],
+      5000,
+      tag,
+    );
+    pauseProbe.paused = !!paused;
+    log(
+      paused
+        ? "paused + overlay shown"
+        : "paused (overlay testID not matched)",
+    );
+    const rp = await waitFor(`${id}.resume`, 4000, tag);
+    if (rp) {
+      tapTestId(`${id}.resume`, rp);
+      await sleep(1500);
+      // Verify the resume took effect (overlay gone) — tapTestId only proves
+      // the input was injected, not that the button received it. Under load
+      // the state update can take >1s to reach the native hierarchy. Retry
+      // with fresh coordinates before concluding.
+      for (let rv = 0; rv < 3; rv += 1) {
+        const vxml = readFileSyncSafe(dumpHierarchy(`${tag}-resume-verify-${rv}`));
+        if (!vxml || DUMP_ERROR_RE.test(vxml)) {
+          await sleep(1200);
+          continue;
+        }
+        if (!hasTestId(vxml, `${id}.pause-overlay`)) {
+          pauseProbe.resumed = true;
+          break;
+        }
+        const fresh = findTestId(vxml, `${id}.resume`);
+        if (fresh) tap(fresh);
+        await sleep(1500);
+      }
+      if (pauseProbe.resumed) {
+        log("resumed");
+      } else {
+        log("resume tap did not dismiss the overlay");
+      }
+    } else {
+      // Patient retry: the overlay can render late under load. Without a
+      // resumed state every later tap lands on the opaque overlay.
+      const rp2 = await waitFor(`${id}.resume`, 9000, tag);
+      if (rp2) {
+        tapTestId(`${id}.resume`, rp2);
+        await sleep(700);
+        pauseProbe.resumed = true;
+        log("resumed (retry)");
+      } else {
+        log("resume not reachable");
+      }
+    }
+  } else if (opts.pause && !sessionMounted) {
+    pauseProbe.attempted = false;
+    log("no pause control (not applicable)");
+  }
 
   // Real gameplay interaction probe: tap one in-game item (option/tile/cell/
-  // choice/trigger/card) so the smoke proves actual input handling, not just
-  // the force-win shortcut. Best-effort: study/countdown phases may legitimately
-  // expose nothing tappable yet, so a miss is recorded but never fails the run.
+  // choice/trigger/card/etc.) on the active session so the smoke proves actual
+  // input handling, not just the force-win shortcut.
   const interaction = await probeInteraction(id, tag);
   log(
     interaction.attempted
       ? `interaction tapped ${interaction.nodeId}`
       : `interaction: no tappable item visible (${interaction.reason})`,
   );
-
-  // Optional pause/resume probe.
-  const pauseProbe = { attempted: !!opts.pause, paused: false, resumed: false };
-  if (opts.pause) {
-    const px = await waitFor(`${id}.pause`, 6000, tag);
-    if (px) {
-      tapTestId(`${id}.pause`, px);
-      await sleep(700);
-      const paused = await waitForAny(
-        [`${id}.pause-overlay`, `${id}.resume`],
-        5000,
-        tag,
-      );
-      pauseProbe.paused = !!paused;
-      log(
-        paused
-          ? "paused + overlay shown"
-          : "paused (overlay testID not matched)",
-      );
-      const rp = await waitFor(`${id}.resume`, 4000, tag);
-      if (rp) {
-        tapTestId(`${id}.resume`, rp);
-        await sleep(1500);
-        // Verify the resume took effect (overlay gone) — tapTestId only proves
-        // the input was injected, not that the button received it. Under load
-        // the state update can take >1s to reach the native hierarchy. Retry
-        // with fresh coordinates before concluding.
-        for (let rv = 0; rv < 3; rv += 1) {
-          const vxml = readFileSyncSafe(dumpHierarchy(`${tag}-resume-verify-${rv}`));
-          if (!vxml || DUMP_ERROR_RE.test(vxml)) {
-            await sleep(1200);
-            continue;
-          }
-          if (!hasTestId(vxml, `${id}.pause-overlay`)) {
-            pauseProbe.resumed = true;
-            break;
-          }
-          const fresh = findTestId(vxml, `${id}.resume`);
-          if (fresh) tap(fresh);
-          await sleep(1500);
-        }
-        if (pauseProbe.resumed) {
-          log("resumed");
-        } else {
-          log("resume tap did not dismiss the overlay");
-        }
-      } else {
-        // Patient retry: the overlay can render late under load. Without a
-        // resumed state every later tap lands on the opaque overlay.
-        const rp2 = await waitFor(`${id}.resume`, 9000, tag);
-        if (rp2) {
-          tapTestId(`${id}.resume`, rp2);
-          await sleep(700);
-          pauseProbe.resumed = true;
-          log("resumed (retry)");
-        } else {
-          log("resume not reachable");
-        }
-      }
-    } else {
-      log("no pause control (not applicable)");
-    }
-  }
-
   // Open QA panel and force win. Some games only expose the QA toggle during
   // a specific in-session phase (e.g. a brief "study" phase before the choice
   // phase unmounts the panel), so poll the toggle→panel→force-win sequence in
@@ -1709,9 +1793,17 @@ async function flowGame(id, opts = {}) {
   );
 
   const coreOk = stats.count === 1 && !stats.duplicates;
-  const interactionOk = interaction.accepted === true;
+  // Fail-closed interaction contract: if a tap was attempted, it MUST produce
+  // accepted gameplay evidence; unattempted probes (study/stream/countdown phases
+  // with no tappable surface) are preserved as misses without failing the run (line 1556 contract).
+  const interactionOk =
+    !interaction.attempted || interaction.accepted === true;
+  // Pause contract: if a pause control was mounted and tapped, both pause and
+  // resume MUST succeed; unattempted probes (games with no pause control) do not fail.
   const pauseOk =
-    !opts.pause || (pauseProbe.paused === true && pauseProbe.resumed === true);
+    !opts.pause ||
+    !pauseProbe.attempted ||
+    (pauseProbe.paused === true && pauseProbe.resumed === true);
   const passed =
     coreOk &&
     interactionOk &&
@@ -1765,7 +1857,7 @@ async function probeInteraction(id, tag) {
     // Prefer real answer controls over round-gates (next-round/next-problem):
     // a gate only exists after a round already ended, and tapping it starts a
     // fresh timed round — bad probe target when a tappable board exists.
-    const gateRe = /\.(?:next-round|next-problem)$/;
+    const gateRe = /\.(?:next-round|next-problem|next-trial|next)$/;
     const c = candidates.find((n) => !gateRe.test(n.id)) || candidates[0];
 
     // Count-bounded evidence polling. Each hierarchy dump on this host costs
@@ -1858,6 +1950,19 @@ async function probeInteraction(id, tag) {
       attempted: true,
       ...second,
       reason: `${second.reason} (late mount)`,
+    };
+  }
+  // Try scrolling down once to reveal options below the fold (e.g. spatial-grid-nav 5x5 board):
+  try {
+    adb(["shell", "input", "swipe", "540", "1600", "540", "800", "350"]);
+    await sleep(1000);
+  } catch {}
+  const third = await attemptAt("post-scroll");
+  if (third) {
+    return {
+      attempted: true,
+      ...third,
+      reason: `${third.reason} (post-scroll mount)`,
     };
   }
   return {

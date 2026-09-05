@@ -8,8 +8,8 @@ const DEV = 'emulator-5554';
 const adb = (...args) =>
   execFileSync('adb', ['-s', DEV, ...args], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
 export function dump() {
-  // /dev/tty streams the XML directly — avoids a device write + cat round-trip
-  return adb('exec-out', 'uiautomator', 'dump', '/dev/tty');
+  // /dev/tty streams the XML directly; --compressed avoids the idle-wait error
+  return adb('exec-out', 'uiautomator', 'dump', '--compressed', '/dev/tty');
 }
 
 export function findNode(xml, testId) {
