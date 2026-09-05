@@ -2752,22 +2752,60 @@ async function selectTemplateAndLength({ wantedTemplateId, length, tag }) {
       reason:
         "template picker not reachable (home-workout-templates below fold?)",
     };
-  const chipsXml = reached.xml;
-  const chips = extractTemplateChipIds(chipsXml);
-  if (chips.length === 0)
-    return { ok: false, reason: "no template chips found in hierarchy" };
-  // Default: today's rotation head — suggestions order the rotated focus
-  // slot first (rotation.ts), preferring focus-* over the daily-mix fallback.
-  const chosen =
-    wantedTemplateId || chips.find((id) => id.startsWith("focus-")) || chips[0];
-  if (!chips.includes(chosen))
+  let chipsXml = reached.xml;
+  let chips = extractTemplateChipIds(chipsXml);
+  // Template chips live in a HORIZONTAL row — uiautomator omits off-screen
+  // children, so a wanted chip (e.g. focus-language after relaunch) can sit
+  // off the right edge while siblings are visible. Sweep left, tapping the
+  // wanted chip from the dump where it is actually visible (coordinates go
+  // stale after further scrolling).
+  let tappedChip = null;
+  const tryTapWanted = (xml) => {
+    const list = extractTemplateChipIds(xml);
+    for (const c of list) if (!chips.includes(c)) chips.push(c);
+    const want = wantedTemplateId || chips.find((id) => id.startsWith("focus-")) || chips[0];
+    if (want && list.includes(want) && tapTestId(`home-workout-template-${want}`, xml)) {
+      tappedChip = want;
+      chipsXml = xml;
+      return true;
+    }
+    return false;
+  };
+  if (!tryTapWanted(chipsXml)) {
+    // Sweep horizontally INSIDE the template row's own bounds: a page-level
+    // swipe at mid-screen scrolls the outer vertical ScrollView instead and
+    // moves the whole picker out of the viewport (device-verified empty dumps).
+    const rowNode = findTestId(chipsXml, "home-workout-template-row");
+    const rb = rowNode && rowNode.bounds;
+    for (let h = 0; h < 4 && !tappedChip; h++) {
+      if (rb && rb.x2 > rb.x1) {
+        swipeSafe(Math.round(rb.x2 - 40), Math.round((rb.y1 + rb.y2) / 2), Math.round(rb.x1 + 40), Math.round((rb.y1 + rb.y2) / 2), 300);
+      } else {
+        const { w, h: hh } = viewport();
+        swipeSafe(Math.round(w * 0.85), Math.round(hh * 0.78), Math.round(w * 0.15), Math.round(hh * 0.78), 300);
+      }
+      await sleep(900);
+      const hx = readFileSyncSafe(dumpHierarchy(`${tag}-tpl-h${h}`));
+      if (hx && !DUMP_ERROR_RE.test(hx)) tryTapWanted(hx);
+    }
+  if (!tappedChip && wantedTemplateId) {
+    // The chip row can wrap below the fold: hunt the wanted chip vertically.
+    const found = await scrollToAny([`home-workout-template-${wantedTemplateId}`], `${tag}-tpl-v`, 4);
+    if (found && tapTestId(`home-workout-template-${wantedTemplateId}`, found.xml)) {
+      tappedChip = wantedTemplateId;
+      chipsXml = found.xml;
+    }
+  }
+  }
+  if (!tappedChip) {
+    if (chips.length === 0)
+      return { ok: false, reason: "no template chips found in hierarchy" };
+    const want = wantedTemplateId || chips.find((id) => id.startsWith("focus-")) || chips[0];
     return {
       ok: false,
-      reason: `template chip '${chosen}' not rendered (found: ${chips.join(", ")})`,
+      reason: `template chip '${want}' not rendered (found: ${chips.join(", ")})`,
     };
-  if (!tapTestId(`home-workout-template-${chosen}`, chipsXml))
-    return { ok: false, reason: `could not tap template chip ${chosen}` };
-  await sleep(600);
+  }
   const lenNode = await scrollToAny(
     [`home-workout-length-${length}`],
     `${tag}-len`,
@@ -2801,7 +2839,7 @@ async function selectTemplateAndLength({ wantedTemplateId, length, tag }) {
   }
   return {
     ok: true,
-    templateId: chosen,
+    templateId: tappedChip,
     chipsXml,
     panelXml,
     focusPresent: hasTestId(panelXml, "home-workout-focus"),
