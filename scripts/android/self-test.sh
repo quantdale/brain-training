@@ -118,7 +118,10 @@ bt_shell "$serial" 30 input keyevent KEYCODE_POWER >/dev/null 2>&1 || true
 sleep 2
 wake_after="$(bt_shell "$serial" 60 dumpsys power 2>/dev/null | grep -m1 'mWakefulness=' | tr -d '\r' || true)"
 echo "  wakefulness: $wake_before -> $wake_mid -> $wake_after"
-if [ "$wake_before" != "$wake_mid" ] && [ "$wake_mid" != "$wake_after" ]; then
+# Fail-closed: a transient adb glitch yielding empty captures must not satisfy
+# the inequality; require all three samples non-empty AND a genuine flip.
+if [ -n "$wake_before" ] && [ -n "$wake_mid" ] && [ -n "$wake_after" ] && \
+   [ "$wake_before" != "$wake_mid" ] && [ "$wake_mid" != "$wake_after" ]; then
   check "input keyevent flipped wakefulness (round-trip)" 0
 else
   check "input keyevent flipped wakefulness (round-trip)" 1
@@ -148,9 +151,12 @@ else
       sleep 2
       focus_after="$(bt_shell "$serial" 60 dumpsys window 2>/dev/null | grep -m1 'mCurrentFocus' | tr -d '\r' || true)"
       echo "  focus: $focus_before"
-      echo "       -> $focus_after"
-      if [ "$focus_before" != "$focus_after" ]; then
+      # Fail-closed: empty != empty must not read as "changed", and an empty
+      # capture on either side is inconclusive → require both non-empty.
+      if [ -n "$focus_before" ] && [ -n "$focus_after" ] && [ "$focus_before" != "$focus_after" ]; then
         check "tap changed foreground focus" 0
+      elif [ -z "$focus_before" ] || [ -z "$focus_after" ]; then
+        check "tap changed foreground focus (focus capture empty: before='$focus_before' after='$focus_after')" 1
       else
         # A tap can land on the same window (e.g. tapping an icon on the same
         # launcher) — treat unchanged focus as WARN, not FAIL.

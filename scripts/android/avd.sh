@@ -32,11 +32,16 @@ usage() {
   echo "  --retry N      retry boot up to N times if the emulator crashes (default 1)"
 }
 
+bt_avd_dir() {
+  # Portable AVD-directory probe: honors ANDROID_AVD_HOME (the documented
+  # override), then $HOME/.android/avd. No hardcoded developer paths.
+  local home="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
+  printf '%s/%s.avd' "$home" "$BT_AVD_NAME"
+}
+
 bt_avd_exists() {
   # Fast path: check AVD directory directly (avoids slow emulator -list-avds and CRLF issues in WSL)
-  if [ -d "$HOME/.android/avd/$BT_AVD_NAME.avd" ] || [ -d "/mnt/c/Users/palac/.android/avd/$BT_AVD_NAME.avd" ] || [ -d "C:/Users/palac/.android/avd/$BT_AVD_NAME.avd" ]; then
-    return 0
-  fi
+  [ -d "$(bt_avd_dir)" ] && return 0
   bt_emulator -list-avds 2>/dev/null | tr -d '\r' | grep -qx "$BT_AVD_NAME"
 }
 
@@ -112,7 +117,7 @@ cmd_boot() {
   # Fast path: if AVD directory exists, skip cmd_create (which would otherwise
   # try to run avdmanager and may hang on WSL path handling). The directory
   # existence is sufficient proof that the AVD was created.
-  if [ -d "$HOME/.android/avd/$BT_AVD_NAME.avd" ] || [ -d "/mnt/c/Users/palac/.android/avd/$BT_AVD_NAME.avd" ]; then
+  if [ -d "$(bt_avd_dir)" ]; then
     bt_log "AVD '$BT_AVD_NAME' already exists (directory check)"
   else
     cmd_create

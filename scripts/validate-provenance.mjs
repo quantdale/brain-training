@@ -35,6 +35,10 @@ const CHALLENGE_IDENTITY_PATTERNS = {
   contentPack: 'content/pack.json',
   contentBank: /^content\/.+\.ts$/,
   contentValidation: 'content-validation.ts',
+  // Scoring/normalization semantics (SCORING_VERSION in versions.ts)
+  scoring: 'scoring.ts',
+  // Difficulty curve selects which challenges appear (generatorVersion domain)
+  difficulty: 'difficulty.ts',
 };
 
 /**
@@ -100,7 +104,14 @@ function readBaseFile(baseRef, filePath) {
 
 /** Check if a file matches a challenge identity pattern. */
 function isChallengeIdentityFile(filePath, gameId) {
-  const relativePath = filePath.replace(`src/games/${gameId}/`, '');
+  // Changed-file paths are repo-root relative (git diff --name-only runs at
+  // REPO_ROOT). Strip the full game-module prefix; the old partial replace
+  // (`src/games/<id>/` mid-string) left `apps/mobile/...` and made every
+  // exact-equality pattern below dead code.
+  const prefix = `apps/mobile/src/games/${gameId}/`;
+  const relativePath = filePath.startsWith(prefix)
+    ? filePath.slice(prefix.length)
+    : filePath;
   
   if (relativePath === CHALLENGE_IDENTITY_PATTERNS.generator) {
     return true;
@@ -112,6 +123,12 @@ function isChallengeIdentityFile(filePath, gameId) {
     return true;
   }
   if (relativePath === CHALLENGE_IDENTITY_PATTERNS.contentValidation) {
+    return true;
+  }
+  if (relativePath === CHALLENGE_IDENTITY_PATTERNS.scoring) {
+    return true;
+  }
+  if (relativePath === CHALLENGE_IDENTITY_PATTERNS.difficulty) {
     return true;
   }
   return false;
@@ -250,10 +267,15 @@ function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main') {
     );
     if (unlistedFiles.length === 0) continue;
 
-    const hasGeneratorChange = unlistedFiles.some(f => f.endsWith('generator.ts'));
+    // difficulty.ts shapes which challenges appear → generatorVersion domain.
+    const hasGeneratorChange = unlistedFiles.some(
+      f => f.endsWith('/generator.ts') || f.endsWith('/difficulty.ts'),
+    );
     const hasContentChange = unlistedFiles.some(f =>
       f.includes('content/') || f.endsWith('content-validation.ts')
     );
+    // scoring.ts changes normalization semantics → SCORING_VERSION domain.
+    const hasScoringChange = unlistedFiles.some(f => f.endsWith('/scoring.ts'));
 
     const generatorComparison = baseVersions
       ? compareSemver(versions.generatorVersion, baseVersions.generatorVersion)
@@ -262,6 +284,9 @@ function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main') {
       baseVersions && versions.contentVersion !== null && baseVersions.contentVersion !== null
         ? compareSemver(versions.contentVersion, baseVersions.contentVersion)
         : null;
+    const scoringComparison = baseVersions
+      ? compareSemver(versions.scoringVersion, baseVersions.scoringVersion)
+      : null;
     const needsGeneratorBump =
       hasGeneratorChange &&
       (!baseVersions || generatorComparison === null || generatorComparison <= 0);
@@ -272,8 +297,15 @@ function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main') {
         baseVersions.contentVersion === null ||
         contentComparison === null ||
         contentComparison <= 0);
+    const needsScoringBump =
+      hasScoringChange &&
+      (versions.scoringVersion === null ||
+        !baseVersions ||
+        baseVersions.scoringVersion === null ||
+        scoringComparison === null ||
+        scoringComparison <= 0);
 
-    if (needsGeneratorBump || needsContentBump) {
+    if (needsGeneratorBump || needsContentBump || needsScoringBump) {
       drifts.push({
         gameId,
         files: unlistedFiles,
@@ -281,6 +313,7 @@ function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main') {
         baseVersions,
         needsGeneratorBump,
         needsContentBump,
+        needsScoringBump,
         reason: baseVersions
           ? 'Challenge identity changed without a strictly increasing version'
           : 'Challenge identity file is new or its base version metadata is unavailable',
@@ -363,6 +396,9 @@ if (jsonOutput) {
       }
       if (drift.needsContentBump) {
         console.error(`    Content version bump needed (current: ${drift.currentVersions.contentVersion})`);
+      }
+      if (drift.needsScoringBump) {
+        console.error(`    Scoring version bump needed (current: ${drift.currentVersions.scoringVersion})`);
       }
       if (drift.reason) {
         console.error(`    ${drift.reason}`);

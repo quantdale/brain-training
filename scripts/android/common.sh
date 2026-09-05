@@ -55,8 +55,6 @@ bt_find_sdk() {
     "${USERPROFILE:-}/AppData/Local/Android/Sdk" \
     "${HOME:-}/Android/Sdk" \
     "${HOME:-}/Library/Android/sdk" \
-    "/usr/local/share/android-sdk" \
-    "/mnt/c/Users/palac/AppData/Local/Android/Sdk" \
     "/mnt/d/Android/Sdk"; do
     if [ -n "$candidate" ] && [ -d "$candidate/platform-tools" ] && [ -d "$candidate/emulator" ]; then
       BT_SDK="$candidate"
