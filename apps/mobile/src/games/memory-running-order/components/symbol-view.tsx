@@ -43,7 +43,7 @@ export const SymbolView = memo(function SymbolView({
   const sym: RunningOrderSymbol = symbolById(symbolId);
   const label = accessibilityLabel ?? sym.label;
   const inner = (
-    <View testID={testID} accessibilityLabel={label} style={[styles.wrap, highlighted && styles.highlighted]}>
+    <View testID={onPress ? undefined : testID} accessibilityLabel={label} style={[styles.wrap, highlighted && styles.highlighted]}>
       <Text style={[styles.glyph, { color: sym.color, fontSize: size }]}>{sym.glyph}</Text>
     </View>
   );
@@ -51,6 +51,7 @@ export const SymbolView = memo(function SymbolView({
   if (onPress) {
     return (
       <Pressable
+        testID={testID}
         accessibilityRole="button"
         accessibilityLabel={label}
         disabled={disabled}

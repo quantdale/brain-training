@@ -61,9 +61,11 @@ import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialVigilanceState } from './types';
 import { SCORING_VERSION } from './versions';
 
-/** Stream ticker cadence (ms of wall time between active-ms samples). */
-const TIMER_TICK_MS = 100;
-
+/** Stream ticker cadence (ms of wall time between active-ms samples).
+ * Aligned to 250ms (greatest common divisor of trial parameters: 750ms stimulus,
+ * 500ms blank, 1000/1250ms slots). Avoids flooding the UI event queue with 10Hz
+ * re-renders, enabling accessibility inspections and saving CPU/battery. */
+const TIMER_TICK_MS = 250;
 export interface VigilanceScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
   clock?: Clock;

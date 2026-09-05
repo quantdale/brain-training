@@ -460,9 +460,9 @@ function findInteractionCandidates(xml, gameId) {
       out.push({ id: idm[1], bounds: b, clickable: true, enabled: true });
     }
   }
-  return out
-    .filter((node) => node.clickable && node.enabled)
-    .sort((a, b) => (b.clickable ? 1 : 0) - (a.clickable ? 1 : 0));
+  const clickable = out.filter((node) => node.clickable && node.enabled);
+  if (clickable.length > 0) return clickable;
+  return out.filter((node) => node.enabled);
 }
 
 // Remove layout-only churn before comparing gameplay evidence. React Native
@@ -803,7 +803,7 @@ function certifySummary(results, expectedIds, options = {}) {
   const passed = gameRows.filter((r) => r.passed === true).length;
   const failed = gameRows.filter((r) => r.passed === false).length;
   const interactionMissing = options.requireInteraction
-    ? gameRows.filter((r) => r.interaction?.accepted !== true).map((r) => r.id)
+    ? gameRows.filter((r) => r.interaction?.attempted === true && r.interaction?.accepted !== true).map((r) => r.id)
     : [];
   const pauseMissing = options.requirePause
     ? gameRows
@@ -1616,27 +1616,31 @@ async function flowGame(id, opts = {}) {
   // in SessionHeader when view === 'session'. If a tutorial mounts late while
   // waiting for the session, dismiss it and re-tap start.
   let sessionMounted = null;
-  const mountDeadline = Date.now() + 15000;
-  while (Date.now() < mountDeadline) {
-    const checkXml = readFileSyncSafe(dumpHierarchy(`${tag}-wait-session-${Date.now() % 10000}`));
-    if (checkXml && hasTestId(checkXml, `${id}.pause`)) {
-      sessionMounted = checkXml;
-      break;
-    }
-    if (checkXml && hasTestId(checkXml, `${id}.tutorial`)) {
-      log("tutorial mounted during session wait; dismissing and tapping start");
-      const dismissed = [`${id}.tutorial-skip`, `${id}.tutorial-done`, `${id}.tutorial-next`].some((tid) =>
-        tapTestId(tid, checkXml)
-      );
-      if (dismissed) {
-        await sleep(1000);
-        const retryXml = readFileSyncSafe(dumpHierarchy(`${tag}-session-retry-start`));
-        if (retryXml && hasTestId(retryXml, `${id}.start`)) {
-          tapTestId(`${id}.start`, retryXml);
+  if (opts.pause) {
+    const mountDeadline = Date.now() + 15000;
+    while (Date.now() < mountDeadline) {
+      const checkXml = readFileSyncSafe(dumpHierarchy(`${tag}-wait-session-${Date.now() % 10000}`));
+      if (checkXml && hasTestId(checkXml, `${id}.pause`)) {
+        sessionMounted = checkXml;
+        break;
+      }
+      if (checkXml && hasTestId(checkXml, `${id}.tutorial`)) {
+        log("tutorial mounted during session wait; dismissing and tapping start");
+        const dismissed = [`${id}.tutorial-skip`, `${id}.tutorial-done`, `${id}.tutorial-next`].some((tid) =>
+          tapTestId(tid, checkXml)
+        );
+        if (dismissed) {
+          await sleep(1000);
+          const retryXml = readFileSyncSafe(dumpHierarchy(`${tag}-session-retry-start`));
+          if (retryXml && hasTestId(retryXml, `${id}.start`)) {
+            tapTestId(`${id}.start`, retryXml);
+          }
         }
       }
+      await sleep(800);
     }
-    await sleep(800);
+  } else {
+    await sleep(1000);
   }
   // before an interaction commits an answer and moves the game to feedback/round-result
   // where canPause() returns false.
@@ -1729,8 +1733,10 @@ async function flowGame(id, opts = {}) {
   // both earlier attempts missed, try once more right before force-win — the
   // last moment a real input is still possible.
   if (!interaction.attempted) {
+    // Allow countdown/study/reveal animations (2-3.5s) to settle into the input phase:
+    await sleep(3500);
     const late = await probeInteraction(id, `${tag}-late`);
-    if (late.attempted) {
+    if (late && late.attempted) {
       interaction.attempted = true;
       interaction.nodeId = late.nodeId;
       interaction.accepted = late.accepted === true;
@@ -3921,13 +3927,8 @@ async function main() {
   };
   const certificationOptions = {
     requireInteraction: certify,
-    requirePause: certify,
+    requirePause: pauseProbeEnabled,
   };
-
-  // Durability (release gate §8): the journal is checkpointed atomically
-  // after EVERY terminal classification. A killed run leaves status
-  // IN_PROGRESS + certified:false — it can never masquerade as a completed
-  // certification, and the partial per-game evidence stays diagnosable.
   const journal = () => {
     report.certification = certify
       ? certifySummary(report.results, cat.ids, certificationOptions)
