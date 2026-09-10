@@ -480,6 +480,10 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
 
       {state.phase === 'results' ? (
         <GameResults
+          reward={{
+            xp: state.authoritativeXp ?? state.xp,
+            coins: state.authoritativeCurrency ?? 0,
+          }}
           gameId={GAME_ID}
           title={state.stats.falseStartAborted ? 'Session ended early' : 'Session complete'}
           badge={

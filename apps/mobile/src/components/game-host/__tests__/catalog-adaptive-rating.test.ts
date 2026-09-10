@@ -30,4 +30,27 @@ describe('catalog adaptive challenge rating wiring', () => {
       expect(readFileSync(file, 'utf8')).toMatch(adaptiveDifficulty);
     }
   });
+
+  it('passes the authoritative reward outcome into every GameResults', () => {
+    const gamesDir = resolve(__dirname, '../../../games');
+    const screenFiles = readdirSync(gamesDir)
+      .map((gameId) => resolve(gamesDir, gameId, 'screen.tsx'))
+      .filter((file) => {
+        try {
+          return readFileSync(file, 'utf8').length > 0;
+        } catch {
+          return false;
+        }
+      });
+
+    expect(screenFiles).toHaveLength(42);
+    // Campaign 023: the reward moment only appears when the results view is
+    // given the authoritative XP/coin outcome, so every game screen must wire
+    // the prop from reducer state.
+    const rewardProp =
+      /reward=\{\{\s*xp:\s*state\.authoritativeXp \?\? state\.xp,\s*coins:\s*state\.authoritativeCurrency \?\? 0,\s*\}\}/;
+    for (const file of screenFiles) {
+      expect(readFileSync(file, 'utf8')).toMatch(rewardProp);
+    }
+  });
 });

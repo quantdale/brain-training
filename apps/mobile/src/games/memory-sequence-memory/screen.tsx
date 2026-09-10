@@ -536,6 +536,10 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
 
       {state.phase === 'results' ? (
         <GameResults
+          reward={{
+            xp: state.authoritativeXp ?? state.xp,
+            coins: state.authoritativeCurrency ?? 0,
+          }}
           gameId={GAME_ID}
           title={state.timeUp ? "Time's up!" : 'Session complete'}
           forced={state.forced}

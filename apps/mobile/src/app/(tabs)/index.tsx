@@ -35,7 +35,13 @@ import { Link, router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { ProgressTrack, SectionHeader, StateCard, StatTile } from "@/components/shell";
+import {
+  LevelCard,
+  ProgressTrack,
+  SectionHeader,
+  StateCard,
+  StreakCard,
+} from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
 import {
   WorkoutCompletionCard,
@@ -81,6 +87,7 @@ import { MilestoneStrip } from "@/components/mastery/mastery-card";
 import { useMasterySummaries } from "@/mastery/use-mastery";
 import { registry } from "@/registry/registry.generated";
 import { SpotlightCard } from "@/components/spotlight/spotlight-card";
+import { RewardCelebrationHost } from "@/rewards/celebration";
 
 // Certification-only source binding. The marker is injected by Metro through
 // Expo's EXPO_PUBLIC_* environment handling and is rendered only in dev
@@ -715,6 +722,18 @@ export default function HomeScreen() {
         )}
       </ThemedView>
 
+      {/* Campaign 023: streak hero + XP/level progress (constitution §13
+          order: workout CTA first, then streak/XP/level). Both cards read
+          authoritative reconstructed state and degrade with it. */}
+      <StreakCard
+        current={currentStreak}
+        activityDates={data.activityDates}
+        coveredDates={data.coveredDates}
+        today={today}
+        atRisk={loaded && streak.atRisk}
+      />
+      <LevelCard totalXp={data.totalXp} level={level} coins={data.balance} />
+
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
           finished today. Data-gated so first-run trees stay unchanged. */}
       {loaded && latestCompletedTemplate ? (
@@ -809,34 +828,6 @@ export default function HomeScreen() {
           )}
         </ThemedView>
       ) : null}
-
-      {/* Streak / XP / level slot — real values when the db is available.
-          Coins join the row once a balance exists (economy visibility). */}
-      <View style={styles.statsRow}>
-        <StatTile
-          testID="home-stat-streak"
-          label="Streak"
-          value={`${currentStreak} days`}
-        />
-        <StatTile testID="home-stat-xp" label="XP" value={`${data.totalXp}`} />
-        <StatTile testID="home-stat-level" label="Level" value={`${level}`} />
-        {data.balance > 0 && (
-          <StatTile
-            testID="home-stat-coins"
-            label="Coins"
-            value={`${data.balance}`}
-          />
-        )}
-      </View>
-      {loaded && streak.atRisk && (
-        <ThemedText
-          type="caption"
-          themeColor="warning"
-          testID="home-streak-at-risk"
-        >
-          Play today to keep your streak alive.
-        </ThemedText>
-      )}
 
       {/* Error state: recoverable read failure with an explicit retry.
           `error != null` keeps the guard boolean so the JSX stays ReactNode. */}
@@ -991,6 +982,8 @@ export default function HomeScreen() {
           </View>
         </ThemedView>
       ) : null}
+
+      <RewardCelebrationHost />
     </ScreenShell>
   );
 }

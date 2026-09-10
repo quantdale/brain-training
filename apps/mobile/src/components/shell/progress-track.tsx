@@ -14,15 +14,26 @@ import { Radii } from '@/constants/theme';
 export function ProgressTrack({
   ratio,
   height = 6,
+  tone = 'accent',
   testID,
 }: {
   /** Completion ratio; values outside [0, 1] are clamped. */
   ratio: number;
   height?: number;
+  /** Fill tone: brand accent (default), XP/level, streak flame, success. */
+  tone?: 'accent' | 'xp' | 'streak' | 'success';
   testID?: string;
 }) {
   const theme = useTheme();
   const clamped = Math.min(Math.max(ratio, 0), 1);
+  const fillColor =
+    tone === 'xp'
+      ? theme.xp
+      : tone === 'streak'
+        ? theme.streak
+        : tone === 'success'
+          ? theme.success
+          : theme.accent;
 
   return (
     <View
@@ -38,7 +49,7 @@ export function ProgressTrack({
           {
             height,
             borderRadius: height / 2,
-            backgroundColor: theme.accent,
+            backgroundColor: fillColor,
             width: `${Math.round(clamped * 100)}%` as `${number}%`,
           },
         ]}

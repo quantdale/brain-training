@@ -10,4 +10,7 @@ export { SectionHeader } from './section-header';
 export { StatTile } from './stat-tile';
 export { InfoRow } from './info-row';
 export { ProgressTrack } from './progress-track';
+export { FeedbackCard, type FeedbackCardTone, type FeedbackCardProps } from './feedback-card';
+export { StreakCard, type StreakCardProps } from './streak-card';
+export { LevelCard, type LevelCardProps } from './level-card';
 export { formatRelativeDay, performanceBand, type PerformanceBand } from './format';

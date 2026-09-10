@@ -506,237 +506,793 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       </Text>
                     </View>
                     <View
+                      accessibilityLabel="0 day streak. 0 active days in the last week."
+                      accessible={true}
                       style={
-                        {
-                          "flexDirection": "row",
-                          "gap": 8,
-                        }
+                        [
+                          {
+                            "backgroundColor": "#FFFFFF",
+                          },
+                          {
+                            "borderRadius": 20,
+                            "boxShadow": "0 2px 10px rgba(20, 24, 44, 0.08)",
+                            "elevation": 2,
+                            "gap": 12,
+                            "padding": 16,
+                          },
+                        ]
                       }
+                      testID="home-streak-card"
                     >
                       <View
                         style={
-                          [
-                            {
-                              "backgroundColor": "#FFFFFF",
-                            },
-                            {
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "gap": 2,
-                              "padding": 16,
-                            },
-                          ]
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "gap": 12,
+                          }
                         }
-                        testID="home-stat-streak"
                       >
-                        <Text
-                          maxFontSizeMultiplier={1.35}
+                        <View
                           style={
                             [
                               {
-                                "color": "#4F6BFF",
+                                "alignItems": "center",
+                                "borderRadius": 999,
+                                "height": 52,
+                                "justifyContent": "center",
+                                "width": 52,
                               },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
                               {
-                                "fontSize": 22,
-                                "fontWeight": "600",
-                                "lineHeight": 30,
+                                "backgroundColor": "#FFF1E4",
                               },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
                             ]
                           }
                         >
-                          0 days
-                        </Text>
-                        <Text
-                          maxFontSizeMultiplier={1.35}
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#161A26",
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                {
+                                  "fontSize": 22,
+                                  "fontWeight": "600",
+                                  "lineHeight": 30,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                            testID="home-streak-card-flame"
+                          >
+                            🔥
+                          </Text>
+                        </View>
+                        <View
                           style={
-                            [
-                              {
-                                "color": "#5D6474",
-                              },
-                              false,
-                              {
-                                "fontSize": 12,
-                                "fontWeight": "500",
-                                "lineHeight": 16,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
+                            {
+                              "flex": 1,
+                              "justifyContent": "center",
+                            }
                           }
                         >
-                          Streak
-                        </Text>
+                          <Text
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#161A26",
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                {
+                                  "fontSize": 40,
+                                  "fontWeight": "600",
+                                  "lineHeight": 48,
+                                },
+                                false,
+                                false,
+                                false,
+                                [
+                                  {
+                                    "fontWeight": "700",
+                                  },
+                                  {
+                                    "color": "#F97316",
+                                  },
+                                ],
+                              ]
+                            }
+                            testID="home-stat-streak"
+                          >
+                            0
+                          </Text>
+                          <Text
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                false,
+                                {
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "lineHeight": 20,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            day streak
+                          </Text>
+                        </View>
                       </View>
                       <View
                         style={
-                          [
-                            {
-                              "backgroundColor": "#FFFFFF",
-                            },
-                            {
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "gap": 2,
-                              "padding": 16,
-                            },
-                          ]
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                          }
                         }
-                        testID="home-stat-xp"
+                        testID="home-streak-card-tracker"
                       >
-                        <Text
-                          maxFontSizeMultiplier={1.35}
+                        <View
                           style={
-                            [
-                              {
-                                "color": "#4F6BFF",
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              {
-                                "fontSize": 22,
-                                "fontWeight": "600",
-                                "lineHeight": 30,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
+                            {
+                              "alignItems": "center",
+                              "gap": 2,
+                            }
                           }
+                          testID="home-streak-card-day-0"
                         >
-                          0
-                        </Text>
-                        <Text
-                          maxFontSizeMultiplier={1.35}
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 999,
+                                  "borderWidth": 2,
+                                  "height": 22,
+                                  "width": 22,
+                                },
+                                {
+                                  "backgroundColor": "#ECEEF4",
+                                  "borderColor": "transparent",
+                                },
+                              ]
+                            }
+                          />
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            S
+                          </Text>
+                        </View>
+                        <View
                           style={
-                            [
-                              {
-                                "color": "#5D6474",
-                              },
-                              false,
-                              {
-                                "fontSize": 12,
-                                "fontWeight": "500",
-                                "lineHeight": 16,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
+                            {
+                              "alignItems": "center",
+                              "gap": 2,
+                            }
                           }
+                          testID="home-streak-card-day-1"
                         >
-                          XP
-                        </Text>
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 999,
+                                  "borderWidth": 2,
+                                  "height": 22,
+                                  "width": 22,
+                                },
+                                {
+                                  "backgroundColor": "#ECEEF4",
+                                  "borderColor": "transparent",
+                                },
+                              ]
+                            }
+                          />
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            S
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "gap": 2,
+                            }
+                          }
+                          testID="home-streak-card-day-2"
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 999,
+                                  "borderWidth": 2,
+                                  "height": 22,
+                                  "width": 22,
+                                },
+                                {
+                                  "backgroundColor": "#ECEEF4",
+                                  "borderColor": "transparent",
+                                },
+                              ]
+                            }
+                          />
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            M
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "gap": 2,
+                            }
+                          }
+                          testID="home-streak-card-day-3"
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 999,
+                                  "borderWidth": 2,
+                                  "height": 22,
+                                  "width": 22,
+                                },
+                                {
+                                  "backgroundColor": "#ECEEF4",
+                                  "borderColor": "transparent",
+                                },
+                              ]
+                            }
+                          />
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            T
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "gap": 2,
+                            }
+                          }
+                          testID="home-streak-card-day-4"
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 999,
+                                  "borderWidth": 2,
+                                  "height": 22,
+                                  "width": 22,
+                                },
+                                {
+                                  "backgroundColor": "#ECEEF4",
+                                  "borderColor": "transparent",
+                                },
+                              ]
+                            }
+                          />
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            W
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "gap": 2,
+                            }
+                          }
+                          testID="home-streak-card-day-5"
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 999,
+                                  "borderWidth": 2,
+                                  "height": 22,
+                                  "width": 22,
+                                },
+                                {
+                                  "backgroundColor": "#ECEEF4",
+                                  "borderColor": "transparent",
+                                },
+                              ]
+                            }
+                          />
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            T
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "gap": 2,
+                            }
+                          }
+                          testID="home-streak-card-day-6"
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 999,
+                                  "borderWidth": 2,
+                                  "height": 22,
+                                  "width": 22,
+                                },
+                                {
+                                  "backgroundColor": "#ECEEF4",
+                                  "borderColor": "#F97316",
+                                },
+                              ]
+                            }
+                          />
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#161A26",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            F
+                          </Text>
+                        </View>
                       </View>
+                    </View>
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#FFFFFF",
+                          },
+                          {
+                            "borderRadius": 20,
+                            "boxShadow": "0 2px 10px rgba(20, 24, 44, 0.08)",
+                            "elevation": 2,
+                            "padding": 16,
+                          },
+                        ]
+                      }
+                      testID="home-level-card"
+                    >
                       <View
                         style={
-                          [
-                            {
-                              "backgroundColor": "#FFFFFF",
-                            },
-                            {
-                              "borderRadius": 12,
-                              "flex": 1,
-                              "gap": 2,
-                              "padding": 16,
-                            },
-                          ]
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "gap": 12,
+                          }
                         }
-                        testID="home-stat-level"
                       >
-                        <Text
-                          maxFontSizeMultiplier={1.35}
+                        <View
                           style={
                             [
                               {
-                                "color": "#4F6BFF",
+                                "alignItems": "center",
+                                "borderRadius": 20,
+                                "height": 64,
+                                "justifyContent": "center",
+                                "width": 64,
                               },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
                               {
-                                "fontSize": 22,
-                                "fontWeight": "600",
-                                "lineHeight": 30,
+                                "backgroundColor": "#EEE9FF",
                               },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
                             ]
                           }
+                          testID="home-stat-level"
                         >
-                          1
-                        </Text>
-                        <Text
-                          maxFontSizeMultiplier={1.35}
+                          <Text
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#161A26",
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                {
+                                  "fontSize": 28,
+                                  "fontWeight": "600",
+                                  "lineHeight": 36,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                [
+                                  {
+                                    "fontWeight": "700",
+                                  },
+                                  {
+                                    "color": "#7C5CFF",
+                                  },
+                                ],
+                              ]
+                            }
+                          >
+                            1
+                          </Text>
+                          <Text
+                            allowFontScaling={false}
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            LEVEL
+                          </Text>
+                        </View>
+                        <View
                           style={
-                            [
-                              {
-                                "color": "#5D6474",
-                              },
-                              false,
-                              {
-                                "fontSize": 12,
-                                "fontWeight": "500",
-                                "lineHeight": 16,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
+                            {
+                              "flex": 1,
+                              "gap": 4,
+                            }
                           }
                         >
-                          Level
-                        </Text>
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 8,
+                                "justifyContent": "space-between",
+                              }
+                            }
+                          >
+                            <Text
+                              maxFontSizeMultiplier={1.35}
+                              style={
+                                [
+                                  {
+                                    "color": "#161A26",
+                                  },
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  {
+                                    "fontSize": 22,
+                                    "fontWeight": "600",
+                                    "lineHeight": 30,
+                                  },
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Level 
+                              1
+                            </Text>
+                          </View>
+                          <View
+                            testID="home-stat-xp"
+                          >
+                            <View
+                              accessibilityRole="progressbar"
+                              accessibilityValue={
+                                {
+                                  "max": 100,
+                                  "min": 0,
+                                  "now": 0,
+                                }
+                              }
+                              style={
+                                [
+                                  {
+                                    "backgroundColor": "rgba(120,120,140,0.25)",
+                                    "overflow": "hidden",
+                                  },
+                                  {
+                                    "borderRadius": 5,
+                                    "height": 10,
+                                  },
+                                ]
+                              }
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "borderRadius": 999,
+                                    },
+                                    {
+                                      "backgroundColor": "#7C5CFF",
+                                      "borderRadius": 5,
+                                      "height": 10,
+                                      "width": "0%",
+                                    },
+                                  ]
+                                }
+                              />
+                            </View>
+                          </View>
+                          <Text
+                            maxFontSizeMultiplier={1.35}
+                            style={
+                              [
+                                {
+                                  "color": "#5D6474",
+                                },
+                                false,
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            0
+                             XP · 
+                            100 XP to Level 2
+                          </Text>
+                        </View>
                       </View>
                     </View>
                     <View
@@ -12757,237 +13313,793 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               </Text>
             </View>
             <View
+              accessibilityLabel="0 day streak. 0 active days in the last week."
+              accessible={true}
               style={
-                {
-                  "flexDirection": "row",
-                  "gap": 8,
-                }
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "boxShadow": "0 2px 10px rgba(20, 24, 44, 0.08)",
+                    "elevation": 2,
+                    "gap": 12,
+                    "padding": 16,
+                  },
+                ]
               }
+              testID="home-streak-card"
             >
               <View
                 style={
-                  [
-                    {
-                      "backgroundColor": "#FFFFFF",
-                    },
-                    {
-                      "borderRadius": 12,
-                      "flex": 1,
-                      "gap": 2,
-                      "padding": 16,
-                    },
-                  ]
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 12,
+                  }
                 }
-                testID="home-stat-streak"
               >
-                <Text
-                  maxFontSizeMultiplier={1.35}
+                <View
                   style={
                     [
                       {
-                        "color": "#4F6BFF",
+                        "alignItems": "center",
+                        "borderRadius": 999,
+                        "height": 52,
+                        "justifyContent": "center",
+                        "width": 52,
                       },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
                       {
-                        "fontSize": 22,
-                        "fontWeight": "600",
-                        "lineHeight": 30,
+                        "backgroundColor": "#FFF1E4",
                       },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
                     ]
                   }
                 >
-                  0 days
-                </Text>
-                <Text
-                  maxFontSizeMultiplier={1.35}
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "600",
+                          "lineHeight": 30,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                    testID="home-streak-card-flame"
+                  >
+                    🔥
+                  </Text>
+                </View>
+                <View
                   style={
-                    [
-                      {
-                        "color": "#5D6474",
-                      },
-                      false,
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "lineHeight": 16,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
+                    {
+                      "flex": 1,
+                      "justifyContent": "center",
+                    }
                   }
                 >
-                  Streak
-                </Text>
+                  <Text
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 40,
+                          "fontWeight": "600",
+                          "lineHeight": 48,
+                        },
+                        false,
+                        false,
+                        false,
+                        [
+                          {
+                            "fontWeight": "700",
+                          },
+                          {
+                            "color": "#F97316",
+                          },
+                        ],
+                      ]
+                    }
+                    testID="home-stat-streak"
+                  >
+                    0
+                  </Text>
+                  <Text
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        false,
+                        {
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "lineHeight": 20,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    day streak
+                  </Text>
+                </View>
               </View>
               <View
                 style={
-                  [
-                    {
-                      "backgroundColor": "#FFFFFF",
-                    },
-                    {
-                      "borderRadius": 12,
-                      "flex": 1,
-                      "gap": 2,
-                      "padding": 16,
-                    },
-                  ]
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  }
                 }
-                testID="home-stat-xp"
+                testID="home-streak-card-tracker"
               >
-                <Text
-                  maxFontSizeMultiplier={1.35}
+                <View
                   style={
-                    [
-                      {
-                        "color": "#4F6BFF",
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      {
-                        "fontSize": 22,
-                        "fontWeight": "600",
-                        "lineHeight": 30,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "gap": 2,
+                    }
                   }
+                  testID="home-streak-card-day-0"
                 >
-                  0
-                </Text>
-                <Text
-                  maxFontSizeMultiplier={1.35}
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 999,
+                          "borderWidth": 2,
+                          "height": 22,
+                          "width": 22,
+                        },
+                        {
+                          "backgroundColor": "#ECEEF4",
+                          "borderColor": "transparent",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    S
+                  </Text>
+                </View>
+                <View
                   style={
-                    [
-                      {
-                        "color": "#5D6474",
-                      },
-                      false,
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "lineHeight": 16,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "gap": 2,
+                    }
                   }
+                  testID="home-streak-card-day-1"
                 >
-                  XP
-                </Text>
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 999,
+                          "borderWidth": 2,
+                          "height": 22,
+                          "width": 22,
+                        },
+                        {
+                          "backgroundColor": "#ECEEF4",
+                          "borderColor": "transparent",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    S
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "gap": 2,
+                    }
+                  }
+                  testID="home-streak-card-day-2"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 999,
+                          "borderWidth": 2,
+                          "height": 22,
+                          "width": 22,
+                        },
+                        {
+                          "backgroundColor": "#ECEEF4",
+                          "borderColor": "transparent",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    M
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "gap": 2,
+                    }
+                  }
+                  testID="home-streak-card-day-3"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 999,
+                          "borderWidth": 2,
+                          "height": 22,
+                          "width": 22,
+                        },
+                        {
+                          "backgroundColor": "#ECEEF4",
+                          "borderColor": "transparent",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    T
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "gap": 2,
+                    }
+                  }
+                  testID="home-streak-card-day-4"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 999,
+                          "borderWidth": 2,
+                          "height": 22,
+                          "width": 22,
+                        },
+                        {
+                          "backgroundColor": "#ECEEF4",
+                          "borderColor": "transparent",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    W
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "gap": 2,
+                    }
+                  }
+                  testID="home-streak-card-day-5"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 999,
+                          "borderWidth": 2,
+                          "height": 22,
+                          "width": 22,
+                        },
+                        {
+                          "backgroundColor": "#ECEEF4",
+                          "borderColor": "transparent",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    T
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "gap": 2,
+                    }
+                  }
+                  testID="home-streak-card-day-6"
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 999,
+                          "borderWidth": 2,
+                          "height": 22,
+                          "width": 22,
+                        },
+                        {
+                          "backgroundColor": "#ECEEF4",
+                          "borderColor": "#F97316",
+                        },
+                      ]
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    F
+                  </Text>
+                </View>
               </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#FFFFFF",
+                  },
+                  {
+                    "borderRadius": 20,
+                    "boxShadow": "0 2px 10px rgba(20, 24, 44, 0.08)",
+                    "elevation": 2,
+                    "padding": 16,
+                  },
+                ]
+              }
+              testID="home-level-card"
+            >
               <View
                 style={
-                  [
-                    {
-                      "backgroundColor": "#FFFFFF",
-                    },
-                    {
-                      "borderRadius": 12,
-                      "flex": 1,
-                      "gap": 2,
-                      "padding": 16,
-                    },
-                  ]
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 12,
+                  }
                 }
-                testID="home-stat-level"
               >
-                <Text
-                  maxFontSizeMultiplier={1.35}
+                <View
                   style={
                     [
                       {
-                        "color": "#4F6BFF",
+                        "alignItems": "center",
+                        "borderRadius": 20,
+                        "height": 64,
+                        "justifyContent": "center",
+                        "width": 64,
                       },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
                       {
-                        "fontSize": 22,
-                        "fontWeight": "600",
-                        "lineHeight": 30,
+                        "backgroundColor": "#EEE9FF",
                       },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
                     ]
                   }
+                  testID="home-stat-level"
                 >
-                  1
-                </Text>
-                <Text
-                  maxFontSizeMultiplier={1.35}
+                  <Text
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#161A26",
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "fontSize": 28,
+                          "fontWeight": "600",
+                          "lineHeight": 36,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        [
+                          {
+                            "fontWeight": "700",
+                          },
+                          {
+                            "color": "#7C5CFF",
+                          },
+                        ],
+                      ]
+                    }
+                  >
+                    1
+                  </Text>
+                  <Text
+                    allowFontScaling={false}
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    LEVEL
+                  </Text>
+                </View>
+                <View
                   style={
-                    [
-                      {
-                        "color": "#5D6474",
-                      },
-                      false,
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "lineHeight": 16,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
+                    {
+                      "flex": 1,
+                      "gap": 4,
+                    }
                   }
                 >
-                  Level
-                </Text>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                        "justifyContent": "space-between",
+                      }
+                    }
+                  >
+                    <Text
+                      maxFontSizeMultiplier={1.35}
+                      style={
+                        [
+                          {
+                            "color": "#161A26",
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          {
+                            "fontSize": 22,
+                            "fontWeight": "600",
+                            "lineHeight": 30,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Level 
+                      1
+                    </Text>
+                  </View>
+                  <View
+                    testID="home-stat-xp"
+                  >
+                    <View
+                      accessibilityRole="progressbar"
+                      accessibilityValue={
+                        {
+                          "max": 100,
+                          "min": 0,
+                          "now": 0,
+                        }
+                      }
+                      style={
+                        [
+                          {
+                            "backgroundColor": "rgba(120,120,140,0.25)",
+                            "overflow": "hidden",
+                          },
+                          {
+                            "borderRadius": 5,
+                            "height": 10,
+                          },
+                        ]
+                      }
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "borderRadius": 999,
+                            },
+                            {
+                              "backgroundColor": "#7C5CFF",
+                              "borderRadius": 5,
+                              "height": 10,
+                              "width": "0%",
+                            },
+                          ]
+                        }
+                      />
+                    </View>
+                  </View>
+                  <Text
+                    maxFontSizeMultiplier={1.35}
+                    style={
+                      [
+                        {
+                          "color": "#5D6474",
+                        },
+                        false,
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    0
+                     XP · 
+                    100 XP to Level 2
+                  </Text>
+                </View>
               </View>
             </View>
             <View

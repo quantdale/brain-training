@@ -24,13 +24,14 @@ import { isDevBuild, testId } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 import { markGameFirstInteraction } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import {
   DifficultySelector,
   GameButton,
   PauseOverlay,
   SessionHeader,
 } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Elevation, Radii, Spacing } from '@/constants/theme';
 
 /** Which chrome the host renders around the game's content. */
 export type GameHostView = 'intro' | 'session' | 'results';
@@ -139,7 +140,10 @@ export function GameHost({
         accessibilityElementsHidden={paused}
         accessible={false}>
         {view === 'intro' ? (
-          <View style={styles.section} testID={testId(gameId, 'intro')}>
+          <ThemedView
+            type="surface"
+            style={styles.introCard}
+            testID={testId(gameId, 'intro')}>
             {description !== undefined && description.length > 0 ? (
               <ThemedText type="small" themeColor="textSecondary">
                 {description}
@@ -162,7 +166,7 @@ export function GameHost({
             </View>
 
             {isDevBuild() ? qaPanel : null}
-          </View>
+          </ThemedView>
         ) : null}
 
         {view === 'session' ? (
@@ -233,6 +237,12 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.three,
+  },
+  introCard: {
+    borderRadius: Radii.large,
+    padding: Spacing.three,
+    gap: Spacing.three,
+    ...Elevation.card,
   },
   buttonRow: {
     flexDirection: 'row',

@@ -40,9 +40,27 @@ export const Colors = {
     accent: '#4F6BFF',
     /** Tinted accent fill (chips, selected states, soft emphasis). */
     accentSoft: '#E9ECFF',
+    /** Pressed/active variant of the brand accent (tactile button states). */
+    accentStrong: '#3B53D9',
     success: '#1E9E62',
+    /** Soft success fill for feedback cards and celebration surfaces. */
+    successSoft: '#E3F6EC',
     warning: '#D98E04',
+    /** Soft warning fill (at-risk/streak nudges, caution cards). */
+    warningSoft: '#FBF0DA',
     danger: '#D5485B',
+    /** Soft danger fill for error/failure feedback cards. */
+    dangerSoft: '#FBE7EB',
+    /** Streak flame tone — engagement-streak surfaces only. */
+    streak: '#F97316',
+    /** Soft streak fill behind the flame and weekly tracker. */
+    streakSoft: '#FFF1E4',
+    /** XP/level progression tone (distinct from the primary CTA accent). */
+    xp: '#7C5CFF',
+    /** Soft XP fill for level meters. */
+    xpSoft: '#EEE9FF',
+    /** Scrim behind completion/celebration overlays. */
+    scrim: 'rgba(14, 16, 22, 0.55)',
   },
   dark: {
     text: '#F4F5FA',
@@ -54,9 +72,18 @@ export const Colors = {
     border: '#262B38',
     accent: '#8B9BFF',
     accentSoft: '#23284A',
+    accentStrong: '#A5B1FF',
     success: '#3BC98B',
+    successSoft: '#10281C',
     warning: '#F0B13C',
+    warningSoft: '#33260D',
     danger: '#F16B7C',
+    dangerSoft: '#3A161F',
+    streak: '#FB923C',
+    streakSoft: '#3A2312',
+    xp: '#A78BFA',
+    xpSoft: '#241F43',
+    scrim: 'rgba(0, 0, 0, 0.65)',
   },
 } as const;
 
@@ -143,6 +170,36 @@ export const Typography = {
  * `components/screen-shell.tsx`, audit B5).
  */
 export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 64, default: 0 }) ?? 0;
+
+/**
+ * Elevation tokens. RN 0.82 deprecates the `shadow*` style props (their
+ * deprecation warning docks LogBox over bottom controls), so cards use
+ * `boxShadow` with `elevation` kept as the Android separation guarantee.
+ */
+export const Elevation = {
+  none: { boxShadow: 'none', elevation: 0 },
+  /** Default card lift above the page background. */
+  card: { boxShadow: '0 2px 10px rgba(20, 24, 44, 0.08)', elevation: 2 },
+  /** Raised surfaces: reward/completion cards and primary CTAs. */
+  raised: { boxShadow: '0 10px 28px rgba(20, 24, 44, 0.18)', elevation: 6 },
+} as const;
+
+/**
+ * Motion durations (ms) for the shared interaction language. Short and
+ * non-blocking; celebration is bounded so it can never trap input.
+ */
+export const Motion = {
+  /** Press-in scale feedback. */
+  press: 90,
+  /** Small state changes (chips, meters). */
+  quick: 140,
+  /** Standard entrance/fade. */
+  base: 200,
+  /** Card/modal entrance. */
+  entrance: 260,
+  /** Bounded celebration period (auto-dismiss). */
+  celebration: 650,
+} as const;
 
 /** Max content width for tablet/web layouts; screens center within it. */
 export const MaxContentWidth = 800;

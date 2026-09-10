@@ -411,6 +411,10 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
 
       {state.phase === 'results' ? (
         <GameResults
+          reward={{
+            xp: state.authoritativeXp ?? state.xp,
+            coins: state.authoritativeCurrency ?? 0,
+          }}
           gameId={GAME_ID}
           forced={state.forced}
           persistState={state.persistState}

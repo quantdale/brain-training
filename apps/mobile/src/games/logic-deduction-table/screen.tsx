@@ -492,6 +492,10 @@ export default function LogicDeductionScreen(
 
       {state.phase === "results" ? (
         <GameResults
+          reward={{
+            xp: state.authoritativeXp ?? state.xp,
+            coins: state.authoritativeCurrency ?? 0,
+          }}
           gameId={GAME_ID}
           persistState={state.persistState}
           lastError={state.lastError}
