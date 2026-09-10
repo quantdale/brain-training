@@ -57,7 +57,12 @@ export function ScreenShell({ children }: { children: ReactNode }) {
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}>
+        contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
+        // Campaign 023 reachability audit: with the keyboard open, taps on
+        // interactive controls must activate them on the first tap instead of
+        // only dismissing the keyboard (search / import / form screens).
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag">
         <View style={styles.inner}>{children}</View>
       </ScrollView>
     </SafeAreaView>
