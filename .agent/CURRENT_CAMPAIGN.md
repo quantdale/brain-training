@@ -1,43 +1,29 @@
 # Campaign 023 — Production & Gamification Overhaul
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `023-production-gamification-overhaul`
 **Predecessor:** `022-release-candidate-certification` (VALIDATED)
 **Mode:** day
-**Change:** `023-production-gamification-overhaul` (ACTIVE)
+**Change:** `023-production-gamification-overhaul` (VALIDATED; no active campaign)
 **Authorization:** explicit owner goal-mode directive on 2026-09-11 (new scope after Campaign 022 terminal closure).
 **Baseline SHA:** `22bf19600dd6ecdd949c0d9615c1d8a43a5542f3`
-**Target branch:** `main`
+**Closure SHA:** `81f06c9` (docs closure; implementation through `81e6841`).
 
-## Mission
+## Terminal outcome
 
-Take the certified release candidate to App-Store-submission standard:
+Campaign 023 completed its mission: Refero MCP tooling was configured and
+live-verified without committing the credential; all 42 registered games were
+audited and repaired with regression tests; a unified gamified design system
+and reward/streak/celebration surfaces were implemented across the shell and
+all game results; and the production release build was produced,
+standalone-verified, offline-verified, and runtime-certified (42/42 games
+PASS; one aggregate-flag pause-probe miss rooted to a never-idle dump race and
+disproven as a product defect by a direct pause/resume probe).
 
-1. **Tooling:** configure the Refero MCP design-reference server in
-   local/user config (credential never committed) and verify it live.
-2. **Audit:** run all unit/integration/E2E tests; audit every registered
-   mini-game for broken logic, edge-case crashes, unresponsive controls, and
-   state desynchronization; repair every confirmed defect with regression
-   tests; prove reset/replay loops leak nothing.
-3. **Gamification/UX:** research Duolingo/Brilliant/Headspace patterns via
-   Refero; unify tokens, typography, spacing, and shared primitives; add
-   reward feedback, streak/daily-progress indicators, bounded completion
-   celebrations, and consistent feedback pacing.
-4. **Production:** zero-error production build, safe-area/responsive audit,
-   offline fallback verification, honest PASS / NOT VALIDATED / BLOCKED
-   classification.
+## Do not restart
 
-## Exit criteria
-
-- Full Jest/typecheck/lint/validator matrix green at final SHA.
-- Every game has an audit disposition; every fix has regression coverage.
-- Design overhaul implemented with deliberately re-baselined visual snapshots.
-- Production artifact built, startable without Metro, metadata recorded.
-- Durable state updated; honest classification summary; coherent commits
-  pushed to `origin/main`.
-
-## Do not
-
-Do not add games or systems; do not alter authoritative progression
-semantics; do not weaken validators/tests; do not commit the Refero token;
-do not convert unavailable evidence into PASS.
+This campaign is terminal. Use `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`,
+and `openspec/changes/023-production-gamification-overhaul/` as evidence/history.
+A future campaign requires new authorization or a fresh evidence-backed plan;
+do not treat the historical task list, non-blocking findings, or a new chat
+session as authorization to resume 023.

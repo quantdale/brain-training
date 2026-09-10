@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "023-production-gamification-overhaul",
-  "description": "Campaign 023 production/gamification overhaul is ACTIVE under explicit owner directive. Shared hotspots and authoritative-state surfaces remain orchestrator-owned; parallel coder packets may only claim declared disjoint surfaces.",
+  "description": "Campaign 023 production/gamification overhaul is terminal/VALIDATED. Its packet is retained as historical ownership evidence and authorizes no new implementation work.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/**",
     ".agent/GOVERNANCE.json",

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "023-production-gamification-overhaul",
-  "lastCampaign": "022-release-candidate-certification",
+  "activeCampaign": null,
+  "lastCampaign": "023-production-gamification-overhaul",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

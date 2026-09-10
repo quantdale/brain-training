@@ -1,47 +1,60 @@
 # Durable Project State
 
-**Last update:** 2026-09-11 — Campaign 023 activated under explicit owner goal-mode directive (production/App-Store readiness + gamification overhaul); Refero MCP configured and live-verified.
+**Last update:** 2026-09-11 — Campaign 023 closed VALIDATED (production/gamification overhaul).
 **Canonical branch:** `main`
-**Active campaign:** 023-production-gamification-overhaul
-**Last campaign:** `022-release-candidate-certification`
+**Active campaign:** none
+**Last campaign:** `023-production-gamification-overhaul`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 023 — Production & Gamification Overhaul is **ACTIVE**. It executes
-the owner directive to take the Campaign 022 release candidate to
-store-submission standard: configure/verify the Refero design-reference MCP
-without committing its credential; run and repair the full functional test
-surface across every registered mini-game; apply a unified gamified UX
-overhaul grounded in Refero references from Duolingo/Brilliant/Headspace; and
-produce a zero-error production build with honest safe-area/offline/runtime
-evidence classification.
+Campaign 023 — Production & Gamification Overhaul is **VALIDATED / TERMINAL**.
+It executed the owner goal-mode directive end-to-end: Refero MCP configured
+and live-verified (credential never tracked); all 42 registered games audited
+with defects repaired and regression-tested; a unified gamified design-system
+overhaul applied (streak hero, level/XP meter, authoritative session-reward
+moment, workout celebration, tactile primitives); and a zero-error production
+release build produced and standalone-verified.
 
-Authoritative packet: `openspec/changes/023-production-gamification-overhaul/`
-(`EXECUTION.md`, `proposal.md`, `design.md`, `specs/`, `tasks.md`,
-`audit-map.md`).
+Exact evidence, honest PASS / NOT VALIDATED / BLOCKED classifications, the
+runtime certification result (42/42 games PASS; aggregate certify flag false
+for one never-idle dump pause-probe miss, disproven as a product defect by a
+direct back-contract pause/resume probe), and limitations live in
+`.agent/VALIDATION.md` and
+`openspec/changes/023-production-gamification-overhaul/` (`audit-map.md`,
+`tasks.md`, `EXECUTION.md`).
 
-## Campaign 022 terminal outcome (preserved)
+## Terminal evidence summary
 
-Campaign 022 is VALIDATED/terminal with release verdict **CONDITIONAL GO**: no
-repository-owned release blocker remains; production/store signing, manual
-TalkBack, SAF/system-sheet flows, physical-device behavior, and manual iOS
-runtime remain external/manual gaps and must not be reported as PASS until
-actually performed. Exact evidence remains in `.agent/VALIDATION.md` and
-`openspec/changes/022-release-candidate-certification/`.
+- All-games audit: 42/42 dispositions; 168 files, +3348/-134, +109 tests
+  (`e351804`).
+- Gamification overhaul: tokens/primitives/Home hero/GameResults reward wired
+  through all 42 screens with catalog contracts (`94b5a88`, `81e6841`).
+- Production build: `:app:assembleRelease` BUILD SUCCESSFUL; APK 109,309,873 B,
+  SHA-256 `AE1B9F09B9BDB5E81AE667256E81B7CC32DBF1D8906EBDDE0AA73738F17908F1`;
+  standalone Metro-free cold start PASS (1.27 s).
+- Offline: validator CLEAN (935 files); offline release cold start + game
+  deep-link PASS.
+- Runtime: autobot canaries 8/8 PASS; full certify 42/42 games PASS
+  (0 failed/missing/duplicate) with the aggregate `certified` flag false
+  solely from one pause-probe miss caused by the never-idle vigilance ticker
+  vs uiautomator partial dumps; direct pause/resume probe PASS on the same
+  build. Reported exactly as such.
+- Final matrix: Jest 6219 pass / 5 skip (495 suites), tsc 0, lint 0; all
+  repository validators and OpenSpec validation PASS.
+- Still NOT VALIDATED / EXTERNALLY BLOCKED (unchanged from Campaign 022):
+  store/Play signing credentials, manual TalkBack, SAF/system sheets, physical
+  device, iOS runtime; plus headless screenshot capture and runtime
+  screen-profile switching on this host.
 
-## Phase status
+## Continuation rule
 
-- Phase 1 (MCP): Refero configured in gitignored `.kimi-code/local.toml` and
-  user opencode config; live `initialize`/`tools/list` PASS
-  (`refero_server 0.2.0`); benchmark research + reference lock recorded.
-- Phase 2 (audit): 42/42 games audited and repaired (`e351804`); matrix green
-  (6209 pass).
-- Phase 3 (gamification): design system + Home hero + GameResults reward +
-  workout celebration landed (`94b5a88`, `81e6841`); matrix green (6217 pass);
-  visual baselines re-generated.
-- Phase 4 (production): release APK built and standalone-started; offline and
-  validator audits PASS; canaries 8/8 PASS; full 42-game certify running.
+There is **no active campaign**. Do not resume Campaign 023 or invent a
+successor merely to keep an agent busy. A future campaign requires a new owner
+directive or a separately justified planning pass against current repository
+evidence. Historical Campaign 001–023 records remain recoverable from Git,
+`.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, OpenSpec history, and prior
+commits; they are not current executable authority.
 
 ## Recovery order
 
@@ -51,4 +64,4 @@ actually performed. Exact evidence remains in `.agent/VALIDATION.md` and
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. `openspec/changes/023-production-gamification-overhaul/`
+7. the OpenSpec packet for the campaign being inspected

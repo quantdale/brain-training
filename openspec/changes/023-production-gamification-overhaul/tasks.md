@@ -64,8 +64,9 @@
 - [x] 4.5 Final full matrix + validators at the closure tree: Jest 6219 pass /
   5 skip (495 suites), tsc 0, lint 0; repo-state, task-ownership, registry,
   offline, secrets, provenance, workflows, OpenSpec all PASS.
-- [ ] 4.6 Durable state update (`STATE.md`, `VALIDATION.md`, campaign packet),
-  honest classification summary, commit and push.
+- [x] 4.6 Durable state update (`STATE.md`, `VALIDATION.md`, campaign packet),
+  honest classification summary, commit and push. Terminal closure commit
+  `81f06c9`; campaign status VALIDATED.
 
 ## Exit gate
 
