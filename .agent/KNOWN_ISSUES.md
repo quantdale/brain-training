@@ -30,6 +30,45 @@ These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable. Th
   `docs/PROJECT_CONSTITUTION.md`; they are planned future layers, not open
   defects, and must not be implemented without an owner-authorized campaign.
 
+## Campaign 023 non-blocking findings (added 2026-09-11)
+
+All are Low/Medium, non-blocking, and outside the campaign's Critical/High repair
+scope. Each was confirmed by the all-games audit wave and deliberately deferred
+with rationale.
+
+- **Adaptive escalation gap — `spatial-coordinate-turn` (Medium):** the game
+declares adaptive difficulty axes (`minDirections/maxDirections`, steps, move
+max) but `next-round` always uses the session-start plan, so adaptive sessions
+record the computed minimum challenge. The declared axes are internally
+inconsistent (`directions` typed `4 | 8` while the challenge mapping treats it
+as a 4–8 continuum), so a fix needs a product decision; all other games now
+escalate correctly.
+- **Late-tap SFX mismatch (Low):** `attention-odd-one-out`, `attention-visual-search`,
+and `math-fast-math` play tap feedback before the reducer's post-deadline guard
+resolves the round as a timeout, so a tap in the scheduling gap can sound
+correct while scoring a timeout. Fixing requires exposing the resolution
+instant to the screen layer without duplicating timing logic.
+- **Vigilance digit visible after resolution (Low):** `attention-sustained-vigilance`
+keeps the digit on screen after a trial resolves despite the feedback comment;
+cosmetic display-only gap.
+- **Missing vigilance screen test (Low):** `attention-sustained-vigilance` has no
+screen-level test file (timer/ref behavior covered indirectly through the
+reducer and shared hooks); add parity coverage in a maintenance pass.
+- **Stale tutorial copy — `language-word-scramble` (Low):** the tutorial claims
+bonus points for speed and expiring rounds, but the game is intentionally
+untimed. Copy fix, not behavior fix.
+- **Dead actions — `flexibility-color-stroop` (Low):** `show-stimulus` /
+`show-flip-cue` actions are declared and handled but never dispatched, and the
+latter is unguarded; remove or wire them in an identity-aware cleanup.
+- **`speed-color-match` persisted `Infinity` (Low):** an all-timeout session
+serializes `fastestReactionMs` as JSON `null` while the raw type says `number`;
+the rating metric extraction coalesces it today, but the persisted value should
+be `null`-typed explicitly.
+- **Headless screenshot/responsive limitation (operational):** with
+`emulator -no-window`, `screencap` returns a constant blank frame and runtime
+`wm size` switching wedges the ATD renderer. Runtime visual/screenshot and
+profile-switch evidence require a windowed or GPU-host emulator session.
+
 ## Operational recommendation (owner-side, not a product blocker)
 
 - **`main` branch protection not configured:** observed 2026-09-05/06 — the

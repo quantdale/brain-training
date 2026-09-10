@@ -5,6 +5,108 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 023 — Production & Gamification Overhaul evidence (2026-09-11)
+
+### Activation and tooling (commit `951e907`)
+
+- Owner goal-mode directive authorized genuinely new scope after Campaign 022
+  terminal closure; governed OpenSpec packet `023-production-gamification-overhaul`
+  created (5 specs), governance/state/ownership rebound, all validators PASS.
+- Refero MCP configured in gitignored `.kimi-code/local.toml` and user-scoped
+  opencode config. Live `initialize`/`tools/list` verified: `refero_server 0.2.0`,
+  8 research tools. `validate-secrets` CLEAN over 1868 tracked files — no token
+  tracked. `refero-design` skill deliberately NOT installed (server requires
+  explicit owner approval).
+- Baseline matrix at activation: Jest 6100 pass / 5 skip (491 suites), tsc 0,
+  lint 0, repo-state/task-ownership/OpenSpec validators PASS.
+
+### All-games functional audit (commit `e351804`)
+
+- Seven parallel packets audited 42/42 registered games; 168 files changed
+  (+3348/-134) with 109 new tests. Defect classes and per-game dispositions:
+  see `openspec/changes/023-production-gamification-overhaul/audit-map.md`.
+- Headline repairs: restart hygiene (stale authoritative XP/error) in every
+  reducer; adaptive `challengeRating` record wiring catalog-wide (006r) with
+  source contract + behavioral tests; per-round window/ref leaks; scoring
+  divide-by-zero / double-division / force-win max / deadline races; generator
+  duplicate and dead-adaptive defects; wall-clock/guess-history/Infinity
+  provenance repairs.
+- Post-audit matrix: **Jest 6209 pass / 5 skip (493 suites), tsc 0, lint 0.**
+
+### Gamification & UX overhaul (commits `94b5a88`, `81e6841`)
+
+- New tokens (semantic soft fills, streak/xp tones, Elevation, Motion) and
+  primitives (FeedbackCard, StreakCard, LevelCard, tone-aware ProgressTrack,
+  tactile GameButton). Home gains streak hero + level/XP meter; GameResults
+  gains the authoritative reward moment (wired through all 42 screens via
+  `reward={{ xp, coins }}` and a catalog contract test); WorkoutCompletionCard
+  celebrates once per instance; keyboard-open first-tap reachability fixed in
+  ScreenShell.
+- Progression semantics unchanged: progression/rewards/streaks/quests/
+  achievements suites pass unmodified.
+- Visual baselines deliberately re-generated (`visual-baselines`: 2 updated).
+- Post-overhaul matrix: **Jest 6217 pass / 5 skip (494 suites), tsc 0, lint 0.**
+- Final closure matrix (after the keyboard-props reachability change and its
+deliberate snapshot re-baseline): **Jest 6219 pass / 5 skip (495 suites),
+tsc 0, lint 0.**
+
+### Production readiness
+
+- `node scripts/validate-offline.mjs`: **CLEAN**, 935 files scanned, no network
+  API usage outside the allowlist. `validate-secrets` CLEAN. Registry
+  `--check` up to date. Provenance, workflows, task-ownership, repo-state PASS.
+- Production Android build: `:app:assembleRelease` (retry after a transient
+  Windows packaging lock) **BUILD SUCCESSFUL** in 1m 15s. Artifact:
+  `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`,
+  109,309,873 bytes, SHA-256
+  `AE1B9F09B9BDB5E81AE667256E81B7CC32DBF1D8906EBDDE0AA73738F17908F1`.
+- Standalone release runtime (AVD `braintraining-qa36`, package
+  `com.braintraining.app`): `pm clear` + cold start in 1.27 s with **no Metro**;
+  Home hierarchy contains `home-title`, `home-workout-cta`, `home-streak-card`,
+  `home-stat-streak`, `home-level-card`, `home-stat-level`.
+- Offline runtime: wifi/data disabled, force-stop, cold start → Home renders;
+  offline deep link to `attention-odd-one-out` renders game title + intro card
+  + Start control.
+- Runtime certification (dev client bound to SHA
+  `81e68419d7155c9f5010399dd041d49d812f2eeb` via Metro + `adb reverse`):
+  autobot `--mode canaries --pause` **8/8 PASS** (interaction + force-win +
+  exactly one persisted session + row invariants + authoritative results +
+  back/next navigation).
+
+### Closure entry — full-catalog runtime certification
+
+- Autobot `--mode certify` (run `qa-artifacts/20260910-195004-autobot-certify`)
+  **COMPLETED**: 42/42 games PASS — 0 failed, 0 missing, 0 unexpected, 0
+  duplicates, interaction checked, row invariants and authoritative results
+  verified, back/next navigation alive. Harness verdict: `certified: false`
+  solely because `pauseMissing: ["attention-sustained-vigilance"]`.
+- Root cause of the pause miss: Vigilance streams digits on a never-idle
+  250 ms ticker; uiautomator `--compressed` stream dumps intermittently return
+  partial trees for that screen, so the harness's 15 s pause-mount window saw
+  no `.pause` node even though the session ran the full ~38 s (persisted
+  `duration_ms` 37,953; two independent sessions 37,953/37,959 ms in the app
+  DB). This is an automation-visibility race, not a product defect.
+- Direct pause evidence for Vigilance (current build, dev client SHA
+  `81e6841`): the app's own hardware-back pause contract mounted
+  `attention-sustained-vigilance.pause-overlay` + `.resume`, and resume
+  dismissed the overlay (probe log under `qa-artifacts/campaign023/`). Unit
+  suites additionally cover pause freezing at phase boundaries for this game.
+- Honest classification: **PASS 42/42** games for interaction/persistence/
+  invariants/navigation; **pause/resume PASS 42/42** across the full run (41)
+  plus the direct Vigilance probe (1); the harness's aggregate `certified`
+  flag remains **false** for the full run and is reported as such.
+
+### Honest limitations (Campaign 023)
+
+- `screencap` returns a constant blank frame under `emulator -no-window`; no
+  visual screenshots were captured for this campaign's runtime evidence.
+- Runtime `wm size`/`wm density` profile switching wedged the headless ATD
+  renderer; small/large-profile evidence is static/unit coverage plus the
+  default 1080x2400 device run only.
+- Full 42-game certify, manual TalkBack, SAF/system sheets, physical device,
+  iOS runtime, and store signing are classified by their actual result below;
+  unavailable evidence is never converted to PASS.
+
 ## Campaign 022 — Release-Candidate Certification evidence (2026-09-05)
 
 ### Phase 2 — release artifact (`4a7a699`-era build, 2026-09-05 14:46 local)

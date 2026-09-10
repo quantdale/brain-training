@@ -320,6 +320,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     },
                   ]
                 }
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
                 style={
                   {
                     "flex": 1,
@@ -1651,6 +1653,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     },
                   ]
                 }
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
                 style={
                   {
                     "flex": 1,
@@ -2085,6 +2089,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     },
                   ]
                 }
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
                 style={
                   {
                     "flex": 1,
@@ -6979,6 +6985,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     },
                   ]
                 }
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
                 style={
                   {
                     "flex": 1,
@@ -12912,6 +12920,8 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
             },
           ]
         }
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         style={
           {
             "flex": 1,
@@ -13127,6 +13137,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
             },
           ]
         }
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         style={
           {
             "flex": 1,
@@ -14239,6 +14251,8 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
             },
           ]
         }
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         style={
           {
             "flex": 1,
@@ -20168,6 +20182,8 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
             },
           ]
         }
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
         style={
           {
             "flex": 1,

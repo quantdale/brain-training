@@ -34,8 +34,14 @@ actually performed. Exact evidence remains in `.agent/VALIDATION.md` and
 
 - Phase 1 (MCP): Refero configured in gitignored `.kimi-code/local.toml` and
   user opencode config; live `initialize`/`tools/list` PASS
-  (`refero_server 0.2.0`).
-- Phases 2–4: in progress (see campaign `tasks.md`).
+  (`refero_server 0.2.0`); benchmark research + reference lock recorded.
+- Phase 2 (audit): 42/42 games audited and repaired (`e351804`); matrix green
+  (6209 pass).
+- Phase 3 (gamification): design system + Home hero + GameResults reward +
+  workout celebration landed (`94b5a88`, `81e6841`); matrix green (6217 pass);
+  visual baselines re-generated.
+- Phase 4 (production): release APK built and standalone-started; offline and
+  validator audits PASS; canaries 8/8 PASS; full 42-game certify running.
 
 ## Recovery order
 

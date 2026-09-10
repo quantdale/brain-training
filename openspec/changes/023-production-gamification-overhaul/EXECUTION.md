@@ -42,3 +42,19 @@ evidence is recorded as NOT VALIDATED, never converted to PASS.
 - 2026-09-11: Campaign activated from owner goal-mode directive. Refero MCP
   configured in `.kimi-code/local.toml` (gitignored) + user opencode config;
   live `initialize`/`tools/list` verified (`refero_server 0.2.0`).
+- 2026-09-11 (`e351804`): seven-packet all-games audit wave — 42/42 games
+  audited, 168 files changed (+3348/-134), 109 new tests. Matrix after:
+  Jest 6209 pass / 5 skip, tsc 0, lint 0.
+- 2026-09-11 (`94b5a88`, `81e6841`): gamified design-system overhaul —
+  tokens/primitives, Home streak+level hero, GameResults reward moment wired
+  through all 42 screens, workout celebration, keyboard-open reachability.
+  Visual baselines deliberately re-generated. Matrix after: Jest 6217 pass /
+  5 skip, tsc 0, lint 0.
+- 2026-09-11: production release build BUILD SUCCESSFUL (APK 109,309,873 B,
+  SHA-256 `AE1B9F09...`); standalone Metro-free cold start PASS; offline
+  cold-start + offline deep-link PASS; validators (offline/secrets/registry/
+  provenance/workflows/repo-state/ownership) all PASS.
+- 2026-09-11: runtime certification via dev client bound to `81e6841` —
+  autobot canaries 8/8 PASS; full 42-game certify launched (detached
+  process, atomically checkpointed journal). Result recorded below on
+  completion.

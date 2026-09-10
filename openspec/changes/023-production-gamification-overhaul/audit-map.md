@@ -70,12 +70,60 @@ Observed benchmark patterns:
 
 ## Phase 2 — Per-game audit dispositions
 
-(one row per registered game: clean / fixed-<sha> / finding-classification)
+All 42 registered games were audited by seven parallel packets in commit
+`e351804` (168 files, +3348/-134, +109 tests). Every game carries a
+disposition; the shared defect classes below were repaired with
+failing-before/passing-after regression tests.
+
+| Defect class | Games affected | Resolution |
+|---|---|---|
+| Stale authoritative XP/currency/deltas/lastError across restart | all 42 (7 fixes in the audit wave + sweep) | every `start-session` clears the session-scoped authoritative outcome |
+| Adaptive record persisted the 0.5 baseline challenge rating (006r) | all 42 | screens persist `{ ...state.profile, challengeRating }`; catalog source contract + behavioral screen tests |
+| Per-round ref/accumulator leaks across restart (study/round/response windows) | attention-symbol-tracker, attention-target-count, memory-grid-recall, memory-pair-recall, memory-prospective-cue | session-id-keyed refs reset on start |
+| Scoring correctness (divide-by-zero, double-division, force-win max, deadline races) | attention-target-count, logic-order-path, speed-color-match, speed-reaction-time, math-missing-operator | guarded/ corrected formulas + late-input rejection |
+| Generator/replay defects | language-sentence-builder (duplicates, dead adaptive escalation, tap double-count), attention-target-count (round-1 reproducibility), spatial-transform-match (restart determinism), spatial-grid-nav (dead adaptive escalation), speed-color-match (frozen adaptive ratio) | generators/reducers repaired |
+| Provenance (wall-clock stamps, final adaptive params, guess history, Infinity) | logic-order-path, logic-deduction-table, logic-code-cracker, speed-color-match | failure-aware fixes + tests |
+
+Deferred non-blocking findings (recorded in `.agent/KNOWN_ISSUES.md`):
+late-tap SFX mismatch in three games, vigilance digit visibility after
+resolution, `spatial-coordinate-turn` adaptive escalation gap, missing
+vigilance screen test, stale word-scramble tutorial copy, dead
+`show-stimulus` actions in color-stroop.
 
 ## Phase 3 — Design & gamification evidence
 
-(pending)
+- Commits: `94b5a88` (design system + gamified surfaces + 42-screen reward
+  wiring), `81e6841` (keyboard-open reachability).
+- New primitives: `FeedbackCard`, `StreakCard`, `LevelCard`, tone-aware
+  `ProgressTrack`, tactile `GameButton`; new tests in
+  `components/shell/__tests__/gamification-ui.test.tsx` and
+  `components/game-host/__tests__/results-reward.test.tsx`.
+- Progression semantics untouched: progression/rewards/streaks/quests/
+  achievements suites pass unmodified; the only added catalog contracts are
+  source-level tripwires + behavioral screen assertions.
 
 ## Phase 4 — Production readiness evidence
 
-(pending)
+- **Production build:** `:app:assembleRelease` BUILD SUCCESSFUL
+  (retry after a transient Windows packaging lock); APK 109,309,873 B,
+  SHA-256 `AE1B9F09B9BDB5E81AE667256E81B7CC32DBF1D8906EBDDE0AA73738F17908F1`.
+- **Standalone start (release, no Metro):** cold start 1.27 s, Home
+  hierarchy contains `home-title`, `home-workout-cta`, `home-streak-card`,
+  `home-stat-streak`, `home-level-card`, `home-stat-level`.
+- **Offline:** `validate-offline` CLEAN (935 files); release cold start with
+  wifi/data disabled renders Home; offline deep-link to a game renders the
+  intro card + Start control.
+- **Validators:** repo-state, task-ownership, registry `--check`, provenance,
+  workflows, secrets, offline — all PASS.
+- **Runtime certification:** canary run 8/8 PASS; full `--mode certify` run
+  COMPLETED 42/42 games PASS (0 failed/missing/duplicate), with the aggregate
+  `certified` flag false solely due to one missing pause probe on
+  `attention-sustained-vigilance` (never-idle ticker vs uiautomator dump race;
+  direct back-contract pause/resume probe PASS on the same build). Full
+  evidence and honest classification in `.agent/VALIDATION.md`.
+- **Limitations:** headless `screencap` returns a constant blank frame
+  (framebuffer capture unavailable with `-no-window`); runtime `wm size`
+  profile switching wedged the headless renderer (responsive evidence is
+  static/unit + default-profile device evidence only). Manual TalkBack,
+  physical device, iOS runtime, and store signing remain NOT VALIDATED /
+  EXTERNALLY BLOCKED as in Campaign 022.
