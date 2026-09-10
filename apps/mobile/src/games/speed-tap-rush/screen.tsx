@@ -183,7 +183,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,

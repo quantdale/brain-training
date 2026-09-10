@@ -339,3 +339,26 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+
+describe('restart resets the previous session outcome', () => {
+  it('clears the authoritative completion outcome when a new session starts', () => {
+    let state = startSession('stale-outcome-1');
+    state = flexibilityCueReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 40,
+      currency: 7,
+      deltas: [{ domain: 'flexibility', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    expect(state.authoritativeXp).toBe(40);
+
+    state = flexibilityCueReducer(state, {
+      type: 'start-session',
+      seed: 'stale-outcome-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+  });
+});

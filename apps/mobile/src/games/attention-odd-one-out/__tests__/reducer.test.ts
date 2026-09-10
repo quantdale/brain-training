@@ -444,3 +444,31 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+describe('restart hygiene', () => {
+  it('clears the previous session persistence/authoritative fields on start-session', () => {
+    let state = startSession('restart-hygiene');
+    state = oddOneOutReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = oddOneOutReducer(state, { type: 'persistence-failed', message: 'boom' });
+
+    state = oddOneOutReducer(state, {
+      type: 'start-session',
+      seed: 'restart-hygiene-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+      nowMs: NOW,
+    });
+
+    expect(state.persistState).toBe('idle');
+    expect(state.lastError).toBeNull();
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+    expect(state.stats.roundsPlayed).toBe(0);
+    expect(state.xp).toBe(0);
+  });
+});

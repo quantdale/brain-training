@@ -12,8 +12,9 @@
  *
  * Normalization rule:
  *   accuracy = roundsPassed / roundsPlayed  (0..1)
- *   avgWordLengthFactor = avg word length across all rounds, normalized to [0,1]
- *                         (mapped linearly from [3, 8] chars to [0, 1])
+ *   avgWordLengthFactor = avg sentence length across all played rounds,
+ *                         normalized to [0,1] (mapped linearly from [3, 8]
+ *                         words per sentence to [0, 1])
  *   value = accuracy × (0.5 + 0.5 × avgWordLengthFactor)
  */
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
@@ -141,8 +142,8 @@ export function clamp01(value: number): number {
 }
 
 /**
- * Average word length factor normalized to [0, 1].
- * Maps word lengths from [3, 8] to [0, 1].
+ * Sentence-length factor normalized to [0, 1].
+ * Maps average words per sentence from [3, 8] to [0, 1].
  */
 export function avgWordLengthFactor(avgWordLength: number): number {
   return clamp01((avgWordLength - 3) / (8 - 3));

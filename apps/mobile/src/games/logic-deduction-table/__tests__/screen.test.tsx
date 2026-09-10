@@ -25,7 +25,7 @@ import {
 import type { CompleteSessionInput } from "@/db";
 
 import { TUTORIAL_DEMO_PARAMS, TUTORIAL_DEMO_SEED } from "../components/tutorial";
-import { LOGIC_DEDUCTION_DIFFICULTY_PARAMS } from "../difficulty";
+import { LOGIC_DEDUCTION_DIFFICULTY_PARAMS, ADAPTIVE_PARAMS, adaptiveRoundParams } from "../difficulty";
 import { generateRound } from "../generator";
 import LogicDeductionScreen from "../screen";
 import { perfectSessionScore } from "../scoring";
@@ -439,5 +439,60 @@ describe("LogicDeductionScreen", () => {
     // The session itself is not marked forced by a per-round force.
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "next-round")));
     expect(screen.getByTestId(testId(GAME_ID, "round", "2"))).toBeOnTheScreen();
+  });
+
+  it("persists the final escalated adaptive params and challenge rating", async () => {
+    // Regression: finalization read `state.profile` (the immutable session
+    // baseline) instead of the reducer's escalated `state.params`, so adaptive
+    // sessions recorded the baseline board and a baseline-derived (minimum)
+    // challenge rating. The rating pipeline consumes the record difficulty.
+    const seed = "adaptive-escalation";
+    const { persister } = await renderScreen({ seed });
+
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, "difficulty", "adaptive")),
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+
+    const first = generateRound({
+      rng: createRng(seed),
+      roundIndex: 0,
+      params: ADAPTIVE_PARAMS,
+      prevRound: null,
+    });
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, "option", String(first.correctIndex))),
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "next-round")));
+
+    const nextParams = adaptiveRoundParams("adaptive", { ...ADAPTIVE_PARAMS }, true);
+    const second = generateRound({
+      rng: createRng(seed),
+      roundIndex: 1,
+      params: nextParams,
+      prevRound: first,
+    });
+    expect(nextParams.entityCount).toBe(ADAPTIVE_PARAMS.entityCount! + 1);
+    expect(screen.getByTestId(testId(GAME_ID, "question"))).toHaveTextContent(
+      second.question.text,
+    );
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-win")));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as LogicDeductionRawResult;
+    const difficulty = input.session.difficulty as {
+      challengeRating: number;
+      parameters: Record<string, number>;
+    };
+    // The persisted params describe the FINAL escalated round, not round 1.
+    expect(raw.generatorInfo.entityCount).toBe(nextParams.entityCount);
+    expect(raw.generatorInfo.attributeCount).toBe(nextParams.attributeCount);
+    expect(difficulty.parameters.entityCount).toBe(nextParams.entityCount);
+    expect(raw.challengeRating).toBeGreaterThan(0);
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
   });
 });

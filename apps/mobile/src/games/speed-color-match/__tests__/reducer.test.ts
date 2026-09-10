@@ -2,6 +2,10 @@
 import { describe, expect, it } from '@jest/globals';
 import type { DifficultyLevel } from '@/sdk';
 
+import {
+  SPEED_COLOR_MATCH_DIFFICULTY_PARAMS,
+  speedColorMatchParamsFromProfile,
+} from '../difficulty';
 import { speedColorMatchReducer } from '../reducer';
 import { createInitialSpeedColorMatchState } from '../types';
 import type { SpeedColorMatchGameState } from '../types';
@@ -16,6 +20,29 @@ function startSession(
   state = speedColorMatchReducer(state, { type: 'start-session', seed, sessionId, startedAtMs: 100 });
   return state;
 }
+
+describe('adaptive difficulty', () => {
+  /** Answer the current trial correctly, then advance to the next one. */
+  function playCorrect(state: SpeedColorMatchGameState): SpeedColorMatchGameState {
+    let next = speedColorMatchReducer(state, { type: 'trial-shown', shownAtMs: 0 });
+    const trial = next.trials[next.trialIndex];
+    next = speedColorMatchReducer(next, {
+      type: 'tap-color',
+      color: trial.swatchColor,
+      tappedAtMs: 10,
+    });
+    return speedColorMatchReducer(next, { type: 'next-trial' });
+  }
+
+  it('escalates the incongruent ratio cumulatively across consecutive correct trials', () => {
+    let state = startSession('adaptive-ratio', 'adaptive');
+    expect(speedColorMatchParamsFromProfile(state.profile!).incongruentRatio).toBeCloseTo(0.4);
+    state = playCorrect(state);
+    expect(speedColorMatchParamsFromProfile(state.profile!).incongruentRatio).toBeCloseTo(0.5);
+    state = playCorrect(state);
+    expect(speedColorMatchParamsFromProfile(state.profile!).incongruentRatio).toBeCloseTo(0.6);
+  });
+});
 
 describe('select-difficulty', () => {
   it('selects a level in the intro', () => {
@@ -155,6 +182,33 @@ describe('tap-color', () => {
     expect(answered.phase).toBe('roundResult');
     expect(answered.currentReactionMs).toBe(200);
   });
+
+  it('rejects a tap at/after the stimulus window (the timeout timer owns the resolution)', () => {
+    const timeoutMs = SPEED_COLOR_MATCH_DIFFICULTY_PARAMS.easy.stimulusTimeoutMs;
+    let state = startSession('late-tap', 'easy');
+    state = speedColorMatchReducer(state, { type: 'trial-shown', shownAtMs: 1000 });
+    const trial = state.trials[0];
+
+    // Past the window: the trial must stay live so `trial-timeout` can resolve
+    // it as a timeout instead of scoring a late tap.
+    const late = speedColorMatchReducer(state, {
+      type: 'tap-color',
+      color: trial.swatchColor,
+      tappedAtMs: 1000 + timeoutMs + 1,
+    });
+    expect(late).toEqual(state);
+    expect(late.phase).toBe('trial');
+    expect(late.stats.trialsPlayed).toBe(0);
+
+    // Exactly at the deadline still counts (timer/dispatch boundary).
+    const atDeadline = speedColorMatchReducer(state, {
+      type: 'tap-color',
+      color: trial.swatchColor,
+      tappedAtMs: 1000 + timeoutMs,
+    });
+    expect(atDeadline.phase).toBe('roundResult');
+    expect(atDeadline.currentTrialOutcome).toBe('correct');
+  });
 });
 
 describe('trial-timeout', () => {
@@ -265,6 +319,16 @@ describe('QA force hooks (state shaping)', () => {
     expect(finalState.forced).toBe(true);
     expect(finalState.stats.trialsPlayed).toBe(20);
     expect(finalState.stats.trialsCorrect).toBe(20);
+  });
+
+  it('force-win scores exactly the theoretical maximum (instant, full streak)', () => {
+    const params = SPEED_COLOR_MATCH_DIFFICULTY_PARAMS.normal;
+    const state = speedColorMatchReducer(startSession('qa-win-max'), {
+      type: 'qa/force-win',
+    });
+    // Every trial: 100 base + 50 instant bonus; streak bonus 10·k for k=1..n.
+    const maxScore = params.trials * 150 + 5 * params.trials * (params.trials + 1);
+    expect(state.stats.score).toBe(maxScore);
   });
 
   it('force-lose ends the session with the current trial failed', () => {

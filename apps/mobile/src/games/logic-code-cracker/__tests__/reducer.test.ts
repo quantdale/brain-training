@@ -248,6 +248,34 @@ describe('next-round', () => {
   });
 });
 
+describe('guessHistory', () => {
+  it('accumulates resolved rounds and resets on a new session', () => {
+    // Regression: the raw result documented a full per-round guess history
+    // but the screen always persisted an empty array.
+    let state = startSession('history');
+    state = submitCorrectGuess(state);
+    expect(state.guessHistory).toHaveLength(1);
+    expect(state.guessHistory[0]).toHaveLength(1);
+    expect(state.guessHistory[0][0].feedback).toEqual({ exact: 4, colorOnly: 0 });
+
+    // Advancing clears the per-round guesses but keeps the session history.
+    state = codeCrackerGameReducer(state, { type: 'next-round' });
+    expect(state.roundGuesses).toEqual([]);
+    expect(state.guessHistory).toHaveLength(1);
+    state = submitCorrectGuess(state);
+    expect(state.guessHistory).toHaveLength(2);
+
+    // A fresh session starts with an empty history.
+    state = codeCrackerGameReducer(state, {
+      type: 'start-session',
+      seed: 'history-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(state.guessHistory).toEqual([]);
+  });
+});
+
 describe('pause / resume', () => {
   it('pauses only during a session and resumes from paused', () => {
     const inIntro = codeCrackerGameReducer(createInitialCodeCrackerState(), { type: 'pause' });
@@ -355,5 +383,35 @@ describe('QA force hooks (state shaping)', () => {
       patch: { seed: 'nope' },
     });
     expect(mid.seedOverride).toBeNull();
+  });
+});
+
+describe('restart hygiene', () => {
+  it('clears the previous session persistence/authoritative fields on start-session', () => {
+    let state = startSession('restart-hygiene');
+    state = codeCrackerGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = codeCrackerGameReducer(state, { type: 'persistence-failed', message: 'boom' });
+    expect(state.authoritativeXp).toBe(137);
+    expect(state.persistState).toBe('failed');
+
+    state = codeCrackerGameReducer(state, {
+      type: 'start-session',
+      seed: 'restart-hygiene-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+
+    expect(state.persistState).toBe('idle');
+    expect(state.lastError).toBeNull();
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+    expect(state.stats.roundsPlayed).toBe(0);
+    expect(state.xp).toBe(0);
   });
 });

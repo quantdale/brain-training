@@ -110,10 +110,16 @@ export interface GenerateRoundInput {
  /** Word count range [minWords, maxWords]. */
  readonly minWords: number;
  readonly maxWords: number;
- /** Previous round's category, or null for round 0. */
- readonly prevCategory: string | null;
- /** Categories already used in this session (to avoid duplicates). */
- readonly usedCategories: readonly string[];
+  /** Previous round's category, or null for round 0. */
+  readonly prevCategory: string | null;
+  /** Categories already used in this session (to avoid duplicates). */
+  readonly usedCategories: readonly string[];
+  /**
+   * Sentence texts already dealt in this session, excluded from selection so
+   * the session never repeats a sentence. Optional for generator-only callers
+   * (the production reducer always passes it).
+   */
+  readonly usedSentenceTexts?: readonly string[];
 }
 
 export interface GenerateRoundResult {
@@ -155,10 +161,17 @@ export function generateRound(input: GenerateRoundInput): GenerateRoundResult {
  const uniqueWordPool = byLength.filter((s) => hasNoDuplicateWords(s));
  const candidates = uniqueWordPool.length > 0 ? uniqueWordPool : byLength;
 
+ // Never deal a sentence that was already played this session. Selection is
+ // seeded from the session seed alone, so without this exclusion the first
+ // RNG draw can keep landing on the same pool position round after round.
+ const usedTexts = new Set(input.usedSentenceTexts ?? []);
+ const unplayed = candidates.filter((s) => !usedTexts.has(s.text));
+ const available = unplayed.length > 0 ? unplayed : candidates;
+
  // Step 2: Prefer unused categories.
  const usedSet = new Set(input.usedCategories);
- const unused = candidates.filter((s) => !usedSet.has(s.category));
- const pool = unused.length > 0 ? unused : candidates;
+ const unused = available.filter((s) => !usedSet.has(s.category));
+ const pool = unused.length > 0 ? unused : available;
 
  // Step 3: Prefer different category from previous round.
  const differentCategory =

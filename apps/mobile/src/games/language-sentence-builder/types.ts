@@ -185,6 +185,8 @@ export interface SentenceBuilderState {
   roundOutcome: 'passed' | 'failed' | null;
   /** Previous round's category (for near-duplicate avoidance). */
   prevCategory: string | null;
+  /** Sentence texts already dealt this session (no sentence repeats). */
+  usedSentenceTexts: readonly string[];
   stats: SentenceBuilderStats;
   forced: boolean;
   xp: number;
@@ -221,6 +223,7 @@ export function createInitialState(): SentenceBuilderState {
     inputIndex: 0,
     roundOutcome: null,
     prevCategory: null,
+    usedSentenceTexts: [],
     stats: { ...INITIAL_STATS },
     forced: false,
     xp: 0,

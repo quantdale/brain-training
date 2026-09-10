@@ -1,13 +1,14 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 
 import RuleGridScreen from '../screen';
 import { GAME_ID } from '../types';
+import type { RuleGridRawResult } from '../types';
 import { generateRound } from '../generator';
 import { resolveRuleGridDifficulty, ruleGridParamsFromProfile } from '../difficulty';
-import type { CompleteSessionResult, GameSessionRecord } from '@/db';
+import type { CompleteSessionInput, CompleteSessionResult, GameSessionRecord } from '@/db';
 import type { SessionPersistence } from '../session';
 
 jest.mock('expo-router', () => ({
@@ -121,5 +122,40 @@ describe('RuleGridScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeTruthy();
     expect(screen.getByTestId(testId(GAME_ID, 'accuracy'))).toBeTruthy();
     expect(persistSession.completeSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating consumed by the rating
+    // pipeline.
+    const completeSession = jest.fn(
+      async (input: CompleteSessionInput): Promise<CompleteSessionResult> => ({
+        session: input.session,
+        ledgerEntry: null,
+        balance: 0,
+        rating: null,
+        completionOutcome: null,
+      }),
+    );
+    await render(
+      <RuleGridScreen
+        tutorialStore={completedStore()}
+        sessionSeed="adaptive-rating"
+        persistSession={{ completeSession }}
+      />,
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(completeSession).toHaveBeenCalledTimes(1);
+    const input = completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as RuleGridRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    // Perfect adaptive run: 0.5 + 0.5 × 1 = 1.
+    expect(raw.challengeRating).toBeCloseTo(1);
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
   });
 });

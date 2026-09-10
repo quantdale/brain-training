@@ -109,15 +109,24 @@ export default function SignalWatchScreen(
    * bleeding into the next.)
    */
   const [windowElapsedState, setWindowElapsedState] = useState({
+    sessionId: state.sessionId,
     itemIndex: state.itemIndex,
     elapsedMs: 0,
   });
-  if (windowElapsedState.itemIndex !== state.itemIndex) {
-    setWindowElapsedState({ itemIndex: state.itemIndex, elapsedMs: 0 });
+  if (
+    windowElapsedState.sessionId !== state.sessionId ||
+    windowElapsedState.itemIndex !== state.itemIndex
+  ) {
+    setWindowElapsedState({
+      sessionId: state.sessionId,
+      itemIndex: state.itemIndex,
+      elapsedMs: 0,
+    });
   }
   // Pure-derived read for render paths (0 until the adjustment above
-  // commits for a freshly-switched item).
+  // commits for a freshly-switched item or a freshly-started session).
   const windowElapsedMs =
+    windowElapsedState.sessionId === state.sessionId &&
     windowElapsedState.itemIndex === state.itemIndex
       ? windowElapsedState.elapsedMs
       : 0;
@@ -130,6 +139,7 @@ export default function SignalWatchScreen(
    * fully-specified useCallback deps instead (see handleRespond).
    */
   const windowElapsedSeedRef = useRef({
+    sessionId: state.sessionId,
     itemIndex: state.itemIndex,
     elapsedMs: 0,
   });
@@ -194,23 +204,30 @@ export default function SignalWatchScreen(
       return undefined;
     }
     const itemIndex = state.itemIndex;
-    // Freeze-and-continue seed: same item → keep accumulated ACTIVE time
-    // across pause/tutorial coverage; fresh item → start at 0. Without this,
-    // a resume silently granted a full fresh window on every pause/resume.
+    const sessionId = state.sessionId;
+    // Freeze-and-continue seed: same session + same item → keep accumulated
+    // ACTIVE time across pause/tutorial coverage; fresh item OR fresh session →
+    // start at 0. Without this, a resume silently granted a full fresh window
+    // on every pause/resume, and a restart inherited the previous session's
+    // partial window when both happened to be on item 0 (stamped by sessionId
+    // so a restart can never alias the old accumulator).
     // The accumulator lives in the seed ref itself (no outer mutable
     // binding captured by the tick closure — keeps the value's mutable
     // range legible to the React Compiler).
     const seed = windowElapsedSeedRef.current;
-    const startMs = seed.itemIndex === itemIndex ? seed.elapsedMs : 0;
-    windowElapsedSeedRef.current = { itemIndex, elapsedMs: startMs };
+    const startMs =
+      seed.sessionId === sessionId && seed.itemIndex === itemIndex
+        ? seed.elapsedMs
+        : 0;
+    windowElapsedSeedRef.current = { sessionId, itemIndex, elapsedMs: startMs };
     const interval = setInterval(() => {
       // Accumulate UNCLAMPED ticks in the seed ref (nothing derived from
       // itemMs is ever stored there); clamp only at the consumers.
       const rawElapsedMs =
         windowElapsedSeedRef.current.elapsedMs + WINDOW_TICK_MS;
-      windowElapsedSeedRef.current = { itemIndex, elapsedMs: rawElapsedMs };
+      windowElapsedSeedRef.current = { sessionId, itemIndex, elapsedMs: rawElapsedMs };
       setWindowElapsedState((prev) =>
-        prev.itemIndex === itemIndex
+        prev.sessionId === sessionId && prev.itemIndex === itemIndex
           ? { ...prev, elapsedMs: Math.min(rawElapsedMs, itemMs) }
           : prev,
       );
@@ -225,6 +242,7 @@ export default function SignalWatchScreen(
     state.paused,
     state.tutorialOpen,
     state.itemIndex,
+    state.sessionId,
     itemMs,
     dispatch,
   ]);
@@ -316,7 +334,9 @@ export default function SignalWatchScreen(
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // Rating pipeline reads the final computed challenge from the record
+      // difficulty, not the SDK baseline profile (006r adaptive contract).
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,
@@ -395,8 +415,9 @@ export default function SignalWatchScreen(
       return;
     }
     // Committed drain (≤ one WINDOW_TICK_MS stale) is the press-path
-    // truth; a press on a freshly-switched item reads 0 elapsed.
+    // truth; a press on a freshly-switched item or restarted session reads 0.
     const pressedElapsedMs =
+      windowElapsedState.sessionId === current.sessionId &&
       windowElapsedState.itemIndex === current.itemIndex
         ? windowElapsedState.elapsedMs
         : 0;

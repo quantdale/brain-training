@@ -213,7 +213,9 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // Rating pipeline reads the final computed challenge from the record
+      // difficulty, not the SDK baseline profile (006r adaptive contract).
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,
@@ -298,6 +300,10 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
   const handleStart = useCallback(() => {
     const current = stateRef.current;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    // A restart begins a brand-new round window: clear the previous session's
+    // active-time accumulator so a QA-forced end at round 0 cannot shorten it.
+    roundElapsedRef.current = 0;
+    roundElapsedRoundRef.current = -1;
     const identity = session.begin();
     dispatch({
       type: 'start-session',

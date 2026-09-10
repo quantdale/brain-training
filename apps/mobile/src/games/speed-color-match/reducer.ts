@@ -77,6 +77,10 @@ export function speedColorMatchReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -109,8 +113,16 @@ export function speedColorMatchReducer(
         return state;
       }
 
+      const params = speedColorMatchParamsFromProfile(state.profile);
+      // A reading at/after the stimulus window is not a valid response: the
+      // expiry timer owns the resolution (trial-timeout). Mirrors the deadline
+      // guard in the other timed games so an overdue timer callback can never
+      // let a late tap score or corrupt the reaction statistics.
+      if (reactionMs > params.stimulusTimeoutMs) {
+        return state;
+      }
+
       if (correct) {
-        const params = speedColorMatchParamsFromProfile(state.profile);
         const scoreGain = trialScore(reactionMs, params.stimulusTimeoutMs);
         const streakGain = streakBonus(state.stats.streak + 1);
         const totalScore = state.stats.score + scoreGain + streakGain;
@@ -184,8 +196,12 @@ export function speedColorMatchReducer(
         return { ...state, phase: 'results', currentTrialOutcome: null };
       }
 
-      // For adaptive difficulty, update the incongruent ratio.
+      // For adaptive difficulty, update the incongruent ratio. The adapted
+      // value must be persisted onto the profile: the next round's params are
+      // re-read from it, so consecutive passes/fails escalate/de-escalate
+      // cumulatively instead of always stepping off the base ratio.
       let incongruentRatio = params.incongruentRatio;
+      let profile = state.profile;
       if (state.difficulty === 'adaptive') {
         const lastCorrect = state.currentTrialOutcome === 'correct';
         incongruentRatio = nextIncongruentRatio(
@@ -193,6 +209,12 @@ export function speedColorMatchReducer(
           lastCorrect,
           params,
         );
+        if (incongruentRatio !== params.incongruentRatio) {
+          profile = {
+            ...state.profile,
+            parameters: { ...state.profile.parameters, incongruentRatio },
+          };
+        }
       }
 
       // Regenerate remaining trials if adaptive.
@@ -209,6 +231,7 @@ export function speedColorMatchReducer(
 
       return {
         ...state,
+        profile,
         phase: 'trial',
         trialIndex: nextIndex,
         trials,
@@ -285,8 +308,10 @@ export function speedColorMatchReducer(
         return state;
       }
       const params = speedColorMatchParamsFromProfile(state.profile);
+      // Theoretical maximum: every trial instant (100 base + 50 speed bonus)
+      // plus the full triangular streak-bonus sum 10·(1+…+trials).
       const forcedStats: SpeedColorMatchStats = {
-        score: 100 * params.trials + 50 * params.trials + 10 * params.trials * (params.trials - 1),
+        score: 150 * params.trials + 5 * params.trials * (params.trials + 1),
         trialsPlayed: params.trials,
         trialsCorrect: params.trials,
         bestStreak: params.trials,

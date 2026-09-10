@@ -10,13 +10,15 @@
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()` (see
  * hooks.ts), so production builds never expose them.
  */
-import { isDifficultyLevel } from '@/sdk';
+import { createRng, isDifficultyLevel } from '@/sdk';
 
 import {
+  nextGridSide,
+  nextMaxCommandCount,
   paramsFromProfile,
   resolveSpatialGridNavDifficulty,
 } from './difficulty';
-import { generateSession } from './generator';
+import { generateRound, generateSession } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
 import { INITIAL_STATS, createInitialState } from './types';
 import type {
@@ -74,6 +76,10 @@ export function gameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -128,16 +134,38 @@ export function gameReducer(
     }
 
     case 'next-round': {
-      if (state.phase !== 'trialResult' || state.profile === null) {
+      if (state.phase !== 'trialResult' || state.profile === null || state.difficulty === null) {
         return state;
       }
       const nextIndex = state.roundIndex + 1;
       if (nextIndex >= state.rounds) {
         return { ...state, phase: 'results', roundOutcome: null };
       }
-      const round = state.plan[nextIndex];
+      const params = paramsFromProfile(state.profile);
+      const passed = state.roundOutcome === 'correct';
+      // Adaptive sessions escalate/ease the next board from the previous
+      // outcome; fixed levels keep the pre-generated plan. The resolved
+      // profile carries the escalated values so the final challenge rating
+      // reflects where the player actually ended up.
+      let profile = state.profile;
+      let round = state.plan[nextIndex];
+      if (state.difficulty === 'adaptive') {
+        const gridSide = nextGridSide(params.gridSide, passed, state.difficulty, params);
+        const maxCommandCount = nextMaxCommandCount(
+          params.maxCommandCount,
+          passed,
+          state.difficulty,
+          params,
+        );
+        profile = {
+          ...state.profile,
+          parameters: { ...state.profile.parameters, gridSide, maxCommandCount },
+        };
+        round = generateRound(createRng(state.seed), paramsFromProfile(profile), nextIndex);
+      }
       return {
         ...state,
+        profile,
         phase: 'trialActive',
         roundIndex: nextIndex,
         round,

@@ -63,6 +63,13 @@ export function colorStroopGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -278,6 +285,10 @@ export function colorStroopGameReducer(
         bestStreak: params.trials,
         streak: params.trials,
         postFlipCorrect: totalFlips,
+        // A perfect run is wholly instant: any response times accrued before
+        // the force hook must not leak into the recorded speed diagnostic.
+        totalResponseTimeMs: 0,
+        fastestResponseMs: 0,
       };
       return {
         ...state,
@@ -292,7 +303,9 @@ export function colorStroopGameReducer(
       if (state.phase === 'results' || state.phase === 'intro' || state.profile === null) {
         return state;
       }
-      const currentTrialCounted = state.phase === 'feedback' ? 0 : 1;
+      // Only a stimulus in flight is an answerable trial; feedback (already
+      // counted) and the flip cue (nothing answerable on screen) count zero.
+      const currentTrialCounted = state.phase === 'stimulus' ? 1 : 0;
       return {
         ...state,
         phase: 'results',

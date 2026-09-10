@@ -315,3 +315,71 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+
+describe('restart hygiene', () => {
+  it('clears the previous session persistence/authoritative fields on start-session', () => {
+    let state = startSession('restart-hygiene');
+    state = targetCountGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = targetCountGameReducer(state, { type: 'persistence-failed', message: 'boom' });
+
+    state = targetCountGameReducer(state, {
+      type: 'start-session',
+      seed: 'restart-hygiene-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+
+    expect(state.persistState).toBe('idle');
+    expect(state.lastError).toBeNull();
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+    expect(state.stats.roundsPlayed).toBe(0);
+    expect(state.xp).toBe(0);
+  });
+
+  it('restarts round 1 from the tier base regardless of the previous streak', () => {
+    const seed = 'restart-ladder';
+    let state = startSession(seed);
+    // Play the whole session perfectly: the final streak is >= 2, which used
+    // to leak into the restarted round 1's distractor escalation.
+    let guard = 0;
+    while (state.phase !== 'results' && guard < 20) {
+      state = targetCountGameReducer(state, {
+        type: 'answer',
+        selectedCount: state.currentRound?.targetCount ?? -1,
+        elapsedMs: 0,
+      });
+      state = targetCountGameReducer(state, { type: 'next-round' });
+      guard += 1;
+    }
+    expect(state.phase).toBe('results');
+    expect(state.stats.streak).toBeGreaterThanOrEqual(2);
+
+    const restarted = targetCountGameReducer(state, {
+      type: 'start-session',
+      seed,
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    const fresh = startSession(seed, 'normal', 'fresh');
+
+    expect(restarted.stats.streak).toBe(0);
+    // A restarted session must be reproducible from (seed, difficulty) alone:
+    // round 1 must equal a fresh start's round 1, not an escalated variant.
+    expect(restarted.currentRound).toEqual(fresh.currentRound);
+    expect(restarted.currentRound).toEqual(
+      generateRound({
+        rng: createRng(seed),
+        roundIndex: 0,
+        params: TARGET_COUNT_DIFFICULTY_PARAMS.normal,
+        prevRound: null,
+      }),
+    );
+  });
+});

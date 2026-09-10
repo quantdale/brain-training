@@ -80,7 +80,18 @@ export function gameReducer(
         return state;
       }
       const profile = resolveGameDifficulty(state.difficulty);
-      const round = generateForRound({ ...state, profile, seed: action.seed }, 0);
+      // Round 0 never has a predecessor: drop any stale anchor from a
+      // previous session so the same seed always regenerates the same round.
+      const round = generateForRound(
+        {
+          ...state,
+          profile,
+          seed: action.seed,
+          prevSourcePattern: null,
+          prevTransformType: null,
+        },
+        0,
+      );
       return {
         ...state,
         phase: 'source',
@@ -103,6 +114,10 @@ export function gameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 

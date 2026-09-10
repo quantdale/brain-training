@@ -277,7 +277,9 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // Rating pipeline reads the final computed challenge from the record
+      // difficulty, not the SDK baseline profile (006r adaptive contract).
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,
@@ -359,6 +361,13 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
   const handleStart = useCallback(() => {
     const current = stateRef.current;
     const seed = current.seedOverride ?? resolveSessionSeed(sessionSeed);
+    // A restart begins brand-new windows: clear the previous session's
+    // active-time accumulators so a QA-forced end at round 0 cannot shorten
+    // the next session's observe/respond windows.
+    observeElapsedRef.current = 0;
+    observeRoundRef.current = -1;
+    respondElapsedRef.current = 0;
+    respondRoundRef.current = -1;
     const identity = session.begin();
     dispatch({
       type: 'start-session',

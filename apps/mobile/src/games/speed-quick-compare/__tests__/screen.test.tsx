@@ -140,6 +140,30 @@ describe('QuickCompareScreen', () => {
     expect(input.session.normalizedResult).toBe(1); // all correct at reaction 0
   });
 
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final rating read by the shared rating pipeline.
+    const { persister } = await renderScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    // Answer round 0 correctly so the adaptive window shrinks 2200 → 2000 ms.
+    const round0 = generateRound(createRng(SEED), 0, quickCompareParamsForLevel('adaptive'));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'option', String(round0.correctIndex))));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as QuickCompareRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    // 2000 ms over [1200, 3200] → 1 − 800/2000 = 0.6.
+    expect(raw.challengeRating).toBeCloseTo(0.6);
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+  });
+
   it('force-win ends the session as a perfect run and marks it forced', async () => {
     const { persister } = await renderScreen();
 

@@ -101,6 +101,14 @@ export function pairRecallGameReducer(
           xp: 0,
           normalized: null,
           persistState: "idle",
+          // A previous session's authoritative outcome must not bleed into
+          // the new one: the results row prefers `authoritativeXp`, so stale
+          // values would show the old XP until (or unless) the new
+          // persistence round delivers its own outcome.
+          lastError: null,
+          authoritativeXp: null,
+          authoritativeCurrency: null,
+          authoritativeDeltas: [],
         },
         0,
         params.initialPairCount,

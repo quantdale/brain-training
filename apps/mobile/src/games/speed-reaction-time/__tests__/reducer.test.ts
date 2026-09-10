@@ -217,6 +217,31 @@ describe('tap', () => {
     expect(negative.stats.roundsPlayed).toBe(0);
     expect(negative.phase).toBe('go');
   });
+
+  it('rejects a tap at/after the response window (the expiry timer owns the resolution)', () => {
+    const params = SPEED_DIFFICULTY_PARAMS.normal;
+    const live = go(startSession(GO_SEED));
+
+    // Past the window: the round must stay live so `round-timeout` can resolve
+    // it as a timeout instead of a bogus slow reaction.
+    const late = speedGameReducer(live, { type: 'tap', rtMs: params.timeoutMs + 1 });
+    expect(late).toEqual(live);
+    expect(late.phase).toBe('go');
+    expect(late.stats.reactions).toEqual([]);
+
+    // Exactly at the deadline still counts (timer/dispatch boundary).
+    const atDeadline = speedGameReducer(live, { type: 'tap', rtMs: params.timeoutMs });
+    expect(atDeadline.phase).toBe('roundResult');
+    expect(atDeadline.stats.reactions).toEqual([params.timeoutMs]);
+
+    // A late tap on a NO-GO trial is NOT a no-go false start either: the
+    // withhold window expiry scores it as a correct withhold.
+    const noGoLive = go(startSession(findSeedWithNoGo('normal')));
+    expect(noGoLive.isNoGoRound).toBe(true);
+    const lateNoGo = speedGameReducer(noGoLive, { type: 'tap', rtMs: params.timeoutMs + 1 });
+    expect(lateNoGo).toEqual(noGoLive);
+    expect(lateNoGo.stats.falseStarts).toBe(0);
+  });
 });
 
 describe('false-start', () => {

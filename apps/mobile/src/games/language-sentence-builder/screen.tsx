@@ -47,7 +47,7 @@ import {
   createSentenceBuilderTutorialLifecycle,
 } from './hooks';
 import { sentenceBuilderReducer } from './reducer';
-import { normalizeSentenceBuilderResult } from './scoring';
+import { avgWordLengthFactor, normalizeSentenceBuilderResult } from './scoring';
 import {
   buildRawResult,
   buildSessionRecord,
@@ -153,11 +153,13 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     const resolvedParams = paramsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(difficulty, state.profile, state.stats.longestSentence);
 
-    // Compute avg word length factor from stats.
-    const avgWl = state.stats.roundsPlayed > 0
-      ? (state.stats.totalTaps / state.stats.roundsPlayed) / state.stats.roundsPlayed * 3
-      : 4;
-    const awlf = Math.min(1, Math.max(0, (avgWl - 3) / 5));
+    // Average sentence length across the played rounds (words per round),
+    // normalized by the shared scoring helper. `totalTaps` accumulates one
+    // wordCount per played round, so the factor is stable regardless of how
+    // many rounds the session contained.
+    const avgWordsPerRound =
+      state.stats.roundsPlayed > 0 ? state.stats.totalTaps / state.stats.roundsPlayed : 0;
+    const awlf = avgWordLengthFactor(avgWordsPerRound);
 
     const raw = buildRawResult({
       gameVersion: gameDefinition.gameVersion,
@@ -191,7 +193,9 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // Rating pipeline reads the final computed challenge from the record
+      // difficulty, not the SDK baseline profile (006r adaptive contract).
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,

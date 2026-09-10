@@ -207,7 +207,9 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // Rating pipeline reads the final computed challenge from the record
+      // difficulty, not the SDK baseline profile (006r adaptive contract).
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,

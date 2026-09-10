@@ -7,7 +7,7 @@ import { createInitialState } from '../types';
 import type { SpatialGridNavGameState } from '../types';
 import { generateSession } from '../generator';
 import { perfectSessionScore } from '../scoring';
-import { DIFFICULTY_PARAMS, paramsFromProfile, resolveSpatialGridNavDifficulty } from '../difficulty';
+import { ADAPTIVE_PARAMS, DIFFICULTY_PARAMS, paramsFromProfile, resolveSpatialGridNavDifficulty } from '../difficulty';
 
 function startSession(
   seed: string,
@@ -169,6 +169,31 @@ describe('next-round', () => {
   });
 });
 
+describe('adaptive escalation', () => {
+  it('hardens the grid and command range on a pass and eases them on a failure', () => {
+    // Regression: adaptive next-round read the pre-generated baseline plan,
+    // so the declared bounds never moved and the final challenge rating was
+    // always the 0.5 baseline.
+    let state = startSession('adapt-escalate', 'adaptive');
+    expect(paramsFromProfile(state.profile!).gridSide).toBe(ADAPTIVE_PARAMS.gridSide);
+
+    state = answerCorrectly(state);
+    state = gameReducer(state, { type: 'next-round' });
+    expect(state.profile!.parameters.gridSide).toBe(ADAPTIVE_PARAMS.gridSide! + 1);
+    expect(state.profile!.parameters.maxCommandCount).toBe(
+      ADAPTIVE_PARAMS.maxCommandCount! + 1,
+    );
+    expect(state.round!.commandCount).toBeLessThanOrEqual(
+      ADAPTIVE_PARAMS.maxCommandCount! + 1,
+    );
+
+    state = answerWrongly(state);
+    state = gameReducer(state, { type: 'next-round' });
+    expect(state.profile!.parameters.gridSide).toBe(ADAPTIVE_PARAMS.gridSide);
+    expect(state.profile!.parameters.maxCommandCount).toBe(ADAPTIVE_PARAMS.maxCommandCount);
+  });
+});
+
 describe('pause / resume', () => {
   it('pauses only during a session and resumes', () => {
     const inIntro = gameReducer(createInitialState(), { type: 'pause' });
@@ -285,5 +310,35 @@ describe('QA force hooks (state shaping)', () => {
       patch: { seed: 'nope' },
     });
     expect(mid.seedOverride).toBeNull();
+  });
+});
+
+describe('restart hygiene', () => {
+  it('clears the previous session persistence/authoritative fields on start-session', () => {
+    let state = startSession('restart-hygiene');
+    state = gameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = gameReducer(state, { type: 'persistence-failed', message: 'boom' });
+    expect(state.authoritativeXp).toBe(137);
+    expect(state.persistState).toBe('failed');
+
+    state = gameReducer(state, {
+      type: 'start-session',
+      seed: 'restart-hygiene-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+
+    expect(state.persistState).toBe('idle');
+    expect(state.lastError).toBeNull();
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+    expect(state.stats.roundsPlayed).toBe(0);
+    expect(state.xp).toBe(0);
   });
 });

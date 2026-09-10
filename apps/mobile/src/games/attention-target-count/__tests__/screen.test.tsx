@@ -8,7 +8,7 @@ import type { TargetCountRound } from '../types';
 import { TARGET_COUNT_DIFFICULTY_PARAMS, escalatedDistractorClasses } from '../difficulty';
 import { generateRound } from '../generator';
 import type { SessionPersistence } from '../session';
-import type { CompleteSessionResult } from '@/db';
+import type { CompleteSessionInput, CompleteSessionResult } from '@/db';
 import {
   createInMemoryTutorialStore,
   createRng,
@@ -259,5 +259,73 @@ describe('TargetCountScreen', () => {
     } finally {
       setLiveAudioHaptics(noopAudioHaptics);
     }
+  });
+
+  it('restart after a QA-forced round-1 loss restarts the full round window', async () => {
+    const persistSession: SessionPersistence = {
+      completeSession: jest.fn(async () => ({
+        session: {} as never,
+        ledgerEntry: null,
+        balance: 0,
+        rating: null,
+        completionOutcome: null,
+      })),
+    };
+    await render(
+      <TargetCountScreen
+        tutorialStore={completedStore()}
+        sessionSeed="restart-ref"
+        persistSession={persistSession}
+      />,
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await act(async () => {
+      jest.advanceTimersByTime(3000);
+    });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-lose')));
+    expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeTruthy();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'restart')));
+    expect(screen.getByTestId(testId(GAME_ID, 'show-grid'))).toBeTruthy();
+    // 6000ms into a fresh normal-level window (9000ms) the round must still be
+    // live; the pre-fix accumulator carried 3000ms over from before the restart.
+    await act(async () => {
+      jest.advanceTimersByTime(6000);
+    });
+    expect(screen.getByTestId(testId(GAME_ID, 'show-grid'))).toBeTruthy();
+  });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const persistSession: SessionPersistence = {
+      completeSession: jest.fn(async (input: CompleteSessionInput) => ({
+        session: input.session,
+        ledgerEntry: null,
+        balance: 0,
+        rating: null,
+        completionOutcome: null,
+      })),
+    };
+    await render(
+      <TargetCountScreen
+        tutorialStore={completedStore()}
+        sessionSeed="adaptive-rating"
+        persistSession={persistSession}
+      />,
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    const completeSession = persistSession.completeSession as jest.Mock;
+    expect(completeSession).toHaveBeenCalledTimes(1);
+    const input = completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as { challengeRating: number };
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
   });
 });

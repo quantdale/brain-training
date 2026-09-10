@@ -88,6 +88,13 @@ export function flexibilityTaskSwitchReducer(
         xp: 0,
         normalized: null,
         persistState: "idle",
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -298,7 +305,10 @@ export function flexibilityTaskSwitchReducer(
           scoredPicks: state.stats.scoredPicks + countsRound,
           switchPlayed: state.stats.switchPlayed + (isSwitch ? 1 : 0),
           switchCorrect: state.stats.switchCorrect,
-          repeatPlayed: state.stats.repeatPlayed + (isSwitch ? 0 : 1),
+          // Only an actually counted in-flight repeat trial adds to the
+          // repeat bucket; force-losing from `trialResult` adds nothing (the
+          // scored trial is already reflected in the stats).
+          repeatPlayed: state.stats.repeatPlayed + (countsRound === 1 && !isSwitch ? 1 : 0),
           repeatCorrect: state.stats.repeatCorrect,
           switchRtSum: state.stats.switchRtSum,
           switchRtCount: state.stats.switchRtCount,

@@ -456,4 +456,41 @@ describe('SymbolTrackerScreen', () => {
     expect((input.session.rawResult as SymbolTrackerRawResult).forced).toBe(true);
     expect(input.session.normalizedResult).toBe(0);
   });
+
+  it('restart after a QA-forced round-1 loss restarts the full observe window', async () => {
+    const { clock } = await renderScreen({ seed: 'restart-ref' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await advanceTime(clock, 2000); // partway through the 2200ms observe window
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-lose')));
+    expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'restart')));
+    expect(screen.getByTestId(testId(GAME_ID, 'observe-board'))).toBeOnTheScreen();
+
+    // 1000ms into a fresh observe window the board must still be shown; the
+    // pre-fix accumulator carried 2000ms over from before the restart.
+    await advanceTime(clock, 1000);
+    expect(screen.getByTestId(testId(GAME_ID, 'observe-board'))).toBeOnTheScreen();
+    expect(screen.queryByTestId(testId(GAME_ID, 'respond-board'))).toBeNull();
+  });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as SymbolTrackerRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
+  });
 });

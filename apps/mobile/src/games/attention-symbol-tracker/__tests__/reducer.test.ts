@@ -455,3 +455,46 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+
+describe('restart hygiene', () => {
+  it('clears the previous session persistence/authoritative fields on start-session', () => {
+    let state = startSession('restart-hygiene');
+    state = symbolTrackerGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = symbolTrackerGameReducer(state, { type: 'persistence-failed', message: 'boom' });
+
+    state = symbolTrackerGameReducer(state, {
+      type: 'start-session',
+      seed: 'restart-hygiene-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+
+    expect(state.persistState).toBe('idle');
+    expect(state.lastError).toBeNull();
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+    expect(state.stats.roundsPlayed).toBe(0);
+    expect(state.xp).toBe(0);
+  });
+
+  it('reproduces round 1 from (seed, difficulty) after a restart', () => {
+    let state = startSession('restart-repro');
+    state = symbolTrackerGameReducer(state, { type: 'qa/force-win' });
+    const restarted = symbolTrackerGameReducer(state, {
+      type: 'start-session',
+      seed: 'restart-repro',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    const fresh = startSession('restart-repro', 'normal', 'fresh');
+    expect(restarted.observeBoard).toEqual(fresh.observeBoard);
+    expect(restarted.respondBoard).toEqual(fresh.respondBoard);
+    expect(restarted.trackedSymbolIds).toEqual(fresh.trackedSymbolIds);
+  });
+});

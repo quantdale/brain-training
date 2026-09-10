@@ -12,7 +12,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 
-import { NUMBER_LINE_DIFFICULTY_PARAMS } from '../difficulty';
+import { ADAPTIVE_PARAMS, NUMBER_LINE_DIFFICULTY_PARAMS } from '../difficulty';
 import { generateSessionRounds } from '../generator';
 import NumberLineScreen from '../screen';
 import { seedToNumber } from '../session';
@@ -254,5 +254,35 @@ describe('NumberLineScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect((input.session.rawResult as NumberLineRawResult).forced).toBe(true);
     expect(input.session.normalizedResult).toBe(0);
+  });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+
+    // An exact adaptive round-0 tap tightens the tolerance from the neutral
+    // 5%, moving the final computed rating off 0.5.
+    const adaptiveRound = generateSessionRounds(createRng('adaptive-rating'), ADAPTIVE_PARAMS)[0];
+    const adaptiveX =
+      ((adaptiveRound.target - ADAPTIVE_PARAMS.lineMin) /
+        (ADAPTIVE_PARAMS.lineMax - ADAPTIVE_PARAMS.lineMin)) *
+      LINE_WIDTH;
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'number-line')), {
+      nativeEvent: { locationX: adaptiveX },
+    });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as NumberLineRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
   });
 });

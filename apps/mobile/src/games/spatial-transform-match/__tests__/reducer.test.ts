@@ -94,6 +94,30 @@ describe('start-session', () => {
   });
 });
 
+describe('restart determinism', () => {
+  it('round 0 is identical after a mid-session restart with the same seed', () => {
+    const fresh = startSession('again');
+    // Play into the session so prevSourcePattern/prevTransformType are populated.
+    let mid = advanceSource(fresh);
+    mid = answerCorrectly(mid);
+    mid = gameReducer(mid, { type: 'next-round' });
+    expect(mid.roundIndex).toBe(1);
+    // Restarting must not leak the previous round's anchors into round 0.
+    const restarted = gameReducer(mid, {
+      type: 'start-session',
+      seed: 'again',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(restarted.roundIndex).toBe(0);
+    expect(restarted.sourcePattern).toEqual(fresh.sourcePattern);
+    expect(restarted.options).toEqual(fresh.options);
+    expect(restarted.correctOptionIndex).toBe(fresh.correctOptionIndex);
+    expect(restarted.prevSourcePattern).toBeNull();
+    expect(restarted.prevTransformType).toBeNull();
+  });
+});
+
 describe('source-tick', () => {
   it('transitions from source to choice', () => {
     const state = startSession('r');

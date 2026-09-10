@@ -19,6 +19,7 @@
 import { createRng, isDifficultyLevel } from '@/sdk';
 
 import {
+  adaptiveRoundParams,
   orderPathParamsFromProfile,
   resolveOrderPathDifficulty,
 } from './difficulty';
@@ -91,8 +92,8 @@ export function orderPathGameReducer(
         selectedItem: null,
         roundCorrect: null,
         roundOutcome: null,
-        roundStartedAtMs: action.startedAtMs,
-        roundDeadlineMs: action.startedAtMs + params.roundTimeMs,
+        roundStartedAtMs: action.nowMs,
+        roundDeadlineMs: action.nowMs + params.roundTimeMs,
         roundRemainingMs: null,
         roundElapsedMs: null,
         stats: { ...INITIAL_STATS },
@@ -100,6 +101,10 @@ export function orderPathGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -216,11 +221,17 @@ export function orderPathGameReducer(
       if (nextIndex >= params.rounds) {
         return { ...state, phase: 'results', roundOutcome: null };
       }
+      // Adaptive sessions escalate/ease the next round's board from the
+      // previous outcome; fixed levels keep their params. The resolved
+      // profile carries the escalated params so the final challenge rating
+      // reflects where the player actually ended up (campaign 006r spec).
+      const passed = state.roundOutcome === 'correct';
+      const nextParams = adaptiveRoundParams(state.difficulty, params, passed);
       const round = generateRound({
         rng: createRng(state.seed),
         roundIndex: nextIndex,
-        itemCount: params.itemCount,
-        edgeDensityTarget: params.edgeDensityTarget,
+        itemCount: nextParams.itemCount,
+        edgeDensityTarget: nextParams.edgeDensityTarget,
         prevSolution: state.currentRound?.solution ?? null,
       });
       return {
@@ -228,6 +239,14 @@ export function orderPathGameReducer(
         phase: 'round',
         roundIndex: nextIndex,
         currentRound: round,
+        profile: {
+          ...state.profile,
+          parameters: {
+            ...state.profile.parameters,
+            itemCount: nextParams.itemCount,
+            edgeDensityTarget: nextParams.edgeDensityTarget,
+          },
+        },
         placedItems: [],
         selectedItem: null,
         roundCorrect: null,

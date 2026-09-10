@@ -362,3 +362,54 @@ describe("GridRecallScreen", () => {
     expect(input.session.normalizedResult).toBe(0);
   });
 });
+
+
+describe("restart window reset (campaign 023 audit)", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("restart after a QA force-lose mid-study restores the full study window", async () => {
+    const { clock } = await renderScreen({ seed: "restart-study-window" });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+    await advanceTime(clock, 1000); // drain part of the study window
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-lose")));
+    expect(screen.getByTestId(testId(GAME_ID, "results"))).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "restart")));
+    expect(screen.getByTestId(testId(GAME_ID, "study-board"))).toBeOnTheScreen();
+
+    // A restart must grant a FULL fresh window: the old drained 1000ms must
+    // not count toward the new session's study time.
+    await advanceTime(clock, STUDY_MS - 300);
+    expect(screen.getByTestId(testId(GAME_ID, "study-board"))).toBeOnTheScreen();
+    expect(screen.queryByTestId(testId(GAME_ID, "input-board"))).toBeNull();
+
+    // …and the window still expires on schedule afterwards.
+    await advanceTime(clock, 300);
+    expect(screen.getByTestId(testId(GAME_ID, "input-board"))).toBeOnTheScreen();
+  });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as GridRecallRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
+  });
+});

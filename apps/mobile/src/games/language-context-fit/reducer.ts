@@ -104,6 +104,14 @@ export function contextFitGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 

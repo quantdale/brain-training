@@ -194,7 +194,11 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // The record's structured difficulty is authoritative for the shared
+      // rating pipeline, so it must carry the final computed challenge rating
+      // (SDK difficulty contract: adaptive starts at 0.5 and the game adjusts
+      // it during play). The raw result keeps the same value for provenance.
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,

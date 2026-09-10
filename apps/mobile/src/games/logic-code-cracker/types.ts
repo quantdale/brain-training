@@ -182,6 +182,8 @@ export interface CodeCrackerGameState {
   currentGuess: readonly number[];
   /** Guess history for the current round. */
   roundGuesses: readonly GuessEntry[];
+  /** Full per-round guess history for diagnostics (round → guesses → feedback). */
+  guessHistory: readonly (readonly GuessEntry[])[];
   /** Number of guesses used in the current round. */
   guessesUsed: number;
   /** Whether the current round was solved. */
@@ -223,6 +225,7 @@ export function createInitialCodeCrackerState(): CodeCrackerGameState {
     secretCode: [],
     currentGuess: [],
     roundGuesses: [],
+    guessHistory: [],
     guessesUsed: 0,
     roundSolved: false,
     roundOutcome: null,

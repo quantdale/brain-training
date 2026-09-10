@@ -154,3 +154,12 @@ describe('normalizeTargetCountResult', () => {
     expect(result.value).toBeCloseTo(1);
   });
 });
+
+describe('roundScore degenerate budget', () => {
+  it('guards a zero/non-positive round budget instead of returning NaN', () => {
+    expect(roundScore(true, 0, 0)).toBe(100);
+    expect(roundScore(true, -500, 0)).toBe(100);
+    expect(roundScore(true, Number.NaN, 0)).toBe(100);
+    expect(Number.isNaN(roundScore(true, 0, 0))).toBe(false);
+  });
+});

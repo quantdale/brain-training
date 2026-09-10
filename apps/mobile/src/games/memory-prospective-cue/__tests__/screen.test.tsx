@@ -245,4 +245,59 @@ describe("SignalWatchScreen", () => {
     await advanceTime(ITEM_MS + TICK_MS);
     expect(screen.getByTestId(testId(GAME_ID, "round-failed"))).toBeTruthy();
   });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as { challengeRating: number };
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
+  });
+});
+
+
+describe("restart window reset (campaign 023 audit)", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    setLiveAudioHaptics(noopAudioHaptics);
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+    setLiveAudioHaptics(noopAudioHaptics);
+  });
+
+  it("restart after a QA force-lose mid-stream restores the full item window", async () => {
+    await renderScreen({ seed: "restart-window-seed" });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "briefing-start")));
+    expect(progressLabel()).toBe(`Item 1 of ${PARAMS.streamLen}`);
+
+    await advanceTime(1000); // drain part of item 1's window
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-lose")));
+    expect(screen.getByTestId(testId(GAME_ID, "results"))).toBeTruthy();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "restart")));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "briefing-start")));
+    expect(progressLabel()).toBe(`Item 1 of ${PARAMS.streamLen}`);
+
+    // A restart must grant a FULL fresh window: the old drained 1000ms must
+    // not count toward the new session's first item.
+    await advanceTime(ITEM_MS - 300);
+    expect(progressLabel()).toBe(`Item 1 of ${PARAMS.streamLen}`);
+
+    // …and the window still expires on schedule afterwards.
+    await advanceTime(400);
+    expect(progressLabel()).toBe(`Item 2 of ${PARAMS.streamLen}`);
+  });
 });

@@ -88,7 +88,10 @@ function resolveEstimate(
     return state;
   }
   const tolSpan = toleranceSpan(params);
-  const timedOut = estimateValue === null || elapsedMs >= params.budgetMs;
+  // Non-positive budgets are untimed (the ticker and the `estimate` guard both
+  // treat them that way); only positive budgets can expire a round.
+  const timedOut =
+    estimateValue === null || (params.budgetMs > 0 && elapsedMs >= params.budgetMs);
   const outcome = timedOut ? 'timeout' : isHit(Math.abs(estimateValue - round.target), tolSpan)
     ? 'hit'
     : 'miss';
@@ -148,6 +151,13 @@ export function numberLineGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 

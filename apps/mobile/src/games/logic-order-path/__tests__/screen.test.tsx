@@ -200,8 +200,8 @@ describe('OrderPathScreen', () => {
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(rounds.length * ANSWER_MS); // active play time only
     expect(input.session.xp).toBe(0); // no-op hook in Phase 1
-    // accuracy 1 × (0.5 + 0.5 × (1 − (2500/125000)/5)) = 0.998
-    expect(input.session.normalizedResult).toBeCloseTo(0.998);
+    // accuracy 1 × (0.5 + 0.5 × (1 − 2500/125000)) = 0.99
+    expect(input.session.normalizedResult).toBeCloseTo(0.99);
     const raw = input.session.rawResult as OrderPathRawResult;
     expect(raw.score).toBe(5 * 149);
     expect(raw.bestRoundTimeMs).toBe(ANSWER_MS);
@@ -295,6 +295,49 @@ describe('OrderPathScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect((input.session.rawResult as OrderPathRawResult).forced).toBe(true);
     expect(input.session.normalizedResult).toBe(1);
+  });
+
+  it('persists the wall-clock start stamp, not the monotonic round clock', async () => {
+    // Regression: the screen passed clock.now() (monotonic, ~0 here) as the
+    // session start, so the stored `startedAt` / diagnostic `startedAtMs`
+    // were bogus monotonic values instead of wall-clock epochs.
+    const { persister } = await renderScreen({ seed: 'wall-clock-stamp' });
+    const wallBefore = Date.now();
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const wallAfter = Date.now();
+    expect(input.session.startedAt).toBeGreaterThanOrEqual(wallBefore);
+    expect(input.session.startedAt).toBeLessThanOrEqual(wallAfter);
+    const raw = input.session.rawResult as OrderPathRawResult;
+    expect(raw.diagnosticMetadata.startedAtMs).toBeGreaterThanOrEqual(wallBefore);
+    expect(raw.diagnosticMetadata.startedAtMs).toBeLessThanOrEqual(wallAfter);
+  });
+
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating consumed by the rating
+    // pipeline.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as OrderPathRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    // Baseline adaptive board (5 items / 0.6 density) maps to ~0.536.
+    expect(raw.challengeRating).toBeGreaterThan(0.5);
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
   });
 
   it('force-lose ends the session as a failed run', async () => {

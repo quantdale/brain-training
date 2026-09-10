@@ -60,7 +60,12 @@ export function normalizeOrderPathResult(
   _context: NormalizeContext,
 ): NormalizedPerformance {
   const accuracy = accuracyOf(raw.roundsCorrect, raw.roundsPlayed);
-  const speed = speedScoreOf(raw.totalElapsedMs / Math.max(1, raw.totalBudgetMs), raw.roundsPlayed);
+  // Per-round budgets are equal within a session, so the session-level
+  // totalElapsed/totalBudget IS the average per-round time ratio. Clamping
+  // 1 − ratio is the documented speed component. (A prior double division by
+  // roundsPlayed inflated every speed score; see the scoring regressions.)
+  const speed =
+    raw.totalBudgetMs > 0 ? clamp01(1 - raw.totalElapsedMs / raw.totalBudgetMs) : 0;
   const value = clamp01(accuracy * (0.5 + 0.5 * speed));
   return { value, scale: '0..1', raw: { ...raw } };
 }

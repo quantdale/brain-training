@@ -314,3 +314,67 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+describe('QA force-loss from the flip cue', () => {
+  it('counts no in-flight trial: the cue answers nothing', () => {
+    // easy: 10 trials, a flip every 5; completing five trials lands in flipCue.
+    let state = startSession('qa-flip-cue', 'easy');
+    for (let i = 0; i < 5; i += 1) {
+      const trial = state.trials[state.trialIndex];
+      state = colorStroopGameReducer(state, {
+        type: 'submit-answer',
+        answer: trial.correctAnswer,
+        responseTimeMs: 100,
+      });
+      state = colorStroopGameReducer(state, { type: 'next-trial' });
+    }
+    expect(state.phase).toBe('flipCue');
+    const before = state.stats;
+
+    const forced = colorStroopGameReducer(state, { type: 'qa/force-lose' });
+    expect(forced.phase).toBe('results');
+    expect(forced.forced).toBe(true);
+    expect(forced.stats.trialsPlayed).toBe(before.trialsPlayed);
+    expect(forced.stats.correctTrials).toBe(before.correctTrials);
+    expect(forced.stats.streak).toBe(before.streak);
+  });
+});
+
+describe('QA force-win timing', () => {
+  it('records a wholly instant run with no leftover response times', () => {
+    const started = startSession('qa-win-rt');
+    const answered = colorStroopGameReducer(started, {
+      type: 'submit-answer',
+      answer: started.trials[0].correctAnswer,
+      responseTimeMs: 900,
+    });
+    expect(answered.stats.totalResponseTimeMs).toBe(900);
+
+    const forced = colorStroopGameReducer(answered, { type: 'qa/force-win' });
+    expect(forced.stats.trialsPlayed).toBe(15);
+    expect(forced.stats.totalResponseTimeMs).toBe(0);
+    expect(forced.stats.fastestResponseMs).toBe(0);
+  });
+});
+
+describe('restart resets the previous session outcome', () => {
+  it('clears the authoritative completion outcome when a new session starts', () => {
+    let state = startSession('stale-outcome-1');
+    state = colorStroopGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 40,
+      currency: 7,
+      deltas: [{ domain: 'flexibility', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    expect(state.authoritativeXp).toBe(40);
+
+    state = colorStroopGameReducer(state, {
+      type: 'start-session',
+      seed: 'stale-outcome-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+  });
+});

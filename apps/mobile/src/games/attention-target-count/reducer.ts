@@ -43,10 +43,11 @@ export function targetCountGameReducer(
       const profile = resolveTargetCountDifficulty(state.difficulty);
       const params = targetCountParamsFromProfile(profile);
       const rng = createRng(action.seed);
-      // Streak is 0 at session start: round 1 always plays at tier base.
+      // Streak is 0 at session start: round 1 always plays at tier base, even
+      // on a restart from results (the previous session's streak must not leak).
       const effectiveParams = {
         ...params,
-        distractorClasses: escalatedDistractorClasses(params, state.stats.streak),
+        distractorClasses: escalatedDistractorClasses(params, INITIAL_STATS.streak),
       };
       const currentRound = generateRound({
         rng,
@@ -76,6 +77,10 @@ export function targetCountGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 

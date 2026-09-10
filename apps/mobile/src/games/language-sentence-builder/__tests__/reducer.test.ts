@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { DifficultyLevel } from '@/sdk';
 
 import { sentenceBuilderReducer } from '../reducer';
+import { paramsFromProfile } from '../difficulty';
 import { createInitialState } from '../types';
 import type { SentenceBuilderState } from '../types';
 
@@ -331,5 +332,127 @@ describe('QA force hooks (state shaping)', () => {
       patch: { seed: 'nope' },
     });
     expect(mid.seedOverride).toBeNull();
+  });
+});
+
+describe('restart / replay isolation (audit regression)', () => {
+  it('clears the previous session’s authoritative outcome and error state', () => {
+    let state = startSession('restart');
+    state = sentenceBuilderReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = sentenceBuilderReducer(state, { type: 'persistence-failed', message: 'boom' });
+    const restarted = sentenceBuilderReducer(state, {
+      type: 'start-session',
+      seed: 'restart-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(restarted.authoritativeXp).toBeNull();
+    expect(restarted.authoritativeCurrency).toBeNull();
+    expect(restarted.authoritativeDeltas).toEqual([]);
+    expect(restarted.lastError).toBeNull();
+  });
+});
+
+describe('no repeated sentences within a session (audit regression)', () => {
+  it('never deals the same sentence twice across seeds and levels', () => {
+    for (const level of ['easy', 'normal', 'hard', 'expert', 'adaptive'] as const) {
+      for (let s = 0; s < 20; s += 1) {
+        let state = startSession(`dup-${level}-${s}`, level);
+        const texts = [state.scrambled!.original.join(' ')];
+        let guard = 0;
+        while (state.phase !== 'results' && guard < 20) {
+          state = solveRound(state);
+          state = sentenceBuilderReducer(state, { type: 'next-round' });
+          if (state.phase === 'puzzle') {
+            texts.push(state.scrambled!.original.join(' '));
+          }
+          guard += 1;
+        }
+        expect(state.phase).toBe('results');
+        expect(new Set(texts).size).toBe(texts.length);
+      }
+    }
+  });
+});
+
+describe('timer expiry during pause (audit regression)', () => {
+  it('does not fail the round when a stale timer fires while paused', () => {
+    let state = startSession('timer-pause');
+    state = sentenceBuilderReducer(state, { type: 'pause' });
+    state = sentenceBuilderReducer(state, { type: 'timer-expired' });
+    expect(state.phase).toBe('puzzle');
+    expect(state.paused).toBe(true);
+    expect(state.stats.roundsPlayed).toBe(0);
+  });
+});
+
+describe('word stats accounting (audit regression)', () => {
+  it('credits each played sentence once, not once per intermediate tap', () => {
+    const state = startSession('stats');
+    const wordCount = state.scrambled!.original.length;
+    const solved = solveRound(state);
+    expect(solved.stats.totalTaps).toBe(wordCount);
+    expect(solved.stats.correctTaps).toBe(wordCount);
+  });
+
+  it('records the sentence words but zero correct words for a timeout with zero taps', () => {
+    let state = startSession('stats-timeout');
+    const wordCount = state.scrambled!.original.length;
+    state = sentenceBuilderReducer(state, { type: 'timer-expired' });
+    expect(state.stats.totalTaps).toBe(wordCount);
+    expect(state.stats.correctTaps).toBe(0);
+  });
+});
+
+describe('adaptive word-range escalation (audit regression)', () => {
+  it('tightens the word range upward after each passed adaptive round', () => {
+    let state = startSession('adaptive-range', 'adaptive');
+    expect(paramsFromProfile(state.profile!).minWords).toBe(4);
+    expect(paramsFromProfile(state.profile!).maxWords).toBe(12);
+
+    state = solveRound(state);
+    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    expect(paramsFromProfile(state.profile!).minWords).toBe(5);
+    expect(paramsFromProfile(state.profile!).maxWords).toBe(12);
+
+    state = solveRound(state);
+    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    expect(paramsFromProfile(state.profile!).minWords).toBe(6);
+  });
+
+  it('holds the range after a failed adaptive round', () => {
+    let state = startSession('adaptive-hold', 'adaptive');
+    state = solveRound(state);
+    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    const afterPass = paramsFromProfile(state.profile!);
+
+    // Tap a word that no accepted order can start with → the round fails.
+    const firstWords = new Set(
+      state.scrambled!.acceptedOrders.map((order) => order[0].toLowerCase()),
+    );
+    const wrongIdx = state.scrambled!.scrambled.findIndex(
+      (word) => !firstWords.has(word.toLowerCase()),
+    );
+    expect(wrongIdx).toBeGreaterThanOrEqual(0);
+    state = sentenceBuilderReducer(state, { type: 'tap-word', index: wrongIdx });
+    expect(state.roundOutcome).toBe('failed');
+    state = sentenceBuilderReducer(state, { type: 'next-round' });
+
+    const afterFail = paramsFromProfile(state.profile!);
+    expect(afterFail.minWords).toBe(afterPass.minWords);
+    expect(afterFail.maxWords).toBe(afterPass.maxWords);
+  });
+
+  it('does not change fixed-level ranges', () => {
+    let state = startSession('fixed-range', 'normal');
+    state = solveRound(state);
+    state = sentenceBuilderReducer(state, { type: 'next-round' });
+    expect(paramsFromProfile(state.profile!).minWords).toBe(5);
+    expect(paramsFromProfile(state.profile!).maxWords).toBe(7);
   });
 });

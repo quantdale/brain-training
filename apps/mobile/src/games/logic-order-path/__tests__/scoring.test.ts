@@ -116,8 +116,11 @@ describe('normalizeOrderPathResult', () => {
   });
 
   it('blends accuracy with speed (documented formula)', () => {
-    // accuracy 3/5 = 0.6; totalElapsed/totalBudget = 0.5
-    // speed = 1 − 0.5/5 = 0.9 → value = 0.6 × (0.5 + 0.5 × 0.9) = 0.57
+    // accuracy 3/5 = 0.6; per-round budgets are equal, so the average time
+    // ratio is totalElapsed/totalBudget = 0.5; speed = 1 − 0.5 = 0.5
+    // → value = 0.6 × (0.5 + 0.5 × 0.5) = 0.45.
+    // Regression: the average ratio was previously divided by the round count
+    // a second time (speed 0.9), inflating every speed score.
     const mixed = normalizeOrderPathResult(
       raw({
         roundsCorrect: 3,
@@ -127,7 +130,21 @@ describe('normalizeOrderPathResult', () => {
       }),
       context,
     );
-    expect(mixed.value).toBeCloseTo(0.57);
+    expect(mixed.value).toBeCloseTo(0.45);
+  });
+
+  it('scores a full-budget correct session at the accuracy floor (speed 0)', () => {
+    // 3 of 5 correct, every round consumed the whole budget: avg ratio 1.
+    // speed = 0 → value = 0.6 × 0.5 = 0.3 (the buggy double-division scored 0.54).
+    const slow = normalizeOrderPathResult(
+      raw({
+        roundsCorrect: 3,
+        accuracy: 0.6,
+        totalElapsedMs: 125_000,
+      }),
+      context,
+    );
+    expect(slow.value).toBeCloseTo(0.3);
   });
 
   it('never exceeds 1 even for out-of-range raw timings', () => {

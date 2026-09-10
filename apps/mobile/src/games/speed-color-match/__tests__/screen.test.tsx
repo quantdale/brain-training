@@ -273,6 +273,26 @@ describe('SpeedColorMatchScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'trial-wrong'))).toBeOnTheScreen();
   });
 
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final rating read by the shared rating pipeline.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as SpeedColorMatchRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    // Adaptive base ratio 0.4 over [0.2, 0.8] → challenge 1/3.
+    expect(raw.challengeRating).toBeCloseTo(1 / 3);
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+  });
+
   it('force-win ends the session as a perfect run and marks it forced', async () => {
     const { persister } = await renderScreen({ seed: 'qa-win' });
 

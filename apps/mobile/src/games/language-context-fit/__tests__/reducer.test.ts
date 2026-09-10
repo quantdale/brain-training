@@ -155,3 +155,27 @@ describe('round generation helper', () => {
     expect(round.options[round.correctIndex]).toBe(round.correctWord);
   });
 });
+
+describe('restart / replay isolation (audit regression)', () => {
+  it('clears the previous session’s authoritative outcome and error state', () => {
+    let state = started();
+    state = contextFitGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = contextFitGameReducer(state, { type: 'persistence-failed', message: 'boom' });
+    const restarted = contextFitGameReducer(state, {
+      type: 'start-session',
+      seed: 'restart-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+      nowMs: 2000,
+    });
+    expect(restarted.authoritativeXp).toBeNull();
+    expect(restarted.authoritativeCurrency).toBeNull();
+    expect(restarted.authoritativeDeltas).toEqual([]);
+    expect(restarted.lastError).toBeNull();
+  });
+});

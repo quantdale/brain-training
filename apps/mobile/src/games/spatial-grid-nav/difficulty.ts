@@ -143,6 +143,43 @@ export function paramsFromProfile(profile: DifficultyProfile): SpatialGridNavDif
 }
 
 /**
+ * Grid side of the next round. Fixed levels always use the same side;
+ * adaptive moves ±1 on a pass/fail within [minGridSide, maxGridSide] (a pass
+ * hardens the board, a failure eases it).
+ */
+export function nextGridSide(
+  prevGridSide: number,
+  passed: boolean,
+  level: DifficultyLevel,
+  params: SpatialGridNavDifficultyParams,
+): number {
+  if (level !== 'adaptive') {
+    return params.gridSide;
+  }
+  const min = params.minGridSide ?? params.gridSide;
+  const max = params.maxGridSide ?? params.gridSide;
+  return Math.min(max, Math.max(min, prevGridSide + (passed ? 1 : -1)));
+}
+
+/**
+ * Maximum command count of the next round. Fixed levels always use the same
+ * count; adaptive moves ±1 on a pass/fail within [minMaxCommand, maxMaxCommand].
+ */
+export function nextMaxCommandCount(
+  prevMaxCommandCount: number,
+  passed: boolean,
+  level: DifficultyLevel,
+  params: SpatialGridNavDifficultyParams,
+): number {
+  if (level !== 'adaptive') {
+    return params.maxCommandCount;
+  }
+  const min = params.minMaxCommand ?? params.maxCommandCount;
+  const max = params.maxMaxCommand ?? params.maxCommandCount;
+  return Math.min(max, Math.max(min, prevMaxCommandCount + (passed ? 1 : -1)));
+}
+
+/**
  * Final challenge rating of a session. Fixed levels report the SDK default
  * rating; adaptive reports the final grid side mapped linearly into [0, 1]
  * over [minGridSide, maxGridSide].

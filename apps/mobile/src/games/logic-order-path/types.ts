@@ -120,7 +120,15 @@ export interface QaForceStatePatch extends Readonly<Record<string, unknown>> {
 
 export type OrderPathAction =
   | { type: 'select-difficulty'; level: DifficultyLevel }
-  | { type: 'start-session'; seed: string; sessionId: string; startedAtMs: number }
+  | {
+      type: 'start-session';
+      seed: string;
+      sessionId: string;
+      /** Wall-clock session start stamp (persisted diagnostics only). */
+      startedAtMs: number;
+      /** Monotonic clock value used for round-1 timing. */
+      nowMs: number;
+    }
   | { type: 'select-item'; item: string; nowMs: number }
   | { type: 'expire-round'; nowMs: number }
   | { type: 'next-round'; nowMs: number }

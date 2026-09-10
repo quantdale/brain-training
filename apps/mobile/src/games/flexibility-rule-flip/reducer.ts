@@ -89,6 +89,13 @@ export function flexibilityRuleFlipReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -266,7 +273,10 @@ export function flexibilityRuleFlipReducer(
       const isSwitch = countsRound === 1 && state.round !== null ? state.round.isSwitch : false;
       const isUncued = countsRound === 1 && state.round !== null ? state.round.uncued === true : false;
       const switchPlayed = state.stats.switchPlayed + (isSwitch ? 1 : 0);
-      const repeatPlayed = state.stats.repeatPlayed + (isSwitch ? 0 : 1);
+      // Only an actually counted in-flight repeat trial adds to the repeat
+      // bucket; force-losing from `trialResult` adds nothing (the scored round
+      // is already reflected in the stats).
+      const repeatPlayed = state.stats.repeatPlayed + (countsRound === 1 && !isSwitch ? 1 : 0);
       return {
         ...state,
         phase: 'results',

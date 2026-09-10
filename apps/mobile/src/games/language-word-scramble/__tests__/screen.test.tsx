@@ -6,7 +6,7 @@
  * the sibling language-game screen tests (context-fit / word-chain).
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   createFakeClock,
   createInMemoryTutorialStore,
@@ -17,6 +17,7 @@ import type { CompleteSessionInput } from '@/db';
 
 import { generateRound } from '../generator';
 import {
+  ADAPTIVE_PARAMS,
   resolveWordScrambleDifficulty,
   wordScrambleParamsFromProfile,
 } from '../difficulty';
@@ -163,5 +164,39 @@ describe('WordScrambleScreen', () => {
     expect(screen.queryByTestId(testId(GAME_ID, 'submit'))).toBeNull();
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'resume')));
     expect(screen.getByTestId(testId(GAME_ID, 'submit'))).toBeOnTheScreen();
+  });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+
+    // One passed adaptive round escalates optionsCount 4 → 5, moving the
+    // final computed rating off the neutral baseline.
+    const round0 = generateRound({
+      rng: createRng('adaptive-rating'),
+      roundIndex: 0,
+      optionsCount: ADAPTIVE_PARAMS.optionsCount,
+      minWordLength: ADAPTIVE_PARAMS.minWordLength,
+      maxWordLength: ADAPTIVE_PARAMS.maxWordLength,
+      prevAnswer: null,
+    });
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, 'option', String(round0.correctIndex))),
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as { challengeRating: number };
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
   });
 });

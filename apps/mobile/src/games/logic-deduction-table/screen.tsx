@@ -155,7 +155,10 @@ export default function LogicDeductionScreen(
     const pausedDurationMs = session.pausedDurationMs();
     const completedAtMs = Date.now();
     const difficulty = state.difficulty ?? "normal";
-    const resolvedParams = logicDeductionParamsFromProfile(state.profile);
+    // `state.params` carries the adaptive escalation applied by the reducer;
+    // the resolved profile is the immutable session-start baseline.
+    const resolvedParams =
+      state.params ?? logicDeductionParamsFromProfile(state.profile);
     const challengeRating = sessionChallengeRating(
       difficulty,
       state.profile,
@@ -199,7 +202,20 @@ export default function LogicDeductionScreen(
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // The record's structured difficulty is authoritative for the shared
+      // rating pipeline: it carries the final computed challenge rating and
+      // the params of the final (escalated) adaptive round.
+      difficulty: {
+        ...state.profile,
+        challengeRating,
+        parameters: {
+          ...state.profile.parameters,
+          entityCount: resolvedParams.entityCount,
+          attributeCount: resolvedParams.attributeCount,
+          clueCount: resolvedParams.clueCount,
+          roundTimeMs: resolvedParams.roundTimeMs,
+        },
+      },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,

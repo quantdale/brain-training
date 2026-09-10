@@ -156,4 +156,22 @@ describe('ContextFitScreen', () => {
     await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'resume')));
     expect(screen.getByTestId(testId('language-context-fit', 'context'))).toBeOnTheScreen();
   });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'start')));
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as { challengeRating: number };
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
+  });
 });

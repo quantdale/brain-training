@@ -269,3 +269,26 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+
+describe('restart / replay isolation (audit regression)', () => {
+  it('clears the previous session’s authoritative outcome and error state', () => {
+    let state = startSession('restart');
+    state = wordScrambleGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    state = wordScrambleGameReducer(state, { type: 'persistence-failed', message: 'boom' });
+    const restarted = wordScrambleGameReducer(state, {
+      type: 'start-session',
+      seed: 'restart-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(restarted.authoritativeXp).toBeNull();
+    expect(restarted.authoritativeCurrency).toBeNull();
+    expect(restarted.authoritativeDeltas).toEqual([]);
+    expect(restarted.lastError).toBeNull();
+  });
+});

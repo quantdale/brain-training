@@ -90,6 +90,10 @@ export function speedGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -107,11 +111,19 @@ export function speedGameReducer(
       if (state.phase !== 'go' || state.profile === null || state.goAtMs === null) {
         return state;
       }
+      const params = speedParamsFromProfile(state.profile);
+      // A reading at/after the response window is not a reaction: the expiry
+      // timer owns the resolution (timeout on a GO round, a correct withhold on
+      // a NO-GO round). Mirrors the deadline guard in the other timed games
+      // (tap-rush/order-sweep/quick-compare) so an overdue timer callback can
+      // never let a late tap corrupt the reaction statistics.
+      if (action.rtMs > params.timeoutMs) {
+        return state;
+      }
       // NO-GO stimulus displayed: tapping it is a false-start-class penalty.
       // It consumes the shared budget (and can abort the session); no reaction
       // is recorded because inhibition, not speed, is what is scored here.
       if (state.isNoGoRound) {
-        const params = speedParamsFromProfile(state.profile);
         const falseStarts = state.stats.falseStarts + 1;
         const baseStats: SpeedStats = {
           ...state.stats,
@@ -143,7 +155,6 @@ export function speedGameReducer(
       if (action.rtMs < 0) {
         return state;
       }
-      const params = speedParamsFromProfile(state.profile);
       const reactions = [...state.stats.reactions, action.rtMs];
       const passed = action.rtMs <= params.passMs;
       const stats: SpeedStats = {

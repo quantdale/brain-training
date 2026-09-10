@@ -244,3 +244,64 @@ describe('qa force paths', () => {
     ).toBe(mid);
   });
 });
+
+
+describe('restart state hygiene', () => {
+  it('start-session clears the previous session authoritative outcome', () => {
+    let state = startSession('first', 'normal', 's1');
+    state = numberLineGameReducer(state, { type: 'qa/force-win' });
+    expect(state.phase).toBe('results');
+    state = numberLineGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 42,
+      currency: 7,
+      deltas: [{ domain: 'math', delta: 0.03, ratingAfter: 0.53 }],
+    });
+    expect(state.authoritativeXp).toBe(42);
+
+    state = numberLineGameReducer(state, {
+      type: 'start-session',
+      seed: 'second',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+
+    // A restarted session must not display the previous session's
+    // server-authoritative XP until its own persistence round completes.
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+  });
+});
+
+describe('untimed budget (budgetMs = 0)', () => {
+  it('scores an on-time estimate normally instead of an automatic timeout', () => {
+    let state = startSession('untimed');
+    const round = state.round!;
+    // A persisted/decoded profile may carry budgetMs 0 (the ticker and the
+    // estimate guard both treat non-positive budgets as untimed, so the
+    // resolution path must treat them the same way).
+    state = {
+      ...state,
+      roundBudgetMs: 0,
+      profile:
+        state.profile === null
+          ? null
+          : {
+              ...state.profile,
+              parameters: { ...state.profile.parameters, budgetMs: 0 },
+            },
+    };
+
+    state = numberLineGameReducer(state, {
+      type: 'estimate',
+      value: round.target,
+      atActiveMs: 500,
+    });
+
+    expect(state.phase).toBe('feedback');
+    expect(state.outcome).toBe('hit');
+    expect(state.stats.roundsHit).toBe(1);
+    expect(state.stats.score).toBe(150);
+  });
+});

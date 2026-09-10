@@ -540,3 +540,29 @@ describe("session end-to-end invariant", () => {
     void generateRound;
   });
 });
+
+
+describe("restart leak guards (campaign 023 audit)", () => {
+  it("start-session clears the previous session’s authoritative outcome and error", () => {
+    let state = startedState("normal", "auth-bleed");
+    state = reducer(state, { type: "qa/force-win" });
+    state = reducer(state, {
+      type: "completion-outcome-received",
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: "Memory", delta: 0.1, ratingAfter: 1001 }],
+    });
+    state = reducer(state, { type: "persistence-failed", message: "boom" });
+
+    const restarted = reducer(state, {
+      type: "start-session",
+      seed: "auth-bleed-2",
+      sessionId: `${GAME_ID}-sess-2`,
+      startedAtMs: 200,
+    });
+    expect(restarted.authoritativeXp).toBeNull();
+    expect(restarted.authoritativeCurrency).toBeNull();
+    expect(restarted.authoritativeDeltas).toEqual([]);
+    expect(restarted.lastError).toBeNull();
+  });
+});

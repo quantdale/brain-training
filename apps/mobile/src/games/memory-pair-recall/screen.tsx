@@ -97,9 +97,12 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
   const stateRef = useRef(state);
   // Per-round study timer baseline: tracks elapsed ACTIVE (non-paused) study
   // time so pausing freezes and resuming resumes the remaining window (not a
-  // restart).
+  // restart). Keyed by BOTH session id and round index: restarting must not
+  // inherit the previous session's partial study window (a restart from a QA
+  // force-lose at round 0 used to collide on roundIndex 0 alone).
   const studyElapsedRef = useRef(0);
   const studyRoundRef = useRef(-1);
+  const studySessionRef = useRef<string | null>(null);
 
   // Keep a ref of the latest state for event handlers (timers, guards).
   useEffect(() => {
@@ -140,13 +143,19 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
     state.phase === "roundResult";
   const isLastRound = state.roundIndex + 1 >= rounds;
 
-  // Reset the per-round study timer baseline when a new study round begins.
+  // Reset the per-round study timer baseline when a new study round begins
+  // (or a new session starts, even at round 0).
   useEffect(() => {
-    if (state.phase === "study" && studyRoundRef.current !== state.roundIndex) {
+    if (
+      state.phase === "study" &&
+      (studySessionRef.current !== state.sessionId ||
+        studyRoundRef.current !== state.roundIndex)
+    ) {
+      studySessionRef.current = state.sessionId;
       studyRoundRef.current = state.roundIndex;
       studyElapsedRef.current = 0;
     }
-  }, [state.phase, state.roundIndex]);
+  }, [state.phase, state.roundIndex, state.sessionId]);
 
   // Study pacing with freeze-and-continue: a window of `studyMs` of ACTIVE
   // (non-paused) time, accumulated in 100ms steps. While paused, the interval
@@ -250,7 +259,9 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // Rating pipeline reads the final computed challenge from the record
+      // difficulty, not the SDK baseline profile (006r adaptive contract).
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,

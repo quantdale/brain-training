@@ -65,6 +65,7 @@ export function codeCrackerGameReducer(
         secretCode,
         currentGuess: [],
         roundGuesses: [],
+        guessHistory: [],
         guessesUsed: 0,
         roundSolved: false,
         roundOutcome: null,
@@ -74,6 +75,10 @@ export function codeCrackerGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -144,6 +149,7 @@ export function codeCrackerGameReducer(
           ...state,
           phase: 'roundResult',
           roundGuesses: [...state.roundGuesses, entry],
+          guessHistory: [...state.guessHistory, [...state.roundGuesses, entry]],
           guessesUsed,
           roundSolved: true,
           roundOutcome: 'solved',
@@ -165,6 +171,7 @@ export function codeCrackerGameReducer(
           ...state,
           phase: 'roundResult',
           roundGuesses: [...state.roundGuesses, entry],
+          guessHistory: [...state.guessHistory, [...state.roundGuesses, entry]],
           guessesUsed,
           roundSolved: false,
           roundOutcome: 'budget-exhausted',

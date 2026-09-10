@@ -214,3 +214,37 @@ describe('reducer core', () => {
     expect(sortedValuesOf(state.round!)).toHaveLength(state.round!.tiles.length);
   });
 });
+
+
+describe('restart state hygiene', () => {
+  it('start-session clears the previous session authoritative outcome', () => {
+    let state = createInitialValueOrderingState();
+    state = valueOrderingGameReducer(state, { type: 'select-difficulty', level: 'normal' });
+    state = valueOrderingGameReducer(state, {
+      type: 'start-session',
+      seed: 'first',
+      sessionId: 's1',
+      startedAtMs: 100,
+    });
+    state = valueOrderingGameReducer(state, { type: 'qa/force-win' });
+    expect(state.phase).toBe('results');
+    state = valueOrderingGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 42,
+      currency: 7,
+      deltas: [{ domain: 'math', delta: 0.03, ratingAfter: 0.53 }],
+    });
+    expect(state.authoritativeXp).toBe(42);
+
+    state = valueOrderingGameReducer(state, {
+      type: 'start-session',
+      seed: 'second',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+  });
+});

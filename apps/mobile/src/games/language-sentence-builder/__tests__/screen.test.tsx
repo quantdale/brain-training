@@ -13,6 +13,7 @@ import type { CompleteSessionInput } from '@/db';
 
 import { SENTENCE_BANK } from '../content/sentence-bank';
 import { generateRound } from '../generator';
+import { avgWordLengthFactor } from '../scoring';
 import SentenceBuilderScreen from '../screen';
 import { seedToNumber } from '../session';
 import type { SessionPersistence } from '../session';
@@ -88,9 +89,10 @@ function generateSessionSentences(
     category: string;
   }[] = [];
   let prevCategory: string | null = null;
+  const usedSentenceTexts: string[] = [];
   for (let round = 0; round < rounds; round += 1) {
     const rng = createRng(seed);
-    const { scrambled } = generateRound({
+    const { scrambled, sentence } = generateRound({
       rng,
       roundIndex: round,
       bank: SENTENCE_BANK,
@@ -98,8 +100,10 @@ function generateSessionSentences(
       maxWords,
       prevCategory,
       usedCategories: prevCategory !== null ? [prevCategory] : [],
+      usedSentenceTexts,
     });
     sentences.push(scrambled);
+    usedSentenceTexts.push(sentence.text);
     prevCategory = scrambled.category;
   }
   return sentences;
@@ -281,5 +285,43 @@ describe('SentenceBuilderScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect((input.session.rawResult as SentenceBuilderRawResult).forced).toBe(true);
     expect(input.session.normalizedResult).toBe(0);
+  });
+
+  it('normalizes word difficulty from the average sentence length (audit regression)', async () => {
+    const seed = 'avg-wl';
+    const { persister } = await renderScreen({ seed });
+    const sentences = generateSessionSentences(seed, 5, 5, 7);
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    for (let round = 0; round < 5; round += 1) {
+      await solveRoundBySentence(sentences[round]);
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    }
+
+    await act(async () => {});
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as SentenceBuilderRawResult;
+    const totalWords = sentences.reduce((sum, s) => sum + s.original.length, 0);
+    const expected = avgWordLengthFactor(totalWords / sentences.length);
+    expect(raw.avgWordLengthFactor).toBeCloseTo(expected);
+  });
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final challenge rating.
+    const { persister } = await renderScreen({ seed: 'adaptive-rating' });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as SentenceBuilderRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+    expect(difficulty.challengeRating).not.toBe(0.5);
   });
 });

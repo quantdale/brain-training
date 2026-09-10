@@ -15,6 +15,7 @@ import { createRng, isDifficultyLevel } from "@/sdk";
 import { generateRound } from "./generator";
 import { SENTENCE_BANK } from "./content/sentence-bank";
 import {
+  nextWordRange,
   paramsFromProfile,
   resolveSentenceBuilderDifficulty,
 } from "./difficulty";
@@ -99,11 +100,20 @@ export function sentenceBuilderReducer(
         inputIndex: 0,
         roundOutcome: null,
         prevCategory: sentence.category,
+        usedSentenceTexts: [sentence.text],
         stats: { ...INITIAL_STATS },
         forced: false,
         xp: 0,
         normalized: null,
         persistState: "idle",
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        lastError: null,
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -138,16 +148,13 @@ export function sentenceBuilderReducer(
       const nextInputIndex = state.inputIndex + 1;
 
       if (correct && nextInputIndex < scrambled.original.length) {
-        // Correct tap, still more words to place.
+        // Correct tap, still more words to place. Round stats are credited
+        // once by `advanceStats` (wordCount), so per-tap increments here would
+        // double-count every completed round.
         return {
           ...state,
           taps: newTaps,
           inputIndex: nextInputIndex,
-          stats: {
-            ...state.stats,
-            totalTaps: state.stats.totalTaps + 1,
-            correctTaps: state.stats.correctTaps + 1,
-          },
         };
       }
 
@@ -178,7 +185,7 @@ export function sentenceBuilderReducer(
     }
 
     case "timer-expired": {
-      if (state.phase !== "puzzle" || state.scrambled === null) {
+      if (state.phase !== "puzzle" || state.paused || state.scrambled === null) {
         return state;
       }
       // Timer expired: round fails.
@@ -211,14 +218,24 @@ export function sentenceBuilderReducer(
       const usedCategories =
         state.prevCategory !== null ? [state.prevCategory] : [];
 
+      // Adaptive escalation: a passed round tightens the word range upward for
+      // the next sentence (fixed levels keep their range).
+      const nextRange = nextWordRange(
+        params.minWords,
+        params.maxWords,
+        state.roundOutcome === "passed",
+        state.difficulty,
+      );
+
       const { scrambled: newScrambled, sentence: newSentence } = generateRound({
         rng,
         roundIndex: nextIndex,
         bank: SENTENCE_BANK,
-        minWords: params.minWords,
-        maxWords: params.maxWords,
+        minWords: nextRange.minWords,
+        maxWords: nextRange.maxWords,
         prevCategory: state.prevCategory,
         usedCategories,
+        usedSentenceTexts: state.usedSentenceTexts,
       });
 
       return {
@@ -230,6 +247,21 @@ export function sentenceBuilderReducer(
         inputIndex: 0,
         roundOutcome: null,
         prevCategory: newSentence.category,
+        usedSentenceTexts: [...state.usedSentenceTexts, newSentence.text],
+        // Persist the escalated range on the profile so the session's raw
+        // result records the difficulty actually reached.
+        ...(state.difficulty === "adaptive"
+          ? {
+              profile: {
+                ...state.profile,
+                parameters: {
+                  ...state.profile.parameters,
+                  minWords: nextRange.minWords,
+                  maxWords: nextRange.maxWords,
+                },
+              },
+            }
+          : {}),
       };
     }
 

@@ -707,3 +707,45 @@ describe('scoring monotonicity', () => {
     expect(normalizedOf(statsWith(26, 0, 4, 1))).toBe(1);
   });
 });
+
+describe('restart hygiene', () => {
+  it('clears the previous session persistence/authoritative fields on start-session', () => {
+    let s = start('restart-hygiene');
+    s = vigilanceGameReducer(s, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'focus', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    s = vigilanceGameReducer(s, { type: 'persistence-failed', message: 'boom' });
+
+    s = vigilanceGameReducer(s, {
+      type: 'start-session',
+      seed: 'restart-hygiene-2',
+      sessionId: 'sess-2',
+      startedAtMs: 200,
+    });
+
+    expect(s.persistState).toBe('idle');
+    expect(s.lastError).toBeNull();
+    expect(s.authoritativeXp).toBeNull();
+    expect(s.authoritativeCurrency).toBeNull();
+    expect(s.authoritativeDeltas).toEqual([]);
+    expect(s.stats.trialsPlayed).toBe(0);
+    expect(s.xp).toBe(0);
+  });
+
+  it('reproduces the exact stream from (seed, difficulty) after a restart', () => {
+    let s = start('restart-repro');
+    s = vigilanceGameReducer(s, { type: 'qa/force-win' });
+    const restarted = vigilanceGameReducer(s, {
+      type: 'start-session',
+      seed: 'restart-repro',
+      sessionId: 'sess-2',
+      startedAtMs: 200,
+    });
+    const fresh = start('restart-repro');
+    expect(restarted.stream).toEqual(fresh.stream);
+    expect(restarted.stopDigit).toBe(fresh.stopDigit);
+  });
+});

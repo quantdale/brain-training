@@ -32,6 +32,10 @@ export function roundScore(correct: boolean, roundTimeMs: number, elapsedMs: num
   if (!correct) {
     return 0;
   }
+  // Guard a degenerate budget instead of dividing by zero (NaN score).
+  if (!Number.isFinite(roundTimeMs) || roundTimeMs <= 0) {
+    return 100;
+  }
   const speedBonus = Math.max(0, Math.round(((roundTimeMs - elapsedMs) / roundTimeMs) * 100));
   return 100 + speedBonus;
 }

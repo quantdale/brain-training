@@ -1,10 +1,14 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import type { CompleteSessionInput } from '@/db';
 
 import CodeCrackerScreen from '../screen';
+import { generateSecretCode } from '../generator';
 import { GAME_ID } from '../types';
-import { createInMemoryTutorialStore, testId } from '@/sdk';
+import type { CodeCrackerRawResult } from '../types';
+import type { SessionPersistence } from '../session';
+import { createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({ back: jest.fn(), navigate: jest.fn() }),
@@ -115,5 +119,82 @@ describe('CodeCrackerScreen', () => {
     );
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'help')));
     expect(screen.getByTestId(testId(GAME_ID, 'tutorial'))).toBeTruthy();
+  });
+
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // even though the session computed a final challenge rating; the shared
+    // rating pipeline reads the record difficulty, so adaptive sessions were
+    // rated as neutral.
+    const completeSession = jest.fn(async (input: CompleteSessionInput) => ({
+      session: input.session,
+      ledgerEntry: null,
+      balance: 0,
+    }));
+    const persister = { completeSession } as unknown as SessionPersistence;
+    await render(
+      <CodeCrackerScreen
+        tutorialStore={completedStore()}
+        sessionSeed="adaptive-rating"
+        persistSession={persister}
+      />,
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(completeSession).toHaveBeenCalledTimes(1);
+    const input = completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as CodeCrackerRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    // Perfect force-win on adaptive: efficiency 1 − 5/50 = 0.9
+    // → 0.5 + 0.5 × 0.9 = 0.95.
+    expect(raw.challengeRating).toBeCloseTo(0.95);
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
+  });
+
+  it('persists the resolved round guess history in the raw result', async () => {
+    // Regression: the documented per-round guess history was always persisted
+    // as an empty array.
+    const completeSession = jest.fn(async (input: CompleteSessionInput) => ({
+      session: input.session,
+      ledgerEntry: null,
+      balance: 0,
+    }));
+    const persister = { completeSession } as unknown as SessionPersistence;
+    await render(
+      <CodeCrackerScreen
+        tutorialStore={completedStore()}
+        sessionSeed="history-seed"
+        persistSession={persister}
+      />,
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'reveal-start')));
+    const secret = generateSecretCode({
+      rng: createRng('history-seed'),
+      roundIndex: 0,
+      codeLength: 4,
+      colorCount: 6,
+      prevSecretCode: null,
+    });
+    for (const color of secret) {
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'color', String(color))));
+    }
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit-guess')));
+    expect(screen.getByTestId(testId(GAME_ID, 'round-solved'))).toBeTruthy();
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(completeSession).toHaveBeenCalledTimes(1);
+    const input = completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as CodeCrackerRawResult;
+    expect(raw.guessHistory).toHaveLength(1);
+    expect(raw.guessHistory[0]).toHaveLength(1);
+    expect(raw.guessHistory[0][0].guess).toEqual(secret);
+    expect(raw.guessHistory[0][0].feedback).toEqual({ exact: 4, colorOnly: 0 });
   });
 });

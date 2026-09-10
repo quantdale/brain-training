@@ -210,7 +210,11 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
     const record = buildSessionRecord({
       sessionId: state.sessionId,
       rawResult: raw,
-      difficulty: state.profile,
+      // The record's structured difficulty is authoritative for the shared
+      // rating pipeline, so it must carry the final computed challenge rating
+      // (SDK difficulty contract: adaptive starts at 0.5 and the game adjusts
+      // it during play). The raw result keeps the same value for provenance.
+      difficulty: { ...state.profile, challengeRating },
       normalized,
       xp,
       startedAtMs: state.startedAtMs,
@@ -305,10 +309,12 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
       type: "start-session",
       seed,
       sessionId: identity.sessionId,
-      // Same clock as select-item/expire-round: the reducer derives the
-      // round-1 deadline and answer timing from this value, so it must live
-      // on the injectable monotonic clock's epoch, not the wall clock.
-      startedAtMs: clock.now(),
+      // Wall-clock session stamp for diagnostics/persistence...
+      startedAtMs: identity.startedAtMs,
+      // ...while round timing uses the injectable monotonic clock so the
+      // round-1 deadline and answer timing live on the same epoch as
+      // select-item/expire-round.
+      nowMs: clock.now(),
     });
   }, [clock, session, sessionSeed, dispatch]);
 

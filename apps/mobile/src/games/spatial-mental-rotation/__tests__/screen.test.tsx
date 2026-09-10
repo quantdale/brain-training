@@ -13,7 +13,7 @@ import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from 
 import type { CompleteSessionInput } from '@/db';
 
 import { TUTORIAL_DEMO_SEED, buildDemoRound } from '../components/tutorial';
-import { SPATIAL_DIFFICULTY_PARAMS } from '../difficulty';
+import { SPATIAL_DIFFICULTY_PARAMS, spatialParamsForLevel } from '../difficulty';
 import { generateRound } from '../generator';
 import type { RotationRound } from '../generator';
 import SpatialScreen from '../screen';
@@ -279,6 +279,35 @@ describe('SpatialScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'play-status'))).toBeOnTheScreen();
     await advanceTime(clock, 100);
     expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
+  });
+
+  it('persists the final adaptive challenge rating in the session record', async () => {
+    // Regression: the record difficulty kept the SDK adaptive baseline (0.5)
+    // instead of the computed final rating read by the shared rating pipeline.
+    const seed = 'adaptive-rating';
+    const { persister } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'adaptive')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    // Pass round 0 so the adaptive position rises 0.5 → 0.75.
+    const round0 = generateRound({
+      rng: createRng(seed),
+      roundIndex: 0,
+      params: spatialParamsForLevel('adaptive'),
+      prevTarget: null,
+    });
+    await pressCorrectAnswer(round0.kind);
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+    await act(async () => {});
+
+    expect(persister.completeSession).toHaveBeenCalledTimes(1);
+    const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    const raw = input.session.rawResult as SpatialRawResult;
+    const difficulty = input.session.difficulty as { challengeRating: number };
+    expect(raw.challengeRating).toBeCloseTo(0.75);
+    expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
   });
 
   it('force-win ends the session as a perfect run and marks it forced', async () => {

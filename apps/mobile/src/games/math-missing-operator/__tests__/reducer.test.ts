@@ -305,3 +305,52 @@ describe('mathMissingOperatorGameReducer', () => {
     expect(mathMissingOperatorGameReducer(state, unknown)).toBe(state);
   });
 });
+
+
+describe('restart state hygiene', () => {
+  it('start-session clears the previous session authoritative outcome', () => {
+    let state = startedState();
+    state = mathMissingOperatorGameReducer(state, { type: 'qa/force-win' });
+    expect(state.phase).toBe('results');
+    state = mathMissingOperatorGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 42,
+      currency: 7,
+      deltas: [{ domain: 'math', delta: 0.03, ratingAfter: 0.53 }],
+    });
+    expect(state.authoritativeXp).toBe(42);
+
+    state = mathMissingOperatorGameReducer(state, {
+      type: 'start-session',
+      seed: 'second',
+      sessionId: 's2',
+      startedAtMs: 2_000_000,
+      roundStartedAtMs: 200,
+    });
+
+    // A restarted session must not display the previous session's
+    // server-authoritative XP until its own persistence round completes.
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+  });
+});
+
+describe('answer-round budget convergence', () => {
+  it('scores an answer strictly past the round budget as a timeout, not a correct answer', () => {
+    const state = startedState();
+    const equation = expectedEquation(0);
+    const budget = budgetForRound(PARAMS, 0);
+    const resolved = mathMissingOperatorGameReducer(state, {
+      type: 'answer-round',
+      operator: equation.answerOperator,
+      responseMs: budget + 1,
+    });
+    expect(resolved.phase).toBe('roundResult');
+    expect(resolved.roundOutcome).toBe('timeout');
+    expect(resolved.lastAnsweredOperator).toBeNull();
+    expect(resolved.stats.roundsCorrect).toBe(0);
+    expect(resolved.stats.timeouts).toBe(1);
+    expect(resolved.stats.score).toBe(0);
+  });
+});

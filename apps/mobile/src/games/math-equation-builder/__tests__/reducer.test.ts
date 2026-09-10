@@ -380,3 +380,32 @@ describe('QA force hooks (state shaping)', () => {
 function perfectSessionScore(params: { rounds: number }): number {
   return params.rounds * (200 + 100);
 }
+
+
+describe('restart state hygiene', () => {
+  it('start-session clears the previous session authoritative outcome', () => {
+    let state = startSession('first', 'normal', 's1');
+    state = mathEquationBuilderGameReducer(state, { type: 'qa/force-win' });
+    expect(state.phase).toBe('results');
+    state = mathEquationBuilderGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 42,
+      currency: 7,
+      deltas: [{ domain: 'math', delta: 0.03, ratingAfter: 0.53 }],
+    });
+    expect(state.authoritativeXp).toBe(42);
+
+    state = mathEquationBuilderGameReducer(state, {
+      type: 'start-session',
+      seed: 'second',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+
+    // A restarted session must not display the previous session's
+    // server-authoritative XP until its own persistence round completes.
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+  });
+});

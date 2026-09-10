@@ -420,3 +420,32 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+
+
+describe('restart leak guards (campaign 023 audit)', () => {
+  it('start-session clears the previous session’s authoritative outcome and error', () => {
+    let state = startSession('auth-bleed');
+    state = sequenceMemoryGameReducer(state, { type: 'qa/force-win' });
+    state = sequenceMemoryGameReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 137,
+      currency: 5,
+      deltas: [{ domain: 'Memory', delta: 0.1, ratingAfter: 1001 }],
+    });
+    state = sequenceMemoryGameReducer(state, {
+      type: 'persistence-failed',
+      message: 'boom',
+    });
+
+    const restarted = sequenceMemoryGameReducer(state, {
+      type: 'start-session',
+      seed: 'auth-bleed-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(restarted.authoritativeXp).toBeNull();
+    expect(restarted.authoritativeCurrency).toBeNull();
+    expect(restarted.authoritativeDeltas).toEqual([]);
+    expect(restarted.lastError).toBeNull();
+  });
+});

@@ -5,7 +5,7 @@ import type { DifficultyLevel } from '@/sdk';
 import { orderPathGameReducer } from '../reducer';
 import { createInitialOrderPathState } from '../types';
 import type { OrderPathGameState } from '../types';
-import { ORDER_PATH_DIFFICULTY_PARAMS, orderPathParamsForLevel } from '../difficulty';
+import { ADAPTIVE_PARAMS, ORDER_PATH_DIFFICULTY_PARAMS, orderPathParamsForLevel } from '../difficulty';
 import { perfectSessionScore } from '../scoring';
 
 function startSession(
@@ -21,6 +21,7 @@ function startSession(
     seed,
     sessionId,
     startedAtMs,
+    nowMs: startedAtMs,
   });
   return state;
 }
@@ -95,6 +96,54 @@ describe('start-session', () => {
     expect(expert.roundDeadlineMs).toBe(100 + 15_000);
     const easy = startSession('e2', 'easy');
     expect(easy.currentRound?.items).toHaveLength(4);
+  });
+
+  it('keeps the wall-clock session stamp separate from the monotonic round clock', () => {
+    // Regression: the screen used to pass clock.now() as `startedAtMs`, which
+    // then leaked into the persisted record / diagnostic metadata as a bogus
+    // start epoch. `startedAtMs` is the wall-clock session stamp; `nowMs`
+    // drives round-1 timing.
+    let state = orderPathGameReducer(createInitialOrderPathState(), {
+      type: 'select-difficulty',
+      level: 'normal',
+    });
+    const WALL = 1_700_000_000_000;
+    state = orderPathGameReducer(state, {
+      type: 'start-session',
+      seed: 'epoch',
+      sessionId: 's-epoch',
+      startedAtMs: WALL,
+      nowMs: 250,
+    });
+    expect(state.startedAtMs).toBe(WALL);
+    expect(state.roundStartedAtMs).toBe(250);
+    expect(state.roundDeadlineMs).toBe(250 + 25_000);
+  });
+});
+
+describe('adaptive escalation', () => {
+  it('raises item count / sparsity on a pass and eases on a fail', () => {
+    // Regression: next-round generated every adaptive round from the frozen
+    // baseline params, so adaptive never escalated and the final
+    // challengeRating was always the 0.5 baseline.
+    let state = startSession('adapt', 'adaptive');
+    expect(state.currentRound?.items).toHaveLength(ADAPTIVE_PARAMS.itemCount);
+
+    state = solveRound(state, 1_000);
+    state = orderPathGameReducer(state, { type: 'next-round', nowMs: 2_000 });
+    expect(state.currentRound?.items).toHaveLength(ADAPTIVE_PARAMS.itemCount! + 1);
+    expect(state.profile?.parameters.itemCount).toBe(ADAPTIVE_PARAMS.itemCount! + 1);
+    expect(state.profile?.parameters.edgeDensityTarget).toBeCloseTo(
+      ADAPTIVE_PARAMS.edgeDensityTarget - 0.1,
+    );
+
+    // Fail the next round: escalation eases back to the baseline item count.
+    const round = state.currentRound!;
+    const badItem = round.items.find((i) => i !== round.solution[0])!;
+    state = orderPathGameReducer(state, { type: 'select-item', item: badItem, nowMs: 2_100 });
+    state = orderPathGameReducer(state, { type: 'next-round', nowMs: 2_200 });
+    expect(state.currentRound?.items).toHaveLength(ADAPTIVE_PARAMS.itemCount);
+    expect(state.profile?.parameters.itemCount).toBe(ADAPTIVE_PARAMS.itemCount);
   });
 });
 

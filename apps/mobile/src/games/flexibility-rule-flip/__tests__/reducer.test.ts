@@ -444,3 +444,51 @@ describe('QA force hooks (state shaping)', () => {
     expect(mid.seedOverride).toBeNull();
   });
 });
+
+describe('QA force-loss counter integrity', () => {
+  it('still counts an in-flight repeat trial as played but missed', () => {
+    // Round 0 is always a repeat (no previous rule to switch from).
+    const forced = flexibilityRuleFlipReducer(startSession('qa-lose-live'), { type: 'qa/force-lose' });
+    expect(forced.stats.repeatPlayed).toBe(1);
+    expect(forced.stats.repeatCorrect).toBe(0);
+    expect(forced.stats.roundsPlayed).toBe(1);
+  });
+
+  it('leaves the repeat counters untouched when the trial is already scored', () => {
+    let state = startSession('qa-lose-repeat');
+    state = flexibilityRuleFlipReducer(state, {
+      type: 'pick-card',
+      index: state.round!.correctIndex,
+      responseMs: 0,
+    });
+    const before = state.stats;
+
+    const forced = flexibilityRuleFlipReducer(state, { type: 'qa/force-lose' });
+    expect(forced.stats.roundsPlayed).toBe(before.roundsPlayed);
+    expect(forced.stats.repeatPlayed).toBe(before.repeatPlayed);
+    expect(forced.stats.repeatCorrect).toBe(before.repeatCorrect);
+  });
+});
+
+describe('restart resets the previous session outcome', () => {
+  it('clears the authoritative completion outcome when a new session starts', () => {
+    let state = startSession('stale-outcome-1');
+    state = flexibilityRuleFlipReducer(state, {
+      type: 'completion-outcome-received',
+      xp: 40,
+      currency: 7,
+      deltas: [{ domain: 'flexibility', delta: 0.1, ratingAfter: 0.6 }],
+    });
+    expect(state.authoritativeXp).toBe(40);
+
+    state = flexibilityRuleFlipReducer(state, {
+      type: 'start-session',
+      seed: 'stale-outcome-2',
+      sessionId: 's2',
+      startedAtMs: 200,
+    });
+    expect(state.authoritativeXp).toBeNull();
+    expect(state.authoritativeCurrency).toBeNull();
+    expect(state.authoritativeDeltas).toEqual([]);
+  });
+});

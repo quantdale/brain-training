@@ -80,6 +80,13 @@ export function mathMissingOperatorGameReducer(
         xp: 0,
         normalized: null,
         persistState: 'idle',
+        // A previous session's server-authoritative outcome must not bleed
+        // into the new one: the results row prefers `authoritativeXp`, so
+        // stale values would show old numbers until (or unless) the new
+        // persistence round completes.
+        authoritativeXp: null,
+        authoritativeCurrency: null,
+        authoritativeDeltas: [],
       };
     }
 
@@ -88,8 +95,32 @@ export function mathMissingOperatorGameReducer(
         return state;
       }
       const params = mathMissingOperatorParamsFromProfile(state.profile);
-      const correct = action.operator === state.equation.answerOperator;
+      const budgetMs = budgetForRound(params, state.roundIndex);
       const responseMs = Math.max(0, action.responseMs);
+      // Answers strictly past the budget converge on the timeout outcome (the
+      // screen timer may not have fired yet at tap time), so a slow frame can
+      // never convert an expired round into points — matching the sibling math
+      // games. An answer exactly at the budget stays correct with base score
+      // only (see roundScore's zero-speed base).
+      if (responseMs > budgetMs) {
+        return {
+          ...state,
+          phase: 'roundResult',
+          roundOutcome: 'timeout',
+          lastAnsweredOperator: null,
+          adaptiveRating:
+            state.difficulty === 'adaptive'
+              ? adaptiveRatingAfter(state.adaptiveRating, 'timeout')
+              : state.adaptiveRating,
+          stats: {
+            ...state.stats,
+            roundsPlayed: state.stats.roundsPlayed + 1,
+            streak: 0,
+            timeouts: state.stats.timeouts + 1,
+          },
+        };
+      }
+      const correct = action.operator === state.equation.answerOperator;
       const streak = correct ? state.stats.streak + 1 : 0;
       const stats = {
         score: state.stats.score + roundScore(correct, responseMs, budgetForRound(params, state.roundIndex)),
