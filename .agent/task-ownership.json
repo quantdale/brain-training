@@ -44,5 +44,167 @@
     "**/registry.generated.ts",
     "apps/mobile/src/registry/registry.generated.ts"
   ],
-  "parallelPackets": []
+  "parallelPackets": [
+    {
+      "id": "p-attention",
+      "objective": "Audit and repair all attention game modules against the campaign functional checklist; add regression tests for confirmed defects.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/games/attention-odd-one-out/**",
+        "apps/mobile/src/games/attention-sustained-vigilance/**",
+        "apps/mobile/src/games/attention-symbol-tracker/**",
+        "apps/mobile/src/games/attention-target-count/**",
+        "apps/mobile/src/games/attention-visual-search/**"
+      ],
+      "prohibitedSurfaces": [
+        "apps/mobile/src/sdk/**",
+        "apps/mobile/src/components/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/db/**",
+        "apps/mobile/src/registry/**"
+      ],
+      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
+      "validation": "npx jest --maxWorkers=1 src/games/attention- ; npx tsc --noEmit (report only)",
+      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+    },
+    {
+      "id": "p-flexibility",
+      "objective": "Audit and repair all flexibility game modules against the campaign functional checklist; add regression tests for confirmed defects.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/games/flexibility-card-sort/**",
+        "apps/mobile/src/games/flexibility-color-stroop/**",
+        "apps/mobile/src/games/flexibility-cue-shift/**",
+        "apps/mobile/src/games/flexibility-rule-flip/**",
+        "apps/mobile/src/games/flexibility-task-switch/**"
+      ],
+      "prohibitedSurfaces": [
+        "apps/mobile/src/sdk/**",
+        "apps/mobile/src/components/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/db/**",
+        "apps/mobile/src/registry/**"
+      ],
+      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
+      "validation": "npx jest --maxWorkers=1 src/games/flexibility- ; npx tsc --noEmit (report only)",
+      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+    },
+    {
+      "id": "p-language",
+      "objective": "Audit and repair all language game modules against the campaign functional checklist; add regression tests for confirmed defects.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/games/language-context-fit/**",
+        "apps/mobile/src/games/language-sentence-builder/**",
+        "apps/mobile/src/games/language-word-chain/**",
+        "apps/mobile/src/games/language-word-match/**",
+        "apps/mobile/src/games/language-word-scramble/**"
+      ],
+      "prohibitedSurfaces": [
+        "apps/mobile/src/sdk/**",
+        "apps/mobile/src/components/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/db/**",
+        "apps/mobile/src/registry/**"
+      ],
+      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
+      "validation": "npx jest --maxWorkers=1 src/games/language- ; npx tsc --noEmit (report only)",
+      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+    },
+    {
+      "id": "p-logic",
+      "objective": "Audit and repair all logic game modules against the campaign functional checklist; add regression tests for confirmed defects.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/games/logic-code-cracker/**",
+        "apps/mobile/src/games/logic-deduction-table/**",
+        "apps/mobile/src/games/logic-next-sequence/**",
+        "apps/mobile/src/games/logic-order-path/**",
+        "apps/mobile/src/games/logic-rule-grid/**"
+      ],
+      "prohibitedSurfaces": [
+        "apps/mobile/src/sdk/**",
+        "apps/mobile/src/components/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/db/**",
+        "apps/mobile/src/registry/**"
+      ],
+      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
+      "validation": "npx jest --maxWorkers=1 src/games/logic- ; npx tsc --noEmit (report only)",
+      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+    },
+    {
+      "id": "p-math",
+      "objective": "Audit and repair all math game modules against the campaign functional checklist; add regression tests for confirmed defects.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/games/math-equation-builder/**",
+        "apps/mobile/src/games/math-fast-math/**",
+        "apps/mobile/src/games/math-missing-operator/**",
+        "apps/mobile/src/games/math-number-line-estimation/**",
+        "apps/mobile/src/games/math-value-ordering/**"
+      ],
+      "prohibitedSurfaces": [
+        "apps/mobile/src/sdk/**",
+        "apps/mobile/src/components/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/db/**",
+        "apps/mobile/src/registry/**"
+      ],
+      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
+      "validation": "npx jest --maxWorkers=1 src/games/math- ; npx tsc --noEmit (report only)",
+      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+    },
+    {
+      "id": "p-memory",
+      "objective": "Audit and repair the memory game modules (including the base memory module) against the campaign functional checklist; add regression tests for confirmed defects.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/games/memory/**",
+        "apps/mobile/src/games/memory-grid-recall/**",
+        "apps/mobile/src/games/memory-pair-recall/**",
+        "apps/mobile/src/games/memory-pattern-tap-back/**",
+        "apps/mobile/src/games/memory-prospective-cue/**",
+        "apps/mobile/src/games/memory-running-order/**",
+        "apps/mobile/src/games/memory-sequence-memory/**"
+      ],
+      "prohibitedSurfaces": [
+        "apps/mobile/src/sdk/**",
+        "apps/mobile/src/components/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/db/**",
+        "apps/mobile/src/registry/**"
+      ],
+      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
+      "validation": "npx jest --maxWorkers=1 src/games/memory ; npx tsc --noEmit (report only)",
+      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+    },
+    {
+      "id": "p-spatial-speed",
+      "objective": "Audit and repair all spatial and speed game modules against the campaign functional checklist; add regression tests for confirmed defects.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/games/spatial-coordinate-turn/**",
+        "apps/mobile/src/games/spatial-fold-match/**",
+        "apps/mobile/src/games/spatial-grid-nav/**",
+        "apps/mobile/src/games/spatial-mental-rotation/**",
+        "apps/mobile/src/games/spatial-transform-match/**",
+        "apps/mobile/src/games/speed-color-match/**",
+        "apps/mobile/src/games/speed-order-sweep/**",
+        "apps/mobile/src/games/speed-quick-compare/**",
+        "apps/mobile/src/games/speed-reaction-time/**",
+        "apps/mobile/src/games/speed-tap-rush/**"
+      ],
+      "prohibitedSurfaces": [
+        "apps/mobile/src/sdk/**",
+        "apps/mobile/src/components/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/db/**",
+        "apps/mobile/src/registry/**"
+      ],
+      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
+      "validation": "npx jest --maxWorkers=1 src/games/spatial- src/games/speed- ; npx tsc --noEmit (report only)",
+      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+    }
+  ]
 }
