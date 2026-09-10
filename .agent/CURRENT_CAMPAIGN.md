@@ -1,21 +1,43 @@
-# Campaign 022 — Release-Candidate Certification
+# Campaign 023 — Production & Gamification Overhaul
 
-**Status:** VALIDATED
-**Campaign id:** `022-release-candidate-certification`
-**Predecessor:** `021-release-gate-reconvergence` (VALIDATED)
+**Status:** ACTIVE
+**Campaign id:** `023-production-gamification-overhaul`
+**Predecessor:** `022-release-candidate-certification` (VALIDATED)
 **Mode:** day
-**Change:** `022-release-candidate-certification` (VALIDATED; no active campaign)
-**Authorization:** explicit owner directive on 2026-09-05 after Campaign 021 closed VALIDATED.
-**Baseline SHA:** `76a58dccf819c57364d5531c2ca4c2bc3c375e46`
-**Terminal evidence tip:** `1094a20a7679a6d95fb1d1836d515ee1f18aaf98` before the documentation/governance reconciliation commit.
-**Release verdict:** **CONDITIONAL GO**
+**Change:** `023-production-gamification-overhaul` (ACTIVE)
+**Authorization:** explicit owner goal-mode directive on 2026-09-11 (new scope after Campaign 022 terminal closure).
+**Baseline SHA:** `22bf19600dd6ecdd949c0d9615c1d8a43a5542f3`
+**Target branch:** `main`
 
-## Terminal outcome
+## Mission
 
-Campaign 022 completed its mission: release-relevant debt was dispositioned with adversarial proof, a clean Android release artifact was built/inspected/standalone-run, broad real-runtime certification was executed, platform evidence was classified honestly, final automated/CI evidence was recorded, and a release-readiness verdict was issued.
+Take the certified release candidate to App-Store-submission standard:
 
-No repository-owned release blocker remains. Public/store release still depends on external/manual gates that this repository cannot truthfully manufacture: production/store signing credentials, manual TalkBack and SAF/system-sheet evidence, physical-device evidence, and manual iOS runtime UX where applicable.
+1. **Tooling:** configure the Refero MCP design-reference server in
+   local/user config (credential never committed) and verify it live.
+2. **Audit:** run all unit/integration/E2E tests; audit every registered
+   mini-game for broken logic, edge-case crashes, unresponsive controls, and
+   state desynchronization; repair every confirmed defect with regression
+   tests; prove reset/replay loops leak nothing.
+3. **Gamification/UX:** research Duolingo/Brilliant/Headspace patterns via
+   Refero; unify tokens, typography, spacing, and shared primitives; add
+   reward feedback, streak/daily-progress indicators, bounded completion
+   celebrations, and consistent feedback pacing.
+4. **Production:** zero-error production build, safe-area/responsive audit,
+   offline fallback verification, honest PASS / NOT VALIDATED / BLOCKED
+   classification.
 
-## Do not restart
+## Exit criteria
 
-This campaign is terminal. Use `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, and `openspec/changes/022-release-candidate-certification/` as evidence/history. A future campaign requires new authorization or a fresh evidence-backed plan; do not treat an old unchecked task list, historical prose, or a new chat session as authorization to resume 022.
+- Full Jest/typecheck/lint/validator matrix green at final SHA.
+- Every game has an audit disposition; every fix has regression coverage.
+- Design overhaul implemented with deliberately re-baselined visual snapshots.
+- Production artifact built, startable without Metro, metadata recorded.
+- Durable state updated; honest classification summary; coherent commits
+  pushed to `origin/main`.
+
+## Do not
+
+Do not add games or systems; do not alter authoritative progression
+semantics; do not weaken validators/tests; do not commit the Refero token;
+do not convert unavailable evidence into PASS.

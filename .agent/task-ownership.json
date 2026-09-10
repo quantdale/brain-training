@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "022-release-candidate-certification",
-  "description": "Campaign 022 release-candidate certification is terminal/VALIDATED. This packet is retained as historical ownership evidence; it authorizes no new implementation work.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "023-production-gamification-overhaul",
+  "description": "Campaign 023 production/gamification overhaul is ACTIVE under explicit owner directive. Shared hotspots and authoritative-state surfaces remain orchestrator-owned; parallel coder packets may only claim declared disjoint surfaces.",
   "orchestratorOnlySurfaces": [
     "openspec/changes/**",
     ".agent/GOVERNANCE.json",
@@ -27,6 +27,11 @@
     "apps/mobile/src/quests/**",
     "apps/mobile/src/achievements/**",
     "apps/mobile/src/streaks/**",
+    "apps/mobile/src/theme/**",
+    "apps/mobile/src/components/game-host/**",
+    "apps/mobile/src/components/game-ui/**",
+    "apps/mobile/src/app/**",
+    "apps/mobile/src/registry/**",
     "package.json",
     "package-lock.json",
     "apps/mobile/package.json",

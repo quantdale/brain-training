@@ -1,0 +1,22 @@
+{
+  "id": "023-production-gamification-overhaul",
+  "status": "ACTIVE",
+  "predecessor": "022-release-candidate-certification",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "refero-design-research",
+    "design-system-overhaul",
+    "gamified-engagement-loops",
+    "all-games-functional-audit",
+    "production-build-readiness"
+  ],
+  "activationRule": "Explicit owner directive on 2026-09-11 (goal-mode mission) authorized a production/App-Store-readiness campaign combining Refero-MCP design research, a gamified UI/UX overhaul, an all-games functional audit, and production build verification. This is genuinely new scope after Campaign 022's terminal VALIDATED release-certification state.",
+  "baselineAuditCommit": "22bf19600dd6ecdd949c0d9615c1d8a43a5542f3",
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": false
+}
