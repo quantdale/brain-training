@@ -33,10 +33,25 @@ import { useTheme } from '@/hooks/use-theme';
 /** Which chrome the host renders around the game's content. */
 export type GameHostView = 'intro' | 'session' | 'results';
 
-/** Category id → domain identity colour key (registry categories are domain names). */
+/**
+ * Registry category → domain identity colour key. Categories are player-facing
+ * labels ("Logic & Problem Solving"), domain keys are single words, so the
+ * mapping is explicit instead of a case-fold that silently misses one.
+ */
+const DOMAIN_BY_CATEGORY: Record<string, DomainName> = {
+  Memory: 'memory',
+  Attention: 'attention',
+  Speed: 'speed',
+  Math: 'math',
+  Language: 'language',
+  'Logic & Problem Solving': 'logic',
+  Flexibility: 'flexibility',
+  Spatial: 'spatial',
+};
+
 function domainTone(category: string | undefined): DomainName | null {
   if (category === undefined) return null;
-  return category in DomainColors.light ? (category as DomainName) : null;
+  return DOMAIN_BY_CATEGORY[category] ?? null;
 }
 
 /** Player-facing label for the selected difficulty on the intro meta strip. */
@@ -241,6 +256,7 @@ export function GameHost({
             <SessionHeader
               round={typeof header === 'string' ? header : undefined}
               score={score === undefined ? undefined : `Score ${score}`}
+              scoreTestID={testId(gameId, 'score')}
               progress={roundProgress}
               trailing={
                 <GameButton

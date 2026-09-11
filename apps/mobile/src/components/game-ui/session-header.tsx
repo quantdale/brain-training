@@ -2,13 +2,15 @@
  * SessionHeader — the in-session HUD row shared by every game screen.
  *
  * Reference pattern (Brilliant/Moises, `PATTERNS-PLAY` 3–4): one compact row —
- * exit/pause on one side, progress in the middle, score/streak cluster on the
- * other — never a second HUD line competing with the board.
+ * the game's own round/exit affordance on the leading side, progress in the
+ * middle, score at the trailing end, and the pause control at the edge. Never
+ * a second HUD line competing with the board.
  *
- * Two shapes are supported:
- *   - structured (`progress` / `round` / `score` / `onPause`) for games that
- *     adopt the shared layout,
- *   - `children` for games that still compose their own row.
+ * One implementation, no "legacy vs structured" split: a game-supplied
+ * `children` node takes the leading slot (so a custom round chip keeps its own
+ * testID), and every other slot renders whenever it is provided. A game that
+ * passes nothing but children still gets the host's pause control, because
+ * dropping it would strand the player mid-session.
  */
 
 import { StyleSheet, View } from 'react-native';
@@ -26,13 +28,19 @@ export interface SessionProgress {
 }
 
 export interface SessionHeaderProps {
+  /** Custom leading content (round chip, exit control). Wins over `round`. */
   children?: React.ReactNode;
-  /** Round label, e.g. `Round 3 of 12`. */
+  /** Plain round label, e.g. `Round 3 of 12`. */
   round?: string;
-  /** Session progress; renders the segmented centre bar when provided. */
+  /** Session progress; renders the centre bar when provided. */
   progress?: SessionProgress;
   /** Formatted score, rendered as the HUD's right-hand metric. */
   score?: string;
+  /**
+   * testID for the score metric. Game-screen suites and the automation harness
+   * address `<gameId>.score`, so the host passes it through.
+   */
+  scoreTestID?: string;
   /** Rendered at the right edge (the pause control). */
   trailing?: React.ReactNode;
 }
@@ -41,14 +49,19 @@ export interface SessionHeaderProps {
  * HUD row. The score is the only numeric emphasis; the round label and the
  * progress bar carry position without shouting.
  */
-export function SessionHeader({ children, round, progress, score, trailing }: SessionHeaderProps) {
-  if (children !== undefined && round === undefined && score === undefined) {
-    return <View style={styles.legacyRow}>{children}</View>;
-  }
-
+export function SessionHeader({
+  children,
+  round,
+  progress,
+  score,
+  scoreTestID,
+  trailing,
+}: SessionHeaderProps) {
   return (
     <View style={styles.row}>
-      {round !== undefined ? (
+      {children !== undefined ? (
+        children
+      ) : round !== undefined ? (
         <ThemedText type="label" themeColor="textSecondary" numberOfLines={1} style={styles.round}>
           {round}
         </ThemedText>
@@ -66,7 +79,7 @@ export function SessionHeader({ children, round, progress, score, trailing }: Se
       ) : null}
 
       {score !== undefined ? (
-        <ThemedText type="numeral" themeColor="text" numberOfLines={1}>
+        <ThemedText type="numeral" themeColor="text" numberOfLines={1} testID={scoreTestID}>
           {score}
         </ThemedText>
       ) : null}
@@ -81,15 +94,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.twoHalf,
-  },
-  // Games that still pass their own children keep the previous wrap-friendly
-  // layout; adopting the structured props is what unlocks the HUD.
-  legacyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
   },
   round: {
     flexShrink: 1,

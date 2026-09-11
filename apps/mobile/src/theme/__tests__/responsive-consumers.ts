@@ -7,7 +7,8 @@
  * deleting the assertion means the requirement cannot quietly disappear.
  */
 export const PENDING_RESPONSIVE_CONSUMERS: readonly string[] = [
-  'useGridColumns',
+  // `useGridColumns` is consumed by the Games library; `useClampedContentWidth`
+  // and `useAdaptiveValue` are wired as the remaining screens adopt them.
   'useClampedContentWidth',
   'useAdaptiveValue',
 ];
