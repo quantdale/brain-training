@@ -1,21 +1,15 @@
 /**
  * `<GameHost>` — shared game screen shell (campaign 010, architecture-debt
- * D1; xplat audit B6 back-guard seam).
+ * D1; campaign-024 reference-grade chrome).
  *
- * Owns the chrome every game screen previously duplicated (~450 lines per
- * game): the intro/difficulty/start layout, the in-session header row
- * (round label + score + pause), dev-gated QA panel placement, the opaque
- * pause-overlay mount, tutorial mounting, results-view handoff, and the
- * accessibility contract (challenge hidden from the accessibility tree while
- * paused). Games supply their mechanics as slotted content and reduce to
- * roughly generator + reducer + view.
+ * Every game screen renders through this host, so the intro/session/results
+ * chrome is written once and inherits the app-wide design language: a
+ * category-tinted eyebrow, the game's own name as the hero, one rules block,
+ * one primary action, and a single-row HUD during play.
  *
- * Android hardware-back seam (audit B6): while `interceptBack` is true (an
- * active session), the hardware back gesture pauses the session instead of
- * leaving it — the opaque pause overlay then acts as the confirm dialog with
- * explicit Resume/Quit choices. While already paused the event is consumed
- * so a session can never be abandoned accidentally. Intro/results views keep
- * default navigation.
+ * Contracts preserved: pause overlay opacity/focus behaviour, hardware-back
+ * interception, dev-only QA panel placement, tutorial overlay anchoring, and
+ * every `testId(gameId, …)` the automation harness depends on.
  */
 import { useCallback, useEffect, useRef } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
@@ -24,17 +18,35 @@ import { isDevBuild, testId } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 import { markGameFirstInteraction } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import {
   DifficultySelector,
   GameButton,
   PauseOverlay,
   SessionHeader,
 } from '@/components/game-ui';
-import { Elevation, Radii, Spacing } from '@/constants/theme';
+import { Button, Card } from '@/components/ui';
+import { getGameDefinition } from '@/registry/registry';
+import { DomainColors, Spacing, type DomainName } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 
 /** Which chrome the host renders around the game's content. */
 export type GameHostView = 'intro' | 'session' | 'results';
+
+/** Category id → domain identity colour key (registry categories are domain names). */
+function domainTone(category: string | undefined): DomainName | null {
+  if (category === undefined) return null;
+  return category in DomainColors.light ? (category as DomainName) : null;
+}
+
+/** Player-facing label for the selected difficulty on the intro meta strip. */
+const DIFFICULTY_LABEL: Record<DifficultyLevel, string> = {
+  easy: 'Easy',
+  normal: 'Normal',
+  hard: 'Hard',
+  expert: 'Expert',
+  adaptive: 'Adaptive',
+};
 
 export interface GameHostProps {
   /** Stable game id (testIDs, pause overlay spec). */
@@ -59,6 +71,13 @@ export interface GameHostProps {
   readonly header?: React.ReactNode;
   /** Score line rendered in the in-session header (`Score <value>`). */
   readonly score?: string;
+  /**
+   * Rounds completed / planned, rendered as the HUD progress bar. Games that
+   * do not report progress simply omit it.
+   */
+  readonly roundProgress?: { value: number; total: number };
+  /** Estimated reward shown on the intro meta strip (e.g. `up to 40 XP`). */
+  readonly rewardHint?: string;
   /**
    * Per-game QA panel (built on the shared `QaPanelShell`). Rendered by the
    * host ONLY behind `isDevBuild()`, in the intro and session views.
@@ -94,6 +113,8 @@ export function GameHost({
   onQuit,
   header,
   score,
+  roundProgress,
+  rewardHint,
   qaPanel,
   qaPanelPosition = 'above',
   tutorial,
@@ -101,6 +122,7 @@ export function GameHost({
   interceptBack = false,
   children,
 }: GameHostProps) {
+  const theme = useTheme();
   // Latest paused/onPause via refs so the back subscription is mounted once.
   const backStateRef = useRef({ paused, onPause });
   useEffect(() => {
@@ -132,6 +154,12 @@ export function GameHost({
     return () => subscription.remove();
   }, [interceptBack]);
 
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const definition = getGameDefinition(gameId);
+  const tone = domainTone(definition?.primaryCategory);
+  const rules = description ?? definition?.description;
+  const categoryLabel = definition?.primaryCategory;
+
   return (
     <View style={styles.screen} testID={testId(gameId, 'screen')}>
       <View
@@ -140,54 +168,92 @@ export function GameHost({
         accessibilityElementsHidden={paused}
         accessible={false}>
         {view === 'intro' ? (
-          <ThemedView
-            type="surface"
-            style={styles.introCard}
-            testID={testId(gameId, 'intro')}>
-            {description !== undefined && description.length > 0 ? (
-              <ThemedText type="small" themeColor="textSecondary">
-                {description}
+          <Card
+            variant="hero"
+            padding="lg"
+            testID={testId(gameId, 'intro')}
+            style={styles.introCard}>
+            {categoryLabel !== undefined ? (
+              <ThemedText
+                type="eyebrow"
+                themeColor="textSecondary"
+                style={tone ? { color: DomainColors[scheme][tone].text } : undefined}>
+                {categoryLabel}
               </ThemedText>
             ) : null}
 
-            <ThemedText type="caption" themeColor="textSecondary">
-              Difficulty
+            <ThemedText type="title" testID={testId(gameId, 'intro-title')}>
+              {definition?.name ?? gameId}
             </ThemedText>
-            <DifficultySelector gameId={gameId} selected={difficulty} onSelect={onSelectDifficulty} />
 
-            <View style={styles.buttonRow}>
-              <GameButton testID={testId(gameId, 'start')} label="Start" onPress={onStart} />
-              <GameButton
-                testID={testId(gameId, 'help')}
-                label="How to play"
-                variant="secondary"
-                onPress={onHelp}
-              />
+            {rules !== undefined && rules.length > 0 ? (
+              <ThemedText type="body" themeColor="textSecondary">
+                {rules}
+              </ThemedText>
+            ) : null}
+
+            <View style={styles.metaStrip}>
+              <View style={styles.metaCell}>
+                <ThemedText type="eyebrow" themeColor="textMuted">
+                  Difficulty
+                </ThemedText>
+                <ThemedText type="numeral" themeColor="text">
+                  {difficulty ? DIFFICULTY_LABEL[difficulty] : 'Normal'}
+                </ThemedText>
+              </View>
+              {rewardHint !== undefined ? (
+                <>
+                  <View style={[styles.metaDivider, { backgroundColor: theme.border }]} />
+                  <View style={styles.metaCell}>
+                    <ThemedText type="eyebrow" themeColor="textMuted">
+                      Reward
+                    </ThemedText>
+                    <ThemedText type="numeral" themeColor="xp">
+                      {rewardHint}
+                    </ThemedText>
+                  </View>
+                </>
+              ) : null}
             </View>
 
+            <DifficultySelector gameId={gameId} selected={difficulty} onSelect={onSelectDifficulty} />
+
+            <Button
+              testID={testId(gameId, 'start')}
+              label="Start"
+              size="lg"
+              onPress={onStart}
+            />
+            <Button
+              testID={testId(gameId, 'help')}
+              label="How to play"
+              variant="ghost"
+              size="md"
+              onPress={onHelp}
+            />
+
             {isDevBuild() ? qaPanel : null}
-          </ThemedView>
+          </Card>
         ) : null}
 
         {view === 'session' ? (
           <View style={styles.section} onTouchStart={handleSessionTouchStart}>
-            <SessionHeader>
-              {header}
-              {score !== undefined ? (
-                <ThemedText
-                  type="small"
-                  themeColor="textSecondary"
-                  testID={testId(gameId, 'score')}>
-                  Score {score}
-                </ThemedText>
-              ) : null}
-              <GameButton
-                small
-                variant="secondary"
-                testID={testId(gameId, 'pause')}
-                label="Pause"
-                onPress={onPause}
-              />
+            <SessionHeader
+              round={typeof header === 'string' ? header : undefined}
+              score={score === undefined ? undefined : `Score ${score}`}
+              progress={roundProgress}
+              trailing={
+                <GameButton
+                  small
+                  variant="secondary"
+                  testID={testId(gameId, 'pause')}
+                  label="Pause"
+                  onPress={onPause}
+                />
+              }>
+              {/* Games that pass a non-string header (custom round chip) keep
+                  the legacy row so their own composition still renders. */}
+              {header !== undefined && typeof header !== 'string' ? header : null}
             </SessionHeader>
 
             {isDevBuild() && qaPanelPosition === 'above' ? qaPanel : null}
@@ -239,14 +305,21 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   introCard: {
-    borderRadius: Radii.large,
-    padding: Spacing.three,
-    gap: Spacing.three,
-    ...Elevation.card,
+    gap: Spacing.twoHalf,
   },
-  buttonRow: {
+  // Two-column reward box (reference: pre-game intro promises level + reward
+  // in one hairline-divided strip rather than two competing cards).
+  metaStrip: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
+    alignItems: 'center',
+    gap: Spacing.three,
+    marginTop: Spacing.one,
+  },
+  metaCell: {
+    gap: Spacing.half,
+  },
+  metaDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
   },
 });

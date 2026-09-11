@@ -1,38 +1,30 @@
 /**
- * GameButton — shared generic game button (task 10.2; campaign 023 tactile
- * overhaul).
+ * GameButton — shared game-chrome button.
  *
- * Extracted from 20 identical per-game copies (e.g. `memory/components/button.tsx`).
- * Keep mechanics out: this is a dumb pressable with themed variants only.
- * QA/testID support via explicit `testID` prop (callers compose with `testId(gameId, ...)`).
+ * Extracted from 20 identical per-game copies; it is now a thin adapter over
+ * the UI kit's `Button`, so the game chrome inherits the app-wide CTA contract
+ * (press feedback, sensory-gated haptics, token colours, 44 dp floor) instead
+ * of maintaining a second button implementation. Game modules keep their
+ * existing prop API — `variant`, `small`, `selected`, `hint` and the
+ * React-19 ref-as-prop focus seam all still work.
  *
- * Campaign 023 interaction language:
- * - filled primary/danger CTAs with white bold labels and a card shadow;
- * - outlined secondary on the surface token (never transparent-on-anything);
- * - short bounded press scale (90/140 ms) that is skipped entirely under
- *   reduced motion;
- * - pressed-state color shift (`accentStrong`/`accentSoft`) so feedback is
- *   visible even without motion.
- *
- * Touch-target contract: both variants meet the shared 44pt minimum from
- * `@/components/a11y/touch-target` (single source of truth for shell + games).
- * React 19 ref-as-prop: callers may pass `ref` to drive screen-reader focus
- * (see `@/components/a11y/focus`).
+ * Mechanics stay out: this is a dumb pressable with themed variants only.
  */
-import { memo, useCallback, useRef, type Ref } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { memo, type Ref } from 'react';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { MIN_TOUCH_TARGET } from '@/components/a11y/touch-target';
-import { ThemedText } from '@/components/themed-text';
-import { Elevation, Motion, Radii, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { usePrefersReducedMotion } from './use-reduced-motion';
+import { Button } from '@/components/ui';
+import type { ButtonVariant } from '@/components/ui/button';
+import { Spacing } from '@/constants/theme';
+
+/** Game-chrome button variants (mapped onto kit variants). */
+export type GameButtonVariant = 'primary' | 'secondary' | 'danger';
 
 export interface GameButtonProps {
   label: string;
   testID: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: GameButtonVariant;
   small?: boolean;
   disabled?: boolean;
   /** Marks the control as the active/selected choice (e.g. a chosen difficulty). */
@@ -41,6 +33,17 @@ export interface GameButtonProps {
   hint?: string;
   /** Host view ref for focus management (React 19 ref-as-prop). */
   ref?: Ref<View>;
+  style?: StyleProp<ViewStyle>;
+}
+
+/**
+ * `selected` promotes a secondary control to the primary treatment so the
+ * chosen option is unambiguous, and disables the redundant press feedback
+ * (re-selecting the active choice should not feel like an action).
+ */
+function resolveVariant(variant: GameButtonVariant, selected: boolean): ButtonVariant {
+  if (selected) return 'primary';
+  return variant;
 }
 
 export const GameButton = memo(function GameButton({
@@ -53,100 +56,30 @@ export const GameButton = memo(function GameButton({
   selected = false,
   hint,
   ref,
+  style,
 }: GameButtonProps) {
-  const theme = useTheme();
-  const prefersReducedMotion = usePrefersReducedMotion();
-  const scale = useRef(new Animated.Value(1)).current;
-
-  const pressIn = useCallback(() => {
-    if (prefersReducedMotion) {
-      return;
-    }
-    Animated.timing(scale, {
-      toValue: 0.96,
-      duration: Motion.press,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
-  }, [prefersReducedMotion, scale]);
-
-  const pressOut = useCallback(() => {
-    if (prefersReducedMotion) {
-      scale.setValue(1);
-      return;
-    }
-    Animated.timing(scale, {
-      toValue: 1,
-      duration: Motion.quick,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
-  }, [prefersReducedMotion, scale]);
-
-  const filled = variant !== 'secondary';
-  const baseFill = variant === 'danger' ? theme.danger : theme.accent;
-  const pressedFill = variant === 'danger' ? theme.danger : theme.accentStrong;
-  const foregroundColor = filled ? '#FFFFFF' : theme.accent;
-
   return (
-    <Animated.View style={[styles.wrapper, { transform: [{ scale }] }]}>
-      <Pressable
-        ref={ref}
-        testID={testID}
-        accessibilityRole="button"
-        accessibilityState={{ disabled, selected, busy: false }}
-        accessibilityHint={hint}
-        disabled={disabled}
-        onPress={onPress}
-        onPressIn={pressIn}
-        onPressOut={pressOut}
-        style={({ pressed }) => [
-          styles.button,
-          filled
-            ? { backgroundColor: pressed ? pressedFill : baseFill, borderColor: baseFill }
-            : {
-                backgroundColor: pressed || selected ? theme.accentSoft : theme.surface,
-                borderColor: theme.accent,
-              },
-          filled ? Elevation.card : Elevation.none,
-          disabled && styles.disabled,
-          small && styles.small,
-        ]}>
-        <ThemedText
-          type={small ? 'caption' : 'smallBold'}
-          style={[styles.label, { color: foregroundColor }]}>
-          {label}
-        </ThemedText>
-      </Pressable>
-    </Animated.View>
+    <Button
+      ref={ref}
+      label={label}
+      testID={testID}
+      onPress={onPress}
+      variant={resolveVariant(variant, selected)}
+      size={small ? 'sm' : 'md'}
+      disabled={disabled}
+      fullWidth={false}
+      accessibilityHint={hint}
+      accessibilityState={{ disabled, selected }}
+      style={[styles.button, style]}
+    />
   );
 });
 
-const styles = StyleSheet.create({
-  wrapper: {
-    alignSelf: 'flex-start',
-  },
+const styles: { button: ViewStyle } = {
   button: {
-    alignSelf: 'flex-start',
-    borderRadius: Radii.pill,
-    borderWidth: 1.5,
-    paddingVertical: Spacing.twoHalf,
-    paddingHorizontal: Spacing.four,
+    // Game controls keep their own minimum so a "Pause"/"Quit" pair never
+    // collapses to icon width next to a board.
     minWidth: 120,
-    minHeight: MIN_TOUCH_TARGET,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
   },
-  label: {
-    textAlign: 'center',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  small: {
-    minWidth: 96,
-    minHeight: MIN_TOUCH_TARGET,
-    paddingVertical: Spacing.oneHalf,
-    paddingHorizontal: Spacing.three,
-  },
-});
+};

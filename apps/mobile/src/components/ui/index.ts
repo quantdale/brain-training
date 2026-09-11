@@ -9,11 +9,38 @@
  * Import everything from `@/components/ui`.
  */
 
+// Interaction foundation
 export { Tappable, pressStyles, type TappableProps } from './tappable';
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './button';
+export { IconButton, type IconButtonProps } from './icon-button';
 export { Card, type CardPadding, type CardProps, type CardVariant } from './card';
 export { SectionGrid, type SectionGridProps } from './section-grid';
 export { HAIRLINE, ICON_BUTTON_SIZE, RADIUS_CAP } from './radius';
+
+// Content primitives
+export { Chip, type ChipProps } from './chip';
+export { Badge, type BadgeProps, type BadgeSize } from './badge';
+export { ListRow, type ListRowProps } from './list-row';
+export { EmptyState, type EmptyStateProps } from './empty-state';
+export { Skeleton, SkeletonText, type SkeletonProps } from './skeleton';
+export { Avatar, type AvatarProps, type AvatarSize } from './avatar';
+export { TextField, type TextFieldProps } from './text-field';
+export {
+  ToastHost,
+  showToast,
+  resetToastQueueForTests,
+  type ToastOptions,
+} from './toast';
+
+// Metrics + navigation chrome
+export { ProgressBar, type ProgressBarProps } from './progress-bar';
+export { ProgressRing, type ProgressRingProps } from './progress-ring';
+export { AnimatedNumber, type AnimatedNumberProps } from './animated-number';
+export { StatBlock, type StatBlockProps } from './stat-block';
+export { ScreenHeader, type ScreenHeaderProps } from './screen-header';
+export { SegmentedControl, type SegmentOption, type SegmentedControlProps } from './segmented-control';
+
+// Motion helpers shared by screens that need bespoke animation
 export {
   PRESS_SCALE,
   useAnimatedProgress,

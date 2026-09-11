@@ -15,7 +15,7 @@
 
 import { DarkTheme, DefaultTheme, ThemeProvider , Stack } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useColorScheme } from "react-native";
+import { StatusBar, useColorScheme } from "react-native";
 
 import {
   SettingsProvider,
@@ -33,6 +33,8 @@ import {
 } from "@/registry/registry";
 import StorageUnavailable from "@/app/storage-unavailable";
 import { THEME_SETTINGS_KEY, resolveThemeMode } from "@/theme/registry";
+import { Colors } from "@/theme/tokens";
+import { ToastHost } from "@/components/ui/toast";
 
 export default function RootLayout() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
@@ -181,8 +183,17 @@ function RootNavigator() {
     colorScheme === "dark" ? "dark" : "light",
   );
 
+  // The status bar was never configured, so system icons kept their default
+  // light styling and washed out against the app's light background
+  // (campaign-024 baseline screenshot). Style follows the resolved theme.
+  const statusBarScheme = mode === "dark" ? "dark" : "light";
+
   return (
     <ThemeProvider value={mode === "dark" ? DarkTheme : DefaultTheme}>
+      <StatusBar
+        barStyle={mode === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={Colors[statusBarScheme].background}
+      />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="game/[id]" />
@@ -195,6 +206,9 @@ function RootNavigator() {
         <Stack.Screen name="rewards" />
         <Stack.Screen name="data-management" />
       </Stack>
+      {/* Non-blocking confirmations (claim, equip, export) render above every
+          route; the host is pointer-transparent so it never traps input. */}
+      <ToastHost testID="app-toast-host" />
     </ThemeProvider>
   );
 }

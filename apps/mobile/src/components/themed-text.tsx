@@ -52,13 +52,21 @@ function resolveToken(type: ThemedTextType): TypographyName {
  */
 function styleForToken(tokenName: TypographyName): TextStyle {
   const token = Typography[tokenName];
-  return {
+  const style: TextStyle = {
     fontSize: token.size,
     lineHeight: token.lineHeight,
     fontWeight: token.weight,
-    letterSpacing: token.tracking,
-    fontVariant: token.tabular ? ['tabular-nums'] : undefined,
   };
+  // Only declare the optional keys when the token actually uses them: an
+  // `undefined` letterSpacing/fontVariant is noise in every rendered style
+  // (and in the visual baselines that record them).
+  if (token.tracking !== undefined) {
+    style.letterSpacing = token.tracking;
+  }
+  if (token.tabular) {
+    style.fontVariant = ['tabular-nums'];
+  }
+  return style;
 }
 
 /**

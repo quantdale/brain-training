@@ -14,7 +14,16 @@
  * ("Keep reading / The Time Machine") without a second component.
  */
 
-import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { forwardRef, type ReactNode } from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  View,
+  type AccessibilityState,
+  type Pressable,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { Fonts, MinTouchTarget, Spacing, Typography, type ColorTheme, type ThemeColor } from '@/theme/tokens';
@@ -39,9 +48,9 @@ export interface ButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   /** Leading glyph/icon node. */
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   /** Trailing glyph/icon node. */
-  trailingIcon?: React.ReactNode;
+  trailingIcon?: ReactNode;
   /** Renders a spinner, blocks presses and hides the label's affordance. */
   loading?: boolean;
   disabled?: boolean;
@@ -50,7 +59,11 @@ export interface ButtonProps {
   testID?: string;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  /** Extra accessibility state merged over the disabled/busy flags. */
+  accessibilityState?: AccessibilityState;
   style?: StyleProp<ViewStyle>;
+  /** Host view ref (focus management / automation seams). */
+  ref?: React.Ref<React.ComponentRef<typeof Pressable>>;
 }
 
 const HEIGHT: Record<ButtonSize, number> = { sm: 40, md: 48, lg: 56 };
@@ -83,7 +96,7 @@ function resolveVariant(variant: ButtonVariant, theme: ColorTheme) {
  * haptics, reduced motion and the 44 dp floor are inherited rather than
  * re-implemented.
  */
-export function Button({
+export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonProps>(function Button({
   label,
   sublabel,
   onPress,
@@ -97,7 +110,9 @@ export function Button({
   testID,
   accessibilityLabel,
   accessibilityHint,
+  accessibilityState,
   style,
+  ref,
 }: ButtonProps) {
   const theme = useTheme();
   const colors = resolveVariant(variant, theme);
@@ -105,13 +120,14 @@ export function Button({
 
   return (
     <Tappable
+      ref={ref}
       testID={testID}
       onPress={onPress}
       disabled={inactive}
       pressedScale={PRESS_SCALE.cta}
       accessibilityLabel={accessibilityLabel ?? (sublabel ? `${label}. ${sublabel}` : label)}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: inactive, busy: loading }}
+      accessibilityState={{ disabled: inactive, busy: loading, ...(accessibilityState ?? {}) }}
       renderedSize={HEIGHT[size]}
       style={[
         styles.base,
@@ -153,7 +169,7 @@ export function Button({
       )}
     </Tappable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   base: {
