@@ -1,43 +1,46 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "023-production-gamification-overhaul",
-  "description": "Campaign 023 production/gamification overhaul is terminal/VALIDATED. Its packet is retained as historical ownership evidence and authorizes no new implementation work.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "024-frontend-ux-modernization",
+  "description": "Campaign 024 frontend UX modernization. Orchestrator owns the shared visual layers and performs all convergence edits to shared files (kit barrel, navigation chrome, package manifests); swarm packets own disjoint screen surfaces and must report shared-file needs instead of editing them.",
   "orchestratorOnlySurfaces": [
-    "openspec/changes/**",
-    ".agent/GOVERNANCE.json",
-    ".agent/STATE.md",
-    ".agent/CURRENT_CAMPAIGN.md",
-    ".agent/EXECUTION_PROMPT.md",
-    ".agent/task-ownership.json",
-    ".agent/VALIDATION.md",
-    ".agent/KNOWN_ISSUES.md",
-    ".agent/IMPACT_MAP.md",
-    "scripts/validate-repo-state.mjs",
-    "scripts/validate-task-ownership.cjs",
-    "scripts/validate-affected.mjs",
-    "scripts/generate-game-registry.mjs",
-    "scripts/qa/**",
-    "apps/mobile/src/db/**",
-    "apps/mobile/src/data-portability/**",
-    "apps/mobile/src/sync/**",
-    "apps/mobile/src/progression/**",
-    "apps/mobile/src/analytics/**",
-    "apps/mobile/src/rewards/**",
-    "apps/mobile/src/quests/**",
-    "apps/mobile/src/achievements/**",
-    "apps/mobile/src/streaks/**",
-    "apps/mobile/src/theme/**",
-    "apps/mobile/src/components/game-host/**",
-    "apps/mobile/src/components/game-ui/**",
-    "apps/mobile/src/app/**",
-    "apps/mobile/src/registry/**",
+    "openspec/**",
+    ".agent/**",
+    "scripts/**",
+    "docs/**",
+    ".github/**",
     "package.json",
     "package-lock.json",
     "apps/mobile/package.json",
     "apps/mobile/package-lock.json",
-    "docs/**",
-    ".github/**"
+    "apps/mobile/app.json",
+    "apps/mobile/src/theme/**",
+    "apps/mobile/src/platform/**",
+    "apps/mobile/src/hooks/**",
+    "apps/mobile/src/games/*/game.json",
+    "apps/mobile/src/registry/**",
+    "apps/mobile/src/components/ui/index.ts",
+    "apps/mobile/src/components/ui/button.tsx",
+    "apps/mobile/src/components/ui/card.tsx",
+    "apps/mobile/src/components/ui/tappable.tsx",
+    "apps/mobile/src/components/ui/motion.ts",
+    "apps/mobile/src/components/ui/copy.ts",
+    "apps/mobile/src/components/ui/__tests__/kit-contract.test.tsx",
+    "apps/mobile/src/components/shell/**",
+    "apps/mobile/src/components/a11y/**",
+    "apps/mobile/src/components/game-host/**",
+    "apps/mobile/src/components/game-ui/**",
+    "apps/mobile/src/components/screen-shell.tsx",
+    "apps/mobile/src/components/app-tabs.tsx",
+    "apps/mobile/src/components/app-tabs.web.tsx",
+    "apps/mobile/src/components/error-boundary.tsx",
+    "apps/mobile/src/components/game-not-ready.tsx",
+    "apps/mobile/src/rewards/celebration.tsx",
+    "apps/mobile/src/app/_layout.tsx",
+    "apps/mobile/src/app/(tabs)/_layout.tsx",
+    "apps/mobile/src/app/game/**",
+    "apps/mobile/src/app/storage-unavailable.tsx",
+    "apps/mobile/__tests__/visual-baselines/**"
   ],
   "generatedFilePatterns": [
     "**/*.generated.ts",
@@ -46,165 +49,156 @@
   ],
   "parallelPackets": [
     {
-      "id": "p-attention",
-      "objective": "Audit and repair all attention game modules against the campaign functional checklist; add regression tests for confirmed defects.",
+      "id": "P1-kit-inputs",
+      "wave": "kit",
+      "objective": "Implement the input/content kit primitives on the frozen token + Tappable/Button/Card contract.",
       "dependencies": [],
       "coderWriteSurfaces": [
+        "apps/mobile/src/components/ui/text-field.tsx",
+        "apps/mobile/src/components/ui/chip.tsx",
+        "apps/mobile/src/components/ui/badge.tsx",
+        "apps/mobile/src/components/ui/list-row.tsx",
+        "apps/mobile/src/components/ui/empty-state.tsx",
+        "apps/mobile/src/components/ui/skeleton.tsx",
+        "apps/mobile/src/components/ui/toast.tsx",
+        "apps/mobile/src/components/ui/avatar.tsx",
+        "apps/mobile/src/components/ui/__tests__/kit-inputs.test.tsx"
+      ],
+      "sharedSurfaces": [],
+      "completionCriteria": "Every listed primitive renders, honours tokens (no literals), exposes a11y role/name, meets the 44 dp contract, and has focused tests for behaviour that a plausible bug would break.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/components/ui"
+    },
+    {
+      "id": "P2-kit-metrics",
+      "wave": "kit",
+      "objective": "Implement the metric/progress kit primitives (rings, bars, animated numbers, stat blocks, screen header, segmented control, icon button).",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/components/ui/progress-bar.tsx",
+        "apps/mobile/src/components/ui/progress-ring.tsx",
+        "apps/mobile/src/components/ui/animated-number.tsx",
+        "apps/mobile/src/components/ui/stat-block.tsx",
+        "apps/mobile/src/components/ui/screen-header.tsx",
+        "apps/mobile/src/components/ui/segmented-control.tsx",
+        "apps/mobile/src/components/ui/icon-button.tsx",
+        "apps/mobile/src/components/ui/__tests__/kit-metrics.test.tsx"
+      ],
+      "sharedSurfaces": [],
+      "completionCriteria": "Primitives render without react-native-svg or new native deps, animate through the motion tokens, collapse under reduced motion, and pass focused tests.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/components/ui"
+    },
+    {
+      "id": "P3-home",
+      "wave": "screens",
+      "objective": "Rebuild Home around a single hero (daily-workout goal + streak strip), a real level/XP meter, section headers with See-all, kit CTAs, skeletons and empty/error states.",
+      "dependencies": [
+        "P1-kit-inputs",
+        "P2-kit-metrics"
+      ],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/app/(tabs)/index.tsx",
+        "apps/mobile/src/components/workout/**",
+        "apps/mobile/src/components/spotlight/**",
+        "apps/mobile/src/components/mastery/**"
+      ],
+      "sharedSurfaces": [],
+      "completionCriteria": "Home renders one hero, one primary action, uniform section anatomy, and preserves every existing home-* testID; autobot warm-home still resolves.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app src/components/workout src/components/mastery src/components/spotlight"
+    },
+    {
+      "id": "P4-games",
+      "wave": "screens",
+      "objective": "Modernize the Games library and Game detail: featured/recommended card, kit search + chips, adaptive multi-column grid, mastery-ring hero, personal-best row, ListRow session history.",
+      "dependencies": [
+        "P1-kit-inputs",
+        "P2-kit-metrics"
+      ],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/app/(tabs)/games.tsx",
+        "apps/mobile/src/app/game-detail/**",
+        "apps/mobile/src/components/discovery/**"
+      ],
+      "sharedSurfaces": [],
+      "completionCriteria": "Library adapts columns by breakpoint, search/filter use kit primitives, detail screen has one hero and one primary action, all games-*/game-detail-* testIDs preserved.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app src/components/discovery"
+    },
+    {
+      "id": "P5-progress",
+      "wave": "screens",
+      "objective": "Modernize the Progress suite: composite hero, readable charts (labels, zero states, identity colours), ListRows, kit segmented control window selector, a11y roles on every row and chart.",
+      "dependencies": [
+        "P1-kit-inputs",
+        "P2-kit-metrics"
+      ],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/app/(tabs)/progress.tsx",
+        "apps/mobile/src/app/progress-detail.tsx",
+        "apps/mobile/src/app/progress-domain.tsx",
+        "apps/mobile/src/app/progress-game.tsx",
+        "apps/mobile/src/app/progress-activity.tsx",
+        "apps/mobile/src/components/progress-charts.tsx"
+      ],
+      "sharedSurfaces": [],
+      "completionCriteria": "Charts carry axis/day labels and zero states, every row has a role and hint, charts expose textual summaries, dark mode has no hardcoded-colour artifacts, progress-* testIDs preserved.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app src/analytics"
+    },
+    {
+      "id": "P6-profile-rewards",
+      "wave": "screens",
+      "objective": "Modernize Profile, Rewards and Data management: identity hero, streak strip, distinct claimable/in-progress/locked treatments, cosmetic gallery, kit inputs/buttons, destructive-confirm styling.",
+      "dependencies": [
+        "P1-kit-inputs",
+        "P2-kit-metrics"
+      ],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/app/(tabs)/profile.tsx",
+        "apps/mobile/src/app/rewards.tsx",
+        "apps/mobile/src/app/data-management.tsx",
+        "apps/mobile/src/components/settings/**"
+      ],
+      "sharedSurfaces": [],
+      "completionCriteria": "Claimable rewards are visually distinct from in-progress and locked, identity hero present, all profile-*/rewards-*/data-* testIDs preserved, destructive actions unchanged in behaviour.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app src/components/settings"
+    },
+    {
+      "id": "P7-results-and-late-tap",
+      "wave": "screens",
+      "objective": "Modernize the Results screen (celebration → headline → metric row → single CTA, personal-best state) and fix the late-tap feedback/score mismatch in the three named games by resolving feedback from the authoritative round outcome.",
+      "dependencies": [
+        "P1-kit-inputs",
+        "P2-kit-metrics"
+      ],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/app/results.tsx",
         "apps/mobile/src/games/attention-odd-one-out/**",
-        "apps/mobile/src/games/attention-sustained-vigilance/**",
-        "apps/mobile/src/games/attention-symbol-tracker/**",
-        "apps/mobile/src/games/attention-target-count/**",
-        "apps/mobile/src/games/attention-visual-search/**"
+        "apps/mobile/src/games/attention-visual-search/**",
+        "apps/mobile/src/games/math-fast-math/**"
       ],
-      "prohibitedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/theme/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/registry/**"
-      ],
-      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
-      "validation": "npx jest --maxWorkers=1 src/games/attention- ; npx tsc --noEmit (report only)",
-      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+      "sharedSurfaces": [],
+      "completionCriteria": "Results renders the reference structure with a single primary action; each named game's tap feedback derives from the reducer-resolved outcome (test proving a post-deadline tap does not emit success feedback); results-* testIDs preserved.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app src/games/attention-odd-one-out src/games/attention-visual-search src/games/math-fast-math"
     },
     {
-      "id": "p-flexibility",
-      "objective": "Audit and repair all flexibility game modules against the campaign functional checklist; add regression tests for confirmed defects.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/flexibility-card-sort/**",
-        "apps/mobile/src/games/flexibility-color-stroop/**",
-        "apps/mobile/src/games/flexibility-cue-shift/**",
-        "apps/mobile/src/games/flexibility-rule-flip/**",
-        "apps/mobile/src/games/flexibility-task-switch/**"
+      "id": "P8-canary-games-feedback",
+      "wave": "screens",
+      "objective": "Adopt the upgraded feedback primitives in the eight category canary games: fill+icon verdict (never colour alone), correct answer revealed alongside a wrong pick, animated score delta, reduced-motion gate, 44 dp targets.",
+      "dependencies": [
+        "P1-kit-inputs",
+        "P2-kit-metrics"
       ],
-      "prohibitedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/theme/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/registry/**"
-      ],
-      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
-      "validation": "npx jest --maxWorkers=1 src/games/flexibility- ; npx tsc --noEmit (report only)",
-      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
-    },
-    {
-      "id": "p-language",
-      "objective": "Audit and repair all language game modules against the campaign functional checklist; add regression tests for confirmed defects.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/language-context-fit/**",
-        "apps/mobile/src/games/language-sentence-builder/**",
-        "apps/mobile/src/games/language-word-chain/**",
-        "apps/mobile/src/games/language-word-match/**",
-        "apps/mobile/src/games/language-word-scramble/**"
-      ],
-      "prohibitedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/theme/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/registry/**"
-      ],
-      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
-      "validation": "npx jest --maxWorkers=1 src/games/language- ; npx tsc --noEmit (report only)",
-      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
-    },
-    {
-      "id": "p-logic",
-      "objective": "Audit and repair all logic game modules against the campaign functional checklist; add regression tests for confirmed defects.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/logic-code-cracker/**",
-        "apps/mobile/src/games/logic-deduction-table/**",
-        "apps/mobile/src/games/logic-next-sequence/**",
-        "apps/mobile/src/games/logic-order-path/**",
-        "apps/mobile/src/games/logic-rule-grid/**"
-      ],
-      "prohibitedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/theme/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/registry/**"
-      ],
-      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
-      "validation": "npx jest --maxWorkers=1 src/games/logic- ; npx tsc --noEmit (report only)",
-      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
-    },
-    {
-      "id": "p-math",
-      "objective": "Audit and repair all math game modules against the campaign functional checklist; add regression tests for confirmed defects.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/math-equation-builder/**",
-        "apps/mobile/src/games/math-fast-math/**",
-        "apps/mobile/src/games/math-missing-operator/**",
-        "apps/mobile/src/games/math-number-line-estimation/**",
-        "apps/mobile/src/games/math-value-ordering/**"
-      ],
-      "prohibitedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/theme/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/registry/**"
-      ],
-      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
-      "validation": "npx jest --maxWorkers=1 src/games/math- ; npx tsc --noEmit (report only)",
-      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
-    },
-    {
-      "id": "p-memory",
-      "objective": "Audit and repair the memory game modules (including the base memory module) against the campaign functional checklist; add regression tests for confirmed defects.",
-      "dependencies": [],
       "coderWriteSurfaces": [
         "apps/mobile/src/games/memory/**",
-        "apps/mobile/src/games/memory-grid-recall/**",
-        "apps/mobile/src/games/memory-pair-recall/**",
-        "apps/mobile/src/games/memory-pattern-tap-back/**",
-        "apps/mobile/src/games/memory-prospective-cue/**",
-        "apps/mobile/src/games/memory-running-order/**",
-        "apps/mobile/src/games/memory-sequence-memory/**"
-      ],
-      "prohibitedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/theme/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/registry/**"
-      ],
-      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
-      "validation": "npx jest --maxWorkers=1 src/games/memory ; npx tsc --noEmit (report only)",
-      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
-    },
-    {
-      "id": "p-spatial-speed",
-      "objective": "Audit and repair all spatial and speed game modules against the campaign functional checklist; add regression tests for confirmed defects.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/spatial-coordinate-turn/**",
-        "apps/mobile/src/games/spatial-fold-match/**",
-        "apps/mobile/src/games/spatial-grid-nav/**",
-        "apps/mobile/src/games/spatial-mental-rotation/**",
+        "apps/mobile/src/games/speed-tap-rush/**",
+        "apps/mobile/src/games/language-word-match/**",
+        "apps/mobile/src/games/logic-next-sequence/**",
+        "apps/mobile/src/games/flexibility-card-sort/**",
         "apps/mobile/src/games/spatial-transform-match/**",
-        "apps/mobile/src/games/speed-color-match/**",
-        "apps/mobile/src/games/speed-order-sweep/**",
-        "apps/mobile/src/games/speed-quick-compare/**",
-        "apps/mobile/src/games/speed-reaction-time/**",
-        "apps/mobile/src/games/speed-tap-rush/**"
+        "apps/mobile/src/games/attention-symbol-tracker/**",
+        "apps/mobile/src/games/math-equation-builder/**"
       ],
-      "prohibitedSurfaces": [
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/components/**",
-        "apps/mobile/src/theme/**",
-        "apps/mobile/src/db/**",
-        "apps/mobile/src/registry/**"
-      ],
-      "completionCriteria": "Per-game disposition reported; confirmed defects fixed with failing-before/passing-after tests; targeted suites green.",
-      "validation": "npx jest --maxWorkers=1 src/games/spatial- src/games/speed- ; npx tsc --noEmit (report only)",
-      "integration": "Orchestrator runs the full matrix and runtime certification after convergence."
+      "sharedSurfaces": [],
+      "completionCriteria": "Each canary game's answer surface marks verdicts with fill + icon, animates score changes, respects reduced motion, and keeps its scoring/reducer semantics byte-identical; existing game tests pass.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games"
     }
   ]
 }

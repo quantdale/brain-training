@@ -1,28 +1,41 @@
-# Execution Prompt — Campaign 023: Production & Gamification Overhaul
+# Execution Prompt — Campaign 024: Frontend UX Modernization
 
-**Status:** VALIDATED
-**Change:** `023-production-gamification-overhaul`
-**Start-SHA:** `22bf19600dd6ecdd949c0d9615c1d8a43a5542f3`
+**Status:** ACTIVE
+**Change:** `024-frontend-ux-modernization`
+**Start-SHA:** `0402279`
 **Planned-At:** 2026-09-11
 **Target-Branch:** `main`
-**Predecessor:** `022-release-candidate-certification` (VALIDATED)
+**Predecessor:** `023-production-gamification-overhaul` (VALIDATED)
 
-## Archived execution prompt — DO NOT RESTART
+## Objective
 
-The campaign objective was to take the Campaign 022 release candidate to
-App-Store-submission standard: configure and live-verify the Refero MCP design
-server without committing its token; audit and repair every registered game
-with regression tests; apply a unified gamified UX overhaul (tokens, tactile
-primitives, streak/level hero, authoritative reward moments, workout
-celebration); and produce a zero-error production build with honest
-safe-area/offline/runtime evidence classification.
+Rebuild the app's visual and interaction layer to the standard of the
+owner-named reference class (Duolingo, Brilliant.org, Elevate) using
+Refero-MCP research, while preserving every locked product decision and all
+gameplay/scoring/persistence semantics.
 
-That objective was completed. Exact results and limitations live in
-`.agent/VALIDATION.md` and the campaign packet's `audit-map.md` / `tasks.md` /
-`EXECUTION.md`. Unavailable evidence (store signing, manual TalkBack, SAF,
-physical device, iOS runtime, headless screenshots, runtime profile switching)
-was not converted into PASS.
+Deliverables: design-language v2 tokens, a real UI kit, modernized hierarchy on
+every surface, universal micro-interaction feedback, genuinely consumed
+responsive breakpoints (tablet/landscape), WCAG-AA accessibility closure, and
+native before/after screenshot evidence captured on a GPU-enabled AVD.
 
-A fresh agent must not execute this prompt. Read `.agent/GOVERNANCE.json` and
-`.agent/STATE.md`; with `activeCampaign` null, planning or new owner
-authorization is required before another implementation campaign begins.
+## Read before acting
+
+`.agent/GOVERNANCE.json`, `.agent/STATE.md`, `.agent/CURRENT_CAMPAIGN.md`,
+`.agent/task-ownership.json`, then the OpenSpec change at
+`openspec/changes/024-frontend-ux-modernization/` (EXECUTION.md → proposal.md →
+design.md → specs/** → tasks.md → audit-map.md → research/**).
+
+## Work model
+
+Orchestrator owns the shared layers (`theme/**`, `platform/**`,
+`components/ui/**` core, `components/shell/**`, `components/game-host/**`,
+`components/game-ui/**`, app chrome, scripts, docs, governance). Swarm packets
+own disjoint screen surfaces listed in `.agent/task-ownership.json` and report
+shared-file needs to the orchestrator for a single convergence edit.
+
+## Honest-status policy
+
+Never convert unavailable evidence into PASS. Checks that cannot run on this
+host (manual TalkBack, physical device, store signing, iOS runtime) stay
+NOT VALIDATED / EXTERNALLY BLOCKED with the reason recorded.

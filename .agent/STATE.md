@@ -1,60 +1,58 @@
 # Durable Project State
 
-**Last update:** 2026-09-11 — Campaign 023 closed VALIDATED (production/gamification overhaul).
+**Last update:** 2026-09-11 — Campaign 024 ACTIVATED (frontend UX modernization).
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** 024-frontend-ux-modernization
 **Last campaign:** `023-production-gamification-overhaul`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 023 — Production & Gamification Overhaul is **VALIDATED / TERMINAL**.
-It executed the owner goal-mode directive end-to-end: Refero MCP configured
-and live-verified (credential never tracked); all 42 registered games audited
-with defects repaired and regression-tested; a unified gamified design-system
-overhaul applied (streak hero, level/XP meter, authoritative session-reward
-moment, workout celebration, tactile primitives); and a zero-error production
-release build produced and standalone-verified.
+Campaign 024 — Frontend UX Modernization is **ACTIVE**. It executes the owner's
+2026-09-11 goal-mode directive issued after Campaign 023's terminal closure:
+research modern UI/UX with Refero MCP and apply it across the entire frontend,
+drawing on Duolingo / Brilliant.org / Elevate-class gamified iOS apps, improving
+visual hierarchy, micro-interactions, responsive layout, accessibility and
+overall UX until the result is production-ready, fully functional, performant
+and visually refined.
 
-Exact evidence, honest PASS / NOT VALIDATED / BLOCKED classifications, the
-runtime certification result (42/42 games PASS; aggregate certify flag false
-for one never-idle dump pause-probe miss, disproven as a product defect by a
-direct back-contract pause/resume probe), and limitations live in
-`.agent/VALIDATION.md` and
-`openspec/changes/023-production-gamification-overhaul/` (`audit-map.md`,
-`tasks.md`, `EXECUTION.md`).
+Scope boundary: no gameplay, scoring, rating, persistence, sync, AI or
+monetization change; no new games; the locked decisions in
+`docs/PROJECT_CONSTITUTION.md` remain authoritative.
 
-## Terminal evidence summary
+## Activation evidence (2026-09-11)
 
-- All-games audit: 42/42 dispositions; 168 files, +3348/-134, +109 tests
-  (`e351804`).
-- Gamification overhaul: tokens/primitives/Home hero/GameResults reward wired
-  through all 42 screens with catalog contracts (`94b5a88`, `81e6841`).
-- Production build: `:app:assembleRelease` BUILD SUCCESSFUL; APK 109,309,873 B,
-  SHA-256 `AE1B9F09B9BDB5E81AE667256E81B7CC32DBF1D8906EBDDE0AA73738F17908F1`;
-  standalone Metro-free cold start PASS (1.27 s).
-- Offline: validator CLEAN (935 files); offline release cold start + game
-  deep-link PASS.
-- Runtime: autobot canaries 8/8 PASS; full certify 42/42 games PASS
-  (0 failed/missing/duplicate) with the aggregate `certified` flag false
-  solely from one pause-probe miss caused by the never-idle vigilance ticker
-  vs uiautomator partial dumps; direct pause/resume probe PASS on the same
-  build. Reported exactly as such.
-- Final matrix: Jest 6219 pass / 5 skip (495 suites), tsc 0, lint 0; all
-  repository validators and OpenSpec validation PASS.
-- Still NOT VALIDATED / EXTERNALLY BLOCKED (unchanged from Campaign 022):
-  store/Play signing credentials, manual TalkBack, SAF/system sheets, physical
-  device, iOS runtime; plus headless screenshot capture and runtime
-  screen-profile switching on this host.
+- Recon swarm produced a full surface/component/accessibility/motion inventory;
+  findings and evidence are in
+  `openspec/changes/024-frontend-ux-modernization/audit-map.md`.
+- Refero research briefs committed under the campaign's `research/` directory
+  (core-shell patterns + play/feedback patterns, 33 iOS reference screens).
+- **New capability — native visual evidence:** the repository previously
+  recorded "headless screencap returns a constant blank frame" as an
+  operational limitation (Campaign 023). Root cause identified: both project ATD
+  AVDs set `hw.gpu.enabled=no`. A GPU-enabled AVD (`braintraining-ui35`,
+  android-35 google_apis, 2048 MB, headless) boots in ~90 s and returns real
+  frames; screenshot capture and display-profile switching become verifiable
+  evidence classes for this campaign.
+- Baseline "before" screenshots of the Campaign 023 release APK were captured
+  on that device (`qa-artifacts/campaign024/`).
+
+## Last campaign (023) — terminal summary
+
+42/42 games audited and repaired; gamified design-system surfaces wired through
+catalog; production release build + standalone/offline runtime verified; runtime
+certification 42/42 games PASS (aggregate certify flag false solely from one
+never-idle dump pause-probe miss, disproven as a product defect by a direct
+pause/resume probe). Still NOT VALIDATED / EXTERNALLY BLOCKED: store signing
+credentials, manual TalkBack, SAF/system sheets, physical device, iOS runtime.
 
 ## Continuation rule
 
-There is **no active campaign**. Do not resume Campaign 023 or invent a
-successor merely to keep an agent busy. A future campaign requires a new owner
-directive or a separately justified planning pass against current repository
-evidence. Historical Campaign 001–023 records remain recoverable from Git,
-`.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, OpenSpec history, and prior
-commits; they are not current executable authority.
+Campaign 024 is the executable authority. Do not restart Campaign 023. A future
+campaign requires a new owner directive or a separately justified planning pass
+against then-current repository evidence. Historical campaign records remain
+recoverable from Git, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`,
+OpenSpec history, and prior commits.
 
 ## Recovery order
 
@@ -63,5 +61,5 @@ commits; they are not current executable authority.
 3. `.agent/GOVERNANCE.json`
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
-6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. the OpenSpec packet for the campaign being inspected
+6. `openspec/changes/024-frontend-ux-modernization/EXECUTION.md`
+7. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`

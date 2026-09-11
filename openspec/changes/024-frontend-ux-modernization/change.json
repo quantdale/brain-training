@@ -1,0 +1,33 @@
+{
+  "id": "024-frontend-ux-modernization",
+  "status": "ACTIVE",
+  "predecessor": "023-production-gamification-overhaul",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "design-language-v2",
+    "ui-kit-primitives",
+    "screen-hierarchy",
+    "micro-interactions",
+    "responsive-adaptive",
+    "accessibility-upgrade",
+    "visual-verification"
+  ],
+  "activationRule": "Explicit owner goal-mode directive on 2026-09-11 (post-Campaign-023 terminal state): research and apply modern UI/UX best practices across the entire frontend with Refero MCP, drawing on Duolingo/Brilliant.org/Elevate-class gamified iOS apps, improving visual hierarchy, micro-interactions, responsive layout, accessibility and overall UX to a production-ready, fully functional, performant, visually refined result. Genuinely new scope after Campaign 023's validated gamified-overhaul closure (023 wired reward surfaces into an existing flat card system; 024 rebuilds the visual/interaction language itself and measures it with native visual evidence that 023 could not capture).",
+  "baselineAuditCommit": "0402279",
+  "baselineEvidence": {
+    "recon": [
+      "openspec/changes/024-frontend-ux-modernization/audit-map.md",
+      "openspec/changes/024-frontend-ux-modernization/research/refero-core-screens.md",
+      "openspec/changes/024-frontend-ux-modernization/research/refero-play-screens.md"
+    ],
+    "nativeBaselineScreenshots": "qa-artifacts/campaign024/base-*.png (1080x2400 @420dpi, release APK 109309873 B)",
+    "captureDevice": "braintraining-ui35 (emulator-5560) — GPU-enabled AVD created for this campaign; resolves the Campaign 023 'headless screencap returns a blank frame' limitation"
+  },
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": false
+}
