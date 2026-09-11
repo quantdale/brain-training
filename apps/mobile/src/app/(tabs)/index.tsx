@@ -42,12 +42,13 @@ import {
 import {
   Button,
   Card,
+  Entrance,
+  ListRow,
   ProgressBar,
   SectionGrid,
-  ListRow,
   Skeleton,
   SkeletonText,
-} from "@/components/ui";
+} from '@/components/ui';
 import {
   WorkoutCompletionCard,
   WorkoutFocusExplanation,
@@ -613,6 +614,7 @@ export default function HomeScreen() {
 
       {/* Today's Workout hero: goal progress + the screen's single primary
           CTA. The meter and legs mirror the durable resume position. */}
+      <Entrance index={0}>
       <Card variant="hero" padding="lg" testID="home-workout-cta">
         <View style={styles.heroBody}>
           <View style={styles.heroTitle}>
@@ -680,7 +682,10 @@ export default function HomeScreen() {
                   return (
                     <View
                       key={`${game.id}-${index}`}
-                      testID={`home-workout-game-status-${game.id}`}
+                      // Distinct prefix on purpose: `home-workout-game-<id>` must identify
+                      // exactly one node (the row), or prefix-based automation counts
+                      // the wrapper as a second workout leg.
+                      testID={`home-workout-status-${game.id}`}
                     >
                       <ListRow
                         title={game.name}
@@ -740,8 +745,11 @@ export default function HomeScreen() {
         </View>
       </Card>
 
+      </Entrance>
+
       {/* Streak context: supporting motivation under the hero, in the
           four-block beat (flame + count, label, 7-day strip, milestone). */}
+      <Entrance index={1}>
       <View style={styles.streakSection}>
         <StreakCard
           current={currentStreak}
@@ -753,8 +761,11 @@ export default function HomeScreen() {
         />
       </View>
 
+      </Entrance>
+
       {/* Level/XP: tabular level numeral + coin balance in the currency
           identity colour over an xp-toned meter. */}
+      <Entrance index={2}>
       <Card testID="home-level-card">
         <View style={styles.levelBody}>
           <View style={styles.levelRow}>
@@ -795,6 +806,7 @@ export default function HomeScreen() {
           />
         </View>
       </Card>
+      </Entrance>
 
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
           finished today. Data-gated so first-run trees stay unchanged. */}

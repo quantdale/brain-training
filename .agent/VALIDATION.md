@@ -5,6 +5,119 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 024 — Frontend UX Modernization evidence (2026-09-11)
+
+### Activation (commit `d4c15bc`)
+
+- Owner goal-mode directive authorized genuinely new scope after Campaign 023's
+  terminal closure: Refero-researched UI/UX modernization across the entire
+  frontend. OpenSpec packet `024-frontend-ux-modernization` (7 specs), governance,
+  state, execution prompt and ownership rebound; repo-state / task-ownership /
+  OpenSpec validators PASS.
+- Recon (4 parallel scouts + 2 research agents): 16-route surface inventory,
+  component/token/duplication inventory, accessibility audit, motion/perf/
+  responsive audit; Refero briefs committed under the campaign's `research/`
+  (17 core-screen references → 18 PATTERNS-CORE + 10 anti-patterns; 16
+  play-screen references → 18 PATTERNS-PLAY + a 0/80/200/400/800 ms feedback
+  choreography + 8 anti-patterns).
+
+### New capability — native visual evidence (previously NOT VALIDATED)
+
+- Root-caused the Campaign 023 limitation: both project ATD AVDs ship
+  `hw.gpu.enabled=no`, so `screencap` returned a uniform ~10 KB frame. A new
+  GPU-enabled AVD (`braintraining-ui35`: android-35 google_apis, 2048 MB,
+  `hw.gpu.mode=host`, headless) boots in ~90 s and returns real frames
+  (1.3 MB launcher capture verified visually).
+- `scripts/qa/ui-capture.mjs`: scripted, emulator-local capture of screenshot +
+  hierarchy per surface, profile and theme, with a manifest; `scripts/qa/a11y-audit.mjs`:
+  44 dp / unlabelled-interactive measurement from the same dumps. Both documented
+  in `docs/ANDROID_AUTOMATION.md`.
+
+### Design foundation (commits `6bcdba2`, `8a9a318`, `7001276`)
+
+- Design language v2: contrast-verified semantic families with five slots each,
+  eight domain identity colours, six metric identities, elevation ramp,
+  numeral/eyebrow typography with tabular figures, spring + stagger motion
+  tokens, layout tiers. The Campaign 023 accent-as-text failure (3.8:1 light /
+  3.9:1 dark) is fixed and pinned by test.
+- UI kit: Tappable, Button, Card, SectionGrid, BackLink, Chip, Badge, ListRow,
+  EmptyState, Skeleton, Toast, Avatar, TextField, ProgressBar, ProgressRing,
+  AnimatedNumber, StatBlock, ScreenHeader, SegmentedControl, IconButton (41 kit
+  tests: activation blocking, a11y contract, 44 dp, reduced motion).
+- Shell surfaces rebuilt on the kit (StreakCard beat, LevelCard meter,
+  ProgressTrack adapter, StateCard skeletons, SectionHeader action);
+  game chrome adapted (GameButton → kit Button, intro reward box, structured
+  HUD) so all 42 games inherit the contract; status bar configured; toast host
+  mounted at the root. `docs/DESIGN_SYSTEM.md` documents the system.
+
+### Screen wave — six parallel packets (commit `6730870`)
+
+- Home, Games library + detail, Progress suite (4 screens + charts), Profile +
+  Rewards + Data management + settings, Results + three late-tap games, and
+  eight category-canary games. Highlights: one hero + one primary action per
+  surface; readable charts with identity colours and zero states (the eight
+  fixed share-bar hex values and both dark-broken rgba track literals are gone);
+  three distinct reward treatments; verifiable answer feedback.
+- Late-tap mismatch (Campaign 023 Low finding) fixed in `attention-odd-one-out`,
+  `attention-visual-search`, `math-fast-math` by resolving feedback from the
+  reducer's authoritative outcome; each has a test that fails on the old
+  behaviour.
+- Convergence fixes: SessionHeader dropped game-supplied headers and the pause
+  control; the score metric lost its `<gameId>.score` testID; the intro eyebrow
+  never tinted (capitalized registry categories vs domain keys); Button read its
+  `ref` from props instead of the `forwardRef` argument, which silently killed
+  the pause overlay's screen-reader focus seam — all fixed with tests.
+
+### Accessibility closure (commit `76aa5e5`)
+
+- Measured on the release APK with `scripts/qa/a11y-audit.mjs` (1080×2400 @420):
+  **14 → 0** sub-44 dp / unlabelled interactive violations across 11 surfaces.
+  Fixes: real 44 dp compact controls (kit Button `sm`, Chip, TextField input),
+  a new `BackLink` primitive replacing four 20 dp text back links, real height
+  for section actions.
+- Contrast: every semantic and domain pairing passes WCAG AA in both schemes
+  (asserted in `theme/__tests__/contrast.test.ts`).
+
+### Verification at `76aa5e5`
+
+- Jest: **6321 pass / 5 allowlisted skips** (513 suites; baseline was 6219/5) —
+  includes 4025 game tests. `tsc --noEmit` clean. `expo lint` clean.
+- Validators: repo-state, task-ownership, registry `--check`, provenance
+  (no drift), offline boundary CLEAN (961 files), secrets CLEAN (1931 tracked
+  files), OpenSpec 11/11 PASS.
+- Release build: `:app:assembleRelease` BUILD SUCCESSFUL from campaign HEAD.
+- Native evidence: `qa-artifacts/campaign024/before/**` (22 frames: 11 surfaces
+  × light/dark, Campaign 023 APK) and `after/**` (22 frames at `76aa5e5`), plus
+  `after-profiles/**` (compact / expanded / landscape / font-scale-2 × 4
+  surfaces). Verified by inspection: expanded renders a 3-column library grid;
+  font-scale-2 keeps text legible; landscape renders; tab bar shows labels.
+- Runtime: autobot canaries **8/8 PASS** on the dev client at `76aa5e5`
+  (interaction + force-win + exactly one persisted session + row invariants +
+  authoritative results + back/next navigation).
+
+### Honest limitations (Campaign 024)
+
+- **Full-catalog `--mode certify` gate: BLOCKED (environment).** The gate
+  requires exactly one attached device; a second emulator owned by the user's
+  own work (`Nitro_API_36`) is attached for the whole session and was not
+  touched. A full-catalog journey is run instead (see below), and the certify
+  preflight is recorded as blocked, not failed.
+- **Dev-server instability during long runs:** the Expo dev server can exit
+  with an assertion while bundling the web platform
+  (`Worker chunk not found for expo-sqlite/web/worker.ts`). Every resulting
+  autobot failure reads "app did not warm to home (Metro/JS load)" and is an
+  environment failure, not a product defect. A self-healing batched runner
+  (`qa-artifacts/campaign024/run-catalog.mjs`) drives the catalog with Metro
+  restarts.
+- **Runtime display-profile switch:** applying `wm size`/`wm density` under a
+  running activity restarts it into the storage-error boundary (already-
+  initialised native handles). A cold start under the new profile renders
+  correctly, and rotation (the real user path) is unaffected. Classified as a
+  QA-environment artifact, recorded in `KNOWN_ISSUES.md`.
+- Still NOT VALIDATED / EXTERNALLY BLOCKED (unchanged): store/Play signing
+  credentials, manual TalkBack review, SAF/system sheets, physical device,
+  iOS runtime.
+
 ## Campaign 023 — Production & Gamification Overhaul evidence (2026-09-11)
 
 ### Activation and tooling (commit `951e907`)

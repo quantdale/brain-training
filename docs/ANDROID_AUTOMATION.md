@@ -279,3 +279,69 @@ runs `-no-window`, so nothing is even rendered on the host display.
   boots, deterministic cold boots on demand, fixed artifact directory,
   timestamped filenames, exit codes (0 ok, 2 build not validated, 3 app not
   foreground).
+
+## UI evidence capture (`scripts/qa/ui-capture.mjs`)
+
+Campaign 023 recorded "headless `screencap` returns a constant blank frame" as a
+limitation. The cause was the AVD configuration, not the emulator: both project
+ATD AVDs set `hw.gpu.enabled=no`, so SurfaceFlinger had nothing to composite and
+every capture came back as a small uniform frame.
+
+A GPU-enabled AVD fixes it:
+
+```bash
+# One-time: a capture-capable AVD (android-35 google_apis, 2048 MB, GPU on)
+#   hw.gpu.enabled=yes, hw.gpu.mode=host
+emulator -avd braintraining-ui35 -no-window -no-snapshot -no-boot-anim -no-audio
+
+# Evidence set (screenshot + hierarchy per surface, light and dark):
+node scripts/qa/ui-capture.mjs --device emulator-5560 \
+  --out qa-artifacts/campaign024/after --theme light,dark
+
+# Display-profile matrix (the app is restarted under each profile):
+node scripts/qa/ui-capture.mjs --device emulator-5560 \
+  --out qa-artifacts/campaign024/after-profiles --theme light \
+  --profile compact --profile expanded --profile landscape --profile font-scale-2 \
+  --surfaces home,games,progress,profile
+```
+
+Notes that cost time to learn:
+
+- **Wake the screen first.** A sleeping device captures solid black;
+  `ui-capture` sends `KEYCODE_WAKEUP` before every frame.
+- **Restart the app after a profile change.** Applying `wm size`/`wm density`
+  under a running activity restarts it while the JS runtime still holds its
+  native handles; the app then boots into its storage-error boundary. A cold
+  start under the new profile is both realistic and deterministic. Rotation
+  (the real user path) is unaffected.
+- **A capture is only evidence if the app rendered.** `ui-capture` marks a frame
+  blank when it is suspiciously small, has no hierarchy, or shows the
+  storage-error boundary, and exits non-zero.
+- Theme switching uses `cmd uimode night yes|no`, which the app's default
+  `system` theme setting follows.
+
+## Accessibility measurement (`scripts/qa/a11y-audit.mjs`)
+
+Turns the captured hierarchy dumps into the measurements the a11y contract is
+judged by — interactive nodes below the 44 dp minimum (px→dp via the capture
+density) and interactive nodes with no accessible name:
+
+```bash
+node scripts/qa/a11y-audit.mjs --dir qa-artifacts/campaign024/after/default/light \
+  --density 420 --out qa-artifacts/campaign024/a11y-after.json
+```
+
+The audit measures laid-out bounds, so a control that reaches 44 dp only through
+`safeArea`-style hit slop still reports short. That is deliberate: compact
+controls should carry real height, and the kit's `Button`, `Chip`, `TextField`
+and `BackLink` primitives do.
+
+## Dev-server stability during long runs
+
+The Expo dev server (SDK 57) can exit with an assertion while bundling the web
+platform (`Worker chunk not found for expo-sqlite/web/worker.ts`) when a client
+requests the web render path. A long autobot run then fails every remaining game
+with `app did not warm to home (Metro/JS load)` — an environment failure, never
+a product failure. `qa-artifacts/campaign024/run-catalog.mjs` drives the catalog
+category by category, health-checks Metro between batches, restarts it when it
+has died, and retries a batch once.

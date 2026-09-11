@@ -76,6 +76,7 @@ import {
 import {
   Card,
   EmptyState,
+  Entrance,
   ListRow,
   ProgressBar,
   SectionGrid,
@@ -796,6 +797,7 @@ export function CompositeCard({
   testID?: string;
 }) {
   return (
+    <Entrance index={0}>
     <Card variant="hero" testID="progress-composite-card">
       <View testID={testID}>
         <ThemedText type="eyebrow" themeColor="textSecondary">
@@ -841,8 +843,10 @@ export function CompositeCard({
         </View>
         </View>
     </Card>
+    </Entrance>
   );
 }
+
 export function ActivityHeatmap({
   days,
   maxCount,

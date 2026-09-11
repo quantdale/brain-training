@@ -13,7 +13,6 @@
  * - reduced-motion: shared preference hook + pure motion selectors.
  * - focus: screen-reader cursor helpers (sendAccessibilityEvent focus with retries).
  * - announcements: imperative announce + polite/assertive live regions.
- * - stats: single-stop grouped stat semantics (`StatGroup`, `formatStats`).
  * - result-feedback: game-result announcement pattern.
  * - dialog: accessible modal dialog primitive (`A11yDialog`).
  */
@@ -36,12 +35,6 @@ export { requestAccessibilityFocus, useInitialA11yFocus } from './a11y/focus';
 
 export { announce, LiveRegion } from './a11y/announcements';
 export type { LiveRegionProps } from './a11y/announcements';
-
-export { StatGroup, formatStats } from './a11y/stats';
-export type { StatGroupProps } from './a11y/stats';
-
-export { ResultFeedback, formatResultSummary } from './a11y/result-feedback';
-export type { ResultFeedbackProps } from './a11y/result-feedback';
 
 export { A11yDialog } from './a11y/dialog';
 export type { A11yDialogProps } from './a11y/dialog';

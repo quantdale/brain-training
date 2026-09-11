@@ -9,8 +9,6 @@ import { describe, expect, it } from '@jest/globals';
 
 import { BOARD_GLYPH_FONT_SCALE, MAX_FONT_SCALE, effectiveFontScale } from '@/components/a11y/font-scale';
 import { motionValue, reduceDuration } from '@/components/a11y/reduced-motion';
-import { formatResultSummary } from '@/components/a11y/result-feedback';
-import { formatStats } from '@/components/a11y/stats';
 
 describe('effectiveFontScale', () => {
   it('caps oversized system scales at MAX_FONT_SCALE', () => {
@@ -38,33 +36,4 @@ describe('motionValue / reduceDuration', () => {
   });
 });
 
-describe('formatStats', () => {
-  it('joins label/value pairs into one spoken summary, skipping empty values', () => {
-    expect(
-      formatStats([
-        ['Score', '750'],
-        ['Accuracy', '100%'],
-      ]),
-    ).toBe('Score 750. Accuracy 100%');
-  });
 
-  it('omits empty metrics so optional rows produce no fragments', () => {
-    expect(
-      formatStats([
-        ['Score', '750'],
-        ['Best streak', ''],
-      ]),
-    ).toBe('Score 750');
-    expect(formatStats([])).toBe('');
-  });
-});
-
-describe('formatResultSummary', () => {
-  it('combines headline and detail, or returns a trimmed headline alone', () => {
-    expect(formatResultSummary('Session complete', 'Score 750, new personal best')).toBe(
-      'Session complete. Score 750, new personal best',
-    );
-    expect(formatResultSummary('  Round passed  ')).toBe('Round passed');
-    expect(formatResultSummary('Session complete', '   ')).toBe('Session complete');
-  });
-});

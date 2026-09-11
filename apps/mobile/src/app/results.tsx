@@ -36,9 +36,10 @@ import {
   Badge,
   Button,
   Card,
+  Entrance,
   ProgressRing,
   StatBlock,
-} from "@/components/ui";
+} from '@/components/ui';
 import { Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, GameSessionRecord } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
@@ -248,6 +249,7 @@ export default function ResultsScreen() {
               loads (or the user switches between recent sessions) screen
               readers announce the headline result instead of silently
               re-rendering. */}
+          <Entrance index={0}>
           <Card
             variant="hero"
             testID="results-summary"
@@ -344,6 +346,7 @@ export default function ResultsScreen() {
               </ThemedText>
             </View>
           </Card>
+    </Entrance>
 
           {/* Workout progress (006R hardening): after finishing the current
               workout game, surface the next game or the completion state. */}
