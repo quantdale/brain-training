@@ -734,59 +734,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               </Text>
                             </View>
                             <View
-                              accessibilityLabel="S: rest day"
-                              accessible={true}
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flex": 1,
-                                  "gap": 4,
-                                }
-                              }
-                              testID="home-streak-card-day-1"
-                            >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 999,
-                                      "height": 28,
-                                      "justifyContent": "center",
-                                      "width": 28,
-                                    },
-                                    {
-                                      "backgroundColor": "#EDF0F8",
-                                    },
-                                    false,
-                                  ]
-                                }
-                              />
-                              <Text
-                                allowFontScaling={false}
-                                maxFontSizeMultiplier={2}
-                                style={
-                                  [
-                                    {
-                                      "color": "#666F82",
-                                    },
-                                    {
-                                      "fontSize": 12,
-                                      "fontWeight": "500",
-                                      "lineHeight": 16,
-                                    },
-                                    false,
-                                    false,
-                                    false,
-                                    false,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                S
-                              </Text>
-                            </View>
-                            <View
                               accessibilityLabel="M: rest day"
                               accessible={true}
                               style={
@@ -796,7 +743,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "gap": 4,
                                 }
                               }
-                              testID="home-streak-card-day-2"
+                              testID="home-streak-card-day-1"
                             >
                               <View
                                 style={
@@ -849,7 +796,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "gap": 4,
                                 }
                               }
-                              testID="home-streak-card-day-3"
+                              testID="home-streak-card-day-2"
                             >
                               <View
                                 style={
@@ -902,7 +849,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "gap": 4,
                                 }
                               }
-                              testID="home-streak-card-day-4"
+                              testID="home-streak-card-day-3"
                             >
                               <View
                                 style={
@@ -955,7 +902,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "gap": 4,
                                 }
                               }
-                              testID="home-streak-card-day-5"
+                              testID="home-streak-card-day-4"
                             >
                               <View
                                 style={
@@ -999,7 +946,60 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               </Text>
                             </View>
                             <View
-                              accessibilityLabel="F: today, not yet active"
+                              accessibilityLabel="F: rest day"
+                              accessible={true}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "gap": 4,
+                                }
+                              }
+                              testID="home-streak-card-day-5"
+                            >
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "borderRadius": 999,
+                                      "height": 28,
+                                      "justifyContent": "center",
+                                      "width": 28,
+                                    },
+                                    {
+                                      "backgroundColor": "#EDF0F8",
+                                    },
+                                    false,
+                                  ]
+                                }
+                              />
+                              <Text
+                                allowFontScaling={false}
+                                maxFontSizeMultiplier={2}
+                                style={
+                                  [
+                                    {
+                                      "color": "#666F82",
+                                    },
+                                    {
+                                      "fontSize": 12,
+                                      "fontWeight": "500",
+                                      "lineHeight": 16,
+                                    },
+                                    false,
+                                    false,
+                                    false,
+                                    false,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                F
+                              </Text>
+                            </View>
+                            <View
+                              accessibilityLabel="S: today, not yet active"
                               accessible={true}
                               style={
                                 {
@@ -1051,7 +1051,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   ]
                                 }
                               >
-                                F
+                                S
                               </Text>
                             </View>
                           </View>
@@ -4076,7 +4076,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-memory-chevron"
                           >
                             ›
                           </Text>
@@ -4227,7 +4226,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-attention-chevron"
                           >
                             ›
                           </Text>
@@ -4378,7 +4376,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-speed-chevron"
                           >
                             ›
                           </Text>
@@ -4529,7 +4526,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-math-chevron"
                           >
                             ›
                           </Text>
@@ -4680,7 +4676,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-language-chevron"
                           >
                             ›
                           </Text>
@@ -4831,7 +4826,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-logicproblemsolving-chevron"
                           >
                             ›
                           </Text>
@@ -4982,7 +4976,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-flexibility-chevron"
                           >
                             ›
                           </Text>
@@ -5133,7 +5126,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 undefined,
                               ]
                             }
-                            testID="progress-domain-spatial-chevron"
                           >
                             ›
                           </Text>
@@ -11428,7 +11420,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               undefined,
                             ]
                           }
-                          testID="profile-cosmetics-chevron"
                         >
                           ›
                         </Text>
@@ -11574,7 +11565,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               undefined,
                             ]
                           }
-                          testID="profile-data-management-chevron"
                         >
                           ›
                         </Text>
@@ -12845,59 +12835,6 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       </Text>
                     </View>
                     <View
-                      accessibilityLabel="S: rest day"
-                      accessible={true}
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "gap": 4,
-                        }
-                      }
-                      testID="home-streak-card-day-1"
-                    >
-                      <View
-                        style={
-                          [
-                            {
-                              "alignItems": "center",
-                              "borderRadius": 999,
-                              "height": 28,
-                              "justifyContent": "center",
-                              "width": 28,
-                            },
-                            {
-                              "backgroundColor": "#EDF0F8",
-                            },
-                            false,
-                          ]
-                        }
-                      />
-                      <Text
-                        allowFontScaling={false}
-                        maxFontSizeMultiplier={2}
-                        style={
-                          [
-                            {
-                              "color": "#666F82",
-                            },
-                            {
-                              "fontSize": 12,
-                              "fontWeight": "500",
-                              "lineHeight": 16,
-                            },
-                            false,
-                            false,
-                            false,
-                            false,
-                            undefined,
-                          ]
-                        }
-                      >
-                        S
-                      </Text>
-                    </View>
-                    <View
                       accessibilityLabel="M: rest day"
                       accessible={true}
                       style={
@@ -12907,7 +12844,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                           "gap": 4,
                         }
                       }
-                      testID="home-streak-card-day-2"
+                      testID="home-streak-card-day-1"
                     >
                       <View
                         style={
@@ -12960,7 +12897,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                           "gap": 4,
                         }
                       }
-                      testID="home-streak-card-day-3"
+                      testID="home-streak-card-day-2"
                     >
                       <View
                         style={
@@ -13013,7 +12950,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                           "gap": 4,
                         }
                       }
-                      testID="home-streak-card-day-4"
+                      testID="home-streak-card-day-3"
                     >
                       <View
                         style={
@@ -13066,7 +13003,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                           "gap": 4,
                         }
                       }
-                      testID="home-streak-card-day-5"
+                      testID="home-streak-card-day-4"
                     >
                       <View
                         style={
@@ -13110,7 +13047,60 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       </Text>
                     </View>
                     <View
-                      accessibilityLabel="F: today, not yet active"
+                      accessibilityLabel="F: rest day"
+                      accessible={true}
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flex": 1,
+                          "gap": 4,
+                        }
+                      }
+                      testID="home-streak-card-day-5"
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "borderRadius": 999,
+                              "height": 28,
+                              "justifyContent": "center",
+                              "width": 28,
+                            },
+                            {
+                              "backgroundColor": "#EDF0F8",
+                            },
+                            false,
+                          ]
+                        }
+                      />
+                      <Text
+                        allowFontScaling={false}
+                        maxFontSizeMultiplier={2}
+                        style={
+                          [
+                            {
+                              "color": "#666F82",
+                            },
+                            {
+                              "fontSize": 12,
+                              "fontWeight": "500",
+                              "lineHeight": 16,
+                            },
+                            false,
+                            false,
+                            false,
+                            false,
+                            undefined,
+                          ]
+                        }
+                      >
+                        F
+                      </Text>
+                    </View>
+                    <View
+                      accessibilityLabel="S: today, not yet active"
                       accessible={true}
                       style={
                         {
@@ -13162,7 +13152,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                           ]
                         }
                       >
-                        F
+                        S
                       </Text>
                     </View>
                   </View>
@@ -18733,7 +18723,6 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       undefined,
                     ]
                   }
-                  testID="profile-cosmetics-chevron"
                 >
                   ›
                 </Text>
@@ -18879,7 +18868,6 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       undefined,
                     ]
                   }
-                  testID="profile-data-management-chevron"
                 >
                   ›
                 </Text>
@@ -21560,7 +21548,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-memory-chevron"
                   >
                     ›
                   </Text>
@@ -21711,7 +21698,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-attention-chevron"
                   >
                     ›
                   </Text>
@@ -21862,7 +21848,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-speed-chevron"
                   >
                     ›
                   </Text>
@@ -22013,7 +21998,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-math-chevron"
                   >
                     ›
                   </Text>
@@ -22164,7 +22148,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-language-chevron"
                   >
                     ›
                   </Text>
@@ -22315,7 +22298,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-logicproblemsolving-chevron"
                   >
                     ›
                   </Text>
@@ -22466,7 +22448,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-flexibility-chevron"
                   >
                     ›
                   </Text>
@@ -22617,7 +22598,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         undefined,
                       ]
                     }
-                    testID="progress-domain-spatial-chevron"
                   >
                     ›
                   </Text>

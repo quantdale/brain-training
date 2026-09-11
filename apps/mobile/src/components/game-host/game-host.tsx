@@ -174,6 +174,7 @@ export function GameHost({
   const tone = domainTone(definition?.primaryCategory);
   const rules = description ?? definition?.description;
   const categoryLabel = definition?.primaryCategory;
+  const gameName = definition?.name ?? gameId;
 
   return (
     <View style={styles.screen} testID={testId(gameId, 'screen')}>
@@ -188,21 +189,25 @@ export function GameHost({
             padding="lg"
             testID={testId(gameId, 'intro')}
             style={styles.introCard}>
-            {categoryLabel !== undefined ? (
+            {/* The intro card IS the game header: the route no longer renders a
+                second title/category/description block above it, and the
+                established testIDs move here with the content. */}
+            {categoryLabel !== undefined && categoryLabel !== gameName ? (
               <ThemedText
                 type="eyebrow"
                 themeColor="textSecondary"
+                testID="game-category"
                 style={tone ? { color: DomainColors[scheme][tone].text } : undefined}>
                 {categoryLabel}
               </ThemedText>
             ) : null}
 
-            <ThemedText type="title" testID={testId(gameId, 'intro-title')}>
-              {definition?.name ?? gameId}
+            <ThemedText type="title" testID="game-title">
+              {gameName}
             </ThemedText>
 
             {rules !== undefined && rules.length > 0 ? (
-              <ThemedText type="body" themeColor="textSecondary">
+              <ThemedText type="body" themeColor="textSecondary" testID="game-description">
                 {rules}
               </ThemedText>
             ) : null}

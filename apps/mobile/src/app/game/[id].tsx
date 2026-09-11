@@ -86,27 +86,28 @@ export default function GameScreen() {
 
   return (
     <ScreenShell>
-      <ThemedText type="title" testID="game-title">
-        {game.name}
-      </ThemedText>
-      <ThemedView
-        type="accentSoft"
-        style={styles.categoryPill}
-        testID="game-category"
-      >
-        <ThemedText type="caption" themeColor="accent">
-          {game.primaryCategory}
-        </ThemedText>
-      </ThemedView>
-      {game.description ? (
-        <ThemedText
-          type="small"
-          themeColor="textSecondary"
-          testID="game-description"
-        >
-          {game.description}
-        </ThemedText>
-      ) : null}
+      {/* Title, category and description live in the game's intro hero
+          (GameHost), which carries the `game-title` / `game-category` /
+          `game-description` contract — rendering them here too duplicated the
+          same three lines inside one viewport. The header still renders on the
+          fallback path, where no game screen exists to own it. */}
+      {GameScreenComponent ? null : (
+        <>
+          <ThemedText type="title" testID="game-title">
+            {game.name}
+          </ThemedText>
+          <ThemedView type="accentSoft" style={styles.categoryPill} testID="game-category">
+            <ThemedText type="caption" themeColor="accent">
+              {game.primaryCategory}
+            </ThemedText>
+          </ThemedView>
+          {game.description ? (
+            <ThemedText type="small" themeColor="textSecondary" testID="game-description">
+              {game.description}
+            </ThemedText>
+          ) : null}
+        </>
+      )}
       {GameScreenComponent ? (
         <ErrorBoundary
           onError={(error, info) => {
