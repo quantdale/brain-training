@@ -30,6 +30,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -336,7 +337,9 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
 
   // ---- Round card visuals (see CardVisualState). Depends only on
   // round-transition state; memoizing keeps the grid + cards from needless
-  // re-renders on unrelated state changes.
+  // re-renders on unrelated state changes. A wrong sort marks the picked
+  // card wrong AND the correct card correct together (Vocabulary rule); the
+  // round-result grid below renders both side by side.
   const visualFor = useCallback(
     (index: number): CardVisualState => {
       if (state.round === null) {
@@ -344,7 +347,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
       }
       if (state.phase === 'roundResult') {
         if (index === state.round.correctIndex) {
-          return 'selected';
+          return 'correct';
         }
         if (state.roundOutcome === 'wrong' && index === state.lastPickIndex) {
           return 'error';
@@ -405,6 +408,16 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
                 testID={testId(GAME_ID, 'pick-status')}>
                 Pick the matching card
               </ThemedText>
+              <View style={styles.scoreRow}>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Score
+                </ThemedText>
+                <AnimatedNumber
+                  value={state.stats.score}
+                  type="numeral"
+                  testID={testId(GAME_ID, 'score-live')}
+                />
+              </View>
               <CardGrid
                 candidates={state.round.candidates}
                 testID={testId(GAME_ID, 'card-grid')}
@@ -416,6 +429,9 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
 
           {state.phase === 'roundResult' && state.round !== null ? (
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              {/* The rule prompt stays mounted through feedback: the verdict
+                  must never cover the stem (Imprint rule). */}
+              <RuleBanner rule={state.round.rule} masked={state.discoveryBlock} />
               <ThemedText
                 type="headline"
                 themeColor={state.roundOutcome === 'correct' ? 'success' : 'danger'}
@@ -496,6 +512,11 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
             value={String(state.stats.score)}
             testID={testId(GAME_ID, 'score')}
           />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, 'score-animated')}
+          />
           <StatRow
             label="Accuracy"
             value={`${Math.round(
@@ -560,5 +581,10 @@ const styles = StyleSheet.create({
   },
   targetRow: {
     alignItems: 'center',
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
 });

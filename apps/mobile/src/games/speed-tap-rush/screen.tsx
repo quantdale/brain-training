@@ -16,15 +16,19 @@
  * (`deadlineMs - clock.now()`). The field is covered by the opaque shared
  * `PauseOverlay` and hidden from the accessibility tree while paused.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { isDevBuild, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
+import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { MinTouchTarget, Motion } from '@/theme/tokens';
 import {
   GameHost,
   GameResults,
@@ -49,7 +53,7 @@ import {
   persistTapRushSession,
 } from './session';
 import type { SessionPersistence } from './session';
-import { GAME_ID, createInitialTapRushState } from './types';
+import { GAME_ID, createInitialTapRushState, type TargetVerdict } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface TapRushScreenProps {
@@ -63,6 +67,70 @@ export interface TapRushScreenProps {
   persistSession?: SessionPersistence;
   /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
   xpHook?: XpRatingHook;
+}
+/**
+ * TapVerdictCue — instant multi-channel verdict for the just-resolved target.
+ *
+ * Drops speed-round model (dye + glyph badge), not a bottom sheet: a sheet
+ * would cover the next live target and break the ≤3s mechanic. Fill plus a
+ * `✓`/`✕` shape cue plus a text label, so a hit never reads like a miss.
+ * The cue remounts per target (`key={targetIndex}` at the call site),
+ * replaying a short pop that collapses to a static badge under reduced
+ * motion. Fixed-size and non-interactive, so showing/clearing it never
+ * shifts the surrounding layout or steals taps.
+ */
+function TapVerdictCue({ verdict }: { verdict: TargetVerdict | null }) {
+  const theme = useTheme();
+  const reducedMotion = usePrefersReducedMotion();
+  const [scale] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    if (reducedMotion || verdict === null) {
+      scale.setValue(1);
+      return;
+    }
+    scale.setValue(0.6);
+    const pop = Animated.timing(scale, {
+      toValue: 1,
+      duration: Motion.quick,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    });
+    pop.start();
+    return () => {
+      pop.stop();
+    };
+  }, [reducedMotion, scale, verdict]);
+
+  if (verdict === null) {
+    return (
+      <View
+        style={[styles.cue, styles.cueEmpty, { borderColor: theme.border }]}
+        importantForAccessibility="no-hide-descendants"
+      />
+    );
+  }
+
+  const hit = verdict === 'hit';
+  return (
+    <View
+      testID={testId(GAME_ID, 'verdict')}
+      style={[styles.cue, { backgroundColor: hit ? theme.success : theme.danger }]}
+      accessible
+      accessibilityLabel={
+        hit ? 'Last tap: hit' : verdict === 'wrong' ? 'Last tap: wrong' : 'Last tap: missed'
+      }
+      accessibilityLiveRegion="polite">
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <ThemedText
+          type="headline"
+          themeColor={hit ? 'successOn' : 'dangerOn'}
+          allowFontScaling={false}>
+          {hit ? '✓' : '✕'}
+        </ThemedText>
+      </Animated.View>
+    </View>
+  );
 }
 
 export default function TapRushScreen(props: TapRushScreenProps = {}) {
@@ -252,7 +320,24 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
       if (current.deadlineMs !== null && clock.now() > current.deadlineMs) {
         return; // window already closed; the expiry timer owns the resolution
       }
-      dispatch({ type: 'tap', x, y, nowMs: clock.now() });
+      const nowMs = clock.now();
+      // Sensory feedback follows the authoritative verdict, not tap optimism:
+      // resolve through the same pure transition the dispatch below commits,
+      // so a raced (ignored) tap stays silent. Misses resolve on the expiry
+      // timer and stay silent there — the timeout owns that verdict.
+      const action = { type: 'tap' as const, x, y, nowMs };
+      const next = tapRushGameReducer(current, action);
+      dispatch(action);
+      if (next === current || next.lastVerdict === null) {
+        return;
+      }
+      if (next.lastVerdict === 'hit') {
+        liveAudioHaptics.playSfx('correct');
+        liveAudioHaptics.haptic('light');
+      } else {
+        liveAudioHaptics.playSfx('wrong');
+        liveAudioHaptics.haptic('warning');
+      }
     },
     [clock, dispatch],
   );
@@ -322,6 +407,19 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. The
+          GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'active' ? (
             <>
               <View style={styles.statusRow}>
@@ -331,6 +429,9 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
                   testID={testId(GAME_ID, 'active-status')}>
                   Tap the target!
                 </ThemedText>
+                {/* Instant per-tap verdict: remounts every target so the pop
+                replays; the prompt above stays visible at all times. */}
+                <TapVerdictCue key={state.targetIndex} verdict={state.lastVerdict} />
                 <ThemedText
                   type="smallBold"
                   themeColor={state.stats.streak > 0 ? 'accent' : 'textSecondary'}
@@ -396,6 +497,18 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -450,5 +563,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.two,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  cue: {
+    minWidth: MinTouchTarget,
+    minHeight: MinTouchTarget,
+    borderRadius: Radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cueEmpty: {
+    borderWidth: 1.5,
   },
 });

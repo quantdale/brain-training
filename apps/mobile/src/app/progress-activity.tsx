@@ -14,7 +14,7 @@
 
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import {
   activeRuns,
@@ -25,14 +25,15 @@ import {
   loadProgressSnapshot,
   monthlyActivity,
   weekdayDistribution,
+  type CalendarDay,
   type ProgressSnapshot,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { HeatmapRow, LabeledBars } from '@/components/progress-charts';
-import { Radii, Spacing } from '@/constants/theme';
+import { Card, EmptyState, ListRow, SectionGrid, Skeleton, SkeletonText, Tappable } from '@/components/ui';
+import { Spacing } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { formatDayLabel } from '@/analytics/format';
@@ -82,19 +83,14 @@ export default function ProgressActivityScreen() {
   const months = useMemo(() => monthlyActivity(calendar), [calendar]);
 
   const maxCount = calendar.busiest?.count ?? 0;
-  const weeks: number[][] = [];
-  const counts = calendar.days.map((d) => d.count);
-  for (let i = 0; i < counts.length; i += 7) {
-    weeks.push(counts.slice(i, i + 7).map((c) => (maxCount > 0 ? c / maxCount : 0)));
-  }
 
   return (
     <ScreenShell>
-      <Pressable testID="progress-activity-back" accessibilityRole="button" onPress={() => router.back()}>
+      <Tappable testID="progress-activity-back" onPress={() => router.back()} accessibilityLabel="Go back">
         <ThemedText type="smallBold" themeColor="accent">
           ‹ Back
         </ThemedText>
-      </Pressable>
+      </Tappable>
 
       <ThemedText type="title" testID="progress-activity-title">
         Activity
@@ -104,12 +100,10 @@ export default function ProgressActivityScreen() {
       </ThemedText>
 
       {!loaded ? (
-        <StateCard
-          variant="loading"
-          title="Loading…"
-          message="Building your activity calendar."
-          testID="progress-activity-loading"
-        />
+        <>
+          <Skeleton height={160} testID="progress-activity-loading" />
+          <SkeletonText lines={3} testID="progress-activity-loading-text" />
+        </>
       ) : error ? (
         <StateCard
           variant="error"
@@ -119,21 +113,19 @@ export default function ProgressActivityScreen() {
           action={{ label: 'Try again', onPress: retry }}
         />
       ) : calendar.totalSessions === 0 ? (
-        <StateCard
-          variant="empty"
-          title="No sessions yet"
-          message="Play a game to start filling your activity calendar."
-          testID="progress-activity-empty"
-          action={{
-            label: 'Browse games',
-            onPress: () => router.push('/games'),
-            accessibilityLabel: 'Browse the game library',
-          }}
-        />
+        <Card>
+          <EmptyState
+            title="No sessions yet"
+            message="Play a game to fill this calendar."
+            actionLabel="Browse games"
+            onAction={() => router.push('/games')}
+            testID="progress-activity-empty"
+          />
+        </Card>
       ) : (
         <>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-activity-summary">
+      <Card testID="progress-activity-summary">
         <View style={styles.summaryRow}>
           <SummaryStat label="Sessions" value={String(calendar.totalSessions)} />
           <SummaryStat label="Active days" value={String(calendar.activeDays)} />
@@ -165,18 +157,34 @@ export default function ProgressActivityScreen() {
         <ThemedText type="caption" themeColor="textSecondary">
           {explainMetric('activity-runs')}
         </ThemedText>
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-activity-heatmap">
+      <Card testID="progress-activity-heatmap">
         <ThemedText type="subtitle">Calendar</ThemedText>
+        <ThemedText type="caption" themeColor="textSecondary">
+          {calendar.days.length > 0
+            ? `${formatDayLabel(Date.parse(`${calendar.days[0].dateKey}T00:00:00Z`))} – ${formatDayLabel(Date.parse(`${calendar.days[calendar.days.length - 1].dateKey}T00:00:00Z`))}`
+            : 'No activity in this view yet'}
+        </ThemedText>
         <View style={styles.heatmap}>
-          {weeks.map((week, wi) => (
-            <HeatmapRow
-              key={wi}
-              testID={`progress-activity-heatmap-w${wi}`}
-              intensities={week}
-            />
-          ))}
+          {(() => {
+            const weeks: CalendarDay[][] = [];
+            for (let i = 0; i < calendar.days.length; i += 7) {
+              weeks.push(calendar.days.slice(i, i + 7));
+            }
+            return weeks.map((week, wi) => {
+              const weekSessions = week.reduce((sum, day) => sum + day.count, 0);
+              const weekActive = week.filter((day) => day.count > 0).length;
+              return (
+                <HeatmapRow
+                  key={wi}
+                  testID={`progress-activity-heatmap-w${wi}`}
+                  intensities={week.map((d) => (maxCount > 0 ? d.count / maxCount : 0))}
+                  weekLabel={`Week of ${formatDayLabel(Date.parse(`${week[0].dateKey}T00:00:00Z`))}: ${weekSessions} session${weekSessions === 1 ? '' : 's'} over ${weekActive} active day${weekActive === 1 ? '' : 's'}`}
+                />
+              );
+            });
+          })()}
         </View>
         <View style={styles.legend}>
           <ThemedText type="caption" themeColor="textSecondary">
@@ -193,65 +201,69 @@ export default function ProgressActivityScreen() {
             More
           </ThemedText>
         </View>
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-activity-distribution">
+      <SectionGrid>
+      <Card testID="progress-activity-distribution">
         <ThemedText type="subtitle">Frequency</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           Days with a given number of sessions.
         </ThemedText>
         <View style={styles.rows}>
           {buckets.map((b) => (
-            <View key={b.perDay} style={styles.row} testID={`progress-activity-bucket-${b.perDay}`}>
-              <ThemedText type="small">
-                {b.perDay} session{b.perDay === 1 ? '' : 's'} / day
-              </ThemedText>
-              <ThemedText type="smallBold">{b.days}×</ThemedText>
-            </View>
+            <ListRow
+              key={b.perDay}
+              title={`${b.perDay} session${b.perDay === 1 ? '' : 's'} / day`}
+              meta={`${b.days}×`}
+              testID={`progress-activity-bucket-${b.perDay}`}
+            />
           ))}
         </View>
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-activity-weekdays">
+      <Card testID="progress-activity-weekdays">
         <ThemedText type="subtitle">Weekday pattern</ThemedText>
         <LabeledBars
           testID="progress-activity-weekday-bars"
           bars={weekdays.map((w) => ({ key: String(w.weekday), label: w.label, value: w.sessions }))}
+          formatValue={(v) => `${v}×`}
+          summary={`Sessions by weekday. ${weekdays.map((w) => `${w.label} ${w.sessions}`).join(', ')}.`}
         />
         <View style={styles.rows}>
           {weekdays.map((w) => (
-            <View key={w.weekday} style={styles.row} testID={`progress-activity-weekday-${w.weekday}`}>
-              <ThemedText type="small">{w.label}</ThemedText>
-              <ThemedText type="smallBold">
-                {w.sessions} session{w.sessions === 1 ? '' : 's'} · {w.activeDays} active day
-                {w.activeDays === 1 ? '' : 's'}
-              </ThemedText>
-            </View>
+            <ListRow
+              key={w.weekday}
+              title={w.label}
+              subtitle={`${w.activeDays} active day${w.activeDays === 1 ? '' : 's'}`}
+              meta={`${w.sessions} session${w.sessions === 1 ? '' : 's'}`}
+              testID={`progress-activity-weekday-${w.weekday}`}
+            />
           ))}
         </View>
         <ThemedText type="caption" themeColor="textSecondary">
           {explainMetric('weekday-pattern')}
         </ThemedText>
-      </ThemedView>
+      </Card>
+      </SectionGrid>
 
       {months.length > 0 ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-activity-monthly">
+        <Card testID="progress-activity-monthly">
           <ThemedText type="subtitle">By month</ThemedText>
           <View style={styles.rows}>
             {months.map((m) => (
-              <View key={m.monthKey} style={styles.row} testID={`progress-activity-month-${m.monthKey}`}>
-                <ThemedText type="small">{m.monthKey}</ThemedText>
-                <ThemedText type="smallBold">
-                  {m.sessions} session{m.sessions === 1 ? '' : 's'} · {m.activeDays} active day
-                  {m.activeDays === 1 ? '' : 's'}
-                </ThemedText>
-              </View>
+              <ListRow
+                key={m.monthKey}
+                title={m.monthKey}
+                subtitle={`${m.activeDays} active day${m.activeDays === 1 ? '' : 's'}`}
+                meta={`${m.sessions} session${m.sessions === 1 ? '' : 's'}`}
+                testID={`progress-activity-month-${m.monthKey}`}
+              />
             ))}
           </View>
           <ThemedText type="caption" themeColor="textSecondary">
             Months partially covered by this view include only their covered days.
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
         </>
       )}
@@ -273,11 +285,6 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
   summaryRow: {
     flexDirection: 'row',
     gap: Spacing.two,
@@ -304,12 +311,6 @@ const styles = StyleSheet.create({
     width: 14,
   },
   rows: {
-    gap: Spacing.two,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     gap: Spacing.two,
   },
 });

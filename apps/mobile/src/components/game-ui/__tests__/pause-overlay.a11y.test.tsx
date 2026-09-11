@@ -133,8 +133,15 @@ describe("PauseOverlay", () => {
     for (const element of ["resume", "quit"] as const) {
       const button = screen.getByTestId(testId("memory", element));
       expect(button.props.accessibilityRole).toBe("button");
-      const flat = resolvedStyle(button.props.style);
-      expect(flat).toContainEqual(expect.objectContaining({ minHeight: 44 }));
+      // Interaction area, not a specific style key: md/lg reach 44pt with an
+      // explicit minHeight, compact sizes reach it through hit slop.
+      const minHeight = resolvedStyle(button.props.style)
+        .flat()
+        .reduce<number>((acc, entry) => {
+          const value = (entry as { minHeight?: number } | null)?.minHeight;
+          return typeof value === "number" ? Math.max(acc, value) : acc;
+        }, 0);
+      expect(minHeight).toBeGreaterThanOrEqual(44);
     }
   });
 });

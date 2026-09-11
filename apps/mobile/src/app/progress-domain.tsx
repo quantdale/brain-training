@@ -15,10 +15,9 @@
  * only when the underlying games actually stored the metric.
  */
 
-import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-
+import { StyleSheet, View } from 'react-native';
 import {
   buildAccuracyTrend,
   buildActivityCalendar,
@@ -40,9 +39,18 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { MiniBarChart, SegmentedControl, HeatmapRow } from '@/components/progress-charts';
-import { Radii, Spacing } from '@/constants/theme';
+import { MiniBarChart, HeatmapRow } from '@/components/progress-charts';
+import {
+  Card,
+  EmptyState,
+  ListRow,
+  SectionGrid,
+  SegmentedControl,
+  Skeleton,
+  SkeletonText,
+  Tappable,
+} from '@/components/ui';
+import { Spacing } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { getGameDefinition } from '@/registry/registry';
@@ -207,13 +215,14 @@ export default function ProgressDomainScreen() {
         <ThemedText type="small" themeColor="textSecondary" testID="progress-domain-missing">
           No domain selected.
         </ThemedText>
-        <Link href={"/progress" as any} asChild>
-          <Pressable accessibilityRole="button" testID="progress-domain-back-link">
-            <ThemedText type="smallBold" themeColor="accent">
-              ‹ Back to Progress
-            </ThemedText>
-          </Pressable>
-        </Link>
+        <Tappable
+          testID="progress-domain-back-link"
+          onPress={() => router.push('/progress')}
+          accessibilityLabel="Back to Progress">
+          <ThemedText type="smallBold" themeColor="accent">
+            ‹ Back to Progress
+          </ThemedText>
+        </Tappable>
       </ScreenShell>
     );
   }
@@ -222,14 +231,14 @@ export default function ProgressDomainScreen() {
 
   return (
     <ScreenShell>
-      <Pressable
+      <Tappable
         testID="progress-domain-back"
-        accessibilityRole="button"
-        onPress={() => router.back()}>
+        onPress={() => router.back()}
+        accessibilityLabel="Go back">
         <ThemedText type="smallBold" themeColor="accent">
           ‹ Back
         </ThemedText>
-      </Pressable>
+      </Tappable>
 
       <ThemedText type="title" testID="progress-domain-title">
         {domain}
@@ -238,22 +247,22 @@ export default function ProgressDomainScreen() {
         Rating history and contributing games.
       </ThemedText>
 
-      <View style={styles.windowRow}>
-        <SegmentedControl<TimeWindowKey>
-          testID="progress-domain-window"
-          value={windowKey}
-          onChange={setWindowKey}
-          options={WINDOW_ORDER.map((k) => ({ key: k, label: WINDOW_LABELS[k] }))}
-        />
-      </View>
+      <SegmentedControl
+        testID="progress-domain-window"
+        value={windowKey}
+        onChange={(next) => setWindowKey(next as TimeWindowKey)}
+        options={WINDOW_ORDER.map((k) => ({
+          value: k,
+          label: WINDOW_LABELS[k],
+          testID: `progress-domain-window-${k}`,
+        }))}
+      />
 
       {!loaded ? (
-        <StateCard
-          variant="loading"
-          title="Loading…"
-          message="Fetching this domain's history."
-          testID="progress-domain-loading"
-        />
+        <>
+          <Skeleton height={160} testID="progress-domain-loading" />
+          <SkeletonText lines={3} testID="progress-domain-loading-text" />
+        </>
       ) : error ? (
         <StateCard
           variant="error"
@@ -265,22 +274,21 @@ export default function ProgressDomainScreen() {
       ) : (
         <>
       {unseen ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-domain-unseen">
-          <ThemedText type="subtitle">Not trained yet</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            You haven&apos;t played a {domain} game. This domain contributes the starting
-            rating ({insight?.rating ?? 1000}) to your overall composite until you train it.
+        <Card>
+          <EmptyState
+            title="Not trained yet"
+            message={`No ${domain} sessions yet.`}
+            actionLabel={`Find a ${domain} game`}
+            onAction={() => router.push('/games')}
+            testID="progress-domain-unseen"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            This domain contributes the starting rating ({insight?.rating ?? 1000}) to
+            your overall composite until you train it.
           </ThemedText>
-          <Link href={'/games' as any} asChild>
-            <Pressable accessibilityRole="button" testID="progress-domain-unseen-action">
-              <ThemedText type="smallBold" themeColor="accent">
-                Find a {domain} game ›
-              </ThemedText>
-            </Pressable>
-          </Link>
-        </ThemedView>
+        </Card>
       ) : (
-        <ThemedView type="surface" style={styles.card} testID="progress-domain-summary">
+        <Card testID="progress-domain-summary">
           <ThemedText type="subtitle">Rating</ThemedText>
           <View style={styles.ratingRow}>
             <ThemedText type="display" themeColor="accent">
@@ -323,23 +331,29 @@ export default function ProgressDomainScreen() {
               value={lifetimeBest === null ? '—' : formatPercent(lifetimeBest)}
             />
           </View>
-        </ThemedView>
+        </Card>
       )}
 
-      <ThemedView type="surface" style={styles.card} testID="progress-domain-history">
+      <SectionGrid>
+      <Card testID="progress-domain-history">
         <ThemedText type="subtitle">Rating over time</ThemedText>
         <MiniBarChart
           values={chartValues}
           testID="progress-domain-history-chart"
           emptyLabel="No rating updates in this window"
+          summary={
+            chartValues.length === 0
+              ? 'No rating updates in this window'
+              : `Rating history with ${chartValues.length} updates, latest ${chartValues[chartValues.length - 1]}. ${chartCaption}`
+          }
         />
         <ThemedText type="caption" themeColor="textSecondary">
           {chartCaption}
         </ThemedText>
-      </ThemedView>
+      </Card>
 
       {trendSummary.count >= 2 ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-domain-trend">
+        <Card testID="progress-domain-trend">
           <View style={styles.row}>
             <ThemedText type="subtitle">Trend summary</ThemedText>
             {domainTrendImproved !== null ? (
@@ -377,11 +391,13 @@ export default function ProgressDomainScreen() {
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('trend-summary')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
+      </SectionGrid>
 
+      <SectionGrid>
       {accuracyTrend.available ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-domain-accuracy">
+        <Card testID="progress-domain-accuracy">
           <View style={styles.cardHeader}>
             <ThemedText type="subtitle">Accuracy over time</ThemedText>
             <ThemedText type="smallBold">
@@ -394,15 +410,21 @@ export default function ProgressDomainScreen() {
           <MiniBarChart
             values={accuracyTrend.series.map((p) => p.value)}
             testID="progress-domain-accuracy-chart"
+            tone="success"
+            summary={
+              accuracyTrend.recentMean === null
+                ? 'Accuracy trend with no recent average yet.'
+                : `Accuracy trend across ${accuracyTrend.series.length} sessions, recent average ${formatPercent(accuracyTrend.recentMean)}.`
+            }
           />
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('accuracy-trend')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
       {reactionTrend.available ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-domain-reaction">
+        <Card testID="progress-domain-reaction">
           <View style={styles.cardHeader}>
             <ThemedText type="subtitle">Reaction time (lower is better)</ThemedText>
             <ThemedText type="smallBold">
@@ -412,19 +434,27 @@ export default function ProgressDomainScreen() {
           <MiniBarChart
             values={reactionTrend.series.map((p) => p.value)}
             testID="progress-domain-reaction-chart"
+            tone="info"
+            summary={
+              reactionTrend.recentMean === null
+                ? 'Reaction trend with no recent average yet.'
+                : `Reaction-time trend across ${reactionTrend.series.length} sessions, recent average ${formatMs(reactionTrend.recentMean)}. Lower is better.`
+            }
           />
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('reaction-trend')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
+      </SectionGrid>
 
       {difficultyTrend.available ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-domain-difficulty">
+        <Card testID="progress-domain-difficulty">
           <ThemedText type="subtitle">Difficulty attempted</ThemedText>
           <MiniBarChart
             values={difficultyTrend.series.map((p) => p.value)}
             testID="progress-domain-difficulty-chart"
+            summary={`Difficulty attempted across ${difficultyTrend.series.length} sessions, first ${formatPercent(difficultyTrend.first ?? 0)}, latest ${formatPercent(difficultyTrend.latest ?? 0)}, peak ${formatPercent(difficultyTrend.peak ?? 0)}.`}
           />
           <ThemedText type="caption" themeColor="textSecondary">
             First {formatPercent(difficultyTrend.first ?? 0)} → latest{' '}
@@ -432,53 +462,57 @@ export default function ProgressDomainScreen() {
             {formatPercent(difficultyTrend.peak ?? 0)}.{' '}
             {explainMetric('difficulty-progression')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
-      <ThemedView type="surface" style={styles.card} testID="progress-domain-activity">
+      <Card testID="progress-domain-activity">
         <ThemedText type="subtitle">Activity</ThemedText>
+        <ThemedText type="caption" themeColor="textSecondary">
+          {calendar.days.length > 0
+            ? `${formatDayLabel(Date.parse(`${calendar.days[0].dateKey}T00:00:00Z`))} – ${formatDayLabel(Date.parse(`${calendar.days[calendar.days.length - 1].dateKey}T00:00:00Z`))}`
+            : 'No activity in this view yet'}
+        </ThemedText>
         <View style={styles.heatmap}>
           {(() => {
-            const weeks: number[][] = [];
-            const counts = calendar.days.map((d) => d.count);
             const max = calendar.busiest?.count ?? 0;
-            for (let i = 0; i < counts.length; i += 7) {
-              weeks.push(counts.slice(i, i + 7).map((c) => (max > 0 ? c / max : 0)));
+            const weeks: typeof calendar.days[] = [];
+            for (let i = 0; i < calendar.days.length; i += 7) {
+              weeks.push(calendar.days.slice(i, i + 7));
             }
-            return weeks.map((week, wi) => (
-              <HeatmapRow key={wi} testID={`progress-domain-heatmap-w${wi}`} intensities={week} />
-            ));
+            return weeks.map((week, wi) => {
+              const weekSessions = week.reduce((sum, day) => sum + day.count, 0);
+              const weekActive = week.filter((day) => day.count > 0).length;
+              return (
+                <HeatmapRow
+                  key={wi}
+                  testID={`progress-domain-heatmap-w${wi}`}
+                  intensities={week.map((d) => (max > 0 ? d.count / max : 0))}
+                  weekLabel={`Week of ${formatDayLabel(Date.parse(`${week[0].dateKey}T00:00:00Z`))}: ${weekSessions} session${weekSessions === 1 ? '' : 's'} over ${weekActive} active day${weekActive === 1 ? '' : 's'}`}
+                />
+              );
+            });
           })()}
         </View>
         <ThemedText type="caption" themeColor="textSecondary">
           {calendar.activeDays} active days · {calendar.totalSessions} sessions in this view.
         </ThemedText>
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-domain-games">
+      <Card testID="progress-domain-games">
         <ThemedText type="subtitle">Games in this domain</ThemedText>
         {byGame.length > 0 ? (
           <View style={styles.rows}>
             {byGame.map(([gameId, count]) => {
               const aggregate = data.aggregates.find((a) => a.gameId === gameId);
               return (
-                <Link
+                <ListRow
                   key={gameId}
-                  href={{ pathname: '/progress-game' as any, params: { gameId } }}
-                  asChild>
-                  <Pressable
-                    style={styles.row}
-                    accessibilityRole="button"
-                    testID={`progress-domain-game-${gameId}`}>
-                    <ThemedText type="small">
-                      {getGameDefinition(gameId)?.name ?? gameId}
-                    </ThemedText>
-                    <ThemedText type="smallBold">
-                      {count}×
-                      {aggregate ? ` · best ${Math.round(aggregate.bestNormalized * 100)}%` : ''}
-                    </ThemedText>
-                  </Pressable>
-                </Link>
+                  title={getGameDefinition(gameId)?.name ?? gameId}
+                  meta={`${count}×${aggregate ? ` · best ${Math.round(aggregate.bestNormalized * 100)}%` : ''}`}
+                  onPress={() => router.push(`/progress-game?gameId=${encodeURIComponent(gameId)}`)}
+                  accessibilityHint={`Open ${getGameDefinition(gameId)?.name ?? gameId} analytics`}
+                  testID={`progress-domain-game-${gameId}`}
+                />
               );
             })}
           </View>
@@ -487,21 +521,21 @@ export default function ProgressDomainScreen() {
             No sessions recorded for this domain.
           </ThemedText>
         )}
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-domain-recent">
+      <Card testID="progress-domain-recent">
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         {domainSessions.length > 0 ? (
           <View style={styles.rows}>
             {domainSessions.slice(0, 10).map((s) => (
-              <Link key={s.id} href={`/results?id=${s.id}`} asChild>
-                <Pressable style={styles.row} testID={`progress-domain-session-${s.id}`}>
-                  <ThemedText type="small">
-                    {getGameDefinition(s.gameId)?.name ?? s.gameId} · {formatDayLabel(s.completedAt)}
-                  </ThemedText>
-                  <ThemedText type="smallBold">{formatPercent(s.normalizedResult)}</ThemedText>
-                </Pressable>
-              </Link>
+              <ListRow
+                key={s.id}
+                title={`${getGameDefinition(s.gameId)?.name ?? s.gameId} · ${formatDayLabel(s.completedAt)}`}
+                meta={formatPercent(s.normalizedResult)}
+                onPress={() => router.push(`/results?id=${s.id}`)}
+                accessibilityHint="Open session results"
+                testID={`progress-domain-session-${s.id}`}
+              />
             ))}
           </View>
         ) : (
@@ -509,7 +543,7 @@ export default function ProgressDomainScreen() {
             No sessions yet.
           </ThemedText>
         )}
-      </ThemedView>
+      </Card>
         </>
       )}
     </ScreenShell>
@@ -529,18 +563,10 @@ function DomainStat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  windowRow: {
-    marginTop: Spacing.one,
   },
   ratingRow: {
     flexDirection: 'row',

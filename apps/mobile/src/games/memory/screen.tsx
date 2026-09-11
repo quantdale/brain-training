@@ -22,6 +22,7 @@ import { useRouter } from 'expo-router';
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -292,17 +293,21 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
   // ---- Tile visuals (see TileVisualState). Stable across the per-round
   // re-renders: depends only on round-transition state, never on any tick,
   // so the memoized grid skips re-rendering tiles whose visual is unchanged.
+  // The wrong pick is checked before the matched prefix so the failed tile
+  // stays error-marked in roundResult (a repeat tap on an already-matched
+  // tile must read as the mistake, not as a correct tap); the expected
+  // sequence itself stays listed as text beside the board.
   const visualFor = useCallback(
     (index: number): TileVisualState => {
       if (state.phase === 'reveal') {
         return index === state.revealedIndex ? 'revealed' : 'idle';
       }
       if (state.phase === 'input' || state.phase === 'roundResult') {
-        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
-          return 'selected';
-        }
         if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
           return 'error';
+        }
+        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
+          return 'selected';
         }
       }
       return 'idle';
@@ -342,6 +347,19 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. The
+          GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'reveal' ? (
             <>
               <ThemedText
@@ -436,6 +454,18 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -490,5 +520,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

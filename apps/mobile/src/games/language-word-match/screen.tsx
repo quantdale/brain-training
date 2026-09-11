@@ -25,7 +25,9 @@ import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } f
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { AnimatedNumber } from '@/components/ui';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -76,6 +78,8 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
   } = props;
   const router = useRouter();
   const [state, dispatch] = useReducer(languageGameReducer, undefined, createInitialLanguageState);
+  // Theme slots for the round-result feedback panel (soft verdict tints).
+  const theme = useTheme();
 
   const stateRef = useRef(state);
 
@@ -356,6 +360,16 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
         <>
           {state.phase === 'question' && state.round !== null ? (
             <View style={styles.section}>
+              <View style={styles.scoreRow}>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Score
+                </ThemedText>
+                <AnimatedNumber
+                  value={state.stats.score}
+                  type="numeral"
+                  testID={testId(GAME_ID, 'score', 'live')}
+                />
+              </View>
               <ThemedText type="caption" themeColor="textSecondary">
                 Pick the synonym
               </ThemedText>
@@ -403,14 +417,34 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
                 )}>
                 {roundResultMessage}
               </ThemedText>
-              {state.roundOutcome !== 'correct' ? (
+              <View
+                style={[
+                  styles.feedback,
+                  {
+                    backgroundColor:
+                      state.roundOutcome === 'correct'
+                        ? theme.successSoft
+                        : state.roundOutcome === 'timeout'
+                          ? theme.warningSoft
+                          : theme.dangerSoft,
+                  },
+                ]}
+                testID={testId(GAME_ID, 'round-feedback')}>
+                {state.roundOutcome !== 'correct' ? (
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    testID={testId(GAME_ID, 'round-answer-reveal')}>
+                    The answer was {state.round.correctWord}
+                  </ThemedText>
+                ) : null}
                 <ThemedText
                   type="small"
                   themeColor="textSecondary"
-                  testID={testId(GAME_ID, 'round-answer-reveal')}>
-                  The answer was {state.round.correctWord}
+                  testID={testId(GAME_ID, 'round-why')}>
+                  "{state.round.correctWord}" means the same as "{state.round.prompt}"
                 </ThemedText>
-              ) : null}
+              </View>
               <View style={styles.options}>
                 {state.round.options.map((word, index) => (
                   <Option
@@ -445,6 +479,16 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
           forced={state.forced}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.resultsScore}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score', 'animated')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -491,5 +535,25 @@ const styles = StyleSheet.create({
   },
   options: {
     gap: Spacing.two,
+  },
+  // HUD-adjacent live score: caption + tabular numeral, never covering play.
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  // Inline verdict panel (PATTERNS-PLAY 7): compact, below the verdict
+  // headline and above the options — the prompt stem stays visible via the
+  // why-line restatement, never covered.
+  feedback: {
+    gap: Spacing.one,
+    borderRadius: Radii.medium,
+    paddingVertical: Spacing.twoHalf,
+    paddingHorizontal: Spacing.three,
+  },
+  // Results hero: the animated final score above the metric rows.
+  resultsScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

@@ -1,45 +1,39 @@
 /**
  * Data Management — local backup / restore / wipe (Session 05 portability,
- * matured in campaign 012 W12).
+ * campaign 012 W12 maturity).
  *
- * Offline-first, manual backup flow (constitution §7):
- * - Export canonical local profile/progression evidence as a versioned, checksummed envelope.
- * - Preview/dry-run before mutation (validate + counters without writing).
- * - Replace (destructive) vs Merge (reconcile, dedupe/idempotent, preserve target-only).
- * - Integrity / future-version / malformed rejection BEFORE mutation.
- * - Atomic application + rollback on failure; triggers stay valid.
- * - Local data deletion workflow with backup-offered-first and typed confirmation.
- *
- * UX contract (W12):
- * - Device-local honesty: every explanation states that data lives only on
- *   this phone; there is no account or cloud sync to fall back on.
+ * - Everything is local-first: backups live in the app documents folder via a
+ *   file transport; nothing is uploaded anywhere.
+ * - Previews never write; Replace/Delete are two-tap (shared ConfirmButton);
+ *   wipe additionally requires typing DELETE.
  * - Destructive actions are two-tap (Replace import, per-backup Delete) using
  *   the shared ConfirmButton — same arm/confirm pattern as reward purchases.
  * - The share sheet is offered where available; when the platform reports it
  *   unavailable we say so plainly instead of failing silently.
  *
- * Transport consumes W10's `BackupTransport` seam via the file-backed
- * implementation: every export is also saved under a timestamped name
- * (`defaultBackupName`) inside the app's document directory and survives
- * restarts. A native transport can replace it later without touching this
- * engine contract.
+ * Presentation (campaign 024, design-language v2): a storage-summary hero
+ * leads; the backup name is a kit `TextField`; export/import/wipe are kit
+ * `Button`s (danger for destructive); empty states and loading skeletons come
+ * from the kit; progress and result announcements stay honest live regions.
  */
 
 import { useCallback, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 
-import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
 import { ConfirmButton } from "@/components/settings/confirm-button";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import {
+  Button,
+  Card,
+  EmptyState,
+  ListRow,
+  Skeleton,
+  StatBlock,
+  TextField,
+} from "@/components/ui";
 import {
   applyImport,
   countLocalData,
@@ -50,6 +44,7 @@ import {
   serializeBackup,
   wipeLocalData,
   type BackupTransport,
+  type ImportPreview,
   type LocalDataCounts,
 } from "@/data-portability";
 import { getDb } from "@/db";
@@ -79,12 +74,12 @@ const EMPTY_COUNTS: LocalDataCounts = {
   xpAwards: 0,
   tutorialState: 0,
   workoutInstances: 0,
-  storageBytes: 0,
   questDefinitions: 0,
   questProgress: 0,
   achievementDefinitions: 0,
   achievementUnlocks: 0,
   hasProfile: false,
+  storageBytes: 0,
 };
 
 async function loadCounts(): Promise<LocalDataCounts> {
@@ -92,15 +87,19 @@ async function loadCounts(): Promise<LocalDataCounts> {
 }
 
 export default function DataManagementScreen() {
+  const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
-  const { data: counts } = useDbData(loadCounts, [refreshKey], EMPTY_COUNTS);
+  const { data: counts, loaded: countsLoaded } = useDbData(
+    loadCounts,
+    [refreshKey],
+    EMPTY_COUNTS,
+  );
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const [backupName, setBackupName] = useState("");
   const [exportText, setExportText] = useState<string | null>(null);
   const [lastExportName, setLastExportName] = useState<string | null>(null);
   const [importText, setImportText] = useState("");
-  const [preview, setPreview] = useState<Awaited<
-    ReturnType<typeof previewImport>
-  > | null>(null);
+  const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [wipeConfirm, setWipeConfirm] = useState("");
@@ -115,7 +114,11 @@ export default function DataManagementScreen() {
       return [];
     }
   }, []);
-  const { data: savedBackups } = useDbData(loadSavedBackups, [refreshKey], []);
+  const { data: savedBackups, loaded: backupsLoaded } = useDbData(
+    loadSavedBackups,
+    [refreshKey],
+    [],
+  );
 
   const onExport = useCallback(async () => {
     if (busy) {
@@ -128,8 +131,9 @@ export default function DataManagementScreen() {
       const text = serializeBackup(env);
       setExportText(text);
       // Also park the envelope in the durable transport so a copy survives
-      // even if the user never shares it off-device.
-      const name = defaultBackupName();
+      // even if the user never shares it off-device. A typed name wins;
+      // blank falls back to the generated default.
+      const name = backupName.trim() || defaultBackupName();
       await backupTransport.writeBackup(name, text);
       setLastExportName(name);
       refresh();
@@ -142,7 +146,7 @@ export default function DataManagementScreen() {
     } finally {
       setBusy(false);
     }
-  }, [busy, refresh]);
+  }, [backupName, busy, refresh]);
 
   /** Offer the fresh/saved export to the system share sheet when present. */
   const onShareBackup = useCallback(async (name: string) => {
@@ -341,57 +345,81 @@ export default function DataManagementScreen() {
         operations validate before they write and work fully offline.
       </ThemedText>
 
-      <ThemedView type="surface" style={styles.card} testID="data-counts">
-        <ThemedText type="subtitle">Local Data</ThemedText>
-        <View style={styles.countGrid}>
-          <Count
-            label="Sessions"
-            value={counts.gameSessions}
-            testID="data-count-sessions"
-          />
-          <Count
-            label="Ratings"
-            value={counts.domainRatings}
-            testID="data-count-ratings"
-          />
-          <Count
-            label="History"
-            value={counts.ratingHistory}
-            testID="data-count-history"
-          />
-          <Count
-            label="Ledger"
-            value={counts.currencyLedger}
-            testID="data-count-ledger"
-          />
-          <Count
-            label="Favorites"
-            value={counts.gameFavorites}
-            testID="data-count-favorites"
-          />
-          <Count
-            label="Quests"
-            value={counts.questProgress}
-            testID="data-count-quests"
-          />
-          <Count
-            label="XP awards"
-            value={counts.xpAwards}
-            testID="data-count-xp"
-          />
-        </View>
-        <ThemedText type="caption" themeColor="textSecondary" testID="data-storage-size">
-          {counts.hasProfile ? "Profile present" : "No profile"} ·{" "}
-          {counts.workoutInstances} workout instances · {counts.tutorialState}{" "}
-          tutorial states
-          {counts.storageBytes > 0
-            ? ` · database ${(counts.storageBytes / 1024).toFixed(1)} KB on disk`
-            : ""}
-        </ThemedText>
-      </ThemedView>
+      {!countsLoaded ? (
+        <Card testID="data-loading">
+          <Skeleton height={32} />
+          <Skeleton />
+          <Skeleton width="60%" />
+        </Card>
+      ) : (
+        <>
+          {/* Storage-summary hero: the screen's metric. */}
+          <Card variant="hero" testID="data-counts-hero">
+            <StatBlock
+              label="Database"
+              value={
+                counts.storageBytes > 0
+                  ? `${(counts.storageBytes / 1024).toFixed(1)} KB`
+                  : "Empty"
+              }
+              valueType="numeralXl"
+            />
+            <ThemedText
+              type="caption"
+              themeColor="textSecondary"
+              testID="data-storage-size"
+            >
+              {counts.hasProfile ? "Profile present" : "No profile"} ·{" "}
+              {counts.workoutInstances} workout instances · {counts.tutorialState}{" "}
+              tutorial states
+            </ThemedText>
+          </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="data-export-card">
-        <ThemedText type="subtitle">Export Backup</ThemedText>
+          <Card testID="data-counts">
+            <ThemedText type="headline">Local Data</ThemedText>
+            <View style={styles.countGrid}>
+              <Count
+                label="Sessions"
+                value={counts.gameSessions}
+                testID="data-count-sessions"
+              />
+              <Count
+                label="Ratings"
+                value={counts.domainRatings}
+                testID="data-count-ratings"
+              />
+              <Count
+                label="History"
+                value={counts.ratingHistory}
+                testID="data-count-history"
+              />
+              <Count
+                label="Ledger"
+                value={counts.currencyLedger}
+                testID="data-count-ledger"
+              />
+              <Count
+                label="Favorites"
+                value={counts.gameFavorites}
+                testID="data-count-favorites"
+              />
+              <Count
+                label="Quests"
+                value={counts.questProgress}
+                testID="data-count-quests"
+              />
+              <Count
+                label="XP awards"
+                value={counts.xpAwards}
+                testID="data-count-xp"
+              />
+            </View>
+          </Card>
+        </>
+      )}
+
+      <Card testID="data-export-card">
+        <ThemedText type="headline">Export Backup</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           Creates one versioned, checksummed JSON file containing your full
           local training history: sessions, ratings, coins, quests,
@@ -399,38 +427,45 @@ export default function DataManagementScreen() {
           app&apos;s backups folder on your phone; nothing is uploaded
           anywhere. Use Share to put a copy outside the app.
         </ThemedText>
+        <TextField
+          label="Backup name"
+          value={backupName}
+          onChangeText={setBackupName}
+          placeholder="Leave blank to auto-name"
+          hint="Saved in this app's backups folder on your phone."
+          onClear={() => setBackupName("")}
+          testID="data-export-name"
+        />
         <View style={styles.row}>
-          <Pressable
+          <Button
+            label="Export to JSON"
+            variant="primary"
+            size="md"
+            fullWidth={false}
+            loading={busy}
             testID="data-export-button"
-            accessibilityRole="button"
             accessibilityLabel="Export backup to JSON"
-            disabled={busy}
-            onPress={onExport}
-            style={styles.button}
-          >
-            <ThemedView type="accentSoft" style={styles.pill}>
-              <ThemedText type="smallBold" themeColor="accent">
-                {busy ? "Working…" : "Export to JSON"}
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
+            accessibilityHint="Saves a backup file on this phone"
+            onPress={() => void onExport()}
+          />
           {lastExportName && !busy ? (
-            <Pressable
+            <Button
+              label="Share…"
+              variant="secondary"
+              size="md"
+              fullWidth={false}
               testID={`data-export-share-${lastExportName}`}
-              accessibilityRole="button"
               accessibilityLabel={`Share the exported backup ${lastExportName}`}
-              onPress={() => onShareBackup(lastExportName)}
-              style={styles.button}
-            >
-              <ThemedView type="surface" style={styles.smallPill}>
-                <ThemedText type="smallBold">Share…</ThemedText>
-              </ThemedView>
-            </Pressable>
+              onPress={() => void onShareBackup(lastExportName)}
+            />
           ) : null}
         </View>
         {exportText ? (
           <View style={styles.exportBox} testID="data-export-output">
-            <ScrollView style={styles.exportScroll} testID="data-export-scroll">
+            <ScrollView
+              style={[styles.exportScroll, { borderColor: theme.border }]}
+              testID="data-export-scroll"
+            >
               <ThemedText type="code" style={styles.mono}>
                 {exportText.slice(0, 4000)}
                 {exportText.length > 4000 ? "\n… (truncated)" : ""}
@@ -443,60 +478,52 @@ export default function DataManagementScreen() {
             </ThemedText>
           </View>
         ) : null}
-      </ThemedView>
+      </Card>
 
       {/* Saved backups (file transport — persists in the app documents folder). */}
-      <ThemedView
-        type="surface"
-        style={styles.card}
-        testID="data-saved-backups"
-      >
-        <ThemedText type="subtitle">Saved Backups</ThemedText>
+      <Card testID="data-saved-backups">
+        <ThemedText type="headline">Saved Backups</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           Plain JSON files in this app&apos;s backups folder on your phone.
           They survive restarts and are NOT removed by deleting your training
           data below. For real safety keep a copy outside the device (Share).
         </ThemedText>
-        {savedBackups.length === 0 ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            No saved backups yet. Export above to create one.
-          </ThemedText>
+        {!backupsLoaded ? (
+          <Skeleton />
+        ) : savedBackups.length === 0 ? (
+          <EmptyState
+            title="No saved backups yet"
+            message="Export above to create one."
+            testID="data-saved-backups-empty"
+          />
         ) : (
           <View style={styles.rows}>
             {savedBackups.map((name) => (
               <View key={name} style={styles.backupRow}>
-                <ThemedText
-                  type="small"
-                  numberOfLines={1}
-                  style={styles.backupName}
-                >
-                  {name}
-                </ThemedText>
+                <View style={styles.backupName}>
+                  <ListRow title={name} showChevron={false} />
+                </View>
                 <View style={styles.row}>
-                  <Pressable
+                  <Button
+                    label="Load"
+                    variant="secondary"
+                    size="sm"
+                    fullWidth={false}
                     testID={`data-backup-load-${name}`}
-                    accessibilityRole="button"
                     accessibilityLabel={`Load backup ${name} into the import box`}
                     disabled={busy}
-                    onPress={() => onLoadBackup(name)}
-                  >
-                    <ThemedView type="accentSoft" style={styles.smallPill}>
-                      <ThemedText type="smallBold" themeColor="accent">
-                        Load
-                      </ThemedText>
-                    </ThemedView>
-                  </Pressable>
-                  <Pressable
+                    onPress={() => void onLoadBackup(name)}
+                  />
+                  <Button
+                    label="Share"
+                    variant="ghost"
+                    size="sm"
+                    fullWidth={false}
                     testID={`data-backup-share-${name}`}
-                    accessibilityRole="button"
                     accessibilityLabel={`Share saved backup ${name}`}
                     disabled={busy}
-                    onPress={() => onShareBackup(name)}
-                  >
-                    <ThemedView type="surface" style={styles.smallPill}>
-                      <ThemedText type="smallBold">Share</ThemedText>
-                    </ThemedView>
-                  </Pressable>
+                    onPress={() => void onShareBackup(name)}
+                  />
                   {/* Deleting a backup is destructive and irreversible —
                       require the confirming second tap. */}
                   <ConfirmButton
@@ -514,80 +541,85 @@ export default function DataManagementScreen() {
             ))}
           </View>
         )}
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="data-import-card">
-        <ThemedText type="subtitle">Import / Restore</ThemedText>
+      <Card testID="data-import-card">
+        <ThemedText type="headline">Import / Restore</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           Paste a previously exported backup JSON (or load a saved backup or
           file below), then preview — previews never write data.
         </ThemedText>
-        <View style={styles.modeBox} testID="data-import-modes">
-          <ThemedText type="smallBold">Merge</ThemedText>
+        <Card variant="outlined" padding="sm" testID="data-import-modes">
+          <ThemedText type="body">Merge</ThemedText>
           <ThemedText type="caption" themeColor="textSecondary">
             Adds what the backup contains that your phone is missing. Nothing
             currently on the phone is deleted or overwritten.
           </ThemedText>
-          <ThemedText type="smallBold">Replace</ThemedText>
+          <ThemedText type="body">Replace</ThemedText>
           <ThemedText type="caption" themeColor="textSecondary">
             Erases your current local data first, then restores exactly what is
             in the backup. Anything not in the backup is gone permanently.
           </ThemedText>
-        </View>
+        </Card>
         <TextInput
           testID="data-import-input"
           placeholder="Paste backup JSON here"
-          placeholderTextColor="#999"
+          placeholderTextColor={theme.textMuted}
           multiline
           autoCapitalize="none"
           autoCorrect={false}
-          style={styles.textArea}
+          style={[
+            styles.textArea,
+            {
+              borderColor: theme.border,
+              color: theme.text,
+              fontSize: Typography.bodySmall.size,
+            },
+          ]}
           value={importText}
           onChangeText={setImportText}
           accessibilityLabel="Backup JSON input"
         />
         <View style={styles.row}>
-          <Pressable
+          <Button
+            label="Load from file…"
+            variant="secondary"
+            size="sm"
+            fullWidth={false}
             testID="data-import-from-file"
-            accessibilityRole="button"
             accessibilityLabel="Load backup JSON from a file"
             disabled={busy}
-            onPress={onLoadFromFile}
-          >
-            <ThemedView type="surface" style={styles.smallPill}>
-              <ThemedText type="smallBold">Load from file…</ThemedText>
-            </ThemedView>
-          </Pressable>
-          <Pressable
+            onPress={() => void onLoadFromFile()}
+          />
+          <Button
+            label="Preview Merge"
+            variant="secondary"
+            size="sm"
+            fullWidth={false}
             testID="data-preview-merge"
-            accessibilityRole="button"
             accessibilityLabel="Preview merge import"
             disabled={busy || !importText.trim()}
-            onPress={() => onPreview("merge")}
-          >
-            <ThemedView type="surface" style={styles.smallPill}>
-              <ThemedText type="smallBold">Preview Merge</ThemedText>
-            </ThemedView>
-          </Pressable>
-          <Pressable
+            onPress={() => void onPreview("merge")}
+          />
+          <Button
+            label="Preview Replace"
+            variant="secondary"
+            size="sm"
+            fullWidth={false}
             testID="data-preview-replace"
-            accessibilityRole="button"
             accessibilityLabel="Preview replace import"
             disabled={busy || !importText.trim()}
-            onPress={() => onPreview("replace")}
-          >
-            <ThemedView type="surface" style={styles.smallPill}>
-              <ThemedText type="smallBold">Preview Replace</ThemedText>
-            </ThemedView>
-          </Pressable>
+            onPress={() => void onPreview("replace")}
+          />
         </View>
         {preview ? (
-          <View
-            style={styles.previewBox}
+          <Card
+            variant="outlined"
+            padding="sm"
             testID="data-preview-output"
             accessibilityLiveRegion="polite"
           >
-            <ThemedText type="smallBold">
+            <ThemedText type="body">
               Preview ({preview.mode}):{" "}
               {preview.valid ? "Valid" : `Invalid (${preview.error?.kind})`}
             </ThemedText>
@@ -607,22 +639,19 @@ export default function DataManagementScreen() {
                 • {n}
               </ThemedText>
             ))}
-          </View>
+          </Card>
         ) : null}
         <View style={styles.row}>
-          <Pressable
+          <Button
+            label="Merge Import"
+            variant="primary"
+            size="md"
+            fullWidth={false}
             testID="data-import-merge"
-            accessibilityRole="button"
             accessibilityLabel="Apply merge import"
             disabled={busy || !importText.trim()}
-            onPress={() => onImport("merge")}
-          >
-            <ThemedView type="accentSoft" style={styles.pill}>
-              <ThemedText type="smallBold" themeColor="accent">
-                Merge Import
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
+            onPress={() => void onImport("merge")}
+          />
           {/* Replace is destructive: first tap arms ("Tap again…"), second
               tap applies. Same pattern as deleting saved backups. */}
           <ConfirmButton
@@ -639,10 +668,10 @@ export default function DataManagementScreen() {
           Replace cannot be undone except by restoring another backup. Not sure
           which mode you need? Merge is always safe.
         </ThemedText>
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="data-wipe-card">
-        <ThemedText type="subtitle">Delete All Local Data</ThemedText>
+      <Card testID="data-wipe-card">
+        <ThemedText type="headline">Delete All Local Data</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           Permanently deletes every session, rating, coin ledger entry, quest,
           achievement and setting on this phone. There is no cloud copy to fall
@@ -650,68 +679,55 @@ export default function DataManagementScreen() {
           one.
         </ThemedText>
         <View style={styles.row}>
-          <Pressable
+          <Button
+            label="Export a backup first"
+            variant="secondary"
+            size="md"
+            fullWidth={false}
             testID="data-wipe-export-first"
-            accessibilityRole="button"
             accessibilityLabel="Export a backup before deleting anything"
             disabled={busy}
-            onPress={onExport}
-          >
-            <ThemedView type="accentSoft" style={styles.pill}>
-              <ThemedText type="smallBold" themeColor="accent">
-                Export a backup first
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
+            onPress={() => void onExport()}
+          />
         </View>
-        <TextInput
-          testID="data-wipe-confirm"
-          placeholder="Type DELETE to confirm"
-          placeholderTextColor="#999"
-          autoCapitalize="characters"
-          autoCorrect={false}
-          style={styles.input}
+        <TextField
+          label="Confirmation"
           value={wipeConfirm}
-          onChangeText={setWipeConfirm}
+          // The kit field has no auto-caps; normalise so typing "delete" on
+          // an auto-capitalising keyboard still arms the wipe, as before.
+          onChangeText={(text) => setWipeConfirm(text.toUpperCase())}
+          placeholder="Type DELETE to confirm"
+          hint="Typing DELETE enables the wipe button below."
+          testID="data-wipe-confirm"
           accessibilityLabel="Wipe confirmation input"
-          accessibilityHint='Typing DELETE enables the wipe button below'
         />
-        <Pressable
+        <Button
+          label="Wipe Local Data"
+          variant="danger"
+          size="md"
+          fullWidth={false}
           testID="data-wipe-button"
-          accessibilityRole="button"
           accessibilityLabel="Wipe all local data"
+          accessibilityHint={
+            wipeConfirm === "DELETE"
+              ? "Permanently deletes all local training data."
+              : "Type DELETE above to enable."
+          }
           disabled={busy || wipeConfirm !== "DELETE"}
-          onPress={onWipe}
-        >
-          <ThemedView
-            type={wipeConfirm === "DELETE" ? "danger" : "surface"}
-            style={styles.pill}
-          >
-            <ThemedText
-              type="smallBold"
-              themeColor={wipeConfirm === "DELETE" ? "danger" : "textSecondary"}
-            >
-              Wipe Local Data
-            </ThemedText>
-          </ThemedView>
-        </Pressable>
+          onPress={() => void onWipe()}
+        />
         <ThemedText type="caption" themeColor="textSecondary">
           Saved backup files are kept by the wipe — restore one from Saved
           Backups if you change your mind.
         </ThemedText>
-      </ThemedView>
+      </Card>
 
       {message ? (
-        <ThemedView
-          type="surface"
-          style={styles.card}
-          testID="data-message"
-          accessibilityLiveRegion="polite"
-        >
+        <Card testID="data-message" accessibilityLiveRegion="polite">
           <ThemedText type="small" themeColor="textSecondary">
             {message}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
     </ScreenShell>
   );
@@ -728,7 +744,7 @@ function Count({
 }) {
   return (
     <View style={styles.countCell} testID={testID}>
-      <ThemedText type="headline" themeColor="accent">
+      <ThemedText type="numeral" themeColor="accent">
         {value}
       </ThemedText>
       <ThemedText type="caption" themeColor="textSecondary">
@@ -739,11 +755,6 @@ function Count({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.three,
-  },
   countGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -753,23 +764,6 @@ const styles = StyleSheet.create({
     minWidth: 80,
     alignItems: "center",
     gap: Spacing.half,
-  },
-  button: {
-    alignSelf: "flex-start",
-  },
-  pill: {
-    ...MinTouchTarget,
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-  },
-  smallPill: {
-    ...MinTouchTarget,
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.two,
-    borderWidth: 1,
-    borderColor: "rgba(120,120,140,0.2)",
   },
   row: {
     flexDirection: "row",
@@ -788,12 +782,6 @@ const styles = StyleSheet.create({
   backupName: {
     flex: 1,
   },
-  modeBox: {
-    gap: Spacing.one,
-    padding: Spacing.two,
-    borderRadius: Radii.medium,
-    backgroundColor: "rgba(120,120,140,0.08)",
-  },
   textArea: {
     minHeight: 120,
     // Cap growth: a loaded backup is ~20KB of JSON; uncapped, the field
@@ -801,17 +789,9 @@ const styles = StyleSheet.create({
     // below the fold with all touches intercepted (device-verified).
     maxHeight: 240,
     borderWidth: 1,
-    borderColor: "rgba(120,120,140,0.2)",
     borderRadius: Radii.medium,
     padding: Spacing.two,
     textAlignVertical: "top",
-    fontSize: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "rgba(120,120,140,0.2)",
-    borderRadius: Radii.medium,
-    padding: Spacing.two,
   },
   exportBox: {
     gap: Spacing.two,
@@ -819,17 +799,10 @@ const styles = StyleSheet.create({
   exportScroll: {
     maxHeight: 200,
     borderWidth: 1,
-    borderColor: "rgba(120,120,140,0.2)",
     borderRadius: Radii.medium,
     padding: Spacing.two,
   },
   mono: {
-    fontSize: 10,
-  },
-  previewBox: {
-    gap: Spacing.one,
-    padding: Spacing.two,
-    borderRadius: Radii.medium,
-    backgroundColor: "rgba(120,120,140,0.08)",
+    fontSize: Typography.caption.size,
   },
 });

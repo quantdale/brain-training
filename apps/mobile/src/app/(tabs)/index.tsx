@@ -31,18 +31,23 @@
  * completion outcomes, and length-labelled history rows.
  */
 
-import { Link, router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import {
-  LevelCard,
-  ProgressTrack,
   SectionHeader,
-  StateCard,
   StreakCard,
 } from "@/components/shell";
-import { formatRelativeDay } from "@/components/shell/format";
+import {
+  Button,
+  Card,
+  ProgressBar,
+  SectionGrid,
+  ListRow,
+  Skeleton,
+  SkeletonText,
+} from "@/components/ui";
 import {
   WorkoutCompletionCard,
   WorkoutFocusExplanation,
@@ -51,19 +56,21 @@ import {
   WorkoutTemplateChips,
   WorkoutTemplateDetails,
 } from "@/components/workout";
+import { formatRelativeDay } from "@/components/shell/format";
 import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { MinTouchTarget } from "@/components/a11y";
+import { useTheme } from "@/hooks/use-theme";
 import { Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, DomainRating } from "@/db";
 import type { GameDefinition } from "@/sdk";
+import { levelForXp, levelProgress, xpForLevel } from "@/rating";
 import { useDbData } from "@/hooks/use-db-data";
-import { levelForXp } from "@/rating";
 import { getAllGameDefinitions } from "@/registry/registry";
 import { collectClaimableRewards } from "@/rewards/inbox";
 import {
   effectiveCurrent,
+  milestoneProgress,
   readCoveredDates,
   reconstructStreak,
 } from "@/streaks";
@@ -202,6 +209,7 @@ async function loadClaimableRewardCount(db: AppDatabase): Promise<number> {
 }
 
 export default function HomeScreen() {
+  const theme = useTheme();
   const today = localDateString();
   const [refreshKey, setRefreshKey] = useState(0);
   // Reload on every focus so slots reflect sessions completed elsewhere (the
@@ -491,6 +499,53 @@ export default function HomeScreen() {
   );
   const currentStreak = effectiveCurrent(streak, today);
   const level = levelForXp(data.totalXp);
+  const levelRatio = levelProgress(data.totalXp);
+  const nextLevelXp = xpForLevel(level + 1);
+  const xpToNext = Math.max(0, nextLevelXp - data.totalXp);
+
+  // Next streak milestone (best-run honors): the first catalog milestone the
+  // best streak has not reached yet, rendered as the strip's closing line.
+  const nextStreakMilestone =
+    milestoneProgress(streak).find((entry) => !entry.reached) ?? null;
+  const streakMilestoneLine =
+    nextStreakMilestone == null
+      ? "Every streak milestone reached — legendary."
+      : nextStreakMilestone.remaining === 1
+        ? `1 day to ${nextStreakMilestone.milestone.label} · ${nextStreakMilestone.milestone.days}-day streak`
+        : `${nextStreakMilestone.remaining} days to ${nextStreakMilestone.milestone.label} · ${nextStreakMilestone.milestone.days}-day streak`;
+
+  // Hero CTA copy: resume language once the plan is underway, start language
+  // on a fresh plan. The sublabel carries the context line (next game +
+  // position), so the single primary button reads as a complete invitation.
+  const isResuming = workoutStatus === "active" && workoutIndex > 0;
+  const heroCtaLabel = isResuming ? "Continue workout" : "Start workout";
+  const heroCtaSublabel =
+    workout.length === 0
+      ? undefined
+      : isResuming
+        ? `${currentGame?.name ?? "Next game"} · Game ${workoutIndex + 1} of ${workout.length}`
+        : `Starts with ${workout[0]?.name ?? "game one"} · ${workout.length} games`;
+  const heroCtaAccessibilityLabel =
+    workout.length === 0
+      ? heroCtaLabel
+      : isResuming
+        ? `Continue today's workout with ${currentGame?.name ?? "the next game"}`
+        : `Start today's workout, ${workout.length} games`;
+  // Same destination (with the same workout-leg provenance) the resume Link
+  // used before the hero rebuild — null until a current game is known.
+  const heroGameId = workoutFlow.currentGameId;
+  const heroHref = heroGameId
+    ? gameHref(
+        heroGameId,
+        workoutFlow.instance
+          ? {
+              instanceKey: workoutFlow.instance.date,
+              legIndex: workoutFlow.instance.currentIndex,
+              gameId: heroGameId,
+            }
+          : null,
+      )
+    : null;
 
   // Error surfacing: only when a real game catalog is installed. With an empty
   // registry (fresh bootstrap / bare test harness) a db failure is expected
@@ -540,199 +595,203 @@ export default function HomeScreen() {
         />
       ) : null}
 
-      {/* Loading state: brief inline hint while the first db read settles. */}
+      {/* Loading state: skeleton blocks while the first db read settles. */}
       {!loaded && (
-        <ThemedText
-          type="caption"
-          themeColor="textSecondary"
+        <View
+          style={styles.loadingBlock}
           testID="home-loading"
+          accessible
+          accessibilityLabel="Loading your training data"
         >
-          Loading your training data…
-        </ThemedText>
+          <Skeleton height={Spacing.six * 2} />
+          <SkeletonText lines={2} />
+        </View>
       )}
 
-      {/* Today's Workout CTA slot (constitution §13: primary CTA). */}
-      <ThemedView
-        type="surface"
-        style={styles.ctaCard}
-        testID="home-workout-cta"
-      >
-        <ThemedText type="subtitle">Today&apos;s Workout</ThemedText>
-        {workoutStatus === "completed" ? (
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            testID="home-workout-complete"
-          >
-            Workout complete — come back tomorrow to train again.
-          </ThemedText>
-        ) : (
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            testID="home-workout-progress"
-          >
-            {workoutIndex} of {workout.length} done — keep going!
-          </ThemedText>
-        )}
-        {workout.length > 0 ? (
-          <>
-            {/* Completion bar mirrors the durable resume position. */}
-            <ProgressTrack
-              ratio={workoutIndex / workout.length}
-              testID="home-workout-progress-bar"
-            />
-            <ThemedText type="small" themeColor="textSecondary">
-              Your daily {workout.length}-game training plan, balanced toward
-              your weakest domains. Play any game to earn XP and train your
-              ratings.
-            </ThemedText>
-            <View style={styles.workoutList} testID="home-workout-list">
-              {workout.map((game, index) => {
-                const isCompleted =
-                  workoutStatus === "completed" || index < workoutIndex;
-                const isCurrent =
-                  workoutStatus === "active" && index === workoutIndex;
-                return (
-                  <Link
-                    key={`${game.id}-${index}`}
-                    href={gameHref(
-                      game.id,
-                      workoutFlow.instance
-                        ? {
-                            instanceKey: workoutFlow.instance.date,
-                            legIndex: index,
-                            gameId: game.id,
-                          }
-                        : null,
-                    )}
-                    asChild
-                  >
-                    <Pressable
-                      testID={`home-workout-game-${game.id}`}
-                      accessibilityRole="button"
-                      accessibilityLabel={`${game.name}, ${game.primaryCategory}, ${
-                        isCompleted ? "done" : isCurrent ? "up now" : "up next"
-                      }`}
-                      style={
-                        isCurrent
-                          ? StyleSheet.flatten([
-                              styles.workoutRow,
-                              styles.workoutRowCurrent,
-                            ])
-                          : styles.workoutRow
-                      }
-                    >
-                      <ThemedText type="smallBold" themeColor="accent">
-                        {index + 1}.
-                      </ThemedText>
-                      <View style={styles.workoutItemText}>
-                        <ThemedText type="small">{game.name}</ThemedText>
-                        <ThemedText
-                          type="caption"
-                          themeColor="textSecondary"
-                        >
-                          {game.primaryCategory}
-                        </ThemedText>
-                      </View>
-                      <ThemedText
-                        type="caption"
-                        themeColor="textSecondary"
-                        testID={`home-workout-game-status-${game.id}`}
-                      >
-                        {isCompleted ? "Done" : isCurrent ? "Now" : "Up next"}
-                      </ThemedText>
-                    </Pressable>
-                  </Link>
-                );
-              })}
-            </View>
-            {/* Primary resume affordance: jumps straight to the current game. */}
-            {workoutStatus === "active" && workoutFlow.currentGameId ? (
-              <Link
-                href={gameHref(
-                  workoutFlow.currentGameId,
-                  workoutFlow.instance
-                    ? {
-                        instanceKey: workoutFlow.instance.date,
-                        legIndex: workoutFlow.instance.currentIndex,
-                        gameId: workoutFlow.currentGameId,
-                      }
-                    : null,
-                )}
-                asChild
-              >
-                <Pressable
-                  testID="home-workout-continue"
-                  accessibilityRole="button"
-                  accessibilityLabel={`Continue today's workout with ${
-                    currentGame?.name ?? "the next game"
-                  }`}
-                >
-                  <ThemedView type="accentSoft" style={styles.ctaPill}>
-                    <ThemedText type="smallBold" themeColor="accent">
-                      Continue workout →
-                    </ThemedText>
-                  </ThemedView>
-                </Pressable>
-              </Link>
-            ) : null}
-            <Pressable
-              testID="home-workout-reroll"
-              accessibilityRole="button"
-              accessibilityLabel={rerollLabel}
-              accessibilityHint={rerollHint}
-              disabled={
-                !rerollAffordable ||
-                rerollExhausted ||
-                workoutStatus === "completed"
-              }
-              onPress={onReroll}
-            >
-              <ThemedView
-                type={
-                  rerollExhausted ||
-                  !rerollAffordable ||
-                  workoutStatus === "completed"
-                    ? "surface"
-                    : "accentSoft"
-                }
-                style={[styles.ctaPill, styles.secondaryPill]}
-              >
-                <ThemedText type="smallBold" themeColor="accent">
-                  {rerollLabel}
-                </ThemedText>
-              </ThemedView>
-            </Pressable>
-            {workoutStatus === "active" && (
-              <ThemedText
-                type="caption"
-                themeColor="textSecondary"
-                testID="home-reroll-hint"
-              >
-                {rerollHint}
-              </ThemedText>
-            )}
-          </>
-        ) : (
-          <ThemedText type="small" themeColor="textSecondary">
-            Your daily 4-game training plan will appear here once games are
-            registered.
-          </ThemedText>
-        )}
-      </ThemedView>
+      {/* Streak context: the four-block beat (flame + count, label, 7-day
+          strip, next-milestone line) ahead of the workout hero. */}
+      <View style={styles.streakSection}>
+        <StreakCard
+          current={currentStreak}
+          activityDates={data.activityDates}
+          coveredDates={data.coveredDates}
+          today={today}
+          atRisk={loaded && streak.atRisk}
+          milestoneLine={streakMilestoneLine}
+        />
+      </View>
 
-      {/* Campaign 023: streak hero + XP/level progress (constitution §13
-          order: workout CTA first, then streak/XP/level). Both cards read
-          authoritative reconstructed state and degrade with it. */}
-      <StreakCard
-        current={currentStreak}
-        activityDates={data.activityDates}
-        coveredDates={data.coveredDates}
-        today={today}
-        atRisk={loaded && streak.atRisk}
-      />
-      <LevelCard totalXp={data.totalXp} level={level} coins={data.balance} />
+      {/* Today's Workout hero: goal progress + the screen's single primary
+          CTA. The meter and legs mirror the durable resume position. */}
+      <Card variant="hero" padding="lg" testID="home-workout-cta">
+        <View style={styles.heroBody}>
+          <View style={styles.heroTitle}>
+            <ThemedText type="eyebrow" themeColor="accent">
+              TODAY
+            </ThemedText>
+            <ThemedText type="headline">Today&apos;s Workout</ThemedText>
+            {workout.length > 0 ? (
+              <ThemedText type="small" themeColor="textSecondary">
+                {`Daily ${workout.length}-game plan · balanced toward your weakest domains.`}
+              </ThemedText>
+            ) : null}
+          </View>
+          {workoutStatus === "completed" ? (
+            <ThemedText
+              type="small"
+              themeColor="textSecondary"
+              testID="home-workout-complete"
+            >
+              Workout complete — come back tomorrow to train again.
+            </ThemedText>
+          ) : workout.length > 0 ? (
+            <ThemedText type="numeralLg" testID="home-workout-progress">
+              {`${workoutIndex} of ${workout.length}`}
+            </ThemedText>
+          ) : null}
+          {workoutStatus !== "completed" && workout.length > 0 ? (
+            <ThemedText type="caption" themeColor="textSecondary">
+              games done — keep going!
+            </ThemedText>
+          ) : null}
+          {workout.length > 0 ? (
+            <>
+              <ProgressBar
+                value={workoutIndex / workout.length}
+                testID="home-workout-progress-bar"
+                accessibilityLabel={
+                  workoutStatus === "completed"
+                    ? `Workout complete, ${workout.length} of ${workout.length} games done`
+                    : `${workoutIndex} of ${workout.length} games done`
+                }
+              />
+              <View style={styles.workoutList} testID="home-workout-list">
+                {workout.map((game, index) => {
+                  const isCompleted =
+                    workoutStatus === "completed" || index < workoutIndex;
+                  const isCurrent =
+                    workoutStatus === "active" && index === workoutIndex;
+                  const status = isCompleted
+                    ? "Done"
+                    : isCurrent
+                      ? "Now"
+                      : "Up next";
+                  return (
+                    <View
+                      key={`${game.id}-${index}`}
+                      testID={`home-workout-game-status-${game.id}`}
+                    >
+                      <ListRow
+                        title={game.name}
+                        subtitle={game.primaryCategory}
+                        meta={status}
+                        testID={`home-workout-game-${game.id}`}
+                        accessibilityLabel={`${game.name}, ${game.primaryCategory}, ${
+                          isCompleted ? "done" : isCurrent ? "up now" : "up next"
+                        }`}
+                        onPress={() =>
+                          router.push(
+                            gameHref(
+                              game.id,
+                              workoutFlow.instance
+                                ? {
+                                    instanceKey: workoutFlow.instance.date,
+                                    legIndex: index,
+                                    gameId: game.id,
+                                  }
+                                : null,
+                            ),
+                          )
+                        }
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+              {workoutStatus === "active" && heroHref ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  label={heroCtaLabel}
+                  sublabel={heroCtaSublabel}
+                  testID="home-workout-continue"
+                  accessibilityLabel={heroCtaAccessibilityLabel}
+                  onPress={() => router.push(heroHref)}
+                />
+              ) : null}
+              <Button
+                variant="ghost"
+                label={rerollLabel}
+                testID="home-workout-reroll"
+                accessibilityHint={rerollHint}
+                disabled={
+                  !rerollAffordable ||
+                  rerollExhausted ||
+                  workoutStatus === "completed"
+                }
+                onPress={onReroll}
+              />
+              {workoutStatus === "active" ? (
+                <ThemedText
+                  type="caption"
+                  themeColor="textSecondary"
+                  testID="home-reroll-hint"
+                >
+                  {rerollHint}
+                </ThemedText>
+              ) : null}
+            </>
+          ) : (
+            <ThemedText type="small" themeColor="textSecondary">
+              Your daily 4-game training plan will appear here once games are
+              registered.
+            </ThemedText>
+          )}
+        </View>
+      </Card>
+
+      {/* Level/XP: tabular level numeral + coin balance in the currency
+          identity colour over an xp-toned meter. */}
+      <Card testID="home-level-card">
+        <View style={styles.levelBody}>
+          <View style={styles.levelRow}>
+            <ThemedText type="numeralLg" themeColor="xp" testID="home-stat-level">
+              {level}
+            </ThemedText>
+            <View style={styles.levelText}>
+              <ThemedText type="label">Level {level}</ThemedText>
+              <ThemedText type="caption" themeColor="textSecondary">
+                {`${data.totalXp} XP · ${xpToNext > 0 ? `${xpToNext} XP to Level ${level + 1}` : "Max level"}`}
+              </ThemedText>
+            </View>
+            {data.balance > 0 ? (
+              <View
+                testID="home-stat-coins"
+                accessible
+                accessibilityLabel={`${data.balance} coins`}
+                style={[
+                  styles.coinChip,
+                  { backgroundColor: theme.currencySoft },
+                ]}
+              >
+                <ThemedText type="caption" themeColor="currencySoftText">
+                  🪙 {data.balance}
+                </ThemedText>
+              </View>
+            ) : null}
+          </View>
+          <ProgressBar
+            value={levelRatio}
+            tone="xp"
+            testID="home-stat-xp"
+            accessibilityLabel={
+              xpToNext > 0
+                ? `Level ${level}, ${data.totalXp} XP total, ${xpToNext} XP to Level ${level + 1}`
+                : `Level ${level}, ${data.totalXp} XP total, max level`
+            }
+          />
+        </View>
+      </Card>
 
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
           finished today. Data-gated so first-run trees stay unchanged. */}
@@ -794,31 +853,20 @@ export default function HomeScreen() {
                   />
                 </>
               ) : null}
-              <Pressable
+              <Button
+                variant="secondary"
+                label={startLabel}
                 testID="home-workout-template-start"
-                accessibilityRole="button"
                 accessibilityLabel={startLabel}
                 accessibilityHint={`Starts a ${lengthLabel.toLowerCase()} ${
                   selectedTemplate?.name ?? "workout"
                 } session.`}
+                loading={startInProgress}
                 disabled={
                   !effectiveTemplateId || startInProgress || selectedCompletedToday
                 }
                 onPress={onStartTemplate}
-              >
-                <ThemedView
-                  type={
-                    effectiveTemplateId && !startInProgress && !selectedCompletedToday
-                      ? "accentSoft"
-                      : "surface"
-                  }
-                  style={[styles.ctaPill, styles.secondaryPill]}
-                >
-                  <ThemedText type="smallBold" themeColor="accent">
-                    {startInProgress ? "Starting…" : startLabel}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
+              />
             </>
           ) : (
             <ThemedText type="small" themeColor="textSecondary">
@@ -832,65 +880,58 @@ export default function HomeScreen() {
       {/* Error state: recoverable read failure with an explicit retry.
           `error != null` keeps the guard boolean so the JSX stays ReactNode. */}
       {loaded && error != null && hasCatalog ? (
-        <StateCard
-          variant="error"
-          testID="home-data-error"
-          title="Couldn't load your data"
-          message="Your training data couldn't be read just now. Your progress stays safely on disk — try again."
-          action={{ label: "Retry", onPress: refresh }}
-        />
+        <Card tone="dangerSoft" testID="home-data-error">
+          <View style={styles.errorBody}>
+            <ThemedText type="label" themeColor="dangerSoftText">
+              Couldn&apos;t load your data
+            </ThemedText>
+            <ThemedText type="bodySmall" themeColor="dangerSoftText">
+              Your training data couldn&apos;t be read just now. Your progress
+              stays safely on disk — try again.
+            </ThemedText>
+            <Button variant="secondary" label="Retry" onPress={refresh} />
+          </View>
+        </Card>
       ) : null}
 
-      {/* Quick actions (constitution §13 order): drill-downs one tap away. */}
+      {/* Quick actions (constitution §13 order): drill-downs one tap away.
+          Secondary buttons in an adaptive grid — stacked on phones,
+          side-by-side on expanded widths. */}
       {workout.length > 0 && (
         <View>
           <SectionHeader title="Quick actions" />
-          <View style={styles.quickRow} testID="home-quick-actions">
-            <Link href="/games" asChild>
-              <Pressable
+          <View style={styles.quickActions} testID="home-quick-actions">
+            <SectionGrid>
+              <Button
+                variant="secondary"
+                label="Browse games"
                 testID="home-quick-games"
-                accessibilityRole="button"
                 accessibilityLabel="Browse all games"
-              >
-                <ThemedView type="surface" style={styles.quickPill}>
-                  <ThemedText type="smallBold" themeColor="accent">
-                    Browse games
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            </Link>
-            <Link href={"/progress" as any} asChild>
-              <Pressable
+                onPress={() => router.push("/games")}
+              />
+              <Button
+                variant="secondary"
+                label="Progress"
                 testID="home-quick-progress"
-                accessibilityRole="button"
                 accessibilityLabel="View your progress"
-              >
-                <ThemedView type="surface" style={styles.quickPill}>
-                  <ThemedText type="smallBold" themeColor="accent">
-                    Progress
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            </Link>
-            <Link href={"/rewards" as any} asChild>
-              <Pressable
+                onPress={() => router.push("/progress")}
+              />
+              <Button
+                variant="secondary"
+                label={
+                  data.claimableRewards > 0
+                    ? `Rewards (${data.claimableRewards})`
+                    : "Rewards"
+                }
                 testID="home-quick-rewards"
-                accessibilityRole="button"
                 accessibilityLabel={
                   data.claimableRewards > 0
                     ? `Open rewards, ${data.claimableRewards} ready to claim`
                     : "Open rewards"
                 }
-              >
-                <ThemedView type="surface" style={styles.quickPill}>
-                  <ThemedText type="smallBold" themeColor="accent">
-                    {data.claimableRewards > 0
-                      ? `Rewards (${data.claimableRewards})`
-                      : "Rewards"}
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
-            </Link>
+                onPress={() => router.push("/rewards")}
+              />
+            </SectionGrid>
           </View>
         </View>
       )}
@@ -909,45 +950,33 @@ export default function HomeScreen() {
         style={styles.recentCard}
         testID="home-recent-games"
       >
-        {data.recentSessions.length > 0 ? (
-          <SectionHeader
-            title="Recent games"
-            actionLabel="Results"
-            actionTestID="home-recent-all"
-            actionAccessibilityLabel="Open full results history"
-            onActionPress={() => router.push("/results")}
-          />
-        ) : (
-          <ThemedText type="subtitle">Recent games</ThemedText>
-        )}
+        <SectionHeader
+          title="Recent games"
+          actionLabel={data.recentSessions.length > 0 ? "See all" : undefined}
+          actionTestID="home-recent-all"
+          actionAccessibilityLabel="Open full results history"
+          onActionPress={
+            data.recentSessions.length > 0
+              ? () => router.push("/results")
+              : undefined
+          }
+        />
         {data.recentSessions.length > 0 ? (
           <View style={styles.recentList}>
             {data.recentSessions.map((session) => (
-              <Link key={session.id} href={`/results?id=${session.id}`} asChild>
-                <Pressable
-                  testID={`home-recent-game-${session.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${session.gameName} result, ${formatRelativeDay(
-                    session.completedAt,
-                    nowMs,
-                  )}, ${Math.round(session.normalizedResult * 100)} percent`}
-                  style={({ pressed }) => [
-                    styles.recentRow,
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <View style={styles.recentText}>
-                    <ThemedText type="small">{session.gameName}</ThemedText>
-                    <ThemedText type="caption" themeColor="textSecondary">
-                      {formatRelativeDay(session.completedAt, nowMs)} · +
-                      {session.xp} XP
-                    </ThemedText>
-                  </View>
-                  <ThemedText type="smallBold">
-                    {Math.round(session.normalizedResult * 100)}%
-                  </ThemedText>
-                </Pressable>
-              </Link>
+              <ListRow
+                key={session.id}
+                title={session.gameName}
+                subtitle={`${formatRelativeDay(session.completedAt, nowMs)} · +${session.xp} XP`}
+                meta={`${Math.round(session.normalizedResult * 100)}%`}
+                testID={`home-recent-game-${session.id}`}
+                accessibilityLabel={`${session.gameName} result, ${formatRelativeDay(
+                  session.completedAt,
+                  nowMs,
+                )}, ${Math.round(session.normalizedResult * 100)} percent`}
+                accessibilityHint="Opens this session's result"
+                onPress={() => router.push(`/results?id=${session.id}`)}
+              />
             ))}
           </View>
         ) : (
@@ -1016,53 +1045,45 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
-  ctaPill: {
-    alignSelf: "flex-start",
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    marginTop: Spacing.two,
+  loadingBlock: {
+    gap: Spacing.two,
   },
-  secondaryPill: {
-    borderWidth: 1,
-    borderColor: "rgba(120,120,140,0.2)",
+  streakSection: {
+    gap: Spacing.two,
+  },
+  heroBody: {
+    gap: Spacing.twoHalf,
+  },
+  heroTitle: {
+    gap: Spacing.half,
   },
   workoutList: {
-    gap: Spacing.two,
-    marginTop: Spacing.two,
+    gap: Spacing.one,
   },
-  workoutRow: {
+  levelBody: {
+    gap: Spacing.two,
+  },
+  levelRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.two,
+    gap: Spacing.twoHalf,
   },
-  workoutItemText: {
+  levelText: {
     flex: 1,
     gap: Spacing.half,
   },
-  workoutRowCurrent: {
-    borderRadius: Radii.medium,
-    paddingHorizontal: Spacing.two,
-    backgroundColor: "rgba(0, 122, 255, 0.12)",
-  },
-  statsRow: {
+  coinChip: {
     flexDirection: "row",
-    gap: Spacing.two,
-  },
-  quickRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-    marginTop: Spacing.two,
-  },
-  quickPill: {
-    ...MinTouchTarget,
-    alignSelf: "flex-start",
+    alignItems: "center",
     borderRadius: Radii.pill,
     paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderWidth: 1,
-    borderColor: "rgba(120,120,140,0.2)",
+    paddingHorizontal: Spacing.twoHalf,
+  },
+  errorBody: {
+    gap: Spacing.two,
+  },
+  quickActions: {
+    marginTop: Spacing.two,
   },
   recentCard: {
     borderRadius: Radii.large,
@@ -1070,19 +1091,6 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   recentList: {
-    gap: Spacing.two,
-  },
-  recentRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  recentText: {
-    flex: 1,
-    gap: Spacing.half,
-  },
-  pressed: {
-    opacity: 0.7,
+    gap: Spacing.one,
   },
 });

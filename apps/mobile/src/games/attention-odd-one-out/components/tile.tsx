@@ -9,11 +9,11 @@
  * reveal (`found`) only happens after the round ended.
  */
 import { memo } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { Radii } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { renderSpecFor } from '../generator';
@@ -49,8 +49,12 @@ export const ItemTile = memo(function ItemTile({
   const spec = renderSpecFor(deviation, isOdd);
   const fill = spec.color ?? theme.text;
   const revealed = visual === 'found';
+  // Verdicts change fill AND icon/shape, never colour alone: a wrong tap gets
+  // a danger-soft fill plus a ✕ badge; the revealed odd item keeps its
+  // accent-soft fill plus a ✓ badge. Both badges are opaque verdict-family
+  // fills with their `*On` glyph, so the icon reads on any board behind it.
   const backgroundColor =
-    visual === 'found' ? theme.accentSoft : theme.surface;
+    visual === 'found' ? theme.accentSoft : visual === 'error' ? theme.dangerSoft : theme.surface;
   const borderColor =
     visual === 'found' ? theme.success : visual === 'error' ? theme.danger : theme.border;
   const borderWidth = visual === 'found' || visual === 'error' ? 3 : 1.5;
@@ -62,7 +66,9 @@ export const ItemTile = memo(function ItemTile({
       accessibilityLabel={
         revealed && isOdd
           ? `Item ${index + 1}, the odd one out`
-          : `Item ${index + 1}`
+          : visual === 'error'
+            ? `Item ${index + 1}, incorrect`
+            : `Item ${index + 1}`
       }
       accessibilityState={{ disabled, selected: visual === 'found' }}
       disabled={disabled}
@@ -80,6 +86,24 @@ export const ItemTile = memo(function ItemTile({
         ]}>
         {spec.glyph}
       </ThemedText>
+      {visual === 'error' ? (
+        <View
+          style={[styles.verdict, { backgroundColor: theme.danger }]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: theme.dangerOn }} allowFontScaling={false}>
+            ✕
+          </ThemedText>
+        </View>
+      ) : null}
+      {revealed ? (
+        <View
+          style={[styles.verdict, { backgroundColor: theme.success }]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: theme.successOn }} allowFontScaling={false}>
+            ✓
+          </ThemedText>
+        </View>
+      ) : null}
     </Pressable>
   );
 });
@@ -96,5 +120,15 @@ const styles = StyleSheet.create({
   },
   dim: {
     opacity: 0.85,
+  },
+  // Verdict badge: content-sized disc pinned to the tile corner with token
+  // offsets. The fill + glyph pair is the non-colour-alone verdict channel.
+  verdict: {
+    position: 'absolute',
+    right: Spacing.one,
+    bottom: Spacing.one,
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.oneHalf,
+    paddingVertical: Spacing.half,
   },
 });

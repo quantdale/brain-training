@@ -14,6 +14,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { Radii } from '@/constants/theme';
+import { MinTouchTarget } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
@@ -109,6 +110,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     aspectRatio: 1,
     borderRadius: Radii.pill,
+    minWidth: MinTouchTarget,
+    minHeight: MinTouchTarget,
     transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
   },
 });

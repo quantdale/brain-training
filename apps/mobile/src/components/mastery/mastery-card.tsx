@@ -4,11 +4,14 @@
  * from `useMasterySummaries`. First-viewport friendly: compact rows, tier
  * chip + one honest milestone line.
  */
-import { Pressable, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
+import { SectionHeader } from "@/components/shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Radii, Spacing } from "@/constants/theme";
+import { ListRow } from "@/components/ui";
+import { Spacing } from "@/theme/tokens";
+import { Radii } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { MASTERY_TIERS, type MasterySummary } from "@/mastery";
 import { router } from "expo-router";
@@ -76,7 +79,6 @@ export function MilestoneStrip({
   max?: number;
   testIDPrefix?: string;
 }) {
-  const theme = useTheme();
   if (items.length === 0) {
     return null;
   }
@@ -90,29 +92,26 @@ export function MilestoneStrip({
     )
     .slice(0, max);
   return (
-    <ThemedView style={styles.strip} testID={`${testIDPrefix}s`}>
-      <ThemedText type="subtitle">Closest milestones</ThemedText>
+    <View style={styles.strip} testID={`${testIDPrefix}s`}>
+      <SectionHeader
+        title="Closest milestones"
+        actionLabel="See all"
+        actionTestID={`${testIDPrefix}s-all`}
+        actionAccessibilityLabel="Browse all games"
+        onActionPress={() => router.push("/games")}
+      />
       {sorted.map(({ gameId, name, summary }) => (
-        <Pressable
+        <ListRow
           key={gameId}
+          title={name}
+          subtitle={`${MASTERY_TIERS[summary.rank]} · ${summary.nextMilestone ?? "mastered"}`}
           testID={`${testIDPrefix}.${gameId}`}
-          accessibilityRole="button"
           accessibilityLabel={`${name}: ${summary.nextMilestone ?? "mastered"}`}
+          accessibilityHint="Opens this game's detail screen"
           onPress={() => router.push(`/game-detail/${gameId}`)}
-          style={({ pressed }) => [
-            styles.item,
-            { borderColor: theme.border, opacity: pressed ? 0.7 : 1 },
-          ]}
-        >
-          <ThemedText type="smallBold" numberOfLines={1}>
-            {name}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" numberOfLines={1}>
-            {MASTERY_TIERS[summary.rank]} · {summary.nextMilestone ?? "mastered"}
-          </ThemedText>
-        </Pressable>
+        />
       ))}
-    </ThemedView>
+    </View>
   );
 }
 
@@ -131,12 +130,5 @@ const styles = StyleSheet.create({
   },
   strip: {
     gap: Spacing.two,
-  },
-  item: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: Radii.small,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.two,
-    gap: 2,
   },
 });

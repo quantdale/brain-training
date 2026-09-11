@@ -32,6 +32,12 @@ export interface StreakCardProps {
   today: string;
   /** True when today has no qualifying activity yet. */
   atRisk?: boolean;
+  /**
+   * Caller-supplied next-milestone line. Home computes this from the best
+   * streak (the milestone track is best-streak based), which is more
+   * authoritative than this card's current-streak fallback.
+   */
+  milestoneLine?: string;
   testID?: string;
 }
 
@@ -41,6 +47,7 @@ export function StreakCard({
   coveredDates = [],
   today,
   atRisk = false,
+  milestoneLine,
   testID = 'home-streak-card',
 }: StreakCardProps) {
   const theme = useTheme();
@@ -64,13 +71,18 @@ export function StreakCard({
   // Next unreached milestone, so the streak always has a visible next step.
   const nextMilestone = STREAK_MILESTONES.find((milestone) => milestone.days > current);
   const daysToNext = nextMilestone ? nextMilestone.days - current : null;
+  const resolvedMilestoneLine =
+    milestoneLine ??
+    (daysToNext !== null && nextMilestone
+      ? `${daysToNext} day${daysToNext === 1 ? '' : 's'} to ${nextMilestone.label}${
+          nextMilestone.rewardXp ? ` · +${nextMilestone.rewardXp} XP` : ''
+        }`
+      : null);
   const accessibilityLabel = `${current} day streak. ${activeCount} active day${
     activeCount === 1 ? '' : 's'
-  } in the last week.${
-    daysToNext !== null && nextMilestone
-      ? ` ${daysToNext} day${daysToNext === 1 ? '' : 's'} to ${nextMilestone.label}.`
-      : ''
-  }${atRisk ? ' Play today to keep your streak alive.' : ''}`;
+  } in the last week.${resolvedMilestoneLine ? ` ${resolvedMilestoneLine}.` : ''}${
+    atRisk ? ' Play today to keep your streak alive.' : ''
+  }`;
 
   return (
     <Card variant="plain" testID={testID} accessibilityLabel={accessibilityLabel}>
@@ -138,10 +150,9 @@ export function StreakCard({
         })}
       </View>
 
-      {daysToNext !== null && nextMilestone ? (
+      {resolvedMilestoneLine ? (
         <ThemedText type="caption" themeColor="textSecondary" testID={`${testID}-next-milestone`}>
-          {daysToNext} day{daysToNext === 1 ? '' : 's'} to {nextMilestone.label}
-          {nextMilestone.rewardXp ? ` · +${nextMilestone.rewardXp} XP` : ''}
+          {resolvedMilestoneLine}
         </ThemedText>
       ) : null}
 

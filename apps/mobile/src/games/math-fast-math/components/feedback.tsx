@@ -8,7 +8,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 import type { MathProblem, MathRoundOutcome } from '../types';
@@ -31,18 +32,59 @@ export function FeedbackPanel({
   isLastProblem,
   onNext,
 }: FeedbackPanelProps) {
-  const themeColor =
-    outcome === 'correct' ? 'success' : outcome === 'incorrect' ? 'danger' : 'warning';
-  const title = outcome === 'correct' ? 'Correct!' : outcome === 'incorrect' ? 'Not quite' : "Time's up";
+  const theme = useTheme();
+  // Verdicts change fill AND icon/shape, never colour alone: the panel takes
+  // the verdict family's soft fill and pairs the headline with a glyph
+  // badge (✓ correct / ✕ incorrect / ⏱ timeout). The badge is an opaque
+  // verdict-family fill with its `*On` glyph, so the icon reads on the tint.
+  const verdict =
+    outcome === 'correct'
+      ? {
+          title: 'Correct!',
+          glyph: '✓',
+          soft: theme.successSoft,
+          badge: theme.success,
+          glyphColor: theme.successOn,
+          text: 'success' as const,
+          testID: 'feedback-correct',
+        }
+      : outcome === 'incorrect'
+        ? {
+            title: 'Not quite',
+            glyph: '✕',
+            soft: theme.dangerSoft,
+            badge: theme.danger,
+            glyphColor: theme.dangerOn,
+            text: 'danger' as const,
+            testID: 'feedback-incorrect',
+          }
+        : {
+            title: "Time's up",
+            glyph: '⏱',
+            soft: theme.warningSoft,
+            badge: theme.warning,
+            glyphColor: theme.warningOn,
+            text: 'warning' as const,
+            testID: 'feedback-timeout',
+          };
   const expected =
     outcome === 'correct' ? null : `The answer was ${problem.answer}`;
   return (
-    <View style={styles.card} testID={testId(GAME_ID, 'feedback')}>
+    <View
+      style={[styles.card, { backgroundColor: verdict.soft }]}
+      testID={testId(GAME_ID, 'feedback')}>
+      <View
+        style={[styles.badge, { backgroundColor: verdict.badge }]}
+        importantForAccessibility="no-hide-descendants">
+        <ThemedText type="headline" style={{ color: verdict.glyphColor }} allowFontScaling={false}>
+          {verdict.glyph}
+        </ThemedText>
+      </View>
       <ThemedText
         type="headline"
-        themeColor={themeColor}
-        testID={testId(GAME_ID, outcome === 'correct' ? 'feedback-correct' : outcome === 'incorrect' ? 'feedback-incorrect' : 'feedback-timeout')}>
-        {title}
+        themeColor={verdict.text}
+        testID={testId(GAME_ID, verdict.testID)}>
+        {verdict.title}
       </ThemedText>
       <ThemedText type="bodyLarge" testID={testId(GAME_ID, 'feedback-problem')}>
         {problem.left} {problem.operator} {problem.right}
@@ -68,10 +110,17 @@ export function FeedbackPanel({
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   card: {
     gap: Spacing.three,
     alignItems: 'center',
+    borderRadius: Radii.large,
+    padding: Spacing.four,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
   },
 });

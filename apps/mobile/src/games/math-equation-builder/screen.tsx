@@ -24,6 +24,7 @@ import { useRouter } from 'expo-router';
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -147,6 +148,11 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
       dispatch({ type: 'tutorial-open' });
     }
   }, [tutorial]);
+  // ---- Round outcome audio/haptics (canonical feedback events only).
+  useEffect(() => {
+    if (state.phase !== 'roundResult') return;
+    liveAudioHaptics.feedback(state.roundCorrect ? 'correct' : 'wrong');
+  }, [state.phase, state.roundCorrect]);
 
   // ---- Session finalization: complete the lifecycle, run the SDK scoring
   // pipeline (raw → normalized → XP hook), and persist atomically.
@@ -264,13 +270,11 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     session.abandonIfActive();
     router.back();
   }, [session, router]);
-
   const handleNumberPress = useCallback(
     (index: number) => {
       const current = stateRef.current;
       if (current.phase !== 'playing' || current.paused) return;
-      liveAudioHaptics.playSfx('memory-tile-correct');
-      liveAudioHaptics.haptic('light');
+      liveAudioHaptics.feedback('tap');
       dispatch({ type: 'add-number', numberIndex: index });
     },
     [dispatch],
@@ -280,8 +284,7 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
     (operator: Operator) => {
       const current = stateRef.current;
       if (current.phase !== 'playing' || current.paused) return;
-      liveAudioHaptics.playSfx('memory-tile-correct');
-      liveAudioHaptics.haptic('light');
+      liveAudioHaptics.feedback('tap');
       dispatch({ type: 'add-operator', operator });
     },
     [dispatch],
@@ -370,6 +373,7 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      score={String(state.stats.score)}
       header={
         <>
           <ThemedText
@@ -377,12 +381,18 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
             testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
             Round {state.roundIndex + 1}/{rounds}
           </ThemedText>
-          <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            testID={testId(GAME_ID, 'score')}>
-            Score {state.stats.score}
-          </ThemedText>
+          <View
+            style={styles.scoreRow}
+            accessibilityLabel={`Score ${state.stats.score}`}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           <ThemedText
             type="small"
             themeColor={state.timeRemainingMs < 10_000 ? 'danger' : 'textSecondary'}
@@ -503,6 +513,19 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows stay untouched. */}
+          <View
+            style={styles.scoreHero}
+            accessibilityLabel={`Final score ${state.stats.score}`}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score-animated')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -549,5 +572,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.two,
     justifyContent: 'center',
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  scoreHero: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

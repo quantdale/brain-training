@@ -1,16 +1,16 @@
 /**
- * Game detail — `/game-detail/[id]`.
+ * Game detail — `/game-detail/[id]` (Campaign 024 UX wave).
  *
- * Per-game info surface (WP-2H + W13 UX wave): description, category,
- * versions, favorite toggle (persisted via the db favorites repository),
- * records/aggregates (including last-played recency) and recent session
- * history from the persistence layer, and a prominent Play CTA into the game
- * route. Back navigation returns to the library.
+ * Per-game info surface: description, category, versions, favorite toggle
+ * (persisted via the db favorites repository), and the single primary Play
+ * CTA into `/game/[id]`. Mastery is the hero — a `ProgressRing` with the
+ * tier as a numeral plus the concrete next-milestone line. Personal bests
+ * render as `StatBlock`s in their metric identity colours; recent sessions
+ * are `ListRow`s with role, label and hint into `/results`.
  *
- * W11 polish: explicit loading / error states over the persisted sections
- * (the registry-derived info stays instantly visible), a recovery CTA on the
- * unknown-game state, and a drill-down link into `/progress-game` when
- * records exist.
+ * Reloads persisted data on focus (a played session pops back here), keeps
+ * hooks above the unknown-game early return, and never invents records for
+ * an unplayed game.
  */
 
 import {
@@ -23,16 +23,17 @@ import { memo, useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { MinTouchTarget } from "@/components/a11y";
+import { masteryTierLabel } from "@/components/discovery/game-card";
 import { ScreenShell } from "@/components/screen-shell";
-import { InfoRow, StateCard } from "@/components/shell";
+import { StateCard } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import { Button, Card, ListRow, ProgressRing, StatBlock } from "@/components/ui";
 import { Radii, Spacing } from "@/constants/theme";
 import { getDb, type AppDatabase } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
-import { MasteryCard } from "@/components/mastery/mastery-card";
-import { computeMastery, type MasteryInput } from "@/mastery";
+import { computeMastery, MASTERY_TIERS, type MasteryInput } from "@/mastery";
 import { getGameDefinition } from "@/registry/registry";
 
 interface DetailData {
@@ -149,6 +150,21 @@ export default function GameDetailScreen() {
   }
 
   const nowMs = data.nowMs;
+  // Unplayed evidence reads as the bottom tier, so the hero is honest before
+  // the first session and before the load settles.
+  const summary = computeMastery(
+    data.masteryInput ?? {
+      gameId: game.id,
+      sessions: 0,
+      bestNormalized: 0,
+      avgNormalized: 0,
+      hardStrong: 0,
+      expertStrong: 0,
+      lastCompletedAt: 0,
+    },
+  );
+  const tierName = masteryTierLabel(summary.tier);
+  const tierMax = MASTERY_TIERS.length - 1;
 
   return (
     <ScreenShell>
@@ -210,20 +226,36 @@ export default function GameDetailScreen() {
         </ThemedText>
       ) : null}
 
-      {/* Primary CTA: filled pill so the main action reads as the main action. */}
-      <Link href={`/game/${game.id}`} asChild>
-        <Pressable
-          testID="game-detail-play"
-          accessibilityRole="button"
-          accessibilityLabel={`Play ${game.name}`}
-        >
-          <ThemedView type="accentSoft" style={styles.playButton}>
-            <ThemedText type="bodyLarge" themeColor="accent">
-              Play {game.name}
+      {/* Mastery hero: the tier as a numeral inside the ring, the concrete
+          next milestone beneath it. */}
+      <Card variant="hero" padding="lg" testID="game-detail-mastery">
+        <View style={styles.masteryRow}>
+          <ProgressRing
+            value={tierMax > 0 ? summary.rank / tierMax : 0}
+            label={`Mastery ${summary.rank} of ${tierMax}, ${tierName}`}
+            testID="game-detail-mastery-ring"
+          >
+            <ThemedText type="numeralXl">{String(summary.rank)}</ThemedText>
+          </ProgressRing>
+          <View style={styles.masteryTexts}>
+            <ThemedText type="eyebrow" themeColor="textSecondary">
+              Mastery
             </ThemedText>
-          </ThemedView>
-        </Pressable>
-      </Link>
+            <ThemedText type="headline">{tierName}</ThemedText>
+            <ThemedText type="bodySmall" themeColor="textSecondary">
+              {summary.nextMilestone ?? "Mastered — the top tier."}
+            </ThemedText>
+          </View>
+        </View>
+      </Card>
+
+      {/* The screen's one primary action. */}
+      <Button
+        label={`Play ${game.name}`}
+        size="lg"
+        testID="game-detail-play"
+        onPress={() => router.push(`/game/${game.id}`)}
+      />
 
       {!loaded ? (
         <StateCard
@@ -249,20 +281,31 @@ export default function GameDetailScreen() {
           >
             <ThemedText type="subtitle">Records</ThemedText>
             {data.aggregate ? (
-              <View style={styles.rows}>
-                <InfoRow label="Sessions" value={String(data.aggregate.count)} />
-                <InfoRow
-                  label="Best"
-                  value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
-                />
-                <InfoRow
-                  label="Average"
-                  value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
-                />
-                <InfoRow
-                  label="Last played"
-                  value={formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}
-                />
+              <View style={styles.statsRow}>
+                <View style={styles.statCell}>
+                  <StatBlock
+                    label="Sessions"
+                    value={String(data.aggregate.count)}
+                    delta={`Last played ${formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}`}
+                    testID="game-detail-stat-sessions"
+                  />
+                </View>
+                <View style={styles.statCell}>
+                  <StatBlock
+                    label="Best"
+                    value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
+                    metric="score"
+                    testID="game-detail-stat-best"
+                  />
+                </View>
+                <View style={styles.statCell}>
+                  <StatBlock
+                    label="Average"
+                    value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
+                    metric="score"
+                    testID="game-detail-stat-average"
+                  />
+                </View>
               </View>
             ) : (
               <ThemedText type="small" themeColor="textSecondary">
@@ -271,7 +314,7 @@ export default function GameDetailScreen() {
             )}
             {/* Drill-down: per-game trends live on the analytics screen. */}
             {data.aggregate ? (
-              <Link href={{ pathname: '/progress-game' as any, params: { gameId: game.id } }} asChild>
+              <Link href={`/progress-game?gameId=${game.id}`} asChild>
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="View detailed trends for this game"
@@ -285,21 +328,6 @@ export default function GameDetailScreen() {
             ) : null}
           </ThemedView>
 
-          {/* Campaign 014 (W2): per-game mastery ladder + next milestone. */}
-          <MasteryCard
-            summary={computeMastery(
-              data.masteryInput ?? {
-                gameId: game.id,
-                sessions: 0,
-                bestNormalized: 0,
-                avgNormalized: 0,
-                hardStrong: 0,
-                expertStrong: 0,
-                lastCompletedAt: 0,
-              },
-            )}
-          />
-
           <ThemedView
             type="surface"
             style={styles.card}
@@ -307,7 +335,7 @@ export default function GameDetailScreen() {
           >
             <ThemedText type="subtitle">Recent sessions</ThemedText>
             {data.recent.length > 0 ? (
-              <View style={styles.rows}>
+              <View>
                 {data.recent.map((session) => (
                   <SessionRow
                     key={(session as { id: string }).id}
@@ -369,25 +397,17 @@ const SessionRow = memo(function SessionRow({
     completedAt: number;
     difficulty?: { level?: string } | null;
   };
+  const day = formatRelativeDay(s.completedAt, nowMs);
+  const percent = Math.round(s.normalizedResult * 100);
   return (
-    <Link href={`/results?id=${s.id}`} asChild>
-      <Pressable
-        testID={`game-detail-session-${s.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={`Open result from ${formatRelativeDay(s.completedAt, nowMs)}, ${Math.round(s.normalizedResult * 100)} percent`}
-        // Flatten: array styles inside asChild Links throw in expo-router's
-        // Radix Slot shim (dev builds) — campaign 011 device finding.
-        style={StyleSheet.flatten([styles.row, MinTouchTarget])}
-      >
-        <ThemedText type="small" themeColor="textSecondary">
-          {formatRelativeDay(s.completedAt, nowMs)} ·{" "}
-          {s.difficulty?.level ?? "?"}
-        </ThemedText>
-        <ThemedText type="smallBold">
-          {Math.round(s.normalizedResult * 100)}% · +{s.xp} XP
-        </ThemedText>
-      </Pressable>
-    </Link>
+    <ListRow
+      testID={`game-detail-session-${s.id}`}
+      title={`${day} · ${s.difficulty?.level ?? "?"}`}
+      meta={`${percent}% · +${s.xp} XP`}
+      onPress={() => router.push(`/results?id=${s.id}`)}
+      accessibilityLabel={`Open result from ${day}, ${percent} percent`}
+      accessibilityHint="Opens the session result"
+    />
   );
 });
 
@@ -407,20 +427,21 @@ const styles = StyleSheet.create({
     borderRadius: Radii.medium,
     padding: Spacing.three,
   },
-  playButton: {
-    ...MinTouchTarget,
-    borderRadius: Radii.large,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.three,
-  },
-  rows: {
-    gap: Spacing.two,
-  },
-  row: {
+  masteryRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    gap: Spacing.two,
+    gap: Spacing.four,
+  },
+  masteryTexts: {
+    flex: 1,
+    flexShrink: 1,
+    gap: Spacing.one,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: Spacing.three,
+  },
+  statCell: {
+    flex: 1,
   },
 });

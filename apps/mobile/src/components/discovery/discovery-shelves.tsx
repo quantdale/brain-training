@@ -1,180 +1,108 @@
 /**
- * Discovery shelves for the Games library (Campaign 014 W6): transparent,
- * rule-based replay rails computed from already-stored evidence.
+ * Discovery shelves for the Games library (Campaign 024 UX wave).
  *
- * - "Recommended for today" — the personalization kernel's ranked picks
- *   (weak/undertrained domain, novelty, trend, PB proximity, difficulty fit,
- *   overexposure), exactly the signals Workout V3 orders by.
- * - "Near a personal best" — games whose recent form sits close under their
- *   lifetime best, where one good session sets a new record.
- * - "Getting rusty" — one game per stale/never-trained primary domain.
- *
- * No engagement-optimization tricks: every rail has an understandable rule,
- * and the component renders nothing when there is no evidence yet.
+ * Rule-based replay rails over the snapshot from `useDiscoveryData` — this
+ * component is presentational (no db access of its own) so the hero, the
+ * shelves and the grid all render one consistent snapshot. Shelf entries use
+ * the same {@link GameCard} language as the library grid; each section header
+ * carries a "See all" action that expands the rail past its collapsed window.
+ * Renders nothing when there is no evidence yet.
  */
-import { Link } from "expo-router";
-import { StyleSheet } from "react-native";
 
-import { SectionHeader } from "@/components/shell";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Radii, Spacing } from "@/constants/theme";
-import type { AppDatabase } from "@/db";
-import { useDbData } from "@/hooks/use-db-data";
-import { useTheme } from "@/hooks/use-theme";
-import { buildPersonalizationContext } from "@/personalization/context";
-import {
-  computeDomainSignals,
-  computeGameEvidence,
-  personalBestProximityValue,
-  undertrainingValue,
-} from "@/personalization/signals";
-import { scoreGames } from "@/personalization/scoring";
-import { registry } from "@/registry/registry.generated";
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-interface ShelfData {
-  /** Load-time clock (captured outside render; gates staleness signals). */
-  nowMs: number;
-  ratings: { domain: string; rating: number; sessions?: number; updatedAt?: number }[];
-  aggregates: {
-    gameId: string;
-    count: number;
-    avgNormalized: number;
-    bestNormalized: number;
-    lastCompletedAt: number;
-  }[];
-  recentSessions: {
-    gameId: string;
-    normalizedResult: number;
-    completedAt: number;
-  }[];
+import { SectionHeader } from '@/components/shell';
+import { ThemedView } from '@/components/themed-view';
+import { Spacing } from '@/theme/tokens';
+import type { GameDefinition } from '@/registry/registry';
+import type { DiscoverySnapshot } from './discovery-data';
+import { GameCard } from './game-card';
+
+/** Rails show this many entries until "See all" expands them. */
+const COLLAPSED_COUNT = 3;
+
+interface Shelf {
+  key: string;
+  title: string;
+  testID: string;
+  games: GameDefinition[];
 }
 
-async function loadShelfData(db: AppDatabase): Promise<ShelfData> {
-  const nowMs = Date.now();
-  const [ratings, aggregates, recent] = await Promise.all([
-    db.ratings.getRatings(),
-    db.sessions.getAggregates(nowMs),
-    db.sessions.listSummaries({ limit: 30, toMs: nowMs }),
-  ]);
-  return { nowMs, ratings, aggregates, recentSessions: recent };
-}
+export function DiscoveryShelves({ data }: { data: DiscoverySnapshot }) {
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
 
-const EMPTY: ShelfData = {
-  nowMs: 0,
-  ratings: [],
-  aggregates: [],
-  recentSessions: [],
-};
+  // The top recommendation already leads the library as the featured hero.
+  const shelves: Shelf[] = [
+    {
+      key: 'recommended',
+      title: 'Recommended for today',
+      testID: 'games-discovery-recommended',
+      games: data.recommended.slice(1).map((entry) => entry.game),
+    },
+    {
+      key: 'near-best',
+      title: 'Near a personal best',
+      testID: 'games-discovery-near-best',
+      games: data.nearBest,
+    },
+    {
+      key: 'rusty',
+      title: 'Getting rusty',
+      testID: 'games-discovery-rusty',
+      games: data.rusty,
+    },
+  ].filter((shelf) => shelf.games.length > 0);
 
-export function DiscoveryShelves() {
-  const theme = useTheme();
-  const { data, loaded } = useDbData(loadShelfData, [], EMPTY);
-  if (!loaded) {
-    return null;
-  }
-  const context = buildPersonalizationContext({
-    ratings: data.ratings,
-    aggregates: data.aggregates,
-    recentSessions: data.recentSessions,
-    nowMs: data.nowMs,
-  });
-  const scored = new Map(
-    scoreGames(registry, context).map((entry) => [entry.game.id, entry]),
-  );
-
-  // Recommended: positive-evidence leaders first (the same ranking V3 uses).
-  const recommended = [...scored.values()]
-    .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4);
-
-  // Near a personal best: active signal + genuinely close gap.
-  const nearBest = registry.filter((game) => {
-    const evidence = computeGameEvidence(game.id, context);
-    return (
-      personalBestProximityValue(evidence) > 0 &&
-      evidence.bestNormalized !== null &&
-      evidence.recentBestNormalized !== null &&
-      evidence.bestNormalized - evidence.recentBestNormalized <= 0.1 &&
-      evidence.bestNormalized > evidence.recentBestNormalized
-    );
-  }).slice(0, 4);
-
-  // Getting rusty: undertrained/stale primary domains → one game each.
-  const signals = computeDomainSignals(data.ratings, { nowMs: data.nowMs });
-  const rustyDomains = new Set<string>();
-  for (const [domain, summary] of signals) {
-    if (summary.stale || undertrainingValue(summary) > 0) {
-      rustyDomains.add(domain);
-    }
-  }
-  const rusty =
-    rustyDomains.size === 0
-      ? []
-      : registry.filter((game) => rustyDomains.has(game.primaryCategory)).slice(0, 3);
-
-  if (recommended.length === 0 && nearBest.length === 0 && rusty.length === 0) {
+  if (shelves.length === 0) {
     return null;
   }
 
-  const renderShelf = (
-    title: string,
-    testID: string,
-    entries: { id: string; name: string; note?: string }[],
-  ) =>
-    entries.length > 0 ? (
-      <ThemedView style={styles.shelf} testID={testID}>
-        <SectionHeader title={title} />
-        {entries.map((entry) => (
-          <Link key={entry.id} href={`/game-detail/${entry.id}`} asChild>
-            <ThemedView
-              type="surface"
-              style={StyleSheet.flatten([
-                styles.item,
-                { borderColor: theme.border },
-              ])}
-              testID={`${testID}.${entry.id}`}
-            >
-              <ThemedText type="default" numberOfLines={1}>
-                {entry.name}
-              </ThemedText>
-              {entry.note ? (
-                <ThemedText
-                  type="small"
-                  themeColor="textSecondary"
-                  numberOfLines={1}
-                >
-                  {entry.note}
-                </ThemedText>
-              ) : null}
-            </ThemedView>
-          </Link>
-        ))}
-      </ThemedView>
-    ) : null;
+  const toggle = (key: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   return (
     <ThemedView testID="games-discovery">
-      {renderShelf(
-        "Recommended for today",
-        "games-discovery-recommended",
-        recommended.map((entry) => ({
-          id: entry.game.id,
-          name: entry.game.name,
-          note: entry.components[0]?.reason,
-        })),
-      )}
-      {renderShelf(
-        "Near a personal best",
-        "games-discovery-near-best",
-        nearBest.map((game) => ({ id: game.id, name: game.name })),
-      )}
-      {renderShelf(
-        "Getting rusty",
-        "games-discovery-rusty",
-        rusty.map((game) => ({ id: game.id, name: game.name })),
-      )}
+      {shelves.map((shelf) => {
+        const isOpen = expanded.has(shelf.key);
+        const expandable = shelf.games.length > COLLAPSED_COUNT;
+        const shown = isOpen ? shelf.games : shelf.games.slice(0, COLLAPSED_COUNT);
+        return (
+          <View key={shelf.key} style={styles.shelf} testID={shelf.testID}>
+            <SectionHeader
+              title={shelf.title}
+              actionLabel={expandable ? (isOpen ? 'Show less' : 'See all') : undefined}
+              onActionPress={expandable ? () => toggle(shelf.key) : undefined}
+              actionTestID={expandable ? `${shelf.testID}-see-all` : undefined}
+              actionAccessibilityLabel={
+                expandable
+                  ? isOpen
+                    ? `Show fewer ${shelf.title} games`
+                    : `See all ${shelf.title} games`
+                  : undefined
+              }
+            />
+            {shown.map((game) => (
+              <GameCard
+                key={game.id}
+                game={game}
+                isFavorite={data.favorites.has(game.id)}
+                mastery={data.masteryByGame.get(game.id) ?? null}
+                testID={`${shelf.testID}.${game.id}`}
+              />
+            ))}
+          </View>
+        );
+      })}
     </ThemedView>
   );
 }
@@ -183,12 +111,5 @@ const styles = StyleSheet.create({
   shelf: {
     marginBottom: Spacing.three,
     gap: Spacing.two,
-  },
-  item: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: Radii.small,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.two,
-    gap: 2,
   },
 });

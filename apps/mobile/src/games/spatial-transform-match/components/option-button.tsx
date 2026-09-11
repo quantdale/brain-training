@@ -9,7 +9,8 @@ import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
-import { Radii, Spacing } from "@/constants/theme";
+import { ThemedText } from "@/components/themed-text";
+import { MinTouchTarget, Radii, Spacing } from "@/theme/tokens";
 import { useTheme } from "@/hooks/use-theme";
 
 import { GAME_ID } from "../types";
@@ -45,28 +46,45 @@ export const OptionButton = memo(function OptionButton({
     onPressOption,
 }: OptionButtonProps) {
     const theme = useTheme();
+    const optionTestID = testId(GAME_ID, "option", String(index));
 
-    // Cast to string because theme.success/danger have different literal types
-    // than theme.border, but all are valid RN color strings.
-    let borderColor: string = theme.border;
-    if (correct) {
-        borderColor = theme.success;
-    } else if (selected && !correct) {
-        borderColor = theme.danger;
-    }
+    // Verdicts change fill AND icon, never colour alone: the correct option
+    // gets a success-soft fill plus a ✓ badge, the wrong pick a danger-soft
+    // fill plus a ✕ badge (Vocabulary rule — both visible together). Badges
+    // are opaque verdict-family fills with their `*On` glyph, so the icon
+    // reads on any board behind it.
+    const isWrongPick = selected && !correct;
+    const verdictGlyph = correct ? "✓" : isWrongPick ? "✕" : null;
+    const backgroundColor = correct
+        ? theme.successSoft
+        : isWrongPick
+          ? theme.dangerSoft
+          : undefined;
+    const borderColor = correct
+        ? theme.success
+        : isWrongPick
+          ? theme.danger
+          : theme.border;
+    const accessibilityLabel = correct
+        ? `Option ${index + 1}, correct`
+        : isWrongPick
+          ? `Option ${index + 1}, wrong pick`
+          : `Option ${index + 1}`;
 
     return (
         <Pressable
-            testID={testId(GAME_ID, "option", String(index))}
+            testID={optionTestID}
             accessibilityRole="button"
-            accessibilityLabel={`Option ${index + 1}`}
+            accessibilityLabel={accessibilityLabel}
             accessibilityState={{ disabled, selected }}
             disabled={disabled}
             onPress={onPressOption ? () => onPressOption(index) : undefined}
             style={({ pressed }) => [
                 styles.container,
                 {
+                    backgroundColor,
                     borderColor,
+                    borderWidth: verdictGlyph !== null ? 3 : 2,
                     opacity: pressed || disabled ? 0.8 : 1,
                 },
             ]}
@@ -84,14 +102,43 @@ export const OptionButton = memo(function OptionButton({
                     testID={testId(GAME_ID, "option-grid", String(index))}
                 />
             </View>
+            {verdictGlyph !== null ? (
+                <View
+                    testID={testId(GAME_ID, "option-verdict", String(index))}
+                    style={[
+                        styles.verdict,
+                        { backgroundColor: correct ? theme.success : theme.danger },
+                    ]}
+                    importantForAccessibility="no-hide-descendants"
+                >
+                    <ThemedText
+                        type="label"
+                        style={{ color: correct ? theme.successOn : theme.dangerOn }}
+                        allowFontScaling={false}
+                    >
+                        {verdictGlyph}
+                    </ThemedText>
+                </View>
+            ) : null}
         </Pressable>
     );
 });
 
 const styles = StyleSheet.create({
     container: {
-        borderWidth: 2,
         borderRadius: Radii.medium,
         padding: Spacing.one,
+        minWidth: MinTouchTarget,
+        minHeight: MinTouchTarget,
+    },
+    verdict: {
+        position: "absolute",
+        top: Spacing.one,
+        right: Spacing.one,
+        width: Spacing.four,
+        height: Spacing.four,
+        borderRadius: Radii.pill,
+        alignItems: "center",
+        justifyContent: "center",
     },
 });

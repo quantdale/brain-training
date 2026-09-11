@@ -7,10 +7,11 @@
  * distractor surface.
  */
 import { memo } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
-import { Radii } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
@@ -36,6 +37,16 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
         : visual === 'selected'
           ? theme.accentSoft
           : theme.surface;
+  // Verdicts change fill AND icon/shape, never colour alone: a correctly
+  // tapped target keeps its fill plus a ✓ badge; a wrong tap keeps its
+  // danger fill plus a ✕ badge. Badge fills are opaque verdict-family slots
+  // with their paired glyph colour, so the icon reads on any tile behind it.
+  const verdict =
+    visual === 'selected'
+      ? { glyph: '✓', backgroundColor: theme.success, color: theme.successOn }
+      : visual === 'error'
+        ? { glyph: '✕', backgroundColor: theme.dangerOn, color: theme.danger }
+        : null;
 
   return (
     <Pressable
@@ -43,8 +54,9 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
       accessibilityRole="button"
       // Neutral label only — never disclose whether this tile is the target,
       // which would leak the answer to screen-reader users. Correctness is
-      // conveyed via `accessibilityState` after a tap (selected / error).
-      accessibilityLabel={`Tile ${index + 1}`}
+      // conveyed via `accessibilityState` after a tap (selected) and via the
+      // label once a tap is known wrong.
+      accessibilityLabel={visual === 'error' ? `Tile ${index + 1}, incorrect` : `Tile ${index + 1}`}
       accessibilityState={{ disabled, selected: visual === 'selected' }}
       disabled={disabled}
       onPress={onPressTile ? () => onPressTile(index) : undefined}
@@ -52,8 +64,17 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
         styles.tile,
         { backgroundColor, borderColor: theme.border },
         (pressed || visual === 'target') && styles.dim,
-      ]}
-    />
+      ]}>
+      {verdict ? (
+        <View
+          style={[styles.verdict, { backgroundColor: verdict.backgroundColor }]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: verdict.color }} allowFontScaling={false}>
+            {verdict.glyph}
+          </ThemedText>
+        </View>
+      ) : null}
+    </Pressable>
   );
 });
 
@@ -62,8 +83,17 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: Radii.medium,
     borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dim: {
     opacity: 0.85,
+  },
+  // Verdict badge: content-sized disc centered on the tile with token
+  // geometry. The fill + glyph pair is the non-colour-alone verdict channel.
+  verdict: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.oneHalf,
+    paddingVertical: Spacing.half,
   },
 });

@@ -58,6 +58,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialMathState } from './types';
+import type { MathAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 /** Budget ticker granularity in ms (drives both display and timeout checks). */
@@ -266,16 +267,27 @@ export default function MathScreen(props: MathScreenProps = {}) {
     if (current.phase !== 'problem' || current.paused || current.input.length === 0) {
       return;
     }
-    const problem = current.problem;
-    const correct = problem !== null && Number(current.input) === problem.answer;
-    if (correct) {
+    // Feedback follows the authoritative problem outcome, not the submit's
+    // optimism: the reducer owns the budget guard, so resolve the submit
+    // through it first. A correct-looking submit past the budget resolves to
+    // a timeout (both paths converge there by construction) and must stay
+    // silent — sounding "correct" for a problem that scores a timeout is the
+    // Campaign 023 late-tap mismatch. No timing logic is duplicated: this is
+    // the same pure transition the dispatch below commits.
+    const action: MathAction = { type: 'submit-answer', atActiveMs: session.elapsedMs() };
+    const next = mathGameReducer(current, action);
+    dispatch(action);
+    if (next.phase !== 'feedback' || next.outcome === null) {
+      return;
+    }
+    if (next.outcome === 'correct') {
       liveAudioHaptics.playSfx('math-fast-math-correct');
       liveAudioHaptics.haptic('success');
-    } else {
+    } else if (next.outcome === 'incorrect') {
       liveAudioHaptics.playSfx('math-fast-math-wrong');
       liveAudioHaptics.haptic('warning');
     }
-    dispatch({ type: 'submit-answer', atActiveMs: session.elapsedMs() });
+    // Timeout: the timeout verdict owns the feedback — never correct/wrong.
   }, [session, dispatch]);
 
   const handleNext = useCallback(() => {

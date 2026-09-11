@@ -1,24 +1,24 @@
 /**
- * Today's Spotlight card (Campaign 014 W3/W6): the deterministic daily
- * featured challenge. Self-contained data seam — one bounded session-count
- * read for completion state; selection itself is pure/offline.
+ * Today's Spotlight card (Campaign 014 W3/W6; Campaign 024 kit rebuild): the
+ * deterministic daily featured challenge. Self-contained data seam — one
+ * bounded session-count read for completion state; selection itself is
+ * pure/offline. Composed from the shared kit (Card + Button), so press
+ * feedback, targets and tokens are inherited, not re-implemented.
  */
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { SectionHeader } from "@/components/shell";
-import { Radii, Spacing } from "@/constants/theme";
+import { Button, Card } from "@/components/ui";
+import { Spacing } from "@/theme/tokens";
 import { useDbData } from "@/hooks/use-db-data";
-import { useTheme } from "@/hooks/use-theme";
 import { registry } from "@/registry/registry.generated";
 import { dailySpotlight, localDayWindow } from "@/spotlight/spotlight";
 import { localDateString } from "@/workout/today";
 
 export function SpotlightCard() {
-  const theme = useTheme();
   const date = localDateString();
   const spotlight = useMemo(
     () => dailySpotlight(registry.map((g) => g.id), date),
@@ -48,66 +48,51 @@ export function SpotlightCard() {
   const done = completedCount > 0;
 
   return (
-    <ThemedView testID="home-spotlight">
+    <View style={styles.section} testID="home-spotlight">
       <SectionHeader title="Today's Spotlight" />
-      <ThemedView type="surface" style={styles.card}>
-        <ThemedText type="smallBold" testID="home-spotlight-game">
-          {game?.name ?? spotlight.gameId}
-        </ThemedText>
-        <ThemedText
-          type="small"
-          themeColor="textSecondary"
-          testID="home-spotlight-difficulty"
-        >
-          Featured difficulty: {spotlight.difficulty}
-        </ThemedText>
-        {done ? (
-          <ThemedText
-            type="smallBold"
-            themeColor="accent"
-            testID="home-spotlight-done"
-          >
-            Completed today ✓
+      <Card>
+        <View style={styles.body}>
+          <ThemedText type="smallBold" testID="home-spotlight-game">
+            {game?.name ?? spotlight.gameId}
           </ThemedText>
-        ) : (
-          <Link href={`/game-detail/${spotlight.gameId}`} asChild>
-            <Pressable
-              testID="home-spotlight-play"
-              accessibilityRole="button"
-              accessibilityLabel={`Play today's spotlight: ${game?.name ?? spotlight.gameId}`}
-              onPress={() => setReloadToken((t) => t + 1)}
+          <ThemedText
+            type="small"
+            themeColor="textSecondary"
+            testID="home-spotlight-difficulty"
+          >
+            Featured difficulty: {spotlight.difficulty}
+          </ThemedText>
+          {done ? (
+            <ThemedText
+              type="smallBold"
+              themeColor="accent"
+              testID="home-spotlight-done"
             >
-              <ThemedView
-                type="surface"
-                style={StyleSheet.flatten([
-                  styles.playPill,
-                  { borderColor: theme.accent },
-                ])}
-              >
-                <ThemedText type="smallBold" themeColor="accent">
-                  Play the spotlight
-                </ThemedText>
-              </ThemedView>
-            </Pressable>
-          </Link>
-        )}
-      </ThemedView>
-    </ThemedView>
+              Completed today ✓
+            </ThemedText>
+          ) : (
+            <Button
+              variant="secondary"
+              label="Play the spotlight"
+              testID="home-spotlight-play"
+              accessibilityLabel={`Play today's spotlight: ${game?.name ?? spotlight.gameId}`}
+              onPress={() => {
+                setReloadToken((t) => t + 1);
+                router.push(`/game-detail/${spotlight.gameId}`);
+              }}
+            />
+          )}
+        </View>
+      </Card>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    gap: Spacing.oneHalf,
-    padding: Spacing.three,
-    borderRadius: Radii.medium,
+  section: {
+    gap: Spacing.two,
   },
-  playPill: {
-    alignSelf: "flex-start",
-    borderWidth: 1.5,
-    borderRadius: Radii.pill,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    marginTop: Spacing.one,
+  body: {
+    gap: Spacing.oneHalf,
   },
 });

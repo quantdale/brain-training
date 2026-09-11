@@ -11,17 +11,31 @@
  *   earned ownership is derived, purchases spend normal earned currency only);
  * - RECENT REWARDS: newest-first projection of xp_awards + currency ledger.
  *
- * Reward moments emit a non-blocking celebration; nothing here blocks play.
+ * Reward moments emit a non-blocking celebration plus a kit toast; nothing
+ * here blocks play.
+ *
+ * Presentation (campaign 024, design-language v2): the claimable inbox leads
+ * with a claimable-count hero; cosmetic equip/purchase actions carry
+ * unambiguous labels; history rows are `ListRow`s with signed, metric-hued
+ * amounts.
  */
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/shell";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Radii, Spacing } from "@/constants/theme";
+import { Spacing } from "@/constants/theme";
+import {
+  Badge,
+  Button,
+  Card,
+  ListRow,
+  ProgressBar,
+  showToast,
+  StatBlock,
+} from "@/components/ui";
 import type { AppDatabase } from "@/db";
 import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
@@ -173,8 +187,13 @@ function inboxTestId(item: RewardInboxItem): string {
   return item.key.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
+/** History testIDs sanitize the entry id inline (ids contain `:`). */
+
 /** How long a purchase stays armed (awaiting its confirming second tap). */
 const PURCHASE_CONFIRM_MS = 4000;
+
+/** Handle for the purchase-arm expiry timer owned by this screen. */
+type PurchaseArmTimer = ReturnType<typeof setTimeout>;
 
 export default function RewardsScreen() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -189,21 +208,18 @@ export default function RewardsScreen() {
   // price pill requires a confirming second tap; the arm expires quickly so
   // a stray tap can never spend coins minutes later.
   const [armedBuyId, setArmedBuyId] = useState<string | null>(null);
-  const armTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const armTimerRef = useRef<PurchaseArmTimer | null>(null);
   const disarmBuy = useCallback(() => {
-    if (armTimerRef.current) {
-      clearTimeout(armTimerRef.current);
-      armTimerRef.current = null;
-    }
+    clearTimeout(armTimerRef.current ?? undefined);
+    armTimerRef.current = null;
     setArmedBuyId(null);
   }, []);
   useEffect(() => disarmBuy, [disarmBuy]);
 
   const onBuyPress = (def: CosmeticDef) => {
     if (armedBuyId !== def.id) {
-      if (armTimerRef.current) {
-        clearTimeout(armTimerRef.current);
-      }
+      clearTimeout(armTimerRef.current ?? undefined);
+      armTimerRef.current = null;
       setArmedBuyId(def.id);
       armTimerRef.current = setTimeout(disarmBuy, PURCHASE_CONFIRM_MS);
       return;
@@ -231,8 +247,10 @@ export default function RewardsScreen() {
           coins: -(def.price ?? 0),
           emoji: def.preview.emoji ?? "✨",
         });
+        showToast({ title: `Unlocked ${def.name}`, tone: "success" });
       } else if (result === "insufficient") {
         celebrateReward({ title: "Not enough coins", emoji: "⚠️" });
+        showToast({ title: "Not enough coins", tone: "warning" });
       } else if (result === "already-owned") {
         celebrateReward({
           title: "Already owned",
@@ -263,6 +281,7 @@ export default function RewardsScreen() {
           title: `Equipped ${def.name}`,
           emoji: def.preview.emoji ?? "🎽",
         });
+        showToast({ title: `Equipped ${def.name}`, tone: "success" });
       }
     } catch (error) {
       console.error("[rewards] equip failed", error);
@@ -286,6 +305,7 @@ export default function RewardsScreen() {
           coins: outcome.coins,
           emoji: item.kind === "milestone" ? "🔥" : "🏆",
         });
+        showToast({ title: `Claimed ${item.title}`, tone: "success" });
       } else if (outcome.status === "unavailable") {
         // Stale inbox entry (e.g. the period rolled over) — drop it from view.
         refresh();
@@ -313,6 +333,12 @@ export default function RewardsScreen() {
           xp: result.totalXp,
           coins: result.totalCoins,
           emoji: "🎁",
+        });
+        showToast({
+          title: `Claimed ${result.claimedCount} reward${
+            result.claimedCount === 1 ? "" : "s"
+          }`,
+          tone: "success",
         });
       } else {
         // Nothing left (or everything was already claimed by a concurrent
@@ -355,39 +381,42 @@ export default function RewardsScreen() {
         />
       ) : (
         <>
-      <ThemedView
-        type="surface"
-        style={styles.balanceCard}
-        testID="rewards-balance"
-      >
-        <ThemedText type="smallBold" themeColor="accent">
-          {data.balance} coins
+      {/* Claimable-count hero: the inbox count is the screen's metric. */}
+      <Card variant="hero" tone="currencySoft" testID="rewards-hero">
+        <View style={styles.heroRow}>
+          <StatBlock
+            label="Ready to claim"
+            value={`${data.inbox.length}`}
+            metric="currency"
+            valueType="numeralXl"
+          />
+          <View style={styles.heroAction}>
+            {data.inbox.length > 1 ? (
+              <Button
+                label={`Claim all ${data.inbox.length}`}
+                size="md"
+                variant="primary"
+                fullWidth={false}
+                testID="rewards-claim-all"
+                accessibilityLabel={`Claim all ${data.inbox.length} available rewards`}
+                onPress={() => void onClaimAll()}
+              />
+            ) : null}
+          </View>
+        </View>
+        <ThemedText
+          type="caption"
+          themeColor="textSecondary"
+          testID="rewards-balance"
+        >
+          {data.balance} coins · Earn coins from play, quests and
+          achievements. Spend only on safe cosmetics.
         </ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          Earn coins from play, quests and achievements. Spend only on safe
-          cosmetics.
-        </ThemedText>
-      </ThemedView>
+      </Card>
 
       {/* Claimable inbox: achievements + quests + milestones, one tap each or all at once. */}
-      <ThemedView type="surface" style={styles.card} testID="rewards-inbox">
-        <View style={styles.sectionHeader}>
-          <ThemedText type="subtitle">Ready to claim</ThemedText>
-          {data.inbox.length > 1 && (
-            <Pressable
-              testID="rewards-claim-all"
-              accessibilityRole="button"
-              accessibilityLabel="Claim all available rewards"
-              onPress={() => void onClaimAll()}
-            >
-              <ThemedView type="accentSoft" style={styles.pill}>
-                <ThemedText type="smallBold" themeColor="accent">
-                  Claim all
-                </ThemedText>
-              </ThemedView>
-            </Pressable>
-          )}
-        </View>
+      <Card testID="rewards-inbox">
+        <ThemedText type="headline">Ready to claim</ThemedText>
         {data.inbox.length === 0 ? (
           <ThemedText
             type="caption"
@@ -399,38 +428,35 @@ export default function RewardsScreen() {
           </ThemedText>
         ) : (
           data.inbox.map((item) => (
-            <View key={item.key} style={styles.itemRow}>
+            <View
+              key={item.key}
+              style={styles.itemRow}
+              testID={`rewards-item-${inboxTestId(item)}`}
+            >
               <View style={styles.itemText}>
-                <ThemedText type="smallBold">{item.title}</ThemedText>
+                <ThemedText type="body">{item.title}</ThemedText>
                 <ThemedText type="caption" themeColor="textSecondary">
                   {item.description} · +{item.rewardXp} XP / +
                   {item.rewardCurrency} coins
                 </ThemedText>
               </View>
-              <Pressable
+              <Button
+                label="Claim"
+                size="sm"
+                variant="primary"
+                fullWidth={false}
                 testID={`reward-claim-${inboxTestId(item)}`}
-                accessibilityRole="button"
                 accessibilityLabel={`Claim ${item.title} reward`}
                 onPress={() => void onClaim(item)}
-              >
-                <ThemedView type="accentSoft" style={styles.pill}>
-                  <ThemedText type="smallBold" themeColor="accent">
-                    Claim
-                  </ThemedText>
-                </ThemedView>
-              </Pressable>
+              />
             </View>
           ))
         )}
-      </ThemedView>
+      </Card>
 
       {/* Collection progress across the cosmetic catalog. */}
-      <ThemedView
-        type="surface"
-        style={styles.card}
-        testID="rewards-collection"
-      >
-        <ThemedText type="subtitle">Collection</ThemedText>
+      <Card testID="rewards-collection">
+        <ThemedText type="headline">Collection</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           {collection.ownedTotal}/{collection.total} cosmetics collected (
           {Math.round(collection.ratio * 100)}%)
@@ -441,34 +467,20 @@ export default function RewardsScreen() {
             style={styles.collectionRow}
             testID={`rewards-collection-slot-${slot.slot}`}
           >
-            <ThemedText type="small">{SLOT_LABELS[slot.slot]}</ThemedText>
-            <View style={styles.collectionMeta}>
-              <View style={styles.progressTrack}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${Math.round(slot.ratio * 100)}%` },
-                  ]}
-                />
-              </View>
-              <ThemedText type="caption" themeColor="textSecondary">
-                {slot.owned}/{slot.total}
-              </ThemedText>
-            </View>
+            <ProgressBar
+              value={slot.ratio}
+              label={SLOT_LABELS[slot.slot]}
+              valueLabel={`${slot.owned}/${slot.total}`}
+            />
           </View>
         ))}
-      </ThemedView>
+      </Card>
 
       {COSMETIC_SLOTS.map((slot) => {
         const defs = COSMETIC_DEFINITIONS.filter((d) => d.slot === slot);
         return (
-          <ThemedView
-            key={slot}
-            type="surface"
-            style={styles.card}
-            testID={`rewards-slot-${slot}`}
-          >
-            <ThemedText type="subtitle">{SLOT_LABELS[slot]}</ThemedText>
+          <Card key={slot} testID={`rewards-slot-${slot}`}>
+            <ThemedText type="headline">{SLOT_LABELS[slot]}</ThemedText>
             {defs.map((def) => {
               const owned = isCosmeticOwned(
                 def,
@@ -476,65 +488,75 @@ export default function RewardsScreen() {
                 data.profileSettings,
               );
               const equipped = data.equippedIds[slot] === def.id;
+              const armed = armedBuyId === def.id;
               return (
-                <View key={def.id} style={styles.itemRow}>
+                <View
+                  key={def.id}
+                  style={styles.itemRow}
+                  testID={`rewards-cosmetic-${def.id}`}
+                >
                   <View style={styles.itemText}>
-                    <ThemedText type="smallBold">
+                    <ThemedText type="body">
                       {def.preview.emoji ? `${def.preview.emoji} ` : ""}
                       {def.name}
-                      {equipped ? "  (equipped)" : ""}
                     </ThemedText>
                     <ThemedText type="caption" themeColor="textSecondary">
                       {def.description} · {unlockHint(def)}
                     </ThemedText>
+                    {equipped ? (
+                      <Badge tone="success" label="✓ Equipped" size="sm" />
+                    ) : owned ? (
+                      <Badge tone="accent" label="Owned" size="sm" />
+                    ) : null}
                   </View>
                   <View style={styles.itemActions}>
                     {owned && !equipped && (
-                      <Pressable
+                      <Button
+                        label={`Equip ${def.name}`}
+                        size="sm"
+                        variant="secondary"
+                        fullWidth={false}
                         testID={`cosmetic-equip-${def.id}`}
-                        accessibilityRole="button"
                         accessibilityLabel={`Equip ${def.name}`}
                         onPress={() => onEquip(def)}
-                      >
-                        <ThemedView type="accentSoft" style={styles.pill}>
-                          <ThemedText type="smallBold" themeColor="accent">
-                            Equip
-                          </ThemedText>
-                        </ThemedView>
-                      </Pressable>
+                      />
                     )}
                     {!owned && def.unlock.type === "purchase" && (
-                      <Pressable
+                      <Button
+                        label={
+                          armed
+                            ? `Confirm buy · ${def.price ?? 0} coins`
+                            : `Buy · ${def.price ?? 0} coins`
+                        }
+                        size="sm"
+                        variant={armed ? "danger" : "secondary"}
+                        fullWidth={false}
                         testID={`cosmetic-buy-${def.id}`}
-                        accessibilityRole="button"
                         accessibilityLabel={
-                          armedBuyId === def.id
+                          armed
                             ? `Confirm purchase of ${def.name} for ${def.price ?? 0} coins`
                             : `Buy ${def.name} for ${def.price ?? 0} coins`
                         }
+                        accessibilityHint={
+                          armed
+                            ? "Confirmation armed. Tap again to spend coins."
+                            : "Requires a confirming second tap. Spends earned coins."
+                        }
                         disabled={data.balance < (def.price ?? 0)}
                         onPress={() => onBuyPress(def)}
-                      >
-                        <ThemedView type="accentSoft" style={styles.pill}>
-                          <ThemedText type="smallBold" themeColor="accent">
-                            {armedBuyId === def.id
-                              ? "Tap to confirm"
-                              : `${def.price ?? 0} coins`}
-                          </ThemedText>
-                        </ThemedView>
-                      </Pressable>
+                      />
                     )}
                   </View>
                 </View>
               );
             })}
-          </ThemedView>
+          </Card>
         );
       })}
 
       {/* Recent rewards: unified xp_awards + ledger feed (newest first). */}
-      <ThemedView type="surface" style={styles.card} testID="rewards-history">
-        <ThemedText type="subtitle">Recent rewards</ThemedText>
+      <Card testID="rewards-history">
+        <ThemedText type="headline">Recent rewards</ThemedText>
         {data.history.length === 0 ? (
           <ThemedText
             type="caption"
@@ -546,42 +568,54 @@ export default function RewardsScreen() {
           </ThemedText>
         ) : (
           data.history.map((entry) => (
-            <View key={entry.id} style={styles.itemRow}>
+            <View
+              key={entry.id}
+              style={styles.historyRow}
+              testID={`rewards-history-${entry.id.replace(/[^a-zA-Z0-9]+/g, "-")}`}
+            >
               <View style={styles.itemText}>
-                <ThemedText type="smallBold">{entry.label}</ThemedText>
-                <ThemedText type="caption" themeColor="textSecondary">
-                  {formatHistoryDate(entry.at)}
-                  {entry.detail ? ` · ${entry.detail}` : ""}
-                </ThemedText>
+                <ListRow
+                  title={entry.label}
+                  subtitle={
+                    entry.detail
+                      ? `${formatHistoryDate(entry.at)} · ${entry.detail}`
+                      : formatHistoryDate(entry.at)
+                  }
+                />
               </View>
               <ThemedText
-                type="smallBold"
-                themeColor={(entry.xp ?? 0) > 0 || (entry.coins ?? 0) >= 0 ? "accent" : "text"}
+                type="numeral"
+                themeColor={
+                  (entry.xp ?? 0) !== 0
+                    ? "xp"
+                    : (entry.coins ?? 0) < 0
+                      ? "danger"
+                      : "currency"
+                }
               >
                 {formatHistoryAmount(entry)}
               </ThemedText>
             </View>
           ))
         )}
-      </ThemedView>
+      </Card>
 
-      <Link href={"/(tabs)/profile" as any} asChild>
-        <Pressable
-          testID="rewards-done"
-          accessibilityRole="button"
-          accessibilityLabel="Back to profile"
-        >
-          <ThemedView type="accentSoft" style={styles.donePill}>
-            <ThemedText type="smallBold" themeColor="accent">
-              Done
-            </ThemedText>
-          </ThemedView>
-        </Pressable>
-      </Link>
+      <Button
+        label="Done"
+        size="md"
+        variant="ghost"
+        fullWidth={false}
+        testID="rewards-done"
+        accessibilityLabel="Back to profile"
+        onPress={() => router.push("/(tabs)/profile")}
+        style={styles.doneButton}
+      />
         </>
       )}
 
-      <RewardCelebrationHost />
+      <View testID="rewards-celebration-host">
+        <RewardCelebrationHost />
+      </View>
     </ScreenShell>
   );
 }
@@ -606,27 +640,25 @@ function formatHistoryAmount(entry: RewardHistoryEntry): string {
 }
 
 const styles = StyleSheet.create({
-  balanceCard: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.one,
-  },
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
-  sectionHeader: {
+  heroRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: Spacing.two,
+    gap: Spacing.three,
+  },
+  heroAction: {
+    alignItems: "flex-end",
   },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.three,
+  },
+  historyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
   },
   itemText: {
     flex: 1,
@@ -639,33 +671,7 @@ const styles = StyleSheet.create({
   collectionRow: {
     gap: Spacing.half,
   },
-  collectionMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "rgba(120,120,140,0.25)",
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: 6,
-    backgroundColor: "#4F6BFF",
-  },
-  pill: {
-    alignSelf: "flex-start",
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-  },
-  donePill: {
+  doneButton: {
     alignSelf: "center",
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    marginTop: Spacing.two,
   },
 });

@@ -31,6 +31,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -449,6 +450,7 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      score={String(state.stats.score)}
       header={
         <>
           <ThemedText
@@ -481,6 +483,20 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible through every session phase;
+          the prompt/stem below stays mounted, so feedback never covers it. */}
+          <View
+            style={styles.scoreRow}
+            accessibilityLabel={`Score ${state.stats.score}`}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'observe' ? (
             <>
               <ThemedText
@@ -621,6 +637,19 @@ export default function SymbolTrackerScreen(props: SymbolTrackerScreenProps = {}
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows stay untouched. */}
+          <View
+            style={styles.scoreHero}
+            accessibilityLabel={`Final score ${state.stats.score}`}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score-animated')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -670,6 +699,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.two,
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  scoreHero: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
   dots: {
     flexDirection: 'row',

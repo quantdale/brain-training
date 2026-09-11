@@ -42,6 +42,7 @@ import type {
   XpRatingHook,
 } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { GameButton, StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import {
@@ -436,6 +437,16 @@ export default function SpatialTransformMatchScreen(
                 The source pattern was shown briefly — recall it, work out the
                 transform, and pick its result.
               </ThemedText>
+              <View style={styles.scoreRow}>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Score
+                </ThemedText>
+                <AnimatedNumber
+                  value={state.stats.score}
+                  type="numeral"
+                  testID={testId(GAME_ID, "score-live")}
+                />
+              </View>
               {/* Options unmount while paused — RN/Fabric Android a11y
                * workaround (see spatial-grid-nav screen.tsx): deep option
                * board nests inside accessibility buttons make the session
@@ -468,6 +479,16 @@ export default function SpatialTransformMatchScreen(
               style={styles.section}
               testID={testId(GAME_ID, "round-result")}
             >
+              {/* The choice prompt stays mounted through feedback: the verdict
+                  must never cover the stem (Imprint rule). The transform
+                  reveal below names what was applied. */}
+              <ThemedText
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, "choice-status")}
+              >
+                Which grid is transformed correctly?
+              </ThemedText>
               <ThemedText
                 type="headline"
                 themeColor={
@@ -526,6 +547,11 @@ export default function SpatialTransformMatchScreen(
             value={String(state.stats.score)}
             testID={testId(GAME_ID, "score")}
           />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, "score-animated")}
+          />
           <StatRow
             label="Accuracy"
             value={`${Math.round(
@@ -563,6 +589,11 @@ const styles = StyleSheet.create({
   optionRow: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: Spacing.two,
+  },
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
   },
 });

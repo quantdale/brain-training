@@ -1,171 +1,176 @@
 /**
- * Games — library screen (WP-2H + W13 UX wave).
+ * Games — library screen (Campaign 024 UX wave).
  *
- * Renders the generated game registry (via `@/registry/registry`) as a card
- * grid with discovery basics (constitution §21): text search over name and
- * description, primary-category filter chips (with per-category counts), a
- * favorites-only toggle backed by the db favorites repository, and a live
- * result count. Each card links to the game detail screen
- * (`/game-detail/[id]`), which hosts the Play CTA.
+ * Leads with the featured recommendation hero, then the searchable library:
+ * a `TextField` search, `Chip` category filters (with per-category counts) and
+ * a favourite-only toggle, a live result count, and the game grid. The grid
+ * chunks into `useGridColumns()` columns (1/2/3 by layout tier) so tablets
+ * get multiple columns instead of one stretched phone column. Each card links
+ * to the game detail screen (`/game-detail/[id]`), which hosts the Play CTA.
  *
  * Empty states: `games-empty` when nothing is registered; `games-no-results`
  * when filters match nothing (with a one-tap Clear-filters recovery action).
- * The search field carries an inline clear button once a query is typed.
  */
 
-import { Link, useFocusEffect } from 'expo-router';
-import { memo, useCallback, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { MinTouchTarget } from '@/components/a11y';
-import { DiscoveryShelves } from '@/components/discovery/discovery-shelves';
 import { ScreenShell } from '@/components/screen-shell';
-import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
-import { useDbData } from '@/hooks/use-db-data';
-import { useTheme } from '@/hooks/use-theme';
-import { getAllGameDefinitions } from '@/registry/registry';
+import { Chip, EmptyState, IconButton, TextField } from '@/components/ui';
+import { DiscoveryShelves } from '@/components/discovery/discovery-shelves';
+import { useDiscoveryData } from '@/components/discovery/discovery-data';
+import { FeaturedHero } from '@/components/discovery/featured-hero';
+import { GameCard } from '@/components/discovery/game-card';
+import { useGridColumns } from '@/platform/layout';
+import { getAllGameDefinitions, type GameDefinition } from '@/registry/registry';
 import { GAME_CATEGORIES } from '@/sdk';
+import { Spacing } from '@/theme/tokens';
+
+function categoryTestID(category: string): string {
+  return `games-filter-${category.toLowerCase().replace(/[^a-z]/g, '')}`;
+}
+
+/** Split the visible games into tier-driven rows of `columns` cards. */
+function chunkRows(
+  games: readonly GameDefinition[],
+  columns: number,
+): GameDefinition[][] {
+  const width = Math.max(1, columns);
+  const rows: GameDefinition[][] = [];
+  for (let index = 0; index < games.length; index += width) {
+    rows.push(games.slice(index, index + width));
+  }
+  return rows;
+}
 
 export default function GamesScreen() {
   const games = getAllGameDefinitions();
-  const theme = useTheme();
+  // 1 column on phones, 2 on medium, 3 on expanded — the grid genuinely
+  // follows the layout tier instead of stretching one phone column.
+  const columns = useGridColumns();
+  // Single snapshot for hero, shelves and card badges (favourites + mastery);
+  // refreshes on focus so detail-screen toggles land without a remount.
+  const discovery = useDiscoveryData();
 
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [favOnly, setFavOnly] = useState(false);
 
-  // Reload favorites whenever the tab regains focus (favorites are toggled
-  // on the detail screen and must appear here without a remount).
-  const [refreshKey, setRefreshKey] = useState(0);
-  useFocusEffect(
-    useCallback(() => {
-      setRefreshKey((k) => k + 1);
-    }, []),
-  );
-
-  const { data: favorites } = useDbData(
-    (db) => db.favorites.listFavoriteGameIds(),
-    [refreshKey],
-    [] as string[],
-  );
-  const favoriteSet = new Set(favorites);
-
   // Per-category counts keep the filter chips informative at a glance
   // (information density without a separate stats surface).
-  const categoryCounts = new Map<string, number>();
-  for (const game of games) {
-    categoryCounts.set(
-      game.primaryCategory,
-      (categoryCounts.get(game.primaryCategory) ?? 0) + 1,
-    );
-  }
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const game of games) {
+      counts.set(game.primaryCategory, (counts.get(game.primaryCategory) ?? 0) + 1);
+    }
+    return counts;
+  }, [games]);
 
   const normalizedQuery = query.trim().toLowerCase();
-  const visible = games.filter((game) => {
-    if (category && game.primaryCategory !== category) {
-      return false;
-    }
-    if (favOnly && !favoriteSet.has(game.id)) {
-      return false;
-    }
-    if (normalizedQuery.length === 0) {
-      return true;
-    }
-    return (
-      game.name.toLowerCase().includes(normalizedQuery) ||
-      (game.description ?? '').toLowerCase().includes(normalizedQuery) ||
-      game.primaryCategory.toLowerCase().includes(normalizedQuery)
-    );
-  });
+  // Discovery rails never compete with an intentional lookup.
+  const isDefaultView = normalizedQuery.length === 0 && category === null && !favOnly;
 
-  const clearFilters = useCallback(() => {
+  const visible = useMemo(
+    () =>
+      games.filter((game) => {
+        if (category && game.primaryCategory !== category) {
+          return false;
+        }
+        if (favOnly && !discovery.favorites.has(game.id)) {
+          return false;
+        }
+        if (normalizedQuery.length === 0) {
+          return true;
+        }
+        return (
+          game.name.toLowerCase().includes(normalizedQuery) ||
+          (game.description ?? '').toLowerCase().includes(normalizedQuery) ||
+          game.primaryCategory.toLowerCase().includes(normalizedQuery)
+        );
+      }),
+    [games, category, favOnly, normalizedQuery, discovery.favorites],
+  );
+
+  const rows = useMemo(() => chunkRows(visible, columns), [visible, columns]);
+
+  const clearFilters = () => {
     setQuery('');
     setCategory(null);
     setFavOnly(false);
-  }, []);
+  };
 
   return (
     <ScreenShell>
       <ThemedText type="title" testID="games-title">
         Games
       </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="bodySmall" themeColor="textSecondary">
         Pick a game to train a skill. New games appear here as they are added.
       </ThemedText>
 
       {games.length === 0 ? (
-        <ThemedView
-          type="surface"
-          style={styles.emptyCard}
+        <EmptyState
           testID="games-empty"
-          accessibilityLiveRegion="polite">
-          <ThemedText type="subtitle">No games yet</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            The game library is being built. Games appear here as they are
-            registered by the Game SDK.
-          </ThemedText>
-        </ThemedView>
+          title="No games yet"
+          message="The game library is being built."
+        />
       ) : (
         <>
+          {isDefaultView ? <FeaturedHero data={discovery} /> : null}
+
           <View style={styles.searchRow}>
-            <TextInput
-              testID="games-search"
-              accessibilityLabel="Search games"
-              placeholder="Search games…"
-              placeholderTextColor={theme.textSecondary}
-              value={query}
-              onChangeText={setQuery}
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={[styles.searchInput, styles.searchInputFlex, { color: theme.text }]}
-            />
+            <View style={styles.searchField}>
+              <TextField
+                testID="games-search"
+                accessibilityLabel="Search games"
+                placeholder="Search games…"
+                value={query}
+                onChangeText={setQuery}
+                returnKeyType="search"
+              />
+            </View>
             {query.length > 0 ? (
-              <Pressable
+              <IconButton
                 testID="games-search-clear"
-                accessibilityRole="button"
-                accessibilityLabel="Clear search"
+                label="Clear search"
                 onPress={() => setQuery('')}
-                style={({ pressed }) => [styles.searchClear, pressed && styles.pressed]}>
-                <ThemedText type="smallBold" themeColor="textSecondary">
-                  ✕
-                </ThemedText>
-              </Pressable>
+                icon={
+                  <ThemedText type="body" themeColor="textSecondary" allowFontScaling={false}>
+                    ✕
+                  </ThemedText>
+                }
+              />
             ) : null}
           </View>
 
           <View style={styles.filterRow} testID="games-filters">
-            <FilterChip
+            <Chip
               testID="games-filter-all"
-              label={`All · ${games.length}`}
-              active={category === null}
+              label="All"
+              count={games.length}
+              selected={category === null}
               onPress={() => setCategory(null)}
             />
             {GAME_CATEGORIES.map((c) => (
-              <FilterChip
+              <Chip
                 key={c}
-                testID={`games-filter-${c.toLowerCase().replace(/[^a-z]/g, '')}`}
-                label={`${c} · ${categoryCounts.get(c) ?? 0}`}
-                active={category === c}
+                testID={categoryTestID(c)}
+                label={c}
+                count={categoryCounts.get(c) ?? 0}
+                selected={category === c}
                 onPress={() => setCategory(category === c ? null : c)}
               />
             ))}
-            <FilterChip
+            <Chip
               testID="games-filter-favorites"
               label="★ Favorites"
-              active={favOnly}
-              onPress={() => setFavOnly(!favOnly)}
+              selected={favOnly}
+              onPress={() => setFavOnly((value) => !value)}
             />
           </View>
 
-          {/* Campaign 014 (W6): rule-based discovery rails — shown only when
-              no search/filter is narrowing the list, so they never compete
-              with an intentional lookup. */}
-          {normalizedQuery.length === 0 && category === null && !favOnly ? (
-            <DiscoveryShelves />
-          ) : null}
+          {isDefaultView ? <DiscoveryShelves data={discovery} /> : null}
 
           {/* Live result count so filtering feedback is explicit. */}
           <ThemedText type="caption" themeColor="textSecondary" testID="games-count">
@@ -173,25 +178,27 @@ export default function GamesScreen() {
           </ThemedText>
 
           {visible.length === 0 ? (
-            <StateCard
-              variant="empty"
+            <EmptyState
+              testID="games-no-results"
               title="No matches"
               message="No games match your current search or filters."
-              testID="games-no-results"
-              action={{
-                label: 'Clear filters',
-                onPress: clearFilters,
-                accessibilityLabel: 'Clear search and filters',
-              }}
+              actionLabel="Clear filters"
+              onAction={clearFilters}
             />
           ) : (
             <View style={styles.grid} testID="games-grid">
-              {visible.map((game) => (
-                <GameCard
-                  key={game.id}
-                  game={game}
-                  isFavorite={favoriteSet.has(game.id)}
-                />
+              {rows.map((row) => (
+                <View key={row[0].id} style={styles.gridRow}>
+                  {row.map((game) => (
+                    <View key={game.id} style={styles.gridCell}>
+                      <GameCard
+                        game={game}
+                        isFavorite={discovery.favorites.has(game.id)}
+                        mastery={discovery.masteryByGame.get(game.id) ?? null}
+                      />
+                    </View>
+                  ))}
+                </View>
               ))}
             </View>
           )}
@@ -201,152 +208,28 @@ export default function GamesScreen() {
   );
 }
 
-function FilterChip({
-  testID,
-  label,
-  active,
-  onPress,
-}: {
-  testID: string;
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: active }}
-      onPress={onPress}>
-      <ThemedView type={active ? 'accentSoft' : 'surface'} style={styles.chip}>
-        <ThemedText type="caption" themeColor={active ? 'accent' : 'textSecondary'}>
-          {label}
-        </ThemedText>
-      </ThemedView>
-    </Pressable>
-  );
-}
-
-/**
- * Memoized game card. `game` and `isFavorite` are stable per render of the list
- * (the registry object never changes, favorites is a boolean), so memoizing
- * keeps unchanged cards from re-rendering when the search box or another card's
- * favorite state changes. The internal `Link`/`Pressable` is recreated only when
- * this card's own props change.
- */
-const GameCard = memo(function GameCard({
-  game,
-  isFavorite,
-}: {
-  game: { id: string; name: string; primaryCategory: string; description?: string };
-  isFavorite: boolean;
-}) {
-  return (
-    <Link key={game.id} href={`/game-detail/${game.id}`} asChild>
-      <Pressable
-        testID={`game-card-${game.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={`${game.name}, ${game.primaryCategory} game${isFavorite ? ', favorited' : ''}`}
-        style={({ pressed }) => pressed && styles.pressed}>
-        <ThemedView type="surface" style={styles.card}>
-          {/* Name + favorite marker share the top row so the star reads as a
-              card-level badge instead of orphaning below the description. */}
-          <View style={styles.cardHeader}>
-            <ThemedText type="subtitle" numberOfLines={1} style={styles.cardTitle}>
-              {game.name}
-            </ThemedText>
-            {isFavorite ? (
-              <ThemedText
-                type="caption"
-                themeColor="accent"
-                accessibilityLabel="Favorited">
-                ★
-              </ThemedText>
-            ) : null}
-          </View>
-          <ThemedView type="accentSoft" style={styles.categoryPill}>
-            <ThemedText type="caption" themeColor="accent">
-              {game.primaryCategory}
-            </ThemedText>
-          </ThemedView>
-          {game.description ? (
-            <ThemedText type="small" themeColor="textSecondary" numberOfLines={3}>
-              {game.description}
-            </ThemedText>
-          ) : null}
-        </ThemedView>
-      </Pressable>
-    </Link>
-  );
-});
-
 const styles = StyleSheet.create({
-  emptyCard: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
   },
-  searchInput: {
-    borderRadius: Radii.medium,
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.4)',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-  },
-  searchInputFlex: {
+  searchField: {
     flex: 1,
-  },
-  searchClear: {
-    ...MinTouchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   filterRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
   },
-  chip: {
-    ...MinTouchTarget,
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.half,
-    paddingHorizontal: Spacing.twoHalf,
-  },
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Spacing.three,
   },
-  card: {
-    flexBasis: '45%',
-    flexGrow: 1,
-    minWidth: 150,
-    borderRadius: Radii.large,
-    padding: Spacing.three,
-    gap: Spacing.two,
-  },
-  cardHeader: {
+  gridRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
-  cardTitle: {
-    flexShrink: 1,
-  },
-  categoryPill: {
-    alignSelf: 'flex-start',
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.half,
-    paddingHorizontal: Spacing.twoHalf,
-  },
-  pressed: {
-    opacity: 0.7,
+  gridCell: {
+    flex: 1,
   },
 });

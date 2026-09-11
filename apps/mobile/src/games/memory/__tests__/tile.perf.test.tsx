@@ -42,7 +42,9 @@ describe('Memory TileGrid wiring + accessibility', () => {
     for (let i = 0; i < 9; i += 1) {
       const el = screen.getByTestId(testId(GAME_ID, 'tile', String(i)));
       expect(el.props.accessibilityRole).toBe('button');
-      expect(el.props.accessibilityLabel).toBe(`Tile ${i + 1}`);
+      // Verdict tiles carry the shared feedback-language label ("Correct: …"
+      // / "Wrong pick: …"); untouched tiles keep the neutral label.
+      expect(el.props.accessibilityLabel).toBe(i === 0 ? 'Correct: Tile 1' : `Tile ${i + 1}`);
       expect(el.props.accessibilityState).toMatchObject({
         selected: i === 0,
         disabled: false,
@@ -57,7 +59,7 @@ describe('Memory Tile accessibility', () => {
       <Tile index={4} visual="selected" onPressTile={() => {}} />,
     );
     const el = getByTestId(testId(GAME_ID, 'tile', '4'));
-    expect(el.props.accessibilityLabel).toBe('Tile 5');
+    expect(el.props.accessibilityLabel).toBe('Correct: Tile 5');
     expect(el.props.accessibilityState).toMatchObject({ selected: true, disabled: false });
   });
 });

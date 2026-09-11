@@ -63,8 +63,6 @@ export interface ButtonProps {
   /** Extra accessibility state merged over the disabled/busy flags. */
   accessibilityState?: AccessibilityState;
   style?: StyleProp<ViewStyle>;
-  /** Host view ref (focus management / automation seams). */
-  ref?: React.Ref<React.ComponentRef<typeof Pressable>>;
 }
 
 /**
@@ -104,25 +102,30 @@ function resolveVariant(variant: ButtonVariant, theme: ColorTheme) {
  * haptics, reduced motion and the 44 dp floor are inherited rather than
  * re-implemented.
  */
-export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonComponentProps>(function Button({
-  label,
-  sublabel,
-  onPress,
-  variant = 'primary',
-  size = 'md',
-  icon,
-  trailingIcon,
-  loading = false,
-  disabled = false,
-  fullWidth = true,
-  testID,
-  accessibilityLabel,
-  accessibilityHint,
-  accessibilityState,
-  style,
+export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonComponentProps>(function Button(
+  {
+    label,
+    sublabel,
+    onPress,
+    variant = 'primary',
+    size = 'md',
+    icon,
+    trailingIcon,
+    loading = false,
+    disabled = false,
+    fullWidth = true,
+    testID,
+    accessibilityLabel,
+    accessibilityHint,
+    accessibilityState,
+    style,
+    ...rest
+  }: ButtonComponentProps,
+  // React hands the ref to `forwardRef`, not to props — reading it from the
+  // props object left every ref undefined and silently broke the
+  // screen-reader focus seam (pause overlay Resume button).
   ref,
-  ...rest
-}: ButtonComponentProps) {
+) {
   const theme = useTheme();
   const colors = resolveVariant(variant, theme);
   const inactive = disabled || loading;

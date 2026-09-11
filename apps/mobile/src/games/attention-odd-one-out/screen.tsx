@@ -58,6 +58,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialOddOneOutState } from './types';
+import type { OddOneOutAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 /** Countdown refresh cadence (ms); also bounds the pause-freeze drift. */
@@ -273,14 +274,27 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
       if (current.phase !== 'playing' || current.paused) {
         return;
       }
-      if (current.board !== null && index === current.board.oddIndex) {
+      const nowMs = clock.now();
+      // Feedback follows the authoritative round outcome, not the tap's
+      // optimism: the reducer owns the post-deadline guard, so resolve the
+      // tap through it first. A tap past the deadline is a no-op here (the
+      // pending tick owns the timeout resolution) and must stay silent —
+      // sounding "correct" for a round that scores a timeout is the Campaign
+      // 023 late-tap mismatch. No timing logic is duplicated: this is the
+      // same pure transition the dispatch below commits.
+      const action: OddOneOutAction = { type: 'tap-tile', index, nowMs };
+      const next = oddOneOutReducer(current, action);
+      dispatch(action);
+      if (next === current) {
+        return;
+      }
+      if (next.phase === 'roundResult' && next.roundOutcome === 'passed') {
         liveAudioHaptics.playSfx('odd-one-out-correct');
         liveAudioHaptics.haptic('light');
       } else {
         liveAudioHaptics.playSfx('odd-one-out-wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'tap-tile', index, nowMs: clock.now() });
     },
     [clock, dispatch],
   );

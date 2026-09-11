@@ -7,14 +7,13 @@
  * identical across light/dark themes and devices.
  */
 import { memo } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { MinTouchTarget, Radii, Spacing } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { Card, ColorId, ShapeId } from '../types';
-
 /** Fixed content palette for the card colors (distinct, theme-independent). */
 export const CARD_COLOR_HEX: Readonly<Record<ColorId, string>> = {
   red: '#D5485B',
@@ -31,7 +30,7 @@ export const SHAPE_GLYPHS: Readonly<Record<ShapeId, string>> = {
   star: '★',
 };
 
-export type CardVisualState = 'idle' | 'selected' | 'error';
+export type CardVisualState = 'idle' | 'selected' | 'correct' | 'error';
 
 export interface CardViewProps {
   /** 0-based card index; also supplied to the stable tap handler. */
@@ -55,21 +54,47 @@ export const CardView = memo(function CardView({
 }: CardViewProps) {
   const theme = useTheme();
   const color = CARD_COLOR_HEX[card.color];
+  // Verdicts change fill AND icon, never colour alone: a correct sort gets a
+  // success-soft fill plus a ✓ badge; a wrong pick gets a danger-soft fill
+  // plus a ✕ badge. Badges are opaque verdict-family fills with their `*On`
+  // glyph, so the icon reads on any board behind it.
   const borderColor =
-    visual === 'error' ? theme.danger : visual === 'selected' ? theme.accent : theme.border;
-  const background = visual === 'selected' ? theme.accentSoft : theme.surface;
+    visual === 'correct'
+      ? theme.success
+      : visual === 'error'
+        ? theme.danger
+        : visual === 'selected'
+          ? theme.accent
+          : theme.border;
+  const background =
+    visual === 'correct'
+      ? theme.successSoft
+      : visual === 'error'
+        ? theme.dangerSoft
+        : visual === 'selected'
+          ? theme.accentSoft
+          : theme.surface;
+  const verdictGlyph = visual === 'correct' ? '✓' : visual === 'error' ? '✕' : null;
+  const verdictFill = visual === 'correct' ? theme.success : visual === 'error' ? theme.danger : null;
+  const verdictOn = visual === 'correct' ? theme.successOn : visual === 'error' ? theme.dangerOn : null;
+  const accessibilityLabel =
+    visual === 'correct'
+      ? `Correct: ${card.color} ${card.shape}`
+      : visual === 'error'
+        ? `Wrong pick: ${card.color} ${card.shape}`
+        : `${card.color} ${card.shape}`;
 
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={`${card.color} ${card.shape}`}
-      accessibilityState={{ disabled, selected: visual === 'selected' }}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled, selected: visual === 'selected' || visual === 'correct' }}
       disabled={disabled}
       onPress={onPressCard ? () => onPressCard(index) : undefined}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: background, borderColor },
+        { backgroundColor: background, borderColor, borderWidth: verdictGlyph !== null ? 3 : 2 },
         pressed && styles.dim,
       ]}>
       <ThemedText type="display" style={{ color, lineHeight: 48 }}>
@@ -78,6 +103,16 @@ export const CardView = memo(function CardView({
       <ThemedText type="caption" themeColor="textSecondary">
         {card.color}
       </ThemedText>
+      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+        <View
+          testID={`${testID}.verdict`}
+          style={[styles.verdict, { backgroundColor: verdictFill }]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
+            {verdictGlyph}
+          </ThemedText>
+        </View>
+      ) : null}
     </Pressable>
   );
 });
@@ -86,11 +121,22 @@ const styles = StyleSheet.create({
   card: {
     aspectRatio: 1,
     borderRadius: Radii.medium,
-    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.two,
     gap: Spacing.half,
+    minWidth: MinTouchTarget,
+    minHeight: MinTouchTarget,
+  },
+  verdict: {
+    position: 'absolute',
+    top: Spacing.one,
+    right: Spacing.one,
+    width: Spacing.four,
+    height: Spacing.four,
+    borderRadius: Radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dim: {
     opacity: 0.85,

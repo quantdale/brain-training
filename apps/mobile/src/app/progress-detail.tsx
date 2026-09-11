@@ -17,10 +17,9 @@
  * db is unavailable or empty (no crashes; stable `progress-detail-*` testIDs).
  */
 
-import { Link, router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-
+import { StyleSheet, View } from 'react-native';
 import {
   buildAccuracyTrend,
   buildNormalizedBestHistory,
@@ -31,9 +30,9 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { MiniBarChart } from '@/components/progress-charts';
-import { Radii, Spacing } from '@/constants/theme';
+import { Card, ListRow, SectionGrid, Skeleton, SkeletonText, Tappable } from '@/components/ui';
+import { Spacing } from '@/constants/theme';
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { getGameDefinition } from '@/registry/registry';
@@ -115,14 +114,14 @@ export default function ProgressDetailScreen() {
 
   return (
     <ScreenShell>
-      <Pressable
+      <Tappable
         testID="progress-detail-back"
-        accessibilityRole="button"
-        onPress={() => router.back()}>
+        onPress={() => router.back()}
+        accessibilityLabel="Go back">
         <ThemedText type="smallBold" themeColor="accent">
           ‹ Back
         </ThemedText>
-      </Pressable>
+      </Tappable>
 
       <ThemedText type="title" testID="progress-detail-title">
         Progress detail
@@ -132,12 +131,10 @@ export default function ProgressDetailScreen() {
       </ThemedText>
 
       {!loaded ? (
-        <StateCard
-          variant="loading"
-          title="Loading…"
-          message="Fetching your detailed history."
-          testID="progress-detail-loading"
-        />
+        <>
+          <Skeleton height={160} testID="progress-detail-loading" />
+          <SkeletonText lines={3} testID="progress-detail-loading-text" />
+        </>
       ) : error ? (
         <StateCard
           variant="error"
@@ -149,7 +146,7 @@ export default function ProgressDetailScreen() {
       ) : (
         <>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-detail-domains">
+      <Card testID="progress-detail-domains">
         <ThemedText type="subtitle">Domain history</ThemedText>
         {domainNames.length > 0 ? (
           <View style={styles.rows}>
@@ -165,10 +162,10 @@ export default function ProgressDetailScreen() {
             No rating history yet — play a game to build a per-domain trend.
           </ThemedText>
         )}
-      </ThemedView>
-
+      </Card>
+      <SectionGrid>
       {bestHistory.current !== null ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-detail-pb">
+        <Card testID="progress-detail-pb">
           <ThemedText type="subtitle">Recent personal bests</ThemedText>
           <View style={styles.rows}>
             {bestHistory.events.slice(-5).map((event) => (
@@ -187,11 +184,11 @@ export default function ProgressDetailScreen() {
               ? 'less than a day'
               : `${bestHistory.standingDays ?? 0}d`}. {explainMetric('personal-best-history')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
       {rollingSeries.length > 0 ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-detail-rolling">
+        <Card testID="progress-detail-rolling">
           <View style={styles.row}>
             <ThemedText type="subtitle">Rolling average</ThemedText>
             <ThemedText type="smallBold">
@@ -202,16 +199,19 @@ export default function ProgressDetailScreen() {
             values={rollingSeries.map((p) => p.value)}
             testID="progress-detail-rolling-chart"
             emptyLabel="Not enough sessions yet"
+            summary={`Rolling last-${ROLLING_AVERAGE_SESSIONS}-session average across ${rollingSeries.length} points, latest ${formatPercent(rollingSeries[rollingSeries.length - 1].value)}.`}
           />
           <ThemedText type="caption" themeColor="textSecondary">
             Mean of the last {ROLLING_AVERAGE_SESSIONS} sessions at each point.{' '}
             {explainMetric('rolling-average')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
+      </SectionGrid>
 
+      <SectionGrid>
       {accuracyTrend.available ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-detail-accuracy">
+        <Card testID="progress-detail-accuracy">
           <View style={styles.row}>
             <ThemedText type="subtitle">Accuracy over time</ThemedText>
             <ThemedText type="smallBold">
@@ -224,15 +224,21 @@ export default function ProgressDetailScreen() {
           <MiniBarChart
             values={accuracyTrend.series.map((p) => p.value)}
             testID="progress-detail-accuracy-chart"
+            tone="success"
+            summary={
+              accuracyTrend.recentMean === null
+                ? 'Accuracy trend with no recent average yet.'
+                : `Accuracy trend across ${accuracyTrend.series.length} sessions, recent average ${formatPercent(accuracyTrend.recentMean)}.`
+            }
           />
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('accuracy-trend')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
       {reactionTrend.available ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-detail-reaction">
+        <Card testID="progress-detail-reaction">
           <View style={styles.row}>
             <ThemedText type="subtitle">Reaction time (lower is better)</ThemedText>
             <ThemedText type="smallBold">
@@ -242,37 +248,34 @@ export default function ProgressDetailScreen() {
           <MiniBarChart
             values={reactionTrend.series.map((p) => p.value)}
             testID="progress-detail-reaction-chart"
+            tone="info"
+            summary={
+              reactionTrend.recentMean === null
+                ? 'Reaction trend with no recent average yet.'
+                : `Reaction-time trend across ${reactionTrend.series.length} sessions, recent average ${formatMs(reactionTrend.recentMean)}. Lower is better.`
+            }
           />
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('reaction-trend')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
+      </SectionGrid>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-detail-games">
+      <Card testID="progress-detail-games">
         <ThemedText type="subtitle">Game records</ThemedText>
         {data.aggregates.length > 0 ? (
           <View style={styles.rows}>
             {data.aggregates.map((a) => (
-              <Link key={a.gameId} href={`/game-detail/${a.gameId}`} asChild>
-                <Pressable
-                  style={styles.row}
-                  accessibilityRole="button"
-                  testID={`progress-detail-game-${a.gameId}`}>
-                  <ThemedText type="small">
-                    {getGameDefinition(a.gameId)?.name ?? a.gameId}
-                  </ThemedText>
-                  <View style={styles.rowRight}>
-                    <ThemedText type="smallBold">
-                      {a.count}× · best {Math.round(a.bestNormalized * 100)}% ·{' '}
-                      {new Date(a.lastCompletedAt).toLocaleDateString()}
-                    </ThemedText>
-                    <ThemedText type="smallBold" themeColor="accent">
-                      ›
-                    </ThemedText>
-                  </View>
-                </Pressable>
-              </Link>
+              <ListRow
+                key={a.gameId}
+                title={getGameDefinition(a.gameId)?.name ?? a.gameId}
+                subtitle={`Last played ${new Date(a.lastCompletedAt).toLocaleDateString()}`}
+                meta={`${a.count}× · best ${Math.round(a.bestNormalized * 100)}%`}
+                onPress={() => router.push(`/game-detail/${a.gameId}`)}
+                accessibilityHint="Open game details"
+                testID={`progress-detail-game-${a.gameId}`}
+              />
             ))}
           </View>
         ) : (
@@ -280,32 +283,21 @@ export default function ProgressDetailScreen() {
             No games played yet.
           </ThemedText>
         )}
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-detail-sessions">
+      <Card testID="progress-detail-sessions">
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         {data.recent.length > 0 ? (
           <View style={styles.rows}>
             {data.recent.slice(0, RECENT_LIMIT).map((session) => (
-              <Link key={session.id} href={`/results?id=${session.id}`} asChild>
-                <Pressable
-                  style={styles.row}
-                  accessibilityRole="button"
-                  testID={`progress-detail-session-${session.id}`}>
-                  <ThemedText type="small">
-                    {getGameDefinition(session.gameId)?.name ?? session.gameId} ·{' '}
-                    {new Date(session.completedAt).toLocaleDateString()}
-                  </ThemedText>
-                  <View style={styles.rowRight}>
-                    <ThemedText type="smallBold">
-                      {Math.round(session.normalizedResult * 100)}%
-                    </ThemedText>
-                    <ThemedText type="smallBold" themeColor="accent">
-                      ›
-                    </ThemedText>
-                  </View>
-                </Pressable>
-              </Link>
+              <ListRow
+                key={session.id}
+                title={`${getGameDefinition(session.gameId)?.name ?? session.gameId} · ${new Date(session.completedAt).toLocaleDateString()}`}
+                meta={`${Math.round(session.normalizedResult * 100)}%`}
+                onPress={() => router.push(`/results?id=${session.id}`)}
+                accessibilityHint="Open session results"
+                testID={`progress-detail-session-${session.id}`}
+              />
             ))}
           </View>
         ) : (
@@ -316,7 +308,7 @@ export default function ProgressDetailScreen() {
             Your latest sessions will show up here.
           </ThemedText>
         )}
-      </ThemedView>
+      </Card>
         </>
       )}
     </ScreenShell>
@@ -379,11 +371,6 @@ function DomainHistory({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
   rows: {
     gap: Spacing.two,
   },
@@ -392,10 +379,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
-  },
-  rowRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
   },
 });

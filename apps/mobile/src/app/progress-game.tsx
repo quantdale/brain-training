@@ -16,9 +16,9 @@
  * single-session spikes, and a neutral difficulty-progression block.
  */
 
-import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import {
   buildDifficultyProgression,
@@ -39,9 +39,18 @@ import {
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { MiniBarChart, SegmentedControl } from '@/components/progress-charts';
-import { Radii, Spacing } from '@/constants/theme';
+import { MiniBarChart } from '@/components/progress-charts';
+import {
+  Card,
+  EmptyState,
+  ListRow,
+  SectionGrid,
+  SegmentedControl,
+  Skeleton,
+  SkeletonText,
+  Tappable,
+} from '@/components/ui';
+import { Spacing, type ThemeColor } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 import { getGameDefinition } from '@/registry/registry';
@@ -118,21 +127,19 @@ export default function ProgressGameScreen() {
   if (!gameId || !insight) {
     return (
       <ScreenShell>
-        <Pressable testID="progress-game-back" accessibilityRole="button" onPress={() => router.back()}>
+        <Tappable testID="progress-game-back" onPress={() => router.back()} accessibilityLabel="Go back">
           <ThemedText type="smallBold" themeColor="accent">
             ‹ Back
           </ThemedText>
-        </Pressable>
+        </Tappable>
         <ThemedText type="title" testID="progress-game-title">
           {def?.name ?? gameId ?? 'Game'}
         </ThemedText>
         {!loaded ? (
-          <StateCard
-            variant="loading"
-            title="Loading…"
-            message="Fetching this game's sessions."
-            testID="progress-game-loading"
-          />
+          <>
+            <Skeleton height={120} testID="progress-game-loading" />
+            <SkeletonText lines={2} testID="progress-game-loading-text" />
+          </>
         ) : error ? (
           <StateCard
             variant="error"
@@ -142,21 +149,15 @@ export default function ProgressGameScreen() {
             action={{ label: 'Try again', onPress: retry }}
           />
         ) : (
-          <ThemedView type="surface" style={styles.card} testID="progress-game-empty">
-            <ThemedText type="subtitle">No sessions yet</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">
-              Play this game to start tracking its scores, accuracy and records here.
-            </ThemedText>
-            {gameId ? (
-              <Link href={`/game-detail/${gameId}`} asChild>
-                <Pressable accessibilityRole="button" testID="progress-game-empty-action">
-                  <ThemedText type="smallBold" themeColor="accent">
-                    View game details ›
-                  </ThemedText>
-                </Pressable>
-              </Link>
-            ) : null}
-          </ThemedView>
+          <Card>
+            <EmptyState
+              title="No sessions yet"
+              message="Play it to start tracking scores here."
+              actionLabel={gameId ? 'View game details' : undefined}
+              onAction={gameId ? () => router.push(`/game-detail/${gameId}`) : undefined}
+              testID="progress-game-empty"
+            />
+          </Card>
         )}
       </ScreenShell>
     );
@@ -166,11 +167,11 @@ export default function ProgressGameScreen() {
 
   return (
     <ScreenShell>
-      <Pressable testID="progress-game-back" accessibilityRole="button" onPress={() => router.back()}>
+      <Tappable testID="progress-game-back" onPress={() => router.back()} accessibilityLabel="Go back">
         <ThemedText type="smallBold" themeColor="accent">
           ‹ Back
         </ThemedText>
-      </Pressable>
+      </Tappable>
 
       <ThemedText type="title" testID="progress-game-title">
         {def?.name ?? gameId}
@@ -180,16 +181,18 @@ export default function ProgressGameScreen() {
         {formatDayLabel(insight.firstCompletedAt)}
       </ThemedText>
 
-      <View style={styles.windowRow}>
-        <SegmentedControl<TimeWindowKey>
-          testID="progress-game-window"
-          value={windowKey}
-          onChange={setWindowKey}
-          options={WINDOW_ORDER.map((k) => ({ key: k, label: WINDOW_LABELS[k] }))}
-        />
-      </View>
+      <SegmentedControl
+        testID="progress-game-window"
+        value={windowKey}
+        onChange={(next) => setWindowKey(next as TimeWindowKey)}
+        options={WINDOW_ORDER.map((k) => ({
+          value: k,
+          label: WINDOW_LABELS[k],
+          testID: `progress-game-window-${k}`,
+        }))}
+      />
 
-      <ThemedView type="surface" style={styles.card} testID="progress-game-records">
+      <Card testID="progress-game-records">
         <ThemedText type="subtitle">Personal records</ThemedText>
         <View style={styles.recordGrid}>
           <Record label="Best performance" value={formatPercent(insight.bestNormalized)} />
@@ -217,9 +220,9 @@ export default function ProgressGameScreen() {
             />
           ) : null}
         </View>
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-game-trend-summary">
+      <Card testID="progress-game-trend-summary">
         <ThemedText type="subtitle">Trend summary</ThemedText>
         <View style={styles.recordGrid}>
           <Record
@@ -263,10 +266,11 @@ export default function ProgressGameScreen() {
         <ThemedText type="caption" themeColor="textSecondary">
           {explainMetric('trend-summary')}
         </ThemedText>
-      </ThemedView>
+      </Card>
 
+      <SectionGrid>
       {rollingSeries.length > 0 ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-game-rolling">
+        <Card testID="progress-game-rolling">
           <View style={styles.cardHeader}>
             <ThemedText type="subtitle">Rolling average</ThemedText>
             <ThemedText type="smallBold">
@@ -277,16 +281,17 @@ export default function ProgressGameScreen() {
             values={rollingSeries.map((p) => p.value)}
             testID="progress-game-rolling-chart"
             emptyLabel="Not enough sessions yet"
+            summary={`Rolling last-${ROLLING_AVERAGE_SESSIONS}-session average across ${rollingSeries.length} points, latest ${formatPercent(rollingSeries[rollingSeries.length - 1].value)}.`}
           />
           <ThemedText type="caption" themeColor="textSecondary">
             Mean of the last {ROLLING_AVERAGE_SESSIONS} sessions at each point.{' '}
             {explainMetric('rolling-average')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
       {bestHistory.current !== null ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-game-pb">
+        <Card testID="progress-game-pb">
           <ThemedText type="subtitle">Best-result history</ThemedText>
           <View style={styles.rows}>
             {bestHistory.events.slice(-5).map((event) => (
@@ -305,11 +310,12 @@ export default function ProgressGameScreen() {
             raised {bestHistory.timesBeaten} time{bestHistory.timesBeaten === 1 ? '' : 's'}.{' '}
             {explainMetric('personal-best-history')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
+      </SectionGrid>
 
       {scoreBestHistory !== null && scoreBestHistory.events.length >= 2 ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-game-pb-score">
+        <Card testID="progress-game-pb-score">
           <ThemedText type="subtitle">Score-record history</ThemedText>
           <View style={styles.rows}>
             {scoreBestHistory.events.slice(-5).map((event) => (
@@ -325,9 +331,9 @@ export default function ProgressGameScreen() {
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('personal-best-history')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
-
+      <SectionGrid>
       <TrendBlock
         testID="progress-game-trend-normalized"
         label="Performance (normalized)"
@@ -347,6 +353,7 @@ export default function ProgressGameScreen() {
           label="Accuracy"
           values={trendValues(insight, 'accuracy')}
           format={(v) => formatPercent(v)}
+          chartTone="success"
         />
       ) : null}
       {available.reaction ? (
@@ -356,6 +363,7 @@ export default function ProgressGameScreen() {
           values={trendValues(insight, 'reaction')}
           format={(v) => formatMs(v)}
           tone="lower-better"
+          chartTone="info"
         />
       ) : null}
       {available.difficulty ? (
@@ -367,11 +375,9 @@ export default function ProgressGameScreen() {
           tone="neutral"
         />
       ) : null}
+      </SectionGrid>
       {difficultyProgression.available ? (
-        <ThemedView
-          type="surface"
-          style={styles.card}
-          testID="progress-game-difficulty-progression">
+        <Card testID="progress-game-difficulty-progression">
           <ThemedText type="subtitle">Difficulty progression</ThemedText>
           <View style={styles.recordGrid}>
             <Record
@@ -404,10 +410,10 @@ export default function ProgressGameScreen() {
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('difficulty-progression')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
-      <ThemedView type="surface" style={styles.card} testID="progress-game-rvl">
+      <Card testID="progress-game-rvl">
         <ThemedText type="subtitle">Recent vs lifetime</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           Avg performance over {WINDOW_LABELS[windowKey]} versus all-time.
@@ -478,25 +484,24 @@ export default function ProgressGameScreen() {
             />
           </View>
         ) : null}
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-game-recent">
+      <Card testID="progress-game-recent">
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         <View style={styles.rows}>
           {data.slice(0, 10).map((session) => (
-            <Link key={session.id} href={`/results?id=${session.id}`} asChild>
-              <Pressable
-                style={styles.row}
-                accessibilityRole="button"
-                accessibilityLabel={`${formatDayLabel(session.completedAt)} session, ${Math.round(session.normalizedResult * 100)} percent`}
-                testID={`progress-game-session-${session.id}`}>
-                <ThemedText type="small">{formatDayLabel(session.completedAt)}</ThemedText>
-                <ThemedText type="smallBold">{formatPercent(session.normalizedResult)}</ThemedText>
-              </Pressable>
-            </Link>
+            <ListRow
+              key={session.id}
+              title={formatDayLabel(session.completedAt)}
+              meta={formatPercent(session.normalizedResult)}
+              accessibilityLabel={`${formatDayLabel(session.completedAt)} session, ${Math.round(session.normalizedResult * 100)} percent`}
+              accessibilityHint="Open session results"
+              onPress={() => router.push(`/results?id=${session.id}`)}
+              testID={`progress-game-session-${session.id}`}
+            />
           ))}
         </View>
-      </ThemedView>
+      </Card>
     </ScreenShell>
   );
 }
@@ -505,7 +510,8 @@ export default function ProgressGameScreen() {
  * One metric trend card. `tone` controls how the first→last movement is
  * colored: `higher-better` (default) greens a rise, `lower-better` (e.g.
  * reaction time) greens a fall, and `neutral` (e.g. difficulty, which is
- * neither good nor bad) never colors the movement.
+ * neither good nor bad) never colors the movement. `chartTone` is the metric
+ * identity fill for the bars.
  */
 function TrendBlock({
   testID,
@@ -513,12 +519,14 @@ function TrendBlock({
   values,
   format = (v) => String(Math.round(v)),
   tone = 'higher-better',
+  chartTone = 'accent',
 }: {
   testID: string;
   label: string;
   values: readonly number[];
   format?: (v: number) => string;
   tone?: 'higher-better' | 'lower-better' | 'neutral';
+  chartTone?: ThemeColor;
 }) {
   const last = values.length > 0 ? values[values.length - 1] : null;
   const first = values.length > 0 ? values[0] : null;
@@ -526,7 +534,7 @@ function TrendBlock({
   const improved = tone === 'lower-better' ? delta < 0 : delta > 0;
   const regressed = tone === 'lower-better' ? delta > 0 : delta < 0;
   return (
-    <ThemedView type="surface" style={styles.card} testID={testID}>
+    <Card testID={testID}>
       <View style={styles.cardHeader}>
         <ThemedText type="subtitle">{label}</ThemedText>
         {values.length > 0 ? (
@@ -546,8 +554,17 @@ function TrendBlock({
           </ThemedText>
         ) : null}
       </View>
-      <MiniBarChart values={values} testID={`${testID}-chart`} />
-    </ThemedView>
+      <MiniBarChart
+        values={values}
+        testID={`${testID}-chart`}
+        tone={chartTone}
+        summary={
+          values.length === 0
+            ? `${label}: no sessions yet.`
+            : `${label} across ${values.length} sessions, latest ${format(last ?? 0)}, first ${format(first ?? 0)}.`
+        }
+      />
+    </Card>
   );
 }
 
@@ -565,18 +582,10 @@ function Record({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  windowRow: {
-    marginTop: Spacing.one,
   },
   recordGrid: {
     flexDirection: 'row',

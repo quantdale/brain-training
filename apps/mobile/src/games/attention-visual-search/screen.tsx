@@ -66,6 +66,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialVisualSearchState } from './types';
+import type { VisualSearchAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface VisualSearchScreenProps {
@@ -264,14 +265,30 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
       if (current.phase !== 'playing' || current.paused) {
         return;
       }
-      if (index === current.targetIndex) {
+      const nowMs = clock.now();
+      // Feedback follows the authoritative round outcome, not the tap's
+      // optimism: the reducer owns the post-deadline guard, so resolve the
+      // tap through it first. A tap past the window resolves to a timeout
+      // (never a penalized distractor tap) and must stay silent — sounding a
+      // hit for a round that scores a timeout is the Campaign 023 late-tap
+      // mismatch. No timing logic is duplicated: this is the same pure
+      // transition the dispatch below commits.
+      const action: VisualSearchAction = { type: 'tap-tile', index, nowMs };
+      const next = visualSearchGameReducer(current, action);
+      dispatch(action);
+      if (next.phase !== 'roundResult') {
+        // The tap ended the session (budget exhausted): the session-end
+        // choreography owns the feedback, not the tile.
+        return;
+      }
+      if (next.roundOutcome === 'passed') {
         liveAudioHaptics.playSfx('visual-search-hit');
         liveAudioHaptics.haptic('light');
-      } else {
+      } else if (next.failReason === 'distractor') {
         liveAudioHaptics.playSfx('visual-search-miss');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'tap-tile', index, nowMs: clock.now() });
+      // Timeout: the timeout verdict owns the feedback — never a hit/miss.
     },
     [clock, dispatch],
   );

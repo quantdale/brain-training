@@ -30,9 +30,9 @@
  * Degrades to an explanatory empty state when the db is unavailable.
  */
 
-import { Link, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import {
   buildActivityCalendar,
@@ -54,24 +54,36 @@ import {
   filterByWindow,
   loadProgressSnapshot,
   buildWorkoutAnalytics,
+  type CalendarDay,
+  type CompositeExplanation,
   type ProgressSnapshot,
+  type RecentVsLifetime,
   type TimeWindowKey,
   WINDOW_LABELS,
   WINDOW_ORDER,
   WINDOW_DAYS,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
-import { StateCard } from '@/components/shell';
 import { MasteryInsights } from '@/components/mastery/mastery-insights';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
+  CalendarHeatmap,
   CompareBars,
   MiniBarChart,
-  SegmentedControl,
-  HeatmapRow,
   StackedShareBar,
 } from '@/components/progress-charts';
+import {
+  Card,
+  EmptyState,
+  ListRow,
+  ProgressBar,
+  SectionGrid,
+  SegmentedControl,
+  Skeleton,
+  SkeletonText,
+  Tappable,
+} from '@/components/ui';
 import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord, WorkoutInstance } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
@@ -315,6 +327,23 @@ export default function ProgressScreen() {
     }
     return deltas;
   }, [data.sessions, rvlWindow, nowMs]);
+  // Labelled hero delta: this window's average against the lifetime average.
+  const heroTrend = useMemo<{ text: string; tone: 'success' | 'danger' | 'textSecondary' } | null>(() => {
+    const delta = recentVsLifetime.deltaAvgNormalized;
+    if (delta === null || recentVsLifetime.recentCount === 0) {
+      return null;
+    }
+    if (delta === 0) {
+      return {
+        text: `Even with lifetime · last ${WINDOW_LABELS[windowKey]}`,
+        tone: 'textSecondary',
+      };
+    }
+    return {
+      text: `${directionArrow(delta > 0 ? 'up' : 'down')} ${formatSigned(Math.round(delta * 100))}% vs lifetime · last ${WINDOW_LABELS[windowKey]}`,
+      tone: delta > 0 ? 'success' : 'danger',
+    };
+  }, [recentVsLifetime, windowKey]);
 
   const level = levelForXp(data.totalXp);
   const isNewPlayer = data.sessions.length === 0;
@@ -328,36 +357,36 @@ export default function ProgressScreen() {
         Your training history, ratings and records.
       </ThemedText>
 
-      <View style={styles.windowRow}>
-        <SegmentedControl<TimeWindowKey>
-          testID="progress-window"
-          value={windowKey}
-          onChange={setWindowKey}
-          options={WINDOW_ORDER.map((k) => ({ key: k, label: WINDOW_LABELS[k] }))}
-        />
-      </View>
+      <SegmentedControl
+        testID="progress-window-selector"
+        value={windowKey}
+        onChange={(next) => setWindowKey(next as TimeWindowKey)}
+        options={WINDOW_ORDER.map((k) => ({
+          value: k,
+          label: WINDOW_LABELS[k],
+          testID: `progress-window-${k}`,
+        }))}
+      />
 
       {!loaded ? (
-        <StateCard
-          variant="loading"
-          title="Loading…"
-          message="Crunching your training history."
-          testID="progress-loading"
-        />
+        <>
+          <Skeleton height={160} testID="progress-loading" />
+          <SkeletonText lines={3} testID="progress-loading-text" />
+        </>
       ) : (
         <>
       {isNewPlayer ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-empty">
-          <ThemedText type="subtitle">No sessions yet</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            Play any game to start building your ratings and activity history. Your
-            overall composite begins at {composite.composite} for every domain and
-            updates as you train.
-          </ThemedText>
-        </ThemedView>
+        <Card>
+          <EmptyState
+            title="No sessions yet"
+            message="Play a game to start building ratings."
+            actionLabel="Browse games"
+            onAction={() => router.push('/games')}
+            testID="progress-empty"
+          />
+        </Card>
       ) : null}
-
-      <ThemedView type="surface" style={styles.card} testID="progress-summary">
+      <Card testID="progress-summary">
         <ThemedText type="subtitle">Summary</ThemedText>
         <View style={styles.summaryRow}>
           <SummaryStat label="Level" value={String(level)} />
@@ -365,17 +394,13 @@ export default function ProgressScreen() {
           <SummaryStat label={`Sessions (${WINDOW_LABELS[windowKey]})`} value={String(windowedSessions.length)} />
           <SummaryStat label="Coins" value={String(data.balance)} />
         </View>
-        <View style={styles.progressTrack} testID="progress-level-bar">
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${Math.round(levelProgress(data.totalXp) * 100)}%` },
-            ]}
-          />
-        </View>
-        <ThemedText type="caption" themeColor="textSecondary">
-          {xpIntoLevel(data.totalXp)} / {xpForNextLevel(data.totalXp)} XP to level {level + 1}
-        </ThemedText>
+        <ProgressBar
+          value={levelProgress(data.totalXp)}
+          tone="xp"
+          label={`Level ${level}`}
+          valueLabel={`${xpIntoLevel(data.totalXp)} / ${xpForNextLevel(data.totalXp)} XP to level ${level + 1}`}
+          testID="progress-level-bar"
+        />
         {!isNewPlayer && daysSinceLast !== null ? (
           <ThemedText type="caption" themeColor="textSecondary" testID="progress-last-session">
             Last session:{' '}
@@ -383,69 +408,50 @@ export default function ProgressScreen() {
             {explainMetric('recency').toLowerCase()}
           </ThemedText>
         ) : null}
-      </ThemedView>
+      </Card>
 
-      <CompositeCard composite={composite} testID="progress-composite" />
+      <CompositeCard composite={composite} trend={heroTrend} testID="progress-composite" />
 
-      <ThemedView type="surface" style={styles.card} testID="progress-domains">
+      <Card testID="progress-domains">
         <ThemedText type="subtitle">Domain ratings</ThemedText>
         <View style={styles.rows}>
           {domainInsights.map((d) => (
-            <Link
+            <ListRow
               key={d.domain}
-              href={{ pathname: '/progress-domain' as any, params: { domain: d.domain } }}
-              asChild>
-              <Pressable
-                style={styles.row}
-                accessibilityRole="button"
-                testID={`progress-domain-${d.domain.replace(/[^a-z]/gi, '').toLowerCase()}`}>
-                <View style={styles.domainLeft}>
-                  <ThemedText type="small">{d.domain}</ThemedText>
-                  <StatusChip status={d.status} daysSince={d.daysSinceUpdate} />
-                </View>
-                <View style={styles.domainRight}>
-                  <ThemedText type="smallBold">
-                    {d.rating === null ? '—' : d.rating}
-                  </ThemedText>
-                  {d.windowMovement !== 0 ? (
-                    <ThemedText
-                      type="caption"
-                      themeColor={d.direction === 'up' ? 'success' : 'danger'}>
-                      {directionArrow(d.direction)} {formatSigned(d.windowMovement)}
-                    </ThemedText>
-                  ) : (
-                    <ThemedText type="caption" themeColor="textSecondary">
-                      no change
-                    </ThemedText>
-                  )}
-                </View>
-              </Pressable>
-            </Link>
+              title={d.domain}
+              subtitle={
+                d.status === 'stale'
+                  ? `Stale · last trained ${d.daysSinceUpdate}d ago`
+                  : d.status === 'unseen'
+                    ? 'Untrained'
+                    : `Fresh${d.daysSinceUpdate !== null ? ` · trained ${d.daysSinceUpdate}d ago` : ''}`
+              }
+              meta={`${d.rating === null ? '—' : d.rating}${d.windowMovement !== 0 ? ` ${directionArrow(d.direction)} ${formatSigned(d.windowMovement)}` : ''}`}
+              onPress={() => router.push(`/progress-domain?domain=${encodeURIComponent(d.domain)}`)}
+              testID={`progress-domain-${d.domain.replace(/[^a-z]/gi, '').toLowerCase()}`}
+            />
           ))}
         </View>
         <ThemedText type="caption" themeColor="textSecondary">
           Ratings never decay — stale ones are marked and refresh when you train that
           domain again. Movement shown is for the selected window.
         </ThemedText>
-      </ThemedView>
+      </Card>
 
       {!isNewPlayer ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-balance">
+        <Card testID="progress-balance">
           <ThemedText type="subtitle">Training balance</ThemedText>
           <StackedShareBar segments={balanceSegments} testID="progress-balance-bar" />
           <View style={styles.rows}>
             {trainingBalance.perDomain
               .filter((entry) => entry.sessions > 0)
               .map((entry) => (
-                <View
+                <ListRow
                   key={entry.domain}
-                  style={styles.row}
-                  testID={`progress-balance-${entry.domain.replace(/[^a-z]/gi, '').toLowerCase()}`}>
-                  <ThemedText type="small">{entry.domain}</ThemedText>
-                  <ThemedText type="smallBold">
-                    {entry.sessions}× · {formatPercent(entry.share)}
-                  </ThemedText>
-                </View>
+                  title={entry.domain}
+                  meta={`${entry.sessions}× · ${formatPercent(entry.share)}`}
+                  testID={`progress-balance-${entry.domain.replace(/[^a-z]/gi, '').toLowerCase()}`}
+                />
               ))}
           </View>
           {trainingBalance.untrainedDomains.length > 0 ? (
@@ -491,22 +497,23 @@ export default function ProgressScreen() {
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('balance')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
-
-      <ThemedView type="surface" style={styles.card} testID="progress-activity">
+      <Card testID="progress-activity">
         <View style={styles.cardHeader}>
           <ThemedText type="subtitle">Activity</ThemedText>
-          <Link href={"/progress-activity" as any} asChild>
-            <Pressable accessibilityRole="button" testID="progress-activity-link">
-              <ThemedText type="smallBold" themeColor="accent">
-                Full calendar ›
-              </ThemedText>
-            </Pressable>
-          </Link>
+          <Tappable
+            testID="progress-activity-link"
+            onPress={() => router.push('/progress-activity')}
+            accessibilityLabel="Open the full activity calendar"
+            accessibilityHint="Shows every training day in this view">
+            <ThemedText type="smallBold" themeColor="accent">
+              Full calendar ›
+            </ThemedText>
+          </Tappable>
         </View>
         <ActivityHeatmap
-          days={calendar.days.map((d) => d.count)}
+          days={calendar.days}
           maxCount={calendar.busiest?.count ?? 0}
           testID="progress-activity-heatmap"
         />
@@ -514,12 +521,17 @@ export default function ProgressScreen() {
           {calendar.activeDays} active days · {calendar.totalSessions} sessions in this
           view
         </ThemedText>
-      </ThemedView>
+      </Card>
 
+      <SectionGrid>
       {!isNewPlayer ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-volume">
+        <Card testID="progress-volume">
           <ThemedText type="subtitle">Session volume</ThemedText>
-          <CompareBars testID="progress-volume-compare" rows={volumeCompareRows} />
+          <CompareBars
+            testID="progress-volume-compare"
+            rows={volumeCompareRows}
+            summary={`This window ${volume.windowSessions} sessions${volume.previousWindowSessions !== null ? `, previous window ${volume.previousWindowSessions}` : ''}`}
+          />
           {volume.deltaSessions !== null && volume.deltaSessions !== 0 ? (
             <ThemedText
               type="caption"
@@ -533,13 +545,21 @@ export default function ProgressScreen() {
             values={volume.weeklyCounts}
             testID="progress-volume-weekly"
             emptyLabel="Weekly buckets need a bounded window"
+            labels={volume.weeklyCounts.map((_, i) =>
+              i === volume.weeklyCounts.length - 1 ? 'Now' : `-${volume.weeklyCounts.length - 1 - i}w`,
+            )}
+            summary={
+              volume.weeklyCounts.length === 0
+                ? 'Weekly buckets need a bounded window'
+                : `Sessions per week, oldest first. Busiest week ${Math.max(...volume.weeklyCounts)} sessions.`
+            }
           />
           <ThemedText type="caption" themeColor="textSecondary">
             {volume.activeDays} active day{volume.activeDays === 1 ? '' : 's'} ·{' '}
             {volume.perWeek === null ? '—' : volume.perWeek.toFixed(1)} sessions/week.{' '}
             {explainMetric('volume')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
       <RecentVsLifetimeCard
@@ -548,9 +568,11 @@ export default function ProgressScreen() {
         rollingLatest={rollingLatest}
         testID="progress-recent"
       />
+      </SectionGrid>
 
+      <SectionGrid>
       {!isNewPlayer && bestHistory.current !== null ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-personal-best">
+        <Card testID="progress-personal-best">
           <ThemedText type="subtitle">Personal best</ThemedText>
           <View style={styles.summaryRow}>
             <SummaryStat
@@ -571,11 +593,11 @@ export default function ProgressScreen() {
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('personal-best-history')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
       {hasWorkoutData ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-workouts">
+        <Card testID="progress-workouts">
           <ThemedText type="subtitle">Workout completion</ThemedText>
           <View style={styles.summaryRow}>
             <SummaryStat
@@ -604,62 +626,38 @@ export default function ProgressScreen() {
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('workout-completion')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
+      </SectionGrid>
 
+      <SectionGrid>
       {!isNewPlayer ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-categories">
+        <Card testID="progress-categories">
           <ThemedText type="subtitle">Category comparison</ThemedText>
           <View style={styles.rows}>
             {categoryComparison.rows.map((row) => {
               const slug = row.domain.replace(/[^a-z]/gi, '').toLowerCase();
               return (
-                <Link
+                <ListRow
                   key={row.domain}
-                  href={{ pathname: '/progress-domain' as any, params: { domain: row.domain } }}
-                  asChild>
-                  <Pressable
-                    style={styles.row}
-                    accessibilityRole="button"
-                    testID={`progress-category-${slug}`}>
-                    <View style={styles.domainLeft}>
-                      <ThemedText type="small">{row.domain}</ThemedText>
-                      <ThemedText type="caption" themeColor="textSecondary">
-                        {row.sessions}× this window
-                        {row.avgNormalized !== null
-                          ? ` · avg ${formatPercent(row.avgNormalized)}`
-                          : ''}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.domainRight}>
-                      <ThemedText type="smallBold">
-                        {row.rating === null ? '—' : row.rating}
-                      </ThemedText>
-                      {row.movement !== 0 ? (
-                        <ThemedText
-                          type="caption"
-                          themeColor={row.direction === 'up' ? 'success' : 'danger'}>
-                          {directionArrow(row.direction)} {formatSigned(row.movement)}
-                        </ThemedText>
-                      ) : (
-                        <ThemedText type="caption" themeColor="textSecondary">
-                          no change
-                        </ThemedText>
-                      )}
-                    </View>
-                  </Pressable>
-                </Link>
+                  title={row.domain}
+                  subtitle={`${row.sessions}× this window${row.avgNormalized !== null ? ` · avg ${formatPercent(row.avgNormalized)}` : ''}`}
+                  meta={`${row.rating === null ? '—' : row.rating}${row.movement !== 0 ? ` ${directionArrow(row.direction)} ${formatSigned(row.movement)}` : ''}`}
+                  onPress={() => router.push(`/progress-domain?domain=${encodeURIComponent(row.domain)}`)}
+                  accessibilityHint={`Open ${row.domain} details`}
+                  testID={`progress-category-${slug}`}
+                />
               );
             })}
           </View>
           <ThemedText type="caption" themeColor="textSecondary">
             {explainMetric('category-comparison')}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
 
       {!isNewPlayer && breadth.groups.length > 0 ? (
-        <ThemedView type="surface" style={styles.card} testID="progress-cooccurrence">
+        <Card testID="progress-cooccurrence">
           <ThemedText type="subtitle">Training breadth &amp; results</ThemedText>
           <View style={styles.rows}>
             {breadth.groups.map((group) => (
@@ -680,66 +678,58 @@ export default function ProgressScreen() {
           <ThemedText type="caption" themeColor="textSecondary">
             {COOCCURRENCE_CAPTION}
           </ThemedText>
-        </ThemedView>
+        </Card>
       ) : null}
+      </SectionGrid>
 
-      <Link href="/progress-detail" asChild>
-        <Pressable testID="progress-detail-link" accessibilityRole="button">
-          <ThemedView type="surface" style={styles.card}>
-            <ThemedText type="smallBold" themeColor="accent">
-              Full history ›
-            </ThemedText>
-            <ThemedText type="caption" themeColor="textSecondary">
-              Per-domain trends, game records and recent sessions.
-            </ThemedText>
-          </ThemedView>
-        </Pressable>
-      </Link>
-
-      <ThemedView type="surface" style={styles.card} testID="progress-game-stats">
+      <Card
+        onPress={() => router.push('/progress-detail')}
+        testID="progress-detail-link"
+        accessibilityLabel="Open the full training history"
+        accessibilityHint="Shows per-domain trends, game records and recent sessions">
+        <ThemedText type="smallBold" themeColor="accent">
+          Full history ›
+        </ThemedText>
+        <ThemedText type="caption" themeColor="textSecondary">
+          Per-domain trends, game records and recent sessions.
+        </ThemedText>
+      </Card>
+      <SectionGrid>
+      <Card testID="progress-game-stats">
         <ThemedText type="subtitle">Per game</ThemedText>
         {data.aggregates.length > 0 ? (
           <View style={styles.rows}>
             {data.aggregates.map((a) => (
-              <Link
-                key={a.gameId}
-                href={{ pathname: '/progress-game' as any, params: { gameId: a.gameId } }}
-                asChild>
-                <Pressable
-                  style={styles.row}
-                  accessibilityRole="button"
-                  testID={`progress-game-${a.gameId}`}>
-                  <ThemedText type="small">
-                    {getGameDefinition(a.gameId)?.name ?? a.gameId}
+              <View key={a.gameId}>
+                <ListRow
+                  title={getGameDefinition(a.gameId)?.name ?? a.gameId}
+                  subtitle={`${a.count}× · best ${Math.round(a.bestNormalized * 100)}%`}
+                  onPress={() => router.push(`/progress-game?gameId=${encodeURIComponent(a.gameId)}`)}
+                  accessibilityHint={`Open ${getGameDefinition(a.gameId)?.name ?? a.gameId} analytics`}
+                  testID={`progress-game-${a.gameId}`}
+                />
+                {perGameDelta.get(a.gameId) !== undefined ? (
+                  <ThemedText
+                    type="caption"
+                    themeColor={
+                      perGameDelta.get(a.gameId)! > 0
+                        ? 'success'
+                        : perGameDelta.get(a.gameId)! < 0
+                          ? 'danger'
+                          : 'textSecondary'
+                    }
+                    testID={`progress-game-trend-${a.gameId}`}>
+                    {directionArrow(
+                      perGameDelta.get(a.gameId)! > 0
+                        ? 'up'
+                        : perGameDelta.get(a.gameId)! < 0
+                          ? 'down'
+                          : 'flat',
+                    )}{' '}
+                    vs lifetime ({WINDOW_LABELS[windowKey]})
                   </ThemedText>
-                  <View style={styles.domainRight}>
-                    <ThemedText type="smallBold">
-                      {a.count}× · best {Math.round(a.bestNormalized * 100)}%
-                    </ThemedText>
-                    {perGameDelta.get(a.gameId) !== undefined ? (
-                      <ThemedText
-                        type="caption"
-                        themeColor={
-                          perGameDelta.get(a.gameId)! > 0
-                            ? 'success'
-                            : perGameDelta.get(a.gameId)! < 0
-                              ? 'danger'
-                              : 'textSecondary'
-                        }
-                        testID={`progress-game-trend-${a.gameId}`}>
-                        {directionArrow(
-                          perGameDelta.get(a.gameId)! > 0
-                            ? 'up'
-                            : perGameDelta.get(a.gameId)! < 0
-                              ? 'down'
-                              : 'flat',
-                        )}{' '}
-                        vs lifetime ({WINDOW_LABELS[windowKey]})
-                      </ThemedText>
-                    ) : null}
-                  </View>
-                </Pressable>
-              </Link>
+                ) : null}
+              </View>
             ))}
           </View>
         ) : (
@@ -747,39 +737,35 @@ export default function ProgressScreen() {
             No games played yet.
           </ThemedText>
         )}
-      </ThemedView>
+      </Card>
 
-      <ThemedView type="surface" style={styles.card} testID="progress-recent-sessions">
+      <Card testID="progress-recent-sessions">
         <ThemedText type="subtitle">Recent sessions</ThemedText>
         {data.sessions.length > 0 ? (
           <View style={styles.rows}>
             {data.sessions.slice(0, 10).map((session) => (
-              <Link key={session.id} href={`/results?id=${session.id}`} asChild>
-                <Pressable
-                  style={styles.row}
-                  accessibilityRole="button"
-                  testID={`progress-session-${session.id}`}>
-                  <ThemedText type="small">
-                    {getGameDefinition(session.gameId)?.name ?? session.gameId} ·{' '}
-                    {formatDayLabel(session.completedAt)}
-                  </ThemedText>
-                  <View style={styles.domainRight}>
-                    <ThemedText type="smallBold">
-                      {Math.round(session.normalizedResult * 100)}%
+              <View key={session.id} style={styles.sessionRow}>
+                <View style={styles.sessionRowMain}>
+                  <ListRow
+                    title={`${getGameDefinition(session.gameId)?.name ?? session.gameId} · ${formatDayLabel(session.completedAt)}`}
+                    subtitle={pbSessionIds.has(session.id) ? 'Personal best' : undefined}
+                    meta={`${Math.round(session.normalizedResult * 100)}%`}
+                    onPress={() => router.push(`/results?id=${encodeURIComponent(session.id)}`)}
+                    accessibilityHint="Open session results"
+                    testID={`progress-session-${session.id}`}
+                  />
+                </View>
+                {pbSessionIds.has(session.id) ? (
+                  <ThemedView
+                    type="accentSoft"
+                    style={styles.pbBadge}
+                    testID={`progress-session-pb-${session.id}`}>
+                    <ThemedText type="caption" themeColor="accent">
+                      PB
                     </ThemedText>
-                    {pbSessionIds.has(session.id) ? (
-                      <ThemedView
-                        type="accentSoft"
-                        style={styles.pbBadge}
-                        testID={`progress-session-pb-${session.id}`}>
-                        <ThemedText type="caption" themeColor="accent">
-                          PB
-                        </ThemedText>
-                      </ThemedView>
-                    ) : null}
-                  </View>
-                </Pressable>
-              </Link>
+                  </ThemedView>
+                ) : null}
+              </View>
             ))}
           </View>
         ) : (
@@ -787,7 +773,8 @@ export default function ProgressScreen() {
             Your latest sessions will show up here.
           </ThemedText>
         )}
-      </ThemedView>
+      </Card>
+      </SectionGrid>
 
       {/* Campaign 014 (W5): mastery distribution + closest milestones —
           the forward-looking interpretation layer, one scroll away. */}
@@ -800,80 +787,74 @@ export default function ProgressScreen() {
 
 export function CompositeCard({
   composite,
+  trend,
   testID,
 }: {
-  composite: ReturnType<typeof explainComposite>;
+  composite: CompositeExplanation;
+  /** Labelled window-vs-lifetime delta rendered under the hero numeral. */
+  trend?: { text: string; tone: 'success' | 'danger' | 'textSecondary' } | null;
   testID?: string;
 }) {
   return (
-    <ThemedView type="surface" style={styles.card} testID={testID}>
-      <ThemedText type="subtitle">Overall performance</ThemedText>
-      <View style={styles.compositeRow}>
-        <ThemedText type="display" themeColor="accent" testID={`${testID}-value`}>
+    <Card variant="hero" testID="progress-composite-card">
+      <View testID={testID}>
+        <ThemedText type="eyebrow" themeColor="textSecondary">
+          Overall performance
+        </ThemedText>
+        <ThemedText
+          type="numeralXl"
+          themeColor="accent"
+          testID={testID ? `${testID}-value` : undefined}
+          accessibilityLabel={`Overall rating ${composite.composite}`}>
           {composite.composite}
         </ThemedText>
-        <View style={styles.compositeMeta}>
-          <ThemedText type="caption" themeColor="textSecondary">
-            {composite.seenDomains} trained · {composite.unseenDomains} untrained ·{' '}
-            {composite.staleDomains} stale
+        {trend ? (
+          <ThemedText
+            type="bodySmall"
+            themeColor={trend.tone}
+            testID={testID ? `${testID}-trend` : undefined}>
+            {trend.text}
           </ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">
-            Average of all domains. Untrained start at {composite.initialRating}; stale
-            count half.
-          </ThemedText>
+        ) : null}
+        <ThemedText type="caption" themeColor="textSecondary">
+          {composite.seenDomains} trained · {composite.unseenDomains} untrained ·{' '}
+          {composite.staleDomains} stale
+        </ThemedText>
+        <ThemedText type="caption" themeColor="textSecondary">
+          Average of all domains. Untrained start at {composite.initialRating}; stale
+          count half.
+        </ThemedText>
+        <View style={styles.rows}>
+          {composite.domains.map((d) => (
+            <ListRow
+              key={d.domain}
+              title={d.domain}
+              subtitle={`${d.status}${d.weight < 1 ? ` · counts ${d.weight}×` : ''}`}
+              meta={String(d.rating)}
+              testID={
+                testID
+                  ? `${testID}-domain-${d.domain.replace(/[^a-z]/gi, '').toLowerCase()}`
+                  : undefined
+              }
+            />
+          ))}
         </View>
-      </View>
-      <View style={styles.rows}>
-        {composite.domains.map((d) => (
-          <View
-            key={d.domain}
-            style={styles.row}
-            testID={`${testID}-domain-${d.domain.replace(/[^a-z]/gi, '').toLowerCase()}`}>
-            <ThemedText type="small">{d.domain}</ThemedText>
-            <View style={styles.domainRight}>
-              <ThemedText type="smallBold">{d.rating}</ThemedText>
-              <ThemedText
-                type="caption"
-                themeColor={
-                  d.status === 'stale'
-                    ? 'warning'
-                    : d.status === 'unseen'
-                      ? 'textSecondary'
-                      : 'success'
-                }>
-                {d.status}
-                {d.weight < 1 ? ` ×${d.weight}` : ''}
-              </ThemedText>
-            </View>
-          </View>
-        ))}
-      </View>
-    </ThemedView>
+        </View>
+    </Card>
   );
 }
-
 export function ActivityHeatmap({
   days,
   maxCount,
   testID,
 }: {
-  days: readonly number[];
+  days: readonly CalendarDay[];
   maxCount: number;
   testID?: string;
 }) {
-  const weeks: number[][] = [];
-  for (let i = 0; i < days.length; i += 7) {
-    weeks.push(days.slice(i, i + 7));
-  }
   return (
-    <View style={styles.heatmap}>
-      {weeks.map((week, wi) => (
-        <HeatmapRow
-          key={wi}
-          testID={testID ? `${testID}-w${wi}` : undefined}
-          intensities={week.map((c) => (maxCount > 0 ? c / maxCount : 0))}
-        />
-      ))}
+    <View testID="progress-heatmap">
+      <CalendarHeatmap days={days} maxCount={maxCount} testID={testID} />
     </View>
   );
 }
@@ -884,7 +865,7 @@ export function RecentVsLifetimeCard({
   rollingLatest = null,
   testID,
 }: {
-  rvl: ReturnType<typeof compareRecentVsLifetime>;
+  rvl: RecentVsLifetime;
   windowLabel: string;
   /** Latest trailing rolling average across sessions (`null` when too few). */
   rollingLatest?: number | null;
@@ -894,7 +875,8 @@ export function RecentVsLifetimeCard({
   const delta = rvl.deltaAvgNormalized;
   const hasRecent = rvl.recentCount > 0;
   return (
-    <ThemedView type="surface" style={styles.card} testID={testID}>
+    <Card testID="progress-rvl-card">
+      <View testID={testID}>
       <ThemedText type="subtitle">Recent vs lifetime</ThemedText>
       <ThemedText type="caption" themeColor="textSecondary">
         Avg performance ({windowLabel}) compared with all-time.
@@ -975,7 +957,8 @@ export function RecentVsLifetimeCard({
           No sessions in this window yet — keep training to compare.
         </ThemedText>
       ) : null}
-    </ThemedView>
+      </View>
+    </Card>
   );
 }
 
@@ -1002,34 +985,11 @@ function SummaryStat({
   );
 }
 
-function StatusChip({ status, daysSince }: { status: string; daysSince: number | null }) {
-  const label =
-    status === 'stale'
-      ? `stale · ${daysSince}d ago`
-      : status === 'unseen'
-        ? 'untrained'
-        : 'fresh';
-  const color = status === 'stale' ? 'warning' : status === 'unseen' ? 'textSecondary' : 'success';
-  return (
-    <ThemedText type="caption" themeColor={color}>
-      {label}
-    </ThemedText>
-  );
-}
-
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  windowRow: {
-    marginTop: Spacing.one,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -1038,17 +998,6 @@ const styles = StyleSheet.create({
   stat: {
     flex: 1,
     gap: Spacing.half,
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: Radii.pill,
-    backgroundColor: 'rgba(128,128,128,0.25)',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: Radii.pill,
-    backgroundColor: 'rgba(120,120,255,0.8)',
   },
   rows: {
     gap: Spacing.two,
@@ -1059,31 +1008,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
   },
-  domainLeft: {
-    gap: Spacing.half,
+  sessionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
-  domainRight: {
-    alignItems: 'flex-end',
-    gap: Spacing.half,
+  sessionRowMain: {
+    flex: 1,
   },
   pbBadge: {
-    alignSelf: 'flex-end',
     borderRadius: Radii.pill,
     paddingVertical: Spacing.half,
     paddingHorizontal: Spacing.two,
-  },
-  compositeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.three,
-  },
-  compositeMeta: {
-    flex: 1,
-    gap: Spacing.half,
-  },
-  heatmap: {
-    flexDirection: 'row',
-    gap: Spacing.half,
-    flexWrap: 'wrap',
   },
 });

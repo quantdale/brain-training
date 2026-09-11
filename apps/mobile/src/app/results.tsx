@@ -7,6 +7,14 @@
  * else the most recent) plus rating movement from the append-only history,
  * and a list of recent sessions to switch between. Adds an explicit loading
  * state and a performance-band headline over the raw percentage.
+ *
+ * Presentation (campaign 024, design-language v2): the reference anatomy —
+ * score hero (ProgressRing with the normalized score as the hero numeral),
+ * headline, a metric row of StatBlocks with metric identity colours, rating
+ * movement, then ONE primary CTA (play again) with the next-game action
+ * demoted to ghost. A personal-best session renders the celebration
+ * treatment exactly once (sensory-gated success feedback + badge, never
+ * blocking); routine completions stay quiet.
  */
 
 import {
@@ -15,19 +23,27 @@ import {
   useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-
 import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
-import { InfoRow, StateCard } from "@/components/shell";
-import { performanceBand } from "@/components/shell/format";
+import { StateCard } from "@/components/shell";
+import { formatRelativeDay, performanceBand } from "@/components/shell/format";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import {
+  AnimatedNumber,
+  Badge,
+  Button,
+  Card,
+  ProgressRing,
+  StatBlock,
+} from "@/components/ui";
 import { Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, GameSessionRecord } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { getGameDefinition } from "@/registry/registry";
+import { liveAudioHaptics } from "@/sdk";
 import { useWorkoutResultAdvance } from "@/workout/use-workout-result-advance";
 import { gameHref } from "@/workout/routing";
 
@@ -40,6 +56,40 @@ interface ResultsData {
     delta: number;
     ratingAfter: number;
   }[];
+  /**
+   * True when no earlier-or-equal same-game session reaches this session's
+   * normalized result — i.e. this session raised (or set) the personal best.
+   * Ties keep the earliest holder, matching the analytics best-chain
+   * convention. Degrades to false when the store cannot answer.
+   */
+  isPersonalBest: boolean;
+}
+
+/**
+ * Personal-best check via the sessions COUNT pushdown: sessions matching
+ * `{ gameIds, toMs: completedAt, minNormalized }` include the session
+ * itself, so a count of ≤1 means nothing earlier beat or tied it. Uses an
+ * aggregate instead of paging rows, so long histories stay cheap.
+ */
+async function loadPersonalBest(
+  db: AppDatabase,
+  session: GameSessionRecord,
+): Promise<boolean> {
+  try {
+    // Partial test doubles only implement the reads the old screen used;
+    // a missing pushdown degrades to the quiet (non-PB) treatment.
+    if (typeof db.sessions.countSessions !== "function") {
+      return false;
+    }
+    const atOrAbove = await db.sessions.countSessions({
+      gameIds: [session.gameId],
+      toMs: session.completedAt,
+      minNormalized: session.normalizedResult,
+    });
+    return atOrAbove <= 1;
+  } catch {
+    return false;
+  }
 }
 
 function loadResults(
@@ -56,11 +106,28 @@ function loadResults(
     const ratingHistory = session
       ? await db.ratings.getHistoryForSession(session.id, throughMs)
       : [];
-    return { session, recent, ratingHistory };
+    const isPersonalBest = session
+      ? await loadPersonalBest(db, session)
+      : false;
+    return { session, recent, ratingHistory, isPersonalBest };
   })();
 }
 
-const EMPTY: ResultsData = { session: null, recent: [], ratingHistory: [] };
+const EMPTY: ResultsData = {
+  session: null,
+  recent: [],
+  ratingHistory: [],
+  isPersonalBest: false,
+};
+
+/**
+ * Sessions already celebrated on this JS session. The results screen reloads
+ * on every focus (a session may have just landed), so the guard must outlive
+ * re-renders and refetches — otherwise returning to a PB result would replay
+ * the success feedback. Mirrors the workout-completion card's once-per-key
+ * celebration precedent.
+ */
+const celebratedResults = new Set<string>();
 
 export default function ResultsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -78,7 +145,7 @@ export default function ResultsScreen() {
     [id, refreshKey],
     EMPTY,
   );
-  const { session, recent, ratingHistory } = data;
+  const { session, recent, ratingHistory, isPersonalBest } = data;
 
   // Cross-feature wiring (006R hardening): advance the durable workout when this
   // session finished the current game, and surface the next game / completion.
@@ -89,8 +156,54 @@ export default function ResultsScreen() {
     completed: workoutCompleted,
   } = useWorkoutResultAdvance(session);
 
+  // Celebration discipline (micro-interactions R5): a personal best earns one
+  // bounded, non-blocking success beat; routine completions stay quiet. The
+  // sensory service honours the global toggles, so a muted device stays
+  // silent while the badge still shows.
+  useEffect(() => {
+    if (!isPersonalBest || session === null) {
+      return;
+    }
+    if (celebratedResults.has(session.id)) {
+      return;
+    }
+    celebratedResults.add(session.id);
+    liveAudioHaptics.feedback("success");
+  }, [isPersonalBest, session]);
+
   const game = session ? getGameDefinition(session.gameId) : undefined;
   // Task 9.4: ratingHistory is already filtered to the selected session
+
+  const scorePercent = session ? Math.round(session.normalizedResult * 100) : 0;
+  // Raw score/accuracy live in the game-owned raw result; every game builder
+  // persists them as top-level `score` / `accuracy` (0..1) numbers. Sessions
+  // whose game predates that convention read as "—" rather than a guess.
+  const raw = session?.rawResult;
+  const rawRecord =
+    typeof raw === "object" && raw !== null && "score" in raw ? raw : null;
+  const rawScore =
+    rawRecord !== null &&
+    typeof rawRecord.score === "number" &&
+    Number.isFinite(rawRecord.score)
+      ? rawRecord.score
+      : null;
+  const rawAccuracyRecord =
+    typeof raw === "object" && raw !== null && "accuracy" in raw ? raw : null;
+  const rawAccuracy =
+    rawAccuracyRecord !== null &&
+    typeof rawAccuracyRecord.accuracy === "number" &&
+    Number.isFinite(rawAccuracyRecord.accuracy)
+      ? rawAccuracyRecord.accuracy
+      : null;
+  const difficultyValue = session?.difficulty;
+  const difficultyLevel =
+    typeof difficultyValue === "object" &&
+    difficultyValue !== null &&
+    "level" in difficultyValue &&
+    typeof difficultyValue.level === "string"
+      ? difficultyValue.level
+      : "—";
+  const nextGame = nextGameId ? getGameDefinition(nextGameId) : undefined;
 
   return (
     <ScreenShell>
@@ -127,53 +240,107 @@ export default function ResultsScreen() {
         />
       ) : session ? (
         <>
-          {/* Live region: when the session loads (or the user switches between
-              recent sessions) screen readers announce the headline result
-              instead of silently re-rendering. */}
-          <ThemedView
-            type="surface"
-            style={styles.card}
+          {/* Score hero: the ring is the surface's one hero element, with the
+              normalized score as its numeral. Live region: when the session
+              loads (or the user switches between recent sessions) screen
+              readers announce the headline result instead of silently
+              re-rendering. */}
+          <Card
+            variant="hero"
             testID="results-summary"
             accessibilityLiveRegion="polite"
+            style={styles.hero}
           >
+            {isPersonalBest ? (
+              <Badge
+                label="New personal best"
+                tone="streak"
+                testID="results-personal-best"
+              />
+            ) : null}
+            <ProgressRing
+              value={session.normalizedResult}
+              tone="accent"
+              testID="results-ring"
+            >
+              <AnimatedNumber
+                value={scorePercent}
+                format={(n) => `${Math.round(n)}%`}
+                type="numeralXl"
+                themeColor="accent"
+                testID="results-score"
+              />
+            </ProgressRing>
             {/* Performance band headline (constitution §16): an encouraging,
                 non-clinical read of the normalized score above the number. */}
             <ThemedText
-              type="subtitle"
+              type="headline"
               themeColor={performanceBand(session.normalizedResult).tone}
               testID="results-band"
             >
               {performanceBand(session.normalizedResult).label}
             </ThemedText>
-            <ThemedText
-              type="headline"
-              themeColor="accent"
-              testID="results-score"
-            >
-              {Math.round(session.normalizedResult * 100)}%
-            </ThemedText>
             <ThemedText type="subtitle" testID="results-game">
               {game?.name ?? session.gameId}
             </ThemedText>
-            <View style={styles.rows}>
-              <InfoRow
-                label="Difficulty"
-                value={String(
-                  (session.difficulty as { level?: string } | null)?.level ??
-                    "—",
-                )}
-              />
-              <InfoRow label="XP earned" value={`+${session.xp}`} />
-              <InfoRow
-                label="Duration"
-                value={`${Math.round(session.durationMs / 1000)}s`}
-              />
-              <InfoRow
-                label="Date"
-                value={new Date(session.completedAt).toLocaleDateString()}
-              />
+            <View style={styles.metricRow}>
+              <View style={styles.metric}>
+                <StatBlock
+                  label="Score"
+                  value={rawScore !== null ? String(Math.round(rawScore)) : "—"}
+                  metric="score"
+                  valueType="numeral"
+                  testID="results-metric-score"
+                />
+              </View>
+              <View style={styles.metric}>
+                <StatBlock
+                  label="Accuracy"
+                  value={
+                    rawAccuracy !== null
+                      ? `${Math.round(rawAccuracy * 100)}%`
+                      : "—"
+                  }
+                  metric="accuracy"
+                  valueType="numeral"
+                  testID="results-metric-accuracy"
+                />
+              </View>
+              <View style={styles.metric}>
+                <StatBlock
+                  label="Time"
+                  value={`${Math.round(session.durationMs / 1000)}s`}
+                  metric="time"
+                  valueType="numeral"
+                  testID="results-metric-time"
+                />
+              </View>
+              <View style={styles.metric}>
+                <StatBlock
+                  label="Difficulty"
+                  value={difficultyLevel}
+                  valueType="numeral"
+                  testID="results-metric-difficulty"
+                />
+              </View>
             </View>
-          </ThemedView>
+            <View style={styles.rewardRow}>
+              <AnimatedNumber
+                value={session.xp}
+                format={(n) => `+${Math.round(n)} XP`}
+                type="bodyLarge"
+                themeColor="xp"
+                testID="results-xp"
+              />
+              <ThemedText
+                type="bodySmall"
+                themeColor="textSecondary"
+                testID="results-timestamp"
+              >
+                {formatRelativeDay(session.completedAt, Date.now())}
+              </ThemedText>
+            </View>
+          </Card>
 
           {/* Workout progress (006R hardening): after finishing the current
               workout game, surface the next game or the completion state. */}
@@ -192,23 +359,6 @@ export default function ResultsScreen() {
                   : "You finished today's workout. Nice work!"}
               </ThemedText>
             </ThemedView>
-          ) : nextGameId ? (
-            <Link href={gameHref(nextGameId, nextProvenance)} asChild>
-              <Pressable
-                testID="results-next-game"
-                accessibilityRole="button"
-                accessibilityLabel={`Play the next game`}
-                // Flattened: expo-router's <Link asChild> (Radix Slot) THROWS
-                // on array styles in dev builds — this exact array crashed the
-                // /results route on device and made the durable workout
-                // journey impossible to complete (campaign 011 finding).
-                style={StyleSheet.flatten([styles.nextGame, MinTouchTarget])}
-              >
-                <ThemedText type="smallBold" themeColor="accent">
-                  Next Game →
-                </ThemedText>
-              </Pressable>
-            </Link>
           ) : null}
 
           <ThemedView
@@ -251,10 +401,34 @@ export default function ResultsScreen() {
             ) : null}
           </ThemedView>
 
+          {/* One primary CTA (play again); the workout next-game action is a
+              ghost so the viewport never carries two competing primaries. */}
+          <View style={styles.ctaBlock}>
+            <Button
+              variant="primary"
+              size="lg"
+              label="Play again"
+              sublabel={game?.name ?? session.gameId}
+              testID="results-play-again"
+              accessibilityHint={`Start a new session of ${game?.name ?? session.gameId}`}
+              onPress={() => router.push(gameHref(session.gameId))}
+            />
+            {!workoutCompleted && nextGameId ? (
+              <Button
+                variant="ghost"
+                label="Next game"
+                sublabel={nextGame?.name ?? nextGameId}
+                testID="results-next-game"
+                accessibilityHint={`Continue the workout with ${nextGame?.name ?? nextGameId}`}
+                onPress={() => router.push(gameHref(nextGameId, nextProvenance))}
+              />
+            ) : null}
+          </View>
+
           <ThemedView
             type="surface"
             style={styles.card}
-            testID="results-recent"
+            testID="results-recent-sessions"
           >
             <ThemedText type="subtitle">Recent sessions</ThemedText>
             <View style={styles.rows}>
@@ -264,10 +438,12 @@ export default function ResultsScreen() {
                     testID={`results-session-${s.id}`}
                     accessibilityRole="button"
                     accessibilityLabel={`${getGameDefinition(s.gameId)?.name ?? s.gameId} result from ${new Date(s.completedAt).toLocaleDateString()}, ${Math.round(s.normalizedResult * 100)} percent`}
+                    accessibilityHint="Shows this session's results"
                     accessibilityState={{ selected: s.id === session.id }}
-                    // Flatten: array styles inside asChild Links throw in
-                    // expo-router's Radix Slot shim (dev builds) — see the
-                    // results-next-game comment above.
+                    // Flattened: expo-router's <Link asChild> (Radix Slot) THROWS
+                    // on array styles in dev builds — this exact array crashed the
+                    // /results route on device and made the durable workout
+                    // journey impossible to complete (campaign 011 finding).
                     style={StyleSheet.flatten([
                       styles.row,
                       MinTouchTarget,
@@ -310,6 +486,25 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.two,
   },
+  // Hero content stacks on one centered axis (reference: celebration visual
+  // → headline → metric row → single CTA).
+  hero: {
+    alignItems: "center",
+    gap: Spacing.three,
+  },
+  metricRow: {
+    flexDirection: "row",
+    alignSelf: "stretch",
+    gap: Spacing.two,
+  },
+  metric: {
+    flex: 1,
+  },
+  rewardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.three,
+  },
   rows: {
     gap: Spacing.two,
   },
@@ -324,11 +519,7 @@ const styles = StyleSheet.create({
   rowActive: {
     opacity: 0.6,
   },
-  nextGame: {
-    alignSelf: "flex-start",
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.four,
-    backgroundColor: "rgba(0, 122, 255, 0.12)",
+  ctaBlock: {
+    gap: Spacing.two,
   },
 });
