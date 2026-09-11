@@ -244,13 +244,18 @@ export function GameHost({
               size="lg"
               onPress={onStart}
             />
-            <Button
-              testID={testId(gameId, 'help')}
-              label="How to play"
-              variant="ghost"
-              size="md"
-              onPress={onHelp}
-            />
+            {/* While the first-run tutorial is on screen it already explains
+                the game and offers its own demo action, so the replay button
+                would duplicate it in the same viewport. */}
+            {tutorialOpen ? null : (
+              <Button
+                testID={testId(gameId, 'help')}
+                label="How to play"
+                variant="ghost"
+                size="md"
+                onPress={onHelp}
+              />
+            )}
 
             {isDevBuild() ? qaPanel : null}
           </Card>
