@@ -8,7 +8,7 @@
  * "Loading" label.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Animated,
   StyleSheet,
@@ -43,7 +43,7 @@ export function Skeleton({
 }: SkeletonProps) {
   const theme = useTheme();
   const reducedMotion = usePrefersReducedMotion();
-  const opacity = useRef(new Animated.Value(SKELETON_FULL)).current;
+  const [opacity] = useState(() => new Animated.Value(SKELETON_FULL));
 
   useEffect(() => {
     if (reducedMotion) {

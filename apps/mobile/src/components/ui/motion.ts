@@ -12,7 +12,7 @@
  * work stays off the JS thread during list scrolling and dense screens.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, type ViewStyle } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
@@ -57,7 +57,9 @@ export interface PressFeedback {
 export function usePressFeedback(options: PressFeedbackOptions = {}): PressFeedback {
   const { pressedScale = PRESS_SCALE.surface, enabled = true, onPressIn, onPressOut } = options;
   const reducedMotion = usePrefersReducedMotion();
-  const scale = useRef(new Animated.Value(1)).current;
+  // Lazy state (not a ref) so the animated value is created once but never
+  // read through a ref during render.
+  const [scale] = useState(() => new Animated.Value(1));
   const [pressed, setPressed] = useState(false);
   const animate = enabled && !reducedMotion;
 
@@ -118,7 +120,7 @@ export interface EntranceOptions {
 export function useEntranceTransition(options: EntranceOptions = {}): Animated.WithAnimatedObject<ViewStyle> {
   const { index = 0, enabled = true } = options;
   const reducedMotion = usePrefersReducedMotion();
-  const progress = useRef(new Animated.Value(enabled && !reducedMotion ? 0 : 1)).current;
+  const [progress] = useState(() => new Animated.Value(enabled && !reducedMotion ? 0 : 1));
 
   useEffect(() => {
     if (!enabled || reducedMotion) {
@@ -166,7 +168,7 @@ export function useAnimatedProgress(
 ): { value: Animated.Value; numericValue: number | null } {
   const { duration = Motion.entrance, enabled = true, withNumericValue = false } = options;
   const reducedMotion = usePrefersReducedMotion();
-  const animated = useRef(new Animated.Value(target)).current;
+  const [animated] = useState(() => new Animated.Value(target));
   const [numericValue, setNumericValue] = useState<number | null>(withNumericValue ? target : null);
 
   useEffect(() => {
@@ -178,7 +180,6 @@ export function useAnimatedProgress(
   useEffect(() => {
     if (!enabled || reducedMotion) {
       animated.setValue(target);
-      if (withNumericValue) setNumericValue(target);
       return;
     }
     const animation = Animated.timing(animated, {
@@ -191,5 +192,8 @@ export function useAnimatedProgress(
     return () => animation.stop();
   }, [animated, duration, enabled, reducedMotion, target, withNumericValue]);
 
-  return { value: animated, numericValue };
+  // Under reduced motion the value is the target by definition, so the mirror
+  // is derived rather than written back through state inside an effect.
+  const mirroredValue = !enabled || reducedMotion ? target : numericValue;
+  return { value: animated, numericValue: withNumericValue ? mirroredValue : null };
 }

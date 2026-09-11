@@ -134,6 +134,9 @@ export default function ResultsScreen() {
 
   // Reload whenever the screen regains focus (a session may have just landed).
   const [refreshKey, setRefreshKey] = useState(0);
+  // Captured once at mount: the relative-day label must not drift between
+  // renders, and reading the clock during render is impure.
+  const [mountedAt] = useState(() => Date.now());
   useFocusEffect(
     useCallback(() => {
       setRefreshKey((k) => k + 1);
@@ -337,7 +340,7 @@ export default function ResultsScreen() {
                 themeColor="textSecondary"
                 testID="results-timestamp"
               >
-                {formatRelativeDay(session.completedAt, Date.now())}
+                {formatRelativeDay(session.completedAt, mountedAt)}
               </ThemedText>
             </View>
           </Card>

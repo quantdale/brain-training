@@ -442,7 +442,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
                   type="small"
                   themeColor="textSecondary"
                   testID={testId(GAME_ID, 'round-why')}>
-                  "{state.round.correctWord}" means the same as "{state.round.prompt}"
+                  {`"${state.round.correctWord}" means the same as "${state.round.prompt}"`}
                 </ThemedText>
               </View>
               <View style={styles.options}>

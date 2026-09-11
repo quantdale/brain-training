@@ -6,7 +6,7 @@
  * indicator snaps with no transition while selection itself stays immediate.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
@@ -40,7 +40,9 @@ export function SegmentedControl({ options, value, onChange, testID, compact = f
     0,
     options.findIndex((option) => option.value === value),
   );
-  const position = useRef(new Animated.Value(selectedIndex)).current;
+  // Lazy state (not a ref) so the animated value is created once without
+  // being read through a ref during render.
+  const [position] = useState(() => new Animated.Value(selectedIndex));
   const [innerWidth, setInnerWidth] = useState(0);
 
   useEffect(() => {
