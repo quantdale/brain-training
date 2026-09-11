@@ -24,6 +24,9 @@ describe('StreakCard', () => {
     expect(getByTestId('home-streak-card-tracker')).toBeTruthy();
     expect(getByLabelText(/3 day streak/)).toBeTruthy();
     expect(getByLabelText(/3 active days in the last week/)).toBeTruthy();
+    // The streak beat must tease the next milestone (reference: the streak
+    // always shows where it is going).
+    expect(getByTestId('home-streak-card-next-milestone')).toBeTruthy();
   });
 
   it('renders the at-risk nudge only when flagged', async () => {
@@ -47,8 +50,9 @@ describe('LevelCard', () => {
 
     expect(getByTestId('home-stat-level')).toBeTruthy();
     expect(getByTestId('home-stat-xp')).toBeTruthy();
-    expect(getByText('Level 2')).toBeTruthy();
-    expect(getByText(/150 XP/)).toBeTruthy();
+    expect(getByText('Level')).toBeTruthy();
+    expect(getByText('2')).toBeTruthy();
+    expect(getByTestId('home-stat-xp').props.children.join('')).toContain('150');
     expect(getByText(/XP to Level 3/)).toBeTruthy();
   });
 

@@ -14,7 +14,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { Elevation, Radii, Spacing, type ElevationName, type ThemeColor } from '@/theme/tokens';
@@ -28,8 +28,12 @@ export type CardVariant = 'plain' | 'outlined' | 'raised' | 'hero';
 /** Internal padding steps. */
 export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 
-/** Props accepted by {@link Card}. */
-export interface CardProps {
+/**
+ * Props accepted by {@link Card}. Remaining View props (live regions,
+ * `pointerEvents`, layout callbacks) pass straight through, because a card is
+ * often the element that carries an announcement or an interaction boundary.
+ */
+export interface CardProps extends Omit<ViewProps, 'style' | 'children' | 'hitSlop'> {
   children: ReactNode;
   variant?: CardVariant;
   /** Family soft-fill token (e.g. `successSoft`, `xpSoft`) used as background. */
@@ -73,6 +77,7 @@ export function Card({
   accessibilityLabel,
   accessibilityHint,
   style,
+  ...rest
 }: CardProps) {
   const theme = useTheme();
   const surface: ViewStyle = {
@@ -92,14 +97,23 @@ export function Card({
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
         style={[styles.card, surface, style]}
-        pressedStyle={{ backgroundColor: tone ? theme[tone] : theme.backgroundSelected, opacity: 0.94 }}>
+        pressedStyle={{ backgroundColor: tone ? theme[tone] : theme.backgroundSelected, opacity: 0.94 }}
+        {...rest}>
         {children}
       </Tappable>
     );
   }
 
   return (
-    <View testID={testID} style={[styles.card, surface, style]}>
+    <View
+      testID={testID}
+      // A non-pressable card can still be the element a screen reader lands
+      // on (a streak summary, a reward block), so the label is applied here
+      // too rather than only on the pressable variant.
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      style={[styles.card, surface, style]}
+      {...rest}>
       {children}
     </View>
   );

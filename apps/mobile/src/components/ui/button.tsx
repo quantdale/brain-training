@@ -21,6 +21,7 @@ import {
   View,
   type AccessibilityState,
   type Pressable,
+  type PressableProps,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -66,6 +67,13 @@ export interface ButtonProps {
   ref?: React.Ref<React.ComponentRef<typeof Pressable>>;
 }
 
+/**
+ * Button props plus any remaining pressable props, so a caller can attach a
+ * live region or a layout callback without the kit having to enumerate them.
+ */
+export type ButtonComponentProps = ButtonProps &
+  Omit<PressableProps, keyof ButtonProps | 'style' | 'children' | 'hitSlop' | 'onPressIn' | 'onPressOut'>;
+
 const HEIGHT: Record<ButtonSize, number> = { sm: 40, md: 48, lg: 56 };
 const LABEL_TYPE: Record<ButtonSize, 'bodySmall' | 'body' | 'bodyLarge'> = {
   sm: 'bodySmall',
@@ -96,7 +104,7 @@ function resolveVariant(variant: ButtonVariant, theme: ColorTheme) {
  * haptics, reduced motion and the 44 dp floor are inherited rather than
  * re-implemented.
  */
-export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonProps>(function Button({
+export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonComponentProps>(function Button({
   label,
   sublabel,
   onPress,
@@ -113,7 +121,8 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
   accessibilityState,
   style,
   ref,
-}: ButtonProps) {
+  ...rest
+}: ButtonComponentProps) {
   const theme = useTheme();
   const colors = resolveVariant(variant, theme);
   const inactive = disabled || loading;
@@ -144,7 +153,8 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonPro
         inactive && styles.inactive,
         style,
       ]}
-      pressedStyle={variant === 'primary' ? { backgroundColor: theme.accentStrong } : { opacity: 0.86 }}>
+      pressedStyle={variant === 'primary' ? { backgroundColor: theme.accentStrong } : { opacity: 0.86 }}
+      {...rest}>
       {loading ? (
         <ActivityIndicator color={theme[colors.label]} size="small" />
       ) : (

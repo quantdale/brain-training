@@ -1,19 +1,18 @@
 /**
  * Shell state cards — one consistent presentation for empty / loading / error
- * states across the shell screens (W13).
+ * states across the shell screens.
  *
- * Every variant renders inside a surface card with a polite live region so
- * screen readers announce state transitions (e.g. loaded → error) instead of
- * silently re-rendering. The optional action is a single pill button; routing
- * stays at the call site via `onPress` so this component stays router-free.
+ * Built on the kit so the three states look like the rest of the app: loading
+ * shows skeleton lines (a bare spinner told the player nothing about what was
+ * coming), empty/error show a titled block with exactly one next step, and the
+ * card keeps a polite live region so state transitions are announced.
  */
 
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { MinTouchTarget } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { Button, Card, Skeleton } from '@/components/ui';
+import { Spacing } from '@/theme/tokens';
 
 export type StateCardVariant = 'empty' | 'loading' | 'error';
 
@@ -41,55 +40,40 @@ export function StateCard({
   action?: StateCardAction;
 }) {
   return (
-    <ThemedView
-      type="surface"
-      style={styles.card}
-      testID={testID}
-      accessibilityLiveRegion="polite">
+    <Card variant="plain" testID={testID} accessibilityLiveRegion="polite">
       {variant === 'loading' ? (
-        <ActivityIndicator testID={testID ? `${testID}-spinner` : undefined} />
+        <View style={styles.skeleton} testID={testID ? `${testID}-skeleton` : undefined}>
+          <Skeleton height={Spacing.three} width="60%" />
+          <Skeleton height={Spacing.twoHalf} width="90%" />
+        </View>
       ) : null}
-      <ThemedText type="subtitle">{title}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
+      <ThemedText type="headline" themeColor={variant === 'error' ? 'dangerText' : 'text'}>
+        {title}
+      </ThemedText>
+      <ThemedText type="bodySmall" themeColor="textSecondary">
         {message}
       </ThemedText>
       {action ? (
-        <Pressable
+        <Button
           testID={testID ? `${testID}-action` : undefined}
-          accessibilityRole="button"
+          label={action.label}
           accessibilityLabel={action.accessibilityLabel ?? action.label}
-          onPress={action.onPress}>
-          <ThemedView
-            type={variant === 'error' ? 'accentSoft' : 'surface'}
-            style={[styles.actionPill, variant !== 'error' && styles.actionBordered]}>
-            <ThemedText type="smallBold" themeColor="accent">
-              {action.label}
-            </ThemedText>
-          </ThemedView>
-        </Pressable>
+          variant={variant === 'error' ? 'secondary' : 'ghost'}
+          size="sm"
+          fullWidth={false}
+          onPress={action.onPress}
+          style={styles.action}
+        />
       ) : null}
-    </ThemedView>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
+  skeleton: {
     gap: Spacing.two,
   },
-  actionPill: {
-    ...MinTouchTarget,
-    alignSelf: 'flex-start',
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
+  action: {
     marginTop: Spacing.one,
-  },
-  // Non-error actions sit on the same surface color as the card, so give them
-  // a hairline border to stay visible; error actions use accentSoft instead.
-  actionBordered: {
-    borderWidth: 1,
-    borderColor: 'rgba(120,120,140,0.2)',
   },
 });

@@ -17,9 +17,9 @@
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Elevation, Radii, Spacing } from '@/constants/theme';
-import type { ThemeColor } from '@/constants/theme';
+import { Card } from '@/components/ui/card';
+import { Radii, Spacing } from '@/theme/tokens';
+import type { ThemeColor } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 export type FeedbackCardTone = 'success' | 'danger' | 'warning' | 'accent' | 'streak' | 'neutral';
@@ -70,11 +70,7 @@ export function FeedbackCard({
   const foreground = theme[TONE_FOREGROUND[tone]];
 
   return (
-    <ThemedView
-      type={TONE_BACKGROUND[tone]}
-      style={styles.card}
-      testID={testID}
-      accessibilityLiveRegion={accessibilityLiveRegion}>
+    <Card tone={TONE_BACKGROUND[tone]} testID={testID} accessibilityLiveRegion={accessibilityLiveRegion}>
       <View style={styles.header}>
         {emoji !== undefined ? (
           <View
@@ -86,28 +82,22 @@ export function FeedbackCard({
           </View>
         ) : null}
         <View style={styles.textColumn}>
-          <ThemedText type="subtitle" style={{ color: foreground }}>
+          <ThemedText type="headline" style={{ color: foreground }}>
             {title}
           </ThemedText>
           {detail !== undefined ? (
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="bodySmall" themeColor="textSecondary">
               {detail}
             </ThemedText>
           ) : null}
         </View>
       </View>
       {children}
-    </ThemedView>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.three,
-    gap: Spacing.two,
-    ...Elevation.card,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

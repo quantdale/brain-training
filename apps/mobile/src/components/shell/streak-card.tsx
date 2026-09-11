@@ -1,21 +1,22 @@
 /**
- * StreakCard — Home engagement hero (campaign 023).
+ * StreakCard — Home engagement surface.
  *
- * Presents the reconstructed streak state as a vibrant first-viewport card:
- * flame mark, current day count, and a trailing 7-day activity tracker built
- * from authoritative session/coverage dates (freeze/recovery dates count as
- * active, matching the shared streak model in `@/streaks`). An at-risk nudge
- * renders when today has no activity yet. Purely presentational: the caller
- * owns date loading and reconstruction.
+ * Reference anatomy (Imprint/Foodvisor streak beat, `PATTERNS-PLAY` 18): flame
+ * with count → "N day streak" → day strip → next-milestone tease, in that
+ * order and no longer. The count is the hero numeral; the strip shows weekly
+ * shape; the tease gives the streak somewhere to go.
+ *
+ * Purely presentational: the caller owns date loading and reconstruction, and
+ * `@/streaks` owns what counts as activity (freeze/recovery dates count).
  */
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Elevation, Radii, Spacing } from '@/constants/theme';
+import { Card } from '@/components/ui';
 import { useTheme } from '@/hooks/use-theme';
-import { previousDate, toUtcDate } from '@/streaks';
+import { STREAK_MILESTONES, previousDate, toUtcDate } from '@/streaks';
+import { Radii, Spacing } from '@/theme/tokens';
 
 const WEEKDAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
 const TRACKER_DAYS = 7;
@@ -60,31 +61,33 @@ export function StreakCard({
   }, [today]);
 
   const activeCount = days.filter((day) => activeDates.has(day)).length;
+  // Next unreached milestone, so the streak always has a visible next step.
+  const nextMilestone = STREAK_MILESTONES.find((milestone) => milestone.days > current);
+  const daysToNext = nextMilestone ? nextMilestone.days - current : null;
   const accessibilityLabel = `${current} day streak. ${activeCount} active day${
     activeCount === 1 ? '' : 's'
-  } in the last week.${atRisk ? ' Play today to keep your streak alive.' : ''}`;
+  } in the last week.${
+    daysToNext !== null && nextMilestone
+      ? ` ${daysToNext} day${daysToNext === 1 ? '' : 's'} to ${nextMilestone.label}.`
+      : ''
+  }${atRisk ? ' Play today to keep your streak alive.' : ''}`;
 
   return (
-    <ThemedView
-      type="surface"
-      style={styles.card}
-      testID={testID}
-      accessible
-      accessibilityLabel={accessibilityLabel}>
+    <Card variant="plain" testID={testID} accessibilityLabel={accessibilityLabel}>
       <View style={styles.header}>
         <View style={[styles.flameCircle, { backgroundColor: theme.streakSoft }]}>
-          <ThemedText type="subtitle" allowFontScaling={false} testID={`${testID}-flame`}>
+          <ThemedText type="bodyLarge" allowFontScaling={false} testID={`${testID}-flame`}>
             🔥
           </ThemedText>
         </View>
         <View style={styles.headerText}>
           <ThemedText
-            type="display"
+            type="numeralXl"
             style={[styles.count, { color: theme.streak }]}
             testID="home-stat-streak">
             {current}
           </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="bodySmall" themeColor="textSecondary">
             day streak
           </ThemedText>
         </View>
@@ -97,20 +100,37 @@ export function StreakCard({
           const parsed = toUtcDate(day);
           const initial = parsed ? WEEKDAY_INITIALS[parsed.getUTCDay()] : '·';
           return (
-            <View key={day} style={styles.dayColumn} testID={`${testID}-day-${index}`}>
+            <View
+              key={day}
+              style={styles.dayColumn}
+              testID={`${testID}-day-${index}`}
+              accessible
+              accessibilityLabel={`${initial}: ${
+                isToday && isActive
+                  ? 'today, active'
+                  : isToday
+                    ? 'today, not yet active'
+                    : isActive
+                      ? 'active'
+                      : 'rest day'
+              }`}>
               <View
                 style={[
                   styles.dot,
-                  {
-                    backgroundColor: isActive ? theme.streak : theme.backgroundElement,
-                    borderColor: isToday ? theme.streak : 'transparent',
-                  },
-                ]}
-              />
-              <ThemedText
-                type="caption"
-                themeColor={isToday ? 'text' : 'textSecondary'}
-                allowFontScaling={false}>
+                  isActive
+                    ? { backgroundColor: theme.streak }
+                    : { backgroundColor: theme.surfaceSunken },
+                  // Today reads as a ring rather than a colour, so the "today"
+                  // position survives a colour-blind or greyscale rendering.
+                  isToday && { borderColor: theme.streak, borderWidth: 2 },
+                ]}>
+                {isActive ? (
+                  <ThemedText type="caption" allowFontScaling={false} style={{ color: theme.streakOn }}>
+                    ✓
+                  </ThemedText>
+                ) : null}
+              </View>
+              <ThemedText type="caption" themeColor={isToday ? 'text' : 'textMuted'} allowFontScaling={false}>
                 {initial}
               </ThemedText>
             </View>
@@ -118,63 +138,68 @@ export function StreakCard({
         })}
       </View>
 
+      {daysToNext !== null && nextMilestone ? (
+        <ThemedText type="caption" themeColor="textSecondary" testID={`${testID}-next-milestone`}>
+          {daysToNext} day{daysToNext === 1 ? '' : 's'} to {nextMilestone.label}
+          {nextMilestone.rewardXp ? ` · +${nextMilestone.rewardXp} XP` : ''}
+        </ThemedText>
+      ) : null}
+
       {atRisk ? (
         <View
           style={[styles.atRisk, { backgroundColor: theme.warningSoft }]}
           testID="home-streak-at-risk">
-          <ThemedText type="caption" themeColor="warning">
+          <ThemedText type="caption" themeColor="warningSoftText">
             Play today to keep your streak alive.
           </ThemedText>
         </View>
       ) : null}
-    </ThemedView>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.three,
-    gap: Spacing.twoHalf,
-    ...Elevation.card,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.twoHalf,
   },
+  headerText: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  count: {
+    lineHeight: undefined,
+  },
   flameCircle: {
-    width: 52,
-    height: 52,
+    width: 48,
+    height: 48,
     borderRadius: Radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  headerText: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  count: {
-    fontWeight: '700',
   },
   tracker: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: Spacing.one,
+    marginTop: Spacing.two,
   },
   dayColumn: {
     alignItems: 'center',
-    gap: Spacing.half,
+    gap: Spacing.one,
+    flex: 1,
   },
   dot: {
-    width: 22,
-    height: 22,
+    width: 28,
+    height: 28,
     borderRadius: Radii.pill,
-    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   atRisk: {
     borderRadius: Radii.medium,
+    paddingHorizontal: Spacing.twoHalf,
     paddingVertical: Spacing.oneHalf,
-    paddingHorizontal: Spacing.two,
+    marginTop: Spacing.two,
   },
 });

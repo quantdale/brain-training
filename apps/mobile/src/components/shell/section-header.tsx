@@ -1,21 +1,25 @@
 /**
  * SectionHeader — consistent section heading with an optional drill-down
- * action (W13).
+ * action.
  *
- * Used across the shell screens so every section reads the same: a subtitle
- * headline, optional one-line caption, and at most one right-aligned text
- * action ("See all"). The action is a plain callback; callers own routing and
- * any typed-route casts.
+ * Every section across the shell reads the same: an optional eyebrow, the
+ * section title, an optional one-line caption, and at most one right-aligned
+ * action ("See all"). Sections that have deeper content should offer that
+ * action — the reference research is explicit that sections otherwise end
+ * dead and shortchange scanability.
+ *
+ * The action is a plain callback; callers own routing.
  */
 
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { MinTouchTarget } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Tappable } from '@/components/ui/tappable';
+import { Spacing } from '@/theme/tokens';
 
 export function SectionHeader({
   title,
+  eyebrow,
   caption,
   actionLabel,
   onActionPress,
@@ -23,6 +27,8 @@ export function SectionHeader({
   actionAccessibilityLabel,
 }: {
   title: string;
+  /** Optional uppercase label above the title (domain, period, purpose). */
+  eyebrow?: string;
   /** Optional secondary line under the title. */
   caption?: string;
   /** Optional right-aligned action label ("See all"); hidden when omitted. */
@@ -34,7 +40,12 @@ export function SectionHeader({
   return (
     <View style={styles.row}>
       <View style={styles.text}>
-        <ThemedText type="subtitle">{title}</ThemedText>
+        {eyebrow ? (
+          <ThemedText type="eyebrow" themeColor="textMuted">
+            {eyebrow}
+          </ThemedText>
+        ) : null}
+        <ThemedText type="headline">{title}</ThemedText>
         {caption ? (
           <ThemedText type="caption" themeColor="textSecondary">
             {caption}
@@ -42,15 +53,16 @@ export function SectionHeader({
         ) : null}
       </View>
       {actionLabel && onActionPress ? (
-        <Pressable
+        <Tappable
           testID={actionTestID}
-          accessibilityRole="button"
           accessibilityLabel={actionAccessibilityLabel ?? actionLabel}
-          onPress={onActionPress}>
-          <ThemedText type="smallBold" themeColor="accent" style={MinTouchTarget}>
+          feedback="tap"
+          onPress={onActionPress}
+          style={styles.action}>
+          <ThemedText type="label" themeColor="accentText">
             {actionLabel}
           </ThemedText>
-        </Pressable>
+        </Tappable>
       ) : null}
     </View>
   );
@@ -66,5 +78,9 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     gap: Spacing.half,
+  },
+  // Text-sized actions still honour the 44 dp interaction floor.
+  action: {
+    paddingHorizontal: Spacing.one,
   },
 });
