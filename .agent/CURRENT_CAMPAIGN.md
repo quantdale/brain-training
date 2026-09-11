@@ -1,42 +1,42 @@
-# Campaign 025 — Game Board Feedback Consistency
+# Campaign 026 — Visual Identity Rebuild ("Neon Arcade")
 
-**Status:** VALIDATED / TERMINAL
-**Campaign id:** `025-game-board-feedback-consistency`
-**Predecessor:** `024-frontend-ux-modernization` (VALIDATED)
+**Status:** ACTIVE
+**Campaign id:** `026-visual-identity-rebuild`
+**Predecessor:** `025-game-board-feedback-consistency` (VALIDATED)
 **Mode:** day
-**Baseline SHA:** `2a1ba4e` (activation docs on `7530175`)
-**Closure SHA:** `fe80a2c`
+**Baseline SHA:** `6f420cc`
+**Change:** `026-visual-identity-rebuild` (ACTIVE)
+**Authorization:** owner directive recorded 2026-09-12 — drastic whole-frontend
+redesign, Refero-researched, Duolingo/Brilliant/Mindllama/Pinkllama-inspired,
+proven by native before/after evidence.
 
-## Terminal outcome
+## Mission
 
-Campaign 025 finished what Campaign 024 started. All 31 remaining game boards
-adopted the shared verdict language — soft verdict fill, verdict border, ✓/✕/⏱
-badge hidden from assistive tech, verdict in the accessible name, wrong pick
-shown with the correct answer where the mechanic reveals it, the prompt
-mounted through feedback, and feedback derived from the reducer's resolved
-outcome. Games with finite sessions report `GameHost` `roundProgress` (41 of
-42; `memory-sequence-memory` is a time-boxed score attack with no total and
-correctly keeps the round chip). Score read-outs animate through
-`AnimatedNumber`.
+Replace the visual/interaction identity itself: new palette, typography,
+geometry, motion, celebration and composition across the shell, kit, routes
+and game chrome — without touching gameplay, scoring, generators, persistence
+or the automation surface (every existing testID survives). The owner's
+acceptance test is native before/after frames showing a visibly transformed
+product.
 
-The diff is presentation-only: no reducer, generator, scoring, difficulty,
-session, persistence or version file changed, and every existing testID
-survived.
+## Where the detail lives
 
-## Evidence
+- `openspec/changes/026-visual-identity-rebuild/EXECUTION.md` — mission, read
+  order, work model, validation, exit gate.
+- `proposal.md`, `design.md`, `specs/**`, `tasks.md`.
+- `research/refero-identity.md` + the Campaign 024 research briefs.
 
-- Jest 535 suites / 6409 tests PASS (5 allowlisted skips); `tsc` clean;
-  `expo lint` clean; all repository validators PASS at `fe80a2c`.
-- Autobot canaries **8/8 PASS** on the dev build at `fe80a2c`.
-- Native before/after board pairs in
-  `qa-artifacts/campaign025/boards-{before,after}/**` (memory-grid-recall,
-  math-value-ordering, speed-color-match, logic-deduction-table,
-  language-word-chain).
-- Full detail: `.agent/VALIDATION.md` → "Campaign 025" section.
+## Baseline evidence
 
-## Do not restart
+- Pre-redesign native captures: `qa-artifacts/campaign026/before/**`
+  (emulator-5560, light/dark, default profile).
+- Campaign 025's before/after board pairs remain the 025 record; 026 captures
+  replace them with the new identity.
 
-This campaign is terminal. A successor (the owner's frontend redesign
-directive) is opened as its own campaign with its own OpenSpec packet. Use
-`openspec/changes/025-game-board-feedback-consistency/**`,
-`.agent/VALIDATION.md` and the capture artifacts as evidence/history.
+## Do not
+
+- Do not change mechanics, scoring, generators, difficulty, session timing,
+  persistence or testIDs.
+- Do not add native dependencies or image assets; celebration/illustration is
+  code-native Views/transforms.
+- Do not reopen Campaign 024/025 decisions; build on them.

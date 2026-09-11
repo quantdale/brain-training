@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "026-visual-identity-rebuild",
   "lastCampaign": "025-game-board-feedback-consistency",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {

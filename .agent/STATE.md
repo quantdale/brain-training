@@ -2,7 +2,7 @@
 
 **Last update:** 2026-09-12 — Campaign 025 closed VALIDATED (game board feedback consistency).
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `026-visual-identity-rebuild`
 **Last campaign:** `025-game-board-feedback-consistency`
 **Last campaign status:** VALIDATED
 

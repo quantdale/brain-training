@@ -1,0 +1,32 @@
+{
+  "id": "026-visual-identity-rebuild",
+  "status": "ACTIVE",
+  "predecessor": "025-game-board-feedback-consistency",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "visual-identity",
+    "kit-rebuild",
+    "shell-and-routes",
+    "game-experience",
+    "celebration-moments",
+    "native-verification"
+  ],
+  "activationRule": "Owner directive recorded 2026-09-12 (handoff from the owner's own session, quoted verbatim in EXECUTION.md): the entire UI/UX frontend 'still looks the same and it sucks'; extremely drastic changes to the entire frontend are permitted; use Refero MCP continuously; take inspiration from iOS apps like Duolingo, Brilliant, Mindllama, Pinkllama; do not stop until the result exists as native before/after evidence showing a visibly transformed product. Genuinely new scope after Campaign 025 validated the consistency layer: this campaign replaces the visual/interaction identity itself — palette, typography, geometry, motion, illustration/composition, celebration — instead of extending the Campaign 024 language.",
+  "baselineAuditCommit": "6f420cc",
+  "baselineEvidence": {
+    "captureDevice": "braintraining-ui35 (emulator-5560), GPU-enabled",
+    "nativeBaselineScreenshots": "qa-artifacts/campaign026/before/**",
+    "priorResearch": [
+      "openspec/changes/024-frontend-ux-modernization/research/refero-core-screens.md",
+      "openspec/changes/024-frontend-ux-modernization/research/refero-play-screens.md",
+      "openspec/changes/026-visual-identity-rebuild/research/refero-identity.md"
+    ]
+  },
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": false
+}

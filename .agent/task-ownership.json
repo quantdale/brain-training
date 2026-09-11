@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "lifecycleStatus": "ACTIVE",
-  "change": "025-game-board-feedback-consistency",
-  "description": "Campaign 025 game-board feedback consistency. Orchestrator owns the shared layers (theme, platform, kit, shell, game chrome, docs, scripts); eight packets own disjoint game-module directories and must report shared-file needs instead of editing them.",
+  "change": "026-visual-identity-rebuild",
+  "description": "Campaign 026 visual identity rebuild. The orchestrator owns the shared identity surfaces (theme tokens, contrast harness, UI kit, shell chrome, game chrome, docs, scripts, generated files); surface packets own disjoint route/component directories and must report shared-file needs instead of editing them. Mechanics files are out of scope for every packet.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
@@ -19,13 +19,7 @@
     "apps/mobile/src/hooks/**",
     "apps/mobile/src/games/*/game.json",
     "apps/mobile/src/registry/**",
-    "apps/mobile/src/components/ui/index.ts",
-    "apps/mobile/src/components/ui/button.tsx",
-    "apps/mobile/src/components/ui/card.tsx",
-    "apps/mobile/src/components/ui/tappable.tsx",
-    "apps/mobile/src/components/ui/motion.ts",
-    "apps/mobile/src/components/ui/copy.ts",
-    "apps/mobile/src/components/ui/__tests__/kit-contract.test.tsx",
+    "apps/mobile/src/components/ui/**",
     "apps/mobile/src/components/shell/**",
     "apps/mobile/src/components/a11y/**",
     "apps/mobile/src/components/game-host/**",
@@ -35,138 +29,91 @@
     "apps/mobile/src/components/app-tabs.web.tsx",
     "apps/mobile/src/components/error-boundary.tsx",
     "apps/mobile/src/components/game-not-ready.tsx",
+    "apps/mobile/src/components/progress-charts.tsx",
     "apps/mobile/src/rewards/celebration.tsx",
     "apps/mobile/src/app/_layout.tsx",
     "apps/mobile/src/app/(tabs)/_layout.tsx",
-    "apps/mobile/src/app/game/**",
-    "apps/mobile/src/app/storage-unavailable.tsx",
-    "apps/mobile/src/app/__tests__/visual-baselines.test.tsx",
-    "apps/mobile/src/app/__tests__/__snapshots__/**"
+    "apps/mobile/src/app/__tests__/**"
   ],
   "generatedFilePatterns": [
     "**/*.generated.ts",
     "**/registry.generated.ts",
     "apps/mobile/src/registry/registry.generated.ts"
   ],
+  "prohibitedSurfaces": [
+    "apps/mobile/src/games/*/reducer.ts",
+    "apps/mobile/src/games/*/generator.ts",
+    "apps/mobile/src/games/*/scoring.ts",
+    "apps/mobile/src/games/*/difficulty.ts",
+    "apps/mobile/src/games/*/session.ts",
+    "apps/mobile/src/games/*/versions.ts",
+    "apps/mobile/src/db/**",
+    "apps/mobile/src/sdk/**",
+    "apps/mobile/src/analytics/**",
+    "apps/mobile/src/sync/**",
+    "apps/mobile/src/data-portability/**"
+  ],
   "parallelPackets": [
     {
-      "id": "P1-attention",
-      "wave": "A",
-      "objective": "Apply the shared verdict language and animated score read-outs to attention-sustained-vigilance, attention-target-count without touching mechanics.",
+      "id": "P1-home-library",
+      "wave": "S1",
+      "objective": "Recompose Home, the Games library and game detail on the new identity: one hero loop, identity-coloured catalog, single-path resume block, designed empty/featured treatments.",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/attention-sustained-vigilance/**",
-        "apps/mobile/src/games/attention-target-count/**"
+        "apps/mobile/src/app/(tabs)/index.tsx",
+        "apps/mobile/src/app/(tabs)/games.tsx",
+        "apps/mobile/src/app/game-detail/**",
+        "apps/mobile/src/components/discovery/**",
+        "apps/mobile/src/components/spotlight/**"
       ],
       "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/attention-sustained-vigilance src/games/attention-target-count"
+      "completionCriteria": "Surfaces use kit primitives and tokens only; every existing testID and route intact; the screen-specific tests pass; a native capture shows the recomposition.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app/__tests__/games-library.test.tsx src/app/__tests__/app-shell.test.tsx"
     },
     {
-      "id": "P2-flexibility",
-      "wave": "A",
-      "objective": "Apply the shared verdict language and animated score read-outs to flexibility-color-stroop, flexibility-cue-shift, flexibility-rule-flip, flexibility-task-switch without touching mechanics.",
+      "id": "P2-progress",
+      "wave": "S1",
+      "objective": "Recompose the Progress suite as identity chart cards with readable axes/zero states, insight pairs and a rhythm view.",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/flexibility-color-stroop/**",
-        "apps/mobile/src/games/flexibility-cue-shift/**",
-        "apps/mobile/src/games/flexibility-rule-flip/**",
-        "apps/mobile/src/games/flexibility-task-switch/**"
+        "apps/mobile/src/app/(tabs)/progress.tsx",
+        "apps/mobile/src/app/progress-detail.tsx",
+        "apps/mobile/src/app/progress-domain.tsx",
+        "apps/mobile/src/app/progress-game.tsx",
+        "apps/mobile/src/app/progress-activity.tsx",
+        "apps/mobile/src/components/mastery/**"
       ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/flexibility-color-stroop src/games/flexibility-cue-shift src/games/flexibility-rule-flip src/games/flexibility-task-switch"
+      "sharedSurfaces": ["apps/mobile/src/components/progress-charts.tsx"],
+      "completionCriteria": "Progress surfaces use identity colours per domain/metric, designed empty states, and keep every testID; progress tests pass.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app/__tests__/progress-detail.test.tsx src/app/__tests__/progress-insights.test.tsx src/analytics/__tests__/progress-screens.test.tsx"
     },
     {
-      "id": "P3-language",
-      "wave": "A",
-      "objective": "Apply the shared verdict language and animated score read-outs to language-context-fit, language-sentence-builder, language-word-chain, language-word-scramble without touching mechanics.",
+      "id": "P3-profile-rewards-data",
+      "wave": "S1",
+      "objective": "Recompose Profile, Rewards and Data management: hero metric grid with one accent card, badge gallery with three achievement states, designed empty/backup states.",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/language-context-fit/**",
-        "apps/mobile/src/games/language-sentence-builder/**",
-        "apps/mobile/src/games/language-word-chain/**",
-        "apps/mobile/src/games/language-word-scramble/**"
+        "apps/mobile/src/app/(tabs)/profile.tsx",
+        "apps/mobile/src/app/rewards.tsx",
+        "apps/mobile/src/app/data-management.tsx",
+        "apps/mobile/src/components/settings/**"
       ],
       "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/language-context-fit src/games/language-sentence-builder src/games/language-word-chain src/games/language-word-scramble"
+      "completionCriteria": "Reward states are visually distinct; every testID intact; the route tests pass.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app/__tests__/data-management.test.tsx"
     },
     {
-      "id": "P4-logic",
-      "wave": "A",
-      "objective": "Apply the shared verdict language and animated score read-outs to logic-code-cracker, logic-deduction-table, logic-order-path, logic-rule-grid without touching mechanics.",
+      "id": "P4-results-workout",
+      "wave": "S1",
+      "objective": "Recompose Results (celebration-first, equal metric columns, one CTA) and the workout surfaces on the new identity.",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/logic-code-cracker/**",
-        "apps/mobile/src/games/logic-deduction-table/**",
-        "apps/mobile/src/games/logic-order-path/**",
-        "apps/mobile/src/games/logic-rule-grid/**"
+        "apps/mobile/src/app/results.tsx",
+        "apps/mobile/src/components/workout/**"
       ],
       "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/logic-code-cracker src/games/logic-deduction-table src/games/logic-order-path src/games/logic-rule-grid"
-    },
-    {
-      "id": "P5-math",
-      "wave": "A",
-      "objective": "Apply the shared verdict language and animated score read-outs to math-missing-operator, math-number-line-estimation, math-value-ordering without touching mechanics.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/math-missing-operator/**",
-        "apps/mobile/src/games/math-number-line-estimation/**",
-        "apps/mobile/src/games/math-value-ordering/**"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/math-missing-operator src/games/math-number-line-estimation src/games/math-value-ordering"
-    },
-    {
-      "id": "P6-memory",
-      "wave": "A",
-      "objective": "Apply the shared verdict language and animated score read-outs to memory-grid-recall, memory-pair-recall, memory-pattern-tap-back, memory-prospective-cue, memory-running-order, memory-sequence-memory without touching mechanics.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/memory-grid-recall/**",
-        "apps/mobile/src/games/memory-pair-recall/**",
-        "apps/mobile/src/games/memory-pattern-tap-back/**",
-        "apps/mobile/src/games/memory-prospective-cue/**",
-        "apps/mobile/src/games/memory-running-order/**",
-        "apps/mobile/src/games/memory-sequence-memory/**"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/memory-grid-recall src/games/memory-pair-recall src/games/memory-pattern-tap-back src/games/memory-prospective-cue src/games/memory-running-order src/games/memory-sequence-memory"
-    },
-    {
-      "id": "P7-spatial",
-      "wave": "A",
-      "objective": "Apply the shared verdict language and animated score read-outs to spatial-coordinate-turn, spatial-fold-match, spatial-grid-nav, spatial-mental-rotation without touching mechanics.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/spatial-coordinate-turn/**",
-        "apps/mobile/src/games/spatial-fold-match/**",
-        "apps/mobile/src/games/spatial-grid-nav/**",
-        "apps/mobile/src/games/spatial-mental-rotation/**"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/spatial-coordinate-turn src/games/spatial-fold-match src/games/spatial-grid-nav src/games/spatial-mental-rotation"
-    },
-    {
-      "id": "P8-speed",
-      "wave": "B",
-      "objective": "Apply the shared verdict language and animated score read-outs to speed-color-match, speed-order-sweep, speed-quick-compare, speed-reaction-time without touching mechanics.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/games/speed-color-match/**",
-        "apps/mobile/src/games/speed-order-sweep/**",
-        "apps/mobile/src/games/speed-quick-compare/**",
-        "apps/mobile/src/games/speed-reaction-time/**"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Each game presents verdicts through fill + boundary/shape + glyph, keeps the prompt visible, derives feedback from the reducer outcome, animates score changes, and keeps every existing testID; the game unit suites pass unmodified.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/speed-color-match src/games/speed-order-sweep src/games/speed-quick-compare src/games/speed-reaction-time"
+      "completionCriteria": "Results leads with the outcome and keeps every results-* selector; workout suite tests pass.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app/__tests__/results-workout-cta.test.tsx src/workout"
     }
   ]
 }
