@@ -1,14 +1,14 @@
 # Campaign 024 — Frontend UX Modernization
 
-**Status:** VALIDATED
-**Campaign id:** `024-frontend-ux-modernization`
-**Predecessor:** `023-production-gamification-overhaul` (VALIDATED)
+**Status:** ACTIVE
+**Campaign id:** `025-game-board-feedback-consistency`
+**Predecessor:** `024-frontend-ux-modernization` (VALIDATED)
 **Mode:** day
-**Change:** `024-frontend-ux-modernization` (VALIDATED; no active campaign)
+**Change:** `025-game-board-feedback-consistency` (ACTIVE)
 **Authorization:** explicit owner goal-mode directive on 2026-09-11 (new scope
 after Campaign 023's terminal closure).
 **Baseline SHA:** `0402279`
-**Closure SHA:** `082f678` (implementation through the same commit)
+**Baseline SHA:** `2a1ba4e`
 
 ## Terminal outcome
 

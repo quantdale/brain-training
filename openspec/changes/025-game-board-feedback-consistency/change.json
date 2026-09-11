@@ -1,0 +1,16 @@
+{
+  "id": "025-game-board-feedback-consistency",
+  "status": "ACTIVE",
+  "predecessor": "024-frontend-ux-modernization",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["board-feedback-consistency", "hud-round-progress"],
+  "activationRule": "Continuation of the owner's 2026-09-11 goal-mode directive ('significantly improve the project... across the entire frontend') after Campaign 024 closed VALIDATED. Campaign 024 applied the shared answer-feedback language to eight category canaries and the late-tap games; 31 game boards still carry their own verdict styling. This campaign closes that consistency gap and wires real round progress into the shared HUD.",
+  "baselineAuditCommit": "2a1ba4e",
+  "newGameModulesAllowed": false,
+  "featureExpansionAllowed": false,
+  "fullHardening": false
+}

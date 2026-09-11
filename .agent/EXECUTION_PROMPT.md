@@ -1,7 +1,7 @@
 # Execution Prompt — Campaign 024: Frontend UX Modernization
 
-**Status:** VALIDATED
-**Change:** `024-frontend-ux-modernization`
+**Status:** ACTIVE
+**Change:** `025-game-board-feedback-consistency`
 **Start-SHA:** `0402279`
 **Closure-SHA:** `082f678`
 **Planned-At:** 2026-09-11

@@ -2,7 +2,7 @@
 
 **Last update:** 2026-09-12 — Campaign 024 closed VALIDATED (frontend UX modernization).
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** 025-game-board-feedback-consistency
 **Last campaign:** `024-frontend-ux-modernization`
 **Last campaign status:** VALIDATED
 
