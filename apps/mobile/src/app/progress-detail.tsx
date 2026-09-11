@@ -31,7 +31,7 @@ import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { MiniBarChart } from '@/components/progress-charts';
-import { Card, ListRow, SectionGrid, Skeleton, SkeletonText, Tappable } from '@/components/ui';
+import { BackLink, Card, ListRow, SectionGrid, Skeleton, SkeletonText } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
@@ -114,14 +114,7 @@ export default function ProgressDetailScreen() {
 
   return (
     <ScreenShell>
-      <Tappable
-        testID="progress-detail-back"
-        onPress={() => router.back()}
-        accessibilityLabel="Go back">
-        <ThemedText type="smallBold" themeColor="accent">
-          ‹ Back
-        </ThemedText>
-      </Tappable>
+      <BackLink testID="progress-detail-back" onPress={() => router.back()} />
 
       <ThemedText type="title" testID="progress-detail-title">
         Progress detail

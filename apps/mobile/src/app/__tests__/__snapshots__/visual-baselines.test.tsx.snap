@@ -46,7 +46,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
       tabBarControllerMode="automatic"
     >
       <RNSTabsScreenIOS
-        backgroundColor="#F4F6FC"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -57,8 +57,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         iconColor="#5A6377"
         iconResourceName="house.fill"
         iconType="sfSymbol"
-        indicatorColor="#2563EB"
+        indicatorColor="#E9EFFD"
         isTitleUndefined={false}
+        labelStyle={
+          {
+            "color": "#5A6377",
+          }
+        }
+        labelVisibilityMode="labeled"
         onDidAppear={[Function]}
         onDidDisappear={[Function]}
         onWillAppear={[Function]}
@@ -84,7 +90,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -110,7 +116,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -136,7 +142,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -183,7 +189,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -209,7 +215,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -235,7 +241,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -245,7 +251,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294244092,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -391,6 +397,109 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     >
                       Home
                     </Text>
+                    <View
+                      style={
+                        [
+                          {
+                            "overflow": "hidden",
+                          },
+                          {
+                            "backgroundColor": "#FFFFFF",
+                            "borderRadius": 28,
+                            "boxShadow": "0 12px 32px rgba(16, 20, 40, 0.18)",
+                            "elevation": 10,
+                            "padding": 24,
+                          },
+                          undefined,
+                        ]
+                      }
+                      testID="home-workout-cta"
+                    >
+                      <View
+                        style={
+                          {
+                            "gap": 12,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "gap": 2,
+                            }
+                          }
+                        >
+                          <Text
+                            maxFontSizeMultiplier={2}
+                            style={
+                              [
+                                {
+                                  "color": "#2563EB",
+                                },
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "700",
+                                  "letterSpacing": 0.8,
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            TODAY
+                          </Text>
+                          <Text
+                            maxFontSizeMultiplier={1.6}
+                            style={
+                              [
+                                {
+                                  "color": "#131829",
+                                },
+                                {
+                                  "fontSize": 22,
+                                  "fontWeight": "700",
+                                  "letterSpacing": -0.2,
+                                  "lineHeight": 28,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            Today's Workout
+                          </Text>
+                        </View>
+                        <Text
+                          maxFontSizeMultiplier={2}
+                          style={
+                            [
+                              {
+                                "color": "#5A6377",
+                              },
+                              {
+                                "fontSize": 14,
+                                "fontWeight": "500",
+                                "lineHeight": 20,
+                              },
+                              false,
+                              false,
+                              false,
+                              false,
+                              undefined,
+                            ]
+                          }
+                        >
+                          Your daily 4-game training plan will appear here once games are registered.
+                        </Text>
+                      </View>
+                    </View>
                     <View
                       style={
                         {
@@ -952,109 +1061,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           },
                           {
                             "backgroundColor": "#FFFFFF",
-                            "borderRadius": 28,
-                            "boxShadow": "0 12px 32px rgba(16, 20, 40, 0.18)",
-                            "elevation": 10,
-                            "padding": 24,
-                          },
-                          undefined,
-                        ]
-                      }
-                      testID="home-workout-cta"
-                    >
-                      <View
-                        style={
-                          {
-                            "gap": 12,
-                          }
-                        }
-                      >
-                        <View
-                          style={
-                            {
-                              "gap": 2,
-                            }
-                          }
-                        >
-                          <Text
-                            maxFontSizeMultiplier={2}
-                            style={
-                              [
-                                {
-                                  "color": "#2563EB",
-                                },
-                                {
-                                  "fontSize": 12,
-                                  "fontWeight": "700",
-                                  "letterSpacing": 0.8,
-                                  "lineHeight": 16,
-                                },
-                                false,
-                                false,
-                                false,
-                                false,
-                                undefined,
-                              ]
-                            }
-                          >
-                            TODAY
-                          </Text>
-                          <Text
-                            maxFontSizeMultiplier={1.6}
-                            style={
-                              [
-                                {
-                                  "color": "#131829",
-                                },
-                                {
-                                  "fontSize": 22,
-                                  "fontWeight": "700",
-                                  "letterSpacing": -0.2,
-                                  "lineHeight": 28,
-                                },
-                                false,
-                                false,
-                                false,
-                                false,
-                                undefined,
-                              ]
-                            }
-                          >
-                            Today's Workout
-                          </Text>
-                        </View>
-                        <Text
-                          maxFontSizeMultiplier={2}
-                          style={
-                            [
-                              {
-                                "color": "#5A6377",
-                              },
-                              {
-                                "fontSize": 14,
-                                "fontWeight": "500",
-                                "lineHeight": 20,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
-                          }
-                        >
-                          Your daily 4-game training plan will appear here once games are registered.
-                        </Text>
-                      </View>
-                    </View>
-                    <View
-                      style={
-                        [
-                          {
-                            "overflow": "hidden",
-                          },
-                          {
-                            "backgroundColor": "#FFFFFF",
                             "borderRadius": 20,
                             "boxShadow": "0 1px 2px rgba(16, 20, 40, 0.06), 0 4px 14px rgba(16, 20, 40, 0.06)",
                             "elevation": 2,
@@ -1309,7 +1315,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         </RNCSafeAreaProvider>
       </RNSTabsScreenIOS>
       <RNSTabsScreenIOS
-        backgroundColor="#F4F6FC"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -1320,8 +1326,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         iconColor="#5A6377"
         iconResourceName="gamecontroller.fill"
         iconType="sfSymbol"
-        indicatorColor="#2563EB"
+        indicatorColor="#E9EFFD"
         isTitleUndefined={false}
+        labelStyle={
+          {
+            "color": "#5A6377",
+          }
+        }
+        labelVisibilityMode="labeled"
         onDidAppear={[Function]}
         onDidDisappear={[Function]}
         onWillAppear={[Function]}
@@ -1347,7 +1359,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1373,7 +1385,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1399,7 +1411,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1446,7 +1458,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1472,7 +1484,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1498,7 +1510,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1508,7 +1520,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294244092,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -1724,7 +1736,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         </RNCSafeAreaProvider>
       </RNSTabsScreenIOS>
       <RNSTabsScreenIOS
-        backgroundColor="#F4F6FC"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -1735,8 +1747,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         iconColor="#5A6377"
         iconResourceName="chart.bar.fill"
         iconType="sfSymbol"
-        indicatorColor="#2563EB"
+        indicatorColor="#E9EFFD"
         isTitleUndefined={false}
+        labelStyle={
+          {
+            "color": "#5A6377",
+          }
+        }
+        labelVisibilityMode="labeled"
         onDidAppear={[Function]}
         onDidDisappear={[Function]}
         onWillAppear={[Function]}
@@ -1762,7 +1780,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1788,7 +1806,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1814,7 +1832,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1861,7 +1879,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1887,7 +1905,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1913,7 +1931,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -1923,7 +1941,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294244092,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -5864,7 +5882,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         </RNCSafeAreaProvider>
       </RNSTabsScreenIOS>
       <RNSTabsScreenIOS
-        backgroundColor="#F4F6FC"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -5875,8 +5893,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         iconColor="#5A6377"
         iconResourceName="person.fill"
         iconType="sfSymbol"
-        indicatorColor="#2563EB"
+        indicatorColor="#E9EFFD"
         isTitleUndefined={false}
+        labelStyle={
+          {
+            "color": "#5A6377",
+          }
+        }
+        labelVisibilityMode="labeled"
         onDidAppear={[Function]}
         onDidDisappear={[Function]}
         onWillAppear={[Function]}
@@ -5902,7 +5926,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -5928,7 +5952,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -5954,7 +5978,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -6001,7 +6025,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -6027,7 +6051,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -6053,7 +6077,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284113783,
-                "tabBarItemTitleFontColor": undefined,
+                "tabBarItemTitleFontColor": 4284113783,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
@@ -6063,7 +6087,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294244092,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -6703,14 +6727,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               accessible={true}
                               collapsable={false}
                               focusable={true}
-                              hitSlop={
-                                {
-                                  "bottom": 2,
-                                  "left": 2,
-                                  "right": 2,
-                                  "top": 2,
-                                }
-                              }
                               onBlur={[Function]}
                               onClick={[Function]}
                               onFocus={[Function]}
@@ -6729,7 +6745,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "flexDirection": "row",
                                   "gap": 8,
                                   "justifyContent": "center",
-                                  "minHeight": 40,
+                                  "minHeight": 44,
                                   "minWidth": 44,
                                   "opacity": 0.5,
                                   "paddingHorizontal": 16,
@@ -6876,14 +6892,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               accessible={true}
                               collapsable={false}
                               focusable={true}
-                              hitSlop={
-                                {
-                                  "bottom": 2,
-                                  "left": 2,
-                                  "right": 2,
-                                  "top": 2,
-                                }
-                              }
                               onBlur={[Function]}
                               onClick={[Function]}
                               onFocus={[Function]}
@@ -6902,7 +6910,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "flexDirection": "row",
                                   "gap": 8,
                                   "justifyContent": "center",
-                                  "minHeight": 40,
+                                  "minHeight": 44,
                                   "minWidth": 44,
                                   "opacity": 0.5,
                                   "paddingHorizontal": 16,
@@ -7049,14 +7057,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               accessible={true}
                               collapsable={false}
                               focusable={true}
-                              hitSlop={
-                                {
-                                  "bottom": 2,
-                                  "left": 2,
-                                  "right": 2,
-                                  "top": 2,
-                                }
-                              }
                               onBlur={[Function]}
                               onClick={[Function]}
                               onFocus={[Function]}
@@ -7075,7 +7075,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                   "flexDirection": "row",
                                   "gap": 8,
                                   "justifyContent": "center",
-                                  "minHeight": 40,
+                                  "minHeight": 44,
                                   "minWidth": 44,
                                   "opacity": 0.5,
                                   "paddingHorizontal": 16,
@@ -12454,6 +12454,109 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
             </Text>
             <View
               style={
+                [
+                  {
+                    "overflow": "hidden",
+                  },
+                  {
+                    "backgroundColor": "#FFFFFF",
+                    "borderRadius": 28,
+                    "boxShadow": "0 12px 32px rgba(16, 20, 40, 0.18)",
+                    "elevation": 10,
+                    "padding": 24,
+                  },
+                  undefined,
+                ]
+              }
+              testID="home-workout-cta"
+            >
+              <View
+                style={
+                  {
+                    "gap": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "gap": 2,
+                    }
+                  }
+                >
+                  <Text
+                    maxFontSizeMultiplier={2}
+                    style={
+                      [
+                        {
+                          "color": "#2563EB",
+                        },
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "700",
+                          "letterSpacing": 0.8,
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    TODAY
+                  </Text>
+                  <Text
+                    maxFontSizeMultiplier={1.6}
+                    style={
+                      [
+                        {
+                          "color": "#131829",
+                        },
+                        {
+                          "fontSize": 22,
+                          "fontWeight": "700",
+                          "letterSpacing": -0.2,
+                          "lineHeight": 28,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    Today's Workout
+                  </Text>
+                </View>
+                <Text
+                  maxFontSizeMultiplier={2}
+                  style={
+                    [
+                      {
+                        "color": "#5A6377",
+                      },
+                      {
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "lineHeight": 20,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      undefined,
+                    ]
+                  }
+                >
+                  Your daily 4-game training plan will appear here once games are registered.
+                </Text>
+              </View>
+            </View>
+            <View
+              style={
                 {
                   "gap": 8,
                 }
@@ -13002,109 +13105,6 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                   testID="home-streak-card-next-milestone"
                 >
                   3 days to Getting Started · 3-day streak
-                </Text>
-              </View>
-            </View>
-            <View
-              style={
-                [
-                  {
-                    "overflow": "hidden",
-                  },
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderRadius": 28,
-                    "boxShadow": "0 12px 32px rgba(16, 20, 40, 0.18)",
-                    "elevation": 10,
-                    "padding": 24,
-                  },
-                  undefined,
-                ]
-              }
-              testID="home-workout-cta"
-            >
-              <View
-                style={
-                  {
-                    "gap": 12,
-                  }
-                }
-              >
-                <View
-                  style={
-                    {
-                      "gap": 2,
-                    }
-                  }
-                >
-                  <Text
-                    maxFontSizeMultiplier={2}
-                    style={
-                      [
-                        {
-                          "color": "#2563EB",
-                        },
-                        {
-                          "fontSize": 12,
-                          "fontWeight": "700",
-                          "letterSpacing": 0.8,
-                          "lineHeight": 16,
-                        },
-                        false,
-                        false,
-                        false,
-                        false,
-                        undefined,
-                      ]
-                    }
-                  >
-                    TODAY
-                  </Text>
-                  <Text
-                    maxFontSizeMultiplier={1.6}
-                    style={
-                      [
-                        {
-                          "color": "#131829",
-                        },
-                        {
-                          "fontSize": 22,
-                          "fontWeight": "700",
-                          "letterSpacing": -0.2,
-                          "lineHeight": 28,
-                        },
-                        false,
-                        false,
-                        false,
-                        false,
-                        undefined,
-                      ]
-                    }
-                  >
-                    Today's Workout
-                  </Text>
-                </View>
-                <Text
-                  maxFontSizeMultiplier={2}
-                  style={
-                    [
-                      {
-                        "color": "#5A6377",
-                      },
-                      {
-                        "fontSize": 14,
-                        "fontWeight": "500",
-                        "lineHeight": 20,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
-                  }
-                >
-                  Your daily 4-game training plan will appear here once games are registered.
                 </Text>
               </View>
             </View>
@@ -13990,14 +13990,6 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       accessible={true}
                       collapsable={false}
                       focusable={true}
-                      hitSlop={
-                        {
-                          "bottom": 2,
-                          "left": 2,
-                          "right": 2,
-                          "top": 2,
-                        }
-                      }
                       onBlur={[Function]}
                       onClick={[Function]}
                       onFocus={[Function]}
@@ -14016,7 +14008,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                           "flexDirection": "row",
                           "gap": 8,
                           "justifyContent": "center",
-                          "minHeight": 40,
+                          "minHeight": 44,
                           "minWidth": 44,
                           "opacity": 0.5,
                           "paddingHorizontal": 16,
@@ -14163,14 +14155,6 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       accessible={true}
                       collapsable={false}
                       focusable={true}
-                      hitSlop={
-                        {
-                          "bottom": 2,
-                          "left": 2,
-                          "right": 2,
-                          "top": 2,
-                        }
-                      }
                       onBlur={[Function]}
                       onClick={[Function]}
                       onFocus={[Function]}
@@ -14189,7 +14173,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                           "flexDirection": "row",
                           "gap": 8,
                           "justifyContent": "center",
-                          "minHeight": 40,
+                          "minHeight": 44,
                           "minWidth": 44,
                           "opacity": 0.5,
                           "paddingHorizontal": 16,
@@ -14336,14 +14320,6 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                       accessible={true}
                       collapsable={false}
                       focusable={true}
-                      hitSlop={
-                        {
-                          "bottom": 2,
-                          "left": 2,
-                          "right": 2,
-                          "top": 2,
-                        }
-                      }
                       onBlur={[Function]}
                       onClick={[Function]}
                       onFocus={[Function]}
@@ -14362,7 +14338,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                           "flexDirection": "row",
                           "gap": 8,
                           "justifyContent": "center",
-                          "minHeight": 40,
+                          "minHeight": 44,
                           "minWidth": 44,
                           "opacity": 0.5,
                           "paddingHorizontal": 16,

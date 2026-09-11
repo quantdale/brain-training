@@ -12,7 +12,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget, Spacing, Typography } from '@/theme/tokens';
+import { MinTouchTarget, Spacing } from '@/theme/tokens';
 import { HAIRLINE, RADIUS_CAP } from './radius';
 import { Tappable } from './tappable';
 
@@ -28,10 +28,10 @@ export interface ChipProps {
   accessibilityLabel?: string;
 }
 
-// Nominal visual height the hit area is expanded from: vertical padding +
-// the label line height. Token-derived so a type-scale change keeps the
-// 44 dp guarantee without anyone updating a literal.
-const CHIP_NOMINAL_HEIGHT = Spacing.two * 2 + Typography.label.lineHeight;
+// The chip is a real 44 dp target rather than a small pill with invisible
+// slop: the hierarchy audit measures laid-out bounds, and a filter row of
+// 34 dp pills is genuinely harder to hit on a phone.
+const CHIP_HEIGHT = MinTouchTarget;
 
 export function Chip({
   label,
@@ -79,7 +79,7 @@ export function Chip({
       disabled={disabled}
       accessibilityLabel={name}
       accessibilityState={{ selected, disabled }}
-      renderedSize={CHIP_NOMINAL_HEIGHT}
+      renderedSize={CHIP_HEIGHT}
       style={[styles.base, presentation, disabled && styles.disabled]}
       pressedStyle={{ backgroundColor: selected ? theme.accentStrong : theme.backgroundSelected }}>
       {content}
@@ -97,6 +97,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: RADIUS_CAP,
     minWidth: MinTouchTarget,
+    minHeight: MinTouchTarget,
+    justifyContent: 'center',
   },
   disabled: {
     opacity: 0.5,

@@ -20,7 +20,7 @@ import { ListRow } from '@/components/ui/list-row';
 import { Skeleton, SkeletonText } from '@/components/ui/skeleton';
 import { TextField } from '@/components/ui/text-field';
 import { ToastHost, resetToastQueueForTests, showToast } from '@/components/ui/toast';
-import { MinTouchTarget, Motion, Spacing, Typography } from '@/theme/tokens';
+import { MinTouchTarget, Motion } from '@/theme/tokens';
 
 // `mock`-prefixed name: jest.mock factories are hoisted and may only close
 // over variables whose name starts with `mock`.
@@ -96,12 +96,16 @@ describe('Chip', () => {
     expect(screen.getByTestId('chip').props.accessibilityState.disabled).toBe(true);
   });
 
-  it('expands its compact visual to the 44 dp floor through hit slop', async () => {
+  it('is a real 44 dp target, not a small pill with invisible slop', async () => {
+    // The hierarchy audit measures laid-out bounds, so the target must be real
+    // height: a filter row of 34 dp pills is genuinely harder to hit.
     await render(<Chip label="Memory" onPress={() => {}} testID="chip" />);
-    const hitSlop = screen.getByTestId('chip').props.hitSlop;
-    const nominal = Spacing.two * 2 + Typography.label.lineHeight;
-    const vertical = typeof hitSlop === 'number' ? hitSlop * 2 : hitSlop.top + hitSlop.bottom;
-    expect(nominal + vertical).toBeGreaterThanOrEqual(MinTouchTarget);
+    const style = screen.getByTestId('chip').props.style;
+    const flat = (Array.isArray(style) ? style.flat() : [style]).filter(Boolean) as {
+      minHeight?: number;
+    }[];
+    const minHeight = flat.reduce((acc, entry) => Math.max(acc, entry.minHeight ?? 0), 0);
+    expect(minHeight).toBeGreaterThanOrEqual(MinTouchTarget);
   });
 });
 

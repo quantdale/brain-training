@@ -15,7 +15,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Tappable } from '@/components/ui/tappable';
-import { Spacing } from '@/theme/tokens';
+import { MinTouchTarget, Spacing } from '@/theme/tokens';
 
 export function SectionHeader({
   title,
@@ -79,8 +79,11 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.half,
   },
-  // Text-sized actions still honour the 44 dp interaction floor.
+  // Text-sized actions honour the 44 dp floor with real height, not just
+  // slop: the hierarchy audit measures laid-out bounds.
   action: {
+    minHeight: MinTouchTarget,
+    justifyContent: 'center',
     paddingHorizontal: Spacing.one,
   },
 });

@@ -72,7 +72,9 @@ export interface ButtonProps {
 export type ButtonComponentProps = ButtonProps &
   Omit<PressableProps, keyof ButtonProps | 'style' | 'children' | 'hitSlop' | 'onPressIn' | 'onPressOut'>;
 
-const HEIGHT: Record<ButtonSize, number> = { sm: 40, md: 48, lg: 56 };
+// Every size is a real 44 dp target: the compact size exists to be denser
+// (smaller text and padding), not to be harder to hit.
+const HEIGHT: Record<ButtonSize, number> = { sm: MinTouchTarget, md: 48, lg: 56 };
 const LABEL_TYPE: Record<ButtonSize, 'bodySmall' | 'body' | 'bodyLarge'> = {
   sm: 'bodySmall',
   md: 'body',

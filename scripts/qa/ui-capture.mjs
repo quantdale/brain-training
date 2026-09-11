@@ -155,6 +155,28 @@ function applyProfile(device, name) {
   return profile;
 }
 
+/**
+ * Restart the app so it starts fresh under the new display configuration.
+ *
+ * Changing `wm size`/`wm density` under a running activity restarts it while
+ * the JS runtime keeps its already-initialised native handles; the app then
+ * boots into its storage-error boundary (observed on the database module).
+ * A cold start under the new profile is both realistic and deterministic, so
+ * every profile switch is followed by a relaunch.
+ */
+function relaunchApp(device, pkg) {
+  try {
+    adb(device, ['shell', 'am', 'force-stop', pkg]);
+  } catch {
+    /* force-stop is best effort */
+  }
+  try {
+    adb(device, ['shell', 'monkey', '-p', pkg, '-c', 'android.intent.category.LAUNCHER', '1']);
+  } catch {
+    /* the deep link below still starts the activity */
+  }
+}
+
 function resetProfile(device) {
   adb(device, ['shell', 'wm', 'reset']);
   adb(device, ['shell', 'settings', 'put', 'system', 'font_scale', '1.0']);
@@ -257,6 +279,8 @@ async function main() {
     applyTheme(device, theme);
     for (const profileName of options.profiles) {
       applyProfile(device, profileName);
+      relaunchApp(device, options.pkg);
+      await sleep(4000);
       for (const surfaceId of options.surfaces) {
         const surface = SURFACES.find((s) => s.id === surfaceId);
         if (!surface) {
@@ -280,7 +304,11 @@ async function main() {
 
         // A uniform screen is the failure mode this harness exists to detect:
         // a blank frame is small and contains no hierarchy.
-        const blank = bytes < 40_000 && xmlBytes === 0;
+        // A capture is only meaningful if the app actually rendered its own
+        // surface: a blank frame, a missing hierarchy, or the storage-error
+        // boundary all mean "this evidence is invalid", never "this looks fine".
+        const renderedErrorBoundary = /Storage Unavailable/.test(xml);
+        const blank = (bytes < 40_000 && xmlBytes === 0) || renderedErrorBoundary;
         const entry = {
           surface: surface.id,
           route: surface.route,
@@ -293,6 +321,7 @@ async function main() {
           deepLinkStarted: opened,
           testIdsPresent: testIds,
           blank,
+          ...(renderedErrorBoundary ? { blankReason: 'storage-error-boundary' } : null),
         };
         manifest.surfaces.push(entry);
         console.log(`${blank ? 'BLANK ' : 'ok    '} ${profileName}/${theme}/${surface.id} (${bytes} B, ${xmlBytes} B xml)`);

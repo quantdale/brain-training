@@ -533,7 +533,10 @@ export default function HomeScreen() {
         : `Start today's workout, ${workout.length} games`;
   // Same destination (with the same workout-leg provenance) the resume Link
   // used before the hero rebuild — null until a current game is known.
-  const heroGameId = workoutFlow.currentGameId;
+  // Before the workout is started there is no instance yet, so the CTA targets
+  // the first planned leg — the action must exist in the first viewport, not
+  // only once a session is already in flight.
+  const heroGameId = workoutFlow.currentGameId ?? workout[0]?.id ?? null;
   const heroHref = heroGameId
     ? gameHref(
         heroGameId,
@@ -608,19 +611,6 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* Streak context: the four-block beat (flame + count, label, 7-day
-          strip, next-milestone line) ahead of the workout hero. */}
-      <View style={styles.streakSection}>
-        <StreakCard
-          current={currentStreak}
-          activityDates={data.activityDates}
-          coveredDates={data.coveredDates}
-          today={today}
-          atRisk={loaded && streak.atRisk}
-          milestoneLine={streakMilestoneLine}
-        />
-      </View>
-
       {/* Today's Workout hero: goal progress + the screen's single primary
           CTA. The meter and legs mirror the durable resume position. */}
       <Card variant="hero" padding="lg" testID="home-workout-cta">
@@ -665,6 +655,17 @@ export default function HomeScreen() {
                     : `${workoutIndex} of ${workout.length} games done`
                 }
               />
+              {heroHref ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  label={heroCtaLabel}
+                  sublabel={heroCtaSublabel}
+                  testID="home-workout-continue"
+                  accessibilityLabel={heroCtaAccessibilityLabel}
+                  onPress={() => router.push(heroHref)}
+                />
+              ) : null}
               <View style={styles.workoutList} testID="home-workout-list">
                 {workout.map((game, index) => {
                   const isCompleted =
@@ -708,17 +709,6 @@ export default function HomeScreen() {
                   );
                 })}
               </View>
-              {workoutStatus === "active" && heroHref ? (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  label={heroCtaLabel}
-                  sublabel={heroCtaSublabel}
-                  testID="home-workout-continue"
-                  accessibilityLabel={heroCtaAccessibilityLabel}
-                  onPress={() => router.push(heroHref)}
-                />
-              ) : null}
               <Button
                 variant="ghost"
                 label={rerollLabel}
@@ -749,6 +739,19 @@ export default function HomeScreen() {
           )}
         </View>
       </Card>
+
+      {/* Streak context: supporting motivation under the hero, in the
+          four-block beat (flame + count, label, 7-day strip, milestone). */}
+      <View style={styles.streakSection}>
+        <StreakCard
+          current={currentStreak}
+          activityDates={data.activityDates}
+          coveredDates={data.coveredDates}
+          today={today}
+          atRisk={loaded && streak.atRisk}
+          milestoneLine={streakMilestoneLine}
+        />
+      </View>
 
       {/* Level/XP: tabular level numeral + coin balance in the currency
           identity colour over an xp-toned meter. */}

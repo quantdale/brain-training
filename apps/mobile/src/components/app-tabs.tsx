@@ -16,10 +16,13 @@ export default function AppTabs() {
 
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.accent}
+      backgroundColor={colors.surface}
+      indicatorColor={colors.accentSoft}
       iconColor={colors.textSecondary}
-      labelStyle={{ selected: { color: colors.accent } }}>
+      // Every destination keeps its label: an icon-only inactive tab makes the
+      // bar unreadable at a glance (campaign-024 baseline screenshot).
+      labelVisibilityMode="labeled"
+      labelStyle={{ selected: { color: colors.accent }, default: { color: colors.textSecondary } }}>
       {TAB_DEFINITIONS.map((tab) => (
         <NativeTabs.Trigger
           key={tab.name}

@@ -15,6 +15,7 @@ export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from '.
 export { IconButton, type IconButtonProps } from './icon-button';
 export { Card, type CardPadding, type CardProps, type CardVariant } from './card';
 export { SectionGrid, type SectionGridProps } from './section-grid';
+export { BackLink, type BackLinkProps } from './back-link';
 export { HAIRLINE, ICON_BUTTON_SIZE, RADIUS_CAP } from './radius';
 
 // Content primitives

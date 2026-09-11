@@ -41,6 +41,7 @@ import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { MiniBarChart, HeatmapRow } from '@/components/progress-charts';
 import {
+  BackLink,
   Card,
   EmptyState,
   ListRow,
@@ -231,14 +232,7 @@ export default function ProgressDomainScreen() {
 
   return (
     <ScreenShell>
-      <Tappable
-        testID="progress-domain-back"
-        onPress={() => router.back()}
-        accessibilityLabel="Go back">
-        <ThemedText type="smallBold" themeColor="accent">
-          ‹ Back
-        </ThemedText>
-      </Tappable>
+      <BackLink testID="progress-domain-back" onPress={() => router.back()} />
 
       <ThemedText type="title" testID="progress-domain-title">
         {domain}

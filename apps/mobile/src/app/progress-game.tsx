@@ -41,6 +41,7 @@ import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { MiniBarChart } from '@/components/progress-charts';
 import {
+  BackLink,
   Card,
   EmptyState,
   ListRow,
@@ -48,7 +49,6 @@ import {
   SegmentedControl,
   Skeleton,
   SkeletonText,
-  Tappable,
 } from '@/components/ui';
 import { Spacing, type ThemeColor } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord } from '@/db';
@@ -127,11 +127,7 @@ export default function ProgressGameScreen() {
   if (!gameId || !insight) {
     return (
       <ScreenShell>
-        <Tappable testID="progress-game-back" onPress={() => router.back()} accessibilityLabel="Go back">
-          <ThemedText type="smallBold" themeColor="accent">
-            ‹ Back
-          </ThemedText>
-        </Tappable>
+        <BackLink testID="progress-game-back" onPress={() => router.back()} />
         <ThemedText type="title" testID="progress-game-title">
           {def?.name ?? gameId ?? 'Game'}
         </ThemedText>
@@ -167,11 +163,7 @@ export default function ProgressGameScreen() {
 
   return (
     <ScreenShell>
-      <Tappable testID="progress-game-back" onPress={() => router.back()} accessibilityLabel="Go back">
-        <ThemedText type="smallBold" themeColor="accent">
-          ‹ Back
-        </ThemedText>
-      </Tappable>
+      <BackLink testID="progress-game-back" onPress={() => router.back()} />
 
       <ThemedText type="title" testID="progress-game-title">
         {def?.name ?? gameId}

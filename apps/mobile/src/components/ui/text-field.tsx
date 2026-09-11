@@ -133,6 +133,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    // The measured interactive node is the input itself, so it carries the
+    // 44 dp target rather than inheriting it from the surrounding box.
+    minHeight: MinTouchTarget,
     paddingVertical: Spacing.two,
     fontFamily: Fonts.sans,
     fontSize: Typography.body.size,

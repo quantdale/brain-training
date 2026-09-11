@@ -32,7 +32,7 @@ import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { HeatmapRow, LabeledBars } from '@/components/progress-charts';
-import { Card, EmptyState, ListRow, SectionGrid, Skeleton, SkeletonText, Tappable } from '@/components/ui';
+import { BackLink, Card, EmptyState, ListRow, SectionGrid, Skeleton, SkeletonText } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
@@ -86,11 +86,7 @@ export default function ProgressActivityScreen() {
 
   return (
     <ScreenShell>
-      <Tappable testID="progress-activity-back" onPress={() => router.back()} accessibilityLabel="Go back">
-        <ThemedText type="smallBold" themeColor="accent">
-          ‹ Back
-        </ThemedText>
-      </Tappable>
+      <BackLink testID="progress-activity-back" onPress={() => router.back()} />
 
       <ThemedText type="title" testID="progress-activity-title">
         Activity
