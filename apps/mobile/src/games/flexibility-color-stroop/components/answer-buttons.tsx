@@ -6,6 +6,12 @@
  * handler internally, avoiding a fresh closure per render. Each circle also
  * carries a visible color-name label so the control is not color-only (a
  * minimal non-color cue for color-blind players; the color signal is kept).
+ *
+ * The button fills use `STROOP_COLOR_HEX` literals deliberately: these hues
+ * ARE the game's mechanic (colour/word conflict), so they stay literal per
+ * the documented rationale on `STROOP_COLOR_HEX` instead of theme tokens.
+ * Verdict feedback never reuses these fills — see `FeedbackDisplay`, which
+ * carries the verdict through soft fills, border weight and a glyph badge.
  */
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';

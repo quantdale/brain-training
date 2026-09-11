@@ -1,23 +1,33 @@
 /**
  * PadTile — one colored pad of the Simon-style Sequence Memory board.
  *
- * Visual states: `idle`, `revealed` (sequence flash), `selected` (correctly
- * tapped), `error` (wrong tap). Each tile has a stable color from the shared
- * semantic palette (accent/success/warning/danger, cycling by index), so the
- * pad reads like a classic Simon game in both light and dark themes. Idle
- * tiles render their color dimmed; revealed/selected tiles are fully lit.
+ * Visual states: `idle`, `revealed` (sequence flash), `correct` (a matched
+ * step, or a revealed answer step), `error` (the wrong tap). Idle/revealed
+ * keep the tile's own semantic-palette color (accent/success/warning/danger,
+ * cycling by index) so the pad reads like a classic Simon game in both light
+ * and dark themes; idle pads are dimmed and revealed pads fully lit.
+ *
+ * Verdicts (`correct`/`error`) are multi-channel per the shared feedback
+ * language: the fill moves to the verdict family's soft token AND the
+ * boundary switches to the verdict base at a heavier width AND a ✓/✕ badge
+ * is pinned to the corner, so a wrong tap never differs from a correct step
+ * by colour alone. The badge is decorative for assistive tech
+ * (`no-hide-descendants`); the tile's accessible name carries the verdict in
+ * words ("Correct: Pad N" / "Wrong pick: Pad N").
  */
 import { memo } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
-import type { ThemeColor } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
 import { Radii } from '@/constants/theme';
+import type { ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { MinTouchTarget, Spacing } from '@/theme/tokens';
 
 import { GAME_ID } from '../types';
 
-export type PadTileVisualState = 'idle' | 'revealed' | 'selected' | 'error';
+export type PadTileVisualState = 'idle' | 'revealed' | 'correct' | 'error';
 
 /** Per-tile color rotation over the shared semantic palette (no magic colors). */
 const PAD_COLOR_KEYS: readonly ThemeColor[] = ['accent', 'success', 'warning', 'danger'];
@@ -38,26 +48,56 @@ export interface PadTileProps {
 
 export const PadTile = memo(function PadTile({ index, visual, disabled = false, onPressTile }: PadTileProps) {
   const theme = useTheme();
-  const color = padColorFor(theme, index);
-  const lit = visual === 'revealed' || visual === 'selected';
-  const backgroundColor = visual === 'error' ? theme.danger : color;
+  const isVerdict = visual === 'correct' || visual === 'error';
+  const backgroundColor = isVerdict
+    ? visual === 'correct'
+      ? theme.successSoft
+      : theme.dangerSoft
+    : padColorFor(theme, index);
+  const borderColor = isVerdict
+    ? visual === 'correct'
+      ? theme.success
+      : theme.danger
+    : theme.border;
+  const borderWidth = isVerdict ? 3 : 1.5;
+  const verdictGlyph = visual === 'correct' ? '✓' : visual === 'error' ? '✕' : null;
+  const verdictFill = visual === 'correct' ? theme.success : visual === 'error' ? theme.danger : null;
+  const verdictOn = visual === 'correct' ? theme.successOn : visual === 'error' ? theme.dangerOn : null;
+  const accessibilityLabel =
+    visual === 'correct'
+      ? `Correct: Pad ${index + 1}`
+      : visual === 'error'
+        ? `Wrong pick: Pad ${index + 1}`
+        : `Pad ${index + 1}`;
 
   return (
     <Pressable
       testID={testId(GAME_ID, 'tile', String(index))}
       accessibilityRole="button"
-      accessibilityLabel={`Pad ${index + 1}`}
-      accessibilityState={{ disabled, selected: visual === 'selected' }}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled }}
       disabled={disabled}
       onPress={onPressTile ? () => onPressTile(index) : undefined}
       style={({ pressed }) => [
         styles.tile,
-        { backgroundColor, borderColor: theme.border },
-        // Idle pads are dimmed so the flashing sequence stands out; pressed
-        // pads dim too (immediate visual feedback on tap).
-        (!lit || pressed) && styles.dim,
-      ]}
-    />
+        { backgroundColor, borderColor, borderWidth },
+        // Idle pads are dimmed so the flashing sequence stands out. Verdict
+        // pads are never dimmed (the cue must stay legible); pressed feedback
+        // only applies to non-verdict tiles.
+        visual === 'idle' && styles.dim,
+        pressed && !isVerdict && styles.dim,
+      ]}>
+      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+        <View
+          testID={testId(GAME_ID, 'tile-verdict', String(index))}
+          style={[styles.verdict, { backgroundColor: verdictFill }]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
+            {verdictGlyph}
+          </ThemedText>
+        </View>
+      ) : null}
+    </Pressable>
   );
 });
 
@@ -66,8 +106,24 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: Radii.medium,
     borderWidth: 1.5,
+    // Explicit touch-target floor; the pad layout sizes tiles well above it
+    // on every tier, so this only guards degenerate widths.
+    minHeight: MinTouchTarget,
+    minWidth: MinTouchTarget,
   },
   dim: {
     opacity: 0.4,
+  },
+  // Verdict badge: content-sized disc pinned to the tile corner. The fill +
+  // glyph pair is the non-colour-alone verdict channel.
+  verdict: {
+    position: 'absolute',
+    top: Spacing.one,
+    right: Spacing.one,
+    width: Spacing.four,
+    height: Spacing.four,
+    borderRadius: Radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

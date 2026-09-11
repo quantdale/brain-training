@@ -16,10 +16,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { testId } from '@/sdk';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 
-/** Color palette — 8 distinct colors for the game. */
+/** Color palette — 8 distinct colors for the game. Stimulus hues are the
+ * mechanic itself (Mastermind-style color identity), so they stay literal
+ * here by design — verdict language never re-hues them. */
 export const COLOR_PALETTE = [
   '#E74C3C', // Red
   '#3498DB', // Blue
@@ -57,6 +60,7 @@ const ColorSwatch = memo(function ColorSwatch({
   testID: string;
   onSelectColor?: (colorIndex: number) => void;
 }) {
+  const theme = useTheme();
   return (
     <View style={styles.cell}>
       <Pressable
@@ -66,7 +70,7 @@ const ColorSwatch = memo(function ColorSwatch({
         accessibilityState={{ disabled }}
         disabled={disabled}
         onPress={onSelectColor ? () => onSelectColor(index) : undefined}
-        style={[styles.colorCircle, { backgroundColor: COLOR_PALETTE[index] }, disabled && styles.disabled]}
+        style={[styles.colorCircle, { backgroundColor: COLOR_PALETTE[index], borderColor: theme.border }, disabled && styles.disabled]}
       />
       <ThemedText type="caption" style={styles.label}>
         {COLOR_NAMES[index]}
@@ -107,11 +111,12 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   colorCircle: {
+    // Real 48 dp interaction area (≥44 dp floor) with no hitSlop: adjacent
+    // swatches would overlap slop, so size carries the target instead.
     width: 48,
     height: 48,
     borderRadius: 24,
     borderWidth: 2,
-    borderColor: '#00000022',
   },
   disabled: {
     opacity: 0.5,

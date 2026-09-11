@@ -23,8 +23,10 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -74,6 +76,7 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
     xpHook = noopXpRatingHook,
   } = props;
   const router = useRouter();
+  const theme = useTheme();
   const [state, dispatch] = useReducer(
     wordScrambleGameReducer,
     undefined,
@@ -324,6 +327,7 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -333,6 +337,16 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
         <>
           {state.phase === 'play' && state.currentRound !== null ? (
             <>
+              <View style={styles.scoreRow}>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Score
+                </ThemedText>
+                <AnimatedNumber
+                  value={state.stats.score}
+                  type="numeral"
+                  testID={testId(GAME_ID, 'score', 'live')}
+                />
+              </View>
               <ScrambledDisplay
                 scrambled={state.currentRound.scrambled}
                 category={state.currentRound.category}
@@ -365,9 +379,34 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
                 testID={testId(GAME_ID, state.roundOutcome === 'passed' ? 'round-passed' : 'round-failed')}>
                 {state.roundOutcome === 'passed' ? 'Correct!' : 'Wrong!'}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Answer: {state.currentRound.answer}
-              </ThemedText>
+              {/* The prompt stays mounted through feedback (read-only): the
+              scrambled stem is never covered by the verdict. */}
+              <ScrambledDisplay
+                scrambled={state.currentRound.scrambled}
+                category={state.currentRound.category}
+              />
+              <View
+                style={[
+                  styles.feedback,
+                  {
+                    backgroundColor:
+                      state.roundOutcome === 'passed' ? theme.successSoft : theme.dangerSoft,
+                  },
+                ]}
+                testID={testId(GAME_ID, 'round-feedback')}>
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, 'round-answer-reveal')}>
+                  Answer: {state.currentRound.answer}
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, 'round-why')}>
+                  {`"${state.currentRound.scrambled}" unscrambles to "${state.currentRound.answer}"`}
+                </ThemedText>
+              </View>
               <View style={styles.optionsGrid}>
                 {state.currentRound.options.map((option, i) => (
                   <OptionButton
@@ -402,6 +441,16 @@ export default function WordScrambleScreen(props: WordScrambleScreenProps = {}) 
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.resultsScore}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score', 'animated')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -449,5 +498,26 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.two,
     justifyContent: 'center',
+  },
+  // HUD-adjacent live score: caption + tabular numeral, never covering play.
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
+  },
+  // Inline verdict panel (PATTERNS-PLAY 7): compact, below the verdict
+  // headline and above the options — the scrambled stem above stays mounted,
+  // so the prompt is never covered.
+  feedback: {
+    gap: Spacing.one,
+    borderRadius: Radii.medium,
+    paddingVertical: Spacing.twoHalf,
+    paddingHorizontal: Spacing.three,
+  },
+  // Results hero: the animated final score above the metric rows.
+  resultsScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

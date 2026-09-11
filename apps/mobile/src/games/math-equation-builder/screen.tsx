@@ -374,6 +374,7 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
       onQuit={quitToLibrary}
       interceptBack={inSession}
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
         <>
           <ThemedText

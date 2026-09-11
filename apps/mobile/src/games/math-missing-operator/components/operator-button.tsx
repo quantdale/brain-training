@@ -2,9 +2,14 @@
  * OperatorButton — one of the four `+ − × ÷` answer buttons.
  *
  * Neutral (outline) while the round is open; after a round resolves the
- * parent passes a highlight: `correct` fills the button with the accent color
- * and `wrong` with the danger color. Buttons are disabled once the round is
- * resolved.
+ * parent passes a highlight derived from the reducer's resolved outcome:
+ * `correct` takes the success-soft fill with a success border plus a ✓ badge,
+ * `wrong` the danger pair plus a ✕ badge — fill AND boundary AND glyph, never
+ * colour alone (PATTERNS-PLAY 6). Badges are decorative for screen readers;
+ * the button's accessibility label carries the verdict ("Correct: …" /
+ * "Wrong pick: …"). The correct operator stays vivid behind the result so a
+ * wrong pick is always reviewable next to it; untouched options dim to read
+ * as locked.
  *
  * The button is `memo`ized and takes a stable `onPressOperator` (value-based)
  * so the round-resolution highlight flips without re-creating closures. The
@@ -15,7 +20,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
 
@@ -40,21 +45,33 @@ export const OperatorButton = memo(function OperatorButton({
   highlight = null,
 }: OperatorButtonProps) {
   const theme = useTheme();
-  const filled = highlight !== null;
-  const backgroundColor = filled
-    ? highlight === 'wrong'
-      ? theme.danger
-      : theme.accent
-    : 'transparent';
-  const foregroundColor = filled ? '#FFFFFF' : theme.accent;
-  const borderColor = filled ? backgroundColor : theme.border;
+  const backgroundColor =
+    highlight === 'correct'
+      ? theme.successSoft
+      : highlight === 'wrong'
+        ? theme.dangerSoft
+        : 'transparent';
+  const borderColor =
+    highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.border;
+  const foregroundColor =
+    highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.accent;
+  const verdictGlyph = highlight === 'correct' ? '✓' : highlight === 'wrong' ? '✕' : null;
+  const verdictFill =
+    highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : null;
+  const verdictOn =
+    highlight === 'correct' ? theme.successOn : highlight === 'wrong' ? theme.dangerOn : null;
+  const accessibilityLabel =
+    highlight === 'correct'
+      ? `Correct: operator ${OPERATOR_GLYPHS[operator]}`
+      : highlight === 'wrong'
+        ? `Wrong pick: operator ${OPERATOR_GLYPHS[operator]}`
+        : `Operator ${OPERATOR_GLYPHS[operator]}`;
 
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
-      // Neutral label — the operator symbol is a choice, not the secret answer.
-      accessibilityLabel={`Operator ${OPERATOR_GLYPHS[operator]}`}
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled, selected: highlight === 'correct' }}
       disabled={disabled}
       onPress={onPressOperator ? () => onPressOperator(operator) : undefined}
@@ -63,12 +80,25 @@ export const OperatorButton = memo(function OperatorButton({
         {
           backgroundColor,
           borderColor,
-          opacity: pressed || disabled ? 0.6 : 1,
+          borderWidth: highlight !== null ? 3 : 2,
+          // The correct answer stays vivid for review; a wrong pick and the
+          // untouched options dim to read as locked.
+          opacity: pressed || (disabled && highlight !== 'correct') ? 0.6 : 1,
         },
       ]}>
-      <ThemedText type="title" style={{ color: foregroundColor }}>
+      <ThemedText type="title" style={{ color: foregroundColor }} allowFontScaling={false}>
         {OPERATOR_GLYPHS[operator]}
       </ThemedText>
+      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+        <View
+          testID={`${testID}.verdict`}
+          style={[styles.verdict, { backgroundColor: verdictFill }]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
+            {verdictGlyph}
+          </ThemedText>
+        </View>
+      ) : null}
     </Pressable>
   );
 });
@@ -108,9 +138,26 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     minWidth: 64,
+    // Explicit touch-target floor; the row layout sizes buttons above it on
+    // every tier, and real size (not hitSlop) is used so adjacent buttons
+    // never overlap.
+    minHeight: MinTouchTarget,
     borderRadius: Radii.medium,
     borderWidth: 2,
     paddingVertical: Spacing.three,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Verdict badge: opaque verdict-family fill with its `*On` glyph, so the
+  // icon reads on the soft button fill. The fill + glyph pair is the
+  // non-colour-alone verdict channel.
+  verdict: {
+    position: 'absolute',
+    top: Spacing.one,
+    right: Spacing.one,
+    width: Spacing.four,
+    height: Spacing.four,
+    borderRadius: Radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },

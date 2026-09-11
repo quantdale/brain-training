@@ -3,21 +3,29 @@
  *
  * Visual states: `idle`, `target` (shown during study), `selected` (the
  * player's own input-phase tap), `correct` (was a target, after scoring),
- * `error` (wrong tap, after scoring). Cells are plain surfaces; the pattern is
- * positional, so no per-cell glyphs are rendered.
+ * `error` (wrong tap, after scoring).
  *
- * Accessibility: labels are neutral ("Cell N") and never reveal the answer. A
- * cell is only marked `selected` via the a11y state when it is the player's own
- * input-phase selection — the target pattern is conveyed visually only, so it
- * cannot be read off the accessibility tree during the obscured input/pause
- * phases.
+ * Verdicts are multi-channel (PATTERNS-PLAY 6, copying the
+ * attention-symbol-tracker cell): `correct`/`error` change the fill AND the
+ * border weight AND add a ✓/✕ badge, so a wrong tap never reads as correct.
+ * The badge is decorative for screen readers — the cell's accessibility label
+ * carries the verdict ("Correct: …" / "Wrong pick: …").
+ *
+ * Accessibility: labels are neutral ("Cell N") while the round is live. The
+ * `correct`/`error` states are only ever produced for the post-submit
+ * round-result board, so the verdict wording (and the solution itself) can
+ * never be read off the accessibility tree during the obscured input/pause
+ * phases. A cell is only marked `selected` via the a11y state when it is the
+ * player's own input-phase selection.
  */
 import { memo } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
+import { ThemedText } from "@/components/themed-text";
 import { Radii } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { MinTouchTarget, Spacing } from "@/theme/tokens";
 
 import { GAME_ID } from "../types";
 
@@ -48,37 +56,81 @@ export const Cell = memo(function Cell({
     visual === "target"
       ? theme.accent
       : visual === "error"
-        ? theme.danger
+        ? theme.dangerSoft
         : visual === "correct"
-          ? theme.success
+          ? theme.successSoft
           : visual === "selected"
             ? theme.accentSoft
             : theme.surface;
+  const borderColor =
+    visual === "error"
+      ? theme.danger
+      : visual === "correct"
+        ? theme.success
+        : theme.border;
+  const borderWidth = visual === "error" || visual === "correct" ? 3 : 1.5;
+  const verdictGlyph = visual === "correct" ? "✓" : visual === "error" ? "✕" : null;
+  const verdictFill = visual === "correct" ? theme.success : visual === "error" ? theme.danger : null;
+  const verdictOn =
+    visual === "correct" ? theme.successOn : visual === "error" ? theme.dangerOn : null;
+  const accessibilityLabel =
+    visual === "correct"
+      ? `Correct: Cell ${index + 1}`
+      : visual === "error"
+        ? `Wrong pick: Cell ${index + 1}`
+        : `Cell ${index + 1}`;
 
   return (
     <Pressable
       testID={testId(GAME_ID, "cell", String(index))}
       accessibilityRole="button"
-      accessibilityLabel={`Cell ${index + 1}`}
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled, selected: visual === "selected" }}
       disabled={disabled}
       onPress={onPressCell ? () => onPressCell(index) : undefined}
       style={({ pressed }) => [
         styles.cell,
-        { backgroundColor, borderColor: theme.border },
+        { backgroundColor, borderColor, borderWidth },
         (pressed || visual === "target") && styles.dim,
-      ]}
-    />
+      ]}>
+      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+        <View
+          testID={testId(GAME_ID, "cell-verdict", String(index))}
+          style={[styles.verdict, { backgroundColor: verdictFill }]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
+            {verdictGlyph}
+          </ThemedText>
+        </View>
+      ) : null}
+    </Pressable>
   );
 });
 
 const styles = StyleSheet.create({
   cell: {
     aspectRatio: 1,
+    // Explicit touch-target floor; the grid layout sizes cells well above it
+    // on every tier, so this only guards degenerate widths.
+    minHeight: MinTouchTarget,
+    minWidth: MinTouchTarget,
     borderRadius: Radii.medium,
     borderWidth: 1.5,
   },
   dim: {
     opacity: 0.85,
+  },
+  // Verdict badge: content-sized disc pinned to the cell corner. The fill +
+  // glyph pair is the non-colour-alone verdict channel. No animation here, so
+  // there is nothing for reduced motion to collapse.
+  verdict: {
+    position: "absolute",
+    top: Spacing.one,
+    right: Spacing.one,
+    width: Spacing.four,
+    height: Spacing.four,
+    borderRadius: Radii.pill,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

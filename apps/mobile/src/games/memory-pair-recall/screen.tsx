@@ -23,6 +23,7 @@ import { useRouter } from "expo-router";
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -36,6 +37,7 @@ import {
 import type { GameHostView } from "@/components/game-host";
 
 import { GameButton } from "./components/button";
+import { CueFeedback } from "./components/cue-feedback";
 import { CuePanel } from "./components/cue-panel";
 import { PairBoard } from "./components/pair-board";
 import { QaPanel } from "./components/qa-panel";
@@ -375,6 +377,24 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
           .label
       : "";
 
+  // Per-cue verdict replay: the reducer advances to the next cue immediately
+  // and keeps the authoritative outcome in `lastCue`, so the screen maps that
+  // outcome back onto the cue it answered (one index behind the live cue) and
+  // keeps it visible until the next response — never a tap-handler guess.
+  const priorCueIndex = state.cueIndex - 1;
+  const priorCueFeedback =
+    state.phase === "recall" &&
+    round !== null &&
+    state.lastCue !== null &&
+    priorCueIndex >= 0 &&
+    state.lastCue.pairIndex === round.cueOrder[priorCueIndex]
+      ? {
+          cueIndex: priorCueIndex,
+          responseId: state.lastCue.responseId,
+          correct: state.lastCue.correct,
+        }
+      : null;
+
   const view: GameHostView =
     state.phase === "intro" ? "intro" : state.phase === "results" ? "results" : "session";
 
@@ -392,6 +412,7 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
         <ThemedText
           type="subtitle"
@@ -413,6 +434,19 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
       }>
       {inSession && round !== null ? (
         <>
+          {/* Live score: counts up as rounds score so the gain reads as motion. */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-live")}
+            />
+          </View>
+
           {state.phase === "study" ? (
             <>
               <ThemedText
@@ -461,6 +495,14 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
                 disabled={state.paused}
                 onRespond={handleRespond}
               />
+              {priorCueFeedback !== null ? (
+                <CueFeedback
+                  round={round}
+                  cueIndex={priorCueFeedback.cueIndex}
+                  responseId={priorCueFeedback.responseId}
+                  correct={priorCueFeedback.correct}
+                />
+              ) : null}
             </>
           ) : null}
 
@@ -516,6 +558,18 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-final")}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -574,5 +628,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  scoreStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  finalScore: {
+    alignItems: "center",
+    gap: Spacing.one,
   },
 });

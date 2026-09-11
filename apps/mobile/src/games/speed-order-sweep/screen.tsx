@@ -14,8 +14,8 @@
  * `PauseOverlay` and hidden from the accessibility tree while paused, so the
  * board cannot be studied during a pause.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
@@ -30,9 +30,13 @@ import type {
   TutorialStore,
   XpRatingHook,
 } from '@/sdk';
+import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { MinTouchTarget, Motion } from '@/theme/tokens';
 import {
   GameHost,
   GameResults,
@@ -67,6 +71,139 @@ import {
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialOrderSweepState } from './types';
 import { SCORING_VERSION } from './versions';
+
+/** Verdict kinds for the tap/round cue. */
+type SweepCueVerdict = 'hit' | 'wrong' | 'perfect' | 'cleared' | 'missed';
+
+/**
+ * SweepVerdictCue — instant multi-channel verdict for the last tap or round.
+ *
+ * Drops speed-round model (dye + glyph badge), not a bottom sheet: fill +
+ * verdict border + `✓`/`✕`/`⏱` glyph + a visible label, with the verdict in
+ * the accessible name (live region), so a hit never reads like a miss. Fixed
+ * width and non-interactive, so showing/clearing it never shifts the
+ * surrounding layout or steals taps. The empty slot is decorative.
+ */
+function SweepVerdictCue({ verdict }: { verdict: SweepCueVerdict | null }) {
+  const theme = useTheme();
+  const reducedMotion = usePrefersReducedMotion();
+  const [scale] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    if (reducedMotion || verdict === null) {
+      scale.setValue(1);
+      return;
+    }
+    scale.setValue(0.6);
+    const pop = Animated.timing(scale, {
+      toValue: 1,
+      duration: Motion.quick,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    });
+    pop.start();
+    return () => {
+      pop.stop();
+    };
+  }, [reducedMotion, scale, verdict]);
+
+  if (verdict === null) {
+    return (
+      <View
+        style={[styles.cue, styles.cueEmpty, { borderColor: theme.border }]}
+        importantForAccessibility="no-hide-descendants"
+      />
+    );
+  }
+
+  // Verdicts change fill AND boundary AND glyph, never colour alone. In-play
+  // verdicts come from the reducer's `lastVerdict`; round verdicts come from
+  // `roundOutcome`, so a tap after the window can never present a hit.
+  const vocabulary =
+    verdict === 'hit'
+      ? {
+          label: 'Hit',
+          spoken: 'Last tap: hit',
+          glyph: '✓',
+          soft: theme.successSoft,
+          edge: theme.success,
+          badge: theme.success,
+          glyphColor: theme.successOn,
+          text: 'success' as const,
+        }
+      : verdict === 'wrong'
+        ? {
+            label: 'Wrong',
+            spoken: 'Last tap: wrong',
+            glyph: '✕',
+            soft: theme.dangerSoft,
+            edge: theme.danger,
+            badge: theme.danger,
+            glyphColor: theme.dangerOn,
+            text: 'danger' as const,
+          }
+        : verdict === 'perfect'
+          ? {
+              label: 'Perfect',
+              spoken: 'Last round: perfect',
+              glyph: '✓',
+              soft: theme.successSoft,
+              edge: theme.success,
+              badge: theme.success,
+              glyphColor: theme.successOn,
+              text: 'success' as const,
+            }
+          : verdict === 'cleared'
+            ? {
+                label: 'Cleared',
+                spoken: 'Last round: cleared',
+                glyph: '✓',
+                soft: theme.successSoft,
+                edge: theme.success,
+                badge: theme.success,
+                glyphColor: theme.successOn,
+                text: 'success' as const,
+              }
+            : {
+                label: 'Missed',
+                spoken: 'Last round: missed',
+                glyph: '⏱',
+                soft: theme.warningSoft,
+                edge: theme.warning,
+                badge: theme.warning,
+                glyphColor: theme.warningOn,
+                text: 'warning' as const,
+              };
+
+  return (
+    <View
+      testID={testId(GAME_ID, 'verdict')}
+      style={[
+        styles.cue,
+        { backgroundColor: vocabulary.soft, borderColor: vocabulary.edge },
+      ]}
+      accessible
+      accessibilityLabel={vocabulary.spoken}
+      accessibilityLiveRegion="polite">
+      <Animated.View
+        style={[
+          styles.cueBadge,
+          { backgroundColor: vocabulary.badge, transform: [{ scale }] },
+        ]}
+        importantForAccessibility="no-hide-descendants">
+        <ThemedText
+          type="headline"
+          style={{ color: vocabulary.glyphColor }}
+          allowFontScaling={false}>
+          {vocabulary.glyph}
+        </ThemedText>
+      </Animated.View>
+      <ThemedText type="smallBold" themeColor={vocabulary.text}>
+        {vocabulary.label}
+      </ThemedText>
+    </View>
+  );
+}
 
 export interface OrderSweepScreenProps {
   /** Injectable clock for session timing (tests); defaults to the system clock. */
@@ -345,6 +482,24 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
 
   const board = state.phase === 'active' || state.phase === 'roundResult' ? state.round : null;
 
+  // Feedback derives from the reducer's authoritative state: in-play verdicts
+  // come from `lastVerdict`; the round card's verdict comes from
+  // `roundOutcome`, so a tap that the window rejected can never present a hit.
+  // The mechanic never hides the answer, so there is no per-item reveal to
+  // pair: the board itself stays visible through the round verdict.
+  const sweepVerdict: SweepCueVerdict | null =
+    state.phase === 'roundResult'
+      ? state.roundOutcome === 'expired'
+        ? 'missed'
+        : state.roundOutcome === 'perfect'
+          ? 'perfect'
+          : state.roundOutcome === 'cleared'
+            ? 'cleared'
+            : null
+      : state.lastVerdict === 'correct'
+        ? 'hit'
+        : state.lastVerdict;
+
   const view: GameHostView =
     state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
@@ -364,6 +519,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      roundProgress={{ value: state.stats.roundsPlayed, total: rounds }}
       header={
         <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
           Round {state.roundIndex + 1}/{rounds}
@@ -375,8 +531,25 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
-      {state.phase === 'active' ? (
+      {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. The
+          GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
+
+          {/* The prompt and the board stay mounted while feedback shows: the
+          round verdict must never cover the stem. The cue remounts per tap /
+          per round so its pop replays; it is fixed-size and inert. */}
           <View style={styles.statusRow}>
             <ThemedText
               type="bodyLarge"
@@ -384,6 +557,14 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
               testID={testId(GAME_ID, 'active-status')}>
               Tap the smallest number!
             </ThemedText>
+            <SweepVerdictCue
+              key={
+                state.phase === 'roundResult'
+                  ? `result-${state.roundIndex}`
+                  : `tap-${state.clearedCount}-${state.roundWrongTaps}`
+              }
+              verdict={sweepVerdict}
+            />
             <ThemedText
               type="smallBold"
               themeColor={state.stats.streak > 0 ? 'accent' : 'textSecondary'}
@@ -391,64 +572,66 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
               Streak {state.stats.streak}
             </ThemedText>
           </View>
-          <RoundWindow
-            deadlineMs={state.deadlineMs ?? clock.now()}
-            windowMs={state.windowMs}
-            clock={clock}
-            testID={testId(GAME_ID, 'window')}
-          />
+          {state.phase === 'active' ? (
+            <RoundWindow
+              deadlineMs={state.deadlineMs ?? clock.now()}
+              windowMs={state.windowMs}
+              clock={clock}
+              testID={testId(GAME_ID, 'window')}
+            />
+          ) : null}
           {board !== null ? (
             <TokenGrid
               round={board}
               clearedCount={state.clearedCount}
-              disabled={state.paused}
+              disabled={state.paused || state.phase !== 'active'}
               onTap={handleTokenTap}
               testID={testId(GAME_ID, 'grid')}
             />
           ) : null}
-        </>
-      ) : null}
 
-      {state.phase === 'roundResult' ? (
-        <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-          <ThemedText
-            type="headline"
-            themeColor={
-              state.roundOutcome === 'expired' ? 'danger' : 'success'
-            }
-            testID={testId(
-              GAME_ID,
-              state.roundOutcome === 'expired' ? 'round-failed' : 'round-passed',
-            )}>
-            {state.roundOutcome === 'perfect'
-              ? 'Perfect sweep!'
-              : state.roundOutcome === 'cleared'
-                ? 'Board cleared'
-                : "Time's up"}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            {state.clearedCount}/{board?.order.length ?? 0} swept ·{' '}
-            {state.roundWrongTaps} wrong tap{state.roundWrongTaps === 1 ? '' : 's'}
-          </ThemedText>
-          {state.roundOutcome === 'perfect' ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              Flawless — the next window shrinks to {state.windowMs} ms.
-            </ThemedText>
-          ) : state.roundOutcome === 'cleared' ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              Cleared with mistakes — the window holds at {state.windowMs} ms.
-            </ThemedText>
-          ) : (
-            <ThemedText type="small" themeColor="textSecondary">
-              Sweep the whole board before the bar empties.
-            </ThemedText>
-          )}
-          <GameButton
-            testID={testId(GAME_ID, 'next-round')}
-            label={isLastRound ? 'See results' : 'Next round'}
-            onPress={() => dispatch({ type: 'next-round', roundStartedAtMs: clock.now() })}
-          />
-        </View>
+          {state.phase === 'roundResult' ? (
+            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              <ThemedText
+                type="headline"
+                themeColor={
+                  state.roundOutcome === 'expired' ? 'danger' : 'success'
+                }
+                testID={testId(
+                  GAME_ID,
+                  state.roundOutcome === 'expired' ? 'round-failed' : 'round-passed',
+                )}>
+                {state.roundOutcome === 'perfect'
+                  ? 'Perfect sweep!'
+                  : state.roundOutcome === 'cleared'
+                    ? 'Board cleared'
+                    : "Time's up"}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                {state.clearedCount}/{board?.order.length ?? 0} swept ·{' '}
+                {state.roundWrongTaps} wrong tap{state.roundWrongTaps === 1 ? '' : 's'}
+              </ThemedText>
+              {state.roundOutcome === 'perfect' ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Flawless — the next window shrinks to {state.windowMs} ms.
+                </ThemedText>
+              ) : state.roundOutcome === 'cleared' ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Cleared with mistakes — the window holds at {state.windowMs} ms.
+                </ThemedText>
+              ) : (
+                <ThemedText type="small" themeColor="textSecondary">
+                  Sweep the whole board before the bar empties.
+                </ThemedText>
+              )}
+              <GameButton
+                testID={testId(GAME_ID, 'next-round')}
+                label={isLastRound ? 'See results' : 'Next round'}
+                onPress={() => dispatch({ type: 'next-round', roundStartedAtMs: clock.now() })}
+              />
+            </View>
+          ) : null}
+        </>
       ) : null}
 
       {state.phase === 'results' ? (
@@ -463,6 +646,18 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -526,5 +721,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.two,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  cue: {
+    minWidth: 104,
+    minHeight: MinTouchTarget,
+    borderRadius: Radii.pill,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.two,
+  },
+  cueEmpty: {
+    backgroundColor: 'transparent',
+  },
+  cueBadge: {
+    minWidth: 28,
+    minHeight: 28,
+    borderRadius: Radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

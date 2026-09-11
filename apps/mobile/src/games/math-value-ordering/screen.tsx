@@ -27,8 +27,10 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -70,6 +72,33 @@ const TIMER_TICK_MS = 250;
 /** Ascending-order reveal for feedback: tiles sorted by comparison value. */
 export function sortedTilesOf(round: { readonly tiles: readonly ValueTile[] }): ValueTile[] {
   return [...round.tiles].sort((a, b) => a.value - b.value);
+}
+
+/**
+ * Submitted order for feedback: correctly tapped tiles in tap order, followed
+ * by the wrong pick on a mistake round (the reducer keeps it out of
+ * `tappedIds`). Unknown ids are dropped defensively; on a timeout with no
+ * taps yet the result is empty.
+ */
+export function submittedTilesOf(
+  round: { readonly tiles: readonly ValueTile[] },
+  tappedIds: readonly string[],
+  mistakeTileId: string | null,
+): ValueTile[] {
+  const submitted: ValueTile[] = [];
+  for (const id of tappedIds) {
+    const tile = round.tiles.find((candidate) => candidate.id === id);
+    if (tile !== undefined) {
+      submitted.push(tile);
+    }
+  }
+  if (mistakeTileId !== null && !submitted.some((tile) => tile.id === mistakeTileId)) {
+    const mistake = round.tiles.find((tile) => tile.id === mistakeTileId);
+    if (mistake !== undefined) {
+      submitted.push(mistake);
+    }
+  }
+  return submitted;
 }
 
 export interface ValueOrderingScreenProps {
@@ -335,6 +364,7 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
+  const theme = useTheme();
   const round = state.round;
   const secondsLeft =
     state.phase === 'ordering'
@@ -342,6 +372,44 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
       : 0;
   const remainingTiles =
     round !== null ? round.tiles.length - state.tappedIds.length : 0;
+  // Verdict vocabulary for the resolved frame, derived from the reducer's
+  // outcome (never the tap handler's guess): soft fill + glyph badge + words.
+  // Badges are decorative for assistive tech; tile and panel accessible names
+  // carry the verdict.
+  const verdict =
+    state.outcome === 'perfect'
+      ? {
+          title: 'Perfect order!',
+          glyph: '✓',
+          soft: theme.successSoft,
+          edge: theme.success,
+          badge: theme.success,
+          glyphColor: theme.successOn,
+          text: 'success' as const,
+          headline: 'round-perfect',
+        }
+      : state.outcome === 'mistake'
+        ? {
+            title: 'Wrong tile',
+            glyph: '✕',
+            soft: theme.dangerSoft,
+            edge: theme.danger,
+            badge: theme.danger,
+            glyphColor: theme.dangerOn,
+            text: 'danger' as const,
+            headline: 'round-mistake',
+          }
+        : {
+            title: "Time's up",
+            glyph: '⏱',
+            soft: theme.warningSoft,
+            edge: theme.warning,
+            badge: theme.warning,
+            glyphColor: theme.warningOn,
+            text: 'warning' as const,
+            headline: 'round-timeout',
+          };
+  const submittedTiles = round !== null ? submittedTilesOf(round, state.tappedIds, state.mistakeTileId) : [];
 
   const view: GameHostView =
     state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
@@ -368,6 +436,7 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -375,6 +444,20 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
       }>
       {inSession && round !== null ? (
         <>
+          {/* Live score: count-up readout beside the HUD score in every session
+          phase, so a perfect round reads as movement. The GameHost `score`
+          prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'ordering' ? (
             <>
               <ThemedText
@@ -399,36 +482,63 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
           ) : null}
 
           {state.phase === 'feedback' ? (
-            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-              <ThemedText
-                type="headline"
-                themeColor={state.outcome === 'perfect' ? 'success' : 'danger'}
-                testID={testId(GAME_ID, `round-${state.outcome ?? 'mistake'}`)}>
-                {state.outcome === 'perfect'
-                  ? 'Perfect order!'
-                  : state.outcome === 'mistake'
-                    ? 'Wrong tile'
-                    : "Time's up"}
+            <>
+              {/* The prompt and the board stay mounted while feedback shows:
+              the resolved grid below keeps the submitted order (rank badges)
+              next to per-tile verdicts, and the panel lists the correct order
+              beside what was submitted. */}
+              <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'prompt')}>
+                Tap from smallest to largest
               </ThemedText>
-              <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal')}>
-                Correct order:{' '}
-                {sortedTilesOf(round)
-                  .map((tile) => tile.display)
-                  .join('  <  ')}
-              </ThemedText>
-              {state.mistakeTileId !== null ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  You tapped{' '}
-                  {round.tiles.find((tile) => tile.id === state.mistakeTileId)?.display ?? '?'}{' '}
-                  too early.
-                </ThemedText>
-              ) : null}
-              <GameButton
-                testID={testId(GAME_ID, 'next-round')}
-                label={isLastRound ? 'See results' : 'Next round'}
-                onPress={handleNext}
+              <ValueGrid
+                round={round}
+                tappedIds={state.tappedIds}
+                disabled
+                onTapTile={handleTapTile}
+                outcome={state.outcome}
+                mistakeTileId={state.mistakeTileId}
               />
-            </View>
+              <View
+                style={[styles.feedbackCard, { backgroundColor: verdict.soft, borderColor: verdict.edge }]}
+                testID={testId(GAME_ID, 'round-result')}>
+                <View
+                  style={[styles.badge, { backgroundColor: verdict.badge }]}
+                  importantForAccessibility="no-hide-descendants">
+                  <ThemedText type="headline" style={{ color: verdict.glyphColor }} allowFontScaling={false}>
+                    {verdict.glyph}
+                  </ThemedText>
+                </View>
+                <ThemedText
+                  type="headline"
+                  themeColor={verdict.text}
+                  testID={testId(GAME_ID, verdict.headline)}>
+                  {verdict.title}
+                </ThemedText>
+                <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal')}>
+                  Correct order:{' '}
+                  {sortedTilesOf(round)
+                    .map((tile) => tile.display)
+                    .join('  <  ')}
+                </ThemedText>
+                <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'submitted-order')}>
+                  {submittedTiles.length > 0
+                    ? `Your order: ${submittedTiles.map((tile) => tile.display).join('  <  ')}`
+                    : 'Your order: no tiles placed yet.'}
+                </ThemedText>
+                {state.mistakeTileId !== null ? (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    You tapped{' '}
+                    {round.tiles.find((tile) => tile.id === state.mistakeTileId)?.display ?? '?'}{' '}
+                    too early.
+                  </ThemedText>
+                ) : null}
+                <GameButton
+                  testID={testId(GAME_ID, 'next-round')}
+                  label={isLastRound ? 'See results' : 'Next round'}
+                  onPress={handleNext}
+                />
+              </View>
+            </>
           ) : null}
         </>
       ) : null}
@@ -445,6 +555,18 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
           <StatRow
             label="Perfect rounds"
@@ -471,5 +593,29 @@ export default function ValueOrderingScreen(props: ValueOrderingScreenProps = {}
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  // Verdict panel: soft verdict-family fill with a verdict border, so the
+  // resolved frame reads by fill AND boundary AND the badge glyph.
+  feedbackCard: {
+    gap: Spacing.three,
+    alignItems: 'center',
+    borderRadius: Radii.large,
+    borderWidth: 2,
+    padding: Spacing.four,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

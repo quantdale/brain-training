@@ -499,4 +499,41 @@ describe("WordChainScreen", () => {
     expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
     expect(difficulty.challengeRating).not.toBe(0.5);
   });
+
+  it("marks the wrong link and the needed word with the chain visible", async () => {
+    const seed = "verdict-chain";
+    await renderScreen({ seed });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+
+    const expected = expectedRound(seed, 0, new Set(), null);
+    const step = expected.steps[0];
+    const wrongIndex = (step.correctIndex + 1) % step.options.length;
+    // Live score is visible while the question is answerable.
+    expect(screen.getByTestId(testId(GAME_ID, "score", "live"))).toBeOnTheScreen();
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, "option", String(wrongIndex))),
+    );
+
+    // A wrong link ends the chain: verdict headline + panel from the reducer.
+    expect(screen.getByTestId(testId(GAME_ID, "round-wrong"))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, "round-feedback"))).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(testId(GAME_ID, "round-answer-reveal")),
+    ).toHaveTextContent(`The chain was ${expected.words.join(" → ")}`);
+    const prevWord = step.position > 0 ? expected.words[step.position - 1] : null;
+    expect(screen.getByTestId(testId(GAME_ID, "round-why"))).toHaveTextContent(
+      prevWord !== null
+        ? `"${step.correctWord}" follows "${prevWord}"`
+        : `"${step.correctWord}" starts the chain`,
+    );
+    // The chain stays visible while feedback shows.
+    expect(screen.getByTestId(testId(GAME_ID, "chain"))).toBeOnTheScreen();
+    // Multi-channel verdict: correct link and wrong pick read in words.
+    expect(
+      screen.getByLabelText(`Correct: ${step.options[step.correctIndex]}`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(`Wrong pick: ${step.options[wrongIndex]}`),
+    ).toBeOnTheScreen();
+  });
 });

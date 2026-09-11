@@ -23,6 +23,7 @@ import { useRouter } from 'expo-router';
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { GameButton, StatRow } from '@/components/game-ui';
 import {
@@ -34,7 +35,7 @@ import {
 } from '@/components/game-host';
 
 import { BlockShape } from './components/block-shape';
-import { AnswerButton } from './components/button';
+import { AnswerButton, type AnswerVerdict } from './components/button';
 import { QaPanel } from './components/qa-panel';
 import { TimerBar } from './components/timer-bar';
 import { Tutorial } from './components/tutorial';
@@ -304,6 +305,22 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
         ? 'Time’s up'
         : 'Not quite';
 
+  // Answer verdicts derived from the reducer's resolved outcome — never the
+  // tap handler's optimistic guess. The correct answer always reads correct;
+  // on a failed round the player's pick — necessarily the other answer,
+  // since the reducer only fails when answer !== kind — reads as the wrong
+  // pick. A timeout has no pick, so only the correct answer is marked.
+  const pickedAnswer: RoundKind | null =
+    state.roundOutcome === 'passed'
+      ? state.kind
+      : state.roundOutcome === 'failed'
+        ? state.kind === 'same'
+          ? 'different'
+          : 'same'
+        : null;
+  const verdictFor = (answer: RoundKind): AnswerVerdict =>
+    answer === state.kind ? 'correct' : answer === pickedAnswer ? 'wrong' : 'neutral';
+
   return (
     <GameHost
       gameId={GAME_ID}
@@ -324,6 +341,7 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: state.rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -354,6 +372,16 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
                 testID={testId(GAME_ID, 'play-status')}>
                 Is the candidate the target rotated?
               </ThemedText>
+              <View style={styles.scoreRow}>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Score
+                </ThemedText>
+                <AnimatedNumber
+                  value={state.stats.score}
+                  type="numeral"
+                  testID={testId(GAME_ID, 'score-live')}
+                />
+              </View>
               <View style={styles.shapesRow}>
                 <View style={styles.shapeSlot}>
                   <ThemedText type="caption" themeColor="textSecondary">
@@ -388,6 +416,14 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
 
           {state.phase === 'roundResult' ? (
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              {/* The play prompt stays mounted through feedback: the verdict
+               * must never cover the stem (Imprint rule). */}
+              <ThemedText
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, 'play-status')}>
+                Is the candidate the target rotated?
+              </ThemedText>
               <ThemedText
                 type="headline"
                 themeColor={
@@ -403,6 +439,25 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
                     ? `The timer ran out. The correct answer was ${state.kind === 'same' ? '“Same”' : '“Different”'}.`
                     : `The correct answer was ${state.kind === 'same' ? '“Same”' : '“Different”'}.`}
               </ThemedText>
+              {/* Both verdict states stay visible together: the correct answer
+               * reads correct and the wrong pick — when there is one — reads
+               * as the wrong pick, while the transformed stimulus (both
+               * shapes) stays visible below. */}
+              <View style={styles.answerRow}>
+                <AnswerButton
+                  testID={testId(GAME_ID, 'same')}
+                  label="Same"
+                  answer="same"
+                  verdict={verdictFor('same')}
+                />
+                <AnswerButton
+                  testID={testId(GAME_ID, 'different')}
+                  label="Different"
+                  variant="secondary"
+                  answer="different"
+                  verdict={verdictFor('different')}
+                />
+              </View>
               <View style={styles.shapesRow}>
                 <View style={styles.shapeSlot}>
                   <ThemedText type="caption" themeColor="textSecondary">
@@ -443,6 +498,11 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
             label="Score"
             value={String(state.stats.score)}
             testID={testId(GAME_ID, 'score')}
+          />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, 'score-animated')}
           />
           <StatRow
             label="Accuracy"
@@ -495,6 +555,11 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   shapeSlot: {
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  scoreRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
   },

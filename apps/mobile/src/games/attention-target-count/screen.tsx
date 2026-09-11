@@ -29,8 +29,10 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -41,6 +43,7 @@ import {
 
 import { Grid } from './components/grid';
 import { CountOptions } from './components/count-options';
+import type { CountOptionVisualState } from './components/count-options';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import { targetCountParamsFromProfile, sessionChallengeRating } from './difficulty';
@@ -56,6 +59,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialTargetCountState } from './types';
+import type { TargetCountAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 export interface TargetCountScreenProps {
@@ -83,6 +87,7 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
     xpHook = noopXpRatingHook,
   } = props;
   const router = useRouter();
+  const theme = useTheme();
   const [state, dispatch] = useReducer(targetCountGameReducer, undefined, createInitialTargetCountState);
 
   const stateRef = useRef(state);
@@ -276,23 +281,31 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
       if (current.phase !== 'showGrid' || current.paused) {
         return;
       }
-      // Feedback must match the answer actually given: a wrong pick plays the
-      // wrong sound, not the correct one.
-      const correct =
-        current.currentRound !== null &&
-        selectedCount === current.currentRound.targetCount;
-      if (correct) {
-        liveAudioHaptics.playSfx('memory-tile-correct');
-        liveAudioHaptics.haptic('light');
-      } else {
-        liveAudioHaptics.playSfx('memory-tile-wrong');
-        liveAudioHaptics.haptic('warning');
-      }
-      dispatch({
+      // Feedback follows the authoritative round outcome, not the tap's
+      // optimism: the reducer owns the round-window guard, so resolve the
+      // answer through it first. An answer past the budget resolves to a
+      // timeout (the pending tick owns that resolution) and must stay silent
+      // — sounding "correct" for a round that scores a timeout is the
+      // Campaign 023 late-tap mismatch. No timing logic is duplicated: this
+      // is the same pure transition the dispatch below commits.
+      const action: TargetCountAction = {
         type: 'answer',
         selectedCount,
         elapsedMs: roundElapsedRef.current,
-      });
+      };
+      const next = targetCountGameReducer(current, action);
+      dispatch(action);
+      if (next.phase !== 'roundResult' || next.roundOutcome === null) {
+        return;
+      }
+      if (next.roundOutcome === 'correct') {
+        liveAudioHaptics.playSfx('memory-tile-correct');
+        liveAudioHaptics.haptic('light');
+      } else if (next.roundOutcome === 'wrong') {
+        liveAudioHaptics.playSfx('memory-tile-wrong');
+        liveAudioHaptics.haptic('warning');
+      }
+      // Timeout: the timeout verdict owns the feedback — never correct/wrong.
     },
     [dispatch],
   );
@@ -333,6 +346,54 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
 
   const view = state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
+  // ---- Option visuals. The answering phase renders all-`idle`; the result
+  // phase marks the true count `correct`, the picked-wrong value `wrong` and
+  // everything else `dim`, so the mistake and the answer read together
+  // (PATTERNS-PLAY 6). Both resolvers depend only on round-resolution state,
+  // never on the 100 ms ticker, so the memoized options skip re-rendering
+  // while the countdown runs.
+  const idleVisualFor = useCallback((): CountOptionVisualState => 'idle', []);
+  const resultVisualFor = useCallback(
+    (value: number): CountOptionVisualState => {
+      if (state.currentRound === null) {
+        return 'dim';
+      }
+      if (value === state.currentRound.targetCount) {
+        return 'correct';
+      }
+      return value === state.selectedCount ? 'wrong' : 'dim';
+    },
+    [state.currentRound, state.selectedCount],
+  );
+
+  // Verdict panel channels (fill + badge glyph + headline), mirroring the
+  // shared feedback language: success for a correct count, danger for a
+  // wrong pick, warning for a timeout. Only read inside `roundResult`.
+  const roundVerdict =
+    state.roundOutcome === 'correct'
+      ? {
+          glyph: '✓',
+          soft: theme.successSoft,
+          badge: theme.success,
+          glyphColor: theme.successOn,
+          text: 'success' as const,
+        }
+      : state.roundOutcome === 'timeout'
+        ? {
+            glyph: '⏱',
+            soft: theme.warningSoft,
+            badge: theme.warning,
+            glyphColor: theme.warningOn,
+            text: 'warning' as const,
+          }
+        : {
+            glyph: '✕',
+            soft: theme.dangerSoft,
+            badge: theme.danger,
+            glyphColor: theme.dangerOn,
+            text: 'danger' as const,
+          };
+
   return (
     <GameHost
       gameId={GAME_ID}
@@ -355,6 +416,10 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{
+        value: state.phase === 'results' ? rounds : Math.min(state.roundIndex + 1, rounds),
+        total: rounds,
+      }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -362,6 +427,20 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. The
+          GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+          <View
+            style={styles.scoreRow}
+            accessibilityLabel={`Score ${state.stats.score}`}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'showGrid' && state.currentRound !== null ? (
             <View style={styles.section} testID={testId(GAME_ID, 'show-grid')}>
               <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'target-prompt')}>
@@ -379,30 +458,74 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
                 options={state.currentRound.options}
                 onSelect={(value) => handleAnswer(value)}
                 disabled={state.paused}
+                visualFor={idleVisualFor}
               />
             </View>
           ) : null}
-
           {state.phase === 'roundResult' && state.currentRound !== null ? (
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-              <ThemedText
-                type="headline"
-                themeColor={state.roundCorrect ? 'success' : 'danger'}
-                testID={testId(
-                  GAME_ID,
-                  state.roundCorrect
-                    ? 'round-correct'
-                    : state.roundOutcome === 'timeout'
-                      ? 'round-timeout'
-                      : 'round-wrong',
-                )}>
-                {state.roundCorrect ? 'Correct!' : state.roundOutcome === 'timeout' ? 'Time up' : 'Not quite'}
+              {/* Verdict panel: fill + badge glyph + headline restate the
+              outcome without covering the prompt/grid/options below, which
+              stay mounted so the mistake stays reviewable. */}
+              <View
+                style={[styles.verdictPanel, { backgroundColor: roundVerdict.soft }]}
+                testID={testId(GAME_ID, 'feedback')}>
+                <View
+                  style={[styles.verdictBadge, { backgroundColor: roundVerdict.badge }]}
+                  importantForAccessibility="no-hide-descendants">
+                  <ThemedText
+                    type="headline"
+                    style={{ color: roundVerdict.glyphColor }}
+                    allowFontScaling={false}>
+                    {roundVerdict.glyph}
+                  </ThemedText>
+                </View>
+                <ThemedText
+                  type="headline"
+                  themeColor={roundVerdict.text}
+                  testID={testId(
+                    GAME_ID,
+                    state.roundCorrect
+                      ? 'round-correct'
+                      : state.roundOutcome === 'timeout'
+                        ? 'round-timeout'
+                        : 'round-wrong',
+                  )}>
+                  {state.roundCorrect ? 'Correct!' : state.roundOutcome === 'timeout' ? 'Time up' : 'Not quite'}
+                </ThemedText>
+
+                <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'actual-count')}>
+                  There were {state.currentRound.targetCount} {state.currentRound.targetGlyphName}
+                  {state.currentRound.targetCount === 1 ? '' : 's'}.
+                </ThemedText>
+                {state.roundOutcome === 'wrong' && state.selectedCount !== null ? (
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    testID={testId(GAME_ID, 'picked-count')}>
+                    You picked {state.selectedCount}.
+                  </ThemedText>
+                ) : null}
+              </View>
+
+              <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'target-prompt')}>
+                Count the {state.currentRound.targetGlyphName} {state.currentRound.targetGlyph}
               </ThemedText>
 
-              <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'actual-count')}>
-                There were {state.currentRound.targetCount} {state.currentRound.targetGlyphName}
-                {state.currentRound.targetCount === 1 ? '' : 's'}.
-              </ThemedText>
+              <View testID={testId(GAME_ID, 'grid')}>
+                <Grid
+                  cells={state.currentRound.cells}
+                  testIdCell={(i) => testId(GAME_ID, 'cell', String(i))}
+                  disabled
+                />
+              </View>
+
+              <CountOptions
+                options={state.currentRound.options}
+                onSelect={(value) => handleAnswer(value)}
+                disabled
+                visualFor={resultVisualFor}
+              />
 
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
@@ -426,6 +549,19 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows stay untouched. */}
+          <View
+            style={styles.scoreHero}
+            accessibilityLabel={`Final score ${state.stats.score}`}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score-animated')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -462,5 +598,28 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  scoreHero: {
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  // Inline verdict panel: soft verdict fill + opaque glyph badge. The stem
+  // (prompt, grid, options) stays mounted below, never covered.
+  verdictPanel: {
+    gap: Spacing.three,
+    alignItems: 'center',
+    borderRadius: Radii.large,
+    padding: Spacing.four,
+  },
+  verdictBadge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
   },
 });

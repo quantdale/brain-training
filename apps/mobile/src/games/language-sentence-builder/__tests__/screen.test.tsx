@@ -324,4 +324,45 @@ describe('SentenceBuilderScreen', () => {
     expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
     expect(difficulty.challengeRating).not.toBe(0.5);
   });
+
+  it('fails the round on a wrong tap with the correct order revealed and the prompt visible', async () => {
+    const seed = 'verdict-fail';
+    await renderScreen({ seed });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+
+    // Accepted orders for round 0 (same generation as the reducer): find a
+    // word that opens no accepted order, so the first tap surely fails.
+    const { scrambled } = generateRound({
+      rng: createRng(seed),
+      roundIndex: 0,
+      bank: SENTENCE_BANK,
+      minWords: 5,
+      maxWords: 7,
+      prevCategory: null,
+      usedCategories: [],
+      usedSentenceTexts: [],
+    });
+    const firstWords = new Set(scrambled.acceptedOrders.map((order) => order[0].toLowerCase()));
+    const wrongIdx = scrambled.scrambled.findIndex((word) => !firstWords.has(word.toLowerCase()));
+    expect(wrongIdx).toBeGreaterThanOrEqual(0);
+
+    const gridTestId = testId(GAME_ID, 'word-grid');
+    await fireEvent.press(screen.getByTestId(`${gridTestId}.word.${wrongIdx}`));
+
+    // Verdict headline + panel, derived from the reducer's resolved outcome.
+    expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-feedback'))).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(testId(GAME_ID, 'round-answer-reveal')),
+    ).toHaveTextContent(`Correct order: ${scrambled.original.join(' ')}`);
+    expect(screen.getByTestId(testId(GAME_ID, 'round-why'))).toBeOnTheScreen();
+    // The prompt (built sentence, chips, hint) stays visible while feedback
+    // shows, and the strip carries the verdict in words.
+    expect(screen.getByTestId(testId(GAME_ID, 'player-sentence'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'word-grid'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'category-hint'))).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(`Your order: ${scrambled.scrambled[wrongIdx]}`),
+    ).toBeOnTheScreen();
+  });
 });

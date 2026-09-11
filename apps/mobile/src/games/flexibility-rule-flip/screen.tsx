@@ -45,6 +45,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -354,14 +355,17 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
-  // Trial card visuals (see StimulusVisualState).
+  // Trial card visuals (see StimulusVisualState). Depends only on
+  // round-transition state: a wrong pick marks the picked card wrong AND the
+  // correct card correct together (Vocabulary rule), rendered side by side
+  // in the round-result grid below.
   const visualFor = (index: number): StimulusVisualState => {
     if (state.round === null) {
       return 'idle';
     }
     if (state.phase === 'trialResult') {
       if (index === state.round.correctIndex) {
-        return 'selected';
+        return 'correct';
       }
       if (state.roundOutcome === 'wrong' && index === state.lastPickIndex) {
         return 'error';
@@ -393,6 +397,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.stats.roundsPlayed, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -406,6 +411,19 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout mounted across the trial phases so a
+          score change reads as movement the moment the round is scored. The
+          GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreRow}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'trialActive' && state.round !== null ? (() => {
             // Inside an uncued window the banner hides the rule until the pick:
             // showing it (or announcing the flip) would nullify detection.
@@ -466,6 +484,23 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
 
           {state.phase === 'trialResult' && state.round !== null ? (
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              {/* The rule cue stays mounted through feedback: the verdict must
+              never cover the stem (Imprint rule). The round is scored, so the
+              banner always names the active rule here — even for uncued
+              windows, whose explainer/rule-reveal below already state it. */}
+              <View style={styles.cueBanner} testID={testId(GAME_ID, 'rule-banner')}>
+                <ThemedText
+                  type="headline"
+                  themeColor="accent"
+                  testID={testId(GAME_ID, 'rule-banner-text')}>
+                  {RULE_LABELS[state.round.rule]}
+                </ThemedText>
+                {state.round.isSwitch && !state.round.uncued ? (
+                  <ThemedText type="caption" themeColor="warning" testID={testId(GAME_ID, 'rule-switch')}>
+                    Rule flipped! Get ready…
+                  </ThemedText>
+                ) : null}
+              </View>
               <ThemedText
                 type="headline"
                 themeColor={state.roundOutcome === 'correct' ? 'success' : 'danger'}
@@ -525,6 +560,11 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
             label="Score"
             value={String(state.stats.score)}
             testID={testId(GAME_ID, 'score')}
+          />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, 'score-animated')}
           />
           <StatRow
             label="Accuracy"
@@ -594,6 +634,11 @@ const styles = StyleSheet.create({
   },
   targetRow: {
     alignItems: 'center',
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   grid: {
     flexDirection: 'row',

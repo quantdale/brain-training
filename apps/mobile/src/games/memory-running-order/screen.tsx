@@ -23,6 +23,7 @@ import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } f
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { AnimatedNumber } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -316,6 +317,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
         <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
           Round {state.roundIndex + 1}/{rounds}
@@ -328,6 +330,19 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
+
           {state.phase === 'reveal' ? (
             <View style={[styles.center, styles.section]} testID={testId(GAME_ID, 'reveal')}>
               <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal-status')}>
@@ -357,11 +372,17 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
             </View>
           ) : null}
 
+          {/* The prompt stays mounted through the verdict: it renders for both
+              the input and round-result phases, so feedback never covers the
+              stem the player was answering. */}
+          {state.phase === 'input' || state.phase === 'roundResult' ? (
+            <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'input-status')}>
+              Recall the last {state.recallLength} in order
+            </ThemedText>
+          ) : null}
+
           {state.phase === 'input' ? (
             <View style={styles.section} testID={testId(GAME_ID, 'input')}>
-              <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'input-status')}>
-                Recall the last {state.recallLength} in order
-              </ThemedText>
               <View style={styles.answerRow} testID={testId(GAME_ID, 'answer')}>
                 {Array.from({ length: state.recallLength }, (_, i) => (
                   <View key={i} style={styles.answerSlot}>
@@ -412,11 +433,33 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
               <ThemedText type="small" themeColor="textSecondary">
                 You recalled {state.roundCorrectTargets} of {state.recallLength} in order
               </ThemedText>
+              {/* Per-position verdict, resolved from the reducer outcome: the
+                  player's pick carries ✓/✕, and where it was wrong the correct
+                  symbol is shown in the same slot, so the wrong pick and the
+                  correct answer are distinguishable in one frame. */}
               <View style={styles.sequenceRow}>
                 <ThemedText type="small" themeColor="textSecondary">Answer:</ThemedText>
-                {state.answer.map((id, i) => (
-                  <SymbolView key={i} symbolId={id} size={32} testID={testId(GAME_ID, 'result-answer', String(i))} />
-                ))}
+                {state.answer.map((id, i) => {
+                  const isCorrect = id === target[i];
+                  return (
+                    <View key={i} style={styles.verdictSlot}>
+                      <SymbolView
+                        symbolId={id}
+                        size={32}
+                        verdict={isCorrect ? 'correct' : 'wrong'}
+                        testID={testId(GAME_ID, 'result-answer', String(i))}
+                      />
+                      {!isCorrect && target[i] !== undefined ? (
+                        <SymbolView
+                          symbolId={target[i]}
+                          size={28}
+                          verdict="correct"
+                          testID={testId(GAME_ID, 'result-correct', String(i))}
+                        />
+                      ) : null}
+                    </View>
+                  );
+                })}
               </View>
               <View style={styles.sequenceRow}>
                 <ThemedText type="small" themeColor="textSecondary">Target:</ThemedText>
@@ -446,6 +489,19 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; the plain StatRow
+              below stays for the harness selector and the exact value. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
           <StatRow
             label="Accuracy"
@@ -471,6 +527,19 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  verdictSlot: {
+    alignItems: 'center',
+    gap: Spacing.half,
   },
   center: {
     alignItems: 'center',

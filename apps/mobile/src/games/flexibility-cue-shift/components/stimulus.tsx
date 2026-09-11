@@ -4,8 +4,10 @@
  * `View`/`Text` primitives (no Skia). Used both for the target and the
  * candidate cards; it becomes pressable when `onPress` is supplied.
  *
- * Visual states mirror the card-sort semantics: `idle`, `selected` (the
- * correct pick during feedback), and `error` (the wrong pick during feedback).
+ * Visual states mirror the card-sort semantics: `idle`, `correct` (the true
+ * match once the round is scored) and `error` (the wrong pick once scored).
+ * Verdicts change fill AND border weight AND add a ✓/✕ badge, never colour
+ * alone, so a miss never reads as a match when both render side by side.
  */
 import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -24,7 +26,7 @@ export const STIMULUS_COLORS: Readonly<Record<ColorId, string>> = {
   yellow: "#f5d90a",
 };
 
-export type StimulusVisualState = "idle" | "selected" | "error";
+export type StimulusVisualState = "idle" | "correct" | "error";
 
 export interface StimulusProps {
   card: Card;
@@ -140,16 +142,47 @@ export const Stimulus = memo(function Stimulus({
   const theme = useTheme();
   const color = STIMULUS_COLORS[card.color];
 
+  // Verdicts change fill AND border weight AND add a glyph badge, never
+  // colour alone (PATTERNS-PLAY 6): the picked-wrong card and the correct
+  // card render side by side in the round-result grid. The badge is
+  // decorative for assistive tech — the label below carries the verdict in
+  // words ("Correct: …" / "Wrong pick: …").
   const borderColor =
-    state === "selected"
+    state === "correct"
       ? theme.success
       : state === "error"
         ? theme.danger
         : theme.border;
+  const backgroundColor =
+    state === "correct"
+      ? theme.successSoft
+      : state === "error"
+        ? theme.dangerSoft
+        : "transparent";
+  const verdictGlyph = state === "correct" ? "✓" : state === "error" ? "✕" : null;
+  const verdictFill =
+    state === "correct" ? theme.success : state === "error" ? theme.danger : null;
+  const verdictOn =
+    state === "correct" ? theme.successOn : state === "error" ? theme.dangerOn : null;
+  const a11yLabel =
+    state === "correct"
+      ? `Correct: ${card.color} ${card.shape} ${card.number}`
+      : state === "error"
+        ? `Wrong pick: ${card.color} ${card.shape} ${card.number}`
+        : `${card.color} ${card.shape} ${card.number}`;
 
   const content = (
     <View
-      style={[styles.container, { width: size, height: size, borderColor }]}
+      style={[
+        styles.container,
+        {
+          width: size,
+          height: size,
+          borderColor,
+          backgroundColor,
+          borderWidth: verdictGlyph !== null ? 3 : 2,
+        },
+      ]}
     >
       <ShapeGlyph shape={card.shape} color={color} size={size * 0.66} />
       <View
@@ -162,6 +195,16 @@ export const Stimulus = memo(function Stimulus({
           {card.number}
         </ThemedText>
       </View>
+      {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+        <View
+          style={[styles.verdict, { backgroundColor: verdictFill }]}
+          testID={testID !== undefined ? `${testID}.verdict` : undefined}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
+            {verdictGlyph}
+          </ThemedText>
+        </View>
+      ) : null}
     </View>
   );
 
@@ -169,13 +212,12 @@ export const Stimulus = memo(function Stimulus({
     return <View testID={testID}>{content}</View>;
   }
 
-  const a11yLabel = `${card.color} ${card.shape} ${card.number}`;
   return (
     <Pressable
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel={a11yLabel}
-      accessibilityState={{ disabled, busy: false }}
+      accessibilityState={{ disabled, selected: state === "correct", busy: false }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => ({ opacity: pressed || disabled ? 0.6 : 1 })}
@@ -191,6 +233,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: Radii.medium,
+    // The verdict pass sets the live width (2 idle, 3 at verdict); this is
+    // the idle fallback so the card keeps its geometry before scoring.
     borderWidth: 2,
     backgroundColor: "transparent",
   },
@@ -207,6 +251,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.one,
     borderRadius: 12,
     borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Verdict badge: opaque verdict-family disc pinned to the card corner. The
+  // fill + glyph pair is the non-colour-alone verdict channel.
+  verdict: {
+    position: "absolute",
+    top: -Spacing.one,
+    right: -Spacing.one,
+    minWidth: 24,
+    height: 24,
+    paddingHorizontal: Spacing.one,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },

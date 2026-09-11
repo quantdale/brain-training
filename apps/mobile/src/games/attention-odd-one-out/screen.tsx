@@ -378,6 +378,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={

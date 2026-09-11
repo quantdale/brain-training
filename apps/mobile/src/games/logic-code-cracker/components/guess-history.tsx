@@ -5,7 +5,6 @@
  * guess is at the bottom.
  */
 import { StyleSheet, View } from 'react-native';
-
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
@@ -43,7 +42,7 @@ export function GuessHistory({ guesses, guessesUsed, guessBudget }: GuessHistory
                 key={pegIndex}
                 style={[
                   styles.guessPeg,
-                  { backgroundColor: COLOR_PALETTE[colorIndex] },
+                  { backgroundColor: COLOR_PALETTE[colorIndex], borderColor: theme.border },
                 ]}
               />
             ))}
@@ -80,6 +79,5 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#00000022',
   },
 });

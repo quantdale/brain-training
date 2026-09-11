@@ -23,8 +23,10 @@ import { useRouter } from 'expo-router';
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -315,11 +317,49 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
     dispatch({ type: 'tutorial-close' });
   }, [tutorial, dispatch]);
 
+  const theme = useTheme();
   const round = state.round;
   const secondsLeft =
     state.phase === 'estimating'
       ? Math.max(0, Math.ceil((state.roundBudgetMs - state.roundElapsedMs) / 1000))
       : 0;
+  // Verdict vocabulary for the resolved frame, derived from the reducer's
+  // outcome (never the tap handler's guess): soft fill + glyph badge + words.
+  // The badge is decorative for assistive tech; the line's accessible name
+  // carries the verdict.
+  const verdict =
+    state.outcome === 'hit'
+      ? {
+          title: 'Hit!',
+          glyph: '✓',
+          soft: theme.successSoft,
+          edge: theme.success,
+          badge: theme.success,
+          glyphColor: theme.successOn,
+          text: 'success' as const,
+          headline: 'round-hit',
+        }
+      : state.outcome === 'miss'
+        ? {
+            title: 'Too far off',
+            glyph: '✕',
+            soft: theme.dangerSoft,
+            edge: theme.danger,
+            badge: theme.danger,
+            glyphColor: theme.dangerOn,
+            text: 'danger' as const,
+            headline: 'round-miss',
+          }
+        : {
+            title: "Time's up",
+            glyph: '⏱',
+            soft: theme.warningSoft,
+            edge: theme.warning,
+            badge: theme.warning,
+            glyphColor: theme.warningOn,
+            text: 'warning' as const,
+            headline: 'round-timeout',
+          };
 
   return (
     <GameHost
@@ -341,6 +381,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -348,6 +389,20 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
       }>
       {inSession && round !== null ? (
         <>
+          {/* Live score: count-up readout beside the HUD score in every session
+          phase, so a hit reads as movement. The GameHost `score` prop above
+          is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'estimating' ? (
             <>
               <ThemedText
@@ -374,17 +429,37 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
           ) : null}
 
           {state.phase === 'feedback' ? (
-            <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+            <View
+              style={[styles.feedbackCard, { backgroundColor: verdict.soft, borderColor: verdict.edge }]}
+              testID={testId(GAME_ID, 'round-result')}>
+              <View
+                style={[styles.badge, { backgroundColor: verdict.badge }]}
+                importantForAccessibility="no-hide-descendants">
+                <ThemedText type="headline" style={{ color: verdict.glyphColor }} allowFontScaling={false}>
+                  {verdict.glyph}
+                </ThemedText>
+              </View>
               <ThemedText
                 type="headline"
-                themeColor={state.outcome === 'hit' ? 'success' : 'danger'}
-                testID={testId(GAME_ID, `round-${state.outcome ?? 'miss'}`)}>
-                {state.outcome === 'hit'
-                  ? 'Hit!'
-                  : state.outcome === 'miss'
-                    ? 'Too far off'
-                    : "Time's up"}
+                themeColor={verdict.text}
+                testID={testId(GAME_ID, verdict.headline)}>
+                {verdict.title}
               </ThemedText>
+              {/* The prompt stays mounted while feedback shows; the resolved
+              line below keeps the target (flag) visible next to the guess. */}
+              <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'prompt')}>
+                Where does the flag sit?
+              </ThemedText>
+              <NumberLine
+                lineMin={round.lineMin}
+                lineMax={round.lineMax}
+                target={round.target}
+                onEstimate={handleEstimate}
+                disabled
+                estimate={state.estimateValue}
+                outcome={state.outcome}
+                width={numberLineWidth}
+              />
               <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal')}>
                 The flag was at {round.target}.
                 {state.estimateValue !== null ? ` You tapped ${state.estimateValue}.` : ''}
@@ -411,6 +486,18 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
           forced={state.forced}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
           <StatRow
             label="Hits"
@@ -437,5 +524,29 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  // Verdict panel: soft verdict-family fill with a verdict border, so the
+  // resolved frame reads by fill AND boundary AND the badge glyph.
+  feedbackCard: {
+    gap: Spacing.three,
+    alignItems: 'center',
+    borderRadius: Radii.large,
+    borderWidth: 2,
+    padding: Spacing.four,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

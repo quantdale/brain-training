@@ -122,7 +122,7 @@ function DemoRound({ onDone, onSkip }: DemoRoundProps) {
   const visualFor = (index: number): StimulusVisualState => {
     if (index === round.correctIndex && (correct || wrong)) {
       // After a wrong pick the demo reveals the correct card (feedback, not a leak).
-      return 'selected';
+      return 'correct';
     }
     if (wrong && index === pickedIndex) {
       return 'error';

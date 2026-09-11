@@ -29,6 +29,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -44,6 +45,7 @@ import { Comparison } from './components/comparison';
 import { Countdown } from './components/countdown';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
+import { VerdictCue } from './components/verdict-cue';
 import { sessionChallengeRating, quickCompareParamsFromProfile } from './difficulty';
 import { gameDefinition } from './game-definition';
 import { createQuickCompareQaForceStateHooks, createQuickCompareTutorialLifecycle } from './hooks';
@@ -268,18 +270,27 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
       if (current.phase !== 'active' || current.paused || current.round === null) {
         return;
       }
-      if (current.deadlineMs !== null && clock.now() > current.deadlineMs) {
+      const nowMs = clock.now();
+      if (current.deadlineMs !== null && nowMs > current.deadlineMs) {
         return;
       }
-      const correct = index === current.round.correctIndex;
-      if (correct) {
+      // Sensory feedback follows the authoritative verdict, not tap optimism:
+      // resolve through the same pure transition the dispatch below commits, so
+      // a tap the deadline guard rejects stays silent (R4). The visual cue
+      // always reads the reducer's `lastVerdict`, never the tap handler.
+      const action = { type: 'answer' as const, index, nowMs };
+      const next = quickCompareGameReducer(current, action);
+      dispatch(action);
+      if (next === current || next.lastVerdict === null) {
+        return;
+      }
+      if (next.lastVerdict === 'correct') {
         liveAudioHaptics.playSfx('correct');
         liveAudioHaptics.haptic('light');
       } else {
         liveAudioHaptics.playSfx('wrong');
         liveAudioHaptics.haptic('warning');
       }
-      dispatch({ type: 'answer', index, nowMs: clock.now() });
     },
     [clock, dispatch],
   );
@@ -356,6 +367,7 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
           </ThemedText>
         </>
       }
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -363,24 +375,44 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
       }>
       {inSession && state.round !== null ? (
         <>
+          {/* Live score: count-up readout visible throughout the session so a
+          resolved round reads as movement. The HUD owns its own score chip. */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
+
+          {/* Verdict cue: fixed-size slot, empty while the round is live and
+          resolved from the reducer's outcome during feedback. */}
+          <VerdictCue verdict={state.phase === 'feedback' ? state.lastVerdict : null} />
+
           {state.phase === 'active' ? (
-            <>
-              <Countdown
-                deadlineMs={state.deadlineMs ?? clock.now()}
-                windowMs={state.windowMs}
-                clock={clock}
-                testID={testId(GAME_ID, 'countdown')}
-              />
-              <Comparison
-                round={state.round}
-                selectedIndex={state.selectedIndex}
-                lastVerdict={state.lastVerdict}
-                disabled={false}
-                onSelect={handleAnswer}
-                testID={testId(GAME_ID, 'comparison')}
-              />
-            </>
+            <Countdown
+              deadlineMs={state.deadlineMs ?? clock.now()}
+              windowMs={state.windowMs}
+              clock={clock}
+              testID={testId(GAME_ID, 'countdown')}
+            />
           ) : null}
+
+          {/* The prompt (question + stimulus cards) stays mounted during
+          feedback; options keep their resolved highlights but stop accepting
+          taps, so a wrong pick is reviewed beside the correct option (R2/R3). */}
+          <Comparison
+            round={state.round}
+            selectedIndex={state.selectedIndex}
+            lastVerdict={state.lastVerdict}
+            disabled={state.phase !== 'active'}
+            onSelect={handleAnswer}
+            testID={testId(GAME_ID, 'comparison')}
+          />
 
           {state.phase === 'feedback' ? (
             <View style={styles.section} testID={testId(GAME_ID, 'feedback')}>
@@ -422,6 +454,19 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows below
+          (including the plain `score` row) stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -465,5 +510,14 @@ export default function QuickCompareScreen(props: QuickCompareScreenProps = {}) 
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

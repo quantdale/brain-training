@@ -1,5 +1,9 @@
 /**
  * Stimulus display — shows the color word in its ink color.
+ *
+ * The ink colour is a `STROOP_COLOR_HEX` literal deliberately: the hue IS the
+ * game's mechanic (colour/word conflict), so it stays literal per the
+ * documented rationale on `STROOP_COLOR_HEX` instead of a theme token.
  */
 import { StyleSheet, View } from 'react-native';
 

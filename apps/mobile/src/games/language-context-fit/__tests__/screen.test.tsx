@@ -174,4 +174,37 @@ describe('ContextFitScreen', () => {
     expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
     expect(difficulty.challengeRating).not.toBe(0.5);
   });
+
+  it('marks the wrong pick and the correct word together with the stem visible', async () => {
+    const seed = 'verdict-stem';
+    const { clock } = await renderScreen({ seed });
+    await fireEvent.press(screen.getByTestId(testId('language-context-fit', 'start')));
+
+    const expected = expectedRound(seed, 0, new Set(), null);
+    await advanceTime(clock, 500);
+    const wrongIndex = (expected.correctIndex + 1) % expected.options.length;
+    await fireEvent.press(
+      screen.getByTestId(testId('language-context-fit', 'option', String(wrongIndex))),
+    );
+
+    // Verdict headline + panel, derived from the reducer's resolved outcome.
+    expect(screen.getByTestId(testId('language-context-fit', 'round-wrong'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId('language-context-fit', 'round-feedback'))).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(testId('language-context-fit', 'round-answer-reveal')),
+    ).toHaveTextContent(`The answer was ${expected.correctWord}`);
+    expect(screen.getByTestId(testId('language-context-fit', 'round-why'))).toBeOnTheScreen();
+    // The stem stays visible while feedback shows.
+    expect(screen.getByTestId(testId('language-context-fit', 'context'))).toHaveTextContent(
+      expected.context,
+    );
+    // Multi-channel verdict: the correct option and the wrong pick both read
+    // in words via the accessible name, never colour alone.
+    expect(
+      screen.getByLabelText(`Correct: ${expected.options[expected.correctIndex]}`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(`Wrong pick: ${expected.options[wrongIndex]}`),
+    ).toBeOnTheScreen();
+  });
 });

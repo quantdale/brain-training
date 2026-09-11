@@ -21,12 +21,21 @@ export interface FeedbackPegsProps {
  * - Black (filled) = exact match (correct color, correct position)
  * - White (outline) = color-only match (correct color, wrong position)
  * - Empty = no match
+ *
+ * Peg hues are the mechanic itself (Mastermind feedback semantics), so they
+ * stay literal here by design. The row exposes a text summary for assistive
+ * tech, so the verdict never depends on hue alone.
  */
 export function FeedbackPegs({ feedback, testID }: FeedbackPegsProps) {
   const total = feedback.exact + feedback.colorOnly;
 
   return (
-    <View style={styles.row} testID={testID}>
+    <View
+      style={styles.row}
+      testID={testID}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={`${feedback.exact} exact, ${feedback.colorOnly} color only`}>
       {Array.from({ length: total }, (_, i) => (
         <View
           key={`match-${i}`}

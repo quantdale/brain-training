@@ -2508,3 +2508,47 @@ toolchain limitation, not a product test failure.
   SHA, and NO further pointer-update commits are ever permitted.
 - **Successor state:** no active campaign; no Campaign 023; any future
   campaign requires a new explicit owner directive.
+
+## Campaign 025 — Game Board Feedback Consistency wave evidence (2026-09-12)
+
+### Scope landed (working tree on top of `7530175`)
+
+- 31 remaining game boards mapped onto the shared verdict language (fill
+  `successSoft`/`dangerSoft`, verdict border, ✓/✕/⏱ badge hidden from
+  assistive tech, verdict in the accessible name; wrong pick shown with the
+  correct answer where the mechanic reveals it; prompt mounted through
+  feedback; feedback derived from the reducer's resolved outcome). Packets:
+  attention ×2, flexibility ×4, language ×4, logic ×4, math ×3, memory ×6,
+  spatial ×4, speed ×4.
+- HUD round progress wired for every finite-round session — 41 of 42 games;
+  `memory-sequence-memory` correctly keeps the round chip (time-boxed score
+  attack with no total in state, HUD R2). `attention-sustained-vigilance`
+  reports trial progress from its finite trial stream.
+- Score motion: live `score-live` and results `score-final` `AnimatedNumber`
+  readouts beside the retained legacy score StatRows.
+- Recovery of an interrupted prior worker: repaired four mid-edit breakages
+  (`spatial-mental-rotation` styles object and `BlockShape`/`RoundKind`
+  imports; `spatial-fold-match` `Spacing` import plus a `qaPanel` prop that
+  had been replaced by `roundProgress`; `memory-grid-recall` `StatRow`
+  label) and the fold-match option-grid query for a11y-hidden decorative
+  content. All repairs are behaviour-preserving.
+- Diff is presentation-only: no reducer/generator/scoring/difficulty/session/
+  persistence/versions file touched; every existing testID retained.
+
+### Checks actually run on this wave
+
+- `npx tsc --noEmit` (apps/mobile): **PASS** (clean).
+- Full `npx jest --silent --maxWorkers=4`: **535 suites / 6409 tests PASS**,
+  4 allowlisted suites skipped, 5 allowlisted tests skipped, 5 snapshots
+  PASS. After the final HUD edits, the 15 HUD-edited game directories were
+  re-run: **179 suites / 2119 tests PASS**.
+- `npx expo lint`: **PASS** (exit 0).
+- Validators: repo-state PASS; task-ownership PASS; provenance no drift;
+  offline CLEAN (965 files); secrets CLEAN (1938 tracked files); registry
+  `--check` up to date.
+
+### Not yet validated at this record (Phase 3 remaining)
+
+- Autobot canaries / daily-workout journey.
+- Native before/after captures for representative boards (emulator-5560).
+- Release build and campaign closure classifications.

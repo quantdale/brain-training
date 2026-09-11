@@ -328,4 +328,75 @@ describe('TargetCountScreen', () => {
     expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
     expect(difficulty.challengeRating).not.toBe(0.5);
   });
+
+  it('a wrong pick marks the picked value and the correct value together', async () => {
+    const rounds = sessionRounds('test-seed', 'normal');
+    const correct = rounds[0].targetCount;
+    const wrong = rounds[0].options.find((o) => o !== correct) ?? -1;
+    await render(
+      <TargetCountScreen
+        tutorialStore={completedStore()}
+        sessionSeed="test-seed"
+      />,
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'count-option', String(wrong))));
+    // Both verdicts stay visible together: ✕ on the pick, ✓ on the answer.
+    // Badges are decorative (hidden from the a11y tree); the words channel
+    // is asserted through the accessible names below.
+    expect(
+      screen.getByTestId(testId(GAME_ID, 'count-option', String(wrong), 'verdict'), {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId(testId(GAME_ID, 'count-option', String(correct), 'verdict'), {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText(`Wrong pick: ${wrong}`)).toBeTruthy();
+    expect(screen.getByLabelText(`Correct: ${correct}`)).toBeTruthy();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-wrong'))).toBeTruthy();
+    expect(screen.getByTestId(testId(GAME_ID, 'picked-count'))).toBeTruthy();
+    expect(screen.getByTestId(testId(GAME_ID, 'actual-count'))).toBeTruthy();
+    // The prompt stays mounted beside the verdict.
+    expect(screen.getByTestId(testId(GAME_ID, 'target-prompt'))).toBeTruthy();
+  });
+
+  it('a tap after the round timed out stays silent and keeps the timeout verdict', async () => {
+    const sfx: string[] = [];
+    setLiveAudioHaptics({
+      ...noopAudioHaptics,
+      playSfx: (name) => sfx.push(name),
+      haptic: () => {},
+    });
+    try {
+      const rounds = sessionRounds('test-seed', 'normal');
+      await render(
+        <TargetCountScreen
+          tutorialStore={completedStore()}
+          sessionSeed="test-seed"
+        />,
+      );
+      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+      await act(async () => {
+        jest.advanceTimersByTime(9200);
+      });
+      expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeTruthy();
+      // Late tap on the (now disabled) correct option: ignored and silent.
+      await fireEvent.press(
+        screen.getByTestId(testId(GAME_ID, 'count-option', String(rounds[0].targetCount))),
+      );
+      expect(screen.getByTestId(testId(GAME_ID, 'round-timeout'))).toBeTruthy();
+      expect(sfx).toEqual([]);
+      // The correct value is still revealed for review.
+      expect(
+        screen.getByTestId(testId(GAME_ID, 'count-option', String(rounds[0].targetCount), 'verdict'), {
+          includeHiddenElements: true,
+        }),
+      ).toBeTruthy();
+    } finally {
+      setLiveAudioHaptics(noopAudioHaptics);
+    }
+  });
 });

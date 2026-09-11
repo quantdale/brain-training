@@ -30,6 +30,7 @@ import {
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { AnimatedNumber } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -401,6 +402,7 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
         <>
           <ThemedText
@@ -427,6 +429,18 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'study' ? (
             <>
               <ThemedText
@@ -548,6 +562,18 @@ export default function GridRecallScreen(props: GridRecallScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -606,5 +632,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

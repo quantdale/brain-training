@@ -16,6 +16,7 @@ import {
 import type { CompleteSessionInput } from '@/db';
 
 import { generateRound } from '../generator';
+import { Tutorial } from '../components/tutorial';
 import {
   ADAPTIVE_PARAMS,
   resolveWordScrambleDifficulty,
@@ -198,5 +199,49 @@ describe('WordScrambleScreen', () => {
     const difficulty = input.session.difficulty as { challengeRating: number };
     expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);
     expect(difficulty.challengeRating).not.toBe(0.5);
+  });
+
+  it('marks the wrong pick and the correct word with the scrambled stem visible', async () => {
+    const seed = 'verdict-stem';
+    await renderScreen({ seed });
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'difficulty', 'normal')));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+
+    const expected = expectedRound(seed, 0, null);
+    const wrongIndex = (expected.correctIndex + 1) % expected.options.length;
+    // Live score is visible while the round is answerable.
+    expect(screen.getByTestId(testId(GAME_ID, 'score', 'live'))).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'option', String(wrongIndex))));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'submit')));
+
+    // Verdict headline + panel, derived from the reducer's resolved outcome.
+    expect(screen.getByTestId(testId(GAME_ID, 'round-failed'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-feedback'))).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, 'round-answer-reveal'))).toHaveTextContent(
+      `Answer: ${expected.answer}`,
+    );
+    expect(screen.getByTestId(testId(GAME_ID, 'round-why'))).toHaveTextContent(
+      `"${expected.scrambled}" unscrambles to "${expected.answer}"`,
+    );
+    // The scrambled stem stays mounted while feedback shows.
+    expect(screen.getByTestId(testId(GAME_ID, 'scrambled-word'))).toHaveTextContent(
+      expected.scrambled.toUpperCase(),
+    );
+    // Multi-channel verdict: correct option and wrong pick read in words.
+    expect(
+      screen.getByLabelText(`Correct: ${expected.options[expected.correctIndex]}`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(`Wrong pick: ${expected.options[wrongIndex]}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('tutorial copy matches the untimed mechanics (no speed bonus, no expiry)', async () => {
+    await render(<Tutorial onComplete={() => {}} />);
+    // Longer words score more; nothing rewards speed and rounds never end.
+    expect(screen.getByText(/Longer words earn more points/)).toBeOnTheScreen();
+    expect(screen.getByText(/rounds never expire/)).toBeOnTheScreen();
+    expect(screen.queryByText(/bonus points/)).toBeNull();
+    expect(screen.queryByText(/expire on their own/)).toBeNull();
   });
 });

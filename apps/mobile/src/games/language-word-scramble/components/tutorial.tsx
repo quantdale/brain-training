@@ -48,9 +48,10 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            You&apos;ll see a scrambled word and a category hint. Pick the correct
-            unscrambled word from the options below. Faster correct answers
-            earn bonus points!
+            You&apos;ll see a scrambled word and a category hint. Pick the
+            correct unscrambled word from the options below, then submit.
+            Longer words earn more points — take your time, rounds never
+            expire.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-next')}
@@ -82,8 +83,8 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         <View style={styles.body}>
           <ThemedText type="headline">You&apos;ve got it</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Ready to play for real — answer quickly, the rounds expire on their
-            own. The challenge is hidden while paused.
+            Ready to play for real — pick an option, then submit when
+            you&apos;re sure. The challenge is hidden while paused.
           </ThemedText>
           <GameButton
             testID={testId(GAME_ID, 'tutorial-done')}

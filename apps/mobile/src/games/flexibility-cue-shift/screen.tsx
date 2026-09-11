@@ -32,6 +32,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -331,14 +332,17 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
     dispatch({ type: 'qa/force-timeout' });
   }, [dispatch]);
 
-  // ---- Trial card visuals (see StimulusVisualState).
+  // ---- Trial card visuals (see StimulusVisualState). Depends only on
+  // round-transition state: a wrong pick marks the picked card wrong AND the
+  // correct card correct together (Vocabulary rule), rendered side by side
+  // in the round-result grid below.
   const visualFor = (index: number): StimulusVisualState => {
     if (state.round === null) {
       return 'idle';
     }
     if (state.phase === 'trialResult') {
       if (index === state.round.correctIndex) {
-        return 'selected';
+        return 'correct';
       }
       if (state.roundOutcome === 'wrong' && index === state.lastPickIndex) {
         return 'error';
@@ -346,7 +350,6 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
     }
     return 'idle';
   };
-
   const cardGridTestID = testId(GAME_ID, 'card-grid');
 
   const view: GameHostView =
@@ -372,6 +375,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.stats.roundsPlayed, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -383,6 +387,20 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
+      <>
+        {/* Live score: count-up readout mounted across the trial phases so a
+        score change reads as movement the moment the round is scored. The
+        GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+        <View style={styles.scoreRow}>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Score
+          </ThemedText>
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeral"
+            testID={testId(GAME_ID, 'score-live')}
+          />
+        </View>
       {state.phase === 'trialActive' && state.round !== null ? (
         <>
           <View style={styles.cueBanner} testID={testId(GAME_ID, 'rule-banner')}>
@@ -423,6 +441,21 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
 
       {state.phase === 'trialResult' && state.round !== null ? (
         <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+          {/* The cue stays mounted through feedback: the verdict must never
+          cover the stem (Imprint rule). */}
+          <View style={styles.cueBanner} testID={testId(GAME_ID, 'rule-banner')}>
+            <ThemedText
+              type="headline"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'rule-banner-text')}>
+              {RULE_LABELS[state.round.rule]}
+            </ThemedText>
+            {state.round.isSwitch ? (
+              <ThemedText type="caption" themeColor="warning" testID={testId(GAME_ID, 'rule-switch')}>
+                Cue switched!
+              </ThemedText>
+            ) : null}
+          </View>
           <ThemedText
             type="headline"
             themeColor={state.roundOutcome === 'correct' ? 'success' : 'danger'}
@@ -455,6 +488,7 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
           />
         </View>
       ) : null}
+      </>
 
       {state.phase === 'results' ? (
         <GameResults
@@ -472,6 +506,11 @@ export default function CueShiftScreen(props: CueShiftScreenProps = {}) {
             label="Score"
             value={String(state.stats.score)}
             testID={testId(GAME_ID, 'score')}
+          />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, 'score-animated')}
           />
           <StatRow
             label="Accuracy"
@@ -523,6 +562,11 @@ const styles = StyleSheet.create({
   },
   targetRow: {
     alignItems: 'center',
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   grid: {
     flexDirection: 'row',

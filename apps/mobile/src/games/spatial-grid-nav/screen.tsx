@@ -30,6 +30,7 @@ import {
 } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -330,10 +331,21 @@ export default function SpatialGridNavScreen(
       ? Math.round((state.stats.hardCorrect / state.stats.hardPlayed) * 100)
       : 0;
 
+  // Path verdict from the reducer's resolved outcome (never the tap handler's
+  // guess): the correct route's final cell gets the success treatment (soft
+  // fill + verdict border + ✓) and the wrong step — when there is one — the
+  // danger treatment (soft fill + verdict border + ✕). Glyphs are decorative;
+  // the option labels and the result headline carry the verdict in words.
   const resultMarkers = (() => {
     if (state.phase !== "trialResult" || state.round === null) return [];
     const markers: GridMarker[] = [
-      { cell: state.round.finalCell, color: theme.success, glyph: "✓" },
+      {
+        cell: state.round.finalCell,
+        color: theme.successSoft,
+        border: theme.success,
+        glyph: "✓",
+        glyphColor: theme.success,
+      },
     ];
     const sel = state.selectedOptionIndex;
     if (
@@ -341,7 +353,13 @@ export default function SpatialGridNavScreen(
       sel !== state.round.correctIndex &&
       state.round.options[sel]
     ) {
-      markers.push({ cell: state.round.options[sel], color: theme.danger });
+      markers.push({
+        cell: state.round.options[sel],
+        color: theme.dangerSoft,
+        border: theme.danger,
+        glyph: "✕",
+        glyphColor: theme.danger,
+      });
     }
     return markers;
   })();
@@ -374,6 +392,7 @@ export default function SpatialGridNavScreen(
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -415,6 +434,18 @@ export default function SpatialGridNavScreen(
                 commands={state.round.commands}
                 testID={testId(GAME_ID, "command-list")}
               />
+              {state.phase === "trialActive" ? (
+                <View style={styles.scoreRow}>
+                  <ThemedText type="caption" themeColor="textSecondary">
+                    Score
+                  </ThemedText>
+                  <AnimatedNumber
+                    value={state.stats.score}
+                    type="numeral"
+                    testID={testId(GAME_ID, "score-live")}
+                  />
+                </View>
+              ) : null}
               <View
                 style={styles.optionRow}
                 testID={testId(GAME_ID, "options-grid")}
@@ -484,6 +515,11 @@ export default function SpatialGridNavScreen(
             value={String(state.stats.score)}
             testID={testId(GAME_ID, "score")}
           />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, "score-animated")}
+          />
           <StatRow
             label="Accuracy"
             value={`${accuracyPct}%`}
@@ -519,7 +555,6 @@ export default function SpatialGridNavScreen(
     </GameHost>
   );
 }
-
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
@@ -527,6 +562,11 @@ const styles = StyleSheet.create({
   optionRow: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: Spacing.two,
+  },
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.two,
   },
 });

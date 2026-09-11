@@ -17,8 +17,8 @@
  * The route (`app/game/[id].tsx`) renders this component with no props; every
  * prop is an optional injection seam for deterministic tests.
  */
-import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
@@ -29,9 +29,13 @@ import {
   testId,
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
+import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { MinTouchTarget, Motion } from '@/theme/tokens';
 import {
   GameHost,
   GameResults,
@@ -77,6 +81,121 @@ export interface SpeedColorMatchScreenProps {
   persistSession?: SessionPersistence;
   /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
   xpHook?: XpRatingHook;
+}
+
+/** Verdict kinds for the trial cue (reducer outcome + reaction presence). */
+type TrialVerdict = 'hit' | 'wrong' | 'missed';
+
+/**
+ * TrialVerdictCue — instant multi-channel verdict for the just-resolved trial.
+ *
+ * Drops speed-round model (dye + glyph badge), not a bottom sheet: fill +
+ * verdict border + `✓`/`✕`/`⏱` glyph + a visible label, with the verdict in
+ * the accessible name (live region), so a hit never reads like a miss. Fixed
+ * width and non-interactive, so showing/clearing it never shifts the
+ * surrounding layout or steals taps. The empty slot is decorative.
+ */
+function TrialVerdictCue({ verdict }: { verdict: TrialVerdict | null }) {
+  const theme = useTheme();
+  const reducedMotion = usePrefersReducedMotion();
+  const [scale] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    if (reducedMotion || verdict === null) {
+      scale.setValue(1);
+      return;
+    }
+    scale.setValue(0.6);
+    const pop = Animated.timing(scale, {
+      toValue: 1,
+      duration: Motion.quick,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    });
+    pop.start();
+    return () => {
+      pop.stop();
+    };
+  }, [reducedMotion, scale, verdict]);
+
+  if (verdict === null) {
+    return (
+      <View
+        style={[styles.cue, styles.cueEmpty, { borderColor: theme.border }]}
+        importantForAccessibility="no-hide-descendants"
+      />
+    );
+  }
+
+  // Verdicts change fill AND boundary AND glyph, never colour alone. The
+  // reducer records a wrong tap as `timeout` with a reaction reading set, so
+  // the cue maps reaction presence to `wrong` vs `missed` from authoritative
+  // state (a tap after the window never resolves, so it never shows a hit).
+  const vocabulary =
+    verdict === 'hit'
+      ? {
+          label: 'Hit',
+          spoken: 'Last trial: hit',
+          glyph: '✓',
+          soft: theme.successSoft,
+          edge: theme.success,
+          badge: theme.success,
+          glyphColor: theme.successOn,
+          text: 'success' as const,
+          testID: 'trial-correct',
+        }
+      : verdict === 'wrong'
+        ? {
+            label: 'Wrong',
+            spoken: 'Last trial: wrong',
+            glyph: '✕',
+            soft: theme.dangerSoft,
+            edge: theme.danger,
+            badge: theme.danger,
+            glyphColor: theme.dangerOn,
+            text: 'danger' as const,
+            testID: 'trial-wrong',
+          }
+        : {
+            label: 'Missed',
+            spoken: 'Last trial: missed',
+            glyph: '⏱',
+            soft: theme.warningSoft,
+            edge: theme.warning,
+            badge: theme.warning,
+            glyphColor: theme.warningOn,
+            text: 'warning' as const,
+            testID: 'trial-wrong',
+          };
+
+  return (
+    <View
+      testID={testId(GAME_ID, vocabulary.testID)}
+      style={[
+        styles.cue,
+        { backgroundColor: vocabulary.soft, borderColor: vocabulary.edge },
+      ]}
+      accessible
+      accessibilityLabel={vocabulary.spoken}
+      accessibilityLiveRegion="polite">
+      <Animated.View
+        style={[
+          styles.cueBadge,
+          { backgroundColor: vocabulary.badge, transform: [{ scale }] },
+        ]}
+        importantForAccessibility="no-hide-descendants">
+        <ThemedText
+          type="headline"
+          style={{ color: vocabulary.glyphColor }}
+          allowFontScaling={false}>
+          {vocabulary.glyph}
+        </ThemedText>
+      </Animated.View>
+      <ThemedText type="smallBold" themeColor={vocabulary.text}>
+        {vocabulary.label}
+      </ThemedText>
+    </View>
+  );
 }
 
 export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps = {}) {
@@ -323,6 +442,21 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
 
   const currentTrial = state.trials[state.trialIndex] ?? null;
 
+  // Feedback derives from the reducer's authoritative outcome: `correct` is a
+  // hit; `timeout` with a reaction reading is a wrong pick (the reducer records
+  // a wrong colour as a timeout outcome), and `timeout` without one is a miss.
+  // The reducer does not retain the tapped colour, so the wrong pick cannot be
+  // re-derived per item; the swatch's visible correct colour plus this cue is
+  // the reveal (a per-item wrong-pick mark would require reducer state).
+  const trialVerdict: TrialVerdict | null =
+    state.currentTrialOutcome === 'correct'
+      ? 'hit'
+      : state.currentTrialOutcome === 'timeout'
+        ? state.currentReactionMs !== null
+          ? 'wrong'
+          : 'missed'
+        : null;
+
   return (
     <GameHost
       gameId={GAME_ID}
@@ -337,6 +471,7 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      roundProgress={{ value: state.stats.trialsPlayed, total: totalTrials }}
       header={
         <ThemedText type="subtitle" testID={testId(GAME_ID, 'trial', String(state.trialIndex + 1))}>
           Trial {state.trialIndex + 1}/{totalTrials}
@@ -348,37 +483,47 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
-      {inSession ? (
+      {inSession && currentTrial ? (
         <>
-          {state.phase === 'trial' && currentTrial ? (
-            <>
-              <ColorSwatch
-                swatchColor={currentTrial.swatchColor}
-                labelColor={currentTrial.labelColor}
-                testID={testId(GAME_ID, 'current-swatch')}
-              />
-              <ThemedText
-                type="bodyLarge"
-                themeColor="text"
-                testID={testId(GAME_ID, 'trial-status')}>
-                Tap the matching color!
-              </ThemedText>
-              <ColorButtonGrid
-                colors={COLOR_PALETTE}
-                onPress={handleTapColor}
-                disabled={state.paused}
-              />
-            </>
-          ) : null}
+          {/* Live score: count-up readout visible in every session phase. The
+          GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
+
+          {/* The prompt (swatch + instruction) stays mounted while the verdict
+          shows; the board below stays mounted too, so a wrong pick and the
+          correct colour are on screen in the same frame. */}
+          <ColorSwatch
+            swatchColor={currentTrial.swatchColor}
+            labelColor={currentTrial.labelColor}
+            testID={testId(GAME_ID, 'current-swatch')}
+          />
+          <View style={styles.statusRow}>
+            <ThemedText
+              type="bodyLarge"
+              themeColor="text"
+              testID={testId(GAME_ID, 'trial-status')}>
+              Tap the matching color!
+            </ThemedText>
+            <TrialVerdictCue verdict={trialVerdict} />
+          </View>
+          <ColorButtonGrid
+            colors={COLOR_PALETTE}
+            onPress={handleTapColor}
+            disabled={state.paused || state.phase !== 'trial'}
+          />
 
           {state.phase === 'roundResult' ? (
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-              <ThemedText
-                type="headline"
-                themeColor={state.currentTrialOutcome === 'correct' ? 'success' : 'danger'}
-                testID={testId(GAME_ID, state.currentTrialOutcome === 'correct' ? 'trial-correct' : 'trial-wrong')}>
-                {state.currentTrialOutcome === 'correct' ? 'Correct!' : 'Wrong!'}
-              </ThemedText>
               {state.currentReactionMs !== null ? (
                 <ThemedText type="small" themeColor="textSecondary">
                   {Math.round(state.currentReactionMs)}ms
@@ -410,6 +555,18 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -451,5 +608,41 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  cue: {
+    minWidth: 112,
+    minHeight: MinTouchTarget,
+    borderRadius: Radii.pill,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.two,
+  },
+  cueEmpty: {
+    backgroundColor: 'transparent',
+  },
+  cueBadge: {
+    minWidth: 28,
+    minHeight: 28,
+    borderRadius: Radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

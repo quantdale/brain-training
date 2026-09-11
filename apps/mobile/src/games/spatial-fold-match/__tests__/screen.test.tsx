@@ -225,7 +225,13 @@ describe('SpatialFoldMatchScreen', () => {
 
       const expected = expectedRound(seed, round, prevSource, prevFold);
       // All options render; none is marked selected before the player acts.
-      expect(screen.getAllByTestId(testId(GAME_ID, 'option-grid', '0'))).toHaveLength(1);
+      // The option grid is decorative and hidden from accessibility (campaign
+      // 011 nesting rule), so query it with hidden elements included.
+      expect(
+        screen.getAllByTestId(testId(GAME_ID, 'option-grid', '0'), {
+          includeHiddenElements: true,
+        }),
+      ).toHaveLength(1);
       await fireEvent.press(
         screen.getByTestId(testId(GAME_ID, 'option', String(expected.correctOptionIndex))),
       );

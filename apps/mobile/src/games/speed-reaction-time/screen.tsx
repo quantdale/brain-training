@@ -39,6 +39,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -51,6 +52,7 @@ import {
 import type { GameHostView } from '@/components/game-host';
 
 import { TriggerButton } from './components/trigger';
+import { VerdictCue } from './components/verdict-cue';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import { sessionChallengeRating, speedParamsFromProfile } from './difficulty';
@@ -281,29 +283,44 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
       return;
     }
     if (current.phase === 'wait') {
-      // False start: tapped before the GO signal.
-      liveAudioHaptics.playSfx('speed-false-start');
-      liveAudioHaptics.haptic('warning');
-      dispatch({ type: 'false-start' });
-    } else if (current.phase === 'go' && current.goAtMs !== null) {
-      if (current.isNoGoRound) {
-        // Tapping a NO-GO stimulus: the reducer applies the false-start-class
-        // penalty; feedback matches the mistake, not a fast reaction.
+      // False start: tapped before the GO signal. Resolve through the same pure
+      // transition the dispatch below commits so the sensory feedback derives
+      // from the reducer's outcome, not from tap optimism (R4).
+      const action = { type: 'false-start' as const };
+      const next = speedGameReducer(current, action);
+      dispatch(action);
+      if (next.stats.falseStarts > current.stats.falseStarts) {
         liveAudioHaptics.playSfx('speed-false-start');
         liveAudioHaptics.haptic('warning');
-        dispatch({ type: 'tap', rtMs: clock.now() - current.goAtMs });
-        return;
       }
-      // Valid reaction, measured with the monotonic clock against the moment
-      // the GO signal was displayed.
-      const rtMs = clock.now() - current.goAtMs;
-      if (rtMs < 0) {
-        return; // monotonic-clock invariant; never negative in practice
-      }
-      liveAudioHaptics.playSfx('speed-trigger');
-      liveAudioHaptics.haptic(rtMs <= (params?.passMs ?? 600) ? 'success' : 'warning');
-      dispatch({ type: 'tap', rtMs });
+      return;
     }
+    if (current.phase !== 'go' || current.goAtMs === null) {
+      return;
+    }
+    // Valid reaction, measured with the monotonic clock against the moment the
+    // GO signal was displayed.
+    const rtMs = clock.now() - current.goAtMs;
+    if (rtMs < 0) {
+      return; // monotonic-clock invariant; never negative in practice
+    }
+    const action = { type: 'tap' as const, rtMs };
+    const next = speedGameReducer(current, action);
+    dispatch(action);
+    if (next === current) {
+      // Authoritative rejection (e.g. a tap past the response window): the
+      // expiry timer owns the resolution, so no feedback may present here.
+      return;
+    }
+    if (next.stats.falseStarts > current.stats.falseStarts) {
+      // NO-GO tap (within or over budget): the reducer applies the
+      // false-start-class penalty; feedback matches the mistake, not speed.
+      liveAudioHaptics.playSfx('speed-false-start');
+      liveAudioHaptics.haptic('warning');
+      return;
+    }
+    liveAudioHaptics.playSfx('speed-trigger');
+    liveAudioHaptics.haptic(rtMs <= (params?.passMs ?? 600) ? 'success' : 'warning');
   }, [clock, dispatch, params]);
 
   const handleStart = useCallback(() => {
@@ -365,6 +382,7 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -378,6 +396,20 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase, so a
+          resolved round reads as movement. The GameHost `score` prop above is
+          untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'wait' ? (
             <View style={styles.section}>
               <ThemedText
@@ -421,6 +453,9 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
 
           {state.phase === 'roundResult' ? (
             <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
+              {/* Verdict cue: resolved from the reducer's outcome, never from
+              the tap handler; fill + glyph badge + label + live region. */}
+              <VerdictCue outcome={state.roundOutcome} />
               <ThemedText
                 type="headline"
                 themeColor={
@@ -456,6 +491,16 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
                       : state.roundOutcome === 'false-start'
                         ? 'You tapped before the signal — the round is lost.'
                         : 'The signal went unanswered.'}
+              </ThemedText>
+              {/* Prompt recap: the live GO/HOLD signal is transient by mechanic,
+              so the result card keeps the task visible under the verdict (R3). */}
+              <ThemedText
+                type="caption"
+                themeColor="textSecondary"
+                testID={testId(GAME_ID, 'round-prompt')}>
+                {state.isNoGoRound
+                  ? 'Prompt: hold — do not tap the ✕ signal'
+                  : 'Prompt: tap the instant it turns green'}
               </ThemedText>
               {state.roundOutcome === 'passed' || state.roundOutcome === 'failed' ? (
                 <ThemedText
@@ -501,6 +546,19 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows below
+          (including the plain `score` row) stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -560,5 +618,14 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

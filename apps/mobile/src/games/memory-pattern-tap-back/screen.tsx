@@ -31,6 +31,7 @@ import {
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { AnimatedNumber } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -325,21 +326,42 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
   // recall auto-highlight tick (redundant with the matched-set branch and
   // not changing any tile's output), so the memoized grid skips
   // re-rendering tiles whose visual is unchanged.
-  // Hard/expert get no per-tap success confirm: the matched set stays hidden
-  // during recall (see `confirmsEachTap`) and only appears once the round ends.
+  //
+  // Verdict mapping (campaign 025), all derived from the reducer's resolved
+  // round state — never from the tap handler:
+  // - observe: the flashing tile is `observed`; the rest stay neutral.
+  // - recall: on easy/normal/adaptive the matched prefix stays `selected`
+  //   (no verdict wording yet); hard/expert intentionally hide the per-tap
+  //   confirm (see `confirmsEachTap`).
+  // - roundResult: the reached sequence positions (matched prefix plus the
+  //   position the player was on when the round resolved) are `correct`; the
+  //   last tap after a failure is `error` and outranks everything else, so a
+  //   wrong pick can never read as part of the answer. Positions the round
+  //   never reached stay neutral — the failure recap text reveals the rest.
   const visualFor = useCallback(
     (index: number): TileVisualState => {
       if (state.phase === 'observe') {
         return index === state.observeIndex ? 'observed' : 'idle';
       }
-      if (state.phase === 'recall' || state.phase === 'roundResult') {
-        const showMatchedSet =
-          state.phase === 'roundResult' || confirmsEachTap(state.difficulty);
-        if (showMatchedSet && state.sequence.slice(0, state.inputIndex).includes(index)) {
-          return 'selected';
-        }
-        if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
+      if (state.phase === 'roundResult') {
+        if (
+          state.roundOutcome === 'failed' &&
+          state.taps.length > 0 &&
+          state.taps[state.taps.length - 1] === index
+        ) {
           return 'error';
+        }
+        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
+          return 'correct';
+        }
+        return 'idle';
+      }
+      if (state.phase === 'recall') {
+        if (
+          confirmsEachTap(state.difficulty) &&
+          state.sequence.slice(0, state.inputIndex).includes(index)
+        ) {
+          return 'selected';
         }
       }
       return 'idle';
@@ -369,6 +391,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
         <ThemedText
           type="subtitle"
@@ -384,6 +407,18 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'observe' ? (
             <>
               <ThemedText
@@ -478,6 +513,18 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -536,5 +583,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

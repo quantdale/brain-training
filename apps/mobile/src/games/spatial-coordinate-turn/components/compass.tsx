@@ -142,19 +142,47 @@ export interface OptionArrowProps {
 /** One heading answer option: a circular button with arrow glyph + label. */
 export function OptionArrow({ dir, index, selected, correct, disabled = false, onPress }: OptionArrowProps) {
   const theme = useTheme();
-  const borderColor = correct ? theme.success : selected && !correct ? theme.danger : theme.border;
+  // Verdicts change fill AND border AND glyph, never colour alone
+  // (PATTERNS-PLAY 6, spatial-transform-match canary): the correct option
+  // gets a success-soft fill plus a ✓ badge, the wrong pick a danger-soft
+  // fill plus a ✕ badge. Badges are decorative for assistive tech; the
+  // button's accessibility label carries the verdict in words. Both states
+  // stay visible together on the round result.
+  const isWrongPick = selected && !correct;
+  const verdictGlyph = correct ? '✓' : isWrongPick ? '✕' : null;
+  const backgroundColor = correct
+    ? theme.successSoft
+    : isWrongPick
+      ? theme.dangerSoft
+      : undefined;
+  const borderColor = correct
+    ? theme.success
+    : isWrongPick
+      ? theme.danger
+      : theme.border;
 
   return (
     <Pressable
       testID={testId(GAME_ID, 'option', String(index))}
       accessibilityRole="button"
-      accessibilityLabel={`Direction ${DIR_LABEL[dir]}`}
+      accessibilityLabel={
+        correct
+          ? `Direction ${DIR_LABEL[dir]}, correct`
+          : isWrongPick
+            ? `Direction ${DIR_LABEL[dir]}, wrong pick`
+            : `Direction ${DIR_LABEL[dir]}`
+      }
       accessibilityState={{ disabled, selected }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.option,
-        { borderColor, opacity: pressed || disabled ? 0.8 : 1 },
+        {
+          backgroundColor,
+          borderColor,
+          borderWidth: verdictGlyph !== null ? 3 : 2,
+          opacity: pressed || disabled ? 0.8 : 1,
+        },
       ]}>
       <ThemedText type="headline" style={{ color: theme.text }}>
         {DIR_ARROW[dir]}
@@ -162,6 +190,22 @@ export function OptionArrow({ dir, index, selected, correct, disabled = false, o
       <ThemedText type="smallBold" style={{ color: theme.textSecondary }}>
         {DIR_LABEL[dir]}
       </ThemedText>
+      {verdictGlyph !== null ? (
+        <View
+          testID={testId(GAME_ID, 'option-verdict', String(index))}
+          style={[
+            styles.verdict,
+            { backgroundColor: correct ? theme.success : theme.danger },
+          ]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText
+            type="label"
+            style={{ color: correct ? theme.successOn : theme.dangerOn }}
+            allowFontScaling={false}>
+            {verdictGlyph}
+          </ThemedText>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -178,24 +222,62 @@ export interface OptionCoordProps {
 /** One position answer option: a button with an (x, y) coordinate label. */
 export function OptionCoord({ coord, index, selected, correct, disabled = false, onPress }: OptionCoordProps) {
   const theme = useTheme();
-  const borderColor = correct ? theme.success : selected && !correct ? theme.danger : theme.border;
+  const isWrongPick = selected && !correct;
+  const verdictGlyph = correct ? '✓' : isWrongPick ? '✕' : null;
+  const backgroundColor = correct
+    ? theme.successSoft
+    : isWrongPick
+      ? theme.dangerSoft
+      : undefined;
+  const borderColor = correct
+    ? theme.success
+    : isWrongPick
+      ? theme.danger
+      : theme.border;
   const label = `x ${coord.x}, y ${coord.y}`;
 
   return (
     <Pressable
       testID={testId(GAME_ID, 'option', String(index))}
       accessibilityRole="button"
-      accessibilityLabel={`Coordinate ${label}`}
+      accessibilityLabel={
+        correct
+          ? `Coordinate ${label}, correct`
+          : isWrongPick
+            ? `Coordinate ${label}, wrong pick`
+            : `Coordinate ${label}`
+      }
       accessibilityState={{ disabled, selected }}
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.optionCoord,
-        { borderColor, opacity: pressed || disabled ? 0.8 : 1 },
+        {
+          backgroundColor,
+          borderColor,
+          borderWidth: verdictGlyph !== null ? 3 : 2,
+          opacity: pressed || disabled ? 0.8 : 1,
+        },
       ]}>
       <ThemedText type="bodyLarge" style={{ color: theme.text }}>
         {`(${coord.x}, ${coord.y})`}
       </ThemedText>
+      {verdictGlyph !== null ? (
+        <View
+          testID={testId(GAME_ID, 'option-verdict', String(index))}
+          style={[
+            styles.verdict,
+            { backgroundColor: correct ? theme.success : theme.danger },
+          ]}
+          importantForAccessibility="no-hide-descendants">
+          <ThemedText
+            type="label"
+            style={{ color: correct ? theme.successOn : theme.dangerOn }}
+            allowFontScaling={false}>
+            {verdictGlyph}
+          </ThemedText>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
@@ -243,6 +325,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     borderRadius: Radii.medium,
     borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verdict: {
+    position: 'absolute',
+    top: Spacing.one,
+    right: Spacing.one,
+    width: Spacing.four,
+    height: Spacing.four,
+    borderRadius: Radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },

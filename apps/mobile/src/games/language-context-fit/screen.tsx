@@ -16,8 +16,10 @@ import { useRouter } from 'expo-router';
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -84,6 +86,8 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
   });
 
   const tutorial = useMemo(() => createContextFitTutorialLifecycle(tutorialStore), [tutorialStore]);
+  // Theme slots for the round-result feedback panel (soft verdict tints).
+  const theme = useTheme();
   const qaHooks = useMemo(() => createContextFitQaForceStateHooks(dispatch), [dispatch]);
 
   const params = state.params;
@@ -315,6 +319,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} onForceTimeout={qaHooks.forceTimeout} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -322,6 +327,16 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
       }>
       {state.phase === 'question' && state.round !== null ? (
         <View style={styles.section}>
+          <View style={styles.scoreRow}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, 'score', 'live')}
+            />
+          </View>
           <ThemedText type="caption" themeColor="textSecondary">
             Pick the word that best fits the blank
           </ThemedText>
@@ -363,14 +378,40 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
             )}>
             {roundResultMessage}
           </ThemedText>
-          {state.roundOutcome !== 'correct' ? (
+          <ThemedText
+            type="headline"
+            testID={testId(GAME_ID, 'context')}
+            accessibilityLabel={`Fill the blank: ${state.round.context}`}>
+            {state.round.context}
+          </ThemedText>
+          <View
+            style={[
+              styles.feedback,
+              {
+                backgroundColor:
+                  state.roundOutcome === 'correct'
+                    ? theme.successSoft
+                    : state.roundOutcome === 'timeout'
+                      ? theme.warningSoft
+                      : theme.dangerSoft,
+              },
+            ]}
+            testID={testId(GAME_ID, 'round-feedback')}>
+            {state.roundOutcome !== 'correct' ? (
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                testID={testId(GAME_ID, 'round-answer-reveal')}>
+                The answer was {state.round.correctWord}
+              </ThemedText>
+            ) : null}
             <ThemedText
               type="small"
               themeColor="textSecondary"
-              testID={testId(GAME_ID, 'round-answer-reveal')}>
-              The answer was {state.round.correctWord}
+              testID={testId(GAME_ID, 'round-why')}>
+              {`"${state.round.correctWord}" best completes the sentence`}
             </ThemedText>
-          ) : null}
+          </View>
           <View style={styles.options}>
             {state.round.options.map((word, index) => (
               <Option key={index} index={index} label={word} visual={visualFor(index)} disabled onPressOption={handleAnswer} />
@@ -396,7 +437,16 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
-          <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
+          <View style={styles.resultsScore}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score', 'animated')}
+            />
+          </View>
           <StatRow
             label="Accuracy"
             value={`${Math.round((state.stats.roundsPlayed > 0 ? state.stats.roundsCorrect / state.stats.roundsPlayed : 0) * 100)}%`}
@@ -427,4 +477,24 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
 const styles = StyleSheet.create({
   section: { gap: Spacing.three },
   options: { gap: Spacing.two },
+  // HUD-adjacent live score: caption + tabular numeral, never covering play.
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  // Inline verdict panel (PATTERNS-PLAY 7): compact, below the verdict
+  // headline and above the options — the prompt stem stays visible via the
+  // context restatement above it, never covered.
+  feedback: {
+    gap: Spacing.one,
+    borderRadius: Radii.medium,
+    paddingVertical: Spacing.twoHalf,
+    paddingHorizontal: Spacing.three,
+  },
+  // Results hero: the animated final score above the metric rows.
+  resultsScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
 });

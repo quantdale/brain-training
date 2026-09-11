@@ -33,8 +33,10 @@ import type {
   XpRatingHook,
 } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { GameButton, StatRow } from "@/components/game-ui";
-import { Spacing } from "@/constants/theme";
+import { Radii, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import {
   GameHost,
   GameResults,
@@ -91,6 +93,7 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
     xpHook = noopXpRatingHook,
   } = props;
   const router = useRouter();
+  const theme = useTheme();
   const [state, dispatch] = useReducer(
     orderPathGameReducer,
     undefined,
@@ -371,6 +374,9 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={
+        params !== null ? { value: state.roundIndex + 1, total: params.rounds } : undefined
+      }
       qaPanel={<QaPanel hooks={qaHooks} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -381,6 +387,17 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
       }>
       {inSession ? (
         <>
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-live")}
+            />
+          </View>
           {state.currentRound !== null ? (
             <ConstraintList constraints={state.currentRound.constraints} />
           ) : null}
@@ -419,29 +436,91 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
               style={styles.section}
               testID={testId(GAME_ID, "round-result")}
             >
-              <ThemedText
-                type="headline"
-                themeColor={
-                  state.roundOutcome === "correct"
-                    ? "success"
-                    : state.roundOutcome === "timeout"
-                      ? "warning"
-                      : "danger"
-                }
-                testID={testId(
-                  GAME_ID,
-                  state.roundOutcome === "correct"
-                    ? "round-correct"
-                    : state.roundOutcome === "timeout"
-                      ? "round-timeout"
-                      : "round-wrong",
-                )}
-              >
-                {roundResultMessage}
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                Solution: {state.currentRound.solution.join(" → ")}
-              </ThemedText>
+              <View
+                style={[
+                  styles.verdict,
+                  {
+                    backgroundColor:
+                      state.roundOutcome === "correct"
+                        ? theme.successSoft
+                        : state.roundOutcome === "timeout"
+                          ? theme.warningSoft
+                          : theme.dangerSoft,
+                    borderColor:
+                      state.roundOutcome === "correct"
+                        ? theme.success
+                        : state.roundOutcome === "timeout"
+                          ? theme.warning
+                          : theme.danger,
+                  },
+                ]}
+                testID={testId(GAME_ID, "round-verdict")}>
+                <View
+                  style={[
+                    styles.badge,
+                    {
+                      backgroundColor:
+                        state.roundOutcome === "correct"
+                          ? theme.success
+                          : state.roundOutcome === "timeout"
+                            ? theme.warning
+                            : theme.danger,
+                    },
+                  ]}
+                  importantForAccessibility="no-hide-descendants"
+                  testID={testId(GAME_ID, "round-verdict-glyph")}>
+                  <ThemedText
+                    type="headline"
+                    style={{
+                      color:
+                        state.roundOutcome === "correct"
+                          ? theme.successOn
+                          : state.roundOutcome === "timeout"
+                            ? theme.warningOn
+                            : theme.dangerOn,
+                    }}
+                    allowFontScaling={false}>
+                    {state.roundOutcome === "correct" ? "✓" : state.roundOutcome === "timeout" ? "⏱" : "✕"}
+                  </ThemedText>
+                </View>
+                <ThemedText
+                  type="headline"
+                  themeColor={
+                    state.roundOutcome === "correct"
+                      ? "success"
+                      : state.roundOutcome === "timeout"
+                        ? "warning"
+                        : "danger"
+                  }
+                  testID={testId(
+                    GAME_ID,
+                    state.roundOutcome === "correct"
+                      ? "round-correct"
+                      : state.roundOutcome === "timeout"
+                        ? "round-timeout"
+                        : "round-wrong",
+                  )}
+                >
+                  {roundResultMessage}
+                </ThemedText>
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, "round-solution")}
+                >
+                  Solution: {state.currentRound.solution.join(" → ")}
+                </ThemedText>
+                {state.roundOutcome === "wrong" && state.selectedItem !== null ? (
+                  <ThemedText
+                    type="small"
+                    themeColor="danger"
+                    testID={testId(GAME_ID, "wrong-pick")}
+                    accessibilityLabel={`Wrong pick: ${state.selectedItem}`}
+                  >
+                    Your last pick: {state.selectedItem}
+                  </ThemedText>
+                ) : null}
+              </View>
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label="Next round"
@@ -466,6 +545,17 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-final")}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -509,4 +599,28 @@ const styles = StyleSheet.create({
   section: { gap: Spacing.three },
   placedRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.two },
   items: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.two },
+  // Round verdict: soft verdict fill + verdict border + opaque glyph badge,
+  // so the outcome reads on the dense board without leaning on hue.
+  verdict: {
+    gap: Spacing.three,
+    alignItems: "center",
+    borderRadius: Radii.large,
+    borderWidth: 2,
+    padding: Spacing.four,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  scoreStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  finalScore: {
+    alignItems: "center",
+    gap: Spacing.one,
+  },
 });

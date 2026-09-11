@@ -6,19 +6,29 @@
  * tap locks the tile with its rank badge, a wrong tap is reported upward and
  * the reducer resolves the round as a mistake.
  *
- * Accessibility: every tile exposes only what is already visible on screen
- * (its own display text) — the relative order of values is never announced,
- * so the accessibility tree cannot leak the solution. Locked tiles are
- * disabled and announce their rank.
+ * Resolved frame (PATTERNS-PLAY 6): the grid stays mounted read-only with
+ * verdict states derived from the reducer's outcome — correct taps take the
+ * success-soft fill with a success border plus a ✓ badge (the rank badge
+ * stays, so the submitted order remains readable), the wrong pick takes the
+ * danger pair plus a ✕ badge, and untouched tiles dim to read as locked.
+ * Badges are decorative for screen readers; each tile's accessible name
+ * carries the verdict ("Correct pick …" / "Wrong pick …").
+ *
+ * Accessibility: every live tile exposes only what is already visible on
+ * screen (its own display text) — the relative order of values is never
+ * announced, so the accessibility tree cannot leak the solution. Locked
+ * tiles are disabled and announce their rank.
  */
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { ThemedText } from '@/components/themed-text';
 
 import { testId } from '@/sdk';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
-import type { ValueOrderingRound } from '../types';
+import type { RoundOutcome, ValueOrderingRound } from '../types';
 
 /** 1-based rank of a tapped tile (order it was tapped in), or null if untapped. */
 export function rankOf(tileId: string, tappedIds: readonly string[]): number | null {
@@ -36,6 +46,14 @@ export interface ValueGridProps {
   readonly onTapTile: (tileId: string) => void;
   /** Grid columns (tiles per row); defaults to 3. */
   readonly columns?: number;
+  /**
+   * Resolved outcome from the reducer. When set, tiles render read-only
+   * verdict states (correct taps / wrong pick / dimmed rest). Null/omitted
+   * while the round is open.
+   */
+  readonly outcome?: RoundOutcome | null;
+  /** The wrong tile on a mistake round (feedback reveal); else null. */
+  readonly mistakeTileId?: string | null;
 }
 
 export function ValueGrid({
@@ -44,6 +62,8 @@ export function ValueGrid({
   disabled = false,
   onTapTile,
   columns = 3,
+  outcome = null,
+  mistakeTileId = null,
 }: ValueGridProps) {
   const theme = useTheme();
   // Leave slack for the inter-tile gaps so wrapped rows never overflow. The
@@ -56,26 +76,58 @@ export function ValueGrid({
       {round.tiles.map((tile) => {
         const rank = rankOf(tile.id, tappedIds);
         const locked = rank !== null;
+        const tileTestID = testId(GAME_ID, 'tile', String(tile.value));
+        // Resolved verdicts come from the reducer's outcome: correct taps
+        // read correct, the mistake tile reads wrong, and untouched tiles dim
+        // to read as locked. Live tiles keep the existing lock styling.
+        const isMistake = outcome !== null && tile.id === mistakeTileId;
+        const isCorrectPick = outcome !== null && locked && !isMistake;
+        const verdictGlyph = isCorrectPick ? '✓' : isMistake ? '✕' : null;
+        const verdictFill =
+          isCorrectPick ? theme.success : isMistake ? theme.danger : null;
+        const verdictOn =
+          isCorrectPick ? theme.successOn : isMistake ? theme.dangerOn : null;
+        const borderColor =
+          isCorrectPick ? theme.success : isMistake ? theme.danger : theme.border;
+        const backgroundColor =
+          outcome !== null
+            ? isCorrectPick
+              ? theme.successSoft
+              : isMistake
+                ? theme.dangerSoft
+                : theme.surface
+            : locked
+              ? theme.accentSoft
+              : theme.surface;
+        const accessibilityLabel =
+          isCorrectPick
+            ? `Correct pick: ${tile.display}, position ${rank} of ${round.tiles.length}`
+            : isMistake
+              ? `Wrong pick: ${tile.display}`
+              : outcome !== null
+                ? `Tile showing ${tile.display}, not placed`
+                : `Tile showing ${tile.display}`;
         return (
           <Pressable
             key={tile.id}
-            testID={testId(GAME_ID, 'tile', String(tile.value))}
+            testID={tileTestID}
             accessibilityRole="button"
-            accessibilityLabel={`Tile showing ${tile.display}`}
-            accessibilityHint="Tap tiles from smallest to largest value."
-            accessibilityState={{ disabled: disabled || locked }}
-            disabled={disabled || locked}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={outcome !== null ? undefined : 'Tap tiles from smallest to largest value.'}
+            accessibilityState={{ disabled: disabled || locked || outcome !== null }}
+            disabled={disabled || locked || outcome !== null}
             onPress={() => onTapTile(tile.id)}
             style={({ pressed }) => [
               styles.tile,
-              { width: `${tileColumns}%`, borderColor: theme.border },
               {
-                backgroundColor: locked
-                  ? theme.accentSoft
-                  : pressed
-                    ? theme.backgroundSelected
-                    : theme.surface,
-                opacity: disabled && !locked ? 0.5 : 1,
+                width: `${tileColumns}%`,
+                borderColor,
+                borderWidth: verdictGlyph !== null ? 2 : 1,
+              },
+              {
+                backgroundColor:
+                  outcome === null && !locked && pressed ? theme.backgroundSelected : backgroundColor,
+                opacity: (disabled && !locked && outcome === null) || (outcome !== null && !locked && !isMistake) ? 0.5 : 1,
               },
             ]}>
             <Text
@@ -87,9 +139,23 @@ export function ValueGrid({
             {locked ? (
               <View
                 pointerEvents="none"
-                style={[styles.rankBadge, { backgroundColor: theme.accent }]}
+                style={[
+                  styles.rankBadge,
+                  { backgroundColor: isCorrectPick ? theme.success : theme.accent },
+                ]}
                 testID={testId(GAME_ID, 'tile-rank', String(rank))}>
                 <Text style={styles.rankText}>{rank}</Text>
+              </View>
+            ) : null}
+            {verdictGlyph !== null && verdictFill !== null && verdictOn !== null ? (
+              <View
+                pointerEvents="none"
+                testID={`${tileTestID}.verdict`}
+                style={[styles.verdictBadge, { backgroundColor: verdictFill }]}
+                importantForAccessibility="no-hide-descendants">
+                <ThemedText type="label" style={{ color: verdictOn }} allowFontScaling={false}>
+                  {verdictGlyph}
+                </ThemedText>
               </View>
             ) : null}
           </Pressable>
@@ -134,5 +200,19 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
+  },
+  // Verdict badge: opaque verdict-family fill with its `*On` glyph, pinned
+  // to the opposite corner from the rank badge so the submitted order (rank)
+  // and the verdict (✓/✕) stay readable together.
+  verdictBadge: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
 });

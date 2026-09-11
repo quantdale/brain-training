@@ -31,6 +31,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -383,6 +384,7 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -390,6 +392,20 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout beside the HUD score in every session
+          phase, so a correct answer reads as movement. The GameHost `score`
+          prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
           {state.phase === 'answer' && state.equation !== null ? (
             <>
               <ThemedText
@@ -463,6 +479,18 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows below stay as-is. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -510,5 +538,14 @@ function formatAvgResponse(avgMs: number): string {
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

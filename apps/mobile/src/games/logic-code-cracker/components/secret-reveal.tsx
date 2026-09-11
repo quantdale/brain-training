@@ -5,10 +5,10 @@
  * trying to guess. The code is displayed as colored pegs.
  */
 import { StyleSheet, View } from 'react-native';
-
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { COLOR_PALETTE } from './color-picker';
 
@@ -18,6 +18,7 @@ export interface SecretRevealProps {
 }
 
 export function SecretReveal({ secretCode }: SecretRevealProps) {
+  const theme = useTheme();
   return (
     <View style={styles.container} testID={testId('logic-code-cracker', 'secret-reveal')}>
       <ThemedText type="caption" themeColor="textSecondary">
@@ -30,7 +31,7 @@ export function SecretReveal({ secretCode }: SecretRevealProps) {
             testID={testId('logic-code-cracker', 'secret-peg', String(i))}
             style={[
               styles.peg,
-              { backgroundColor: COLOR_PALETTE[colorIndex] },
+              { backgroundColor: COLOR_PALETTE[colorIndex], borderColor: theme.border },
             ]}
           />
         ))}
@@ -49,10 +50,9 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   peg: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: '#00000022',
   },
 });

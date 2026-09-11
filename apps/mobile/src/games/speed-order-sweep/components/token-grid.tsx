@@ -18,6 +18,7 @@ import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { MinTouchTarget } from '@/theme/tokens';
 
 import { GAME_ID } from '../types';
 import type { OrderSweepRound } from '../types';
@@ -110,5 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: Radii.medium,
     borderWidth: 1.5,
+    minWidth: MinTouchTarget,
+    minHeight: MinTouchTarget,
   },
 });

@@ -17,6 +17,7 @@
  * prop is an optional injection seam for deterministic tests.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import {
@@ -28,7 +29,9 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 import {
   GameHost,
   GameResults,
@@ -59,6 +62,7 @@ import {
 } from './session';
 import type { SessionPersistence } from './session';
 import { GAME_ID, createInitialVigilanceState } from './types';
+import type { VigilanceAction } from './types';
 import { SCORING_VERSION } from './versions';
 
 /** Stream ticker cadence (ms of wall time between active-ms samples).
@@ -264,8 +268,21 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     if (current.phase !== 'stream' || current.paused || current.outcome !== null) {
       return;
     }
+    // Feedback follows the authoritative trial outcome, not the tap's
+    // optimism: the reducer owns the response-window guard, so resolve the
+    // tap through it first. A tap past the window is a no-op here (the
+    // pending tick owns the miss resolution) and must stay silent — sounding
+    // or showing success for a trial that scores a miss is the Campaign 023
+    // late-tap mismatch. No timing logic is duplicated: this is the same
+    // pure transition the dispatch below commits. The verdict UI and the
+    // outcome sound (effect below) both read the resolved `outcome`.
+    const action: VigilanceAction = { type: 'respond', atActiveMs: session.elapsedMs() };
+    const next = vigilanceGameReducer(current, action);
+    dispatch(action);
+    if (next === current) {
+      return;
+    }
     liveAudioHaptics.feedback('tap');
-    dispatch({ type: 'respond', atActiveMs: session.elapsedMs() });
   }, [session, dispatch]);
 
   // ---- Sensory outcome feedback via canonical events. The resolution itself
@@ -349,20 +366,42 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{
+        value: state.phase === 'results' ? trials : Math.min(state.trialIndex + 1, trials),
+        total: trials,
+      }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
       {inStream && params !== null && trial !== undefined ? (
-        <StimulusStage
-          digit={digitVisible ? trial.digit : null}
-          stopDigit={state.stopDigit}
-          outcome={state.outcome}
-          responded={state.responded}
-          disabled={state.paused}
-          onGo={handleGo}
-        />
+        <>
+          {/* Live score: count-up readout beside the board. The GameHost
+          `score` prop above is untouched (orchestrator-owned HUD); this strip
+          animates inside `AnimatedNumber` only, so the 250 ms ticker never
+          reflows input layout. */}
+          <View
+            style={styles.scoreRow}
+            accessibilityLabel={`Score ${state.stats.score}`}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
+          <StimulusStage
+            digit={digitVisible ? trial.digit : null}
+            stopDigit={state.stopDigit}
+            outcome={state.outcome}
+            responded={state.responded}
+            disabled={state.paused}
+            onGo={handleGo}
+          />
+        </>
       ) : null}
 
       {state.phase === 'results' ? (
@@ -377,6 +416,19 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Count-up final score beside the existing rows; StatRows stay untouched. */}
+          <View
+            style={styles.scoreHero}
+            accessibilityLabel={`Final score ${state.stats.score}`}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score-animated')}
+            />
+          </View>
           <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
           <StatRow
             label="Go hits"
@@ -409,3 +461,16 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     </GameHost>
   );
 }
+
+const styles = StyleSheet.create({
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+  },
+  scoreHero: {
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+});

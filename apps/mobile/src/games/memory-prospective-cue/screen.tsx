@@ -26,6 +26,7 @@ import { useRouter } from "expo-router";
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -43,6 +44,7 @@ import { QaPanel } from "./components/qa-panel";
 import { ResponseControls } from "./components/response-controls";
 import { StreamView } from "./components/stream-view";
 import { Tutorial } from "./components/tutorial";
+import { StreamVerdictBanner } from "./components/verdict-banner";
 import {
   prospectiveCueParamsFromProfile,
   sessionChallengeRating,
@@ -473,6 +475,18 @@ export default function SignalWatchScreen(
           (id) => !round.retiredSignalIds.includes(id),
         )
       : [];
+  // Authoritative per-item verdict: the resolved item restated from the
+  // reducer's `lastItem` outcome (never the tap handler), rendered while the
+  // next item's window is already live. The resolved prompt is restated so
+  // the cue the player answered stays mounted alongside the verdict.
+  const lastResolvedItem =
+    round !== null && state.lastItem !== null
+      ? round.items[state.lastItem.itemIndex] ?? null
+      : null;
+  const verdictBanner =
+    state.lastItem !== null && lastResolvedItem !== null ? (
+      <StreamVerdictBanner outcome={state.lastItem} item={lastResolvedItem} />
+    ) : null;
 
   const view: GameHostView =
     state.phase === "intro" ? "intro" : state.phase === "results" ? "results" : "session";
@@ -493,6 +507,9 @@ export default function SignalWatchScreen(
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      // The session is a known, finite number of rounds (difficulty params),
+      // so the HUD shows real position instead of a bare round chip.
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
         <ThemedText
           type="subtitle"
@@ -514,6 +531,21 @@ export default function SignalWatchScreen(
       }>
       {inSession && round !== null ? (
         <>
+          {/* Live score: count-up readout mounted across every session phase
+          so a score change reads as movement, not a jump (R5). The GameHost
+          `score` prop above is untouched. */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-live")}
+            />
+          </View>
+
           {state.phase === "briefing" ? (
             <>
               <BriefingPanel round={round} survivorIds={survivorIds} />
@@ -561,6 +593,9 @@ export default function SignalWatchScreen(
                 }
                 disabled={state.paused}
               />
+              {/* Verdict of the just-resolved item; the live prompt above and
+              the controls below belong to the next item and stay neutral. */}
+              {verdictBanner}
               <ResponseControls
                 disabled={state.paused}
                 onRespond={handleRespond}
@@ -573,6 +608,9 @@ export default function SignalWatchScreen(
               style={styles.section}
               testID={testId(GAME_ID, "round-result")}
             >
+              {/* The final item's verdict has no next item to flash over, so
+              it is shown here above the round summary. */}
+              {verdictBanner}
               <ThemedText
                 type="headline"
                 themeColor={
@@ -624,6 +662,19 @@ export default function SignalWatchScreen(
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; the plain StatRow
+          below keeps its testID contract. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-final")}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -692,5 +743,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.two,
+  },
+  scoreStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  finalScore: {
+    alignItems: "center",
+    gap: Spacing.one,
   },
 });

@@ -22,8 +22,10 @@ import { useRouter } from 'expo-router';
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -35,6 +37,7 @@ import {
 import { Grid } from './components/grid';
 import { QaPanel } from './components/qa-panel';
 import { SymbolOptions } from './components/symbol-options';
+import type { SymbolOptionVisual } from './components/symbol-options';
 import { Tutorial } from './components/tutorial';
 import { ruleGridParamsFromProfile, sessionChallengeRating } from './difficulty';
 import { gameDefinition } from './game-definition';
@@ -73,6 +76,7 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
     xpHook = noopXpRatingHook,
   } = props;
   const router = useRouter();
+  const theme = useTheme();
   const [state, dispatch] = useReducer(ruleGridGameReducer, undefined, createInitialRuleGridState);
 
   const stateRef = useRef(state);
@@ -109,6 +113,18 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
   const isLastRound = state.roundIndex + 1 >= rounds;
 
   const renderSymbol = useCallback((v: number) => String(v + 1), []);
+  // ---- Result verdicts, derived from the reducer's resolved outcome: the
+  // true symbol reads `correct`, the player's own wrong pick reads `wrong`,
+  // everything else dims. A timeout (null pick) marks only the answer.
+  const resultVisualFor = useCallback(
+    (value: number): SymbolOptionVisual => {
+      if (state.phase !== 'roundResult' || state.currentRound === null) return 'idle';
+      if (value === state.currentRound.answer) return 'correct';
+      if (value === state.selectedValue) return 'wrong';
+      return 'dim';
+    },
+    [state.phase, state.currentRound, state.selectedValue],
+  );
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -334,11 +350,25 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
+      {inSession ? (
+        <View style={styles.scoreStrip}>
+          <ThemedText type="small" themeColor="textSecondary">
+            Score
+          </ThemedText>
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeral"
+            themeColor="accent"
+            testID={testId(GAME_ID, 'score-live')}
+          />
+        </View>
+      ) : null}
       {state.phase === 'showGrid' && state.currentRound !== null ? (
         <View style={styles.section} testID={testId(GAME_ID, 'show-grid')}>
           <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
@@ -366,24 +396,95 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
 
       {state.phase === 'roundResult' && state.currentRound !== null ? (
         <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-          <ThemedText
-            type="headline"
-            themeColor={state.roundCorrect ? 'success' : 'danger'}
-            testID={testId(
-              GAME_ID,
-              state.roundCorrect ? 'round-correct' : state.roundOutcome === 'timeout' ? 'round-timeout' : 'round-wrong',
-            )}>
-            {state.roundCorrect ? 'Correct!' : state.roundOutcome === 'timeout' ? 'Time up!' : 'Not quite'}
+          <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'rule-prompt')}>
+            {state.currentRound.blanks.length > 1
+              ? 'Several cells are hidden. Deduce the marked one (?) by chaining row and column constraints.'
+              : 'One symbol is missing. Which fits?'}
           </ThemedText>
 
-          <ThemedText type="small" themeColor="textSecondary">
-            The missing symbol was
-          </ThemedText>
-          <ThemedText
-            type="bodyLarge"
-            testID={testId(GAME_ID, 'correct-symbol')}>
-            {renderSymbol(state.currentRound.answer)}
-          </ThemedText>
+          <Grid
+            size={state.currentRound.size}
+            square={state.currentRound.square}
+            blankIndex={state.currentRound.blankIndex}
+            blanks={state.currentRound.blanks}
+            renderSymbol={renderSymbol}
+            testIdCell={(i) => testId(GAME_ID, 'cell', String(i))}
+          />
+
+          <View
+            style={[
+              styles.verdict,
+              {
+                backgroundColor:
+                  state.roundOutcome === 'correct'
+                    ? theme.successSoft
+                    : state.roundOutcome === 'timeout'
+                      ? theme.warningSoft
+                      : theme.dangerSoft,
+                borderColor:
+                  state.roundOutcome === 'correct'
+                    ? theme.success
+                    : state.roundOutcome === 'timeout'
+                      ? theme.warning
+                      : theme.danger,
+              },
+            ]}
+            testID={testId(GAME_ID, 'round-verdict')}>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor:
+                    state.roundOutcome === 'correct'
+                      ? theme.success
+                      : state.roundOutcome === 'timeout'
+                        ? theme.warning
+                        : theme.danger,
+                },
+              ]}
+              importantForAccessibility="no-hide-descendants"
+              testID={testId(GAME_ID, 'round-verdict-glyph')}>
+              <ThemedText
+                type="headline"
+                style={{
+                  color:
+                    state.roundOutcome === 'correct'
+                      ? theme.successOn
+                      : state.roundOutcome === 'timeout'
+                        ? theme.warningOn
+                        : theme.dangerOn,
+                }}
+                allowFontScaling={false}>
+                {state.roundOutcome === 'correct' ? '✓' : state.roundOutcome === 'timeout' ? '⏱' : '✕'}
+              </ThemedText>
+            </View>
+            <ThemedText
+              type="headline"
+              themeColor={state.roundCorrect ? 'success' : 'danger'}
+              testID={testId(
+                GAME_ID,
+                state.roundCorrect ? 'round-correct' : state.roundOutcome === 'timeout' ? 'round-timeout' : 'round-wrong',
+              )}>
+              {state.roundCorrect ? 'Correct!' : state.roundOutcome === 'timeout' ? 'Time up!' : 'Not quite'}
+            </ThemedText>
+
+            <ThemedText type="small" themeColor="textSecondary">
+              The missing symbol was
+            </ThemedText>
+            <ThemedText
+              type="bodyLarge"
+              testID={testId(GAME_ID, 'correct-symbol')}>
+              {renderSymbol(state.currentRound.answer)}
+            </ThemedText>
+
+            <SymbolOptions
+              options={state.currentRound.options}
+              onSelect={handleSelectSymbol}
+              renderSymbol={renderSymbol}
+              visualFor={resultVisualFor}
+              disabled
+            />
+          </View>
 
           <GameButton
             testID={testId(GAME_ID, 'next-round')}
@@ -405,6 +506,17 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
           forced={state.forced}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -437,5 +549,29 @@ export default function RuleGridScreen(props: RuleGridScreenProps = {}) {
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  // Round verdict: soft verdict fill + verdict border + opaque glyph badge,
+  // so the outcome reads on the dark grid without leaning on hue.
+  verdict: {
+    gap: Spacing.three,
+    alignItems: 'center',
+    borderRadius: Radii.large,
+    borderWidth: 2,
+    padding: Spacing.four,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

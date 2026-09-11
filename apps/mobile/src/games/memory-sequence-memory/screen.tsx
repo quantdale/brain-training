@@ -29,6 +29,7 @@ import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } f
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
+import { AnimatedNumber } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -375,18 +376,24 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   // ---- Pad visuals (see PadTileVisualState). Stable across the per-tick
   // countdown re-renders: depends only on round-transition state, never on
   // the display-remaining tick, so the memoized pad skips re-rendering tiles
-  // whose visual is unchanged.
+  // whose visual is unchanged. Every verdict is derived from the reducer's
+  // resolved state (taps / sequence / inputIndex / roundOutcome), never from
+  // the tap handler's optimistic guess.
   const visualFor = useCallback(
     (index: number): PadTileVisualState => {
       if (state.phase === 'reveal') {
         return index === state.revealedIndex ? 'revealed' : 'idle';
       }
       if (state.phase === 'input' || state.phase === 'roundResult') {
-        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
-          return 'selected';
-        }
+        // The wrong tap ends the round immediately and keeps its error cue.
         if (state.roundOutcome === 'failed' && state.taps[state.taps.length - 1] === index) {
           return 'error';
+        }
+        // Matched steps resolve as they are tapped; on a failed round the
+        // next expected tile stays correct-marked so the wrong pick sits
+        // beside the right answer in the same frame.
+        if (state.sequence.slice(0, state.inputIndex).includes(index)) {
+          return 'correct';
         }
       }
       return 'idle';
@@ -404,6 +411,11 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
   // Remaining budget label; driven by `displayRemainingMs` (state) so the ref
   // is not read during render. Equals `budgetMs` before the lifecycle starts.
   const remainingMs = displayRemainingMs;
+
+  // Correctly matched steps for the progress dots; on a failed round the
+  // final tap was wrong, so it must not count as matched.
+  const matchedCount =
+    state.roundOutcome === 'failed' ? Math.max(0, state.inputIndex - 1) : state.inputIndex;
 
   return (
     <GameHost
@@ -449,6 +461,20 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout visible in every session phase. The
+              GameHost `score` prop above stays untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-live')}
+            />
+          </View>
+
           {state.phase === 'reveal' ? (
             <>
               <ThemedText
@@ -467,37 +493,40 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
             </>
           ) : null}
 
-          {state.phase === 'input' ? (
-            <>
-              <View style={styles.statusRow}>
-                <ThemedText
-                  type="bodyLarge"
-                  themeColor="text"
-                  testID={testId(GAME_ID, 'input-status')}>
-                  Now repeat it
-                </ThemedText>
-                <View
-                  style={styles.dots}
-                  testID={testId(GAME_ID, 'progress')}
-                  accessibilityLabel={`${state.inputIndex} of ${state.length} matched`}>
-                  {Array.from({ length: state.length }, (_, i) => (
-                    <View
-                      key={i}
-                      style={[
-                        styles.dot,
-                        { backgroundColor: i < state.inputIndex ? theme.accent : theme.border },
-                      ]}
-                    />
-                  ))}
-                </View>
+          {/* The input prompt stays mounted through the round result, so the
+              verdict never covers what the player was answering. */}
+          {state.phase === 'input' || state.phase === 'roundResult' ? (
+            <View style={styles.statusRow}>
+              <ThemedText
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, 'input-status')}>
+                Now repeat it
+              </ThemedText>
+              <View
+                style={styles.dots}
+                testID={testId(GAME_ID, 'progress')}
+                accessibilityLabel={`${matchedCount} of ${state.length} matched`}>
+                {Array.from({ length: state.length }, (_, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.dot,
+                      { backgroundColor: i < matchedCount ? theme.accent : theme.border },
+                    ]}
+                  />
+                ))}
               </View>
-              <SequencePad
-                tileCount={tileCount}
-                testID={testId(GAME_ID, 'input-pad')}
-                visualFor={visualFor}
-                onPressTile={handleTapTile}
-              />
-            </>
+            </View>
+          ) : null}
+
+          {state.phase === 'input' ? (
+            <SequencePad
+              tileCount={tileCount}
+              testID={testId(GAME_ID, 'input-pad')}
+              visualFor={visualFor}
+              onPressTile={handleTapTile}
+            />
           ) : null}
 
           {state.phase === 'roundResult' ? (
@@ -547,6 +576,18 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          {/* Animated final score beside the existing rows; the StatRow below stays. */}
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -599,5 +640,14 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

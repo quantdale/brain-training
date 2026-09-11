@@ -20,8 +20,10 @@ import { useRouter } from "expo-router";
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { GameButton, StatRow } from "@/components/game-ui";
-import { Spacing } from "@/constants/theme";
+import { Radii, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import {
   GameHost,
   GameResults,
@@ -80,6 +82,7 @@ export default function LogicDeductionScreen(
     xpHook = noopXpRatingHook,
   } = props;
   const router = useRouter();
+  const theme = useTheme();
   const [state, dispatch] = useReducer(
     logicDeductionReducer,
     undefined,
@@ -372,6 +375,7 @@ export default function LogicDeductionScreen(
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -388,6 +392,17 @@ export default function LogicDeductionScreen(
       }>
       {inSession ? (
         <>
+          <View style={styles.scoreStrip}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-live")}
+            />
+          </View>
           {state.phase === "question" && state.round !== null ? (
             <View style={styles.section}>
               <ClueTable
@@ -436,35 +451,94 @@ export default function LogicDeductionScreen(
 
           {state.phase === "roundResult" && state.round !== null ? (
             <View style={styles.section} testID={testId(GAME_ID, "round-result")}>
+              <ClueTable
+                round={state.round}
+                testID={testId(GAME_ID, "clue-table")}
+              />
               <ThemedText
                 type="headline"
-                themeColor={
-                  state.roundOutcome === "correct"
-                    ? "success"
-                    : state.roundOutcome === "timeout"
-                      ? "warning"
-                      : "danger"
-                }
-                testID={testId(
-                  GAME_ID,
-                  state.roundOutcome === "correct"
-                    ? "round-correct"
-                    : state.roundOutcome === "timeout"
-                      ? "round-timeout"
-                      : "round-wrong",
-                )}
+                testID={testId(GAME_ID, "question")}
+                accessibilityLabel={state.round.question.text}
               >
-                {roundResultMessage}
+                {state.round.question.text}
               </ThemedText>
-              {state.roundOutcome !== "correct" ? (
+              <View
+                style={[
+                  styles.verdict,
+                  {
+                    backgroundColor:
+                      state.roundOutcome === "correct"
+                        ? theme.successSoft
+                        : state.roundOutcome === "timeout"
+                          ? theme.warningSoft
+                          : theme.dangerSoft,
+                    borderColor:
+                      state.roundOutcome === "correct"
+                        ? theme.success
+                        : state.roundOutcome === "timeout"
+                          ? theme.warning
+                          : theme.danger,
+                  },
+                ]}
+                testID={testId(GAME_ID, "round-verdict")}>
+                <View
+                  style={[
+                    styles.badge,
+                    {
+                      backgroundColor:
+                        state.roundOutcome === "correct"
+                          ? theme.success
+                          : state.roundOutcome === "timeout"
+                            ? theme.warning
+                            : theme.danger,
+                    },
+                  ]}
+                  importantForAccessibility="no-hide-descendants"
+                  testID={testId(GAME_ID, "round-verdict-glyph")}>
+                  <ThemedText
+                    type="headline"
+                    style={{
+                      color:
+                        state.roundOutcome === "correct"
+                          ? theme.successOn
+                          : state.roundOutcome === "timeout"
+                            ? theme.warningOn
+                            : theme.dangerOn,
+                    }}
+                    allowFontScaling={false}>
+                    {state.roundOutcome === "correct" ? "✓" : state.roundOutcome === "timeout" ? "⏱" : "✕"}
+                  </ThemedText>
+                </View>
                 <ThemedText
-                  type="small"
-                  themeColor="textSecondary"
-                  testID={testId(GAME_ID, "round-answer-reveal")}
+                  type="headline"
+                  themeColor={
+                    state.roundOutcome === "correct"
+                      ? "success"
+                      : state.roundOutcome === "timeout"
+                        ? "warning"
+                        : "danger"
+                  }
+                  testID={testId(
+                    GAME_ID,
+                    state.roundOutcome === "correct"
+                      ? "round-correct"
+                      : state.roundOutcome === "timeout"
+                        ? "round-timeout"
+                        : "round-wrong",
+                  )}
                 >
-                  The answer was {state.round.answer}
+                  {roundResultMessage}
                 </ThemedText>
-              ) : null}
+                {state.roundOutcome !== "correct" ? (
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    testID={testId(GAME_ID, "round-answer-reveal")}
+                  >
+                    The answer was {state.round.answer}
+                  </ThemedText>
+                ) : null}
+              </View>
               <View style={styles.options}>
                 {state.round.options.map((value, index) => (
                   <Option
@@ -502,6 +576,17 @@ export default function LogicDeductionScreen(
           forced={state.forced}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, "score-final")}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -555,5 +640,29 @@ const styles = StyleSheet.create({
   },
   options: {
     gap: Spacing.two,
+  },
+  // Round verdict: soft verdict fill + verdict border + opaque glyph badge,
+  // so the outcome reads on the dense board without leaning on hue.
+  verdict: {
+    gap: Spacing.three,
+    alignItems: "center",
+    borderRadius: Radii.large,
+    borderWidth: 2,
+    padding: Spacing.four,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  scoreStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  finalScore: {
+    alignItems: "center",
+    gap: Spacing.one,
   },
 });

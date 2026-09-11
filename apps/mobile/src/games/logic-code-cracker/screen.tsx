@@ -25,8 +25,10 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -79,6 +81,7 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
     xpHook = noopXpRatingHook,
   } = props;
   const router = useRouter();
+  const theme = useTheme();
   const [state, dispatch] = useReducer(codeCrackerGameReducer, undefined, createInitialCodeCrackerState);
 
   const stateRef = useRef(state);
@@ -115,6 +118,10 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
   const inSession =
     state.phase === 'roundReveal' || state.phase === 'input' || state.phase === 'roundResult';
   const isLastRound = state.roundIndex + 1 >= rounds;
+  // Verdict derives from the reducer's resolved round outcome — never from the
+  // tap handler's optimistic guess — so a post-deadline input cannot present
+  // success while scoring a miss.
+  const roundSolved = state.roundOutcome === 'solved';
 
   // ---- First play: open the tutorial automatically.
   useEffect(() => {
@@ -324,11 +331,25 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
         </ThemedText>
       }
       score={state.phase === 'input' ? String(state.stats.score) : undefined}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
         <Tutorial onComplete={completeTutorial} onSkip={isDevBuild() ? skipTutorial : undefined} />
       }>
+      {inSession ? (
+        <View style={styles.scoreStrip}>
+          <ThemedText type="small" themeColor="textSecondary">
+            Score
+          </ThemedText>
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeral"
+            themeColor="accent"
+            testID={testId(GAME_ID, 'score-live')}
+          />
+        </View>
+      ) : null}
       {state.phase === 'roundReveal' ? (
         <View style={styles.section} testID={testId(GAME_ID, 'round-reveal')}>
           <ThemedText type="bodyLarge" themeColor="text" testID={testId(GAME_ID, 'reveal-status')}>
@@ -372,17 +393,36 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
           ) : null}
         </View>
       ) : null}
-
       {state.phase === 'roundResult' ? (
         <View style={styles.section} testID={testId(GAME_ID, 'round-result')}>
-          <ThemedText
-            type="headline"
-            themeColor={state.roundSolved ? 'success' : 'danger'}
-            testID={testId(GAME_ID, state.roundSolved ? 'round-solved' : 'round-failed')}>
-            {state.roundSolved ? 'Code cracked!' : 'Budget exhausted'}
-          </ThemedText>
-
-          <SecretReveal secretCode={state.secretCode} />
+          <View
+            style={[
+              styles.verdict,
+              {
+                backgroundColor: roundSolved ? theme.successSoft : theme.dangerSoft,
+                borderColor: roundSolved ? theme.success : theme.danger,
+              },
+            ]}
+            testID={testId(GAME_ID, 'round-verdict')}>
+            <View
+              style={[styles.badge, { backgroundColor: roundSolved ? theme.success : theme.danger }]}
+              testID={testId(GAME_ID, 'round-verdict-glyph')}
+              importantForAccessibility="no-hide-descendants">
+              <ThemedText
+                type="headline"
+                style={{ color: roundSolved ? theme.successOn : theme.dangerOn }}
+                allowFontScaling={false}>
+                {roundSolved ? '✓' : '✕'}
+              </ThemedText>
+            </View>
+            <ThemedText
+              type="headline"
+              themeColor={roundSolved ? 'success' : 'danger'}
+              testID={testId(GAME_ID, roundSolved ? 'round-solved' : 'round-failed')}>
+              {roundSolved ? 'Code cracked!' : 'Budget exhausted'}
+            </ThemedText>
+            <SecretReveal secretCode={state.secretCode} />
+          </View>
 
           {state.roundGuesses.length > 0 ? (
             <GuessHistory
@@ -412,6 +452,17 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.finalScore}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              themeColor="accent"
+              testID={testId(GAME_ID, 'score-final')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -449,5 +500,29 @@ export default function CodeCrackerScreen(props: CodeCrackerScreenProps = {}) {
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  // Round verdict: soft verdict fill + verdict border + opaque glyph badge,
+  // so the outcome reads on light and dark boards without leaning on hue.
+  verdict: {
+    gap: Spacing.three,
+    alignItems: 'center',
+    borderRadius: Radii.large,
+    borderWidth: 2,
+    padding: Spacing.four,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  scoreStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  finalScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

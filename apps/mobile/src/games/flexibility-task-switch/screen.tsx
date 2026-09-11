@@ -36,6 +36,7 @@ import type {
   XpRatingHook,
 } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { GameButton, StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import {
@@ -47,6 +48,8 @@ import {
 import type { GameHostView } from "@/components/game-host";
 
 import { QaPanel } from "./components/qa-panel";
+import { Option } from "./components/option";
+import type { OptionVisualState } from "./components/option";
 import { Tutorial } from "./components/tutorial";
 import { TokenView } from "./components/token-view";
 import {
@@ -368,18 +371,22 @@ export default function TaskSwitchScreen(
   const view: GameHostView =
     state.phase === "intro" ? "intro" : state.phase === "results" ? "results" : "session";
 
-  // ---- Trial option visuals.
-  const visualFor = (index: number): "idle" | "selected" | "error" => {
+  // ---- Trial option visuals (see OptionVisualState). Depends only on
+  // round-transition state: a wrong pick marks the picked option wrong AND
+  // the correct option correct together (Vocabulary rule), rendered side by
+  // side in the round-result grid below.
+  const visualFor = (index: number): OptionVisualState => {
     if (state.round === null) {
       return "idle";
     }
     if (state.phase === "trialResult") {
       if (index === state.round.correctIndex) {
-        return "selected";
+        return "correct";
       }
       if (state.roundOutcome === "wrong" && index === state.lastPickIndex) {
-        return "error";
+        return "wrong";
       }
+      return "dim";
     }
     return "idle";
   };
@@ -411,6 +418,7 @@ export default function TaskSwitchScreen(
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.stats.roundsPlayed, total: state.rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -426,6 +434,19 @@ export default function TaskSwitchScreen(
       }>
       {inSession ? (
         <>
+          {/* Live score: count-up readout mounted across the trial phases so a
+          score change reads as movement the moment the round is scored. The
+          GameHost `score` prop above is untouched (orchestrator-owned HUD). */}
+          <View style={styles.scoreRow}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, "score-live")}
+            />
+          </View>
           {state.phase === "trialActive" && state.round !== null ? (
             <>
               <View
@@ -473,7 +494,7 @@ export default function TaskSwitchScreen(
                     testID={`${cardGridTestID}.option.${index}`}
                     label={option}
                     variant={
-                      visualFor(index) === "error" ? "danger" : "primary"
+                      visualFor(index) === "wrong" ? "danger" : "primary"
                     }
                     onPress={() => handleAnswer(index)}
                   />
@@ -487,6 +508,39 @@ export default function TaskSwitchScreen(
               style={styles.section}
               testID={testId(GAME_ID, "round-result")}
             >
+              {/* The task cue and the token stay mounted through feedback: the
+              verdict must never cover the stem (Imprint rule). */}
+              <View
+                style={styles.cueBanner}
+                testID={testId(GAME_ID, "task-banner")}
+              >
+                <ThemedText
+                  type="headline"
+                  themeColor="accent"
+                  testID={testId(GAME_ID, "task-banner-text")}
+                >
+                  {TASK_CUE_WORDS[state.round.task]}
+                </ThemedText>
+                {state.round.isSwitch ? (
+                  <ThemedText
+                    type="caption"
+                    themeColor="warning"
+                    testID={testId(GAME_ID, "task-switch")}
+                  >
+                    Task switched!
+                  </ThemedText>
+                ) : null}
+              </View>
+              <View
+                style={styles.targetRow}
+                testID={testId(GAME_ID, "token")}
+              >
+                <TokenView
+                  token={state.round.token}
+                  testID={testId(GAME_ID, "token-view")}
+                  disabled
+                />
+              </View>
               <ThemedText
                 type="headline"
                 themeColor={
@@ -510,6 +564,20 @@ export default function TaskSwitchScreen(
                   ? `Matched "${state.round.options[state.round.correctIndex]}" under the ${TASK_CUE_WORDS[state.round.task]} task.`
                   : `The answer was "${state.round.options[state.round.correctIndex]}" for the ${TASK_CUE_WORDS[state.round.task]} task.`}
               </ThemedText>
+              {/* Wrong pick and correct response render side by side, locked:
+              the live `option-grid` stays unmounted so a stray second pick is
+              impossible at the UI level. */}
+              <View style={styles.options} testID={testId(GAME_ID, "round-result-grid")}>
+                {state.round.options.map((option, index) => (
+                  <Option
+                    key={index}
+                    index={index}
+                    label={option}
+                    visual={visualFor(index)}
+                    testID={`${testId(GAME_ID, "round-result-grid")}.option.${index}`}
+                  />
+                ))}
+              </View>
               <GameButton
                 testID={testId(GAME_ID, "next-round")}
                 label={isLastRound ? "See results" : "Next trial"}
@@ -536,6 +604,11 @@ export default function TaskSwitchScreen(
             label="Score"
             value={String(state.stats.score)}
             testID={testId(GAME_ID, "score")}
+          />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, "score-animated")}
           />
           <StatRow
             label="Accuracy"
@@ -588,6 +661,14 @@ const styles = StyleSheet.create({
   },
   targetRow: {
     alignItems: "center",
+  },
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  options: {
+    gap: Spacing.two,
   },
   grid: {
     flexDirection: "row",

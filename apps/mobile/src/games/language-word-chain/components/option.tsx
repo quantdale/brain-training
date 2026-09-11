@@ -1,9 +1,18 @@
 /**
  * Option — one answer card of the Word Chain step.
  *
- * Visual states: `idle` (answerable), `correct` (the right word), `wrong`
- * (the tapped wrong word), `muted` (non-relevant options after the round).
- * The word is the whole control — no other hint is ever shown.
+ * Visual states: `idle` (answerable), `correct` (the word that continues
+ * the chain), `wrong` (the tapped word when it breaks the chain), `muted`
+ * (non-relevant options after the round is scored). The word is the whole
+ * control — no other hint is ever shown.
+ *
+ * Verdicts are multi-channel (PATTERNS-PLAY 6): borders stay constant, the
+ * fill changes AND a ✓/✕ glyph is prepended, so colour is never the only
+ * signal. The glyph duplicates meaning only for sighted users — the
+ * accessible name carries the verdict in words ("Correct: …" /
+ * "Wrong pick: …"). Glyphs opt out of font scaling so the board keeps its
+ * geometry. `muted` dims to read as locked. No animation here, so there is
+ * nothing for reduced motion to collapse.
  *
  * Memoized so unchanged options skip re-renders when the parent re-renders on
  * unrelated state. The stable `onPressOption(index)` handler is invoked
@@ -41,33 +50,50 @@ export const Option = memo(function Option({
 }: OptionProps) {
   const theme = useTheme();
 
+  const isVerdict = visual === "correct" || visual === "wrong";
   const backgroundColor =
-    visual === "correct"
-      ? theme.success
-      : visual === "wrong"
-        ? theme.danger
-        : theme.surface;
+    visual === "correct" ? theme.success : visual === "wrong" ? theme.danger : theme.surface;
+  // On-slots, never a literal: dark-mode fills carry dark glyphs.
   const foregroundColor =
-    visual === "correct" || visual === "wrong" ? "#FFFFFF" : theme.text;
-  const borderColor = visual === "idle" ? theme.border : backgroundColor;
-  const dim = visual === "muted" || disabled;
+    visual === "correct" ? theme.successOn : visual === "wrong" ? theme.dangerOn : theme.text;
+  // Borders stay constant across states — fill + glyph carry the verdict.
+  const borderColor = theme.border;
+
+  const accessibilityLabel =
+    visual === "correct"
+      ? `Correct: ${label}`
+      : visual === "wrong"
+        ? `Wrong pick: ${label}`
+        : visual === "muted"
+          ? `${label}, locked`
+          : label;
 
   return (
     <Pressable
       testID={testId(GAME_ID, "option", String(index))}
       accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{
-        disabled,
-        selected: visual === "correct" || visual === "wrong",
-      }}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={
+        visual === "idle" && !disabled ? `Pick ${label} as the next link` : undefined
+      }
+      accessibilityState={{ disabled, selected: isVerdict }}
       disabled={disabled}
       onPress={onPressOption ? () => onPressOption(index) : undefined}
       style={({ pressed }) => [
         styles.option,
-        { backgroundColor, borderColor, opacity: pressed || dim ? 0.6 : 1 },
+        {
+          backgroundColor,
+          borderColor,
+          // Verdicts stay vivid behind the result panel; only muted dims.
+          opacity: pressed ? 0.6 : visual === "muted" ? 0.5 : 1,
+        },
       ]}
     >
+      {isVerdict ? (
+        <ThemedText type="bodyLarge" style={{ color: foregroundColor }} allowFontScaling={false}>
+          {visual === "correct" ? "✓" : "✕"}
+        </ThemedText>
+      ) : null}
       <ThemedText
         type="bodyLarge"
         style={{ color: foregroundColor, textAlign: "center" }}
@@ -81,11 +107,14 @@ export const Option = memo(function Option({
 const styles = StyleSheet.create({
   option: {
     alignSelf: "stretch",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.two,
     borderRadius: Radii.medium,
     borderWidth: 1.5,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
     minHeight: 56,
-    justifyContent: "center",
   },
 });

@@ -413,3 +413,147 @@ describe("restart window reset (campaign 023 audit)", () => {
     expect(difficulty.challengeRating).not.toBe(0.5);
   });
 });
+
+describe("GridRecallScreen verdict language (campaign 025)", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("shows no verdict badges during input and labels selections neutrally", async () => {
+    const seed = "verdict-no-leak";
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+    await advanceTime(clock, STUDY_MS);
+    expect(
+      screen.getByTestId(testId(GAME_ID, "input-board")),
+    ).toBeOnTheScreen();
+
+    const targets = generateTargetCells({
+      rng: createRng(seed),
+      roundIndex: 0,
+      gridSize: 16,
+      targetCount: 5,
+      prevTargets: null,
+    });
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, "cell", String(targets[0]))),
+    );
+
+    // The player's own tap is a selection, not a verdict: no badge, and the
+    // label must not reveal whether the cell is a target.
+    expect(
+      screen.queryByTestId(testId(GAME_ID, "cell-verdict", String(targets[0]))),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(testId(GAME_ID, "cell", String(targets[0]))).props
+        .accessibilityLabel,
+    ).toBe(`Cell ${targets[0] + 1}`);
+  });
+
+  it("marks correct targets and wrong picks with fill, border and glyph after submit", async () => {
+    const seed = "verdict-round-result";
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+    await advanceTime(clock, STUDY_MS);
+
+    const targets = generateTargetCells({
+      rng: createRng(seed),
+      roundIndex: 0,
+      gridSize: 16,
+      targetCount: 5,
+      prevTargets: null,
+    });
+    const targetSet = new Set(targets);
+    const wrongCell = Array.from({ length: 16 }, (_, i) => i).find(
+      (i) => !targetSet.has(i),
+    )!;
+    // Tap every target plus one wrong cell, then submit.
+    for (const cell of targets) {
+      await fireEvent.press(
+        screen.getByTestId(testId(GAME_ID, "cell", String(cell))),
+      );
+    }
+    await fireEvent.press(
+      screen.getByTestId(testId(GAME_ID, "cell", String(wrongCell))),
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "submit")));
+
+    expect(
+      screen.getByTestId(testId(GAME_ID, "round-failed")),
+    ).toBeOnTheScreen();
+    // Every target carries the ✓ verdict badge with the verdict in words…
+    for (const cell of targets) {
+      expect(
+        screen.getByTestId(testId(GAME_ID, "cell-verdict", String(cell)), {
+          includeHiddenElements: true,
+        }),
+      ).toHaveTextContent("✓");
+      expect(
+        screen.getByTestId(testId(GAME_ID, "cell", String(cell))).props
+          .accessibilityLabel,
+      ).toBe(`Correct: Cell ${cell + 1}`);
+    }
+    // …and the wrong pick carries the ✕ verdict.
+    expect(
+      screen.getByTestId(testId(GAME_ID, "cell-verdict", String(wrongCell)), {
+        includeHiddenElements: true,
+      }),
+    ).toHaveTextContent("✕");
+    expect(
+      screen.getByTestId(testId(GAME_ID, "cell", String(wrongCell))).props
+        .accessibilityLabel,
+    ).toBe(`Wrong pick: Cell ${wrongCell + 1}`);
+    // The verdict badge is decorative: the words live on the cell itself.
+    expect(
+      screen.getByTestId(testId(GAME_ID, "cell-verdict", String(wrongCell)), {
+        includeHiddenElements: true,
+      }).props.importantForAccessibility,
+    ).toBe("no-hide-descendants");
+  });
+
+  it("shows the animated live score in session and the final score in results", async () => {
+    const seed = "verdict-score";
+    const { clock } = await renderScreen({ seed });
+
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+    expect(
+      screen.getByTestId(testId(GAME_ID, "score-live")),
+    ).toBeOnTheScreen();
+
+    // Pass round 1: the live readout counts up to the round score.
+    await advanceTime(clock, STUDY_MS);
+    const targets = generateTargetCells({
+      rng: createRng(seed),
+      roundIndex: 0,
+      gridSize: 16,
+      targetCount: 5,
+      prevTargets: null,
+    });
+    for (const cell of targets) {
+      await fireEvent.press(
+        screen.getByTestId(testId(GAME_ID, "cell", String(cell))),
+      );
+    }
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "submit")));
+    expect(
+      screen.getByTestId(testId(GAME_ID, "round-passed")),
+    ).toBeOnTheScreen();
+    await advanceTime(clock, 1000); // let the count-up settle
+    // Round 1 perfect on normal: 100 base + 15 × 0 extra cells.
+    expect(screen.getByTestId(testId(GAME_ID, "score-live"))).toHaveTextContent(
+      "100",
+    );
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));
+    await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-win")));
+    expect(screen.getByTestId(testId(GAME_ID, "results"))).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(testId(GAME_ID, "score-final")),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId(testId(GAME_ID, "score"))).toBeOnTheScreen();
+  });
+});

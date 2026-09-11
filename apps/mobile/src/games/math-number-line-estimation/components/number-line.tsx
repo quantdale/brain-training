@@ -12,16 +12,25 @@
  *
  * Accessibility: the pressable line exposes a descriptive label that never
  * contains the target value — the challenge must not leak through the
- * accessibility tree.
+ * accessibility tree. Once the round resolves, the label carries the verdict
+ * in words and the markers are decorative.
+ *
+ * Resolved frame (PATTERNS-PLAY 6): the flag (target) stays visible and the
+ * player's estimate renders beside it as a verdict marker — a verdict-family
+ * disc (shape + fill) with a ✓/✕ glyph, so the two positions never read
+ * apart by colour alone. Timeouts show no marker (no estimate was made).
  */
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
+
 import { testId } from '@/sdk';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
+import type { RoundOutcome } from '../types';
 
 /** Clamp a fraction into [0, 1]. */
 export function clamp01(value: number): number {
@@ -60,6 +69,18 @@ export interface NumberLineProps {
   /** Disabled while paused / outside the estimating phase. */
   readonly disabled?: boolean;
   /**
+   * Player's snapped estimate; rendered as a verdict marker next to the flag
+   * in the resolved frame. Null (or omitted) means no estimate was made
+   * (timeout) — only the flag shows.
+   */
+  readonly estimate?: number | null;
+  /**
+   * Resolved outcome from the reducer. When set, the line is a read-only
+   * verdict frame: the flag (target) stays visible and the estimate marker
+   * carries the verdict. Null while the round is open.
+   */
+  readonly outcome?: RoundOutcome | null;
+  /**
    * Injectable line width for deterministic tests; when omitted the width is
    * measured via onLayout (production path).
    */
@@ -72,6 +93,8 @@ export function NumberLine({
   target,
   onEstimate,
   disabled = false,
+  estimate = null,
+  outcome = null,
   width,
 }: NumberLineProps) {
   const theme = useTheme();
@@ -88,6 +111,20 @@ export function NumberLine({
 
   const ticks = Array.from({ length: 9 }, (_, i) => (i + 1) / 10); // deciles, unlabeled
   const flagFraction = valueToFraction(target, lineMin, lineMax);
+  const resolved = outcome !== null;
+  const estimateFraction = estimate !== null ? valueToFraction(estimate, lineMin, lineMax) : null;
+  const markerFill = outcome === 'hit' ? theme.success : outcome === 'miss' ? theme.danger : null;
+  const markerOn = outcome === 'hit' ? theme.successOn : outcome === 'miss' ? theme.dangerOn : null;
+  const markerGlyph = outcome === 'hit' ? '✓' : outcome === 'miss' ? '✕' : null;
+  const trackBorder =
+    outcome === 'hit' ? theme.success : outcome === 'miss' ? theme.danger : outcome === 'timeout' ? theme.warning : null;
+  const accessibilityLabel = resolved
+    ? outcome === 'hit'
+      ? `Correct: the flag was at ${target}; you tapped ${estimate}.`
+      : outcome === 'miss'
+        ? `Too far off: the flag was at ${target}; you tapped ${estimate}.`
+        : `Timed out: the flag was at ${target}; no estimate was made.`
+    : `Number line from ${lineMin} to ${lineMax}. A flag marks the target. Tap where you think its value is.`;
 
   return (
     <View style={styles.wrap}>
@@ -102,10 +139,10 @@ export function NumberLine({
 
       <Pressable
         testID={testId(GAME_ID, 'number-line')}
-        accessibilityLabel={`Number line from ${lineMin} to ${lineMax}. A flag marks the target. Tap where you think its value is.`}
+        accessibilityLabel={accessibilityLabel}
         accessibilityRole="adjustable"
-        accessibilityHint="Tap to lock in your estimate of the flag's value."
-        disabled={disabled}
+        accessibilityHint={resolved ? undefined : "Tap to lock in your estimate of the flag's value."}
+        disabled={disabled || resolved}
         onPress={(event) => handlePress(event.nativeEvent.locationX)}
         onLayout={(event) => {
           if (width === undefined) {
@@ -115,7 +152,12 @@ export function NumberLine({
         hitSlop={8}
         style={({ pressed }) => [
           styles.lineTrack,
-          { backgroundColor: theme.border, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+          {
+            backgroundColor: theme.border,
+            opacity: disabled && !resolved ? 0.5 : pressed && !resolved ? 0.85 : 1,
+            borderColor: trackBorder ?? 'transparent',
+            borderWidth: trackBorder !== null ? 2 : 0,
+          },
         ]}>
         <View style={styles.ticksLayer} pointerEvents="none">
           {ticks.map((fraction) => (
@@ -134,6 +176,23 @@ export function NumberLine({
           testID={testId(GAME_ID, 'line-flag')}
           style={[styles.flag, { left: `${flagFraction * 100}%`, backgroundColor: theme.accent }]}
         />
+        {resolved && estimateFraction !== null && markerFill !== null && markerOn !== null && markerGlyph !== null ? (
+          <View
+            pointerEvents="none"
+            testID={testId(GAME_ID, 'line-guess')}
+            style={[
+              styles.guess,
+              {
+                left: `${estimateFraction * 100}%`,
+                backgroundColor: markerFill,
+              },
+            ]}
+            importantForAccessibility="no-hide-descendants">
+            <ThemedText type="label" style={{ color: markerOn }} allowFontScaling={false}>
+              {markerGlyph}
+            </ThemedText>
+          </View>
+        ) : null}
       </Pressable>
     </View>
   );
@@ -176,5 +235,19 @@ const styles = StyleSheet.create({
     bottom: 6,
     width: 3,
     borderRadius: 2,
+  },
+  // Estimate marker: a verdict-family disc (shape + fill + glyph) centred on
+  // the tapped position. The bar flag and the disc read apart by shape, so
+  // the two positions never differ by colour alone. `translateX` centres the
+  // 28 dp disc on the fraction (half its width).
+  guess: {
+    position: 'absolute',
+    top: 10,
+    width: 28,
+    height: 28,
+    borderRadius: Radii.pill,
+    transform: [{ translateX: -14 }],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

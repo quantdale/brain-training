@@ -28,6 +28,7 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -398,6 +399,7 @@ export default function SpatialCoordinateTurnScreen(
           {`Round ${state.roundIndex + 1}/${rounds}`}
         </ThemedText>
       }
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       score={String(state.stats.score)}
       qaPanel={
         <QaPanel
@@ -442,6 +444,18 @@ export default function SpatialCoordinateTurnScreen(
               />
             </>
           ) : null}
+          {state.phase === 'choice' ? (
+            <View style={styles.scoreRow}>
+              <ThemedText type="caption" themeColor="textSecondary">
+                Score
+              </ThemedText>
+              <AnimatedNumber
+                value={state.stats.score}
+                type="numeral"
+                testID={testId(GAME_ID, 'score-live')}
+              />
+            </View>
+          ) : null}
 
           {state.phase === 'choice' || state.phase === 'roundResult' ? (
             <View style={styles.optionRow} testID={testId(GAME_ID, 'options')}>
@@ -480,6 +494,11 @@ export default function SpatialCoordinateTurnScreen(
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
           <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, 'score-animated')}
+          />
           <StatRow
             label="Accuracy"
             value={`${accuracyPct}%`}
@@ -531,5 +550,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing.two,
     justifyContent: 'center',
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.two,
   },
 });

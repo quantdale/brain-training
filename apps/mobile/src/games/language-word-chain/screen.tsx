@@ -30,8 +30,9 @@ import type {
   XpRatingHook,
 } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
-import { Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
@@ -363,13 +364,20 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
       state.lastAnswerIndex,
     ],
   );
-
   const roundResultMessage =
     state.roundOutcome === 'correct'
       ? 'Chain complete!'
       : state.roundOutcome === 'timeout'
         ? 'Time’s up'
         : 'Broken link';
+  // The link the round turned on (resolved by the reducer): the needed word
+  // restates the prompt stem in the why-line below, so the chain stays
+  // reviewable while feedback shows.
+  const resultStep = round !== null ? (round.steps[state.currentStepIndex] ?? null) : null;
+  const resultPrevWord =
+    resultStep !== null && resultStep.position > 0 && round !== null
+      ? (round.words[resultStep.position - 1] ?? null)
+      : null;
 
   const view: GameHostView =
     state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
@@ -399,6 +407,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}
@@ -447,6 +456,16 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
 
           {state.phase === 'question' && activeStep !== null ? (
             <View style={styles.section}>
+              <View style={styles.scoreRow}>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Score
+                </ThemedText>
+                <AnimatedNumber
+                  value={state.stats.score}
+                  type="numeral"
+                  testID={testId(GAME_ID, 'score', 'live')}
+                />
+              </View>
               <ThemedText
                 type="caption"
                 themeColor="textSecondary"
@@ -513,15 +532,41 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
               >
                 {roundResultMessage}
               </ThemedText>
-              {state.roundOutcome !== 'correct' ? (
-                <ThemedText
-                  type="small"
-                  themeColor="textSecondary"
-                  testID={testId(GAME_ID, 'round-answer-reveal')}
-                >
-                  The chain was {round.words.join(' → ')}
-                </ThemedText>
-              ) : null}
+              <View
+                style={[
+                  styles.feedback,
+                  {
+                    backgroundColor:
+                      state.roundOutcome === 'correct'
+                        ? theme.successSoft
+                        : state.roundOutcome === 'timeout'
+                          ? theme.warningSoft
+                          : theme.dangerSoft,
+                  },
+                ]}
+                testID={testId(GAME_ID, 'round-feedback')}>
+                {state.roundOutcome !== 'correct' ? (
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    testID={testId(GAME_ID, 'round-answer-reveal')}
+                  >
+                    The chain was {round.words.join(' → ')}
+                  </ThemedText>
+                ) : null}
+                {resultStep !== null ? (
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    testID={testId(GAME_ID, 'round-why')}>
+                    {state.roundOutcome === 'correct'
+                      ? `"${resultStep.correctWord}" completes the chain`
+                      : resultPrevWord !== null
+                        ? `"${resultStep.correctWord}" follows "${resultPrevWord}"`
+                        : `"${resultStep.correctWord}" starts the chain`}
+                  </ThemedText>
+                ) : null}
+              </View>
               <View style={styles.options}>
                 {round.steps[state.currentStepIndex].options.map(
                   (word, index) => (
@@ -560,6 +605,16 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.resultsScore}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score', 'animated')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -630,5 +685,25 @@ const styles = StyleSheet.create({
   },
   options: {
     gap: Spacing.two,
+  },
+  // HUD-adjacent live score: caption + tabular numeral, never covering play.
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  // Inline verdict panel (PATTERNS-PLAY 7): compact, below the verdict
+  // headline and above the options — the chain above stays mounted, so the
+  // prompt is never covered.
+  feedback: {
+    gap: Spacing.one,
+    borderRadius: Radii.medium,
+    paddingVertical: Spacing.twoHalf,
+    paddingHorizontal: Spacing.three,
+  },
+  // Results hero: the animated final score above the metric rows.
+  resultsScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

@@ -380,6 +380,7 @@ export default function SpatialTransformMatchScreen(
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}

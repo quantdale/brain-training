@@ -345,6 +345,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={
         <QaPanel
           onForceWin={qaHooks.forceWin}

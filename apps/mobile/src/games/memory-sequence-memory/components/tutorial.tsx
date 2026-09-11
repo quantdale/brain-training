@@ -150,7 +150,7 @@ function DemoPad({ attempt, onWrong, onDone, onSkip }: DemoPadProps) {
       return index === revealedIndex ? 'revealed' : 'idle';
     }
     if (sequence.slice(0, inputIndex).includes(index)) {
-      return 'selected';
+      return 'correct';
     }
     return index === wrongTile ? 'error' : 'idle';
   };

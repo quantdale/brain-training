@@ -10,6 +10,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { testId } from '@/sdk';
+import { MinTouchTarget } from '@/theme/tokens';
 
 import { COLOR_HEX, GAME_ID, type ColorName } from '../types';
 
@@ -80,6 +81,8 @@ const styles = StyleSheet.create({
   button: {
     width: 100,
     height: 60,
+    minWidth: MinTouchTarget,
+    minHeight: MinTouchTarget,
     borderRadius: Radii.medium,
     alignItems: 'center',
     justifyContent: 'center',

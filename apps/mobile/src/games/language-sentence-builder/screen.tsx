@@ -26,8 +26,10 @@ import { useRouter } from 'expo-router';
 import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
+import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   GameHost,
   GameResults,
@@ -79,6 +81,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     persistSession = dbSessionPersister,
     xpHook = noopXpRatingHook,
   } = props;
+  const theme = useTheme();
   const router = useRouter();
   const [state, dispatch] = useReducer(sentenceBuilderReducer, undefined, createInitialState);
 
@@ -319,6 +322,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -326,6 +330,16 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
       }>
       {inSession && state.scrambled !== null ? (
         <>
+          <View style={styles.scoreRow}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, 'score', 'live')}
+            />
+          </View>
           {/* Category hint */}
           <ThemedText
             type="caption"
@@ -334,8 +348,31 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
             {CATEGORY_LABELS[state.scrambled.category] ?? state.scrambled.category}
           </ThemedText>
 
-          {/* Player's ordered words (the sentence being built) */}
-          <View style={styles.playerSentence} testID={testId(GAME_ID, 'player-sentence')}>
+          {/* Player's ordered words (the sentence being built). At verdict the
+          strip takes the verdict fill + boundary; the accessible name carries
+          the verdict in words. Per-chip verdicts are deliberately absent: a
+          failed round is either a wrong tap or a timeout and the state cannot
+          tell them apart, and accepted-order alternatives make any single
+          "right chip" claim false. */}
+          <View
+            style={[
+              styles.playerSentence,
+              state.phase === 'roundResult'
+                ? {
+                    backgroundColor:
+                      state.roundOutcome === 'passed' ? theme.successSoft : theme.dangerSoft,
+                    borderColor: state.roundOutcome === 'passed' ? theme.success : theme.danger,
+                  }
+                : { borderColor: theme.border },
+            ]}
+            testID={testId(GAME_ID, 'player-sentence')}
+            accessibilityLabel={
+              state.phase === 'roundResult'
+                ? state.roundOutcome === 'passed'
+                  ? `Correct order: ${playerWords.join(' ')}`
+                  : `Your order: ${playerWords.join(' ')}`
+                : undefined
+            }>
             {playerWords.length === 0 ? (
               <ThemedText type="small" themeColor="textSecondary">
                 Tap the words below in the correct order…
@@ -367,11 +404,55 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
                 testID={testId(GAME_ID, state.roundOutcome === 'passed' ? 'round-passed' : 'round-failed')}>
                 {state.roundOutcome === 'passed' ? 'Round passed!' : 'Round failed'}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {state.roundOutcome === 'failed'
-                  ? `Correct order: ${state.scrambled.original.join(' ')}`
-                  : `+${state.stats.score} points`}
-              </ThemedText>
+              <View
+                style={[
+                  styles.feedback,
+                  {
+                    backgroundColor:
+                      state.roundOutcome === 'passed' ? theme.successSoft : theme.dangerSoft,
+                    borderColor: state.roundOutcome === 'passed' ? theme.success : theme.danger,
+                  },
+                ]}
+                testID={testId(GAME_ID, 'round-feedback')}>
+                <View
+                  style={[
+                    styles.badge,
+                    {
+                      backgroundColor:
+                        state.roundOutcome === 'passed' ? theme.success : theme.danger,
+                    },
+                  ]}
+                  importantForAccessibility="no-hide-descendants">
+                  <ThemedText
+                    type="headline"
+                    style={{
+                      color: state.roundOutcome === 'passed' ? theme.successOn : theme.dangerOn,
+                    }}
+                    allowFontScaling={false}>
+                    {state.roundOutcome === 'passed' ? '✓' : '✕'}
+                  </ThemedText>
+                </View>
+                {state.roundOutcome === 'failed' ? (
+                  <ThemedText
+                    type="small"
+                    themeColor="textSecondary"
+                    testID={testId(GAME_ID, 'round-answer-reveal')}>
+                    {`Correct order: ${state.scrambled.original.join(' ')}`}
+                  </ThemedText>
+                ) : (
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {`+${state.stats.score} points`}
+                  </ThemedText>
+                )}
+                <ThemedText
+                  type="small"
+                  themeColor="textSecondary"
+                  testID={testId(GAME_ID, 'round-why')}>
+                  {state.roundOutcome === 'passed'
+                    ? `"${state.scrambled.original.join(' ')}" in ${playerWords.length} taps`
+                    : 'Tap the words in the order they read.'}
+                </ThemedText>
+              </View>
               <GameButton
                 testID={testId(GAME_ID, 'next-round')}
                 label={isLastRound ? 'See results' : 'Next round'}
@@ -394,6 +475,16 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
           forced={state.forced}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
+          <View style={styles.resultsScore}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Final score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeralLg"
+              testID={testId(GAME_ID, 'score', 'animated')}
+            />
+          </View>
           <StatRow
             label="Score"
             value={String(state.stats.score)}
@@ -427,7 +518,6 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     </GameHost>
   );
 }
-
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
@@ -438,9 +528,37 @@ const styles = StyleSheet.create({
     gap: Spacing.oneHalf,
     padding: Spacing.two,
     borderRadius: Radii.medium,
-    borderWidth: 1,
-    borderColor: '#00000022',
+    borderWidth: 1.5,
     minHeight: 48,
     alignItems: 'center',
+  },
+  // HUD-adjacent live score: caption + tabular numeral, never covering play.
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  // Verdict panel (PATTERNS-PLAY 7): soft verdict fill + verdict boundary +
+  // glyph badge, so the verdict never rests on colour alone. The category
+  // hint, built sentence and chips above stay mounted — the prompt is never
+  // covered.
+  feedback: {
+    gap: Spacing.one,
+    alignItems: 'center',
+    borderRadius: Radii.medium,
+    borderWidth: 1.5,
+    paddingVertical: Spacing.twoHalf,
+    paddingHorizontal: Spacing.three,
+  },
+  // Opaque verdict badge: the icon/shape half of the verdict channel.
+  badge: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  // Results hero: the animated final score above the metric rows.
+  resultsScore: {
+    alignItems: 'center',
+    gap: Spacing.one,
   },
 });

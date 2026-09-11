@@ -29,8 +29,9 @@ import {
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { GameButton, StatRow } from '@/components/game-ui';
+import { AnimatedNumber } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
+import { GameButton, StatRow } from '@/components/game-ui';
 import {
   GameHost,
   GameResults,
@@ -404,6 +405,7 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
         </ThemedText>
       }
       score={String(state.stats.score)}
+      roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
       tutorial={
@@ -442,14 +444,31 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
                 testID={testId(GAME_ID, 'choice-status')}>
                 Which grid is folded correctly?
               </ThemedText>
+              <View style={styles.scoreRow}>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Score
+                </ThemedText>
+                <AnimatedNumber
+                  value={state.stats.score}
+                  type="numeral"
+                  testID={testId(GAME_ID, 'score-live')}
+                />
+              </View>
               {renderOptions(false)}
             </>
           ) : null}
-
           {state.phase === 'roundResult' ? (
             <View
               style={styles.section}
               testID={testId(GAME_ID, 'round-result')}>
+              {/* The choice prompt stays mounted through feedback: the verdict
+               * must never cover the stem (Imprint rule). */}
+              <ThemedText
+                type="bodyLarge"
+                themeColor="text"
+                testID={testId(GAME_ID, 'choice-status')}>
+                Which grid is folded correctly?
+              </ThemedText>
               <ThemedText
                 type="headline"
                 themeColor={
@@ -498,6 +517,11 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
             value={String(state.stats.score)}
             testID={testId(GAME_ID, 'score')}
           />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, 'score-animated')}
+          />
           <StatRow
             label="Accuracy"
             value={`${Math.round(
@@ -535,6 +559,11 @@ const styles = StyleSheet.create({
   options: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: Spacing.two,
+  },
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.two,
   },
 });

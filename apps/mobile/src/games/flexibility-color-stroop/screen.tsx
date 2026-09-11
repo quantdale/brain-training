@@ -16,8 +16,8 @@
  * trial wrong WITHOUT ending the session.
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
-
 import {
   isDevBuild,
   liveAudioHaptics,
@@ -27,7 +27,9 @@ import {
 } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
+import { AnimatedNumber } from "@/components/ui";
 import { GameButton, StatRow } from "@/components/game-ui";
+import { Spacing } from "@/constants/theme";
 import {
   GameHost,
   GameResults,
@@ -403,6 +405,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       onResume={resumeSession}
       onQuit={quitToLibrary}
       interceptBack={inSession}
+      roundProgress={{ value: state.stats.trialsPlayed, total: totalTrials }}
       header={
         <>
           <ThemedText
@@ -439,6 +442,19 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
       }>
       {inSession && currentTrial ? (
         <>
+          {/* Live score: count-up readout mounted across the trial phases so a
+          score change reads as movement the moment the trial is scored. The
+          header `score` line above is untouched (existing testID contract). */}
+          <View style={styles.scoreRow}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Score
+            </ThemedText>
+            <AnimatedNumber
+              value={state.stats.score}
+              type="numeral"
+              testID={testId(GAME_ID, "score-live")}
+            />
+          </View>
           {state.phase === "flipCue" && (
             <FlipCueBanner
               newRule={state.currentRule}
@@ -462,6 +478,13 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
 
           {state.phase === "feedback" && (
             <>
+              {/* The stimulus stays mounted while feedback shows: the verdict
+              must never cover the stem (Imprint rule). */}
+              <StimulusDisplay
+                word={currentTrial.word}
+                inkColor={currentTrial.inkColor}
+                testID={testId(GAME_ID, "stimulus")}
+              />
               <FeedbackDisplay
                 correct={state.currentCorrect ?? false}
                 correctAnswer={currentTrial.correctAnswer}
@@ -495,6 +518,11 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
             label="Score"
             value={String(state.stats.score)}
             testID={testId(GAME_ID, "score")}
+          />
+          <AnimatedNumber
+            value={state.stats.score}
+            type="numeralLg"
+            testID={testId(GAME_ID, "score-animated")}
           />
           <StatRow
             label="Accuracy"
@@ -530,3 +558,11 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
     </GameHost>
   );
 }
+
+const styles = StyleSheet.create({
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+});
