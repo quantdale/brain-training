@@ -134,7 +134,10 @@ describe('ListRow', () => {
     const onPress = jest.fn();
     await render(<ListRow title="Session" subtitle="Yesterday" onPress={onPress} testID="row" />);
     expect(screen.getByTestId('row').props.accessibilityRole).toBe('button');
-    expect(screen.getByTestId('row-chevron')).toBeTruthy();
+    // The chevron is decoration: it must NOT carry an id, or prefix-based row
+    // discovery counts every row twice.
+    expect(screen.queryByTestId('row-chevron')).toBeNull();
+    expect(screen.getByText('›')).toBeTruthy();
     fireEvent.press(screen.getByTestId('row'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });

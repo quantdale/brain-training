@@ -21,6 +21,12 @@ export interface ListRowProps {
   subtitle?: string;
   /** Trailing metadata (time, score, value). */
   meta?: string;
+  /**
+   * testID for the trailing metadata text. Automation reads a row's *status*
+   * from this node (it is the node that carries the text), so rows whose meta
+   * is meaningful state must pass one.
+   */
+  metaTestID?: string;
   /** Leading glyph; tinted by `tone` when one is given. */
   icon?: ReactNode;
   tone?: ThemeColor;
@@ -37,6 +43,7 @@ export function ListRow({
   title,
   subtitle,
   meta,
+  metaTestID,
   icon,
   tone,
   onPress,
@@ -73,7 +80,7 @@ export function ListRow({
         ) : null}
       </View>
       {meta ? (
-        <ThemedText type="caption" themeColor="textSecondary" numberOfLines={1}>
+        <ThemedText type="caption" themeColor="textSecondary" numberOfLines={1} testID={metaTestID}>
           {meta}
         </ThemedText>
       ) : null}
@@ -82,7 +89,11 @@ export function ListRow({
           type="body"
           themeColor="textMuted"
           allowFontScaling={false}
-          testID={testID ? `${testID}-chevron` : undefined}>
+          // Deliberately no testID: the chevron is decoration, and a
+          // `<rowTestID>-chevron` node makes prefix-based row discovery count
+          // every row twice (automation, and the a11y audit, both walk the
+          // hierarchy by id prefix). The row itself carries the testID.
+          testID={undefined}>
           ›
         </ThemedText>
       ) : null}

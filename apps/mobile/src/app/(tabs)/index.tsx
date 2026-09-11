@@ -680,17 +680,14 @@ export default function HomeScreen() {
                       ? "Now"
                       : "Up next";
                   return (
-                    <View
-                      key={`${game.id}-${index}`}
-                      // Distinct prefix on purpose: `home-workout-game-<id>` must identify
-                      // exactly one node (the row), or prefix-based automation counts
-                      // the wrapper as a second workout leg.
-                      testID={`home-workout-status-${game.id}`}
-                    >
+                    <View key={`${game.id}-${index}`}>
                       <ListRow
                         title={game.name}
                         subtitle={game.primaryCategory}
                         meta={status}
+                        // Contract: automation reads each leg's status text from
+                        // this node (and excludes the prefix from leg counting).
+                        metaTestID={`home-workout-game-status-${game.id}`}
                         testID={`home-workout-game-${game.id}`}
                         accessibilityLabel={`${game.name}, ${game.primaryCategory}, ${
                           isCompleted ? "done" : isCurrent ? "up now" : "up next"
