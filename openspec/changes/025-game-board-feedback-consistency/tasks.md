@@ -29,6 +29,6 @@
 
 ## Phase 3 — Verification
 
-- [ ] Full matrix (Jest, tsc, lint, validators), autobot canaries.
-- [ ] Native before/after captures for representative boards.
-- [ ] Durable state updated; campaign closed with honest classifications.
+- [x] Full matrix (Jest 535 suites / 6409 tests, tsc, lint, validators) PASS at `fe80a2c`; autobot canaries **8/8 PASS** on the dev build at that SHA.
+- [x] Native before/after captures for representative boards (`qa-artifacts/campaign025/boards-{before,after}/**`: memory-grid-recall, math-value-ordering, speed-color-match, logic-deduction-table, language-word-chain). The pre-wave set came from the Campaign 024 release APK, which embeds the pre-025 bundle.
+- [x] Durable state updated; campaign closed with honest classifications (daily-workout journey + release artifact from this SHA explicitly NOT VALIDATED).

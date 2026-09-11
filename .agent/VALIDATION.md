@@ -2547,8 +2547,42 @@ toolchain limitation, not a product test failure.
   offline CLEAN (965 files); secrets CLEAN (1938 tracked files); registry
   `--check` up to date.
 
-### Not yet validated at this record (Phase 3 remaining)
+### Runtime evidence at `fe80a2c` (emulator-5560)
 
-- Autobot canaries / daily-workout journey.
-- Native before/after captures for representative boards (emulator-5560).
-- Release build and campaign closure classifications.
+- Dev client (`:app:assembleDebug` → `app-debug.apk`, installed on
+  emulator-5560; Metro served the `fe80a2c` bundle): autobot canaries
+  **8/8 PASS** — interaction, force-win, exactly one persisted session, row
+  invariants, authoritative results, back/next navigation on every canary.
+  Run: `qa-artifacts/campaign025/after-dev/20260911-175815-autobot-canaries/`.
+- First canary attempt ran against the **release** APK whose QA controls are
+  disabled by design (0/8, "qa-toggle not reachable"). Diagnosed as an
+  APK-class mismatch, not a product regression; a debug build was compiled
+  and installed and the re-run passed 8/8. The false-negative run is kept as
+  `qa-artifacts/campaign025/after/20260911-172452-autobot-canaries/`.
+- Representative native board captures (emulator-local ADB input only, dark
+  theme): `qa-artifacts/campaign025/boards-after/**` at `fe80a2c` against
+  `boards-before/**` on the pre-wave release APK (Campaign 024 bundle). The
+  pairs show the language change: `memory-grid-recall` soft fill + verdict
+  border + ✓/✕ badges + HUD segment bar where the baseline used solid fills
+  and no progress; `logic-deduction-table` keeps the question stem mounted
+  and marks wrong pick and correct answer together with glyphs where the
+  baseline dropped the stem and used fill-only; `math-value-ordering` and
+  `language-word-chain` show the timeout reveal; `speed-color-match` shows the
+  speed dye cue and the authoritative late-tap timeout resolution.
+- Daily-workout journey and a11y audit were **not re-run** in this wave; the
+  changed surfaces are game boards whose new glyph badges are hidden from
+  assistive tech and whose interactive targets carry 44 dp floors.
+
+### Final classifications (Campaign 025)
+
+- Board feedback language: **PASS** (implementation + focused tests + 8/8
+  runtime canaries + native before/after pairs).
+- HUD round progress: **PASS** (41/42 games; the one omission is justified by
+  HUD R2 and recorded in `tasks.md`).
+- Full matrix / lint / validators: **PASS** on the closure tree.
+- Daily-workout journey on the 025 head: **NOT VALIDATED** (out of the 025
+  wave scope; the user-facing flow is scheduled in the redesign campaign's
+  regression set).
+- Release APK from the 025 head: **NOT VALIDATED** (the redesign campaign is
+  expected to rebuild and re-certify the release artifact; the pre-wave
+  release APK was used only as the capture baseline).

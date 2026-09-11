@@ -1,6 +1,6 @@
 {
   "id": "025-game-board-feedback-consistency",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "024-frontend-ux-modernization",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -12,5 +12,8 @@
   "baselineAuditCommit": "2a1ba4e",
   "newGameModulesAllowed": false,
   "featureExpansionAllowed": false,
-  "fullHardening": false
+  "fullHardening": false,
+  "validatedAt": "2026-09-12",
+  "closureSha": "fe80a2c",
+  "validationNote": "All 31 remaining boards adopted the shared verdict language (soft fill + verdict border + ✓/✕/⏱ badge + verdict in the accessible name; wrong pick shown with the correct answer where the mechanic reveals it; prompt mounted through feedback; feedback derived from the reducer's resolved outcome) and 41 of 42 games report HUD roundProgress (memory-sequence-memory is a time-boxed score attack with no total in state and keeps the round chip per HUD R2). Presentation-only diff: no mechanics, scoring, generator, persistence or testID changes. Evidence: tsc clean, Jest 535 suites / 6409 tests PASS (5 allowlisted skips), expo lint clean, all repository validators PASS, autobot canaries 8/8 PASS on a dev build at the closure SHA, and native before/after board pairs in qa-artifacts/campaign025/boards-{before,after}/**. The daily-workout journey and a release artifact from this SHA were not re-run; those are explicitly NOT VALIDATED for this campaign."
 }

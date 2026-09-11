@@ -1,10 +1,15 @@
 # Execution — Campaign 025: Game Board Feedback Consistency
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `025-game-board-feedback-consistency`
 **Mode:** day
 **Start SHA:** `2a1ba4e`
+**Closure SHA:** `fe80a2c`
 **Predecessor:** `024-frontend-ux-modernization` (VALIDATED, terminal)
+
+See `change.json` `validationNote`, `.agent/VALIDATION.md` (Campaign 025
+section) and `tasks.md` for the closure evidence and the explicit NOT
+VALIDATED items (daily-workout journey and release artifact on this SHA).
 
 ## Mission
 

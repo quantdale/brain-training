@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "025-game-board-feedback-consistency",
-  "lastCampaign": "024-frontend-ux-modernization",
+  "activeCampaign": null,
+  "lastCampaign": "025-game-board-feedback-consistency",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

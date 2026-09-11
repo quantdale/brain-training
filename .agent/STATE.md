@@ -1,60 +1,50 @@
 # Durable Project State
 
-**Last update:** 2026-09-12 — Campaign 024 closed VALIDATED (frontend UX modernization).
+**Last update:** 2026-09-12 — Campaign 025 closed VALIDATED (game board feedback consistency).
 **Canonical branch:** `main`
-**Active campaign:** 025-game-board-feedback-consistency
-**Last campaign:** `024-frontend-ux-modernization`
+**Active campaign:** none
+**Last campaign:** `025-game-board-feedback-consistency`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 024 — Frontend UX Modernization is **VALIDATED / TERMINAL**. It executed
-the owner's 2026-09-11 goal-mode directive end-to-end: Refero-MCP research
-(33 iOS reference screens across core shell and play surfaces) drove a new
-design language, a complete UI kit replaced ~20 inline CTA copies and every
-hardcoded colour literal, all 16 routes were rebuilt around one hero and one
-primary action, micro-interaction feedback became universal, the responsive
-breakpoints became load-bearing, and accessibility closed from 14 measured
-violations to **0 in both themes**.
+Campaign 025 closed its mission: all 42 game boards now share one verdict
+language, every finite-round session reports HUD progress, and the wave stayed
+presentation-only (no mechanics, scoring, generator, persistence or testID
+changes). Campaign 024 (the shell/kit/design-language rebuild) is its
+VALIDATED predecessor and remains terminal.
 
-The campaign also resolved the Campaign 023 operational limitation: native
-screenshot evidence now exists (22-frame before/after sets plus a display-profile
-matrix) because the blank-capture cause was an AVD configuration
-(`hw.gpu.enabled=no`), not the emulator.
+## Terminal evidence summary (Campaign 025, closure SHA `fe80a2c`)
 
-## Terminal evidence summary
-
-- Design language v2 + kit: 41 kit tests (activation blocking, a11y contract,
-  44 dp, reduced motion); contrast asserted for every semantic and domain
-  pairing in both schemes at build time.
-- Screens: six parallel packets covering Home, Games + detail, the Progress
-  suite, Profile/Rewards/Data management, Results + late-tap games, and eight
-  category canaries; two harness contracts (chevron testID, status text node)
-  and one screen-reader focus seam (Button ref) were caught by journey tests
-  and fixed at the root.
-- Accessibility: `scripts/qa/a11y-audit.mjs` measured 14 → 0 sub-44 dp /
-  unlabelled interactive violations across 11 surfaces (light and dark).
-- Matrix at closure: **Jest 6321 pass / 5 allowlisted skips** (514 suites,
-  +102 tests vs the pre-campaign baseline), `tsc --noEmit` clean, `expo lint`
-  clean, all repository validators PASS (repo-state, task-ownership, registry,
-  provenance, offline 961 files CLEAN, secrets 1931 files CLEAN, OpenSpec 11/11).
-- Release artifact from campaign HEAD: `:app:assembleRelease` BUILD SUCCESSFUL,
-  APK 109,391,501 B, SHA-256
-  `21526E732FB0F3EE22F2E27E090753FECFF5280FB2415697A638F1E3A39B4FD2`.
-- Runtime: autobot canaries **8/8 PASS** and the daily-workout journey PASS at
-  the campaign SHA; the app renders 0 frames while idle.
-- Still **NOT VALIDATED / EXTERNALLY BLOCKED** (unchanged): store/Play signing
-  credentials, manual TalkBack review, SAF/system sheets, physical device,
-  iOS runtime, device-representative frame timing; the 42-game `--mode certify`
-  gate is environment-blocked (a second emulator owned by the user's own work
-  stayed attached for the session and was not touched).
+- 31 remaining boards adopted fill + verdict border + ✓/✕/⏱ badge + verdict in
+  the accessible name, with reducer-authoritative feedback, the prompt mounted
+  through feedback, animated score read-outs and 44 dp floors.
+- HUD `roundProgress` wired in 41 of 42 games; `memory-sequence-memory` is a
+  time-boxed score attack with no total in state and correctly keeps the round
+  chip (HUD R2).
+- Matrix at closure: **Jest 535 suites / 6409 tests PASS** (5 allowlisted
+  skips), `tsc --noEmit` clean, `expo lint` clean, all repository validators
+  PASS (repo-state, task-ownership, provenance, offline 965 files CLEAN,
+  secrets 1938 files CLEAN, registry `--check` up to date).
+- Runtime: autobot canaries **8/8 PASS** on a debug build at the closure SHA
+  (the first attempt ran against a release APK whose QA controls are disabled
+  by design and was correctly classified as an APK-class mismatch), plus
+  native before/after board pairs in
+  `qa-artifacts/campaign025/boards-{before,after}/**`.
+- Still **NOT VALIDATED** for this campaign: the daily-workout journey on this
+  SHA and a release artifact built from this SHA.
+- The wave repaired four mid-edit breakages left by an interrupted worker and
+  a botched style object in `spatial-mental-rotation`; every repair is
+  behaviour-preserving and covered by the game suites.
 
 ## Continuation rule
 
-There is **no active campaign**. Do not resume Campaign 024 or invent a successor
-merely to keep an agent busy. The follow-ups worth doing are listed in
-`.agent/BACKLOG.md`; a future campaign requires a new owner directive or a
-separately justified planning pass against current repository evidence.
+There is **no active campaign**. A successor campaign requires an explicit
+owner directive or a separately justified planning pass against current
+repository evidence. The owner's recorded redesign directive (drastic frontend
+visual rebuild, Refero-researched, native before/after evidence) is the
+candidate successor and is activated as its own campaign rather than folded
+into Campaign 025.
 
 ## Recovery order
 
@@ -64,5 +54,5 @@ separately justified planning pass against current repository evidence.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. `openspec/changes/024-frontend-ux-modernization/` (proposal → design → specs →
-   tasks → audit-map → EXECUTION) and `docs/DESIGN_SYSTEM.md`
+7. `openspec/changes/025-game-board-feedback-consistency/` (proposal → design →
+   specs → tasks) and `docs/DESIGN_SYSTEM.md`

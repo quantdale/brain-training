@@ -1,36 +1,42 @@
-# Campaign 024 — Frontend UX Modernization
+# Campaign 025 — Game Board Feedback Consistency
 
-**Status:** ACTIVE
+**Status:** VALIDATED / TERMINAL
 **Campaign id:** `025-game-board-feedback-consistency`
 **Predecessor:** `024-frontend-ux-modernization` (VALIDATED)
 **Mode:** day
-**Change:** `025-game-board-feedback-consistency` (ACTIVE)
-**Authorization:** explicit owner goal-mode directive on 2026-09-11 (new scope
-after Campaign 023's terminal closure).
-**Baseline SHA:** `0402279`
-**Baseline SHA:** `2a1ba4e`
+**Baseline SHA:** `2a1ba4e` (activation docs on `7530175`)
+**Closure SHA:** `fe80a2c`
 
 ## Terminal outcome
 
-Campaign 024 completed its mission: Refero-MCP research across core-shell and
-play surfaces produced a design language v2 with a contrast-verified palette; a
-complete UI kit (`components/ui/**`) replaced the inline CTA copies, hardcoded
-colour literals and duplicated primitives; all 16 routes were rebuilt around one
-hero and one primary action with universal micro-interaction feedback; the
-responsive breakpoints became load-bearing (adaptive grids, expanded
-two-column sections, landscape and font-scale evidence); accessibility closed
-from 14 measured violations to 0 in both themes; and native before/after visual
-evidence was captured on a GPU-enabled AVD — resolving the Campaign 023
-"blank screencap" limitation.
+Campaign 025 finished what Campaign 024 started. All 31 remaining game boards
+adopted the shared verdict language — soft verdict fill, verdict border, ✓/✕/⏱
+badge hidden from assistive tech, verdict in the accessible name, wrong pick
+shown with the correct answer where the mechanic reveals it, the prompt
+mounted through feedback, and feedback derived from the reducer's resolved
+outcome. Games with finite sessions report `GameHost` `roundProgress` (41 of
+42; `memory-sequence-memory` is a time-boxed score attack with no total and
+correctly keeps the round chip). Score read-outs animate through
+`AnimatedNumber`.
 
-Automation contracts (workout leg status text, chevron testIDs) and the pause
-overlay's screen-reader focus seam were broken by the wave and caught by the
-journey tests; all were fixed at the root before closure.
+The diff is presentation-only: no reducer, generator, scoring, difficulty,
+session, persistence or version file changed, and every existing testID
+survived.
+
+## Evidence
+
+- Jest 535 suites / 6409 tests PASS (5 allowlisted skips); `tsc` clean;
+  `expo lint` clean; all repository validators PASS at `fe80a2c`.
+- Autobot canaries **8/8 PASS** on the dev build at `fe80a2c`.
+- Native before/after board pairs in
+  `qa-artifacts/campaign025/boards-{before,after}/**` (memory-grid-recall,
+  math-value-ordering, speed-color-match, logic-deduction-table,
+  language-word-chain).
+- Full detail: `.agent/VALIDATION.md` → "Campaign 025" section.
 
 ## Do not restart
 
-This campaign is terminal. Use `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`,
-`docs/DESIGN_SYSTEM.md` and `openspec/changes/024-frontend-ux-modernization/`
-as evidence/history. The follow-ups recorded in `.agent/BACKLOG.md` are the only
-open suggestions; a future campaign requires new authorization or a fresh
-evidence-backed plan.
+This campaign is terminal. A successor (the owner's frontend redesign
+directive) is opened as its own campaign with its own OpenSpec packet. Use
+`openspec/changes/025-game-board-feedback-consistency/**`,
+`.agent/VALIDATION.md` and the capture artifacts as evidence/history.
