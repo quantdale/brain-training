@@ -19,7 +19,8 @@ import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-context';
 import { useSegments } from 'expo-router';
 
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Spacing } from '@/constants/theme';
+import { useContentMaxWidth, useLayoutTier, useScreenGutter } from '@/platform/layout';
 
 /**
  * Bottom content padding for this shell instance.
@@ -46,6 +47,13 @@ function resolveBottomPadding(insetsBottom: number | null | undefined, isTabRout
 
 export function ScreenShell({ children }: { children: ReactNode }) {
   const insets = useContext(SafeAreaInsetsContext);
+  // Responsive chrome (campaign 024): gutters and content width follow the
+  // layout tier, so an expanded (tablet/landscape) viewport gets wider gutters
+  // and a two-column-capable content box instead of a stretched phone column.
+  const gutter = useScreenGutter();
+  const contentWidth = useContentMaxWidth();
+  // Expanded tiers get a wider top rhythm; compact keeps the phone spacing.
+  const topPadding = useLayoutTier() === 'expanded' ? Spacing.five : Spacing.four;
   // Tab routes live in the `(tabs)` group; every other segment is a pushed
   // stack route. Falls back to `[]` outside a router (treated as pushed).
   // Cast: typed routes narrow the segment union, but grouping segments are
@@ -63,7 +71,9 @@ export function ScreenShell({ children }: { children: ReactNode }) {
         // only dismissing the keyboard (search / import / form screens).
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag">
-        <View style={styles.inner}>{children}</View>
+        <View style={[styles.inner, { maxWidth: contentWidth, paddingHorizontal: gutter, paddingTop: topPadding }]}>
+          {children}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -90,9 +100,8 @@ const styles = StyleSheet.create({
   },
   inner: {
     flexGrow: 1,
-    maxWidth: MaxContentWidth,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
+    // `maxWidth`, `paddingHorizontal` and `paddingTop` come from the layout
+    // tier at render time; only tier-independent parts live in the stylesheet.
     gap: Spacing.three,
   },
 });
