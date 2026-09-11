@@ -40,7 +40,8 @@
     "apps/mobile/src/app/(tabs)/_layout.tsx",
     "apps/mobile/src/app/game/**",
     "apps/mobile/src/app/storage-unavailable.tsx",
-    "apps/mobile/__tests__/visual-baselines/**"
+    "apps/mobile/src/app/__tests__/visual-baselines.test.tsx",
+    "apps/mobile/src/app/__tests__/__snapshots__/**"
   ],
   "generatedFilePatterns": [
     "**/*.generated.ts",
@@ -163,7 +164,7 @@
     {
       "id": "P7-results-and-late-tap",
       "wave": "screens",
-      "objective": "Modernize the Results screen (celebration → headline → metric row → single CTA, personal-best state) and fix the late-tap feedback/score mismatch in the three named games by resolving feedback from the authoritative round outcome.",
+      "objective": "Modernize the Results screen (celebration \u2192 headline \u2192 metric row \u2192 single CTA, personal-best state) and fix the late-tap feedback/score mismatch in the three named games by resolving feedback from the authoritative round outcome.",
       "dependencies": [
         "P1-kit-inputs",
         "P2-kit-metrics"

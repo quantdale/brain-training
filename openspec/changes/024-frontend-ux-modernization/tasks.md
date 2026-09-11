@@ -11,24 +11,24 @@ Ordered implementation checklist. `[x]` = complete with evidence.
 
 ## Phase 1 — Design language v2 (`design-language-v2`)
 
-- [ ] `theme/contrast.ts` (WCAG math) + `theme/contrast.test.ts` asserting all slots.
-- [ ] Token v2: semantic families (base/text/soft/softText), 8 domain identities,
+- [x] `theme/contrast.ts` (WCAG math) + `theme/contrast.test.ts` asserting all slots.
+- [x] Token v2: semantic families (base/text/soft/softText), 8 domain identities,
       6 metric identities, elevation ramp, numeral/eyebrow typography, motion
       springs + stagger, breakpoints, responsive gutters.
 - [ ] Remove non-allowlisted literals from `src/app/**`, `src/components/**`
       (F4/F5) + guard test.
-- [ ] `docs/DESIGN_SYSTEM.md` documenting tokens + rules.
+- [x] `docs/DESIGN_SYSTEM.md` documenting tokens + rules.
 
 ## Phase 2 — UI kit (`ui-kit-primitives`)
 
-- [ ] `Tappable` (press scale + haptics + reduced motion + 44 dp).
-- [ ] `Button` (primary/secondary/ghost/danger/success; sm/md/lg; loading/disabled/icon).
-- [ ] `IconButton`, `Chip`, `Badge`, `Avatar`, `TextField`.
-- [ ] `Card` (plain/raised/tinted/hero), `ListRow`, `EmptyState`, `Skeleton`, `Toast`.
-- [ ] `ProgressBar`, `ProgressRing`, `AnimatedNumber`, `StatBlock`.
-- [ ] `ScreenHeader`, `SectionHeader` upgrade, `SegmentedControl` upgrade (animated indicator).
+- [x] `Tappable` (press scale + haptics + reduced motion + 44 dp).
+- [x] `Button` (primary/secondary/ghost/danger/success; sm/md/lg; loading/disabled/icon).
+- [x] `IconButton`, `Chip`, `Badge`, `Avatar`, `TextField`.
+- [x] `Card` (plain/raised/tinted/hero), `ListRow`, `EmptyState`, `Skeleton`, `Toast`.
+- [x] `ProgressBar`, `ProgressRing`, `AnimatedNumber`, `StatBlock`.
+- [x] `ScreenHeader`, `SectionHeader` upgrade, `SegmentedControl` upgrade (animated indicator).
 - [ ] Retire/replace unused legacy primitives (`StatTile`, `StatGroup`, `ResultFeedback`) — delete, not alias (F9).
-- [ ] Kit tests: disabled/loading blocks press, a11y role+name, 44 dp, reduced motion.
+- [x] Kit tests: disabled/loading blocks press, a11y role+name, 44 dp, reduced motion.
 
 ## Phase 3 — Screen modernization (`screen-hierarchy`)
 
@@ -65,7 +65,13 @@ Ordered implementation checklist. `[x]` = complete with evidence.
 
 ## Phase 6 — Verification (`visual-verification`)
 
-- [ ] `scripts/qa/ui-capture.mjs` + documented usage; profile switching harness.
+- [x] `scripts/qa/ui-capture.mjs` + documented usage; profile switching harness.
+- [x] `scripts/qa/a11y-audit.mjs` — measures the 44 dp contract and unlabelled
+      interactives from captured hierarchy dumps. Baseline (release APK, light,
+      1080x2400@420): 14 violations across 5 surfaces — window-selector chips
+      28 dp, back links 20 dp, workout rows 36–38 dp, library search 38 dp.
+- [x] Before-evidence set captured: 22 frames (11 surfaces x light/dark) under
+      `qa-artifacts/campaign024/before/` with a manifest.
 - [ ] Evidence set: before/after × light/dark × default/compact/expanded/landscape/font-scale.
 - [ ] Hierarchy-dump audit for roles/labels/bounds + 44 dp sweep.
 - [ ] Matrix: Jest, tsc, lint, validators, autobot canaries (+ certify if feasible).
