@@ -1,34 +1,36 @@
 # Campaign 024 — Frontend UX Modernization
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `024-frontend-ux-modernization`
-**Predecessor:** `023-production-gamification-overhaul` (VALIDATED, terminal)
+**Predecessor:** `023-production-gamification-overhaul` (VALIDATED)
 **Mode:** day
-**Change:** `024-frontend-ux-modernization` (ACTIVE)
+**Change:** `024-frontend-ux-modernization` (VALIDATED; no active campaign)
 **Authorization:** explicit owner goal-mode directive on 2026-09-11 (new scope
-after Campaign 023 terminal closure).
+after Campaign 023's terminal closure).
 **Baseline SHA:** `0402279`
-**Entrypoint:** `openspec/changes/024-frontend-ux-modernization/EXECUTION.md`
+**Closure SHA:** `082f678` (implementation through the same commit)
 
-## Mission
+## Terminal outcome
 
-Take the frontend from "functionally complete but visually flat" to
-production-ready and visually refined at the level of the reference class the
-owner named (Duolingo, Brilliant.org, Elevate): a contrast-verified design
-language, a real UI kit replacing ~20 inline CTA copies, one hero + one primary
-action per surface, universal micro-interaction feedback, genuinely consumed
-breakpoints for tablet/landscape, WCAG-AA accessibility closure, and native
-before/after visual evidence.
+Campaign 024 completed its mission: Refero-MCP research across core-shell and
+play surfaces produced a design language v2 with a contrast-verified palette; a
+complete UI kit (`components/ui/**`) replaced the inline CTA copies, hardcoded
+colour literals and duplicated primitives; all 16 routes were rebuilt around one
+hero and one primary action with universal micro-interaction feedback; the
+responsive breakpoints became load-bearing (adaptive grids, expanded
+two-column sections, landscape and font-scale evidence); accessibility closed
+from 14 measured violations to 0 in both themes; and native before/after visual
+evidence was captured on a GPU-enabled AVD — resolving the Campaign 023
+"blank screencap" limitation.
 
-## Scope guard
+Automation contracts (workout leg status text, chevron testIDs) and the pause
+overlay's screen-reader focus seam were broken by the wave and caught by the
+journey tests; all were fixed at the root before closure.
 
-No gameplay/mechanics/scoring/rating/persistence changes. No new games. No
-cloud/sync/AI/monetization work. Locked constitution decisions stay locked.
+## Do not restart
 
-## Exit criteria
-
-Every scenario in the campaign's seven specs is satisfied, `tasks.md` is
-complete, the full matrix (Jest, tsc, lint, validators, autobot canaries) is
-green or honestly classified, the release build is rebuilt and verified from
-campaign HEAD, `.agent/VALIDATION.md` records evidence with honest
-PASS / NOT VALIDATED classifications, and `main` is buildable and pushed.
+This campaign is terminal. Use `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`,
+`docs/DESIGN_SYSTEM.md` and `openspec/changes/024-frontend-ux-modernization/`
+as evidence/history. The follow-ups recorded in `.agent/BACKLOG.md` are the only
+open suggestions; a future campaign requires new authorization or a fresh
+evidence-backed plan.

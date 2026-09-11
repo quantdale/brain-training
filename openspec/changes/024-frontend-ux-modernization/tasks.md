@@ -53,7 +53,7 @@ Ordered implementation checklist. `[x]` = complete with evidence.
 - [x] Late-tap mismatch fix in `attention-odd-one-out`, `attention-visual-search`,
       `math-fast-math` (F13).
 - [x] AnimatedNumber wired to score/XP/coins/streak/percentages (R3).
-- [ ] Entrance stagger on screen mount (R4).
+- [x] Entrance stagger on screen mount (R4).
 - [x] Celebration rules + personal-best detection; streak beat (R5/R6).
 
 ## Phase 5 — Responsive + accessibility (`responsive-adaptive`, `accessibility-upgrade`)
@@ -83,5 +83,15 @@ Ordered implementation checklist. `[x]` = complete with evidence.
 - [x] Hierarchy-dump audit for roles/labels/bounds + 44 dp sweep.
 - [x] Matrix: Jest, tsc, lint, validators, autobot canaries (+ certify if feasible).
 - [x] Release rebuild + standalone verification + offline check.
-- [ ] `.agent/VALIDATION.md`, `STATE.md`, `KNOWN_ISSUES.md`, `BACKLOG.md`,
+- [x] `.agent/VALIDATION.md`, `STATE.md`, `KNOWN_ISSUES.md`, `BACKLOG.md`,
       `IMPACT_MAP.md` updated; campaign closed with honest classifications.
+
+## Closure (2026-09-12, SHA `082f678`)
+
+All phases complete. Verification: Jest 6321 pass / 5 allowlisted skips (514
+suites), `tsc --noEmit` clean, `expo lint` clean, all repository validators
+PASS, autobot canaries 8/8 PASS, daily-workout journey PASS, release APK rebuilt
+and installed from campaign HEAD, 22-frame native evidence set at 0
+accessibility violations in both themes. The 42-game `--mode certify` gate and
+device-representative frame timing are recorded as environment-blocked /
+NOT VALIDATED in `.agent/VALIDATION.md`.

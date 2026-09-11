@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "024-frontend-ux-modernization",
-  "lastCampaign": "023-production-gamification-overhaul",
+  "activeCampaign": null,
+  "lastCampaign": "024-frontend-ux-modernization",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

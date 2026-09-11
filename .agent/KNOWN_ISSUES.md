@@ -30,6 +30,48 @@ These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable. Th
   `docs/PROJECT_CONSTITUTION.md`; they are planned future layers, not open
   defects, and must not be implemented without an owner-authorized campaign.
 
+## Campaign 024 findings (added 2026-09-12)
+
+All are environment/operational or explicitly deferred product polish; none is a
+Critical/High product defect.
+
+- **Expo dev-server web-bundle crash (environment):** the SDK 57 dev server can
+  exit with `AssertionError: Worker chunk not found for
+  expo-sqlite/web/worker.ts` while bundling the web platform. When it dies
+  mid-run, every remaining autobot target fails with "app did not warm to home
+  (Metro/JS load)" — an environment failure, never a product failure. Workaround
+  shipped: `qa-artifacts/campaign024/run-catalog.mjs` health-checks Metro between
+  batches and restarts it.
+- **Display-profile change under a running activity (QA artifact):** applying
+  `wm size`/`wm density` while the app is live restarts it into the
+  storage-error boundary because the JS runtime keeps native handles from the
+  previous configuration. A cold start under the new profile renders correctly,
+  and rotation (the real user path) is unaffected. `ui-capture.mjs` now restarts
+  the app after a profile change and treats a storage-error frame as an invalid
+  capture.
+- **Full-catalog `--mode certify` gate BLOCKED (environment):** the gate requires
+  exactly one attached device; a second emulator belonging to the user's own work
+  is attached for the session and was deliberately not touched. Evidence for the
+  catalog therefore comes from the 8/8 canary run, the daily-workout journey, and
+  the 4025-test game suite rather than the aggregate certify verdict.
+- **Device-representative frame timing NOT VALIDATED:** frame percentiles on the
+  GPU-enabled emulator are dominated by host GPU translation (the stock launcher
+  shows the same profile). The app itself renders 0 frames while idle. Re-measure
+  on a physical device before making FPS claims.
+- **Board feedback adopted in eight canaries only (Low, deferred):** the shared
+  answer-feedback language (fill + border + ✓/✕ + label, animated score) is
+  applied to the eight category canaries; the remaining 34 games keep their
+  existing board styling while still inheriting the upgraded intro/HUD/results
+  chrome. Extending it is mechanical per-game polish, not a defect.
+- **Structured HUD progress is opt-in (Low, deferred):** `GameHost` accepts
+  `roundProgress` and renders a segmented HUD bar, but no game reports round
+  progress yet, so the HUD shows the custom round chip + score. Wiring per-game
+  round counts is a follow-up.
+- **Native tab bar labels:** inactive destinations are icon-only on Android
+  (platform `labelVisibilityMode` behaviour); every destination still exposes an
+  accessible name and the active tab is marked with a capsule + label. Left as
+  platform behaviour rather than forced.
+
 ## Campaign 023 non-blocking findings (added 2026-09-11)
 
 All are Low/Medium, non-blocking, and outside the campaign's Critical/High repair

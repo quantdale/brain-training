@@ -1,58 +1,60 @@
 # Durable Project State
 
-**Last update:** 2026-09-11 — Campaign 024 ACTIVATED (frontend UX modernization).
+**Last update:** 2026-09-12 — Campaign 024 closed VALIDATED (frontend UX modernization).
 **Canonical branch:** `main`
-**Active campaign:** 024-frontend-ux-modernization
-**Last campaign:** `023-production-gamification-overhaul`
+**Active campaign:** none
+**Last campaign:** `024-frontend-ux-modernization`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 024 — Frontend UX Modernization is **ACTIVE**. It executes the owner's
-2026-09-11 goal-mode directive issued after Campaign 023's terminal closure:
-research modern UI/UX with Refero MCP and apply it across the entire frontend,
-drawing on Duolingo / Brilliant.org / Elevate-class gamified iOS apps, improving
-visual hierarchy, micro-interactions, responsive layout, accessibility and
-overall UX until the result is production-ready, fully functional, performant
-and visually refined.
+Campaign 024 — Frontend UX Modernization is **VALIDATED / TERMINAL**. It executed
+the owner's 2026-09-11 goal-mode directive end-to-end: Refero-MCP research
+(33 iOS reference screens across core shell and play surfaces) drove a new
+design language, a complete UI kit replaced ~20 inline CTA copies and every
+hardcoded colour literal, all 16 routes were rebuilt around one hero and one
+primary action, micro-interaction feedback became universal, the responsive
+breakpoints became load-bearing, and accessibility closed from 14 measured
+violations to **0 in both themes**.
 
-Scope boundary: no gameplay, scoring, rating, persistence, sync, AI or
-monetization change; no new games; the locked decisions in
-`docs/PROJECT_CONSTITUTION.md` remain authoritative.
+The campaign also resolved the Campaign 023 operational limitation: native
+screenshot evidence now exists (22-frame before/after sets plus a display-profile
+matrix) because the blank-capture cause was an AVD configuration
+(`hw.gpu.enabled=no`), not the emulator.
 
-## Activation evidence (2026-09-11)
+## Terminal evidence summary
 
-- Recon swarm produced a full surface/component/accessibility/motion inventory;
-  findings and evidence are in
-  `openspec/changes/024-frontend-ux-modernization/audit-map.md`.
-- Refero research briefs committed under the campaign's `research/` directory
-  (core-shell patterns + play/feedback patterns, 33 iOS reference screens).
-- **New capability — native visual evidence:** the repository previously
-  recorded "headless screencap returns a constant blank frame" as an
-  operational limitation (Campaign 023). Root cause identified: both project ATD
-  AVDs set `hw.gpu.enabled=no`. A GPU-enabled AVD (`braintraining-ui35`,
-  android-35 google_apis, 2048 MB, headless) boots in ~90 s and returns real
-  frames; screenshot capture and display-profile switching become verifiable
-  evidence classes for this campaign.
-- Baseline "before" screenshots of the Campaign 023 release APK were captured
-  on that device (`qa-artifacts/campaign024/`).
-
-## Last campaign (023) — terminal summary
-
-42/42 games audited and repaired; gamified design-system surfaces wired through
-catalog; production release build + standalone/offline runtime verified; runtime
-certification 42/42 games PASS (aggregate certify flag false solely from one
-never-idle dump pause-probe miss, disproven as a product defect by a direct
-pause/resume probe). Still NOT VALIDATED / EXTERNALLY BLOCKED: store signing
-credentials, manual TalkBack, SAF/system sheets, physical device, iOS runtime.
+- Design language v2 + kit: 41 kit tests (activation blocking, a11y contract,
+  44 dp, reduced motion); contrast asserted for every semantic and domain
+  pairing in both schemes at build time.
+- Screens: six parallel packets covering Home, Games + detail, the Progress
+  suite, Profile/Rewards/Data management, Results + late-tap games, and eight
+  category canaries; two harness contracts (chevron testID, status text node)
+  and one screen-reader focus seam (Button ref) were caught by journey tests
+  and fixed at the root.
+- Accessibility: `scripts/qa/a11y-audit.mjs` measured 14 → 0 sub-44 dp /
+  unlabelled interactive violations across 11 surfaces (light and dark).
+- Matrix at closure: **Jest 6321 pass / 5 allowlisted skips** (514 suites,
+  +102 tests vs the pre-campaign baseline), `tsc --noEmit` clean, `expo lint`
+  clean, all repository validators PASS (repo-state, task-ownership, registry,
+  provenance, offline 961 files CLEAN, secrets 1931 files CLEAN, OpenSpec 11/11).
+- Release artifact from campaign HEAD: `:app:assembleRelease` BUILD SUCCESSFUL,
+  APK 109,391,501 B, SHA-256
+  `21526E732FB0F3EE22F2E27E090753FECFF5280FB2415697A638F1E3A39B4FD2`.
+- Runtime: autobot canaries **8/8 PASS** and the daily-workout journey PASS at
+  the campaign SHA; the app renders 0 frames while idle.
+- Still **NOT VALIDATED / EXTERNALLY BLOCKED** (unchanged): store/Play signing
+  credentials, manual TalkBack review, SAF/system sheets, physical device,
+  iOS runtime, device-representative frame timing; the 42-game `--mode certify`
+  gate is environment-blocked (a second emulator owned by the user's own work
+  stayed attached for the session and was not touched).
 
 ## Continuation rule
 
-Campaign 024 is the executable authority. Do not restart Campaign 023. A future
-campaign requires a new owner directive or a separately justified planning pass
-against then-current repository evidence. Historical campaign records remain
-recoverable from Git, `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`,
-OpenSpec history, and prior commits.
+There is **no active campaign**. Do not resume Campaign 024 or invent a successor
+merely to keep an agent busy. The follow-ups worth doing are listed in
+`.agent/BACKLOG.md`; a future campaign requires a new owner directive or a
+separately justified planning pass against current repository evidence.
 
 ## Recovery order
 
@@ -61,5 +63,6 @@ OpenSpec history, and prior commits.
 3. `.agent/GOVERNANCE.json`
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
-6. `openspec/changes/024-frontend-ux-modernization/EXECUTION.md`
-7. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
+6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
+7. `openspec/changes/024-frontend-ux-modernization/` (proposal → design → specs →
+   tasks → audit-map → EXECUTION) and `docs/DESIGN_SYSTEM.md`

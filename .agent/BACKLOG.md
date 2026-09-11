@@ -20,3 +20,19 @@ any campaign.
 
 - Lint warning inventory: RESOLVED in Campaign 013 — repo lints at
   0 errors / 0 warnings (was ~430–474); no blanket suppressions.
+
+## Campaign 024 follow-ups (added 2026-09-12)
+
+Deferred, non-blocking, and only worth doing with a reason:
+
+- Extend the shared answer-feedback language to the remaining 34 game boards
+  (eight canaries landed it; the rest keep their own board styling while
+  inheriting the upgraded chrome).
+- Feed real round progress into `GameHost.roundProgress` so the HUD's segmented
+  progress bar is used instead of the plain round chip (per-game wiring).
+- Consider a virtualized list for the Games library if the catalog grows well
+  beyond 42 entries; the current chunked grid renders fine at this size.
+- Richer Progress visualizations (line charts with axes, per-domain sparklines)
+  once real usage data exists to justify them.
+- Re-run the full-catalog `--mode certify` gate on a host with a single attached
+  device to convert today's blocked classification into evidence.

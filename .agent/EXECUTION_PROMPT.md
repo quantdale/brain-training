@@ -1,41 +1,26 @@
 # Execution Prompt — Campaign 024: Frontend UX Modernization
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `024-frontend-ux-modernization`
 **Start-SHA:** `0402279`
+**Closure-SHA:** `082f678`
 **Planned-At:** 2026-09-11
 **Target-Branch:** `main`
 **Predecessor:** `023-production-gamification-overhaul` (VALIDATED)
 
-## Objective
+## Archived execution prompt — DO NOT RESTART
 
-Rebuild the app's visual and interaction layer to the standard of the
-owner-named reference class (Duolingo, Brilliant.org, Elevate) using
-Refero-MCP research, while preserving every locked product decision and all
-gameplay/scoring/persistence semantics.
+The objective was to research modern UI/UX practice with Refero MCP and apply it
+across the entire frontend — visual hierarchy, micro-interactions, responsive
+layout, accessibility and overall UX — until the result was production-ready,
+fully functional, performant and visually refined, without touching gameplay,
+scoring, persistence or locked product decisions.
 
-Deliverables: design-language v2 tokens, a real UI kit, modernized hierarchy on
-every surface, universal micro-interaction feedback, genuinely consumed
-responsive breakpoints (tablet/landscape), WCAG-AA accessibility closure, and
-native before/after screenshot evidence captured on a GPU-enabled AVD.
+That objective was completed. Exact results, measurements and limitations live
+in `.agent/VALIDATION.md`, `.agent/KNOWN_ISSUES.md`, the campaign's
+`audit-map.md` and `tasks.md`, and `docs/DESIGN_SYSTEM.md`. Remaining
+opportunities are listed in `.agent/BACKLOG.md`.
 
-## Read before acting
-
-`.agent/GOVERNANCE.json`, `.agent/STATE.md`, `.agent/CURRENT_CAMPAIGN.md`,
-`.agent/task-ownership.json`, then the OpenSpec change at
-`openspec/changes/024-frontend-ux-modernization/` (EXECUTION.md → proposal.md →
-design.md → specs/** → tasks.md → audit-map.md → research/**).
-
-## Work model
-
-Orchestrator owns the shared layers (`theme/**`, `platform/**`,
-`components/ui/**` core, `components/shell/**`, `components/game-host/**`,
-`components/game-ui/**`, app chrome, scripts, docs, governance). Swarm packets
-own disjoint screen surfaces listed in `.agent/task-ownership.json` and report
-shared-file needs to the orchestrator for a single convergence edit.
-
-## Honest-status policy
-
-Never convert unavailable evidence into PASS. Checks that cannot run on this
-host (manual TalkBack, physical device, store signing, iOS runtime) stay
-NOT VALIDATED / EXTERNALLY BLOCKED with the reason recorded.
+A fresh agent must not execute this prompt. Read `.agent/GOVERNANCE.json` and
+`.agent/STATE.md`; with `activeCampaign` null, planning or new owner
+authorization is required before another implementation campaign begins.

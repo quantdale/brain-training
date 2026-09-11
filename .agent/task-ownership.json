@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "024-frontend-ux-modernization",
-  "description": "Campaign 024 frontend UX modernization. Orchestrator owns the shared visual layers and performs all convergence edits to shared files (kit barrel, navigation chrome, package manifests); swarm packets own disjoint screen surfaces and must report shared-file needs instead of editing them.",
+  "description": "Campaign 024 frontend UX modernization is terminal/VALIDATED. Its packet is retained as historical ownership evidence and authorizes no new implementation work.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

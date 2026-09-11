@@ -95,6 +95,40 @@ unavailable checks into PASS.
   (interaction + force-win + exactly one persisted session + row invariants +
   authoritative results + back/next navigation).
 
+### Final verification wave (commits `9cc7369`, `afb17b1`, `082f678`)
+
+- Two automation contracts broken by the screen wave were caught by the
+  daily-workout journey (not by unit tests) and fixed at the root:
+  `ListRow` gave its decorative chevron a `<rowTestID>-chevron` node (prefix
+  discovery counted every workout leg twice), and the leg status text had moved
+  off the node carrying `home-workout-game-status-<id>` (the post-relaunch
+  completion check read empty text). `ListRow` gained `metaTestID`; the chevron
+  is now untagged decoration. Daily-workout journey: **PASS** (4/4 completed +
+  relaunch shows persisted completion).
+- Game header consolidation: the route rendered title/category/description and
+  the intro hero repeated them in the same viewport; the intro now owns the
+  identity and carries the `game-title` / `game-category` / `game-description`
+  contract (route header retained only on the unimplemented-game fallback). The
+  intro's help button is hidden while the first-run tutorial is on screen.
+- Autobot canaries at `9cc7369`: **8/8 PASS** (interaction + force-win +
+  exactly one persisted session + row invariants + authoritative results +
+  back/next navigation).
+- Release artifact rebuilt from campaign HEAD (`082f678`):
+  `:app:assembleRelease` BUILD SUCCESSFUL; APK 109,391,501 B; SHA-256
+  `21526E732FB0F3EE22F2E27E090753FECFF5280FB2415697A638F1E3A39B4FD2`.
+- Final native evidence at `082f678`: 22 frames (11 surfaces × light/dark) in
+  `qa-artifacts/campaign024/final/`, **0 accessibility violations in both
+  themes**, plus the profile matrix (compact/expanded/landscape/font-scale-2)
+  and scroll-to-end checks confirming no content sits under the tab bar.
+- Performance (release APK, `dumpsys gfxinfo`): the app renders **0 frames
+  while idle** (8 s window with the screen settled) — no runaway animation or
+  render loop. Frame-time percentiles during scripted scrolls are dominated by
+  this emulator's GPU translation: the *stock launcher* on the same device
+  shows the same profile (93.75% janky, 200 ms median). Device-representative
+  frame timing therefore remains **NOT VALIDATED** (no physical device); the
+  structural work that supports it is in place (native-driver transforms only,
+  tabular numerals so counters never reflow, bounded celebrations).
+
 ### Honest limitations (Campaign 024)
 
 - **Full-catalog `--mode certify` gate: BLOCKED (environment).** The gate
