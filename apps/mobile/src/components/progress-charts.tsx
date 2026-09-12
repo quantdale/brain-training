@@ -15,7 +15,7 @@
 
 import { StyleSheet, View } from 'react-native';
 
-import { formatDayLabel, type CalendarDay } from '@/analytics';
+import { formatDayLabel, plural, type CalendarDay } from '@/analytics';
 import { DomainColors, Families, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -434,7 +434,7 @@ export function CalendarHeatmap({
   const totalSessions = days.reduce((sum, day) => sum + day.count, 0);
   const activeDays = days.filter((day) => day.count > 0).length;
   const rangeLabel = `${calendarKeyLabel(days[0].dateKey)} – ${calendarKeyLabel(days[days.length - 1].dateKey)}`;
-  const defaultSummary = `${activeDays} of ${days.length} days active, ${totalSessions} sessions, ${rangeLabel}`;
+  const defaultSummary = `${activeDays} of ${days.length} days active, ${plural(totalSessions, 'session')}, ${rangeLabel}`;
   const weeks: CalendarDay[][] = [];
   for (let i = 0; i < days.length; i += 7) {
     weeks.push(days.slice(i, i + 7));

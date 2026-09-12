@@ -25,7 +25,7 @@
  * snapshot here. A full pixel/seed baseline suite belongs to a hardening
  * campaign, not Phase 3.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { renderRouter, screen } from 'expo-router/testing-library';
 import type { ComponentType } from 'react';
 
@@ -64,9 +64,19 @@ describe('visual baselines (canary set)', () => {
   });
 
   it('Progress — db-unavailable fallback snapshot', async () => {
-    registerGameDefinitions([]);
-    await renderBare(ProgressScreen, '/progress');
-    expect(screen.toJSON()).toMatchSnapshot();
+    // The fallback heatmap labels its trailing 30-day window from the current
+    // date, which broke this snapshot every calendar day. Pin the clock to
+    // local noon 2026-09-11 (the date the Campaign 026 snapshot was recorded)
+    // so the render stays deterministic across dates, runs and timezones.
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 8, 11, 12, 0, 0));
+    try {
+      registerGameDefinitions([]);
+      await renderBare(ProgressScreen, '/progress');
+      expect(screen.toJSON()).toMatchSnapshot();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('Profile — db-unavailable fallback snapshot', async () => {

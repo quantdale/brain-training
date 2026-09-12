@@ -8,11 +8,16 @@ import { StyleSheet, View } from "react-native";
 
 import { SectionHeader } from "@/components/shell";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { ListRow } from "@/components/ui";
-import { Spacing } from "@/theme/tokens";
-import { Radii } from "@/constants/theme";
-import { useTheme } from "@/hooks/use-theme";
+import { Badge, Card, ListRow } from "@/components/ui";
+import {
+  DomainColors,
+  Radii,
+  Spacing,
+  type DomainName,
+  type ThemeColor,
+} from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { registry } from "@/registry/registry.generated";
 import { MASTERY_TIERS, type MasterySummary } from "@/mastery";
 import { router } from "expo-router";
 
@@ -25,23 +30,44 @@ const TIER_LABEL: Record<string, string> = {
   mastered: "Mastered",
 };
 
+/** Tier → semantic badge family (progression ramp: low = info, mastered = success). */
+const TIER_TONE: Record<string, ThemeColor> = {
+  unplayed: "info",
+  learning: "info",
+  developing: "accent",
+  proficient: "warning",
+  advanced: "xp",
+  mastered: "success",
+};
+
+/**
+ * Domain identity key for a display category name (folds display casing and
+ * the long logic label — same lookup the Progress screens use).
+ */
+function domainKeyFor(domain: string): DomainName | null {
+  const normalized = domain.trim().toLowerCase();
+  if (normalized.startsWith("logic")) return "logic";
+  return normalized in DomainColors.light ? (normalized as DomainName) : null;
+}
+
+/** Domain identity dot for a game row; renders nothing for unknown categories. */
+function DomainDot({ domain }: { domain: string }) {
+  const scheme = useColorScheme() === "dark" ? "dark" : "light";
+  const key = domainKeyFor(domain);
+  if (!key) return null;
+  return <View style={[styles.dot, { backgroundColor: DomainColors[scheme][key].base }]} />;
+}
+
 /** Compact per-game mastery row for Game Detail. */
 export function MasteryCard({ summary }: { summary: MasterySummary }) {
-  const theme = useTheme();
   return (
-    <ThemedView
-      testID={`mastery-card.${summary.gameId}`}
-      style={[styles.card, { borderColor: theme.border }]}
-    >
+    <Card variant="outlined" testID={`mastery-card.${summary.gameId}`}>
       <ThemedText type="subtitle">Mastery</ThemedText>
-      <ThemedView
-        style={[styles.tierChip, { backgroundColor: theme.surface }]}
+      <Badge
+        label={TIER_LABEL[summary.tier] ?? summary.tier}
+        tone={TIER_TONE[summary.tier] ?? "accent"}
         testID={`mastery-tier.${summary.gameId}`}
-      >
-        <ThemedText type="smallBold">
-          {TIER_LABEL[summary.tier] ?? summary.tier}
-        </ThemedText>
-      </ThemedView>
+      />
       <ThemedText type="small" themeColor="textSecondary">
         {summary.nextMilestone
           ? `Next: ${summary.nextMilestone}`
@@ -55,7 +81,7 @@ export function MasteryCard({ summary }: { summary: MasterySummary }) {
           ? ` · ${summary.evidence.expertStrong} strong Expert clear${summary.evidence.expertStrong === 1 ? "" : "s"}`
           : ""}
       </ThemedText>
-    </ThemedView>
+    </Card>
   );
 }
 
@@ -100,33 +126,30 @@ export function MilestoneStrip({
         actionAccessibilityLabel="Browse all games"
         onActionPress={() => router.push("/games")}
       />
-      {sorted.map(({ gameId, name, summary }) => (
-        <ListRow
-          key={gameId}
-          title={name}
-          subtitle={`${MASTERY_TIERS[summary.rank]} · ${summary.nextMilestone ?? "mastered"}`}
-          testID={`${testIDPrefix}.${gameId}`}
-          accessibilityLabel={`${name}: ${summary.nextMilestone ?? "mastered"}`}
-          accessibilityHint="Opens this game's detail screen"
-          onPress={() => router.push(`/game-detail/${gameId}`)}
-        />
-      ))}
+      {sorted.map(({ gameId, name, summary }) => {
+        const category = registry.find((g) => g.id === gameId)?.primaryCategory;
+        return (
+          <ListRow
+            key={gameId}
+            title={name}
+            icon={category ? <DomainDot domain={category} /> : undefined}
+            subtitle={`${MASTERY_TIERS[summary.rank]} · ${summary.nextMilestone ?? "mastered"}`}
+            testID={`${testIDPrefix}.${gameId}`}
+            accessibilityLabel={`${name}: ${summary.nextMilestone ?? "mastered"}`}
+            accessibilityHint="Opens this game's detail screen"
+            onPress={() => router.push(`/game-detail/${gameId}`)}
+          />
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: Radii.medium,
-    padding: Spacing.three,
-    gap: Spacing.two,
-  },
-  tierChip: {
-    alignSelf: "flex-start",
-    borderRadius: Radii.small,
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.one / 2,
+  dot: {
+    width: Spacing.three,
+    height: Spacing.three,
+    borderRadius: Radii.pill,
   },
   strip: {
     gap: Spacing.two,

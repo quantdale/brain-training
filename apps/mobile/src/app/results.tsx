@@ -8,13 +8,16 @@
  * and a list of recent sessions to switch between. Adds an explicit loading
  * state and a performance-band headline over the raw percentage.
  *
- * Presentation (campaign 024, design-language v2): the reference anatomy —
- * score hero (ProgressRing with the normalized score as the hero numeral),
- * headline, a metric row of StatBlocks with metric identity colours, rating
- * movement, then ONE primary CTA (play again) with the next-game action
- * demoted to ghost. A personal-best session renders the celebration
- * treatment exactly once (sensory-gated success feedback + badge, never
- * blocking); routine completions stay quiet.
+ * Presentation (campaign 026, design-language v3 "Neon Arcade"):
+ * celebration-first — outcome headline + hero metric (ring + numeralXl)
+ * first, deterministic confetti confined to the hero margins for perfect /
+ * personal-best outcomes, metrics as four equal `StatBlock` columns in ONE
+ * row, then exactly one primary CTA (play again). The workout next-game
+ * action stays a quiet ghost beside it; rating movement and recent sessions
+ * are quiet outlined sections, never stacked uniform cards. A personal-best
+ * session still renders the celebration treatment exactly once
+ * (sensory-gated success feedback + badge, never blocking); routine
+ * completions stay quiet.
  */
 
 import {
@@ -25,26 +28,29 @@ import {
 } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { MinTouchTarget } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
-import { StateCard } from "@/components/shell";
+import { SectionHeader, StateCard } from "@/components/shell";
 import { formatRelativeDay, performanceBand } from "@/components/shell/format";
+import { formatDayLabel } from "@/analytics/format";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import {
   AnimatedNumber,
+  BackLink,
   Badge,
   Button,
   Card,
+  Confetti,
   Entrance,
   ProgressRing,
+  Spark,
   StatBlock,
 } from '@/components/ui';
-import { Radii, Spacing } from "@/constants/theme";
+import { MinTouchTarget, Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, GameSessionRecord } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
+import { useTheme } from "@/hooks/use-theme";
 import { getGameDefinition } from "@/registry/registry";
-import { liveAudioHaptics } from "@/sdk";
+import { DIFFICULTY_LABELS, liveAudioHaptics } from "@/sdk";
 import { useWorkoutResultAdvance } from "@/workout/use-workout-result-advance";
 import { gameHref } from "@/workout/routing";
 
@@ -132,6 +138,7 @@ const celebratedResults = new Set<string>();
 
 export default function ResultsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
+  const theme = useTheme();
 
   // Reload whenever the screen regains focus (a session may have just landed).
   const [refreshKey, setRefreshKey] = useState(0);
@@ -200,30 +207,31 @@ export default function ResultsScreen() {
       ? rawAccuracyRecord.accuracy
       : null;
   const difficultyValue = session?.difficulty;
+  // Player-facing label ("Normal"), never the stored slug ("normal") —
+  // Campaign 026 visual-QA: the metric row mixed a lowercase slug in with
+  // formatted values.
   const difficultyLevel =
     typeof difficultyValue === "object" &&
     difficultyValue !== null &&
     "level" in difficultyValue &&
     typeof difficultyValue.level === "string"
-      ? difficultyValue.level
+      ? (DIFFICULTY_LABELS[
+          difficultyValue.level as keyof typeof DIFFICULTY_LABELS
+        ] ?? difficultyValue.level)
       : "—";
   const nextGame = nextGameId ? getGameDefinition(nextGameId) : undefined;
+  // NaN maps to the neutral "Session complete" band; only rendered with a session.
+  const band = performanceBand(session?.normalizedResult ?? Number.NaN);
+  // Celebration beat: a perfect score or a personal best earns the confetti
+  // margins; routine completions stay quiet. `Confetti` collapses to nothing
+  // under reduced motion and is non-interactive (`pointerEvents="none"`).
+  const celebrate = session !== null && (isPersonalBest || session.normalizedResult >= 1);
 
   return (
     <ScreenShell>
-      <Pressable
-        testID="results-back"
-        accessibilityRole="button"
-        accessibilityLabel="Back"
-        style={MinTouchTarget}
-        onPress={() => router.back()}
-      >
-        <ThemedText type="smallBold" themeColor="accent">
-          ‹ Back
-        </ThemedText>
-      </Pressable>
+      <BackLink testID="results-back" onPress={() => router.back()} />
 
-      <ThemedText type="title" testID="results-title">
+      <ThemedText type="headline" testID="results-title">
         Results
       </ThemedText>
 
@@ -244,50 +252,91 @@ export default function ResultsScreen() {
         />
       ) : session ? (
         <>
-          {/* Score hero: the ring is the surface's one hero element, with the
-              normalized score as its numeral. Live region: when the session
-              loads (or the user switches between recent sessions) screen
-              readers announce the headline result instead of silently
-              re-rendering. */}
+          {/* Celebration-first hero: outcome headline, then the hero metric
+              (ring + numeralXl). The live region announces the headline result
+              when the session loads or the user switches between sessions. */}
           <Entrance index={0}>
-          <Card
-            variant="hero"
-            testID="results-summary"
-            accessibilityLiveRegion="polite"
-            style={styles.hero}
-          >
-            {isPersonalBest ? (
-              <Badge
-                label="New personal best"
-                tone="streak"
-                testID="results-personal-best"
-              />
-            ) : null}
-            <ProgressRing
-              value={session.normalizedResult}
-              tone="accent"
-              testID="results-ring"
+            <Card
+              variant="hero"
+              padding="lg"
+              testID="results-summary"
+              accessibilityLiveRegion="polite"
+              style={styles.hero}
             >
-              <AnimatedNumber
-                value={scorePercent}
-                format={(n) => `${Math.round(n)}%`}
-                type="numeralXl"
-                themeColor="accent"
-                testID="results-score"
-              />
-            </ProgressRing>
-            {/* Performance band headline (constitution §16): an encouraging,
-                non-clinical read of the normalized score above the number. */}
-            <ThemedText
-              type="headline"
-              themeColor={performanceBand(session.normalizedResult).tone}
-              testID="results-band"
-            >
-              {performanceBand(session.normalizedResult).label}
-            </ThemedText>
-            <ThemedText type="subtitle" testID="results-game">
-              {game?.name ?? session.gameId}
-            </ThemedText>
+              {celebrate ? (
+                <Confetti
+                  seed={`results-${session.id}`}
+                  count={isPersonalBest ? 22 : 16}
+                  height={300}
+                />
+              ) : null}
+              {isPersonalBest ? (
+                <Badge
+                  label="New personal best"
+                  tone="streak"
+                  icon={<Spark size={14} color={theme.streakSoftText} />}
+                  testID="results-personal-best"
+                />
+              ) : null}
+              <ThemedText
+                type="eyebrow"
+                themeColor="textSecondary"
+                testID="results-game"
+              >
+                {game?.name ?? session.gameId}
+              </ThemedText>
+              {/* Performance band headline (constitution §16): an encouraging,
+                  non-clinical read of the normalized score above the ring. */}
+              <ThemedText
+                type="display"
+                themeColor={band.tone}
+                testID="results-band"
+                style={styles.headline}
+              >
+                {band.label}
+              </ThemedText>
+              <ProgressRing
+                value={session.normalizedResult}
+                tone="accent"
+                testID="results-ring"
+              >
+                <AnimatedNumber
+                  value={scorePercent}
+                  format={(n) => `${Math.round(n)}%`}
+                  type="numeralXl"
+                  themeColor="accent"
+                  testID="results-score"
+                />
+              </ProgressRing>
+              <ThemedText type="eyebrow" themeColor="textSecondary">
+                Result
+              </ThemedText>
+              <View style={styles.rewardRow}>
+                <Spark size={16} color={theme.xp} />
+                <AnimatedNumber
+                  value={session.xp}
+                  format={(n) => `+${Math.round(n)} XP`}
+                  type="numeral"
+                  themeColor="xp"
+                  testID="results-xp"
+                />
+              </View>
+              {/* The session date is metadata, not part of the reward: glued
+                  to the XP it read as "+50 XP Yesterday" (Campaign 026
+                  visual-QA). Its own caption row keeps both facts legible. */}
+              <ThemedText
+                type="caption"
+                themeColor="textSecondary"
+                testID="results-timestamp"
+              >
+                Played {formatRelativeDay(session.completedAt, mountedAt)}
+              </ThemedText>
+            </Card>
+          </Entrance>
+
+          {/* Metrics as four equal columns in ONE row (kit StatBlock); each
+              value keeps its metric identity colour. */}
+          <Entrance index={1}>
             <View style={styles.metricRow}>
               <View style={styles.metric}>
                 <StatBlock
@@ -329,145 +378,147 @@ export default function ResultsScreen() {
                 />
               </View>
             </View>
-            <View style={styles.rewardRow}>
-              <AnimatedNumber
-                value={session.xp}
-                format={(n) => `+${Math.round(n)} XP`}
-                type="bodyLarge"
-                themeColor="xp"
-                testID="results-xp"
-              />
-              <ThemedText
-                type="bodySmall"
-                themeColor="textSecondary"
-                testID="results-timestamp"
-              >
-                {formatRelativeDay(session.completedAt, mountedAt)}
-              </ThemedText>
-            </View>
-          </Card>
-    </Entrance>
+          </Entrance>
 
           {/* Workout progress (006R hardening): after finishing the current
-              workout game, surface the next game or the completion state. */}
+              workout game, the completion beat lands above the CTA; the next
+              game is offered as a quiet ghost beside the primary action. */}
           {workoutCompleted ? (
-            <ThemedView
-              type="accentSoft"
-              style={styles.card}
+            <Card
+              variant="outlined"
+              tone="successSoft"
               testID="results-workout-complete"
             >
-              <ThemedText type="subtitle" themeColor="accent">
-                Workout complete
-              </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary">
-                {workoutInstance?.gameIds.length
-                  ? `You finished all ${workoutInstance.gameIds.length} games today. Nice work!`
-                  : "You finished today's workout. Nice work!"}
-              </ThemedText>
-            </ThemedView>
-          ) : null}
-
-          <ThemedView
-            type="surface"
-            style={styles.card}
-            testID="results-rating"
-          >
-            <ThemedText type="subtitle">Rating movement</ThemedText>
-            {ratingHistory.length > 0 ? (
-              <View style={styles.rows}>
-                {ratingHistory.map((h) => (
-                  <View key={h.domain} style={styles.row}>
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {h.domain}
-                    </ThemedText>
-                    <ThemedText
-                      type="smallBold"
-                      themeColor={
-                        h.delta > 0 ? "success" : h.delta < 0 ? "danger" : undefined
-                      }
-                      testID={`results-rating-delta-${h.domain
-                        .replace(/[^a-z]/gi, "")
-                        .toLowerCase()}`}
-                    >
-                      {`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
-                    </ThemedText>
-                  </View>
-                ))}
+              <View style={styles.completeRow}>
+                <Spark size={20} color={theme.successSoftText} />
+                <View style={styles.completeText}>
+                  <ThemedText type="label" themeColor="successSoftText">
+                    Workout complete
+                  </ThemedText>
+                  <ThemedText type="bodySmall" themeColor="successSoftText">
+                    {workoutInstance?.gameIds.length
+                      ? `You finished all ${workoutInstance.gameIds.length} games today. Nice work!`
+                      : "You finished today's workout. Nice work!"}
+                  </ThemedText>
+                </View>
               </View>
-            ) : (
-              <ThemedText type="small" themeColor="textSecondary">
-                No rating movement recorded for this session.
-              </ThemedText>
-            )}
-            {ratingHistory.length > 0 ? (
-              <ThemedText type="caption" themeColor="textSecondary">
-                Deltas show how each domain rating changed because of this
-                session.
-              </ThemedText>
-            ) : null}
-          </ThemedView>
+            </Card>
+          ) : null}
 
           {/* One primary CTA (play again); the workout next-game action is a
               ghost so the viewport never carries two competing primaries. */}
-          <View style={styles.ctaBlock}>
-            <Button
-              variant="primary"
-              size="lg"
-              label="Play again"
-              sublabel={game?.name ?? session.gameId}
-              testID="results-play-again"
-              accessibilityHint={`Start a new session of ${game?.name ?? session.gameId}`}
-              onPress={() => router.push(gameHref(session.gameId))}
-            />
-            {!workoutCompleted && nextGameId ? (
+          <Entrance index={2}>
+            <View style={styles.ctaBlock}>
               <Button
-                variant="ghost"
-                label="Next game"
-                sublabel={nextGame?.name ?? nextGameId}
-                testID="results-next-game"
-                accessibilityHint={`Continue the workout with ${nextGame?.name ?? nextGameId}`}
-                onPress={() => router.push(gameHref(nextGameId, nextProvenance))}
+                variant="primary"
+                size="lg"
+                label="Play again"
+                sublabel={game?.name ?? session.gameId}
+                testID="results-play-again"
+                accessibilityHint={`Start a new session of ${game?.name ?? session.gameId}`}
+                onPress={() => router.push(gameHref(session.gameId))}
               />
-            ) : null}
-          </View>
-
-          <ThemedView
-            type="surface"
-            style={styles.card}
-            testID="results-recent-sessions"
-          >
-            <ThemedText type="subtitle">Recent sessions</ThemedText>
-            <View style={styles.rows}>
-              {recent.slice(0, 10).map((s) => (
-                <Link key={s.id} href={`/results?id=${s.id}`} asChild>
-                  <Pressable
-                    testID={`results-session-${s.id}`}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${getGameDefinition(s.gameId)?.name ?? s.gameId} result from ${new Date(s.completedAt).toLocaleDateString()}, ${Math.round(s.normalizedResult * 100)} percent`}
-                    accessibilityHint="Shows this session's results"
-                    accessibilityState={{ selected: s.id === session.id }}
-                    // Flattened: expo-router's <Link asChild> (Radix Slot) THROWS
-                    // on array styles in dev builds — this exact array crashed the
-                    // /results route on device and made the durable workout
-                    // journey impossible to complete (campaign 011 finding).
-                    style={StyleSheet.flatten([
-                      styles.row,
-                      MinTouchTarget,
-                      s.id === session.id && styles.rowActive,
-                    ])}
-                  >
-                    <ThemedText type="small" themeColor="textSecondary">
-                      {getGameDefinition(s.gameId)?.name ?? s.gameId} ·{" "}
-                      {new Date(s.completedAt).toLocaleDateString()}
-                    </ThemedText>
-                    <ThemedText type="smallBold">
-                      {Math.round(s.normalizedResult * 100)}%
-                    </ThemedText>
-                  </Pressable>
-                </Link>
-              ))}
+              {!workoutCompleted && nextGameId ? (
+                <Button
+                  variant="ghost"
+                  label="Next game"
+                  sublabel={nextGame?.name ?? nextGameId}
+                  testID="results-next-game"
+                  accessibilityHint={`Continue the workout with ${nextGame?.name ?? nextGameId}`}
+                  onPress={() => router.push(gameHref(nextGameId, nextProvenance))}
+                />
+              ) : null}
             </View>
-          </ThemedView>
+          </Entrance>
+
+          <Entrance index={3}>
+            <Card variant="outlined" testID="results-rating" style={styles.quietCard}>
+              <SectionHeader title="Rating movement" />
+              {ratingHistory.length > 0 ? (
+                <View style={styles.rows}>
+                  {ratingHistory.map((h) => (
+                    <View key={h.domain} style={styles.ratingRow}>
+                      <ThemedText
+                        type="body"
+                        themeColor="textSecondary"
+                        style={styles.ratingDomain}
+                        numberOfLines={1}
+                      >
+                        {h.domain}
+                      </ThemedText>
+                      <ThemedText
+                        type="label"
+                        themeColor={
+                          h.delta > 0 ? "success" : h.delta < 0 ? "danger" : undefined
+                        }
+                        testID={`results-rating-delta-${h.domain
+                          .replace(/[^a-z]/gi, "")
+                          .toLowerCase()}`}
+                      >
+                        {`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
+                      </ThemedText>
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <ThemedText type="bodySmall" themeColor="textSecondary">
+                  No rating movement recorded for this session.
+                </ThemedText>
+              )}
+              {ratingHistory.length > 0 ? (
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Deltas show how each domain rating changed because of this
+                  session.
+                </ThemedText>
+              ) : null}
+            </Card>
+          </Entrance>
+
+          <Entrance index={4}>
+            <Card
+              variant="outlined"
+              testID="results-recent-sessions"
+              style={styles.quietCard}
+            >
+              <SectionHeader title="Recent sessions" />
+              <View style={styles.rows}>
+                {recent.slice(0, 10).map((s) => {
+                  const active = s.id === session.id;
+                  return (
+                    <Link key={s.id} href={`/results?id=${s.id}`} asChild>
+                      <Pressable
+                        testID={`results-session-${s.id}`}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${getGameDefinition(s.gameId)?.name ?? s.gameId} result from ${formatDayLabel(s.completedAt)}, ${Math.round(s.normalizedResult * 100)} percent`}
+                        accessibilityHint="Shows this session's results"
+                        accessibilityState={{ selected: active }}
+                        // Flattened: expo-router's <Link asChild> (Radix Slot) THROWS
+                        // on array styles in dev builds — this exact array crashed the
+                        // /results route on device and made the durable workout
+                        // journey impossible to complete (campaign 011 finding).
+                        style={StyleSheet.flatten([
+                          styles.recentRow,
+                          active && { backgroundColor: theme.backgroundSelected },
+                        ])}
+                      >
+                        <View style={styles.recentText}>
+                          <ThemedText type="body" numberOfLines={1}>
+                            {getGameDefinition(s.gameId)?.name ?? s.gameId}
+                          </ThemedText>
+                          <ThemedText type="caption" themeColor="textSecondary">
+                            {formatDayLabel(s.completedAt)}
+                          </ThemedText>
+                        </View>
+                        <ThemedText type="numeral" themeColor="accent">
+                          {Math.round(s.normalizedResult * 100)}%
+                        </ThemedText>
+                      </Pressable>
+                    </Link>
+                  );
+                })}
+              </View>
+            </Card>
+          </Entrance>
         </>
       ) : (
         <StateCard
@@ -487,45 +538,72 @@ export default function ResultsScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
-  // Hero content stacks on one centered axis (reference: celebration visual
-  // → headline → metric row → single CTA).
+  // Hero content stacks on one centered axis (celebration frame → headline →
+  // hero metric → quiet reward row).
   hero: {
     alignItems: "center",
     gap: Spacing.three,
   },
-  metricRow: {
-    flexDirection: "row",
-    alignSelf: "stretch",
-    gap: Spacing.two,
-  },
-  metric: {
-    flex: 1,
+  headline: {
+    textAlign: "center",
   },
   rewardRow: {
     flexDirection: "row",
     alignItems: "center",
+    gap: Spacing.two,
+  },
+  // Four equal columns, one row — never stacked cards.
+  metricRow: {
+    flexDirection: "row",
+    alignSelf: "stretch",
+    gap: Spacing.three,
+  },
+  metric: {
+    flex: 1,
+  },
+  // Quiet grouped sections (outlined, not elevated) sit below the CTA.
+  quietCard: {
     gap: Spacing.three,
   },
   rows: {
     gap: Spacing.two,
   },
-  row: {
+  ratingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     gap: Spacing.two,
+    minHeight: MinTouchTarget,
   },
-  // Visual-only marker for the currently shown session; screen readers get the
-  // same information via accessibilityState.selected on each row.
-  rowActive: {
-    opacity: 0.6,
+  ratingDomain: {
+    flexShrink: 1,
+    textTransform: "capitalize",
+  },
+  completeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.twoHalf,
+  },
+  completeText: {
+    flex: 1,
+    gap: Spacing.half,
   },
   ctaBlock: {
     gap: Spacing.two,
+  },
+  recentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.two,
+    minHeight: MinTouchTarget,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    borderRadius: Radii.medium,
+  },
+  recentText: {
+    flex: 1,
+    flexShrink: 1,
+    gap: Spacing.half,
   },
 });

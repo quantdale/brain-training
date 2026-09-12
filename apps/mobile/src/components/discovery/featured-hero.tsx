@@ -1,78 +1,91 @@
 /**
- * Featured hero for the Games library (Campaign 024, PATTERNS-CORE 11).
+ * Featured hero for the Games library (Campaign 024; Campaign 026 identity
+ * rebuild).
  *
- * The single recommendation card that leads the library: a `hero` Card with
- * the domain accent (category eyebrow in the domain text slot), the game
- * name, the kernel's one-line why, and the current mastery/favourite state.
- * The whole card is one tap target into the detail screen — no nested
- * buttons, so assistive technology meets exactly one action here.
+ * The single recommendation card that leads the library, and the strongest
+ * colour on the screen: a `hero` Card dyed in the recommended game's domain
+ * family with an identity spark mark, the category eyebrow, the game name and
+ * the kernel's one-line why. The whole card is one tap target into the detail
+ * screen — no nested buttons, so assistive technology meets exactly one action
+ * here. "Open game details" is copy, not a second control.
  */
 
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { DomainColors, Spacing } from '@/theme/tokens';
+import { Spark } from '@/components/ui/spark';
+import { Spacing } from '@/theme/tokens';
 import type { DiscoverySnapshot } from './discovery-data';
-import { domainKeyFor, masteryTierLabel } from './game-card';
+import { masteryTierLabel, useDomainHue } from './game-card';
 
 export function FeaturedHero({ data }: { data: DiscoverySnapshot }) {
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const theme = useTheme();
   const top = data.recommended[0];
-  if (!top) {
+  const hue = useDomainHue(top?.game.primaryCategory ?? '');
+  const topGame = top?.game;
+  const why = top?.components[0]?.reason;
+  const summary = topGame ? data.masteryByGame.get(topGame.id) : undefined;
+  const favorite = topGame ? data.favorites.has(topGame.id) : false;
+
+  if (!top || !topGame) {
     return null;
   }
-  const { game } = top;
-  const why = top.components[0]?.reason;
-  const domain = domainKeyFor(game.primaryCategory);
-  const domainColors = domain ? DomainColors[scheme][domain] : null;
-  const summary = data.masteryByGame.get(game.id);
-  const favorite = data.favorites.has(game.id);
+
+  const textColor = hue ? hue.softText : theme.accentText;
 
   return (
     <Card
       variant="hero"
       padding="lg"
       testID="games-featured"
-      onPress={() => router.push(`/game-detail/${game.id}`)}
-      accessibilityLabel={`Featured game: ${game.name}, ${game.primaryCategory} game${favorite ? ', favorited' : ''}${summary ? `, ${masteryTierLabel(summary.tier)}` : ''}${why ? `. ${why}` : ''}`}
+      style={{
+        backgroundColor: hue?.soft ?? theme.accentSoft,
+        // 2 dp dyed-hero border, matching the game intro/detail, progress
+        // and mastery heroes (Campaign 026 visual-QA: one hero border weight).
+        borderWidth: hue ? 2 : 0,
+        borderColor: hue?.base,
+      }}
+      onPress={() => router.push(`/game-detail/${topGame.id}`)}
+      accessibilityLabel={`Featured game: ${topGame.name}, ${topGame.primaryCategory} game${favorite ? ', favorited' : ''}${summary ? `, ${masteryTierLabel(summary.tier)}` : ''}${why ? `. ${why}` : ''}`}
       accessibilityHint="Open game details">
       <View style={styles.body}>
         <View style={styles.metaRow}>
-          <Badge label="Recommended" size="sm" />
+          <Badge label="★ Recommended" size="sm" />
           <View style={styles.metaSpacer} />
           {summary ? (
-            <ThemedText type="caption" themeColor="textSecondary">
+            <ThemedText type="caption" style={{ color: textColor }}>
               {masteryTierLabel(summary.tier)}
             </ThemedText>
           ) : null}
           {favorite ? (
-            <ThemedText type="body" themeColor="textSecondary">
+            <ThemedText type="body" style={{ color: textColor }} allowFontScaling={false}>
               ★
             </ThemedText>
           ) : null}
         </View>
-        <ThemedText
-          type="eyebrow"
-          themeColor="textSecondary"
-          style={domainColors ? { color: domainColors.text } : undefined}
-          numberOfLines={1}>
-          {game.primaryCategory}
+        <View style={styles.heroRow}>
+          <View style={styles.heroTexts}>
+            <ThemedText type="eyebrow" style={{ color: textColor }} numberOfLines={1}>
+              {topGame.primaryCategory}
+            </ThemedText>
+            <ThemedText type="title" numberOfLines={2}>
+              {topGame.name}
+            </ThemedText>
+            {why ? (
+              <ThemedText type="bodySmall" style={{ color: textColor }} numberOfLines={2}>
+                {why}
+              </ThemedText>
+            ) : null}
+          </View>
+          <Spark size={44} color={hue?.base ?? theme.accent} />
+        </View>
+        <ThemedText type="label" style={{ color: textColor }}>
+          Open game details ›
         </ThemedText>
-        <ThemedText type="title" numberOfLines={2}>
-          {game.name}
-        </ThemedText>
-        {why ? (
-          <ThemedText
-            type="bodySmall"
-            themeColor="textSecondary"
-            numberOfLines={2}>
-            {why}
-          </ThemedText>
-        ) : null}
       </View>
     </Card>
   );
@@ -80,7 +93,7 @@ export function FeaturedHero({ data }: { data: DiscoverySnapshot }) {
 
 const styles = StyleSheet.create({
   body: {
-    gap: Spacing.two,
+    gap: Spacing.twoHalf,
   },
   metaRow: {
     flexDirection: 'row',
@@ -89,5 +102,15 @@ const styles = StyleSheet.create({
   },
   metaSpacer: {
     flex: 1,
+  },
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+  },
+  heroTexts: {
+    flex: 1,
+    flexShrink: 1,
+    gap: Spacing.one,
   },
 });

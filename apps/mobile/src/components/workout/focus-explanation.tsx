@@ -1,5 +1,6 @@
 /**
- * WorkoutFocusExplanation — "why this workout" panel (campaign 012 / W07).
+ * WorkoutFocusExplanation — "why this workout" panel (campaign 012 / W07;
+ * campaign 026 identity).
  *
  * Explains a focus workout in two layers, mirroring the engine's own
  * explanation split (`src/workout/reasons.ts`):
@@ -11,15 +12,18 @@
  *    the caller from the same pure explainer the engine records into instance
  *    metadata. Reasons never change the selection; they only explain it.
  *
- * Purely presentational and deterministic: `reasons === null` (inputs not yet
+ * The panel is an outlined card with the code-native `Spark` identity mark,
+ * so it reads as a quiet sub-panel inside the surface that hosts it. Purely
+ * presentational and deterministic: `reasons === null` (inputs not yet
  * computable, e.g. empty catalog) degrades to the static copy only.
  */
 
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { Card, Spark } from '@/components/ui';
+import { useTheme } from '@/hooks/use-theme';
+import { Spacing } from '@/theme/tokens';
 import type { WorkoutSelectionReason } from '@/workout/personalize';
 import type { WorkoutTemplate } from '@/workout/templates';
 
@@ -59,15 +63,19 @@ export function WorkoutFocusExplanation({
   reasons: readonly WorkoutSelectionReason[] | null;
   testID?: string;
 }) {
+  const theme = useTheme();
   const summaryLines = reasons ? summarizeSelectionReasons(reasons) : [];
   const focusLabel = template.focus ? `${template.focus} focus` : template.name;
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testID}>
-      <ThemedText type="smallBold" themeColor="accent">
-        Why {focusLabel}?
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
+    <Card variant="outlined" padding="sm" style={styles.card} testID={testID}>
+      <View style={styles.titleRow}>
+        <Spark size={14} color={theme.accent} />
+        <ThemedText type="label" themeColor="accentText">
+          Why {focusLabel}?
+        </ThemedText>
+      </View>
+      <ThemedText type="bodySmall" themeColor="textSecondary">
         {template.description}
       </ThemedText>
       {summaryLines.length > 0 ? (
@@ -83,20 +91,18 @@ export function WorkoutFocusExplanation({
           ))}
         </View>
       ) : null}
-    </ThemedView>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  // Sits inside the surface More-workouts card (surface-on-surface), so a
-  // hairline border keeps the panel edge visible — same treatment as the
-  // secondary CTA pills on Home.
   card: {
-    borderRadius: Radii.medium,
-    borderWidth: 1,
-    borderColor: 'rgba(120,120,140,0.2)',
-    padding: Spacing.two,
     gap: Spacing.oneHalf,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
   },
   reasonLine: {
     marginTop: Spacing.half,

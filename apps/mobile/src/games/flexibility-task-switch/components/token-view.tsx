@@ -15,7 +15,11 @@ import { useTheme } from "@/hooks/use-theme";
 
 import type { ColorId, ShapeId, Token } from "../types";
 
-/** Stable color palette for the token (hex strings, theme-independent). */
+/** Stable color palette for the token (hex strings, theme-independent).
+ * Campaign 026 colour-sweep note: stimulus hues must stay identical in both
+ * themes (fairness — a token cannot change colour with the theme), so they
+ * live here as game stimulus data per the R6 "game's stimulus palette"
+ * exception. The white shape glyph is stimulus contrast, not chrome. */
 export const TOKEN_COLORS: Readonly<Record<ColorId, string>> = {
   red: "#e5484d",
   blue: "#3b82f6",

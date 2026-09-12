@@ -12,6 +12,13 @@
  * Sizes keep the 44 dp interaction floor (`sm` reaches it through hit slop).
  * A `sublabel` turns the button into the reference two-line CTA
  * ("Keep reading / The Time Machine") without a second component.
+ *
+ * Campaign 026 identity: filled variants carry a darker bottom lip (4 dp) so
+ * the primary action reads as a physical key; the press scale compresses it.
+ * The lip is a wrapper layer, not `borderBottomWidth`: a one-sided border
+ * ignores the corner radius on Android and protrudes past the curve as a
+ * square bar (Campaign 026 visual-QA screenshot), while the wrapper's own
+ * radius keeps the shadow edge perfectly curved in both themes.
  */
 
 import { forwardRef, type ReactNode } from 'react';
@@ -27,7 +34,7 @@ import {
 } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Fonts, MinTouchTarget, Spacing, Typography, type ColorTheme, type ThemeColor } from '@/theme/tokens';
+import { Fonts, MinTouchTarget, Spacing, Typography, type ColorTheme, type ThemeColor, Depth } from '@/theme/tokens';
 import { ThemedText } from '@/components/themed-text';
 import { Tappable } from './tappable';
 import { PRESS_SCALE } from './motion';
@@ -131,8 +138,9 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
   const theme = useTheme();
   const colors = resolveVariant(variant, theme);
   const inactive = disabled || loading;
+  const hasLip = variant === 'primary' || variant === 'danger' || variant === 'success';
 
-  return (
+  const body = (
     <Tappable
       ref={ref}
       testID={testID}
@@ -155,6 +163,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
           borderRadius: RADIUS_CAP,
         },
         variant === 'ghost' && styles.outlined,
+        hasLip && styles.lipInner,
         inactive && styles.inactive,
         style,
       ]}
@@ -184,6 +193,14 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
       )}
     </Tappable>
   );
+
+  if (!hasLip) {
+    return body;
+  }
+  // The lip wrapper keeps the testID, ref and accessibility contract on the
+  // inner pressable; automation traverses one extra layout View per filled
+  // button and nothing else changes.
+  return <View style={[fullWidth && styles.fullWidth, styles.lipOuter]}>{body}</View>;
 });
 
 const styles = StyleSheet.create({
@@ -200,6 +217,15 @@ const styles = StyleSheet.create({
   },
   outlined: {
     borderWidth: 1,
+  },
+  // Physical key: the wrapper's own translucent floor shows as a 4 dp shadow
+  // edge under the raised face. Same shading language as the Spark node.
+  lipOuter: {
+    borderRadius: RADIUS_CAP,
+    backgroundColor: Depth.lip,
+  },
+  lipInner: {
+    marginBottom: 4,
   },
   inactive: {
     opacity: 0.5,

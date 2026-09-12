@@ -20,7 +20,8 @@ import {
   View,
 } from "react-native";
 
-import { Spacing } from "@/constants/theme";
+import { Elevation, Spacing } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
 import { usePrefersReducedMotion } from "@/components/game-ui/use-reduced-motion";
 export interface RewardCelebrationPayload {
   /** Stable-ish unique id (auto-assigned if omitted). */
@@ -55,6 +56,7 @@ export function celebrateReward(payload: RewardCelebrationPayload): void {
 
 /** Render this once (e.g. at the top of a screen) to show celebrations. */
 export function RewardCelebrationHost() {
+  const theme = useTheme();
   const [current, setCurrent] =
     useState<Required<RewardCelebrationPayload> | null>(null);
   const opacity = useMemo(() => new Animated.Value(0), []);
@@ -127,11 +129,18 @@ export function RewardCelebrationHost() {
       pointerEvents="none"
       testID="reward-celebration"
     >
-      <View style={styles.card}>
-        <Text style={styles.emoji}>{current.emoji}</Text>
-        <Text style={styles.title}>{current.title}</Text>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: theme.overlaySurface },
+          Elevation.raised,
+        ]}>
+        <Text style={[styles.emoji, { color: theme.overlayText }]}>{current.emoji}</Text>
+        <Text style={[styles.title, { color: theme.overlayText }]}>{current.title}</Text>
         {rewardBits.length > 0 && (
-          <Text style={styles.sub}>{rewardBits.join("   ")}</Text>
+          <Text style={[styles.sub, { color: theme.overlayTextMuted }]}>{
+            rewardBits.join("   ")
+          }</Text>
         )}
       </View>
     </Animated.View>
@@ -148,8 +157,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: Spacing.three,
   },
+  // Campaign 026 colour sweep: the celebration banner is a fixed dark
+  // overlay (like the pause overlay) by design — it floats above either
+  // theme, so its surface/copy colours come from the theme overlay tokens.
   card: {
-    backgroundColor: "rgba(20, 22, 34, 0.92)",
     borderRadius: 16,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
@@ -159,21 +170,17 @@ const styles = StyleSheet.create({
     // bottom-anchored controls and blocks taps — device-verified during the
     // 013 certification run). boxShadow is the cross-platform replacement;
     // elevation stays as the legacy Android separation guarantee.
-    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
     elevation: 4,
   },
   emoji: {
     fontSize: 28,
-    color: "#fff",
   },
   title: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "700",
     marginTop: 2,
   },
   sub: {
-    color: "#D9DCE8",
     fontSize: 12,
     marginTop: 2,
   },

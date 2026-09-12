@@ -3,13 +3,13 @@
  * the per-game mastery ladder — tier distribution now, plus the closest
  * milestones one tap away. Derived view only; no new persistence.
  */
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { SectionHeader } from "@/components/shell";
 import { MilestoneStrip } from "@/components/mastery/mastery-card";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Radii, Spacing } from "@/constants/theme";
+import { Badge, Card } from "@/components/ui";
+import { Spacing, type ThemeColor } from "@/constants/theme";
 import {
   MASTERY_TIERS,
   type MasteryTier,
@@ -24,6 +24,16 @@ const TIER_LABEL: Record<MasteryTier, string> = {
   proficient: "Proficient",
   advanced: "Advanced",
   mastered: "Mastered",
+};
+
+/** Tier → semantic badge family (progression ramp: low = info, mastered = success). */
+const TIER_TONE: Record<MasteryTier, ThemeColor> = {
+  unplayed: "info",
+  learning: "info",
+  developing: "accent",
+  proficient: "warning",
+  advanced: "xp",
+  mastered: "success",
 };
 
 export function MasteryInsights() {
@@ -53,22 +63,25 @@ export function MasteryInsights() {
     }));
 
   return (
-    <ThemedView style={styles.block} testID="progress-mastery">
-      <SectionHeader title="Mastery" />
-      <ThemedView type="surface" style={styles.distribution}>
+    <View style={styles.block} testID="progress-mastery">
+      <SectionHeader
+        title="Mastery"
+        caption="Difficulty reached and recent performance, per game."
+      />
+      <Card style={styles.distribution}>
         {MASTERY_TIERS.map((tier) => (
-          <ThemedView
+          <View
             key={tier}
             style={styles.tierRow}
             testID={`progress-mastery.${tier}`}
           >
-            <ThemedText type="small">{TIER_LABEL[tier]}</ThemedText>
+            <Badge label={TIER_LABEL[tier]} tone={TIER_TONE[tier]} size="sm" />
             <ThemedText type="smallBold" themeColor="textSecondary">
               {counts.get(tier) ?? 0}
             </ThemedText>
-          </ThemedView>
+          </View>
         ))}
-      </ThemedView>
+      </Card>
       <MilestoneStrip
         items={milestones}
         testIDPrefix="progress-milestone"
@@ -77,7 +90,7 @@ export function MasteryInsights() {
         Mastery reflects capability inside each game — difficulty reached and
         recent performance — never time spent alone.
       </ThemedText>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -86,12 +99,11 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   distribution: {
-    borderRadius: Radii.medium,
-    padding: Spacing.three,
-    gap: Spacing.one,
+    gap: Spacing.two,
   },
   tierRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
   },
 });

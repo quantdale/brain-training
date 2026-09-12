@@ -1,22 +1,22 @@
 /**
- * Workout template picker chips (campaign 010 / W24).
+ * Workout template picker chips (campaign 010 / W24; campaign 026 identity).
  *
  * Surfaces Workout V2's length variants and the daily rotation menu
- * (`src/workout/templates.ts` + `rotation.ts`) as chip rows in the style of
- * the games screen's filter chips: `accentSoft` when selected, `surface`
- * otherwise, 44pt touch targets, and `accessibilityState.selected` so screen
- * readers announce the radio-like selection.
+ * (`src/workout/templates.ts` + `rotation.ts`) as kit `Chip` rows:
+ * selected chips take the accent fill with `accentOn` copy, unselected chips
+ * sit on the surface with a hairline border, 44 dp touch targets, and
+ * `accessibilityState.selected` so screen readers announce the radio-like
+ * selection. The kit owns press feedback, haptics and reduced-motion
+ * behaviour, so the chips match every other selector in the app.
  *
  * Presentational only: selection state and the start/resume action live at
  * the call site, so these components stay router-free and deterministic.
  */
 
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { MinTouchTarget } from '@/components/a11y';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { Chip } from '@/components/ui';
+import { Spacing } from '@/theme/tokens';
 import type { WorkoutLength } from '@/workout/metadata';
 import {
   WORKOUT_LENGTHS,
@@ -53,26 +53,15 @@ export function WorkoutLengthChips({
       {lengths.map((spec) => {
         const active = spec.id === selected;
         return (
-          <Pressable
+          <Chip
             key={spec.id}
             testID={`${testIDPrefix}-${spec.id}`}
-            accessibilityRole="button"
+            label={spec.label}
+            count={spec.gameCount}
+            selected={active}
             accessibilityLabel={`${spec.label} workout, ${spec.gameCount} games`}
-            accessibilityState={{ selected: active }}
-            onPress={() => onSelect(spec.id)}>
-            <ThemedView
-              type={active ? 'accentSoft' : 'surface'}
-              style={[styles.chip, active && styles.chipBordered]}>
-              <ThemedText
-                type="smallBold"
-                themeColor={active ? 'accent' : 'textSecondary'}>
-                {spec.label}
-              </ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                {spec.gameCount}
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
+            onPress={() => onSelect(spec.id)}
+          />
         );
       })}
     </View>
@@ -111,29 +100,18 @@ export function WorkoutTemplateChips({
         const active = template.id === selectedId;
         const resume = resumeById?.get(template.id);
         const started = startedIds?.has(template.id) ?? false;
-        let label = template.name;
-        if (started) {
-          label = resumeMarkerLabel(template.name, started, resume);
-        }
+        const label = started
+          ? resumeMarkerLabel(template.name, started, resume)
+          : template.name;
         return (
-          <Pressable
+          <Chip
             key={template.id}
             testID={`${testIDPrefix}-${template.id}`}
-            accessibilityRole="button"
+            label={label}
+            selected={active}
             accessibilityLabel={label}
-            accessibilityHint={template.description}
-            accessibilityState={{ selected: active }}
-            onPress={() => onSelect(template.id)}>
-            <ThemedView
-              type={active ? 'accentSoft' : 'surface'}
-              style={[styles.chip, active && styles.chipBordered]}>
-              <ThemedText
-                type="smallBold"
-                themeColor={active ? 'accent' : 'textSecondary'}>
-                {label}
-              </ThemedText>
-            </ThemedView>
-          </Pressable>
+            onPress={() => onSelect(template.id)}
+          />
         );
       })}
     </View>
@@ -167,20 +145,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
-  },
-  chip: {
-    ...MinTouchTarget,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.oneHalf,
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.half,
-    paddingHorizontal: Spacing.twoHalf,
-  },
-  // Selected chips sit on accentSoft inside a surface card, so add a hairline
-  // border to keep the pill edge visible without introducing new colors.
-  chipBordered: {
-    borderWidth: 1,
-    borderColor: 'rgba(79,107,255,0.35)',
   },
 });

@@ -1,16 +1,16 @@
 /**
- * Game detail — `/game-detail/[id]` (Campaign 024 UX wave).
+ * Game detail — `/game-detail/[id]` (Campaign 024 UX wave; Campaign 026
+ * identity rebuild).
  *
- * Per-game info surface: description, category, versions, favorite toggle
- * (persisted via the db favorites repository), and the single primary Play
- * CTA into `/game/[id]`. Mastery is the hero — a `ProgressRing` with the
- * tier as a numeral plus the concrete next-milestone line. Personal bests
- * render as `StatBlock`s in their metric identity colours; recent sessions
- * are `ListRow`s with role, label and hint into `/results`.
+ * One resume path: the hero card carries the domain eyebrow, the game title,
+ * its description, the mastery ring with the concrete next-milestone line, and
+ * the screen's single primary Play CTA. The favourite toggle is a quiet
+ * secondary action below the hero; records render as `StatBlock`s in their
+ * metric identity colours and recent sessions as `ListRow`s into `/results`.
  *
  * Reloads persisted data on focus (a played session pops back here), keeps
- * hooks above the unknown-game early return, and never invents records for
- * an unplayed game.
+ * hooks above the unknown-game early return, and never invents records for an
+ * unplayed game. Every `game-detail-*` testID is preserved.
  */
 
 import {
@@ -23,16 +23,27 @@ import { memo, useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { MinTouchTarget } from "@/components/a11y";
-import { masteryTierLabel } from "@/components/discovery/game-card";
+import {
+  masteryTierLabel,
+  useDomainHue,
+} from "@/components/discovery/game-card";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Button, Card, ListRow, ProgressRing, StatBlock } from "@/components/ui";
-import { Radii, Spacing } from "@/constants/theme";
+import {
+  Button,
+  Card,
+  EmptyState,
+  ListRow,
+  ProgressRing,
+  Spark,
+  StatBlock,
+} from "@/components/ui";
+import { Spacing } from "@/constants/theme";
 import { getDb, type AppDatabase } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
+import { useTheme } from "@/hooks/use-theme";
 import { computeMastery, MASTERY_TIERS, type MasteryInput } from "@/mastery";
 import { getGameDefinition } from "@/registry/registry";
 
@@ -73,8 +84,10 @@ const EMPTY_DETAIL: DetailData = {
 };
 
 export default function GameDetailScreen() {
+  const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const game = getGameDefinition(id ?? "");
+  const hue = useDomainHue(game?.primaryCategory ?? "");
 
   // Reload persisted data whenever the screen regains focus (e.g. after a
   // played session pops back from the game route).
@@ -126,24 +139,26 @@ export default function GameDetailScreen() {
         <ThemedText type="title" testID="game-detail-title">
           Game
         </ThemedText>
-        <ThemedView type="surface" style={styles.card}>
-          <ThemedText type="subtitle">Unknown game</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">
-            This game is not in your library. It may have been renamed or
-            removed — browse the library to find something to play.
-          </ThemedText>
-          <Link href="/games" asChild>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Browse the game library"
-              testID="game-detail-unknown-browse"
-            >
-              <ThemedText type="smallBold" themeColor="accent">
-                Browse games ›
-              </ThemedText>
-            </Pressable>
-          </Link>
-        </ThemedView>
+        <Card variant="outlined" testID="game-detail-unknown">
+          <EmptyState
+            icon={<Spark size={36} color={theme.textMuted} />}
+            title="Unknown game"
+            message="This game is not in your library. It may have been renamed or removed — browse the library to find something to play."
+          />
+          <View style={styles.unknownAction}>
+            <Link href="/games" asChild>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Browse the game library"
+                testID="game-detail-unknown-browse"
+              >
+                <ThemedText type="label" themeColor="accentText">
+                  Browse games ›
+                </ThemedText>
+              </Pressable>
+            </Link>
+          </View>
+        </Card>
         <BackLink />
       </ScreenShell>
     );
@@ -165,56 +180,104 @@ export default function GameDetailScreen() {
   );
   const tierName = masteryTierLabel(summary.tier);
   const tierMax = MASTERY_TIERS.length - 1;
+  const eyebrowColor = hue ? hue.softText : theme.accentText;
 
   return (
     <ScreenShell>
       <BackLink />
 
-      <ThemedText type="title" testID="game-detail-title">
-        {game.name}
-      </ThemedText>
-      <ThemedView
-        type="accentSoft"
-        style={styles.pill}
-        testID="game-detail-category"
-      >
-        <ThemedText type="caption" themeColor="accent">
-          {game.primaryCategory}
-        </ThemedText>
-      </ThemedView>
-      {game.description ? (
-        <ThemedText
-          type="small"
-          themeColor="textSecondary"
-          testID="game-detail-description"
-        >
-          {game.description}
-        </ThemedText>
-      ) : null}
-      {game.hasTutorial ? (
-        <ThemedText type="caption" themeColor="textSecondary">
-          Includes a short guided tutorial on first play.
-        </ThemedText>
-      ) : null}
+      {/* Single-path resume block: eyebrow → title → progress → one CTA. */}
+      <Card
+        variant="hero"
+        padding="lg"
+        testID="game-detail-mastery"
+        style={
+          hue
+            ? {
+                backgroundColor: hue.soft,
+                // 2 dp dyed-hero border, matching the game intro, progress and
+                // mastery heroes (Campaign 026 visual-QA: one hero border
+                // weight for dyed cards; hairlines stay on neutral rows).
+                borderWidth: 2,
+                borderColor: hue.base,
+              }
+            : undefined
+        }>
+        <View style={styles.resumeBody}>
+          <View style={styles.resumeHead}>
+            {/* The eyebrow names the category — unless the game IS the
+                category (e.g. "Memory"/Memory), where it would parrot the
+                title (Campaign 026 visual-QA edge case). */}
+            {game.primaryCategory !== game.name ? (
+              <ThemedText
+                type="eyebrow"
+                style={{ color: eyebrowColor }}
+                testID="game-detail-category">
+                {game.primaryCategory}
+              </ThemedText>
+            ) : null}
+            <ThemedText type="title" testID="game-detail-title">
+              {game.name}
+            </ThemedText>
+            {game.description ? (
+              <ThemedText
+                type="bodySmall"
+                themeColor="textSecondary"
+                testID="game-detail-description">
+                {game.description}
+              </ThemedText>
+            ) : null}
+            {game.hasTutorial ? (
+              <ThemedText type="caption" themeColor="textSecondary">
+                Includes a short guided tutorial on first play.
+              </ThemedText>
+            ) : null}
+          </View>
 
-      <Pressable
+          <View style={styles.masteryRow}>
+            <ProgressRing
+              value={tierMax > 0 ? summary.rank / tierMax : 0}
+              tone="xp"
+              label={`Mastery ${summary.rank} of ${tierMax}, ${tierName}`}
+              testID="game-detail-mastery-ring">
+              <ThemedText type="numeralLg">{String(summary.rank)}</ThemedText>
+            </ProgressRing>
+            <View style={styles.masteryTexts}>
+              <ThemedText type="eyebrow" themeColor="textSecondary">
+                MASTERY
+              </ThemedText>
+              <ThemedText type="headline">{tierName}</ThemedText>
+              <ThemedText type="bodySmall" themeColor="textSecondary">
+                {summary.nextMilestone ?? "Mastered — the top tier."}
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* The screen's one primary action. */}
+          <Button
+            label={`Play ${game.name}`}
+            size="lg"
+            testID="game-detail-play"
+            onPress={() => router.push(`/game/${game.id}`)}
+          />
+        </View>
+      </Card>
+
+      {/* Quiet secondary action: favourite toggle. */}
+      <Button
+        variant="secondary"
+        fullWidth={false}
+        label={currentFavorite ? "★ Favorited" : "☆ Add to favorites"}
         testID="game-detail-favorite"
-        accessibilityRole="button"
         accessibilityLabel={
           currentFavorite ? "Remove from favorites" : "Add to favorites"
         }
         // `selected` (not `checked`): with role=button, screen readers announce
         // selected/unselected; `checked` is only spoken for toggle/checkbox roles.
         accessibilityState={{ selected: currentFavorite }}
-        onPress={onToggleFavorite}
         disabled={!loaded}
-      >
-        <ThemedView type="surface" style={styles.actionRow}>
-          <ThemedText type="subtitle">
-            {currentFavorite ? "★ Favorited" : "☆ Add to favorites"}
-          </ThemedText>
-        </ThemedView>
-      </Pressable>
+        onPress={onToggleFavorite}
+      />
       {toggleError ? (
         <ThemedText
           type="caption"
@@ -225,37 +288,6 @@ export default function GameDetailScreen() {
           Could not update favorites.
         </ThemedText>
       ) : null}
-
-      {/* Mastery hero: the tier as a numeral inside the ring, the concrete
-          next milestone beneath it. */}
-      <Card variant="hero" padding="lg" testID="game-detail-mastery">
-        <View style={styles.masteryRow}>
-          <ProgressRing
-            value={tierMax > 0 ? summary.rank / tierMax : 0}
-            label={`Mastery ${summary.rank} of ${tierMax}, ${tierName}`}
-            testID="game-detail-mastery-ring"
-          >
-            <ThemedText type="numeralXl">{String(summary.rank)}</ThemedText>
-          </ProgressRing>
-          <View style={styles.masteryTexts}>
-            <ThemedText type="eyebrow" themeColor="textSecondary">
-              Mastery
-            </ThemedText>
-            <ThemedText type="headline">{tierName}</ThemedText>
-            <ThemedText type="bodySmall" themeColor="textSecondary">
-              {summary.nextMilestone ?? "Mastered — the top tier."}
-            </ThemedText>
-          </View>
-        </View>
-      </Card>
-
-      {/* The screen's one primary action. */}
-      <Button
-        label={`Play ${game.name}`}
-        size="lg"
-        testID="game-detail-play"
-        onPress={() => router.push(`/game/${game.id}`)}
-      />
 
       {!loaded ? (
         <StateCard
@@ -274,12 +306,8 @@ export default function GameDetailScreen() {
         />
       ) : (
         <>
-          <ThemedView
-            type="surface"
-            style={styles.card}
-            testID="game-detail-records"
-          >
-            <ThemedText type="subtitle">Records</ThemedText>
+          <Card testID="game-detail-records">
+            <ThemedText type="headline">Records</ThemedText>
             {data.aggregate ? (
               <View style={styles.statsRow}>
                 <View style={styles.statCell}>
@@ -308,7 +336,7 @@ export default function GameDetailScreen() {
                 </View>
               </View>
             ) : (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="bodySmall" themeColor="textSecondary">
                 No sessions yet — play once to see records.
               </ThemedText>
             )}
@@ -320,20 +348,16 @@ export default function GameDetailScreen() {
                   accessibilityLabel="View detailed trends for this game"
                   testID="game-detail-stats-link"
                 >
-                  <ThemedText type="smallBold" themeColor="accent">
+                  <ThemedText type="label" themeColor="accentText">
                     View detailed trends ›
                   </ThemedText>
                 </Pressable>
               </Link>
             ) : null}
-          </ThemedView>
+          </Card>
 
-          <ThemedView
-            type="surface"
-            style={styles.card}
-            testID="game-detail-recent"
-          >
-            <ThemedText type="subtitle">Recent sessions</ThemedText>
+          <Card testID="game-detail-recent">
+            <ThemedText type="headline">Recent sessions</ThemedText>
             {data.recent.length > 0 ? (
               <View>
                 {data.recent.map((session) => (
@@ -345,11 +369,11 @@ export default function GameDetailScreen() {
                 ))}
               </View>
             ) : (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="bodySmall" themeColor="textSecondary">
                 Nothing here yet.
               </ThemedText>
             )}
-          </ThemedView>
+          </Card>
         </>
       )}
 
@@ -376,7 +400,7 @@ function BackLink() {
       onPress={() => router.back()}
       style={MinTouchTarget}
     >
-      <ThemedText type="smallBold" themeColor="accent">
+      <ThemedText type="label" themeColor="accentText">
         ‹ Back
       </ThemedText>
     </Pressable>
@@ -412,20 +436,11 @@ const SessionRow = memo(function SessionRow({
 });
 
 const styles = StyleSheet.create({
-  pill: {
-    alignSelf: "flex-start",
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.half,
-    paddingHorizontal: Spacing.twoHalf,
+  resumeBody: {
+    gap: Spacing.three,
   },
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
-  },
-  actionRow: {
-    borderRadius: Radii.medium,
-    padding: Spacing.three,
+  resumeHead: {
+    gap: Spacing.one,
   },
   masteryRow: {
     flexDirection: "row",
@@ -443,5 +458,9 @@ const styles = StyleSheet.create({
   },
   statCell: {
     flex: 1,
+  },
+  unknownAction: {
+    alignItems: "center",
+    paddingBottom: Spacing.two,
   },
 });

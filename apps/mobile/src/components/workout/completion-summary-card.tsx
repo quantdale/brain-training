@@ -1,27 +1,30 @@
 /**
  * WorkoutCompletionCard — post-workout summary (campaign 010 / W24, extended
- * campaign 012 / W07; campaign 023 celebration).
+ * campaign 012 / W07; campaign 023 celebration; campaign 026 identity).
  *
  * Presents a `WorkoutCompletionSummary` (Workout V2, `src/workout/summary.ts`)
- * after a workout finishes: headline + performance band, completion bar, the
- * meaningful metrics from constitution §16 (games, XP, play time), and — when
- * a game-name resolver is injected — a per-game outcome feed straight from the
- * engine's `outcomes` list. Purely presentational: no clock, db or registry
- * access; unknown game ids degrade to their raw id.
+ * after a workout finishes: the completion beat (mark + headline + band),
+ * a kit `ProgressBar` meter, the meaningful metrics from constitution §16
+ * (games, XP, play time) as equal `StatBlock` columns, and — when a game-name
+ * resolver is injected — a per-game outcome feed of `ListRow`s straight from
+ * the engine's `outcomes` list. Purely presentational: no clock, db or
+ * registry access; unknown game ids degrade to their raw id.
  *
  * Campaign 023: the card enters with a short bounded animation (skipped under
- * reduced motion), shows a trophy mark, and celebrates exactly once per
- * workout instance key (banner + canonical success feedback via the global
- * sensory service).
+ * reduced motion) and celebrates exactly once per workout instance key
+ * (canonical success feedback via the global sensory service). Campaign 026
+ * replaces the emoji trophy with the code-native `Spark` mark and the legacy
+ * shell `ProgressTrack` with the kit meter; all testIDs are unchanged.
  */
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
-import { ProgressTrack, performanceBand } from '@/components/shell';
+import { performanceBand } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
-import { Elevation, Motion, Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Card, ListRow, ProgressBar, Spark, StatBlock } from '@/components/ui';
+import { Motion, Spacing } from '@/constants/theme';
 import { liveAudioHaptics } from '@/sdk';
 import { parseInstanceKey } from '@/workout/metadata';
 import type { WorkoutCompletionSummary } from '@/workout/summary';
@@ -47,6 +50,7 @@ export function WorkoutCompletionCard({
   resolveGameName?: (gameId: string) => string | null;
   testID?: string;
 }) {
+  const theme = useTheme();
   // Performance band over matched sessions; null average (no matched
   // session records) degrades to the neutral "Session complete" band.
   const band = performanceBand(summary.avgNormalized ?? -1);
@@ -104,90 +108,116 @@ export function WorkoutCompletionCard({
           },
         ],
       }}>
-      <ThemedView
-        type="surface"
+      <Card
+        variant="raised"
+        padding="lg"
         style={styles.card}
         testID={testID}
         accessibilityLiveRegion="polite">
         <View style={styles.titleRow}>
-          <View style={styles.trophyCircle}>
-            <ThemedText type="subtitle" allowFontScaling={false}>
-              🏆
-            </ThemedText>
+          <View style={[styles.mark, { backgroundColor: theme.xpSoft }]}>
+            <Spark size={20} color={theme.xpSoftText} />
           </View>
-          <ThemedText type="subtitle">Workout complete!</ThemedText>
+          <View style={styles.titleText}>
+            <ThemedText type="eyebrow" themeColor="textSecondary">
+              {workoutName}
+            </ThemedText>
+            <ThemedText type="headline">Workout complete!</ThemedText>
+          </View>
         </View>
-        <ThemedText type="small" themeColor={band.tone} testID={`${testID}-band`}>
-          {workoutName} — {band.label}
+        <ThemedText type="bodySmall" themeColor={band.tone} testID={`${testID}-band`}>
+          {band.label}
           {summary.avgNormalized !== null
             ? ` · ${Math.round(summary.avgNormalized * 100)}% avg`
             : ''}
         </ThemedText>
-        <ProgressTrack ratio={summary.completionRatio} tone="success" testID={`${testID}-bar`} />
-        <ThemedText type="small" themeColor="textSecondary" testID={`${testID}-stats`}>
-          {summary.completedGames}/{summary.totalGames} games · +
-          {summary.totalXp} XP · {formatDurationMs(summary.totalDurationMs)}
-        </ThemedText>
+        <ProgressBar
+          value={summary.completionRatio}
+          tone="success"
+          accessibilityLabel={`Workout progress, ${summary.completedGames} of ${summary.totalGames} games`}
+          testID={`${testID}-bar`}
+        />
+        <View style={styles.metrics} testID={`${testID}-stats`}>
+          <View style={styles.metric}>
+            <StatBlock
+              label="Games"
+              value={`${summary.completedGames}/${summary.totalGames}`}
+              metric="score"
+              valueType="numeral"
+            />
+          </View>
+          <View style={styles.metric}>
+            <StatBlock
+              label="XP"
+              value={`+${summary.totalXp}`}
+              metric="xp"
+              valueType="numeral"
+            />
+          </View>
+          <View style={styles.metric}>
+            <StatBlock
+              label="Time"
+              value={formatDurationMs(summary.totalDurationMs)}
+              metric="time"
+              valueType="numeral"
+            />
+          </View>
+        </View>
         {resolveGameName && playedOutcomes.length > 0 ? (
           <View testID={`${testID}-outcomes`} style={styles.outcomes}>
             {playedOutcomes.map(({ gameId, session }) => {
               const name = resolveGameName(gameId) ?? gameId;
               return (
-                <View
+                <ListRow
                   key={gameId}
-                  style={styles.outcomeRow}
-                  testID={`${testID}-outcome-${gameId}`}>
-                  <View style={styles.outcomeText}>
-                    <ThemedText type="small">{name}</ThemedText>
-                  </View>
-                  <ThemedText
-                    type="caption"
-                    themeColor="textSecondary"
-                    testID={`${testID}-outcome-result-${gameId}`}>
-                    {Math.round(session.normalizedResult * 100)}% · +{session.xp}{' '}
-                    XP
-                  </ThemedText>
-                </View>
+                  testID={`${testID}-outcome-${gameId}`}
+                  title={name}
+                  meta={`${Math.round(session.normalizedResult * 100)}% · +${session.xp} XP`}
+                  metaTestID={`${testID}-outcome-result-${gameId}`}
+                  icon={<Spark size={12} color={theme.successSoftText} />}
+                  tone="successSoft"
+                />
               );
             })}
           </View>
         ) : null}
-      </ThemedView>
+      </Card>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
     gap: Spacing.two,
-    ...Elevation.card,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.twoHalf,
   },
-  trophyCircle: {
+  // Reward mark tile: code-native Spark on the XP soft fill (no image asset).
+  mark: {
     width: 40,
     height: 40,
-    borderRadius: Radii.pill,
-    backgroundColor: 'rgba(217, 142, 4, 0.14)',
+    borderRadius: Spacing.five,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  outcomes: {
-    gap: Spacing.oneHalf,
+  titleText: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  metrics: {
+    flexDirection: 'row',
+    alignSelf: 'stretch',
+    gap: Spacing.three,
     marginTop: Spacing.half,
   },
-  outcomeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  outcomeText: {
+  metric: {
     flex: 1,
+  },
+  outcomes: {
+    gap: Spacing.one,
+    marginTop: Spacing.half,
   },
 });

@@ -124,10 +124,13 @@ describe("/results hero anatomy (campaign 024)", () => {
     expect(screen.getByTestId("results-metric-score-value")).toHaveTextContent("320");
     expect(screen.getByTestId("results-metric-accuracy-value")).toHaveTextContent("80%");
     expect(screen.getByTestId("results-metric-time-value")).toHaveTextContent("45s");
-    expect(screen.getByTestId("results-metric-difficulty-value")).toHaveTextContent("hard");
+    // Player-facing label ("Hard"), not the stored slug (Campaign 026 visual-QA).
+    expect(screen.getByTestId("results-metric-difficulty-value")).toHaveTextContent("Hard");
     expect(screen.getByTestId("results-xp")).toHaveTextContent("+50 XP");
+    // The session date stands apart from the XP reward (Campaign 026
+    // visual-QA: the glued row read as "+50 XP Yesterday").
     expect(screen.getByTestId("results-timestamp")).toHaveTextContent(
-      formatRelativeDay(COMPLETED_AT, Date.now()),
+      `Played ${formatRelativeDay(COMPLETED_AT, Date.now())}`,
     );
     // Rating movement section still present (empty copy, no history).
     expect(screen.getByTestId("results-rating")).toBeOnTheScreen();

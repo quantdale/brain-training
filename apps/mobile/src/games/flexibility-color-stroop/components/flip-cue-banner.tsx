@@ -29,13 +29,13 @@ export function FlipCueBanner({ newRule, testID }: FlipCueBannerProps) {
       testID={testID}
       accessibilityLabel={`Rule changed. Now answer the ${ruleLabel}.`}
     >
-      <ThemedText type="headline" style={styles.title}>
+      <ThemedText type="headline" style={[styles.title, { color: theme.warningOn }]}>
         RULE CHANGE!
       </ThemedText>
-      <ThemedText type="bodyLarge" style={styles.rule}>
+      <ThemedText type="bodyLarge" style={[styles.rule, { color: theme.warningOn }]}>
         Answer the {ruleLabel}
       </ThemedText>
-      <ThemedText type="caption" style={styles.description}>
+      <ThemedText type="caption" style={[styles.description, { color: theme.warningOn }]}>
         {description}
       </ThemedText>
     </View>
@@ -49,17 +49,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: Spacing.two,
   },
+  // Copy sits ON the warning fill: the `on` slot (not raw black literals)
+  // keeps the banner legible in both themes (Campaign 026 colour sweep).
   title: {
-    color: "#000000",
     fontWeight: "700",
     marginBottom: Spacing.one,
   },
   rule: {
-    color: "#000000",
     fontWeight: "600",
   },
   description: {
-    color: "#333333",
     marginTop: Spacing.one,
+    opacity: 0.85,
   },
 });

@@ -35,19 +35,20 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import {
-  SectionHeader,
-  StreakCard,
-} from "@/components/shell";
+import { SectionHeader } from "@/components/shell";
 import {
   Button,
   Card,
+  EmptyState,
   Entrance,
   ListRow,
   ProgressBar,
+  ProgressRing,
   SectionGrid,
   Skeleton,
   SkeletonText,
+  Spark,
+  StreakStrip,
 } from '@/components/ui';
 import {
   WorkoutCompletionCard,
@@ -60,7 +61,6 @@ import {
 import { formatRelativeDay } from "@/components/shell/format";
 import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import { useTheme } from "@/hooks/use-theme";
 import { Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, DomainRating } from "@/db";
@@ -584,7 +584,7 @@ export default function HomeScreen() {
 
   return (
     <ScreenShell>
-      <ThemedText type="caption" themeColor="accent" testID="home-brand">
+<ThemedText type="eyebrow" themeColor="accentText" testID="home-brand">
         BRAIN TRAINING
       </ThemedText>
       <ThemedText type="title" testID="home-title">
@@ -618,33 +618,38 @@ export default function HomeScreen() {
       <Card variant="hero" padding="lg" testID="home-workout-cta">
         <View style={styles.heroBody}>
           <View style={styles.heroTitle}>
-            <ThemedText type="eyebrow" themeColor="accent">
-              TODAY
-            </ThemedText>
+            <View style={styles.heroEyebrowRow}>
+              <Spark size={14} color={theme.accent} />
+              <ThemedText type="eyebrow" themeColor="accent">
+                TODAY
+              </ThemedText>
+            </View>
             <ThemedText type="headline">Today&apos;s Workout</ThemedText>
             {workout.length > 0 ? (
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText type="bodySmall" themeColor="textSecondary">
                 {`Daily ${workout.length}-game plan · balanced toward your weakest domains.`}
               </ThemedText>
             ) : null}
           </View>
           {workoutStatus === "completed" ? (
-            <ThemedText
-              type="small"
-              themeColor="textSecondary"
-              testID="home-workout-complete"
-            >
-              Workout complete — come back tomorrow to train again.
-            </ThemedText>
+            <Card tone="successSoft" padding="sm">
+              <ThemedText
+                type="label"
+                themeColor="successSoftText"
+                testID="home-workout-complete"
+              >
+                Workout complete — come back tomorrow to train again.
+              </ThemedText>
+            </Card>
           ) : workout.length > 0 ? (
-            <ThemedText type="numeralLg" testID="home-workout-progress">
-              {`${workoutIndex} of ${workout.length}`}
-            </ThemedText>
-          ) : null}
-          {workoutStatus !== "completed" && workout.length > 0 ? (
-            <ThemedText type="caption" themeColor="textSecondary">
-              games done — keep going!
-            </ThemedText>
+            <View style={styles.progressRow}>
+              <ThemedText type="numeralXl" testID="home-workout-progress">
+                {`${workoutIndex} of ${workout.length}`}
+              </ThemedText>
+              <ThemedText type="bodySmall" themeColor="textSecondary">
+                games done — keep going!
+              </ThemedText>
+            </View>
           ) : null}
           {workout.length > 0 ? (
             <>
@@ -734,75 +739,99 @@ export default function HomeScreen() {
               ) : null}
             </>
           ) : (
-            <ThemedText type="small" themeColor="textSecondary">
-              Your daily 4-game training plan will appear here once games are
-              registered.
-            </ThemedText>
+            <EmptyState
+              testID="home-workout-empty"
+              icon={<Spark size={32} color={theme.accent} />}
+              title="No plan yet"
+              message="Your daily 4-game training plan will appear here once games are registered."
+            />
           )}
-        </View>
-      </Card>
 
-      </Entrance>
-
-      {/* Streak context: supporting motivation under the hero, in the
-          four-block beat (flame + count, label, 7-day strip, milestone). */}
-      <Entrance index={1}>
-      <View style={styles.streakSection}>
-        <StreakCard
-          current={currentStreak}
-          activityDates={data.activityDates}
-          coveredDates={data.coveredDates}
-          today={today}
-          atRisk={loaded && streak.atRisk}
-          milestoneLine={streakMilestoneLine}
-        />
-      </View>
-
-      </Entrance>
-
-      {/* Level/XP: tabular level numeral + coin balance in the currency
-          identity colour over an xp-toned meter. */}
-      <Entrance index={2}>
-      <Card testID="home-level-card">
-        <View style={styles.levelBody}>
-          <View style={styles.levelRow}>
-            <ThemedText type="numeralLg" themeColor="xp" testID="home-stat-level">
-              {level}
-            </ThemedText>
-            <View style={styles.levelText}>
-              <ThemedText type="label">Level {level}</ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                {`${data.totalXp} XP · ${xpToNext > 0 ? `${xpToNext} XP to Level ${level + 1}` : "Max level"}`}
+          {/* Hero metrics: streak as the identity day-dot strip and level as
+              the progression ring — inside the same dominant surface. */}
+          <View
+            style={[styles.heroDivider, { backgroundColor: theme.border }]}
+          />
+          <View style={styles.heroMetricCell} testID="home-streak-card">
+            <View style={styles.metricHeader}>
+              <ThemedText
+                type="numeralXl"
+                style={{ color: theme.streak }}
+                testID="home-stat-streak">
+                {currentStreak}
+              </ThemedText>
+              <ThemedText type="bodySmall" themeColor="textSecondary">
+                day streak
               </ThemedText>
             </View>
-            {data.balance > 0 ? (
+            <StreakStrip
+              count={currentStreak}
+              testID="home-streak-card-tracker"
+            />
+            {streakMilestoneLine ? (
+              <ThemedText
+                type="caption"
+                themeColor="textSecondary"
+                testID="home-streak-card-next-milestone">
+                {streakMilestoneLine}
+              </ThemedText>
+            ) : null}
+            {loaded && streak.atRisk ? (
               <View
-                testID="home-stat-coins"
-                accessible
-                accessibilityLabel={`${data.balance} coins`}
-                style={[
-                  styles.coinChip,
-                  { backgroundColor: theme.currencySoft },
-                ]}
-              >
-                <ThemedText type="caption" themeColor="currencySoftText">
-                  🪙 {data.balance}
+                style={[styles.atRisk, { backgroundColor: theme.warningSoft }]}
+                testID="home-streak-at-risk">
+                <ThemedText type="caption" themeColor="warningSoftText">
+                  Play today to keep your streak alive.
                 </ThemedText>
               </View>
             ) : null}
           </View>
-          <ProgressBar
-            value={levelRatio}
-            tone="xp"
-            testID="home-stat-xp"
-            accessibilityLabel={
-              xpToNext > 0
-                ? `Level ${level}, ${data.totalXp} XP total, ${xpToNext} XP to Level ${level + 1}`
-                : `Level ${level}, ${data.totalXp} XP total, max level`
-            }
-          />
+
+          <View style={styles.heroMetricCell} testID="home-level-card">
+            <View style={styles.levelRow}>
+              <ProgressRing
+                value={levelRatio}
+                tone="xp"
+                size={96}
+                label={
+                  xpToNext > 0
+                    ? `Level ${level}, ${data.totalXp} XP total, ${xpToNext} XP to Level ${level + 1}`
+                    : `Level ${level}, ${data.totalXp} XP total, max level`
+                }
+                testID="home-stat-xp">
+                <ThemedText
+                  type="numeralXl"
+                  themeColor="xp"
+                  testID="home-stat-level">
+                  {level}
+                </ThemedText>
+              </ProgressRing>
+              <View style={styles.levelText}>
+                <ThemedText type="label">{`Level ${level}`}</ThemedText>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  {`${data.totalXp} XP · ${xpToNext > 0 ? `${xpToNext} XP to Level ${level + 1}` : "Max level"}`}
+                </ThemedText>
+                {data.balance > 0 ? (
+                  <View
+                    testID="home-stat-coins"
+                    accessible
+                    accessibilityLabel={`${data.balance} coins`}
+                    style={[
+                      styles.coinChip,
+                      { backgroundColor: theme.currencySoft },
+                    ]}
+                  >
+                    <ThemedText type="caption" themeColor="currencySoftText">
+                      🪙 {data.balance}
+                    </ThemedText>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          </View>
         </View>
       </Card>
+
       </Entrance>
 
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
@@ -822,9 +851,9 @@ export default function HomeScreen() {
           gated behind a loaded db + installed catalog for visual-baseline
           stability. */}
       {loaded && hasCatalog ? (
-        <ThemedView
-          type="surface"
-          style={styles.ctaCard}
+        <Card
+          padding="lg"
+          style={styles.sectionCardGap}
           testID="home-workout-templates"
         >
           <SectionHeader
@@ -881,12 +910,12 @@ export default function HomeScreen() {
               />
             </>
           ) : (
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="bodySmall" themeColor="textSecondary">
               All of today&apos;s suggested focus workouts are already on your
               plan.
             </ThemedText>
           )}
-        </ThemedView>
+        </Card>
       ) : null}
 
       {/* Error state: recoverable read failure with an explicit retry.
@@ -957,9 +986,9 @@ export default function HomeScreen() {
       ) : null}
 
       {/* Recent games slot — task 9.6: real recent session/game data */}
-      <ThemedView
-        type="surface"
-        style={styles.recentCard}
+      <Card
+        padding="lg"
+        style={styles.sectionCardGap}
         testID="home-recent-games"
       >
         <SectionHeader
@@ -992,19 +1021,19 @@ export default function HomeScreen() {
             ))}
           </View>
         ) : (
-          <ThemedText type="small" themeColor="textSecondary">
+          <ThemedText type="bodySmall" themeColor="textSecondary">
             Your latest sessions will show up here after your first workout.
           </ThemedText>
         )}
-      </ThemedView>
+      </Card>
 
       {/* W24: compact workout-history feed over the engine's history API
           (daily + template workouts, newest first). Data-gated: hidden until
           the first workout exists, keeping first-run trees stable. */}
       {loaded && workoutHistory.length > 0 ? (
-        <ThemedView
-          type="surface"
-          style={styles.recentCard}
+        <Card
+          padding="lg"
+          style={styles.sectionCardGap}
           testID="home-workout-history"
         >
           <SectionHeader
@@ -1021,7 +1050,7 @@ export default function HomeScreen() {
               />
             ))}
           </View>
-        </ThemedView>
+        </Card>
       ) : null}
 
       <RewardCelebrationHost />
@@ -1052,39 +1081,59 @@ const styles = StyleSheet.create({
     // on-device at 0.01.
     opacity: 0.01,
   },
-  ctaCard: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
+  sectionCardGap: {
     gap: Spacing.two,
   },
   loadingBlock: {
     gap: Spacing.two,
   },
-  streakSection: {
-    gap: Spacing.two,
-  },
   heroBody: {
-    gap: Spacing.twoHalf,
+    gap: Spacing.three,
+  },
+  heroEyebrowRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.one,
   },
   heroTitle: {
     gap: Spacing.half,
   },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: Spacing.two,
+  },
   workoutList: {
     gap: Spacing.one,
   },
-  levelBody: {
+  heroDivider: {
+    height: 1,
+  },
+  heroMetricCell: {
     gap: Spacing.two,
+  },
+  metricHeader: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: Spacing.two,
+  },
+  atRisk: {
+    alignSelf: "flex-start",
+    borderRadius: Radii.medium,
+    paddingVertical: Spacing.oneHalf,
+    paddingHorizontal: Spacing.twoHalf,
   },
   levelRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.twoHalf,
+    gap: Spacing.three,
   },
   levelText: {
     flex: 1,
     gap: Spacing.half,
   },
   coinChip: {
+    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
     borderRadius: Radii.pill,
@@ -1096,11 +1145,6 @@ const styles = StyleSheet.create({
   },
   quickActions: {
     marginTop: Spacing.two,
-  },
-  recentCard: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-    gap: Spacing.two,
   },
   recentList: {
     gap: Spacing.one,

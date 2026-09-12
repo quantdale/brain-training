@@ -17,12 +17,21 @@ export default function AppTabs() {
   return (
     <NativeTabs
       backgroundColor={colors.surface}
-      indicatorColor={colors.accentSoft}
+      // Campaign 026: the active destination is a filled lozenge (accent fill,
+      // on-accent label/icon) instead of a tint-only state.
+      indicatorColor={colors.accent}
       iconColor={colors.textSecondary}
       // Every destination keeps its label: an icon-only inactive tab makes the
       // bar unreadable at a glance (campaign-024 baseline screenshot).
+      //
+      // Campaign 026 visual-QA correction: the native host renders the label
+      // BELOW the indicator pill (on the bar surface), not inside it, so the
+      // selected label must be surface-readable (`accent` text) while the icon
+      // inside the filled pill takes `accentOn` via its own `selectedColor`.
+      // Shipping `accentOn` for the label painted it white-on-surface and the
+      // active destination lost its name in both themes (native screenshot).
       labelVisibilityMode="labeled"
-      labelStyle={{ selected: { color: colors.accent }, default: { color: colors.textSecondary } }}>
+      labelStyle={{ selected: { color: colors.accentText }, default: { color: colors.textSecondary } }}>
       {TAB_DEFINITIONS.map((tab) => (
         <NativeTabs.Trigger
           key={tab.name}
@@ -30,7 +39,7 @@ export default function AppTabs() {
           testID={tab.testID}
           accessibilityLabel={tab.label}>
           <NativeTabs.Trigger.Label>{tab.label}</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf={tab.sf} md={tab.md} />
+          <NativeTabs.Trigger.Icon sf={tab.sf} md={tab.md} selectedColor={colors.accentOn} />
         </NativeTabs.Trigger>
       ))}
     </NativeTabs>

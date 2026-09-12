@@ -21,6 +21,7 @@ import { trackSessionPersist } from '@/sdk/perf';
 import type { PerfMeasure } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
 import { FeedbackCard } from '@/components/shell';
+import { Confetti } from '@/components/ui';
 import { GameButton } from '@/components/game-ui';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
 import { Motion, Spacing } from '@/constants/theme';
@@ -148,6 +149,9 @@ export function GameResults({
               },
             ],
           }}>
+          {/* Campaign 026 celebration beat: a bounded, deterministic burst
+              behind the reward card (margins only, reduced-motion collapses). */}
+          <Confetti count={14} seed={`reward-${gameId}`} height={180} />
           <FeedbackCard
             tone="success"
             emoji="🎉"

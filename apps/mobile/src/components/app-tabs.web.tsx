@@ -68,16 +68,16 @@ export function TabButton({
       accessibilityState={{ selected: isFocused }}
       style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
       <ThemedView
-        type={isFocused ? 'accentSoft' : 'backgroundElement'}
+        type={isFocused ? 'accent' : 'backgroundElement'}
         style={styles.tabButtonView}>
         <SymbolView
-          tintColor={isFocused ? theme.accent : theme.textSecondary}
+          tintColor={isFocused ? theme.accentOn : theme.textSecondary}
           name={{ ios: sf, web: symbol }}
           size={18}
         />
         <ThemedText
           type="caption"
-          themeColor={isFocused ? 'accent' : 'textSecondary'}
+          themeColor={isFocused ? 'accentOn' : 'textSecondary'}
           style={styles.tabLabel}>
           {label}
         </ThemedText>
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   tabButtonView: {
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.twoHalf,
-    borderRadius: Spacing.three,
+    borderRadius: 999,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.one,

@@ -1,9 +1,11 @@
 /**
- * Today's Spotlight card (Campaign 014 W3/W6; Campaign 024 kit rebuild): the
- * deterministic daily featured challenge. Self-contained data seam — one
- * bounded session-count read for completion state; selection itself is
- * pure/offline. Composed from the shared kit (Card + Button), so press
- * feedback, targets and tokens are inherited, not re-implemented.
+ * Today's Spotlight card (Campaign 014 W3/W6; Campaign 024 kit rebuild;
+ * Campaign 026 identity rebuild): the deterministic daily featured challenge.
+ *
+ * Self-contained data seam — one bounded session-count read for completion
+ * state; selection itself is pure/offline. The card wears the warning/amber
+ * identity (the "daily featured" beat) with a code-native spark mark, so it
+ * reads as a distinct moment rather than another library row.
  */
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
@@ -11,7 +13,8 @@ import { StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { SectionHeader } from "@/components/shell";
-import { Button, Card } from "@/components/ui";
+import { Badge, Button, Card, Spark } from "@/components/ui";
+import { useTheme } from "@/hooks/use-theme";
 import { Spacing } from "@/theme/tokens";
 import { useDbData } from "@/hooks/use-db-data";
 import { registry } from "@/registry/registry.generated";
@@ -19,6 +22,7 @@ import { dailySpotlight, localDayWindow } from "@/spotlight/spotlight";
 import { localDateString } from "@/workout/today";
 
 export function SpotlightCard() {
+  const theme = useTheme();
   const date = localDateString();
   const spotlight = useMemo(
     () => dailySpotlight(registry.map((g) => g.id), date),
@@ -50,26 +54,32 @@ export function SpotlightCard() {
   return (
     <View style={styles.section} testID="home-spotlight">
       <SectionHeader title="Today's Spotlight" />
-      <Card>
+      <Card tone="warningSoft">
         <View style={styles.body}>
-          <ThemedText type="smallBold" testID="home-spotlight-game">
+          <View style={styles.metaRow}>
+            <Spark size={20} color={theme.warning} />
+            <ThemedText
+              type="eyebrow"
+              themeColor="warningSoftText"
+              allowFontScaling={false}>
+              DAILY CHALLENGE
+            </ThemedText>
+          </View>
+          <ThemedText type="headline" testID="home-spotlight-game">
             {game?.name ?? spotlight.gameId}
           </ThemedText>
           <ThemedText
-            type="small"
-            themeColor="textSecondary"
-            testID="home-spotlight-difficulty"
-          >
+            type="bodySmall"
+            themeColor="warningSoftText"
+            testID="home-spotlight-difficulty">
             Featured difficulty: {spotlight.difficulty}
           </ThemedText>
           {done ? (
-            <ThemedText
-              type="smallBold"
-              themeColor="accent"
+            <Badge
+              label="Completed today ✓"
+              tone="success"
               testID="home-spotlight-done"
-            >
-              Completed today ✓
-            </ThemedText>
+            />
           ) : (
             <Button
               variant="secondary"
@@ -93,6 +103,11 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   body: {
-    gap: Spacing.oneHalf,
+    gap: Spacing.two,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
   },
 });

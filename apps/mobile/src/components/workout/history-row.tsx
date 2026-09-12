@@ -1,20 +1,22 @@
 /**
  * WorkoutHistoryRow — one compact recent-workout row (campaign 010 / W24,
- * extended campaign 012 / W07).
+ * extended campaign 012 / W07; campaign 026 identity).
  *
  * Renders a `WorkoutCompletionSummary` from the engine's history API
- * (`useWorkoutTemplates.history`) as a single non-interactive row: workout
- * name (with its length variant for template workouts, so "Math Focus · Short"
- * and "Math Focus · Extended" read as distinct sessions), relative day,
- * progress, and XP. The clock is injected (`nowMs`) so the relative-day label
- * stays deterministic under test.
+ * (`useWorkoutTemplates.history`) as a single non-interactive row: a
+ * status mark (done / in progress), workout name (with its length variant for
+ * template workouts, so "Math Focus · Short" and "Math Focus · Extended" read
+ * as distinct sessions), relative day, progress, and XP in the XP identity
+ * colour. The clock is injected (`nowMs`) so the relative-day label stays
+ * deterministic under test.
  */
 
 import { StyleSheet, View } from 'react-native';
 
 import { formatRelativeDay } from '@/components/shell/format';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Spacing, MinTouchTarget, type ThemeColor } from '@/theme/tokens';
 import { parseInstanceKey } from '@/workout/metadata';
 import type { WorkoutCompletionSummary } from '@/workout/summary';
 import { getWorkoutTemplate, WORKOUT_LENGTHS } from '@/workout/templates';
@@ -30,6 +32,7 @@ export function WorkoutHistoryRow({
   nowMs: number;
   testID?: string;
 }) {
+  const theme = useTheme();
   const parsed = parseInstanceKey(summary.key);
   const baseName =
     (parsed.templateId ? getWorkoutTemplate(parsed.templateId)?.name : null) ??
@@ -51,14 +54,30 @@ export function WorkoutHistoryRow({
     summary.status === 'completed'
       ? `${summary.completedGames}/${summary.totalGames} games`
       : `${summary.completedGames}/${summary.totalGames} games · In progress`;
+  const done = summary.status === 'completed';
+  const markSoft: ThemeColor = done ? 'successSoft' : 'warningSoft';
+  const markText = done ? 'successSoftText' : 'warningSoftText';
 
   return (
     <View
       style={styles.row}
       testID={testID}
       accessibilityLabel={`${name}, ${dayLabel}, ${progressLabel}, plus ${summary.totalXp} XP`}>
+      {/* Status mark: colour + glyph together, so the state never relies on
+          hue alone. Decorative — the row's accessible name carries the state. */}
+      <View
+        style={[styles.mark, { backgroundColor: theme[markSoft] }]}
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden>
+        <ThemedText type="label" style={{ color: theme[markText] }} allowFontScaling={false}>
+          {done ? '✓' : '▶'}
+        </ThemedText>
+      </View>
       <View style={styles.text}>
-        <ThemedText type="small" testID={testID ? `${testID}-name` : undefined}>
+        <ThemedText
+          type="body"
+          numberOfLines={1}
+          testID={testID ? `${testID}-name` : undefined}>
           {name}
         </ThemedText>
         <ThemedText
@@ -68,7 +87,10 @@ export function WorkoutHistoryRow({
           {dayLabel} · {progressLabel}
         </ThemedText>
       </View>
-      <ThemedText type="smallBold" testID={testID ? `${testID}-xp` : undefined}>
+      <ThemedText
+        type="label"
+        themeColor="xp"
+        testID={testID ? `${testID}-xp` : undefined}>
         +{summary.totalXp} XP
       </ThemedText>
     </View>
@@ -80,7 +102,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: Spacing.two,
+    gap: Spacing.twoHalf,
+    minHeight: MinTouchTarget,
+  },
+  mark: {
+    width: 32,
+    height: 32,
+    borderRadius: Spacing.four,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     flex: 1,

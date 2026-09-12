@@ -87,7 +87,9 @@ export function A11yDialog({
   }
 
   return (
-    <View style={styles.scrim} testID={testID ? `${testID}-scrim` : undefined}>
+    <View
+      style={[styles.scrim, { backgroundColor: theme.scrim }]}
+      testID={testID ? `${testID}-scrim` : undefined}>
       {/* Scrim swallows outside touches (modal); tapping it dismisses when
           the dialog is dismissable. Sits under the card in z-order. */}
       <Pressable
@@ -134,7 +136,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing.four,

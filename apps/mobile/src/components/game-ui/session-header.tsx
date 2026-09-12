@@ -71,7 +71,7 @@ export function SessionHeader({
         <View style={styles.progress}>
           <ProgressBar
             value={Math.min(progress.value / progress.total, 1)}
-            height={6}
+            height={8}
             testID="session-progress"
             accessibilityLabel={`${progress.value} of ${progress.total} rounds complete`}
           />

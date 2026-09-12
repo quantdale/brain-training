@@ -27,6 +27,9 @@ export { EmptyState, type EmptyStateProps } from './empty-state';
 export { Skeleton, SkeletonText, type SkeletonProps } from './skeleton';
 export { Avatar, type AvatarProps, type AvatarSize } from './avatar';
 export { TextField, type TextFieldProps } from './text-field';
+export { Spark, type SparkProps } from './spark';
+export { Confetti, CONFETTI_COLORS, type ConfettiProps } from './confetti';
+export { StreakStrip, type StreakStripProps } from './streak-strip';
 export {
   ToastHost,
   showToast,

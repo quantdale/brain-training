@@ -1,160 +1,107 @@
-# Design System
+# Design System — "Neon Arcade" (v3, Campaign 026)
 
-Single reference for the app's visual language, the shared UI kit, and the
-rules screens follow. Tokens live in `apps/mobile/src/theme/tokens.ts`; the kit
-lives in `apps/mobile/src/components/ui/`. Both are authoritative — a screen
-that hardcodes a colour, a size or an animation duration is out of contract.
+This document describes the visual language shipped by Campaign 026. It
+supersedes the Campaign 024 "Playful Precision" system (calm blue-indigo on
+near-white), which the owner rejected as visually generic. Tokens live in
+`apps/mobile/src/theme/tokens.ts`; the palette is contrast-verified by
+`theme/__tests__/contrast.test.ts`.
 
-Campaign 024 rebuilt this layer ("Playful Precision": clarity first like
-Elevate, energy second like Duolingo/Brilliant). The reference research behind
-the choices is committed at
-`openspec/changes/024-frontend-ux-modernization/research/`.
+## 1. Visual thesis
 
-## 1. Colour
+**Playful precision.** A candy-bright arcade shell — warm paper in light mode,
+deep plum ink in dark mode — wrapped around calm, high-contrast focus boards.
+The shell is loud and generous (vermillion actions, volt rewards, violet
+progression, chunky radii, heavy display type); the play surface stays quiet so
+stimuli and verdicts own the screen. Celebration is physical and staged, never
+decorative noise.
 
-Every family exposes five slots, so callers pick a slot instead of guessing
-contrast:
+## 2. Colour
 
-| Slot | Use | Contract |
+Every family exposes five slots, and both semantic families and domain
+identities are flattened into the theme key space (e.g. `theme.memory`,
+`theme.memorySoft`, `theme.memoryText`):
+
+| Slot | Role | Floor |
 |---|---|---|
-| `base` | filled surfaces: buttons, chart fills, badges | ≥3:1 vs `surface` |
-| `text` | the family used as text on `surface`/`background` | ≥4.5:1 |
-| `soft` | tinted background: cards, chips, rows | — |
-| `softText` | text drawn on `soft` | ≥4.5:1 vs `soft` |
-| `on` | text or glyph drawn on `base` | ≥4.5:1 vs `base` |
+| `base` | filled surfaces (buttons, chart fills, badges) | 3:1 vs surface |
+| `text` | the family as text on surface/background | 4.5:1 |
+| `soft` | tinted background for cards/chips/rows | — |
+| `softText` | text drawn on `soft` | 4.5:1 |
+| `on` | text/glyph drawn on `base` | 4.5:1 |
 
-Families: `accent`, `success`, `warning`, `danger`, `info`, `streak`, `xp`,
-`currency`, plus eight domain identities in `DomainColors` (memory, attention,
-speed, math, language, logic, flexibility, spatial).
+- **Light "paper arcade":** cream background `#FFF8EF`, white cards, warm
+  borders, near-black ink text.
+- **Dark "ink arcade":** deep plum `#14102A`, raised surfaces `#1E1838`/`#251E44`,
+  warm off-white text, luminous family fills with dark `on` colours.
+- **Primary action:** vermillion (`#D6402A` light / `#FF8A73` dark) — CTAs,
+  links, active tab lozenge. Pressed state uses `accentStrong`.
+- **Metric identities (fixed, never reassigned):** XP violet, streak orange,
+  currency amber, time blue, accuracy green, score accent.
+- **Domain identities (8):** attention orange, flexibility violet, language
+  sky, logic teal, math blue, memory pink, spatial green, speed yellow. Every
+  category surface (library, charts, mastery, game intro) uses the same hue.
 
-Rules:
+## 3. Typography
 
-- **Metric identity is fixed.** XP is always violet, streak orange, time sky,
-  accuracy green, currency teal, score accent (`METRIC_COLOR_KEYS`). A screen
-  may own a *domain* colour; it may not re-hue a shared metric.
-- **Dark mode inverts the fill strategy.** Dark fills are luminous and carry
-  dark text (`*On` = near-black); light fills carry white text. Never hand-pick
-  the on-colour — read the slot.
-- **No literals.** `theme/__tests__` enforces this over screens and components.
-  `border` is a decorative hairline; use `borderStrong` (≥3:1) when the border
-  is the only affordance (inputs, toggles).
+System stack with heavier display weights and tabular numerals for every
+metric. Scale: eyebrow 11 (uppercase, tracking 1) · caption 12 · label 13/700 ·
+bodySmall 14 · body 16 · bodyLarge 17/600 · headline 24/800 · title 30/800 ·
+display 38/900 · numeral 20/800 · numeralLg 30/900 · numeralXl 44/900. All
+numeral styles are tabular so counters never reflow.
 
-`theme/contrast.ts` computes WCAG ratios and
-`theme/__tests__/contrast.test.ts` asserts every pairing in both schemes.
+## 4. Geometry, elevation and the button lip
 
-## 2. Typography
-
-`Typography` steps (size / line-height / weight, with tracking and tabular
-figures where relevant): `eyebrow`, `caption`, `label`, `bodySmall`, `body`,
-`bodyLarge`, `headline`, `title`, `display`, `numeral`, `numeralLg`,
-`numeralXl`.
-
-Use `ThemedText type="…"`; no raw `fontSize` in screens.
-
-- One display/hero style per screen (the hero metric).
-- `numeral*` styles are tabular: animated counters cannot reflow layout.
-- Dynamic type is capped per role (`components/a11y/font-scale.ts`): reading
-  copy scales to 2.0, headings 1.6, hero 1.4; board glyphs opt out with
-  `allowFontScaling={false}`. Layouts must wrap, not clamp.
-
-## 3. Spacing, shape, elevation
-
-- `Spacing` (4 dp base): `half 2`, `one 4`, `oneHalf 6`, `two 8`, `twoHalf 12`,
-  `three 16`, `threeHalf 20`, `four 24`, `five 32`, `six 64`.
-- `Radii`: `extraSmall 6`, `small 8`, `medium 12`, `large 20` (cards),
-  `extraLarge 28` (hero cards), `pill`.
-- `Elevation` is a monotonic ramp: `none`/`flat` (grouped content), `card`
-  (default), `raised` (one per region), `hero` (the screen's hero),
-  `overlay` (modals). Two adjacent surfaces must not both be `raised`.
-
-No ad-hoc values: a new need means a new token, or an existing one.
-
-## 4. UI kit (`@/components/ui`)
-
-| Primitive | Purpose |
-|---|---|
-| `Tappable` | the pressable contract: press scale, sensory-gated haptics, ≥44 dp target, default button role |
-| `Button` | variants `primary`/`secondary`/`ghost`/`danger`/`success`; sizes `sm`/`md`/`lg`; loading/disabled blocking; dual-line CTA (`label` + `sublabel`) |
-| `Card` | roles `plain`/`outlined`/`raised`/`hero` + `tone` tint; pressable variant |
-| `SectionGrid` | 1→2→3 column adaptive section flow |
-| `ProgressBar`, `ProgressRing`, `AnimatedNumber`, `StatBlock` | meters, hero rings, count-ups, metric blocks |
-| `Chip`, `Badge`, `ListRow`, `EmptyState`, `Skeleton`, `Avatar` | library, lists, loading and empty states |
-| `TextField`, `SegmentedControl`, `IconButton`, `ScreenHeader` | input and navigation chrome |
-| `Toast`/`ToastHost` | non-blocking confirmations |
-
-Kit invariants (enforced by `components/ui/__tests__/kit-contract.test.tsx`):
-
-- disabled/loading blocks the action,
-- every control has a role and a non-empty accessible name,
-- every control reaches 44×44 dp (layout or `hitSlop`),
-- press feedback never delays `onPress`, and collapses under reduced motion.
-
-Game chrome adapts the same primitives: `GameButton` is a thin adapter over
-`Button`, so games inherit the contract without per-game copies.
+Radii: extraSmall 8 · small 10 · medium 16 · large 22 · extraLarge 30 · pill.
+Cards carry a 1.5–2 px border in light mode; separation in dark mode comes from
+value, not shadow. Filled buttons carry a darker 4 dp bottom lip so the primary
+action reads as a physical key; the press spring compresses it. Elevation stays
+a monotonic ramp (`flat → card → raised → hero → overlay`) with warm shadows in
+light mode.
 
 ## 5. Motion
 
-Durations (`Motion`): `press 90`, `quick 140`, `base 200`, `entrance 260`,
-`hero 320`, `celebration 650`, `stagger 60`, `travel 12`. Springs (`Springs`):
-`press`, `progress`, `hero`.
+`Motion`: press 90 · quick 140 · base 220 · entrance 280 · hero 340 ·
+celebration 700 · stagger 60 · travel 14. Springs: `press` snappy, `progress`
+settling, `hero` soft. Entrance transitions stagger by index. Every decorative
+animation collapses under reduced motion (`usePrefersReducedMotion`), including
+confetti, which renders no pieces when motion is reduced.
 
-Rules:
+## 6. Kit (`@/components/ui`)
 
-- Motion is feedback, never decoration that delays input.
-- Every animation is interruptible and bounded; celebrations ≤1.5 s and never
-  cover text or controls.
-- Reduced motion collapses to the end state (`usePrefersReducedMotion`).
-- Celebrations are earned: personal best, level-up, streak milestone, perfect
-  score. Routine completions get the quiet completion treatment.
+`Tappable`, `Button` (lip), `IconButton`, `Card` (plain/outlined/raised/hero,
+family `tone`), `SectionGrid`, `BackLink`, `Entrance`, `Chip`, `Badge`,
+`ListRow`, `EmptyState`, `Skeleton`, `Avatar`, `TextField`, `ToastHost`,
+`ProgressBar`, `ProgressRing`, `AnimatedNumber`, `StatBlock`, `ScreenHeader`,
+`SegmentedControl`, plus identity primitives `Spark` (mark), `Confetti`
+(deterministic, margins-only, reduced-motion aware) and `StreakStrip` (day dots
++ count pill). The kit owns press feedback, haptics, 44 dp floors, token
+discipline and accessibility defaults.
 
-## 6. Layout and responsiveness
+## 7. Composition rules
 
-`Breakpoints`: compact <480, medium 480–767, expanded ≥768. Consumed through
-`@/platform/layout`: `useLayoutTier`, `useScreenGutter`, `useGridColumns`,
-`useContentMaxWidth`, `useAdaptiveValue`, plus the single-purpose
-`useIsCompactWidth`/`useIsWideWidth`/`useClampedContentWidth`/`useWindowWidth`.
+- One hero per screen; one primary action per viewport.
+- Section headers read "title left + action right" ("See all").
+- Streak is a day-dot strip + count pill, never a text row.
+- Achievement states are three distinct treatments: claimable (action button),
+  in-progress (meter), locked (desaturated badge).
+- Empty states are designed: mark → headline → one line → bottom-anchored CTA.
+- Results are celebration-first: outcome headline + hero metric, then equal
+  metric columns, then one CTA; celebration is a separate beat, never merged
+  into the CTA row.
+- Tab bar: filled lozenge active state, labels always visible, five
+  destinations max.
 
-- `expanded` may split sections into two columns and grids into more columns.
-- Content width: 800 dp phone-first, 960 dp wide; always centered.
-- Content clears the status bar, tab bar, keyboard and gesture bar at every
-  orientation; the last row of a scrollable surface is fully reachable.
+## 8. Accessibility
 
-The layout API must not rot: a sweep test fails when a declared hook has no
-consumer (pending hooks are tracked in `theme/__tests__/responsive-consumers.ts`).
-
-## 7. Accessibility
-
-- Contrast: AA everywhere, asserted by test (see §1).
-- Every interactive element: role + accessible name + state where applicable.
-- Charts and visual encodings expose a textual summary via `accessibilityLabel`.
-- Modals isolate the accessibility tree and announce on open; decorative art is
-  hidden (`importantForAccessibility="no-hide-descendants"`).
-- Haptics/sound always route through the sensory service so the global toggles
-  and reduced-motion preference are honoured.
-
-## 8. Surface hierarchy
-
-One hero and one primary action per surface:
-
-| Surface | Hero | Primary action |
-|---|---|---|
-| Home | daily-workout goal (ring + streak strip) | Start/Continue workout |
-| Games | featured/recommended card + library | Open game |
-| Game detail | mastery ring + personal best | Play |
-| Progress | composite hero (ring + trend) | Drill into domain |
-| Results | score hero + reward | Play again |
-| Rewards | claimable count hero | Claim |
-| Profile | identity hero (avatar + level + XP) | Equip/claim |
-| Data management | storage summary | Export |
-| Game intro | game name + category eyebrow | Start |
-| Game session | round/timer/score HUD | Answer |
-| Game results | celebration + metric row | Play again |
+Contrast: WCAG AA (4.5:1 body, 3:1 large/UI) asserted for every semantic and
+domain pairing in both schemes. Interactive targets ≥ 44×44 dp. Reduced motion
+and font-scale-2 remain first-class and are exercised by the kit contract tests
+and native capture profiles.
 
 ## 9. Adding to the system
 
-1. Prefer an existing token/primitive; if none fits, extend the token layer
-   first and the kit second — never a screen-local variant.
-2. Any new colour pairing needs a contrast test entry (both schemes).
-3. Any new interactive element inherits `Tappable`; do not re-implement press
-   physics, haptics or target sizing.
-4. Update this document when a contract (not a value) changes.
+Add tokens in `theme/tokens.ts` (both schemes), assert new pairings in the
+contrast test, and compose screens from kit primitives + tokens only —
+hardcoded colours or one-off controls are defects. Gameplay, scoring,
+generators, persistence and every existing testID are outside the design
+system's ownership: restyle the skin, never the mechanics.

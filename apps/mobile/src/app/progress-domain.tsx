@@ -42,6 +42,7 @@ import { ThemedText } from '@/components/themed-text';
 import { MiniBarChart, HeatmapRow } from '@/components/progress-charts';
 import {
   BackLink,
+  Badge,
   Card,
   EmptyState,
   ListRow,
@@ -49,11 +50,15 @@ import {
   SegmentedControl,
   Skeleton,
   SkeletonText,
+  Spark,
+  StatBlock,
   Tappable,
 } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
+import { DomainColors, Radii, Spacing, type ColorFamily, type DomainName } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord, RatingHistoryEntry } from '@/db';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
+import { useTheme } from '@/hooks/use-theme';
 import { getGameDefinition } from '@/registry/registry';
 import {
   directionArrow,
@@ -61,6 +66,7 @@ import {
   formatMs,
   formatPercent,
   formatSigned,
+  plural,
 } from '@/analytics/format';
 
 const EMPTY: ProgressSnapshot = {
@@ -92,6 +98,8 @@ function sessionsForDomain(
 }
 
 export default function ProgressDomainScreen() {
+  const theme = useTheme();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const params = useLocalSearchParams<{ domain?: string }>();
   const domain = typeof params.domain === 'string' ? params.domain : '';
 
@@ -141,33 +149,29 @@ export default function ProgressDomainScreen() {
     return list[0];
   }, [data.ratings, data.ratingHistory, nowMs, windowKey, domain]);
 
-  const historySeries = useMemo(
+  const historyPoints = useMemo(
     () =>
       data.ratingHistory
         .filter((h: RatingHistoryEntry) => h.domain === domain)
         .slice()
         .sort((a, b) => a.createdAt - b.createdAt)
-        .map((h) => h.ratingAfter),
+        .map((h) => ({ t: h.createdAt, value: h.ratingAfter })),
     [data.ratingHistory, domain],
   );
 
   // Prefer the in-window slice for the trend; fall back to all-time when the
   // window holds fewer than two updates (a single point has no shape).
-  const windowHistoryValues = useMemo(
-    () =>
-      data.ratingHistory
-        .filter((h: RatingHistoryEntry) => h.domain === domain)
-        .slice()
-        .sort((a, b) => a.createdAt - b.createdAt)
-        .filter((h) => isWithinWindow(h.createdAt, nowMs, windowKey))
-        .map((h) => h.ratingAfter),
-    [data.ratingHistory, domain, nowMs, windowKey],
+  const windowHistoryPoints = useMemo(
+    () => historyPoints.filter((p) => isWithinWindow(p.t, nowMs, windowKey)),
+    [historyPoints, nowMs, windowKey],
   );
-  const chartValues = windowHistoryValues.length >= 2 ? windowHistoryValues : historySeries;
+  const chartPoints = windowHistoryPoints.length >= 2 ? windowHistoryPoints : historyPoints;
+  const chartValues = chartPoints.map((p) => p.value);
+  const chartLabels = sparsePointLabels(chartPoints);
   const chartCaption =
-    windowHistoryValues.length >= 2
-      ? `${windowHistoryValues.length} rating updates in this window.`
-      : `${historySeries.length} recorded updates — all-time shown (fewer than 2 in this window).`;
+    windowHistoryPoints.length >= 2
+      ? `${windowHistoryPoints.length} rating updates in this window.`
+      : `${historyPoints.length} recorded updates — all-time shown (fewer than 2 in this window).`;
 
   const calendarDays = windowKey === 'all' ? 84 : (WINDOW_DAYS[windowKey] ?? 84);
   const calendar = useMemo(
@@ -186,19 +190,10 @@ export default function ProgressDomainScreen() {
   // V2: statistical summary of the domain's rating series — in-window when the
   // window holds at least two updates, all-time otherwise (same fallback the
   // chart above uses).
-  const ratingPoints = useMemo(
-    () =>
-      data.ratingHistory
-        .filter((h: RatingHistoryEntry) => h.domain === domain)
-        .slice()
-        .sort((a, b) => a.createdAt - b.createdAt)
-        .map((h) => ({ t: h.createdAt, value: h.ratingAfter })),
-    [data.ratingHistory, domain],
-  );
   const trendSummary = useMemo(() => {
-    const inWindow = ratingPoints.filter((p) => isWithinWindow(p.t, nowMs, windowKey));
-    return summarizePointTrend(inWindow.length >= 2 ? inWindow : ratingPoints);
-  }, [ratingPoints, nowMs, windowKey]);
+    const inWindow = historyPoints.filter((p) => isWithinWindow(p.t, nowMs, windowKey));
+    return summarizePointTrend(inWindow.length >= 2 ? inWindow : historyPoints);
+  }, [historyPoints, nowMs, windowKey]);
 
   // V2: metric trends over this domain's own sessions (only when stored).
   const accuracyTrend = useMemo(() => buildAccuracyTrend(domainSessions), [domainSessions]);
@@ -229,17 +224,27 @@ export default function ProgressDomainScreen() {
   }
 
   const unseen = insight?.status === 'unseen';
+  const key = domainKeyFor(domain);
+  const family = key ? DomainColors[scheme][key] : null;
+  const identityText = family ? family.softText : theme.textSecondary;
 
   return (
     <ScreenShell>
       <BackLink testID="progress-domain-back" onPress={() => router.back()} />
 
-      <ThemedText type="title" testID="progress-domain-title">
-        {domain}
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        Rating history and contributing games.
-      </ThemedText>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <View
+            style={[styles.domainDot, { backgroundColor: family ? family.base : theme.accent }]}
+          />
+          <ThemedText type="title" testID="progress-domain-title">
+            {domain}
+          </ThemedText>
+        </View>
+        <ThemedText type="small" themeColor="textSecondary">
+          Rating history and contributing games.
+        </ThemedText>
+      </View>
 
       <SegmentedControl
         testID="progress-domain-window"
@@ -268,24 +273,54 @@ export default function ProgressDomainScreen() {
       ) : (
         <>
       {unseen ? (
-        <Card>
+        <Card
+          variant="outlined"
+          style={{
+            backgroundColor: family ? family.soft : theme.surfaceSunken,
+            borderColor: family ? family.base : theme.border,
+          }}>
           <EmptyState
+            icon={
+              <Spark
+                size={36}
+                color={family ? family.base : theme.accent}
+                coreColor={theme.surface}
+              />
+            }
             title="Not trained yet"
             message={`No ${domain} sessions yet.`}
             actionLabel={`Find a ${domain} game`}
             onAction={() => router.push('/games')}
+            actionVariant="primary"
             testID="progress-domain-unseen"
           />
-          <ThemedText type="caption" themeColor="textSecondary">
+          <ThemedText type="caption" style={{ color: identityText }}>
             This domain contributes the starting rating ({insight?.rating ?? 1000}) to
             your overall composite until you train it.
           </ThemedText>
         </Card>
       ) : (
-        <Card testID="progress-domain-summary">
-          <ThemedText type="subtitle">Rating</ThemedText>
+        <Card
+          testID="progress-domain-summary"
+          variant="outlined"
+          style={{
+            backgroundColor: family ? family.soft : theme.surface,
+            borderColor: family ? family.base : theme.border,
+          }}>
+          <View style={styles.cardHeader}>
+            <ThemedText type="eyebrow" style={{ color: identityText }}>
+              Current rating
+            </ThemedText>
+            <Badge
+              label={insight?.status === 'stale' ? 'Stale' : 'Fresh'}
+              tone={insight?.status === 'stale' ? 'warning' : 'success'}
+              size="sm"
+            />
+          </View>
           <View style={styles.ratingRow}>
-            <ThemedText type="display" themeColor="accent">
+            <ThemedText
+              type="numeralXl"
+              style={{ color: family ? family.softText : theme.accent }}>
               {insight?.rating ?? '—'}
             </ThemedText>
             {insight && insight.windowMovement !== 0 ? (
@@ -296,7 +331,7 @@ export default function ProgressDomainScreen() {
               </ThemedText>
             ) : null}
           </View>
-          <ThemedText type="caption" themeColor="textSecondary">
+          <ThemedText type="caption" style={{ color: identityText }}>
             {insight?.status === 'stale'
               ? `Stale — last trained ${insight.daysSinceUpdate} days ago.`
               : `Fresh — trained ${insight?.daysSinceUpdate} days ago.`}{' '}
@@ -305,7 +340,7 @@ export default function ProgressDomainScreen() {
           {insight?.bestRating !== null ? (
             <ThemedText
               type="caption"
-              themeColor="textSecondary"
+              style={{ color: identityText }}
               testID="progress-domain-best">
               Personal best {insight.bestRating}
               {insight.bestRatingAt !== null ? ` · set ${formatDayLabel(insight.bestRatingAt)}` : ''}
@@ -330,10 +365,11 @@ export default function ProgressDomainScreen() {
 
       <SectionGrid>
       <Card testID="progress-domain-history">
-        <ThemedText type="subtitle">Rating over time</ThemedText>
+        <DomainHeading label="Rating over time" family={family} />
         <MiniBarChart
           values={chartValues}
           testID="progress-domain-history-chart"
+          labels={chartLabels}
           emptyLabel="No rating updates in this window"
           summary={
             chartValues.length === 0
@@ -348,8 +384,8 @@ export default function ProgressDomainScreen() {
 
       {trendSummary.count >= 2 ? (
         <Card testID="progress-domain-trend">
-          <View style={styles.row}>
-            <ThemedText type="subtitle">Trend summary</ThemedText>
+          <View style={styles.cardHeader}>
+            <DomainHeading label="Trend summary" family={family} />
             {domainTrendImproved !== null ? (
               <ThemedText
                 type="smallBold"
@@ -361,10 +397,7 @@ export default function ProgressDomainScreen() {
             ) : null}
           </View>
           <View style={styles.summaryRow}>
-            <DomainStat
-              label="Updates in series"
-              value={String(trendSummary.count)}
-            />
+            <DomainStat label="Updates in series" value={String(trendSummary.count)} />
             <DomainStat
               label="Consistency"
               value={
@@ -393,7 +426,7 @@ export default function ProgressDomainScreen() {
       {accuracyTrend.available ? (
         <Card testID="progress-domain-accuracy">
           <View style={styles.cardHeader}>
-            <ThemedText type="subtitle">Accuracy over time</ThemedText>
+            <DomainHeading label="Accuracy over time" family={family} />
             <ThemedText type="smallBold">
               {accuracyTrend.recentMean === null
                 ? '—'
@@ -405,10 +438,11 @@ export default function ProgressDomainScreen() {
             values={accuracyTrend.series.map((p) => p.value)}
             testID="progress-domain-accuracy-chart"
             tone="success"
+            labels={sparsePointLabels(accuracyTrend.series)}
             summary={
               accuracyTrend.recentMean === null
                 ? 'Accuracy trend with no recent average yet.'
-                : `Accuracy trend across ${accuracyTrend.series.length} sessions, recent average ${formatPercent(accuracyTrend.recentMean)}.`
+                : `Accuracy trend across ${plural(accuracyTrend.series.length, 'session')}, recent average ${formatPercent(accuracyTrend.recentMean)}.`
             }
           />
           <ThemedText type="caption" themeColor="textSecondary">
@@ -420,7 +454,7 @@ export default function ProgressDomainScreen() {
       {reactionTrend.available ? (
         <Card testID="progress-domain-reaction">
           <View style={styles.cardHeader}>
-            <ThemedText type="subtitle">Reaction time (lower is better)</ThemedText>
+            <DomainHeading label="Reaction time (lower is better)" family={family} />
             <ThemedText type="smallBold">
               {reactionTrend.recentMean === null ? '—' : formatMs(reactionTrend.recentMean)} recent
             </ThemedText>
@@ -429,10 +463,11 @@ export default function ProgressDomainScreen() {
             values={reactionTrend.series.map((p) => p.value)}
             testID="progress-domain-reaction-chart"
             tone="info"
+            labels={sparsePointLabels(reactionTrend.series)}
             summary={
               reactionTrend.recentMean === null
                 ? 'Reaction trend with no recent average yet.'
-                : `Reaction-time trend across ${reactionTrend.series.length} sessions, recent average ${formatMs(reactionTrend.recentMean)}. Lower is better.`
+                : `Reaction-time trend across ${plural(reactionTrend.series.length, 'session')}, recent average ${formatMs(reactionTrend.recentMean)}. Lower is better.`
             }
           />
           <ThemedText type="caption" themeColor="textSecondary">
@@ -444,11 +479,12 @@ export default function ProgressDomainScreen() {
 
       {difficultyTrend.available ? (
         <Card testID="progress-domain-difficulty">
-          <ThemedText type="subtitle">Difficulty attempted</ThemedText>
+          <DomainHeading label="Difficulty attempted" family={family} />
           <MiniBarChart
             values={difficultyTrend.series.map((p) => p.value)}
             testID="progress-domain-difficulty-chart"
-            summary={`Difficulty attempted across ${difficultyTrend.series.length} sessions, first ${formatPercent(difficultyTrend.first ?? 0)}, latest ${formatPercent(difficultyTrend.latest ?? 0)}, peak ${formatPercent(difficultyTrend.peak ?? 0)}.`}
+            labels={sparsePointLabels(difficultyTrend.series)}
+            summary={`Difficulty attempted across ${plural(difficultyTrend.series.length, 'session')}, first ${formatPercent(difficultyTrend.first ?? 0)}, latest ${formatPercent(difficultyTrend.latest ?? 0)}, peak ${formatPercent(difficultyTrend.peak ?? 0)}.`}
           />
           <ThemedText type="caption" themeColor="textSecondary">
             First {formatPercent(difficultyTrend.first ?? 0)} → latest{' '}
@@ -460,7 +496,7 @@ export default function ProgressDomainScreen() {
       ) : null}
 
       <Card testID="progress-domain-activity">
-        <ThemedText type="subtitle">Activity</ThemedText>
+        <DomainHeading label="Activity" family={family} />
         <ThemedText type="caption" themeColor="textSecondary">
           {calendar.days.length > 0
             ? `${formatDayLabel(Date.parse(`${calendar.days[0].dateKey}T00:00:00Z`))} – ${formatDayLabel(Date.parse(`${calendar.days[calendar.days.length - 1].dateKey}T00:00:00Z`))}`
@@ -493,7 +529,7 @@ export default function ProgressDomainScreen() {
       </Card>
 
       <Card testID="progress-domain-games">
-        <ThemedText type="subtitle">Games in this domain</ThemedText>
+        <DomainHeading label="Games in this domain" family={family} />
         {byGame.length > 0 ? (
           <View style={styles.rows}>
             {byGame.map(([gameId, count]) => {
@@ -518,7 +554,7 @@ export default function ProgressDomainScreen() {
       </Card>
 
       <Card testID="progress-domain-recent">
-        <ThemedText type="subtitle">Recent sessions</ThemedText>
+        <DomainHeading label="Recent sessions" family={family} />
         {domainSessions.length > 0 ? (
           <View style={styles.rows}>
             {domainSessions.slice(0, 10).map((s) => (
@@ -544,27 +580,87 @@ export default function ProgressDomainScreen() {
   );
 }
 
-/** Small labeled stat used in the domain summary row. */
-function DomainStat({ label, value }: { label: string; value: string }) {
+/** Domain identity key for a display domain name (folds display casing and the long logic label). */
+function domainKeyFor(domain: string): DomainName | null {
+  const normalized = domain.trim().toLowerCase();
+  if (normalized.startsWith('logic')) return 'logic';
+  return normalized in DomainColors.light ? (normalized as DomainName) : null;
+}
+
+/** Sparse date labels (first/middle/last) so trend bars carry axis context without clutter. */
+function sparsePointLabels(points: readonly { t: number }[]): string[] {
+  const count = points.length;
+  if (count === 0) return [];
+  const middle = Math.floor((count - 1) / 2);
+  return points.map((point, index) =>
+    index === 0 || index === count - 1 || (count > 4 && index === middle)
+      ? formatDayLabel(point.t)
+      : '',
+  );
+}
+
+/**
+ * Domain section heading: a small domain-hued bar plus the title in the
+ * domain text slot, so every card on this screen carries the identity of the
+ * domain being drilled into (colour is never the only signal — the title
+ * already names it).
+ */
+function DomainHeading({ label, family }: { label: string; family: ColorFamily | null }) {
+  const theme = useTheme();
   return (
-    <View style={styles.stat}>
-      <ThemedText type="smallBold">{value}</ThemedText>
-      <ThemedText type="caption" themeColor="textSecondary">
+    <View style={styles.headingRow}>
+      <View
+        style={[styles.headingBar, { backgroundColor: family ? family.base : theme.accent }]}
+      />
+      <ThemedText type="subtitle" style={family ? { color: family.text } : undefined}>
         {label}
       </ThemedText>
     </View>
   );
 }
 
+/** Small labeled stat used in the domain summary row. */
+function DomainStat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.stat}>
+      <StatBlock label={label} value={value} valueType="numeral" />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  header: {
+    gap: Spacing.one,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  domainDot: {
+    width: Spacing.three,
+    height: Spacing.three,
+    borderRadius: Radii.pill,
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.two,
+  },
+  headingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  headingBar: {
+    width: Spacing.one,
+    height: Spacing.three,
+    borderRadius: Radii.pill,
   },
   ratingRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
     gap: Spacing.three,
   },
   summaryRow: {

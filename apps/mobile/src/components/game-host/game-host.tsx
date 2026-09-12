@@ -24,10 +24,10 @@ import {
   PauseOverlay,
   SessionHeader,
 } from '@/components/game-ui';
-import { Button, Card } from '@/components/ui';
+import { Button, Card, Spark } from '@/components/ui';
 import { getGameDefinition } from '@/registry/registry';
-import { DomainColors, Spacing, type DomainName } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Spacing, type DomainName } from '@/constants/theme';
+import type { ThemeColor } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 /** Which chrome the host renders around the game's content. */
@@ -169,7 +169,6 @@ export function GameHost({
     return () => subscription.remove();
   }, [interceptBack]);
 
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const definition = getGameDefinition(gameId);
   const tone = domainTone(definition?.primaryCategory);
   const rules = description ?? definition?.description;
@@ -188,18 +187,32 @@ export function GameHost({
             variant="hero"
             padding="lg"
             testID={testId(gameId, 'intro')}
-            style={styles.introCard}>
+            // Campaign 026: the intro IS the game's identity card — domain wash
+            // plus a spark mark, so the game feels owned before the first tap.
+            style={[
+              styles.introCard,
+              tone !== null
+                ? {
+                    backgroundColor: theme[`${tone}Soft` as ThemeColor],
+                    borderColor: theme[tone as ThemeColor],
+                    borderWidth: 2,
+                  }
+                : null,
+            ]}>
             {/* The intro card IS the game header: the route no longer renders a
                 second title/category/description block above it, and the
                 established testIDs move here with the content. */}
             {categoryLabel !== undefined && categoryLabel !== gameName ? (
-              <ThemedText
-                type="eyebrow"
-                themeColor="textSecondary"
-                testID="game-category"
-                style={tone ? { color: DomainColors[scheme][tone].text } : undefined}>
-                {categoryLabel}
-              </ThemedText>
+              <View style={styles.introEyebrow}>
+                {tone !== null ? <Spark size={16} color={theme[tone as ThemeColor]} /> : null}
+                <ThemedText
+                  type="eyebrow"
+                  themeColor="textSecondary"
+                  testID="game-category"
+                  style={tone ? { color: theme[`${tone}Text` as ThemeColor] } : undefined}>
+                  {categoryLabel}
+                </ThemedText>
+              </View>
             ) : null}
 
             <ThemedText type="title" testID="game-title">
@@ -332,6 +345,11 @@ const styles = StyleSheet.create({
   },
   introCard: {
     gap: Spacing.twoHalf,
+  },
+  introEyebrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
   },
   // Two-column reward box (reference: pre-game intro promises level + reward
   // in one hairline-divided strip rather than two competing cards).

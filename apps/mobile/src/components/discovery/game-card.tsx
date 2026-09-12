@@ -1,12 +1,13 @@
 /**
- * Shared game card for the library grid and discovery shelves (Campaign 024).
+ * Shared game card for the library grid and discovery shelves (Campaign 024;
+ * Campaign 026 identity rebuild).
  *
  * One card language everywhere a game appears outside a session: a pressable
- * {@link Card} carrying the domain identity colour (dot + category eyebrow in
- * the domain text slot), the game name and description, the mastery tier and
- * the favourite state. The accessible name folds name, category, mastery and
- * favourite state into one label with an "Open game details" hint, so every
- * card is reachable by keyboard and screen reader without extra tab stops.
+ * {@link Card} carrying its domain identity — a coloured edge ribbon, a domain
+ * monogram tile and the category line — so the eight skill hues are learnable
+ * at a glance. The accessible name folds name, category, mastery and favourite
+ * state into one label with an "Open game details" hint, so every card is
+ * reachable by keyboard and screen reader without extra tab stops.
  */
 
 import { router } from 'expo-router';
@@ -15,11 +16,12 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-theme';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import type { MasterySummary, MasteryTier } from '@/mastery';
 import type { GameDefinition } from '@/registry/registry';
-import { DomainColors, Radii, Spacing } from '@/theme/tokens';
+import { DomainColors, Spacing, type DomainName } from '@/theme/tokens';
 
 const TIER_LABEL: Record<MasteryTier, string> = {
   unplayed: 'New',
@@ -40,9 +42,46 @@ export function masteryTierLabel(tier: MasteryTier): string {
  * `Memory`-style while the palette keys are lowercase, so the lookup folds
  * case instead of assuming they already match.
  */
-export function domainKeyFor(category: string): keyof typeof DomainColors.light | null {
-  const key = category.toLowerCase() as keyof typeof DomainColors.light;
+export function domainKeyFor(category: string): DomainName | null {
+  const key = category.toLowerCase() as DomainName;
   return key in DomainColors.light ? key : null;
+}
+
+/** The four colour slots a surface needs from one domain family. */
+export interface DomainHue {
+  base: string;
+  soft: string;
+  softText: string;
+  on: string;
+}
+
+/**
+ * Resolve a domain identity family for the active theme.
+ *
+ * The v3 token table publishes domain families structurally (`DomainColors`);
+ * the flat `Colors` palette may also expose them (`memory`, `memorySoft`, …).
+ * Prefer the flat slot when the active theme has it and fall back to the
+ * structured family otherwise, so a card can never render an undefined hue
+ * while the theme foundation is still landing.
+ */
+export function useDomainHue(category: string): DomainHue | null {
+  const theme = useTheme() as unknown as Record<string, string | undefined>;
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const domain = domainKeyFor(category);
+  if (!domain) {
+    return null;
+  }
+  const flat: DomainHue = {
+    base: theme[domain] ?? '',
+    soft: theme[`${domain}Soft`] ?? '',
+    softText: theme[`${domain}SoftText`] ?? '',
+    on: theme[`${domain}On`] ?? '',
+  };
+  if (flat.base && flat.soft && flat.softText && flat.on) {
+    return flat;
+  }
+  const family = DomainColors[scheme][domain];
+  return { base: family.base, soft: family.soft, softText: family.softText, on: family.on };
 }
 
 /** Subset of the definition a card needs (keeps shelves testable). */
@@ -66,35 +105,44 @@ export const GameCard = memo(function GameCard({
   mastery = null,
   testID,
 }: GameCardProps) {
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const domain = domainKeyFor(game.primaryCategory);
-  const domainColors = domain ? DomainColors[scheme][domain] : null;
+  const theme = useTheme();
+  const hue = useDomainHue(game.primaryCategory);
   const tier = mastery ? masteryTierLabel(mastery.tier) : null;
 
   return (
     <Card
       variant="plain"
+      padding="none"
       testID={testID ?? `game-card-${game.id}`}
       onPress={() => router.push(`/game-detail/${game.id}`)}
       accessibilityLabel={`${game.name}, ${game.primaryCategory} game${isFavorite ? ', favorited' : ''}${tier ? `, ${tier}` : ''}`}
       accessibilityHint="Open game details">
+      {/* Domain edge: the category identity reads before any text. */}
+      <View
+        style={[styles.ribbon, hue ? { backgroundColor: hue.base } : { backgroundColor: theme.border }]}
+      />
       <View style={styles.body}>
         <View style={styles.metaRow}>
-          {domainColors ? (
-            <View
-              style={[styles.dot, { backgroundColor: domainColors.base }]}
-            />
+          {hue ? (
+            <View style={[styles.monogram, { backgroundColor: hue.soft }]}>
+              <ThemedText
+                type="headline"
+                allowFontScaling={false}
+                style={{ color: hue.softText }}>
+                {game.name.charAt(0)}
+              </ThemedText>
+            </View>
           ) : null}
           <ThemedText
             type="eyebrow"
             themeColor="textSecondary"
-            style={domainColors ? { color: domainColors.text } : undefined}
+            style={hue ? { color: hue.softText } : undefined}
             numberOfLines={1}>
             {game.primaryCategory}
           </ThemedText>
           <View style={styles.metaSpacer} />
           {isFavorite ? (
-            <ThemedText type="body" themeColor="textSecondary">
+            <ThemedText type="body" themeColor="warning" allowFontScaling={false}>
               ★
             </ThemedText>
           ) : null}
@@ -103,10 +151,7 @@ export const GameCard = memo(function GameCard({
           {game.name}
         </ThemedText>
         {game.description ? (
-          <ThemedText
-            type="bodySmall"
-            themeColor="textSecondary"
-            numberOfLines={3}>
+          <ThemedText type="bodySmall" themeColor="textSecondary" numberOfLines={3}>
             {game.description}
           </ThemedText>
         ) : null}
@@ -117,7 +162,11 @@ export const GameCard = memo(function GameCard({
 });
 
 const styles = StyleSheet.create({
+  ribbon: {
+    height: Spacing.oneHalf,
+  },
   body: {
+    padding: Spacing.three,
     gap: Spacing.two,
   },
   metaRow: {
@@ -125,12 +174,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.two,
   },
+  monogram: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   metaSpacer: {
     flex: 1,
-  },
-  dot: {
-    width: Spacing.three,
-    height: Spacing.three,
-    borderRadius: Radii.pill,
   },
 });

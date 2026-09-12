@@ -10,31 +10,35 @@
  * emit a non-blocking celebration. Everything degrades gracefully when the db
  * is unavailable.
  *
- * Presentation (campaign 024, design-language v2): the identity hero owns the
- * screen (Avatar + level + XP meter + coin balance); the streak beat reads
- * flame → count → 7-day strip → milestone tease; quests / achievements /
- * milestones use three distinct treatments (claimable = primary action,
- * in-progress = meter + n/m, locked = desaturated + lock) so state never
- * relies on colour alone; settings navigate through `ListRow`s.
+ * Presentation (campaign 026, design-language v3 "Neon Arcade"): the identity
+ * hero owns a 2×2 metric grid with exactly one accent-filled identity cell
+ * (level) and neutral cells for streak / XP / coins; the streak beat is a
+ * day-dot `StreakStrip` plus protection items with identity sparks; quests /
+ * achievements / milestones keep three distinct treatments (claimable =
+ * primary action, in-progress = meter, locked = desaturated + lock); settings
+ * navigate through `ListRow`s with identity icons.
  */
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
 import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
-import { Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
   Avatar,
   Badge,
   Button,
   Card,
+  Entrance,
+  HAIRLINE,
   ListRow,
   ProgressBar,
-  StatBlock,
+  Spark,
+  StreakStrip,
 } from "@/components/ui";
 import type { AppDatabase, QuestProgress } from "@/db";
 import { getDb, InsufficientFundsError, purchaseStreakItem } from "@/db";
@@ -115,6 +119,16 @@ const STREAK_ITEMS: { kind: StreakItemKind; label: string; caption: string }[] =
       caption: "Restores up to 3 lost streak days",
     },
   ];
+
+/** Soft chip + ink per protection item, so each item carries its identity. */
+const ITEM_TONES: Record<
+  StreakItemKind,
+  { soft: ThemeColor; ink: ThemeColor }
+> = {
+  freeze: { soft: "infoSoft", ink: "infoText" },
+  shield: { soft: "accentSoft", ink: "accentText" },
+  recovery: { soft: "successSoft", ink: "successText" },
+};
 
 const SLOT_LABELS: Record<CosmeticSlot, string> = {
   avatarFrame: "Avatar Frames",
@@ -561,288 +575,243 @@ export default function ProfileScreen() {
 
   return (
     <ScreenShell>
-      <ThemedText type="title" testID="profile-title">
-        Profile
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        Identity, achievements and settings.
-      </ThemedText>
+      <Entrance index={0}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <ThemedText type="eyebrow" themeColor="accentText">
+              PLAYER
+            </ThemedText>
+            <ThemedText type="title" testID="profile-title">
+              Profile
+            </ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Identity, achievements and settings.
+            </ThemedText>
+          </View>
+          <Spark size={30} color={theme.accent} />
+        </View>
+      </Entrance>
 
-      {/* Identity hero: avatar + level + XP meter + coin balance. */}
-      <Card variant="hero" tone="xpSoft" testID="profile-identity">
-        <View style={styles.heroRow}>
-          <Avatar
-            size="lg"
-            emoji={data.equippedFrameEmoji}
-            label="Local player"
-          />
-          <View style={styles.identityText}>
-            <ThemedText type="bodyLarge">Local player</ThemedText>
-            {/* Progression context (gated on real data so the db-unavailable
-                fallback — and the visual-baseline canary — stays unchanged). */}
-            {hasProgress ? (
-              <ThemedText type="numeral">Level {level}</ThemedText>
-            ) : (
+      {/* Identity hero: avatar row plus the 2×2 metric grid; the level cell is
+          the single accent-filled identity metric, the rest stay neutral. */}
+      <Entrance index={1}>
+        <Card variant="hero" testID="profile-identity" padding="lg">
+          <View style={styles.heroRow}>
+            <Avatar
+              size="lg"
+              emoji={data.equippedFrameEmoji}
+              label="Local player"
+            />
+            <View style={styles.identityText}>
+              <ThemedText type="bodyLarge">Local player</ThemedText>
+              {/* Progression context (gated on real data so the db-unavailable
+                  fallback stays honest instead of inventing progress). */}
               <ThemedText type="caption" themeColor="textSecondary">
-                Profile name and avatar customization arrive in a later wave.
+                {hasProgress
+                  ? `Level ${level} · ${data.equippedAccentName} accent`
+                  : "Profile name and avatar customization arrive in a later wave."}
               </ThemedText>
-            )}
+            </View>
           </View>
-          <StatBlock label="Coins" value={`${data.balance}`} metric="currency" />
-        </View>
-        {hasProgress ? (
-          <ProgressBar
-            value={levelProgress(data.totalXp)}
-            tone="xp"
-            label={`Level ${level}`}
-            valueLabel={`${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
-          />
-        ) : null}
-      </Card>
 
-      {/* Streak beat: flame + count → "N day streak" → 7-day strip → tease. */}
-      <Card testID="profile-streak">
-        <ThemedText type="headline">Streak</ThemedText>
-        <View
-          style={styles.beatRow}
-          accessibilityLabel={`${data.currentStreak} day streak`}
-        >
-          <ThemedText type="numeralLg" themeColor="streak">
-            🔥 {data.currentStreak}
-          </ThemedText>
-          <ThemedText type="body" themeColor="textSecondary">
-            day streak
-          </ThemedText>
-        </View>
-        {data.weekDays.length > 0 ? (
-          <View style={styles.weekStrip} testID="profile-streak-week">
-            {data.weekDays.map((day) => (
-              <View
-                key={day.key}
-                style={[
-                  styles.dayDot,
-                  {
-                    backgroundColor: day.active
-                      ? theme.streak
-                      : theme.surfaceSunken,
-                  },
-                  day.isToday && {
-                    borderColor: theme.streak,
-                    borderWidth: 2,
-                  },
-                ]}
-                accessibilityLabel={`${day.fullLabel}, ${day.active ? "trained" : "no training"}${day.isToday ? ", today" : ""}`}
-              >
-                <ThemedText
-                  type="caption"
-                  themeColor={day.active ? "streakOn" : "textMuted"}
-                  allowFontScaling={false}
-                >
-                  {day.label}
-                </ThemedText>
-              </View>
-            ))}
+          <View style={styles.metricGrid}>
+            <MetricTile
+              testID="profile-metric-level"
+              label="Level"
+              value={`${level}`}
+              tone="accent"
+              icon={<Spark size={16} color={theme.accentOn} />}
+            />
+            <MetricTile
+              testID="profile-metric-streak"
+              label="Day streak"
+              value={`${data.currentStreak}`}
+              valueColor="streakText"
+              icon={<Spark size={16} color={theme.streakText} />}
+            />
+            <MetricTile
+              testID="profile-metric-xp"
+              label="Total XP"
+              value={compactNumber(data.totalXp)}
+              valueColor="xpText"
+              icon={<Spark size={16} color={theme.xpText} />}
+            />
+            <MetricTile
+              testID="profile-metric-coins"
+              label="Coins"
+              value={compactNumber(data.balance)}
+              valueColor="currencyText"
+              icon={<Spark size={16} color={theme.currencyText} />}
+            />
           </View>
-        ) : null}
-        {nextMilestone ? (
-          <ThemedText type="caption" themeColor="textSecondary">
-            Next milestone: {nextMilestone.milestone.label} —{" "}
-            {nextMilestone.remaining} days to go
-          </ThemedText>
-        ) : null}
-        <View style={styles.streakRow}>
-          <Stat value={`${data.longestStreak}`} label="Longest" />
-          <Stat
-            value={`${data.inventory.freeze + data.inventory.shield + data.inventory.recovery}`}
-            label="Items"
-          />
-        </View>
-        {data.atRisk && (
-          <ThemedText
-            type="caption"
-            themeColor="warning"
-            testID="profile-streak-at-risk"
-            accessibilityLiveRegion="polite"
-          >
-            Your streak is at risk — play today to keep it alive.
-          </ThemedText>
-        )}
-        <View style={styles.itemList}>
-          {STREAK_ITEMS.map((item) => {
-            const canApply =
-              item.kind === "freeze"
-                ? canApplyFreeze(
-                    data.streakState,
-                    data.profileSettings,
-                    new Date(),
-                  )
-                : item.kind === "recovery"
-                  ? canApplyRecovery(
+
+          {hasProgress ? (
+            <ProgressBar
+              value={levelProgress(data.totalXp)}
+              tone="xp"
+              label={`Level ${level} progress`}
+              valueLabel={`${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
+            />
+          ) : null}
+        </Card>
+      </Entrance>
+
+      {/* Streak rhythm: day-dot strip + count pill, never a plain text row. */}
+      <Entrance index={2}>
+        <Card testID="profile-streak">
+          <ThemedText type="headline">Streak</ThemedText>
+          <View style={styles.streakBeat}>
+            <StreakStrip
+              count={data.currentStreak}
+              days={7}
+              testID="profile-streak-week"
+            />
+            {data.atRisk ? (
+              <Badge tone="warning" label="At risk" size="sm" />
+            ) : null}
+          </View>
+          {data.atRisk && (
+            <ThemedText
+              type="caption"
+              themeColor="warning"
+              testID="profile-streak-at-risk"
+              accessibilityLiveRegion="polite"
+            >
+              Your streak is at risk — play today to keep it alive.
+            </ThemedText>
+          )}
+          {nextMilestone ? (
+            <ThemedText type="caption" themeColor="textSecondary">
+              Next milestone: {nextMilestone.milestone.label} —{" "}
+              {nextMilestone.remaining} days to go
+            </ThemedText>
+          ) : null}
+          <View style={styles.statRow}>
+            <Stat
+              value={`${data.longestStreak}`}
+              label="Longest streak"
+              valueColor="streakText"
+            />
+            <Stat
+              value={`${data.inventory.freeze + data.inventory.shield + data.inventory.recovery}`}
+              label="Protection items"
+              valueColor="infoText"
+            />
+          </View>
+          <View style={styles.itemList}>
+            {STREAK_ITEMS.map((item) => {
+              const canApply =
+                item.kind === "freeze"
+                  ? canApplyFreeze(
                       data.streakState,
                       data.profileSettings,
                       new Date(),
                     )
-                  : canApplyShield(
-                      data.streakState,
-                      data.profileSettings,
-                      new Date(),
-                    );
-            return (
-              <View key={item.kind} style={styles.itemRow}>
-                <View style={styles.itemText}>
-                  <ThemedText type="body">
-                    {item.label} × {data.inventory[item.kind]}
-                  </ThemedText>
-                  <ThemedText type="caption" themeColor="textSecondary">
-                    {item.caption}
-                  </ThemedText>
-                </View>
-                <View style={styles.itemActions}>
-                  {canApply && (
-                    <Button
-                      label="Apply"
-                      size="sm"
-                      variant="secondary"
-                      fullWidth={false}
-                      testID={`streak-apply-${item.kind}`}
-                      accessibilityLabel={`Apply ${item.label}`}
-                      onPress={() => onApplyStreakItem(item.kind)}
-                    />
-                  )}
-                  <Button
-                    label={`${ITEM_COSTS[item.kind]} coins`}
-                    size="sm"
-                    variant="secondary"
-                    fullWidth={false}
-                    testID={`streak-buy-${item.kind}`}
-                    accessibilityLabel={`Buy ${item.label} for ${ITEM_COSTS[item.kind]} coins`}
-                    disabled={
-                      !canPurchase(
-                        data.balance,
-                        item.kind,
+                  : item.kind === "recovery"
+                    ? canApplyRecovery(
+                        data.streakState,
                         data.profileSettings,
                         new Date(),
                       )
-                    }
-                    onPress={() => onBuyStreakItem(item.kind)}
-                  />
+                    : canApplyShield(
+                        data.streakState,
+                        data.profileSettings,
+                        new Date(),
+                      );
+              const itemTone = ITEM_TONES[item.kind];
+              return (
+                <View key={item.kind} style={styles.itemRow}>
+                  <View
+                    style={[
+                      styles.itemIcon,
+                      { backgroundColor: theme[itemTone.soft] },
+                    ]}
+                  >
+                    <Spark size={16} color={theme[itemTone.ink]} />
+                  </View>
+                  <View style={styles.itemText}>
+                    <ThemedText type="body">
+                      {item.label} × {data.inventory[item.kind]}
+                    </ThemedText>
+                    <ThemedText type="caption" themeColor="textSecondary">
+                      {item.caption}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.itemActions}>
+                    {canApply && (
+                      <Button
+                        label="Apply"
+                        size="sm"
+                        variant="secondary"
+                        fullWidth={false}
+                        testID={`streak-apply-${item.kind}`}
+                        accessibilityLabel={`Apply ${item.label}`}
+                        onPress={() => onApplyStreakItem(item.kind)}
+                      />
+                    )}
+                    <Button
+                      label={`${ITEM_COSTS[item.kind]} coins`}
+                      size="sm"
+                      variant="secondary"
+                      fullWidth={false}
+                      testID={`streak-buy-${item.kind}`}
+                      accessibilityLabel={`Buy ${item.label} for ${ITEM_COSTS[item.kind]} coins`}
+                      disabled={
+                        !canPurchase(
+                          data.balance,
+                          item.kind,
+                          data.profileSettings,
+                          new Date(),
+                        )
+                      }
+                      onPress={() => onBuyStreakItem(item.kind)}
+                    />
+                  </View>
                 </View>
-              </View>
-            );
-          })}
-        </View>
-      </Card>
+              );
+            })}
+          </View>
+        </Card>
+      </Entrance>
 
       {/* Streak milestones: claimable = action, reached = check, else meter. */}
-      <Card testID="profile-milestones">
-        <ThemedText type="headline">Streak Milestones</ThemedText>
-        {data.milestoneRows.map(({ milestone, reached, claimed, remaining }) => (
-          <View
-            key={milestone.id}
-            style={styles.stateRow}
-            testID={`profile-milestone-${milestone.id}`}
-          >
-            <View style={styles.itemText}>
-              <ThemedText type="body">
-                {milestone.label}
-              </ThemedText>
-              <ProgressBar
-                value={
-                  milestone.days <= 0
-                    ? 1
-                    : Math.min(data.longestStreak / milestone.days, 1)
-                }
-                tone="streak"
-                valueLabel={`${Math.min(data.longestStreak, milestone.days)}/${milestone.days} days`}
-                accessibilityLabel={`${milestone.label}, ${Math.min(data.longestStreak, milestone.days)} of ${milestone.days} days`}
-              />
-              <ThemedText type="caption" themeColor="textSecondary">
-                {milestone.description}
-                {milestone.rewardXp || milestone.rewardCurrency
-                  ? ` · +${milestone.rewardXp ?? 0} XP / +${milestone.rewardCurrency ?? 0} coins`
-                  : ""}
-                {!reached && remaining > 0 ? ` · ${remaining} days to go` : ""}
-                {reached && !claimed ? " · Complete — claim your reward" : ""}
-                {claimed ? " · ✓ Claimed" : ""}
-              </ThemedText>
-            </View>
-            {reached && !claimed ? (
-              <View style={styles.stateAction}>
-                <Badge tone="accent" label="✓ Ready to claim" size="sm" />
-                <Button
-                  label="Claim"
-                  size="sm"
-                  variant="primary"
-                  fullWidth={false}
-                  testID={`milestone-claim-${milestone.id}`}
-                  accessibilityLabel={`Claim ${milestone.label} reward`}
-                  onPress={() => onClaimMilestone(milestone)}
-                />
-              </View>
-            ) : claimed ? (
-              <Badge tone="success" label="✓ Claimed" size="sm" />
-            ) : null}
-          </View>
-        ))}
-      </Card>
-
-      {/* Quests — live progress + once-only claims. */}
-      <Card testID="profile-quests">
-        <ThemedText type="headline">Quests</ThemedText>
-        {claimableQuests > 0 && (
-          <ThemedText
-            type="caption"
-            themeColor="accent"
-            testID="profile-quests-ready"
-            accessibilityLiveRegion="polite"
-          >
-            {claimableQuests} quest reward{claimableQuests === 1 ? "" : "s"}{" "}
-            ready to claim!
-          </ThemedText>
-        )}
-        {data.questEvals.length === 0 ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            No quests yet.
-          </ThemedText>
-        ) : (
-          data.questEvals.map((evaluation) => {
-            const row = data.questRows.get(evaluation.questId);
-            const claimed = row?.claimedAt != null;
-            const completed = evaluation.completed || row?.completedAt != null;
-            const definition = QUEST_DEFINITIONS_V1.find(
-              (d) => d.id === evaluation.questId,
-            );
-            const progress =
-              evaluation.goal <= 0
-                ? evaluation.completed
-                  ? 1
-                  : 0
-                : Math.min(evaluation.progress / evaluation.goal, 1);
-            const shown = Math.min(evaluation.progress, evaluation.goal);
-            return (
+      <Entrance index={3}>
+        <Card testID="profile-milestones">
+          <ThemedText type="headline">Streak Milestones</ThemedText>
+          {data.milestoneRows.map(
+            ({ milestone, reached, claimed, remaining }) => (
               <View
-                key={evaluation.questId}
+                key={milestone.id}
                 style={styles.stateRow}
-                testID={`profile-quest-${evaluation.questId}`}
+                testID={`profile-milestone-${milestone.id}`}
               >
                 <View style={styles.itemText}>
-                  <ThemedText type="body">
-                    {definition?.title ?? evaluation.questId}
-                  </ThemedText>
+                  <ThemedText type="body">{milestone.label}</ThemedText>
                   <ProgressBar
-                    value={progress}
-                    valueLabel={`${shown}/${evaluation.goal}`}
-                    accessibilityLabel={`${definition?.title ?? evaluation.questId}, ${shown} of ${evaluation.goal}`}
+                    value={
+                      milestone.days <= 0
+                        ? 1
+                        : Math.min(data.longestStreak / milestone.days, 1)
+                    }
+                    tone="streak"
+                    valueLabel={`${Math.min(data.longestStreak, milestone.days)}/${milestone.days} days`}
+                    accessibilityLabel={`${milestone.label}, ${Math.min(data.longestStreak, milestone.days)} of ${milestone.days} days`}
                   />
                   <ThemedText type="caption" themeColor="textSecondary">
-                    {claimed
-                      ? "✓ Claimed"
-                      : completed
-                        ? "Complete — claim your reward"
-                        : "In progress"}
+                    {milestone.description}
+                    {milestone.rewardXp || milestone.rewardCurrency
+                      ? ` · +${milestone.rewardXp ?? 0} XP / +${milestone.rewardCurrency ?? 0} coins`
+                      : ""}
+                    {!reached && remaining > 0
+                      ? ` · ${remaining} days to go`
+                      : ""}
+                    {reached && !claimed
+                      ? " · Complete — claim your reward"
+                      : ""}
+                    {claimed ? " · ✓ Claimed" : ""}
                   </ThemedText>
                 </View>
-                {completed && !claimed && definition ? (
+                {reached && !claimed ? (
                   <View style={styles.stateAction}>
                     <Badge tone="accent" label="✓ Ready to claim" size="sm" />
                     <Button
@@ -850,9 +819,170 @@ export default function ProfileScreen() {
                       size="sm"
                       variant="primary"
                       fullWidth={false}
-                      testID={`quest-claim-${evaluation.questId}`}
+                      testID={`milestone-claim-${milestone.id}`}
+                      accessibilityLabel={`Claim ${milestone.label} reward`}
+                      onPress={() => onClaimMilestone(milestone)}
+                    />
+                  </View>
+                ) : claimed ? (
+                  <Badge tone="success" label="✓ Claimed" size="sm" />
+                ) : null}
+              </View>
+            ),
+          )}
+        </Card>
+      </Entrance>
+
+      {/* Quests — live progress + once-only claims. */}
+      <Entrance index={4}>
+        <Card testID="profile-quests">
+          <ThemedText type="headline">Quests</ThemedText>
+          {claimableQuests > 0 && (
+            <ThemedText
+              type="caption"
+              themeColor="accent"
+              testID="profile-quests-ready"
+              accessibilityLiveRegion="polite"
+            >
+              {claimableQuests} quest reward{claimableQuests === 1 ? "" : "s"}{" "}
+              ready to claim!
+            </ThemedText>
+          )}
+          {data.questEvals.length === 0 ? (
+            <ThemedText type="small" themeColor="textSecondary">
+              No quests yet.
+            </ThemedText>
+          ) : (
+            data.questEvals.map((evaluation) => {
+              const row = data.questRows.get(evaluation.questId);
+              const claimed = row?.claimedAt != null;
+              const completed =
+                evaluation.completed || row?.completedAt != null;
+              const definition = QUEST_DEFINITIONS_V1.find(
+                (d) => d.id === evaluation.questId,
+              );
+              const progress =
+                evaluation.goal <= 0
+                  ? evaluation.completed
+                    ? 1
+                    : 0
+                  : Math.min(evaluation.progress / evaluation.goal, 1);
+              const shown = Math.min(evaluation.progress, evaluation.goal);
+              return (
+                <View
+                  key={evaluation.questId}
+                  style={styles.stateRow}
+                  testID={`profile-quest-${evaluation.questId}`}
+                >
+                  <View style={styles.itemText}>
+                    <ThemedText type="body">
+                      {definition?.title ?? evaluation.questId}
+                    </ThemedText>
+                    <ProgressBar
+                      value={progress}
+                      valueLabel={`${shown}/${evaluation.goal}`}
+                      accessibilityLabel={`${definition?.title ?? evaluation.questId}, ${shown} of ${evaluation.goal}`}
+                    />
+                    <ThemedText type="caption" themeColor="textSecondary">
+                      {claimed
+                        ? "✓ Claimed"
+                        : completed
+                          ? "Complete — claim your reward"
+                          : "In progress"}
+                    </ThemedText>
+                  </View>
+                  {completed && !claimed && definition ? (
+                    <View style={styles.stateAction}>
+                      <Badge tone="accent" label="✓ Ready to claim" size="sm" />
+                      <Button
+                        label="Claim"
+                        size="sm"
+                        variant="primary"
+                        fullWidth={false}
+                        testID={`quest-claim-${evaluation.questId}`}
+                        accessibilityLabel={`Claim ${definition.title} reward`}
+                        onPress={() => onClaimQuest(definition)}
+                      />
+                    </View>
+                  ) : claimed ? (
+                    <Badge tone="success" label="✓ Claimed" size="sm" />
+                  ) : null}
+                </View>
+              );
+            })
+          )}
+        </Card>
+      </Entrance>
+
+      {/* Achievements — claimable vs in-progress vs locked treatments. */}
+      <Entrance index={5}>
+        <Card testID="profile-achievements">
+          <ThemedText type="headline">Achievements</ThemedText>
+          {claimableAchievements > 0 && (
+            <ThemedText
+              type="caption"
+              themeColor="accent"
+              testID="profile-achievements-ready"
+              accessibilityLiveRegion="polite"
+            >
+              {claimableAchievements} achievement reward
+              {claimableAchievements === 1 ? "" : "s"} ready to claim!
+            </ThemedText>
+          )}
+          {ACHIEVEMENT_DEFINITIONS_V1.map((definition) => {
+            const unlock = data.unlocks.get(definition.id);
+            const claimed = unlock?.claimedAt != null;
+            const unlocked = unlock != null;
+            const evaluated = data.achievementProgress.get(definition.id);
+            const progress = evaluated?.progress ?? (unlocked ? 1 : 0);
+            const goal = evaluated?.goal ?? 1;
+            const ratio = evaluated?.ratio ?? (unlocked ? 1 : 0);
+            return (
+              <View
+                key={definition.id}
+                style={[
+                  styles.stateRow,
+                  !unlocked ? styles.lockedRow : null,
+                ]}
+                testID={`profile-achievement-${definition.id}`}
+              >
+                <View style={styles.itemText}>
+                  <ThemedText
+                    type="body"
+                    themeColor={unlocked || claimed ? "text" : "textMuted"}
+                  >
+                    {!unlocked ? "🔒 " : ""}
+                    {definition.title}
+                  </ThemedText>
+                  {progress > 0 || unlocked ? (
+                    <ProgressBar
+                      value={ratio}
+                      valueLabel={`${Math.min(progress, goal)}/${goal}`}
+                      accessibilityLabel={`${definition.title}, ${Math.min(progress, goal)} of ${goal}`}
+                    />
+                  ) : null}
+                  <ThemedText type="caption" themeColor="textSecondary">
+                    {definition.description} ·{" "}
+                    {claimed
+                      ? "✓ Claimed"
+                      : unlocked
+                        ? "Unlocked — claim your reward"
+                        : progress > 0
+                          ? "In progress — locked"
+                          : "Locked"}
+                  </ThemedText>
+                </View>
+                {unlocked && !claimed ? (
+                  <View style={styles.stateAction}>
+                    <Badge tone="accent" label="✓ Ready to claim" size="sm" />
+                    <Button
+                      label="Claim"
+                      size="sm"
+                      variant="primary"
+                      fullWidth={false}
+                      testID={`achievement-claim-${definition.id}`}
                       accessibilityLabel={`Claim ${definition.title} reward`}
-                      onPress={() => onClaimQuest(definition)}
+                      onPress={() => onClaimAchievement(definition)}
                     />
                   </View>
                 ) : claimed ? (
@@ -860,192 +990,144 @@ export default function ProfileScreen() {
                 ) : null}
               </View>
             );
-          })
-        )}
-      </Card>
-
-      {/* Achievements — claimable vs in-progress vs locked treatments. */}
-      <Card testID="profile-achievements">
-        <ThemedText type="headline">Achievements</ThemedText>
-        {claimableAchievements > 0 && (
-          <ThemedText
-            type="caption"
-            themeColor="accent"
-            testID="profile-achievements-ready"
-            accessibilityLiveRegion="polite"
-          >
-            {claimableAchievements} achievement reward
-            {claimableAchievements === 1 ? "" : "s"} ready to claim!
-          </ThemedText>
-        )}
-        {ACHIEVEMENT_DEFINITIONS_V1.map((definition) => {
-          const unlock = data.unlocks.get(definition.id);
-          const claimed = unlock?.claimedAt != null;
-          const unlocked = unlock != null;
-          const evaluated = data.achievementProgress.get(definition.id);
-          const progress = evaluated?.progress ?? (unlocked ? 1 : 0);
-          const goal = evaluated?.goal ?? 1;
-          const ratio =
-            evaluated?.ratio ?? (unlocked ? 1 : 0);
-          return (
-            <View
-              key={definition.id}
-              style={styles.stateRow}
-              testID={`profile-achievement-${definition.id}`}
-            >
-              <View style={styles.itemText}>
-                <ThemedText
-                  type="body"
-                  themeColor={unlocked || claimed ? "text" : "textMuted"}
-                >
-                  {!unlocked ? "🔒 " : ""}
-                  {definition.title}
-                </ThemedText>
-                {progress > 0 || unlocked ? (
-                  <ProgressBar
-                    value={ratio}
-                    valueLabel={`${Math.min(progress, goal)}/${goal}`}
-                    accessibilityLabel={`${definition.title}, ${Math.min(progress, goal)} of ${goal}`}
-                  />
-                ) : null}
-                <ThemedText type="caption" themeColor="textSecondary">
-                  {definition.description} ·{" "}
-                  {claimed
-                    ? "✓ Claimed"
-                    : unlocked
-                      ? "Unlocked — claim your reward"
-                      : progress > 0
-                        ? "In progress — locked"
-                        : "Locked"}
-                </ThemedText>
-              </View>
-              {unlocked && !claimed ? (
-                <View style={styles.stateAction}>
-                  <Badge tone="accent" label="✓ Ready to claim" size="sm" />
-                  <Button
-                    label="Claim"
-                    size="sm"
-                    variant="primary"
-                    fullWidth={false}
-                    testID={`achievement-claim-${definition.id}`}
-                    accessibilityLabel={`Claim ${definition.title} reward`}
-                    onPress={() => onClaimAchievement(definition)}
-                  />
-                </View>
-              ) : claimed ? (
-                <Badge tone="success" label="✓ Claimed" size="sm" />
-              ) : null}
-            </View>
-          );
-        })}
-      </Card>
+          })}
+        </Card>
+      </Entrance>
 
       {/* Cosmetics gallery: equipped / owned / locked grid + hub link. */}
-      <Card>
-        <ThemedText type="headline">Cosmetics</ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          Frame: {data.equippedFrameEmoji} · Accent:{" "}
-          {data.equippedAccentName}
-        </ThemedText>
-        {COSMETIC_SLOTS.map((slot) => (
-          <View key={slot}>
-            <ThemedText type="label" themeColor="textSecondary">
-              {SLOT_LABELS[slot]}
-            </ThemedText>
-            <View style={styles.grid}>
-              {COSMETIC_DEFINITIONS.filter((d) => d.slot === slot).map(
-                (def) => {
-                  const owned = isCosmeticOwned(
-                    def,
-                    data.cosmeticProgression,
-                    data.profileSettings,
-                  );
-                  const equipped = data.equippedIds[slot] === def.id;
-                  const state = equipped
-                    ? "Equipped"
-                    : owned
-                      ? "Owned"
-                      : `Locked. ${unlockHint(def)}`;
-                  return (
-                    <View
-                      key={def.id}
-                      style={styles.cell}
-                      testID={`profile-cosmetic-${def.id}`}
-                      accessibilityLabel={`${def.name}. ${state}`}
-                    >
-                      <Avatar
-                        size="sm"
-                        emoji={def.preview.emoji}
-                        label={def.preview.emoji ? undefined : def.name.slice(0, 1)}
-                      />
-                      <ThemedText
-                        type="bodySmall"
-                        themeColor={owned ? "text" : "textMuted"}
-                        numberOfLines={1}
+      <Entrance index={6}>
+        <Card>
+          <ThemedText type="headline">Cosmetics</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Frame: {data.equippedFrameEmoji} · Accent:{" "}
+            {data.equippedAccentName}
+          </ThemedText>
+          {COSMETIC_SLOTS.map((slot) => (
+            <View key={slot}>
+              <ThemedText type="label" themeColor="textSecondary">
+                {SLOT_LABELS[slot]}
+              </ThemedText>
+              <View style={styles.grid}>
+                {COSMETIC_DEFINITIONS.filter((d) => d.slot === slot).map(
+                  (def) => {
+                    const owned = isCosmeticOwned(
+                      def,
+                      data.cosmeticProgression,
+                      data.profileSettings,
+                    );
+                    const equipped = data.equippedIds[slot] === def.id;
+                    const state = equipped
+                      ? "Equipped"
+                      : owned
+                        ? "Owned"
+                        : `Locked. ${unlockHint(def)}`;
+                    return (
+                      <View
+                        key={def.id}
+                        style={[
+                          styles.cell,
+                          {
+                            backgroundColor: theme.surfaceSunken,
+                            borderColor: theme.border,
+                          },
+                          !owned ? styles.lockedRow : null,
+                        ]}
+                        testID={`profile-cosmetic-${def.id}`}
+                        accessibilityLabel={`${def.name}. ${state}`}
                       >
-                        {def.name}
-                      </ThemedText>
-                      {equipped ? (
-                        <Badge tone="success" label="✓ Equipped" size="sm" />
-                      ) : owned ? (
-                        <Badge tone="accent" label="Owned" size="sm" />
-                      ) : (
+                        <Avatar
+                          size="sm"
+                          emoji={def.preview.emoji}
+                          label={
+                            def.preview.emoji ? undefined : def.name.slice(0, 1)
+                          }
+                        />
                         <ThemedText
-                          type="caption"
-                          themeColor="textMuted"
-                          numberOfLines={2}
+                          type="bodySmall"
+                          themeColor={owned ? "text" : "textMuted"}
+                          numberOfLines={1}
                         >
-                          🔒 {unlockHint(def)}
+                          {def.name}
                         </ThemedText>
-                      )}
-                    </View>
-                  );
-                },
-              )}
+                        {equipped ? (
+                          <Badge tone="success" label="✓ Equipped" size="sm" />
+                        ) : owned ? (
+                          <Badge tone="accent" label="Owned" size="sm" />
+                        ) : (
+                          <ThemedText
+                            type="caption"
+                            themeColor="textMuted"
+                            numberOfLines={2}
+                          >
+                            🔒 {unlockHint(def)}
+                          </ThemedText>
+                        )}
+                      </View>
+                    );
+                  },
+                )}
+              </View>
             </View>
-          </View>
-        ))}
-        <ListRow
-          title="Manage cosmetics"
-          subtitle="Equip and unlock in the Rewards hub"
-          onPress={() => router.push("/rewards")}
-          testID="profile-cosmetics"
-          accessibilityLabel="Cosmetics. Manage your cosmetics"
-        />
-      </Card>
+          ))}
+          <ListRow
+            title="Manage cosmetics"
+            subtitle="Equip and unlock in the Rewards hub"
+            icon={<Spark size={16} color={theme.accentText} />}
+            tone="accentSoft"
+            onPress={() => router.push("/rewards")}
+            testID="profile-cosmetics"
+            accessibilityLabel="Cosmetics. Manage your cosmetics"
+          />
+        </Card>
+      </Entrance>
 
       {/* Data portability — export / import / wipe (Session 05). */}
-      <Card>
-        <ListRow
-          title="Data Management"
-          subtitle="Backup, restore, and delete your local training data"
-          onPress={() => router.push("/data-management")}
-          testID="profile-data-management"
-          accessibilityLabel="Data Management. Backup, restore, and delete your local training data"
-        />
-      </Card>
+      <Entrance index={7}>
+        <Card>
+          <ListRow
+            title="Data Management"
+            subtitle="Backup, restore, and delete your local training data"
+            icon={<Spark size={16} color={theme.infoText} />}
+            tone="infoSoft"
+            onPress={() => router.push("/data-management")}
+            testID="profile-data-management"
+            accessibilityLabel="Data Management. Backup, restore, and delete your local training data"
+          />
+        </Card>
+      </Entrance>
 
       {/* Theme selection (theme registry seam). */}
-      <Card testID="theme-card">
-        <ThemedText type="headline">Theme</ThemedText>
-        {THEME_OPTIONS.map((option) => {
-          const selected = option.id === themeId;
-          return (
-            <View key={option.id} testID={`theme-option-${option.id}`}>
-              <ListRow
-                title={option.label}
-                subtitle={selected ? `Active · ${option.mode}` : option.mode}
-                meta={selected ? "✓ Active" : undefined}
-                onPress={() => onSelectTheme(option)}
-                testID={`profile-settings-theme-${option.id}`}
-                accessibilityLabel={`Theme ${option.label}${selected ? ", active" : ""}`}
-                accessibilityHint={selected ? undefined : `Switch to the ${option.label} theme`}
-                showChevron={false}
-              />
-            </View>
-          );
-        })}
-      </Card>
+      <Entrance index={8}>
+        <Card testID="theme-card">
+          <ThemedText type="headline">Theme</ThemedText>
+          {THEME_OPTIONS.map((option) => {
+            const selected = option.id === themeId;
+            return (
+              <View key={option.id} testID={`theme-option-${option.id}`}>
+                <ListRow
+                  title={option.label}
+                  subtitle={selected ? `Active · ${option.mode}` : option.mode}
+                  meta={selected ? "✓ Active" : undefined}
+                  icon={
+                    <Spark
+                      size={14}
+                      color={selected ? theme.accentOn : theme.textMuted}
+                    />
+                  }
+                  tone={selected ? "accent" : "surfaceSunken"}
+                  onPress={() => onSelectTheme(option)}
+                  testID={`profile-settings-theme-${option.id}`}
+                  accessibilityLabel={`Theme ${option.label}${selected ? ", active" : ""}`}
+                  accessibilityHint={
+                    selected ? undefined : `Switch to the ${option.label} theme`
+                  }
+                  showChevron={false}
+                />
+              </View>
+            );
+          })}
+        </Card>
+      </Entrance>
 
       {/* Sensory toggles live in the shared sensory card (owned outside this
           surface); the wrapper pins the profile-settings testID family. */}
@@ -1058,10 +1140,24 @@ export default function ProfileScreen() {
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({
+  value,
+  label,
+  valueColor = "accent",
+}: {
+  value: string;
+  label: string;
+  valueColor?: ThemeColor;
+}) {
+  const theme = useTheme();
   return (
-    <View style={styles.stat}>
-      <ThemedText type="headline" themeColor="accent">
+    <View
+      style={[
+        styles.stat,
+        { backgroundColor: theme.surfaceSunken, borderColor: theme.border },
+      ]}
+    >
+      <ThemedText type="numeral" themeColor={valueColor}>
         {value}
       </ThemedText>
       <ThemedText type="caption" themeColor="textSecondary">
@@ -1071,7 +1167,83 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
+/**
+ * One cell of the hero metric grid. The filled variant is the single
+ * accent-owned identity metric; neutral cells keep their surface quiet and let
+ * the metric hue live in the numeral and the spark mark only.
+ */
+function MetricTile({
+  label,
+  value,
+  icon,
+  tone,
+  valueColor,
+  testID,
+}: {
+  label: string;
+  value: string;
+  icon?: ReactNode;
+  /** Filled family background (accent, for the identity cell). */
+  tone?: ThemeColor;
+  /** Numeral colour on a neutral cell. */
+  valueColor?: ThemeColor;
+  testID?: string;
+}) {
+  const theme = useTheme();
+  const filled = tone !== undefined;
+  return (
+    <View
+      testID={testID}
+      style={[
+        styles.metricTile,
+        {
+          backgroundColor: filled ? theme[tone] : theme.surfaceSunken,
+          borderColor: filled ? theme[tone] : theme.border,
+        },
+      ]}
+    >
+      {icon}
+      <ThemedText
+        type="numeralLg"
+        themeColor={filled ? "accentOn" : (valueColor ?? "text")}
+      >
+        {value}
+      </ThemedText>
+      <ThemedText
+        type="eyebrow"
+        themeColor={filled ? "accentOn" : "textSecondary"}
+      >
+        {label}
+      </ThemedText>
+    </View>
+  );
+}
+
+/** Compact XP/coin display so a large balance cannot break a metric tile. */
+function compactNumber(value: number): string {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+  if (Math.abs(value) >= 1e6) {
+    return `${(value / 1e6).toFixed(1)}M`;
+  }
+  if (Math.abs(value) >= 1e5) {
+    return `${Math.round(value / 1e3)}k`;
+  }
+  return `${Math.round(value)}`;
+}
+
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: Spacing.three,
+  },
+  headerText: {
+    flex: 1,
+    gap: Spacing.half,
+  },
   heroRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1081,28 +1253,37 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.half,
   },
-  beatRow: {
+  metricGrid: {
     flexDirection: "row",
-    alignItems: "baseline",
+    flexWrap: "wrap",
     gap: Spacing.two,
   },
-  weekStrip: {
-    flexDirection: "row",
-    gap: Spacing.two,
+  metricTile: {
+    flexBasis: "47%",
+    flexGrow: 1,
+    minHeight: 96,
+    borderRadius: Radii.large,
+    borderWidth: HAIRLINE,
+    padding: Spacing.three,
+    gap: Spacing.one,
+    // Value and label anchor to the bottom so uneven content still aligns.
+    justifyContent: "flex-end",
   },
-  dayDot: {
-    width: 40,
-    height: 40,
-    borderRadius: Radii.pill,
+  streakBeat: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+    gap: Spacing.two,
   },
-  streakRow: {
+  statRow: {
     flexDirection: "row",
     gap: Spacing.two,
   },
   stat: {
     flex: 1,
+    borderRadius: Radii.large,
+    borderWidth: HAIRLINE,
+    padding: Spacing.three,
     gap: Spacing.half,
   },
   itemList: {
@@ -1113,6 +1294,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.three,
+  },
+  itemIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radii.medium,
+    alignItems: "center",
+    justifyContent: "center",
   },
   stateRow: {
     flexDirection: "row",
@@ -1132,6 +1320,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.two,
   },
+  lockedRow: {
+    opacity: 0.6,
+  },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -1143,5 +1334,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.one,
     paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+    borderRadius: Radii.large,
+    borderWidth: HAIRLINE,
   },
 });

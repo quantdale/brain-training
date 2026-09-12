@@ -43,6 +43,9 @@ export const TriggerButton = memo(function TriggerButton({
   const isHold = active && hold;
   const fillColor = isGo ? theme.accent : isHold ? theme.danger : theme.surface;
   const borderColor = isGo ? theme.accent : isHold ? theme.danger : theme.border;
+  // Label/glyph drawn ON the fill: the `on` slot keeps GO/HOLD legible in
+  // both themes (Campaign 026 colour sweep — never a raw white literal).
+  const onFill = isGo ? theme.accentOn : theme.dangerOn;
 
   return (
     <Pressable
@@ -63,13 +66,13 @@ export const TriggerButton = memo(function TriggerButton({
         (pressed || disabled) && styles.dim,
       ]}>
       {isHold ? (
-        <ThemedText type="title" style={styles.marker}>
+        <ThemedText type="title" style={[styles.marker, { color: theme.dangerOn }]}>
           ✕
         </ThemedText>
       ) : null}
       <ThemedText
         type="title"
-        style={{ color: isGo || isHold ? '#FFFFFF' : theme.textSecondary }}>
+        style={{ color: isGo || isHold ? onFill : theme.textSecondary }}>
         {isGo ? 'GO!' : isHold ? "DON'T TAP" : 'Tap when it turns green'}
       </ThemedText>
     </Pressable>
@@ -88,7 +91,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   marker: {
-    color: '#FFFFFF',
+    // The ✕ marker only renders on the HOLD (danger) fill.
     fontSize: 44,
     lineHeight: 52,
   },

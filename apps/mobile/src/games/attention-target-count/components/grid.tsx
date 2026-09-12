@@ -10,6 +10,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 
@@ -25,6 +26,7 @@ export interface GridProps {
 }
 
 export function Grid({ cells, testIdCell, onCellPress, disabled }: GridProps) {
+  const theme = useTheme();
   return (
     <View style={styles.grid}>
       {cells.map((glyph, i) => (
@@ -34,7 +36,14 @@ export function Grid({ cells, testIdCell, onCellPress, disabled }: GridProps) {
           disabled={disabled}
           onPress={onCellPress ? () => onCellPress(i) : undefined}
           accessibilityRole="image"
-          style={({ pressed }) => [styles.cell, pressed && !disabled ? styles.cellPressed : null]}>
+          style={({ pressed }) => [
+            styles.cell,
+            // Hairline cell boundary from the token ramp — never a raw
+            // translucent-black literal, so the grid tracks both themes
+            // (Campaign 026 colour sweep).
+            { borderColor: theme.border },
+            pressed && !disabled ? styles.cellPressed : null,
+          ]}>
           <ThemedText type="title" testID={testId(GAME_ID, 'glyph', String(i))}>
             {glyph}
           </ThemedText>
@@ -58,7 +67,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#0000001a',
   },
   cellPressed: {
     opacity: 0.7,

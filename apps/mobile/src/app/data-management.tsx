@@ -11,10 +11,13 @@
  * - The share sheet is offered where available; when the platform reports it
  *   unavailable we say so plainly instead of failing silently.
  *
- * Presentation (campaign 024, design-language v2): a storage-summary hero
- * leads; the backup name is a kit `TextField`; export/import/wipe are kit
- * `Button`s (danger for destructive); empty states and loading skeletons come
- * from the kit; progress and result announcements stay honest live regions.
+ * Presentation (campaign 026, design-language v3 "Neon Arcade"): a
+ * storage-summary hero leads with the accent spark; every card header carries
+ * a family identity mark (export info, backups accent, import xp, wipe
+ * danger); the backup list and import modes are `ListRow`s with identity
+ * icons; the empty backups state is designed (spark + headline + one line);
+ * the destructive wipe stays a danger action gated by the typed DELETE
+ * confirmation.
  */
 
 import { useCallback, useState } from "react";
@@ -23,14 +26,17 @@ import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
 import { ConfirmButton } from "@/components/settings/confirm-button";
 import { ThemedText } from "@/components/themed-text";
-import { Radii, Spacing, Typography } from "@/constants/theme";
+import { Radii, Spacing, Typography, type ThemeColor } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
   Button,
   Card,
   EmptyState,
+  Entrance,
+  HAIRLINE,
   ListRow,
   Skeleton,
+  Spark,
   StatBlock,
   TextField,
 } from "@/components/ui";
@@ -335,15 +341,23 @@ export default function DataManagementScreen() {
 
   return (
     <ScreenShell>
-      <ThemedText type="title" testID="data-management-title">
-        Data Management
-      </ThemedText>
-      <ThemedText type="caption" themeColor="textSecondary">
-        Your training history lives only on this phone — there is no account or
-        cloud copy. Export a backup file you control, preview exactly what a
-        restore would change, and delete local data only when you mean it. All
-        operations validate before they write and work fully offline.
-      </ThemedText>
+      <Entrance index={0}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <ThemedText type="title" testID="data-management-title">
+              Data Management
+            </ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Your training history lives only on this phone — there is no
+              account or cloud copy. Export a backup file you control, preview
+              exactly what a restore would change, and delete local data only
+              when you mean it. All operations validate before they write and
+              work fully offline.
+            </ThemedText>
+          </View>
+          <Spark size={30} color={theme.info} />
+        </View>
+      </Entrance>
 
       {!countsLoaded ? (
         <Card testID="data-loading">
@@ -354,373 +368,413 @@ export default function DataManagementScreen() {
       ) : (
         <>
           {/* Storage-summary hero: the screen's metric. */}
-          <Card variant="hero" testID="data-counts-hero">
-            <StatBlock
-              label="Database"
-              value={
-                counts.storageBytes > 0
-                  ? `${(counts.storageBytes / 1024).toFixed(1)} KB`
-                  : "Empty"
-              }
-              valueType="numeralXl"
-            />
-            <ThemedText
-              type="caption"
-              themeColor="textSecondary"
-              testID="data-storage-size"
-            >
-              {counts.hasProfile ? "Profile present" : "No profile"} ·{" "}
-              {counts.workoutInstances} workout instances · {counts.tutorialState}{" "}
-              tutorial states
-            </ThemedText>
-          </Card>
+          <Entrance index={1}>
+            <Card variant="hero" testID="data-counts-hero">
+              <View style={styles.heroRow}>
+                <View style={styles.heroText}>
+                  <StatBlock
+                    label="Local database"
+                    value={
+                      counts.storageBytes > 0
+                        ? `${(counts.storageBytes / 1024).toFixed(1)} KB`
+                        : "Empty"
+                    }
+                    valueType="numeralXl"
+                    tone="accent"
+                  />
+                </View>
+                <Spark size={44} color={theme.accent} />
+              </View>
+              <ThemedText
+                type="caption"
+                themeColor="textSecondary"
+                testID="data-storage-size"
+              >
+                {counts.hasProfile ? "Profile present" : "No profile"} ·{" "}
+                {counts.workoutInstances} workout instances ·{" "}
+                {counts.tutorialState} tutorial states
+              </ThemedText>
+            </Card>
+          </Entrance>
 
-          <Card testID="data-counts">
-            <ThemedText type="headline">Local Data</ThemedText>
-            <View style={styles.countGrid}>
-              <Count
-                label="Sessions"
-                value={counts.gameSessions}
-                testID="data-count-sessions"
-              />
-              <Count
-                label="Ratings"
-                value={counts.domainRatings}
-                testID="data-count-ratings"
-              />
-              <Count
-                label="History"
-                value={counts.ratingHistory}
-                testID="data-count-history"
-              />
-              <Count
-                label="Ledger"
-                value={counts.currencyLedger}
-                testID="data-count-ledger"
-              />
-              <Count
-                label="Favorites"
-                value={counts.gameFavorites}
-                testID="data-count-favorites"
-              />
-              <Count
-                label="Quests"
-                value={counts.questProgress}
-                testID="data-count-quests"
-              />
-              <Count
-                label="XP awards"
-                value={counts.xpAwards}
-                testID="data-count-xp"
-              />
-            </View>
-          </Card>
+          <Entrance index={2}>
+            <Card testID="data-counts">
+              <CardHeader title="Local Data" soft="infoSoft" ink="infoText" />
+              <View style={styles.countGrid}>
+                <Count
+                  label="Sessions"
+                  value={counts.gameSessions}
+                  testID="data-count-sessions"
+                />
+                <Count
+                  label="Ratings"
+                  value={counts.domainRatings}
+                  testID="data-count-ratings"
+                />
+                <Count
+                  label="History"
+                  value={counts.ratingHistory}
+                  testID="data-count-history"
+                />
+                <Count
+                  label="Ledger"
+                  value={counts.currencyLedger}
+                  testID="data-count-ledger"
+                />
+                <Count
+                  label="Favorites"
+                  value={counts.gameFavorites}
+                  testID="data-count-favorites"
+                />
+                <Count
+                  label="Quests"
+                  value={counts.questProgress}
+                  testID="data-count-quests"
+                />
+                <Count
+                  label="XP awards"
+                  value={counts.xpAwards}
+                  testID="data-count-xp"
+                />
+              </View>
+            </Card>
+          </Entrance>
         </>
       )}
 
-      <Card testID="data-export-card">
-        <ThemedText type="headline">Export Backup</ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          Creates one versioned, checksummed JSON file containing your full
-          local training history: sessions, ratings, coins, quests,
-          achievements, streak inventory and settings. It is saved in this
-          app&apos;s backups folder on your phone; nothing is uploaded
-          anywhere. Use Share to put a copy outside the app.
-        </ThemedText>
-        <TextField
-          label="Backup name"
-          value={backupName}
-          onChangeText={setBackupName}
-          placeholder="Leave blank to auto-name"
-          hint="Saved in this app's backups folder on your phone."
-          onClear={() => setBackupName("")}
-          testID="data-export-name"
-        />
-        <View style={styles.row}>
-          <Button
-            label="Export to JSON"
-            variant="primary"
-            size="md"
-            fullWidth={false}
-            loading={busy}
-            testID="data-export-button"
-            accessibilityLabel="Export backup to JSON"
-            accessibilityHint="Saves a backup file on this phone"
-            onPress={() => void onExport()}
+      <Entrance index={3}>
+        <Card testID="data-export-card">
+          <CardHeader title="Export Backup" soft="infoSoft" ink="infoText" />
+          <ThemedText type="caption" themeColor="textSecondary">
+            Creates one versioned, checksummed JSON file containing your full
+            local training history: sessions, ratings, coins, quests,
+            achievements, streak inventory and settings. It is saved in this
+            app&apos;s backups folder on your phone; nothing is uploaded
+            anywhere. Use Share to put a copy outside the app.
+          </ThemedText>
+          <TextField
+            label="Backup name"
+            value={backupName}
+            onChangeText={setBackupName}
+            placeholder="Leave blank to auto-name"
+            hint="Saved in this app's backups folder on your phone."
+            onClear={() => setBackupName("")}
+            testID="data-export-name"
           />
-          {lastExportName && !busy ? (
+          <View style={styles.row}>
             <Button
-              label="Share…"
+              label="Export to JSON"
+              variant="primary"
+              size="md"
+              fullWidth={false}
+              loading={busy}
+              testID="data-export-button"
+              accessibilityLabel="Export backup to JSON"
+              accessibilityHint="Saves a backup file on this phone"
+              onPress={() => void onExport()}
+            />
+            {lastExportName && !busy ? (
+              <Button
+                label="Share…"
+                variant="secondary"
+                size="md"
+                fullWidth={false}
+                testID={`data-export-share-${lastExportName}`}
+                accessibilityLabel={`Share the exported backup ${lastExportName}`}
+                onPress={() => void onShareBackup(lastExportName)}
+              />
+            ) : null}
+          </View>
+          {exportText ? (
+            <View style={styles.exportBox} testID="data-export-output">
+              <ScrollView
+                style={[styles.exportScroll, { borderColor: theme.border }]}
+                testID="data-export-scroll"
+              >
+                <ThemedText type="code" style={styles.mono}>
+                  {exportText.slice(0, 4000)}
+                  {exportText.length > 4000 ? "\n… (truncated)" : ""}
+                </ThemedText>
+              </ScrollView>
+              <ThemedText type="caption" themeColor="textSecondary">
+                Full backup is {exportText.length} characters. This preview is
+                truncated — share the file or load it from Saved Backups
+                instead of copying by hand.
+              </ThemedText>
+            </View>
+          ) : null}
+        </Card>
+      </Entrance>
+
+      {/* Saved backups (file transport — persists in the app documents folder). */}
+      <Entrance index={4}>
+        <Card testID="data-saved-backups">
+          <CardHeader
+            title="Saved Backups"
+            soft="accentSoft"
+            ink="accentText"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            Plain JSON files in this app&apos;s backups folder on your phone.
+            They survive restarts and are NOT removed by deleting your training
+            data below. For real safety keep a copy outside the device (Share).
+          </ThemedText>
+          {!backupsLoaded ? (
+            <Skeleton />
+          ) : savedBackups.length === 0 ? (
+            <EmptyState
+              icon={<Spark size={22} color={theme.accent} />}
+              title="No saved backups yet"
+              message="Export above to create one."
+              testID="data-saved-backups-empty"
+            />
+          ) : (
+            <View style={styles.rows}>
+              {savedBackups.map((name) => (
+                <View key={name} style={styles.backupRow}>
+                  <View style={styles.backupName}>
+                    <ListRow
+                      title={name}
+                      icon={<Spark size={14} color={theme.infoText} />}
+                      tone="infoSoft"
+                      showChevron={false}
+                    />
+                  </View>
+                  <View style={styles.row}>
+                    <Button
+                      label="Load"
+                      variant="secondary"
+                      size="sm"
+                      fullWidth={false}
+                      testID={`data-backup-load-${name}`}
+                      accessibilityLabel={`Load backup ${name} into the import box`}
+                      disabled={busy}
+                      onPress={() => void onLoadBackup(name)}
+                    />
+                    <Button
+                      label="Share"
+                      variant="ghost"
+                      size="sm"
+                      fullWidth={false}
+                      testID={`data-backup-share-${name}`}
+                      accessibilityLabel={`Share saved backup ${name}`}
+                      disabled={busy}
+                      onPress={() => void onShareBackup(name)}
+                    />
+                    {/* Deleting a backup is destructive and irreversible —
+                        require the confirming second tap. */}
+                    <ConfirmButton
+                      testID={`data-backup-delete-${name}`}
+                      label="Delete"
+                      confirmLabel="Tap to confirm"
+                      accessibilityLabel={`Delete saved backup ${name}`}
+                      variant="danger"
+                      size="small"
+                      disabled={busy}
+                      onConfirm={() => void onDeleteBackup(name)}
+                    />
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </Card>
+      </Entrance>
+
+      <Entrance index={5}>
+        <Card testID="data-import-card">
+          <CardHeader
+            title="Import / Restore"
+            soft="xpSoft"
+            ink="xpText"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            Paste a previously exported backup JSON (or load a saved backup or
+            file below), then preview — previews never write data.
+          </ThemedText>
+          {/* Mode rows carry their own identity: merge is safe (success),
+              replace erases first (danger). */}
+          <Card variant="outlined" padding="sm" testID="data-import-modes">
+            <ListRow
+              title="Merge"
+              subtitle="Adds what the backup contains that your phone is missing. Nothing currently on the phone is deleted or overwritten."
+              icon={<Spark size={16} color={theme.successText} />}
+              tone="successSoft"
+            />
+            <ListRow
+              title="Replace"
+              subtitle="Erases your current local data first, then restores exactly what is in the backup. Anything not in the backup is gone permanently."
+              icon={<Spark size={16} color={theme.dangerText} />}
+              tone="dangerSoft"
+            />
+          </Card>
+          <TextInput
+            testID="data-import-input"
+            placeholder="Paste backup JSON here"
+            placeholderTextColor={theme.textMuted}
+            multiline
+            autoCapitalize="none"
+            autoCorrect={false}
+            style={[
+              styles.textArea,
+              {
+                borderColor: theme.border,
+                color: theme.text,
+                fontSize: Typography.bodySmall.size,
+              },
+            ]}
+            value={importText}
+            onChangeText={setImportText}
+            accessibilityLabel="Backup JSON input"
+          />
+          <View style={styles.row}>
+            <Button
+              label="Load from file…"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              testID="data-import-from-file"
+              accessibilityLabel="Load backup JSON from a file"
+              disabled={busy}
+              onPress={() => void onLoadFromFile()}
+            />
+            <Button
+              label="Preview Merge"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              testID="data-preview-merge"
+              accessibilityLabel="Preview merge import"
+              disabled={busy || !importText.trim()}
+              onPress={() => void onPreview("merge")}
+            />
+            <Button
+              label="Preview Replace"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              testID="data-preview-replace"
+              accessibilityLabel="Preview replace import"
+              disabled={busy || !importText.trim()}
+              onPress={() => void onPreview("replace")}
+            />
+          </View>
+          {preview ? (
+            <Card
+              variant="outlined"
+              padding="sm"
+              testID="data-preview-output"
+              accessibilityLiveRegion="polite"
+            >
+              <ThemedText type="body">
+                Preview ({preview.mode}):{" "}
+                {preview.valid ? "Valid" : `Invalid (${preview.error?.kind})`}
+              </ThemedText>
+              <ThemedText type="caption" themeColor="textSecondary">
+                {preview.valid
+                  ? `Would add ${preview.counters.sessionsAdded} sessions and ${preview.counters.ledgerAdded} ledger entries${preview.mode === "replace" ? " after erasing current data" : ""}.`
+                  : preview.error?.message}
+              </ThemedText>
+              {preview.mode === "replace" && (
+                <ThemedText type="caption" themeColor="warning">
+                  Replace erases everything currently on this phone before
+                  restoring the backup.
+                </ThemedText>
+              )}
+              {preview.notes.map((n, i) => (
+                <ThemedText key={i} type="caption" themeColor="textSecondary">
+                  • {n}
+                </ThemedText>
+              ))}
+            </Card>
+          ) : null}
+          <View style={styles.row}>
+            <Button
+              label="Merge Import"
+              variant="primary"
+              size="md"
+              fullWidth={false}
+              testID="data-import-merge"
+              accessibilityLabel="Apply merge import"
+              disabled={busy || !importText.trim()}
+              onPress={() => void onImport("merge")}
+            />
+            {/* Replace is destructive: first tap arms ("Tap again…"), second
+                tap applies. Same pattern as deleting saved backups. */}
+            <ConfirmButton
+              testID="data-import-replace"
+              label="Replace Import"
+              confirmLabel="Tap again to erase and restore"
+              accessibilityLabel="Apply replace import"
+              variant="danger"
+              disabled={busy || !importText.trim()}
+              onConfirm={() => void onImport("replace")}
+            />
+          </View>
+          <ThemedText type="caption" themeColor="warning">
+            Replace cannot be undone except by restoring another backup. Not
+            sure which mode you need? Merge is always safe.
+          </ThemedText>
+        </Card>
+      </Entrance>
+
+      <Entrance index={6}>
+        <Card testID="data-wipe-card">
+          <CardHeader
+            title="Delete All Local Data"
+            soft="dangerSoft"
+            ink="dangerText"
+          />
+          <ThemedText type="caption" themeColor="textSecondary">
+            Permanently deletes every session, rating, coin ledger entry,
+            quest, achievement and setting on this phone. There is no cloud
+            copy to fall back on. Export a backup first — you cannot undo this
+            unless you have one.
+          </ThemedText>
+          <View style={styles.row}>
+            <Button
+              label="Export a backup first"
               variant="secondary"
               size="md"
               fullWidth={false}
-              testID={`data-export-share-${lastExportName}`}
-              accessibilityLabel={`Share the exported backup ${lastExportName}`}
-              onPress={() => void onShareBackup(lastExportName)}
+              testID="data-wipe-export-first"
+              accessibilityLabel="Export a backup before deleting anything"
+              disabled={busy}
+              onPress={() => void onExport()}
             />
-          ) : null}
-        </View>
-        {exportText ? (
-          <View style={styles.exportBox} testID="data-export-output">
-            <ScrollView
-              style={[styles.exportScroll, { borderColor: theme.border }]}
-              testID="data-export-scroll"
-            >
-              <ThemedText type="code" style={styles.mono}>
-                {exportText.slice(0, 4000)}
-                {exportText.length > 4000 ? "\n… (truncated)" : ""}
-              </ThemedText>
-            </ScrollView>
-            <ThemedText type="caption" themeColor="textSecondary">
-              Full backup is {exportText.length} characters. This preview is
-              truncated — share the file or load it from Saved Backups instead
-              of copying by hand.
-            </ThemedText>
           </View>
-        ) : null}
-      </Card>
-
-      {/* Saved backups (file transport — persists in the app documents folder). */}
-      <Card testID="data-saved-backups">
-        <ThemedText type="headline">Saved Backups</ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          Plain JSON files in this app&apos;s backups folder on your phone.
-          They survive restarts and are NOT removed by deleting your training
-          data below. For real safety keep a copy outside the device (Share).
-        </ThemedText>
-        {!backupsLoaded ? (
-          <Skeleton />
-        ) : savedBackups.length === 0 ? (
-          <EmptyState
-            title="No saved backups yet"
-            message="Export above to create one."
-            testID="data-saved-backups-empty"
+          <TextField
+            label="Confirmation"
+            value={wipeConfirm}
+            // The kit field has no auto-caps; normalise so typing "delete" on
+            // an auto-capitalising keyboard still arms the wipe, as before.
+            onChangeText={(text) => setWipeConfirm(text.toUpperCase())}
+            placeholder="Type DELETE to confirm"
+            hint="Typing DELETE enables the wipe button below."
+            testID="data-wipe-confirm"
+            accessibilityLabel="Wipe confirmation input"
           />
-        ) : (
-          <View style={styles.rows}>
-            {savedBackups.map((name) => (
-              <View key={name} style={styles.backupRow}>
-                <View style={styles.backupName}>
-                  <ListRow title={name} showChevron={false} />
-                </View>
-                <View style={styles.row}>
-                  <Button
-                    label="Load"
-                    variant="secondary"
-                    size="sm"
-                    fullWidth={false}
-                    testID={`data-backup-load-${name}`}
-                    accessibilityLabel={`Load backup ${name} into the import box`}
-                    disabled={busy}
-                    onPress={() => void onLoadBackup(name)}
-                  />
-                  <Button
-                    label="Share"
-                    variant="ghost"
-                    size="sm"
-                    fullWidth={false}
-                    testID={`data-backup-share-${name}`}
-                    accessibilityLabel={`Share saved backup ${name}`}
-                    disabled={busy}
-                    onPress={() => void onShareBackup(name)}
-                  />
-                  {/* Deleting a backup is destructive and irreversible —
-                      require the confirming second tap. */}
-                  <ConfirmButton
-                    testID={`data-backup-delete-${name}`}
-                    label="Delete"
-                    confirmLabel="Tap to confirm"
-                    accessibilityLabel={`Delete saved backup ${name}`}
-                    variant="danger"
-                    size="small"
-                    disabled={busy}
-                    onConfirm={() => void onDeleteBackup(name)}
-                  />
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-      </Card>
-
-      <Card testID="data-import-card">
-        <ThemedText type="headline">Import / Restore</ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          Paste a previously exported backup JSON (or load a saved backup or
-          file below), then preview — previews never write data.
-        </ThemedText>
-        <Card variant="outlined" padding="sm" testID="data-import-modes">
-          <ThemedText type="body">Merge</ThemedText>
+          <Button
+            label="Wipe Local Data"
+            variant="danger"
+            size="md"
+            fullWidth={false}
+            testID="data-wipe-button"
+            accessibilityLabel="Wipe all local data"
+            accessibilityHint={
+              wipeConfirm === "DELETE"
+                ? "Permanently deletes all local training data."
+                : "Type DELETE above to enable."
+            }
+            disabled={busy || wipeConfirm !== "DELETE"}
+            onPress={() => void onWipe()}
+          />
           <ThemedText type="caption" themeColor="textSecondary">
-            Adds what the backup contains that your phone is missing. Nothing
-            currently on the phone is deleted or overwritten.
-          </ThemedText>
-          <ThemedText type="body">Replace</ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">
-            Erases your current local data first, then restores exactly what is
-            in the backup. Anything not in the backup is gone permanently.
+            Saved backup files are kept by the wipe — restore one from Saved
+            Backups if you change your mind.
           </ThemedText>
         </Card>
-        <TextInput
-          testID="data-import-input"
-          placeholder="Paste backup JSON here"
-          placeholderTextColor={theme.textMuted}
-          multiline
-          autoCapitalize="none"
-          autoCorrect={false}
-          style={[
-            styles.textArea,
-            {
-              borderColor: theme.border,
-              color: theme.text,
-              fontSize: Typography.bodySmall.size,
-            },
-          ]}
-          value={importText}
-          onChangeText={setImportText}
-          accessibilityLabel="Backup JSON input"
-        />
-        <View style={styles.row}>
-          <Button
-            label="Load from file…"
-            variant="secondary"
-            size="sm"
-            fullWidth={false}
-            testID="data-import-from-file"
-            accessibilityLabel="Load backup JSON from a file"
-            disabled={busy}
-            onPress={() => void onLoadFromFile()}
-          />
-          <Button
-            label="Preview Merge"
-            variant="secondary"
-            size="sm"
-            fullWidth={false}
-            testID="data-preview-merge"
-            accessibilityLabel="Preview merge import"
-            disabled={busy || !importText.trim()}
-            onPress={() => void onPreview("merge")}
-          />
-          <Button
-            label="Preview Replace"
-            variant="secondary"
-            size="sm"
-            fullWidth={false}
-            testID="data-preview-replace"
-            accessibilityLabel="Preview replace import"
-            disabled={busy || !importText.trim()}
-            onPress={() => void onPreview("replace")}
-          />
-        </View>
-        {preview ? (
-          <Card
-            variant="outlined"
-            padding="sm"
-            testID="data-preview-output"
-            accessibilityLiveRegion="polite"
-          >
-            <ThemedText type="body">
-              Preview ({preview.mode}):{" "}
-              {preview.valid ? "Valid" : `Invalid (${preview.error?.kind})`}
-            </ThemedText>
-            <ThemedText type="caption" themeColor="textSecondary">
-              {preview.valid
-                ? `Would add ${preview.counters.sessionsAdded} sessions and ${preview.counters.ledgerAdded} ledger entries${preview.mode === "replace" ? " after erasing current data" : ""}.`
-                : preview.error?.message}
-            </ThemedText>
-            {preview.mode === "replace" && (
-              <ThemedText type="caption" themeColor="warning">
-                Replace erases everything currently on this phone before
-                restoring the backup.
-              </ThemedText>
-            )}
-            {preview.notes.map((n, i) => (
-              <ThemedText key={i} type="caption" themeColor="textSecondary">
-                • {n}
-              </ThemedText>
-            ))}
-          </Card>
-        ) : null}
-        <View style={styles.row}>
-          <Button
-            label="Merge Import"
-            variant="primary"
-            size="md"
-            fullWidth={false}
-            testID="data-import-merge"
-            accessibilityLabel="Apply merge import"
-            disabled={busy || !importText.trim()}
-            onPress={() => void onImport("merge")}
-          />
-          {/* Replace is destructive: first tap arms ("Tap again…"), second
-              tap applies. Same pattern as deleting saved backups. */}
-          <ConfirmButton
-            testID="data-import-replace"
-            label="Replace Import"
-            confirmLabel="Tap again to erase and restore"
-            accessibilityLabel="Apply replace import"
-            variant="danger"
-            disabled={busy || !importText.trim()}
-            onConfirm={() => void onImport("replace")}
-          />
-        </View>
-        <ThemedText type="caption" themeColor="warning">
-          Replace cannot be undone except by restoring another backup. Not sure
-          which mode you need? Merge is always safe.
-        </ThemedText>
-      </Card>
-
-      <Card testID="data-wipe-card">
-        <ThemedText type="headline">Delete All Local Data</ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          Permanently deletes every session, rating, coin ledger entry, quest,
-          achievement and setting on this phone. There is no cloud copy to fall
-          back on. Export a backup first — you cannot undo this unless you have
-          one.
-        </ThemedText>
-        <View style={styles.row}>
-          <Button
-            label="Export a backup first"
-            variant="secondary"
-            size="md"
-            fullWidth={false}
-            testID="data-wipe-export-first"
-            accessibilityLabel="Export a backup before deleting anything"
-            disabled={busy}
-            onPress={() => void onExport()}
-          />
-        </View>
-        <TextField
-          label="Confirmation"
-          value={wipeConfirm}
-          // The kit field has no auto-caps; normalise so typing "delete" on
-          // an auto-capitalising keyboard still arms the wipe, as before.
-          onChangeText={(text) => setWipeConfirm(text.toUpperCase())}
-          placeholder="Type DELETE to confirm"
-          hint="Typing DELETE enables the wipe button below."
-          testID="data-wipe-confirm"
-          accessibilityLabel="Wipe confirmation input"
-        />
-        <Button
-          label="Wipe Local Data"
-          variant="danger"
-          size="md"
-          fullWidth={false}
-          testID="data-wipe-button"
-          accessibilityLabel="Wipe all local data"
-          accessibilityHint={
-            wipeConfirm === "DELETE"
-              ? "Permanently deletes all local training data."
-              : "Type DELETE above to enable."
-          }
-          disabled={busy || wipeConfirm !== "DELETE"}
-          onPress={() => void onWipe()}
-        />
-        <ThemedText type="caption" themeColor="textSecondary">
-          Saved backup files are kept by the wipe — restore one from Saved
-          Backups if you change your mind.
-        </ThemedText>
-      </Card>
+      </Entrance>
 
       {message ? (
         <Card testID="data-message" accessibilityLiveRegion="polite">
@@ -742,9 +796,16 @@ function Count({
   value: number;
   testID: string;
 }) {
+  const theme = useTheme();
   return (
-    <View style={styles.countCell} testID={testID}>
-      <ThemedText type="numeral" themeColor="accent">
+    <View
+      style={[
+        styles.countCell,
+        { backgroundColor: theme.surfaceSunken, borderColor: theme.border },
+      ]}
+      testID={testID}
+    >
+      <ThemedText type="numeral" themeColor="accentText">
         {value}
       </ThemedText>
       <ThemedText type="caption" themeColor="textSecondary">
@@ -754,16 +815,78 @@ function Count({
   );
 }
 
+/**
+ * Card header with an identity mark. Each data section keeps one family hue
+ * (export info, backups accent, import xp, wipe danger) so sections are
+ * distinguishable before their titles are read.
+ */
+function CardHeader({
+  title,
+  soft,
+  ink,
+}: {
+  title: string;
+  soft: ThemeColor;
+  ink: ThemeColor;
+}) {
+  const theme = useTheme();
+  return (
+    <View style={styles.cardHeader}>
+      <View style={[styles.cardHeaderMark, { backgroundColor: theme[soft] }]}>
+        <Spark size={14} color={theme[ink]} />
+      </View>
+      <ThemedText type="headline">{title}</ThemedText>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: Spacing.three,
+  },
+  headerText: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  cardHeaderMark: {
+    width: 28,
+    height: 28,
+    borderRadius: Radii.small,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: Spacing.three,
+  },
+  heroText: {
+    flex: 1,
+    gap: Spacing.one,
+  },
   countGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.two,
   },
   countCell: {
-    minWidth: 80,
+    flexBasis: "30%",
+    flexGrow: 1,
+    minWidth: 88,
     alignItems: "center",
     gap: Spacing.half,
+    paddingVertical: Spacing.twoHalf,
+    borderRadius: Radii.medium,
+    borderWidth: HAIRLINE,
   },
   row: {
     flexDirection: "row",

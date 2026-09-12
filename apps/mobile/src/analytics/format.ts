@@ -30,6 +30,16 @@ export function directionArrow(direction: Direction): string {
   return direction === 'up' ? '▲' : direction === 'down' ? '▼' : '–';
 }
 
+/**
+ * English count noun: `plural(1, 'session')` → "1 session",
+ * `plural(3, 'session')` → "3 sessions". Campaign 026 visual-QA: bare
+ * `${n} sessions` interpolations rendered "1 sessions" on several screens,
+ * so user-facing counts go through this helper.
+ */
+export function plural(count: number, singular: string, pluralForm = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
 /** Signed integer with explicit + for positive ("+12", "-5", "0"). */
 export function formatSigned(n: number): string {
   if (n > 0) return `+${Math.round(n)}`;

@@ -4,6 +4,8 @@
  * (and tests) control the clock.
  */
 
+import { formatDayLabel } from '@/analytics/format';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
@@ -25,7 +27,10 @@ export function formatRelativeDay(timestampMs: number, nowMs: number): string {
   if (dayDiff <= 0) return 'Today';
   if (dayDiff === 1) return 'Yesterday';
   if (dayDiff <= 6) return `${dayDiff} days ago`;
-  return new Date(timestampMs).toLocaleDateString();
+  // UTC "Sep 11" label shared with every other shell surface (Campaign 026
+  // visual-QA: bare `toLocaleDateString()` rendered "9/11/2026" next to
+  // "Sep 11" labels on the same screens).
+  return formatDayLabel(timestampMs);
 }
 
 export interface PerformanceBand {

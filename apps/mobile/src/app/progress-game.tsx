@@ -31,7 +31,6 @@ import {
   loadGameSessions,
   summarizePointTrend,
   trendImproved,
-  type GameInsight,
   type TimeWindowKey,
   WINDOW_LABELS,
   WINDOW_ORDER,
@@ -42,30 +41,55 @@ import { ThemedText } from '@/components/themed-text';
 import { MiniBarChart } from '@/components/progress-charts';
 import {
   BackLink,
+  Badge,
   Card,
   EmptyState,
+  Entrance,
   ListRow,
   SectionGrid,
   SegmentedControl,
   Skeleton,
   SkeletonText,
+  Spark,
 } from '@/components/ui';
-import { Spacing, type ThemeColor } from '@/constants/theme';
+import { DomainColors, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord } from '@/db';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
+import { useTheme } from '@/hooks/use-theme';
 import { getGameDefinition } from '@/registry/registry';
-import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned } from '@/analytics/format';
+import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned, plural } from '@/analytics/format';
 
 const EMPTY: GameSessionRecord[] = [];
 
 /** Rolling-average width (sessions) for the per-game smoothing view. */
 const ROLLING_AVERAGE_SESSIONS = 5;
 
-function trendValues(insight: GameInsight, key: keyof GameInsight['series']): number[] {
-  return insight.series[key].map((p) => p.value);
+/**
+ * Domain identity key for a display domain name (folds display casing and the
+ * long logic label — same lookup the Progress overview uses).
+ */
+function domainKeyFor(domain: string): DomainName | null {
+  const normalized = domain.trim().toLowerCase();
+  if (normalized.startsWith('logic')) return 'logic';
+  return normalized in DomainColors.light ? (normalized as DomainName) : null;
+}
+
+/** Sparse date labels (first/middle/last) so trend bars carry axis context without clutter. */
+function sparsePointLabels(points: readonly { t: number }[]): string[] {
+  const count = points.length;
+  if (count === 0) return [];
+  const middle = Math.floor((count - 1) / 2);
+  return points.map((point, index) =>
+    index === 0 || index === count - 1 || (count > 4 && index === middle)
+      ? formatDayLabel(point.t)
+      : '',
+  );
 }
 
 export default function ProgressGameScreen() {
+  const theme = useTheme();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const params = useLocalSearchParams<{ gameId?: string }>();
   const gameId = typeof params.gameId === 'string' ? params.gameId : '';
 
@@ -145,12 +169,14 @@ export default function ProgressGameScreen() {
             action={{ label: 'Try again', onPress: retry }}
           />
         ) : (
-          <Card>
+          <Card tone="accentSoft">
             <EmptyState
+              icon={<Spark size={32} color={theme.accent} coreColor={theme.accentOn} />}
               title="No sessions yet"
               message="Play it to start tracking scores here."
               actionLabel={gameId ? 'View game details' : undefined}
               onAction={gameId ? () => router.push(`/game-detail/${gameId}`) : undefined}
+              actionVariant="primary"
               testID="progress-game-empty"
             />
           </Card>
@@ -160,18 +186,27 @@ export default function ProgressGameScreen() {
   }
 
   const { available } = insight;
+  const identityKey = def ? domainKeyFor(def.primaryCategory) : null;
+  const family = identityKey ? DomainColors[scheme][identityKey] : null;
 
   return (
     <ScreenShell>
       <BackLink testID="progress-game-back" onPress={() => router.back()} />
 
-      <ThemedText type="title" testID="progress-game-title">
-        {def?.name ?? gameId}
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        {insight.count} sessions · last played {formatDayLabel(insight.lastCompletedAt)} · since{' '}
-        {formatDayLabel(insight.firstCompletedAt)}
-      </ThemedText>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <View
+            style={[styles.domainDot, { backgroundColor: family ? family.base : theme.accent }]}
+          />
+          <ThemedText type="title" testID="progress-game-title">
+            {def?.name ?? gameId}
+          </ThemedText>
+        </View>
+        <ThemedText type="small" themeColor="textSecondary">
+          {insight.count} sessions · last played {formatDayLabel(insight.lastCompletedAt)} · since{' '}
+          {formatDayLabel(insight.firstCompletedAt)}
+        </ThemedText>
+      </View>
 
       <SegmentedControl
         testID="progress-game-window"
@@ -184,35 +219,72 @@ export default function ProgressGameScreen() {
         }))}
       />
 
-      <Card testID="progress-game-records">
-        <ThemedText type="subtitle">Personal records</ThemedText>
+      <Entrance index={0}>
+      <Card
+        testID="progress-game-records"
+        variant="hero"
+        style={
+          family
+            ? { backgroundColor: family.soft, borderColor: family.base, borderWidth: 2 }
+            : undefined
+        }>
+        <View style={styles.cardHeader}>
+          <View style={styles.titleRow}>
+            <View
+              style={[styles.domainDot, { backgroundColor: family ? family.base : theme.accent }]}
+            />
+            <ThemedText type="eyebrow" style={family ? { color: family.softText } : undefined}>
+              {def?.primaryCategory ?? 'Game'}
+            </ThemedText>
+          </View>
+          <Badge label={`${insight.count} sessions`} tone="info" size="sm" />
+        </View>
+        <View style={styles.heroMetric}>
+          <ThemedText type="eyebrow" style={family ? { color: family.softText } : undefined}>
+            Best performance
+          </ThemedText>
+          <ThemedText
+            type="numeralXl"
+            style={{ color: family ? family.softText : theme.accent }}>
+            {formatPercent(insight.bestNormalized)}
+          </ThemedText>
+        </View>
         <View style={styles.recordGrid}>
-          <Record label="Best performance" value={formatPercent(insight.bestNormalized)} />
           <Record
             label="Best score"
             value={available.score ? String(insight.bestScore) : '—'}
+            color={family ? family.softText : undefined}
           />
           <Record
             label="Best accuracy"
             value={available.accuracy ? formatPercent(insight.bestAccuracy ?? 0) : '—'}
+            color={family ? family.softText : undefined}
           />
           <Record
             label="Fastest session"
             value={insight.fastestMs === null ? '—' : formatMs(insight.fastestMs)}
+            color={family ? family.softText : undefined}
           />
           <Record
             label="Best reaction"
             value={available.reaction && insight.bestReactionMs !== null ? formatMs(insight.bestReactionMs) : '—'}
+            color={family ? family.softText : undefined}
           />
-          <Record label="Avg performance" value={formatPercent(insight.avgNormalized)} />
+          <Record
+            label="Avg performance"
+            value={formatPercent(insight.avgNormalized)}
+            color={family ? family.softText : undefined}
+          />
           {insight.recentFormNormalized !== null ? (
             <Record
               label={`Last ${insight.recentFormCount} avg`}
               value={formatPercent(insight.recentFormNormalized)}
+              color={family ? family.softText : undefined}
             />
           ) : null}
         </View>
       </Card>
+      </Entrance>
 
       <Card testID="progress-game-trend-summary">
         <ThemedText type="subtitle">Trend summary</ThemedText>
@@ -272,6 +344,7 @@ export default function ProgressGameScreen() {
           <MiniBarChart
             values={rollingSeries.map((p) => p.value)}
             testID="progress-game-rolling-chart"
+            labels={sparsePointLabels(rollingSeries)}
             emptyLabel="Not enough sessions yet"
             summary={`Rolling last-${ROLLING_AVERAGE_SESSIONS}-session average across ${rollingSeries.length} points, latest ${formatPercent(rollingSeries[rollingSeries.length - 1].value)}.`}
           />
@@ -329,13 +402,13 @@ export default function ProgressGameScreen() {
       <TrendBlock
         testID="progress-game-trend-normalized"
         label="Performance (normalized)"
-        values={trendValues(insight, 'normalized')}
+        points={insight.series.normalized}
       />
       {available.score ? (
         <TrendBlock
           testID="progress-game-trend-score"
           label="Score"
-          values={trendValues(insight, 'score')}
+          points={insight.series.score}
           format={(v) => String(Math.round(v))}
         />
       ) : null}
@@ -343,7 +416,7 @@ export default function ProgressGameScreen() {
         <TrendBlock
           testID="progress-game-trend-accuracy"
           label="Accuracy"
-          values={trendValues(insight, 'accuracy')}
+          points={insight.series.accuracy}
           format={(v) => formatPercent(v)}
           chartTone="success"
         />
@@ -352,7 +425,7 @@ export default function ProgressGameScreen() {
         <TrendBlock
           testID="progress-game-trend-reaction"
           label="Reaction time (lower is better)"
-          values={trendValues(insight, 'reaction')}
+          points={insight.series.reaction}
           format={(v) => formatMs(v)}
           tone="lower-better"
           chartTone="info"
@@ -362,7 +435,7 @@ export default function ProgressGameScreen() {
         <TrendBlock
           testID="progress-game-trend-difficulty"
           label="Difficulty (challenge rating)"
-          values={trendValues(insight, 'difficulty')}
+          points={insight.series.difficulty}
           format={(v) => formatPercent(v)}
           tone="neutral"
         />
@@ -508,18 +581,20 @@ export default function ProgressGameScreen() {
 function TrendBlock({
   testID,
   label,
-  values,
+  points,
   format = (v) => String(Math.round(v)),
   tone = 'higher-better',
   chartTone = 'accent',
 }: {
   testID: string;
   label: string;
-  values: readonly number[];
+  /** Chronological series (oldest first) — values plus their timestamps. */
+  points: readonly { t: number; value: number }[];
   format?: (v: number) => string;
   tone?: 'higher-better' | 'lower-better' | 'neutral';
   chartTone?: ThemeColor;
 }) {
+  const values = points.map((p) => p.value);
   const last = values.length > 0 ? values[values.length - 1] : null;
   const first = values.length > 0 ? values[0] : null;
   const delta = last !== null && first !== null ? last - first : 0;
@@ -550,23 +625,35 @@ function TrendBlock({
         values={values}
         testID={`${testID}-chart`}
         tone={chartTone}
+        labels={sparsePointLabels(points)}
         summary={
           values.length === 0
             ? `${label}: no sessions yet.`
-            : `${label} across ${values.length} sessions, latest ${format(last ?? 0)}, first ${format(first ?? 0)}.`
+            : `${label} across ${plural(values.length, 'session')}, latest ${format(last ?? 0)}, first ${format(first ?? 0)}.`
         }
       />
+      {points.length > 1 ? (
+        <ThemedText type="caption" themeColor="textSecondary">
+          {formatDayLabel(points[0].t)} → {formatDayLabel(points[points.length - 1].t)} · oldest → newest.
+        </ThemedText>
+      ) : null}
     </Card>
   );
 }
 
-function Record({ label, value }: { label: string; value: string }) {
+function Record({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <View style={styles.record}>
-      <ThemedText type="headline" themeColor="accent">
+      <ThemedText
+        type="numeral"
+        themeColor={color ? undefined : 'accent'}
+        style={color ? { color } : undefined}>
         {value}
       </ThemedText>
-      <ThemedText type="caption" themeColor="textSecondary">
+      <ThemedText
+        type="caption"
+        themeColor={color ? undefined : 'textSecondary'}
+        style={color ? { color } : undefined}>
         {label}
       </ThemedText>
     </View>
@@ -574,10 +661,27 @@ function Record({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    gap: Spacing.one,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  domainDot: {
+    width: Spacing.three,
+    height: Spacing.three,
+    borderRadius: Radii.pill,
+  },
+  heroMetric: {
+    gap: Spacing.half,
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.two,
   },
   recordGrid: {
     flexDirection: 'row',

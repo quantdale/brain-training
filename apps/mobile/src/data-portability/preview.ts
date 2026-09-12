@@ -7,6 +7,7 @@
  */
 
 import type { AppDatabase } from '@/db';
+import { plural } from '@/analytics/format';
 import { parseAndValidateBackup } from './deserialize';
 import { applyData } from './apply';
 import { captureTriggers, dropTriggers, recreateTriggers } from './triggers';
@@ -114,7 +115,7 @@ export async function previewImport(
 
   if (mode === 'replace') {
     notes.push(
-      `Replace will overwrite ALL local data with the backup (${meta.counts.gameSessions} sessions, ` +
+      `Replace will overwrite ALL local data with the backup (${plural(meta.counts.gameSessions, 'session')}, ` +
         `${meta.counts.currencyLedger} ledger entries, ${meta.counts.questProgress} quest-progress rows, etc.). ` +
         `This is destructive and cannot be undone except by restoring another backup.`,
     );

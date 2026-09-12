@@ -12,6 +12,7 @@ import { StyleSheet, View } from 'react-native';
 import { testId, isDevBuild } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { GameButton, TutorialFrame } from '@/components/game-ui';
 
 import { GAME_ID, STROOP_COLOR_HEX } from '../types';
@@ -26,6 +27,7 @@ interface TutorialProps {
 
 export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [step, setStep] = useState(0);
+  const theme = useTheme();
 
   const steps = [
     {
@@ -60,25 +62,25 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
         </ThemedText>
 
         {step === 1 && (
-          <View style={styles.demo}>
+          <View style={[styles.demo, { borderColor: theme.border }]}>
             <ThemedText type="bodyLarge" style={{ color: STROOP_COLOR_HEX.red, fontWeight: '700' }}>
               RED
             </ThemedText>
-            <ThemedText type="caption" style={styles.demoLabel}>
+            <ThemedText type="caption" themeColor="textSecondary" style={styles.demoLabel}>
               Word says RED, but it&apos;s written in red ink → Answer: red
             </ThemedText>
           </View>
         )}
 
         {step === 2 && (
-          <View style={styles.demo}>
-            <ThemedText type="caption" style={styles.ruleChange}>
+          <View style={[styles.demo, { borderColor: theme.border }]}>
+            <ThemedText type="caption" themeColor="warningText" style={styles.ruleChange}>
               RULE CHANGE! Answer the WORD
             </ThemedText>
             <ThemedText type="bodyLarge" style={{ color: STROOP_COLOR_HEX.blue, fontWeight: '700' }}>
               GREEN
             </ThemedText>
-            <ThemedText type="caption" style={styles.demoLabel}>
+            <ThemedText type="caption" themeColor="textSecondary" style={styles.demoLabel}>
               Word says GREEN, written in blue → Answer: green (word says)
             </ThemedText>
           </View>
@@ -127,15 +129,12 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     borderRadius: Radii.medium,
     borderWidth: 1,
-    borderColor: '#E3E6EF',
     gap: Spacing.two,
   },
   demoLabel: {
     textAlign: 'center',
-    color: '#5D6474',
   },
   ruleChange: {
-    color: '#D98E04',
     fontWeight: '700',
   },
   buttons: {

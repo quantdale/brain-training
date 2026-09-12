@@ -5,10 +5,11 @@
  * comes from this file. Screens and components must not hardcode magic colours
  * or sizes; add a token here instead of inventing a one-off value.
  *
- * Design language v2 (campaign 024) — "Playful Precision":
- *   clarity first (Elevate), energy second (Duolingo/Brilliant). One hero per
- *   screen, one primary action per viewport, three type weights, stable metric
- *   identity colours.
+ * Design language v3 (campaign 026) — "Neon Arcade":
+ *   warm-paper light theme and deep-plum ink dark theme, vermillion primary,
+ *   volt rewards and violet progression, eight vivid domain identities, chunky
+ *   rounded geometry, tactile buttons with a physical lip, and heavier display
+ *   type. Clarity stays first; the arcade energy is the identity.
  *
  * Colour contract: every family exposes five slots so callers pick the right
  * one instead of guessing contrast:
@@ -73,26 +74,26 @@ export type DomainName =
  */
 export const Families = {
   light: {
-    accent: { base: '#2563EB', text: '#2563EB', soft: '#E9EFFD', softText: '#2461E7', on: '#FFFFFF' },
-    success: { base: '#15803D', text: '#15803D', soft: '#E8F2EC', softText: '#147C3B', on: '#FFFFFF' },
-    warning: { base: '#B45309', text: '#B45309', soft: '#F8EEE6', softText: '#B15209', on: '#FFFFFF' },
-    danger: { base: '#DC2626', text: '#D82525', soft: '#FCE9E9', softText: '#D12424', on: '#FFFFFF' },
-    info: { base: '#0284C7', text: '#0277B4', soft: '#E6F3F9', softText: '#0272AC', on: '#0F1117' },
-    streak: { base: '#EA580C', text: '#C4490A', soft: '#FDEEE7', softText: '#BB460A', on: '#0F1117' },
-    xp: { base: '#7C3AED', text: '#7C3AED', soft: '#F2EBFD', softText: '#7C3AED', on: '#FFFFFF' },
-    currency: { base: '#A16207', text: '#A16207', soft: '#F6EFE6', softText: '#9C5F07', on: '#FFFFFF' },
+    accent: { base: '#D6402A', text: '#C43A22', soft: '#FFE7E1', softText: '#A62B18', on: '#FFFFFF' },
+    success: { base: '#157347', text: '#157347', soft: '#DDF6E4', softText: '#0F5132', on: '#FFFFFF' },
+    warning: { base: '#B45309', text: '#9A4A08', soft: '#FEF0D3', softText: '#7A3B06', on: '#FFFFFF' },
+    danger: { base: '#C92A20', text: '#B42318', soft: '#FEE4E2', softText: '#912018', on: '#FFFFFF' },
+    info: { base: '#1E63D0', text: '#175CD3', soft: '#DCEBFD', softText: '#12469E', on: '#FFFFFF' },
+    streak: { base: '#C2410C', text: '#B03A0A', soft: '#FFE8D7', softText: '#8F3208', on: '#FFFFFF' },
+    xp: { base: '#7C3AED', text: '#6D28D9', soft: '#EDE9FE', softText: '#5B21B6', on: '#FFFFFF' },
+    currency: { base: '#A16207', text: '#8A5406', soft: '#F7EFDD', softText: '#6F4405', on: '#FFFFFF' },
   },
   dark: {
     // Dark-mode fills are luminous with dark text on them (`on`), which is what
-    // keeps CTAs readable on a dark canvas; see the contrast test.
-    accent: { base: '#7BA0F5', text: '#7BA0F5', soft: '#20283B', softText: '#7BA0F5', on: '#0F1117' },
-    success: { base: '#4ADE80', text: '#4ADE80', soft: '#183228', softText: '#4ADE80', on: '#0F1117' },
-    warning: { base: '#FBBF24', text: '#FBBF24', soft: '#352D19', softText: '#FBBF24', on: '#0F1117' },
-    danger: { base: '#F87171', text: '#F87171', soft: '#342025', softText: '#F87171', on: '#0F1117' },
-    info: { base: '#7DD3FC', text: '#7DD3FC', soft: '#21303C', softText: '#7DD3FC', on: '#0F1117' },
-    streak: { base: '#FB923C', text: '#FB923C', soft: '#35261D', softText: '#FB923C', on: '#0F1117' },
-    xp: { base: '#C4B5FD', text: '#C4B5FD', soft: '#2C2B3C', softText: '#C4B5FD', on: '#0F1117' },
-    currency: { base: '#5EEAD4', text: '#5EEAD4', soft: '#1C3435', softText: '#5EEAD4', on: '#0F1117' },
+    // keeps CTAs readable on the ink canvas; see the contrast test.
+    accent: { base: '#FF8A73', text: '#FF9C88', soft: '#3A1F22', softText: '#FFB4A3', on: '#2A0F0A' },
+    success: { base: '#4ADE80', text: '#6EE7A0', soft: '#16301F', softText: '#86EFAC', on: '#062B14' },
+    warning: { base: '#FBBF24', text: '#FCD34D', soft: '#3A2E12', softText: '#FDE68A', on: '#3A2500' },
+    danger: { base: '#FF7A7A', text: '#FF9B9B', soft: '#3A1B1F', softText: '#FFB4B4', on: '#330B0B' },
+    info: { base: '#6AA9FF', text: '#8FC0FF', soft: '#17263F', softText: '#A9CEFF', on: '#0A1B33' },
+    streak: { base: '#FF9A4D', text: '#FFB067', soft: '#3A2413', softText: '#FFC48F', on: '#331500' },
+    xp: { base: '#B79CFF', text: '#C4ADFF', soft: '#2A2145', softText: '#D6C7FF', on: '#1C1033' },
+    currency: { base: '#5EEAD4', text: '#7DF0DE', soft: '#123430', softText: '#A0F5E8', on: '#042A24' },
   },
 } as const satisfies { light: Record<SemanticName, ColorFamily>; dark: Record<SemanticName, ColorFamily> };
 
@@ -102,24 +103,24 @@ export const Families = {
  */
 export const DomainColors = {
   light: {
-    memory: { base: '#4338CA', text: '#4338CA', soft: '#ECEBFA', softText: '#4338CA', on: '#FFFFFF' },
-    attention: { base: '#BE123C', text: '#BE123C', soft: '#F8E7EC', softText: '#BE123C', on: '#FFFFFF' },
-    speed: { base: '#A16207', text: '#A16207', soft: '#F6EFE6', softText: '#9C5F07', on: '#FFFFFF' },
-    math: { base: '#1D4ED8', text: '#1D4ED8', soft: '#E8EDFB', softText: '#1D4ED8', on: '#FFFFFF' },
-    language: { base: '#047857', text: '#047857', soft: '#E6F2EE', softText: '#047857', on: '#FFFFFF' },
-    logic: { base: '#7E22CE', text: '#7E22CE', soft: '#F2E9FA', softText: '#7E22CE', on: '#FFFFFF' },
-    flexibility: { base: '#A21CAF', text: '#A21CAF', soft: '#F6E8F7', softText: '#A21CAF', on: '#FFFFFF' },
-    spatial: { base: '#0E7490', text: '#0E7490', soft: '#E7F1F4', softText: '#0E7490', on: '#FFFFFF' },
+    memory: { base: '#BE185D', text: '#BE185D', soft: '#FCE7F3', softText: '#9D174D', on: '#FFFFFF' },
+    attention: { base: '#C2410C', text: '#B03A0A', soft: '#FFE8D7', softText: '#8F3208', on: '#FFFFFF' },
+    speed: { base: '#A16207', text: '#854D0E', soft: '#FEF3C7', softText: '#713F12', on: '#FFFFFF' },
+    math: { base: '#1D4ED8', text: '#1D4ED8', soft: '#E4EBFF', softText: '#1E40AF', on: '#FFFFFF' },
+    language: { base: '#0369A1', text: '#0369A1', soft: '#E0F2FE', softText: '#075985', on: '#FFFFFF' },
+    logic: { base: '#0F766E', text: '#0F766E', soft: '#D9F2EF', softText: '#115E59', on: '#FFFFFF' },
+    flexibility: { base: '#7C3AED', text: '#6D28D9', soft: '#EDE9FE', softText: '#5B21B6', on: '#FFFFFF' },
+    spatial: { base: '#15803D', text: '#15803D', soft: '#DCFCE7', softText: '#166534', on: '#FFFFFF' },
   },
   dark: {
-    memory: { base: '#A5B4FC', text: '#A5B4FC', soft: '#272B3C', softText: '#A5B4FC', on: '#0F1117' },
-    attention: { base: '#FDA4AF', text: '#FDA4AF', soft: '#35292F', softText: '#FDA4AF', on: '#0F1117' },
-    speed: { base: '#FCD34D', text: '#FCD34D', soft: '#353020', softText: '#FCD34D', on: '#0F1117' },
-    math: { base: '#93C5FD', text: '#93C5FD', soft: '#242E3C', softText: '#93C5FD', on: '#0F1117' },
-    language: { base: '#6EE7B7', text: '#6EE7B7', soft: '#1E3331', softText: '#6EE7B7', on: '#0F1117' },
-    logic: { base: '#D8B4FE', text: '#D8B4FE', soft: '#2F2B3C', softText: '#D8B4FE', on: '#0F1117' },
-    flexibility: { base: '#F0ABFC', text: '#F0ABFC', soft: '#332A3C', softText: '#F0ABFC', on: '#0F1117' },
-    spatial: { base: '#67E8F9', text: '#67E8F9', soft: '#1D333B', softText: '#67E8F9', on: '#0F1117' },
+    memory: { base: '#F472B6', text: '#F9A8D4', soft: '#3A1D2E', softText: '#FBCFE8', on: '#3A0A22' },
+    attention: { base: '#FB923C', text: '#FDBA74', soft: '#3A2413', softText: '#FED7AA', on: '#331500' },
+    speed: { base: '#FACC15', text: '#FDE047', soft: '#3A3210', softText: '#FEF08A', on: '#3A2A00' },
+    math: { base: '#60A5FA', text: '#93C5FD', soft: '#182740', softText: '#BFDBFE', on: '#0A1B33' },
+    language: { base: '#38BDF8', text: '#7DD3FC', soft: '#122A3D', softText: '#BAE6FD', on: '#04263A' },
+    logic: { base: '#2DD4BF', text: '#5EEAD4', soft: '#11302C', softText: '#99F6E4', on: '#042A24' },
+    flexibility: { base: '#A78BFA', text: '#C4B5FD', soft: '#271F44', softText: '#DDD6FE', on: '#1C1033' },
+    spatial: { base: '#4ADE80', text: '#86EFAC', soft: '#16301F', softText: '#BBF7D0', on: '#052B12' },
   },
 } as const satisfies { light: Record<DomainName, ColorFamily>; dark: Record<DomainName, ColorFamily> };
 
@@ -163,38 +164,50 @@ interface NeutralTheme {
   accentStrong: string;
   /** Scrim behind completion/celebration overlays. */
   scrim: string;
+  /** Floating overlay banner surface (reward celebration), theme-invariant. */
+  overlaySurface: string;
+  /** Primary copy on overlay surfaces. */
+  overlayText: string;
+  /** Secondary copy on overlay surfaces. */
+  overlayTextMuted: string;
 }
 
 const NEUTRALS = {
   light: {
-    text: '#131829',
-    textSecondary: '#5A6377',
-    textMuted: '#666F82',
-    background: '#F4F6FC',
-    backgroundElement: '#EDF0F8',
-    backgroundSelected: '#E4E9F5',
+    text: '#1A1B2E',
+    textSecondary: '#5B5E77',
+    textMuted: '#6E7189',
+    background: '#FFF8EF',
+    backgroundElement: '#F6EEE2',
+    backgroundSelected: '#F3E4D3',
     surface: '#FFFFFF',
     surfaceRaised: '#FFFFFF',
-    surfaceSunken: '#EDF0F8',
-    border: '#E4E8F2',
-    borderStrong: '#8A94AC',
-    accentStrong: '#1E51C1',
-    scrim: 'rgba(14, 16, 22, 0.55)',
+    surfaceSunken: '#F6EEE2',
+    border: '#EADFD0',
+    borderStrong: '#6E6A5E',
+    accentStrong: '#B23522',
+    scrim: 'rgba(26, 18, 12, 0.55)',
+    overlaySurface: 'rgba(20, 22, 34, 0.92)',
+    overlayText: '#FFFFFF',
+    overlayTextMuted: '#D9DCE8',
   },
   dark: {
-    text: '#F3F5FA',
-    textSecondary: '#A7AEC0',
-    textMuted: '#939BAD',
-    background: '#0F1117',
-    backgroundElement: '#0B0D12',
-    backgroundSelected: '#262B38',
-    surface: '#171A23',
-    surfaceRaised: '#1E222C',
-    surfaceSunken: '#0B0D12',
-    border: '#2A2F3C',
-    borderStrong: '#67728A',
-    accentStrong: '#93B1F7',
-    scrim: 'rgba(0, 0, 0, 0.65)',
+    text: '#F6F1E7',
+    textSecondary: '#B3AEC6',
+    textMuted: '#9A94AF',
+    background: '#14102A',
+    backgroundElement: '#100C22',
+    backgroundSelected: '#2A2447',
+    surface: '#1E1838',
+    surfaceRaised: '#251E44',
+    surfaceSunken: '#110D24',
+    border: '#322A52',
+    borderStrong: '#7A7396',
+    accentStrong: '#FF9C88',
+    scrim: 'rgba(6, 4, 14, 0.68)',
+    overlaySurface: 'rgba(20, 22, 34, 0.92)',
+    overlayText: '#FFFFFF',
+    overlayTextMuted: '#D9DCE8',
   },
 } as const satisfies { light: NeutralTheme; dark: NeutralTheme };
 
@@ -205,7 +218,9 @@ const NEUTRALS = {
  */
 export type ColorTheme = NeutralTheme &
   Record<SemanticName, string> &
-  Record<`${SemanticName}Text` | `${SemanticName}Soft` | `${SemanticName}SoftText` | `${SemanticName}On`, string>;
+  Record<`${SemanticName}Text` | `${SemanticName}Soft` | `${SemanticName}SoftText` | `${SemanticName}On`, string> &
+  Record<DomainName, string> &
+  Record<`${DomainName}Text` | `${DomainName}Soft` | `${DomainName}SoftText` | `${DomainName}On`, string>;
 
 /** Expand structured families into the flat key space. */
 function flattenFamilies(families: Record<SemanticName, ColorFamily>): Record<string, string> {
@@ -221,13 +236,39 @@ function flattenFamilies(families: Record<SemanticName, ColorFamily>): Record<st
 }
 
 /**
+ * Expand domain identities into the flat key space too (`memory`, `memorySoft`, …),
+ * so callers can colour category chrome with `themeColor="memorySoft"` or
+ * `Card tone="memorySoft"` instead of importing `DomainColors` and reading the
+ * scheme themselves. Campaign 026 surface packets needed exactly this.
+ */
+function flattenDomains(domains: Record<DomainName, ColorFamily>): Record<string, string> {
+  const flat: Record<string, string> = {};
+  for (const [name, family] of Object.entries(domains)) {
+    flat[name] = family.base;
+    flat[`${name}Text`] = family.text;
+    flat[`${name}Soft`] = family.soft;
+    flat[`${name}SoftText`] = family.softText;
+    flat[`${name}On`] = family.on;
+  }
+  return flat;
+}
+
+/**
  * Light + dark colour palettes. Built from {@link NEUTRALS} and
  * {@link Families} so a value exists in exactly one place; the spread result
  * matches {@link ColorTheme} by construction (verified by the token test).
  */
 export const Colors: { readonly light: ColorTheme; readonly dark: ColorTheme } = {
-  light: { ...NEUTRALS.light, ...flattenFamilies(Families.light) } as ColorTheme,
-  dark: { ...NEUTRALS.dark, ...flattenFamilies(Families.dark) } as ColorTheme,
+  light: {
+    ...NEUTRALS.light,
+    ...flattenFamilies(Families.light),
+    ...flattenDomains(DomainColors.light),
+  } as ColorTheme,
+  dark: {
+    ...NEUTRALS.dark,
+    ...flattenFamilies(Families.dark),
+    ...flattenDomains(DomainColors.dark),
+  } as ColorTheme,
 };
 
 /** Semantic colour slot usable by themed components (`ThemedView`, `ThemedText`). */
@@ -275,6 +316,19 @@ export const Fonts = Platform.select({
   },
 });
 
+/**
+ * Depth shading for physical edges. A translucent black always reads as
+ * "recessed/under" on saturated, luminous and white surfaces in both themes,
+ * which is exactly the button-lip / spark-core shading language; keeping it
+ * here stops screens from inventing their own translucency (Campaign 026 R6).
+ */
+export const Depth = {
+  /** 4 dp bottom edge under a filled button face. */
+  lip: 'rgba(0, 0, 0, 0.24)',
+  /** Centre node of the Spark identity mark. */
+  core: 'rgba(0, 0, 0, 0.32)',
+} as const;
+
 /** 4pt-based spacing scale. Names are relative (half → six), like the scaffold. */
 export const Spacing = {
   half: 2,
@@ -291,11 +345,11 @@ export const Spacing = {
 
 /** Corner radii scale. */
 export const Radii = {
-  extraSmall: 6,
-  small: 8,
-  medium: 12,
-  large: 20,
-  extraLarge: 28,
+  extraSmall: 8,
+  small: 10,
+  medium: 16,
+  large: 22,
+  extraLarge: 30,
   pill: 999,
 } as const;
 
@@ -331,29 +385,29 @@ export const Typography: Record<
   TypographyToken
 > = {
   /** Uppercase section eyebrow above a title. */
-  eyebrow: { size: 12, lineHeight: 16, weight: '700', tracking: 0.8 },
+  eyebrow: { size: 11, lineHeight: 14, weight: '800', tracking: 1 },
   /** Small labels, captions, metadata. */
   caption: { size: 12, lineHeight: 16, weight: '500' },
   /** Form/detail labels that pair with a value. */
-  label: { size: 13, lineHeight: 18, weight: '600' },
+  label: { size: 13, lineHeight: 18, weight: '700' },
   /** Secondary body text. */
   bodySmall: { size: 14, lineHeight: 20, weight: '500' },
   /** Primary body text. */
   body: { size: 16, lineHeight: 24, weight: '500' },
   /** Emphasis within body copy. */
-  bodyLarge: { size: 18, lineHeight: 26, weight: '500' },
+  bodyLarge: { size: 17, lineHeight: 24, weight: '600' },
   /** Section headers. */
-  headline: { size: 22, lineHeight: 28, weight: '700', tracking: -0.2 },
+  headline: { size: 24, lineHeight: 30, weight: '800', tracking: -0.3 },
   /** Screen titles. */
-  title: { size: 28, lineHeight: 34, weight: '700', tracking: -0.4 },
+  title: { size: 30, lineHeight: 36, weight: '800', tracking: -0.6 },
   /** Hero/dashboard display. */
-  display: { size: 36, lineHeight: 42, weight: '800', tracking: -0.8 },
+  display: { size: 38, lineHeight: 44, weight: '900', tracking: -1 },
   /** Inline metric (rows, chips). */
-  numeral: { size: 20, lineHeight: 24, weight: '700', tabular: true },
+  numeral: { size: 20, lineHeight: 24, weight: '800', tabular: true },
   /** Card-level metric. */
-  numeralLg: { size: 28, lineHeight: 32, weight: '800', tabular: true, tracking: -0.4 },
+  numeralLg: { size: 30, lineHeight: 34, weight: '900', tabular: true, tracking: -0.6 },
   /** Hero metric (rings, results headline). */
-  numeralXl: { size: 40, lineHeight: 44, weight: '800', tabular: true, tracking: -1 },
+  numeralXl: { size: 44, lineHeight: 48, weight: '900', tabular: true, tracking: -1.2 },
 };
 
 /** Typography token name accepted by themed text. */
@@ -389,15 +443,15 @@ export const Elevation: Record<'none' | 'flat' | 'card' | 'raised' | 'hero' | 'o
   flat: { boxShadow: 'none', elevation: 0 },
   /** Default card lift above the page background. */
   card: {
-    boxShadow: '0 1px 2px rgba(16, 20, 40, 0.06), 0 4px 14px rgba(16, 20, 40, 0.06)',
-    elevation: 2,
+    boxShadow: '0 1px 2px rgba(64, 38, 12, 0.05), 0 6px 18px rgba(64, 38, 12, 0.07)',
+    elevation: 3,
   },
   /** Raised surfaces: reward/completion cards and primary CTAs. */
-  raised: { boxShadow: '0 6px 20px rgba(16, 20, 40, 0.14)', elevation: 6 },
+  raised: { boxShadow: '0 3px 0 rgba(64, 38, 12, 0.10), 0 8px 24px rgba(64, 38, 12, 0.13)', elevation: 6 },
   /** The hero surface of a screen. */
-  hero: { boxShadow: '0 12px 32px rgba(16, 20, 40, 0.18)', elevation: 10 },
+  hero: { boxShadow: '0 4px 0 rgba(64, 38, 12, 0.12), 0 16px 40px rgba(64, 38, 12, 0.18)', elevation: 10 },
   /** Overlays/modals above everything. */
-  overlay: { boxShadow: '0 20px 48px rgba(8, 10, 24, 0.32)', elevation: 16 },
+  overlay: { boxShadow: '0 24px 56px rgba(26, 12, 4, 0.34)', elevation: 16 },
 };
 
 /** Elevation level name. */
@@ -413,17 +467,17 @@ export const Motion = {
   /** Small state changes (chips, meters). */
   quick: 140,
   /** Standard entrance/fade. */
-  base: 200,
+  base: 220,
   /** Card/modal entrance. */
-  entrance: 260,
+  entrance: 280,
   /** Hero/celebration entrance. */
-  hero: 320,
+  hero: 340,
   /** Bounded celebration period (auto-dismiss). */
-  celebration: 650,
+  celebration: 700,
   /** Delay between staggered children of a mounting group. */
   stagger: 60,
   /** Maximum travel distance (dp) for an entrance transition. */
-  travel: 12,
+  travel: 14,
 } as const;
 
 /** Spring physics preset (RN `Animated.spring` / Reanimated `withSpring`). */
@@ -439,9 +493,9 @@ export interface SpringPreset {
  * with a slight overshoot that reads as "counted up").
  */
 export const Springs: Record<'press' | 'progress' | 'hero', SpringPreset> = {
-  press: { damping: 22, stiffness: 340, mass: 0.7 },
-  progress: { damping: 18, stiffness: 180, mass: 0.9 },
-  hero: { damping: 14, stiffness: 160, mass: 1 },
+  press: { damping: 20, stiffness: 380, mass: 0.6 },
+  progress: { damping: 16, stiffness: 200, mass: 0.8 },
+  hero: { damping: 12, stiffness: 150, mass: 1 },
 };
 
 /** Spring preset name. */

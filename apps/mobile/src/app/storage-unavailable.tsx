@@ -7,13 +7,18 @@
  * recoverable state with retry/diagnostic options rather than silently
  * rendering the normal app (which would later fail only on first save).
  *
- * Deliberately self-contained: plain RN primitives + fixed colors, because the
- * theme/db layers this screen would otherwise depend on are exactly what may
- * have failed to initialize. Font scaling is still capped at ~1.35 to match
- * the rest of the app so large system fonts cannot push recovery controls
- * out of reach.
+ * Deliberately self-contained: plain RN primitives + STATIC token values,
+ * because the provider/db layers this screen would otherwise depend on are
+ * exactly what may have failed to initialize. `Colors` and the layout tokens
+ * are compile-time constants (no provider, no database), and the colour
+ * scheme comes from the OS (no settings read), so this screen wears the
+ * shipped identity in both themes while staying renderable on the degraded
+ * path. Font scaling is still capped at ~1.35 to match the rest of the app
+ * so large system fonts cannot push recovery controls out of reach.
  */
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useColorScheme, View } from 'react-native';
+
+import { Colors, Depth, Radii, Spacing } from '@/theme/tokens';
 
 export interface StorageUnavailableProps {
   /** The initialization error, surfaced as a diagnostic detail. */
@@ -29,6 +34,11 @@ const STEPS = [
 ];
 
 export default function StorageUnavailable({ error, onRetry }: StorageUnavailableProps) {
+  // OS scheme only: the stored theme preference may live behind the database
+  // that just failed, so follow the system and read static token values.
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const theme = Colors[scheme];
+  const styles = makeStyles(theme);
   return (
     // Live region: this screen can appear (or transition to recovered) while a
     // screen reader user is waiting, so surface the state change audibly.
@@ -83,45 +93,60 @@ export default function StorageUnavailable({ error, onRetry }: StorageUnavailabl
   );
 }
 
-const styles = {
-  container: {
-    flex: 1,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    padding: 24,
-    backgroundColor: '#0b0d12',
-  },
-  title: { fontSize: 22, fontWeight: '700' as const, color: '#ffffff', marginBottom: 12 },
-  message: {
-    fontSize: 15,
-    color: '#c7ccd6',
-    textAlign: 'center' as const,
-    marginBottom: 16,
-    maxWidth: 320,
-  },
-  steps: {
-    marginBottom: 16,
-    maxWidth: 320,
-    gap: 6,
-  },
-  step: {
-    fontSize: 13,
-    color: '#9aa1b5',
-    lineHeight: 18,
-  },
-  detail: {
-    fontSize: 13,
-    color: '#ff8a80',
-    textAlign: 'center' as const,
-    marginBottom: 20,
-    maxWidth: 320,
-  },
-  retry: {
-    paddingVertical: 12,
-    paddingHorizontal: 28,
-    borderRadius: 10,
-    backgroundColor: '#3b82f6',
-  },
-  retryPressed: { opacity: 0.7 },
-  retryText: { fontSize: 16, fontWeight: '600' as const, color: '#ffffff' },
-};
+/** Static-token stylesheet: `theme` is a compile-time palette object, so this
+ * stays callable on the degraded path (no hooks, no providers). */
+function makeStyles(theme: (typeof Colors)[keyof typeof Colors]) {
+  return {
+    container: {
+      flex: 1,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      padding: Spacing.four,
+      backgroundColor: theme.background,
+    },
+    title: {
+      fontSize: 24,
+      lineHeight: 30,
+      fontWeight: '700' as const,
+      color: theme.text,
+      marginBottom: Spacing.two,
+    },
+    message: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: theme.textSecondary,
+      textAlign: 'center' as const,
+      marginBottom: Spacing.three,
+      maxWidth: 320,
+    },
+    steps: {
+      marginBottom: Spacing.three,
+      maxWidth: 320,
+      gap: Spacing.one,
+    },
+    step: {
+      fontSize: 13,
+      lineHeight: 18,
+      fontWeight: '500' as const,
+      color: theme.textMuted,
+    },
+    detail: {
+      fontSize: 13,
+      lineHeight: 18,
+      color: theme.dangerText,
+      textAlign: 'center' as const,
+      marginBottom: Spacing.four,
+      maxWidth: 320,
+    },
+    retry: {
+      paddingVertical: Spacing.twoHalf,
+      paddingHorizontal: Spacing.five,
+      borderRadius: Radii.large,
+      backgroundColor: theme.accent,
+      borderBottomWidth: 4,
+      borderBottomColor: Depth.lip,
+    },
+    retryPressed: { opacity: 0.7 },
+    retryText: { fontSize: 16, lineHeight: 24, fontWeight: '600' as const, color: theme.accentOn },
+  };
+}

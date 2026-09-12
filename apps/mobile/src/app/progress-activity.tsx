@@ -32,10 +32,22 @@ import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
 import { HeatmapRow, LabeledBars } from '@/components/progress-charts';
-import { BackLink, Card, EmptyState, ListRow, SectionGrid, Skeleton, SkeletonText } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
+import {
+  BackLink,
+  Card,
+  EmptyState,
+  Entrance,
+  ListRow,
+  SectionGrid,
+  Skeleton,
+  SkeletonText,
+  Spark,
+  StatBlock,
+} from '@/components/ui';
+import { Spacing, type ThemeColor } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
+import { useTheme } from '@/hooks/use-theme';
 import { formatDayLabel } from '@/analytics/format';
 
 const CALENDAR_DAYS = 182; // ~26 weeks
@@ -54,6 +66,7 @@ function load(db: AppDatabase): Promise<ProgressSnapshot> {
 }
 
 export default function ProgressActivityScreen() {
+  const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
   const [nowMs, setNowMs] = useState(0);
   useFocusEffect(
@@ -109,19 +122,25 @@ export default function ProgressActivityScreen() {
           action={{ label: 'Try again', onPress: retry }}
         />
       ) : calendar.totalSessions === 0 ? (
-        <Card>
-          <EmptyState
-            title="No sessions yet"
-            message="Play a game to fill this calendar."
-            actionLabel="Browse games"
-            onAction={() => router.push('/games')}
-            testID="progress-activity-empty"
-          />
-        </Card>
+        <Entrance index={0}>
+          <Card tone="accentSoft">
+            <EmptyState
+              icon={<Spark size={32} color={theme.accent} coreColor={theme.accentOn} />}
+              title="No sessions yet"
+              message="Play a game to fill this calendar."
+              actionLabel="Browse games"
+              onAction={() => router.push('/games')}
+              actionVariant="primary"
+              testID="progress-activity-empty"
+            />
+          </Card>
+        </Entrance>
       ) : (
         <>
 
+      <Entrance index={0}>
       <Card testID="progress-activity-summary">
+        <ThemedText type="subtitle">Summary</ThemedText>
         <View style={styles.summaryRow}>
           <SummaryStat label="Sessions" value={String(calendar.totalSessions)} />
           <SummaryStat label="Active days" value={String(calendar.activeDays)} />
@@ -131,6 +150,7 @@ export default function ProgressActivityScreen() {
           />
           <SummaryStat
             label="Days since last"
+            tone="info"
             value={
               daysSinceLast === null ? '—' : daysSinceLast === 0 ? 'Today' : `${daysSinceLast}d`
             }
@@ -139,7 +159,7 @@ export default function ProgressActivityScreen() {
         {calendar.busiest ? (
           <ThemedText type="caption" themeColor="textSecondary">
             Busiest day: {formatDayLabel(nowMs - calendar.busiest.offsetDays * 24 * 60 * 60 * 1000)} (
-            {calendar.busiest.count} sessions).
+            {calendar.busiest.count} session{calendar.busiest.count === 1 ? '' : 's'}).
           </ThemedText>
         ) : null}
         <ThemedText type="caption" themeColor="textSecondary" testID="progress-activity-share">
@@ -147,14 +167,16 @@ export default function ProgressActivityScreen() {
           {Math.round((calendar.activeDays / CALENDAR_DAYS) * 100)}%).
         </ThemedText>
         <View style={styles.summaryRow} testID="progress-activity-runs">
-          <SummaryStat label="Current run" value={`${runs.current}d`} />
-          <SummaryStat label="Longest run" value={`${runs.longest}d`} />
+          <SummaryStat label="Current run" value={`${runs.current}d`} tone="streak" />
+          <SummaryStat label="Longest run" value={`${runs.longest}d`} tone="streak" />
         </View>
         <ThemedText type="caption" themeColor="textSecondary">
           {explainMetric('activity-runs')}
         </ThemedText>
       </Card>
+      </Entrance>
 
+      <Entrance index={1}>
       <Card testID="progress-activity-heatmap">
         <ThemedText type="subtitle">Calendar</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
@@ -198,7 +220,9 @@ export default function ProgressActivityScreen() {
           </ThemedText>
         </View>
       </Card>
+      </Entrance>
 
+      <Entrance index={2}>
       <SectionGrid>
       <Card testID="progress-activity-distribution">
         <ThemedText type="subtitle">Frequency</ThemedText>
@@ -241,8 +265,10 @@ export default function ProgressActivityScreen() {
         </ThemedText>
       </Card>
       </SectionGrid>
+      </Entrance>
 
       {months.length > 0 ? (
+        <Entrance index={3}>
         <Card testID="progress-activity-monthly">
           <ThemedText type="subtitle">By month</ThemedText>
           <View style={styles.rows}>
@@ -260,6 +286,7 @@ export default function ProgressActivityScreen() {
             Months partially covered by this view include only their covered days.
           </ThemedText>
         </Card>
+        </Entrance>
       ) : null}
         </>
       )}
@@ -267,15 +294,18 @@ export default function ProgressActivityScreen() {
   );
 }
 
-function SummaryStat({ label, value }: { label: string; value: string }) {
+function SummaryStat({
+  label,
+  value,
+  tone = 'accent',
+}: {
+  label: string;
+  value: string;
+  tone?: ThemeColor;
+}) {
   return (
     <View style={styles.stat}>
-      <ThemedText type="headline" themeColor="accent">
-        {value}
-      </ThemedText>
-      <ThemedText type="caption" themeColor="textSecondary">
-        {label}
-      </ThemedText>
+      <StatBlock label={label} value={value} tone={tone} valueType="numeral" />
     </View>
   );
 }
