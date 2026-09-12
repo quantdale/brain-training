@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "026-visual-identity-rebuild",
   "description": "Campaign 026 visual identity rebuild. The orchestrator owns the shared identity surfaces (theme tokens, contrast harness, UI kit, shell chrome, game chrome, docs, scripts, generated files); surface packets own disjoint route/component directories and must report shared-file needs instead of editing them. Mechanics files are out of scope for every packet.",
   "orchestratorOnlySurfaces": [

@@ -5,6 +5,82 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 026 — Visual Identity Rebuild ("Neon Arcade") evidence (2026-09-12/13)
+
+### Activation (commit `357c6f7`)
+
+- Owner directive recorded 2026-09-12 (drastic whole-frontend redesign,
+  Refero-grounded, proven by native before/after evidence) activated as its own
+  campaign after Campaign 025's terminal closure; OpenSpec packet
+  `026-visual-identity-rebuild` (6 specs), governance/state/execution prompt
+  and ownership rebound; all validators PASS.
+- Baseline evidence captured on emulator-5560 (`braintraining-ui35`):
+  `qa-artifacts/campaign026/before/**` (11 surfaces × light/dark).
+
+### Identity foundation + kit + shell + game chrome (commit `3f01a01`)
+
+- Design language v3: warm-paper light palette (`#FFF8EF` canvas), deep-plum
+  ink dark palette, vermillion primary with a physical button lip, volt/violet
+  reward tones, eight vivid domain identities, heavier display type with
+  tabular numerals, chunky radii and a bounded celebration system.
+- The whole shared stack was rebuilt — tokens, contrast harness, every
+  `components/ui/**` primitive, shell chrome, 16 routes, game intro/HUD/results
+  and celebration — while every testID and all mechanics/scoring/generator/
+  persistence contracts stayed untouched (presentation-only diff).
+- New code-native primitives: `Spark`, `Confetti` (seeded, deterministic,
+  margin-confined), `StreakStrip` (day-dot + count pill); `Depth`/overlay
+  tokens close the colour-literal sweep (kit + shell + chrome ship only
+  tokens; game stimulus palettes are the documented exception).
+- Mid-wave visual-QA repairs: difficulty metric shows the player-facing label,
+  session date separated from the XP reward, pluralised counts, `listFont`
+  date consistency, native tab active label kept surface-readable, one-sided
+  button borders replaced by a curved lip wrapper.
+
+### Verification at `3f01a01`
+
+- Jest: **536 suites / 6412 tests PASS** (4 suites / 5 tests allowlisted
+  skips), 5 snapshots PASS; `tsc --noEmit` clean; `expo lint` clean.
+- Validators: repo-state, task-ownership, registry `--check`, provenance,
+  offline boundary CLEAN (968 files), secrets CLEAN (1978 tracked files),
+  OpenSpec 13/13 PASS.
+- a11y audit (`scripts/qa/a11y-audit.mjs`, 1080×2400 @420): **0 violations
+  across 22 surfaces** in both themes. Two bottom-edge rows (a 44 dp streak
+  buy button and a 186 dp game card) measured short only because uiautomator
+  reports visible bounds for content scrolled under the tab bar; both were
+  verified fully visible at their real sizes by scroll-check dumps, and the
+  audit now classifies such nodes as `clipped` (reported, never counted as
+  violations) instead of misreading the clipped measurement.
+- Captures: `qa-artifacts/campaign026/after/**` — 22 frames (11 surfaces ×
+  light/dark) with real content after the capture harness gained a
+  bundle-warm-up wait, uniform-frame detection and per-surface frame retry;
+  the six baseline frames that were black from a wedged emulator surface were
+  regenerated from `6f420cc` into `qa-artifacts/campaign026/before-recovery/**`
+  and merged into the baseline manifest with `regeneratedFrom` notes.
+- Runtime: autobot canaries **8/8 PASS** (`qa-artifacts/20260912-160724-
+  autobot-canaries`: interaction + force-win + exactly one persisted session +
+  row invariants + authoritative results + back/next navigation); daily-workout
+  journey **PASS** (`qa-artifacts/20260912-161752-autobot-workout`: 4/4
+  completed + relaunch shows persisted completion).
+- Release artifact: `:app:assembleRelease` BUILD SUCCESSFUL from the campaign
+  head; `app-release.apk` 109,496,133 bytes, SHA-256
+  `2E89B783495EFE66D1EAD57FCBE487AF60A79E245C22A69558A6027B94D36EC4`.
+
+### Honest limitations (Campaign 026)
+
+- **Emulator app-surface wedge (environment):** after hours of repeated
+  app force-stop/relaunch cycles under Jest/Metro load, the GPU-translated app
+  surface stopped presenting frames (black screenshots, empty view tree) while
+  the launcher still rendered; `dumpsys gfxinfo` showed almost no app frames.
+  A cold restart of the dedicated headless emulator (`braintraining-ui35`,
+  `-port 5560 -no-window -no-snapshot`) fully restored rendering. Classified
+  as a QA-environment artifact, not a product defect.
+- Full-catalog `--mode certify` was not run; representative canaries + the
+  daily-workout journey + the full unit matrix are the campaign's runtime
+  evidence, matching the risk-based validation model.
+- Still NOT VALIDATED / EXTERNALLY BLOCKED (unchanged): store/Play signing
+  credentials, manual TalkBack review, SAF/system sheets, physical device,
+  iOS runtime.
+
 ## Campaign 024 — Frontend UX Modernization evidence (2026-09-11)
 
 ### Activation (commit `d4c15bc`)

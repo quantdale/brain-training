@@ -314,9 +314,18 @@ Notes that cost time to learn:
   native handles; the app then boots into its storage-error boundary. A cold
   start under the new profile is both realistic and deterministic. Rotation
   (the real user path) is unaffected.
-- **A capture is only evidence if the app rendered.** `ui-capture` marks a frame
-  blank when it is suspiciously small, has no hierarchy, or shows the
-  storage-error boundary, and exits non-zero.
+- **A capture is only evidence if the app rendered.** `ui-capture` (Campaign
+  026) waits after every batch relaunch until the app's view tree mounts *and*
+  the framebuffer is non-uniform (a theme switch or a cold Metro bundle can
+  leave the window black for seconds after the tree mounts), samples the raw
+  framebuffer to reject uniform frames, retries each surface up to three times
+  when the frame is black, and exits non-zero when any capture stays blank.
+- **A wedged app surface is an emulator condition, not an app defect.** After
+  hours of repeated force-stop/relaunch cycles the GPU-translated app window can
+  stop presenting frames while the stock launcher still renders (screencap black,
+  view tree empty, `dumpsys gfxinfo` shows almost no frames). A cold restart of
+  the headless AVD restores rendering immediately; the harness now reports it as
+  a blank/unwarmed batch instead of filing black frames as evidence.
 - Theme switching uses `cmd uimode night yes|no`, which the app's default
   `system` theme setting follows.
 
@@ -335,6 +344,14 @@ The audit measures laid-out bounds, so a control that reaches 44 dp only through
 `safeArea`-style hit slop still reports short. That is deliberate: compact
 controls should carry real height, and the kit's `Button`, `Chip`, `TextField`
 and `BackLink` primitives do.
+
+Campaign 026 added a clipping rule: uiautomator reports the VISIBLE bounds of a
+node, so a control scrolled under the bottom tab bar measures shorter than it
+lays out (a real 44 dp button measured 16 dp while half of it sat behind the
+bar). Interactive nodes that start inside the content viewport but pin to its
+bottom edge are classified as `clipped`, printed with their visible size, and
+excluded from the violation count — never silently ignored. To judge a clipped
+control's true size, scroll it fully into view and re-dump.
 
 ## Dev-server stability during long runs
 

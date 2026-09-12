@@ -1,50 +1,51 @@
 # Durable Project State
 
-**Last update:** 2026-09-12 — Campaign 025 closed VALIDATED (game board feedback consistency).
+**Last update:** 2026-09-13 — Campaign 026 closed VALIDATED (visual identity rebuild, "Neon Arcade").
 **Canonical branch:** `main`
-**Active campaign:** `026-visual-identity-rebuild`
-**Last campaign:** `025-game-board-feedback-consistency`
+**Active campaign:** none
+**Last campaign:** `026-visual-identity-rebuild`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 025 closed its mission: all 42 game boards now share one verdict
-language, every finite-round session reports HUD progress, and the wave stayed
-presentation-only (no mechanics, scoring, generator, persistence or testID
-changes). Campaign 024 (the shell/kit/design-language rebuild) is its
-VALIDATED predecessor and remains terminal.
+Campaign 026 replaced the visual/interaction identity itself: a new
+design-language-v3 token system (warm-paper light / deep-plum ink dark,
+vermillion primary, volt/violet reward tones, eight vivid domain identities,
+heavier display type, tactile button lip), a rebuilt UI kit (`Spark`,
+`Confetti`, `StreakStrip` identity primitives), recomposed shell routes and
+restyled game chrome — while gameplay, scoring, generators, persistence and
+every testID stayed untouched. Its closure SHA is `3f01a01` (plus this closure
+docs commit).
 
-## Terminal evidence summary (Campaign 025, closure SHA `fe80a2c`)
+## Terminal evidence summary (Campaign 026, closure SHA `3f01a01`)
 
-- 31 remaining boards adopted fill + verdict border + ✓/✕/⏱ badge + verdict in
-  the accessible name, with reducer-authoritative feedback, the prompt mounted
-  through feedback, animated score read-outs and 44 dp floors.
-- HUD `roundProgress` wired in 41 of 42 games; `memory-sequence-memory` is a
-  time-boxed score attack with no total in state and correctly keeps the round
-  chip (HUD R2).
-- Matrix at closure: **Jest 535 suites / 6409 tests PASS** (5 allowlisted
-  skips), `tsc --noEmit` clean, `expo lint` clean, all repository validators
-  PASS (repo-state, task-ownership, provenance, offline 965 files CLEAN,
-  secrets 1938 files CLEAN, registry `--check` up to date).
-- Runtime: autobot canaries **8/8 PASS** on a debug build at the closure SHA
-  (the first attempt ran against a release APK whose QA controls are disabled
-  by design and was correctly classified as an APK-class mismatch), plus
-  native before/after board pairs in
-  `qa-artifacts/campaign025/boards-{before,after}/**`.
-- Still **NOT VALIDATED** for this campaign: the daily-workout journey on this
-  SHA and a release artifact built from this SHA.
-- The wave repaired four mid-edit breakages left by an interrupted worker and
-  a botched style object in `spatial-mental-rotation`; every repair is
-  behaviour-preserving and covered by the game suites.
+- Matrix at closure: **Jest 536 suites / 6412 tests PASS** (4 suites / 5 tests
+  allowlisted skips), `tsc --noEmit` clean, `expo lint` clean, all repository
+  validators PASS (repo-state, task-ownership, registry, provenance, offline
+  968 files CLEAN, secrets 1978 files CLEAN, OpenSpec 13/13).
+- Runtime: autobot canaries **8/8 PASS**; daily-workout journey **PASS** (4/4 +
+  relaunch shows persisted completion); a11y audit **0 violations across 22
+  surfaces** in both themes.
+- Native evidence: `qa-artifacts/campaign026/after/**` (22 frames, 11 surfaces
+  × light/dark) against `qa-artifacts/campaign026/before/**` (six frames
+  regenerated from `6f420cc` into `before-recovery/**` and merged into the
+  baseline manifest).
+- Release artifact rebuilt from the campaign head: 109,496,133 bytes, SHA-256
+  `2E89B783495EFE66D1EAD57FCBE487AF60A79E245C22A69558A6027B94D36EC4`.
+- QA tooling hardening shipped with the campaign: `ui-capture.mjs` waits for a
+  visible warm frame, detects uniform/black frames and retries per surface;
+  `a11y-audit.mjs` classifies viewport-clipped nodes as `clipped` instead of
+  miscounting them as undersized targets.
+- The emulator app-surface wedge (black frames after hours of restarts) was
+  root-caused to the environment and cleared by an emulator cold restart;
+  recorded in `.agent/KNOWN_ISSUES.md` and `VALIDATION.md`.
 
 ## Continuation rule
 
 There is **no active campaign**. A successor campaign requires an explicit
 owner directive or a separately justified planning pass against current
-repository evidence. The owner's recorded redesign directive (drastic frontend
-visual rebuild, Refero-researched, native before/after evidence) is the
-candidate successor and is activated as its own campaign rather than folded
-into Campaign 025.
+repository evidence. Owner acceptance of Campaign 026 is the before/after
+capture sets under `qa-artifacts/campaign026/`.
 
 ## Recovery order
 
@@ -54,5 +55,5 @@ into Campaign 025.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. `openspec/changes/025-game-board-feedback-consistency/` (proposal → design →
-   specs → tasks) and `docs/DESIGN_SYSTEM.md`
+7. `openspec/changes/026-visual-identity-rebuild/` (proposal → design → specs →
+   tasks → EXECUTION.md) and `docs/DESIGN_SYSTEM.md`

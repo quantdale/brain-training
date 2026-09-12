@@ -1,8 +1,10 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 022 VALIDATED, release verdict CONDITIONAL GO
+## Current status — Campaign 026 VALIDATED (visual identity rebuild)
 
-Campaign 022 is terminal. There is no active campaign and no repository-owned release blocker remains. The application is **not yet fully store/public-release cleared** because several evidence classes are deliberately external/manual:
+Campaign 026 is terminal and no repository-owned release blocker remains. The
+application is **not yet fully store/public-release cleared** because several
+evidence classes are deliberately external/manual:
 
 - production/Play store signing credentials and store-signing reproducibility;
 - manual TalkBack accessibility review;
@@ -10,7 +12,35 @@ Campaign 022 is terminal. There is no active campaign and no repository-owned re
 - physical-device behavior;
 - manual iOS runtime UX on a suitable macOS/iOS environment.
 
-These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable. They are not failures of the repository-owned automated matrix, and they must not be reported as PASS until actually performed.
+These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable.
+They are not failures of the repository-owned automated matrix, and they must
+not be reported as PASS until actually performed.
+
+## Campaign 026 findings (added 2026-09-13)
+
+All are environment/operational or explicitly deferred; none is a Critical or
+High product defect.
+
+- **Emulator app-surface wedge (environment):** after hours of repeated app
+  force-stop/relaunch cycles under Jest/Metro load, the GPU-translated app
+  surface stopped presenting frames (black screencaps, empty view tree) while
+  the stock launcher still rendered; `dumpsys gfxinfo` showed almost no app
+  frames. A cold restart of the dedicated headless AVD
+  (`braintraining-ui35`, `-port 5560 -no-window -no-snapshot`) restored
+  rendering immediately. The capture harness now detects this state as a blank
+  or unwarmed batch instead of filing black frames as evidence.
+- **Viewport-clipped a11y measurements (tooling, understood):** uiautomator
+  reports visible bounds, so rows scrolled under the bottom tab bar measure
+  short. The audit classifies them as `clipped` (reported with their visible
+  size, excluded from the violation count); verify a clipped control's real
+  size by scrolling it fully into view. Applies to the audit tooling, not to
+  any shipped control.
+- **Six baseline frames regenerated (evidence, understood):** the original
+  Campaign 026 baseline capture contained black frames for home/games/
+  game-detail/game-intro in both themes (same emulator-surface condition).
+  They were regenerated from the baseline code `6f420cc` into
+  `qa-artifacts/campaign026/before-recovery/**` and merged into the baseline
+  manifest with `regeneratedFrom` notes.
 
 ## Open non-blocking maintenance
 
