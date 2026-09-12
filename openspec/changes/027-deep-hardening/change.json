@@ -1,0 +1,22 @@
+{
+  "id": "027-deep-hardening",
+  "status": "ACTIVE",
+  "predecessor": "026-visual-identity-rebuild",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "correctness-repairs",
+    "performance-startup",
+    "reliability-tests",
+    "tooling-ci",
+    "docs-truth",
+    "cleanup-dead-code"
+  ],
+  "activationRule": "Owner directive 2026-09-13 (Master Autonomous Overnight Development Campaign): deep repository-wide engineering campaign across correctness, completeness, testing, architecture, performance, reliability, security, UX, DX, documentation and cleanup; do not stop after the first success; optimize for verified improvement, not speed. This is a user-invoked hardening campaign: feature development freezes; the campaign executes repairs, fail-path coverage, performance/startup work, CI/tooling hardening, documentation truthing and dead-code cleanup. Externally blocked evidence classes stay recorded as such, never faked.",
+  "baselineAuditCommit": "832971c",
+  "fullHardening": true,
+  "reviewConsumption": "Forensic audit of 2026-09-13 (four read-only scouts) is recorded in audit-map.md with file/line evidence and priorities."
+}

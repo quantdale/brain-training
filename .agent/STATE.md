@@ -1,51 +1,56 @@
 # Durable Project State
 
-**Last update:** 2026-09-13 — Campaign 026 closed VALIDATED (visual identity rebuild, "Neon Arcade").
+**Last update:** 2026-09-13 — Campaign 027 activated (deep hardening; owner-invoked).
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `027-deep-hardening`
 **Last campaign:** `026-visual-identity-rebuild`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 026 replaced the visual/interaction identity itself: a new
-design-language-v3 token system (warm-paper light / deep-plum ink dark,
-vermillion primary, volt/violet reward tones, eight vivid domain identities,
-heavier display type, tactile button lip), a rebuilt UI kit (`Spark`,
-`Confetti`, `StreakStrip` identity primitives), recomposed shell routes and
-restyled game chrome — while gameplay, scoring, generators, persistence and
-every testID stayed untouched. Its closure SHA is `3f01a01` (plus this closure
-docs commit).
+Campaign 026 closed terminal with the "Neon Arcade" identity shipped and a
+green matrix (536 suites / 6412 tests). A four-scout forensic audit on
+2026-09-13 found no P0 defect but a stack of P1–P3 correctness, performance,
+reliability, tooling and documentation debt; the owner then invoked a deep
+repository-wide hardening campaign. Campaign 027 (`027-deep-hardening`) is
+active with feature development frozen: repairs, fail-path tests, bounded hot
+paths, version-gated bootstrap, CI/tooling hardening, documentation truth and
+dead-code cleanup.
 
-## Terminal evidence summary (Campaign 026, closure SHA `3f01a01`)
+## Campaign 027 workstreams (active)
 
-- Matrix at closure: **Jest 536 suites / 6412 tests PASS** (4 suites / 5 tests
-  allowlisted skips), `tsc --noEmit` clean, `expo lint` clean, all repository
-  validators PASS (repo-state, task-ownership, registry, provenance, offline
-  968 files CLEAN, secrets 1978 files CLEAN, OpenSpec 13/13).
-- Runtime: autobot canaries **8/8 PASS**; daily-workout journey **PASS** (4/4 +
-  relaunch shows persisted completion); a11y audit **0 violations across 22
-  surfaces** in both themes.
-- Native evidence: `qa-artifacts/campaign026/after/**` (22 frames, 11 surfaces
-  × light/dark) against `qa-artifacts/campaign026/before/**` (six frames
-  regenerated from `6f420cc` into `before-recovery/**` and merged into the
-  baseline manifest).
-- Release artifact rebuilt from the campaign head: 109,496,133 bytes, SHA-256
-  `2E89B783495EFE66D1EAD57FCBE487AF60A79E245C22A69558A6027B94D36EC4`.
-- QA tooling hardening shipped with the campaign: `ui-capture.mjs` waits for a
-  visible warm frame, detects uniform/black frames and retries per surface;
-  `a11y-audit.mjs` classifies viewport-clipped nodes as `clipped` instead of
-  miscounting them as undersized targets.
-- The emulator app-surface wedge (black frames after hours of restarts) was
-  root-caused to the environment and cleared by an emulator cold restart;
-  recorded in `.agent/KNOWN_ISSUES.md` and `VALIDATION.md`.
+1. **W1 correctness** — vigilance stimulus lifetime, color-stroop dead
+   actions, speed-color-match non-finite metric, spatial-coordinate-turn
+   adaptive escalation, word-scramble dead budget.
+2. **W2 performance/startup** — bounded quest evaluation + sample reuse,
+   version-gated seeding/schema guards, dev-only phase marks, single-pass
+   export if byte-identical.
+3. **W3 reliability tests** — session save-failure contract, route failure
+   paths (rewards/profile/storage-retry/workout-advance/wipe/export),
+   `math-value-ordering` screen test.
+4. **W4 tooling/CI** — workflow-validator rules + self-tests, dependency-audit
+   gate, pinned actions.
+5. **W5 docs truth** — ADR-0005/0004, MASTER_PLAN, GAME_SDK, README,
+   ANDROID_AUTOMATION, constitution status line, GOAL.md, KNOWN_ISSUES.
+6. **W6 cleanup** — dead exports, unreferenced scripts/stray log, provenance
+   allowlist, stale TODO.
+
+## Baseline at activation (`832971c`)
+
+- Jest 536 suites / 6412 tests PASS (5 allowlisted skips), `tsc` clean,
+  `expo lint` clean, all validators PASS, OpenSpec 13/13 PASS.
+- Runtime evidence (Campaign 026 closure): canaries 8/8, daily-workout
+  journey PASS, a11y audit 0 violations, release APK
+  `2E89B783…D36EC4` (109,496,133 bytes).
+- Evidence behind the campaign: `openspec/changes/027-deep-hardening/audit-map.md`.
 
 ## Continuation rule
 
-There is **no active campaign**. A successor campaign requires an explicit
-owner directive or a separately justified planning pass against current
-repository evidence. Owner acceptance of Campaign 026 is the before/after
-capture sets under `qa-artifacts/campaign026/`.
+Execute `.agent/EXECUTION_PROMPT.md` (ACTIVE) until its completion gate is
+satisfied or a genuine blocker is durably recorded. Feature development stays
+frozen. Externally blocked evidence classes (store signing, manual TalkBack,
+SAF sheets, physical device, iOS runtime) remain out of scope and honestly
+classified.
 
 ## Recovery order
 
@@ -55,5 +60,5 @@ capture sets under `qa-artifacts/campaign026/`.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. `openspec/changes/026-visual-identity-rebuild/` (proposal → design → specs →
-   tasks → EXECUTION.md) and `docs/DESIGN_SYSTEM.md`
+7. `openspec/changes/027-deep-hardening/` (EXECUTION → proposal → design →
+   specs → tasks) and `audit-map.md`
