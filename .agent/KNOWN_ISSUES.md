@@ -1,8 +1,10 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 027 active (deep hardening)
+## Current status — Campaign 027 VALIDATED (deep hardening)
 
-Campaign 026 (visual identity rebuild) closed **VALIDATED**; Campaign 027
+Campaign 027 (deep hardening) closed **VALIDATED** at `212469d`; Campaign 026
+(visual identity rebuild) remains VALIDATED as its predecessor. There is no
+active campaign.
 (`027-deep-hardening`, activated 2026-09-13, feature development frozen) is
 active. No repository-owned release blocker is currently open.
 
@@ -19,10 +21,18 @@ These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable.
 They are not failures of the repository-owned automated matrix, and they must
 not be reported as PASS until actually performed.
 
-## Campaign 026 findings (added 2026-09-13)
+## Campaign 026/027 findings (added 2026-09-13)
 
 All are environment/operational or explicitly deferred; none is a Critical or
 High product defect.
+
+- **Autobot cold-start navigation race (QA tooling, Low, Campaign 027):**
+  under a cold Metro/lazy-bundle state the harness can lose the deep link
+  (failure frame: Home) or hit the pause overlay during the resume race
+  (failure frame: pause overlay). Two interim canary runs scored 4/8 and 6/8
+  with the failing set changing between runs; after explicitly pre-warming the
+  canary game chunks the run passed 8/8. Mitigation for future runs: pre-warm
+  game routes (or add a deep-link retry to the harness) before canaries.
 
 - **Emulator app-surface wedge (environment):** after hours of repeated app
   force-stop/relaunch cycles under Jest/Metro load, the GPU-translated app

@@ -1,6 +1,6 @@
 {
   "id": "027-deep-hardening",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "026-visual-identity-rebuild",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",

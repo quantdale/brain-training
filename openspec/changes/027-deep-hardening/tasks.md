@@ -107,9 +107,14 @@
 
 ## W7 — Verification and closure
 
-- [ ] 7.1 Full matrix, lint, all validators green at the closure tree.
-- [ ] 7.2 Runtime canaries 8/8 + daily-workout journey PASS on the campaign
-      head (or honest BLOCKED with environment evidence).
-- [ ] 7.3 Adversarial self-review of the campaign diff; fix findings.
-- [ ] 7.4 Durable state, VALIDATION.md, KNOWN_ISSUES.md, BACKLOG.md updated;
-      campaign closed with honest classifications.
+- [x] 7.1 Full matrix, lint, all validators green at the closure tree
+      (540 suites / 6450 tests, tsc/lint clean, OpenSpec 14/14).
+- [x] 7.2 Runtime canaries 8/8 + daily-workout journey PASS on the campaign
+      head (interim cold-start navigation races recorded honestly in
+      VALIDATION.md and KNOWN_ISSUES.md).
+- [x] 7.3 Adversarial self-review of the campaign diff: pinned action SHA
+      spot-verified against the GitHub API; deleted-export/type/hook changes
+      covered by the full matrix; the runtime advisory and export deferral
+      escalated rather than hidden.
+- [x] 7.4 Durable state, VALIDATION.md, KNOWN_ISSUES.md, BACKLOG.md updated;
+      campaign closed VALIDATED with honest classifications.

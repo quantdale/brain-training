@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "027-deep-hardening",
   "description": "Campaign 027 deep hardening (user-invoked). Feature work is frozen. The orchestrator owns shared hotspots (agent/openspec state, scripts, docs, CI, package manifests, registry/generated files, theme, app chrome) and performs all cross-cutting convergence edits. Code packets own disjoint surfaces: H1 game correctness repairs, H2 performance/startup paths, H3 route/game reliability tests. Packet edits to versioned game logic must report the required game.json/version bumps to the orchestrator, who performs them with the registry regeneration.",
   "orchestratorOnlySurfaces": [

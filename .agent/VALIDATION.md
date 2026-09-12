@@ -5,6 +5,134 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 027 — Deep Hardening evidence (2026-09-13)
+
+### Activation (commit `63e6326`)
+
+- Owner directive 2026-09-13 (master autonomous development campaign: deep
+  repository-wide engineering work, verified improvement over speed) activated
+  as a user-invoked hardening campaign; feature development frozen. Four
+  read-only forensic scouts produced the evidence-backed backlog in
+  `openspec/changes/027-deep-hardening/audit-map.md`; six specs, tasks and the
+  control plane were bound and all validators passed at activation.
+
+### W1 correctness repairs — commit `ed07f27`
+
+- `attention-sustained-vigilance` hides the stimulus the instant a trial
+  resolves (was: lingered after an early GO tap); `flexibility-color-stroop`
+  lost its unreachable `show-stimulus`/`show-flip-cue` actions;
+  `speed-color-match` persists `null` (never `Infinity`) for
+  `fastestReactionMs` and types it `number | null`;
+  `spatial-coordinate-turn` adaptive sessions now escalate per round on a
+  deterministic three-axis ladder (direction set, command length, move
+  distance) and record the reached challenge rating (generator 1.2.0);
+  `language-word-scramble` dropped its dead `roundTimeMs` budget
+  (generator 1.2.0). Sibling scans removed one further dead action
+  (`math-equation-builder puzzle-timeout`, duplicating the tick-expiry branch)
+  and confirmed the other candidates were data unions or already coalesced.
+- Verification: 49 suites / 633 tests green on the affected games; `tsc`
+  clean; registry regenerated; provenance clean.
+
+### W3 reliability tests — commit `a14f352`
+
+- New coverage: `math-value-ordering` screen test (the only registered game
+  without one); a session-persistence failure contract at `<GameResults>` plus
+  a representative screen (one attempt, no restart retry, superseded-session
+  guard); rewards claim/claim-all failures; profile purchase failures;
+  storage-unavailable retry success; data-management wipe failure; export
+  write rejection (ENOSPC/EACCES) with no partial artifact; workout-advance
+  failure.
+- Five real defects surfaced and fixed: rewards claim and claim-all failures
+  were console-only (now danger toasts; claim-all refreshes), generic streak
+  purchases were console-only (now a toast), a successful streak apply also
+  fired "No item to apply" (branch fixed), and the workout advance rejection
+  was swallowed with no error state (hook exposes `advanceError`; results
+  shows a toast).
+- Verification: 61 app/component/workout suites / 487 tests; `tsc` and lint
+  clean.
+
+### W2 performance and startup — commit `2d6b5eb`
+
+- `syncQuestProgress` evaluates at most `SYNC_SESSION_SCAN_LIMIT` (5000)
+  recent samples; longterm `session-count`/`earn-xp` quests read SQL
+  `lifetime` aggregates so their numbers stay exact at any history size. The
+  Profile screen reuses the sync's returned snapshot — one bounded scan and
+  one evaluation per focus instead of two unbounded ones.
+- Definition seeding is version-gated behind a deterministic catalog
+  fingerprint (steady-state boots skip ~50 upserts; stale fingerprints
+  re-seed; an unreadable profile fails open to the full path). Schema guards
+  deliberately stay unconditional (Campaign 021 crash-window self-heal).
+- Dev-only perf marks `bootstrap-db-init` and `bootstrap-progression` split
+  database init from progression seeding on the perf channel.
+- Export canonicalization fusion (2.5) deferred with rationale: deliberate
+  user action, desktop-only measurement, byte/checksum divergence risk.
+- Verification: progression/quests/profile/shell suites plus the
+  statement-count guard green; a new evaluator test pins bounded-sample +
+  lifetime-aggregate behavior.
+
+### W4 tooling and CI — commit `212469d`
+
+- `validate-workflows.mjs` gains unpinned-`uses:` and
+  unenforced-`continue-on-error` rules; `--self-test` 44/44 (detection and
+  non-detection). New production **dependency-audit gate**
+  (`scripts/validate-dependency-audit.mjs`, self-test 26/26; BLOCKED exit 2
+  without a silent pass) wired fail-closed into Repository Integrity. All 16
+  workflow action sites pinned to resolved commit SHAs (one spot-verified
+  against the GitHub API during closure).
+- The gate caught a real runtime-reachable advisory: `decode-uri-component`
+  GHSA-vcc3-ghjq-m6fr (ReDoS via expo-router -> query-string). No compatible
+  fix exists (query-string@7 pins `^0.2.2`; the patched 0.5.0 is ESM-only and
+  breaks the CJS require; npm's only "fix" is an expo-router major
+  downgrade), so it is escalated as an explicitly expiring
+  `runtime-accepted-debt` entry with a tracked follow-up — never silently
+  waived.
+
+### W5 documentation truth — commit `212469d`
+
+- ADR-0005 marked partially superseded (adjacency shipped, implementing files
+  cited); ADR-0004 annotated with the verified version-drift sequence;
+  MASTER_PLAN, GAME_SDK, the mobile README, ANDROID_AUTOMATION (AVD default +
+  new harness behavior), the constitution status line and GOAL.md corrected.
+  KNOWN_ISSUES/BACKLOG reconciled: fixed items resolved, the runtime advisory
+  and export deferral recorded.
+
+### W6 cleanup — commit `212469d`
+
+- Ten dead exports removed after whole-repo re-verification (kept symbols
+  with live or contract-test references, with reasons); two unreferenced
+  scripts deleted (the stray log proved untracked/gitignored); the inert
+  22-entry provenance allowlist replaced with two precise, expiring
+  non-semantic entries; stale campaign-003 TODO and duplicate rule keys
+  removed.
+
+### Final verification at the closure tree (HEAD `212469d`)
+
+- Jest: **540 suites / 6450 tests PASS** (4 suites / 5 tests allowlisted
+  skips), 5 snapshots PASS; `tsc --noEmit` clean; `expo lint` clean.
+- Validators: repo-state, task-ownership, registry `--check`, provenance,
+  offline CLEAN (968 files), secrets CLEAN (1996 tracked files), workflow
+  hygiene (4 files) + self-test, dependency audit (accepted classifications
+  only), OpenSpec 14/14.
+- Runtime on the campaign head (emulator-5560, dev client): autobot canaries
+  **8/8 PASS** and daily-workout journey **PASS** (4/4 + relaunch shows
+  persisted completion).
+  - Honest note: two interim canary runs scored 4/8 and 6/8 with the failing
+    set changing between runs; the failure frames were the Home screen (deep
+    link lost during lazy-chunk load) and the pause overlay (resume race),
+    not game states. After explicitly pre-warming the eight canary game
+    chunks, the clean run passed 8/8. Recorded in KNOWN_ISSUES as a harness
+    cold-start navigation race.
+
+### Honest limitations (Campaign 027)
+
+- Backup export double canonicalization deferred (Low; see KNOWN_ISSUES).
+- The runtime-reachable `decode-uri-component` advisory is accepted debt with
+  an expiry and a tracked follow-up (no compatible fix in the current
+  dependency graph).
+- Still NOT VALIDATED / EXTERNALLY BLOCKED (unchanged): store/Play signing
+  credentials, manual TalkBack review, SAF/system sheets, physical device,
+  iOS runtime.
+
 ## Campaign 026 — Visual Identity Rebuild ("Neon Arcade") evidence (2026-09-12/13)
 
 ### Activation (commit `357c6f7`)

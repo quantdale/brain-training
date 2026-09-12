@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "027-deep-hardening",
-  "lastCampaign": "026-visual-identity-rebuild",
+  "activeCampaign": null,
+  "lastCampaign": "027-deep-hardening",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

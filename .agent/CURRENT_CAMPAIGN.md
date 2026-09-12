@@ -1,45 +1,45 @@
 # Campaign 027 — Deep Hardening
 
-**Status:** ACTIVE
+**Status:** VALIDATED / TERMINAL
 **Campaign id:** `027-deep-hardening`
 **Predecessor:** `026-visual-identity-rebuild` (VALIDATED)
 **Mode:** day
-**Start SHA:** `832971c`
-**Change:** `027-deep-hardening` (ACTIVE)
-**Authorization:** owner directive 2026-09-13 — Master Autonomous Overnight
-Development Campaign: deep repository-wide engineering campaign; do not stop
-after the first success; verified improvement over speed. User-invoked
-hardening, feature development frozen.
+**Start SHA:** `832971c` (activation docs on `63e6326`)
+**Closure SHA:** `212469d`
+**Change:** `027-deep-hardening` (VALIDATED)
 
-## Mission
+## Terminal outcome
 
-Repair the audited correctness defects, bound the unbounded hot paths, close
-the highest-value reliability test gaps, harden CI/tooling, truth the
-documentation, and remove dead weight — with regression evidence for every
-repair and honest classifications for anything blocked or deferred.
+The owner-invoked deep hardening campaign executed all six workstreams from
+the 2026-09-13 forensic audit:
 
-## Where the detail lives
+- **W1 correctness** — vigilance stimulus lifetime, color-stroop dead actions,
+  speed-color-match null-safe metric, spatial-coordinate-turn adaptive
+  escalation (generator 1.2.0), word-scramble dead budget (generator 1.2.0),
+  plus a sibling scan that removed one further dead action.
+- **W3 reliability** — the missing `math-value-ordering` screen test, a
+  persistence-failure contract, and route failure coverage that surfaced and
+  fixed five silent failure handlers (rewards claim/claim-all, generic streak
+  purchases, the spurious "No item to apply", and the swallowed workout
+  advance).
+- **W2 performance/startup** — bounded quest evaluation with exact lifetime
+  aggregates, Profile snapshot reuse, version-gated definition seeding,
+  dev-only bootstrap perf marks; export canonicalization deferred with a
+  recorded rationale.
+- **W4 tooling/CI** — workflow-validator rules with 44/44 self-tests, a
+  fail-closed production dependency-audit gate (26/26 self-tests) that
+  escalated one real runtime advisory with no compatible fix as expiring,
+  tracked debt, and 16 pinned action SHAs.
+- **W5 documentation truth** and **W6 cleanup** — ADRs, status docs and
+  KNOWN_ISSUES corrected; ten dead exports, two unreferenced scripts and the
+  inert allowlist removed.
 
-- `openspec/changes/027-deep-hardening/EXECUTION.md` — mission, read order,
-  work model, validation, exit gate.
-- `audit-map.md` — the forensic evidence behind every item.
-- `proposal.md`, `design.md`, `specs/**`, `tasks.md`.
+Final matrix: **540 suites / 6450 tests PASS**, `tsc`/lint clean, all
+validators green, canaries **8/8** and the daily-workout journey **PASS** at
+the closure tree. Full evidence: `.agent/VALIDATION.md` (Campaign 027).
 
-## Priority summary
+## Archive notes
 
-1. W1 correctness repairs (adaptive escalation, stimulus lifetime, dead
-   actions, non-finite metric, dead provenance budget).
-2. W3 reliability tests (save-failure contract, route failure paths, missing
-   screen test).
-3. W2 performance/startup (bounded quest evaluation, version-gated bootstrap,
-   dev-only phase marks, single-pass export).
-4. W4 tooling/CI (workflow validator rules, dependency-audit gate, pins).
-5. W5 documentation truth; W6 cleanup.
-
-## Do not
-
-- Do not add features, redesign UI, add dependencies, or change persistence
-  formats; game mechanics edits are limited to the audited repairs.
-- Do not weaken guards/tests to make a change pass.
-- Do not touch the constitution-deferred systems or external evidence classes.
-- Do not force-push or rewrite history.
+- The execution prompt (`.agent/EXECUTION_PROMPT.md`) is archived VALIDATED.
+- No successor campaign is active; a new campaign requires explicit owner
+  authorization and genuinely new scope.

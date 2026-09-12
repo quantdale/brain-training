@@ -1,30 +1,31 @@
 # Durable Project State
 
-**Last update:** 2026-09-13 — Campaign 027 activated (deep hardening; owner-invoked).
+**Last update:** 2026-09-13 — Campaign 027 closed VALIDATED (deep hardening; owner-invoked).
 **Canonical branch:** `main`
-**Active campaign:** `027-deep-hardening`
-**Last campaign:** `026-visual-identity-rebuild`
+**Active campaign:** none
+**Last campaign:** `027-deep-hardening`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 026 closed terminal with the "Neon Arcade" identity shipped and a
-green matrix (536 suites / 6412 tests). A four-scout forensic audit on
-2026-09-13 found no P0 defect but a stack of P1–P3 correctness, performance,
-reliability, tooling and documentation debt; the owner then invoked a deep
-repository-wide hardening campaign. Campaign 027 (`027-deep-hardening`) is
-active with feature development frozen: repairs, fail-path tests, bounded hot
-paths, version-gated bootstrap, CI/tooling hardening, documentation truth and
-dead-code cleanup.
+Campaign 027 closed VALIDATED at `212469d`: the deep hardening campaign
+repaired the forensic audit's correctness defects, added the missing
+reliability failure-path coverage (which surfaced and fixed five silent
+failure handlers), bounded the hot quest-evaluation path with exact lifetime
+aggregates, version-gated definition seeding, hardened CI/tooling (workflow
+rules, fail-closed dependency-audit gate, action pins), truthed the
+documentation, and removed dead weight. The product remains feature-frozen at
+its terminal Campaign 026 scope (42 games, offline-first, no cloud/AI/
+monetization). Remaining recorded work is Low/deferred or externally blocked
+(see the continuation rule below and KNOWN_ISSUES.md).
 
-## Campaign 027 progress (updated 2026-09-13)
+## Campaign 027 progress (closed 2026-09-13, VALIDATED at `212469d`)
 
 - Activation: `63e6326`.
 - **W1 correctness — COMPLETE (`ed07f27`)**: vigilance stimulus lifetime,
   color-stroop dead actions, speed-color-match null-safe metric,
   spatial-coordinate-turn adaptive escalation (generator 1.2.0), word-scramble
-  dead budget (generator 1.2.0), sibling scans (dead actions, Infinity
-  metrics, dead difficulty params) — one extra dead action removed
+  dead budget (generator 1.2.0), sibling scans — one extra dead action removed
   (`math-equation-builder puzzle-timeout`) with tick-expiry coverage.
 - **W3 reliability tests — COMPLETE (`a14f352`)**: math-value-ordering screen
   test, persistence-failure contract, rewards/profile/wipe/export/storage-retry
@@ -32,10 +33,21 @@ dead-code cleanup.
   claim/claim-all failures, silent generic purchase failures, the spurious
   "No item to apply" after a successful apply, and the swallowed workout
   advance rejection (now a danger toast; hook exposes `advanceError`).
-- **Pending**: W2 performance/startup, W4 tooling/CI, W5 docs truth,
-  W6 cleanup, W7 final verification + closure.
+- **W2 performance/startup — COMPLETE (`2d6b5eb`)**: bounded quest evaluation
+  with exact lifetime aggregates, Profile snapshot reuse, version-gated
+  definition seeding, dev-only bootstrap perf marks; export canonicalization
+  deferral recorded.
+- **W4 tooling/CI — COMPLETE (`212469d`)**: workflow validator rules
+  (44/44 self-test), fail-closed production dependency-audit gate (26/26
+  self-test) with an explicitly expiring escalation for the one runtime
+  advisory that has no compatible fix, 16 action pins.
+- **W5 docs truth + W6 cleanup — COMPLETE (`212469d`)**: ADR/status docs
+  corrected; KNOWN_ISSUES/BACKLOG reconciled; ten dead exports removed; two
+  scripts deleted; provenance allowlist made precise and expiring.
+- Final matrix: 540 suites / 6450 tests PASS; tsc/lint clean; all validators
+  green; canaries 8/8 and daily-workout PASS at the closure tree.
 
-## Campaign 027 workstreams (active)
+## Campaign 027 workstreams (closed)
 
 1. **W1 correctness** — vigilance stimulus lifetime, color-stroop dead
    actions, speed-color-match non-finite metric, spatial-coordinate-turn
@@ -64,11 +76,13 @@ dead-code cleanup.
 
 ## Continuation rule
 
-Execute `.agent/EXECUTION_PROMPT.md` (ACTIVE) until its completion gate is
-satisfied or a genuine blocker is durably recorded. Feature development stays
-frozen. Externally blocked evidence classes (store signing, manual TalkBack,
-SAF sheets, physical device, iOS runtime) remain out of scope and honestly
-classified.
+There is **no active campaign**. A successor campaign requires an explicit
+owner directive or a separately justified planning pass against current
+repository evidence. Remaining recorded work: the deferred export
+canonicalization (Low), the expiring runtime dependency escalation
+(`decode-uri-component` via expo-router, tracked in KNOWN_ISSUES), the harness
+cold-start navigation race, and the external/manual evidence classes
+(store signing, manual TalkBack, SAF sheets, physical device, iOS runtime).
 
 ## Recovery order
 
