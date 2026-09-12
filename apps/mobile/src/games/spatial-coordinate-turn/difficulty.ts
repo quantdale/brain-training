@@ -10,7 +10,7 @@
  */
 import { resolveDifficulty, type DifficultyLevel, type DifficultyProfile } from '@/sdk';
 
-import type { SpatialCoordinateTurnDifficultyParams } from './types';
+import type { AdaptiveTuning, SpatialCoordinateTurnDifficultyParams } from './types';
 
 /**
  * Brief-phase study budget used when a resolved profile predates the field
@@ -170,31 +170,157 @@ export function spatialCoordinateTurnParamsFromProfile(
 }
 
 /**
+ * Adaptive tuning ladder (Campaign 027).
+ *
+ * An adaptive session starts every axis at its declared minimum and moves ONE
+ * axis per round: a correct answer escalates the least-escalated axis, a wrong
+ * answer de-escalates the most-escalated one. The reducer stores the applied
+ * tuning in state so replay stays deterministic (`generateRound` is a pure
+ * function of seed + params + round index) and the reached maximum feeds the
+ * final challenge rating.
+ */
+
+/** The initial tuning for an adaptive session: every axis at its minimum. */
+export function initialAdaptiveTuning(
+  params: SpatialCoordinateTurnDifficultyParams,
+): AdaptiveTuning {
+  return {
+    directions: (params.minDirections ?? params.directions) >= 8 ? 8 : 4,
+    maxSteps: params.minMaxSteps ?? params.maxSteps,
+    moveMax: params.minMoveMax ?? params.moveMax,
+  };
+}
+
+/** Apply tuning onto the profile parameters (new object; never mutates). */
+export function applyAdaptiveTuning(
+  params: SpatialCoordinateTurnDifficultyParams,
+  tuning: AdaptiveTuning,
+): SpatialCoordinateTurnDifficultyParams {
+  return { ...params, directions: tuning.directions, maxSteps: tuning.maxSteps, moveMax: tuning.moveMax };
+}
+
+/** Per-axis normalized positions within the declared adaptive bounds. */
+function tuningProgress(
+  params: SpatialCoordinateTurnDifficultyParams,
+  tuning: AdaptiveTuning,
+): { directions: number | null; maxSteps: number | null; moveMax: number | null } {
+  const fraction = (value: number, min: number | undefined, max: number | undefined): number | null => {
+    if (min === undefined || max === undefined || max <= min) return null;
+    return Math.min(1, Math.max(0, (value - min) / (max - min)));
+  };
+  return {
+    directions: fraction(tuning.directions, params.minDirections, params.maxDirections),
+    maxSteps: fraction(tuning.maxSteps, params.minMaxSteps, params.maxMaxSteps),
+    moveMax: fraction(tuning.moveMax, params.minMoveMax, params.maxMoveMax),
+  };
+}
+
+/**
+ * Gentle-first axis priority (lower = changed first). Command length moves
+ * before movement distance before the 4→8 direction jump, so difficulty ramps
+ * smoothly instead of flipping to diagonals on the first correct answer.
+ */
+const AXIS_RANK: Record<'directions' | 'maxSteps' | 'moveMax', number> = {
+  maxSteps: 0,
+  moveMax: 1,
+  directions: 2,
+};
+
+/** The tuning that escalates the least-escalated axis by one notch. */
+export function escalateAdaptiveTuning(
+  params: SpatialCoordinateTurnDifficultyParams,
+  current: AdaptiveTuning,
+): AdaptiveTuning {
+  const progress = tuningProgress(params, current);
+  // Axes already at their maximum have progress 1 and are never picked; an
+  // axis with a null fraction is not escalatable at all.
+  const candidates: { key: 'directions' | 'maxSteps' | 'moveMax'; value: number }[] = [];
+  if (progress.directions !== null && progress.directions < 1) candidates.push({ key: 'directions', value: progress.directions });
+  if (progress.maxSteps !== null && progress.maxSteps < 1) candidates.push({ key: 'maxSteps', value: progress.maxSteps });
+  if (progress.moveMax !== null && progress.moveMax < 1) candidates.push({ key: 'moveMax', value: progress.moveMax });
+  if (candidates.length === 0) {
+    return current;
+  }
+  candidates.sort((a, b) => a.value - b.value || AXIS_RANK[a.key] - AXIS_RANK[b.key]);
+  const axis = candidates[0].key;
+  if (axis === 'directions') {
+    return { ...current, directions: 8 };
+  }
+  if (axis === 'maxSteps') {
+    return { ...current, maxSteps: Math.min(current.maxSteps + 1, params.maxMaxSteps ?? current.maxSteps) };
+  }
+  return { ...current, moveMax: Math.min(current.moveMax + 1, params.maxMoveMax ?? current.moveMax) };
+}
+
+/** The tuning that de-escalates the most-escalated axis by one notch. */
+export function deescalateAdaptiveTuning(
+  params: SpatialCoordinateTurnDifficultyParams,
+  current: AdaptiveTuning,
+): AdaptiveTuning {
+  const progress = tuningProgress(params, current);
+  const candidates: { key: 'directions' | 'maxSteps' | 'moveMax'; value: number }[] = [];
+  if (progress.directions !== null && progress.directions > 0) candidates.push({ key: 'directions', value: progress.directions });
+  if (progress.maxSteps !== null && progress.maxSteps > 0) candidates.push({ key: 'maxSteps', value: progress.maxSteps });
+  if (progress.moveMax !== null && progress.moveMax > 0) candidates.push({ key: 'moveMax', value: progress.moveMax });
+  if (candidates.length === 0) {
+    return current;
+  }
+  // Undo the highest axis first; ties fall back to the gentle-first order so a
+  // wrong answer shortens the command before stripping diagonals.
+  candidates.sort((a, b) => b.value - a.value || AXIS_RANK[a.key] - AXIS_RANK[b.key]);
+  const axis = candidates[0].key;
+  if (axis === 'directions') {
+    return { ...current, directions: 4 };
+  }
+  if (axis === 'maxSteps') {
+    return { ...current, maxSteps: Math.max(current.maxSteps - 1, params.minMaxSteps ?? current.maxSteps) };
+  }
+  return { ...current, moveMax: Math.max(current.moveMax - 1, params.minMoveMax ?? current.moveMax) };
+}
+
+/** Per-axis maximum of two tunings (the reached envelope). */
+export function maxAdaptiveTuning(a: AdaptiveTuning, b: AdaptiveTuning): AdaptiveTuning {
+  return {
+    directions: a.directions >= b.directions ? a.directions : b.directions,
+    maxSteps: Math.max(a.maxSteps, b.maxSteps),
+    moveMax: Math.max(a.moveMax, b.moveMax),
+  };
+}
+
+/**
+ * Fraction of the declared adaptive ladder reached, averaged over the axes
+ * that have a configured span. Null when no axis is configurable (callers then
+ * keep the SDK baseline rating).
+ */
+export function adaptiveProgressFraction(
+  params: SpatialCoordinateTurnDifficultyParams,
+  reached: AdaptiveTuning,
+): number | null {
+  const progress = tuningProgress(params, reached);
+  const values = [progress.directions, progress.maxSteps, progress.moveMax].filter(
+    (value): value is number => value !== null,
+  );
+  if (values.length === 0) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+/**
  * Final challenge rating of a session. Fixed levels report the SDK default
- * rating; adaptive reports a rating mapped from the final direction count (or
- * max step size) into [0, 1] over the configured bounds.
+ * rating. Adaptive reports the fraction of the declared axes the player
+ * actually reached, averaged over the configurable axes; a session that never
+ * escalated (or has no bounds) reports the profile's baseline rating.
  */
 export function sessionChallengeRating(
   level: DifficultyLevel,
   profile: DifficultyProfile,
-  finalDirections?: number,
+  reached?: AdaptiveTuning,
 ): number {
   if (level !== 'adaptive') {
     return profile.challengeRating;
   }
-  const params = spatialCoordinateTurnParamsFromProfile(profile);
-  const minDir = params.minDirections ?? params.directions;
-  const maxDir = params.maxDirections ?? params.directions;
-  const dir = finalDirections ?? params.directions;
-  const dirSpan = maxDir - minDir;
-  if (dirSpan > 0) {
-    return Math.min(1, Math.max(0, (dir - minDir) / dirSpan));
+  if (reached === undefined) {
+    return profile.challengeRating;
   }
-  // Fall back to mapping the max step size.
-  const minSteps = params.minMaxSteps ?? params.maxSteps;
-  const maxSteps = params.maxMaxSteps ?? params.maxSteps;
-  const stepSpan = maxSteps - minSteps;
-  return stepSpan > 0
-    ? Math.min(1, Math.max(0, (params.maxSteps - minSteps) / stepSpan))
-    : profile.challengeRating;
+  const params = spatialCoordinateTurnParamsFromProfile(profile);
+  return adaptiveProgressFraction(params, reached) ?? profile.challengeRating;
 }

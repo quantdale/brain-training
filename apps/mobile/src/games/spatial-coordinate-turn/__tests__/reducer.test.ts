@@ -40,6 +40,62 @@ function answerAndAdvance(
   return gameReducer(answered, { type: 'next-round' });
 }
 
+describe('adaptive escalation (campaign 027)', () => {
+  /** brief → choice → answer → advance to the next brief. */
+  function playRound(
+    state: SpatialCoordinateTurnGameState,
+    correct: boolean,
+  ): SpatialCoordinateTurnGameState {
+    const choice = toChoice(state);
+    const round = choice.round!;
+    const index = correct
+      ? round.correctIndex
+      : (round.correctIndex + 1) % round.options.length;
+    const answered = gameReducer(choice, { type: 'select-answer', index, answerMs: 0 });
+    return gameReducer(answered, { type: 'next-round' });
+  }
+
+  it('starts at the declared minimum and escalates one axis per correct round', () => {
+    let state = startSession('adaptive-climb', 'adaptive');
+    expect(state.adaptiveTuning).toEqual({ directions: 4, maxSteps: 3, moveMax: 2 });
+    expect(state.reachedTuning).toEqual({ directions: 4, maxSteps: 3, moveMax: 2 });
+    expect(state.round?.directions).toBe(4);
+
+    // Correct round 1 → command length rises (gentle-first ladder).
+    state = playRound(state, true);
+    expect(state.adaptiveTuning).toEqual({ directions: 4, maxSteps: 4, moveMax: 2 });
+    expect(state.reachedTuning).toEqual({ directions: 4, maxSteps: 4, moveMax: 2 });
+
+    // Correct round 2 → movement distance; round 3 → the 8-direction set.
+    state = playRound(state, true);
+    expect(state.adaptiveTuning).toEqual({ directions: 4, maxSteps: 4, moveMax: 3 });
+    state = playRound(state, true);
+    expect(state.adaptiveTuning).toEqual({ directions: 8, maxSteps: 4, moveMax: 3 });
+    // Adaptive never asks for coordinates, so a widened set means 8 options.
+    expect(state.round?.directions).toBe(8);
+    expect(state.round?.options).toHaveLength(8);
+    expect(state.reachedTuning).toEqual({ directions: 8, maxSteps: 4, moveMax: 3 });
+  });
+
+  it('de-escalates after a wrong answer without dropping below the minimum', () => {
+    let state = startSession('adaptive-drop', 'adaptive');
+    state = playRound(state, true); // maxSteps 4
+    state = playRound(state, false);
+    expect(state.adaptiveTuning).toEqual({ directions: 4, maxSteps: 3, moveMax: 2 });
+    // The reached envelope keeps the peak even after de-escalation.
+    expect(state.reachedTuning).toEqual({ directions: 4, maxSteps: 4, moveMax: 2 });
+  });
+
+  it('keeps fixed levels on their static plan', () => {
+    let state = startSession('fixed-plan', 'normal');
+    const plan = state.plan;
+    state = playRound(state, true);
+    expect(state.adaptiveTuning).toBeNull();
+    expect(state.reachedTuning).toBeNull();
+    expect(state.plan).toBe(plan);
+  });
+});
+
 describe('select-difficulty', () => {
   it('selects a level in the intro', () => {
     const state = gameReducer(createInitialSpatialCoordinateTurnState(), {

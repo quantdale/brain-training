@@ -97,7 +97,13 @@ export interface SpeedColorMatchRawResult extends GameRawResult {
   readonly accuracy: number;
   readonly bestStreak: number;
   readonly avgReactionMs: number;
-  readonly fastestReactionMs: number;
+  /**
+   * Fastest correct reaction, or `null` when the session had no correct tap.
+   * `Infinity` (the internal stats sentinel) is never persisted: it would
+   * serialize as JSON `null` while the declared type said `number`
+   * (Campaign 027 repair of the Campaign 023 finding).
+   */
+  readonly fastestReactionMs: number | null;
   readonly slowestReactionMs: number;
   readonly incongruentRatio: number;
   readonly stimulusTimeoutMs: number;

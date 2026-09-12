@@ -73,20 +73,6 @@ export function colorStroopGameReducer(
       };
     }
 
-    case 'show-stimulus': {
-      if (state.phase !== 'flipCue' && state.phase !== 'feedback' && state.phase !== 'roundResult') {
-        return state;
-      }
-      return {
-        ...state,
-        phase: 'stimulus',
-        showingFlipCue: false,
-        currentAnswer: null,
-        currentResponseTimeMs: null,
-        currentCorrect: null,
-      };
-    }
-
     case 'submit-answer': {
       if (state.phase !== 'stimulus' || state.paused || state.profile === null) {
         return state;
@@ -129,16 +115,6 @@ export function colorStroopGameReducer(
         currentCorrect: correct,
         previousCorrect: correct,
         stats,
-      };
-    }
-
-    case 'show-flip-cue': {
-      return {
-        ...state,
-        phase: 'flipCue',
-        showingFlipCue: true,
-        currentRule: state.currentRule === 'ink' ? 'word' : 'ink',
-        trialsSinceFlip: 0,
       };
     }
 

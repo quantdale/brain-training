@@ -2,22 +2,24 @@
 
 ## W1 — Correctness repairs
 
-- [ ] 1.1 `attention-sustained-vigilance`: hide the stimulus digit the moment a
+- [x] 1.1 `attention-sustained-vigilance`: hide the stimulus digit the moment a
       trial resolves; regression test on the screen suite.
-- [ ] 1.2 `flexibility-color-stroop`: remove the unreachable `show-stimulus` /
+- [x] 1.2 `flexibility-color-stroop`: remove the unreachable `show-stimulus` /
       `show-flip-cue` actions (or phase-guard any retained dispatch); reducer
       tests updated.
-- [ ] 1.3 `speed-color-match`: `fastestReactionMs` becomes `number | null`,
+- [x] 1.3 `speed-color-match`: `fastestReactionMs` becomes `number | null`,
       `null` when no correct trial; raw-result version bump; all-timeout test.
-- [ ] 1.4 `spatial-coordinate-turn`: adaptive sessions escalate per round with
+- [x] 1.4 `spatial-coordinate-turn`: adaptive sessions escalate per round with
       consistent declared axes and record the reached challenge rating;
       difficulty + screen tests updated.
-- [ ] 1.5 `language-word-scramble`: remove the dead `roundTimeMs` difficulty
+- [x] 1.5 `language-word-scramble`: remove the dead `roundTimeMs` difficulty
       budget and generatorInfo field with the required generator version bump;
       difficulty/session tests updated.
-- [ ] 1.6 Broaden: scan sibling games for the same defect classes
-      (post-resolution stimulus visibility, dead actions, Infinity metrics,
-      dead difficulty fields) and record findings.
+- [x] 1.6 Broaden: scan sibling games for the same defect classes — one extra
+      dead action found and removed (`math-equation-builder puzzle-timeout`,
+      duplicating the `tick-timer` expiry branch) with a new expiry regression
+      test; `foldV`/`rotate90` are data unions, not actions; every other game
+      coalesces non-finite metrics at its session boundary.
 
 ## W2 — Performance and startup
 

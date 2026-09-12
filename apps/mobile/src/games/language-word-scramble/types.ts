@@ -26,8 +26,6 @@ export interface WordScrambleDifficultyParams {
   readonly maxWordLength: number;
   /** Number of rounds in a session. */
   readonly rounds: number;
-  /** Time budget per round in ms (0 = no time limit; score-attack uses clock). */
-  readonly roundTimeMs: number;
   /** Adaptive-only: minimum options count. */
   readonly minOptionsCount?: number;
   /** Adaptive-only: maximum options count. */

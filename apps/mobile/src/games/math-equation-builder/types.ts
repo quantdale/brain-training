@@ -123,7 +123,6 @@ export type MathEquationBuilderAction =
   | { type: 'undo' }
   | { type: 'clear' }
   | { type: 'submit' }
-  | { type: 'puzzle-timeout' }
   | { type: 'next-round' }
   | { type: 'tick-timer' }
   | { type: 'pause' }

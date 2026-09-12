@@ -97,6 +97,16 @@ describe('buildSpeedColorMatchRawResult', () => {
     expect(raw.trialsCorrect).toBe(15);
     expect(raw.bestStreak).toBe(8);
     expect(raw.avgReactionMs).toBe(1200);
+    expect(raw.fastestReactionMs).toBe(300);
+  });
+
+  it('persists null (never Infinity) when no trial was answered correctly', () => {
+    const raw = buildRaw({
+      stats: { ...STATS, trialsCorrect: 0, fastestReactionMs: Infinity },
+    });
+    expect(raw.fastestReactionMs).toBeNull();
+    // The stored JSON keeps the shape the type declares (Campaign 027).
+    expect(JSON.parse(JSON.stringify(raw)).fastestReactionMs).toBeNull();
   });
 });
 

@@ -16,13 +16,18 @@
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()` (see
  * hooks.ts), so production builds never expose them.
  */
-import { isDifficultyLevel } from '@/sdk';
+import { isDifficultyLevel, createRng } from '@/sdk';
 
 import {
+  applyAdaptiveTuning,
+  deescalateAdaptiveTuning,
+  escalateAdaptiveTuning,
+  initialAdaptiveTuning,
+  maxAdaptiveTuning,
   resolveSpatialCoordinateTurnDifficulty,
   spatialCoordinateTurnParamsFromProfile,
 } from './difficulty';
-import { generateSession } from './generator';
+import { generateRound, generateSession } from './generator';
 import { perfectSessionScore, roundScore } from './scoring';
 import { INITIAL_STATS, createInitialSpatialCoordinateTurnState } from './types';
 import type {
@@ -51,7 +56,15 @@ export function gameReducer(
         return state;
       }
       const profile = resolveSpatialCoordinateTurnDifficulty(state.difficulty);
-      const params = spatialCoordinateTurnParamsFromProfile(profile);
+      const baseParams = spatialCoordinateTurnParamsFromProfile(profile);
+      // Adaptive sessions start every axis at its declared minimum and climb
+      // from there; the whole plan is generated from the initial tuning, and
+      // `next-round` regenerates each next round from the tuning reached so
+      // far (Campaign 027).
+      const initialTuning =
+        state.difficulty === 'adaptive' ? initialAdaptiveTuning(baseParams) : null;
+      const params =
+        initialTuning !== null ? applyAdaptiveTuning(baseParams, initialTuning) : baseParams;
       const plan = generateSession(action.seed, params);
       return {
         ...state,
@@ -70,6 +83,8 @@ export function gameReducer(
         round: plan.length > 0 ? plan[0] : null,
         selectedOptionIndex: null,
         roundOutcome: null,
+        adaptiveTuning: initialTuning,
+        reachedTuning: initialTuning,
         stats: { ...INITIAL_STATS },
         forced: false,
         xp: 0,
@@ -155,6 +170,33 @@ export function gameReducer(
         const nextIndex = state.roundIndex + 1;
         if (nextIndex >= state.rounds || state.profile === null) {
           return { ...state, phase: 'results', roundOutcome: null };
+        }
+        if (state.difficulty === 'adaptive' && state.adaptiveTuning !== null) {
+          // Performance-driven escalation: a correct round raises the
+          // least-escalated axis, a wrong round lowers the most-escalated
+          // one (never below the declared minimum). The next round is
+          // regenerated deterministically from the seed + reached tuning.
+          const params = spatialCoordinateTurnParamsFromProfile(state.profile);
+          const nextTuning =
+            state.roundOutcome === 'correct'
+              ? escalateAdaptiveTuning(params, state.adaptiveTuning)
+              : deescalateAdaptiveTuning(params, state.adaptiveTuning);
+          const round = generateRound(
+            createRng(state.seed),
+            applyAdaptiveTuning(params, nextTuning),
+            nextIndex,
+          );
+          return {
+            ...state,
+            phase: 'brief',
+            roundIndex: nextIndex,
+            round,
+            plan: state.plan.map((existing, index) => (index === nextIndex ? round : existing)),
+            adaptiveTuning: nextTuning,
+            reachedTuning: maxAdaptiveTuning(state.reachedTuning ?? nextTuning, nextTuning),
+            selectedOptionIndex: null,
+            roundOutcome: null,
+          };
         }
         const round: SpatialCoordinateTurnRound = state.plan[nextIndex];
         return {

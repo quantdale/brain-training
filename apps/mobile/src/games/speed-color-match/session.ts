@@ -82,7 +82,11 @@ export function buildSpeedColorMatchRawResult(input: BuildRawResultInput): Speed
     accuracy: accuracyOf(input.stats.trialsCorrect, input.stats.trialsPlayed),
     bestStreak: input.stats.bestStreak,
     avgReactionMs: input.stats.avgReactionMs,
-    fastestReactionMs: input.stats.fastestReactionMs,
+    // The internal stats sentinel is `Infinity`; persist a real `null` so the
+    // stored JSON matches the declared type (Campaign 027).
+    fastestReactionMs: Number.isFinite(input.stats.fastestReactionMs)
+      ? input.stats.fastestReactionMs
+      : null,
     slowestReactionMs: input.stats.slowestReactionMs,
     incongruentRatio: input.params.incongruentRatio,
     stimulusTimeoutMs: input.params.stimulusTimeoutMs,

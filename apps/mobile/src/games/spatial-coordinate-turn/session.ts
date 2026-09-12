@@ -19,6 +19,7 @@ import type { CompleteSessionInput, CompleteSessionResult, GameSessionRecord } f
 import { accuracyOf, speedScoreOf } from './scoring';
 import { GAME_ID } from './types';
 import type {
+  AdaptiveTuning,
   SpatialCoordinateTurnDifficultyParams,
   SpatialCoordinateTurnRawResult,
   SpatialCoordinateTurnStats,
@@ -45,6 +46,8 @@ export interface BuildRawResultInput {
   readonly challengeRating: number;
   readonly seed: string;
   readonly stats: SpatialCoordinateTurnStats;
+  /** Adaptive-only: the reached tuning envelope recorded for auditability. */
+  readonly adaptiveReached?: AdaptiveTuning;
   readonly forced: boolean;
   readonly startedAtMs: number;
   readonly activeDurationMs: number;
@@ -111,6 +114,7 @@ export function buildSpatialCoordinateTurnRawResult(
     askPosition: params.askPosition,
     speedTargetMs: params.speedTargetMs,
     challengeRating: input.challengeRating,
+    ...(input.adaptiveReached !== undefined ? { adaptiveReached: input.adaptiveReached } : null),
     difficulty: input.difficulty,
     seed: input.seed,
     gameVersion: input.gameVersion,

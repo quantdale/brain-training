@@ -81,7 +81,7 @@ describe('VigilanceScreen verdict', () => {
     }
   });
 
-  it('a tap inside the window shows the hit verdict on the card with the digit', async () => {
+  it('a tap inside the window shows the hit verdict and clears the digit', async () => {
     const seed = goFirstSeed();
     const { trials } = generateStream(createRng(seed), VIGILANCE_DIFFICULTY_PARAMS.normal);
     await render(<VigilanceScreen tutorialStore={completedStore()} sessionSeed={seed} />);
@@ -89,12 +89,18 @@ describe('VigilanceScreen verdict', () => {
     await act(async () => {
       jest.advanceTimersByTime(300);
     });
+    // The digit is on screen before the tap resolves the trial.
+    expect(screen.getByText(String(trials[0].digit))).toBeTruthy();
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'go-button')));
     expect(screen.getByText('Go!')).toBeTruthy();
     expect(
       screen.getByTestId(testId(GAME_ID, 'stage-verdict'), { includeHiddenElements: true }),
     ).toBeTruthy();
-    // The digit stays visible per current behaviour (still in stimulus-on).
-    expect(screen.getByText(String(trials[0].digit))).toBeTruthy();
+    // Resolution clears the stimulus immediately (Campaign 027): the digit
+    // node stays mounted (no layout churn) but renders the blank marker.
+    expect(screen.queryByText(String(trials[0].digit))).toBeNull();
+    expect(
+      screen.getByTestId(testId(GAME_ID, 'stimulus-digit')).props.children,
+    ).toBe('·');
   });
 });

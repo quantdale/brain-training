@@ -73,7 +73,6 @@ describe('buildWordScrambleRawResult', () => {
         minWordLength: 4,
         maxWordLength: 6,
         rounds: 5,
-        roundTimeMs: 25_000,
         rngAlgorithm: 'mulberry32-v1',
       }),
     );

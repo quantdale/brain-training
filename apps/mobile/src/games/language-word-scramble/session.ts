@@ -56,7 +56,6 @@ export function buildWordScrambleRawResult(input: BuildRawResultInput): WordScra
     minWordLength: input.params.minWordLength,
     maxWordLength: input.params.maxWordLength,
     rounds: input.params.rounds,
-    roundTimeMs: input.params.roundTimeMs,
     rngAlgorithm: RNG_ALGORITHM_VERSION,
   };
   const diagnosticMetadata: DiagnosticMetadata = createDiagnosticMetadata({

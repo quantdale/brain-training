@@ -195,7 +195,7 @@ export default function SpatialCoordinateTurnScreen(
     const challengeRating = sessionChallengeRating(
       difficulty,
       state.profile,
-      resolvedParams.directions,
+      state.reachedTuning ?? undefined,
     );
 
     const raw = buildSpatialCoordinateTurnRawResult({
@@ -207,6 +207,7 @@ export default function SpatialCoordinateTurnScreen(
       challengeRating,
       seed: state.seed,
       stats: state.stats,
+      adaptiveReached: state.reachedTuning ?? undefined,
       forced: state.forced,
       startedAtMs: state.startedAtMs,
       activeDurationMs,

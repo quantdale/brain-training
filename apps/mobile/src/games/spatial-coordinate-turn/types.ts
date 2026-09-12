@@ -136,6 +136,23 @@ export const INITIAL_STATS: Readonly<SpatialCoordinateTurnStats> = Object.freeze
 });
 
 // ---------------------------------------------------------------------------
+// Adaptive tuning
+// ---------------------------------------------------------------------------
+
+/**
+ * The escalation-able axes of an adaptive session. `directions` is binary
+ * (4 → 8); `maxSteps`/`moveMax` move in single steps within the declared
+ * bounds. The reducer holds the tuning for the round to come and the maximum
+ * reached so far, so the final challenge rating reflects what the player
+ * actually played (Campaign 027 repair of the Campaign 023 finding).
+ */
+export interface AdaptiveTuning {
+  readonly directions: 4 | 8;
+  readonly maxSteps: number;
+  readonly moveMax: number;
+}
+
+// ---------------------------------------------------------------------------
 // Generated round
 // ---------------------------------------------------------------------------
 
@@ -203,6 +220,12 @@ export interface SpatialCoordinateTurnRawResult extends GameRawResult {
   readonly askPosition: boolean;
   readonly speedTargetMs: number;
   readonly challengeRating: number;
+  /**
+   * Adaptive-only: the highest tuning reached during the session (drives the
+   * challenge rating and makes escalated runs auditable). Absent for fixed
+   * levels, so legacy/raw parsing is unaffected.
+   */
+  readonly adaptiveReached?: AdaptiveTuning;
   readonly difficulty: DifficultyLevel;
   readonly seed: string;
   readonly gameVersion: string;
@@ -301,6 +324,16 @@ export interface SpatialCoordinateTurnGameState {
   selectedOptionIndex: number | null;
   /** Outcome of the current round (null while in brief/choice phase). */
   roundOutcome: 'correct' | 'wrong' | null;
+  /**
+   * Adaptive-only: the tuning applied to the next unplayed round. Null for
+   * fixed levels and before an adaptive session starts.
+   */
+  adaptiveTuning: AdaptiveTuning | null;
+  /**
+   * Adaptive-only: the per-axis maximum tuning reached during this session.
+   * Null for fixed levels; the final challenge rating is derived from it.
+   */
+  reachedTuning: AdaptiveTuning | null;
   stats: SpatialCoordinateTurnStats;
   forced: boolean;
   xp: number;
@@ -336,6 +369,8 @@ export function createInitialSpatialCoordinateTurnState(): SpatialCoordinateTurn
     round: null,
     selectedOptionIndex: null,
     roundOutcome: null,
+    adaptiveTuning: null,
+    reachedTuning: null,
     stats: { ...INITIAL_STATS },
     forced: false,
     xp: 0,

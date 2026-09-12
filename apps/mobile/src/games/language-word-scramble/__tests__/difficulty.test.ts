@@ -19,28 +19,24 @@ describe('Word Scramble difficulty parameter mapping', () => {
       minWordLength: 4,
       maxWordLength: 5,
       rounds: 4,
-      roundTimeMs: 30_000,
     });
     expect(WORD_SCRAMBLE_DIFFICULTY_PARAMS.normal).toEqual({
       optionsCount: 4,
       minWordLength: 4,
       maxWordLength: 6,
       rounds: 5,
-      roundTimeMs: 25_000,
     });
     expect(WORD_SCRAMBLE_DIFFICULTY_PARAMS.hard).toEqual({
       optionsCount: 4,
       minWordLength: 5,
       maxWordLength: 8,
       rounds: 6,
-      roundTimeMs: 20_000,
     });
     expect(WORD_SCRAMBLE_DIFFICULTY_PARAMS.expert).toEqual({
       optionsCount: 5,
       minWordLength: 6,
       maxWordLength: 10,
       rounds: 7,
-      roundTimeMs: 15_000,
     });
   });
 
@@ -50,7 +46,6 @@ describe('Word Scramble difficulty parameter mapping', () => {
       minWordLength: 4,
       maxWordLength: 7,
       rounds: 6,
-      roundTimeMs: 20_000,
       minOptionsCount: 3,
       maxOptionsCount: 5,
       adaptiveMinWordLength: 3,

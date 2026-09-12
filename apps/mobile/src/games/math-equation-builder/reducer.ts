@@ -329,26 +329,6 @@ export function mathEquationBuilderGameReducer(
       };
     }
 
-    case 'puzzle-timeout': {
-      if (state.phase !== 'playing') return state;
-      if (state.paused) return state;
-
-      const stats: MathEquationBuilderStats = {
-        ...state.stats,
-        roundsPlayed: state.stats.roundsPlayed + 1,
-        streak: 0,
-      };
-
-      return {
-        ...state,
-        phase: 'roundResult',
-        roundCorrect: false,
-        roundResult: null,
-        timeRemainingMs: 0,
-        stats,
-      };
-    }
-
     case 'tick-timer': {
       if (state.phase !== 'playing') return state;
       if (state.paused) return state;

@@ -12,7 +12,9 @@
  * card's accessibility label carries the verdict in words. Geometry never
  * changes (fixed 160 dp card, corner badge, always-mounted verdict line), so
  * the 250 ms ticker cannot cause layout churn when a verdict lands, and the
- * digit stays visible exactly as before (the parent owns `digit`).
+ * resolved trial hides the digit immediately (the parent clears `digit` once
+ * the reducer sets `outcome`; Campaign 027 repair of the lingering-stimulus
+ * finding).
  *
  * Accessibility: the card announces the currently shown digit plus the public
  * rule (the stop digit is not secret — the *order* of the stream is the

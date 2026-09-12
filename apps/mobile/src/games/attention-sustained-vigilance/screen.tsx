@@ -338,10 +338,18 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     state.phase === 'intro' ? 'intro' : state.phase === 'results' ? 'results' : 'session';
 
   const trial = state.stream[state.trialIndex];
-  // The digit is visible only during the stimulus-on segment of the slot;
-  // after resolution the rest of the slot plays out as blank feedback time.
+  // The digit is visible only until the trial resolves: an in-window GO tap
+  // (or the deadline) ends the stimulus immediately and the rest of the slot
+  // plays out as blank feedback time. The Campaign 023 audit found the digit
+  // lingering after an early tap because visibility only tracked the
+  // stimulus-on segment; gating on the reducer's authoritative `outcome`
+  // (never on the tap) hides it at the resolution instant.
   const digitVisible =
-    inStream && trial !== undefined && !state.paused && state.trialElapsedMs < (params?.stimulusOnMs ?? 0);
+    inStream &&
+    trial !== undefined &&
+    !state.paused &&
+    state.outcome === null &&
+    state.trialElapsedMs < (params?.stimulusOnMs ?? 0);
   const meanReactionMs = meanOf(state.stats.reactions);
 
   return (

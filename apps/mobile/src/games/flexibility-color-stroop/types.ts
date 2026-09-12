@@ -169,9 +169,7 @@ export type ColorStroopAction =
       sessionId: string;
       startedAtMs: number;
     }
-  | { type: "show-stimulus"; trialIndex: number }
   | { type: "submit-answer"; answer: StroopColor; responseTimeMs: number }
-  | { type: "show-flip-cue" }
   | { type: "dismiss-flip-cue" }
   | { type: "next-trial" }
   | {

@@ -10,14 +10,14 @@ import type { DifficultyLevel, DifficultyProfile } from '@/sdk';
 
 import type { WordScrambleDifficultyParams } from './types';
 
-/** Fixed-level tuning: options count, word length range, rounds, time budget. */
+/** Fixed-level tuning: options count, word length range, rounds. */
 export const WORD_SCRAMBLE_DIFFICULTY_PARAMS: Readonly<
   Record<Exclude<DifficultyLevel, 'adaptive'>, WordScrambleDifficultyParams>
 > = {
-  easy: { optionsCount: 3, minWordLength: 4, maxWordLength: 5, rounds: 4, roundTimeMs: 30_000 },
-  normal: { optionsCount: 4, minWordLength: 4, maxWordLength: 6, rounds: 5, roundTimeMs: 25_000 },
-  hard: { optionsCount: 4, minWordLength: 5, maxWordLength: 8, rounds: 6, roundTimeMs: 20_000 },
-  expert: { optionsCount: 5, minWordLength: 6, maxWordLength: 10, rounds: 7, roundTimeMs: 15_000 },
+  easy: { optionsCount: 3, minWordLength: 4, maxWordLength: 5, rounds: 4 },
+  normal: { optionsCount: 4, minWordLength: 4, maxWordLength: 6, rounds: 5 },
+  hard: { optionsCount: 4, minWordLength: 5, maxWordLength: 8, rounds: 6 },
+  expert: { optionsCount: 5, minWordLength: 6, maxWordLength: 10, rounds: 7 },
 };
 
 /** Adaptive tuning: neutral range; options and word length move within bounds. */
@@ -26,7 +26,6 @@ export const ADAPTIVE_PARAMS: Readonly<WordScrambleDifficultyParams> = Object.fr
   minWordLength: 4,
   maxWordLength: 7,
   rounds: 6,
-  roundTimeMs: 20_000,
   minOptionsCount: 3,
   maxOptionsCount: 5,
   adaptiveMinWordLength: 3,
@@ -74,7 +73,6 @@ export function wordScrambleParamsFromProfile(
     minWordLength: requireNumber('minWordLength'),
     maxWordLength: requireNumber('maxWordLength'),
     rounds: requireNumber('rounds'),
-    roundTimeMs: requireNumber('roundTimeMs'),
     ...(minOptionsCount !== undefined ? { minOptionsCount } : {}),
     ...(maxOptionsCount !== undefined ? { maxOptionsCount } : {}),
     ...(adaptiveMinWordLength !== undefined ? { adaptiveMinWordLength } : {}),

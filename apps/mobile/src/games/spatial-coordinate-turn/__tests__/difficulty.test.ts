@@ -5,11 +5,18 @@ import type { DifficultyLevel } from '@/sdk';
 import {
   ADAPTIVE_PARAMS,
   DIFFICULTY_PARAMS,
+  adaptiveProgressFraction,
+  applyAdaptiveTuning,
+  deescalateAdaptiveTuning,
+  escalateAdaptiveTuning,
+  initialAdaptiveTuning,
+  maxAdaptiveTuning,
   paramsForLevel,
   resolveSpatialCoordinateTurnDifficulty,
   sessionChallengeRating,
   spatialCoordinateTurnParamsFromProfile,
 } from '../difficulty';
+import type { AdaptiveTuning } from '../types';
 
 const LEVELS: readonly DifficultyLevel[] = ['easy', 'normal', 'hard', 'expert', 'adaptive'];
 
@@ -123,25 +130,29 @@ describe('spatialCoordinateTurnParamsFromProfile', () => {
 });
 
 describe('sessionChallengeRating', () => {
-  it('reports the SDK default rating for fixed levels', () => {
+  const MIN_TUNING: AdaptiveTuning = { directions: 4, maxSteps: 3, moveMax: 2 };
+  const MAX_TUNING: AdaptiveTuning = { directions: 8, maxSteps: 6, moveMax: 4 };
+
+  it('reports the SDK default rating for fixed levels, ignoring any tuning', () => {
     for (const level of ['easy', 'normal', 'hard', 'expert'] as const) {
       const profile = resolveSpatialCoordinateTurnDifficulty(level);
-      expect(sessionChallengeRating(level, profile, 8)).toBe(profile.challengeRating);
+      expect(sessionChallengeRating(level, profile, MAX_TUNING)).toBe(profile.challengeRating);
     }
   });
 
-  it('maps the final direction count into [0, 1] over the adaptive bounds', () => {
+  it('maps the reached adaptive envelope into [0, 1] over the declared axes', () => {
     const profile = resolveSpatialCoordinateTurnDifficulty('adaptive');
-    expect(sessionChallengeRating('adaptive', profile, 4)).toBeCloseTo(0); // minDirections
-    expect(sessionChallengeRating('adaptive', profile, 8)).toBeCloseTo(1); // maxDirections
-    expect(sessionChallengeRating('adaptive', profile, 6)).toBeCloseTo(0.5); // midpoint of 4..8
+    expect(sessionChallengeRating('adaptive', profile, MIN_TUNING)).toBeCloseTo(0);
+    expect(sessionChallengeRating('adaptive', profile, MAX_TUNING)).toBeCloseTo(1);
+    // One axis at maximum, the other two at minimum → 1/3.
+    expect(
+      sessionChallengeRating('adaptive', profile, { directions: 8, maxSteps: 3, moveMax: 2 }),
+    ).toBeCloseTo(1 / 3);
   });
 
-  it('clamps out-of-range direction counts and defaults to the base count', () => {
+  it('reports the profile baseline when no tuning was reached', () => {
     const profile = resolveSpatialCoordinateTurnDifficulty('adaptive');
-    expect(sessionChallengeRating('adaptive', profile, 100)).toBe(1);
-    expect(sessionChallengeRating('adaptive', profile, 0)).toBe(0);
-    expect(sessionChallengeRating('adaptive', profile)).toBe(0); // directions defaults to 4 = min
+    expect(sessionChallengeRating('adaptive', profile)).toBe(profile.challengeRating);
   });
 
   it('falls back to the profile rating when no span is configurable', () => {
@@ -158,6 +169,64 @@ describe('sessionChallengeRating', () => {
         speedTargetMs: 1000,
       },
     };
-    expect(sessionChallengeRating('adaptive', degenerate, 4)).toBe(0.42);
+    expect(sessionChallengeRating('adaptive', degenerate, MAX_TUNING)).toBe(0.42);
+  });
+});
+
+describe('adaptive ladder', () => {
+  const params = spatialCoordinateTurnParamsFromProfile(
+    resolveSpatialCoordinateTurnDifficulty('adaptive'),
+  );
+
+  it('starts every axis at its declared minimum', () => {
+    expect(initialAdaptiveTuning(params)).toEqual({ directions: 4, maxSteps: 3, moveMax: 2 });
+  });
+
+  it('escalates one axis per correct round, lowest axis first', () => {
+    let tuning = initialAdaptiveTuning(params);
+    // All axes are equally low; the gentle-first order raises the command
+    // length, then the movement distance, then the direction set.
+    tuning = escalateAdaptiveTuning(params, tuning);
+    expect(tuning).toEqual({ directions: 4, maxSteps: 4, moveMax: 2 });
+    tuning = escalateAdaptiveTuning(params, tuning);
+    expect(tuning).toEqual({ directions: 4, maxSteps: 4, moveMax: 3 });
+    tuning = escalateAdaptiveTuning(params, tuning);
+    expect(tuning).toEqual({ directions: 8, maxSteps: 4, moveMax: 3 });
+    expect(adaptiveProgressFraction(params, tuning)).toBeCloseTo((1 + 1 / 3 + 0.5) / 3);
+  });
+
+  it('never escalates past the declared maximum', () => {
+    let tuning: AdaptiveTuning = { directions: 8, maxSteps: 6, moveMax: 4 };
+    for (let i = 0; i < 5; i += 1) {
+      tuning = escalateAdaptiveTuning(params, tuning);
+    }
+    expect(tuning).toEqual({ directions: 8, maxSteps: 6, moveMax: 4 });
+    expect(adaptiveProgressFraction(params, tuning)).toBe(1);
+  });
+
+  it('de-escalates the highest axis first and never below the minimum', () => {
+    let tuning: AdaptiveTuning = { directions: 8, maxSteps: 6, moveMax: 4 };
+    tuning = deescalateAdaptiveTuning(params, tuning);
+    expect(tuning).toEqual({ directions: 8, maxSteps: 5, moveMax: 4 });
+    let low = initialAdaptiveTuning(params);
+    for (let i = 0; i < 5; i += 1) {
+      low = deescalateAdaptiveTuning(params, low);
+    }
+    expect(low).toEqual({ directions: 4, maxSteps: 3, moveMax: 2 });
+  });
+
+  it('tracks the per-axis maximum envelope', () => {
+    const a: AdaptiveTuning = { directions: 4, maxSteps: 5, moveMax: 2 };
+    const b: AdaptiveTuning = { directions: 8, maxSteps: 3, moveMax: 4 };
+    expect(maxAdaptiveTuning(a, b)).toEqual({ directions: 8, maxSteps: 5, moveMax: 4 });
+  });
+
+  it('applies tuning onto fresh params without mutating the profile params', () => {
+    const tuned = applyAdaptiveTuning(params, { directions: 8, maxSteps: 5, moveMax: 3 });
+    expect(tuned.directions).toBe(8);
+    expect(tuned.maxSteps).toBe(5);
+    expect(tuned.moveMax).toBe(3);
+    expect(params.directions).toBe(4);
+    expect(params.maxSteps).toBe(5); // base value unchanged
   });
 });

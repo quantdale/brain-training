@@ -151,6 +151,43 @@ describe('next-trial', () => {
   });
 });
 
+describe('rule flips (live flow)', () => {
+  it('flips the rule through feedback → next-trial → flipCue → dismiss', () => {
+    let state = startSession('flip-flow', 'easy');
+    let lastStimulusRule = state.currentRule;
+    let flips = 0;
+    for (let i = 0; i < 10; i += 1) {
+      // The rule change is owned by `next-trial` + the cue dismissal; the old
+      // `show-flip-cue` action was removed in Campaign 027 because nothing
+      // dispatched it and it lacked a phase guard.
+      if (state.phase === 'flipCue') {
+        expect(state.showingFlipCue).toBe(true);
+        expect(state.currentRule).not.toBe(lastStimulusRule);
+        flips += 1;
+        state = colorStroopGameReducer(state, { type: 'dismiss-flip-cue' });
+        expect(state.phase).toBe('stimulus');
+        lastStimulusRule = state.currentRule;
+      }
+      expect(state.phase).toBe('stimulus');
+      const trial = state.trials[state.trialIndex];
+      state = colorStroopGameReducer(state, {
+        type: 'submit-answer',
+        answer: trial.correctAnswer,
+        responseTimeMs: 500,
+      });
+      state = colorStroopGameReducer(state, { type: 'next-trial' });
+    }
+    expect(flips).toBeGreaterThan(0);
+  });
+
+  it('dismiss-flip-cue is a no-op outside the flipCue phase', () => {
+    const state = startSession('dismiss-guard');
+    expect(state.phase).toBe('stimulus');
+    const after = colorStroopGameReducer(state, { type: 'dismiss-flip-cue' });
+    expect(after).toBe(state);
+  });
+});
+
 describe('trial-timeout', () => {
   it('scores the unanswered trial as wrong and continues the session', () => {
     let state = startSession('timeout-test');

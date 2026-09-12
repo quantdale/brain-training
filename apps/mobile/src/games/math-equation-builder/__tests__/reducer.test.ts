@@ -409,3 +409,38 @@ describe('restart state hygiene', () => {
     expect(state.authoritativeDeltas).toEqual([]);
   });
 });
+
+describe('tick-timer expiry (campaign 027)', () => {
+  it('auto-resolves the puzzle as a timeout when the clock reaches zero', () => {
+    let state = startSession('timer-expiry');
+    const budget = state.timeRemainingMs;
+    expect(budget).toBeGreaterThan(0);
+
+    // The screen dispatches one tick per active second; the last tick that
+    // reaches zero resolves the round (the old dead `puzzle-timeout` action
+    // duplicated this branch and was removed in Campaign 027).
+    for (let i = 0; i < budget / 1000; i += 1) {
+      state = mathEquationBuilderGameReducer(state, { type: 'tick-timer' });
+    }
+
+    expect(state.phase).toBe('roundResult');
+    expect(state.roundCorrect).toBe(false);
+    expect(state.roundResult).toBeNull();
+    expect(state.timeRemainingMs).toBe(0);
+    expect(state.stats.roundsPlayed).toBe(1);
+    expect(state.stats.streak).toBe(0);
+  });
+
+  it('does not tick while paused or outside the playing phase', () => {
+    let state = startSession('timer-paused');
+    state = mathEquationBuilderGameReducer(state, { type: 'pause' });
+    const before = state.timeRemainingMs;
+    state = mathEquationBuilderGameReducer(state, { type: 'tick-timer' });
+    expect(state.timeRemainingMs).toBe(before);
+
+    const intro = mathEquationBuilderGameReducer(createInitialMathEquationBuilderState(), {
+      type: 'tick-timer',
+    });
+    expect(intro.phase).toBe('intro');
+  });
+});
