@@ -242,6 +242,58 @@ function appBuildInfo(device, pkg) {
   }
 }
 
+/**
+ * Wait until the app exposes a real, non-black frame.
+ *
+ * A freshly relaunched dev build spends several seconds on the Metro bundle
+ * before any RN view exists, and a theme switch can leave the window black
+ * for seconds after the tree mounts (Campaign 026 recapture). Both states
+ * produced black screenshots filed as evidence, so batch start waits for a
+ * mounted tree AND a non-uniform framebuffer.
+ */
+async function waitForWarm(device, timeoutMs = 90_000) {
+  const started = Date.now();
+  let sawTree = false;
+  while (Date.now() - started < timeoutMs) {
+    try {
+      adb(device, ['shell', 'uiautomator', 'dump', '--compressed', '/sdcard/qa-warm.xml']);
+      const xml = adb(device, ['shell', 'cat', '/sdcard/qa-warm.xml']);
+      // Any text node means the RN tree mounted (the pre-JS root has none).
+      if (/text="[^"]+"/.test(xml)) {
+        sawTree = true;
+        if (frameColorCount(device) > 2) {
+          return true;
+        }
+      }
+    } catch {
+      /* the dump tool can fail while the activity restarts; retry */
+    }
+    await sleep(3000);
+  }
+  // Tree present but the frame never became visible: report it so the caller
+  // does not silently file the batch as valid.
+  return sawTree ? 'tree-only' : false;
+}
+
+/**
+ * Count distinct sampled colours in a raw framebuffer capture. `screencap -p`
+ * can return a valid PNG of a black window (the app surface is lost while the
+ * activity re-renders), which the old size-based blank check missed; sampling
+ * the raw pixels catches "the frame exists but is uniform".
+ */
+function frameColorCount(device) {
+  const raw = adb(device, ['exec-out', 'screencap'], { binary: true });
+  const unique = new Set();
+  // Header is 12-16 bytes; stride ~one sample per 128x128 px block.
+  for (let offset = 16; offset + 3 < raw.length; offset += 128 * 128 * 4) {
+    unique.add(`${raw[offset]},${raw[offset + 1]},${raw[offset + 2]}`);
+    if (unique.size > 4) {
+      return unique.size;
+    }
+  }
+  return unique.size;
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const device = resolveDevice(options.device);
@@ -281,6 +333,12 @@ async function main() {
       applyProfile(device, profileName);
       relaunchApp(device, options.pkg);
       await sleep(4000);
+      const warmed = await waitForWarm(device);
+      if (!warmed) {
+        console.error(`[WARN] app did not warm within 90s for ${profileName}/${theme}`);
+      } else if (warmed === 'tree-only') {
+        console.error(`[WARN] app tree mounted but frame stayed black for ${profileName}/${theme}`);
+      }
       for (const surfaceId of options.surfaces) {
         const surface = SURFACES.find((s) => s.id === surfaceId);
         if (!surface) {
@@ -297,18 +355,30 @@ async function main() {
         wake(device);
         await sleep(400);
 
-        const bytes = capturePng(device, pngPath);
-        const xmlBytes = dumpHierarchy(device, xmlPath);
-        const xml = xmlBytes > 0 ? readFileSync(xmlPath, 'utf8') : '';
+        // A theme switch or a cold route can leave the app surface black for a
+        // few seconds after the hierarchy looks warm; retry the frame instead
+        // of filing a black screenshot as evidence (Campaign 026 recapture).
+        let bytes = 0;
+        let xmlBytes = 0;
+        let xml = '';
+        let uniform = false;
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+          bytes = capturePng(device, pngPath);
+          xmlBytes = dumpHierarchy(device, xmlPath);
+          xml = xmlBytes > 0 ? readFileSync(xmlPath, 'utf8') : '';
+          uniform = frameColorCount(device) <= 2;
+          if (!uniform) {
+            break;
+          }
+          await sleep(4000);
+        }
         const testIds = testIdsPresent(xml, ['home-title', 'tab-home', 'games-title', 'progress-window-selector', 'profile-identity']);
 
         // A uniform screen is the failure mode this harness exists to detect:
-        // a blank frame is small and contains no hierarchy.
-        // A capture is only meaningful if the app actually rendered its own
-        // surface: a blank frame, a missing hierarchy, or the storage-error
-        // boundary all mean "this evidence is invalid", never "this looks fine".
+        // a blank frame, a lost app surface, or the storage-error boundary all
+        // mean "this evidence is invalid", never "this looks fine".
         const renderedErrorBoundary = /Storage Unavailable/.test(xml);
-        const blank = (bytes < 40_000 && xmlBytes === 0) || renderedErrorBoundary;
+        const blank = uniform || renderedErrorBoundary || (bytes < 40_000 && xmlBytes === 0);
         const entry = {
           surface: surface.id,
           route: surface.route,
@@ -321,6 +391,7 @@ async function main() {
           deepLinkStarted: opened,
           testIdsPresent: testIds,
           blank,
+          ...(uniform ? { blankReason: 'uniform-frame' } : null),
           ...(renderedErrorBoundary ? { blankReason: 'storage-error-boundary' } : null),
         };
         manifest.surfaces.push(entry);
