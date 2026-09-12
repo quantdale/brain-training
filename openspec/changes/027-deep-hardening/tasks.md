@@ -23,17 +23,26 @@
 
 ## W2 — Performance and startup
 
-- [ ] 2.1 Bound the production quest-evaluation path (no unbounded history
-      scan on Profile focus); documented cap/window with identical quest
-      values pinned by the progression suites.
-- [ ] 2.2 Reuse `syncQuestProgress` samples for the Profile lightweight read
-      (no second full scan per focus).
-- [ ] 2.3 Version-gate definition seeding and schema-guard DDL on steady-state
-      boots; bootstrap test proves the skip and the fail-closed first run.
-- [ ] 2.4 Add dev-only perf marks around DB init / seeding / first Progress
-      load so `progress-snapshot-load` latency is attributable.
-- [ ] 2.5 Fuse the backup export canonicalization passes if envelope bytes and
-      checksum stay identical; otherwise record why not.
+- [x] 2.1 Bound the production quest-evaluation path: `syncQuestProgress` now
+      materializes at most `SYNC_SESSION_SCAN_LIMIT` (5000) recent samples and
+      evaluates longterm `session-count`/`earn-xp` quests from SQL aggregates,
+      so lifetime numbers stay exact at any history size; the evaluator falls
+      back to the sample for other criteria.
+- [x] 2.2 Reuse `syncQuestProgress` samples: it returns the snapshot it
+      evaluated and Profile derives its quest rows from the same data — one
+      bounded scan + one evaluation per focus instead of two unbounded ones.
+- [x] 2.3 Version-gate definition seeding behind a deterministic catalog
+      fingerprint (`progressionSeedVersion`); steady-state boots skip ~50
+      upserts, a stale fingerprint re-seeds, and an unreadable profile fails
+      open to the full path. Schema guards deliberately stay unconditional
+      (the Campaign 021 crash-window self-heal relies on them running).
+- [x] 2.4 Dev-only perf marks `bootstrap-db-init` and `bootstrap-progression`
+      around database init and progression seeding.
+- [ ] 2.5 Fuse the backup export canonicalization passes — DEFERRED with
+      rationale: export is a deliberate user action (not a hot path), the
+      double pass is measured on desktop only (4.9 s + 1.1 s @5k), and fusing
+      it risks byte/checksum divergence against `roundtrip.test.ts` without a
+      device-visible payoff. Recorded in KNOWN_ISSUES.
 
 ## W3 — Reliability tests
 

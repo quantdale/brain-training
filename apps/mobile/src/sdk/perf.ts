@@ -44,7 +44,11 @@ export type PerfEventName =
   | 'game-session-start'
   | 'game-first-interaction-latency'
   | 'session-persist-duration'
-  | 'progress-snapshot-load';
+  | 'progress-snapshot-load'
+  // Campaign 027: bootstrap attribution so a slow first screen can be split
+  // into database init vs progression seeding costs on the dev channel.
+  | 'bootstrap-db-init'
+  | 'bootstrap-progression';
 
 /** Extra record payload; values restricted so emission stays one-line JSON. */
 export type PerfDetailValue = string | number | boolean;

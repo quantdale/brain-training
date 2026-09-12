@@ -56,7 +56,10 @@ jest.mock('@/progression', () => {
   const actual = jest.requireActual('@/progression') as Record<string, unknown>;
   return {
     ...actual,
-    syncQuestProgress: jest.fn(async () => undefined),
+    syncQuestProgress: jest.fn(async () => ({
+      sessions: [],
+      lifetime: { sessionCount: 0, totalXp: 0 },
+    })),
     syncAchievements: jest.fn(async () => undefined),
     buildAchievementSnapshot: jest.fn(async () => ({
       sessionCount: 0,

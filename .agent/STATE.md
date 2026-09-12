@@ -17,6 +17,24 @@ active with feature development frozen: repairs, fail-path tests, bounded hot
 paths, version-gated bootstrap, CI/tooling hardening, documentation truth and
 dead-code cleanup.
 
+## Campaign 027 progress (updated 2026-09-13)
+
+- Activation: `63e6326`.
+- **W1 correctness — COMPLETE (`ed07f27`)**: vigilance stimulus lifetime,
+  color-stroop dead actions, speed-color-match null-safe metric,
+  spatial-coordinate-turn adaptive escalation (generator 1.2.0), word-scramble
+  dead budget (generator 1.2.0), sibling scans (dead actions, Infinity
+  metrics, dead difficulty params) — one extra dead action removed
+  (`math-equation-builder puzzle-timeout`) with tick-expiry coverage.
+- **W3 reliability tests — COMPLETE (`a14f352`)**: math-value-ordering screen
+  test, persistence-failure contract, rewards/profile/wipe/export/storage-retry
+  failure coverage. Five real defects found and fixed: silent rewards
+  claim/claim-all failures, silent generic purchase failures, the spurious
+  "No item to apply" after a successful apply, and the swallowed workout
+  advance rejection (now a danger toast; hook exposes `advanceError`).
+- **Pending**: W2 performance/startup, W4 tooling/CI, W5 docs truth,
+  W6 cleanup, W7 final verification + closure.
+
 ## Campaign 027 workstreams (active)
 
 1. **W1 correctness** — vigilance stimulus lifetime, color-stroop dead

@@ -26,6 +26,7 @@ import { AudioHapticsProvider } from "@/components/sensory/audio-haptics-provide
 import { createRatingPipeline } from "@/rating";
 import { initDatabase , getDb } from "@/db";
 import { initializeProgression } from "@/progression";
+import { startPerfMeasure } from "@/sdk/perf";
 import { registry } from "@/registry/registry.generated";
 import {
   registerGameDefinitions,
@@ -79,6 +80,7 @@ export default function RootLayout() {
 
     // Storage-critical: a failed open/migrate means the canonical local DB is
     // unavailable, so show the recoverable storage-unavailable screen.
+    const dbInitMeasure = startPerfMeasure('bootstrap-db-init');
     try {
       // Rating pipeline: per-domain XP/rating/currency applied atomically
       // with every completed session. Primary category moves at full
@@ -97,7 +99,9 @@ export default function RootLayout() {
           },
         }),
       });
+      dbInitMeasure.end({ outcome: "success" });
     } catch (error) {
+      dbInitMeasure.end({ outcome: "failure" });
       if (!cancelledRef.current) {
         setInitError(error instanceof Error ? error : new Error(String(error)));
         setStatus("error");
@@ -112,7 +116,9 @@ export default function RootLayout() {
       registerGameDefinitions(registry);
       // Seed versioned quest/achievement definitions and sync progression
       // (idempotent).
+      const progressionMeasure = startPerfMeasure('bootstrap-progression');
       await initializeProgression(getDb(), new Date());
+      progressionMeasure.end({ outcome: "success" });
       // Persisted theme selection (profile settings), applied via the
       // SettingsProvider initial value.
       const profile = await getDb().profile.get();

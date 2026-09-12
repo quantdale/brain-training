@@ -124,3 +124,40 @@ describe('evaluateQuests', () => {
     expect(result.completed).toBe(false);
   });
 });
+
+describe('lifetime aggregates with a bounded sample (campaign 027)', () => {
+  // A recent window far smaller than the true history: daily/weekly quests
+  // must use the sample, longterm quests must use the lifetime totals.
+  const bounded: QuestSnapshot = {
+    sessions: [memory(at(2026, 8, 16)), math(at(2026, 8, 16), 40)],
+    lifetime: { sessionCount: 620, totalXp: 78_500 },
+  };
+
+  it('longterm session-count uses the lifetime aggregate, not the sample', () => {
+    const century = evaluateQuest(byId(QUEST_DEFINITIONS_V1, 'qt100'), bounded, NOW);
+    expect(century.progress).toBe(620);
+    expect(century.completed).toBe(true);
+  });
+
+  it('longterm earn-xp uses the lifetime total, not the sample sum', () => {
+    const xpLegend = QUEST_DEFINITIONS_V1.find(
+      (d) => d.kind === 'longterm' && d.criteria.type === 'earn-xp',
+    )!;
+    const result = evaluateQuest(xpLegend, bounded, NOW);
+    expect(result.progress).toBe(78_500);
+    expect(result.completed).toBe(true);
+  });
+
+  it('daily and weekly quests still evaluate the bounded sample', () => {
+    const daily = evaluateQuest(byId(QUEST_DEFINITIONS_V1, 'qd3'), bounded, NOW);
+    expect(daily.progress).toBe(2);
+    const weekly = evaluateQuest(byId(QUEST_DEFINITIONS_V1, 'qw-memory'), bounded, NOW);
+    expect(weekly.progress).toBe(1);
+  });
+
+  it('falls back to the sample for longterm quests when no aggregates are supplied', () => {
+    const sampleOnly: QuestSnapshot = { sessions: bounded.sessions };
+    const century = evaluateQuest(byId(QUEST_DEFINITIONS_V1, 'qt100'), sampleOnly, NOW);
+    expect(century.progress).toBe(2);
+  });
+});

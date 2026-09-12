@@ -55,7 +55,6 @@ import {
   syncAchievements,
   syncQuestProgress,
 } from "@/progression";
-import { getGameDefinition } from "@/registry/registry";
 import { levelForXp, levelProgress, xpForNextLevel, xpIntoLevel } from "@/rating";
 import {
   evaluateQuests,
@@ -65,7 +64,6 @@ import {
   QUEST_DEFINITIONS_V1,
   type QuestDefinition,
   type QuestEvaluation,
-  type QuestSessionSample,
 } from "@/quests";
 import {
   canApplyFreeze,
@@ -211,8 +209,11 @@ async function loadProfile(
   now = new Date(),
 ): Promise<ProfileData> {
   // Re-evaluate quests/achievements from persisted sessions first so the
-  // screen reflects sessions completed since the last visit.
-  await syncQuestProgress(db, now);
+  // screen reflects sessions completed since the last visit. The sync returns
+  // the exact snapshot it evaluated, so the screen derives its quest rows from
+  // the same bounded sample + lifetime aggregates — no second full scan
+  // (Campaign 027 performance work).
+  const questSnapshot = await syncQuestProgress(db, now);
   await syncAchievements(db, now);
 
   const [
@@ -238,22 +239,11 @@ async function loadProfile(
   const profileSettings = profile?.settings ?? {};
   const inventory = readInventory(profileSettings);
 
-  // Lightweight projection only: quest evaluation needs (gameId, xp,
-  // completedAt) — no JSON blobs. Full-row listRecent here was a per-focus
-  // scalability hazard on large histories.
-  const sessions = await db.sessions.listLightweight(
-    Number.MAX_SAFE_INTEGER,
-    now.getTime(),
-  );
-  const samples: QuestSessionSample[] = sessions.map((session) => ({
-    completedAt: session.completedAt,
-    gameId: session.gameId,
-    domain: getGameDefinition(session.gameId)?.primaryCategory ?? "Unknown",
-    xp: session.xp,
-  }));
+  // Quest evaluations reuse the sync's bounded snapshot; longterm quests read
+  // its lifetime aggregates, so their numbers stay exact at any history size.
   const questEvals = evaluateQuests(
     selectActiveQuests(QUEST_DEFINITIONS_V1, now),
-    { sessions: samples },
+    questSnapshot,
     now,
   );
 

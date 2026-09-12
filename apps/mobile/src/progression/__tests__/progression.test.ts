@@ -3,10 +3,11 @@
  * quest progress recording from persisted sessions, achievement unlocks,
  * and the lifetime-XP composition (sessions + xp_awards).
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 
 import { AppDatabase, type CompleteSessionInput } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
+import { ACHIEVEMENT_DEFINITIONS_V1 } from '@/achievements';
 import {
   buildAchievementSnapshot,
   buildQuestSamples,
@@ -14,7 +15,7 @@ import {
   syncAchievements,
   syncQuestProgress,
 } from '@/progression';
-import { currentPeriodKey } from '@/quests';
+import { QUEST_DEFINITIONS_V1, currentPeriodKey } from '@/quests';
 
 const T0 = 1_700_000_000_000;
 const SESSION_NOW = new Date(T0 + 60_000);
@@ -56,6 +57,26 @@ describe('initializeProgression', () => {
     await initializeProgression(db, new Date(T0));
     expect(await db.quests.listDefinitions()).toHaveLength(quests.length);
     expect(await db.achievements.listDefinitions()).toHaveLength(achievements.length);
+  });
+
+  it('skips definition upserts on a steady-state boot and re-seeds on a fingerprint change', async () => {
+    const db = await makeDb();
+    await initializeProgression(db, SESSION_NOW);
+
+    const questUpsert = jest.spyOn(db.quests, 'upsertDefinition');
+    const achievementUpsert = jest.spyOn(db.achievements, 'upsertDefinition');
+    await initializeProgression(db, SESSION_NOW);
+    // Steady state: the fingerprint matches, so the ~50 upserts are skipped.
+    expect(questUpsert).not.toHaveBeenCalled();
+    expect(achievementUpsert).not.toHaveBeenCalled();
+
+    // A stale fingerprint (definitions bumped in code) re-runs the full seed.
+    await db.profile.update({ settings: { progressionSeedVersion: 'stale' } });
+    await initializeProgression(db, SESSION_NOW);
+    expect(questUpsert).toHaveBeenCalledTimes(QUEST_DEFINITIONS_V1.length);
+    expect(achievementUpsert).toHaveBeenCalledTimes(
+      ACHIEVEMENT_DEFINITIONS_V1.length,
+    );
   });
 });
 

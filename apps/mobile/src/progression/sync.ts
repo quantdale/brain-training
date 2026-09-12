@@ -24,14 +24,16 @@ import {
   QUEST_DEFINITIONS_V1,
   selectActiveQuests,
   type QuestSessionSample,
+  type QuestSnapshot,
 } from "@/quests";
 import { localDateString } from "@/workout/today";
 
 /**
- * Cap on how many recent sessions are scanned for evaluation. Realistically
- * far above any player's history in the foundations phase; longterm goals
- * (e.g. 100 sessions) evaluate correctly below this. Documented rather than
- * silently unbounded. Only used for the lightweight projection now.
+ * Cap on how many recent sessions are materialized for quest evaluation. A
+ * bounded recent window fully covers daily/weekly quests (they filter by
+ * period anyway); longterm quests are evaluated from SQL aggregates
+ * (`lifetime`), so their progress stays exact regardless of history size.
+ * Documented rather than silently unbounded (Campaign 027).
  */
 const SYNC_SESSION_SCAN_LIMIT = 5000;
 
@@ -67,22 +69,34 @@ export async function buildQuestSamples(
  * their last-progressed rows without being re-synced every period. Passing
  * `completedAt: null` for unfinished quests is safe: the row's completed_at
  * only sticks once set (COALESCE in the upsert).
+ *
+ * Returns the snapshot it evaluated so callers (Profile) can derive the same
+ * evaluations without a second history scan (Campaign 027).
  */
 export async function syncQuestProgress(
   db: AppDatabase,
   now: Date = new Date(),
-): Promise<void> {
-  // Long-term quests are lifetime counters; a bounded recent sample would
-  // silently strand progress once a player crossed the scan cap. The rows are
-  // still a narrow SQL projection, and the upper bound quarantines future
-  // clock-skew/import artifacts from every quest kind.
-  const samples = await buildQuestSamples(
-    db,
-    Number.MAX_SAFE_INTEGER,
-    now.getTime(),
-  );
+): Promise<QuestSnapshot> {
+  // Daily/weekly quests only need the current period within the bounded
+  // window; longterm quests read the `lifetime` aggregates so the cap can
+  // never strand or under-report their progress.
+  const throughMs = now.getTime();
+  const [rows, sessionCount, totalXp] = await Promise.all([
+    db.sessions.listLightweight(SYNC_SESSION_SCAN_LIMIT, throughMs),
+    db.sessions.countSessions({ toMs: throughMs }),
+    db.sessions.getTotalXp(throughMs),
+  ]);
+  const snapshot: QuestSnapshot = {
+    sessions: rows.map((row) => ({
+      completedAt: row.completedAt,
+      gameId: row.gameId,
+      domain: getGameDefinition(row.gameId)?.primaryCategory ?? "Unknown",
+      xp: row.xp,
+    })),
+    lifetime: { sessionCount, totalXp },
+  };
   const active = selectActiveQuests(QUEST_DEFINITIONS_V1, now);
-  const evaluations = evaluateQuests(active, { sessions: samples }, now);
+  const evaluations = evaluateQuests(active, snapshot, now);
   for (const evaluation of evaluations) {
     await db.quests.recordProgress({
       questId: evaluation.questId,
@@ -91,6 +105,7 @@ export async function syncQuestProgress(
       completedAt: evaluation.completed ? now.getTime() : null,
     });
   }
+  return snapshot;
 }
 
 /**

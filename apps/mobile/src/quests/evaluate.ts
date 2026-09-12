@@ -24,6 +24,16 @@ export interface QuestSessionSample {
 
 export interface QuestSnapshot {
   sessions: readonly QuestSessionSample[];
+  /**
+   * Lifetime totals for longterm quests. When present, longterm
+   * session-count / earn-xp quests are evaluated from these aggregates
+   * instead of the (possibly bounded) sample, so a capped recent window can
+   * never under-report lifetime progress (Campaign 027 performance work).
+   */
+  lifetime?: {
+    sessionCount: number;
+    totalXp: number;
+  };
 }
 
 /** Evaluate every definition against the snapshot for `now`'s period. */
@@ -47,15 +57,18 @@ export function evaluateQuest(
   const criteria = definition.criteria; // const so the union narrows inside closures
 
   let progress = 0;
+  const lifetime = definition.kind === 'longterm' ? snapshot.lifetime : undefined;
   switch (criteria.type) {
     case 'session-count':
-      progress = sessions.length;
+      progress = lifetime ? lifetime.sessionCount : sessions.length;
       break;
     case 'domain-sessions':
       progress = sessions.filter((s) => s.domain === criteria.domain).length;
       break;
     case 'earn-xp':
-      progress = sessions.reduce((sum, s) => sum + s.xp, 0);
+      progress = lifetime
+        ? lifetime.totalXp
+        : sessions.reduce((sum, s) => sum + s.xp, 0);
       break;
   }
 
