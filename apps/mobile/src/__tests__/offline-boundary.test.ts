@@ -23,12 +23,11 @@
  * not flagged. These are deliberate trade-offs of the requested pattern, not
  * silent passes.
  *
- * TODO(campaign-003 convergence): the quest-evaluation engine
- * (`src/quests/`), streak reconstruction (`src/streaks/`) and content-pack
- * seam (`src/content/`) landed in sibling packets 003-b/003-c and are
- * covered below (runtime section + static scan). If further module trees
- * that can touch the network land later (e.g. a download path for
- * content packs), add them to SCAN_ROOTS and to the runtime section.
+ * The quest-evaluation engine (`src/quests/`), streak reconstruction
+ * (`src/streaks/`) and content-pack seam (`src/content/`) are covered below
+ * (runtime section + static scan). If a further module tree that can touch the
+ * network lands later (e.g. a download path for content packs), add it to
+ * SCAN_ROOTS and to the runtime section.
  */
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals';
 import * as fs from 'node:fs';

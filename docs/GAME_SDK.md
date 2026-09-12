@@ -1,6 +1,6 @@
 # Game SDK Contract — Bootstrap Requirements
 
-**Status:** implemented as Phase 1 skeleton — see "Concrete TypeScript API — Phase 1 Skeleton" below for the live contracts (`apps/mobile/src/sdk/`). The requirements in this section remain binding.
+**Status:** implemented — see "Concrete TypeScript API" below for the live contracts (`apps/mobile/src/sdk/`), used by all 42 catalog games. The "Phase 1" label is historical; rating/progression shipped outside the SDK hook seam (see "Scoring pipeline"). The requirements in this section remain binding.
 
 Every production game must integrate through the shared SDK rather than reinventing cross-cutting infrastructure.
 
@@ -45,7 +45,7 @@ A game module should be independently implementable/testable by one coder packet
 
 ---
 
-# Concrete TypeScript API — Phase 1 Skeleton (SDK v0.1.0)
+# Concrete TypeScript API (SDK v0.1.0; originally the Phase 1 skeleton)
 
 Implementation: `apps/mobile/src/sdk/` (public barrel `src/sdk/index.ts`, import as `@/sdk`).
 This section supersedes the bootstrap requirements above with the concrete contracts; the requirements remain binding.
@@ -64,7 +64,7 @@ This section supersedes the bootstrap requirements above with the concrete contr
 | `testid.ts` | `testId(gameId, ...elements)` | Stable semantic IDs, e.g. `memory-sequence.tile.3` |
 | `types/game-definition.ts` | `GameDefinition`, `defineGame()`, `parseGameDefinitionJson()`, `GAME_CATEGORIES` | `game.json` → validated frozen `GameDefinition` (registry generator input) |
 | `types/difficulty.ts` | `resolveDifficulty(level, params?)`, `DifficultyLevel`, `DifficultyProfile` | easy/normal/hard/expert/adaptive → challengeRating 0..1 + game parameters |
-| `types/results.ts` | `PerformanceNormalizer`, `NormalizedPerformance`, `XpRatingHook`, `noopXpRatingHook` | Raw → normalized (0..1); XP/rating hooks are no-op until Phase 2 |
+| `types/results.ts` | `PerformanceNormalizer`, `NormalizedPerformance`, `XpRatingHook`, `noopXpRatingHook` | Raw → normalized (0..1); the SDK `XpRatingHook` seam is still a no-op — real rating/XP ships as the db-layer `RatingService` (`src/rating/**`, wired at app bootstrap) |
 | `types/diagnostics.ts` | `createDiagnosticMetadata()`, `DiagnosticMetadata` | Versions, seed, difficulty, durations, generator info |
 | `types/qa.ts` | `QaForceStateHooks`, `createNoopQaForceStateHooks()`, `isDevBuild()`, `assertDevOnly()` | Dev-only force win/lose/state; no-op safe default |
 
@@ -95,7 +95,7 @@ const diff = resolveDifficulty('hard', { sequenceLength: 8, windowMs: 1500 });
 // Pause overlay MUST satisfy the spec: opaque + challenge hidden (strongBlur is a decorative contract marker; the enforced anti-peek property is the opaque cover — constitution §11 allows "opaque blur/overlay").
 const pause = createPauseOverlaySpec(gameId); // { opaque: true, strongBlur: true, hidesChallenge: true, testID: 'game.pause-overlay' }
 
-// Results: game converts raw → normalized, then XP/rating hooks (no-op until Phase 2).
+// Results: game converts raw → normalized; the SDK hook seam stays no-op — the rating pipeline applies at session persistence (RatingService).
 // Tutorial + audio/haptics are fire-and-forget services with pluggable stores.
 ```
 
@@ -105,7 +105,7 @@ Generated content is reproducible from `(RNG_ALGORITHM_VERSION, gameVersion, gen
 
 ## Scoring pipeline (binding)
 
-`raw result → PerformanceNormalizer.normalize() → NormalizedPerformance(0..1) → XpRatingHook` (real rating/XP algorithms land in Phase 2; `noopXpRatingHook` is the Phase 1 default).
+`raw result → PerformanceNormalizer.normalize() → NormalizedPerformance(0..1) → RatingService at session persistence` (`db.completeSession`). The SDK's `XpRatingHook` remains a no-op default (`noopXpRatingHook`); the production XP/rating/currency math lives in `src/rating/**` (`createRatingPipeline`), and progression (quests/achievements/streaks/seeding) in `src/progression/**`.
 
 ## QA hooks (binding)
 

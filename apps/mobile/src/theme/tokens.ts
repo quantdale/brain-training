@@ -498,8 +498,6 @@ export const Springs: Record<'press' | 'progress' | 'hero', SpringPreset> = {
   hero: { damping: 12, stiffness: 150, mass: 1 },
 };
 
-/** Spring preset name. */
-export type SpringName = keyof typeof Springs;
 
 /**
  * Layout breakpoints. `compact` is phone portrait, `medium` small tablets and

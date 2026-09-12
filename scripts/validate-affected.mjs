@@ -126,8 +126,6 @@ const RULES = [
     name: 'SQLite / schema / migrations',
     impact: 'SQLite/schema/migrations',
     match: ['apps/mobile/src/db/**', 'apps/mobile/src/persistence/**', 'apps/mobile/src/storage/**'],
-    impact: 'SQLite/schema/migrations',
-    match: ['apps/mobile/src/db/**', 'apps/mobile/src/persistence/**', 'apps/mobile/src/storage/**'],
     checks: [
       'cd apps/mobile && npm run typecheck',
       'cd apps/mobile && npm run test:ci  # migration + persistence unit tests',

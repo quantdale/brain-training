@@ -17,7 +17,6 @@
  * with an incremented attempt salt until it differs. Every step is
  * deterministic — the same seed always yields the same session.
  */
-import { RNG_ALGORITHM_VERSION } from '@/sdk';
 import type { Rng } from '@/sdk';
 
 import type { TargetCountDifficultyParams, TargetCountRound } from './types';
@@ -158,5 +157,3 @@ export function validateGeneratedRound(round: TargetCountRound): boolean {
   );
 }
 
-/** Expose the active RNG algorithm version for diagnostic metadata. */
-export const GENERATOR_RNG_VERSION = RNG_ALGORITHM_VERSION;

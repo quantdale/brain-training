@@ -1,10 +1,13 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 026 VALIDATED (visual identity rebuild)
+## Current status — Campaign 027 active (deep hardening)
 
-Campaign 026 is terminal and no repository-owned release blocker remains. The
-application is **not yet fully store/public-release cleared** because several
-evidence classes are deliberately external/manual:
+Campaign 026 (visual identity rebuild) closed **VALIDATED**; Campaign 027
+(`027-deep-hardening`, activated 2026-09-13, feature development frozen) is
+active. No repository-owned release blocker is currently open.
+
+The application is **not yet fully store/public-release cleared** because
+several evidence classes are deliberately external/manual:
 
 - production/Play store signing credentials and store-signing reproducibility;
 - manual TalkBack accessibility review;
@@ -44,17 +47,49 @@ High product defect.
 
 ## Open non-blocking maintenance
 
-- **`xp_awards` schema-level idempotency idea — NON-BLOCKING MAINTENANCE:** Campaign 022 proved every production award writer commits inside one serialized transaction behind a CAS claim gate, with currency ledger operations additionally guarded by operation-id uniqueness. A blanket `UNIQUE(source)` would be wrong because legitimate legacy/generic sources such as `system` may repeat during supported restore semantics. Keep the adversarial proof in the Campaign 022 audit map rather than adding the incorrect constraint.
+- **`xp_awards` schema-level idempotency idea — RESOLVED AS DESIGNED
+  (Campaign 022 audit):** Campaign 022 proved every production award writer
+  commits inside one serialized transaction behind a CAS claim gate, with
+  currency ledger operations additionally guarded by operation-id uniqueness.
+  A blanket `UNIQUE(source)` must **not** be added because legitimate
+  legacy/generic sources such as `system` may repeat during supported restore
+  semantics. The adversarial proof lives in the Campaign 022 audit map.
+- **Backup export double canonicalization — Low, deferred (Campaign 027 W2.5):**
+  backup export runs two full canonicalization passes
+  (`apps/mobile/src/data-portability/serialize.ts`; measured desktop-only
+  4.9 s + 1.1 s @5k sessions). Export is a deliberate user action, not a hot
+  path, and fusing the passes risks byte/checksum divergence against
+  `roundtrip.test.ts`; deferred until a byte-identical single-pass
+  implementation is proven. Tracked in
+  `openspec/changes/027-deep-hardening/tasks.md` task 2.5.
 - **Offline validator heuristic gap — Low:** the static validator can miss runtime-reassembled network-call strings. Runtime/offline certification is the stronger evidence for the shipped boundary; improve the heuristic only in a scoped maintenance campaign.
 - **Seeding test-fixture seam noise — Low:** partial Jest DB facades can emit non-fatal startup noise not representative of the production facade.
-- **Permanent provenance allowlist dead entries — Low:** legacy permanent entries are ignored by design and are misleading configuration debt; remove only in an identity-aware maintenance change.
+- **Permanent provenance allowlist dead entries — RESOLVED in Campaign 027 W6:**
+  the 22 inert no-expiry entries were replaced with two precise, expiring
+  non-semantic entries (attention-target-count generator + language-context-fit
+  content-validation dead-export removals); `validate-provenance --check` is
+  clean and no permanent inert entry remains.
+- **Runtime dependency advisory — accepted debt, expires 2026-12-31
+  (Campaign 027 W4):** `decode-uri-component` GHSA-vcc3-ghjq-m6fr (ReDoS on
+  malformed percent-encoded input, moderate) is reachable at runtime via
+  `expo-router@57 -> query-string@7.1.3 -> decode-uri-component`. No compatible
+  fix exists: query-string@7 pins `^0.2.2`, the patched 0.5.0 is ESM-only and
+  breaks the CJS require, and npm audit's only \"fix\" is an expo-router
+  semver-major downgrade. Escalated explicitly in
+  `scripts/certification/dependency-audit-allowlist.json`
+  (classification `runtime-accepted-debt`, expiring) with the production-audit
+  gate still failing on any new advisory; drop the entry when expo-router
+  advances to a query-string major carrying the fix (next Expo SDK upgrade).
 - **QA artifact retention — Low:** transient `qa-artifacts/` output is gitignored but can accumulate locally; add bounded retention before automation volume grows materially.
 - **Build/dev dependency advisories:** retain the existing dependency-audit classification and re-evaluate with planned framework/toolchain upgrades; do not force unrelated dependency churn into a release-doc cleanup.
-- **Achievements sync scope — Low:** quest/achievement evaluation scans up to
-  5000 recent sessions (`SYNC_SESSION_SCAN_LIMIT`,
-  `apps/mobile/src/progression/sync.ts`); measured flat ~78 ms at cap (W13
-  baselines), far above realistic foundations-phase history. Documented cap,
-  non-blocking.
+- **Achievements/quest sync scan — RESOLVED in Campaign 027 W2:** the
+  production quest path no longer bypasses a cap —
+  `syncQuestProgress` materializes at most `SYNC_SESSION_SCAN_LIMIT` (5000)
+  recent samples (`apps/mobile/src/progression/sync.ts`) while longterm
+  `session-count`/`earn-xp` quests evaluate from SQL `lifetime` aggregates, so
+  lifetime progress stays exact at any history size. Achievements already
+  evaluate entirely from O(1) aggregates (`buildAchievementSnapshot`). The
+  documented 5000-sample bound is deliberate and non-blocking.
 - **Constitution-deferred product systems (not bugs):** cloud sync/auth,
   telemetry, and monetization/ads remain deferred by
   `docs/PROJECT_CONSTITUTION.md`; they are planned future layers, not open
@@ -88,58 +123,21 @@ Critical/High product defect.
   GPU-enabled emulator are dominated by host GPU translation (the stock launcher
   shows the same profile). The app itself renders 0 frames while idle. Re-measure
   on a physical device before making FPS claims.
-- **Board feedback adopted in eight canaries only (Low, deferred):** the shared
-  answer-feedback language (fill + border + ✓/✕ + label, animated score) is
-  applied to the eight category canaries; the remaining 34 games keep their
-  existing board styling while still inheriting the upgraded intro/HUD/results
-  chrome. Extending it is mechanical per-game polish, not a defect.
-- **Structured HUD progress is opt-in (Low, deferred):** `GameHost` accepts
-  `roundProgress` and renders a segmented HUD bar, but no game reports round
-  progress yet, so the HUD shows the custom round chip + score. Wiring per-game
-  round counts is a follow-up.
-- **Native tab bar labels:** inactive destinations are icon-only on Android
-  (platform `labelVisibilityMode` behaviour); every destination still exposes an
-  accessible name and the active tab is marked with a capsule + label. Left as
-  platform behaviour rather than forced.
+- **Structured HUD progress — WIRED in 41/42 games (Campaign 025):** `GameHost`
+  renders the segmented HUD bar from `roundProgress`; every finite-round game
+  except `memory-sequence-memory` reports it. `memory-sequence-memory` is a
+  time-boxed score attack with no round total and intentionally keeps the round
+  chip (HUD R2). Resolved; no follow-up.
 
-## Campaign 023 non-blocking findings (added 2026-09-11)
+## Campaign 023 findings — all resolved
 
-All are Low/Medium, non-blocking, and outside the campaign's Critical/High repair
-scope. Each was confirmed by the all-games audit wave and deliberately deferred
-with rationale.
-
-- **Adaptive escalation gap — `spatial-coordinate-turn` (Medium):** the game
-declares adaptive difficulty axes (`minDirections/maxDirections`, steps, move
-max) but `next-round` always uses the session-start plan, so adaptive sessions
-record the computed minimum challenge. The declared axes are internally
-inconsistent (`directions` typed `4 | 8` while the challenge mapping treats it
-as a 4–8 continuum), so a fix needs a product decision; all other games now
-escalate correctly.
-- **Late-tap SFX mismatch (Low):** `attention-odd-one-out`, `attention-visual-search`,
-and `math-fast-math` play tap feedback before the reducer's post-deadline guard
-resolves the round as a timeout, so a tap in the scheduling gap can sound
-correct while scoring a timeout. Fixing requires exposing the resolution
-instant to the screen layer without duplicating timing logic.
-- **Vigilance digit visible after resolution (Low):** `attention-sustained-vigilance`
-keeps the digit on screen after a trial resolves despite the feedback comment;
-cosmetic display-only gap.
-- **Missing vigilance screen test (Low):** `attention-sustained-vigilance` has no
-screen-level test file (timer/ref behavior covered indirectly through the
-reducer and shared hooks); add parity coverage in a maintenance pass.
-- **Stale tutorial copy — `language-word-scramble` (Low):** the tutorial claims
-bonus points for speed and expiring rounds, but the game is intentionally
-untimed. Copy fix, not behavior fix.
-- **Dead actions — `flexibility-color-stroop` (Low):** `show-stimulus` /
-`show-flip-cue` actions are declared and handled but never dispatched, and the
-latter is unguarded; remove or wire them in an identity-aware cleanup.
-- **`speed-color-match` persisted `Infinity` (Low):** an all-timeout session
-serializes `fastestReactionMs` as JSON `null` while the raw type says `number`;
-the rating metric extraction coalesces it today, but the persisted value should
-be `null`-typed explicitly.
-- **Headless screenshot/responsive limitation (operational):** with
-`emulator -no-window`, `screencap` returns a constant blank frame and runtime
-`wm size` switching wedges the ATD renderer. Runtime visual/screenshot and
-profile-switch evidence require a windowed or GPU-host emulator session.
+The eight Low/Medium findings from the 2026-09-11 all-games audit are no longer
+open: adaptive escalation (`spatial-coordinate-turn`, Campaign 027 W1), late-tap
+SFX (Campaign 024), lingering vigilance stimulus (Campaign 027 W1), missing
+vigilance screen test (Campaign 025), stale word-scramble tutorial copy
+(Campaign 025), dead color-stroop actions and the speed-color-match non-finite
+metric (Campaign 027 W1), and the headless screenshot limitation (superseded by
+the GPU capture AVD, Campaign 024). Original entries remain in Git history.
 
 ## Operational recommendation (owner-side, not a product blocker)
 

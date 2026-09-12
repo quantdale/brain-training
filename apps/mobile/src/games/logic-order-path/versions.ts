@@ -6,13 +6,9 @@
  * tracks scoring/normalization changes. This module also owns the numeric
  * version mapping used by the integer version columns of `game_sessions`.
  */
-import { RNG_ALGORITHM_VERSION } from '@/sdk';
-
 /** Scoring/normalization version — bump when `normalizeOrderPathResult` changes. */
 export const SCORING_VERSION = '1.1.0';
 
-/** Algorithm version backing deterministic generation (kept for diagnostics). */
-export const GENERATOR_ALGORITHM_VERSION = RNG_ALGORITHM_VERSION;
 
 /**
  * Map a semantic version string to the integer recorded in the db

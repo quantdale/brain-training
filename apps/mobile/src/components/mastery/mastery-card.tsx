@@ -7,38 +7,17 @@
 import { StyleSheet, View } from "react-native";
 
 import { SectionHeader } from "@/components/shell";
-import { ThemedText } from "@/components/themed-text";
-import { Badge, Card, ListRow } from "@/components/ui";
+import { ListRow } from "@/components/ui";
 import {
   DomainColors,
   Radii,
   Spacing,
   type DomainName,
-  type ThemeColor,
 } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { registry } from "@/registry/registry.generated";
 import { MASTERY_TIERS, type MasterySummary } from "@/mastery";
 import { router } from "expo-router";
-
-const TIER_LABEL: Record<string, string> = {
-  unplayed: "New",
-  learning: "Learning",
-  developing: "Developing",
-  proficient: "Proficient",
-  advanced: "Advanced",
-  mastered: "Mastered",
-};
-
-/** Tier → semantic badge family (progression ramp: low = info, mastered = success). */
-const TIER_TONE: Record<string, ThemeColor> = {
-  unplayed: "info",
-  learning: "info",
-  developing: "accent",
-  proficient: "warning",
-  advanced: "xp",
-  mastered: "success",
-};
 
 /**
  * Domain identity key for a display category name (folds display casing and
@@ -56,33 +35,6 @@ function DomainDot({ domain }: { domain: string }) {
   const key = domainKeyFor(domain);
   if (!key) return null;
   return <View style={[styles.dot, { backgroundColor: DomainColors[scheme][key].base }]} />;
-}
-
-/** Compact per-game mastery row for Game Detail. */
-export function MasteryCard({ summary }: { summary: MasterySummary }) {
-  return (
-    <Card variant="outlined" testID={`mastery-card.${summary.gameId}`}>
-      <ThemedText type="subtitle">Mastery</ThemedText>
-      <Badge
-        label={TIER_LABEL[summary.tier] ?? summary.tier}
-        tone={TIER_TONE[summary.tier] ?? "accent"}
-        testID={`mastery-tier.${summary.gameId}`}
-      />
-      <ThemedText type="small" themeColor="textSecondary">
-        {summary.nextMilestone
-          ? `Next: ${summary.nextMilestone}`
-          : "Every milestone cleared — keep sharpening your bests."}
-      </ThemedText>
-      <ThemedText type="small" themeColor="textSecondary" testID={`mastery-evidence.${summary.gameId}`}>
-        {summary.evidence.sessions} session{summary.evidence.sessions === 1 ? "" : "s"}
-        {" · "}
-        {Math.round(summary.evidence.bestNormalized * 100)}% best
-        {summary.evidence.expertStrong > 0
-          ? ` · ${summary.evidence.expertStrong} strong Expert clear${summary.evidence.expertStrong === 1 ? "" : "s"}`
-          : ""}
-      </ThemedText>
-    </Card>
-  );
 }
 
 interface MilestoneItem {

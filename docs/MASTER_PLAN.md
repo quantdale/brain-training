@@ -1,12 +1,23 @@
 # Master Implementation Plan
 
 **Plan version:** 1  
-**Status:** accepted bootstrap plan  
+**Status:** historical implementation plan (phase gates retained as context)  
 **Authority:** subordinate to `docs/PROJECT_CONSTITUTION.md`
+
+**Current state (2026-09-13):** the catalog is complete at **42 games**;
+Campaigns 001–026 are closed, most recently 026 (visual identity rebuild,
+**VALIDATED**), and **Campaign 027 (deep hardening) is active** with feature
+development frozen. Durable current state lives in `.agent/STATE.md` and
+`.agent/CURRENT_CAMPAIGN.md`.
+
+**Version note:** the exact Campaign-001 dependency pins recorded in
+`docs/adr/0004-campaign-001-stack-versions.md` were lifted within SDK 57
+(Campaign 012 W15 audit; Campaign 020 dependency re-audit) and are maintained
+as pinned `~`/`^` ranges in `apps/mobile/package.json`.
 
 The project uses large campaigns rather than one-feature-at-a-time micro-sprints. Individual campaign plans may evolve as the agent learns, but the phase gates below must remain satisfied.
 
-## Phase 0 — Repository bootstrap (current bootstrap commit)
+## Phase 0 — Repository bootstrap (historical; completed)
 
 Deliverables:
 
@@ -17,7 +28,7 @@ Deliverables:
 - Kimi project-local continuation/hardening Skills
 - repository-integrity CI
 - initial ADRs
-- active Phase 1 campaign ready
+- Phase 1 campaign activated (Phase 1 completed 2026-08-16; see below)
 
 Exit: repository can be cloned by a fresh agent and its next action can be recovered solely from committed state.
 

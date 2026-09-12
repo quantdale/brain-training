@@ -1,56 +1,27 @@
-# Welcome to your Expo app 👋
+# Brain Training — mobile app
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Offline-first Android/iOS brain-training app (42-game catalog, adaptive
+scoring/progression, local SQLite persistence). Product and development
+governance live in the repository root: `AGENTS.md` and
+`docs/PROJECT_CONSTITUTION.md`.
 
-## Get started
+## Structure
 
-1. Install dependencies
+- Routes: `apps/mobile/src/app` (Expo Router file-based routing).
+- Games: `apps/mobile/src/games/` (each a self-contained module).
+- Shared game contract: `apps/mobile/src/sdk/` (import as `@/sdk`).
 
-   ```bash
-   npm install
-   ```
+## Commands
 
-2. Start the app
+Run from `apps/mobile`:
 
-   ```bash
-   npx expo start
-   ```
+- Install dependencies: `npm install`
+- Start the dev server: `npx expo start`
+- Test: `npx jest`
+- Typecheck: `npx tsc --noEmit`
+- Lint: `npx expo lint`
 
-In the output, you'll find options to open the app in a
+## Android automation
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The emulator-local, host-input-free ADB/uiautomator harness is documented in
+`docs/ANDROID_AUTOMATION.md`.

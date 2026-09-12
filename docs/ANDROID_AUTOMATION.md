@@ -38,7 +38,7 @@ then well-known defaults (Windows: `%LOCALAPPDATA%\Android\Sdk`; macOS:
 `~/Library/Android/sdk`; Linux: `~/Android/Sdk`). Override anything via
 environment variables (see `common.sh`):
 
-- `BT_AVD_NAME` (default `braintraining35`)
+- `BT_AVD_NAME` (default `braintraining-qa36` — historical name; the harness pins the API 35 x86_64 image)
 - `BT_APP_ID` (default `com.braintraining.app` — matches `apps/mobile/app.json`)
 - `BT_APP_ACTIVITY` (default `.MainActivity`)
 - `BT_APK_PATH` (default `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`)
@@ -87,7 +87,7 @@ If you must use `google_apis`, set `BT_EMULATOR_NO_WIFI=1` (passes
 scripts/android/avd.sh
 
 # Individual steps:
-scripts/android/avd.sh create            # create AVD braintraining35 (API 35 x86_64, pixel_7)
+scripts/android/avd.sh create            # create AVD braintraining-qa36 (API 35 x86_64, pixel_7)
 scripts/android/avd.sh boot              # boot headless (quickboot), wait for sys.boot_completed
 scripts/android/avd.sh boot --no-snapshot  # deterministic cold boot (no quickboot resume)
 scripts/android/avd.sh boot --wipe-data    # cold boot with wiped userdata
@@ -118,7 +118,7 @@ fast (~30 s).
 > persistent background process instead (e.g. a task/job with no timeout):
 >
 > ```bash
-> emulator -avd braintraining35 -no-window -no-audio -no-boot-anim \
+> emulator -avd braintraining-qa36 -no-window -no-audio -no-boot-anim \
 >   -gpu swiftshader_indirect -no-metrics &
 > ```
 >
@@ -265,7 +265,7 @@ runs `-no-window`, so nothing is even rendered on the host display.
 | `expo run:android` fails | Native `android/` not prebuilt yet | Expected in early waves — see install.sh `NOT VALIDATED` note; retry after prebuild |
 | `avdmanager`/`sdkmanager` not found | cmdline-tools missing | `sdkmanager "cmdline-tools;latest"`; harness prints the same hint |
 | Input `text` mangling spaces | Shell quoting | Always quote: `input.sh text "a b"` (uses `%s` format internally) |
-| Multiple emulators running | The harness only touches the serial whose `avd name` is `braintraining35` | `avd.sh status` prints the serial it considers "ours" |
+| Multiple emulators running | The harness only touches the serial whose `avd name` is `braintraining-qa36` (`BT_AVD_NAME`) | `avd.sh status` prints the serial it considers "ours" |
 | PNG corrupted on `adb shell` | Shell mode mangles binary | Harness always uses `adb exec-out` |
 
 ## Integration notes
@@ -314,8 +314,9 @@ Notes that cost time to learn:
   native handles; the app then boots into its storage-error boundary. A cold
   start under the new profile is both realistic and deterministic. Rotation
   (the real user path) is unaffected.
-- **A capture is only evidence if the app rendered.** `ui-capture` (Campaign
-  026) waits after every batch relaunch until the app's view tree mounts *and*
+- **A capture is only evidence if the app rendered.** `ui-capture` (hardened
+  in Campaign 027 after the Campaign 026 capture runs) waits after every batch
+  relaunch until the app's view tree mounts *and*
   the framebuffer is non-uniform (a theme switch or a cold Metro bundle can
   leave the window black for seconds after the tree mounts), samples the raw
   framebuffer to reject uniform frames, retries each surface up to three times
@@ -345,7 +346,8 @@ The audit measures laid-out bounds, so a control that reaches 44 dp only through
 controls should carry real height, and the kit's `Button`, `Chip`, `TextField`
 and `BackLink` primitives do.
 
-Campaign 026 added a clipping rule: uiautomator reports the VISIBLE bounds of a
+Campaign 027 added a clipping rule (the condition was exposed by the Campaign
+026 audit): uiautomator reports the VISIBLE bounds of a
 node, so a control scrolled under the bottom tab bar measures shorter than it
 lays out (a real 44 dp button measured 16 dp while half of it sat behind the
 bar). Interactive nodes that start inside the content viewport but pin to its

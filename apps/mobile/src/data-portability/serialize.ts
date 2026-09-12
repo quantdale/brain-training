@@ -558,13 +558,3 @@ export async function exportLocalDataBundle(
 export function serializeBackup(envelope: BackupEnvelope): string {
   return canonicalChunks(envelope).join('');
 }
-
-/**
- * Chunked form of {@link serializeBackup}: the canonical text as an array of
- * chunks. Feeding these to `FileBackupTransport.writeBackupChunks` streams the
- * backup to disk in bounded batches WITHOUT ever materializing the joined
- * multi-megabyte string in the JS heap.
- */
-export function serializeBackupChunks(envelope: BackupEnvelope): string[] {
-  return canonicalChunks(envelope);
-}

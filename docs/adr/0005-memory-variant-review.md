@@ -1,6 +1,6 @@
 # ADR-0005: Memory Variant Review (tasks.md 10.6)
 
-**Status:** Accepted
+**Status:** Accepted — partially superseded (see "Superseding note" below)
 **Date:** 2026-08-18
 **Applies to:** `006r-core-integrity-correction` task 10.6
 
@@ -77,3 +77,23 @@ Parity matrix Memory row already lists the three games; Pattern Tap Back is
 now accurately documented as a distinct-span variant rather than a path game.
 No generator output changed, so deterministic session reproducibility is
 unaffected.
+
+## Superseding note (added 2026-09-13, Campaign 027 documentation truth)
+
+The "tracked improvement, not required for honesty here" statement about a true
+adjacent-path differentiation is historical and no longer describes the
+shipped game. Pattern Tap Back enforces grid adjacency:
+
+- `apps/mobile/src/games/memory-pattern-tap-back/generator.ts` — each round is
+  an adjacency-constrained random walk on the grid king graph: every step
+  shares a side or corner with the previous tile, and no tile repeats. The
+  legacy distinct-span builder survives only as the last-resort fallback that
+  relaxes adjacency rather than the exact-length/no-repeat contract.
+- `apps/mobile/src/games/memory-pattern-tap-back/difficulty.ts` — hard/expert
+  hide the per-tap confirmation; its comment names the adjacency generator plus
+  that behaviour as "the ADR-0005 differentiation from the Memory game".
+- Shipped in Campaign 014 (commit `968554a`) as generator version **1.1.0**
+  (`game.json`). Adjacency is test-pinned in
+  `__tests__/generator.test.ts` (connected-path and 16-tile expert cases).
+
+The original text above is kept unchanged as the historical record.

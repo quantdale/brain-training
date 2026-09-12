@@ -15,8 +15,6 @@
  * copy. Digests are identical whether fed in one call or many.
  */
 
-import { writeCanonicalJson } from './canonical-json';
-
 const K = new Uint32Array([
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -229,16 +227,4 @@ export const CHECKSUM_ALGORITHM = 'sha256';
 /** Compute the envelope checksum over the canonical (checksum-excluded) payload. */
 export function computeChecksum(payload: string): string {
   return sha256Hex(payload);
-}
-
-/**
- * SHA-256 over the canonical JSON form of `value`, computed in ONE pass:
- * canonical chunks stream straight into the hasher, so verification never
- * materializes the joined canonical string nor a second full-size UTF-8 copy.
- * Digest is identical to `computeChecksum(canonicalString(value))`.
- */
-export function canonicalSha256Hex(value: unknown): string {
-  const hasher = new Sha256();
-  writeCanonicalJson(value, (chunk) => hasher.update(chunk));
-  return hasher.digestHex();
 }

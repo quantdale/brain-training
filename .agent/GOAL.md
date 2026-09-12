@@ -24,11 +24,15 @@ Full hardening is user-invoked only. When requested, first clarify scope from th
 
 ## Current owner directive
 
-On 2026-08-30 the owner explicitly authorized a whole-codebase hardening
-pass, followed by autonomous execution of Campaigns 017 through 020, with a
-second whole-codebase hardening pass after Campaign 020. The agent may choose
-the concrete campaign packets within the constitution and must preserve
-honest `PASS` / `NOT VALIDATED` / `BLOCKED` classifications.
+On 2026-09-13 the owner invoked **Campaign 027 — deep hardening**
+(`027-deep-hardening`): a whole-repository engineering campaign with feature
+development frozen, to be executed autonomously until its exit gate is
+satisfied or a genuine blocker is durably recorded. The authorization is
+explicit that hardening is user-invoked only, that the campaign must not stop
+after the first success, and that verified improvement outranks speed.
+Campaigns 017 through 026 are all closed (026 — visual identity rebuild —
+VALIDATED). The agent must preserve honest `PASS` / `NOT VALIDATED` /
+`BLOCKED` classifications.
 
 ## Terminal campaign state
 

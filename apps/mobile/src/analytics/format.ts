@@ -17,14 +17,6 @@ export function formatMs(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-/** Compact integer, e.g. 1234 → "1.2k". */
-export function formatCompact(n: number): string {
-  if (Math.abs(n) >= 1000) {
-    return `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k`;
-  }
-  return String(Math.round(n));
-}
-
 /** Direction arrow for movement (▲ / ▼ / –). */
 export function directionArrow(direction: Direction): string {
   return direction === 'up' ? '▲' : direction === 'down' ? '▼' : '–';

@@ -14,7 +14,6 @@
 
 import type { GameDefinition } from "@/sdk";
 import {
-  explainPersonalizedWorkout,
   STALE_DOMAIN_DAYS,
   WEAK_DOMAIN_RATING_THRESHOLD,
   type DomainRating,
@@ -22,31 +21,6 @@ import {
   type WorkoutSelectionReason,
 } from "./personalize";
 import type { WorkoutMetadata } from "./metadata";
-
-/**
- * Reasons for the default daily workout, in selection order. Thin documented
- * passthrough over the frozen personalize API so consumers have one import
- * site for "why does my workout look like this".
- */
-export function explainDailyWorkout(
-  games: readonly GameDefinition[],
-  date: string,
-  domainRatings: readonly DomainRating[],
-  recentGameIds: readonly string[],
-  attempt = 0,
-  exclude: readonly string[] = [],
-  options: PersonalizeOptions = {},
-): WorkoutSelectionReason[] {
-  return explainPersonalizedWorkout(
-    games,
-    date,
-    domainRatings,
-    recentGameIds,
-    attempt,
-    exclude,
-    options,
-  );
-}
 
 /** Indexes for fast classification inside {@link explainTemplateWorkout}. */
 function buildRatingIndex(domainRatings: readonly DomainRating[]): {

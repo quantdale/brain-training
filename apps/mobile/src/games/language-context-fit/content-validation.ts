@@ -254,8 +254,3 @@ export function loadContentPack(): ContentPack {
   if (cached === null) cached = validateContentPack(packJson);
   return cached;
 }
-
-// Test helper: clear memoization after pack replacement (jest).
-export function __resetContentPackCache(): void {
-  cached = null;
-}

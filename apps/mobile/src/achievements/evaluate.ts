@@ -81,15 +81,6 @@ function rawProgress(
  }
 }
 
-/** Default accuracy threshold for `accuracy-sessions` criteria (a 'good' session). */
-const DEFAULT_ACCURACY_THRESHOLD = 0.8;
-
-/** Normalize an `accuracy-sessions` threshold (defaults to 0.8). */
-export function accuracyThreshold(criteria: { threshold?: number }): number {
- const t = criteria.threshold ?? DEFAULT_ACCURACY_THRESHOLD;
- return Number.isFinite(t) ? t : DEFAULT_ACCURACY_THRESHOLD;
-}
-
 function isMet(
  criteria: AchievementDef["criteria"],
  snapshot: AchievementSnapshot,

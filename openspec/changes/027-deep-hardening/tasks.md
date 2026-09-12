@@ -68,31 +68,42 @@
 
 ## W4 — Tooling and CI
 
-- [ ] 4.1 `validate-workflows.mjs`: detect unpinned `uses:` and unenforced
-      `continue-on-error`; self-tests prove detection and non-detection.
-- [ ] 4.2 Dependency-audit gate with explicit self-tested classification;
-      wired into Repository Integrity, BLOCKED on network failure.
-- [ ] 4.3 Pin workflow actions to SHAs (or record the deferral with rationale)
-      keeping the original tags as comments.
+- [x] 4.1 `validate-workflows.mjs`: detects unpinned `uses:` and unenforced
+      `continue-on-error`; self-tests 44/44 (detection + non-detection).
+- [x] 4.2 Dependency-audit gate with explicit self-tested classification
+      (26/26) wired into Repository Integrity, BLOCKED on network failure. It
+      caught a real runtime-reachable moderate advisory
+      (`decode-uri-component` ReDoS via expo-router -> query-string); no
+      compatible fix exists, so it is explicitly escalated as
+      `runtime-accepted-debt` with an expiry and a tracked follow-up rather
+      than silently waived.
+- [x] 4.3 All 16 workflow action sites pinned to resolved commit SHAs (original
+      tags kept as comments; no unresolved action).
 
 ## W5 — Documentation truth
 
-- [ ] 5.1 ADR-0005 superseded note (adjacency shipped).
-- [ ] 5.2 ADR-0004 version-lift annotation.
-- [ ] 5.3 MASTER_PLAN status, GAME_SDK phase framing, app README routing,
-      ANDROID_AUTOMATION AVD default, constitution status line, GOAL.md
-      directive history.
-- [ ] 5.4 KNOWN_ISSUES/BACKLOG: fix stale and misclassified entries
-      (late-tap, vigilance test, HUD progress, tab labels, xp_awards, sync cap
-      wording, colour-stroop dead actions after repair).
+- [x] 5.1 ADR-0005 marked partially superseded; shipping adjacency recorded
+      with implementing files (original text preserved).
+- [x] 5.2 ADR-0004 version-drift note added (verified revision sequence; body
+      untouched).
+- [x] 5.3 MASTER_PLAN status, GAME_SDK phase framing, app README routing,
+      ANDROID_AUTOMATION AVD default + harness notes, constitution status line,
+      GOAL.md directive history all corrected against the code.
+- [x] 5.4 KNOWN_ISSUES/BACKLOG reconciled: fixed entries resolved (late-tap,
+      vigilance test, HUD 41/42, tab labels, dead actions, Infinity, sync scan,
+      xp_awards, provenance allowlist), export deferral and runtime advisory
+      recorded.
 
 ## W6 — Cleanup
 
-- [ ] 6.1 Remove high-confidence dead exports (whole-repo scan).
-- [ ] 6.2 Remove unreferenced scripts and the stray tracked log.
-- [ ] 6.3 Regenerate/empty the inert provenance allowlist; `--check` stays
-      clean.
-- [ ] 6.4 Remove the stale campaign-003 TODO in the offline boundary test.
+- [x] 6.1 Ten high-confidence dead exports removed (whole-repo re-verified);
+      referenced/test-only exports kept with reasons.
+- [x] 6.2 Two unreferenced scripts deleted; the stray log proved untracked
+      (gitignored) and was left on disk untouched.
+- [x] 6.3 Inert provenance allowlist replaced with two precise expiring
+      non-semantic entries; `--check` clean.
+- [x] 6.4 Stale campaign-003 TODO replaced in the offline boundary test;
+      `validate-affected.mjs` duplicate keys removed (15 rules intact).
 
 ## W7 — Verification and closure
 

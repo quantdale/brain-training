@@ -20,10 +20,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '22'
 
@@ -42,6 +42,14 @@ jobs:
         run: |
           node scripts/validate-workflows.mjs --self-test
           node scripts/validate-workflows.mjs
+
+      # Production dependency-audit gate (campaign 027). Fails closed:
+      # exit 1 on an unallowlisted moderate+ advisory reachable from the
+      # production tree; exit 2 (BLOCKED, never a silent pass) when npm
+      # audit cannot run. Accepted build/dev-toolchain advisories and their
+      # rationales live in scripts/certification/dependency-audit-allowlist.json.
+      - name: Validate production dependency audit
+        run: node scripts/validate-dependency-audit.mjs
 
       # OpenSpec change/spec validation. The CLI is pinned to an exact
       # version so CI validation is deterministic across runners; it runs

@@ -188,15 +188,6 @@ export function countSolutions(
   return count;
 }
 
-/** Validate that a puzzle has exactly one Latin completion. */
-export function isUniquelySolvableBoard(
-  visibleBoard: readonly (readonly number[])[],
-  n: number,
-  limit = 2,
-): boolean {
-  return countSolutions(visibleBoard, n, limit) === 1;
-}
-
 /** Minimum depth required per difficulty level. */
 export function minDepthForLevel(level: string): number {
   switch (level) {
@@ -213,14 +204,3 @@ export function minDepthForLevel(level: string): number {
   }
 }
 
-/** Desired depth for expert to prove strictly stronger than easy (used for expert generation target). */
-export function targetDepthForLevel(level: string): number {
-  switch (level) {
-    case 'expert':
-      return 3;
-    case 'hard':
-      return 2;
-    default:
-      return 1;
-  }
-}

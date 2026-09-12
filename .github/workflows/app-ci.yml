@@ -24,7 +24,7 @@ jobs:
         working-directory: apps/mobile
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         # Full history: the provenance drift check needs the push's `before`
         # SHA (or, for PRs, `origin/main`) as a resolvable git base. Without
         # this, `git diff <base>` is always empty and the gate is a no-op.
@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Node
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: "22"
           cache: npm
@@ -103,7 +103,7 @@ jobs:
       # untouched; the flag is workflow-owned). Big suites re-transform far
       # less, shortening future campaigns' CI feedback loops.
       - name: Restore jest transform cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: apps/mobile/.jest-cache
           key: jest-${{ runner.os }}-${{ hashFiles('apps/mobile/package-lock.json') }}
@@ -130,7 +130,7 @@ jobs:
 
       - name: Upload Jest summary
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: jest-summary-${{ github.run_id }}
           path: apps/mobile/jest-summary.json
@@ -144,7 +144,7 @@ jobs:
       # regressions. Short retention; never needed on green runs.
       - name: Upload web-export output on failure
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: web-export-dist-${{ github.run_id }}
           path: apps/mobile/dist

@@ -41,3 +41,15 @@ Provisional identity (branding still deferred): app name "Brain Training", slug 
 
 - Template typecheck/web-export must pass before wave 1 swarm starts.
 - Rollback path: pin to an older SDK (e.g. 56) if SDK 57 proves unstable during the campaign; revisit this ADR via a superseding ADR.
+
+## Version-drift note (added 2026-09-13)
+
+The exact versions above are the Campaign 001 snapshot. Dependency pins were
+lifted within SDK 57 after the Campaign 012 W15 pin audit and have kept moving
+(Expo SDK-57 patch alignment in Campaigns 015/021; the Campaign 020
+dependency re-audit updated the classification, see
+`.agent/DEPENDENCY_AUDIT.md`). They remain pinned as `~`/`^` ranges in
+`apps/mobile/package.json` — e.g. Expo `~57.0.20`, `expo-router ~57.0.19`,
+React Native `0.86.3`, `expo-sqlite ~57.0.2`. `apps/mobile/package.json` is
+now the source of truth for exact ranges; the body of this ADR is not
+rewritten.
