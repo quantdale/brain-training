@@ -37,17 +37,25 @@
 
 ## W3 — Reliability tests
 
-- [ ] 3.1 Shared session-persistence failure contract (screen or host): failed
-      save surfaces, results intact, no double-write.
-- [ ] 3.2 `math-value-ordering` screen test (interaction + force-win +
-      persisted exactly-once + navigation).
-- [ ] 3.3 Rewards route failure tests (claim-all partial fault, cosmetic
-      purchase throw).
-- [ ] 3.4 Profile streak-item purchase failure / insufficient-funds UI test.
-- [ ] 3.5 Storage-unavailable retry-success mounts the app.
-- [ ] 3.6 Workout advance failure from results surfaces a user-visible error.
-- [ ] 3.7 Data-management wipe failure surfaces the engine error.
-- [ ] 3.8 Export write-failure (ENOSPC/EACCES-style rejection) is handled.
+- [x] 3.1 Shared session-persistence failure contract: pinned at `<GameResults>`
+      (failed persist state renders the error beside intact results, no reward
+      card) plus a representative real screen proving one attempt, no retry on
+      restart, and the superseded-session guard; the audit premise that
+      `use-game-session` owns persistence was corrected (it owns lifecycle).
+- [x] 3.2 `math-value-ordering` screen test (intro → interaction → verdict →
+      force-win → exactly-once persistence → restart/quit).
+- [x] 3.3 Rewards route failure tests (claim throw, claim-all mid-loop throw).
+      Found + fixed: both paths were console-only; they now show danger toasts
+      and claim-all refreshes after the failure.
+- [x] 3.4 Profile streak-item purchase failure / insufficient-funds UI test.
+      Found + fixed: generic rejections were console-only (now a toast) and a
+      successful apply also fired "No item to apply" (branch fixed).
+- [x] 3.5 Storage-unavailable retry-success mounts the app.
+- [x] 3.6 Workout advance failure from results now surfaces a danger toast.
+      Found + fixed: the hook swallowed the rejection with no error state.
+- [x] 3.7 Data-management wipe failure surfaces the engine error.
+- [x] 3.8 Export write-failure (ENOSPC/EACCES) propagates and leaves no
+      partial artifact; prior backup preserved on overwrite failure.
 
 ## W4 — Tooling and CI
 

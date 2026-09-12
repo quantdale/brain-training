@@ -26,7 +26,7 @@ import {
   useFocusEffect,
   useLocalSearchParams,
 } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
 import { SectionHeader, StateCard } from "@/components/shell";
@@ -44,6 +44,7 @@ import {
   ProgressRing,
   Spark,
   StatBlock,
+  showToast,
 } from '@/components/ui';
 import { MinTouchTarget, Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, GameSessionRecord } from "@/db";
@@ -165,6 +166,7 @@ export default function ResultsScreen() {
     nextGameId,
     nextProvenance,
     completed: workoutCompleted,
+    advanceError: workoutAdvanceError,
   } = useWorkoutResultAdvance(session);
 
   // Celebration discipline (micro-interactions R5): a personal best earns one
@@ -181,6 +183,22 @@ export default function ResultsScreen() {
     celebratedResults.add(session.id);
     liveAudioHaptics.feedback("success");
   }, [isPersonalBest, session]);
+
+  // Workout-advance failure (Campaign 027): the session is saved, but the
+  // leg transition did not land. Surface it once per distinct message; the
+  // screen otherwise has no way to tell the player the workout is stuck.
+  const advanceErrorShownRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (workoutAdvanceError === null || advanceErrorShownRef.current === workoutAdvanceError) {
+      return;
+    }
+    advanceErrorShownRef.current = workoutAdvanceError;
+    showToast({
+      title: workoutAdvanceError,
+      detail: "Your session is safe — reopen the workout to continue.",
+      tone: "danger",
+    });
+  }, [workoutAdvanceError]);
 
   const game = session ? getGameDefinition(session.gameId) : undefined;
   // Task 9.4: ratingHistory is already filtered to the selected session

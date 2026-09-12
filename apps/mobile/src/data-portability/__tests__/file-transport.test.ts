@@ -35,6 +35,13 @@ interface MockEntry {
 /** `mock*` prefix keeps jest.mock factories allowed to close over these. */
 const mockStore = new Map<string, MockEntry>();
 
+/**
+ * One-shot storage fault injected through the mocked native seam. `op` selects
+ * the failing call (a fresh write vs. the atomic overwrite move); the fault is
+ * consumed so a single test can prove both propagation and recovery.
+ */
+let mockFsFault: { op: 'write' | 'move'; error: Error } | null = null;
+
 function mockJoinUri(parent: string, name: string): string {
   return `${parent.replace(/\/+$/, '')}/${name}`;
 }
@@ -79,6 +86,11 @@ jest.mock('expo-file-system', () => {
       return mockStore.get(this.uri)?.kind === 'file';
     }
     write(contents: string): void {
+      if (mockFsFault?.op === 'write') {
+        const { error } = mockFsFault;
+        mockFsFault = null;
+        throw error;
+      }
       mockStore.set(this.uri, { kind: 'file', content: contents });
     }
     text(): string {
@@ -92,6 +104,11 @@ jest.mock('expo-file-system', () => {
       mockStore.delete(this.uri);
     }
     async move(destination: File, options?: { overwrite?: boolean }): Promise<void> {
+      if (mockFsFault?.op === 'move') {
+        const { error } = mockFsFault;
+        mockFsFault = null;
+        throw error;
+      }
       const entry = mockStore.get(this.uri);
       if (!entry || entry.kind !== 'file') {
         throw new Error(`ENOENT: no such file "${this.uri}"`);
@@ -135,6 +152,7 @@ jest.mock('expo-sharing', () => ({
 
 beforeEach(() => {
   mockStore.clear();
+  mockFsFault = null;
   mockGetDocumentAsync.mockReset();
   mockIsAvailableAsync.mockReset();
   mockShareAsync.mockReset();
@@ -193,6 +211,57 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
       'brain-training-backup_2026-08-21_10-00-00.json',
       'brain-training-backup_2026-08-20_09-00-00.json',
     ]);
+  });
+});
+
+describe('write failures (mocked ENOSPC/EACCES)', () => {
+  const BACKUPS_DIR = 'file:///mock-documents/backups';
+
+  it('surfaces the storage error verbatim and never reports a successful export', async () => {
+    const t = createFileBackupTransport();
+    const fault = Object.assign(new Error('ENOSPC: no space left on device'), {
+      code: 'ENOSPC',
+    });
+    mockFsFault = { op: 'write', error: fault };
+
+    let caught: unknown;
+    try {
+      await t.writeBackup('doomed.json', '{"export":true}');
+    } catch (error) {
+      caught = error;
+    }
+
+    // The caller receives the ORIGINAL typed failure — not swallowed and not
+    // re-wrapped into a generic message.
+    expect(caught).toBe(fault);
+    // No in-memory export exists: no destination file, no listing entry, and
+    // no orphaned temp file.
+    expect(mockStore.has(`${BACKUPS_DIR}/doomed.json`)).toBe(false);
+    expect(await t.listBackups()).toEqual([]);
+    expect(
+      [...mockStore.keys()].filter((uri) => uri.includes('.tmp')),
+    ).toEqual([]);
+  });
+
+  it('keeps the previous complete backup when the overwrite move fails (EACCES)', async () => {
+    const t = createFileBackupTransport();
+    await t.writeBackup('keep.json', 'old-complete');
+    const fault = Object.assign(new Error('EACCES: permission denied'), {
+      code: 'EACCES',
+    });
+    mockFsFault = { op: 'move', error: fault };
+
+    await expect(t.writeBackup('keep.json', 'new-partial')).rejects.toBe(fault);
+
+    // Atomicity contract: the prior complete backup is untouched, listed
+    // exactly once, and the failed write's temp file was cleaned up.
+    expect(await t.readBackup('keep.json')).toBe('old-complete');
+    expect((await t.listBackups()).filter((name) => name === 'keep.json')).toHaveLength(
+      1,
+    );
+    expect(
+      [...mockStore.keys()].filter((uri) => uri.includes('.tmp')),
+    ).toEqual([]);
   });
 });
 

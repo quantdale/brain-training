@@ -326,6 +326,13 @@ export default function RewardsScreen() {
       }
     } catch (error) {
       console.error("[rewards] claim failed", error);
+      // Campaign 027: the failure used to be console-only. The item stays
+      // claimable and the toast tells the player nothing was lost.
+      showToast({
+        title: "Couldn't claim that reward",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     } finally {
       busyRef.current = false;
     }
@@ -361,6 +368,14 @@ export default function RewardsScreen() {
       }
     } catch (error) {
       console.error("[rewards] claim-all failed", error);
+      // Campaign 027: surface the failure; already-durable claims resync on
+      // the next focus, and the toast confirms nothing was silently lost.
+      showToast({
+        title: "Couldn't claim rewards",
+        detail: "Nothing was lost — try again.",
+        tone: "danger",
+      });
+      refresh();
     } finally {
       busyRef.current = false;
     }

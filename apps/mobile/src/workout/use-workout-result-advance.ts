@@ -24,6 +24,12 @@ export interface WorkoutResultAdvance {
   completed: boolean;
   /** Exact ownership tuple for the next leg, when one was advanced. */
   nextProvenance: WorkoutSessionProvenance | null;
+  /**
+   * Message shown when the durable advance write failed (Campaign 027). The
+   * session itself is already persisted; only the workout leg transition did
+   * not land, so the result screen must surface this instead of hiding it.
+   */
+  advanceError: string | null;
 }
 export function useWorkoutResultAdvance(
   session: GameSessionRecord | null,
@@ -53,6 +59,7 @@ export function useWorkoutResultAdvance(
 
   const advancingRef = useRef(false);
   const advancedForSessionRef = useRef<string | null>(null);
+  const [advanceError, setAdvanceError] = useState<string | null>(null);
   const [next, setNext] = useState<{
     id: string | null;
     completed: boolean;
@@ -117,6 +124,7 @@ export function useWorkoutResultAdvance(
       })
       .catch((e: unknown) => {
         console.error("[results] workout advance failed", e);
+        setAdvanceError("Workout progress could not be saved");
       })
       .finally(() => {
         advancingRef.current = false;
@@ -128,5 +136,6 @@ export function useWorkoutResultAdvance(
     nextGameId: next?.id ?? null,
     completed: reconciled?.status === "completed" || next?.completed === true,
     nextProvenance: next?.provenance ?? null,
+    advanceError,
   };
 }

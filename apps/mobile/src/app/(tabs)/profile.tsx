@@ -39,6 +39,7 @@ import {
   ProgressBar,
   Spark,
   StreakStrip,
+  showToast,
 } from "@/components/ui";
 import type { AppDatabase, QuestProgress } from "@/db";
 import { getDb, InsufficientFundsError, purchaseStreakItem } from "@/db";
@@ -473,6 +474,13 @@ export default function ProfileScreen() {
         celebrateReward({ title: "Not enough coins", emoji: "⚠️" });
       } else {
         console.error("[profile] streak item purchase failed", error);
+        // Campaign 027: a failed purchase used to be console-only. The toast
+        // is the user-visible surface; the balance is unchanged.
+        showToast({
+          title: "Purchase failed",
+          detail: "Your coins are unchanged — try again.",
+          tone: "danger",
+        });
       }
     } finally {
       buyInFlightRef.current.delete(kind);
@@ -490,10 +498,18 @@ export default function ProfileScreen() {
       if (result === "applied") {
         refresh();
         celebrateReward({ title: "Streak protected!", emoji: "🛡️" });
+      } else if (result === "no-item") {
+        // Campaign 027: the applied branch used to fire this celebration too,
+        // so a successful protection always read "No item to apply" as well.
         celebrateReward({ title: "No item to apply", emoji: "⚠️" });
       }
     } catch (error) {
       console.error("[profile] streak item apply failed", error);
+      showToast({
+        title: "Couldn't apply that item",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     }
   };
 

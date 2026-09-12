@@ -391,6 +391,50 @@ describe('data-management UX contract', () => {
     expect(message).toHaveTextContent(/Saved backup files were kept/);
   });
 
+  it('surfaces a mid-wipe engine failure and never claims the wipe succeeded', async () => {
+    // The engine throws AFTER the confirmation gate passes: the failure must
+    // surface verbatim, the success copy must not render, and the armed
+    // confirmation must survive so the operator can retry.
+    jest
+      .mocked(wipeLocalData)
+      .mockRejectedValueOnce(new Error('disk I/O error while clearing'));
+    await renderScreen();
+
+    fireEvent.press(await screen.findByTestId('data-wipe-button'));
+    fireEvent.changeText(
+      await screen.findByTestId('data-wipe-confirm'),
+      'DELETE',
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId('data-wipe-confirm').props.value).toBe(
+        'DELETE',
+      );
+    });
+    fireEvent.press(screen.getByTestId('data-wipe-button'));
+
+    await waitFor(() =>
+      expect(jest.mocked(wipeLocalData)).toHaveBeenCalledTimes(1),
+    );
+    const message = await screen.findByTestId('data-message');
+    await waitFor(() =>
+      expect(message).toHaveTextContent(
+        /Wipe failed: disk I\/O error while clearing/,
+      ),
+    );
+    expect(message).not.toHaveTextContent(/All local training data wiped/);
+    // Failure path leaves the confirmation and the retry affordance intact:
+    // no success-only state reset (confirm cleared / busy stuck) ran.
+    expect(screen.getByTestId('data-wipe-confirm').props.value).toBe(
+      'DELETE',
+    );
+    expect(
+      screen.getByTestId('data-wipe-button').props.accessibilityState
+        ?.disabled ?? false,
+    ).toBe(false);
+    // No automatic retry loop: still exactly one attempted wipe.
+    expect(jest.mocked(wipeLocalData)).toHaveBeenCalledTimes(1);
+  });
+
   it('offers a backup-first export inside the wipe card', async () => {
     await renderScreen();
 

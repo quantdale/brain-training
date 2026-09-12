@@ -264,6 +264,7 @@ export default function SpatialCoordinateTurnScreen(
     state.stats,
     state.forced,
     state.difficulty,
+    state.reachedTuning,
     session,
     xpHook,
     persisterProp,
