@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Reproducible clean-checkout certification for Campaign 016.
+ * Reproducible clean-checkout certification for Campaign 016, extended by
+ * Campaign 028 to mirror the CI gate set (secrets boundary, workflow hygiene,
+ * production dependency audit, affected-area map sync, Jest signal integrity).
  *
  * Run from the repository root after creating a fresh checkout/worktree:
  *   node scripts/certification/certify-clean-checkout.mjs
@@ -120,13 +122,19 @@ if (root !== path.resolve(root)) {
   results.push(run('registry', 'node', ['scripts/generate-game-registry.mjs', '--check']));
   results.push(run('provenance', 'node', ['scripts/validate-provenance.mjs', '--check']));
   results.push(run('offline boundary', 'node', ['scripts/validate-offline.mjs', '--check']));
+  results.push(run('secret boundary', 'node', ['scripts/validate-secrets.mjs', '--check']));
+  results.push(run('workflow hygiene', 'node', ['scripts/validate-workflows.mjs']));
+  results.push(run('dependency audit', 'node', ['scripts/validate-dependency-audit.mjs']));
+  results.push(run('affected-area map sync', 'node', ['scripts/validate-affected.mjs', '--check-sync']));
   results.push(run('QA self-test', 'node', ['scripts/qa/autobot.mjs', '--self-test']));
   results.push(run('typecheck', 'npm', ['run', 'typecheck'], app));
   results.push(run('lint', 'npm', ['run', 'lint'], app));
   results.push(run('web export', 'npx', ['expo', 'export', '--platform', 'web'], app));
   results.push(run('Expo Doctor', 'npx', ['expo-doctor'], app));
 
-  const jestOk = run('full Jest', 'npm', ['run', 'test:ci'], app);
+  // Mirror app-ci: emit the machine-readable summary and validate the skip
+  // signal against the reviewed allowlist (stale entries fail closed).
+  const jestOk = run('full Jest', 'npm', ['run', 'test:ci', '--', '--json', '--outputFile=jest-summary.json'], app);
   if (!jestOk) {
     if (allowJestNotValidated) {
       console.warn('full_jest=NOT_VALIDATED (explicitly allowed; inspect and record the failure evidence)');
@@ -136,6 +144,7 @@ if (root !== path.resolve(root)) {
     results.push(false);
   } else {
     results.push(true);
+    results.push(run('jest signal', 'node', ['scripts/certification/validate-jest-signal.mjs', '--summary', 'apps/mobile/jest-summary.json']));
   }
   results.push(trackedMutation());
 

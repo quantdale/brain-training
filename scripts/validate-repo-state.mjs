@@ -20,6 +20,8 @@ const required = [
   '.agent/VALIDATION.md',
   '.agent/IMPACT_MAP.md',
   '.agent/DECISIONS.md',
+  '.agent/task-ownership.json',
+  '.agent/EXECUTION_PROMPT.md',
   '.agent/modes/DAY.md',
   '.agent/modes/NIGHT.md',
   '.agents/skills/continue-development/SKILL.md',
@@ -134,6 +136,32 @@ function parseExecutionPromptStatus(content) {
   return m ? m[1].trim() : null;
 }
 
+/**
+ * Ownership binding: `.agent/task-ownership.json` must be readable, valid JSON
+ * and bound to the governed campaign. Parse failures are reported as errors —
+ * never silently skipped (campaign 028, task 4.4).
+ */
+function checkOwnershipBinding(campaign, sourceLabel) {
+  const ownershipPath = path.join(root, '.agent/task-ownership.json');
+  let raw;
+  try {
+    raw = fs.readFileSync(ownershipPath, 'utf8');
+  } catch (error) {
+    errors.push(`Cannot read .agent/task-ownership.json: ${error.message}`);
+    return;
+  }
+  let ownership;
+  try {
+    ownership = JSON.parse(raw);
+  } catch (error) {
+    errors.push(`Invalid .agent/task-ownership.json: ${error.message} — ownership binding cannot be verified`);
+    return;
+  }
+  if (ownership.change !== campaign) {
+    errors.push(`task-ownership.json change '${ownership.change}' contradicts ${sourceLabel} '${campaign}'`);
+  }
+}
+
 const stateRaw = fs.existsSync(path.join(root, '.agent/STATE.md')) ? fs.readFileSync(path.join(root, '.agent/STATE.md'), 'utf8') : '';
 const campaignRaw = fs.existsSync(path.join(root, '.agent/CURRENT_CAMPAIGN.md')) ? fs.readFileSync(path.join(root, '.agent/CURRENT_CAMPAIGN.md'), 'utf8') : '';
 const executionRaw = fs.existsSync(path.join(root, '.agent/EXECUTION_PROMPT.md')) ? fs.readFileSync(path.join(root, '.agent/EXECUTION_PROMPT.md'), 'utf8') : '';
@@ -180,15 +208,7 @@ if (!governanceHasActiveField) {
     errors.push(`EXECUTION_PROMPT.md status is '${executionStatus}', expected 'ACTIVE'`);
   }
   // Ownership binding — task-ownership.json .change must agree
-  try {
-    const ownershipPath = path.join(root, '.agent/task-ownership.json');
-    if (fs.existsSync(ownershipPath)) {
-      const ownership = JSON.parse(fs.readFileSync(ownershipPath, 'utf8'));
-      if (ownership.change !== campaign) {
-        errors.push(`task-ownership.json change '${ownership.change}' contradicts GOVERNANCE.activeCampaign '${campaign}'`);
-      }
-    }
-  } catch {}
+  checkOwnershipBinding(campaign, 'GOVERNANCE.activeCampaign');
 } else if (activeCampaign === null) {
   if (typeof terminalCampaign !== 'string' || !terminalCampaign.trim()) {
     errors.push('Terminal governance state requires a non-empty lastCampaign');
@@ -222,17 +242,39 @@ if (!governanceHasActiveField) {
   if (executionStatus !== terminalStatus) {
     errors.push(`EXECUTION_PROMPT.md status '${executionStatus ?? 'missing'}' contradicts terminal status '${terminalStatus ?? 'missing'}'`);
   }
-  try {
-    const ownershipPath = path.join(root, '.agent/task-ownership.json');
-    if (fs.existsSync(ownershipPath)) {
-      const ownership = JSON.parse(fs.readFileSync(ownershipPath, 'utf8'));
-      if (ownership.change !== campaign) {
-        errors.push(`task-ownership.json change '${ownership.change}' contradicts terminal lastCampaign '${campaign}'`);
-      }
-    }
-  } catch {}
+  checkOwnershipBinding(campaign ?? '', 'terminal lastCampaign');
 } else {
   errors.push('GOVERNANCE.activeCampaign must be a non-empty campaign id or null in an explicit terminal state');
+}
+
+// Workflow-referenced script existence (campaign 028, task 4.4): every
+// repo-relative `node <script>` invocation in .github/workflows/** must point
+// at an existing file, so a rename cannot turn a CI gate into a silent no-op.
+// Inline `node -e` snippets and `npx` invocations are ignored.
+function workflowScriptRefs() {
+  const dir = path.join(root, '.github/workflows');
+  if (!fs.existsSync(dir)) return [];
+  const refs = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (!entry.isFile() || !/\.ya?ml$/.test(entry.name)) continue;
+    const lines = fs.readFileSync(path.join(dir, entry.name), 'utf8').split(/\r?\n/);
+    lines.forEach((line, i) => {
+      const re = /\bnode\s+(?:--[A-Za-z0-9=_-]+\s+)*([^\s"'`;|&()]+\.(?:mjs|cjs|js|ts))/g;
+      for (const m of line.matchAll(re)) {
+        const ref = m[1].replace(/^\.\//, '');
+        if (/\.(?:test|spec)\./.test(ref)) continue;
+        refs.push({ file: `.github/workflows/${entry.name}`, line: i + 1, ref });
+      }
+    });
+  }
+  return refs;
+}
+
+for (const { file, line, ref } of workflowScriptRefs()) {
+  if (!/^(?:scripts|apps|packages)\//.test(ref)) continue;
+  if (!fs.existsSync(path.join(root, ref))) {
+    errors.push(`${file}:${line} references missing script '${ref}'`);
+  }
 }
 
 // Spec-driven campaign integrity. An active or terminal campaign must have a

@@ -220,6 +220,20 @@ which is why screen waits are env-tunable instead of fixed:
 `--mode warm-bundles` once after a Metro restart to move that one-time build
 cost out of timed runs (`QA_WARM_STEP_MS`, `QA_WARM_CAP_MS` tune its pacing).
 
+## Reliability and retention knobs (campaign 028)
+
+- `QA_DEEPLINK_RETRIES` (default 2): extra deep-link attempts after a launch
+  that was delivered but ignored — including one cold-start escalation. Every
+  attempt/retry is disclosed in the run trace; an unverifiable arrival fails
+  the step instead of reporting success.
+- Pre-warm: canaries/certify/all modes pre-load game routes before timed steps
+  to avoid paying first-build chunk cost inside a budget. Best-effort and
+  time-boxed by `QA_PREWARM_CAP_MS` (default 15000); `QA_PREWARM=0` opts out.
+  It never affects pass/fail and is recorded in `run.json` as `prewarm`.
+- Retention: completed run dirs matching `<date>-autobot-<mode>` are pruned to
+  the newest `QA_KEEP_RUNS` (default 10); `QA_NO_PRUNE=1` disables pruning.
+  Artifact/ci-*/diagnostic dirs are never pruned.
+
 ## Reproducible clean-checkout certification
 
 The repository's install boundary is `apps/mobile` because the root contains no
@@ -231,11 +245,14 @@ node scripts/certification/certify-clean-checkout.mjs
 ```
 
 The runner executes app-boundary `npm ci`, root repository/OpenSpec/ownership/
-registry/provenance/offline/QA gates, app typecheck/lint, web export, and Expo
-Doctor, then checks for tracked-file mutation. Full Jest is required to pass by
-default. On a host with the documented Node worker SIGSEGV limitation, use
-`--allow-jest-not-validated` only after capturing the failure; the runner then
-prints `full_jest=NOT_VALIDATED` and still fails any other gate.
+registry/provenance/offline/secrets/workflow-hygiene/dependency-audit/
+affected-map gates, the QA harness self-test, app typecheck/lint, web export,
+and Expo Doctor, then validates the Jest skip signal against the reviewed
+allowlist (stale entries fail closed) and checks for tracked-file mutation.
+Full Jest is required to pass by default. On a host with the documented Node
+worker SIGSEGV limitation, use `--allow-jest-not-validated` only after
+capturing the failure; the runner then prints `full_jest=NOT_VALIDATED` and
+still fails any other gate.
 
 
 ## Dev-client freshness (native dependencies)

@@ -41,6 +41,33 @@ export function advisoryId(value) {
 }
 
 /**
+ * Classifications the allowlist policy recognizes (campaign 028). Any other
+ * string is a schema error: an unclassified waiver is exactly the silent
+ * acceptance the reviewed-allowlist policy exists to prevent.
+ */
+export const KNOWN_CLASSIFICATIONS = new Set([
+  'build-dev-toolchain',
+  'runtime-accepted-debt',
+]);
+
+function parseIsoDate(value) {
+  if (typeof value !== 'string' || !value.trim()) return NaN;
+  return Date.parse(value);
+}
+
+/**
+ * True when a `runtime-accepted-debt` entry's acceptance has expired (or its
+ * expiry is unparseable/absent — the schema gate rejects those separately).
+ * Expired acceptance never matches an advisory: the entry must be renewed or
+ * the advisory fixed. `nowMs` is injectable so self-tests are deterministic.
+ */
+export function isExpiredAcceptance(entry, nowMs = Date.now()) {
+  if (!entry || entry.classification !== 'runtime-accepted-debt') return false;
+  const expiry = parseIsoDate(entry.expires);
+  return !Number.isFinite(expiry) || expiry <= nowMs;
+}
+
+/**
  * Parse raw `npm audit --json` stdout. Malformed, empty, error-only, or
  * vulnerabilities-missing payloads are BLOCKED by the caller, never PASS.
  */
@@ -79,18 +106,42 @@ export function parseAllowlist(raw) {
   if (!data || typeof data !== 'object' || Array.isArray(data) || !Array.isArray(data.allowlist)) {
     return { ok: false, reason: 'allowlist must be an object with an "allowlist" array' };
   }
+  if (!Number.isInteger(data.version) || data.version < 1) {
+    return { ok: false, reason: 'allowlist is missing a positive integer "version"' };
+  }
+  if (!Number.isFinite(parseIsoDate(data.reviewedAt))) {
+    return { ok: false, reason: 'allowlist is missing a valid ISO "reviewedAt" date' };
+  }
   for (const [i, entry] of data.allowlist.entries()) {
+    const label = `allowlist[${i}] ("${entry && typeof entry.package === 'string' ? entry.package : '?'}")`;
     if (!entry || typeof entry.package !== 'string' || !entry.package.trim()) {
       return { ok: false, reason: `allowlist[${i}] is missing a non-empty "package"` };
     }
     if (typeof entry.advisory !== 'string' || !advisoryId(entry.advisory)) {
-      return { ok: false, reason: `allowlist[${i}] ("${entry.package}") is missing a "GHSA-..." advisory id` };
+      return { ok: false, reason: `${label} is missing a "GHSA-..." advisory id` };
     }
     if (typeof entry.classification !== 'string' || !entry.classification.trim()) {
-      return { ok: false, reason: `allowlist[${i}] ("${entry.package}") is missing a "classification"` };
+      return { ok: false, reason: `${label} is missing a "classification"` };
+    }
+    if (!KNOWN_CLASSIFICATIONS.has(entry.classification)) {
+      return {
+        ok: false,
+        reason: `${label} has unknown classification "${entry.classification}" (expected one of: ${[...KNOWN_CLASSIFICATIONS].join(', ')})`,
+      };
     }
     if (typeof entry.rationale !== 'string' || !entry.rationale.trim()) {
-      return { ok: false, reason: `allowlist[${i}] ("${entry.package}") is missing a non-empty "rationale"` };
+      return { ok: false, reason: `${label} is missing a non-empty "rationale"` };
+    }
+    if (entry.expires !== undefined && !Number.isFinite(parseIsoDate(entry.expires))) {
+      return { ok: false, reason: `${label} has an unparseable "expires" value` };
+    }
+    if (entry.classification === 'runtime-accepted-debt') {
+      if (typeof entry.expires !== 'string' || !entry.expires.trim()) {
+        return { ok: false, reason: `${label} is runtime-accepted-debt but has no "expires" date` };
+      }
+      if (typeof entry.tracking !== 'string' || !entry.tracking.trim()) {
+        return { ok: false, reason: `${label} is runtime-accepted-debt but has no "tracking" follow-up reference` };
+      }
     }
   }
   return { ok: true, entries: data.allowlist };
@@ -100,9 +151,12 @@ export function parseAllowlist(raw) {
  * Classify a parsed audit against the allowlist. Advisories are resolved
  * through `via` chain strings so a transitive dependent (e.g. `metro` via
  * `image-size`) is accepted only when the root advisory it resolves to is
- * itself allowlisted. Returns `{status: 'pass'|'fail'|'blocked', ...}`.
+ * itself allowlisted. A `runtime-accepted-debt` match whose expiry has passed
+ * is a VIOLATION, never an acceptance (campaign 028). Returns
+ * `{status: 'pass'|'fail'|'blocked', ...}`.
  */
-export function classifyAudit(audit, entries) {
+export function classifyAudit(audit, entries, options = {}) {
+  const nowMs = options.now ?? Date.now();
   if (!audit || typeof audit !== 'object' || !audit.vulnerabilities || typeof audit.vulnerabilities !== 'object') {
     return { status: 'blocked', reason: 'audit payload is missing the vulnerabilities map', accepted: [], violations: [] };
   }
@@ -164,7 +218,19 @@ export function classifyAudit(audit, entries) {
       const match = entries.find(
         (entry) => entry.package === adv.package && advisoryId(entry.advisory) === adv.id,
       );
-      if (match) {
+      if (match && isExpiredAcceptance(match, nowMs)) {
+        // The waiver itself has expired: the advisory is effectively
+        // unallowlisted. Fail closed and name the expired acceptance.
+        if (!seenViolation.has(key)) {
+          seenViolation.add(key);
+          violations.push({
+            ...adv,
+            viaPackage: name,
+            expiredAcceptance: true,
+            tracking: typeof match.tracking === 'string' ? match.tracking : null,
+          });
+        }
+      } else if (match) {
         if (!seenAdvisory.has(key)) {
           seenAdvisory.add(key);
           accepted.push({ ...adv, rationale: match.rationale, classification: match.classification });
@@ -289,13 +355,48 @@ function selfTest() {
   }), allow);
   expect(unresolvedChain.status === 'blocked', 'unresolvable via chain blocks');
 
-  // Allowlist schema: every entry needs package + GHSA + classification + rationale.
+  // Allowlist schema: version + reviewedAt at the top level; every entry needs
+  // package + GHSA + a KNOWN classification + rationale; runtime-accepted-debt
+  // additionally requires a future expiry and a tracking follow-up.
+  const allowDoc = (entries) => JSON.stringify({ version: 1, reviewedAt: '2026-09-13', allowlist: entries });
+  const debtEntry = (over = {}) => ({
+    package: 'debtpkg',
+    advisory: 'GHSA-dddd-dddd-dddd',
+    classification: 'runtime-accepted-debt',
+    rationale: 'accepted debt fixture',
+    expires: '2026-12-31T00:00:00.000Z',
+    tracking: '.agent/KNOWN_ISSUES.md',
+    ...over,
+  });
   expect(parseAllowlist('not json').ok === false, 'malformed allowlist blocked');
   expect(parseAllowlist('{}').ok === false, 'allowlist without array blocked');
-  expect(parseAllowlist(JSON.stringify({ allowlist: [{ package: 'x', advisory: DEV, classification: 'c' }] })).ok === false, 'missing rationale blocked');
-  expect(parseAllowlist(JSON.stringify({ allowlist: [{ package: 'x', advisory: DEV, rationale: 'r' }] })).ok === false, 'missing classification blocked');
-  expect(parseAllowlist(JSON.stringify({ allowlist: [{ package: 'x', advisory: 'not-a-ghsa', classification: 'c', rationale: 'r' }] })).ok === false, 'non-GHSA advisory id blocked');
-  expect(parseAllowlist(JSON.stringify({ allowlist: [devEntry] })).ok === true, 'well-formed allowlist ok');
+  expect(parseAllowlist(allowDoc([{ package: 'x', advisory: DEV, classification: 'build-dev-toolchain' }])).ok === false, 'missing rationale blocked');
+  expect(parseAllowlist(allowDoc([{ package: 'x', advisory: DEV, rationale: 'r' }])).ok === false, 'missing classification blocked');
+  expect(parseAllowlist(allowDoc([{ package: 'x', advisory: 'not-a-ghsa', classification: 'build-dev-toolchain', rationale: 'r' }])).ok === false, 'non-GHSA advisory id blocked');
+  expect(parseAllowlist(JSON.stringify({ reviewedAt: '2026-09-13', allowlist: [devEntry] })).ok === false, 'missing version blocked');
+  expect(parseAllowlist(JSON.stringify({ version: 1, allowlist: [devEntry] })).ok === false, 'missing reviewedAt blocked');
+  expect(parseAllowlist(JSON.stringify({ version: 1, reviewedAt: 'not-a-date', allowlist: [devEntry] })).ok === false, 'unparseable reviewedAt blocked');
+  expect(parseAllowlist(allowDoc([{ ...devEntry, classification: 'whatever-i-say' }])).ok === false, 'unknown classification blocked');
+  expect(parseAllowlist(allowDoc([debtEntry({ expires: undefined })])).ok === false, 'accepted debt without expiry blocked');
+  expect(parseAllowlist(allowDoc([debtEntry({ tracking: undefined })])).ok === false, 'accepted debt without tracking blocked');
+  expect(parseAllowlist(allowDoc([debtEntry({ expires: 'soon' })])).ok === false, 'unparseable expiry blocked');
+  expect(parseAllowlist(allowDoc([devEntry])).ok === true, 'well-formed allowlist ok');
+  expect(parseAllowlist(allowDoc([debtEntry()])).ok === true, 'well-formed accepted-debt allowlist ok');
+
+  // Expiry semantics: an unexpired waiver accepts; an expired waiver is a
+  // violation (never an acceptance), so the gate fails closed after expiry.
+  const debtAdv = auditOf({
+    debtpkg: { severity: 'moderate', via: [adv('GHSA-dddd-dddd-dddd', 'debtpkg', 'moderate')] },
+  });
+  const beforeExpiry = classifyAudit(debtAdv, [debtEntry()], { now: Date.parse('2026-12-30T00:00:00.000Z') });
+  expect(beforeExpiry.status === 'pass' && beforeExpiry.accepted.length === 1, 'unexpired accepted debt passes');
+  const afterExpiry = classifyAudit(debtAdv, [debtEntry()], { now: Date.parse('2027-01-01T00:00:00.000Z') });
+  expect(afterExpiry.status === 'fail' && afterExpiry.violations.length === 1, 'expired accepted debt fails');
+  expect(afterExpiry.violations[0].expiredAcceptance === true, 'expired violation is flagged as expired acceptance');
+  expect(afterExpiry.violations[0].tracking === '.agent/KNOWN_ISSUES.md', 'expired violation carries the tracking reference');
+  expect(isExpiredAcceptance(debtEntry(), Date.parse('2026-12-31T00:00:01.000Z')) === true, 'isExpiredAcceptance at instant');
+  expect(isExpiredAcceptance(debtEntry(), Date.parse('2026-12-30T00:00:00.000Z')) === false, 'isExpiredAcceptance before expiry');
+  expect(isExpiredAcceptance(devEntry) === false, 'dev-toolchain entries have no expiry semantics');
 
   // The shipped allowlist itself must always be schema-valid.
   const shipped = loadAllowlist(DEFAULT_ALLOWLIST);
@@ -350,7 +451,19 @@ if (result.status === 'blocked') {
 if (result.status === 'fail') {
   console.error(`Dependency audit FAILED: ${result.violations.length} unallowlisted moderate+ production advisories`);
   for (const v of result.violations) {
-    console.error(`  - ${v.package} ${v.id} (${v.severity}) via ${v.viaPackage}: ${v.title}`);
+    if (v.expiredAcceptance) {
+      console.error(
+        `  - ${v.package} ${v.id} (${v.severity}) via ${v.viaPackage}: acceptance EXPIRED${v.tracking ? ` (tracking: ${v.tracking})` : ''}`,
+      );
+    } else {
+      console.error(`  - ${v.package} ${v.id} (${v.severity}) via ${v.viaPackage}: ${v.title}`);
+    }
+  }
+  const expired = result.violations.filter((v) => v.expiredAcceptance).length;
+  if (expired > 0) {
+    console.error(
+      `  ${expired} waiver(s) expired: fix the advisory or renew the allowlist entry (expires + tracking) after review.`,
+    );
   }
   console.error('  If an advisory is genuinely build/dev-toolchain-only, add it to scripts/certification/dependency-audit-allowlist.json with a rationale.');
   process.exit(1);

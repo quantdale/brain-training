@@ -19,7 +19,10 @@
  * Usage:
  *   node scripts/qa/ui-capture.mjs --out qa-artifacts/campaign024/after
  *   node scripts/qa/ui-capture.mjs --surfaces home,games --theme dark
- *   node scripts/qa/ui-capture.mjs --profile expanded --profile expanded --list
+ *   node scripts/qa/ui-capture.mjs --list
+ *
+ * Always pass QA_DEVICE (or --device) on a host with more than one attached
+ * device: resolving "first device" can select someone else's emulator.
  *
  * Exit codes: 0 all requested surfaces captured · 1 a surface failed ·
  * 2 BLOCKED (no usable device / app not installed).
@@ -31,19 +34,58 @@ import { join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
 
-/** Surfaces captured by default, in capture order. */
+/** Surfaces captured by default, in capture order.
+ *
+ * `expects` lists the root testIDs that prove the route actually arrived.
+ * A dropped deep link under a cold bundle would otherwise file a valid-looking
+ * Home frame as evidence for a different surface (campaign 028). */
 const SURFACES = [
-  { id: 'home', route: '/', settleMs: 2500 },
-  { id: 'games', route: '/games', settleMs: 2000 },
-  { id: 'game-detail', route: '/game-detail/memory', settleMs: 2500 },
-  { id: 'progress', route: '/progress', settleMs: 2500 },
-  { id: 'progress-activity', route: '/progress-activity', settleMs: 2000 },
-  { id: 'progress-detail', route: '/progress-detail', settleMs: 2000 },
-  { id: 'profile', route: '/profile', settleMs: 2500 },
-  { id: 'rewards', route: '/rewards', settleMs: 2000 },
-  { id: 'data-management', route: '/data-management', settleMs: 2000 },
-  { id: 'results', route: '/results', settleMs: 2500 },
-  { id: 'game-intro', route: '/game/memory', settleMs: 3000 },
+  { id: 'home', route: '/', settleMs: 2500, expects: ['home-title'] },
+  { id: 'games', route: '/games', settleMs: 2000, expects: ['games-title'] },
+  {
+    id: 'game-detail',
+    route: '/game-detail/memory',
+    settleMs: 2500,
+    expects: ['game-detail-title', 'game-detail-loading', 'game-detail-error'],
+  },
+  { id: 'progress', route: '/progress', settleMs: 2500, expects: ['progress-window-selector'] },
+  {
+    id: 'progress-activity',
+    route: '/progress-activity',
+    settleMs: 2000,
+    expects: ['progress-activity-title', 'progress-activity-loading', 'progress-activity-error'],
+  },
+  {
+    id: 'progress-detail',
+    route: '/progress-detail',
+    settleMs: 2000,
+    expects: ['progress-detail-title', 'progress-detail-loading', 'progress-detail-error'],
+  },
+  { id: 'profile', route: '/profile', settleMs: 2500, expects: ['profile-identity'] },
+  {
+    id: 'rewards',
+    route: '/rewards',
+    settleMs: 2000,
+    expects: ['rewards-title', 'rewards-loading', 'rewards-error'],
+  },
+  {
+    id: 'data-management',
+    route: '/data-management',
+    settleMs: 2000,
+    expects: ['data-management-title', 'data-loading'],
+  },
+  {
+    id: 'results',
+    route: '/results',
+    settleMs: 2500,
+    expects: ['results-title', 'results-loading', 'results-error'],
+  },
+  {
+    id: 'game-intro',
+    route: '/game/memory',
+    settleMs: 3000,
+    expects: ['memory.intro', 'memory.screen', 'game-not-ready-loading'],
+  },
 ];
 
 /**
@@ -296,6 +338,13 @@ function frameColorCount(device) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  if (options.list) {
+    console.log('Surfaces (id — route — expected root testIDs):');
+    for (const s of SURFACES) {
+      console.log(`  ${s.id} — ${s.route} — ${(s.expects ?? []).join(', ') || '(none)'}`);
+    }
+    return;
+  }
   const device = resolveDevice(options.device);
   if (!device) {
     console.error('[BLOCKED] no adb device in `device` state');
@@ -358,19 +407,47 @@ async function main() {
         // A theme switch or a cold route can leave the app surface black for a
         // few seconds after the hierarchy looks warm; retry the frame instead
         // of filing a black screenshot as evidence (Campaign 026 recapture).
+        // Campaign 028 adds arrival verification: if the deep link was dropped
+        // (cold-bundle `onNewIntent` gap), the frame belongs to another route;
+        // retry once from a cold start so the URL becomes the initial intent,
+        // and record honestly when the surface never arrived.
         let bytes = 0;
         let xmlBytes = 0;
         let xml = '';
         let uniform = false;
+        let routeVerified = true;
+        let reopenedCold = false;
+        const markers = surface.expects ?? [];
         for (let attempt = 0; attempt < 3; attempt += 1) {
           bytes = capturePng(device, pngPath);
           xmlBytes = dumpHierarchy(device, xmlPath);
           xml = xmlBytes > 0 ? readFileSync(xmlPath, 'utf8') : '';
           uniform = frameColorCount(device) <= 2;
-          if (!uniform) {
+          if (uniform) {
+            await sleep(4000);
+            continue;
+          }
+          // A missing hierarchy dump is a dump failure, not route evidence:
+          // only judge arrival when the dump actually produced a tree.
+          routeVerified =
+            markers.length === 0 || xmlBytes === 0 || markers.some((m) => xml.includes(m));
+          if (routeVerified || attempt === 2) {
             break;
           }
-          await sleep(4000);
+          if (!reopenedCold) {
+            // Cold-start retry: force-stop first so the URL is delivered as
+            // the initial intent rather than a droppable onNewIntent.
+            try {
+              adb(device, ['shell', 'am', 'force-stop', options.pkg]);
+            } catch {
+              /* best effort */
+            }
+            openRoute(device, options.scheme, surface.route, options.pkg);
+            reopenedCold = true;
+          }
+          await sleep(surface.settleMs + options.settleMs);
+          wake(device);
+          await sleep(600);
         }
         const testIds = testIdsPresent(xml, ['home-title', 'tab-home', 'games-title', 'progress-window-selector', 'profile-identity']);
 
@@ -389,13 +466,17 @@ async function main() {
           pngBytes: bytes,
           xmlBytes,
           deepLinkStarted: opened,
+          routeVerified,
+          ...(routeVerified ? null : { routeMismatch: true, routeRetriedCold: reopenedCold }),
           testIdsPresent: testIds,
           blank,
           ...(uniform ? { blankReason: 'uniform-frame' } : null),
           ...(renderedErrorBoundary ? { blankReason: 'storage-error-boundary' } : null),
         };
         manifest.surfaces.push(entry);
-        console.log(`${blank ? 'BLANK ' : 'ok    '} ${profileName}/${theme}/${surface.id} (${bytes} B, ${xmlBytes} B xml)`);
+        console.log(
+          `${blank ? 'BLANK ' : !routeVerified ? 'WRONG ' : 'ok    '} ${profileName}/${theme}/${surface.id} (${bytes} B, ${xmlBytes} B xml)`,
+        );
       }
     }
   }
@@ -407,8 +488,16 @@ async function main() {
   console.log(`\nManifest: ${manifestPath}`);
 
   const blanks = manifest.surfaces.filter((s) => s.blank);
-  if (blanks.length > 0) {
-    console.error(`[FAIL] ${blanks.length} blank capture(s): ${blanks.map((b) => b.surface).join(', ')}`);
+  const mismatched = manifest.surfaces.filter((s) => s.routeMismatch);
+  if (blanks.length > 0 || mismatched.length > 0) {
+    if (blanks.length > 0) {
+      console.error(`[FAIL] ${blanks.length} blank capture(s): ${blanks.map((b) => b.surface).join(', ')}`);
+    }
+    if (mismatched.length > 0) {
+      console.error(
+        `[FAIL] ${mismatched.length} surface(s) never arrived (dropped deep link): ${mismatched.map((m) => m.surface).join(', ')}`,
+      );
+    }
     process.exit(1);
   }
   console.log(`[PASS] ${manifest.surfaces.length} surface capture(s)`);

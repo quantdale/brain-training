@@ -7,13 +7,14 @@
  * to run after a change instead of guessing.
  *
  * The rule table below mirrors the "Affected-Area Validation Map" table in
- * `.agent/IMPACT_MAP.md`. A drift guard at the bottom of this file warns when
- * the number of areas in that table no longer matches this script, so the two
- * stay in sync.
+ * `.agent/IMPACT_MAP.md`. `--check-sync` enforces that the table's backticked
+ * path patterns and this script's `RULES` match exactly, so the two stay in
+ * sync (CI runs it).
  *
  * Usage:
  *   node scripts/validate-affected.mjs <path> [path...]
- *   node scripts/validate-affected.mjs --list-areas
+ *   node scripts/validate-affected.mjs --list-areas [--json]
+ *   node scripts/validate-affected.mjs --check-sync
  *   node scripts/validate-affected.mjs --json <path> [path...]
  *   node scripts/validate-affected.mjs --strict <path> [path...]   # exit 1 on unmatched paths
  *
@@ -182,7 +183,7 @@ const RULES = [
   {
     name: 'package manifest / lockfile',
     impact: 'package manifest/lockfile',
-    match: ['package.json', 'package-lock.json', 'apps/mobile/package.json', 'apps/mobile/package-lock.json'],
+    match: ['apps/mobile/package.json', 'apps/mobile/package-lock.json'],
     checks: [
       'cd apps/mobile && npm ci  # clean dependency install',
       'node scripts/validate-repo-state.mjs',
@@ -243,12 +244,15 @@ function matchesRule(rule, normPath) {
   return false;
 }
 
-/** Count data rows in the IMPACT_MAP.md table (header + separator excluded). */
-function impactMapAreaCount() {
+/**
+ * Parse the IMPACT_MAP.md table: one entry per data row with the backticked
+ * path patterns from the first column (the human-readable mirror of RULES).
+ */
+function impactMapRows() {
   if (!fs.existsSync(IMPACT_MAP)) return null;
   const lines = fs.readFileSync(IMPACT_MAP, 'utf8').split(/\r?\n/);
+  const rows = [];
   let inTable = false;
-  let rows = 0;
   for (const line of lines) {
     if (line.trim().startsWith('|')) {
       if (!inTable) {
@@ -256,12 +260,41 @@ function impactMapAreaCount() {
         continue; // header row
       }
       if (/^\s*\|[\s\-:|]+\|\s*$/.test(line)) continue; // separator row
-      rows++;
+      const firstCell = (line.split('|')[1] ?? '').trim();
+      const patterns = [...firstCell.matchAll(/`([^`]+)`/g)]
+        .map((m) => m[1].trim())
+        .filter((t) => /[*?]|\//.test(t) || /^[A-Za-z0-9_.-]+\.[a-z]+$/.test(t));
+      rows.push({ label: firstCell, patterns });
     } else {
       inTable = false;
     }
   }
   return rows;
+}
+
+/**
+ * Content-level drift check: the pattern set in the table must equal the set
+ * of RULES match patterns (neither may add, drop, or rename a pattern).
+ */
+function syncIssues() {
+  const rows = impactMapRows();
+  if (rows === null) return ['WARNING: .agent/IMPACT_MAP.md not found — cannot check table sync.'];
+  const issues = [];
+  if (rows.length !== RULES.length) {
+    issues.push(`WARNING: .agent/IMPACT_MAP.md lists ${rows.length} affected areas but validate-affected.mjs defines ${RULES.length}.`);
+  }
+  const rulePatterns = new Set(RULES.flatMap((r) => r.match));
+  const mapPatterns = new Set(rows.flatMap((r) => r.patterns));
+  const missingFromMap = [...rulePatterns].filter((p) => !mapPatterns.has(p));
+  const missingFromRules = [...mapPatterns].filter((p) => !rulePatterns.has(p));
+  if (missingFromMap.length) issues.push(`WARNING: RULES patterns missing from IMPACT_MAP.md: ${missingFromMap.join(', ')}`);
+  if (missingFromRules.length) issues.push(`WARNING: IMPACT_MAP.md patterns missing from RULES: ${missingFromRules.join(', ')}`);
+  return issues;
+}
+
+function syncWarning() {
+  const issues = syncIssues();
+  return issues.length ? issues.join('\n') : null;
 }
 
 function buildPlan(changedPaths) {
@@ -285,15 +318,6 @@ function buildPlan(changedPaths) {
     unmatched,
     syncWarning: null,
   };
-}
-
-function syncWarning() {
-  const rows = impactMapAreaCount();
-  if (rows === null) return 'WARNING: .agent/IMPACT_MAP.md not found — cannot check table sync.';
-  if (rows !== RULES.length) {
-    return `WARNING: .agent/IMPACT_MAP.md lists ${rows} affected areas but validate-affected.mjs defines ${RULES.length} — keep them in sync.`;
-  }
-  return null;
 }
 
 function printHuman(plan, opts) {
@@ -323,27 +347,43 @@ function printHuman(plan, opts) {
 function printUsage() {
   console.log(`Usage:
   node scripts/validate-affected.mjs <path> [path...]   print required checks for changed paths
-  node scripts/validate-affected.mjs --list-areas       list all known areas and their patterns
+  node scripts/validate-affected.mjs --list-areas [--json]  list all known areas and their patterns
+  node scripts/validate-affected.mjs --check-sync       exit 1 if IMPACT_MAP.md patterns drift from RULES
   node scripts/validate-affected.mjs --json <path...>   machine-readable output
   node scripts/validate-affected.mjs --strict <path...> exit 1 if any path matches no area
   node scripts/validate-affected.mjs --help`);
 }
 
 const args = process.argv.slice(2);
-const opts = { json: false, strict: false, list: false };
+const opts = { json: false, strict: false, list: false, checkSync: false };
 const paths = [];
 for (const a of args) {
   if (a === '--json') opts.json = true;
   else if (a === '--strict') opts.strict = true;
   else if (a === '--list-areas') opts.list = true;
+  else if (a === '--check-sync') opts.checkSync = true;
   else if (a === '--help') { printUsage(); process.exit(0); }
   else paths.push(a);
 }
 
 if (opts.list) {
-  for (const rule of RULES) console.log(`${rule.name}\t${rule.match.join(', ')}`);
-  const w = syncWarning();
-  if (w) console.log(w);
+  if (opts.json) {
+    console.log(JSON.stringify({ version: 1, areas: RULES.map((r) => ({ name: r.name, impact: r.impact, match: r.match })), syncIssues: syncIssues() }, null, 2));
+  } else {
+    for (const rule of RULES) console.log(`${rule.name}\t${rule.match.join(', ')}`);
+    const w = syncWarning();
+    console.log(w ? `\n${w}` : '\nIMPACT_MAP sync: OK');
+  }
+  process.exit(0);
+}
+
+if (opts.checkSync) {
+  const issues = syncIssues();
+  if (issues.length) {
+    for (const issue of issues) console.error(issue);
+    process.exit(1);
+  }
+  console.log(`IMPACT_MAP sync: OK (${RULES.length} areas, ${RULES.flatMap((r) => r.match).length} patterns)`);
   process.exit(0);
 }
 

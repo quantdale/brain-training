@@ -10,7 +10,10 @@
  * The validator classifies pending/todo assertion records by exact relative
  * file plus an allowlisted full-name substring. It fails closed for any
  * unclassified skip, malformed allowlist entry, duplicate match, or result
- * shape it cannot interpret.
+ * shape it cannot interpret. Since campaign 028 it also fails closed on stale
+ * allowlist entries: every entry must point at an existing test file that
+ * still contains its `enableWith` gate, and every entry carries review
+ * metadata (`reviewedAt`).
  */
 
 import assert from 'node:assert/strict';
@@ -19,6 +22,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const defaultAllowlist = path.join(root, 'scripts', 'certification', 'jest-skip-allowlist.json');
+const ALLOWLIST_SCHEMA_VERSION = 2;
 
 function usage() {
   console.error(
@@ -41,9 +45,15 @@ function relativeFile(file) {
 }
 
 function loadAllowlist(file) {
-  const value = readJson(file);
-  if (value?.schemaVersion !== 1 || !Array.isArray(value.entries)) {
-    throw new Error(`invalid allowlist schema: ${file}`);
+  return validateAllowlistValue(readJson(file), file);
+}
+
+/** Pure allowlist schema validation (schema v2: review metadata required). */
+function validateAllowlistValue(value, file) {
+  if (value?.schemaVersion !== ALLOWLIST_SCHEMA_VERSION || !Array.isArray(value.entries)) {
+    throw new Error(
+      `invalid allowlist schema: ${file} (expected schemaVersion ${ALLOWLIST_SCHEMA_VERSION} with entries[])`,
+    );
   }
   const seen = new Set();
   return value.entries.map((entry, index) => {
@@ -53,16 +63,44 @@ function loadAllowlist(file) {
       typeof entry?.enableWith !== 'string' ||
       typeof entry?.rationale !== 'string' ||
       typeof entry?.owner !== 'string' ||
+      typeof entry?.reviewedAt !== 'string' ||
       !entry.file ||
-      !entry.testPattern
+      !entry.testPattern ||
+      !entry.enableWith
     ) {
       throw new Error(`allowlist entry ${index} is missing required fields`);
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.reviewedAt) || Number.isNaN(Date.parse(entry.reviewedAt))) {
+      throw new Error(`allowlist entry ${index} has invalid reviewedAt '${entry.reviewedAt}' (want YYYY-MM-DD)`);
     }
     const key = `${entry.file}\n${entry.testPattern}`;
     if (seen.has(key)) throw new Error(`duplicate allowlist entry: ${key}`);
     seen.add(key);
     return entry;
   });
+}
+
+/**
+ * Stale-entry detection (campaign 028, task 4.5): every allowlisted skip must
+ * still point at an existing test file that still contains its `enableWith`
+ * gate. A renamed/deleted file or a removed/renamed gate must fail closed
+ * instead of silently exempting nothing.
+ */
+function findStaleEntries(allowlist) {
+  const stale = [];
+  for (const entry of allowlist) {
+    const abs = path.join(root, entry.file);
+    if (!existsSync(abs)) {
+      stale.push({ entry, reason: `file missing: ${entry.file}` });
+      continue;
+    }
+    const source = readFileSync(abs, 'utf8');
+    const token = entry.enableWith.split(/[=: ]/)[0];
+    if (!token || !source.includes(token)) {
+      stale.push({ entry, reason: `enableWith gate '${entry.enableWith}' not found in ${entry.file}` });
+    }
+  }
+  return stale;
 }
 
 function pendingAssertions(summary) {
@@ -130,6 +168,7 @@ function validate(summary, allowlist) {
   const report = {
     schemaVersion: 1,
     source: 'jest-json',
+    allowlistEntryCount: allowlist.length,
     counts: summaryCounts,
     classifiedSkipCount: classifications.length,
     unclassifiedSkipCount: unclassified.length,
@@ -229,6 +268,26 @@ function selfTest() {
 
   const nonPending = validate(syntheticSummary('passed'), allowlist);
   assert.equal(nonPending.report.classifiedSkipCount, 0);
+
+  // Stale-entry detection (campaign 028, task 4.5): the shipped allowlist must
+  // be free of stale entries, and both stale shapes must be detected.
+  assert.equal(findStaleEntries(allowlist).length, 0, 'default allowlist must not be stale');
+  assert.equal(
+    findStaleEntries([{ ...allowlist[0], file: 'apps/mobile/src/__tests__/does-not-exist.test.ts' }]).length,
+    1,
+  );
+  assert.equal(findStaleEntries([{ ...allowlist[1], enableWith: 'NO_SUCH_PROBE=1' }]).length, 1);
+
+  // Schema v2: legacy version and missing/invalid review metadata are rejected.
+  assert.throws(() => validateAllowlistValue({ schemaVersion: 1, entries: [] }, 'fixture'), /invalid allowlist schema/);
+  assert.throws(
+    () => validateAllowlistValue({ schemaVersion: 2, entries: [{ ...allowlist[0], reviewedAt: undefined }] }, 'fixture'),
+    /missing required fields/,
+  );
+  assert.throws(
+    () => validateAllowlistValue({ schemaVersion: 2, entries: [{ ...allowlist[0], reviewedAt: 'yesterday' }] }, 'fixture'),
+    /invalid reviewedAt/,
+  );
   console.log('validate-jest-signal self-test: PASS');
 }
 
@@ -248,7 +307,15 @@ if (args.includes('--self-test')) {
         allowlistIndex >= 0 && args[allowlistIndex + 1] ? args[allowlistIndex + 1] : defaultAllowlist,
       );
       if (!existsSync(summaryFile)) throw new Error(`summary does not exist: ${summaryFile}`);
-      const result = validate(readJson(summaryFile), loadAllowlist(allowlistFile));
+      const allowlist = loadAllowlist(allowlistFile);
+      const stale = findStaleEntries(allowlist);
+      if (stale.length) {
+        for (const { entry, reason } of stale) {
+          console.error(`STALE_ALLOWLIST_ENTRY: ${entry.file} (${entry.testPattern}) — ${reason}`);
+        }
+        throw new Error(`${stale.length} stale jest-skip allowlist entr${stale.length === 1 ? 'y' : 'ies'} — update or remove them`);
+      }
+      const result = validate(readJson(summaryFile), allowlist);
       assertPass(result.report, result.unclassified, result.ambiguous);
     } catch (error) {
       console.error(`validate-jest-signal: FAIL — ${error.message}`);

@@ -60,7 +60,10 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
+  rmSync,
+  statSync,
   unlinkSync,
+  utimesSync,
 } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -554,6 +557,47 @@ function extractMountedGameId(xml, catalogIds) {
   return null;
 }
 
+// Semantic route classification for deep-link verification (campaign 028).
+// Distinguishes "intent arrived" from "chunk still building" (the lazy-route
+// loading fallback) from "intent dropped" (still Home / another game) so a
+// dropped `onNewIntent` can never masquerade as a product failure.
+// Returns { state: "target" | "loading" | "home" | "other-game" | "unknown",
+//           gameId?: string }.
+function routeState(xml, targetId, catalogIds) {
+  if (!xml || DUMP_ERROR_RE.test(xml)) return { state: "unknown" };
+  if (hasTestId(xml, `${targetId}.screen`) || hasTestId(xml, `${targetId}.intro`)) {
+    return { state: "target" };
+  }
+  if (hasTestId(xml, "game-not-ready-loading")) return { state: "loading" };
+  const mounted = extractMountedGameId(xml, catalogIds);
+  if (mounted) return { state: "other-game", gameId: mounted };
+  if (/resource-id="home-/.test(xml)) return { state: "home" };
+  return { state: "unknown" };
+}
+
+// `am start -W` output parsing: `Status: ok` proves the activity was started;
+// the "delivered to currently running top-most instance" warning is the
+// Bridgeless `onNewIntent` path that can be silently dropped when the JS
+// routing listener is not yet subscribed.
+function parseAmStart(stdout) {
+  const text = String(stdout || "");
+  return {
+    started: /Status:\s*ok/i.test(text),
+    deliveredToRunning: /delivered to currently running top-most instance/i.test(text),
+  };
+}
+
+// Pure retry decision for the verified deep-link loop, kept separate so the
+// offline self-test can pin every branch. `attempt` counts intents issued.
+function deepLinkDecision({ state, attempt, maxAttempts, elapsedMs, budgetMs }) {
+  if (state === "target") return { action: "arrived" };
+  if (elapsedMs >= budgetMs) return { action: "give-up", reason: "budget" };
+  if (state === "loading" || state === "unknown") return { action: "wait" };
+  // home / other-game: clear route evidence that the intent did not take effect.
+  if (attempt >= maxAttempts) return { action: "give-up", reason: "attempts" };
+  return { action: "retry" };
+}
+
 // Durable progress copy used by both the started-chip marker
 // ("<Name> · 1 of 2 done") and the selected-panel resume caption
 // ("In progress — 1 of 2 done.").
@@ -572,7 +616,59 @@ let ART = {
   logcat: "logcat",
   db: "db",
 };
+// Bounded artifact retention (campaign 028). Runs are disposable evidence but
+// they accumulate fast (dump-per-poll: hundreds of MB across a few campaigns),
+// so old COMPLETED harness runs are pruned before a new run dir is created.
+//
+// Safety guards — this MUST never destroy non-reproducible evidence:
+//  - only directories whose name matches this harness's run-id pattern;
+//  - only runs that have completed `initRunDir` (run.json present);
+//  - never the current run (it does not exist yet at prune time);
+//  - curated evidence dirs (campaign0xx/, ui-capture/, refero-*, ...) are
+//    never matched by the run-id pattern and are left untouched;
+//  - QA_NO_PRUNE=1 disables pruning entirely; QA_KEEP_RUNS (default 10)
+//    controls how many completed runs survive.
+const RUN_DIR_NAME_RE = /^\d{8}-\d{6}-autobot-[a-z0-9-]+$/;
+function pruneRunDirs(rootDir = OUT, keepOverride = undefined) {
+  if (process.env.QA_NO_PRUNE === "1" && keepOverride === undefined) return [];
+  const keep = keepOverride ?? Number(process.env.QA_KEEP_RUNS ?? 10);
+  if (!Number.isFinite(keep) || keep < 1) return [];
+  let entries;
+  try {
+    entries = readdirSync(rootDir, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  const completed = [];
+  for (const e of entries) {
+    if (!e.isDirectory() || !RUN_DIR_NAME_RE.test(e.name)) continue;
+    const dir = join(rootDir, e.name);
+    if (!existsSync(join(dir, "run.json"))) continue; // in-progress or foreign
+    try {
+      completed.push({ name: e.name, dir, mtime: statSync(dir).mtimeMs });
+    } catch {
+      /* unreadable dir: leave it alone */
+    }
+  }
+  completed.sort((a, b) => b.mtime - a.mtime);
+  const pruned = [];
+  for (const d of completed.slice(keep)) {
+    try {
+      rmSync(d.dir, { recursive: true, force: true });
+      pruned.push(d.name);
+    } catch (e) {
+      log(`prune skipped ${d.name}: ${String(e).slice(0, 120)}`);
+    }
+  }
+  return pruned;
+}
 function initRunDir(mode) {
+  const pruned = pruneRunDirs();
+  if (pruned.length > 0) {
+    log(
+      `pruned ${pruned.length} old run dir(s) (QA_KEEP_RUNS=${process.env.QA_KEEP_RUNS ?? 10})`,
+    );
+  }
   const ts = new Date()
     .toISOString()
     .replace(/[-:]/g, "")
@@ -1179,7 +1275,7 @@ function reset() {
   sleep(500);
 }
 function deepLink(path) {
-  adb([
+  return adb([
     "shell",
     "am",
     "start",
@@ -1218,6 +1314,69 @@ async function ensureWarmHome() {
     /* fall through */
   }
   return !!ready;
+}
+
+// Verified deep link with bounded, disclosed retry (campaign 028).
+//
+// Why: under a cold Bridgeless bundle the routing listener may not be
+// subscribed when `am start` delivers the intent (`onNewIntent` while context
+// is not ready), so the link is silently dropped and the app legitimately
+// stays on Home. The previous code could not distinguish that from a product
+// failure and burned the full screen budget before reporting "screen did not
+// load". This helper classifies the live route, waits out the lazy-chunk
+// loading fallback, re-issues dropped intents (env-tunable
+// QA_DEEPLINK_RETRIES), escalates to a cold-start intent after a
+// delivered-but-ignored link, and discloses every retry in the trace.
+//
+// Returns { xml, attempts, lastRoute, reason? }; `xml` is the arrived dump.
+async function deepLinkToGame(targetId, tag, budgetMs = SCREEN_BUDGET_MS * 2) {
+  const cat = loadCatalog();
+  const maxAttempts = Math.max(1, Number(process.env.QA_DEEPLINK_RETRIES || 2) + 1);
+  const started = Date.now();
+  const deadline = started + budgetMs;
+  let attempts = 0;
+  let lastRoute = "unknown";
+  while (Date.now() < deadline) {
+    attempts += 1;
+    const delivery = parseAmStart(deepLink(`game/${targetId}`));
+    let dropDetected = false;
+    while (Date.now() < deadline) {
+      const xml = readFileSyncSafe(dumpHierarchy(`${tag}-route-a${attempts}`));
+      const route = routeState(xml, targetId, cat.ids);
+      lastRoute = route.gameId ? `${route.state}:${route.gameId}` : route.state;
+      const decision = deepLinkDecision({
+        state: route.state,
+        attempt: attempts,
+        maxAttempts,
+        elapsedMs: Date.now() - started,
+        budgetMs,
+      });
+      if (decision.action === "arrived") return { xml, attempts, lastRoute };
+      if (decision.action === "retry") {
+        dropDetected = true;
+        break;
+      }
+      if (decision.action === "give-up") {
+        return { xml: null, attempts, lastRoute, reason: decision.reason };
+      }
+      await sleep(route.state === "loading" ? 1500 : 900);
+    }
+    if (dropDetected && attempts < maxAttempts && Date.now() < deadline) {
+      trace(
+        "deeplink.retry",
+        targetId,
+        false,
+        `intent ${attempts} dropped (last route ${lastRoute}); re-issuing`,
+      );
+      // Delivered-but-ignored: a cold start turns the URL into the initial
+      // intent (`getInitialURL` path) instead of a droppable `onNewIntent`.
+      if (lastRoute === "home" && delivery.deliveredToRunning) {
+        adb(["shell", "am", "force-stop", PKG]);
+        await sleep(600);
+      }
+    }
+  }
+  return { xml: null, attempts, lastRoute, reason: "budget" };
 }
 function tap(node) {
   if (!node || !node.bounds) return false;
@@ -1516,6 +1675,34 @@ async function driveForceWin(id, tag) {
   return null;
 }
 
+// Verify a resume tap actually dismissed the pause overlay; tap injection
+// alone proves nothing (the overlay is opaque and absorbs every later tap).
+// Re-dumps with fresh bounds and re-taps up to `rounds` times.
+async function verifyResumeDismissed(id, tag, rounds = 3) {
+  for (let rv = 0; rv < rounds; rv += 1) {
+    const vxml = readFileSyncSafe(dumpHierarchy(`${tag}-resume-verify-${rv}`));
+    if (!vxml || DUMP_ERROR_RE.test(vxml)) {
+      await sleep(1200);
+      continue;
+    }
+    if (!hasTestId(vxml, `${id}.pause-overlay`)) return true;
+    const fresh = findTestId(vxml, `${id}.resume`);
+    if (fresh) tap(fresh);
+    await sleep(1500);
+  }
+  return false;
+}
+
+// Wait for the resume control (patient: overlays can render late under load),
+// tap it, and require dismissal evidence before reporting resumed.
+async function resumeVerified(id, tag, budgetMs = 12000) {
+  const rp = await waitFor(`${id}.resume`, budgetMs, tag);
+  if (!rp) return false;
+  tapTestId(`${id}.resume`, rp);
+  await sleep(1500);
+  return verifyResumeDismissed(id, tag);
+}
+
 // ---------------------------------------------------------------------------
 // Core game drive
 // ---------------------------------------------------------------------------
@@ -1544,14 +1731,20 @@ async function flowGame(id, opts = {}) {
     };
   }
 
-  deepLink(`game/${id}`);
-  let xml =
-    (await waitFor(`${id}.screen`, SCREEN_BUDGET_MS, tag)) ||
-    (await waitFor(`${id}.intro`, SCREEN_BUDGET_MS, tag));
-  if (!xml) {
-    return failGame(id, "screen did not load", t0, tag);
+  const link = await deepLinkToGame(id, tag);
+  if (!link.xml) {
+    const dropNote =
+      link.reason === "attempts"
+        ? `deep-link dropped after ${link.attempts} attempts; last route ${link.lastRoute}`
+        : `last route ${link.lastRoute} after ${link.attempts} attempt(s)`;
+    return failGame(id, `screen did not load (${dropNote})`, t0, tag);
   }
-  log("screen loaded");
+  let xml = link.xml;
+  log(
+    link.attempts > 1
+      ? `screen loaded (deep link verified after ${link.attempts} attempts)`
+      : "screen loaded",
+  );
   screenshot(`${tag}-screen`);
 
   // Tutorial bypass: verified retry loop. One tap can miss (bounds captured
@@ -1659,46 +1852,18 @@ async function flowGame(id, opts = {}) {
         ? "paused + overlay shown"
         : "paused (overlay testID not matched)",
     );
-    const rp = await waitFor(`${id}.resume`, 4000, tag);
-    if (rp) {
-      tapTestId(`${id}.resume`, rp);
-      await sleep(1500);
-      // Verify the resume took effect (overlay gone) — tapTestId only proves
-      // the input was injected, not that the button received it. Under load
-      // the state update can take >1s to reach the native hierarchy. Retry
-      // with fresh coordinates before concluding.
-      for (let rv = 0; rv < 3; rv += 1) {
-        const vxml = readFileSyncSafe(dumpHierarchy(`${tag}-resume-verify-${rv}`));
-        if (!vxml || DUMP_ERROR_RE.test(vxml)) {
-          await sleep(1200);
-          continue;
-        }
-        if (!hasTestId(vxml, `${id}.pause-overlay`)) {
-          pauseProbe.resumed = true;
-          break;
-        }
-        const fresh = findTestId(vxml, `${id}.resume`);
-        if (fresh) tap(fresh);
-        await sleep(1500);
-      }
-      if (pauseProbe.resumed) {
-        log("resumed");
-      } else {
-        log("resume tap did not dismiss the overlay");
-      }
-    } else {
-      // Patient retry: the overlay can render late under load. Without a
-      // resumed state every later tap lands on the opaque overlay.
-      const rp2 = await waitFor(`${id}.resume`, 9000, tag);
-      if (rp2) {
-        tapTestId(`${id}.resume`, rp2);
-        await sleep(700);
-        pauseProbe.resumed = true;
-        log("resumed (retry)");
-      } else {
-        log("resume not reachable");
-      }
-    }
+    // Verified resume on BOTH timing paths (campaign 028): wait patiently for
+    // a late overlay, tap, and only report resumed after the overlay is
+    // observed gone. A missed tap is re-tried with fresh bounds and never
+    // silently recorded as success (the old patient-retry branch set
+    // resumed=true after a single unverified tap, and a missed tap then ended
+    // the run as "app left paused").
+    pauseProbe.resumed = await resumeVerified(id, tag, 12000);
+    log(
+      pauseProbe.resumed
+        ? "resumed"
+        : "resume tap did not dismiss the overlay",
+    );
   } else if (opts.pause && !sessionMounted) {
     pauseProbe.attempted = false;
     log("no pause control (not applicable)");
@@ -2046,11 +2211,13 @@ async function probeNextGame(id, tag) {
   const cat = loadCatalog();
   const idx = cat.ids.indexOf(id);
   const next = cat.ids[(idx + 1) % cat.ids.length];
-  deepLink(`game/${next}`);
-  const xml =
-    (await waitFor(`${next}.screen`, NEXT_BUDGET_MS, `${tag}-next`)) ||
-    (await waitFor(`${next}.intro`, NEXT_BUDGET_MS, `${tag}-next`));
-  return { next, ok: !!xml };
+  const link = await deepLinkToGame(next, `${tag}-next`, NEXT_BUDGET_MS * 2);
+  return {
+    next,
+    ok: !!link.xml,
+    attempts: link.attempts,
+    lastRoute: link.lastRoute,
+  };
 }
 
 // Warm-bundles mode: trigger Metro's lazy-route builds for every catalog id
@@ -2112,6 +2279,49 @@ async function flowWarmBundles() {
     ms: traceMs(t0),
     artifacts: captureAll("warm"),
     trace: traceSlice(),
+  };
+}
+
+// Scheduled best-effort pre-warm (campaign 028). Cold lazy-bundle state is the
+// documented root cause of the canary navigation races, so canary/certify/all
+// runs warm the planned game routes BEFORE the timed loop when
+// `QA_PREWARM !== "0"`. This is disclosed, time-boxed, never counted toward
+// pass/fail, and recorded in run.json as `prewarm`.
+async function prewarmRoutes(ids, tag = "prewarm") {
+  const capMs = Number(process.env.QA_PREWARM_CAP_MS || 15000);
+  const t0 = Date.now();
+  if (!(await ensureWarmHome())) {
+    return {
+      attempted: true,
+      ok: false,
+      reason: "app did not warm to home",
+      warmed: [],
+      cold: ids.slice(),
+      details: [],
+      ms: traceMs(t0),
+    };
+  }
+  const details = [];
+  for (const id of ids) {
+    const link = await deepLinkToGame(id, `${tag}-${id}`, capMs);
+    details.push({
+      id,
+      mounted: !!link.xml,
+      attempts: link.attempts,
+      lastRoute: link.lastRoute,
+    });
+    log(
+      `prewarm: ${id} ${link.xml ? "mounted" : `not reached (${link.lastRoute})`}`,
+    );
+  }
+  const cold = details.filter((r) => !r.mounted).map((r) => r.id);
+  return {
+    attempted: true,
+    ok: cold.length === 0,
+    warmed: details.filter((r) => r.mounted).map((r) => r.id),
+    cold,
+    details,
+    ms: traceMs(t0),
   };
 }
 
@@ -3370,6 +3580,148 @@ function selfTest() {
       "memory",
     ]) === null,
   );
+
+  // Deep-link verification helpers (campaign 028).
+  const routeIds = ["memory", "speed-tap-rush"];
+  assert(
+    "routeState: target screen",
+    routeState('<node resource-id="memory.screen"/>', "memory", routeIds).state ===
+      "target",
+  );
+  assert(
+    "routeState: target intro",
+    routeState('<node resource-id="memory.intro"/>', "memory", routeIds).state ===
+      "target",
+  );
+  assert(
+    "routeState: lazy-chunk loading fallback",
+    routeState(
+      '<node resource-id="game-not-ready-loading"/>',
+      "memory",
+      routeIds,
+    ).state === "loading",
+  );
+  assert(
+    "routeState: home",
+    routeState('<node resource-id="home-title"/>', "memory", routeIds).state ===
+      "home",
+  );
+  assert(
+    "routeState: other game identified",
+    (() => {
+      const r = routeState(
+        '<node resource-id="speed-tap-rush.screen"/>',
+        "memory",
+        routeIds,
+      );
+      return r.state === "other-game" && r.gameId === "speed-tap-rush";
+    })(),
+  );
+  assert(
+    "routeState: unreadable dump is unknown",
+    routeState("ERROR: could not get idle state", "memory", routeIds).state ===
+      "unknown",
+  );
+  const amStarted = parseAmStart(
+    "Starting: Intent { act=android.intent.action.VIEW }\nStatus: ok\nLaunchState: WARM\n",
+  );
+  assert(
+    "parseAmStart: started",
+    amStarted.started === true && amStarted.deliveredToRunning === false,
+  );
+  const amDelivered = parseAmStart(
+    "Warning: Activity not started, intent has been delivered to currently running top-most instance.\n",
+  );
+  assert(
+    "parseAmStart: delivered-to-running",
+    amDelivered.started === false && amDelivered.deliveredToRunning === true,
+  );
+  const dld = (over) =>
+    deepLinkDecision({
+      state: "home",
+      attempt: 1,
+      maxAttempts: 3,
+      elapsedMs: 0,
+      budgetMs: 1000,
+      ...over,
+    });
+  assert("deepLinkDecision: target arrives", dld({ state: "target" }).action === "arrived");
+  assert("deepLinkDecision: loading waits", dld({ state: "loading" }).action === "wait");
+  assert("deepLinkDecision: unknown waits", dld({ state: "unknown" }).action === "wait");
+  assert("deepLinkDecision: home retries", dld({ state: "home" }).action === "retry");
+  assert(
+    "deepLinkDecision: other-game retries",
+    dld({ state: "other-game" }).action === "retry",
+  );
+  assert(
+    "deepLinkDecision: attempt cap gives up",
+    (() => {
+      const d = dld({ attempt: 3, maxAttempts: 3 });
+      return d.action === "give-up" && d.reason === "attempts";
+    })(),
+  );
+  assert(
+    "deepLinkDecision: budget gives up first",
+    (() => {
+      const d = dld({ attempt: 1, maxAttempts: 3, elapsedMs: 1000, budgetMs: 1000 });
+      return d.action === "give-up" && d.reason === "budget";
+    })(),
+  );
+  assert(
+    "deepLinkDecision: target wins over budget",
+    deepLinkDecision({
+      state: "target",
+      attempt: 3,
+      maxAttempts: 3,
+      elapsedMs: 5000,
+      budgetMs: 1000,
+    }).action === "arrived",
+  );
+  assert(
+    "run-dir retention only matches harness runs",
+    RUN_DIR_NAME_RE.test("20260913-050607-autobot-canaries") &&
+      RUN_DIR_NAME_RE.test("20260913-050607-autobot-certify-preflight-blocked") &&
+      !RUN_DIR_NAME_RE.test("campaign026") &&
+      !RUN_DIR_NAME_RE.test("ui-capture") &&
+      !RUN_DIR_NAME_RE.test("20260913-050607-autobot-canaries-extra.dot"),
+  );
+  // Functional retention on a disposable fixture root: completed old runs are
+  // pruned to the keep count; in-progress (no run.json) and curated dirs stay.
+  try {
+    const fixtureRoot = join(OUT, "self-test-prune-fixture");
+    rmSync(fixtureRoot, { recursive: true, force: true });
+    const mkRun = (name, mtimeMs, withRunJson = true) => {
+      const d = join(fixtureRoot, name);
+      mkdirSync(d, { recursive: true });
+      if (withRunJson) writeFileSync(join(d, "run.json"), "{}");
+      const t = new Date(mtimeMs);
+      utimesSync(d, t, t);
+    };
+    mkRun("20260101-000001-autobot-canaries", Date.UTC(2026, 0, 1, 0, 0, 1));
+    mkRun("20260101-000002-autobot-canaries", Date.UTC(2026, 0, 1, 0, 0, 2));
+    mkRun("20260101-000003-autobot-canaries", Date.UTC(2026, 0, 1, 0, 0, 3), false);
+    mkdirSync(join(fixtureRoot, "campaign026"), { recursive: true });
+    const pruned = pruneRunDirs(fixtureRoot, 1);
+    const survivors = readdirSync(fixtureRoot).sort();
+    assert(
+      "retention prunes only the oldest completed run",
+      pruned.length === 1 && pruned[0] === "20260101-000001-autobot-canaries",
+      JSON.stringify(pruned),
+    );
+    assert(
+      "retention keeps newest, in-progress, and curated dirs",
+      JSON.stringify(survivors) ===
+        JSON.stringify([
+          "20260101-000002-autobot-canaries",
+          "20260101-000003-autobot-canaries",
+          "campaign026",
+        ]),
+      JSON.stringify(survivors),
+    );
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  } catch (e) {
+    assert("retention functional fixture", false, String(e).slice(0, 200));
+  }
   assert(
     "resume progress parsed from chip label",
     (() => {
@@ -3995,6 +4347,28 @@ async function main() {
     process.exit(1);
   });
   journal();
+
+  // Scheduled pre-warm (campaign 028): warm the planned game routes before the
+  // timed loop so a cold lazy bundle cannot turn into a canary navigation race.
+  // Best-effort and disclosed; QA_PREWARM=0 opts out. Never affects pass/fail —
+  // it is recorded in run.json as non-certification work.
+  if (
+    (mode === "canaries" || mode === "certify" || mode === "all") &&
+    process.env.QA_PREWARM !== "0" &&
+    planned.some((t) => t.kind === "game")
+  ) {
+    const gameIds = planned.filter((t) => t.kind === "game").map((t) => t.id);
+    console.log(`[PREWARM] warming ${gameIds.length} game route(s) before the timed loop`);
+    report.prewarm = await prewarmRoutes(gameIds);
+    console.log(
+      `[PREWARM] ${
+        report.prewarm.ok
+          ? `${report.prewarm.warmed.length}/${gameIds.length} routes mounted`
+          : `cold after warm: ${report.prewarm.cold.join(", ")}`
+      }`,
+    );
+    journal();
+  }
 
   // Stochastic-race tolerance (certification contract §17F, honest-retry):
   // three certification runs on this host proved the residual failures are

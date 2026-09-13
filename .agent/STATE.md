@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-13 — Campaign 028 activated (production-readiness closure; owner successor directive).
+**Last update:** 2026-09-13 — Campaign 028 W1–W4 complete (W1/W2 committed; W3/W4 wave in progress).
 **Canonical branch:** `main`
 **Active campaign:** `028-production-readiness`
 **Last campaign:** `027-deep-hardening`
@@ -51,6 +51,29 @@ new features and constitution-deferred systems untouched.
   `expo lint` clean, all validators green, OpenSpec 13/13; canaries 8/8 after
   manual pre-warm and daily-workout PASS.
 - Evidence behind the campaign: `openspec/changes/028-production-readiness/audit-map.md`.
+
+## Wave progress (campaign 028)
+
+- **W1+W2 committed** at `18b9bd8`: silent user-action failures now surface
+  danger toasts and stay retryable (Home CTA, rewards purchase/equip, profile
+  claims); single-pass production export, import FK cross-validation, pick
+  size guard, preview re-entrancy/backup-name collision. Wave evidence: 27
+  suites / 259 tests PASS, `tsc` clean, targeted lint clean.
+- **W3+W4 complete on the working tree** (verification battery green):
+  autobot verified deep-link retry, pause/resume dismissal check, scheduled
+  pre-warm, bounded run-dir retention, self-test 70/70; dependency-audit
+  expiry/schema enforcement 41/41; offline validator rewritten (`*` and `//`
+  line-skip false negatives fixed, aliased/dynamic global access, `sendBeacon`/`EventSource`;
+  18/18 self-tests, real scan CLEAN over 968 files); IMPACT_MAP↔RULES
+  content sync (`--check-sync`, wired into CI, drift proven by negative
+  test); repo-state requires task-ownership/EXECUTION_PROMPT and reports
+  ownership parse failures (proven) + workflow-referenced script existence
+  check; jest-skip allowlist schema v2 with `reviewedAt` and stale-entry
+  detection (missing file / missing gate); certify-clean-checkout gate parity
+  with CI incl. Jest signal; repository-integrity weekly schedule + cheap
+  self-tests in CI.
+- **Next:** W5 cleanup/documentation truth, then W6 full matrix + runtime
+  canaries on `emulator-5560` and closure.
 
 ## Continuation rule
 

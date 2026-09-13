@@ -13,15 +13,18 @@
  * repo-wide counterpart, run from the repo root, is
  * `node scripts/validate-offline.mjs`.
  *
- * Scan limitations (shared with the validator script): the regex is a light
- * substring check — `fetch(` also matches identifiers like `refetch(` or
- * `onFetch(`. String literals are stripped before matching, so URLs
- * (`"https://..."`) cannot hide a call and cannot masquerade as `//`
- * comments; the trade-off is that a network API inside a string literal is
- * not flagged. Lines that still contain `//` or `*` after stripping are
- * skipped as probable comments, so a network API hidden inside a comment is
- * not flagged. These are deliberate trade-offs of the requested pattern, not
- * silent passes.
+ * Scan limitations (shared with the validator script): the regexes are light
+ * identifier checks — `fetch(` also matches a property method named `fetch`.
+ * String literals are stripped before matching, so URLs (`"https://..."`)
+ * cannot hide a call and cannot masquerade as `//` comments; the trade-off is
+ * that a network API inside a string literal is not flagged. Comments
+ * truncate at the first real `//` or block start, so commented-out calls are
+ * ignored while code on the same line is still scanned (campaign 028 also
+ * detects aliased/dynamic global access and `sendBeacon`/`EventSource`).
+ * Regex literals containing `//` and assembled names (`'f'+'etch'`) are not
+ * reconstructed. These are deliberate trade-offs of the static pattern, not
+ * silent passes — the monkeypatched runtime section above is the stronger
+ * proof.
  *
  * The quest-evaluation engine (`src/quests/`), streak reconstruction
  * (`src/streaks/`) and content-pack seam (`src/content/`) are covered below
@@ -58,7 +61,25 @@ const SCAN_ROOTS = ['games', 'workout', 'rating', 'sdk', 'db', 'quests', 'streak
 const ALLOWLIST: readonly { file: string; pattern?: string; reason: string }[] = [];
 
 /** Light substring patterns (see file header for false-positive trade-offs). */
-const NETWORK_API_PATTERN = /fetch\(|XMLHttpRequest|axios|WebSocket\(/g;
+const NETWORK_API_PATTERNS: readonly { name: string; re: RegExp }[] = [
+  { name: 'fetch', re: /\bfetch\s*\(/g },
+  { name: 'XMLHttpRequest', re: /\bXMLHttpRequest\b/g },
+  { name: 'axios', re: /\baxios\b/g },
+  { name: 'WebSocket', re: /\bWebSocket\s*\(/g },
+  { name: 'EventSource', re: /\bEventSource\s*\(/g },
+  { name: 'sendBeacon', re: /\bsendBeacon\s*\(/g },
+  {
+    name: 'global-dot-access',
+    re: /\b(?:globalThis|global|window)\s*\.\s*(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/g,
+  },
+  {
+    name: 'destructured-global',
+    re: /\{\s*(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\s*[,:}]/g,
+  },
+];
+/** Raw-line bracket access (`globalThis['fetch']`); string stripping blanks the key. */
+const BRACKET_GLOBAL_PATTERN =
+  /\b(?:globalThis|global|window)\s*\[\s*["'`](?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)["'`]\s*\]/g;
 
 /**
  * String literals, including escaped quotes (single, double, backtick).
@@ -189,9 +210,22 @@ function walkTsFiles(root: string): string[] {
   return out.sort();
 }
 
-/** Comment-marker heuristic shared with the validator (see file header). */
-function isProbablyComment(line: string): boolean {
-  return line.includes('//') || line.includes('*');
+/**
+ * Code text before any real comment (campaign 028, mirrors the validator).
+ * A line is no longer skipped wholesale because it contains `*` (the old
+ * heuristic hid `const n = a * b; fetch(u);`).
+ */
+function codeBeforeComment(line: string): string {
+  const trimmed = line.trimStart();
+  if (trimmed.startsWith('*') || trimmed.startsWith('//') || trimmed.startsWith('/*')) {
+    return '';
+  }
+  let cut = line.length;
+  const slash = line.indexOf('//');
+  if (slash >= 0) cut = Math.min(cut, slash);
+  const block = line.indexOf('/*');
+  if (block >= 0) cut = Math.min(cut, block);
+  return line.slice(0, cut);
 }
 
 function scanForNetworkApis(root: string): ScanHit[] {
@@ -200,18 +234,24 @@ function scanForNetworkApis(root: string): ScanHit[] {
     const rel = path.relative(SRC_ROOT, file).split(path.sep).join('/');
     const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
     lines.forEach((line, index) => {
+      const names: string[] = [];
       // Comment detection runs on the string-stripped line so `"https://..."`
       // URLs never masquerade as `//` comments (shared with the validator).
-      const code = stripStringLiterals(line);
-      if (isProbablyComment(code)) {
-        return;
+      const code = codeBeforeComment(stripStringLiterals(line));
+      if (code.trim()) {
+        for (const { name, re } of NETWORK_API_PATTERNS) {
+          for (const _match of code.matchAll(re)) names.push(name);
+        }
       }
-      for (const match of code.matchAll(NETWORK_API_PATTERN)) {
+      for (const _match of line.matchAll(BRACKET_GLOBAL_PATTERN)) {
+        names.push('global-bracket-access');
+      }
+      for (const name of names) {
         const allowed = ALLOWLIST.some(
-          (entry) => entry.file === rel && (entry.pattern === undefined || entry.pattern === match[0]),
+          (entry) => entry.file === rel && (entry.pattern === undefined || entry.pattern === name),
         );
         if (!allowed) {
-          hits.push({ file: rel, line: index + 1, pattern: match[0] });
+          hits.push({ file: rel, line: index + 1, pattern: name });
         }
       }
     });
