@@ -1,45 +1,48 @@
-# Campaign 027 — Deep Hardening
+# Campaign 028 — Production-Readiness Closure
 
-**Status:** VALIDATED / TERMINAL
-**Campaign id:** `027-deep-hardening`
-**Predecessor:** `026-visual-identity-rebuild` (VALIDATED)
+**Status:** ACTIVE
+**Campaign id:** `028-production-readiness`
+**Predecessor:** `027-deep-hardening` (VALIDATED)
 **Mode:** day
-**Start SHA:** `832971c` (activation docs on `63e6326`)
-**Closure SHA:** `212469d`
-**Change:** `027-deep-hardening` (VALIDATED)
+**Start SHA:** `1733458`
+**Change:** `028-production-readiness` (ACTIVE)
+**Authorization:** owner successor directive 2026-09-13 — autonomous
+determination and execution of successor campaigns, quality-improvement passes
+and production-hardening tasks until no material executable work remains.
 
-## Terminal outcome
+## Mission
 
-The owner-invoked deep hardening campaign executed all six workstreams from
-the 2026-09-13 forensic audit:
+Close the residual release-confidence gaps surfaced by four fresh read-only
+audits on the 027 closure tree — remaining silent user-action failures,
+data-portability robustness and the obsolete export deferral, QA-harness
+navigation reliability and artifact retention, validator/CI gate integrity,
+documentation truth and dead weight — then re-validate the full stack,
+including runtime canaries, on the closure head.
 
-- **W1 correctness** — vigilance stimulus lifetime, color-stroop dead actions,
-  speed-color-match null-safe metric, spatial-coordinate-turn adaptive
-  escalation (generator 1.2.0), word-scramble dead budget (generator 1.2.0),
-  plus a sibling scan that removed one further dead action.
-- **W3 reliability** — the missing `math-value-ordering` screen test, a
-  persistence-failure contract, and route failure coverage that surfaced and
-  fixed five silent failure handlers (rewards claim/claim-all, generic streak
-  purchases, the spurious "No item to apply", and the swallowed workout
-  advance).
-- **W2 performance/startup** — bounded quest evaluation with exact lifetime
-  aggregates, Profile snapshot reuse, version-gated definition seeding,
-  dev-only bootstrap perf marks; export canonicalization deferred with a
-  recorded rationale.
-- **W4 tooling/CI** — workflow-validator rules with 44/44 self-tests, a
-  fail-closed production dependency-audit gate (26/26 self-tests) that
-  escalated one real runtime advisory with no compatible fix as expiring,
-  tracked debt, and 16 pinned action SHAs.
-- **W5 documentation truth** and **W6 cleanup** — ADRs, status docs and
-  KNOWN_ISSUES corrected; ten dead exports, two unreferenced scripts and the
-  inert allowlist removed.
+## Where the detail lives
 
-Final matrix: **540 suites / 6450 tests PASS**, `tsc`/lint clean, all
-validators green, canaries **8/8** and the daily-workout journey **PASS** at
-the closure tree. Full evidence: `.agent/VALIDATION.md` (Campaign 027).
+- `openspec/changes/028-production-readiness/EXECUTION.md` — mission, read
+  order, work model, validation, exit gate.
+- `audit-map.md` — file/line evidence behind every item.
+- `proposal.md`, `design.md`, `specs/**`, `tasks.md`.
 
-## Archive notes
+## Priority summary
 
-- The execution prompt (`.agent/EXECUTION_PROMPT.md`) is archived VALIDATED.
-- No successor campaign is active; a new campaign requires explicit owner
-  authorization and genuinely new scope.
+1. W1 user-action reliability (Home CTA, rewards, profile claims + tests).
+2. W2 data-portability robustness (single-pass export, FK cross-validation,
+   pick size guard, re-entrancy/collision).
+3. W3 QA harness reliability (verified deep link, pause symmetry, scheduled
+   pre-warm, bounded retention, self-tests).
+4. W4 validator/CI hardening (dep-audit expiry, offline heuristic, IMPACT_MAP
+   sync, repo-state fail-open, jest-skip staleness, certify parity, schedule).
+5. W5 cleanup + docs truth; W6 full verification; W7 closure.
+
+## Do not
+
+- Do not add features, redesign UI, add dependencies, or change persistence
+  formats.
+- Do not implement constitution-deferred systems (cloud/auth/AI/monetization/
+  notifications) or password-encrypted backups (recorded as deferred).
+- Do not weaken guards/tests to make a change pass; disclose retries.
+- Do not touch `emulator-5554` (user-owned) or hijack host input.
+- Do not force-push or rewrite history.

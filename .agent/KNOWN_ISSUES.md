@@ -1,12 +1,14 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 027 VALIDATED (deep hardening)
+## Current status — Campaign 028 active (production-readiness closure)
 
 Campaign 027 (deep hardening) closed **VALIDATED** at `212469d`; Campaign 026
-(visual identity rebuild) remains VALIDATED as its predecessor. There is no
-active campaign.
-(`027-deep-hardening`, activated 2026-09-13, feature development frozen) is
-active. No repository-owned release blocker is currently open.
+(visual identity rebuild) remains VALIDATED as its predecessor. Campaign 028
+(`028-production-readiness`, activated 2026-09-13 under the owner's successor
+campaign directive) is active and closes the residual release-confidence gaps
+recorded below (silent user-action failures, portability robustness, harness
+navigation reliability and artifact retention, validator/CI gate integrity,
+docs truth, cleanup). No repository-owned release blocker is currently open.
 
 The application is **not yet fully store/public-release cleared** because
 several evidence classes are deliberately external/manual:

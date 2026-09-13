@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "027-deep-hardening",
-  "description": "Campaign 027 deep hardening (user-invoked). Feature work is frozen. The orchestrator owns shared hotspots (agent/openspec state, scripts, docs, CI, package manifests, registry/generated files, theme, app chrome) and performs all cross-cutting convergence edits. Code packets own disjoint surfaces: H1 game correctness repairs, H2 performance/startup paths, H3 route/game reliability tests. Packet edits to versioned game logic must report the required game.json/version bumps to the orchestrator, who performs them with the registry regeneration.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "028-production-readiness",
+  "description": "Campaign 028 production-readiness closure. No new features. The orchestrator owns shared hotspots (.agent/**, openspec/**, scripts/**, docs/**, .github/**, package manifests, registry/generated files, shared component/kit surfaces) and performs all convergence edits plus runtime QA. Two disjoint code packets own the app-surface reliability repairs (W1) and the data-portability robustness closure (W2).",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
@@ -14,16 +14,12 @@
     "apps/mobile/package.json",
     "apps/mobile/package-lock.json",
     "apps/mobile/app.json",
-    "apps/mobile/src/games/*/game.json",
+    "apps/mobile/tsconfig.json",
+    "apps/mobile/tsconfig.validate.json",
     "apps/mobile/src/registry/**",
     "apps/mobile/src/theme/**",
-    "apps/mobile/src/components/ui/**",
-    "apps/mobile/src/components/shell/**",
-    "apps/mobile/src/components/a11y/**",
-    "apps/mobile/src/components/game-ui/**",
-    "apps/mobile/src/components/screen-shell.tsx",
-    "apps/mobile/src/components/app-tabs.tsx",
-    "apps/mobile/src/components/app-tabs.web.tsx",
+    "apps/mobile/src/components/**",
+    "apps/mobile/src/games/*/game.json",
     "apps/mobile/src/app/_layout.tsx",
     "apps/mobile/src/app/(tabs)/_layout.tsx"
   ],
@@ -35,66 +31,40 @@
   "prohibitedSurfaces": [
     "apps/mobile/src/db/schema.ts",
     "apps/mobile/src/db/migrate.ts",
-    "apps/mobile/src/data-portability/types.ts"
+    "apps/mobile/src/data-portability/types.ts",
+    "apps/mobile/src/games/**"
   ],
   "parallelPackets": [
     {
-      "id": "H1-correctness",
+      "id": "W1-user-action-reliability",
       "wave": "S1",
-      "objective": "Repair the audited correctness defects: vigilance stimulus lifetime, color-stroop dead actions, speed-color-match non-finite metric, spatial-coordinate-turn adaptive escalation, word-scramble dead budget; scan siblings for the same defect classes.",
+      "objective": "Surface the remaining silent user-action failures: Home primary workout CTA start, rewards cosmetic purchase/equip, profile milestone/quest/achievement claims; sweep the same screens for the same silent class.",
       "dependencies": [],
       "coderWriteSurfaces": [
-        "apps/mobile/src/games/attention-sustained-vigilance/**",
-        "apps/mobile/src/games/flexibility-color-stroop/**",
-        "apps/mobile/src/games/speed-color-match/**",
-        "apps/mobile/src/games/spatial-coordinate-turn/**",
-        "apps/mobile/src/games/language-word-scramble/**"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Each repair has a regression test that fails on the old behavior; version/provenance needs reported to the orchestrator; the affected game suites pass.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/games/attention-sustained-vigilance src/games/flexibility-color-stroop src/games/speed-color-match src/games/spatial-coordinate-turn src/games/language-word-scramble"
-    },
-    {
-      "id": "H2-performance",
-      "wave": "S1",
-      "objective": "Bound the unbounded hot-path reads, version-gate steady-state bootstrap work, add dev-only phase marks, and fuse export canonicalization if byte-identical.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/progression/**",
-        "apps/mobile/src/analytics/**",
-        "apps/mobile/src/db/xp-awards.ts",
-        "apps/mobile/src/db/sessions.ts",
-        "apps/mobile/src/db/ledger.ts",
-        "apps/mobile/src/db/quests.ts",
-        "apps/mobile/src/db/achievements.ts",
-        "apps/mobile/src/db/profile.ts",
-        "apps/mobile/src/db/workout.ts",
-        "apps/mobile/src/data-portability/serialize.ts",
-        "apps/mobile/src/sdk/perf.ts",
-        "apps/mobile/src/app/(tabs)/progress.tsx"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Named bounds documented; progression/analytics numbers unchanged under the existing suites; statement-count guard stays green; bootstrap test proves the version-gated skip and fail-closed first run.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/progression src/analytics src/db src/data-portability src/__tests__/perf-db-query-patterns.test.ts"
-    },
-    {
-      "id": "H3-reliability-tests",
-      "wave": "S1",
-      "objective": "Close the audit's highest-value test gaps: session save-failure contract, math-value-ordering screen test, route failure paths (rewards, profile purchases, storage retry, workout advance, wipe, export write).",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/app/__tests__/**",
+        "apps/mobile/src/app/(tabs)/index.tsx",
         "apps/mobile/src/app/rewards.tsx",
         "apps/mobile/src/app/(tabs)/profile.tsx",
-        "apps/mobile/src/app/storage-unavailable.tsx",
-        "apps/mobile/src/app/results.tsx",
-        "apps/mobile/src/app/data-management.tsx",
-        "apps/mobile/src/components/game-host/__tests__/**",
-        "apps/mobile/src/games/math-value-ordering/**"
+        "apps/mobile/src/app/__tests__/rewards.test.tsx",
+        "apps/mobile/src/app/__tests__/profile-purchases.test.tsx",
+        "apps/mobile/src/app/__tests__/home-workout-start.test.tsx"
       ],
       "sharedSurfaces": [],
-      "completionCriteria": "Each new test injects the failure and asserts user-visible handling plus state consistency; no trivial assertions; the full suite count grows with meaningful coverage.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app/__tests__ src/components/game-host/__tests__ src/games/math-value-ordering"
+      "completionCriteria": "Each repaired handler shows a user-visible danger message on rejection and stays retryable; every repair has a route-level test that injects the rejection and asserts the visible handling plus unchanged state; screens under test remain on-route.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app/__tests__/rewards.test.tsx src/app/__tests__/profile-purchases.test.tsx src/app/__tests__/home-workout-start.test.tsx"
+    },
+    {
+      "id": "W2-portability-robustness",
+      "wave": "S1",
+      "objective": "Close the portability robustness gaps: single-pass production export via the already-proven exportLocalDataBundle, quest/achievement FK cross-validation, pre-read pick size guard, preview re-entrancy and collision-resistant backup names.",
+      "dependencies": [],
+      "coderWriteSurfaces": [
+        "apps/mobile/src/data-portability/**",
+        "apps/mobile/src/app/data-management.tsx",
+        "apps/mobile/src/app/__tests__/data-management.test.tsx"
+      ],
+      "sharedSurfaces": [],
+      "completionCriteria": "Byte-identity suites stay green after the export migration; a cross-FK-invalid backup is rejected with the typed validation error before mutation; oversized declared pick results are rejected before read; repeated same-second exports do not overwrite; preview cannot run concurrently with itself.",
+      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/data-portability src/app/__tests__/data-management.test.tsx"
     }
   ]
 }

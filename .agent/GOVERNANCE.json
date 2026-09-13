@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "028-production-readiness",
   "lastCampaign": "027-deep-hardening",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {

@@ -34,6 +34,17 @@ Campaigns 017 through 026 are all closed (026 — visual identity rebuild —
 VALIDATED). The agent must preserve honest `PASS` / `NOT VALIDATED` /
 `BLOCKED` classifications.
 
+## Successor campaign directive (2026-09-13)
+
+After 027 closed, the owner issued the **Autonomous Successor Campaign
+Directive**: explicit authorization to autonomously determine, execute,
+validate and continue through successor campaigns, quality-improvement passes
+and production-hardening tasks until no material executable work remains. The
+first successor is **Campaign 028 — production-readiness closure**
+(`028-production-readiness`), built from four fresh read-only audits on
+`1733458` (app surface, data portability, autobot harness, validators/CI).
+No new features; constitution-deferred systems stay deferred.
+
 ## Terminal campaign state
 
 When `GOVERNANCE.activeCampaign` is `null` and the durable state records a

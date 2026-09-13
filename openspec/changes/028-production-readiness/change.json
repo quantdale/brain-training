@@ -1,0 +1,21 @@
+{
+  "id": "028-production-readiness",
+  "status": "ACTIVE",
+  "predecessor": "027-deep-hardening",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "user-action-reliability",
+    "data-portability-robustness",
+    "qa-harness-reliability",
+    "validator-ci-hardening",
+    "docs-cleanup"
+  ],
+  "activationRule": "Owner directive 2026-09-13 (Autonomous Successor Campaign Directive): explicit authorization to autonomously determine, execute, validate and continue through successor campaigns, quality-improvement passes and production-hardening tasks until no material executable work remains. Campaign 028 is the first successor campaign after 027: a release-confidence closure of the residual Medium/Low findings from four fresh read-only audits (user-action failure paths, data-portability robustness, QA harness navigation reliability, validator/CI gate integrity) plus documentation truth and dead-weight cleanup. No new product features; constitution-deferred systems stay deferred.",
+  "baselineAuditCommit": "1733458",
+  "fullHardening": false,
+  "reviewConsumption": "Four independent read-only audits executed 2026-09-13 on tree 1733458 (app-surface reliability, data portability, autobot harness, validators/CI). Evidence recorded in audit-map.md with file/line references; every campaign item traces to one of those findings or the durable KNOWN_ISSUES/BACKLOG registers."
+}

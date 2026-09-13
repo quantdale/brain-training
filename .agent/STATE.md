@@ -1,88 +1,65 @@
 # Durable Project State
 
-**Last update:** 2026-09-13 — Campaign 027 closed VALIDATED (deep hardening; owner-invoked).
+**Last update:** 2026-09-13 — Campaign 028 activated (production-readiness closure; owner successor directive).
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `028-production-readiness`
 **Last campaign:** `027-deep-hardening`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 027 closed VALIDATED at `212469d`: the deep hardening campaign
-repaired the forensic audit's correctness defects, added the missing
-reliability failure-path coverage (which surfaced and fixed five silent
-failure handlers), bounded the hot quest-evaluation path with exact lifetime
-aggregates, version-gated definition seeding, hardened CI/tooling (workflow
-rules, fail-closed dependency-audit gate, action pins), truthed the
-documentation, and removed dead weight. The product remains feature-frozen at
-its terminal Campaign 026 scope (42 games, offline-first, no cloud/AI/
-monetization). Remaining recorded work is Low/deferred or externally blocked
-(see the continuation rule below and KNOWN_ISSUES.md).
+Campaign 027 closed VALIDATED at `212469d`. Four fresh read-only audits on
+`1733458` (app-surface production scan, data portability, autobot harness,
+validators/CI) found no Critical/High product defect but a bounded set of
+release-confidence gaps: residual silent user-action failures, obsolete export
+deferral plus import-validation and file-pick robustness gaps, unverified
+autobot deep links (the recorded 4/8 and 6/8 canary runs) with unbounded
+artifact growth, validator gates that do not enforce their own written policy
+(dependency-audit expiry, IMPACT_MAP drift, repo-state fail-open, offline
+heuristic), and residual documentation/cleanup debt. Campaign 028
+(`028-production-readiness`) is active to close exactly those items, with no
+new features and constitution-deferred systems untouched.
 
-## Campaign 027 progress (closed 2026-09-13, VALIDATED at `212469d`)
+## Campaign 028 workstreams (active)
 
-- Activation: `63e6326`.
-- **W1 correctness — COMPLETE (`ed07f27`)**: vigilance stimulus lifetime,
-  color-stroop dead actions, speed-color-match null-safe metric,
-  spatial-coordinate-turn adaptive escalation (generator 1.2.0), word-scramble
-  dead budget (generator 1.2.0), sibling scans — one extra dead action removed
-  (`math-equation-builder puzzle-timeout`) with tick-expiry coverage.
-- **W3 reliability tests — COMPLETE (`a14f352`)**: math-value-ordering screen
-  test, persistence-failure contract, rewards/profile/wipe/export/storage-retry
-  failure coverage. Five real defects found and fixed: silent rewards
-  claim/claim-all failures, silent generic purchase failures, the spurious
-  "No item to apply" after a successful apply, and the swallowed workout
-  advance rejection (now a danger toast; hook exposes `advanceError`).
-- **W2 performance/startup — COMPLETE (`2d6b5eb`)**: bounded quest evaluation
-  with exact lifetime aggregates, Profile snapshot reuse, version-gated
-  definition seeding, dev-only bootstrap perf marks; export canonicalization
-  deferral recorded.
-- **W4 tooling/CI — COMPLETE (`212469d`)**: workflow validator rules
-  (44/44 self-test), fail-closed production dependency-audit gate (26/26
-  self-test) with an explicitly expiring escalation for the one runtime
-  advisory that has no compatible fix, 16 action pins.
-- **W5 docs truth + W6 cleanup — COMPLETE (`212469d`)**: ADR/status docs
-  corrected; KNOWN_ISSUES/BACKLOG reconciled; ten dead exports removed; two
-  scripts deleted; provenance allowlist made precise and expiring.
-- Final matrix: 540 suites / 6450 tests PASS; tsc/lint clean; all validators
-  green; canaries 8/8 and daily-workout PASS at the closure tree.
+1. **W1 user-action reliability** — Home workout CTA, rewards purchase/equip,
+   profile milestone/quest/achievement claims surface failures; regression
+   tests.
+2. **W2 data-portability robustness** — single-pass export at the production
+   call site (byte-identity already proven in-tree), quest/achievement FK
+   cross-validation, pre-read pick size guard, preview re-entrancy and backup
+   name collision.
+3. **W3 QA harness reliability** — verified bounded deep-link retry with route
+   classification, pause/resume verified dismissal on all branches, scheduled
+   pre-warm for canaries/certify, bounded `qa-artifacts` retention, offline
+   self-tests for the new helpers.
+4. **W4 validator/CI hardening** — dependency-audit expiry/schema
+   enforcement, offline-validator false-negative classes + self-test,
+   IMPACT_MAP↔RULES content sync in CI, repo-state fail-open removal,
+   jest-skip staleness detection, certify parity with CI, weekly advisory
+   schedule.
+5. **W5 cleanup + docs truth** — dead-file removal, KNOWN_ISSUES/
+   DEFERRED_DECISIONS/PARITY_MATRIX truth, explicit deferral of
+   password-encrypted backups, copy/a11y nits, four missing hooks tests.
+6. **W6 verification** — full matrix/lint/validators/OpenSpec at the closure
+   head; runtime canaries + daily-workout journey + a11y audit on
+   `emulator-5560`; adversarial diff review; durable state sync.
 
-## Campaign 027 workstreams (closed)
+## Baseline at activation (`1733458`)
 
-1. **W1 correctness** — vigilance stimulus lifetime, color-stroop dead
-   actions, speed-color-match non-finite metric, spatial-coordinate-turn
-   adaptive escalation, word-scramble dead budget.
-2. **W2 performance/startup** — bounded quest evaluation + sample reuse,
-   version-gated seeding/schema guards, dev-only phase marks, single-pass
-   export if byte-identical.
-3. **W3 reliability tests** — session save-failure contract, route failure
-   paths (rewards/profile/storage-retry/workout-advance/wipe/export),
-   `math-value-ordering` screen test.
-4. **W4 tooling/CI** — workflow-validator rules + self-tests, dependency-audit
-   gate, pinned actions.
-5. **W5 docs truth** — ADR-0005/0004, MASTER_PLAN, GAME_SDK, README,
-   ANDROID_AUTOMATION, constitution status line, GOAL.md, KNOWN_ISSUES.
-6. **W6 cleanup** — dead exports, unreferenced scripts/stray log, provenance
-   allowlist, stale TODO.
-
-## Baseline at activation (`832971c`)
-
-- Jest 536 suites / 6412 tests PASS (5 allowlisted skips), `tsc` clean,
-  `expo lint` clean, all validators PASS, OpenSpec 13/13 PASS.
-- Runtime evidence (Campaign 026 closure): canaries 8/8, daily-workout
-  journey PASS, a11y audit 0 violations, release APK
-  `2E89B783…D36EC4` (109,496,133 bytes).
-- Evidence behind the campaign: `openspec/changes/027-deep-hardening/audit-map.md`.
+- Campaign 027 closure matrix: 540 suites / 6450 tests PASS, `tsc` clean,
+  `expo lint` clean, all validators green, OpenSpec 13/13; canaries 8/8 after
+  manual pre-warm and daily-workout PASS.
+- Evidence behind the campaign: `openspec/changes/028-production-readiness/audit-map.md`.
 
 ## Continuation rule
 
-There is **no active campaign**. A successor campaign requires an explicit
-owner directive or a separately justified planning pass against current
-repository evidence. Remaining recorded work: the deferred export
-canonicalization (Low), the expiring runtime dependency escalation
-(`decode-uri-component` via expo-router, tracked in KNOWN_ISSUES), the harness
-cold-start navigation race, and the external/manual evidence classes
-(store signing, manual TalkBack, SAF sheets, physical device, iOS runtime).
+Execute `.agent/EXECUTION_PROMPT.md` (ACTIVE) and
+`openspec/changes/028-production-readiness/` until the exit gate is satisfied
+or a genuine blocker is durably recorded. No new features; no
+constitution-deferred systems. Externally blocked evidence classes (store
+signing, manual TalkBack, SAF sheets, physical device, iOS runtime) remain
+out of scope and honestly classified.
 
 ## Recovery order
 
@@ -92,5 +69,5 @@ cold-start navigation race, and the external/manual evidence classes
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. `openspec/changes/027-deep-hardening/` (EXECUTION → proposal → design →
-   specs → tasks) and `audit-map.md`
+7. `openspec/changes/028-production-readiness/` (EXECUTION → proposal →
+   design → specs → tasks) and `audit-map.md`
