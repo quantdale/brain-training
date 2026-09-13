@@ -1,0 +1,13 @@
+{
+  "id": "terminal-durable-state-truth",
+  "status": "PROPOSED",
+  "predecessor": "028-production-readiness",
+  "canonicalBranch": "main",
+  "entrypoint": "proposal.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["durable-recovery-prose"],
+  "activationRule": "Planning-only docs change. Do not set GOVERNANCE.activeCampaign. Apply first among frontier-audit proposals.",
+  "fullHardening": false
+}

@@ -1,0 +1,13 @@
+{
+  "id": "progression-refresh-on-surfaces",
+  "status": "PROPOSED",
+  "predecessor": "028-production-readiness",
+  "canonicalBranch": "main",
+  "entrypoint": "proposal.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["progression-surface-refresh"],
+  "activationRule": "Planning-only. Do not set GOVERNANCE.activeCampaign.",
+  "fullHardening": false
+}

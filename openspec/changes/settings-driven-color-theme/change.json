@@ -1,0 +1,13 @@
+{
+  "id": "settings-driven-color-theme",
+  "status": "PROPOSED",
+  "predecessor": "028-production-readiness",
+  "canonicalBranch": "main",
+  "entrypoint": "proposal.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["settings-color-scheme"],
+  "activationRule": "Planning-only. Do not set GOVERNANCE.activeCampaign.",
+  "fullHardening": false
+}

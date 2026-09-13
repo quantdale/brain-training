@@ -1,0 +1,13 @@
+{
+  "id": "certify-provenance-parity",
+  "status": "PROPOSED",
+  "predecessor": "028-production-readiness",
+  "canonicalBranch": "main",
+  "entrypoint": "proposal.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["certify-gate-honesty"],
+  "activationRule": "Planning-only. Do not set GOVERNANCE.activeCampaign.",
+  "fullHardening": false
+}
