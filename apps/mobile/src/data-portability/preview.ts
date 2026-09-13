@@ -172,7 +172,9 @@ function reject(
       },
     },
     error: { kind, message, details },
-    counters: emptyCounters('merge'),
+    // Counters carry the REQUESTED mode, not a hardcoded merge: a rejected
+    // replace preview must not claim merge semantics anywhere in its report.
+    counters: emptyCounters(mode),
     notes: [`Import rejected: ${message}`],
   };
 }

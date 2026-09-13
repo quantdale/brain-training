@@ -29,16 +29,30 @@ import {
   claimAchievementReward,
   type AchievementClaimResult,
 } from '@/achievements';
+import {
+  COSMETIC_DEFINITIONS,
+  equipCosmeticPersisted,
+  purchaseCosmetic,
+} from '@/cosmetics';
 import type { AchievementUnlock, AppDatabase } from '@/db';
 
 const ACH_FIRST = ACHIEVEMENT_DEFINITIONS_V1[0]; // ach-first
 const ACH_SECOND = ACHIEVEMENT_DEFINITIONS_V1[1]; // ach-25
 
+/** First purchasable cosmetic (cos-frame-azure) — the buy-path fixture. */
+const PURCHASEABLE = COSMETIC_DEFINITIONS.find(
+  (def) => def.unlock.type === 'purchase',
+)!;
+
 /** Test-controlled db surface served by the mocked `@/db` module. */
 const mockDbState: {
   db: AppDatabase | null;
   unlockRows: AchievementUnlock[];
-} = { db: null, unlockRows: [] };
+  /** Ledger balance the cosmetics economy sees. */
+  balance: number;
+  /** Profile settings the ownership resolution reads. */
+  settings: Record<string, unknown>;
+} = { db: null, unlockRows: [], balance: 0, settings: {} };
 
 jest.mock('@/db', () => {
   const actual = jest.requireActual('@/db') as Record<string, unknown>;
@@ -50,17 +64,28 @@ jest.mock('@/achievements', () => {
   return { ...actual, claimAchievementReward: jest.fn() };
 });
 
+jest.mock('@/cosmetics', () => {
+  const actual = jest.requireActual('@/cosmetics') as Record<string, unknown>;
+  return {
+    ...actual,
+    purchaseCosmetic: jest.fn(),
+    equipCosmeticPersisted: jest.fn(),
+  };
+});
+
 jest.mock('@/rewards/history', () => ({
   loadRewardHistory: jest.fn(async () => []),
 }));
 
 const mockedClaimAchievement = jest.mocked(claimAchievementReward);
+const mockedPurchase = jest.mocked(purchaseCosmetic);
+const mockedEquip = jest.mocked(equipCosmeticPersisted);
 
 /** Minimal repository surface used by loadRewards + collectClaimableRewards. */
 function makeDb(): AppDatabase {
   return {
-    ledger: { getBalance: async () => 0 },
-    profile: { get: async () => ({ settings: {} }) },
+    ledger: { getBalance: async () => mockDbState.balance },
+    profile: { get: async () => ({ settings: mockDbState.settings }) },
     achievements: { listUnlocks: async () => mockDbState.unlockRows },
     quests: { listProgressForQuest: async () => [] },
     sessions: { getDistinctActivityDates: async () => [] },
@@ -101,6 +126,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   resetToastQueueForTests();
   mockDbState.unlockRows = [];
+  mockDbState.balance = 0;
+  mockDbState.settings = {};
 });
 
 afterEach(() => {
@@ -186,5 +213,101 @@ describe('rewards claim failure paths', () => {
       screen.getByTestId(`reward-claim-${fragment(`achievement:${ACH_SECOND.id}`)}`),
     ).toBeOnTheScreen();
     await expectFailureToast("Couldn't claim rewards");
+  });
+});
+
+describe('rewards cosmetic action failure paths (campaign 028)', () => {
+  const BUY_ID = `cosmetic-buy-${PURCHASEABLE.id}`;
+  const AZURE_OWNED_SETTINGS = {
+    cosmetics: { owned: [PURCHASEABLE.id], equipped: {} },
+  };
+
+  it('surfaces a purchase rejection: danger toast, nothing bought or spent, retryable', async () => {
+    const price = PURCHASEABLE.price ?? 0;
+    mockDbState.balance = price;
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockedPurchase.mockRejectedValue(new Error('purchase boom'));
+
+    await renderRewards();
+    // The spend requires a confirming second tap: first press arms it.
+    await fireEvent.press(await screen.findByTestId(BUY_ID));
+    await waitFor(() =>
+      expect(screen.getByTestId(BUY_ID).props.accessibilityLabel).toMatch(
+        /Confirm purchase/,
+      ),
+    );
+    await fireEvent.press(screen.getByTestId(BUY_ID));
+
+    await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(
+        '[rewards] purchase failed',
+        expect.any(Error),
+      ),
+    );
+
+    // Campaign 028: the rejection is user-visible now, no celebration plays.
+    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    expect(toast).toHaveTextContent(/Couldn't purchase that/);
+    expect(screen.queryByTestId('reward-celebration')).toBeNull();
+
+    // Unchanged: still locked/purchasable and the balance is untouched.
+    expect(screen.getByTestId(BUY_ID)).toBeOnTheScreen();
+    expect(screen.getByTestId('rewards-balance')).toHaveTextContent(
+      new RegExp(`^${price} coins`),
+    );
+
+    // Retryable: the busy guard reset in `finally`, so a re-armed + confirmed
+    // attempt reaches the economy again.
+    await fireEvent.press(screen.getByTestId(BUY_ID));
+    await fireEvent.press(screen.getByTestId(BUY_ID));
+    await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(2));
+  });
+
+  it('surfaces an equip rejection: danger toast and ownership/equip unchanged', async () => {
+    mockDbState.settings = AZURE_OWNED_SETTINGS;
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockedEquip.mockRejectedValue(new Error('equip boom'));
+
+    await renderRewards();
+    const equipTestId = `cosmetic-equip-${PURCHASEABLE.id}`;
+    await fireEvent.press(await screen.findByTestId(equipTestId));
+
+    await waitFor(() => expect(mockedEquip).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(
+        '[rewards] equip failed',
+        expect.any(Error),
+      ),
+    );
+
+    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    expect(toast).toHaveTextContent(/Couldn't equip that/);
+    expect(screen.queryByTestId('reward-celebration')).toBeNull();
+
+    // Unchanged: still owned (Equip still offered) and not equipped.
+    const card = screen.getByTestId(`rewards-cosmetic-${PURCHASEABLE.id}`);
+    expect(card).toHaveTextContent(/Owned/);
+    expect(card).not.toHaveTextContent(/Equipped/);
+    expect(screen.getByTestId(equipTestId)).toBeOnTheScreen();
+  });
+
+  it('surfaces an equip no-op when ownership was lost between render and tap', async () => {
+    mockDbState.settings = AZURE_OWNED_SETTINGS;
+    mockedEquip.mockResolvedValue(false);
+
+    await renderRewards();
+    const equipTestId = `cosmetic-equip-${PURCHASEABLE.id}`;
+    await fireEvent.press(await screen.findByTestId(equipTestId));
+
+    await waitFor(() => expect(mockedEquip).toHaveBeenCalledTimes(1));
+
+    // Campaign 028 sweep: `false` is a silent no-op in the old code; it now
+    // reports the honest reason (equipping never touches currency).
+    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    expect(toast).toHaveTextContent(/Couldn't equip that/);
+    expect(toast).toHaveTextContent(/no longer owned/);
+    expect(screen.queryByTestId('reward-celebration')).toBeNull();
+    expect(screen.getByTestId(equipTestId)).toBeOnTheScreen();
   });
 });

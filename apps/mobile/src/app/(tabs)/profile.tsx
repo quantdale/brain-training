@@ -522,6 +522,13 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error("[profile] milestone claim failed", error);
+      // Campaign 028: a failed claim used to be console-only. Claims are
+      // once-only and transactional, so a rejection means nothing was granted.
+      showToast({
+        title: "Couldn't claim that reward",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     }
   };
 
@@ -543,6 +550,12 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error("[profile] quest claim failed", error);
+      // Campaign 028: a failed claim used to be console-only.
+      showToast({
+        title: "Couldn't claim that quest",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     }
   };
 
@@ -560,6 +573,12 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       console.error("[profile] achievement claim failed", error);
+      // Campaign 028: a failed claim used to be console-only.
+      showToast({
+        title: "Couldn't claim that achievement",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     }
   };
 
@@ -570,9 +589,21 @@ export default function ProfileScreen() {
         .profile.update({ settings: { [THEME_SETTINGS_KEY]: option.id } })
         .catch((error: unknown) => {
           console.error("[profile] theme persist failed", error);
+          // Campaign 028 sweep: the optimistic in-session switch stays, but a
+          // failed persist would silently revert on restart — say so.
+          showToast({
+            title: "Couldn't save your theme",
+            detail: "It may reset when you restart — try again.",
+            tone: "danger",
+          });
         });
     } catch (error) {
       console.error("[profile] theme persist failed", error);
+      showToast({
+        title: "Couldn't save your theme",
+        detail: "It may reset when you restart — try again.",
+        tone: "danger",
+      });
     }
   };
 

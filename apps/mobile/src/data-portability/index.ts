@@ -7,7 +7,13 @@
  * touching data.
  */
 
-export { exportLocalData, readSnapshot, serializeBackup, type ExportOptions } from './serialize';
+export {
+  exportLocalData,
+  exportLocalDataBundle,
+  readSnapshot,
+  serializeBackup,
+  type ExportOptions,
+} from './serialize';
 export {
   parseAndValidateBackup,
   MAX_BACKUP_TEXT_LENGTH,

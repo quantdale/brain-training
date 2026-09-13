@@ -49,6 +49,7 @@ import {
   SkeletonText,
   Spark,
   StreakStrip,
+  showToast,
 } from '@/components/ui';
 import {
   WorkoutCompletionCard,
@@ -475,6 +476,14 @@ export default function HomeScreen() {
       }
     } catch (error) {
       console.error("[home] template workout start failed", error);
+      // Campaign 028: a failed start used to be console-only. The toast is the
+      // user-visible surface; the `finally` below keeps the CTA retryable and
+      // no instance was created, so nothing was changed.
+      showToast({
+        title: "Couldn't start the workout",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     } finally {
       setStartInProgress(false);
     }

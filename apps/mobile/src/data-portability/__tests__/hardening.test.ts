@@ -215,6 +215,81 @@ describe('relational integrity against the same backup', () => {
     );
   });
 
+  it('rejects questProgress referencing an unknown quest definition', () => {
+    const data = emptyData();
+    data.questProgress.push({
+      questId: 'ghost-quest',
+      period: '2026-08-20',
+      progress: 1,
+      completedAt: null,
+      claimedAt: null,
+    });
+    let error: unknown;
+    try {
+      parseAndValidateBackup(serializeBackup(buildEnvelope(data)));
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeInstanceOf(BackupDataValidationError);
+    expect((error as BackupDataValidationError).issues.join('; ')).toMatch(
+      /questProgress references unknown quest "ghost-quest" \(no matching questDefinitions entry\)/,
+    );
+  });
+
+  it('rejects achievementUnlocks referencing an unknown achievement definition', () => {
+    const data = emptyData();
+    data.achievementUnlocks.push({
+      achievementId: 'ghost-achievement',
+      unlockedAt: T0,
+      claimedAt: null,
+    });
+    let error: unknown;
+    try {
+      parseAndValidateBackup(serializeBackup(buildEnvelope(data)));
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeInstanceOf(BackupDataValidationError);
+    expect((error as BackupDataValidationError).issues.join('; ')).toMatch(
+      /achievementUnlocks references unknown achievement "ghost-achievement" \(no matching achievementDefinitions entry\)/,
+    );
+  });
+
+  it('accepts quest/achievement progress whose definitions exist in the backup', () => {
+    const data = emptyData();
+    data.questDefinitions.push({
+      id: 'q-ok',
+      kind: 'daily',
+      title: 'Q',
+      description: 'desc',
+      criteria: { target: 1 },
+      rewardXp: 1,
+      rewardCurrency: 1,
+      version: 1,
+    });
+    data.questProgress.push({
+      questId: 'q-ok',
+      period: '2026-08-20',
+      progress: 1,
+      completedAt: T0,
+      claimedAt: null,
+    });
+    data.achievementDefinitions.push({
+      id: 'a-ok',
+      title: 'A',
+      description: 'desc',
+      criteria: { target: 1 },
+      rewardXp: 1,
+      rewardCurrency: 1,
+      version: 1,
+    });
+    data.achievementUnlocks.push({ achievementId: 'a-ok', unlockedAt: T0, claimedAt: null });
+
+    const parsed = parseAndValidateBackup(serializeBackup(buildEnvelope(data)));
+    expect(parsed.data.questProgress).toHaveLength(1);
+    expect(parsed.data.achievementUnlocks).toHaveLength(1);
+  });
+
   it('accepts ledger/history whose sessions exist in the backup (replace no longer FK-aborts)', async () => {
     const data = emptyData();
     data.gameSessions.push({

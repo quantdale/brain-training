@@ -54,11 +54,47 @@ export function createMemoryTransport(): BackupTransport {
   };
 }
 
-/** Build a stable, human-readable backup filename (local timezone date + time). */
-export function defaultBackupName(now: Date = new Date()): string {
+/**
+ * Build a stable, human-readable backup filename (local timezone date + time).
+ *
+ * Collision resistance beyond one-second resolution, without changing the
+ * normal single-export name:
+ *   - repeated calls within the same clock second (before the transport
+ *     inventory refreshes) advance a monotonic suffix: `-2`, `-3`, ...;
+ *   - names supplied in `existingNames` (the saved-backup inventory) are
+ *     skipped, covering collisions with files from earlier sessions.
+ * The first call for a given second stays exactly
+ * `brain-training-backup_YYYY-MM-DD_HH-MM-SS.json`.
+ */
+export function defaultBackupName(
+  now: Date = new Date(),
+  existingNames: Iterable<string> = [],
+): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   const stamp =
     `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}` +
     `_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
-  return `brain-training-backup_${stamp}.json`;
+  const base = `brain-training-backup_${stamp}.json`;
+
+  const taken = new Set(existingNames);
+  // Monotonic only within the same second: a new stamp starts fresh at `-1`
+  // (the base name), so ordinary spaced-out exports keep the plain name.
+  let index = lastDefaultNameBase === base ? lastDefaultNameIndex + 1 : 1;
+  let candidate = collisionSuffix(base, index);
+  while (taken.has(candidate)) {
+    index += 1;
+    candidate = collisionSuffix(base, index);
+  }
+  lastDefaultNameBase = base;
+  lastDefaultNameIndex = index;
+  return candidate;
+}
+
+/** Last generated base name + suffix index (per process, not persisted). */
+let lastDefaultNameBase: string | null = null;
+let lastDefaultNameIndex = 0;
+
+/** `-2`, `-3`, ... before the extension; index <= 1 is the unadorned name. */
+function collisionSuffix(base: string, index: number): string {
+  return index <= 1 ? base : base.replace(/\.json$/, `-${index}.json`);
 }

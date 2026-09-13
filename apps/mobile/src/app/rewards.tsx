@@ -273,6 +273,13 @@ export default function RewardsScreen() {
       }
     } catch (error) {
       console.error("[rewards] purchase failed", error);
+      // Campaign 028: a failed purchase used to be console-only. The spend is
+      // transactional, so a rejection means no coins moved — say so.
+      showToast({
+        title: "Couldn't purchase that",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     } finally {
       busyRef.current = false;
     }
@@ -296,9 +303,25 @@ export default function RewardsScreen() {
           emoji: def.preview.emoji ?? "🎽",
         });
         showToast({ title: `Equipped ${def.name}`, tone: "success" });
+      } else {
+        // Campaign 028 sweep: `false` means the item stopped being owned
+        // between render and tap. The silent no-op read as a dead button, so
+        // surface the honest state instead (equipping never touches currency).
+        showToast({
+          title: "Couldn't equip that",
+          detail: "This item is no longer owned — try again.",
+          tone: "danger",
+        });
       }
     } catch (error) {
       console.error("[rewards] equip failed", error);
+      // Campaign 028: a failed equip used to be console-only. The settings
+      // write is transactional, so nothing was changed on rejection.
+      showToast({
+        title: "Couldn't equip that",
+        detail: "Nothing was changed — try again.",
+        tone: "danger",
+      });
     } finally {
       busyRef.current = false;
     }

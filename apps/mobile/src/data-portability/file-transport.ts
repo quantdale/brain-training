@@ -25,7 +25,9 @@
  * (`npx expo run:android`) after adding native-backed dependencies.
  */
 
+import { MAX_BACKUP_TEXT_LENGTH } from "./deserialize";
 import type { BackupTransport } from "./transport";
+import { MalformedBackupError } from "./types";
 
 /** Backups live in a dedicated folder so listing/deleting stays scoped. */
 export const BACKUP_DIRECTORY_NAME = "backups";
@@ -217,6 +219,22 @@ export async function pickBackupFile(): Promise<PickedBackupFile | null> {
  const file = new fs.File(asset.uri);
  if (!file.exists) {
   throw new Error(`Picked file "${asset.name}" could not be opened`);
+ }
+ // Reject oversized files BEFORE `file.text()` materializes them in memory.
+ // The picker reports a byte size for most providers; the deserialize cap only
+ // runs after the whole string exists, so a multi-hundred-MB pick would OOM
+ // the JS runtime first. UTF-8 byte length is always >= UTF-16 code-unit
+ // length, so this can only reject a file whose byte size alone exceeds the
+ // cap — erring on the side of not materializing a large document, never
+ // accepting one that deserialize would reject.
+ if (
+  typeof asset.size === "number" &&
+  Number.isFinite(asset.size) &&
+  asset.size > MAX_BACKUP_TEXT_LENGTH
+ ) {
+  throw new MalformedBackupError(
+   `Picked backup "${asset.name}" is too large (${asset.size} bytes; the maximum supported backup size is ${MAX_BACKUP_TEXT_LENGTH} characters).`,
+  );
  }
  return { name: asset.name, text: await file.text() };
 }

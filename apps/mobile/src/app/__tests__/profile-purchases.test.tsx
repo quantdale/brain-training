@@ -27,12 +27,26 @@ import {
 import ProfileScreen from '@/app/(tabs)/profile';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { ToastHost, resetToastQueueForTests } from '@/components/ui';
+import { claimAchievementReward } from '@/achievements';
 import {
   InsufficientFundsError,
   purchaseStreakItem,
+  type AchievementUnlock,
   type AppDatabase,
+  type QuestProgress,
 } from '@/db';
-import { applyOwnedStreakItem } from '@/streaks';
+import {
+  applyQuestReward,
+  currentPeriodKey,
+  QUEST_DEFINITIONS_V1,
+  selectActiveQuests,
+} from '@/quests';
+import {
+  applyOwnedStreakItem,
+  claimStreakMilestoneReward,
+  previousDate,
+} from '@/streaks';
+import { localDateString } from '@/workout/today';
 
 const FREEZE_COST = 100;
 
@@ -41,7 +55,23 @@ const mockDbState: {
   db: AppDatabase | null;
   balance: number;
   settings: Record<string, unknown>;
-} = { db: null, balance: 0, settings: {} };
+  /** Unlocked-but-unclaimed achievement rows the claim UI reads. */
+  unlockRows: AchievementUnlock[];
+  /** Quest progress rows the claim UI reads for the active period. */
+  questRows: QuestProgress[];
+  /** Local activity dates driving streak milestones. */
+  activityDates: string[];
+  /** When set, `profile.update` rejects with this error (theme persist). */
+  updateError: Error | null;
+} = {
+  db: null,
+  balance: 0,
+  settings: {},
+  unlockRows: [],
+  questRows: [],
+  activityDates: [],
+  updateError: null,
+};
 
 jest.mock('@/db', () => {
   const actual = jest.requireActual('@/db') as Record<string, unknown>;
@@ -77,13 +107,27 @@ jest.mock('@/progression', () => {
   };
 });
 
+jest.mock('@/achievements', () => {
+  const actual = jest.requireActual('@/achievements') as Record<string, unknown>;
+  return { ...actual, claimAchievementReward: jest.fn() };
+});
+
+jest.mock('@/quests', () => {
+  const actual = jest.requireActual('@/quests') as Record<string, unknown>;
+  return { ...actual, applyQuestReward: jest.fn() };
+});
+
 const mockedPurchase = jest.mocked(purchaseStreakItem);
+const mockedClaimAchievement = jest.mocked(claimAchievementReward);
+const mockedClaimMilestone = jest.mocked(claimStreakMilestoneReward);
+const mockedApplyQuest = jest.mocked(applyQuestReward);
 
 jest.mock('@/streaks', () => {
   const actual = jest.requireActual('@/streaks') as Record<string, unknown>;
   return {
     ...actual,
     applyOwnedStreakItem: jest.fn(),
+    claimStreakMilestoneReward: jest.fn(),
     // The apply gate is covered by the streak action suites; here it only
     // needs to expose the Apply control so the handler mapping is testable.
     canApplyFreeze: jest.fn(() => true),
@@ -98,13 +142,21 @@ const mockedApply = jest.mocked(applyOwnedStreakItem);
 function makeDb(): AppDatabase {
   return {
     ledger: { getBalance: async () => mockDbState.balance },
-    profile: { get: async () => ({ settings: mockDbState.settings }) },
-    achievements: { listUnlocks: async () => [] },
-    quests: { listProgressForPeriod: async () => [] },
+    profile: {
+      get: async () => ({ settings: mockDbState.settings }),
+      // The theme-persist path writes here; tests can inject a rejection.
+      update: jest.fn(async () => {
+        if (mockDbState.updateError) {
+          throw mockDbState.updateError;
+        }
+      }),
+    },
+    achievements: { listUnlocks: async () => mockDbState.unlockRows },
+    quests: { listProgressForPeriod: async () => mockDbState.questRows },
     sessions: {
       getTotalXp: async () => 0,
       listLightweight: async () => [],
-      getDistinctActivityDates: async () => [],
+      getDistinctActivityDates: async () => mockDbState.activityDates,
     },
     xpAwards: { getTotalAwardedXp: async () => 0 },
   } as unknown as AppDatabase;
@@ -147,6 +199,10 @@ beforeEach(() => {
   resetToastQueueForTests();
   mockDbState.balance = 0;
   mockDbState.settings = {};
+  mockDbState.unlockRows = [];
+  mockDbState.questRows = [];
+  mockDbState.activityDates = [];
+  mockDbState.updateError = null;
 });
 
 afterEach(() => {
@@ -254,5 +310,113 @@ describe('profile streak-item purchase failure paths', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('No item to apply')).toBeOnTheScreen();
     expect(screen.queryByText('Streak protected!')).toBeNull();
+  });
+});
+
+describe('profile claim rejection paths (campaign 028)', () => {
+  it('surfaces an achievement claim rejection and leaves the reward claimable', async () => {
+    mockDbState.unlockRows = [
+      { achievementId: 'ach-first', unlockedAt: 0, claimedAt: null },
+    ];
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockedClaimAchievement.mockRejectedValue(new Error('achievement claim boom'));
+    await renderProfile();
+
+    await fireEvent.press(
+      await screen.findByTestId('achievement-claim-ach-first'),
+    );
+
+    await waitFor(() => expect(mockedClaimAchievement).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(
+        '[profile] achievement claim failed',
+        expect.any(Error),
+      ),
+    );
+
+    // Campaign 028: the rejection is user-visible now, no celebration plays.
+    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    expect(toast).toHaveTextContent(/Couldn't claim that achievement/);
+    expect(screen.queryByTestId('reward-celebration')).toBeNull();
+    // Unchanged: the unlock is still unclaimed, so the claim action remains.
+    expect(screen.getByTestId('achievement-claim-ach-first')).toBeOnTheScreen();
+    expect(screen.getByText(/Unlocked — claim your reward/)).toBeOnTheScreen();
+  });
+
+  it('surfaces a streak-milestone claim rejection and leaves it claimable', async () => {
+    const today = localDateString();
+    mockDbState.activityDates = [
+      today,
+      previousDate(today),
+      previousDate(previousDate(today)),
+    ];
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockedClaimMilestone.mockRejectedValue(new Error('milestone claim boom'));
+    await renderProfile();
+
+    await fireEvent.press(await screen.findByTestId('milestone-claim-mil-3'));
+
+    await waitFor(() => expect(mockedClaimMilestone).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(
+        '[profile] milestone claim failed',
+        expect.any(Error),
+      ),
+    );
+
+    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    expect(toast).toHaveTextContent(/Couldn't claim that reward/);
+    expect(screen.queryByTestId('reward-celebration')).toBeNull();
+    expect(screen.getByTestId('milestone-claim-mil-3')).toBeOnTheScreen();
+  });
+
+  it('surfaces a quest claim rejection and leaves it claimable', async () => {
+    const now = new Date();
+    const quest = selectActiveQuests(QUEST_DEFINITIONS_V1, now)[0];
+    mockDbState.questRows = [
+      {
+        questId: quest.id,
+        period: currentPeriodKey(quest.kind, now),
+        progress: 999,
+        completedAt: now.getTime(),
+        claimedAt: null,
+      },
+    ];
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockedApplyQuest.mockRejectedValue(new Error('quest claim boom'));
+    await renderProfile();
+
+    const claimTestId = `quest-claim-${quest.id}`;
+    await fireEvent.press(await screen.findByTestId(claimTestId));
+
+    await waitFor(() => expect(mockedApplyQuest).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(
+        '[profile] quest claim failed',
+        expect.any(Error),
+      ),
+    );
+
+    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    expect(toast).toHaveTextContent(/Couldn't claim that quest/);
+    expect(screen.queryByTestId('reward-celebration')).toBeNull();
+    expect(screen.getByTestId(claimTestId)).toBeOnTheScreen();
+  });
+
+  it('surfaces a theme persist rejection with a danger toast (sweep)', async () => {
+    mockDbState.updateError = new Error('theme persist boom');
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    await renderProfile();
+
+    await fireEvent.press(await screen.findByTestId('profile-settings-theme-dark'));
+
+    await waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith(
+        '[profile] theme persist failed',
+        expect.any(Error),
+      ),
+    );
+    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    expect(toast).toHaveTextContent(/Couldn't save your theme/);
   });
 });

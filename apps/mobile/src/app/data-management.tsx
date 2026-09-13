@@ -44,10 +44,9 @@ import {
   applyImport,
   countLocalData,
   defaultBackupName,
-  exportLocalData,
+  exportLocalDataBundle,
   parseAndValidateBackup,
   previewImport,
-  serializeBackup,
   wipeLocalData,
   type BackupTransport,
   type ImportPreview,
@@ -133,18 +132,21 @@ export default function DataManagementScreen() {
     setBusy(true);
     setMessage(null);
     try {
-      const env = await exportLocalData(getDb());
-      const text = serializeBackup(env);
+      // Single-pass export: snapshot + canonical serialization happen in ONE
+      // walk of the data (`exportLocalDataBundle`), not export-then-serialize.
+      const { envelope, text } = await exportLocalDataBundle(getDb());
       setExportText(text);
       // Also park the envelope in the durable transport so a copy survives
       // even if the user never shares it off-device. A typed name wins;
-      // blank falls back to the generated default.
-      const name = backupName.trim() || defaultBackupName();
+      // blank falls back to the generated default. The current inventory is
+      // passed in so a generated name can never silently overwrite an
+      // earlier export taken within the same clock second.
+      const name = backupName.trim() || defaultBackupName(new Date(), savedBackups);
       await backupTransport.writeBackup(name, text);
       setLastExportName(name);
       refresh();
       setMessage(
-        `Exported ${env.data.gameSessions.length} sessions and ${env.data.currencyLedger.length} ledger entries. Saved on this phone as ${name}.`,
+        `Exported ${envelope.data.gameSessions.length} sessions and ${envelope.data.currencyLedger.length} ledger entries. Saved on this phone as ${name}.`,
       );
     } catch (e) {
       setLastExportName(null);
@@ -152,7 +154,7 @@ export default function DataManagementScreen() {
     } finally {
       setBusy(false);
     }
-  }, [backupName, busy, refresh]);
+  }, [backupName, busy, refresh, savedBackups]);
 
   /** Offer the fresh/saved export to the system share sheet when present. */
   const onShareBackup = useCallback(async (name: string) => {
@@ -243,6 +245,12 @@ export default function DataManagementScreen() {
 
   const onPreview = useCallback(
     async (mode: "merge" | "replace") => {
+      // Same in-flight guard as the sibling handlers: a fast double-tap (or a
+      // re-entrant dispatch racing the disabled state) must not start a second
+      // preview pass while one is still running.
+      if (busy) {
+        return;
+      }
       if (!importText.trim()) {
         setMessage("Paste a backup JSON first.");
         return;
@@ -267,7 +275,7 @@ export default function DataManagementScreen() {
         setBusy(false);
       }
     },
-    [importText],
+    [busy, importText],
   );
 
   const onImport = useCallback(

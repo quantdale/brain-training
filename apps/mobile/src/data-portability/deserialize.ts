@@ -383,9 +383,9 @@ function validateData(data: unknown): BackupData {
     }
   }
 
-  // Relational integrity: both FK-backed sections must reference sessions that
-  // exist in the SAME backup. Every export we produce is self-consistent by
-  // construction, so a dangling reference means the file was hand-edited or
+  // Relational integrity: every FK-backed section must reference a definition
+  // that exists in the SAME backup. Every export we produce is self-consistent
+  // by construction, so a dangling reference means the file was hand-edited or
   // truncated per-section — reject it with a typed error instead of aborting
   // mid-import on a FOREIGN KEY constraint (replace mode) or silently dropping
   // rows (merge mode).
@@ -406,6 +406,25 @@ function validateData(data: unknown): BackupData {
     ) {
       issues.push(
         `currencyLedger references unknown session ${JSON.stringify(e.sessionId)} (no matching gameSessions entry)`,
+      );
+    }
+  }
+  // quest_progress.quest_id -> quests.id and achievement_unlocks.achievement_id
+  // -> achievements.id (schema.ts). Definitions are shape-validated above, so
+  // the id sets only contain usable ids.
+  const questIds = new Set(questDefinitions.map((q) => q.id as string));
+  for (const p of questProgRaw) {
+    if (isObject(p) && isString(p.questId) && !questIds.has(p.questId)) {
+      issues.push(
+        `questProgress references unknown quest ${JSON.stringify(p.questId)} (no matching questDefinitions entry)`,
+      );
+    }
+  }
+  const achievementIds = new Set(achievementDefinitions.map((a) => a.id as string));
+  for (const u of achUnlocksRaw) {
+    if (isObject(u) && isString(u.achievementId) && !achievementIds.has(u.achievementId)) {
+      issues.push(
+        `achievementUnlocks references unknown achievement ${JSON.stringify(u.achievementId)} (no matching achievementDefinitions entry)`,
       );
     }
   }

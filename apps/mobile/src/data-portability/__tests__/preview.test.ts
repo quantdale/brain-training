@@ -79,4 +79,21 @@ describe("previewImport", () => {
     const targetStillEmpty = (await target.sessions.listRecent(1000)).length;
     expect(targetStillEmpty).toBe(0);
   });
+
+  it("a rejected replace preview reports replace-mode counters, never merge", async () => {
+    const target = await makeDb();
+    const preview = await previewImport(target, "totally not json", "replace");
+    expect(preview.valid).toBe(false);
+    expect(preview.mode).toBe("replace");
+    // The empty counter block must reflect the requested mode: a rejected
+    // replace preview claiming merge counters misreports what was asked for.
+    expect(preview.counters.mode).toBe("replace");
+  });
+
+  it("a rejected merge preview keeps merge-mode counters", async () => {
+    const target = await makeDb();
+    const preview = await previewImport(target, "{ nope", "merge");
+    expect(preview.valid).toBe(false);
+    expect(preview.counters.mode).toBe("merge");
+  });
 });

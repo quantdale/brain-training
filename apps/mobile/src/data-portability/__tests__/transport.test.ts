@@ -29,4 +29,28 @@ describe('defaultBackupName', () => {
     const name = defaultBackupName(new Date(2026, 7, 20, 9, 5, 3));
     expect(name).toBe('brain-training-backup_2026-08-20_09-05-03.json');
   });
+
+  it('suffixes repeated names within the same clock second (-2, -3) so an earlier backup is never overwritten', () => {
+    const at = new Date(2026, 7, 20, 9, 5, 4);
+    expect(defaultBackupName(at)).toBe('brain-training-backup_2026-08-20_09-05-04.json');
+    expect(defaultBackupName(at)).toBe('brain-training-backup_2026-08-20_09-05-04-2.json');
+    expect(defaultBackupName(at)).toBe('brain-training-backup_2026-08-20_09-05-04-3.json');
+  });
+
+  it('skips names already present in the supplied inventory', () => {
+    const at = new Date(2026, 7, 20, 9, 5, 5);
+    const base = 'brain-training-backup_2026-08-20_09-05-05.json';
+    expect(defaultBackupName(at, [base])).toBe(
+      'brain-training-backup_2026-08-20_09-05-05-2.json',
+    );
+  });
+
+  it('keeps the plain name when the timestamp advances (spaced-out exports)', () => {
+    expect(defaultBackupName(new Date(2026, 7, 20, 9, 5, 6))).toBe(
+      'brain-training-backup_2026-08-20_09-05-06.json',
+    );
+    expect(defaultBackupName(new Date(2026, 7, 20, 9, 5, 7))).toBe(
+      'brain-training-backup_2026-08-20_09-05-07.json',
+    );
+  });
 });

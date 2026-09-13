@@ -24,7 +24,8 @@ import DataManagementScreen from '@/app/data-management';
 
 import {
   applyImport,
-  exportLocalData,
+  defaultBackupName,
+  exportLocalDataBundle,
   previewImport,
   wipeLocalData,
 } from '@/data-portability';
@@ -86,10 +87,10 @@ jest.mock('@/data-portability', () => ({
     hasProfile: true,
   })),
   defaultBackupName: jest.fn(() => 'backup-test.json'),
-  exportLocalData: jest.fn(async () => ({
-    data: { gameSessions: [1, 2], currencyLedger: [1] },
+  exportLocalDataBundle: jest.fn(async () => ({
+    envelope: { data: { gameSessions: [1, 2], currencyLedger: [1] } },
+    text: '{"format":"brain-training-backup"}',
   })),
-  serializeBackup: jest.fn(() => '{"format":"brain-training-backup"}'),
   parseAndValidateBackup: jest.fn(() => ({ parsed: true })),
   previewImport: jest.fn(),
   applyImport: jest.fn(async () => ({
@@ -120,6 +121,8 @@ const transport: MockTransport =
 
 const mockedPreviewImport = jest.mocked(previewImport);
 const mockedApplyImport = jest.mocked(applyImport);
+const mockedExportLocalDataBundle = jest.mocked(exportLocalDataBundle);
+const mockedDefaultBackupName = jest.mocked(defaultBackupName);
 const mockedPickBackupFile = jest.mocked(pickBackupFile);
 const mockedShareBackupFile = jest.mocked(shareBackupFile);
 
@@ -235,6 +238,12 @@ describe('data-management UX contract', () => {
       'backup-test.json',
       '{"format":"brain-training-backup"}',
     );
+    // One single-pass bundle call produced BOTH the text and the counts —
+    // no separate export-then-serialize walk.
+    expect(mockedExportLocalDataBundle).toHaveBeenCalledTimes(1);
+    // The generated name receives the live backup inventory so a same-second
+    // re-export can skip names that are already taken.
+    expect(mockedDefaultBackupName).toHaveBeenCalledWith(expect.any(Date), []);
     expect(
       await screen.findByTestId('data-backup-load-backup-test.json'),
     ).toBeOnTheScreen();
@@ -441,7 +450,7 @@ describe('data-management UX contract', () => {
     fireEvent.press(await screen.findByTestId('data-wipe-export-first'));
 
     await waitFor(() =>
-      expect(jest.mocked(exportLocalData)).toHaveBeenCalled(),
+      expect(mockedExportLocalDataBundle).toHaveBeenCalled(),
     );
     const message = await screen.findByTestId('data-message');
     expect(message).toHaveTextContent(/backup-test\.json/);
@@ -454,5 +463,52 @@ describe('data-management UX contract', () => {
     await waitFor(() => expect(mockedPickBackupFile).toHaveBeenCalled());
     // Canceled pickers are not errors — no message card should appear.
     expect(screen.queryByTestId('data-message')).toBeNull();
+  });
+
+  it('never starts a second preview while the first is still in flight', async () => {
+    // Hold the first preview open; the screen must stay busy for its duration.
+    let release: (value: ImportPreview) => void = () => {};
+    const pending = new Promise<ImportPreview>((resolve) => {
+      release = resolve;
+    });
+    mockedPreviewImport.mockReturnValue(pending);
+    await renderScreen();
+    await typeImportJson();
+
+    fireEvent.press(await screen.findByTestId('data-preview-merge'));
+    await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(1));
+
+    // Fast repeat taps (different preview modes) while the first is pending:
+    // neither may start another preview pass.
+    fireEvent.press(screen.getByTestId('data-preview-merge'));
+    fireEvent.press(screen.getByTestId('data-preview-replace'));
+    expect(mockedPreviewImport).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('data-preview-merge').props.accessibilityState?.disabled).toBe(true);
+
+    release(validPreview('merge'));
+
+    // The single in-flight preview still lands and clears the busy state.
+    await waitFor(() =>
+      expect(screen.getByTestId('data-preview-output')).toBeOnTheScreen(),
+    );
+    expect(mockedPreviewImport).toHaveBeenCalledTimes(1);
+    await waitFor(() =>
+      expect(screen.getByTestId('data-preview-merge').props.accessibilityState?.disabled).toBe(false),
+    );
+  });
+
+  it('allows a fresh preview after the previous one settles (guard resets)', async () => {
+    mockedPreviewImport.mockResolvedValue(validPreview('merge'));
+    await renderScreen();
+    await typeImportJson();
+
+    fireEvent.press(await screen.findByTestId('data-preview-merge'));
+    await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(1));
+    await waitFor(() =>
+      expect(screen.getByTestId('data-preview-merge').props.accessibilityState?.disabled).toBe(false),
+    );
+
+    fireEvent.press(screen.getByTestId('data-preview-merge'));
+    await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(2));
   });
 });

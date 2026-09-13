@@ -22,6 +22,7 @@ import {
   pickBackupFile,
   shareBackupFile,
 } from '../file-transport';
+import { MAX_BACKUP_TEXT_LENGTH } from '../deserialize';
 
 /* ------------------------------------------------------------------ */
 /* In-memory expo-file-system double                                   */
@@ -34,6 +35,9 @@ interface MockEntry {
 
 /** `mock*` prefix keeps jest.mock factories allowed to close over these. */
 const mockStore = new Map<string, MockEntry>();
+
+/** Number of times the mocked expo File.text() was invoked (pre-read proofs). */
+let mockTextReads = 0;
 
 /**
  * One-shot storage fault injected through the mocked native seam. `op` selects
@@ -94,6 +98,7 @@ jest.mock('expo-file-system', () => {
       mockStore.set(this.uri, { kind: 'file', content: contents });
     }
     text(): string {
+      mockTextReads += 1;
       const entry = mockStore.get(this.uri);
       if (!entry || entry.kind !== 'file') {
         throw new Error(`ENOENT: no such file "${this.uri}"`);
@@ -127,7 +132,7 @@ jest.mock('expo-file-system', () => {
 
 type MockPickerResult = {
   canceled: boolean;
-  assets: { uri: string; name: string }[];
+  assets: { uri: string; name: string; size?: number }[];
 };
 
 const mockGetDocumentAsync = jest.fn(
@@ -152,6 +157,7 @@ jest.mock('expo-sharing', () => ({
 
 beforeEach(() => {
   mockStore.clear();
+  mockTextReads = 0;
   mockFsFault = null;
   mockGetDocumentAsync.mockReset();
   mockIsAvailableAsync.mockReset();
@@ -290,6 +296,41 @@ describe('pickBackupFile (mocked expo-document-picker)', () => {
       assets: [{ uri: 'file:///cache/vanished.json', name: 'vanished.json' }],
     });
     await expect(pickBackupFile()).rejects.toThrow(/could not be opened/);
+  });
+
+  it('rejects an oversized picked asset BEFORE reading its text', async () => {
+    // The file itself is readable; only the picker-reported size is hostile.
+    // The guard must fire before `file.text()` ever materializes the document.
+    mockStore.set('file:///cache/huge.json', { kind: 'file', content: '{}' });
+    mockGetDocumentAsync.mockResolvedValue({
+      canceled: false,
+      assets: [
+        {
+          uri: 'file:///cache/huge.json',
+          name: 'huge.json',
+          size: MAX_BACKUP_TEXT_LENGTH + 1,
+        },
+      ],
+    });
+
+    await expect(pickBackupFile()).rejects.toThrow(/too large/i);
+    expect(mockTextReads).toBe(0);
+  });
+
+  it('still reads an asset whose reported size is within the cap', async () => {
+    mockStore.set('file:///cache/ok.json', { kind: 'file', content: '{"format":"x"}' });
+    mockGetDocumentAsync.mockResolvedValue({
+      canceled: false,
+      assets: [
+        { uri: 'file:///cache/ok.json', name: 'ok.json', size: MAX_BACKUP_TEXT_LENGTH },
+      ],
+    });
+
+    await expect(pickBackupFile()).resolves.toEqual({
+      name: 'ok.json',
+      text: '{"format":"x"}',
+    });
+    expect(mockTextReads).toBe(1);
   });
 });
 
