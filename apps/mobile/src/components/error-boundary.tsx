@@ -68,7 +68,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               Something went wrong
             </ThemedText>
             <ThemedText type="small" themeColor="textSecondary" style={styles.body}>
-              An unexpected error occurred. You can try again or go back to the library.
+              An unexpected error occurred on this screen. Try again to reload it.
             </ThemedText>
             <Pressable
               testID="error-boundary-retry"

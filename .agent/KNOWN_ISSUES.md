@@ -28,13 +28,14 @@ not be reported as PASS until actually performed.
 All are environment/operational or explicitly deferred; none is a Critical or
 High product defect.
 
-- **Autobot cold-start navigation race (QA tooling, Low, Campaign 027):**
-  under a cold Metro/lazy-bundle state the harness can lose the deep link
-  (failure frame: Home) or hit the pause overlay during the resume race
-  (failure frame: pause overlay). Two interim canary runs scored 4/8 and 6/8
-  with the failing set changing between runs; after explicitly pre-warming the
-  canary game chunks the run passed 8/8. Mitigation for future runs: pre-warm
-  game routes (or add a deep-link retry to the harness) before canaries.
+- **Autobot cold-start navigation race (QA tooling, Low, Campaign 027) —
+  RESOLVED in Campaign 028 W3:** the harness now verifies every deep link
+  against route classification, retries verified attempts (cold-start
+  escalation when launch was delivered but ignored, `QA_DEEPLINK_RETRIES`),
+  verifies pause-overlay dismissal on the resume branch, and pre-warms game
+  routes before canaries/certify/all (`QA_PREWARM=0` opts out). Failure
+  evidence now names the observed route instead of a generic "screen did not
+  load".
 
 - **Emulator app-surface wedge (environment):** after hours of repeated app
   force-stop/relaunch cycles under Jest/Metro load, the GPU-translated app
@@ -66,15 +67,18 @@ High product defect.
   A blanket `UNIQUE(source)` must **not** be added because legitimate
   legacy/generic sources such as `system` may repeat during supported restore
   semantics. The adversarial proof lives in the Campaign 022 audit map.
-- **Backup export double canonicalization — Low, deferred (Campaign 027 W2.5):**
-  backup export runs two full canonicalization passes
-  (`apps/mobile/src/data-portability/serialize.ts`; measured desktop-only
-  4.9 s + 1.1 s @5k sessions). Export is a deliberate user action, not a hot
-  path, and fusing the passes risks byte/checksum divergence against
-  `roundtrip.test.ts`; deferred until a byte-identical single-pass
-  implementation is proven. Tracked in
-  `openspec/changes/027-deep-hardening/tasks.md` task 2.5.
-- **Offline validator heuristic gap — Low:** the static validator can miss runtime-reassembled network-call strings. Runtime/offline certification is the stronger evidence for the shipped boundary; improve the heuristic only in a scoped maintenance campaign.
+- **Backup export double canonicalization — RESOLVED in Campaign 028 W2:**
+  the production export call site now uses the single-pass
+  `exportLocalDataBundle` ("MUST"); byte-identity is pinned by the existing
+  serializer and 20k-session suites. The 027 "no proof" deferral rationale is
+  obsolete and removed.
+- **Offline validator heuristic gap — RESOLVED in Campaign 028 W4:** the
+  scanner removes the `*`/`//` line-skip false negatives, truncates at real
+  comments, and detects aliased/destructured/bracket global access plus
+  `sendBeacon`/`EventSource`; self-tests (18) pin the behavior. The remaining
+  limit — network APIs assembled from runtime strings (`'f'+'etch'`) — is a
+  documented static-analysis bound; the monkeypatched runtime offline suite
+  stays the stronger evidence.
 - **Seeding test-fixture seam noise — Low:** partial Jest DB facades can emit non-fatal startup noise not representative of the production facade.
 - **Permanent provenance allowlist dead entries — RESOLVED in Campaign 027 W6:**
   the 22 inert no-expiry entries were replaced with two precise, expiring
@@ -82,7 +86,7 @@ High product defect.
   content-validation dead-export removals); `validate-provenance --check` is
   clean and no permanent inert entry remains.
 - **Runtime dependency advisory — accepted debt, expires 2026-12-31
-  (Campaign 027 W4):** `decode-uri-component` GHSA-vcc3-ghjq-m6fr (ReDoS on
+  (Campaign 027 W4; expiry now gate-enforced by Campaign 028 W4.1):** `decode-uri-component` GHSA-vcc3-ghjq-m6fr (ReDoS on
   malformed percent-encoded input, moderate) is reachable at runtime via
   `expo-router@57 -> query-string@7.1.3 -> decode-uri-component`. No compatible
   fix exists: query-string@7 pins `^0.2.2`, the patched 0.5.0 is ESM-only and
@@ -92,7 +96,9 @@ High product defect.
   (classification `runtime-accepted-debt`, expiring) with the production-audit
   gate still failing on any new advisory; drop the entry when expo-router
   advances to a query-string major carrying the fix (next Expo SDK upgrade).
-- **QA artifact retention — Low:** transient `qa-artifacts/` output is gitignored but can accumulate locally; add bounded retention before automation volume grows materially.
+- **QA artifact retention — RESOLVED in Campaign 028 W3:** `initRunDir` now
+  prunes completed harness run dirs to the newest `QA_KEEP_RUNS` (default 10)
+  and never touches curated evidence dirs; `QA_NO_PRUNE=1` opts out.
 - **Build/dev dependency advisories:** retain the existing dependency-audit classification and re-evaluate with planned framework/toolchain upgrades; do not force unrelated dependency churn into a release-doc cleanup.
 - **Achievements/quest sync scan — RESOLVED in Campaign 027 W2:** the
   production quest path no longer bypasses a cap —

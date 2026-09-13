@@ -94,7 +94,9 @@ export function A11yDialog({
           the dialog is dismissable. Sits under the card in z-order. */}
       <Pressable
         style={StyleSheet.absoluteFill}
-        accessibilityLabel="Dismiss dialog"
+        accessible={Boolean(onRequestClose)}
+        accessibilityRole={onRequestClose ? 'button' : 'none'}
+        accessibilityLabel={onRequestClose ? 'Dismiss dialog' : undefined}
         testID={testID ? `${testID}-scrim-dismiss` : undefined}
         onPress={onRequestClose}
         disabled={!onRequestClose}

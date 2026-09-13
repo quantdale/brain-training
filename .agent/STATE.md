@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-13 — Campaign 028 W1–W4 complete (W1/W2 committed; W3/W4 wave in progress).
+**Last update:** 2026-09-13 — Campaign 028 W1–W5 complete; W6 verification next.
 **Canonical branch:** `main`
 **Active campaign:** `028-production-readiness`
 **Last campaign:** `027-deep-hardening`
@@ -59,21 +59,31 @@ new features and constitution-deferred systems untouched.
   claims); single-pass production export, import FK cross-validation, pick
   size guard, preview re-entrancy/backup-name collision. Wave evidence: 27
   suites / 259 tests PASS, `tsc` clean, targeted lint clean.
-- **W3+W4 complete on the working tree** (verification battery green):
-  autobot verified deep-link retry, pause/resume dismissal check, scheduled
-  pre-warm, bounded run-dir retention, self-test 70/70; dependency-audit
-  expiry/schema enforcement 41/41; offline validator rewritten (`*` and `//`
-  line-skip false negatives fixed, aliased/dynamic global access, `sendBeacon`/`EventSource`;
-  18/18 self-tests, real scan CLEAN over 968 files); IMPACT_MAP↔RULES
-  content sync (`--check-sync`, wired into CI, drift proven by negative
-  test); repo-state requires task-ownership/EXECUTION_PROMPT and reports
-  ownership parse failures (proven) + workflow-referenced script existence
-  check; jest-skip allowlist schema v2 with `reviewedAt` and stale-entry
-  detection (missing file / missing gate); certify-clean-checkout gate parity
-  with CI incl. Jest signal; repository-integrity weekly schedule + cheap
-  self-tests in CI.
-- **Next:** W5 cleanup/documentation truth, then W6 full matrix + runtime
-  canaries on `emulator-5560` and closure.
+- **W3+W4 committed** at `5f55b68` (pushed): autobot verified deep-link
+  retry, pause/resume dismissal check, scheduled pre-warm, bounded run-dir
+  retention, self-test 70/70; dependency-audit expiry/schema enforcement
+  41/41; offline validator rewritten (`*` and `//` line-skip false negatives
+  fixed, aliased/dynamic global access, `sendBeacon`/`EventSource`; 18/18
+  self-tests, real scan CLEAN over 968 files); IMPACT_MAP↔RULES content sync
+  (`--check-sync`, wired into CI, drift proven by negative test); repo-state
+  requires task-ownership/EXECUTION_PROMPT and reports ownership parse
+  failures (proven) + workflow-referenced script existence check; jest-skip
+  allowlist schema v2 with `reviewedAt` and stale-entry detection; certify
+  gate parity with CI incl. Jest signal; weekly schedule + cheap self-tests
+  in CI.
+- **W5 complete:** verified-dead `release-driver.mjs` and
+  `tsconfig.validate.json` removed (ownership entry cleaned); `refero.mjs`
+  kept with a historical-disposition header; KNOWN_ISSUES resolved entries
+  (cold-start race, export double-pass, offline heuristic, artifact
+  retention) + dependency-expiry note; DEFERRED_DECISIONS transport corrected
+  and password-encrypted backups recorded as explicit deferred (§7, not §33);
+  `checksum.ts` comment corrected; PARITY_MATRIX DEFERRED row added and export
+  row updated; error-boundary copy, dialog scrim role, game-not-ready copy
+  fixed; four hooks tests added (`attention-target-count`,
+  `logic-code-cracker`, `logic-rule-grid`, `memory-prospective-cue`) with
+  component suites green.
+- **Next:** W6 full matrix + runtime canaries on `emulator-5560`, adversarial
+  diff review, then closure (W7).
 
 ## Continuation rule
 

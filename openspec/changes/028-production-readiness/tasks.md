@@ -66,17 +66,17 @@
 
 ## W5 — Cleanup and documentation truth
 
-- [ ] 5.1 Verified-dead `scripts/qa/release-driver.mjs` and
+- [x] 5.1 Verified-dead `scripts/qa/release-driver.mjs` and
       `apps/mobile/tsconfig.validate.json` removed; `refero.mjs` disposition
       verified (keep with reference or remove).
-- [ ] 5.2 KNOWN_ISSUES contradiction fixed; DEFERRED_DECISIONS transport note
+- [x] 5.2 KNOWN_ISSUES contradiction fixed; DEFERRED_DECISIONS transport note
       corrected; password-encrypted backups recorded as explicit deferred
       decision; `checksum.ts` comment corrected.
-- [ ] 5.3 PARITY_MATRIX updated (encryption DEFERRED row; fusion resolved);
+- [x] 5.3 PARITY_MATRIX updated (encryption DEFERRED row; fusion resolved);
       MASTER_PLAN/README touched only if drift found.
-- [ ] 5.4 `error-boundary` copy matches available actions; dialog scrim role
+- [x] 5.4 `error-boundary` copy matches available actions; dialog scrim role
       corrected; `game-not-ready` unreachable-variant copy truthed.
-- [ ] 5.5 `hooks.test.ts` added for `attention-target-count`,
+- [x] 5.5 `hooks.test.ts` added for `attention-target-count`,
       `logic-code-cracker`, `logic-rule-grid`, `memory-prospective-cue`.
 - [x] 5.6 Constitution status line + GOAL.md directive history updated for
       Campaign 028.

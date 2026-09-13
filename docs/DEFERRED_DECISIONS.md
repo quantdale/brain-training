@@ -22,7 +22,16 @@ These are intentionally unresolved. Their absence is not permission for an agent
   idempotency, atomic application + rollback, and a Data Management UI
   (`/data-management` linked from Profile) with export, import (merge/replace)
   and wipe (DELETE confirmation). No cloud/Supabase coupling; transport is
-  UI-level JSON (file/share can be layered later).
+  native local file export/import (`expo-document-picker` + `expo-sharing` /
+  `expo-file-system`) backed by the page's copy-to-clipboard affordance — no
+  network path.
+- Password-encrypted backups: **deferred** (constitution §7 says "eventually";
+  §33 never listed them, and Campaign 028 recorded that gap explicitly).
+  Backups are a plaintext checksummed JSON envelope and the checksum is
+  integrity-only (not a MAC). Encrypting backups is a product/security
+  decision — passphrase UX, KDF parameters, format/versioning, recovery
+  semantics — and must not be invented during unrelated work; revisit only
+  with an owner-authorized decision.
 
 ## Product decisions deferred
 

@@ -39,7 +39,7 @@ export function GameNotReady({
             ? 'This game is not in the library. It may have been renamed or removed.'
             : isLoading
               ? 'Starting the game…'
-              : 'This game is registered but its implementation lands in a later wave. Check the library again soon.'}
+              : 'This game is not playable in this release. Check the library for another game.'}
         </ThemedText>
         <Link href="/games" asChild>
           <Pressable

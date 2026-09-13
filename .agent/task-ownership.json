@@ -15,7 +15,6 @@
     "apps/mobile/package-lock.json",
     "apps/mobile/app.json",
     "apps/mobile/tsconfig.json",
-    "apps/mobile/tsconfig.validate.json",
     "apps/mobile/src/registry/**",
     "apps/mobile/src/theme/**",
     "apps/mobile/src/components/**",

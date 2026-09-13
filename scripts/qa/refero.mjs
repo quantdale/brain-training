@@ -2,6 +2,13 @@
 /**
  * Refero MCP research helper (Campaign 023).
  *
+ * Historical design-research tooling, kept by disposition review in Campaign
+ * 028 (task 5.1): it is not referenced by CI, the QA harness, or any runtime
+ * path, but the committed research briefs under
+ * `openspec/changes/{024,025,026}/research/` were produced with it and it
+ * remains the only reproducible path for re-running those queries if design
+ * research resumes. Requires owner-level Refero access.
+ *
  * Reads the bearer token from REFERO_MCP_TOKEN, or falls back to the
  * gitignored `.kimi-code/local.toml`. Credentials are never hardcoded here
  * and never committed.

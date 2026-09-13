@@ -6,8 +6,9 @@
  * backup's checksum must validate identically on every platform that reads it.
  *
  * This is an *integrity* checksum (accidental corruption / truncation /
- * tampering detection), not a cryptographic MAC — the constitution defers
- * password-encrypted backups, so confidentiality is out of scope here.
+ * tampering detection), not a cryptographic MAC — password-encrypted backups
+ * remain deferred (constitution §7 "eventually"; explicitly recorded in
+ * docs/DEFERRED_DECISIONS.md), so confidentiality is out of scope here.
  *
  * Campaign 010 (debt D2): `Sha256` exposes incremental `update()` so large
  * backups can be hashed WHILE they are serialized chunk-by-chunk, instead of
