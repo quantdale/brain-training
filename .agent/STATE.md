@@ -1,9 +1,9 @@
 # Durable Project State
 
-**Last update:** 2026-09-13 — Campaign 028 W1–W5 complete; W6 verification next.
+**Last update:** 2026-09-13 — Campaign 028 closed VALIDATED (terminal).
 **Canonical branch:** `main`
-**Active campaign:** `028-production-readiness`
-**Last campaign:** `027-deep-hardening`
+**Active campaign:** none
+**Last campaign:** `028-production-readiness`
 **Last campaign status:** VALIDATED
 
 ## Current status
@@ -20,7 +20,7 @@ heuristic), and residual documentation/cleanup debt. Campaign 028
 (`028-production-readiness`) is active to close exactly those items, with no
 new features and constitution-deferred systems untouched.
 
-## Campaign 028 workstreams (active)
+## Campaign 028 workstreams (closed VALIDATED)
 
 1. **W1 user-action reliability** — Home workout CTA, rewards purchase/equip,
    profile milestone/quest/achievement claims surface failures; regression
@@ -84,6 +84,24 @@ new features and constitution-deferred systems untouched.
   component suites green.
 - **Next:** W6 full matrix + runtime canaries on `emulator-5560`, adversarial
   diff review, then closure (W7).
+
+- **W6 verification complete:** full matrix 545 suites / 6486 tests PASS
+  (5 allowlisted opt-in probes skipped, signal-validated), `tsc` clean,
+  `expo lint` clean, every validator + OpenSpec 15/15 green; runtime
+  canaries 8/8 PASS with scheduled pre-warm on `emulator-5560` (one prior
+  7/8 run honestly diagnosed as an environmental LogBox-snackbar block on
+  `logic-next-sequence`; isolated single-game repro PASS); daily-workout
+  journey PASS (4/4 + relaunch persistence); a11y audit 0 violations across
+  11 route-verified surfaces; adversarial diff review recorded no guard
+  weakening, no fake green, deletions verified unreferenced.
+
+## Terminal state (`028-production-readiness` VALIDATED)
+
+No active campaign. The next owner directive may open a successor campaign
+via the normal activation path (GOVERNANCE.activeCampaign + matching
+OpenSpec change + durable-state fields). External evidence classes remain
+out of scope as recorded in KNOWN_ISSUES (store signing, manual TalkBack,
+SAF sheets, physical device, iOS runtime).
 
 ## Continuation rule
 

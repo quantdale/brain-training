@@ -240,10 +240,10 @@ function scanForNetworkApis(root: string): ScanHit[] {
       const code = codeBeforeComment(stripStringLiterals(line));
       if (code.trim()) {
         for (const { name, re } of NETWORK_API_PATTERNS) {
-          for (const _match of code.matchAll(re)) names.push(name);
+          if (code.match(re)) names.push(name);
         }
       }
-      for (const _match of line.matchAll(BRACKET_GLOBAL_PATTERN)) {
+      if (line.match(BRACKET_GLOBAL_PATTERN)) {
         names.push('global-bracket-access');
       }
       for (const name of names) {

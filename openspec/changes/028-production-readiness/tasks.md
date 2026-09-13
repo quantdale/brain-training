@@ -83,12 +83,12 @@
 
 ## W6 — Verification and closure
 
-- [ ] 6.1 Full matrix (`jest`), `tsc`, `expo lint`, every validator,
+- [x] 6.1 Full matrix (`jest`), `tsc`, `expo lint`, every validator,
       OpenSpec validate — green at the closure head.
-- [ ] 6.2 Runtime on `emulator-5560`: scheduled-prewarm canaries PASS,
+- [x] 6.2 Runtime on `emulator-5560`: scheduled-prewarm canaries PASS,
       daily-workout journey PASS, a11y audit 0 violations (or honest
       NOT VALIDATED with reasons).
-- [ ] 6.3 Adversarial self-review of the campaign diff (deletions verified
+- [x] 6.3 Adversarial self-review of the campaign diff (deletions verified
       unreferenced; retries traced; no guard weakened; no fake green).
-- [ ] 6.4 STATE.md, CURRENT_CAMPAIGN.md, VALIDATION.md, GOVERNANCE.json,
+- [x] 6.4 STATE.md, CURRENT_CAMPAIGN.md, VALIDATION.md, GOVERNANCE.json,
       task-ownership, EXECUTION_PROMPT closed; commits pushed.

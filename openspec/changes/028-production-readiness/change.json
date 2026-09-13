@@ -1,6 +1,6 @@
 {
   "id": "028-production-readiness",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "027-deep-hardening",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",

@@ -1,6 +1,6 @@
 # Campaign 028 — Production-Readiness Closure
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `028-production-readiness`
 **Predecessor:** `027-deep-hardening` (VALIDATED)
 **Mode:** day

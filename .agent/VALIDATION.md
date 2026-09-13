@@ -2790,3 +2790,95 @@ toolchain limitation, not a product test failure.
 - Release APK from the 025 head: **NOT VALIDATED** (the redesign campaign is
   expected to rebuild and re-certify the release artifact; the pre-wave
   release APK was used only as the capture baseline).
+
+## Campaign 028 — Production-Readiness Closure evidence (2026-09-13)
+
+Closed **VALIDATED** on `main` (terminal: GOVERNANCE.activeCampaign null,
+lastCampaign `028-production-readiness`). Baseline `1733458`, activation
+commit `6f2c3a8`. Evidence behind every item:
+`openspec/changes/028-production-readiness/audit-map.md`.
+
+### W1/W2 — commit `18b9bd8`
+
+- Silent user-action failures (Home workout CTA, rewards purchase/equip,
+  profile milestone/quest/achievement claims) now surface danger toasts and
+  stay retryable; route-level rejection tests added
+  (`home-workout-start.test.tsx` new; `rewards.test.tsx` +3;
+  `profile-purchases.test.tsx` +4).
+- Production export uses single-pass `exportLocalDataBundle` (027 W2.5
+  deferral resolved); quest/achievement FK cross-validation in
+  `deserialize.ts` with typed rejection; pre-read pick size guard;
+  `onPreview` busy guard; collision-resistant `defaultBackupName`;
+  replace-mode preview counters.
+- Wave evidence: 27 suites / 259 tests PASS, `tsc` clean, targeted lint
+  clean.
+
+### W3/W4 — commit `5f55b68` (pushed)
+
+- autobot: verified bounded deep-link retry (route classification,
+  cold-start escalation, disclosed attempts), pause/resume dismissal
+  verification, scheduled pre-warm (`run.json` `prewarm`, never pass/fail),
+  bounded run-dir retention; self-test 70/70. ui-capture: per-surface
+  arrival verification with cold-start retry, `--list` early exit (an
+  accidental `--list` capture onto the user's `emulator-5554` during this
+  wave is recorded; all runtime QA used the dedicated `emulator-5560`).
+- Dependency-audit gate enforces `runtime-accepted-debt` schema/expiry (41/41
+  self-tests); offline validator rewritten (comment-truncation,
+  aliased/dynamic globals, `sendBeacon`/`EventSource`; 18/18 self-tests;
+  real scan CLEAN over 968 files; in-test scan in
+  `offline-boundary.test.ts` synced); IMPACT_MAP↔RULES content sync via
+  `--check-sync` wired into CI (drift proven by negative test); repo-state
+  requires task-ownership/EXECUTION_PROMPT, reports ownership parse failures,
+  and checks workflow-referenced script existence (both proven by negative
+  tests); jest-skip allowlist schema v2 with `reviewedAt` + stale-entry
+  detection; certify-clean-checkout gate parity with CI incl. Jest signal;
+  repository-integrity weekly schedule + cheap validator self-tests in CI.
+
+### W5 — commit `c9e06d0` (pushed)
+
+- Removed verified-dead `scripts/qa/release-driver.mjs` and
+  `apps/mobile/tsconfig.validate.json` (ownership surface cleaned, zero live
+  references); `refero.mjs` kept with an explicit historical-disposition
+  header.
+- Registers truthed: KNOWN_ISSUES resolved entries (cold-start race, export
+  double-pass, offline heuristic, artifact retention) + dependency-expiry
+  gate note; DEFERRED_DECISIONS native file-transport note corrected and
+  password-encrypted backups recorded as explicit deferred decision
+  (constitution §7 "eventually", absent from §33); `checksum.ts` comment
+  corrected; PARITY_MATRIX gained the encryption DEFERRED row and an updated
+  export row.
+- Components: error-boundary copy matches the offered action, dialog scrim
+  exposes its role only when dismissable, game-not-ready copy describes the
+  shipped release. Four missing `hooks.test.ts` added
+  (`attention-target-count`, `logic-code-cracker`, `logic-rule-grid`,
+  `memory-prospective-cue`).
+
+### W6 closure head
+
+- Full matrix: **PASS** — 545 suites / 6486 tests, 4 suites + 5 tests skipped
+  (all allowlisted opt-in probes; Jest signal validator PASS).
+- `tsc` clean; `expo lint` clean; validators all green (repo-state,
+  task-ownership, affected sync, offline scan, secrets, workflows,
+  dependency audit, registry, provenance); OpenSpec 15/15.
+- Runtime on `emulator-5560` + Metro: canaries **8/8 PASS** with scheduled
+  pre-warm (run `qa-artifacts/20260913-180659-autobot-canaries`).
+  - Honest prior run: the first canary attempt scored 7/8 —
+    `logic-next-sequence` force-win blocked by a docked LogBox dev-warning
+    snackbar during force-win under lazy-chunk build load (no new
+    `console.warn` in the campaign diff; `qa-toggle` present, bottom controls
+    intercepted). The game was proven in isolation (`--mode game`
+    single-game run PASS with session + row invariants), and the full
+    re-run after bundles warmed passed 8/8. The 7/8 run is retained as
+    evidence, not hidden.
+- Daily-workout journey: **PASS** (4/4 sessions + relaunch persistence;
+  run `qa-artifacts/20260913-182720-autobot-workout`).
+- a11y audit over 11 route-verified captures
+  (`qa-artifacts/campaign028/a11y`): **0 violations** (2
+  clipped-but-reported controls, same understood pattern as Campaign 026).
+- Adversarial diff review (3434+/575- across 62 files): no guard weakened
+  (all gates fail closed, exit codes verified), retries bounded and
+  disclosed, pre-warm never feeds pass/fail, deletions verified
+  unreferenced, no fake green.
+- Externally blocked evidence classes unchanged: store signing, manual
+  TalkBack, SAF system sheets, physical device, iOS runtime remain
+  **NOT VALIDATED** by policy, not PASS.

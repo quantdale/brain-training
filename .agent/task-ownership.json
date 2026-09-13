@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "CLOSED",
   "change": "028-production-readiness",
   "description": "Campaign 028 production-readiness closure. No new features. The orchestrator owns shared hotspots (.agent/**, openspec/**, scripts/**, docs/**, .github/**, package manifests, registry/generated files, shared component/kit surfaces) and performs all convergence edits plus runtime QA. Two disjoint code packets own the app-surface reliability repairs (W1) and the data-portability robustness closure (W2).",
   "orchestratorOnlySurfaces": [
