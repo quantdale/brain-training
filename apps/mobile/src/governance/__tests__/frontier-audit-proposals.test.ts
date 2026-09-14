@@ -1,12 +1,14 @@
 /**
- * Frontier audit (2026-09-14) — proposals applied 2026-09-14.
+ * Frontier audit (2026-09-14) — proposals applied 2026-09-14, archived
+ * 2026-09-14.
  *
  * Originally this file pinned the planning-only state (PROPOSED, tasks
  * unchecked, GOVERNANCE unbound). The owner then instructed: apply every
- * pending proposal, validate, and ensure all tasks are done. This test now
- * pins the APPLIED state: terminal change metadata, zero unchecked tasks, and
- * implementation evidence living in shipped source. It still pins the
- * governance invariant that no campaign was bound (`activeCampaign: null`).
+ * pending proposal, validate, ensure all tasks are done, archive, and push.
+ * This test now pins the FINAL state: every change is archived with terminal
+ * metadata, zero unchecked tasks, and implementation evidence living in
+ * shipped source. It still pins the governance invariant that no campaign was
+ * bound (`activeCampaign: null`).
  */
 import { describe, expect, it } from '@jest/globals';
 import fs from 'node:fs';
@@ -14,6 +16,8 @@ import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd(), '../..');
 const changesRoot = path.join(repoRoot, 'openspec', 'changes');
+const archiveRoot = path.join(changesRoot, 'archive');
+const ARCHIVED_AT = '2026-09-14';
 
 const APPLIED = [
   'in-game-workout-next-leg',
@@ -30,7 +34,13 @@ function read(rel: string): string {
   return fs.readFileSync(path.join(repoRoot, rel), 'utf8');
 }
 
-describe('frontier-audit OpenSpec proposals (applied)', () => {
+/** Archived location for these changes; falls back if a fixture re-activates one. */
+function changeDir(id: string): string {
+  const archived = path.join(archiveRoot, `${ARCHIVED_AT}-${id}`);
+  return fs.existsSync(archived) ? archived : path.join(changesRoot, id);
+}
+
+describe('frontier-audit OpenSpec proposals (applied + archived)', () => {
   it('does not bind GOVERNANCE.activeCampaign', () => {
     const governance = JSON.parse(read('.agent/GOVERNANCE.json')) as {
       activeCampaign: string | null;
@@ -38,8 +48,10 @@ describe('frontier-audit OpenSpec proposals (applied)', () => {
     expect(governance.activeCampaign).toBeNull();
   });
 
-  it.each(APPLIED)('%s is applied with every task complete', (id) => {
-    const dir = path.join(changesRoot, id);
+  it.each(APPLIED)('%s is archived, applied, with every task complete', (id) => {
+    const dir = changeDir(id);
+    // The 2026-09-14 wave was archived under its application date.
+    expect(fs.existsSync(path.join(archiveRoot, `${ARCHIVED_AT}-${id}`))).toBe(true);
     const meta = JSON.parse(fs.readFileSync(path.join(dir, 'change.json'), 'utf8')) as {
       id: string;
       status: string;

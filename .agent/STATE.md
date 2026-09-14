@@ -92,15 +92,16 @@ owner-authorized OpenSpec change or campaign.
 ## Frontier-audit application (2026-09-14, owner-directed; no campaign bound)
 
 Under an explicit owner instruction the eight 2026-09-14 frontier-audit
-OpenSpec proposals were applied, reviewed and marked **VALIDATED** with
-**69/69 tasks complete**: `terminal-durable-state-truth`,
+OpenSpec proposals were applied, reviewed, marked **VALIDATED** with
+**69/69 tasks complete**, and **archived** to
+`openspec/changes/archive/2026-09-14-<id>/`: `terminal-durable-state-truth`,
 `settings-driven-color-theme`, `persistent-game-tutorials`,
 `progression-refresh-on-surfaces`, `residual-user-surface-honesty`,
 `in-game-workout-next-leg`, `certify-provenance-parity`,
 `null-absent-performance-metrics`. `GOVERNANCE.activeCampaign` intentionally
 stays `null` (applied directly under owner authorization, not as a bound
-campaign). Full-matrix evidence is recorded in `.agent/VALIDATION.md` under
-“Frontier-audit application”.
+campaign). Full-matrix and runtime evidence is recorded in
+`.agent/VALIDATION.md` under “Frontier-audit application”.
 
 ## Terminal state (`028-production-readiness` VALIDATED)
 

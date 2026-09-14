@@ -2935,6 +2935,14 @@ commit `6f2c3a8`. Evidence behind every item:
   db-unavailable snapshots now pin the honest error+retry states instead of
   masking the load failure as new-player empty states (3 snapshots
   regenerated).
+- Finalization (2026-09-14): all eight changes were **archived** with
+  `openspec archive --yes --skip-specs` to
+  `openspec/changes/archive/2026-09-14-<id>/` (the repository intentionally
+  has no main `openspec/specs/` tree; `--skip-specs` is the CLI-documented mode
+  for doc/infra changes). Post-archive: OpenSpec validate 15/15 (archived
+  changes leave the active set), repo-state PASS, task-ownership PASS,
+  IMPACT_MAP sync PASS, provenance/offline/secrets/workflows/registry PASS,
+  and the governance test re-pinned to the archived paths (17/17).
 - NOT VALIDATED for this wave: the full-catalog canary certificate rerun and
   the a11y audit were not re-executed. The shared `GameResults` chrome was
   exercised at runtime across four categories by the journey, and every
