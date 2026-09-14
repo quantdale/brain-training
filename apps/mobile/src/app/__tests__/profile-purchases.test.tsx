@@ -63,6 +63,8 @@ const mockDbState: {
   activityDates: string[];
   /** When set, `profile.update` rejects with this error (theme persist). */
   updateError: Error | null;
+  /** When set, a load read rejects with this error (profile load failure). */
+  loadError: Error | null;
 } = {
   db: null,
   balance: 0,
@@ -71,6 +73,7 @@ const mockDbState: {
   questRows: [],
   activityDates: [],
   updateError: null,
+  loadError: null,
 };
 
 jest.mock('@/db', () => {
@@ -86,11 +89,10 @@ jest.mock('@/progression', () => {
   const actual = jest.requireActual('@/progression') as Record<string, unknown>;
   return {
     ...actual,
-    syncQuestProgress: jest.fn(async () => ({
+    refreshProgression: jest.fn(async () => ({
       sessions: [],
       lifetime: { sessionCount: 0, totalXp: 0 },
     })),
-    syncAchievements: jest.fn(async () => undefined),
     buildAchievementSnapshot: jest.fn(async () => ({
       sessionCount: 0,
       totalXp: 0,
@@ -156,7 +158,12 @@ function makeDb(): AppDatabase {
     sessions: {
       getTotalXp: async () => 0,
       listLightweight: async () => [],
-      getDistinctActivityDates: async () => mockDbState.activityDates,
+      getDistinctActivityDates: async () => {
+        if (mockDbState.loadError) {
+          throw mockDbState.loadError;
+        }
+        return mockDbState.activityDates;
+      },
     },
     xpAwards: { getTotalAwardedXp: async () => 0 },
   } as unknown as AppDatabase;
@@ -203,6 +210,7 @@ beforeEach(() => {
   mockDbState.questRows = [];
   mockDbState.activityDates = [];
   mockDbState.updateError = null;
+  mockDbState.loadError = null;
 });
 
 afterEach(() => {
@@ -418,5 +426,26 @@ describe('profile claim rejection paths (campaign 028)', () => {
     );
     const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
     expect(toast).toHaveTextContent(/Couldn't save your theme/);
+  });
+});
+
+describe('profile load failure honesty (frontier audit)', () => {
+  it('shows error + retry instead of a zeroed new-player profile, and retry recovers', async () => {
+    mockDbState.loadError = new Error('profile load boom');
+    await renderProfile();
+
+    // The failure is not presented as a fresh zeroed identity.
+    expect(await screen.findByTestId('profile-error')).toBeOnTheScreen();
+    expect(screen.queryByTestId('profile-identity')).toBeNull();
+
+    // Recovery: the retry control re-runs the load; clearing the injected
+    // failure lets the real content render.
+    mockDbState.loadError = null;
+    await fireEvent.press(screen.getByTestId('profile-error-action'));
+
+    expect(
+      await screen.findByTestId('profile-identity', {}, { timeout: 10_000 }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('profile-error')).toBeNull();
   });
 });

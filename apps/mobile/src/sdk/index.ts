@@ -39,8 +39,16 @@ export type {
 export {
   createTutorialLifecycle,
   createInMemoryTutorialStore,
+  createWriteThroughTutorialStore,
 } from './tutorial';
-export type { TutorialLifecycle, TutorialState, TutorialStore } from './tutorial';
+export type {
+  TutorialLifecycle,
+  TutorialState,
+  TutorialStore,
+  TutorialPersist,
+  WriteThroughTutorialStore,
+  WriteThroughTutorialStoreOptions,
+} from './tutorial';
 
 // Contracts (types/…)
 export {

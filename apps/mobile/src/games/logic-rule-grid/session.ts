@@ -78,8 +78,12 @@ export function buildRuleGridRawResult(input: BuildRawResultInput): RuleGridRawR
     roundsCorrect: input.stats.roundsCorrect,
     accuracy: accuracyOf(input.stats.roundsCorrect, input.stats.roundsPlayed),
     bestStreak: input.stats.bestStreak,
-    bestRoundTimeMs:
-      input.stats.bestRoundTimeMs === Number.POSITIVE_INFINITY ? -1 : input.stats.bestRoundTimeMs,
+    // Internal sentinel is `Infinity`; persist `null` so a missing best is
+    // never read as a 0/negative sample (frontier audit
+    // `null-absent-performance-metrics`).
+    bestRoundTimeMs: Number.isFinite(input.stats.bestRoundTimeMs)
+      ? input.stats.bestRoundTimeMs
+      : null,
     totalElapsedMs: input.stats.totalElapsedMs,
     totalBudgetMs: input.stats.totalBudgetMs,
     size: input.params.size,

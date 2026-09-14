@@ -1,13 +1,16 @@
 {
   "id": "settings-driven-color-theme",
-  "status": "PROPOSED",
+  "status": "VALIDATED",
   "predecessor": "028-production-readiness",
   "canonicalBranch": "main",
   "entrypoint": "proposal.md",
   "proposal": "proposal.md",
   "design": "design.md",
   "tasks": "tasks.md",
-  "specOrder": ["settings-color-scheme"],
-  "activationRule": "Planning-only. Do not set GOVERNANCE.activeCampaign.",
-  "fullHardening": false
+  "specOrder": [
+    "settings-color-scheme"
+  ],
+  "activationRule": "Owner instruction 2026-09-14: apply every pending frontier-audit proposal. GOVERNANCE.activeCampaign intentionally stays unbound (applied directly under owner authorization, not as a bound campaign).",
+  "fullHardening": false,
+  "appliedAt": "2026-09-14"
 }

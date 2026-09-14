@@ -35,7 +35,7 @@ import {
 import StorageUnavailable from "@/app/storage-unavailable";
 import { THEME_SETTINGS_KEY, resolveThemeMode } from "@/theme/registry";
 import { Colors } from "@/theme/tokens";
-import { ToastHost } from "@/components/ui/toast";
+import { ToastHost, showToast } from "@/components/ui/toast";
 
 export default function RootLayout() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
@@ -51,20 +51,28 @@ export default function RootLayout() {
   const cancelledRef = useRef(false);
 
   /**
-   * Persist the sensory toggles into the profile settings JSON. Fire-and-forget:
-   * a persistence failure must not break the toggle interaction.
+   * Persist the sensory toggles into the profile settings JSON. Fire-and-forget
+   * for interaction responsiveness, but a rejected write is disclosed: the
+   * optimistic in-session toggle stays, and the toast warns it may revert on
+   * restart (same pattern as the Profile theme persist).
    */
   const persistSettings = useCallback((settings: Settings) => {
+    const onPersistFailure = (error: unknown) => {
+      console.error("[startup] failed to persist sensory settings", error);
+      showToast({
+        title: "Couldn't save your settings",
+        detail: "The toggle may reset when you restart — try again.",
+        tone: "danger",
+      });
+    };
     try {
       void getDb()
         .profile.update({
           settings: { sfx: settings.sfx, haptics: settings.haptics },
         })
-        .catch((error: unknown) => {
-          console.error("[startup] failed to persist sensory settings", error);
-        });
+        .catch(onPersistFailure);
     } catch (error) {
-      console.error("[startup] failed to persist sensory settings", error);
+      onPersistFailure(error);
     }
   }, []);
 

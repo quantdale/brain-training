@@ -190,7 +190,25 @@ function validate(summary, allowlist) {
     })),
     pass: unclassified.length === 0 && ambiguous.length === 0,
   };
-  return { report, unclassified, ambiguous };
+  return { report, unclassified, ambiguous, classifications };
+}
+
+/**
+ * Orphan-entry detection (frontier audit `certify-provenance-parity`): an
+ * allowlist row that matched no pending test in this run exempts nothing — the
+ * skip it justified was removed, renamed or re-enabled. Fail closed instead of
+ * leaving a dead exemption behind.
+ */
+function findOrphanEntries(allowlist, classifications) {
+  const matched = new Set();
+  for (const item of classifications) {
+    for (const entry of item.matches) {
+      matched.add(`${entry.file}\n${entry.testPattern}`);
+    }
+  }
+  return allowlist.filter(
+    (entry) => !matched.has(`${entry.file}\n${entry.testPattern}`),
+  );
 }
 
 function assertPass(report, unclassified, ambiguous) {
@@ -278,6 +296,26 @@ function selfTest() {
   );
   assert.equal(findStaleEntries([{ ...allowlist[1], enableWith: 'NO_SUCH_PROBE=1' }]).length, 1);
 
+  // Orphan entries (frontier audit `certify-provenance-parity`): an entry that
+  // matches zero current pending tests is stale even when its file and gate
+  // still exist.
+  const noPending = validate(syntheticSummary('passed'), allowlist);
+  assert.equal(
+    findOrphanEntries(allowlist, noPending.classifications).length,
+    allowlist.length,
+    'a summary with no pending tests must orphan every allowlist entry',
+  );
+  assert.equal(
+    findOrphanEntries(allowlist, [{ matches: [allowlist[1]] }]).length,
+    allowlist.length - 1,
+    'only the matched entry may be kept',
+  );
+  assert.equal(
+    findOrphanEntries(allowlist, good.classifications).length,
+    0,
+    'fully matched allowlist must have no orphans',
+  );
+
   // Schema v2: legacy version and missing/invalid review metadata are rejected.
   assert.throws(() => validateAllowlistValue({ schemaVersion: 1, entries: [] }, 'fixture'), /invalid allowlist schema/);
   assert.throws(
@@ -316,6 +354,17 @@ if (args.includes('--self-test')) {
         throw new Error(`${stale.length} stale jest-skip allowlist entr${stale.length === 1 ? 'y' : 'ies'} — update or remove them`);
       }
       const result = validate(readJson(summaryFile), allowlist);
+      const orphans = findOrphanEntries(allowlist, result.classifications);
+      if (orphans.length) {
+        for (const entry of orphans) {
+          console.error(
+            `ORPHAN_ALLOWLIST_ENTRY: ${entry.file} (${entry.testPattern}) — matched no pending test in this summary`,
+          );
+        }
+        throw new Error(
+          `${orphans.length} orphan jest-skip allowlist entr${orphans.length === 1 ? 'y' : 'ies'} — update or remove them`,
+        );
+      }
       assertPass(result.report, result.unclassified, result.ambiguous);
     } catch (error) {
       console.error(`validate-jest-signal: FAIL — ${error.message}`);

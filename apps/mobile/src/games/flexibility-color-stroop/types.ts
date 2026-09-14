@@ -141,7 +141,8 @@ export interface ColorStroopRawResult extends GameRawResult {
    */
   readonly totalFlips?: number;
   readonly avgResponseTimeMs: number;
-  readonly fastestResponseMs: number;
+  /** Fastest valid reaction; `null` when no finite sample existed. */
+  readonly fastestResponseMs: number | null;
   readonly challengeRating: number;
   readonly difficulty: DifficultyLevel;
   readonly seed: string;

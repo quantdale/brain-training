@@ -98,6 +98,14 @@ describe('buildTargetCountRawResult', () => {
     expect(raw.roundsCorrect).toBe(6);
     expect(raw.bestStreak).toBe(4);
   });
+
+  it('persists a missing best round time as null, never -1', () => {
+    const raw = buildRaw({
+      stats: { ...STATS, bestRoundTimeMs: Number.POSITIVE_INFINITY },
+    });
+    expect(raw.bestRoundTimeMs).toBeNull();
+    expect(JSON.parse(JSON.stringify(raw)).bestRoundTimeMs).toBeNull();
+  });
 });
 
 describe('buildSessionRecord', () => {

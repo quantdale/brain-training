@@ -49,6 +49,63 @@ export function createInMemoryTutorialStore(): TutorialStore {
   };
 }
 
+/** Persistence callback for the write-through store (sync or async). */
+export type TutorialPersist = (
+  gameId: string,
+  state: TutorialState,
+) => void | Promise<void>;
+
+export interface WriteThroughTutorialStoreOptions {
+  /** Hydrated snapshot read from the durable store before first paint. */
+  initial?: Readonly<Record<string, TutorialState>>;
+  /** Durable sink, called in mutation order. */
+  persist: TutorialPersist;
+  /** Receives persistence failures; the local state stays as the player saw it. */
+  onPersistError?: (gameId: string, error: unknown) => void;
+}
+
+/**
+ * Synchronous `TutorialStore` over an async durable repository.
+ *
+ * The SDK contract is synchronous (game screens read tutorial state during
+ * render), while the repository is async. This adapter starts from a hydrated
+ * snapshot and queues every `setTutorialState` to `persist` in call order, so
+ * reads always see the latest in-memory state and writes land in the same
+ * order the player produced them. `flush()` resolves when every queued write
+ * has settled; production does not depend on process death timing — a crash
+ * before the SQLite commit leaves the tutorial un-completed, which is the
+ * honest state (the write is replayed on the next completion).
+ */
+export interface WriteThroughTutorialStore extends TutorialStore {
+  /** Resolves after every queued persistence write has settled. */
+  flush(): Promise<void>;
+}
+
+export function createWriteThroughTutorialStore(
+  options: WriteThroughTutorialStoreOptions,
+): WriteThroughTutorialStore {
+  const states = new Map<string, TutorialState>(Object.entries(options.initial ?? {}));
+  let queue: Promise<void> = Promise.resolve();
+
+  return {
+    getTutorialState: (gameId) => states.get(gameId) ?? null,
+    setTutorialState: (gameId, state) => {
+      const snapshot: TutorialState = {
+        completed: state.completed,
+        replayRequested: state.replayRequested,
+        version: state.version,
+      };
+      states.set(gameId, snapshot);
+      queue = queue
+        .then(() => options.persist(gameId, snapshot))
+        .catch((error: unknown) => {
+          options.onPersistError?.(gameId, error);
+        });
+    },
+    flush: () => queue,
+  };
+}
+
 const NOT_SEEN: TutorialState = Object.freeze({ completed: false, replayRequested: false, version: null });
 
 /** Reference `TutorialLifecycle` over any `TutorialStore`. */

@@ -63,6 +63,7 @@ import {
   collectClaimableRewards,
   type RewardInboxItem,
 } from "@/rewards/inbox";
+import { refreshProgression } from "@/progression";
 import {
   loadRewardHistory,
   type RewardHistoryEntry,
@@ -111,6 +112,17 @@ async function loadRewards(
   db: AppDatabase,
   now = new Date(),
 ): Promise<RewardsData> {
+  // Sync first so a quest completed by the latest persisted session appears as
+  // claimable without visiting Profile (the inbox reads persisted progress).
+  // Best-effort: if the refresh pass itself fails, the inbox still reads the
+  // persisted rows and the screen's own load-error surface covers primary read
+  // failures.
+  try {
+    await refreshProgression(db, now);
+  } catch (error) {
+    console.error('[rewards] progression refresh failed', error);
+  }
+
   const [balance, profile, unlockRows, questProgressAll, activityDates, inbox, history] =
     await Promise.all([
       db.ledger.getBalance(),

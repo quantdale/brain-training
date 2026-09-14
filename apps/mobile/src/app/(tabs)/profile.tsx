@@ -26,6 +26,7 @@ import { ScreenShell } from "@/components/screen-shell";
 import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
+import { StateCard } from "@/components/shell";
 import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -52,8 +53,7 @@ import {
 } from "@/achievements";
 import {
   buildAchievementSnapshot,
-  syncAchievements,
-  syncQuestProgress,
+  refreshProgression,
 } from "@/progression";
 import { levelForXp, levelProgress, xpForNextLevel, xpIntoLevel } from "@/rating";
 import {
@@ -209,12 +209,12 @@ async function loadProfile(
   now = new Date(),
 ): Promise<ProfileData> {
   // Re-evaluate quests/achievements from persisted sessions first so the
-  // screen reflects sessions completed since the last visit. The sync returns
-  // the exact snapshot it evaluated, so the screen derives its quest rows from
-  // the same bounded sample + lifetime aggregates — no second full scan
-  // (Campaign 027 performance work).
-  const questSnapshot = await syncQuestProgress(db, now);
-  await syncAchievements(db, now);
+  // screen reflects sessions completed since the last visit. The shared
+  // refresh also re-seeds definitions if a wipe/replace dropped them, and
+  // returns the exact snapshot it evaluated — the screen derives its quest
+  // rows from the same bounded sample + lifetime aggregates, no second full
+  // scan (Campaign 027 performance work).
+  const questSnapshot = await refreshProgression(db, now);
 
   const [
     balance,
@@ -405,7 +405,7 @@ export default function ProfileScreen() {
   const { themeId, setThemeId } = useSettings();
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
-  const { data } = useDbData(loadProfile, [refreshKey], EMPTY_PROFILE);
+  const { data, loaded, error } = useDbData(loadProfile, [refreshKey], EMPTY_PROFILE);
 
   // Re-sync progression each time the tab regains focus.
   useFocusEffect(
@@ -609,6 +609,25 @@ export default function ProfileScreen() {
 
   const level = levelForXp(data.totalXp);
   const hasProgress = data.totalXp > 0 || data.balance > 0;
+
+  // A failed load must not present the zeroed fallback as a new-player profile:
+  // show the recoverable error with a retry, matching Home/progress-detail.
+  if (loaded && error) {
+    return (
+      <ScreenShell>
+        <ThemedText type="title" testID="profile-title">
+          Profile
+        </ThemedText>
+        <StateCard
+          variant="error"
+          title="Couldn't load your profile"
+          message="Your profile data is unavailable right now."
+          testID="profile-error"
+          action={{ label: "Try again", onPress: refresh }}
+        />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell>

@@ -70,6 +70,7 @@ import { levelForXp, levelProgress, xpForLevel } from "@/rating";
 import { useDbData } from "@/hooks/use-db-data";
 import { getAllGameDefinitions } from "@/registry/registry";
 import { collectClaimableRewards } from "@/rewards/inbox";
+import { refreshProgression } from "@/progression";
 import {
   effectiveCurrent,
   milestoneProgress,
@@ -203,6 +204,14 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
  * the hint simply stays at zero.
  */
 async function loadClaimableRewardCount(db: AppDatabase): Promise<number> {
+  // Sync quests/achievements first: a session completed in this process must
+  // be reflected in the hint without a Profile detour. Both steps are isolated
+  // so an engagement-layer failure can never blank the core dashboard slots.
+  try {
+    await refreshProgression(db);
+  } catch (error) {
+    console.error('[home] progression refresh failed', error);
+  }
   try {
     return (await collectClaimableRewards(db)).length;
   } catch {
@@ -566,7 +575,28 @@ export default function HomeScreen() {
   // error there would flip the visual-baseline canaries.
   const hasCatalog = allGames.length > 0;
 
-  const onReroll = workoutFlow.reroll;
+  // Reroll is user-triggered and can reject (paid debit transaction, apply
+  // failure, unexpected db error). The wrapper keeps the CTA retryable and
+  // tells the player nothing was spent; the hook still throws for tests.
+  const [rerollInProgress, setRerollInProgress] = useState(false);
+  const onReroll = useCallback(async () => {
+    if (rerollInProgress) {
+      return;
+    }
+    setRerollInProgress(true);
+    try {
+      await workoutFlow.reroll();
+    } catch (error) {
+      console.error("[home] workout reroll failed", error);
+      showToast({
+        title: "Couldn't reroll the workout",
+        detail: "Your coins were not spent — try again.",
+        tone: "danger",
+      });
+    } finally {
+      setRerollInProgress(false);
+    }
+  }, [rerollInProgress, workoutFlow]);
 
   const rerollLabel =
     workoutStatus === "completed"
@@ -733,6 +763,7 @@ export default function HomeScreen() {
                 disabled={
                   !rerollAffordable ||
                   rerollExhausted ||
+                  rerollInProgress ||
                   workoutStatus === "completed"
                 }
                 onPress={onReroll}
@@ -747,6 +778,28 @@ export default function HomeScreen() {
                 </ThemedText>
               ) : null}
             </>
+          ) : hasCatalog && workoutFlow.loadFailed ? (
+            // A failed load-or-create must not read as "no catalog installed".
+            <Card tone="dangerSoft" testID="home-workout-error">
+              <View style={styles.errorBody}>
+                <ThemedText type="label" themeColor="dangerSoftText">
+                  Couldn&apos;t load today&apos;s workout
+                </ThemedText>
+                <ThemedText type="bodySmall" themeColor="dangerSoftText">
+                  Your plan is stored on this phone — try again to reload it.
+                </ThemedText>
+                <Button
+                  variant="secondary"
+                  label="Try again"
+                  testID="home-workout-retry"
+                  onPress={workoutFlow.retry}
+                />
+              </View>
+            </Card>
+          ) : hasCatalog && workoutFlow.status === "loading" ? (
+            // Hold the skeleton instead of flashing the empty-plan copy while
+            // the durable instance loads.
+            <Skeleton height={Spacing.six * 2} testID="home-workout-loading" />
           ) : (
             <EmptyState
               testID="home-workout-empty"

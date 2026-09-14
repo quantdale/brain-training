@@ -5,10 +5,9 @@
 **Authority:** subordinate to `docs/PROJECT_CONSTITUTION.md`
 
 **Current state (2026-09-13):** the catalog is complete at **42 games**;
-Campaigns 001–026 are closed, most recently 026 (visual identity rebuild,
-**VALIDATED**), and **Campaign 027 (deep hardening) is active** with feature
-development frozen. Durable current state lives in `.agent/STATE.md` and
-`.agent/CURRENT_CAMPAIGN.md`.
+Campaigns 001–028 are closed, most recently 028 (production-readiness closure,
+**VALIDATED**), and **no campaign is active**. Durable current state lives in
+`.agent/STATE.md` and `.agent/GOVERNANCE.json`.
 
 **Version note:** the exact Campaign-001 dependency pins recorded in
 `docs/adr/0004-campaign-001-stack-versions.md` were lifted within SDK 57

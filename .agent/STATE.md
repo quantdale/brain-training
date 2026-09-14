@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-13 — Campaign 028 closed VALIDATED (terminal).
+**Last update:** 2026-09-14 — frontier-audit proposals applied VALIDATED (no active campaign).
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** `028-production-readiness`
@@ -8,17 +8,14 @@
 
 ## Current status
 
-Campaign 027 closed VALIDATED at `212469d`. Four fresh read-only audits on
-`1733458` (app-surface production scan, data portability, autobot harness,
-validators/CI) found no Critical/High product defect but a bounded set of
-release-confidence gaps: residual silent user-action failures, obsolete export
-deferral plus import-validation and file-pick robustness gaps, unverified
-autobot deep links (the recorded 4/8 and 6/8 canary runs) with unbounded
-artifact growth, validator gates that do not enforce their own written policy
-(dependency-audit expiry, IMPACT_MAP drift, repo-state fail-open, offline
-heuristic), and residual documentation/cleanup debt. Campaign 028
-(`028-production-readiness`) is active to close exactly those items, with no
-new features and constitution-deferred systems untouched.
+Campaign 028 (`028-production-readiness`) closed **VALIDATED** at `5f05e50`
+(closure evidence in `.agent/VALIDATION.md` and the campaign packet). It closed
+the residual release-confidence gaps four read-only audits found on `1733458`
+(silent user-action failures, portability robustness, autobot navigation
+reliability and artifact retention, validator/CI gate integrity, docs truth,
+cleanup), with no new features and constitution-deferred systems untouched.
+There is **no active campaign**: further work resumes only under a new
+owner-authorized OpenSpec change or campaign.
 
 ## Campaign 028 workstreams (closed VALIDATED)
 
@@ -82,10 +79,7 @@ new features and constitution-deferred systems untouched.
   fixed; four hooks tests added (`attention-target-count`,
   `logic-code-cracker`, `logic-rule-grid`, `memory-prospective-cue`) with
   component suites green.
-- **Next:** W6 full matrix + runtime canaries on `emulator-5560`, adversarial
-  diff review, then closure (W7).
-
-- **W6 verification complete:** full matrix 545 suites / 6486 tests PASS
+- **W6/W7 closure complete:** full matrix 545 suites / 6486 tests PASS
   (5 allowlisted opt-in probes skipped, signal-validated), `tsc` clean,
   `expo lint` clean, every validator + OpenSpec 15/15 green; runtime
   canaries 8/8 PASS with scheduled pre-warm on `emulator-5560` (one prior
@@ -94,6 +88,19 @@ new features and constitution-deferred systems untouched.
   journey PASS (4/4 + relaunch persistence); a11y audit 0 violations across
   11 route-verified surfaces; adversarial diff review recorded no guard
   weakening, no fake green, deletions verified unreferenced.
+
+## Frontier-audit application (2026-09-14, owner-directed; no campaign bound)
+
+Under an explicit owner instruction the eight 2026-09-14 frontier-audit
+OpenSpec proposals were applied, reviewed and marked **VALIDATED** with
+**69/69 tasks complete**: `terminal-durable-state-truth`,
+`settings-driven-color-theme`, `persistent-game-tutorials`,
+`progression-refresh-on-surfaces`, `residual-user-surface-honesty`,
+`in-game-workout-next-leg`, `certify-provenance-parity`,
+`null-absent-performance-metrics`. `GOVERNANCE.activeCampaign` intentionally
+stays `null` (applied directly under owner authorization, not as a bound
+campaign). Full-matrix evidence is recorded in `.agent/VALIDATION.md` under
+“Frontier-audit application”.
 
 ## Terminal state (`028-production-readiness` VALIDATED)
 
@@ -105,10 +112,11 @@ SAF sheets, physical device, iOS runtime).
 
 ## Continuation rule
 
-Execute `.agent/EXECUTION_PROMPT.md` (ACTIVE) and
-`openspec/changes/028-production-readiness/` until the exit gate is satisfied
-or a genuine blocker is durably recorded. No new features; no
-constitution-deferred systems. Externally blocked evidence classes (store
+There is no active campaign and `GOVERNANCE.activeCampaign` is `null`. Do
+**not** execute `028-production-readiness` or `.agent/EXECUTION_PROMPT.md` as
+active work; 028 is closed VALIDATED and terminal for its scope. The next work
+requires an explicit owner-authorized OpenSpec change or campaign; do not
+invent one in executor mode. Externally blocked evidence classes (store
 signing, manual TalkBack, SAF sheets, physical device, iOS runtime) remain
 out of scope and honestly classified.
 

@@ -6,9 +6,11 @@
  * bump. For each game, tracks which files affect challenge identity and
  * requires a version bump when those files change.
  *
- * Usage: node scripts/validate-provenance.mjs [--check] [--json]
+ * Usage: node scripts/validate-provenance.mjs [--check] [--json] [--base=<ref>]
  *   --check  exit 1 if drift detected (default: report only)
  *   --json   output JSON instead of human-readable text
+ *   --base   explicit base ref (default: PROVENANCE_BASE_REF / origin/main)
+ *   --self-test  offline fixture self-test (no git history required)
  *
  * Allowlist: files listed in `.agent/provenance-allowlist.json` are excluded
  * from drift detection (for non-semantic edits like comments, formatting).
@@ -206,14 +208,25 @@ function isValidAllowlistEntry(entry, now = new Date()) {
   return Number.isFinite(expiry.getTime()) && expiry > now;
 }
 
-/** Main validation logic. */
-function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main') {
-  const allowlist = loadAllowlist();
+/**
+ * Main validation logic.
+ *
+ * `overrides` is the fixture-injection seam used by `--self-test`: it lets the
+ * pure drift policy run against synthetic changed-file/version inputs without
+ * a git base (self-test and negative fixtures).
+ */
+function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main', overrides = {}) {
+  const loadAllowlistFn = overrides.loadAllowlist ?? loadAllowlist;
+  const getChangedFilesFn = overrides.getChangedFiles ?? getChangedFiles;
+  const getGameVersionsFn = overrides.getGameVersions ?? getGameVersions;
+  const now = overrides.now ?? new Date();
+
+  const allowlist = loadAllowlistFn();
   if (allowlist === null) {
     return { valid: false, drifts: [], message: 'Allowlist is malformed or unreadable' };
   }
 
-  const changed = getChangedFiles(baseRef);
+  const changed = getChangedFilesFn(baseRef);
   if (!changed.ok) {
     return {
       valid: false,
@@ -239,15 +252,14 @@ function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main') {
   }
   
   const drifts = [];
-  const now = new Date();
 
   for (const [gameId, files] of Object.entries(changedByGame)) {
     // Check if any challenge identity files changed
     const challengeFiles = files.filter(f => isChallengeIdentityFile(f, gameId));
     if (challengeFiles.length === 0) continue;
 
-    const versions = getGameVersions(gameId, 'current');
-    const baseVersions = getGameVersions(gameId, 'base', baseRef);
+    const versions = getGameVersionsFn(gameId, 'current');
+    const baseVersions = getGameVersionsFn(gameId, 'base', baseRef);
     if (!versions) {
       drifts.push({
         gameId,
@@ -331,6 +343,89 @@ function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main') {
   };
 }
 
+/**
+ * Offline self-test (frontier audit `certify-provenance-parity`).
+ *
+ * Proves the drift policy on synthetic inputs, including the required negative
+ * fixture: an unversioned `generator.ts` edit must fail closed. Runs without a
+ * git base so it can execute in repository-integrity CI.
+ */
+function selfTest() {
+  const failures = [];
+  const check = (name, condition, detail) => {
+    if (!condition) failures.push(`${name}${detail ? ` — ${detail}` : ''}`);
+  };
+
+  const memoryFiles = (files) => () => ({ ok: true, files });
+  const versions =
+    (generatorVersion, scoringVersion = '1.0.0') =>
+    (gameId) => ({
+      gameId,
+      gameVersion: '1.0.0',
+      generatorVersion,
+      contentVersion: null,
+      scoringVersion,
+    });
+
+  // Negative fixture: synthetic generator edit without a version bump.
+  const drift = validate('fixture-base', {
+    loadAllowlist: () => ({}),
+    getChangedFiles: memoryFiles(['apps/mobile/src/games/memory/generator.ts']),
+    getGameVersions: versions('1.0.0'),
+  });
+  check(
+    'synthetic generator edit without bump fails closed',
+    drift.valid === false &&
+      drift.drifts.length === 1 &&
+      drift.drifts[0].needsGeneratorBump === true,
+    JSON.stringify(drift),
+  );
+
+  // Control: the same edit WITH a strictly increasing generator version passes.
+  const bumped = validate('fixture-base', {
+    loadAllowlist: () => ({}),
+    getChangedFiles: memoryFiles(['apps/mobile/src/games/memory/generator.ts']),
+    getGameVersions: (gameId, source) =>
+      versions(source === 'base' ? '1.0.0' : '1.1.0')(gameId, source),
+  });
+  check('bumped generator version passes', bumped.valid === true, JSON.stringify(bumped));
+
+  // Non-identity files never trigger drift.
+  const readmeOnly = validate('fixture-base', {
+    loadAllowlist: () => ({}),
+    getChangedFiles: memoryFiles(['apps/mobile/src/games/memory/README.md']),
+    getGameVersions: versions('1.0.0'),
+  });
+  check('non-identity file change passes', readmeOnly.valid === true, JSON.stringify(readmeOnly));
+
+  // Unresolvable base fails closed with a named reason (certify's orphan case).
+  const unresolved = validate('missing-base', {
+    loadAllowlist: () => ({}),
+    getChangedFiles: () => ({ ok: false, files: [], error: 'unknown revision' }),
+    getGameVersions: versions('1.0.0'),
+  });
+  check(
+    'unresolvable base fails closed',
+    unresolved.valid === false && /Unable to resolve provenance base/.test(unresolved.message),
+    JSON.stringify(unresolved),
+  );
+
+  // Clean diff is valid (no drift work needed).
+  const empty = validate('fixture-base', {
+    loadAllowlist: () => ({}),
+    getChangedFiles: () => ({ ok: true, files: [] }),
+    getGameVersions: versions('1.0.0'),
+  });
+  check('empty diff is valid', empty.valid === true, JSON.stringify(empty));
+
+  if (failures.length > 0) {
+    for (const failure of failures) console.error(`provenance self-test FAIL: ${failure}`);
+    process.exitCode = 1;
+    return;
+  }
+  console.log('provenance self-test: PASS (5 checks)');
+}
+
 /** Generate allowlist template for current state. */
 function generateAllowlist() {
   const allowlist = {};
@@ -368,45 +463,52 @@ function generateAllowlist() {
 // CLI
 const checkOnly = process.argv.includes('--check');
 const jsonOutput = process.argv.includes('--json');
+const selfTestMode = process.argv.includes('--self-test');
 const generateMode = process.argv.includes('--generate-allowlist');
 const baseArg = process.argv.find(arg => arg.startsWith('--base='));
 const baseRef = baseArg ? baseArg.slice('--base='.length) : undefined;
 
-if (generateMode) {
+const runMain = () => {
+  const result = validate(baseRef);
+
+  if (jsonOutput) {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    if (result.valid) {
+      console.log(`provenance validator: ${result.message}`);
+    } else {
+      console.error(`provenance validator: ${result.message}`);
+      for (const drift of result.drifts) {
+        console.error(`  ${drift.gameId}:`);
+        console.error(`    Changed files: ${drift.files.join(', ')}`);
+        if (drift.needsGeneratorBump) {
+          console.error(`    Generator version bump needed (current: ${drift.currentVersions.generatorVersion})`);
+        }
+        if (drift.needsContentBump) {
+          console.error(`    Content version bump needed (current: ${drift.currentVersions.contentVersion})`);
+        }
+        if (drift.needsScoringBump) {
+          console.error(`    Scoring version bump needed (current: ${drift.currentVersions.scoringVersion})`);
+        }
+        if (drift.reason) {
+          console.error(`    ${drift.reason}`);
+        }
+      }
+    }
+  }
+
+  if (checkOnly && !result.valid) {
+    process.exit(1);
+  }
+};
+
+if (selfTestMode) {
+  selfTest();
+} else if (generateMode) {
   const allowlist = generateAllowlist();
   writeFileSync(ALLOWLIST_PATH, JSON.stringify(allowlist, null, 2));
   console.log(`provenance validator: wrote ${ALLOWLIST_PATH}`);
   process.exit(0);
-}
-
-const result = validate(baseRef);
-
-if (jsonOutput) {
-  console.log(JSON.stringify(result, null, 2));
 } else {
-  if (result.valid) {
-    console.log(`provenance validator: ${result.message}`);
-  } else {
-    console.error(`provenance validator: ${result.message}`);
-    for (const drift of result.drifts) {
-      console.error(`  ${drift.gameId}:`);
-      console.error(`    Changed files: ${drift.files.join(', ')}`);
-      if (drift.needsGeneratorBump) {
-        console.error(`    Generator version bump needed (current: ${drift.currentVersions.generatorVersion})`);
-      }
-      if (drift.needsContentBump) {
-        console.error(`    Content version bump needed (current: ${drift.currentVersions.contentVersion})`);
-      }
-      if (drift.needsScoringBump) {
-        console.error(`    Scoring version bump needed (current: ${drift.currentVersions.scoringVersion})`);
-      }
-      if (drift.reason) {
-        console.error(`    ${drift.reason}`);
-      }
-    }
-  }
-}
-
-if (checkOnly && !result.valid) {
-  process.exit(1);
+  runMain();
 }

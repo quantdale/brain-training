@@ -12,10 +12,13 @@ import {
   buildAchievementSnapshot,
   buildQuestSamples,
   initializeProgression,
+  refreshProgression,
   syncAchievements,
   syncQuestProgress,
 } from '@/progression';
 import { QUEST_DEFINITIONS_V1, currentPeriodKey } from '@/quests';
+import { collectClaimableRewards } from '@/rewards/inbox';
+import { wipeLocalData } from '@/data-portability';
 
 const T0 = 1_700_000_000_000;
 const SESSION_NOW = new Date(T0 + 60_000);
@@ -213,5 +216,55 @@ describe('syncAchievements', () => {
       currentPeriodKey('longterm', SESSION_NOW),
     );
     expect(progress.find((row) => row.questId === 'qt-xp-50000')?.progress).toBe(50_000);
+  });
+});
+
+describe('refreshProgression (claimable surfaces)', () => {
+  it('makes a quest completed in-process claimable without a Profile visit', async () => {
+    const db = await makeDb();
+    await initializeProgression(db, SESSION_NOW);
+    // Two 60 XP sessions finish the always-active daily "Daily XP" quest.
+    await db.sessions.completeSession({ session: makeSession({ id: 's1', xp: 60 }) });
+    await db.sessions.completeSession({ session: makeSession({ id: 's2', xp: 60 }) });
+
+    // Rewards/Home load path: refresh is the only sync, no Profile focus.
+    await refreshProgression(db, SESSION_NOW);
+
+    const inbox = await collectClaimableRewards(db, SESSION_NOW);
+    expect(inbox.some((item) => item.key.startsWith('quest:qdx:'))).toBe(true);
+  });
+
+  it('is monotonic across repeated loads (no double-grant)', async () => {
+    const db = await makeDb();
+    await initializeProgression(db, SESSION_NOW);
+    await db.sessions.completeSession({ session: makeSession({ id: 's1', xp: 60 }) });
+    await db.sessions.completeSession({ session: makeSession({ id: 's2', xp: 60 }) });
+
+    await refreshProgression(db, SESSION_NOW);
+    const first = await collectClaimableRewards(db, SESSION_NOW);
+    await refreshProgression(db, SESSION_NOW);
+    const second = await collectClaimableRewards(db, SESSION_NOW);
+
+    expect(second.map((item) => item.key)).toEqual(first.map((item) => item.key));
+  });
+
+  it('re-seeds a usable empty catalog after a wipe in the same db instance', async () => {
+    const db = await makeDb();
+    await initializeProgression(db, SESSION_NOW);
+    await db.sessions.completeSession({ session: makeSession({ id: 's1' }) });
+    await wipeLocalData(db);
+
+    // Engine's pure-clear semantics: catalog and profile are gone.
+    expect(await db.quests.listDefinitions()).toHaveLength(0);
+    expect(await db.profile.get()).toBeNull();
+
+    await refreshProgression(db, SESSION_NOW);
+
+    // Same process: profile + catalogs restored, history stays empty.
+    expect((await db.quests.listDefinitions()).length).toBeGreaterThanOrEqual(4);
+    expect((await db.achievements.listDefinitions()).length).toBeGreaterThanOrEqual(4);
+    expect(await db.profile.get()).not.toBeNull();
+    expect(await db.sessions.countSessions()).toBe(0);
+    expect(await collectClaimableRewards(db, SESSION_NOW)).toEqual([]);
   });
 });

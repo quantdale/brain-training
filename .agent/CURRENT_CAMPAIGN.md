@@ -1,11 +1,11 @@
 # Campaign 028 — Production-Readiness Closure
 
-**Status:** VALIDATED
+**Status:** VALIDATED (closed — terminal; not active)
 **Campaign id:** `028-production-readiness`
 **Predecessor:** `027-deep-hardening` (VALIDATED)
 **Mode:** day
 **Start SHA:** `1733458`
-**Change:** `028-production-readiness` (ACTIVE)
+**Change:** `028-production-readiness` (CLOSED — historical record only)
 **Authorization:** owner successor directive 2026-09-13 — autonomous
 determination and execution of successor campaigns, quality-improvement passes
 and production-hardening tasks until no material executable work remains.

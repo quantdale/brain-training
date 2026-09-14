@@ -102,6 +102,20 @@ describe('metrics-map extraction', () => {
     expect(extractReactionMs({})).toBeNull();
   });
 
+  it('never treats an absent best reaction as a 0 ms sample', () => {
+    // Null is the migrated absence marker (frontier audit null-metrics).
+    expect(extractReactionMs({ fastestResponseMs: null })).toBeNull();
+    expect(extractReactionMs({ fastestReactionMs: null })).toBeNull();
+    expect(extractReactionMs({ bestReactionMs: null })).toBeNull();
+    // 0 is the historical Color Stroop sentinel for "no sample"; a real 0 ms
+    // reaction is not physically plausible, so it must not become a record.
+    expect(extractReactionMs({ fastestResponseMs: 0 })).toBeNull();
+    // Non-finite values were already rejected.
+    expect(extractReactionMs({ fastestResponseMs: Number.POSITIVE_INFINITY })).toBeNull();
+    // A real best sample still extracts.
+    expect(extractReactionMs({ fastestResponseMs: 350 })).toBe(350);
+  });
+
   it('clamps accuracy into [0,1]', () => {
     expect(extractAccuracy({ accuracy: 5 })).toBe(1);
     expect(extractAccuracy({ accuracy: -1 })).toBe(0);

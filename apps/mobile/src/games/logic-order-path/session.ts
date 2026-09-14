@@ -81,8 +81,12 @@ export function buildOrderPathRawResult(input: BuildRawResultInput): OrderPathRa
     roundsCorrect: input.stats.roundsCorrect,
     accuracy,
     bestStreak: input.stats.bestStreak,
-    bestRoundTimeMs:
-      input.stats.bestRoundTimeMs === Number.POSITIVE_INFINITY ? 0 : input.stats.bestRoundTimeMs,
+    // Internal sentinel is `Infinity`; persist `null` so a missing best is
+    // never read as a 0 ms sample (frontier audit
+    // `null-absent-performance-metrics`).
+    bestRoundTimeMs: Number.isFinite(input.stats.bestRoundTimeMs)
+      ? input.stats.bestRoundTimeMs
+      : null,
     totalElapsedMs: input.stats.totalElapsedMs,
     totalBudgetMs: input.stats.totalBudgetMs,
     itemCount: input.params.itemCount,

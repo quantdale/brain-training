@@ -1202,6 +1202,25 @@ async function waitForAny(ids, timeoutMs = 20000, tag = "waitAny") {
   }
   return null;
 }
+/**
+ * Wait until `id` disappears from the hierarchy (e.g. a loading skeleton that
+ * shifts content below the fold). Returns the first settled frame, or the last
+ * observed frame on timeout (which may still contain `id`).
+ */
+async function waitForAbsent(id, timeoutMs = 20000, tag = "waitAbsent") {
+  const end = Date.now() + timeoutMs;
+  let last = null;
+  while (Date.now() < end) {
+    const p = dumpHierarchy(`${tag}-${Date.now() % 100000}`);
+    const xml = readFileSyncSafe(p);
+    if (xml && !DUMP_ERROR_RE.test(xml)) {
+      if (!hasTestId(xml, id)) return xml;
+      last = xml;
+    }
+    await sleep(750);
+  }
+  return last;
+}
 // Wait for a stable home screen (bundle loaded, nav context ready).
 // Measured on the dedicated AVD (2026-08-21, 38-game catalog, dev client):
 // a `pm clear` + relaunch cold start reaches interactive Home in ~50s
@@ -2437,6 +2456,19 @@ async function flowWordMatch() {
 // ---------------------------------------------------------------------------
 // Daily Workout 4/4 + interruption/resume (gates 6.8 / 12.7)
 // ---------------------------------------------------------------------------
+/**
+ * PURE: in-game workout continuation candidate for a workout-launched leg.
+ * After persist success the shared results chrome advances the leg and offers
+ * `<gameId>.next-game` (early leg) or `<gameId>.workout-complete` (last leg) on
+ * the SAME surface — no Home detour. Returns the marker present, else null.
+ */
+function inGameWorkoutCta(xml, gameId, isLastLeg) {
+  const wanted = isLastLeg
+    ? `${gameId}.workout-complete`
+    : `${gameId}.next-game`;
+  return hasTestId(xml, wanted) ? wanted : null;
+}
+
 async function flowWorkout() {
   beginSteps();
   const t0 = Date.now();
@@ -2452,8 +2484,8 @@ async function flowWorkout() {
       artifacts: captureAll("workout"),
       trace: traceSlice(),
     };
-  const home = await waitFor("home-workout-list", 20000, "wk-home");
-  if (!home)
+  const homeInitial = await waitFor("home-workout-list", 20000, "wk-home");
+  if (!homeInitial)
     return {
       id: "daily-workout (6.8/12.7)",
       passed: false,
@@ -2464,6 +2496,12 @@ async function flowWorkout() {
       artifacts: captureAll("workout"),
       trace: traceSlice(),
     };
+  // The dashboard renders its loading skeleton above the workout hero while
+  // the data read resolves. On that frame the LAST leg sits below the fold and
+  // uiautomator omits off-viewport nodes entirely, so the leg enumeration read
+  // 3/4 on the 2026-09-14 run even though the durable instance carried four
+  // games. Wait for the settled frame (skeleton gone) before enumerating.
+  const home = (await waitForAbsent("home-loading", 30000, "wk-home-settled")) ?? homeInitial;
 
   const ids = [];
   // `home-workout-game-status-<id>` child markers (added with the Home
@@ -2496,18 +2534,19 @@ async function flowWorkout() {
     artifacts: captureAll("workout"),
     trace: traceSlice(),
   });
-  // Post-workout-V2 journey (root-cause fix for the 009 + campaign-011 game-0
-  // aborts): games finish on their OWN results surface (`<id>.results`) and do
-  // NOT auto-navigate anywhere. The durable workout advances only when the
-  // session's shared result page (`/results?id=<session>`, reachable from the
-  // Home "Recent games" rows) is viewed — that page renders `results-next-game`
-  // or `results-workout-complete` via useWorkoutResultAdvance. So each leg is:
-  // enter game → force-win → own results → BACK to Home → open newest recent
-  // session → verify/press the workout CTA.
+  // Daily-workout journey (frontier audit `in-game-workout-next-leg`): games
+  // finish on their OWN results surface (`<id>.results`), and that SAME surface
+  // now advances the durable workout after persist success and offers
+  // `<id>.next-game` / `<id>.workout-complete`. So the official path is:
+  // enter game → force-win → in-game results → Next Game (repeat) → completion.
+  // The legacy Home → newest recent session → /results detour is kept below as
+  // an explicit fallback diagnostic (and its `results-next-game` /
+  // `results-workout-complete` markers still prove the /results surface works).
   //
   // Campaign-011 device finding: since the workout templates section landed,
   // Home's Recent-games card sits BELOW the fold, and uiautomator skips
   // off-screen nodes entirely — the rows must be scrolled into view.
+  let inGameCompleted = false;
   const scrollToRecentRow = async (tag) => {
     for (let s = 0; s < 5; s++) {
       const rx = readFileSyncSafe(dumpHierarchy(`${tag}-s${s}`));
@@ -2593,7 +2632,37 @@ async function flowWorkout() {
     const own = await driveForceWin(gameId, `wk-g${i}`);
     const reachedResults = !!own;
     log.push(`completed ${gameId} (${i + 1}/4, own-results=${reachedResults})`);
-    // --- Advance the workout via the shared session result page ---
+    // --- In-game advance + Next Game (frontier audit in-game-workout-next-leg) ---
+    // The shared results chrome advances the workout on persist success and
+    // offers the continuation on the SAME surface: `<id>.next-game` for an
+    // early leg, `<id>.workout-complete` for the final one. The legacy
+    // Home → recent-session → /results detour below remains an explicit
+    // fallback diagnostic if the in-game CTA does not render.
+    const isLastLeg = i === 3;
+    const ctaId = isLastLeg
+      ? `${gameId}.workout-complete`
+      : `${gameId}.next-game`;
+    let inGamePage = inGameWorkoutCta(own, gameId, isLastLeg) ? own : null;
+    if (!inGamePage) {
+      inGamePage = await waitFor(ctaId, 20000, `wk-in${i}`);
+    }
+    if (inGamePage) {
+      if (isLastLeg) {
+        inGameCompleted = true;
+        log.push("in-game workout-complete shown on the last leg");
+        continue;
+      }
+      const tapped = tapTestId(`${gameId}.next-game`, inGamePage);
+      if (tapped) {
+        log.push(`in-game Next Game tapped → leg ${i + 2}`);
+        await sleep(1600);
+        continue;
+      }
+      log.push("in-game Next Game present but not tappable; using Home fallback");
+    }
+
+    // --- Fallback diagnostic: legacy Home → recent → /results journey ---
+    log.push(`in-game CTA ${ctaId} not found; using Home/recent fallback`);
     // After results-next-game pushes game/[id] onto the stack, BACK pops one
     // route at a time: game → /results → Home. Home may render scrolled down
     // (previous recent-row hunt), so ANY home marker counts as arrived; the
@@ -2642,7 +2711,9 @@ async function flowWorkout() {
   }
 
   const complete = readFileSyncSafe(dumpHierarchy("wk-complete"));
-  const fourFour = complete && hasTestId(complete, "results-workout-complete");
+  const fourFour =
+    inGameCompleted ||
+    (complete && hasTestId(complete, "results-workout-complete"));
   log.push(
     fourFour
       ? "4/4 workout complete screen shown"
@@ -3444,8 +3515,23 @@ function summaryLine(r) {
 function writeRunJson(_runId, data) {
   mkdirSync(RUN_DIR, { recursive: true });
   const tmp = join(RUN_DIR, "run.json.tmp");
+  const dest = join(RUN_DIR, "run.json");
   writeFileSync(tmp, JSON.stringify(data, null, 2));
-  renameSync(tmp, join(RUN_DIR, "run.json")); // atomic: a missing run.json == incomplete run
+  // Windows can transiently EPERM this rename while AV/indexing holds the
+  // freshly written file (observed 2026-09-14: a completed run crashed in
+  // reporting). Retry briefly instead of losing the report; the rename stays
+  // the commit point (a missing run.json == incomplete run).
+  let lastError = null;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      renameSync(tmp, dest);
+      return;
+    } catch (error) {
+      lastError = error;
+      sleep(250 * (attempt + 1));
+    }
+  }
+  throw lastError;
 }
 
 // ---------------------------------------------------------------------------
@@ -3523,6 +3609,30 @@ function selfTest() {
   assert(
     "interaction evidence rejects timer-only hierarchy churn",
     !interactionEvidenceChanged(interactionBefore, timerOnlyAfter, "g1", "g1.option.2"),
+  );
+
+  // In-game workout continuation markers (frontier audit next-leg): the
+  // in-game results surface offers Next Game for early legs and completion on
+  // the last leg; the journey no longer detours Home between legs.
+  assert(
+    "in-game next-game candidate",
+    inGameWorkoutCta(
+      '<node resource-id="memory.next-game" bounds="[0,0][80,40]"/>',
+      "memory",
+      false,
+    ) === "memory.next-game",
+  );
+  assert(
+    "in-game completion candidate",
+    inGameWorkoutCta(
+      '<node resource-id="memory.workout-complete" bounds="[0,0][80,40]"/>',
+      "memory",
+      true,
+    ) === "memory.workout-complete",
+  );
+  assert(
+    "in-game candidate absent on unrelated results xml",
+    inGameWorkoutCta('<node resource-id="memory.results"/>', "memory", false) === null,
   );
 
   // Workout V2 template-flow helpers (campaign 012 / W08).

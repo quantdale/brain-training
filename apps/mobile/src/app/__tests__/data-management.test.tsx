@@ -21,6 +21,7 @@ import {
 
 import type { ImportPreview } from '@/data-portability';
 import DataManagementScreen from '@/app/data-management';
+import { refreshProgression } from '@/progression';
 
 import {
   applyImport,
@@ -101,6 +102,13 @@ jest.mock('@/data-portability', () => ({
   wipeLocalData: jest.fn(async () => undefined),
 }));
 
+// The screen re-seeds the profile + quest/achievement catalogs after a wipe or
+// replace import via `refreshProgression`; the engine behavior itself is pinned
+// by the progression suite, so this file only pins the call-site wiring.
+jest.mock('@/progression', () => ({
+  refreshProgression: jest.fn(async () => undefined),
+}));
+
 interface MockTransport {
   writeBackup: jest.Mock;
   readBackup: jest.Mock;
@@ -121,6 +129,7 @@ const transport: MockTransport =
 
 const mockedPreviewImport = jest.mocked(previewImport);
 const mockedApplyImport = jest.mocked(applyImport);
+const mockedRefreshProgression = jest.mocked(refreshProgression);
 const mockedExportLocalDataBundle = jest.mocked(exportLocalDataBundle);
 const mockedDefaultBackupName = jest.mocked(defaultBackupName);
 const mockedPickBackupFile = jest.mocked(pickBackupFile);
@@ -302,6 +311,8 @@ describe('data-management UX contract', () => {
     );
     const message = await screen.findByTestId('data-message');
     expect(message).toHaveTextContent(/Replace complete/);
+    // Replace erases the seeded catalog: the call site must restore it.
+    expect(mockedRefreshProgression).toHaveBeenCalled();
   });
 
   it('disarms Replace when the input is cleared', async () => {
@@ -340,6 +351,8 @@ describe('data-management UX contract', () => {
     );
     const message = await screen.findByTestId('data-message');
     expect(message).toHaveTextContent(/Merge complete/);
+    // Merge keeps existing definitions; only replace/wipe re-seed.
+    expect(mockedRefreshProgression).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid backup without writing anything', async () => {
@@ -398,6 +411,9 @@ describe('data-management UX contract', () => {
     await waitFor(() => expect(jest.mocked(wipeLocalData)).toHaveBeenCalled());
     const message = await screen.findByTestId('data-message');
     expect(message).toHaveTextContent(/Saved backup files were kept/);
+    // The wipe clears the profile + catalogs: the call site must restore them
+    // in-process (pinned at the engine level by the progression suite).
+    await waitFor(() => expect(mockedRefreshProgression).toHaveBeenCalled());
   });
 
   it('surfaces a mid-wipe engine failure and never claims the wipe succeeded', async () => {

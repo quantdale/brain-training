@@ -34,6 +34,7 @@ import {
   equipCosmeticPersisted,
   purchaseCosmetic,
 } from '@/cosmetics';
+import { refreshProgression } from '@/progression';
 import type { AchievementUnlock, AppDatabase } from '@/db';
 
 const ACH_FIRST = ACHIEVEMENT_DEFINITIONS_V1[0]; // ach-first
@@ -77,9 +78,18 @@ jest.mock('@/rewards/history', () => ({
   loadRewardHistory: jest.fn(async () => []),
 }));
 
+// The screen syncs progression before collecting the inbox (frontier audit
+// `progression-refresh-on-surfaces`). The sync engine itself is pinned by the
+// progression suite; here only the load-path wiring is pinned.
+jest.mock('@/progression', () => {
+  const actual = jest.requireActual('@/progression') as Record<string, unknown>;
+  return { ...actual, refreshProgression: jest.fn(async () => undefined) };
+});
+
 const mockedClaimAchievement = jest.mocked(claimAchievementReward);
 const mockedPurchase = jest.mocked(purchaseCosmetic);
 const mockedEquip = jest.mocked(equipCosmeticPersisted);
+const mockedRefreshProgression = jest.mocked(refreshProgression);
 
 /** Minimal repository surface used by loadRewards + collectClaimableRewards. */
 function makeDb(): AppDatabase {
@@ -309,5 +319,13 @@ describe('rewards cosmetic action failure paths (campaign 028)', () => {
     expect(toast).toHaveTextContent(/no longer owned/);
     expect(screen.queryByTestId('reward-celebration')).toBeNull();
     expect(screen.getByTestId(equipTestId)).toBeOnTheScreen();
+  });
+});
+
+describe('rewards progression refresh wiring', () => {
+  it('syncs progression before reading the inbox', async () => {
+    await renderRewards();
+
+    expect(mockedRefreshProgression).toHaveBeenCalled();
   });
 });

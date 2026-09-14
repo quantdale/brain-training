@@ -3,10 +3,9 @@
 Historical phase list — superseded by implementation reality (42-game
 catalog, Workout V3 signal-ranked templates over the V2 template engine,
 full progression/portability shipped; see
-`docs/PARITY_MATRIX.md`). Active work is owned by **Campaign 027**
-(`027-deep-hardening`, active deep hardening with feature development frozen)
-in `.agent/CURRENT_CAMPAIGN.md`; this file only records durable work outside
-any campaign.
+`docs/PARITY_MATRIX.md`). No campaign is active; Campaign 028
+(`028-production-readiness`) closed VALIDATED and durable current state lives
+in `.agent/STATE.md`. This file only records durable work outside any campaign.
 
 ## Still-open durable items
 
@@ -40,5 +39,5 @@ Deferred, non-blocking, and only worth doing with a reason:
 - Re-run the full-catalog `--mode certify` gate on a host with a single attached
   device to convert today's blocked classification into evidence.
 
-Campaign 027 W2 owns the active bounded hot-path and export work
-(`.agent/CURRENT_CAMPAIGN.md`); the items above remain outside it.
+The Campaign 027 W2 bounded hot-path and export work is closed (027/028
+VALIDATED); the items above remain outside any campaign.

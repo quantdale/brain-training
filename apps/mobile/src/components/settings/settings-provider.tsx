@@ -91,3 +91,13 @@ export function useSettings(): SettingsContextValue {
   }
   return context;
 }
+
+/**
+ * Context read that tolerates a missing provider: returns `undefined` instead
+ * of throwing. Used by `useTheme`, which many kit primitives and isolated unit
+ * tests render without the full provider stack; those fall back to the system
+ * theme, matching the pre-settings behavior.
+ */
+export function useOptionalSettings(): SettingsContextValue | undefined {
+  return useContext(SettingsContext);
+}

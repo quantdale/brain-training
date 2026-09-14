@@ -100,6 +100,14 @@ describe('buildColorStroopRawResult', () => {
     expect(raw.totalFlips).toBe(3);
     expect(raw.avgResponseTimeMs).toBe(800);
   });
+
+  it('persists a missing fastest sample as null, never 0', () => {
+    const raw = buildRaw({
+      stats: { ...STATS, fastestResponseMs: Number.POSITIVE_INFINITY },
+    });
+    expect(raw.fastestResponseMs).toBeNull();
+    expect(JSON.parse(JSON.stringify(raw)).fastestResponseMs).toBeNull();
+  });
 });
 
 describe('buildSessionRecord', () => {

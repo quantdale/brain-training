@@ -93,7 +93,8 @@ export interface CodeCrackerRawResult extends GameRawResult {
   readonly totalGuessesUsed: number;
   readonly totalGuessesBudget: number;
   readonly bestStreak: number;
-  readonly bestSolveGuesses: number;
+  /** Fewest guesses used for a solve; `null` when no finite sample existed. */
+  readonly bestSolveGuesses: number | null;
   readonly codeLength: number;
   readonly colorCount: number;
   readonly guessBudget: number;

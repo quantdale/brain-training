@@ -68,8 +68,10 @@ describe('buildOrderPathRawResult', () => {
     expect(raw.accuracy).toBe(0.75);
   });
 
-  it('maps an unplayed best time to 0 instead of Infinity', () => {
-    expect(makeRaw().bestRoundTimeMs).toBe(0);
+  it('maps an unplayed best time to null instead of Infinity or 0', () => {
+    const raw = makeRaw();
+    expect(raw.bestRoundTimeMs).toBeNull();
+    expect(JSON.parse(JSON.stringify(raw)).bestRoundTimeMs).toBeNull();
     const played = makeRaw({
       stats: { ...INITIAL_STATS, bestRoundTimeMs: 4_321 },
     });

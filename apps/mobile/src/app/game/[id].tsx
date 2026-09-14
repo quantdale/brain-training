@@ -6,16 +6,18 @@
  * `scripts/generate-game-registry.mjs`). Falls back to NotReady states for
  * unknown ids or registered-but-not-yet-implemented games.
  *
- * Note: Tutorial persistence is available via getDb().tutorials (see task 5.1).
- * Games use the in-memory store by default; the persistent store can be injected
- * via the tutorialStore prop when the component types are updated to accept it.
+ * Note: tutorial persistence is hydrated from `getDb().tutorials` by
+ * `usePersistentTutorialStore` before the game mounts and injected through the
+ * screens' `tutorialStore` prop, so first-play completion survives process
+ * death and help/replay still forces the tutorial. Games that omit the prop
+ * keep the in-memory default for isolated unit tests.
  *
  * Task 10.1: Lazy-loaded game components are cached outside route render
  * to prevent unnecessary remounts from component identity changes.
  */
 
 import { useLocalSearchParams } from "expo-router";
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo, type ComponentType } from "react";
 import { StyleSheet } from "react-native";
 
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -26,6 +28,8 @@ import { ThemedView } from "@/components/themed-view";
 import { Radii, Spacing } from "@/constants/theme";
 import { getGameDefinition } from "@/registry/registry";
 import { gameScreenLoaders } from "@/registry/registry.generated";
+import { usePersistentTutorialStore } from "@/hooks/use-persistent-tutorial-store";
+import type { TutorialStore } from "@/sdk";
 import { WorkoutSessionLaunchProvider } from "@/workout/session-launch-context";
 import { parseWorkoutLaunchProvenance } from "@/workout/session-provenance";
 
@@ -73,6 +77,19 @@ export default function GameScreen() {
     [game],
   );
 
+  // Hydrate the persisted tutorial state before the screen mounts; a mounted
+  // screen reads the store during render, so hydrating later would flash the
+  // first-play tutorial and then hide it. Unknown/unimplemented games skip it.
+  const tutorialStore = usePersistentTutorialStore(
+    GameScreenComponent === undefined ? undefined : game?.id,
+  );
+  // Screens all accept an optional `tutorialStore` injection seam; the shared
+  // loader type is the bare ComponentType, so widen it here once. Rendering is
+  // guarded by the `GameScreenComponent` branch below.
+  const InjectableGameComponent = GameScreenComponent as ComponentType<{
+    tutorialStore?: TutorialStore;
+  }>;
+
   if (!game) {
     return (
       <ScreenShell>
@@ -109,27 +126,32 @@ export default function GameScreen() {
         </>
       )}
       {GameScreenComponent ? (
-        <ErrorBoundary
-          onError={(error, info) => {
-            console.error(
-              JSON.stringify({
-                level: "error",
-                component: "game-route",
-                gameId: game.id,
-                message: error.message,
-                stack: error.stack,
-                componentStack: info.componentStack,
-              }),
-            );
-          }}
-        >
-          <Suspense fallback={<GameNotReady variant="loading" />}>
-            <WorkoutSessionLaunchProvider provenance={workoutProvenance}>
-              {/* eslint-disable-next-line react-hooks/static-components */}
-              <GameScreenComponent />
-            </WorkoutSessionLaunchProvider>
-          </Suspense>
-        </ErrorBoundary>
+        tutorialStore === null ? (
+          // Hold the loading presentation until the persisted tutorial row is
+          // known; mounting early would flash the first-play tutorial.
+          <GameNotReady variant="loading" />
+        ) : (
+          <ErrorBoundary
+            onError={(error, info) => {
+              console.error(
+                JSON.stringify({
+                  level: "error",
+                  component: "game-route",
+                  gameId: game.id,
+                  message: error.message,
+                  stack: error.stack,
+                  componentStack: info.componentStack,
+                }),
+              );
+            }}
+          >
+            <Suspense fallback={<GameNotReady variant="loading" />}>
+              <WorkoutSessionLaunchProvider provenance={workoutProvenance}>
+                <InjectableGameComponent tutorialStore={tutorialStore} />
+              </WorkoutSessionLaunchProvider>
+            </Suspense>
+          </ErrorBoundary>
+        )
       ) : (
         <GameNotReady variant="not-implemented" />
       )}

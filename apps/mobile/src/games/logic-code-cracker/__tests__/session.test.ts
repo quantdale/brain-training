@@ -97,6 +97,14 @@ describe('buildCodeCrackerRawResult', () => {
     expect(raw.totalGuessesUsed).toBe(20);
     expect(raw.bestStreak).toBe(2);
   });
+
+  it('persists a missing best guess count as null, never -1', () => {
+    const raw = buildRaw({
+      stats: { ...STATS, bestSolveGuesses: Number.POSITIVE_INFINITY },
+    });
+    expect(raw.bestSolveGuesses).toBeNull();
+    expect(JSON.parse(JSON.stringify(raw)).bestSolveGuesses).toBeNull();
+  });
 });
 
 describe('buildSessionRecord', () => {

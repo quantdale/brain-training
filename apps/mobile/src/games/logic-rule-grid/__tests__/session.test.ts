@@ -94,6 +94,14 @@ describe('buildRuleGridRawResult', () => {
     expect(raw.roundsCorrect).toBe(3);
     expect(raw.bestStreak).toBe(2);
   });
+
+  it('persists a missing best round time as null, never -1', () => {
+    const raw = buildRaw({
+      stats: { ...STATS, bestRoundTimeMs: Number.POSITIVE_INFINITY },
+    });
+    expect(raw.bestRoundTimeMs).toBeNull();
+    expect(JSON.parse(JSON.stringify(raw)).bestRoundTimeMs).toBeNull();
+  });
 });
 
 describe('buildSessionRecord', () => {

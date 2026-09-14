@@ -87,9 +87,12 @@ export function buildCodeCrackerRawResult(input: BuildRawResultInput): CodeCrack
     totalGuessesUsed: input.stats.totalGuessesUsed,
     totalGuessesBudget: input.stats.totalGuessesBudget,
     bestStreak: input.stats.bestStreak,
-    bestSolveGuesses: input.stats.bestSolveGuesses === Number.POSITIVE_INFINITY
-      ? -1
-      : input.stats.bestSolveGuesses,
+    // Internal sentinel is `Infinity`; persist `null` so a missing best is
+    // never read as a 0/negative sample (frontier audit
+    // `null-absent-performance-metrics`).
+    bestSolveGuesses: Number.isFinite(input.stats.bestSolveGuesses)
+      ? input.stats.bestSolveGuesses
+      : null,
     codeLength: input.params.codeLength,
     colorCount: input.params.colorCount,
     guessBudget: input.params.guessBudget,

@@ -8,11 +8,11 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameSessionRecord, WorkoutInstance } from "@/db";
-import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { shouldAdvanceWorkout } from "./advance";
 import { emitWorkoutChanged } from "./events";
 import { eligibleGameIds, reconcileWorkout } from "./reconcile";
+import { advanceWorkoutForSession } from "./session-advance";
 import type { WorkoutSessionProvenance } from "./session-provenance";
 
 export interface WorkoutResultAdvance {
@@ -82,43 +82,19 @@ export function useWorkoutResultAdvance(
     }
 
     advancingRef.current = true;
-    getDb().workouts
-      .advanceForSession(session)
-      .then(async ({ advanced, instance: updated }) => {
-        if (!updated) {
-          return;
-        }
-        // The current leg has now been consumed under its original ownership
-        // tuple. Repair any retired future legs before exposing the next
-        // provenance to the UI, otherwise the next launch could point at an
-        // index that the durable row no longer considers playable.
-        let displayUpdated = updated;
-        if (updated.status === "active") {
-          try {
-            displayUpdated =
-              (await getDb().workouts.reconcile(updated.date, eligibleGameIds())) ??
-              updated;
-          } catch (error) {
-            // Advancement is already durable; a transient reconciliation read
-            // failure must not hide the result or make the completion retry.
-            console.error("[results] workout reconciliation failed", error);
-          }
-        }
+    advanceWorkoutForSession({
+      gameId: session.gameId,
+      workoutProvenance: session.workoutProvenance,
+    })
+      .then((result) => {
         advancedForSessionRef.current = session.id;
-        const nextGameId = displayUpdated.gameIds[displayUpdated.currentIndex] ?? null;
-        setAdvancedInstance(displayUpdated);
+        setAdvancedInstance(result.instance);
         setNext({
-          id: nextGameId,
-          completed: displayUpdated.status === "completed",
-          provenance: nextGameId
-            ? {
-                instanceKey: displayUpdated.date,
-                legIndex: displayUpdated.currentIndex,
-                gameId: nextGameId,
-              }
-            : null,
+          id: result.nextGameId,
+          completed: result.completed,
+          provenance: result.nextProvenance,
         });
-        if (advanced) {
+        if (result.advanced) {
           emitWorkoutChanged();
         }
       })

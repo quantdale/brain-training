@@ -54,6 +54,7 @@ import {
 } from "@/data-portability";
 import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
+import { refreshProgression } from "@/progression";
 // Imported directly rather than via the barrel: this module pulls in native
 // filesystem modules that Node-side engine tests must not load transitively.
 // The native requires inside are LAZY (campaign 011 fix), so importing this
@@ -304,9 +305,25 @@ export default function DataManagementScreen() {
         const parsed =
           previewResult.parsed ?? parseAndValidateBackup(importText);
         const result = await applyImport(getDb(), parsed, mode);
+        // A replace import erases definitions along with the rest of the data;
+        // re-seed the singleton profile + catalogs in-process so the app is a
+        // usable first-run product without a restart. Merges keep existing
+        // definitions (and seed only when the fingerprint is stale).
+        let restoreFailed = false;
+        if (mode === "replace") {
+          try {
+            await refreshProgression(getDb());
+          } catch (error) {
+            restoreFailed = true;
+            console.error("[data-management] post-replace progression restore failed", error);
+          }
+        }
+        const suffix = restoreFailed
+          ? " The default quest catalog could not be restored — reopen the app to retry."
+          : "";
         setMessage(
           mode === "replace"
-            ? `Replace complete: current data was erased and ${result.sessionsAdded} sessions restored (${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added).`
+            ? `Replace complete: current data was erased and ${result.sessionsAdded} sessions restored (${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added).${suffix}`
             : `Merge complete: ${result.sessionsAdded} sessions added, ${result.sessionsSkipped} skipped, ${result.ledgerAdded} ledger entries added.`,
         );
         setPreview(null);
@@ -332,8 +349,21 @@ export default function DataManagementScreen() {
     setMessage(null);
     try {
       await wipeLocalData(getDb());
+      // The wipe clears the profile and definition catalogs; restore the
+      // singleton profile + versioned definitions in this same process so
+      // Home/Profile/play stay usable without an app restart. Sessions, XP and
+      // ledger rows stay empty (the engine's pure-clear semantics are kept).
+      let restoreFailed = false;
+      try {
+        await refreshProgression(getDb());
+      } catch (error) {
+        restoreFailed = true;
+        console.error("[data-management] post-wipe progression restore failed", error);
+      }
       setMessage(
-        "All local training data wiped. Saved backup files were kept — restore one any time.",
+        restoreFailed
+          ? "All local training data wiped, but the default catalog could not be restored. Reopen the app to retry."
+          : "All local training data wiped. Saved backup files were kept — restore one any time.",
       );
       setExportText(null);
       setLastExportName(null);

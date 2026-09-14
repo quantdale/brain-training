@@ -92,7 +92,8 @@ export interface RuleGridRawResult extends GameRawResult {
   readonly roundsCorrect: number;
   readonly accuracy: number;
   readonly bestStreak: number;
-  readonly bestRoundTimeMs: number;
+  /** Best correct round time; `null` when no finite sample existed. */
+  readonly bestRoundTimeMs: number | null;
   readonly totalElapsedMs: number;
   readonly totalBudgetMs: number;
   readonly size: number;

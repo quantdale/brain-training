@@ -91,7 +91,10 @@ export function extractReactionMs(rawResult: unknown): number | null {
   }
   for (const field of REACTION_BEST_FIELDS) {
     const value = readNumber(rawResult, field);
-    if (value !== null) {
+    // Historical rows persisted a 0 sentinel for "no sample" (Color Stroop
+    // before the null-metric migration); a real 0 ms reaction is not
+    // physically plausible, so non-positive bests are absence, not a record.
+    if (value !== null && value > 0) {
       return value;
     }
   }

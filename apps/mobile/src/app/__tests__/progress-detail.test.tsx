@@ -62,6 +62,9 @@ function makeFakeDb(overrides: {
       getRating: async () => null,
     },
     ledger: { getBalance: async () => 0 },
+    // loadProgressSnapshot reads the XP-awards total; without it the loader
+    // rejected and the old code masked the failure as an empty snapshot.
+    xpAwards: { getTotalAwardedXp: async () => 0 },
     favorites: { isFavorite: async () => false },
   } as unknown as AppDatabase;
 }

@@ -1,13 +1,16 @@
 {
   "id": "terminal-durable-state-truth",
-  "status": "PROPOSED",
+  "status": "VALIDATED",
   "predecessor": "028-production-readiness",
   "canonicalBranch": "main",
   "entrypoint": "proposal.md",
   "proposal": "proposal.md",
   "design": "design.md",
   "tasks": "tasks.md",
-  "specOrder": ["durable-recovery-prose"],
-  "activationRule": "Planning-only docs change. Do not set GOVERNANCE.activeCampaign. Apply first among frontier-audit proposals.",
-  "fullHardening": false
+  "specOrder": [
+    "durable-recovery-prose"
+  ],
+  "activationRule": "Owner instruction 2026-09-14: apply every pending frontier-audit proposal. GOVERNANCE.activeCampaign intentionally stays unbound (applied directly under owner authorization, not as a bound campaign).",
+  "fullHardening": false,
+  "appliedAt": "2026-09-14"
 }

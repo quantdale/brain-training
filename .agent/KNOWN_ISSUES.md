@@ -1,14 +1,15 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 028 active (production-readiness closure)
+## Current status — no active campaign (last: Campaign 028 VALIDATED)
 
-Campaign 027 (deep hardening) closed **VALIDATED** at `212469d`; Campaign 026
-(visual identity rebuild) remains VALIDATED as its predecessor. Campaign 028
-(`028-production-readiness`, activated 2026-09-13 under the owner's successor
-campaign directive) is active and closes the residual release-confidence gaps
-recorded below (silent user-action failures, portability robustness, harness
-navigation reliability and artifact retention, validator/CI gate integrity,
-docs truth, cleanup). No repository-owned release blocker is currently open.
+Campaign 028 (`028-production-readiness`, activated 2026-09-13 under the
+owner's successor campaign directive) closed **VALIDATED** and terminal; it
+closed the residual release-confidence gaps recorded below (silent user-action
+failures, portability robustness, harness navigation reliability and artifact
+retention, validator/CI gate integrity, docs truth, cleanup). Predecessors 027
+(deep hardening, `212469d`) and 026 (visual identity rebuild) remain VALIDATED.
+No repository-owned release blocker is currently open and no campaign is
+active.
 
 The application is **not yet fully store/public-release cleared** because
 several evidence classes are deliberately external/manual:
@@ -100,6 +101,13 @@ High product defect.
   prunes completed harness run dirs to the newest `QA_KEEP_RUNS` (default 10)
   and never touches curated evidence dirs; `QA_NO_PRUNE=1` opts out.
 - **Build/dev dependency advisories:** retain the existing dependency-audit classification and re-evaluate with planned framework/toolchain upgrades; do not force unrelated dependency churn into a release-doc cleanup.
+- **`attention-visual-search` best-reaction 0 sentinel (Low, documented):**
+  this game intentionally keeps its in-reducer `fastestResponseMs: 0` initial
+  state and persists it when no valid sample exists (explicitly out of scope in
+  `null-absent-performance-metrics`, which migrated Color Stroop and the four
+  logic/attention siblings to `null`). The Progress reaction-best extractor now
+  ignores non-positive bests, so the sentinel cannot surface as a 0 ms record;
+  migrate AVS to `number | null` if its in-reducer shape is revisited.
 - **Achievements/quest sync scan — RESOLVED in Campaign 027 W2:** the
   production quest path no longer bypasses a cap —
   `syncQuestProgress` materializes at most `SYNC_SESSION_SCAN_LIMIT` (5000)

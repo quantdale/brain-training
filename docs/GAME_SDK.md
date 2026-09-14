@@ -60,7 +60,7 @@ This section supersedes the bootstrap requirements above with the concrete contr
 | `lifecycle.ts` | `SessionLifecycle`, `IllegalTransitionError`, `SessionStatus` | `created → active → paused ⇄ active → completed \| abandoned`; pause freezes the active timer |
 | `pause.ts` | `createPauseOverlaySpec(gameId)`, `PauseOverlaySpec` | Behavior spec: opaque, strong blur, challenge hidden |
 | `audio-haptics.ts` | `liveAudioHaptics`, `getAudioHaptics`, `setLiveAudioHaptics`, `createNoopAudioHaptics`, `noopAudioHaptics`, `AudioHapticsService`, `FeedbackEvent`, `FEEDBACK_EVENTS`, `FEEDBACK_EVENT_MAP`, `SFX_ALIASES` | Dependency-free interface + no-op test double + live-service injection; `audio-haptics-real.ts` holds the real `expo-audio`/`expo-haptics` engine (`createAudioHaptics`) |
-| `tutorial.ts` | `createTutorialLifecycle(store?)`, `createInMemoryTutorialStore()`, `TutorialLifecycle` | First-play/completion/replay/QA-skip; pluggable `TutorialStore` |
+| `tutorial.ts` | `createTutorialLifecycle(store?)`, `createInMemoryTutorialStore()`, `createWriteThroughTutorialStore(options)`, `TutorialLifecycle` | First-play/completion/replay/QA-skip; pluggable `TutorialStore`; write-through adapter bridges the sync SDK contract to the async `TutorialRepository` |
 | `testid.ts` | `testId(gameId, ...elements)` | Stable semantic IDs, e.g. `memory-sequence.tile.3` |
 | `types/game-definition.ts` | `GameDefinition`, `defineGame()`, `parseGameDefinitionJson()`, `GAME_CATEGORIES` | `game.json` → validated frozen `GameDefinition` (registry generator input) |
 | `types/difficulty.ts` | `resolveDifficulty(level, params?)`, `DifficultyLevel`, `DifficultyProfile` | easy/normal/hard/expert/adaptive → challengeRating 0..1 + game parameters |
@@ -113,4 +113,4 @@ Generated content is reproducible from `(RNG_ALGORITHM_VERSION, gameVersion, gen
 
 ## Registry integration
 
-The orchestrator's registry generator reads each game's `game.json` and validates it via `parseGameDefinitionJson`; games never hand-edit a shared registry. The `db` layer implements `TutorialStore` to persist tutorial state; until then the in-memory store is used.
+The orchestrator's registry generator reads each game's `game.json` and validates it via `parseGameDefinitionJson`; games never hand-edit a shared registry. The game route (`app/game/[id].tsx`) hydrates `createWriteThroughTutorialStore` from `getDb().tutorials` and injects it through each screen's `tutorialStore` prop, so first-play completion persists in `tutorial_state`; the in-memory store remains the fallback/default for isolated tests and when storage is unavailable.

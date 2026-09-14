@@ -27,7 +27,8 @@
  * explainability caption (`explainMetric`). Wording is kept neutral:
  * this is a record of training activity, not a medical or scientific claim.
  *
- * Degrades to an explanatory empty state when the db is unavailable.
+ * Degrades to a recoverable error state (not a new-player empty state) when
+ * the db is unavailable; retry reruns the load.
  */
 
 import { router, useFocusEffect } from 'expo-router';
@@ -66,7 +67,7 @@ import {
   WINDOW_DAYS,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
-import { SectionHeader } from '@/components/shell';
+import { SectionHeader, StateCard } from '@/components/shell';
 import { MasteryInsights } from '@/components/mastery/mastery-insights';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -158,7 +159,9 @@ export default function ProgressScreen() {
     }, []),
   );
 
-  const { data, loaded } = useDbData(load, [refreshKey], EMPTY_DATA);
+  const { data, loaded, error } = useDbData(load, [refreshKey], EMPTY_DATA);
+  // Recovery action for the error state: bumping the key reruns the load.
+  const retry = useCallback(() => setRefreshKey((k) => k + 1), []);
   const [windowKey, setWindowKey] = useState<TimeWindowKey>('30d');
 
   const windowedSessions = useMemo(
@@ -400,6 +403,17 @@ export default function ProgressScreen() {
           <Skeleton height={160} testID="progress-loading" />
           <SkeletonText lines={3} testID="progress-loading-text" />
         </>
+      ) : error ? (
+        // A read failure must not read as a brand-new player: `data` stays at
+        // the fallback snapshot, so without this branch the tab showed the
+        // "No sessions yet" welcome as if nothing were wrong.
+        <StateCard
+          variant="error"
+          title="Couldn't load your progress"
+          message="Your training history is unavailable right now."
+          testID="progress-error"
+          action={{ label: 'Try again', onPress: retry }}
+        />
       ) : (
         <>
       {isNewPlayer ? (

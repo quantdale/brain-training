@@ -38,11 +38,35 @@ export function progressionSeedVersion(
   return `q${quests.length}[${questKey}]a${achievements.length}[${achievementKey}]`;
 }
 
+/**
+ * Shared read-path refresh: seed the versioned definitions (fingerprint-gated)
+ * and re-evaluate quest/achievement progress from persisted history. Every
+ * surface that displays claimable rewards (Profile, Home, Rewards) calls this
+ * before reading rows, so a session completed in this process updates without
+ * a Profile detour; the Data Management call site uses it to restore a usable
+ * empty catalog in-process after a wipe/replace. Returns the quest snapshot it
+ * evaluated so Profile derives its rows from the same bounded sample.
+ */
+export async function refreshProgression(
+  db: AppDatabase,
+  now: Date = new Date(),
+): Promise<Awaited<ReturnType<typeof syncQuestProgress>>> {
+  await ensureProgressionDefinitions(db);
+  const questSnapshot = await syncQuestProgress(db, now);
+  await syncAchievements(db, now);
+  return questSnapshot;
+}
+
 /** Seed versioned definitions (idempotent upserts) + sync current state. */
 export async function initializeProgression(
   db: AppDatabase,
   now: Date = new Date(),
 ): Promise<void> {
+  await refreshProgression(db, now);
+}
+
+/** Fingerprint-gated definition seeding; shared by bootstrap and read paths. */
+async function ensureProgressionDefinitions(db: AppDatabase): Promise<void> {
   const target = progressionSeedVersion();
   let stored: unknown;
   try {
@@ -62,6 +86,4 @@ export async function initializeProgression(
       settings: { [PROGRESSION_SEED_VERSION_KEY]: target },
     });
   }
-  await syncQuestProgress(db, now);
-  await syncAchievements(db, now);
 }

@@ -46,6 +46,8 @@ export interface UseWorkoutResult {
   currentGameId: string | null;
   progress: { current: number; total: number };
   status: "loading" | "active" | "completed";
+  /** True when the load-or-create pass failed (instance stays null). */
+  loadFailed: boolean;
   /** Coin cost of the next reroll (0 = first/free). */
   rerollCostNow: number;
   canReroll: boolean;
@@ -56,6 +58,8 @@ export interface UseWorkoutResult {
   advance: () => Promise<void>;
   /** Re-read the persisted instance (call when the screen regains focus). */
   refresh: () => void;
+  /** Re-run the failed load-or-create pass. */
+  retry: () => void;
 }
 
 export function useWorkout(args: {
@@ -64,6 +68,8 @@ export function useWorkout(args: {
   balance: number;
 }): UseWorkoutResult {
   const [instance, setInstance] = useState<WorkoutInstance | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const date = localDateString();
 
   // Latest args without retriggering the load effect on every render (the caller
@@ -171,11 +177,20 @@ export function useWorkout(args: {
       if (!cancelled) setInstance(created);
     })().catch((error) => {
       console.error("[workout] load failed", error);
+      // Surface the failure to the owner (Home) instead of pretending the day
+      // has no plan: with a real catalog installed, "no plan yet" is wrong.
+      if (!cancelled) setLoadFailed(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [date]);
+  }, [date, reloadKey]);
+
+  /** Re-run the load-or-create pass after a failure (clears the error state). */
+  const retry = useCallback(() => {
+    setLoadFailed(false);
+    setReloadKey((key) => key + 1);
+  }, []);
 
   // Re-read the instance on demand (e.g. when the owning screen regains focus)
   // so an advance made on another screen (the result screen) is reflected
@@ -316,11 +331,13 @@ export function useWorkout(args: {
       total: instance?.gameIds.length ?? 0,
     },
     status: instance ? instance.status : "loading",
+    loadFailed,
     rerollCostNow,
     canReroll,
     rerollExhausted,
     reroll,
     advance,
     refresh,
+    retry,
   };
 }

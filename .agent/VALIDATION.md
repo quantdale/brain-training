@@ -2882,3 +2882,63 @@ commit `6f2c3a8`. Evidence behind every item:
 - Externally blocked evidence classes unchanged: store signing, manual
   TalkBack, SAF system sheets, physical device, iOS runtime remain
   **NOT VALIDATED** by policy, not PASS.
+
+## Frontier-audit application (2026-09-14, owner directive; no campaign bound)
+
+- Owner instruction 2026-09-14: apply every pending OpenSpec proposal on the
+  repository, then OpenSpec-validate, review, and ensure all tasks are done.
+  `GOVERNANCE.activeCampaign` intentionally stayed `null` — the changes were
+  applied directly under owner authorization, not as a bound campaign.
+- All eight 2026-09-14 frontier-audit changes closed **VALIDATED** with
+  **69/69 tasks complete** (`change.json` status `VALIDATED`,
+  `appliedAt: 2026-09-14`): `terminal-durable-state-truth`,
+  `settings-driven-color-theme`, `persistent-game-tutorials`,
+  `progression-refresh-on-surfaces`, `residual-user-surface-honesty`,
+  `in-game-workout-next-leg`, `certify-provenance-parity`,
+  `null-absent-performance-metrics`.
+- Implementation summary: recovery prose now matches terminal 028 governance;
+  `useTheme` resolves the persisted theme id against the OS scheme (matrix +
+  live-picker tests); the game route hydrates a write-through tutorial store
+  from `getDb().tutorials` before mounting the screen (restart/replay/backup
+  round-trip tests); a shared `refreshProgression` re-seeds + syncs before
+  Home/Rewards count claimables and after wipe/replace; Home reroll/load
+  failures, Progress/Profile load failures and sensory-persist failures are
+  visible and retryable; a shared `advanceWorkoutForSession` lets the in-game
+  results chrome offer Next Game/completion without a Home detour (autobot
+  drives it); certify resolves a non-HEAD provenance base, jest-signal rejects
+  orphan allowlist rows, and both validators plus certify carry self-tests;
+  Color Stroop and four siblings persist absent bests as `null` (analytics
+  ignores null and the historical `0` sentinel).
+- Static verification at the working tree (2026-09-14): full Jest matrix
+  **553 suites / 6548 tests PASS** (4 opt-in-probe suites / 5 tests skipped;
+  signal-validated 5/5 classified, 0 unclassified, 0 orphans), `tsc --noEmit`
+  clean, `expo lint` clean (0 warnings), OpenSpec **23/23**, repo-state PASS,
+  provenance/offline/secrets/workflows/dependency-audit/affected-area/
+  task-ownership/registry checks PASS, autobot `--self-test` **73/73**,
+  provenance `--self-test` **5/5**, certify `--self-test` **6/6**,
+  jest-signal `--self-test` PASS.
+- Certify provenance gate proven non-tautological: a synthetic unversioned
+  `memory/generator.ts` edit vs `--base=HEAD` exited 1 naming generator-version
+  drift (fixture reverted); certify now resolves `HEAD^` when `origin/main ==
+  HEAD` and fails closed on orphan history (no parent commit).
+- Runtime evidence on `emulator-5560` (2026-09-14): daily-workout journey
+  **PASS — 4/4 completed + relaunch shows persisted completion**
+  (`qa-artifacts/20260914-014734-autobot-workout/run.json`); the trace shows
+  the in-game `<id>.next-game` taps between legs and the final in-game
+  completion marker, i.e. the new no-Home-detour path is what actually ran.
+  Two earlier attempts are disclosed: one honestly failed the leg enumeration
+  (3/4) because the Home data skeleton pushed the 4th leg below the fold in an
+  unsettled frame — the harness now waits for the settled frame; the other
+  completed the journey but crashed in reporting on a transient Windows EPERM
+  rename, so `writeRunJson` now retries the atomic rename.
+- Visual baselines (intended change): the Progress/Profile/(tabs)-shell
+  db-unavailable snapshots now pin the honest error+retry states instead of
+  masking the load failure as new-player empty states (3 snapshots
+  regenerated).
+- NOT VALIDATED for this wave: the full-catalog canary certificate rerun and
+  the a11y audit were not re-executed. The shared `GameResults` chrome was
+  exercised at runtime across four categories by the journey, and every
+  targeted suite required by the changes passes. Externally blocked evidence
+  classes remain as recorded in `KNOWN_ISSUES.md`; the
+  `attention-visual-search` 0-sentinel follow-up was added there as documented
+  low-severity debt.

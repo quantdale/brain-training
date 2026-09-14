@@ -10,7 +10,7 @@
  */
 
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { renderRouter, screen } from 'expo-router/testing-library';
+import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import type { ComponentType } from 'react';
 
 import type {
@@ -75,6 +75,8 @@ function makeFakeDb(over: {
   byGame?: GameSessionRecord[];
   totalXp?: number;
   balance?: number;
+  /** When set, the primary ratings read rejects (load-failure injection). */
+  loadError?: Error;
 } = {}): AppDatabase {
   const recent = over.recent ?? [];
   const byGame = over.byGame ?? recent;
@@ -89,7 +91,12 @@ function makeFakeDb(over: {
     },
     ratings: {
       getHistory: async () => over.history ?? [],
-      getRatings: async () => over.ratings ?? [],
+      getRatings: async () => {
+        if (over.loadError) {
+          throw over.loadError;
+        }
+        return over.ratings ?? [];
+      },
       getRating: async () => null,
     },
     xpAwards: { getTotalAwardedXp: async () => 0 },
@@ -151,6 +158,26 @@ describe('Progress overview', () => {
     expect(screen.getByTestId('progress-window-30d')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-window-90d')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-window-all')).toBeOnTheScreen();
+  });
+
+  it('distinguishes a load failure from the new-player empty state, and retry recovers', async () => {
+    mockDbState.db = makeFakeDb({ loadError: new Error('snapshot boom') });
+    const result = renderBare(ProgressScreen, '/progress');
+    await result;
+
+    // The failure must not read as "No sessions yet".
+    expect(await screen.findByTestId('progress-error')).toBeOnTheScreen();
+    expect(screen.queryByTestId('progress-empty')).toBeNull();
+
+    // Recovery: clearing the injected failure and pressing Try again reruns the
+    // real load path, which then renders the genuine empty state.
+    mockDbState.db = makeFakeDb();
+    await fireEvent.press(screen.getByTestId('progress-error-action'));
+
+    expect(
+      await screen.findByTestId('progress-empty', {}, { timeout: 10_000 }),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('progress-error')).toBeNull();
   });
 });
 

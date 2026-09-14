@@ -66,6 +66,8 @@ jobs:
           node scripts/validate-offline.mjs --self-test
           node scripts/validate-dependency-audit.mjs --self-test
           node scripts/certification/validate-jest-signal.mjs --self-test
+          node scripts/validate-provenance.mjs --self-test
+          node scripts/certification/certify-clean-checkout.mjs --self-test
 
       # Production dependency-audit gate (campaign 027). Fails closed:
       # exit 1 on an unallowlisted moderate+ advisory reachable from the

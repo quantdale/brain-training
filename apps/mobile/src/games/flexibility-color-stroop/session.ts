@@ -91,10 +91,12 @@ export function buildColorStroopRawResult(input: BuildRawResultInput): ColorStro
     postFlipCorrect: input.stats.postFlipCorrect,
     totalFlips: input.totalFlips,
     avgResponseTimeMs,
-    fastestResponseMs:
-      input.stats.fastestResponseMs === Number.POSITIVE_INFINITY
-        ? 0
-        : input.stats.fastestResponseMs,
+    // The internal stats sentinel is `Infinity`; persist a real `null` so the
+    // stored JSON and analytics never treat "no sample" as a 0 ms best
+    // (frontier audit `null-absent-performance-metrics`).
+    fastestResponseMs: Number.isFinite(input.stats.fastestResponseMs)
+      ? input.stats.fastestResponseMs
+      : null,
     challengeRating: input.challengeRating,
     difficulty: input.difficulty,
     seed: input.seed,
