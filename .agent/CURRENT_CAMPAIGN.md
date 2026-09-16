@@ -1,48 +1,71 @@
-# Campaign 028 — Production-Readiness Closure
+# Campaign 029 — ARTEMIS runtime-QA migration
 
-**Status:** VALIDATED (closed — terminal; not active)
-**Campaign id:** `028-production-readiness`
-**Predecessor:** `027-deep-hardening` (VALIDATED)
+**Status:** ACTIVE
+**Campaign id:** `029-artemis-runtime-qa-migration`
+**Predecessor:** `028-production-readiness` (VALIDATED)
 **Mode:** day
-**Start SHA:** `1733458`
-**Change:** `028-production-readiness` (CLOSED — historical record only)
-**Authorization:** owner successor directive 2026-09-13 — autonomous
-determination and execution of successor campaigns, quality-improvement passes
-and production-hardening tasks until no material executable work remains.
+**Start SHA:** `13c0e5d`
+**Change:** `029-artemis-runtime-qa-migration` (ACTIVE)
+**Authorization:** owner-supplied migration directive received 2026-09-16.
 
 ## Mission
 
-Close the residual release-confidence gaps surfaced by four fresh read-only
-audits on the 027 closure tree — remaining silent user-action failures,
-data-portability robustness and the obsolete export deferral, QA-harness
-navigation reliability and artifact retention, validator/CI gate integrity,
-documentation truth and dead weight — then re-validate the full stack,
-including runtime canaries, on the closure head.
+Replace the repository's custom Android Autobot/device-driving QA with Google
+ARTEMIS as the external Codex Android runtime. Keep ARTEMIS only at
+`D:\Tools\artemis`, preserve the app's semantic observability seams, remove
+obsolete repository driver code/docs/CI, install only the supported ARTEMIS
+Codex MCP integration, and revalidate the build and deterministic gates.
 
-## Where the detail lives
+## Current progress
 
-- `openspec/changes/028-production-readiness/EXECUTION.md` — mission, read
-  order, work model, validation, exit gate.
-- `audit-map.md` — file/line evidence behind every item.
-- `proposal.md`, `design.md`, `specs/**`, `tasks.md`.
+- External ARTEMIS is reconciled at `D:\Tools\artemis`, upstream revision
+  `371aa6d`; its Python environment is synced.
+- The single ARTEMIS-managed AVD is `braintraining-ui35`, serial
+  `emulator-5554`; ARTEMIS doctor is ready and the bundled accessibility
+  helper is installed/enabled. No competing emulator/controller is active.
+- Provider credentials are configured only in the external ARTEMIS `.env` and
+  have not been printed or copied into the repository.
+- The custom `scripts/qa/autobot.mjs` driver and `.autobot.lock` ignore entry
+  are removed. CI, certification, self-test, README, Android, and QA-boundary
+  docs now point to ARTEMIS or repository-side setup/evidence tools.
+- The offline runtime-QA contract, OpenSpec delta, governance records, and
+  historical-document reconciliation are complete and validate cleanly.
+- The supported ARTEMIS Codex MCP block is merged with unrelated user MCP
+  entries preserved; this running Codex process needs a restart/reload before
+  in-session ARTEMIS tools can be claimed available.
+- The current Android debug APK built successfully after an emulator-related
+  Gradle memory failure was diagnosed, installed successfully, and started
+  `MainActivity` on the dedicated AVD. A later setup self-test is **NOT
+  VALIDATED** because that AVD is currently offline; no data wipe was used.
+- A system Settings Flash attempt reached the Settings app through ARTEMIS but
+  did not complete because the configured Gemini model service returned
+  availability/quota errors. It is **BLOCKED / NOT VALIDATED**, not a pass.
+  Brain Training Flash and Pro are not yet validated for the same external
+  provider condition.
 
-## Priority summary
+## Remaining work
 
-1. W1 user-action reliability (Home CTA, rewards, profile claims + tests).
-2. W2 data-portability robustness (single-pass export, FK cross-validation,
-   pick size guard, re-entrancy/collision).
-3. W3 QA harness reliability (verified deep link, pause symmetry, scheduled
-   pre-warm, bounded retention, self-tests).
-4. W4 validator/CI hardening (dep-audit expiry, offline heuristic, IMPACT_MAP
-   sync, repo-state fail-open, jest-skip staleness, certify parity, schedule).
-5. W5 cleanup + docs truth; W6 full verification; W7 closure.
+1. Keep the two live runtime items open as **BLOCKED / NOT VALIDATED** until
+   the external Gemini availability/quota condition changes; then run the
+   requested Settings/Brain Training Flash and Pro tasks through ARTEMIS and
+   inspect their traces.
+2. Complete final stale-reference/secret/unrelated-diff review, commit the
+   reconciled checkpoint, and push `main`.
 
-## Do not
+## Protected constraints
 
-- Do not add features, redesign UI, add dependencies, or change persistence
-  formats.
-- Do not implement constitution-deferred systems (cloud/auth/AI/monetization/
-  notifications) or password-encrypted backups (recorded as deferred).
-- Do not weaken guards/tests to make a change pass; disclose retries.
-- Do not touch `emulator-5554` (user-owned) or hijack host input.
-- Do not force-push or rewrite history.
+- No product features, scoring, persistence, or dependency churn.
+- No ARTEMIS source, provider credential, or external trace copied into Git.
+- No `mcp --install all`, global rules overwrite, host input, desktop focus
+  hijack, multiple emulator, competing controller, blind retry, or fake green.
+- Preserve stable semantic IDs/accessibility, deep links, deterministic
+  fixtures/seeds, versioned metadata, structured logs, and safe dev-only QA
+  controls.
+
+## Exit criteria
+
+The campaign closes after repository migration and deterministic validation are
+complete, MCP is safely merged, the app build/install is healthy, and each
+live runtime task is either completed or durably classified. The current
+external Gemini availability/quota issue keeps the live Flash/Pro items open;
+it remains the single documented blocker until a future run proves them.

@@ -7,7 +7,7 @@
  * reports file/line/pattern only, and never prints the matched value.
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve, relative } from 'node:path';
 import assert from 'node:assert/strict';
 
@@ -44,7 +44,12 @@ function scanTrackedFiles() {
   const findings = [];
   let textFiles = 0;
   for (const file of trackedFiles()) {
-    const bytes = readFileSync(resolve(root, file));
+    const absolutePath = resolve(root, file);
+    // `git ls-files` includes an unstaged deletion. There is no current
+    // worktree content to scan in that case, and attempting to read it makes
+    // an otherwise safe deletion fail the validator with ENOENT.
+    if (!existsSync(absolutePath)) continue;
+    const bytes = readFileSync(absolutePath);
     // Binary files are not useful to this text-pattern scanner. Their content
     // is still tracked and should be reviewed through the binary scanner that
     // owns that format if one is introduced later.
@@ -52,7 +57,7 @@ function scanTrackedFiles() {
       continue;
     }
     textFiles += 1;
-    findings.push(...scanText(bytes.toString('utf8'), relative(root, resolve(root, file))));
+    findings.push(...scanText(bytes.toString('utf8'), relative(root, absolutePath)));
   }
   return { findings, textFiles };
 }

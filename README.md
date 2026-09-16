@@ -19,7 +19,8 @@ apps/mobile/          Expo app: src/games/<game>/ modules, shared game-host,
 apps/mobile/plugins/  Committed Expo config plugins (backup rules, NDK pin,
                       deterministic version/build metadata)
 scripts/              Repo validators, registry generator, perf probes
-scripts/qa/           Autobot device-journey harness (Android emulator-local)
+scripts/qa/           Offline QA contracts and Android evidence utilities;
+                      runtime journeys run in external Google ARTEMIS
 docs/                 PROJECT_CONSTITUTION.md, ADRs, audits
 .agent/               Durable autonomous-development state + campaign packets
 ```
@@ -86,5 +87,8 @@ node scripts/validate-task-ownership.cjs
 node scripts/validate-offline.mjs --check
 ```
 
-Device journeys (`scripts/qa/autobot.mjs`) drive an Android emulator locally
-via adb only — no host mouse/keyboard automation; see `scripts/qa/README.md`.
+Device journeys run through the external Google ARTEMIS checkout at
+`D:\Tools\artemis` using its Flash/Pro profiles and Codex MCP integration.
+Repository-side `scripts/android/` helpers remain available for provisioning,
+installation, and diagnostics; see [`docs/ARTEMIS_ANDROID_QA.md`](docs/ARTEMIS_ANDROID_QA.md)
+and [`scripts/qa/README.md`](scripts/qa/README.md).

@@ -4,6 +4,12 @@
 **Investigation date:** 2026-09-16
 **Runtime policy:** Android-first, one dedicated AVD, headless/emulator-local automation only. No host mouse, keyboard injection, foreground hijacking, or desktop coordinate automation was used.
 
+> **Migration note:** The first section below is the pre-migration discovery
+> snapshot. The historical custom-driver command and its artifacts are retained
+> only to preserve evidence. Current Android runtime interaction is performed
+> by external Google ARTEMIS at `D:\Tools\artemis`; current migration evidence
+> is recorded in `.agent/VALIDATION.md` under Campaign 029.
+
 ## Evidence labels
 
 - **[Verified by test/CI]** exact command output from this head.
@@ -21,9 +27,9 @@
 | ADB inventory before boot | **[Observed]** no attached or running devices (`adb devices -l` listed only the header) |
 | Dedicated AVD | **[Observed]** `braintraining-qa36`, initially stopped; existing AVD directory was absent and the harness created it from `system-images;android-35;google_apis;x86_64` |
 | Headless boot | **[Not validated]** two attempts; each failed to register with ADB within 60 seconds. The repository script reported emulator 37.1.x intermittent segfault/acceleration/RAM risk. No app launch was reached. |
-| Late ADB state after boot retries | **[Observed but not used]** `emulator-5554` later appeared as AVD `braintraining-ui35`, not the dedicated `braintraining-qa36`; its installed `com.braintraining.app` debug package was last updated 2026-09-11 and has no source-SHA binding |
-| QA harness | **[Verified by test/CI]** `QA_OUT=D:\Temp\campaign029\qa-all-blocked node scripts/qa/autobot.mjs --mode all` exited 2 with `blockedReason: no adb device in 'device' state (other=[none])`. |
-| QA artifact | **[Observed]** run JSON at `D:\Temp\campaign029\qa-all-blocked\20260916-131132-autobot-all-blocked\run.json`; kept outside the repository and not committed. |
+| Late ADB state after boot retries | **[Historical observed but not used]** `emulator-5554` later appeared as AVD `braintraining-ui35`, not the then-designated `braintraining-qa36`; its installed `com.braintraining.app` debug package was last updated 2026-09-11 and had no source-SHA binding |
+| Historical custom QA driver | **[Historical]** The pre-migration `--mode all` attempt exited 2 with `blockedReason: no adb device in 'device' state (other=[none])`; it is no longer a supported command. |
+| QA artifact | **[Historical]** pre-migration run JSON at `D:\Temp\campaign029\qa-all-blocked\20260916-131132-autobot-all-blocked\run.json`; kept outside the repository and not committed. |
 
 The harness reported **44 not-validated targets**, **0 passed**, and **0 failed**: the 42 catalog games, a dedicated `language-word-match (3.6)` interaction target, and a daily-workout target. This is an environment block, not evidence that those product flows fail.
 
@@ -45,8 +51,8 @@ The harness reported **44 not-validated targets**, **0 passed**, and **0 failed*
 | `npx openspec validate --all` | PASS; 15/15 changes | OpenSpec artifacts validate |
 | `npx expo-doctor` | FAIL 20/21; 14 SDK-57 packages are one patch behind expected versions | Existing dependency/version drift; deliberately not changed in a docs-only campaign |
 | `npx expo export --platform web --output-dir D:\Temp\campaign029\web-export-1 --no-bytecode --max-workers 2` | PASS; 96 files, 20 static routes | Expo can statically bundle the route tree to an external directory; this is not native runtime proof |
-| `node scripts/qa/autobot.mjs --self-test` | PASS; 73/73 | QA parser/catalog/report logic is healthy offline |
-| `node scripts/qa/autobot.mjs --list-games` | PASS; 42 catalog IDs, eight category canaries | Catalog derivation and canary selection are readable offline |
+| `node scripts/qa/validate-runtime-qa-contract.mjs` | **[Current migration gate]** PASS after the custom driver removal | Repository runtime boundary, ARTEMIS docs/MCP contract, preserved app seams, and no obsolete driver/lock are checked offline |
+| Historical custom-driver self-test/list command | **[Historical]** PASS before migration | Prior parser/catalog evidence is retained in the audit record; it is not a current command |
 
 ## GitHub Actions contradiction
 
@@ -98,4 +104,10 @@ The following checks must be repeated by the first implementation/usability camp
 
 Until then, all visual and usability conclusions in the master plan are explicitly source-based hypotheses, not observed user-test results.
 
-The later `braintraining-ui35` device was intentionally not driven: it was not the designated AVD, and its package could not be proven to contain the investigated source. Leaving that emulator available in the host environment does not change the current-head runtime classification.
+At the time of this pre-migration audit, the later `braintraining-ui35` device
+was intentionally not driven: it was not the designated AVD, and its package
+could not be proven to contain the investigated source. Campaign 029 later
+selected that AVD for the external ARTEMIS migration, installed the rebuilt
+debug APK, and recorded the resulting runtime/provider classifications in
+`.agent/VALIDATION.md`; that later evidence supersedes this paragraph for the
+active migration while preserving the original audit boundary.

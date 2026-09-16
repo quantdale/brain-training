@@ -10,7 +10,7 @@
  * is injected; no wall time, no randomness beyond seeded generators.
  *
  * This is a coherence proof, not a UI journey — device journeys cover the
- * interactive layer (see scripts/qa/autobot.mjs).
+ * interactive layer (see docs/ARTEMIS_ANDROID_QA.md).
  */
 import { existsSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

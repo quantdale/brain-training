@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "029-artemis-runtime-qa-migration",
   "lastCampaign": "028-production-readiness",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {

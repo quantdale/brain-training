@@ -4,7 +4,7 @@ Executable rules live in `scripts/validate-affected.mjs` (`RULES`). This table i
 
 | Changed area (patterns) | Minimum light validation |
 |---|---|
-| `scripts/android/**` — Android QA harness | harness self-test; no-host-input proof; screenshot/log artifact check |
+| `scripts/android/**` — Android setup/diagnostics | ARTEMIS runtime-QA contract; no-host-input proof; screenshot/log artifact check |
 | `.github/**`, `scripts/**`, `apps/mobile/scripts/**` — CI/scripts | run script locally where possible; validate workflow syntax/behavior through GitHub Actions |
 | `apps/mobile/src/app/**`, `apps/mobile/src/components/app-tabs*.tsx`, `apps/mobile/src/components/game-host/**` — app navigation/shell | typecheck; affected unit tests; app launch + navigation smoke |
 | `apps/mobile/src/workout/**`, `apps/mobile/src/db/workout*.ts`, `apps/mobile/src/db/__tests__/workout*.ts` — workout | `npm run test:ci -- src/workout src/db/__tests__/workout`; typecheck; attribution/adversarial matrix if routing/ownership touched |

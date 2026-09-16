@@ -1,6 +1,6 @@
 # Known Issues / Blockers
 
-## Current status — no active campaign (last: Campaign 028 VALIDATED)
+## Current status — Campaign 029 active (last completed: Campaign 028 VALIDATED)
 
 Campaign 028 (`028-production-readiness`, activated 2026-09-13 under the
 owner's successor campaign directive) closed **VALIDATED** and terminal; it
@@ -8,8 +8,9 @@ closed the residual release-confidence gaps recorded below (silent user-action
 failures, portability robustness, harness navigation reliability and artifact
 retention, validator/CI gate integrity, docs truth, cleanup). Predecessors 027
 (deep hardening, `212469d`) and 026 (visual identity rebuild) remain VALIDATED.
-No repository-owned release blocker is currently open and no campaign is
-active.
+Campaign 029 (`029-artemis-runtime-qa-migration`) is active under the owner-
+supplied 2026-09-16 migration directive. Repository-owned migration work is
+in progress; one external provider blocker is open for live ARTEMIS tasks.
 
 The application is **not yet fully store/public-release cleared** because
 several evidence classes are deliberately external/manual:
@@ -24,12 +25,48 @@ These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable.
 They are not failures of the repository-owned automated matrix, and they must
 not be reported as PASS until actually performed.
 
+## Campaign 029 — ARTEMIS migration status (2026-09-16)
+
+- **External ARTEMIS setup:** the official checkout is at
+  `D:\Tools\artemis`, revision `371aa6d`, with its synced Python environment.
+  ARTEMIS doctor reached `ready` after the single AVD
+  `braintraining-ui35` registered as `emulator-5554`; the bundled
+  accessibility helper is installed, enabled, and answering. No ARTEMIS
+  source, trace, or provider credential is stored in this repository.
+- **System Flash smoke:** **BLOCKED / NOT VALIDATED**. ARTEMIS launched
+  Android Settings and began the task, but the upstream/default model returned
+  repeated 503 availability responses. A compatibility attempt with a
+  currently available model reached the device but then encountered 503/429
+  free-tier quota responses; an auxiliary model used by the tool returned a
+  404 retired-model response. The task was stopped without leaving a
+  controller running. Safe external trace IDs are
+  `5d722b11-47a3-4b8b-b005-7217d9b52bc9`,
+  `1d2eccb4-f0d6-45e7-907d-0ee641d96d85`, and
+  `4ecca04c-ec32-467b-b05f-15eaf0049669`.
+- **Brain Training Flash/Pro:** **NOT VALIDATED**. The current debug APK
+  build/install/start diagnostics are complete, but no task was started after
+  the provider condition became deterministic enough to identify the blocker.
+  A fresh provider-backed ARTEMIS task is still required.
+- **Android setup self-test:** **NOT VALIDATED** at the final checkpoint. The
+  exact `braintraining-ui35` AVD was offline when
+  `scripts/android/self-test.sh --no-boot` ran. This is an infrastructure
+  evidence gap, not a product failure; no emulator data wipe was used.
+- **Repository migration:** `scripts/qa/autobot.mjs` and its lock integration
+  are removed. ARTEMIS is now the documented runtime; `scripts/android/` is
+  setup/evidence-only, and the offline boundary contract replaces the old
+  repository gameplay self-test.
+
+The single live blocker is external Gemini model availability/quota. Do not
+blindly retry or record another provider-consuming task until availability or
+quota changes; continue with non-secret repository validation and app build
+work.
+
 ## Campaign 026/027 findings (added 2026-09-13)
 
 All are environment/operational or explicitly deferred; none is a Critical or
 High product defect.
 
-- **Autobot cold-start navigation race (QA tooling, Low, Campaign 027) —
+- **Historical — Autobot cold-start navigation race (QA tooling, Low, Campaign 027) —
   RESOLVED in Campaign 028 W3:** the harness now verifies every deep link
   against route classification, retries verified attempts (cold-start
   escalation when launch was delivered but ignored, `QA_DEEPLINK_RETRIES`),

@@ -3,16 +3,17 @@
 Historical phase list — superseded by implementation reality (42-game
 catalog, Workout V3 signal-ranked templates over the V2 template engine,
 full progression/portability shipped; see
-`docs/PARITY_MATRIX.md`). No campaign is active; Campaign 028
-(`028-production-readiness`) closed VALIDATED and durable current state lives
-in `.agent/STATE.md`. This file only records durable work outside any campaign.
+`docs/PARITY_MATRIX.md`). Campaign 029
+(`029-artemis-runtime-qa-migration`) is active; durable current state lives in
+`.agent/STATE.md`. This file records durable work outside the active campaign
+plus historical follow-ups.
 
 ## Still-open durable items
 
 - iOS build validation when a macOS/Xcode environment exists (static
   compatibility maintained source-level today).
-- SAF share/picker consent sheets require an interactive manual QA path
-  (autobot policy forbids driving system consent UIs).
+- SAF share/picker consent sheets require an interactive manual QA path;
+  external ARTEMIS does not replace explicit/manual consent review.
 - Deferred product decisions (see `docs/DEFERRED_DECISIONS.md`) stay untouched
   until the owner decides.
 

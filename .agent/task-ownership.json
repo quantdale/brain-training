@@ -1,26 +1,24 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "CLOSED",
-  "change": "028-production-readiness",
-  "description": "Campaign 028 production-readiness closure. No new features. The orchestrator owns shared hotspots (.agent/**, openspec/**, scripts/**, docs/**, .github/**, package manifests, registry/generated files, shared component/kit surfaces) and performs all convergence edits plus runtime QA. Two disjoint code packets own the app-surface reliability repairs (W1) and the data-portability robustness closure (W2).",
+  "lifecycleStatus": "ACTIVE",
+  "change": "029-artemis-runtime-qa-migration",
+  "description": "Campaign 029 ARTEMIS runtime-QA migration. The orchestrator owns all shared docs, state, scripts, CI, OpenSpec, and MCP convergence plus the single-emulator runtime evidence. No parallel coder packets are active for this cross-cutting migration.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
     "scripts/**",
     "docs/**",
     ".github/**",
+    "README.md",
+    "AGENTS.md",
+    "ONBOARDING.md",
     "package.json",
     "package-lock.json",
     "apps/mobile/package.json",
     "apps/mobile/package-lock.json",
     "apps/mobile/app.json",
-    "apps/mobile/tsconfig.json",
-    "apps/mobile/src/registry/**",
-    "apps/mobile/src/theme/**",
-    "apps/mobile/src/components/**",
-    "apps/mobile/src/games/*/game.json",
-    "apps/mobile/src/app/_layout.tsx",
-    "apps/mobile/src/app/(tabs)/_layout.tsx"
+    "apps/mobile/src/sdk/**",
+    "apps/mobile/src/registry/**"
   ],
   "generatedFilePatterns": [
     "**/*.generated.ts",
@@ -33,37 +31,5 @@
     "apps/mobile/src/data-portability/types.ts",
     "apps/mobile/src/games/**"
   ],
-  "parallelPackets": [
-    {
-      "id": "W1-user-action-reliability",
-      "wave": "S1",
-      "objective": "Surface the remaining silent user-action failures: Home primary workout CTA start, rewards cosmetic purchase/equip, profile milestone/quest/achievement claims; sweep the same screens for the same silent class.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/app/(tabs)/index.tsx",
-        "apps/mobile/src/app/rewards.tsx",
-        "apps/mobile/src/app/(tabs)/profile.tsx",
-        "apps/mobile/src/app/__tests__/rewards.test.tsx",
-        "apps/mobile/src/app/__tests__/profile-purchases.test.tsx",
-        "apps/mobile/src/app/__tests__/home-workout-start.test.tsx"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Each repaired handler shows a user-visible danger message on rejection and stays retryable; every repair has a route-level test that injects the rejection and asserts the visible handling plus unchanged state; screens under test remain on-route.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/app/__tests__/rewards.test.tsx src/app/__tests__/profile-purchases.test.tsx src/app/__tests__/home-workout-start.test.tsx"
-    },
-    {
-      "id": "W2-portability-robustness",
-      "wave": "S1",
-      "objective": "Close the portability robustness gaps: single-pass production export via the already-proven exportLocalDataBundle, quest/achievement FK cross-validation, pre-read pick size guard, preview re-entrancy and collision-resistant backup names.",
-      "dependencies": [],
-      "coderWriteSurfaces": [
-        "apps/mobile/src/data-portability/**",
-        "apps/mobile/src/app/data-management.tsx",
-        "apps/mobile/src/app/__tests__/data-management.test.tsx"
-      ],
-      "sharedSurfaces": [],
-      "completionCriteria": "Byte-identity suites stay green after the export migration; a cross-FK-invalid backup is rejected with the typed validation error before mutation; oversized declared pick results are rejected before read; repeated same-second exports do not overwrite; preview cannot run concurrently with itself.",
-      "validation": "cd apps/mobile && npx tsc --noEmit && npx jest src/data-portability src/app/__tests__/data-management.test.tsx"
-    }
-  ]
+  "parallelPackets": []
 }

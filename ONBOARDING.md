@@ -37,7 +37,9 @@ Credentials, API keys, signing material, account logins, licensed models/assets,
 - Repository-local skills: `continue-development`, `goal`, `harden`.
 - Agent adapter/config directories present in this repository should be discovered and used in-place; do not duplicate them globally unless the harness cannot load repository-local configuration.
 - Relevant committed agent surfaces: `.agent/`, `.agents/`, `.claude/`, `.kimi-code/`, `.opencode/`.
-- MCP policy: No root `.mcp.json` is committed. Prefer the existing ADB/device QA harness under `scripts/qa/`; do not substitute host mouse/keyboard automation.
+- MCP policy: No root `.mcp.json` is committed. Android runtime QA uses the
+  external ARTEMIS checkout at `D:\Tools\artemis`; keep `scripts/android/` for
+  provisioning/diagnostics only and never substitute host mouse/keyboard automation.
 - Keep MCP/plugin authority narrow. Documentation/diagnostic MCPs are not permission to change architecture, bypass tests, or publish.
 - Authentication for GitHub and coding-agent CLIs is configured separately on the machine. Never write tokens into tracked files.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared helpers for the Android automation harness (scripts/android/*).
+# Shared helpers for Android setup and diagnostic scripts (scripts/android/*).
 #
 # Everything in this harness is emulator-local and pure adb / emulator console —
 # no host mouse, keyboard, or desktop coordinates are ever used. See
@@ -126,7 +126,7 @@ bt_adb_bin() {
 }
 
 # Run `adb shell <cmd>` with a hard timeout so a slow or wedged guest cannot
-# block the harness forever. Kills the local client on timeout (the guest
+# block the setup client forever. Kills the local client on timeout (the guest
 # transport may then need `adb kill-server && adb start-server` to recover —
 # see docs/ANDROID_AUTOMATION.md troubleshooting).
 #

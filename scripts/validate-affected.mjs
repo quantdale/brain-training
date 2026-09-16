@@ -22,7 +22,8 @@
  *             2 = usage error.
  *
  * NOTE: this script only prints the required checks; it never executes them.
- * The Android harness area is owned by task packet 001-d (scripts/android/**).
+ * ARTEMIS owns runtime interaction externally; scripts/android/** is limited to
+ * local provisioning and evidence capture helpers.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,11 +40,11 @@ const IMPACT_MAP = path.join(ROOT, '.agent/IMPACT_MAP.md');
  */
 const RULES = [
   {
-    name: 'Android QA harness',
-    impact: 'Android QA harness',
+    name: 'Android setup / diagnostics',
+    impact: 'Android setup/diagnostics',
     match: ['scripts/android/**'],
     checks: [
-      'Harness self-test (packet 001-d owns scripts/android/**)',
+      'Runtime QA contract (ARTEMIS remains the authoritative interaction runtime)',
       'No-host-input proof; screenshot/log artifact check per docs/QA_ARTIFACTS.md',
     ],
   },

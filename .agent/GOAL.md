@@ -46,10 +46,19 @@ first successor, **Campaign 028 — production-readiness closure**
 closed VALIDATED. No new features; constitution-deferred systems stay
 deferred.
 
-## Terminal campaign state
+## Owner migration directive — Campaign 029 (active)
 
-When `GOVERNANCE.activeCampaign` is `null` and the durable state records a
-validated last campaign, the repository is terminal for the currently
-authorized scope. Do not create a successor campaign merely to hold external
-device/manual certification or deferred product decisions. A new campaign
-requires explicit owner authorization and genuinely new scope.
+On 2026-09-16 the owner directed the agent to replace the custom Android
+Autobot/device-driving QA with Google ARTEMIS, keep the upstream checkout only
+at `D:\Tools\artemis`, use ARTEMIS as the Codex Android runtime, install only
+its supported MCP integration, remove obsolete repository driver code/docs/CI,
+preserve semantic observability seams, and validate Flash/Pro/device/build
+paths with honest blocker reporting. This is a bounded successor campaign,
+not a new product feature or automatic full-hardening campaign. The active
+OpenSpec binding is `029-artemis-runtime-qa-migration`.
+
+## Historical terminal campaign state before Campaign 029
+
+Campaign 028 was terminal for its authorized scope before the owner supplied
+the ARTEMIS migration. Current execution follows Campaign 029's active
+OpenSpec and durable state; do not reopen 028 or invent unrelated campaigns.

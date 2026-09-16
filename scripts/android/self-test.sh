@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# self-test.sh — prove the harness works end-to-end on the booted AVD with
+# self-test.sh — prove Android setup/evidence helpers work on a booted AVD with
 # NO host input: every step is pure adb / emulator console.
 #
 # Checks:
@@ -11,8 +11,7 @@
 #                        foreground focus changed (skipped with WARN when no
 #                        clickable node exists, e.g. app not installed yet)
 #   6. logs              logcat capture is non-empty
-#   7. qa harness        offline autobot self-test (catalog derivation from
-#                        game.json + registry cross-check + hierarchy parsing)
+#   7. runtime-QA        offline ARTEMIS repository contract
 #
 #   scripts/android/self-test.sh            boot if needed, then run all checks
 #   scripts/android/self-test.sh --no-boot  only run checks (AVD must be up)
@@ -51,7 +50,7 @@ skip() {
   SKIPPED=$((SKIPPED + 1))
 }
 
-echo "== Android harness self-test =="
+echo "== Android setup/diagnostic self-test =="
 echo "avd=$BT_AVD_NAME app=$BT_APP_ID artifacts=$BT_ARTIFACTS_DIR"
 echo "note: all steps are emulator-local (adb); no host mouse/keyboard used."
 
@@ -180,24 +179,23 @@ else
 fi
 
 echo
-echo "-- 7. qa harness offline self-test (autobot catalog + parsing) --"
-# The autobot harness derives the game catalog from game.json and cross-checks
-# it against the generated registry; its --self-test exercises that plus the
-# hierarchy/interaction parsing purely offline. A drift or parser regression
-# fails here before any device time is spent.
+echo "-- 7. repository runtime-QA contract --"
+# Runtime interaction belongs to the external ARTEMIS checkout. Keep this
+# repository-side check offline so setup/diagnostic validation never needs a
+# provider credential or a second gameplay driver.
 if command -v node >/dev/null 2>&1; then
-  if node "$BT_REPO_ROOT/scripts/qa/autobot.mjs" --self-test >"$BT_ARTIFACTS_DIR/self-test-autobot.log" 2>&1; then
-    check "autobot offline self-test ($(grep -c '^\[PASS\]' "$BT_ARTIFACTS_DIR/self-test-autobot.log") assertions)" 0
+  if node "$BT_REPO_ROOT/scripts/qa/validate-runtime-qa-contract.mjs" >"$BT_ARTIFACTS_DIR/self-test-runtime-qa.log" 2>&1; then
+    check "ARTEMIS runtime-QA contract" 0
   else
-    check "autobot offline self-test (see $BT_ARTIFACTS_DIR/self-test-autobot.log)" 1
+    check "ARTEMIS runtime-QA contract (see $BT_ARTIFACTS_DIR/self-test-runtime-qa.log)" 1
   fi
 else
-  skip "node not on PATH — autobot offline self-test not run"
+  skip "node not on PATH — runtime-QA contract not run"
 fi
 
 echo
 echo "== results: PASS=$PASS FAIL=$FAILURES SKIP=$SKIPPED =="
-echo "artifacts: $BT_ARTIFACTS_DIR (self-test-hierarchy.xml, self-test-screen.png, self-test-logcat.log, self-test-autobot.log)"
+echo "artifacts: $BT_ARTIFACTS_DIR (self-test-hierarchy.xml, self-test-screen.png, self-test-logcat.log, self-test-runtime-qa.log)"
 if [ "$FAILURES" -gt 0 ]; then
   echo "SELF-TEST FAILED"
   exit 1

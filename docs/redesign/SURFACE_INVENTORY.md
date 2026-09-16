@@ -121,7 +121,7 @@ Progress, Profile, Rewards, and Data Management support those paths but should n
 | Data portability | `src/data-portability`, route | Export/restore/wipe | Destructive operations must remain explicit | Profile → Settings → Data |
 | Accessibility infrastructure | `src/components/a11y`, stable test IDs, contrast tests | Screen-reader names, touch targets, contrast | Current-head runtime a11y not observed | Cross-cutting acceptance gate |
 | Audio/haptics/motion | providers, Reanimated/shared motion | Feedback, pause/resume, celebrations | Must support reduced sensory load | Cross-cutting, user-controlled |
-| QA automation | `scripts/qa/autobot.mjs`, Android scripts | Reproducible gameplay/flow evidence | Current device unavailable | Cross-cutting release gate |
+| QA automation | External ARTEMIS at `D:\Tools\artemis`; repository `scripts/android/` | Reproducible Flash/Pro gameplay traces plus emulator setup/evidence capture | Live model/device/provider availability remains an external gate | Cross-cutting release gate |
 
 ## Catalog coverage
 
@@ -162,7 +162,7 @@ Progress, Profile, Rewards, and Data Management support those paths but should n
 | Inspected | Method | Excluded or not current-head validated |
 |---|---|---|
 | All primary app routes and pushed routes listed above | Route file inventory, source reads, route tests/exports | Rendered current-head screens, because ADB/device boot was blocked |
-| All 42 `game.json` entries and generated registry | `autobot --list-games`, registry check, generated file read | Full interaction of every game on device |
+| All 42 `game.json` entries and generated registry | Registry check, generated file read | Full interaction of every game on device remains an ARTEMIS task, not a repository driver |
 | Eight representative games | Source/test/module reads | Remaining 34 modules’ detailed screen copy/layout |
 | Shared shell, UI kit, theme, GameHost/GameResults | Source reads and tests | Human perception of current theme on physical/small device |
 | Workout, rating, mastery, progression, rewards, portability | Source reads, test suite, metadata/validator outputs | Real-player economy comprehension |

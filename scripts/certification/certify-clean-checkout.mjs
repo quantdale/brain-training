@@ -239,7 +239,7 @@ if (selfTestMode) {
   results.push(run('workflow hygiene', 'node', ['scripts/validate-workflows.mjs']));
   results.push(run('dependency audit', 'node', ['scripts/validate-dependency-audit.mjs']));
   results.push(run('affected-area map sync', 'node', ['scripts/validate-affected.mjs', '--check-sync']));
-  results.push(run('QA self-test', 'node', ['scripts/qa/autobot.mjs', '--self-test']));
+  results.push(run('runtime QA contract', 'node', ['scripts/qa/validate-runtime-qa-contract.mjs']));
   results.push(run('typecheck', 'npm', ['run', 'typecheck'], app));
   results.push(run('lint', 'npm', ['run', 'lint'], app));
   results.push(run('web export', 'npx', ['expo', 'export', '--platform', 'web'], app));

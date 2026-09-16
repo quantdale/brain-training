@@ -13,7 +13,7 @@ node scripts/certification/certify-clean-checkout.mjs --self-test # offline poli
 
 Repository state, task ownership, OpenSpec, generated registry, **provenance**,
 offline boundary, secrets boundary, workflow hygiene, dependency audit,
-affected-area map sync, QA harness self-test, validator self-tests, typecheck,
+affected-area map sync, the offline ARTEMIS runtime-QA contract, validator self-tests, typecheck,
 lint, web export, Expo Doctor, full Jest (machine-readable summary validated
 against the intentional-skip allowlist), and a tracked/generated-mutation
 check.
@@ -45,8 +45,8 @@ deliberate and must not be read as CI parity:
 - **No native assemble**: certify does not build/assemble Android or iOS
   artifacts. Native compilation is covered by `android-build-smoke.yml` and
   `ios-build-smoke.yml` (and a real device/emulator for runtime evidence).
-- **Emulator canaries are out of scope**: runtime journeys and canaries come
-  from `scripts/qa/autobot.mjs` on a dedicated emulator, not from this script.
+- **Emulator tasks are out of scope**: runtime journeys come from the external
+  ARTEMIS checkout on a dedicated emulator, not from this clean-checkout gate.
 
 ## Jest skip allowlist
 

@@ -5,6 +5,105 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## Campaign 029 — ARTEMIS runtime-QA migration (2026-09-16)
+
+**Working-state reference:** pre-migration baseline `13c0e5d`; post-validation
+checkpoint pending commit. **Scope:** external Android runtime-QA replacement
+and repository boundary cleanup; no product mechanics, scoring, persistence, or
+dependency change.
+
+### External ARTEMIS setup
+
+- Official Google ARTEMIS checkout: `D:\Tools\artemis`, clean upstream
+  revision `371aa6d`; `uv sync` completed in the external environment.
+- ARTEMIS doctor: **PASS / ready** after the single AVD
+  `braintraining-ui35` registered as `emulator-5554`. ADB reported one ready
+  device. The bundled ARTEMIS accessibility helper is installed, enabled, and
+  answering.
+- Provider credentials are configured only in the external ARTEMIS
+  environment. No credential material was printed, committed, or copied into
+  repository/Codex artifacts.
+
+### Live runtime evidence
+
+- System Settings Flash: **BLOCKED / NOT VALIDATED**. ARTEMIS successfully
+  initialized and launched Settings on the emulator, but the configured
+  upstream/compatibility model path encountered model availability and free-
+  tier quota responses before the task could verify the requested result. The
+  controller was stopped cleanly; no task was relabeled as PASS. External
+  traces: `5d722b11-47a3-4b8b-b005-7217d9b52bc9`,
+  `1d2eccb4-f0d6-45e7-907d-0ee641d96d85`, and
+  `4ecca04c-ec32-467b-b05f-15eaf0049669`.
+- Brain Training Flash: **NOT VALIDATED** — deferred after the same provider
+  condition was confirmed; no successful ARTEMIS trace exists at this
+  checkpoint.
+- Brain Training Pro/stateful journey: **NOT VALIDATED** — same reason.
+- Single blocker: external Gemini model availability/quota. No blind provider
+  retries are planned until external availability changes.
+
+### Repository migration checkpoint
+
+- `scripts/qa/autobot.mjs` and the `.autobot.lock` ignore integration are
+  removed. Current CI/certification/self-test/docs now point to ARTEMIS or
+  repository-side setup/evidence helpers; historical records retain prior
+  Autobot results as historical evidence only.
+- `scripts/qa/validate-runtime-qa-contract.mjs` is the offline contract gate;
+  it checks the external path/MCP task boundary, absence of the old driver,
+  and preservation of semantic IDs/deep links. The contract returned **PASS**.
+
+### Codex MCP convergence
+
+- ARTEMIS's supported `--generate-config codex` path produced the managed
+  `mcp_servers.artemis` block. The block was merged into the existing user
+  config with TOML parsing and an unrelated-server preservation comparison:
+  **PASS**. No provider credential was placed in Codex configuration.
+- `codex mcp list` shows the `artemis` entry enabled and listed alongside the
+  pre-existing servers. Its current CLI status is `Unsupported`, so in-session
+  MCP runtime availability is **NOT VALIDATED**; this running Codex process
+  requires restart/reload before ARTEMIS tools can be claimed active.
+
+### Deterministic repository validation
+
+- `node scripts/validate-repo-state.mjs`: **PASS**.
+- `node scripts/validate-task-ownership.cjs`: **PASS**.
+- `node scripts/validate-affected.mjs --check-sync`: **PASS** (15 areas,
+  43 patterns); workflow hygiene, registry, provenance, offline, secrets,
+  dependency-audit, and the ARTEMIS runtime contract: **PASS**.
+- OpenSpec `validate --all`: **PASS**, 16/16 changes.
+- App `npm run typecheck -- --pretty false`: **PASS**; `npm run lint`:
+  **PASS**.
+- Full `npm run test:ci -- --silent`: **PASS** — 553 suites / 6,548 tests
+  passed, 4 suites / 5 tests intentionally skipped, 5 snapshots passed.
+  Jest-signal classified all five skips with zero unclassified or unexpected
+  skips. The focused governance regression is **PASS**, 17/17.
+
+### Android build and setup evidence
+
+- The first `app:packageDebug` attempt failed with a diagnosed Java heap
+  exhaustion in Gradle APK packaging while an idle emulator was consuming
+  memory. After stopping that exact idle emulator, the unchanged command
+  completed **PASS** for all four ABIs; no build configuration was changed for
+  the failure.
+- The resulting debug APK installed with ADB (`Success`), the package path was
+  present, `MainActivity` became the top resumed activity, and a non-trivial
+  14,422-byte UI hierarchy dump was captured: install/start diagnostics
+  **PASS**.
+- A later repository `scripts/android/self-test.sh --no-boot` invocation
+  returned **NOT VALIDATED** because the single `braintraining-ui35` AVD was
+  offline. The self-test uses only emulator-local ADB; no host input or data
+  wipe was used. The offline ARTEMIS contract portion remains **PASS**.
+
+### Migration review
+
+- Current CI, certification, Android self-test, README, and runtime-QA docs no
+  longer invoke the removed custom gameplay driver. Historical validation and
+  campaign records retain old driver names only as explicitly historical
+  evidence. Semantic IDs, accessibility labels, deep links, deterministic
+  fixtures/seeds, versioned metadata, structured diagnostics, and safe
+  development-only hooks remain in the app.
+- Diff review found no credential pattern and no ARTEMIS source, external
+  trace, or provider environment file in the product worktree.
+
 ## Campaign 027 — Deep Hardening evidence (2026-09-13)
 
 ### Activation (commit `63e6326`)

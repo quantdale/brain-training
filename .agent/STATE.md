@@ -1,23 +1,51 @@
 # Durable Project State
 
-**Last update:** 2026-09-14 — frontier-audit proposals applied VALIDATED (no active campaign).
+**Last update:** 2026-09-16 — Campaign 029 ARTEMIS migration active; live provider evidence externally blocked.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `029-artemis-runtime-qa-migration`
 **Last campaign:** `028-production-readiness`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 028 (`028-production-readiness`) closed **VALIDATED** at `5f05e50`
-(closure evidence in `.agent/VALIDATION.md` and the campaign packet). It closed
-the residual release-confidence gaps four read-only audits found on `1733458`
-(silent user-action failures, portability robustness, autobot navigation
-reliability and artifact retention, validator/CI gate integrity, docs truth,
-cleanup), with no new features and constitution-deferred systems untouched.
-There is **no active campaign**: further work resumes only under a new
-owner-authorized OpenSpec change or campaign.
+Campaign 029 (`029-artemis-runtime-qa-migration`) is the active owner-directed
+successor to Campaign 028. Its objective is to replace the repository custom
+Android device-driving QA with external Google ARTEMIS at `D:\Tools\artemis`,
+remove obsolete driver integration, preserve observable app seams, and keep
+the repository buildable and secure. The external ARTEMIS checkout is at
+revision `371aa6d`; its doctor is ready on the single AVD
+`braintraining-ui35` / serial `emulator-5554`, with its bundled helper enabled.
 
-## Campaign 028 workstreams (closed VALIDATED)
+The migration code/docs boundary is reconciled. The old custom driver has been
+removed, the offline contract/CI/certification/docs convergence validates, and
+the supported ARTEMIS MCP block is merged without changing unrelated Codex
+servers. Provider credentials remain external and are not recorded here. A
+live ARTEMIS Settings Flash attempt reached the Settings app but was blocked
+by Gemini model availability/quota responses; it is **BLOCKED / NOT
+VALIDATED**, not a product pass. Brain Training Flash and Pro remain **NOT
+VALIDATED** for the same single external condition. The current APK built,
+installed, and started successfully on the dedicated AVD; the later
+setup/diagnostic self-test is **NOT VALIDATED** because the AVD is currently
+offline.
+
+## Campaign 029 checkpoint — ARTEMIS migration (active)
+
+- **External setup:** `D:\Tools\artemis` is a clean upstream checkout at
+  `371aa6d`; `uv sync`, doctor, ADB readiness, and helper installation passed
+  or are ready. No ARTEMIS source, trace, or credential is copied into Git.
+- **Repository boundary:** `scripts/qa/autobot.mjs` and its lock ignore entry
+  are removed. Current CI/certification/self-test/docs now use the offline
+  ARTEMIS contract or setup/evidence helpers; historical records retain old
+  evidence only as historical context.
+- **Runtime:** the standalone Settings smoke drove the emulator through
+  ARTEMIS, then provider calls returned availability/quota errors. External
+  trace IDs and exact safe classifications are recorded in `VALIDATION.md`.
+- **Completed:** MCP generator/merge, app build/install, deterministic gates,
+  OpenSpec, current-doc/state reconciliation, and the offline runtime contract.
+- **Remaining:** final stale-reference/secret/unrelated-diff review, commit and
+  push, plus the provider-dependent Settings/Brain Training Flash/Pro tasks.
+
+## Historical Campaign 028 workstreams (closed VALIDATED)
 
 1. **W1 user-action reliability** — Home workout CTA, rewards purchase/equip,
    profile milestone/quest/achievement claims surface failures; regression
@@ -99,27 +127,24 @@ OpenSpec proposals were applied, reviewed, marked **VALIDATED** with
 `progression-refresh-on-surfaces`, `residual-user-surface-honesty`,
 `in-game-workout-next-leg`, `certify-provenance-parity`,
 `null-absent-performance-metrics`. `GOVERNANCE.activeCampaign` intentionally
-stays `null` (applied directly under owner authorization, not as a bound
-campaign). Full-matrix and runtime evidence is recorded in
+was `null` at that historical checkpoint (applied directly under owner
+authorization, not as a bound campaign). Full-matrix and runtime evidence is recorded in
 `.agent/VALIDATION.md` under “Frontier-audit application”.
 
-## Terminal state (`028-production-readiness` VALIDATED)
+## Historical terminal state (`028-production-readiness` VALIDATED)
 
-No active campaign. The next owner directive may open a successor campaign
-via the normal activation path (GOVERNANCE.activeCampaign + matching
-OpenSpec change + durable-state fields). External evidence classes remain
-out of scope as recorded in KNOWN_ISSUES (store signing, manual TalkBack,
-SAF sheets, physical device, iOS runtime).
+Campaign 028 was terminal before the owner opened Campaign 029. Its external
+evidence classes remain separately classified in KNOWN_ISSUES (store signing,
+manual TalkBack, SAF sheets, physical device, iOS runtime).
 
 ## Continuation rule
 
-There is no active campaign and `GOVERNANCE.activeCampaign` is `null`. Do
-**not** execute `028-production-readiness` or `.agent/EXECUTION_PROMPT.md` as
-active work; 028 is closed VALIDATED and terminal for its scope. The next work
-requires an explicit owner-authorized OpenSpec change or campaign; do not
-invent one in executor mode. Externally blocked evidence classes (store
+Campaign 029 is active and `.agent/EXECUTION_PROMPT.md` is its executable
+recovery pointer. Do not resume the closed 028 packet as active work. Continue
+029 until repository work is complete or the external provider blocker meets
+the durable blocked-goal threshold. Externally blocked evidence classes (store
 signing, manual TalkBack, SAF sheets, physical device, iOS runtime) remain
-out of scope and honestly classified.
+honestly classified unless 029 explicitly exercises a scoped Android path.
 
 ## Recovery order
 
@@ -129,5 +154,5 @@ out of scope and honestly classified.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. `openspec/changes/028-production-readiness/` (EXECUTION → proposal →
-   design → specs → tasks) and `audit-map.md`
+7. `openspec/changes/029-artemis-runtime-qa-migration/` (EXECUTION → proposal
+   → design → specs → tasks) and `audit-map.md`

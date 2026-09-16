@@ -7,8 +7,9 @@
  * pending proposal, validate, ensure all tasks are done, archive, and push.
  * This test now pins the FINAL state: every change is archived with terminal
  * metadata, zero unchecked tasks, and implementation evidence living in
- * shipped source. It still pins the governance invariant that no campaign was
- * bound (`activeCampaign: null`).
+ * shipped source. It also permits a later, owner-authorized successor
+ * campaign to be bound, while ensuring none of these archived proposals is
+ * rebound.
  */
 import { describe, expect, it } from '@jest/globals';
 import fs from 'node:fs';
@@ -41,11 +42,14 @@ function changeDir(id: string): string {
 }
 
 describe('frontier-audit OpenSpec proposals (applied + archived)', () => {
-  it('does not bind GOVERNANCE.activeCampaign', () => {
+  it('keeps archived proposals unbound from the active campaign', () => {
     const governance = JSON.parse(read('.agent/GOVERNANCE.json')) as {
       activeCampaign: string | null;
     };
-    expect(governance.activeCampaign).toBeNull();
+    expect(governance.activeCampaign).not.toBe(APPLIED[0]);
+    expect(
+      governance.activeCampaign === null || typeof governance.activeCampaign === 'string',
+    ).toBe(true);
   });
 
   it.each(APPLIED)('%s is archived, applied, with every task complete', (id) => {
@@ -110,7 +114,15 @@ describe('frontier-audit OpenSpec proposals (applied + archived)', () => {
 
   it('terminal prose matches terminal governance (terminal-durable-state-truth evidence)', () => {
     const state = read('.agent/STATE.md');
-    expect(state).toMatch(/There is no active campaign/);
+    const governance = JSON.parse(read('.agent/GOVERNANCE.json')) as {
+      activeCampaign: string | null;
+    };
+    if (governance.activeCampaign === null) {
+      expect(state).toMatch(/There is no active campaign/);
+    } else {
+      expect(state).toMatch(/\*\*Active campaign:\*\* `[^`]+`/);
+      expect(APPLIED).not.toContain(governance.activeCampaign as (typeof APPLIED)[number]);
+    }
     expect(state).not.toMatch(/Campaign 028.*is active/);
     expect(read('docs/PROJECT_CONSTITUTION.md')).toMatch(/Campaigns 001–028 closed/);
   });

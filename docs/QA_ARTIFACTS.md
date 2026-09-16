@@ -1,9 +1,11 @@
 # QA Artifacts Layout
 
 Structured, reproducible evidence for autonomous QA runs and failure diagnosis.
-Consumed by the Android harness (task packet 001-d, `scripts/android/**`),
-orchestrators, and any fresh agent that must diagnose a failure from artifacts
-alone.
+Consumed by external Google ARTEMIS runtime traces, repository-side Android
+setup/evidence helpers in `scripts/android/**`, orchestrators, and any fresh
+agent that must diagnose a failure from artifacts alone. ARTEMIS traces remain
+outside Git at `D:\Tools\artemis\traces`; never copy credentials into an
+artifact.
 
 ## Location and lifecycle
 
@@ -66,7 +68,7 @@ manifest rather than a false success.
 - Logcat: `adb logcat -d > logcat/logcat.txt` (retain the raw dump; filtered
   W/E variant optional but recommended)
 - Hierarchy: `adb shell uiautomator dump /sdcard/<step>-hierarchy.xml && adb pull /sdcard/<step>-hierarchy.xml hierarchy/`
-- Exit codes: append `echo "<command> -> $?"` for every harness command to
+- Exit codes: append `echo "<command> -> $?"` for every setup/evidence command to
   `exit-codes.txt`; also record step status/exit code in `run.json`
 - Video (optional): `adb shell screenrecord`
 

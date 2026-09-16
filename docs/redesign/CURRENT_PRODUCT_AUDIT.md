@@ -5,6 +5,13 @@
 **Current head investigated:** `13c0e5d85a270edb8e41a676437c6bdf3c81f441`
 **Scope:** discovery and planning only. No app, test, dependency, build, persistence, schema, CI, or production behavior was changed.
 
+> **Migration note (2026-09-16):** This audit was captured before the owner-
+> directed ARTEMIS runtime-QA migration. Its custom-driver observations are
+> historical evidence from the discovery snapshot. The current repository
+> boundary is external Google ARTEMIS at `D:\Tools\artemis`; the old driver is
+> removed and the active migration record is `openspec/changes/029-artemis-
+> runtime-qa-migration/`.
+
 ## How to read this audit
 
 This is an evidence record for the redesign master plan, not a claim that the application is already easy to use. Each statement is tagged:
@@ -18,7 +25,7 @@ This is an evidence record for the redesign master plan, not a claim that the ap
 
 ## Integrity and scope
 
-The repository was synchronized before investigation. The local branch was `main`, initially clean at `609f8ec`; `git fetch origin main` showed remote `main` advancing to `13c0e5d`, and `git merge --ff-only origin/main` fast-forwarded the worktree. No stash, reset, checkout, force operation, or deletion of user work was used. The post-sync worktree was clean and tracking `origin/main`.
+The repository was synchronized before investigation. The local branch was `main`, initially clean at `609f8ec`; `git fetch origin main` showed remote `main` advancing to `13c0e5d`, and `git merge --ff-only origin/main` fast-forwarded the worktree. No stash, reset, checkout, force operation, or deletion of user work was used. The post-sync worktree was clean and tracking `origin/main`. Subsequent owner-directed migration changes are recorded in the active Campaign 029 state files rather than folded into this frozen discovery snapshot.
 
 The task prompt is `.agent/CAMPAIGN029_PRODUCT_REDESIGN_DISCOVERY_PROMPT.md`. Its write boundary is `docs/redesign/**`; the active-campaign file was intentionally not modified. All campaign outputs are therefore documentation/evidence only.
 
@@ -31,12 +38,12 @@ The task prompt is `.agent/CAMPAIGN029_PRODUCT_REDESIGN_DISCOVERY_PROMPT.md`. It
 | Git | **[Observed] Available** | Git `2.50.0.windows.2`; canonical branch `main` |
 | Expo / React Native project | **[Observed] Available** | Expo CLI commands ran from `apps/mobile`; Expo SDK 57 project |
 | Android SDK / ADB | **[Observed] Available** | ADB `37.0.0-14910828`; SDK under `C:\Users\palac\AppData\Local\Android\Sdk` |
-| Dedicated Android AVD | **[Observed] Present but unavailable at runtime** | `braintraining-qa36` exists; two headless boot attempts failed to register with ADB within 60 seconds |
+| Dedicated Android AVD | **[Historical snapshot] Initially unavailable** | The later migration attached the single ARTEMIS-managed `braintraining-ui35` AVD; see `RUNTIME_EVIDENCE.md` for current status |
 | GitHub CLI/API | **[Observed] Available** | `gh` is installed and authenticated; read-only Actions run/job metadata was queried |
 | Refero MCP | **[Observed] Available and used** | Style, screen, and flow searches plus full retrievals completed; see `REFERO_REFERENCE_MAP.md` |
 | Web research | **[Observed] Available and used** | Official competitor/evidence-boundary pages were opened; source map is in `REFERO_REFERENCE_MAP.md` |
 | Browser/UI runtime inspection | **[Uncertain / not completed]** | No current app could be attached to a running device; no current-head screenshot is claimed |
-| Existing QA automation | **[Verified in source] Available** | `scripts/qa/autobot.mjs` supports catalog, canary, all, workout, resume, and certification modes |
+| Existing QA automation | **[Historical snapshot] Custom driver superseded** | The discovery snapshot documented `scripts/qa/autobot.mjs`; Campaign 029 removes it and delegates runtime interaction to external ARTEMIS |
 
 ## Repository census
 
@@ -60,9 +67,9 @@ The task prompt is `.agent/CAMPAIGN029_PRODUCT_REDESIGN_DISCOVERY_PROMPT.md`. It
 | `apps/mobile/src/data-portability/` | Export, backup, import/replace/merge, and local-data accounting |
 | `apps/mobile/src/theme/` | Light/dark tokens, theme registry, contrast tests, theme resolution |
 | `apps/mobile/src/notifications/`, `assistant/` | Supporting product capabilities; not primary tab destinations |
-| `scripts/` | Deterministic registry generation, integrity/security/offline checks, QA harness, Android AVD tooling, performance probes |
+| `scripts/` | Deterministic registry generation, integrity/security/offline checks, ARTEMIS contract, Android setup/evidence tooling, and performance probes |
 | `.github/workflows/` | App CI, Android build smoke, iOS build smoke, repository integrity workflow |
-| `.agent/` | Governance, campaign history, validation records, known issues and this campaign prompt; not modified for this campaign |
+| `.agent/` | Governance, active campaign, validation records, known issues and this campaign prompt |
 | `docs/`, `openspec/` | Constitution, architecture/recovery/QA docs, prior product/UI campaign decisions and OpenSpec changes |
 
 ### Current source-area scale
@@ -157,7 +164,7 @@ The full surface-level disposition is in `SURFACE_INVENTORY.md`; the proposed ow
 | `npx openspec validate --all` | PASS; 15/15 changes | **[Verified by test/CI] Current-head local** |
 | `npx expo-doctor` | FAIL 20/21: 14 Expo SDK-57 packages are one patch behind the installed SDK expectations | **[Verified by test/CI] Current-head local; do not fix in this campaign** |
 | `npx expo export --platform web --output-dir D:\Temp\campaign029\web-export-1 --no-bytecode --max-workers 2` | PASS; 96 files and 20 static routes emitted outside the repository | **[Verified by test/CI] Current-head local** |
-| `QA_OUT=D:\Temp\campaign029\qa-all-blocked node scripts/qa/autobot.mjs --mode all` | BLOCKED exit 2; 44 targets `NOT VALIDATED` because no ADB device was ready | **[Verified by test/CI] Current-head runtime attempt** |
+| Historical custom-driver all-mode attempt | BLOCKED exit 2; 44 targets `NOT VALIDATED` because no ADB device was ready | **[Historical]** superseded by the ARTEMIS migration; not a supported current command |
 
 The exact runtime evidence, target list, boot attempts, and historical comparison are in `RUNTIME_EVIDENCE.md`.
 

@@ -1,366 +1,145 @@
-# Android Automation Harness
+# Android setup and evidence capture
 
-The dedicated Android emulator workflow for autonomous QA of the brain-training
-app. Every command in this harness is **emulator-local and host-input-free**:
-no host mouse, host keyboard, or desktop coordinates are ever used. All
-interaction goes through `adb` (`input`, `uiautomator`, `am start`) or the
-emulator console.
+Google ARTEMIS is the authoritative Android runtime-QA controller for this
+project. The checkout is external at `D:\Tools\artemis` and is never cloned,
+copied, or vendored into the repository. ARTEMIS owns natural-language device
+interaction, Flash/Pro task execution, task lifecycle management, and runtime
+traces. Read [`ARTEMIS_ANDROID_QA.md`](ARTEMIS_ANDROID_QA.md) for that
+workflow.
 
-Scripts live in `scripts/android/` and share one helper library
-(`common.sh`). Runtime artifacts (screenshots, hierarchy dumps, logcat) are
-written to `qa-artifacts/` at the repo root (gitignored).
+The repository's `scripts/android/` tools remain deliberately lower-level.
+They provision or inspect one emulator, install/reset an APK, collect
+diagnostics, and prove that those operations use emulator-local ADB. They are
+not a gameplay driver and must not be used to create a second runtime-QA
+controller.
+
+## Repository tools
 
 ```
 scripts/android/
-├── common.sh        shared helpers (SDK discovery, adb/emulator, wait-for-boot)
+├── common.sh        SDK, ADB, emulator, timeout, and artifact helpers
 ├── avd.sh           create/boot/stop/reset/snapshot the dedicated AVD
-├── install.sh       build debug APK (expo run:android) + install
-├── launch.sh        am start + wait for foreground
-├── reset.sh         clear app data / uninstall / reinstall / emulator cold reset
-├── input.sh         tap / swipe / text / key events via adb input
-├── hierarchy.sh     uiautomator dump + pretty-print / --find semantic testIDs
-├── screenshot.sh    screencap into qa-artifacts/
-├── logs.sh          logcat capture into qa-artifacts/
-└── self-test.sh     no-host-input harness proof
+├── install.sh       build/install a debug APK
+├── launch.sh        start the app package and inspect foreground state
+├── reset.sh         clear app data, uninstall, reinstall, or reset the AVD
+├── input.sh         limited emulator-local recovery input (wake/back/etc.)
+├── hierarchy.sh     dump and inspect the current accessibility hierarchy
+├── screenshot.sh    capture the current emulator framebuffer
+├── logs.sh          capture filtered or raw logcat
+└── self-test.sh     setup/diagnostic and offline-contract proof
 ```
+
+All commands are emulator-local and host-input-free. They must not move the
+host cursor, inject host keyboard input, steal desktop focus, or rely on
+absolute desktop coordinates. Runtime screenshots, hierarchy dumps, and
+logcat belong under the gitignored `qa-artifacts/` directory; see
+[`QA_ARTIFACTS.md`](QA_ARTIFACTS.md).
 
 ## Prerequisites
 
 | Component | Requirement | Check |
 |---|---|---|
-| Android SDK | `platform-tools`, `emulator`, `cmdline-tools` (latest), `system-images;android-35;aosp_atd;x86_64`, `platforms;android-35`, `build-tools` | `adb version`, `emulator -version` |
-| JDK | 17+ (Temurin/Eclipse Adoptium tested) | `java -version` |
-| Virtualization | WHPX (Windows Hypervisor Platform) or other hypervisor backend | `emulator -accel-check` |
-| RAM | ≥ 8 GB free recommended; the guest wants 2.5 GB | `wmic OS get FreePhysicalMemory` (see troubleshooting) |
+| Android SDK | `platform-tools`, `emulator`, `cmdline-tools`, API 35 platform/build tools, and a compatible x86_64 image | `adb version`, `emulator -version` |
+| JDK | 17+ | `java -version` |
+| Virtualization | WHPX or another supported hypervisor | `emulator -accel-check` |
+| Node | repository-supported version | `node --version` |
 
-The harness auto-discovers the SDK via `ANDROID_SDK_ROOT`, then `ANDROID_HOME`,
-then well-known defaults (Windows: `%LOCALAPPDATA%\Android\Sdk`; macOS:
-`~/Library/Android/sdk`; Linux: `~/Android/Sdk`). Override anything via
-environment variables (see `common.sh`):
+The scripts discover the SDK through `ANDROID_SDK_ROOT`, then `ANDROID_HOME`,
+then platform defaults. Useful overrides are:
 
-- `BT_AVD_NAME` (default `braintraining-qa36` — historical name; the harness pins the API 35 x86_64 image)
-- `BT_APP_ID` (default `com.braintraining.app` — matches `apps/mobile/app.json`)
-- `BT_APP_ACTIVITY` (default `.MainActivity`)
-- `BT_APK_PATH` (default `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`)
-- `BT_EMULATOR_EXTRA_ARGS` (extra emulator flags, e.g. `-memory 4096`)
-- `BT_ARTIFACTS_DIR` (default `qa-artifacts/`)
+- `BT_AVD_NAME` — repository helper default `braintraining-qa36`;
+- `BT_APP_ID` — default `com.braintraining.app`;
+- `BT_APP_ACTIVITY` — default `.MainActivity`;
+- `BT_APK_PATH` — debug APK path override;
+- `BT_EMULATOR_EXTRA_ARGS` — additional emulator flags;
+- `BT_ARTIFACTS_DIR` — default `qa-artifacts/`.
 
-### System image selection and first-boot timing
-
-The AVD creator prefers `aosp_atd` (Android Test Device — fast, headless-friendly,
-no Play services) and falls back to `google_apis`. On this host, `google_apis`
-cold boots are unstable (emulator 37.1.x segfaults/hangs during the netsim
-WiFi handshake); `aosp_atd` is stable. The harness therefore defaults to
-`aosp_atd`.
-
-First cold boot of a fresh AVD is slow — expect **8–20 minutes** to
-`sys.boot_completed` on a busy dev machine (qemu prints "Boot completed" after
-~30 s, but that is only the first boot stage; dexopt and service startup take
-much longer). The wait loop logs progress every 30 s. Later boots are fast via
-the quickboot snapshot (`fastboot.forceFastBoot=yes` is set on the AVD) — ~30 s.
-
-### Missing system image (fallback)
-
-If no API 35 x86_64 image is installed:
+ARTEMIS may use the dedicated `braintraining-ui35` AVD on this host. Confirm
+the active serial before any inspection:
 
 ```bash
-scripts/android/avd.sh sdk-install-image   # installs aosp_atd (preferred, ~1GB)
+adb devices -l
+uv run artemis doctor --json
+uv run artemis helper status --serial emulator-5554
 ```
 
-or manually: `sdkmanager "system-images;android-35;aosp_atd;x86_64"`.
-If you must use `google_apis`, set `BT_EMULATOR_NO_WIFI=1` (passes
-`-feature -Wifi`) — it reduces but does not eliminate the instability.
+Use one dedicated AVD at a time. Do not launch a competing emulator or
+controller while an ARTEMIS task is active.
 
-### Windows notes
-
-- The harness runs in Git Bash (MSYS2). `cmdline-tools` tools are `.bat` files;
-  `common.sh` invokes them via `cmd //c` automatically.
-- WHPX must be enabled (Windows feature "Windows Hypervisor Platform"). Verify
-  with `emulator -accel-check`; output must show `WHPX(...) is installed and
-  usable`.
-- If the emulator fails to start with an accel error, see Troubleshooting.
-
-## AVD bootstrap
+## Provisioning and diagnostics
 
 ```bash
-# Create the dedicated AVD (idempotent) + boot headless + wait for boot:
-scripts/android/avd.sh
+# Create/boot the repository helper AVD when needed.
+scripts/android/avd.sh create
+scripts/android/avd.sh boot
+scripts/android/avd.sh status
 
-# Individual steps:
-scripts/android/avd.sh create            # create AVD braintraining-qa36 (API 35 x86_64, pixel_7)
-scripts/android/avd.sh boot              # boot headless (quickboot), wait for sys.boot_completed
-scripts/android/avd.sh boot --no-snapshot  # deterministic cold boot (no quickboot resume)
-scripts/android/avd.sh boot --wipe-data    # cold boot with wiped userdata
-scripts/android/avd.sh boot --retry 3      # retry up to 3x if the emulator crashes while booting
-scripts/android/avd.sh wait             # wait for boot (device already running)
-scripts/android/avd.sh status           # RUNNING/STOPPED + serial + boot state
-scripts/android/avd.sh stop             # kill the emulator (adb emu kill)
-scripts/android/avd.sh reset            # deterministic cold boot (drops snapshots)
-scripts/android/avd.sh snapshot-save NAME | snapshot-load NAME | snapshot-list | snapshot-delete NAME
-```
-
-Every boot is headless: `-no-window -no-audio -no-boot-anim -gpu
-swiftshader_indirect -no-metrics` (software GPU, nothing appears on the host
-desktop). Boot waits for `sys.boot_completed=1` and a responsive package
-manager (default timeout 600 s, progress logged every 30 s; `--no-wait`
-skips the wait). After the first boot, quickboot snapshots make later boots
-fast (~30 s).
-
-> AVD snapshots: quickboot is enabled on the AVD (`fastboot.forceFastBoot=yes`),
-> so normal boots resume the last snapshot — fast, and stable on this host.
-> Use `avd.sh boot --no-snapshot` or `avd.sh reset` when a deterministic cold
-> boot is required. Named snapshots are managed via the emulator console
-> (`adb emu avd snapshot ...`).
-
-> Driving the emulator from an ephemeral shell (CI runners, agent tool shells):
-> those environments often reap background children when the shell exits, so
-> `avd.sh boot`'s detached process may not survive. Start the emulator as a
-> persistent background process instead (e.g. a task/job with no timeout):
->
-> ```bash
-> emulator -avd braintraining-qa36 -no-window -no-audio -no-boot-anim \
->   -gpu swiftshader_indirect -no-metrics &
-> ```
->
-> then use `scripts/android/avd.sh wait` to wait for boot. In a normal
-> interactive terminal, `avd.sh boot` works as-is.
-
-## Installing and launching the app
-
-```bash
-# Build debug APK and install (requires apps/mobile to build; slow on first run):
+# Build/install or install an already-built debug APK.
 scripts/android/install.sh
+scripts/android/install.sh --apk apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
-# Install an already-built APK:
-scripts/android/install.sh --skip-build
-scripts/android/install.sh --apk path/to/app-debug.apk
-
-# Launch and wait for foreground focus (default timeout 60 s):
+# Launch, inspect, capture, and collect logs.
 scripts/android/launch.sh
-scripts/android/launch.sh --timeout 120
-scripts/android/launch.sh --component com.braintraining.app/.MainActivity
+scripts/android/hierarchy.sh
+scripts/android/screenshot.sh --name setup-check
+scripts/android/logs.sh --name setup-check
+
+# Reset only when the task or diagnostic requires a clean local state.
+scripts/android/reset.sh data
 ```
 
-Notes:
+On Windows these scripts run from Git Bash/MSYS2. The common helper handles
+`.bat` SDK tools and adds hard timeouts so a dead guest does not hang a shell.
+`--no-boot` is available on `self-test.sh` when the orchestrator owns the
+already-running emulator.
 
-- `install.sh` runs `npx expo run:android --no-bundler` from `apps/mobile`. If
-  the native project has not been prebuilt yet (earlier waves), it fails
-  clearly with a `NOT VALIDATED` message and exit code 2 — the harness itself
-  remains usable.
-- Debug builds load JS from Metro. Start it separately:
-  `cd apps/mobile && npx expo start`. Without Metro, `launch.sh` will report
-  the app never reaching the foreground (exit 3) — that is expected behavior,
-  not a harness bug.
-- `launch.sh` detects the foreground window via `dumpsys window mCurrentFocus`
-  with a `dumpsys activity ResumedActivity` fallback, then prints
-  `FOREGROUND: ...`.
+The generic `input.sh` helper is for emulator recovery only, such as waking a
+screen or sending Back after a failed setup check. Use ARTEMIS for all game,
+workout, resume, scoring, progression, and checkpoint journeys.
 
-## Resetting state
+## Offline repository contract
+
+This check requires no emulator, provider credential, network, Metro server, or
+ARTEMIS checkout:
 
 ```bash
-scripts/android/reset.sh data        # pm clear (wipe app data)
-scripts/android/reset.sh uninstall   # uninstall the app
-scripts/android/reset.sh reinstall   # uninstall + install latest APK
-scripts/android/reset.sh emulator    # AVD cold-boot reset (drops snapshots)
-scripts/android/reset.sh full        # emulator reset + uninstall
+node scripts/qa/validate-runtime-qa-contract.mjs
 ```
 
-## Interacting with the app (all emulator-local)
+The Android self-test additionally verifies ADB reachability, package/display
+diagnostics, hierarchy/screenshot/logcat capture, and this offline contract.
+It is a setup/evidence gate, not a substitute for ARTEMIS runtime evidence.
 
-```bash
-# Tap / swipe at coordinates from a hierarchy dump:
-scripts/android/hierarchy.sh --find "btn-start"          # prints matching nodes + bounds
-scripts/android/input.sh tap 540 1200
-scripts/android/input.sh swipe 540 1800 540 600 300
+## ARTEMIS handoff
 
-# Text and keys:
-scripts/android/input.sh text "hello world"
-scripts/android/input.sh key BACK ENTER
-scripts/android/input.sh key KEYCODE_APP_SWITCH
+The external workflow is:
 
-# Raw passthrough:
-scripts/android/input.sh shell swipe 0 800 0 200 200
-```
+1. Run `uv sync` and `uv run artemis doctor --json` in `D:\Tools\artemis`.
+2. Start or select the single dedicated AVD and install the current debug APK.
+3. Use `mobile_run_task` with `--profile flash` for a short smoke journey.
+4. Use `--profile pro` for a stateful workout, resume, diagnostic, or
+   checkpointed journey.
+5. Poll with `mobile_manage_task` and inspect the final trace with
+   `mobile_inspect_trace`.
+6. Record exact status, trace ID, model/tool failure, and artifact location;
+   never turn an incomplete or quota-blocked run into a pass.
 
-### Semantic testID flow (recommended for assertions)
+ARTEMIS should use the app's live accessibility labels, semantic IDs, deep
+links, deterministic seeds, versioned game/scoring metadata, structured logs,
+and safe development-only fixture controls. Those observability seams are
+part of the app contract and must remain intact.
 
-React Native `testID` props become `resource-id` in the Android hierarchy:
-
-```bash
-# 1. Dump and locate a node by testID:
-scripts/android/hierarchy.sh --find "game-start-button"
-#   resource-id='game-start-button' text='Start' class='android.widget.Button' bounds='[360,600][720,780]'
-
-# 2. Tap its center:
-scripts/android/input.sh tap 540 690
-
-# 3. Assert the result via a fresh dump / screenshot / logcat:
-scripts/android/hierarchy.sh --find "game-score-42"
-scripts/android/screenshot.sh --name after-tap
-scripts/android/logs.sh --filter "ReactNative|AndroidRuntime" --name app.log
-```
-
-`hierarchy.sh` also pretty-prints the full XML (`xmllint` when available,
-Python `minidom` otherwise) and saves copies with `--save NAME`.
-
-## Evidence collection
-
-```bash
-scripts/android/screenshot.sh                 # qa-artifacts/screen-<ts>.png (PNG magic verified)
-scripts/android/screenshot.sh --name tap-1    # qa-artifacts/tap-1.png
-scripts/android/logs.sh                       # qa-artifacts/logcat-<ts>.log
-scripts/android/logs.sh --filter "ReactNative|AndroidRuntime"
-scripts/android/logs.sh --crash --tail 200    # crash buffer, last 200 lines
-scripts/android/logs.sh --clear               # clear buffer before a scenario
-```
-
-## No-host-input proof procedure
-
-Run the self-test after booting the AVD:
-
-```bash
-scripts/android/self-test.sh          # boots the AVD if needed, then runs all checks
-scripts/android/self-test.sh --no-boot
-```
-
-It proves, with pure adb only:
-
-1. `sys.boot_completed=1`.
-2. `uiautomator dump` produces a non-trivial hierarchy XML (5+ nodes; the
-   aosp_atd home window exposes a minimal tree).
-3. `adb exec-out screencap -p` produces a valid PNG (magic bytes checked).
-4. **Input round-trip**: `input keyevent KEYCODE_POWER` flips the device
-   wakefulness off, a second keyevent restores it — injected input demonstrably
-   reaches the system.
-5. Best-effort real tap: the center of a `clickable="true"` node is computed
-   from its hierarchy `bounds` and tapped; the foreground focus is re-read. A
-   missing clickable node (e.g. app not yet installed — the ATD home screen has
-   none) is a SKIP, not a FAIL.
-6. Logcat capture is non-empty.
-
-Artifacts are written to `qa-artifacts/self-test-*.{xml,png,log}`. Exit code 0
-means all hard checks passed.
-
-**Manual audit checklist** (for reviewers): the whole workflow — boot, install,
-launch, tap/text/swipe, hierarchy, screenshot, logs, reset — is `adb` +
-`emulator` + `am` + `uiautomator` commands; there is no `xdotool`, no
-PowerShell `SendKeys`, no desktop coordinate system involved. The emulator
-runs `-no-window`, so nothing is even rendered on the host display.
+Credentials belong only in the external ARTEMIS `.env` (or an existing host
+environment variable). They must not appear in this repository, Codex config,
+task text, screenshots, traces, or command output.
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
+| Symptom | Likely cause | Recovery |
 |---|---|---|
-| `No device connected. Boot the AVD first` | AVD not running | `scripts/android/avd.sh boot` |
-| Emulator exits immediately | Acceleration unavailable | `emulator -accel-check`; enable WHPX (Windows optional feature), then reboot |
-| Emulator segfaults at any point (log shows "Netsim Wifi ... gone due to CANCELLED") | netsim WiFi daemon instability (emulator 37.1.x + WHPX on this host; affects aosp_atd and google_apis) | The harness disables netsim WiFi by default (`-feature -Wifi`, `BT_EMULATOR_NO_WIFI=1`) — the app is offline-first so this costs nothing; re-enable with `BT_EMULATOR_NO_WIFI=0` |
-| `adb shell` hangs / device goes `offline` | Guest still booting (first boot takes 8–20 min), or a killed adb client left the transport half-open | Wait for `avd.sh wait` to report booted; `adb kill-server && adb start-server`; if still offline, `avd.sh reset`. All harness commands carry hard `timeout` guards so a slow guest cannot block forever |
-| Device paths like `/sdcard/x` get mangled ("C:/Program Files/Git/sdcard/x") | MSYS/Git Bash path conversion rewrites slash-paths before adb sees them | Harness handles it (`MSYS_NO_PATHCONV=1` + `cygpath` in `common.sh`); when running adb manually from Git Bash, prefix `MSYS_NO_PATHCONV=1` for guest paths |
-| Emulator crashes intermittently (segfault) at any point | emulator 37.1.x + WHPX instability on this host (worst with google_apis; aosp_atd is stable enough) | `avd.sh boot --retry 3`; keep host RAM free (guest needs ~2.5 GB); see the `--retry` option |
-| First boot seems frozen (qemu CPU not advancing) | Normal on this host: the guest crawls through first-boot dexopt | Be patient; `avd.sh wait` logs progress every 30 s; first boot ≈ 8–20 min, later boots are fast |
-| Guest boots extremely slowly / never completes (qemu CPU frozen for 10+ min) | Host memory pressure: the guest needs ~2.5 GB; with < 1 GB free it thrashes (this dev machine saw WSL + Chrome consume 12+ GB) | Free host RAM (WSL `wsl --shutdown`, close browsers), or cap the guest: `BT_EMULATOR_EXTRA_ARGS="-memory 1536"` |
-| `uiautomator dump` empty/fails | Screen off, animation in progress, or app not focused | `input.sh key KEYCODE_WAKEUP`; wait 1–2 s; `hierarchy.sh --retry 5` |
-| Screenshot not a PNG | Framebuffer not ready (booting) | Wait for boot (`avd.sh wait`), retry; check display state with `input.sh key KEYCODE_WAKEUP` |
-| `am start` fails / app never foreground | App not installed, or debug build waiting for Metro | `install.sh`; `cd apps/mobile && npx expo start`; then `launch.sh --timeout 120` |
-| `expo run:android` fails | Native `android/` not prebuilt yet | Expected in early waves — see install.sh `NOT VALIDATED` note; retry after prebuild |
-| `avdmanager`/`sdkmanager` not found | cmdline-tools missing | `sdkmanager "cmdline-tools;latest"`; harness prints the same hint |
-| Input `text` mangling spaces | Shell quoting | Always quote: `input.sh text "a b"` (uses `%s` format internally) |
-| Multiple emulators running | The harness only touches the serial whose `avd name` is `braintraining-qa36` (`BT_AVD_NAME`) | `avd.sh status` prints the serial it considers "ours" |
-| PNG corrupted on `adb shell` | Shell mode mangles binary | Harness always uses `adb exec-out` |
-
-## Integration notes
-
-- The orchestrator owns the first real APK build + app smoke test. The harness
-  is ready to consume it: `avd.sh boot && install.sh && launch.sh`.
-- No `apps/mobile` configuration was changed for this harness. The harness
-  reads the app id `com.braintraining.app` from `app.json` (kept in sync via
-  `BT_APP_ID` env if it ever changes).
-- Everything is reproducible: stable AVD name, quickboot snapshot for fast
-  boots, deterministic cold boots on demand, fixed artifact directory,
-  timestamped filenames, exit codes (0 ok, 2 build not validated, 3 app not
-  foreground).
-
-## UI evidence capture (`scripts/qa/ui-capture.mjs`)
-
-Campaign 023 recorded "headless `screencap` returns a constant blank frame" as a
-limitation. The cause was the AVD configuration, not the emulator: both project
-ATD AVDs set `hw.gpu.enabled=no`, so SurfaceFlinger had nothing to composite and
-every capture came back as a small uniform frame.
-
-A GPU-enabled AVD fixes it:
-
-```bash
-# One-time: a capture-capable AVD (android-35 google_apis, 2048 MB, GPU on)
-#   hw.gpu.enabled=yes, hw.gpu.mode=host
-emulator -avd braintraining-ui35 -no-window -no-snapshot -no-boot-anim -no-audio
-
-# Evidence set (screenshot + hierarchy per surface, light and dark):
-node scripts/qa/ui-capture.mjs --device emulator-5560 \
-  --out qa-artifacts/campaign024/after --theme light,dark
-
-# Display-profile matrix (the app is restarted under each profile):
-node scripts/qa/ui-capture.mjs --device emulator-5560 \
-  --out qa-artifacts/campaign024/after-profiles --theme light \
-  --profile compact --profile expanded --profile landscape --profile font-scale-2 \
-  --surfaces home,games,progress,profile
-```
-
-Notes that cost time to learn:
-
-- **Wake the screen first.** A sleeping device captures solid black;
-  `ui-capture` sends `KEYCODE_WAKEUP` before every frame.
-- **Restart the app after a profile change.** Applying `wm size`/`wm density`
-  under a running activity restarts it while the JS runtime still holds its
-  native handles; the app then boots into its storage-error boundary. A cold
-  start under the new profile is both realistic and deterministic. Rotation
-  (the real user path) is unaffected.
-- **A capture is only evidence if the app rendered.** `ui-capture` (hardened
-  in Campaign 027 after the Campaign 026 capture runs) waits after every batch
-  relaunch until the app's view tree mounts *and*
-  the framebuffer is non-uniform (a theme switch or a cold Metro bundle can
-  leave the window black for seconds after the tree mounts), samples the raw
-  framebuffer to reject uniform frames, retries each surface up to three times
-  when the frame is black, and exits non-zero when any capture stays blank.
-- **A wedged app surface is an emulator condition, not an app defect.** After
-  hours of repeated force-stop/relaunch cycles the GPU-translated app window can
-  stop presenting frames while the stock launcher still renders (screencap black,
-  view tree empty, `dumpsys gfxinfo` shows almost no frames). A cold restart of
-  the headless AVD restores rendering immediately; the harness now reports it as
-  a blank/unwarmed batch instead of filing black frames as evidence.
-- Theme switching uses `cmd uimode night yes|no`, which the app's default
-  `system` theme setting follows.
-
-## Accessibility measurement (`scripts/qa/a11y-audit.mjs`)
-
-Turns the captured hierarchy dumps into the measurements the a11y contract is
-judged by — interactive nodes below the 44 dp minimum (px→dp via the capture
-density) and interactive nodes with no accessible name:
-
-```bash
-node scripts/qa/a11y-audit.mjs --dir qa-artifacts/campaign024/after/default/light \
-  --density 420 --out qa-artifacts/campaign024/a11y-after.json
-```
-
-The audit measures laid-out bounds, so a control that reaches 44 dp only through
-`safeArea`-style hit slop still reports short. That is deliberate: compact
-controls should carry real height, and the kit's `Button`, `Chip`, `TextField`
-and `BackLink` primitives do.
-
-Campaign 027 added a clipping rule (the condition was exposed by the Campaign
-026 audit): uiautomator reports the VISIBLE bounds of a
-node, so a control scrolled under the bottom tab bar measures shorter than it
-lays out (a real 44 dp button measured 16 dp while half of it sat behind the
-bar). Interactive nodes that start inside the content viewport but pin to its
-bottom edge are classified as `clipped`, printed with their visible size, and
-excluded from the violation count — never silently ignored. To judge a clipped
-control's true size, scroll it fully into view and re-dump.
-
-## Dev-server stability during long runs
-
-The Expo dev server (SDK 57) can exit with an assertion while bundling the web
-platform (`Worker chunk not found for expo-sqlite/web/worker.ts`) when a client
-requests the web render path. A long autobot run then fails every remaining game
-with `app did not warm to home (Metro/JS load)` — an environment failure, never
-a product failure. `qa-artifacts/campaign024/run-catalog.mjs` drives the catalog
-category by category, health-checks Metro between batches, restarts it when it
-has died, and retries a batch once.
+| No device in `adb devices` | AVD is stopped or still booting | Run `scripts/android/avd.sh status`, then `boot`/`wait`; confirm only one emulator is active |
+| Device is `offline` | Guest boot or ADB transport is incomplete | Wait for `sys.boot_completed=1`; if needed run `adb kill-server` and `adb start-server` |
+| Hierarchy is empty | Screen is asleep or a transition is active | Use the recovery-only wake/key path, wait briefly, and capture again |
+| APK cannot install | Wrong package, stale build, or incompatible ABI | Rebuild/install with `scripts/android/install.sh`, then inspect `adb logcat` |
+| ARTEMIS task is incomplete | External model/device/tool/provider failure | Preserve the trace, classify `BLOCKED` or `NOT VALIDATED`, and do not retry blindly |
+| Multiple controllers are present | Another agent or process owns the emulator | Stop the competing controller before continuing; do not drive the same AVD concurrently |

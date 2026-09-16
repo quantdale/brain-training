@@ -115,6 +115,31 @@ The user must remain able to work normally while development runs.
 - Headless/background execution is preferred.
 - A visible emulator is acceptable if automation remains emulator-local and does not steal host input.
 
+## Android runtime QA (ARTEMIS)
+
+- Google ARTEMIS is the authoritative Android runtime/device-QA controller. Its
+  checkout is external at `D:\Tools\artemis`; do not clone, vendor, or copy it
+  into this repository.
+- Use ARTEMIS `doctor`, the supported Codex MCP server, and
+  `mobile_run_task`/`mobile_manage_task`/`mobile_inspect_trace` for natural-
+  language device journeys. Use Flash for short smoke coverage and Pro for
+  stateful workout, resume, diagnostic, and checkpointed journeys.
+- Configure provider credentials only in the external ARTEMIS environment
+  file. Never print, commit, place in repository configuration, or expose a
+  credential in logs, traces, screenshots, or agent messages. Do not run
+  ARTEMIS's broad `mcp --install all` bootstrap in this repository.
+- Keep one dedicated AVD and verify it through ADB/ARTEMIS. Runtime automation
+  must remain emulator-local and must not move the host cursor, inject host
+  keyboard input, or steal desktop focus.
+- `scripts/android/` is limited to AVD provisioning, APK install/reset,
+  hierarchy/screenshot/logcat capture, and diagnostics. It is not a gameplay
+  driver and must not grow a second runtime controller.
+- Preserve semantic IDs/accessibility labels, deep links, deterministic seeds,
+  versioned game/scoring metadata, structured diagnostics, and safe
+  development-only fixture controls so ARTEMIS can drive observable app state.
+- The offline runtime-QA contract validator remains a deterministic repository
+  gate; external ARTEMIS traces are evidence but are not copied into Git.
+
 ## Day and night modes
 
 ### Day mode

@@ -1,0 +1,17 @@
+{
+  "id": "029-artemis-runtime-qa-migration",
+  "status": "ACTIVE",
+  "predecessor": "028-production-readiness",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "runtime-qa-migration"
+  ],
+  "activationRule": "Owner directive supplied on 2026-09-16: replace the custom Android Autobot/device-driving QA with Google ARTEMIS, install it only at D:\\Tools\\artemis, use ARTEMIS as the Codex Android runtime, remove obsolete repository driver code/docs/CI, preserve semantic observability seams, and perform the requested Flash/Pro/MCP/build validation with honest blocker reporting.",
+  "baselineAuditCommit": "13c0e5d",
+  "fullHardening": false,
+  "reviewConsumption": "The owner-supplied migration attachment is the requirements source. Campaign 029 consumes the pre-migration Campaign 029 redesign/runtime audit only to identify current documentation and evidence references that must be reconciled; it does not reopen product design decisions or add product features."
+}
