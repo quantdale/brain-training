@@ -21,6 +21,7 @@
 | ADB inventory before boot | **[Observed]** no attached or running devices (`adb devices -l` listed only the header) |
 | Dedicated AVD | **[Observed]** `braintraining-qa36`, initially stopped; existing AVD directory was absent and the harness created it from `system-images;android-35;google_apis;x86_64` |
 | Headless boot | **[Not validated]** two attempts; each failed to register with ADB within 60 seconds. The repository script reported emulator 37.1.x intermittent segfault/acceleration/RAM risk. No app launch was reached. |
+| Late ADB state after boot retries | **[Observed but not used]** `emulator-5554` later appeared as AVD `braintraining-ui35`, not the dedicated `braintraining-qa36`; its installed `com.braintraining.app` debug package was last updated 2026-09-11 and has no source-SHA binding |
 | QA harness | **[Verified by test/CI]** `QA_OUT=D:\Temp\campaign029\qa-all-blocked node scripts/qa/autobot.mjs --mode all` exited 2 with `blockedReason: no adb device in 'device' state (other=[none])`. |
 | QA artifact | **[Observed]** run JSON at `D:\Temp\campaign029\qa-all-blocked\20260916-131132-autobot-all-blocked\run.json`; kept outside the repository and not committed. |
 
@@ -96,3 +97,5 @@ The following checks must be repeated by the first implementation/usability camp
 8. Screenshot and action-trace artifacts at the exact implementation SHA.
 
 Until then, all visual and usability conclusions in the master plan are explicitly source-based hypotheses, not observed user-test results.
+
+The later `braintraining-ui35` device was intentionally not driven: it was not the designated AVD, and its package could not be proven to contain the investigated source. Leaving that emulator available in the host environment does not change the current-head runtime classification.
