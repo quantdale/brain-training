@@ -34,14 +34,14 @@
       the dedicated emulator using ADB/diagnostic evidence.
 - [x] 3.3 Run typecheck, tests, lint, repository validators, OpenSpec, and the
       Android setup/contract smoke; classify any unavailable checks honestly.
-      The offline contract passed; the device self-test is **NOT VALIDATED**
-      at this checkpoint because the single AVD is currently offline.
+      The offline contract and the device self-test both passed; the self-test
+      recorded two documented launcher skips and no failures.
 
 ## 4. Convergence
 
 - [x] 4.1 Review `git grep` for current obsolete-driver commands, inspect the
       diff for secrets and unintended product changes, and commit coherent
-      progress in `d6e2094`; the final checkpoint `b609900` is pushed.
+      progress; all migration checkpoints are pushed to `origin/main`.
 - [x] 4.2 Leave a recoverable active checkpoint while the live-provider tasks
       remain durably classified; campaign closure remains deferred until a
       future available-provider run completes or reclassifies those tasks.

@@ -20,11 +20,11 @@ Codex MCP integration, and revalidate the build and deterministic gates.
 
 - External ARTEMIS is reconciled at `D:\Tools\artemis`, upstream revision
   `371aa6d`; its Python environment is synced.
-- The single ARTEMIS-managed target is `braintraining-ui35`, normally serial
-  `emulator-5554`; ARTEMIS doctor and the bundled accessibility helper passed
-  during the earlier ready-device setup. A fresh doctor now reports **BLOCKED**
-  solely because no device is attached; no competing emulator/controller is
-  active.
+- The single ARTEMIS-managed target is `braintraining-ui35`, serial
+  `emulator-5554`; after removing stale lifecycle locks and using a
+  non-destructive host-GPU/no-snapshot boot, ARTEMIS doctor is **READY** and
+  its bundled accessibility helper is attached and answering. No competing
+  emulator/controller is active.
 - Provider credentials are configured only in the external ARTEMIS `.env` and
   have not been printed or copied into the repository.
 - The custom `scripts/qa/autobot.mjs` driver and `.autobot.lock` ignore entry
@@ -37,8 +37,8 @@ Codex MCP integration, and revalidate the build and deterministic gates.
   in-session ARTEMIS tools can be claimed available.
 - The current Android debug APK built successfully after an emulator-related
   Gradle memory failure was diagnosed, installed successfully, and started
-  `MainActivity` on the dedicated AVD. A later setup self-test is **NOT
-  VALIDATED** because that AVD is currently offline; no data wipe was used.
+  `MainActivity` on the dedicated AVD. The setup self-test now passes 5 checks
+  with 2 documented launcher skips and no host input; no data wipe was used.
 - A system Settings Flash attempt reached the Settings app through ARTEMIS but
   did not complete because the configured Gemini model service returned
   availability/quota errors. It is **BLOCKED / NOT VALIDATED**, not a pass.
@@ -51,9 +51,8 @@ Codex MCP integration, and revalidate the build and deterministic gates.
    the external Gemini availability/quota condition changes; then run the
    requested Settings/Brain Training Flash and Pro tasks through ARTEMIS and
    inspect their traces.
-2. A future available-device run may repeat the ARTEMIS-managed device setup
-   self-test; its current result is already durably **NOT VALIDATED** because
-   the AVD did not register with ADB after a safe launch attempt.
+2. Keep the current device/setup evidence available for that future run;
+   device readiness and the setup self-test are currently **PASS**.
 
 ## Protected constraints
 

@@ -8,8 +8,8 @@ unavailable checks into PASS.
 ## Campaign 029 — ARTEMIS runtime-QA migration (2026-09-16)
 
 **Working-state reference:** pre-migration baseline `13c0e5d`; migration
-checkpoint commits `d6e2094`, `b609900`, and `750e4e4`, all pushed to
-`origin/main`.
+checkpoints through `750e4e4` are pushed to `origin/main`; the current
+readiness recheck is recorded below.
 **Scope:** external Android runtime-QA replacement
 and repository boundary cleanup; no product mechanics, scoring, persistence, or
 dependency change.
@@ -21,9 +21,10 @@ dependency change.
 - ARTEMIS doctor: **PASS / ready** during the initial setup after the single
   AVD `braintraining-ui35` registered as `emulator-5554`. ADB reported one
   ready device. The bundled ARTEMIS accessibility helper was installed,
-  enabled, and answering. On the later continuation check, doctor returned
-  **BLOCKED** solely because no device was attached; the exact named AVD was
-  safely launched but never registered with ADB and was then stopped.
+  enabled, and answering. A later continuation check found stale lifecycle
+  locks; after removing only those exact locks and booting headlessly with
+  host GPU and no snapshot restore, doctor returned **READY** and the helper
+  probe returned **READY** with 22 UI elements and a 96,124-byte screenshot.
 - Provider credentials are configured only in the external ARTEMIS
   environment. No credential material was printed, committed, or copied into
   repository/Codex artifacts.
@@ -92,10 +93,10 @@ dependency change.
   present, `MainActivity` became the top resumed activity, and a non-trivial
   14,422-byte UI hierarchy dump was captured: install/start diagnostics
   **PASS**.
-- A later repository `scripts/android/self-test.sh --no-boot` invocation
-  returned **NOT VALIDATED** because the single `braintraining-ui35` AVD was
-  offline. The self-test uses only emulator-local ADB; no host input or data
-  wipe was used. The offline ARTEMIS contract portion remains **PASS**.
+- The repository `scripts/android/self-test.sh --no-boot` now returns **PASS**:
+  5 checks passed, 0 failed, and 2 documented launcher checks were skipped.
+  The self-test uses only emulator-local ADB; no host input or data wipe was
+  used. The offline ARTEMIS contract portion remains **PASS**.
 
 ### Migration review
 

@@ -13,10 +13,9 @@ successor to Campaign 028. Its objective is to replace the repository custom
 Android device-driving QA with external Google ARTEMIS at `D:\Tools\artemis`,
 remove obsolete driver integration, preserve observable app seams, and keep
 the repository buildable and secure. The external ARTEMIS checkout is at
-revision `371aa6d`; its doctor and bundled helper passed during the earlier
-ready-device setup on the single AVD `braintraining-ui35` / serial
-`emulator-5554`. The latest doctor reports **blocked** solely because no
-device is currently attached.
+revision `371aa6d`; after a non-destructive host-GPU/no-snapshot boot, its
+doctor is **ready** and the bundled helper is answering on the single AVD
+`braintraining-ui35` / serial `emulator-5554`.
 
 The migration code/docs boundary is reconciled. The old custom driver has been
 removed, the offline contract/CI/certification/docs convergence validates, and
@@ -26,17 +25,16 @@ live ARTEMIS Settings Flash attempt reached the Settings app but was blocked
 by Gemini model availability/quota responses; it is **BLOCKED / NOT
 VALIDATED**, not a product pass. Brain Training Flash and Pro remain **NOT
 VALIDATED** for the same single external condition. The current APK built,
-installed, and started successfully on the dedicated AVD; the later
-setup/diagnostic self-test is **NOT VALIDATED** because the AVD is currently
-offline.
+installed, and started successfully on the dedicated AVD; the setup/diagnostic
+self-test now passes with 5 checks and 2 documented launcher skips.
 
 ## Campaign 029 checkpoint — ARTEMIS migration (active)
 
 - **External setup:** `D:\Tools\artemis` is a clean upstream checkout at
-  `371aa6d`; `uv sync`, the earlier ready-device doctor/ADB check, and helper
-  installation passed. The latest safe diagnostic restarted ADB and attempted
-  the named AVD, but it never registered with ADB; no ARTEMIS source, trace, or
-  credential is copied into Git.
+  `371aa6d`; `uv sync`, the current ready-device doctor/ADB check, helper
+  attachment, and `mobile_diagnose` probe passed. The repository setup
+  self-test passes 5 checks with 2 documented launcher skips. No ARTEMIS
+  source, trace, or credential is copied into Git.
 - **Repository boundary:** `scripts/qa/autobot.mjs` and its lock ignore entry
   are removed. Current CI/certification/self-test/docs now use the offline
   ARTEMIS contract or setup/evidence helpers; historical records retain old
@@ -47,7 +45,7 @@ offline.
 - **Completed:** MCP generator/merge, app build/install, deterministic gates,
   OpenSpec, current-doc/state reconciliation, and the offline runtime contract.
 - **Remaining:** the provider-dependent Settings/Brain Training Flash/Pro
-  tasks; the setup self-test may be repeated when the single AVD is online.
+  tasks; the device and setup self-test are currently ready/PASS.
 
 ## Historical Campaign 028 workstreams (closed VALIDATED)
 

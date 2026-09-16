@@ -31,10 +31,11 @@ not be reported as PASS until actually performed.
   `D:\Tools\artemis`, revision `371aa6d`, with its synced Python environment.
   ARTEMIS doctor and the bundled accessibility helper reached ready during
   the initial setup when `braintraining-ui35` registered as `emulator-5554`.
-  The latest safe diagnostic restarted ADB and attempted that named AVD, but
-  it remained unregistered; current doctor status is **BLOCKED** solely for no
-  attached device. No ARTEMIS source, trace, or provider credential is stored
-  in this repository.
+  A later non-destructive host-GPU/no-snapshot boot repaired the lifecycle
+  state: current doctor is **READY**, the helper is answering, and the
+  repository setup self-test passes 5 checks with 2 documented launcher skips.
+  No ARTEMIS source, trace, or provider credential is stored in this
+  repository.
 - **System Flash smoke:** **BLOCKED / NOT VALIDATED**. ARTEMIS launched
   Android Settings and began the task, but the upstream/default model returned
   repeated 503 availability responses. A compatibility attempt with a
@@ -49,10 +50,10 @@ not be reported as PASS until actually performed.
   build/install/start diagnostics are complete, but no task was started after
   the provider condition became deterministic enough to identify the blocker.
   A fresh provider-backed ARTEMIS task is still required.
-- **Android setup self-test:** **NOT VALIDATED** at the final checkpoint. The
-  exact `braintraining-ui35` AVD was offline when
-  `scripts/android/self-test.sh --no-boot` ran. This is an infrastructure
-  evidence gap, not a product failure; no emulator data wipe was used.
+- **Android setup self-test:** **RESOLVED / PASS** after the exact
+  `braintraining-ui35` AVD was booted headlessly with host GPU and no snapshot
+  restore. The self-test reported 5 passes, 0 failures, and 2 documented
+  launcher skips; no emulator data wipe was used.
 - **Repository migration:** `scripts/qa/autobot.mjs` and its lock integration
   are removed. ARTEMIS is now the documented runtime; `scripts/android/` is
   setup/evidence-only, and the offline boundary contract replaces the old
