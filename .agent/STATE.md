@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-16 — Campaign 029 ARTEMIS migration checkpoint `b609900` pushed; live provider evidence externally blocked.
+**Last update:** 2026-09-16 — Campaign 029 ARTEMIS migration checkpoint `750e4e4` pushed; live provider evidence externally blocked.
 **Canonical branch:** `main`
 **Active campaign:** `029-artemis-runtime-qa-migration`
 **Last campaign:** `028-production-readiness`
