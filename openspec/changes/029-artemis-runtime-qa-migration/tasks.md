@@ -41,7 +41,7 @@
 
 - [x] 4.1 Review `git grep` for current obsolete-driver commands, inspect the
       diff for secrets and unintended product changes, and commit coherent
-      progress in `d6e2094`; push is the final handoff step.
+      progress in `d6e2094`; the final checkpoint `b609900` is pushed.
 - [x] 4.2 Leave a recoverable active checkpoint while the live-provider tasks
       remain durably classified; campaign closure remains deferred until a
       future available-provider run completes or reclassifies those tasks.

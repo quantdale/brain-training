@@ -49,8 +49,9 @@ Codex MCP integration, and revalidate the build and deterministic gates.
    the external Gemini availability/quota condition changes; then run the
    requested Settings/Brain Training Flash and Pro tasks through ARTEMIS and
    inspect their traces.
-2. Push the reconciled commit `d6e2094` to `origin/main`; keep the provider
-   tasks open for a future available-provider run.
+2. A future available-provider run may also repeat the ARTEMIS-managed device
+   setup self-test; its current result is already durably **NOT VALIDATED**
+   because the AVD was offline at the checkpoint.
 
 ## Protected constraints
 

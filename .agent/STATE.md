@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-16 — Campaign 029 ARTEMIS migration checkpoint `d6e2094` committed; push pending; live provider evidence externally blocked.
+**Last update:** 2026-09-16 — Campaign 029 ARTEMIS migration checkpoint `b609900` pushed; live provider evidence externally blocked.
 **Canonical branch:** `main`
 **Active campaign:** `029-artemis-runtime-qa-migration`
 **Last campaign:** `028-production-readiness`
@@ -42,8 +42,8 @@ offline.
   trace IDs and exact safe classifications are recorded in `VALIDATION.md`.
 - **Completed:** MCP generator/merge, app build/install, deterministic gates,
   OpenSpec, current-doc/state reconciliation, and the offline runtime contract.
-- **Remaining:** push `d6e2094`, plus the provider-dependent Settings/Brain
-  Training Flash/Pro tasks.
+- **Remaining:** the provider-dependent Settings/Brain Training Flash/Pro
+  tasks; the setup self-test may be repeated when the single AVD is online.
 
 ## Historical Campaign 028 workstreams (closed VALIDATED)
 
