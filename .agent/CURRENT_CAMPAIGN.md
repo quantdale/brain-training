@@ -49,8 +49,8 @@ Codex MCP integration, and revalidate the build and deterministic gates.
    the external Gemini availability/quota condition changes; then run the
    requested Settings/Brain Training Flash and Pro tasks through ARTEMIS and
    inspect their traces.
-2. Complete final stale-reference/secret/unrelated-diff review, commit the
-   reconciled checkpoint, and push `main`.
+2. Push the reconciled commit `d6e2094` to `origin/main`; keep the provider
+   tasks open for a future available-provider run.
 
 ## Protected constraints
 

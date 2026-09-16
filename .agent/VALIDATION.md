@@ -7,8 +7,8 @@ unavailable checks into PASS.
 
 ## Campaign 029 — ARTEMIS runtime-QA migration (2026-09-16)
 
-**Working-state reference:** pre-migration baseline `13c0e5d`; post-validation
-checkpoint pending commit. **Scope:** external Android runtime-QA replacement
+**Working-state reference:** pre-migration baseline `13c0e5d`; migration
+checkpoint commit `d6e2094` (push pending). **Scope:** external Android runtime-QA replacement
 and repository boundary cleanup; no product mechanics, scoring, persistence, or
 dependency change.
 
