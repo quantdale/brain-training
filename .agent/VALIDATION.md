@@ -18,10 +18,12 @@ dependency change.
 
 - Official Google ARTEMIS checkout: `D:\Tools\artemis`, clean upstream
   revision `371aa6d`; `uv sync` completed in the external environment.
-- ARTEMIS doctor: **PASS / ready** after the single AVD
-  `braintraining-ui35` registered as `emulator-5554`. ADB reported one ready
-  device. The bundled ARTEMIS accessibility helper is installed, enabled, and
-  answering.
+- ARTEMIS doctor: **PASS / ready** during the initial setup after the single
+  AVD `braintraining-ui35` registered as `emulator-5554`. ADB reported one
+  ready device. The bundled ARTEMIS accessibility helper was installed,
+  enabled, and answering. On the later continuation check, doctor returned
+  **BLOCKED** solely because no device was attached; the exact named AVD was
+  safely launched but never registered with ADB and was then stopped.
 - Provider credentials are configured only in the external ARTEMIS
   environment. No credential material was printed, committed, or copied into
   repository/Codex artifacts.

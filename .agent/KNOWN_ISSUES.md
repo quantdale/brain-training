@@ -29,10 +29,12 @@ not be reported as PASS until actually performed.
 
 - **External ARTEMIS setup:** the official checkout is at
   `D:\Tools\artemis`, revision `371aa6d`, with its synced Python environment.
-  ARTEMIS doctor reached `ready` after the single AVD
-  `braintraining-ui35` registered as `emulator-5554`; the bundled
-  accessibility helper is installed, enabled, and answering. No ARTEMIS
-  source, trace, or provider credential is stored in this repository.
+  ARTEMIS doctor and the bundled accessibility helper reached ready during
+  the initial setup when `braintraining-ui35` registered as `emulator-5554`.
+  The latest safe diagnostic restarted ADB and attempted that named AVD, but
+  it remained unregistered; current doctor status is **BLOCKED** solely for no
+  attached device. No ARTEMIS source, trace, or provider credential is stored
+  in this repository.
 - **System Flash smoke:** **BLOCKED / NOT VALIDATED**. ARTEMIS launched
   Android Settings and began the task, but the upstream/default model returned
   repeated 503 availability responses. A compatibility attempt with a

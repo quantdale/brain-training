@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-16 — Campaign 029 ARTEMIS migration checkpoint `750e4e4` pushed; live provider evidence externally blocked.
+**Last update:** 2026-09-16 — Campaign 029 ARTEMIS readiness rechecked; the named AVD did not register with ADB; live provider evidence externally blocked.
 **Canonical branch:** `main`
 **Active campaign:** `029-artemis-runtime-qa-migration`
 **Last campaign:** `028-production-readiness`
@@ -13,8 +13,10 @@ successor to Campaign 028. Its objective is to replace the repository custom
 Android device-driving QA with external Google ARTEMIS at `D:\Tools\artemis`,
 remove obsolete driver integration, preserve observable app seams, and keep
 the repository buildable and secure. The external ARTEMIS checkout is at
-revision `371aa6d`; its doctor is ready on the single AVD
-`braintraining-ui35` / serial `emulator-5554`, with its bundled helper enabled.
+revision `371aa6d`; its doctor and bundled helper passed during the earlier
+ready-device setup on the single AVD `braintraining-ui35` / serial
+`emulator-5554`. The latest doctor reports **blocked** solely because no
+device is currently attached.
 
 The migration code/docs boundary is reconciled. The old custom driver has been
 removed, the offline contract/CI/certification/docs convergence validates, and
@@ -31,8 +33,10 @@ offline.
 ## Campaign 029 checkpoint — ARTEMIS migration (active)
 
 - **External setup:** `D:\Tools\artemis` is a clean upstream checkout at
-  `371aa6d`; `uv sync`, doctor, ADB readiness, and helper installation passed
-  or are ready. No ARTEMIS source, trace, or credential is copied into Git.
+  `371aa6d`; `uv sync`, the earlier ready-device doctor/ADB check, and helper
+  installation passed. The latest safe diagnostic restarted ADB and attempted
+  the named AVD, but it never registered with ADB; no ARTEMIS source, trace, or
+  credential is copied into Git.
 - **Repository boundary:** `scripts/qa/autobot.mjs` and its lock ignore entry
   are removed. Current CI/certification/self-test/docs now use the offline
   ARTEMIS contract or setup/evidence helpers; historical records retain old

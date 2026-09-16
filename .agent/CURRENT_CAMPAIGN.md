@@ -20,9 +20,11 @@ Codex MCP integration, and revalidate the build and deterministic gates.
 
 - External ARTEMIS is reconciled at `D:\Tools\artemis`, upstream revision
   `371aa6d`; its Python environment is synced.
-- The single ARTEMIS-managed AVD is `braintraining-ui35`, serial
-  `emulator-5554`; ARTEMIS doctor is ready and the bundled accessibility
-  helper is installed/enabled. No competing emulator/controller is active.
+- The single ARTEMIS-managed target is `braintraining-ui35`, normally serial
+  `emulator-5554`; ARTEMIS doctor and the bundled accessibility helper passed
+  during the earlier ready-device setup. A fresh doctor now reports **BLOCKED**
+  solely because no device is attached; no competing emulator/controller is
+  active.
 - Provider credentials are configured only in the external ARTEMIS `.env` and
   have not been printed or copied into the repository.
 - The custom `scripts/qa/autobot.mjs` driver and `.autobot.lock` ignore entry
@@ -49,9 +51,9 @@ Codex MCP integration, and revalidate the build and deterministic gates.
    the external Gemini availability/quota condition changes; then run the
    requested Settings/Brain Training Flash and Pro tasks through ARTEMIS and
    inspect their traces.
-2. A future available-provider run may also repeat the ARTEMIS-managed device
-   setup self-test; its current result is already durably **NOT VALIDATED**
-   because the AVD was offline at the checkpoint.
+2. A future available-device run may repeat the ARTEMIS-managed device setup
+   self-test; its current result is already durably **NOT VALIDATED** because
+   the AVD did not register with ADB after a safe launch attempt.
 
 ## Protected constraints
 
