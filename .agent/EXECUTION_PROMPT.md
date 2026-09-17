@@ -1,3 +1,44 @@
+# Execution Prompt — Campaign 034: Profile, Motivation, Rewards & Ownership
+
+**Status:** VALIDATED
+**Change:** `034-profile-motivation-rewards`
+**Planned-From:** `f64df0315e3dd1b7e2d8519c560e3c9aea1bccb0`
+**Start-SHA:** `f64df0315e3dd1b7e2d8519c560e3c9aea1bccb0`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `033-progress-disclosure-redesign`
+
+## Authority
+
+Execute Campaign 034 from
+`docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and the guardrails in
+`.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`. Campaign
+033 is validated; this packet is the next bounded slice in the owner-directed
+overnight sequence.
+
+## Terminal result
+
+Recompose Profile into grouped identity, motivation, rewards, data, and
+settings sections. Profile may summarize pending rewards, but Rewards must own
+all claim actions, the full cosmetic collection, and reward history. This was
+completed and validated; the next overnight slice is Campaign 035.
+
+## Required validation and handoff
+
+Observe Profile/Rewards before and after on the dedicated Android emulator;
+run focused ownership/profile/rewards tests, typecheck, lint, relevant
+repository validators, and native light/dark captures plus accessibility and
+fresh logcat review. Preserve actual artifacts and classify human, iOS,
+physical-device, large-text, reduced-motion, and external-CI limits honestly.
+
+## Protected contracts
+
+No schema, scoring, rating, mastery, session-write, generator, economy,
+backup/restore, export/delete, offline, or gameplay-mechanics change belongs to
+this campaign.
+
+---
+
 # Execution Prompt — Campaign 033: Progress summary and progressive disclosure
 
 **Status:** VALIDATED

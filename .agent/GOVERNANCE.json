@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "canonicalBranch": "main",
   "activeCampaign": null,
-  "lastCampaign": "033-progress-disclosure-redesign",
+  "lastCampaign": "034-profile-motivation-rewards",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

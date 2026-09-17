@@ -1,22 +1,22 @@
 /**
- * Profile / More — identity, progression (streaks + quests + achievements +
- * milestones), cosmetics, theme selection and global settings toggles.
+ * Profile / More — identity, motivation (streaks + quests + achievements +
+ * milestones), theme selection and global settings toggles.
  *
  * Engagement-cosmetics wave: streak item purchases now flow through the
  * idempotent economy (`purchaseStreakItem`); owned Freeze/Shield/Recovery can
  * be APPLIED (persisting covered dates); streak milestones show progress and
- * a one-time claim; cosmetics are surfaced (earn/unlock/equip) on the
- * dedicated `/rewards` route and summarized here. Reward claims/purchases
- * emit a non-blocking celebration. Everything degrades gracefully when the db
+ * a one-time claim; reward claims and cosmetics are owned by the dedicated
+ * `/rewards` route and summarized here. Streak protection remains an active
+ * motivation control on Profile. Everything degrades gracefully when the db
  * is unavailable.
  *
  * Presentation (campaign 026, design-language v3 "Neon Arcade"): the identity
- * hero owns a 2×2 metric grid with exactly one accent-filled identity cell
- * (level) and neutral cells for streak / XP / coins; the streak beat is a
+ * hero owns a quiet level / XP summary with exactly one accent-filled identity
+ * cell (level); streak / coin context lives with the controls that use it; the streak beat is a
  * day-dot `StreakStrip` plus protection items with identity sparks; quests /
- * achievements / milestones keep three distinct treatments (claimable =
- * primary action, in-progress = meter, locked = desaturated + lock); settings
- * navigate through `ListRow`s with identity icons.
+ * achievements / milestones keep three distinct read-only treatments
+ * (complete = available in Rewards, in-progress = meter, locked = desaturated
+ * + lock); settings navigate through `ListRow`s with identity icons.
  */
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState, type ReactNode } from "react";
@@ -26,7 +26,7 @@ import { ScreenShell } from "@/components/screen-shell";
 import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
-import { StateCard } from "@/components/shell";
+import { SectionHeader, StateCard } from "@/components/shell";
 import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -47,22 +47,20 @@ import { getDb, InsufficientFundsError, purchaseStreakItem } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import {
   ACHIEVEMENT_DEFINITIONS_V1,
-  claimAchievementReward,
   evaluateAchievementProgress,
-  type AchievementDef,
 } from "@/achievements";
+import { buildAchievementSnapshot, refreshProgression } from "@/progression";
 import {
-  buildAchievementSnapshot,
-  refreshProgression,
-} from "@/progression";
-import { levelForXp, levelProgress, xpForNextLevel, xpIntoLevel } from "@/rating";
+  levelForXp,
+  levelProgress,
+  xpForNextLevel,
+  xpIntoLevel,
+} from "@/rating";
 import {
   evaluateQuests,
   currentPeriodKey,
-  applyQuestReward,
   selectActiveQuests,
   QUEST_DEFINITIONS_V1,
-  type QuestDefinition,
   type QuestEvaluation,
 } from "@/quests";
 import {
@@ -79,20 +77,18 @@ import {
   type StreakItemKind,
   type StreakState,
   applyOwnedStreakItem,
-  claimStreakMilestoneReward,
   type StreakMilestone,
 } from "@/streaks";
 import { readInventory } from "@/streaks/inventory";
 import {
   COSMETIC_DEFINITIONS,
   COSMETIC_SLOTS,
-  isCosmeticOwned,
   resolveEquipped,
-  type CosmeticDef,
   type CosmeticProgression,
   type CosmeticSlot,
 } from "@/cosmetics";
 import { RewardCelebrationHost, celebrateReward } from "@/rewards/celebration";
+import { collectClaimableRewards } from "@/rewards/inbox";
 import {
   THEME_OPTIONS,
   THEME_SETTINGS_KEY,
@@ -129,12 +125,6 @@ const ITEM_TONES: Record<
   recovery: { soft: "successSoft", ink: "successText" },
 };
 
-const SLOT_LABELS: Record<CosmeticSlot, string> = {
-  avatarFrame: "Avatar Frames",
-  accent: "Accents",
-  celebration: "Celebrations",
-};
-
 interface WeekDay {
   key: string;
   /** Single-letter column header (locale aware). */
@@ -149,6 +139,8 @@ interface ProfileData {
   balance: number;
   /** Session XP + award XP, for the identity context line. */
   totalXp: number;
+  /** Authoritative inbox count, including persisted quest periods. */
+  claimableRewardCount: number | null;
   inventory: StreakInventory;
   profileSettings: Record<string, unknown>;
   questRows: Map<string, QuestProgress>;
@@ -167,7 +159,10 @@ interface ProfileData {
     remaining: number;
   }[];
   cosmeticProgression: CosmeticProgression;
-  achievementProgress: Map<string, { progress: number; goal: number; ratio: number }>;
+  achievementProgress: Map<
+    string,
+    { progress: number; goal: number; ratio: number }
+  >;
   equippedIds: Partial<Record<CosmeticSlot, string>>;
   equippedFrameEmoji: string;
   equippedAccentName: string;
@@ -176,6 +171,7 @@ interface ProfileData {
 const EMPTY_PROFILE: ProfileData = {
   balance: 0,
   totalXp: 0,
+  claimableRewardCount: null,
   inventory: { freeze: 0, shield: 0, recovery: 0 },
   profileSettings: {},
   questRows: new Map(),
@@ -216,25 +212,19 @@ async function loadProfile(
   // scan (Campaign 027 performance work).
   const questSnapshot = await refreshProgression(db, now);
 
-  const [
-    balance,
-    profile,
-    unlockRows,
-    progressRows,
-    sessionXp,
-    awardsXp,
-  ] = await Promise.all([
-    db.ledger.getBalance(),
-    db.profile.get(),
-    db.achievements.listUnlocks(),
-    Promise.all(
-      selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>
-        db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
+  const [balance, profile, unlockRows, progressRows, sessionXp, awardsXp] =
+    await Promise.all([
+      db.ledger.getBalance(),
+      db.profile.get(),
+      db.achievements.listUnlocks(),
+      Promise.all(
+        selectActiveQuests(QUEST_DEFINITIONS_V1, now).map((def) =>
+          db.quests.listProgressForPeriod(currentPeriodKey(def.kind, now)),
+        ),
       ),
-    ),
-    db.sessions.getTotalXp(now.getTime()),
-    db.xpAwards.getTotalAwardedXp(now.getTime()),
-  ]);
+      db.sessions.getTotalXp(now.getTime()),
+      db.xpAwards.getTotalAwardedXp(now.getTime()),
+    ]);
 
   const profileSettings = profile?.settings ?? {};
   const inventory = readInventory(profileSettings);
@@ -358,9 +348,21 @@ async function loadProfile(
     }
   }
 
+  // Rewards is the ownership source for claims. Reuse its collector so the
+  // Profile badge includes completed quest periods that are no longer in the
+  // active Profile list. If an engagement read fails, keep the Profile load
+  // usable and fall back to the current-period counters in the view.
+  let claimableRewardCount: number | null = null;
+  try {
+    claimableRewardCount = (await collectClaimableRewards(db, now)).length;
+  } catch (error) {
+    console.error("[profile] reward count read failed", error);
+  }
+
   return {
     balance,
     totalXp: sessionXp + awardsXp,
+    claimableRewardCount,
     inventory,
     profileSettings,
     questRows,
@@ -385,27 +387,15 @@ async function loadProfile(
   };
 }
 
-/** Human-readable unlock requirement for a cosmetic (locked-state caption). */
-function unlockHint(def: CosmeticDef): string {
-  switch (def.unlock.type) {
-    case "default":
-      return "Default";
-    case "purchase":
-      return `Buy for ${def.price ?? 0} coins`;
-    case "achievement":
-      return `Win achievement ${def.unlock.achievementId}`;
-    case "quest":
-      return `Complete quest ${def.unlock.questId}`;
-    case "streakMilestone":
-      return `Reach a ${def.unlock.days}-day streak`;
-  }
-}
-
 export default function ProfileScreen() {
   const { themeId, setThemeId } = useSettings();
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
-  const { data, loaded, error } = useDbData(loadProfile, [refreshKey], EMPTY_PROFILE);
+  const { data, loaded, error } = useDbData(
+    loadProfile,
+    [refreshKey],
+    EMPTY_PROFILE,
+  );
 
   // Re-sync progression each time the tab regains focus.
   useFocusEffect(
@@ -418,8 +408,8 @@ export default function ProfileScreen() {
     setRefreshKey((key) => key + 1);
   }, []);
 
-  // Contextual claim counters: surface "rewards ready" summaries at the top of
-  // the quest/achievement sections so completed-but-unclaimed work is
+  // Contextual claim counters: surface the single Rewards destination at the
+  // top of the motivation sections so completed-but-unclaimed work is
   // impossible to miss in a long list.
   const claimableQuests = data.questEvals.filter((evaluation) => {
     const row = data.questRows.get(evaluation.questId);
@@ -432,6 +422,13 @@ export default function ProfileScreen() {
       return unlock != null && unlock.claimedAt == null;
     },
   ).length;
+  const claimableMilestones = data.milestoneRows.filter(
+    ({ reached, claimed }) => reached && !claimed,
+  ).length;
+  const localPendingRewardCount =
+    claimableQuests + claimableAchievements + claimableMilestones;
+  const pendingRewardCount =
+    data.claimableRewardCount ?? localPendingRewardCount;
 
   // Next unreached streak milestone, teased under the 7-day strip.
   const nextMilestone = data.milestoneRows.find((row) => !row.reached) ?? null;
@@ -458,7 +455,11 @@ export default function ProfileScreen() {
         reason: `streak-item-${kind}`,
       });
       refresh();
-      celebrateReward({ title: `${kind} purchased`, coins: -cost, emoji: "🛡️" });
+      celebrateReward({
+        title: `${kind} purchased`,
+        coins: -cost,
+        emoji: "🛡️",
+      });
     } catch (error) {
       if (error instanceof InsufficientFundsError) {
         celebrateReward({ title: "Not enough coins", emoji: "⚠️" });
@@ -497,85 +498,6 @@ export default function ProfileScreen() {
       console.error("[profile] streak item apply failed", error);
       showToast({
         title: "Couldn't apply that item",
-        detail: "Nothing was changed — try again.",
-        tone: "danger",
-      });
-    }
-  };
-
-  const onClaimMilestone = async (milestone: StreakMilestone) => {
-    try {
-      const result = await claimStreakMilestoneReward(
-        getDb(),
-        milestone,
-        data.longestStreak,
-        new Date(),
-      );
-      if (result === "claimed") {
-        refresh();
-        celebrateReward({
-          title: `${milestone.label} reached!`,
-          xp: milestone.rewardXp,
-          coins: milestone.rewardCurrency,
-          emoji: "🔥",
-        });
-      }
-    } catch (error) {
-      console.error("[profile] milestone claim failed", error);
-      // Campaign 028: a failed claim used to be console-only. Claims are
-      // once-only and transactional, so a rejection means nothing was granted.
-      showToast({
-        title: "Couldn't claim that reward",
-        detail: "Nothing was changed — try again.",
-        tone: "danger",
-      });
-    }
-  };
-
-  const onClaimQuest = async (definition: QuestDefinition) => {
-    try {
-      const result = await applyQuestReward(
-        getDb(),
-        definition,
-        currentPeriodKey(definition.kind, new Date()),
-      );
-      if (result.status === "claimed") {
-        refresh();
-        celebrateReward({
-          title: "Quest reward",
-          xp: definition.reward.xp,
-          coins: definition.reward.coins,
-          emoji: "🏆",
-        });
-      }
-    } catch (error) {
-      console.error("[profile] quest claim failed", error);
-      // Campaign 028: a failed claim used to be console-only.
-      showToast({
-        title: "Couldn't claim that quest",
-        detail: "Nothing was changed — try again.",
-        tone: "danger",
-      });
-    }
-  };
-
-  const onClaimAchievement = async (definition: AchievementDef) => {
-    try {
-      const result = await claimAchievementReward(getDb(), definition);
-      if (result.status === "claimed") {
-        refresh();
-        celebrateReward({
-          title: "Achievement reward",
-          xp: definition.rewardXp,
-          coins: definition.rewardCurrency,
-          emoji: "🏅",
-        });
-      }
-    } catch (error) {
-      console.error("[profile] achievement claim failed", error);
-      // Campaign 028: a failed claim used to be console-only.
-      showToast({
-        title: "Couldn't claim that achievement",
         detail: "Nothing was changed — try again.",
         tone: "danger",
       });
@@ -641,15 +563,15 @@ export default function ProfileScreen() {
               Profile
             </ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
-              Identity, achievements and settings.
+              Your local training record, motivation and settings.
             </ThemedText>
           </View>
           <Spark size={30} color={theme.accent} />
         </View>
       </Entrance>
 
-      {/* Identity hero: avatar row plus the 2×2 metric grid; the level cell is
-          the single accent-filled identity metric, the rest stay neutral. */}
+      {/* Identity hero: avatar row plus a quiet level/XP summary; streak and
+          coin context belongs with the motivation controls below. */}
       <Entrance index={1}>
         <Card variant="hero" testID="profile-identity" padding="lg">
           <View style={styles.heroRow}>
@@ -679,25 +601,11 @@ export default function ProfileScreen() {
               icon={<Spark size={16} color={theme.accentOn} />}
             />
             <MetricTile
-              testID="profile-metric-streak"
-              label="Day streak"
-              value={`${data.currentStreak}`}
-              valueColor="streakText"
-              icon={<Spark size={16} color={theme.streakText} />}
-            />
-            <MetricTile
               testID="profile-metric-xp"
               label="Total XP"
               value={compactNumber(data.totalXp)}
               valueColor="xpText"
               icon={<Spark size={16} color={theme.xpText} />}
-            />
-            <MetricTile
-              testID="profile-metric-coins"
-              label="Coins"
-              value={compactNumber(data.balance)}
-              valueColor="currencyText"
-              icon={<Spark size={16} color={theme.currencyText} />}
             />
           </View>
 
@@ -712,10 +620,32 @@ export default function ProfileScreen() {
         </Card>
       </Entrance>
 
-      {/* Streak rhythm: day-dot strip + count pill, never a plain text row. */}
       <Entrance index={2}>
+        <SectionHeader
+          eyebrow="MOTIVATION"
+          title="Keep your rhythm"
+          caption="Streaks, goals and milestones show what to consider next."
+        />
+      </Entrance>
+
+      {/* Streak rhythm: day-dot strip + count pill, never a plain text row. */}
+      <Entrance index={3}>
         <Card testID="profile-streak">
           <ThemedText type="headline">Streak</ThemedText>
+          <View style={styles.statRow}>
+            <Stat
+              testID="profile-metric-streak"
+              value={`${data.currentStreak}`}
+              label="Day streak"
+              valueColor="streakText"
+            />
+            <Stat
+              testID="profile-metric-coins"
+              value={compactNumber(data.balance)}
+              label="Coins"
+              valueColor="currencyText"
+            />
+          </View>
           <View style={styles.streakBeat}>
             <StreakStrip
               count={data.currentStreak}
@@ -830,8 +760,8 @@ export default function ProfileScreen() {
         </Card>
       </Entrance>
 
-      {/* Streak milestones: claimable = action, reached = check, else meter. */}
-      <Entrance index={3}>
+      {/* Streak milestones are motivation evidence; Rewards owns the claim. */}
+      <Entrance index={4}>
         <Card testID="profile-milestones">
           <ThemedText type="headline">Streak Milestones</ThemedText>
           {data.milestoneRows.map(
@@ -862,23 +792,14 @@ export default function ProfileScreen() {
                       ? ` · ${remaining} days to go`
                       : ""}
                     {reached && !claimed
-                      ? " · Complete — claim your reward"
+                      ? " · Complete — available in Rewards"
                       : ""}
                     {claimed ? " · ✓ Claimed" : ""}
                   </ThemedText>
                 </View>
                 {reached && !claimed ? (
                   <View style={styles.stateAction}>
-                    <Badge tone="accent" label="✓ Ready to claim" size="sm" />
-                    <Button
-                      label="Claim"
-                      size="sm"
-                      variant="primary"
-                      fullWidth={false}
-                      testID={`milestone-claim-${milestone.id}`}
-                      accessibilityLabel={`Claim ${milestone.label} reward`}
-                      onPress={() => onClaimMilestone(milestone)}
-                    />
+                    <Badge tone="accent" label="In Rewards" size="sm" />
                   </View>
                 ) : claimed ? (
                   <Badge tone="success" label="✓ Claimed" size="sm" />
@@ -889,8 +810,8 @@ export default function ProfileScreen() {
         </Card>
       </Entrance>
 
-      {/* Quests — live progress + once-only claims. */}
-      <Entrance index={4}>
+      {/* Quests — live progress; the once-only claim lives in Rewards. */}
+      <Entrance index={5}>
         <Card testID="profile-quests">
           <ThemedText type="headline">Quests</ThemedText>
           {claimableQuests > 0 && (
@@ -901,7 +822,7 @@ export default function ProfileScreen() {
               accessibilityLiveRegion="polite"
             >
               {claimableQuests} quest reward{claimableQuests === 1 ? "" : "s"}{" "}
-              ready to claim!
+              available in Rewards.
             </ThemedText>
           )}
           {data.questEvals.length === 0 ? (
@@ -943,22 +864,13 @@ export default function ProfileScreen() {
                       {claimed
                         ? "✓ Claimed"
                         : completed
-                          ? "Complete — claim your reward"
+                          ? "Complete — available in Rewards"
                           : "In progress"}
                     </ThemedText>
                   </View>
                   {completed && !claimed && definition ? (
                     <View style={styles.stateAction}>
-                      <Badge tone="accent" label="✓ Ready to claim" size="sm" />
-                      <Button
-                        label="Claim"
-                        size="sm"
-                        variant="primary"
-                        fullWidth={false}
-                        testID={`quest-claim-${evaluation.questId}`}
-                        accessibilityLabel={`Claim ${definition.title} reward`}
-                        onPress={() => onClaimQuest(definition)}
-                      />
+                      <Badge tone="accent" label="In Rewards" size="sm" />
                     </View>
                   ) : claimed ? (
                     <Badge tone="success" label="✓ Claimed" size="sm" />
@@ -970,8 +882,8 @@ export default function ProfileScreen() {
         </Card>
       </Entrance>
 
-      {/* Achievements — claimable vs in-progress vs locked treatments. */}
-      <Entrance index={5}>
+      {/* Achievements — unlocked vs in-progress vs locked treatments. */}
+      <Entrance index={6}>
         <Card testID="profile-achievements">
           <ThemedText type="headline">Achievements</ThemedText>
           {claimableAchievements > 0 && (
@@ -982,7 +894,7 @@ export default function ProfileScreen() {
               accessibilityLiveRegion="polite"
             >
               {claimableAchievements} achievement reward
-              {claimableAchievements === 1 ? "" : "s"} ready to claim!
+              {claimableAchievements === 1 ? "" : "s"} available in Rewards.
             </ThemedText>
           )}
           {ACHIEVEMENT_DEFINITIONS_V1.map((definition) => {
@@ -996,10 +908,7 @@ export default function ProfileScreen() {
             return (
               <View
                 key={definition.id}
-                style={[
-                  styles.stateRow,
-                  !unlocked ? styles.lockedRow : null,
-                ]}
+                style={[styles.stateRow, !unlocked ? styles.lockedRow : null]}
                 testID={`profile-achievement-${definition.id}`}
               >
                 <View style={styles.itemText}>
@@ -1022,7 +931,7 @@ export default function ProfileScreen() {
                     {claimed
                       ? "✓ Claimed"
                       : unlocked
-                        ? "Unlocked — claim your reward"
+                        ? "Unlocked — available in Rewards"
                         : progress > 0
                           ? "In progress — locked"
                           : "Locked"}
@@ -1030,16 +939,7 @@ export default function ProfileScreen() {
                 </View>
                 {unlocked && !claimed ? (
                   <View style={styles.stateAction}>
-                    <Badge tone="accent" label="✓ Ready to claim" size="sm" />
-                    <Button
-                      label="Claim"
-                      size="sm"
-                      variant="primary"
-                      fullWidth={false}
-                      testID={`achievement-claim-${definition.id}`}
-                      accessibilityLabel={`Claim ${definition.title} reward`}
-                      onPress={() => onClaimAchievement(definition)}
-                    />
+                    <Badge tone="accent" label="In Rewards" size="sm" />
                   </View>
                 ) : claimed ? (
                   <Badge tone="success" label="✓ Claimed" size="sm" />
@@ -1050,95 +950,51 @@ export default function ProfileScreen() {
         </Card>
       </Entrance>
 
-      {/* Cosmetics gallery: equipped / owned / locked grid + hub link. */}
-      <Entrance index={6}>
-        <Card>
-          <ThemedText type="headline">Cosmetics</ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">
-            Frame: {data.equippedFrameEmoji} · Accent:{" "}
-            {data.equippedAccentName}
-          </ThemedText>
-          {COSMETIC_SLOTS.map((slot) => (
-            <View key={slot}>
-              <ThemedText type="label" themeColor="textSecondary">
-                {SLOT_LABELS[slot]}
-              </ThemedText>
-              <View style={styles.grid}>
-                {COSMETIC_DEFINITIONS.filter((d) => d.slot === slot).map(
-                  (def) => {
-                    const owned = isCosmeticOwned(
-                      def,
-                      data.cosmeticProgression,
-                      data.profileSettings,
-                    );
-                    const equipped = data.equippedIds[slot] === def.id;
-                    const state = equipped
-                      ? "Equipped"
-                      : owned
-                        ? "Owned"
-                        : `Locked. ${unlockHint(def)}`;
-                    return (
-                      <View
-                        key={def.id}
-                        style={[
-                          styles.cell,
-                          {
-                            backgroundColor: theme.surfaceSunken,
-                            borderColor: theme.border,
-                          },
-                          !owned ? styles.lockedRow : null,
-                        ]}
-                        testID={`profile-cosmetic-${def.id}`}
-                        accessibilityLabel={`${def.name}. ${state}`}
-                      >
-                        <Avatar
-                          size="sm"
-                          emoji={def.preview.emoji}
-                          label={
-                            def.preview.emoji ? undefined : def.name.slice(0, 1)
-                          }
-                        />
-                        <ThemedText
-                          type="bodySmall"
-                          themeColor={owned ? "text" : "textMuted"}
-                          numberOfLines={1}
-                        >
-                          {def.name}
-                        </ThemedText>
-                        {equipped ? (
-                          <Badge tone="success" label="✓ Equipped" size="sm" />
-                        ) : owned ? (
-                          <Badge tone="accent" label="Owned" size="sm" />
-                        ) : (
-                          <ThemedText
-                            type="caption"
-                            themeColor="textMuted"
-                            numberOfLines={2}
-                          >
-                            🔒 {unlockHint(def)}
-                          </ThemedText>
-                        )}
-                      </View>
-                    );
-                  },
-                )}
-              </View>
-            </View>
-          ))}
-          <ListRow
-            title="Manage cosmetics"
-            subtitle="Equip and unlock in the Rewards hub"
-            icon={<Spark size={16} color={theme.accentText} />}
-            tone="accentSoft"
-            onPress={() => router.push("/rewards")}
-            testID="profile-cosmetics"
-            accessibilityLabel="Cosmetics. Manage your cosmetics"
-          />
+      {/* Rewards owns all claim actions, cosmetics and reward history. Profile
+          keeps a single entry point plus a live pending count. */}
+      <Entrance index={7}>
+        <SectionHeader
+          eyebrow="REWARDS"
+          title="Claim and collect"
+          caption={
+            pendingRewardCount > 0
+              ? `${pendingRewardCount} reward${pendingRewardCount === 1 ? "" : "s"} waiting for you.`
+              : "Claimable rewards and cosmetics live in one place."
+          }
+        />
+        <Card testID="profile-rewards">
+          <View testID="profile-rewards-entry">
+            <ListRow
+              title="Open Rewards"
+              subtitle={
+                pendingRewardCount > 0
+                  ? `${pendingRewardCount} ready to claim · Manage cosmetics and reward history`
+                  : "No rewards waiting · Manage cosmetics and reward history"
+              }
+              meta={
+                pendingRewardCount > 0 ? `${pendingRewardCount} ready` : "Open"
+              }
+              metaTestID="profile-rewards-pending"
+              icon={<Spark size={16} color={theme.currencyText} />}
+              tone="currencySoft"
+              onPress={() => router.push("/rewards")}
+              // Preserve the established automation seam while the row's
+              // visible ownership language moves from Cosmetics to Rewards.
+              testID="profile-cosmetics"
+              accessibilityLabel="Open Rewards. Claim rewards and manage cosmetics"
+              accessibilityHint="Opens the single place to claim rewards and manage cosmetics"
+            />
+          </View>
         </Card>
       </Entrance>
 
       {/* Data portability — export / import / wipe (Session 05). */}
-      <Entrance index={7}>
+      <Entrance index={8}>
+        <SectionHeader
+          eyebrow="DATA"
+          title="Your local data"
+          caption="Back up, restore or delete training data on this device."
+        />
         <Card>
           <ListRow
             title="Data Management"
@@ -1153,7 +1009,12 @@ export default function ProfileScreen() {
       </Entrance>
 
       {/* Theme selection (theme registry seam). */}
-      <Entrance index={8}>
+      <Entrance index={9}>
+        <SectionHeader
+          eyebrow="SETTINGS"
+          title="Make it yours"
+          caption="Theme, sound, haptics and sensory options."
+        />
         <Card testID="theme-card">
           <ThemedText type="headline">Theme</ThemedText>
           {THEME_OPTIONS.map((option) => {
@@ -1200,14 +1061,17 @@ function Stat({
   value,
   label,
   valueColor = "accent",
+  testID,
 }: {
   value: string;
   label: string;
   valueColor?: ThemeColor;
+  testID?: string;
 }) {
   const theme = useTheme();
   return (
     <View
+      testID={testID}
       style={[
         styles.stat,
         { backgroundColor: theme.surfaceSunken, borderColor: theme.border },
@@ -1378,20 +1242,5 @@ const styles = StyleSheet.create({
   },
   lockedRow: {
     opacity: 0.6,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  cell: {
-    flexBasis: "48%",
-    flexGrow: 1,
-    alignItems: "center",
-    gap: Spacing.one,
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two,
-    borderRadius: Radii.large,
-    borderWidth: HAIRLINE,
   },
 });

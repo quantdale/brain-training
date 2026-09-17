@@ -1,25 +1,27 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 033 is terminally validated on
-synchronized `main`; Campaign 032 remains the before context.
+**Last update:** 2026-09-18 — Campaign 034 is terminally validated and its
+checkpoint is ready to advance to Campaign 035.
 **Canonical branch:** `main`
 **Active campaign:** none
-**Last campaign:** `033-progress-disclosure-redesign`
+**Last campaign:** `034-profile-motivation-rewards`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 033 (`033-progress-disclosure-redesign`) is terminally validated after
-the owner-directed overnight successor. Its authoritative task specification
-was `.agent/CAMPAIGN033_PROGRESS_DISCLOSURE_REDESIGN_PROMPT.md`; activation
-started from synchronized `main` at `3253ca1`. Campaign 032's terminal
-rendered/runtime package remains the prior visual context. There is no active campaign at this terminal checkpoint.
+Campaign 034 (`034-profile-motivation-rewards`) is terminally validated from
+the Campaign 033 checkpoint at `f64df03`. Profile is grouped around identity,
+motivation, rewards, data, and settings while Rewards remains the single owner
+of pending claim actions, full cosmetics, and reward history. Native before
+and after captures are stored outside Git under
+`D:\Temp\campaign034-runtime-before` and
+`D:\Temp\campaign034-runtime-after2`.
 
-The current implementation is limited to Progress overview disclosure,
-Progress drill-down clarity, sparse/history states, claim-safe language, and
-Progress-local touch-target debt. Existing analytics, rating/mastery,
-SQLite/session, offline, catalog, game, economy, backup, and no-medical-claim
-contracts remain protected; no schema or dependency change is authorized.
+The implementation is limited to Profile presentation ownership and a
+read-only pending-count aggregation. Existing reward, streak, settings, data
+portability, SQLite/session, offline, catalog, game, economy, backup, and
+no-medical-claim contracts remain protected; no schema or dependency change
+was authorized.
 
 ## Campaign 033 checkpoint — Progress summary and progressive disclosure (VALIDATED)
 
@@ -47,6 +49,30 @@ contracts remain protected; no schema or dependency change is authorized.
 - **Terminal result:** all Campaign 033 exit criteria were evaluated and
   Campaign 034 is safe to open independently after this synchronized
   checkpoint.
+
+## Campaign 034 checkpoint — Profile, Motivation, Rewards & Ownership (VALIDATED)
+
+- **Activation:** the orchestrator opened the successor from synchronized
+  `main` at `f64df0315e3dd1b7e2d8519c560e3c9aea1bccb0`; no local or concurrent
+  user work was present to overwrite.
+- **Before observation:** native light/dark Profile and Rewards captures with
+  one persisted Odd One Out session are indexed under
+  `D:\Temp\campaign034-runtime-before`. Profile duplicated the full cosmetic
+  gallery and claim buttons while Rewards already owned the unified inbox and
+  collection.
+- **Implementation:** Profile now presents read-only motivation status plus a
+  single pending-Rewards entry point; streak protection purchases/apply and
+  settings/data controls remain on Profile.
+- **Validation:** full Jest, focused ownership tests, typecheck, lint,
+  repository validators, Android build/install, native light/dark captures,
+  emulator-local scroll evidence, ARTEMIS navigation, accessibility audit, and
+  fresh logcat review passed as recorded in the Campaign 034 evidence package.
+- **Limits:** manual human, TalkBack, iOS/VoiceOver, physical-device,
+  large-text, reduced-motion, document-picker, and store-signing evidence
+  remain pending/deferred. External CI is classified honestly and is not
+  inferred from local results.
+- **Terminal result:** Campaign 034 is validated; Campaign 035 may be opened
+  by the overnight orchestrator.
 
 ## Campaign 032 checkpoint — Games discovery and identity redesign (VALIDATED)
 

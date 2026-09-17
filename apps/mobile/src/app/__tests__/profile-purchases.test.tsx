@@ -7,16 +7,26 @@
  * - the repository rejects with `InsufficientFundsError` despite the UI gate
  *   (concurrent spend race): the user sees the "Not enough coins"
  *   celebration and neither balance nor inventory moves;
- * - any other repository rejection is SWALLOWED (`console.error` only,
- *   src/app/(tabs)/profile.tsx:471-476): no user-visible error exists and the
- *   inventory stays unchanged (defect).
+ * - any other repository rejection is surfaced as a danger toast and the
+ *   inventory stays unchanged.
+ *
+ * Campaign 034 moves achievement, quest and streak-milestone claim actions to
+ * the Rewards owner. Profile keeps read-only motivation status and a single
+ * Rewards entry point; canonical claim failure coverage lives in rewards.test.
  *
  * Renders the REAL ProfileScreen wrapped in SettingsProvider (the provider
  * the app shell supplies), with `@/db` serving a fake repository surface and
  * the progression sync mocked so the loader is deterministic. Mirrors the
  * mocking pattern of data-management.test.tsx / visual-baselines.test.tsx.
  */
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import {
   fireEvent,
   renderRouter,
@@ -27,7 +37,6 @@ import {
 import ProfileScreen from '@/app/(tabs)/profile';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { ToastHost, resetToastQueueForTests } from '@/components/ui';
-import { claimAchievementReward } from '@/achievements';
 import {
   InsufficientFundsError,
   purchaseStreakItem,
@@ -35,18 +44,7 @@ import {
   type AppDatabase,
   type QuestProgress,
 } from '@/db';
-import {
-  applyQuestReward,
-  currentPeriodKey,
-  QUEST_DEFINITIONS_V1,
-  selectActiveQuests,
-} from '@/quests';
-import {
-  applyOwnedStreakItem,
-  claimStreakMilestoneReward,
-  previousDate,
-} from '@/streaks';
-import { localDateString } from '@/workout/today';
+import { applyOwnedStreakItem } from '@/streaks';
 
 const FREEZE_COST = 100;
 
@@ -109,27 +107,13 @@ jest.mock('@/progression', () => {
   };
 });
 
-jest.mock('@/achievements', () => {
-  const actual = jest.requireActual('@/achievements') as Record<string, unknown>;
-  return { ...actual, claimAchievementReward: jest.fn() };
-});
-
-jest.mock('@/quests', () => {
-  const actual = jest.requireActual('@/quests') as Record<string, unknown>;
-  return { ...actual, applyQuestReward: jest.fn() };
-});
-
 const mockedPurchase = jest.mocked(purchaseStreakItem);
-const mockedClaimAchievement = jest.mocked(claimAchievementReward);
-const mockedClaimMilestone = jest.mocked(claimStreakMilestoneReward);
-const mockedApplyQuest = jest.mocked(applyQuestReward);
 
 jest.mock('@/streaks', () => {
   const actual = jest.requireActual('@/streaks') as Record<string, unknown>;
   return {
     ...actual,
     applyOwnedStreakItem: jest.fn(),
-    claimStreakMilestoneReward: jest.fn(),
     // The apply gate is covered by the streak action suites; here it only
     // needs to expose the Apply control so the handler mapping is testable.
     canApplyFreeze: jest.fn(() => true),
@@ -154,7 +138,12 @@ function makeDb(): AppDatabase {
       }),
     },
     achievements: { listUnlocks: async () => mockDbState.unlockRows },
-    quests: { listProgressForPeriod: async () => mockDbState.questRows },
+    quests: {
+      listProgressForPeriod: async () => mockDbState.questRows,
+      // Rewards' authoritative count scans every persisted quest period.
+      listProgressForQuest: async (questId: string) =>
+        mockDbState.questRows.filter((row) => row.questId === questId),
+    },
     sessions: {
       getTotalXp: async () => 0,
       listLightweight: async () => [],
@@ -283,9 +272,9 @@ describe('profile streak-item purchase failure paths', () => {
 
     // Campaign 027: the failure is user-visible now (toast), no celebration
     // plays, and the inventory is unchanged.
-    expect(await screen.findByTestId('toast', {}, { timeout: 5000 })).toHaveTextContent(
-      /Purchase failed/,
-    );
+    expect(
+      await screen.findByTestId('toast', {}, { timeout: 5000 }),
+    ).toHaveTextContent(/Purchase failed/);
     expect(screen.queryByTestId('reward-celebration')).toBeNull();
     expect(screen.getByText('Freeze × 0')).toBeOnTheScreen();
   });
@@ -321,94 +310,24 @@ describe('profile streak-item purchase failure paths', () => {
   });
 });
 
-describe('profile claim rejection paths (campaign 028)', () => {
-  it('surfaces an achievement claim rejection and leaves the reward claimable', async () => {
+describe('profile ownership grouping (campaign 034)', () => {
+  it('keeps claim actions in Rewards and exposes one Profile entry point', async () => {
     mockDbState.unlockRows = [
       { achievementId: 'ach-first', unlockedAt: 0, claimedAt: null },
     ];
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockedClaimAchievement.mockRejectedValue(new Error('achievement claim boom'));
     await renderProfile();
 
-    await fireEvent.press(
-      await screen.findByTestId('achievement-claim-ach-first'),
+    expect(screen.getByTestId('profile-rewards')).toBeOnTheScreen();
+    expect(screen.getByTestId('profile-rewards-entry')).toBeOnTheScreen();
+    expect(screen.getByTestId('profile-rewards-pending')).toHaveTextContent(
+      '1 ready',
     );
-
-    await waitFor(() => expect(mockedClaimAchievement).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[profile] achievement claim failed',
-        expect.any(Error),
-      ),
-    );
-
-    // Campaign 028: the rejection is user-visible now, no celebration plays.
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
-    expect(toast).toHaveTextContent(/Couldn't claim that achievement/);
-    expect(screen.queryByTestId('reward-celebration')).toBeNull();
-    // Unchanged: the unlock is still unclaimed, so the claim action remains.
-    expect(screen.getByTestId('achievement-claim-ach-first')).toBeOnTheScreen();
-    expect(screen.getByText(/Unlocked — claim your reward/)).toBeOnTheScreen();
-  });
-
-  it('surfaces a streak-milestone claim rejection and leaves it claimable', async () => {
-    const today = localDateString();
-    mockDbState.activityDates = [
-      today,
-      previousDate(today),
-      previousDate(previousDate(today)),
-    ];
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockedClaimMilestone.mockRejectedValue(new Error('milestone claim boom'));
-    await renderProfile();
-
-    await fireEvent.press(await screen.findByTestId('milestone-claim-mil-3'));
-
-    await waitFor(() => expect(mockedClaimMilestone).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[profile] milestone claim failed',
-        expect.any(Error),
-      ),
-    );
-
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
-    expect(toast).toHaveTextContent(/Couldn't claim that reward/);
-    expect(screen.queryByTestId('reward-celebration')).toBeNull();
-    expect(screen.getByTestId('milestone-claim-mil-3')).toBeOnTheScreen();
-  });
-
-  it('surfaces a quest claim rejection and leaves it claimable', async () => {
-    const now = new Date();
-    const quest = selectActiveQuests(QUEST_DEFINITIONS_V1, now)[0];
-    mockDbState.questRows = [
-      {
-        questId: quest.id,
-        period: currentPeriodKey(quest.kind, now),
-        progress: 999,
-        completedAt: now.getTime(),
-        claimedAt: null,
-      },
-    ];
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockedApplyQuest.mockRejectedValue(new Error('quest claim boom'));
-    await renderProfile();
-
-    const claimTestId = `quest-claim-${quest.id}`;
-    await fireEvent.press(await screen.findByTestId(claimTestId));
-
-    await waitFor(() => expect(mockedApplyQuest).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[profile] quest claim failed',
-        expect.any(Error),
-      ),
-    );
-
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
-    expect(toast).toHaveTextContent(/Couldn't claim that quest/);
-    expect(screen.queryByTestId('reward-celebration')).toBeNull();
-    expect(screen.getByTestId(claimTestId)).toBeOnTheScreen();
+    expect(
+      screen.getByText(/Unlocked — available in Rewards/),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('achievement-claim-ach-first')).toBeNull();
+    expect(screen.queryByTestId('quest-claim')).toBeNull();
+    expect(screen.queryByTestId('milestone-claim-mil-3')).toBeNull();
   });
 
   it('surfaces a theme persist rejection with a danger toast (sweep)', async () => {
@@ -416,7 +335,9 @@ describe('profile claim rejection paths (campaign 028)', () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderProfile();
 
-    await fireEvent.press(await screen.findByTestId('profile-settings-theme-dark'));
+    await fireEvent.press(
+      await screen.findByTestId('profile-settings-theme-dark'),
+    );
 
     await waitFor(() =>
       expect(errorSpy).toHaveBeenCalledWith(

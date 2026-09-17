@@ -5,6 +5,37 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 034 Profile/Rewards ownership — 2026-09-18 (VALIDATED checkpoint)
+
+- Source before-state observation: **PASS** — the dedicated Android emulator
+  rendered Profile and Rewards in light/dark with the persisted one-session
+  state; artifacts are outside Git under
+  `D:\Temp\campaign034-runtime-before`.
+- Focused Profile ownership/streak tests: **PASS** — 8 tests, including the
+  contract that Profile has no claim buttons and exposes one Rewards entry
+  point. The Profile + Rewards focused run passed 14/14 tests.
+- Native after-state: **PASS** — `D:\Temp\campaign034-runtime-after2` contains
+  four nonblank, route-verified Profile/Rewards light/dark captures; the
+  emulator-local scroll evidence in
+  `D:\Temp\campaign034-runtime-after2-lower` reaches Rewards, Data, and
+  Settings.
+- Accessibility: **PASS** — `node scripts/qa/a11y-audit.mjs --dir
+  D:\Temp\campaign034-runtime-after2 --density 420 --json` reported 0
+  violations across 4 surfaces.
+- Fresh logcat: **PASS** for the bounded relaunch sample — no fatal, SQLite,
+  lock, ANR, ReactNativeJS, or redbox signatures.
+- Full Jest: **PASS** — 556 passing suites / 6,559 passing tests, 4 skipped
+  suites / 5 skipped tests, 5 snapshots passed. Typecheck and lint: **PASS**.
+- Android debug build/install: **PASS** — 458 tasks, 55 executed, 403
+  up-to-date; installed successfully on `emulator-5554`.
+- ARTEMIS Flash: **PASS** — trace
+  `00117f8a-c773-4e4b-9473-87b9457cfdd1` completed Profile → Rewards
+  navigation without a claim/purchase mutation.
+- Evidence package: **PASS** — `docs/redesign/evidence/campaign034/`.
+- Human/platform validation and external CI remain **NOT VALIDATED / PENDING
+  or EXTERNAL** as described by the evidence package; no global success label
+  is inferred.
+
 ### Campaign 033 Progress disclosure — 2026-09-18
 
 - Safe synchronization fast-forwarded from the prior terminal Campaign 032

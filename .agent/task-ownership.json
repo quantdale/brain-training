@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "lifecycleStatus": "VALIDATED",
-  "change": "033-progress-disclosure-redesign",
-  "description": "Terminal ownership record for validated Campaign 033 Progress summary and progressive disclosure redesign. The orchestrator owned governance, OpenSpec, evidence, analytics disclosure, and final convergence; no parallel coder packets remain active.",
+  "change": "034-profile-motivation-rewards",
+  "description": "Campaign 034 ownership record for Profile grouping and Rewards ownership simplification. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

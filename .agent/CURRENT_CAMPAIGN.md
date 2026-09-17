@@ -1,3 +1,60 @@
+# Campaign 034 — Profile, Motivation, Rewards & Ownership Simplification
+
+**Status:** VALIDATED
+**Campaign id:** `034-profile-motivation-rewards`
+**Predecessor:** `033-progress-disclosure-redesign` (validated)
+**Mode:** day
+**Start SHA:** `f64df0315e3dd1b7e2d8519c560e3c9aea1bccb0`
+**Change:** `034-profile-motivation-rewards` (VALIDATED)
+**Authorization:** owner-supplied Campaign 033–040 overnight directive on
+2026-09-18, following the validated Campaign 033 checkpoint.
+
+## Mission
+
+Turn Profile into a grouped control center. Keep identity and quiet
+progression context on Profile, keep streak protection and motivation evidence
+there, and make Rewards the single owner of pending reward claims, cosmetics,
+and reward history. Preserve the existing persistence and idempotency seams.
+
+## Current evidence
+
+The current Profile and Rewards routes were observed natively before editing
+with the persisted one-session state. Profile showed a duplicated full
+cosmetics gallery alongside claim buttons for achievement, quest, and
+milestone rewards. Rewards already presented the unified inbox, claim-all,
+cosmetic collection/equip flows, and reward history.
+
+## Guardrails
+
+- Preserve ledger writes, claim idempotency, streak reconstruction/protection,
+  quest/achievement definitions, cosmetic ownership/equip rules, and all data
+  portability safeguards.
+- Do not change SQLite schema, scoring, rating/mastery formulas, gameplay,
+  backup format, or offline behavior.
+- Use the dedicated `emulator-5554` only for native validation and keep all
+  automation emulator-local.
+- Record human/manual platform limits as pending rather than inferring them.
+
+## Terminal result
+
+Profile has clear Motivation, Rewards, Data, and Settings grouping; claimable
+reward actions and full cosmetics/history have one Rewards owner; existing
+streak/settings/data controls remain reachable; focused/full validation and
+native light/dark evidence are recorded under
+`docs/redesign/evidence/campaign034/`; and the synchronized `main` checkpoint
+is pushed. Campaign 034 is terminally validated and Campaign 035 is the next
+safe successor.
+
+## Recovery order
+
+1. `AGENTS.md`, constitution, `.agent/GOVERNANCE.json`, `.agent/STATE.md`
+2. this file, `.agent/EXECUTION_PROMPT.md`, and
+   `openspec/changes/034-profile-motivation-rewards/`
+3. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`, and
+   `docs/redesign/evidence/campaign034/**`
+
+---
+
 # Campaign 033 — Progress summary and progressive disclosure redesign
 
 **Status:** VALIDATED

@@ -1,0 +1,15 @@
+{
+  "id": "034-profile-motivation-rewards",
+  "status": "VALIDATED",
+  "predecessor": "033-progress-disclosure-redesign",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["profile-motivation-rewards"],
+  "activationRule": "Owner supplied the Campaign 033–040 overnight directive on 2026-09-18 and Campaign 033 reached its validated checkpoint; execute the next bounded Profile/Rewards ownership slice.",
+  "baselineAuditCommit": "f64df0315e3dd1b7e2d8519c560e3c9aea1bccb0",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the current native Profile/Rewards observation and source trace at the validated Campaign 033 checkpoint. Scope is limited to Profile grouping, motivation disclosure, pending reward entry, and removal of duplicate claim/cosmetic ownership presentations."
+}
