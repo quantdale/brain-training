@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "037-navigation-state-coherence",
   "description": "Campaign 037 navigation/state ownership record for the bounded Home clean-state copy and route regression contract slice. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [

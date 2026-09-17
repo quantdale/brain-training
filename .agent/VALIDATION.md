@@ -5,7 +5,7 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-### Campaign 037 Navigation, State & Cross-Surface Coherence — 2026-09-18 (ACTIVE discovery)
+### Campaign 037 Navigation, State & Cross-Surface Coherence — 2026-09-18 (VALIDATED)
 
 - Activation: **PASS** — Campaign 037 opened from synchronized `main` at
   `340d61a4fedffb46e8adf8245d57cb03a5831906`; no local or concurrent user
@@ -21,15 +21,47 @@ unavailable checks into PASS.
   Profile → Data Management → Android back → Profile; Progress → domain
   drill-down → Android back → Progress with the 30d selection preserved; and
   invalid Game/Detail/Results IDs rendering recoverable states.
-- Finding: **OPEN** — clean Home still describes the plan as balanced across
-  recent training with zero completed sessions. This is the bounded 037
-  implementation target; no navigation rewrite is currently indicated.
+- Finding: **CLOSED** — clean Home described the plan as balanced across
+  recent training with zero completed sessions. The bounded fix now says
+  `a balanced starting set` for an empty recent-session list and retains the
+  existing history-aware branch for returning players.
 - Runtime caveat: the first lazy GameHost route stayed on its real loading
   state until the development module settled; tapping its existing Cancel
   returned to Games. This is recorded as a warm-up observation, not hidden as
   a product pass/failure.
-- ARTEMIS/computer-use: **NOT USED** for 037 discovery; deterministic local
-  ADB/UIAutomator observation was sufficient so far.
+- Implementation: **PASS** — source checkpoint `ad4e54a` adds the Home state
+  branch and focused Home/app-shell regression contracts. No router,
+  session/workout identity, persistence, migration, economy, backup/restore,
+  gameplay, or registry changes were made.
+- Focused validation: **PASS** — Home 3/3, app-shell 13/13, visual baselines
+  5/5 snapshots.
+- Full Jest: **PASS** — 556 suites passed / 4 skipped; 6,566 tests passed / 5
+  skipped; 5 snapshots passed.
+- Typecheck/lint: **PASS**. Repository validators: **PASS** — repo-state,
+  task ownership, affected-map sync and strict mapping, offline, provenance,
+  secrets, workflows, dependency audit, generated registry, and runtime-QA
+  contract.
+- Native after-state: **PASS** — clean matching after matrix under
+  `D:\Temp\campaign037-runtime-after-clean`, 22/22 route-verified and
+  nonblank light/dark surfaces. Home's changed pixels were 13.63% light /
+  13.73% dark; non-Home surfaces remained within 0.02–0.08% changed pixels.
+- Accessibility: **PASS** — automated audit reported 0 violations across 22
+  surfaces at density 420.
+- Fresh logcat: **PASS** — no fatal exception, SQLite error/lock, ANR,
+  ReactNativeJS error, RedBox, or unresolved-module signature in the retained
+  clean-launch sample.
+- Android build/install: **PASS** — dedicated `emulator-5554` / AVD
+  `braintraining-ui35` (Android 15/API 35); 458 actionable tasks / 55
+  executed; APK installed successfully with SHA-256
+  `80E9B29134FB70D7C45E30B7BB0FB6F6E90EE8D358B1880B9FA236E98A877D6A`.
+- ARTEMIS/computer-use: **NOT USED** for 037; deterministic local
+  ADB/UIAutomator and repository QA tools supplied the evidence.
+- External CI: **NOT YET QUERIED FOR THE TERMINAL PUSH** at the time of this
+  state update; prior 036 zero-step failures remain classified external.
+- Human/platform limits: **NOT VALIDATED / PENDING** — no independent human,
+  manual TalkBack, large-text, reduced-motion, physical-device, iOS,
+  store-signed, or system document-picker evidence.
+- Evidence package: **PASS** — `docs/redesign/evidence/campaign037/`.
 
 ### Campaign 036 First-Run, Empty-State & Trust — 2026-09-18 (VALIDATED)
 

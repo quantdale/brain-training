@@ -1,13 +1,13 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 037 is active after terminal Campaign
-036 validation and a native cross-surface navigation audit.
+**Last update:** 2026-09-18 — Campaign 037 is terminally validated after its
+native cross-surface navigation audit and bounded clean-state copy fix.
 **Canonical branch:** `main`
-**Active campaign:** `037-navigation-state-coherence`
-**Last campaign:** `036-first-run-trust-experience`
+**Active campaign:** `none`
+**Last campaign:** `037-navigation-state-coherence`
 **Last campaign status:** VALIDATED
 
-## Campaign 037 checkpoint — Navigation, State & Cross-Surface Coherence (ACTIVE)
+## Campaign 037 checkpoint — Navigation, State & Cross-Surface Coherence (VALIDATED)
 
 - **Activation:** opened from synchronized `main` at
   `340d61a4fedffb46e8adf8245d57cb03a5831906`; no local or concurrent user
@@ -17,13 +17,23 @@
   verified Games → Detail → back, Detail → Play → GameHost → back, result →
   back, Progress drill-down → back, Profile → Rewards/Data → back, and
   recoverable invalid Game/Detail/Results deep links.
-- **Finding:** clean Home still says the plan is balanced across recent
-  training while the local record has no completed sessions. The bounded
-  target is an honest starting-set branch plus focused route regression
-  contracts; no routing rewrite is authorized.
-- **Implementation:** pending. The existing navigation seams, session and
-  workout provenance, persistence, empty states, and invalid-route fallbacks
-  remain protected.
+- **Finding:** clean Home said the plan was balanced across recent training
+  while the local record had no completed sessions. Major navigation seams
+  were operational; no routing rewrite was indicated.
+- **Implementation:** Home now says “a balanced starting set” when the local
+  recent-session list is empty and retains the history-aware wording for
+  returning players. Focused contracts cover the state branch, Games → Game
+  Detail → back, and a missing Results deep link. Session/workout provenance,
+  persistence, empty states, and invalid-route fallbacks remain protected.
+- **Validation:** full Jest 556 suites / 6,566 tests passed (4 suites and 5
+  tests skipped; 5 snapshots), typecheck, lint, strict affected mapping,
+  repository validators, Android build/install, 22/22 clean light/dark native
+  captures, Pillow pixel comparison, automated accessibility (0 violations),
+  and fresh logcat all passed. Evidence is under
+  `docs/redesign/evidence/campaign037/`.
+- **Terminal result:** Campaign 037 is complete at source checkpoint
+  `ad4e54a`, pushed to `origin/main`. The next safe successor is Campaign
+  038 Accessibility, Device, Motion & Sensory Hardening.
 
 ## Campaign 036 checkpoint — First-Run, Empty-State & Trust (VALIDATED)
 

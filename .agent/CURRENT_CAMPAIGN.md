@@ -1,11 +1,11 @@
 # Campaign 037 — Navigation, State & Cross-Surface Coherence Hardening
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `037-navigation-state-coherence`
 **Predecessor:** `036-first-run-trust-experience` (validated)
 **Mode:** day
 **Start SHA:** `340d61a4fedffb46e8adf8245d57cb03a5831906`
-**Change:** `037-navigation-state-coherence` (ACTIVE)
+**Change:** `037-navigation-state-coherence` (VALIDATED)
 **Authorization:** owner-supplied Campaign 033–040 overnight directive on
 2026-09-18, following the validated Campaign 036 checkpoint.
 
@@ -15,15 +15,15 @@ Audit the redesigned application as one product. Keep the observed major
 back/return journeys coherent, preserve recoverable invalid/empty routes, and
 remove the concrete clean-state copy contradiction without rewriting routing.
 
-## Current evidence
+## Terminal evidence
 
 The native baseline under `D:\Temp\campaign037-runtime-before` contains 22/22
 route-verified, nonblank light/dark surfaces. Emulator-local journeys showed
 Games → Game Detail → back, Game Detail → Play → GameHost → back, result and
 Progress drill-down returns, Profile → Rewards/Data returns, and recoverable
-invalid Game/Detail/Results deep links. The concrete issue is Home's clean
-plan line claiming it is balanced across recent training with no completed
-sessions.
+invalid Game/Detail/Results deep links. The clean-state plan line now
+distinguishes a starting set from history-aware planning when no completed
+sessions exist.
 
 ## Bounded implementation
 
@@ -34,13 +34,13 @@ sessions.
 - Preserve Expo Router behavior, workout/session provenance, persistence,
   empty states, economy, and gameplay.
 
-## Exit criteria
+## Terminal result
 
 Clean-state copy is honest and the observed major journeys retain context;
 invalid/loading/empty routes remain recoverable; focused/full validation and
 matching native evidence are recorded under
-`docs/redesign/evidence/campaign037/`. A safe partial result must be labeled
-PARTIAL.
+`docs/redesign/evidence/campaign037/`. Campaign 037 is **COMPLETE** at
+`ad4e54a`; Campaign 038 is the next safe successor.
 
 ---
 

@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 037: Navigation, State & Cross-Surface Coherence
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `037-navigation-state-coherence`
 **Planned-From:** `340d61a4fedffb46e8adf8245d57cb03a5831906`
 **Start-SHA:** `340d61a4fedffb46e8adf8245d57cb03a5831906`
@@ -28,6 +28,17 @@ drill-down, Profile/Rewards/Data, invalid-ID, and empty-result paths before and
 after. Run focused/full tests, typecheck, lint, relevant validators, matching
 native pixels/XML, accessibility, and fresh logcat. Record manual/platform and
 external-CI limits honestly.
+
+## Terminal result
+
+Campaign 037 is complete at source checkpoint `ad4e54a`, pushed to
+`origin/main`. The clean Home subtitle now distinguishes a starting set from
+history-aware planning; observed route/context and invalid/empty fallbacks
+remain operational. Focused/full validation, Android build/install, matching
+22-surface native evidence, pixel comparison, automated accessibility, and
+fresh logcat are recorded under `docs/redesign/evidence/campaign037/`.
+Manual/platform and terminal-push external-CI evidence remain explicitly
+pending/classified rather than inferred.
 
 ## Guardrails
 

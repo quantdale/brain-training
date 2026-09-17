@@ -1,19 +1,22 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 037 ACTIVE
+## Current status — Campaign 037 VALIDATED; Campaign 038 next
 
-Campaign 037 is active from the synchronized Campaign 036 checkpoint. The
-native 22-surface baseline and emulator-local route audit are retained under
-`D:\Temp\campaign037-runtime-before`. The major observed back/return paths
-and invalid/empty fallbacks are operational. The concrete bounded issue is
-Home's clean-state plan copy: it says `balanced across your recent training`
-even when no completed session exists.
+Campaign 037 is terminally validated from the synchronized Campaign 036
+checkpoint. The native 22-surface baseline and emulator-local route audit are
+retained under `D:\Temp\campaign037-runtime-before`; the matching clean after
+matrix is under `D:\Temp\campaign037-runtime-after-clean`. The bounded
+clean-state copy issue is fixed: Home says `a balanced starting set` without
+session history and retains the existing history-aware copy for returning
+players. The observed back/return paths and invalid/empty fallbacks remain
+operational.
 
-The authorized slice is a starting-set copy branch plus route/state regression
-contracts. No routing rewrite, session/workout identity change, persistence,
-schema/economy/backup change, gameplay change, or unsupported claim is
-authorized. Do not label Campaign 037 complete until implementation and
-closure validation run.
+The source checkpoint `ad4e54a` is pushed. Full tests, typecheck, lint,
+validators, Android build/install, 22-surface capture, pixel comparison,
+automated accessibility, and fresh logcat passed. No routing rewrite,
+session/workout identity change, persistence, schema/economy/backup change,
+gameplay change, or unsupported claim was introduced. Campaign 038 is the next
+safe scope for the deferred device, motion, sensory, and compact-target audit.
 
 ## Campaign 036 VALIDATED (previous checkpoint)
 

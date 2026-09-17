@@ -9,19 +9,18 @@
 
 ## Product implementation
 
-- [ ] Make clean-state Home plan language distinguish a starting set from
+- [x] Make clean-state Home plan language distinguish a starting set from
       history-aware planning.
-- [ ] Add focused contracts for the Home state branch and observed route/error
+- [x] Add focused contracts for the Home state branch and observed route/error
       fallbacks without changing the routing architecture.
-- [ ] Preserve route stack behavior, session/provenance identity, persistence,
+- [x] Preserve route stack behavior, session/provenance identity, persistence,
       empty states, and all gameplay/economy behavior.
 
 ## Validation and evidence
 
-- [ ] Run focused and full tests, typecheck, lint, and relevant validators.
-- [ ] Capture matching native after pixels/XML and compare the changed Home
+- [x] Run focused and full tests, typecheck, lint, and relevant validators.
+- [x] Capture matching native after pixels/XML and compare the changed Home
       surface plus route-state evidence.
-- [ ] Run accessibility and fresh logcat checks for the changed/observed
+- [x] Run accessibility and fresh logcat checks for the changed/observed
       surfaces.
-- [ ] Commit/push a truthful COMPLETE or PARTIAL checkpoint.
-
+- [x] Commit/push a truthful COMPLETE or PARTIAL checkpoint.

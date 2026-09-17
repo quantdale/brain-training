@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "037-navigation-state-coherence",
-  "lastCampaign": "036-first-run-trust-experience",
+  "activeCampaign": null,
+  "lastCampaign": "037-navigation-state-coherence",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,
