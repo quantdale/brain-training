@@ -723,3 +723,28 @@ The following criteria are for a later implementation campaign. They are not cla
 This master plan, together with the five supporting documents in `docs/redesign/`, is the complete Campaign 029 discovery package. The package records what was inspected, what was not reachable, what the current repository already does well, why the current interface feels structurally dense, what the proposed IA owns, how the golden path should behave, how Games and Progress should be simplified, which systems are demoted rather than deleted, what visual direction follows from the IA, how a later implementation maps to real seams, and how humans must validate it.
 
 **No product redesign has been implemented.**
+
+## Campaign 030B evidence addendum (2026-09-17)
+
+Campaign 030B closed the historical Android framebuffer limitation on a
+disposable normal Pixel 7 AVD. The Campaign 029 hierarchy-based hypotheses are
+now cross-checked against current light/dark rendered pixels and a deterministic
+four-game runtime journey; the detailed classifications are in
+`evidence/campaign030b/CAMPAIGN029_VISUAL_CROSSCHECK.md`.
+
+Two current-baseline facts qualify the plan without changing its direction:
+
+- Data Management can display `Local database — Empty` while its local table
+  counters contain persisted sessions/workout/tutorial rows. This is a storage
+  size observability/trust issue, not observed data loss, and requires explicit
+  follow-up before a later implementation treats that label as authoritative.
+- The populated Progress Detail fixture exposes a 43dp history row in each
+  theme, and the Games/Profile audit retains clipped-under-tab-bar notes. These
+  are localized accessibility/layout follow-ups alongside the plan's existing
+  density and human-comprehension hypotheses.
+
+The original Campaign 029 statements about unavailable current rendered runtime
+remain historical statements about that campaign head. Campaign 030B supplies
+the missing Android evidence; it does not provide human usability, iOS,
+large-font, landscape, or exhaustive 42-game validation, and it implements no
+redesign.

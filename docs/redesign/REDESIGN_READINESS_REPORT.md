@@ -1,8 +1,40 @@
-# Campaign 030 — Runtime Baseline and Redesign Readiness
+# Campaign 030 / Campaign 030B — Runtime Baseline and Redesign Readiness
+
+## Current Campaign 030B decision
 
 Date: 2026-09-17
 
-Verdict: BLOCKED_NOT_READY
+Verdict: **`READY_FOR_CAMPAIGN_031`**
+
+Campaign 030B replaced the failed ATD graphics path with the disposable normal
+phone AVD `braintraining-c030b` (`emulator-5562`). It proved real non-uniform
+product pixels, captured a current 22-surface light/dark native matrix with
+route-verified XML, completed the deterministic four-game golden path, and
+validated interruption/resume/relaunch/persistence. The evidence-only packet
+did not implement Campaign 031 or any redesign.
+
+Read the closure packet and its companions:
+
+- [Campaign 030B closure](evidence/campaign030b/CAMPAIGN030B_CLOSURE.md)
+- [Runtime environment](evidence/campaign030b/RUNTIME_ENVIRONMENT.md)
+- [Visual baseline index](evidence/campaign030b/VISUAL_BASELINE_INDEX.md)
+- [Golden-path runtime evidence](evidence/campaign030b/GOLDEN_PATH_RUNTIME.md)
+- [Campaign 029 visual cross-check](evidence/campaign030b/CAMPAIGN029_VISUAL_CROSSCHECK.md)
+- [CI/SDK disposition](evidence/campaign030b/CI_SDK_DISPOSITION.md)
+
+Known carried-forward limits are explicit: human validation is
+`PENDING_PHASE_031`; the authorized ARTEMIS/OpenCode route was unavailable;
+Expo patch drift is deferred to separate maintenance; GitHub Actions still
+fails before steps as `INDETERMINATE_EXTERNAL_PRE_STEP`; a localized 43dp
+Progress Detail row and clipped-under-tab-bar notes remain; and the Data
+Management storage-size hero can say `Empty` while persisted table counts are
+non-zero. None is silently presented as green or as observed data loss.
+
+## Historical Campaign 030 baseline
+
+The following section preserves why Campaign 030 originally returned
+`BLOCKED_NOT_READY`. Its verdict and black-frame evidence are historical for
+the prior ATD runtime, not the current Campaign 030B decision.
 
 Campaign 030 established a substantial semantic current-baseline record, but it
 did not establish a usable native visual runtime. The dedicated Campaign 030
