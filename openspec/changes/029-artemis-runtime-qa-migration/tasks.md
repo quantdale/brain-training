@@ -9,11 +9,14 @@
 - [x] 1.3 Configure the provider environment externally without printing or
       committing the credential.
 - [ ] 1.4 Complete a system Settings Flash smoke task — **BLOCKED / NOT
-      VALIDATED** by external Gemini model availability/quota; trace and exact
-      failure are recorded in `.agent/VALIDATION.md`.
+      VALIDATED**: the former Gemini path was retired by owner directive; the
+      OpenCode Go / `union-alpha` route is prepared and audited offline, but
+      the live probe cannot run because `OPENCODE_GO_API_KEY` is absent (no
+      request sent). Evidence: `.agent/VALIDATION.md`.
 - [ ] 1.5 Complete Brain Training Flash and Pro tasks on the current APK —
-      **BLOCKED / NOT VALIDATED** by the same provider condition; do not claim
-      a runtime pass until a fresh task/trace completes.
+      **BLOCKED / NOT VALIDATED** by the same missing-credential condition; do
+      not claim a runtime pass until a fresh trace on the `union-alpha` route
+      completes.
 
 ## 2. Repository boundary migration
 

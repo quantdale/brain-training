@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-16 — Campaign 029 ARTEMIS readiness rechecked; the named AVD did not register with ADB; live provider evidence externally blocked.
+**Last update:** 2026-09-17 — owner-directed OpenCode Go / `union-alpha` provider route prepared and audited offline; live runtime stages blocked on the missing `OPENCODE_GO_API_KEY` credential.
 **Canonical branch:** `main`
 **Active campaign:** `029-artemis-runtime-qa-migration`
 **Last campaign:** `028-production-readiness`
@@ -23,8 +23,13 @@ the supported ARTEMIS MCP block is merged without changing unrelated Codex
 servers. Provider credentials remain external and are not recorded here. A
 live ARTEMIS Settings Flash attempt reached the Settings app but was blocked
 by Gemini model availability/quota responses; it is **BLOCKED / NOT
-VALIDATED**, not a product pass. Brain Training Flash and Pro remain **NOT
-VALIDATED** for the same single external condition. The current APK built,
+VALIDATED**, not a product pass. The owner then replaced that route: the only
+authorized remote inference is OpenCode Go / `union-alpha`, and the external
+ARTEMIS route is prepared with all 20 roles pinned to
+`anthropic`/`union-alpha` (offline audit PASS). Brain Training Flash and Pro
+remain **NOT VALIDATED** — now blocked only by the missing
+`OPENCODE_GO_API_KEY` credential; no other model was substituted. The current
+APK built,
 installed, and started successfully on the dedicated AVD; the setup/diagnostic
 self-test now passes with 5 checks and 2 documented launcher skips.
 
@@ -45,7 +50,10 @@ self-test now passes with 5 checks and 2 documented launcher skips.
 - **Completed:** MCP generator/merge, app build/install, deterministic gates,
   OpenSpec, current-doc/state reconciliation, and the offline runtime contract.
 - **Remaining:** the provider-dependent Settings/Brain Training Flash/Pro
-  tasks; the device and setup self-test are currently ready/PASS.
+  tasks; the device and setup self-test are currently ready/PASS. The current
+  single blocker is the missing `OPENCODE_GO_API_KEY` for the owner-directed
+  OpenCode Go / `union-alpha` route; the dedicated target is also currently
+  owned by another active session (`braintraining-c030`).
 
 ## Historical Campaign 028 workstreams (closed VALIDATED)
 

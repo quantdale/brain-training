@@ -40,19 +40,35 @@ Codex MCP integration, and revalidate the build and deterministic gates.
   `MainActivity` on the dedicated AVD. The setup self-test now passes 5 checks
   with 2 documented launcher skips and no host input; no data wipe was used.
 - A system Settings Flash attempt reached the Settings app through ARTEMIS but
-  did not complete because the configured Gemini model service returned
+  did not complete because the old Gemini-backed model service returned
   availability/quota errors. It is **BLOCKED / NOT VALIDATED**, not a pass.
-  Brain Training Flash and Pro are not yet validated for the same external
-  provider condition.
+- The owner replaced that path with an explicit provider directive: the only
+  authorized remote inference is **OpenCode Go / `union-alpha`** through its
+  Anthropic-style Messages endpoint. Gemini, Gemini Robotics, and every other
+  model are forbidden for this campaign.
+- The external route is prepared and verified offline (no live credential in
+  this session): all 20 ARTEMIS runtime roles resolve to
+  `anthropic`/`union-alpha` with no fallback (audit PASS), and a small local
+  ARTEMIS commit (`e70ca52` on top of upstream `371aa6d`) forwards
+  `ANTHROPIC_CUSTOM_HEADERS` so an honest client identity and a stable
+  per-task session header survive the SDK's header merge order, and keeps the
+  two Google-only lens paths inert when their flags are disabled.
+- Live provider work is **BLOCKED / NOT VALIDATED**: `OPENCODE_GO_API_KEY` is
+  absent from this session's environment and from the external ARTEMIS `.env`,
+  so the fail-closed probe sent no request and ARTEMIS cannot initialize the
+  provider. Settings Flash, Brain Training Flash, and Brain Training Pro
+  remain unrun on the new route; no other model was substituted.
 
 ## Remaining work
 
-1. Keep the two live runtime items open as **BLOCKED / NOT VALIDATED** until
-   the external Gemini availability/quota condition changes; then run the
-   requested Settings/Brain Training Flash and Pro tasks through ARTEMIS and
-   inspect their traces.
-2. Keep the current device/setup evidence available for that future run;
-   device readiness and the setup self-test are currently **PASS**.
+1. Provide `OPENCODE_GO_API_KEY` (environment only; never Git/config/docs),
+   alias it for the ARTEMIS process, then run the staged gates in order:
+   tiny text probe -> multimodal image probe -> Settings Flash -> Brain
+   Training Flash -> Brain Training Pro. Do not substitute another model.
+2. The dedicated target is currently owned by another active session
+   (`braintraining-c030` on `emulator-5558`); re-establish the
+   `braintraining-ui35` / single idle target before the runtime stages.
+3. Inspect each ARTEMIS trace and record only what actually completed.
 
 ## Protected constraints
 
@@ -69,5 +85,6 @@ Codex MCP integration, and revalidate the build and deterministic gates.
 The campaign closes after repository migration and deterministic validation are
 complete, MCP is safely merged, the app build/install is healthy, and each
 live runtime task is either completed or durably classified. The current
-external Gemini availability/quota issue keeps the live Flash/Pro items open;
-it remains the single documented blocker until a future run proves them.
+missing `OPENCODE_GO_API_KEY` credential keeps the live Flash/Pro items open;
+it remains the single documented blocker until a run with that credential
+proves them on the `union-alpha` route.

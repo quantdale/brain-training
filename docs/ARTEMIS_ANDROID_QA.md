@@ -69,6 +69,33 @@ uv run artemis run "Run today's Brain Training workout through its available leg
   --test-name braintraining-pro-stateful --without-video-recording-tools
 ```
 
+## OpenCode Go / `union-alpha` provider route
+
+The owner-directed provider for Campaign 029 is OpenCode Go / `union-alpha`
+only (Anthropic-style Messages endpoint). The route is prepared external to
+this repository; nothing provider-specific lives in product code.
+
+```powershell
+$env:ARTEMIS_ARTEMIS_JSONC = 'D:\Tools\artemis-local-union-alpha.jsonc'
+$env:ANTHROPIC_API_KEY    = $env:OPENCODE_GO_API_KEY          # alias only, never stored
+$env:ANTHROPIC_BASE_URL   = 'https://opencode.ai/zen/go'      # SDK appends /v1/messages
+$env:ANTHROPIC_CUSTOM_HEADERS = "User-Agent: artemis-braintraining-qa/0.1`nx-opencode-session: $([guid]::NewGuid())"
+Remove-Item Env:ANTHROPIC_API_KEY, Env:ANTHROPIC_BASE_URL, Env:ANTHROPIC_CUSTOM_HEADERS
+```
+
+The override pins every ARTEMIS role (including the lightweight judge nodes and
+the object detector) to `anthropic`/`union-alpha` with the same-model fallback,
+and disables the two lens paths that ride a raw Google model with no provider
+routing (`flash.step_summarizer.enabled=false`,
+`memory.transcript.enabled=false`). The external checkout carries one small
+local compatibility commit for custom Anthropic headers and those disable
+flags; upstream is never pushed. Offline audit (no provider call): 20/20 roles
+resolve to `anthropic`/`union-alpha`.
+
+Current status: **BLOCKED / NOT VALIDATED** for all live tasks because
+`OPENCODE_GO_API_KEY` is not present in the environment or the external
+ARTEMIS `.env`. Do not substitute Gemini or any other model.
+
 For MCP clients, the runtime surface is:
 
 - `mobile_run_task` — schedule a Flash or Pro task, optionally with

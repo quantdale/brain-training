@@ -50,6 +50,18 @@ not be reported as PASS until actually performed.
   build/install/start diagnostics are complete, but no task was started after
   the provider condition became deterministic enough to identify the blocker.
   A fresh provider-backed ARTEMIS task is still required.
+- **Provider path (owner-directed, 2026-09-17):** the only authorized remote
+  inference is OpenCode Go / `union-alpha` (Anthropic-style Messages endpoint);
+  Gemini and all other models are forbidden. The external ARTEMIS route is
+  prepared config-only, and the local ARTEMIS checkout carries one auditable
+  compatibility commit (`e70ca52` over upstream `371aa6d`) for custom
+  Anthropic headers and lens-disable flags. Offline audit: all 20 roles route
+  to `anthropic`/`union-alpha` with no fallback.
+- **Live provider blocker (current, single):** `OPENCODE_GO_API_KEY` is absent
+  from the session environment and the external ARTEMIS `.env`; the fail-closed
+  probe sent no request. The Settings/Brain Training Flash and Pro stages stay
+  **BLOCKED / NOT VALIDATED** until that credential is provided. Do not
+  substitute another model and do not blind-retry.
 - **Android setup self-test:** **RESOLVED / PASS** after the exact
   `braintraining-ui35` AVD was booted headlessly with host GPU and no snapshot
   restore. The self-test reported 5 passes, 0 failures, and 2 documented
@@ -59,10 +71,11 @@ not be reported as PASS until actually performed.
   setup/evidence-only, and the offline boundary contract replaces the old
   repository gameplay self-test.
 
-The single live blocker is external Gemini model availability/quota. Do not
-blindly retry or record another provider-consuming task until availability or
-quota changes; continue with non-secret repository validation and app build
-work.
+The single live blocker is the missing `OPENCODE_GO_API_KEY` credential for the
+owner-directed OpenCode Go / `union-alpha` route. Do not substitute another
+model, blind-retry, or record another provider-consuming task until the
+credential is provided; continue with non-secret repository validation and app
+build work.
 
 ## Campaign 026/027 findings (added 2026-09-13)
 

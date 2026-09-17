@@ -46,6 +46,42 @@ dependency change.
 - Single blocker: external Gemini model availability/quota. No blind provider
   retries are planned until external availability changes.
 
+### OpenCode Go / union-alpha provider audit (2026-09-17)
+
+- Owner directive: the only authorized remote inference is OpenCode Go /
+  `union-alpha` on the Anthropic-style Messages endpoint. Gemini, Gemini
+  Robotics, and every other model are forbidden for this campaign.
+- Public provider listing (`https://opencode.ai/zen/go/v1/models`) was fetched
+  without credentials and still contains `union-alpha`; current OpenCode Go
+  documentation confirms the model id, the `.../zen/go/v1/messages` endpoint,
+  and the client expectations (own User-Agent plus a stable `x-opencode-session`
+  per conversation). No API key material was printed or stored.
+- Configuration audit (offline, no provider request): with the external
+  override selected, all 20 ARTEMIS runtime roles resolve to
+  `anthropic`/`union-alpha` with the same-model fallback — violations `[]`.
+  Client resolution via the production `ModelFactory` produces base URL
+  `https://opencode.ai/zen/go/`, User-Agent `artemis-braintraining-qa/0.1`,
+  and the requested `x-opencode-session` value. The Anthropic branch does not
+  forward `endpoint.max_tokens`; the installed client default is 4096 (noted
+  as a bounded risk, not a failure).
+- External ARTEMIS compatibility patch: local commit `e70ca52` over upstream
+  `371aa6d` in `D:\Tools\artemis`. It (a) forwards
+  `ANTHROPIC_CUSTOM_HEADERS` to `ChatAnthropic` so the honest identity and
+  session header win the SDK's merge order, (b) makes `ensure_step_memory`
+  honor `flash.step_summarizer.enabled` for the Pro/operator paths, (c) keeps
+  the chunk manager inert when `memory.transcript.enabled` is false, and
+  (d) tolerates a disabled lens in the SummarizerNode. Focused new tests plus
+  the affected suites: **194 passed** (no provider calls). Upstream pushes
+  are untouched.
+- Live provider probe: **BLOCKED**. `OPENCODE_GO_API_KEY` is absent from this
+  session's environment and from the external ARTEMIS `.env`; the fail-closed
+  probe exited before sending any request (`request_sent: false`). No request
+  was made, no model was substituted.
+- Runtime stages: Settings Flash, Brain Training Flash, and Brain Training Pro
+  remain **BLOCKED / NOT VALIDATED** for the new route. The dedicated device
+  is currently owned by another active session (`braintraining-c030` on
+  `emulator-5558`); no competing emulator or controller was started.
+
 ### Repository migration checkpoint
 
 - `scripts/qa/autobot.mjs` and the `.autobot.lock` ignore integration are
@@ -65,7 +101,11 @@ dependency change.
 - `codex mcp list` shows the `artemis` entry enabled and listed alongside the
   pre-existing servers. Its current CLI status is `Unsupported`, so in-session
   MCP runtime availability is **NOT VALIDATED**; this running Codex process
-  requires restart/reload before ARTEMIS tools can be claimed active.
+  requires restart/reload before ARTEMIS tools can be claimed active. The
+  2026-09-17 session is an opencode session (not Codex CLI) and exposes no
+  ARTEMIS MCP tools to itself; MCP usability therefore stays **NOT VALIDATED**
+  on configuration-level evidence alone until a real Codex session exercises
+  `mobile_run_task`/`mobile_inspect_trace`.
 
 ### Deterministic repository validation
 
