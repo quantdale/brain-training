@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "035-visual-system-consolidation",
-  "description": "Campaign 035 visual-system ownership record for the bounded Game Detail/GameHost hero consolidation. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "036-first-run-trust-experience",
+  "description": "Campaign 036 first-run trust ownership record for the bounded Home, Rewards, and Data Management clean-install clarity slice. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

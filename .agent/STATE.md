@@ -1,5 +1,35 @@
 # Durable Project State
 
+**Last update:** 2026-09-18 — Campaign 036 is active after terminal Campaign
+035 validation and a true clean-install native baseline.
+**Canonical branch:** `main`
+**Active campaign:** `036-first-run-trust-experience`
+**Last campaign:** `035-visual-system-consolidation`
+**Last campaign status:** VALIDATED
+
+## Campaign 036 checkpoint — First-Run, Empty-State & Trust (ACTIVE)
+
+- **Activation:** opened from synchronized `main` at
+  `27fd1f27866401b35da875a5250648babc768431`; no local or concurrent user
+  work was present to overwrite.
+- **Discovery:** cleared the dedicated `emulator-5554` app data and captured
+  the true clean-install Home path plus light/dark Home, Games, Progress,
+  Profile, Rewards, Data Management, and Game Detail surfaces. Additional
+  available empty/no-history routes were captured where the harness supported
+  them. Artifacts are outside Git under
+  `D:\Temp\campaign036-runtime-before` and
+  `D:\Temp\campaign036-runtime-before-all`.
+- **Finding:** Home has an understandable primary Start workout path but no
+  explicit local/offline reassurance. Data Management shows `Empty` when its
+  byte metric is unavailable even though initialization has a local profile,
+  workout instance, and quest rows. Rewards shows `3/12` default-owned
+  cosmetics without explaining the included starter set.
+- **Implementation:** pending. The authorized slice is limited to compact
+  factual copy and a display-only local-store fallback; no onboarding,
+  persistence, schema, economy, backup, or gameplay change is authorized.
+
+## Campaign 035 checkpoint — Cross-Surface Visual System (VALIDATED)
+
 **Last update:** 2026-09-18 — Campaign 035 is terminally validated from the
 synchronized Campaign 034 evidence checkpoint; Campaign 036 is next.
 **Canonical branch:** `main`

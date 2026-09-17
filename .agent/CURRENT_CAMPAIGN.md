@@ -1,3 +1,51 @@
+# Campaign 036 — First-Run, Empty-State & Trust Experience
+
+**Status:** ACTIVE
+**Campaign id:** `036-first-run-trust-experience`
+**Predecessor:** `035-visual-system-consolidation` (validated)
+**Mode:** day
+**Start SHA:** `27fd1f27866401b35da875a5250648babc768431`
+**Change:** `036-first-run-trust-experience` (ACTIVE)
+**Authorization:** owner-supplied Campaign 033–040 overnight directive on
+2026-09-18, following the validated Campaign 035 checkpoint.
+
+## Mission
+
+Make the observed clean-install path locally legible without adding an
+onboarding funnel: reassure the player that training is ready on-device and
+offline, distinguish initialized local setup from an unavailable storage-size
+metric, and explain the included starter cosmetics.
+
+## Current evidence
+
+The true clean-install baseline is retained outside Git under
+`D:\Temp\campaign036-runtime-before` and
+`D:\Temp\campaign036-runtime-before-all`. Home has a clear Today's Workout /
+Start workout path, Progress/Game Detail are honest about no sessions, and
+Profile identifies the local player. The bounded ambiguities are Home's lack
+of explicit local/offline trust copy, Data Management's `Empty` storage hero
+despite initialized profile/workout/quest rows, and Rewards' unexplained
+`3/12` default-owned collection.
+
+## Bounded implementation
+
+- Add one secondary local/offline line inside the existing Home workout hero.
+- Show `Ready` for a populated initialized local store when byte metrics are
+  unavailable, without changing exact counts or storage behavior.
+- Explain the starter set inside the existing Rewards Collection section.
+
+No account gate, large onboarding, schema/economy/backup/gameplay change, or
+fabricated progression is authorized.
+
+## Exit criteria
+
+A clean-install user can understand what to start, where the record lives,
+why the initial collection is nonzero, and what empty states mean. Matching
+native before/after evidence, focused/full validation, and a synchronized
+checkpoint must be recorded under `docs/redesign/evidence/campaign036/`.
+
+---
+
 # Campaign 035 — Cross-Surface Visual System Consolidation
 
 **Status:** VALIDATED

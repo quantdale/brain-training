@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "036-first-run-trust-experience",
   "lastCampaign": "035-visual-system-consolidation",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {

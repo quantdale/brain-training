@@ -1,3 +1,52 @@
+# Execution Prompt — Campaign 036: First-Run, Empty-State & Trust Experience
+
+**Status:** ACTIVE
+**Change:** `036-first-run-trust-experience`
+**Planned-From:** `27fd1f27866401b35da875a5250648babc768431`
+**Start-SHA:** `27fd1f27866401b35da875a5250648babc768431`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `035-visual-system-consolidation`
+
+## Authority
+
+Execute Campaign 036 from
+`docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and the guardrails in
+`.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`. Campaign
+035 is validated; the true clean-install baseline authorizes this bounded
+first-run/trust slice.
+
+## Mission
+
+Improve first-run comprehension with compact factual copy and a truthful local
+store status. Keep the existing Home workout action and all honest empty/no-
+history states intact.
+
+## Required validation and handoff
+
+Observe clean-install Home, Games, Progress, Profile, Rewards, Data
+Management, Game Detail, and available empty/no-history routes before and after
+on the dedicated Android emulator. Run focused screen contracts, typecheck,
+lint, relevant repository validators, matching light/dark captures, pixel
+comparison, accessibility, fresh logcat review, and full tests/build when
+closing the campaign. Record manual/iOS/physical/platform limits honestly.
+
+## Guardrails
+
+Do not add a large onboarding flow without evidence. Do not add account gates,
+forced reminders, health questionnaires, marketing, unsupported cognitive or
+medical claims, schema/economy/backup changes, or fabricated progression. Keep
+all existing navigation, semantic IDs, persistence, and destructive data
+management safeguards.
+
+## Current result
+
+Discovery is complete; implementation is pending. Baseline artifacts are
+outside Git under `D:\Temp\campaign036-runtime-before` and
+`D:\Temp\campaign036-runtime-before-all`.
+
+---
+
 # Execution Prompt — Campaign 035: Cross-Surface Visual System Consolidation
 
 **Status:** VALIDATED

@@ -1,5 +1,23 @@
 # Known Issues / Blockers
 
+## Current status — Campaign 036 ACTIVE
+
+Campaign 036 is active from the synchronized Campaign 035 checkpoint. A true
+clean-install baseline identified three bounded comprehension seams: Home has
+no explicit local/offline trust line; Data Management reports `Empty` when the
+storage-size backend cannot report bytes even though initialized local state is
+present; and Rewards does not explain the included default cosmetics behind
+its `3/12` collection count. Native evidence is retained outside Git under
+`D:\Temp\campaign036-runtime-before` and
+`D:\Temp\campaign036-runtime-before-all`.
+
+No large onboarding, account gate, permission funnel, unsupported cognitive or
+medical claim, schema/economy/backup change, or fabricated progression is
+authorized by this slice. Implementation and closure validation remain
+pending; do not label Campaign 036 complete until they are executed.
+
+## Campaign 035 VALIDATED (previous checkpoint)
+
 ## Current status — Campaign 035 VALIDATED
 
 Campaign 035 (`035-visual-system-consolidation`) is terminally validated as the

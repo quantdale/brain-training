@@ -1,0 +1,16 @@
+{
+  "id": "036-first-run-trust-experience",
+  "status": "ACTIVE",
+  "predecessor": "035-visual-system-consolidation",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["first-run-trust"],
+  "activationRule": "Campaign 035 is terminally validated at 27fd1f2; a true clean-install native baseline identified bounded Home, Rewards, and Data Management trust/empty-state seams.",
+  "baselineAuditCommit": "27fd1f27866401b35da875a5250648babc768431",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the Campaign 036 clean-install baseline across Home, Games, Progress, Profile, Rewards, Data Management, Game Detail, and the empty/no-history routes. Scope is limited to observed first-run clarity and truthful local-state copy.",
+  "validationNote": "Active implementation checkpoint. Native clean-install baseline is captured outside Git under D:\\Temp\\campaign036-runtime-before and D:\\Temp\\campaign036-runtime-before-all; no completion claim is made until focused tests, native after captures, accessibility, and repository checks run."
+}
