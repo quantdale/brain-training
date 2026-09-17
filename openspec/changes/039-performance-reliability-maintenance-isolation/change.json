@@ -1,0 +1,16 @@
+{
+  "id": "039-performance-reliability-maintenance-isolation",
+  "status": "ACTIVE",
+  "predecessor": "038-accessibility-device-sensory-hardening",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["performance-reliability-maintenance"],
+  "activationRule": "Campaign 038 is terminally validated for its tested Android scope at 9672c07; Campaign 039 must measure current startup, route, persistence, and maintenance behavior before any optimization or dependency change.",
+  "baselineAuditCommit": "9672c07",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the Campaign 038 validated Android runtime, sensory persistence repair, and explicit tooling/platform limits. Scope is measurement-led performance/reliability/maintenance isolation; no speculative optimization or broad dependency refresh is authorized.",
+  "validationNote": "Active measurement and bounded reliability checkpoint. External CI failures, manual platform evidence, and any unmeasured performance theory must remain explicitly classified."
+}

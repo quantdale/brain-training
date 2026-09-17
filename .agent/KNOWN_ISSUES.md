@@ -1,5 +1,16 @@
 # Known Issues / Blockers
 
+## Current status — Campaign 039 ACTIVE
+
+Campaign 039 is active from terminal Campaign 038 checkpoint `9672c07`.
+Current startup, route/loading, persistence/relaunch, list/progress, runtime
+warning, and maintenance behavior must be measured on the dedicated AVD before
+any optimization or dependency change. No 039 source change is justified yet.
+
+Do not edit CI workflows to hide external zero-step failures. Keep any
+dependency maintenance isolated and rerun full native validation if it becomes
+necessary. Preserve the existing explicit manual/platform limits.
+
 ## Campaign 038 VALIDATED
 
 Campaign 038 is terminally validated from the Campaign 037 checkpoint

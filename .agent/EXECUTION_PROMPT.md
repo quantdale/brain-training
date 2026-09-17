@@ -1,3 +1,41 @@
+# Execution Prompt — Campaign 039: Performance, Reliability & Maintenance Isolation
+
+**Status:** ACTIVE
+**Change:** `039-performance-reliability-maintenance-isolation`
+**Planned-From:** `9672c07`
+**Start-SHA:** `9672c07`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `038-accessibility-device-sensory-hardening`
+
+## Authority
+
+Execute Campaign 039 from
+`docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and the guardrails in
+`.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`. Campaign
+038 is validated for its tested Android scope.
+
+## Mission
+
+Measure current startup, route/loading, persistence/relaunch, data-loading,
+runtime-warning, and maintenance behavior. Apply only an evidence-backed
+material repair, and keep dependency work isolated.
+
+## Required validation and handoff
+
+Establish same-AVD before measurements, exercise representative Android
+journeys, run existing opt-in performance probes where practical, inspect fresh
+logcat and current CI, then run risk-appropriate tests/validators/native checks
+for any source change. Record manual/platform and external limits honestly.
+
+## Guardrails
+
+Do not optimize theoretical problems or edit CI workflows to hide external
+failures. Do not change game mechanics, session/workout identity, persistence,
+migrations, schema, economy, offline behavior, or router architecture.
+
+---
+
 # Execution Prompt — Campaign 038: Accessibility, Device, Motion & Sensory Hardening
 
 **Status:** VALIDATED

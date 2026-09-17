@@ -5,6 +5,17 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 039 Performance, Reliability & Maintenance Isolation — 2026-09-18 (ACTIVE discovery)
+
+- Activation: **PASS** — Campaign 039 opened from terminal synchronized
+  checkpoint `9672c07`; no local or concurrent user work was overwritten.
+- Scope: **ACTIVE** — current startup, route/loading, persistence/relaunch,
+  representative list/progress data, runtime warnings, opt-in perf probes,
+  maintenance advisories, and external CI state are measurement work. No
+  source or dependency change has been made for 039 yet.
+- ARTEMIS/computer-use: no 039 task started; the dedicated ADB/emulator and
+  existing dev-only perf instrumentation are the planned measurement paths.
+
 ### Campaign 038 Accessibility, Device, Motion & Sensory Hardening — 2026-09-18 (VALIDATED)
 
 - Activation: **PASS** — Campaign 038 opened from terminal synchronized

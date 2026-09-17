@@ -1,3 +1,43 @@
+# Campaign 039 — Performance, Reliability & Maintenance Isolation
+
+**Status:** ACTIVE
+**Campaign id:** `039-performance-reliability-maintenance-isolation`
+**Predecessor:** `038-accessibility-device-sensory-hardening` (validated)
+**Mode:** day
+**Start SHA:** `9672c07`
+**Change:** `039-performance-reliability-maintenance-isolation` (ACTIVE)
+**Authorization:** owner-supplied Campaign 033–040 overnight directive on
+2026-09-18, following the validated Campaign 038 checkpoint.
+
+## Mission
+
+Measure current startup, route/loading, persistence/relaunch, representative
+data-loading, warning, and maintenance behavior. Repair only a demonstrated
+material regression, keeping dependency maintenance isolated.
+
+## Current evidence
+
+Campaign 038 is terminally validated for the tested Android scope. Campaign
+039 begins from its pushed checkpoint; no 039 product change has been made yet.
+
+## Bounded implementation
+
+- Measure before optimizing using current dev-only perf records, ADB timing,
+  route-verified native observation, fresh logcat, and same-host probes.
+- Preserve offline bootstrap, SQLite/profile/session/workout state, recoverable
+  routes, and existing CI/workflow configuration.
+- Record an evidence-only result when current behavior shows no material
+  redesign-created regression.
+
+## Exit criteria
+
+No known redesign-created material performance/reliability regression remains;
+any maintenance change is isolated and evidence-backed; evidence is recorded
+under `docs/redesign/evidence/campaign039/`. Result must be COMPLETE or PARTIAL
+truthfully.
+
+---
+
 # Campaign 038 — Accessibility, Device, Motion & Sensory Hardening
 
 **Status:** VALIDATED

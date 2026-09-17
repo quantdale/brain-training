@@ -1,11 +1,23 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 038 is terminally validated; Campaign
-039 is the next safe successor.
+**Last update:** 2026-09-18 — Campaign 039 is active from the terminal Campaign
+038 checkpoint; measurement-led reliability work is underway.
 **Canonical branch:** `main`
-**Active campaign:** `none`
+**Active campaign:** `039-performance-reliability-maintenance-isolation`
 **Last campaign:** `038-accessibility-device-sensory-hardening`
 **Last campaign status:** VALIDATED
+
+## Campaign 039 checkpoint — Performance, Reliability & Maintenance Isolation (ACTIVE)
+
+- **Activation:** opened from synchronized terminal Campaign 038 checkpoint
+  `9672c07`; no local or concurrent user work was present to overwrite.
+- **Scope:** measure current cold/warm startup, route/loading transitions,
+  persistence/relaunch, representative data loads, runtime warnings, and
+  existing opt-in performance probes before changing code. Any dependency
+  maintenance must be isolated and evidence-backed.
+- **Guardrails:** no speculative optimization, CI workflow edits, dependency
+  churn, schema/migration/economy/session/workout/gameplay/router change, or
+  unsupported performance claim is authorized.
 
 ## Campaign 038 checkpoint — Accessibility, Device, Motion & Sensory Hardening (VALIDATED)
 

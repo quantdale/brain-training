@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "038-accessibility-device-sensory-hardening",
-  "description": "Campaign 038 accessibility/device/sensory ownership record. The orchestrator owned the shared shell/inset audit, governance, OpenSpec, evidence, and final convergence; no parallel coder packets were active.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "039-performance-reliability-maintenance-isolation",
+  "description": "Campaign 039 performance/reliability/maintenance ownership record. The orchestrator owns measurement, shared reliability seams, governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
