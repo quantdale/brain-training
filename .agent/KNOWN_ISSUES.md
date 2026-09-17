@@ -25,7 +25,7 @@ These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable.
 They are not failures of the repository-owned automated matrix, and they must
 not be reported as PASS until actually performed.
 
-## Campaign 029 — ARTEMIS migration status (2026-09-16)
+## Campaign 029 — ARTEMIS migration status (2026-09-17)
 
 - **External ARTEMIS setup:** the official checkout is at
   `D:\Tools\artemis`, revision `371aa6d`, with its synced Python environment.
@@ -62,6 +62,20 @@ not be reported as PASS until actually performed.
   probe sent no request. The Settings/Brain Training Flash and Pro stages stay
   **BLOCKED / NOT VALIDATED** until that credential is provided. Do not
   substitute another model and do not blind-retry.
+- **Fresh Codex reconciliation (2026-09-17 15:37 +08:00):** the live
+  `mcp__artemis__mobile_diagnose` tool call succeeded, but returned 4/5
+  required checks because no Android device was attached; it found no active
+  ARTEMIS task and no AVD was launched. The diagnostic reported an existing
+  Gemini credential in the external environment. That credential is not
+  authorized and no provider-consuming call used it. The prepared override
+  was independently parsed from both its source and MCP destination: all
+  20 primary/fallback roles resolve to `anthropic`/`union-alpha`, with the
+  Google-only lens switches disabled. The current MCP process requires a
+  reload before its newly configured non-secret override paths are effective.
+- **Direct provider probes:** **NOT RUN**. The missing credential stopped the
+  authenticated text and multimodal probes before any request could be sent;
+  Settings Flash, Brain Training Flash, and Brain Training Pro remain
+  **BLOCKED / NOT VALIDATED**.
 - **Android setup self-test:** **RESOLVED / PASS** after the exact
   `braintraining-ui35` AVD was booted headlessly with host GPU and no snapshot
   restore. The self-test reported 5 passes, 0 failures, and 2 documented

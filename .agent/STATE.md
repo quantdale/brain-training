@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-17 — owner-directed OpenCode Go / `union-alpha` provider route prepared and audited offline; live runtime stages blocked on the missing `OPENCODE_GO_API_KEY` credential.
+**Last update:** 2026-09-17 15:37 +08:00 — fresh Codex reconciliation confirmed the owner-directed OpenCode Go / `union-alpha` route is audited offline, but the live runtime stages remain blocked because `OPENCODE_GO_API_KEY` is absent.
 **Canonical branch:** `main`
 **Active campaign:** `029-artemis-runtime-qa-migration`
 **Last campaign:** `028-production-readiness`
@@ -13,9 +13,10 @@ successor to Campaign 028. Its objective is to replace the repository custom
 Android device-driving QA with external Google ARTEMIS at `D:\Tools\artemis`,
 remove obsolete driver integration, preserve observable app seams, and keep
 the repository buildable and secure. The external ARTEMIS checkout is at
-revision `371aa6d`; after a non-destructive host-GPU/no-snapshot boot, its
-doctor is **ready** and the bundled helper is answering on the single AVD
-`braintraining-ui35` / serial `emulator-5554`.
+revision `371aa6d`; a prior non-destructive host-GPU/no-snapshot boot reached
+READY with the bundled helper on `braintraining-ui35` / `emulator-5554`.
+The fresh non-mutating `mobile_diagnose` call from this Codex session found no
+attached device and no active ARTEMIS task, so no AVD was launched or touched.
 
 The migration code/docs boundary is reconciled. The old custom driver has been
 removed, the offline contract/CI/certification/docs convergence validates, and
@@ -30,16 +31,18 @@ ARTEMIS route is prepared with all 20 roles pinned to
 remain **NOT VALIDATED** — now blocked only by the missing
 `OPENCODE_GO_API_KEY` credential; no other model was substituted. The current
 APK built,
-installed, and started successfully on the dedicated AVD; the setup/diagnostic
-self-test now passes with 5 checks and 2 documented launcher skips.
+installed, and started successfully on the dedicated AVD; the repository setup
+self-test remains 5 checks passed with 2 documented launcher skips.
 
 ## Campaign 029 checkpoint — ARTEMIS migration (active)
 
-- **External setup:** `D:\Tools\artemis` is a clean upstream checkout at
-  `371aa6d`; `uv sync`, the current ready-device doctor/ADB check, helper
-  attachment, and `mobile_diagnose` probe passed. The repository setup
-  self-test passes 5 checks with 2 documented launcher skips. No ARTEMIS
-  source, trace, or credential is copied into Git.
+- **External setup:** `D:\Tools\artemis` is clean at local revision
+  `e70ca52` over upstream `371aa6d`; the prior `uv sync`/doctor/helper
+  readiness remains historical evidence. The fresh `mobile_diagnose` result
+  was **BLOCKED** at 4/5 required checks because no device was attached; no
+  active task or controller was found, and no AVD was launched. The
+  repository setup self-test remains 5 checks passed with 2 documented
+  launcher skips. No ARTEMIS source, trace, or credential is copied into Git.
 - **Repository boundary:** `scripts/qa/autobot.mjs` and its lock ignore entry
   are removed. Current CI/certification/self-test/docs now use the offline
   ARTEMIS contract or setup/evidence helpers; historical records retain old
@@ -47,13 +50,14 @@ self-test now passes with 5 checks and 2 documented launcher skips.
 - **Runtime:** the standalone Settings smoke drove the emulator through
   ARTEMIS, then provider calls returned availability/quota errors. External
   trace IDs and exact safe classifications are recorded in `VALIDATION.md`.
-- **Completed:** MCP generator/merge, app build/install, deterministic gates,
-  OpenSpec, current-doc/state reconciliation, and the offline runtime contract.
+- **Completed:** MCP generator/merge, live MCP diagnostic reachability,
+  app build/install, deterministic gates, OpenSpec, current-doc/state
+  reconciliation, and the offline runtime contract.
 - **Remaining:** the provider-dependent Settings/Brain Training Flash/Pro
-  tasks; the device and setup self-test are currently ready/PASS. The current
-  single blocker is the missing `OPENCODE_GO_API_KEY` for the owner-directed
-  OpenCode Go / `union-alpha` route; the dedicated target is also currently
-  owned by another active session (`braintraining-c030`).
+  tasks. `OPENCODE_GO_API_KEY` is absent, so the direct text and multimodal
+  probes were not sent and no runtime task was started. The current session
+  also has no attached target; re-establish the dedicated AVD only after the
+  provider route is available, without adopting a competing session's device.
 
 ## Historical Campaign 028 workstreams (closed VALIDATED)
 

@@ -5,6 +5,34 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Fresh Codex continuation checkpoint — 2026-09-17 15:37 +08:00
+
+- Brain Training was clean on `main` at `88d1393`, aligned with
+  `origin/main`, before this documentation checkpoint. No product source or
+  dependency changed.
+- External ARTEMIS is clean at local `e70ca52` over upstream `371aa6d`; the
+  local compatibility commit remains unpushed. The prepared Union Alpha
+  override parsed successfully from its source and the MCP destination:
+  **20/20 roles**, zero primary/fallback violations, and both Google-only
+  lens switches disabled. No provider call was made.
+- Credential presence: **FAIL / BLOCKED** — `OPENCODE_GO_API_KEY` was absent
+  and its value/length were not inspected or emitted. The authenticated text
+  probe and multimodal probe were therefore **NOT RUN**; no request was sent.
+- Codex → ARTEMIS MCP: **PASS for live diagnostic reachability** — the
+  `mcp__artemis__mobile_diagnose` tool executed in this Codex session. Its
+  result was **BLOCKED** at 4/5 required checks because no Android device was
+  attached; it found no active ARTEMIS task and no AVD was launched. Runtime
+  Flash/Pro operation remains **NOT VALIDATED**.
+- The existing ARTEMIS MCP block was preserved and gained only non-secret
+  `ARTEMIS_ARTEMIS_JSONC` and `ARTEMIS_CONFIG_DIR` paths. The external app
+  data override has the same SHA-256 as the prepared source. A server reload
+  is required before the new environment reaches an MCP worker. The
+  diagnostic reported an active Gemini credential in the external `.env`;
+  it was not used and is not an authorized fallback.
+- Campaign 029 remains **ACTIVE**. Settings Flash, Brain Training Flash, and
+  Brain Training Pro are **BLOCKED / NOT VALIDATED** pending the credential,
+  MCP reload, and re-establishment of an exclusive dedicated target.
+
 ## Campaign 029 — ARTEMIS runtime-QA migration (2026-09-16)
 
 **Working-state reference:** pre-migration baseline `13c0e5d`; migration

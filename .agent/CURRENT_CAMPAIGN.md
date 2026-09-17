@@ -20,11 +20,11 @@ Codex MCP integration, and revalidate the build and deterministic gates.
 
 - External ARTEMIS is reconciled at `D:\Tools\artemis`, upstream revision
   `371aa6d`; its Python environment is synced.
-- The single ARTEMIS-managed target is `braintraining-ui35`, serial
-  `emulator-5554`; after removing stale lifecycle locks and using a
-  non-destructive host-GPU/no-snapshot boot, ARTEMIS doctor is **READY** and
-  its bundled accessibility helper is attached and answering. No competing
-  emulator/controller is active.
+- The single ARTEMIS-managed target previously reached **READY** as
+  `braintraining-ui35` / `emulator-5554` after a non-destructive host-GPU/
+  no-snapshot boot. The fresh Codex `mobile_diagnose` check found no attached
+  device, no active task, and no competing controller; no AVD was launched in
+  this blocked continuation.
 - Provider credentials are configured only in the external ARTEMIS `.env` and
   have not been printed or copied into the repository.
 - The custom `scripts/qa/autobot.mjs` driver and `.autobot.lock` ignore entry
@@ -33,8 +33,11 @@ Codex MCP integration, and revalidate the build and deterministic gates.
 - The offline runtime-QA contract, OpenSpec delta, governance records, and
   historical-document reconciliation are complete and validate cleanly.
 - The supported ARTEMIS Codex MCP block is merged with unrelated user MCP
-  entries preserved; this running Codex process needs a restart/reload before
-  in-session ARTEMIS tools can be claimed available.
+  entries preserved. In this Codex session, `mcp__artemis__mobile_diagnose`
+  executed successfully, proving the ARTEMIS MCP tool surface is loaded. The
+  block now carries only non-secret paths for the Union Alpha agent override
+  and MCP LLM override; a server reload is required before those new values
+  affect a task.
 - The current Android debug APK built successfully after an emulator-related
   Gradle memory failure was diagnosed, installed successfully, and started
   `MainActivity` on the dedicated AVD. The setup self-test now passes 5 checks
@@ -57,17 +60,20 @@ Codex MCP integration, and revalidate the build and deterministic gates.
   absent from this session's environment and from the external ARTEMIS `.env`,
   so the fail-closed probe sent no request and ARTEMIS cannot initialize the
   provider. Settings Flash, Brain Training Flash, and Brain Training Pro
-  remain unrun on the new route; no other model was substituted.
+  remain unrun on the new route; no other model was substituted. The
+  diagnostic also reported an existing Gemini credential in the external
+  environment; it was not used and remains unauthorized.
 
 ## Remaining work
 
 1. Provide `OPENCODE_GO_API_KEY` (environment only; never Git/config/docs),
+   reload the ARTEMIS MCP server so the non-secret route paths take effect,
    alias it for the ARTEMIS process, then run the staged gates in order:
    tiny text probe -> multimodal image probe -> Settings Flash -> Brain
    Training Flash -> Brain Training Pro. Do not substitute another model.
-2. The dedicated target is currently owned by another active session
-   (`braintraining-c030` on `emulator-5558`); re-establish the
-   `braintraining-ui35` / single idle target before the runtime stages.
+2. No Android target is currently attached according to the fresh diagnostic;
+   re-establish the `braintraining-ui35` / single idle target before the
+   runtime stages, without adopting a competing session's device.
 3. Inspect each ARTEMIS trace and record only what actually completed.
 
 ## Protected constraints
