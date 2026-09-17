@@ -1,40 +1,59 @@
 # Durable Project State
 
-**Last update:** 2026-09-17 16:57 +08:00 — the external dotenv credential and ARTEMIS adapter path are ready, but both bounded OpenCode Go / `union-alpha` Messages probes returned HTTP 503; live runtime stages remain blocked.
+**Last update:** 2026-09-17 — Campaign 031 is terminally validated on the
+latest synchronized `main`; Campaign 030B remains the immutable before
+baseline and Campaign 029 external provider evidence remains historical.
 **Canonical branch:** `main`
-**Active campaign:** `029-artemis-runtime-qa-migration`
-**Last campaign:** `028-production-readiness`
+**Active campaign:** none
+**Last campaign:** `031-golden-path-redesign`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 029 (`029-artemis-runtime-qa-migration`) is the active owner-directed
-successor to Campaign 028. Its objective is to replace the repository custom
-Android device-driving QA with external Google ARTEMIS at `D:\Tools\artemis`,
-remove obsolete driver integration, preserve observable app seams, and keep
-the repository buildable and secure. The external ARTEMIS checkout is at local
-revision `07ecb21` over compatibility `e70ca52` / upstream `371aa6d`; ARTEMIS
-safely launched the dedicated `braintraining-ui35` AVD as `emulator-5554`.
-Target-specific `mobile_diagnose` reports the AVD and bundled helper v6 ready.
-The concurrent `braintraining-c030b` / `emulator-5562` session was not touched.
+Campaign 031 (`031-golden-path-redesign`) is the terminally validated
+owner-directed product implementation successor. Its authoritative task
+specification is
+`.agent/CAMPAIGN031_GOLDEN_PATH_REDESIGN_IMPLEMENTATION_PROMPT.md`. The
+campaign activation/synchronization start SHA is `44ba153`; implementation was
+reconciled on the concurrent latest `origin/main` documentation checkpoint
+`5e9d300` before product edits. The Campaign 030B rendered/runtime package is
+preserved as the before baseline.
 
-The migration code/docs boundary is reconciled. The old custom driver has been
-removed, the offline contract/CI/certification/docs convergence validates, and
-the supported ARTEMIS MCP block is merged without changing unrelated Codex
-servers. Provider credentials remain external and are not recorded here. A
-live ARTEMIS Settings Flash attempt reached the Settings app but was blocked
-by Gemini model availability/quota responses; it is **BLOCKED / NOT
-VALIDATED**, not a product pass. The owner then replaced that route: the only
-authorized remote inference is OpenCode Go / `union-alpha`, and the external
-ARTEMIS route is prepared with all 20 roles pinned to
-`anthropic`/`union-alpha` (offline audit PASS). The external `.env` credential
-now resolves through the ARTEMIS adapter in memory, but the bounded Messages
-probe and one same-session retry each returned HTTP 503; no other model was
-substituted. The current APK built,
-installed, and started successfully on the dedicated AVD; the repository setup
-self-test remains 5 checks passed with 2 documented launcher skips.
+The current implementation is converging the golden path only: Today/Home
+hierarchy and CTA, workout handoff context, concise GameHost intro and focused
+HUD, outcome-first shared/route Results, direct Next Game, and explicit final
+completion. Existing SQLite/workout/provenance/lifecycle/scoring/session/
+rating/XP/currency/reward/tutorial/registry/offline contracts remain protected;
+no schema or dependency change is authorized.
 
-## Campaign 029 checkpoint — ARTEMIS migration (active)
+Campaign 029's ARTEMIS/provider evidence is historical context. The external
+ARTEMIS checkout remains outside this repository, credentials remain external,
+and its previously recorded OpenCode Go HTTP 503 is not being relabeled as a
+Campaign 031 product result. Campaign 031 will use one disposable normal AVD
+and classify any unavailable runtime or human evidence explicitly.
+
+## Campaign 031 checkpoint — golden-path redesign (VALIDATED)
+
+- **Before baseline:** Campaign 030B screenshots and dynamic/relaunch evidence
+  are preserved under `docs/redesign/evidence/campaign030b/**` and the external
+  temp directories documented there; they are not overwritten.
+- **Implementation:** Home now makes Today’s Workout the dominant decision,
+  moves context and reroll/configuration into secondary surfaces, and keeps the
+  existing durable route target. GameHost introduces concise mechanic/workout
+  framing and `Start game`; shared and route Results now place facts before
+  reward and expose Next/Finish hierarchy.
+- **Validation:** focused/full repository and native checks PASS as documented
+  in `docs/redesign/evidence/campaign031/REGRESSION_MATRIX.md`; dynamic and
+  static light/dark pixel evidence, accessibility, relaunch/idempotency replay,
+  and exact-once database checks are recorded in the Campaign 031 package.
+- **Human/external limits:** independent human validation, ARTEMIS model trace,
+  TalkBack, physical-device/iOS runtime, SAF sheets, and Expo patch drift remain
+  explicitly pending/deferred; none is relabeled as PASS.
+- **Terminal result:** all Campaign 031 exit criteria are evaluated and the
+  repository is ready for a separately authorized Campaign 032, which was not
+  started in this session.
+
+## Historical Campaign 029 checkpoint — ARTEMIS migration
 
 - **External setup:** `D:\Tools\artemis` is clean at local revision
   `07ecb21` over compatibility `e70ca52` / upstream `371aa6d`; the follow-up
@@ -158,12 +177,13 @@ manual TalkBack, SAF sheets, physical device, iOS runtime).
 
 ## Continuation rule
 
-Campaign 029 is active and `.agent/EXECUTION_PROMPT.md` is its executable
-recovery pointer. Do not resume the closed 028 packet as active work. Continue
-029 until repository work is complete or the external provider blocker meets
-the durable blocked-goal threshold. Externally blocked evidence classes (store
-signing, manual TalkBack, SAF sheets, physical device, iOS runtime) remain
-honestly classified unless 029 explicitly exercises a scoped Android path.
+Campaign 031 is terminally validated and `.agent/EXECUTION_PROMPT.md` plus the
+Campaign 031 evidence package are its recovery record. Do not resume the
+historical 029 provider checkpoint or closed 028 packet as active work. Do not
+begin Campaign 032 without a new owner directive. Externally blocked evidence
+classes (store signing, manual TalkBack, SAF sheets, physical device, iOS
+runtime, and any unavailable independent participant) remain honestly
+classified.
 
 ## Recovery order
 
@@ -173,5 +193,5 @@ honestly classified unless 029 explicitly exercises a scoped Android path.
 4. `.agent/STATE.md`
 5. `.agent/CURRENT_CAMPAIGN.md`
 6. `.agent/VALIDATION.md` and `.agent/KNOWN_ISSUES.md`
-7. `openspec/changes/029-artemis-runtime-qa-migration/` (EXECUTION → proposal
-   → design → specs → tasks) and `audit-map.md`
+7. `openspec/changes/031-golden-path-redesign/` (EXECUTION → proposal → design
+   → specs → tasks) and `audit-map.md`

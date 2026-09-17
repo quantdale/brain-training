@@ -55,6 +55,7 @@ export function WorkoutTemplateDetails({
         <ThemedText type="label">{template.name}</ThemedText>
         <ThemedText type="caption" themeColor="textSecondary">
           {lengthSpec.label} · {lengthSpec.gameCount} games
+          {lengthSpec.estimatedMinutes ? ` · about ${lengthSpec.estimatedMinutes} min` : ''}
         </ThemedText>
       </View>
       <ThemedText type="bodySmall" themeColor="textSecondary">

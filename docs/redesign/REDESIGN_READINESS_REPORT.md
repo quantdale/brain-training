@@ -1,5 +1,23 @@
 # Campaign 030 / Campaign 030B — Runtime Baseline and Redesign Readiness
 
+## Current Campaign 031 outcome
+
+Date: 2026-09-17
+
+Verdict: **`CAMPAIGN_031_COMPLETE_READY_FOR_032`**
+
+Campaign 031 implemented and validated the authorized golden-path redesign
+from Today/Home through workout completion. The final evidence package is
+under `evidence/campaign031/`; it records the structural before/after change,
+stateful light/dark native pixels on the disposable normal AVD,
+pause/resume/relaunch persistence, exact-once database checks, representative
+family canaries, accessibility audits, and explicit ARTEMIS/human pending
+classifications. Campaign 032 was not started.
+
+The Campaign 030B decision and evidence below remain the immutable before
+baseline. Its statement that Campaign 031 was not yet ready is historical and
+is superseded by the Campaign 031 closure package.
+
 ## Current Campaign 030B decision
 
 Date: 2026-09-17
@@ -45,7 +63,7 @@ including the final -gpu swiftshader run, was a valid 1080 x 2400 PNG containing
 one black color, and Android reported zero rendered app frames. The dynamic
 gameplay/workout/resume checks also remain blocked because the authorized
 ARTEMIS provider credential is unavailable. Under the Campaign 030 contract,
-Campaign 031 is therefore not ready to start.
+Campaign 031 was therefore not ready to start at that historical checkpoint.
 
 ## Scope and evidence rules
 
@@ -238,10 +256,15 @@ No Campaign 029 assumption was contradicted by observed structure. Several
 visual and completed-session hypotheses remain open rather than being promoted
 to facts. No redesign plan correction is authorized by this evidence packet.
 
-## Required prerequisites for Campaign 031
+## Historical prerequisites before Campaign 031
 
-Campaign 031 must not begin under the strict readiness contract until all of
-the following are satisfied:
+The following prerequisites were the pre-implementation gate. Campaign 031
+resolved the repository-owned runtime prerequisite and recorded the remaining
+external/manual limitations in its closure; they are retained here as
+historical context.
+
+Before Campaign 031, the strict readiness contract required all of the
+following:
 
 1. Provide a dedicated Campaign 030/031 AVD or supported runtime configuration
    that publishes non-uniform native app pixels without touching the
@@ -260,8 +283,8 @@ the following are satisfied:
 5. Complete the human accessibility/manual handoff on a real device or
    approved external validation setup.
 
-Until then, the honest verdict is BLOCKED_NOT_READY, not a visual redesign
-approval.
+At that prior checkpoint, the honest verdict was `BLOCKED_NOT_READY`; it is not
+the current Campaign 031 outcome.
 
 ## Files delivered
 

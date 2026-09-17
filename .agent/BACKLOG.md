@@ -3,9 +3,9 @@
 Historical phase list — superseded by implementation reality (42-game
 catalog, Workout V3 signal-ranked templates over the V2 template engine,
 full progression/portability shipped; see
-`docs/PARITY_MATRIX.md`). Campaign 029
-(`029-artemis-runtime-qa-migration`) is active; durable current state lives in
-`.agent/STATE.md`. This file records durable work outside the active campaign
+`docs/PARITY_MATRIX.md`). Campaign 031 (`031-golden-path-redesign`) is
+validated and no successor is active; durable current state lives in
+`.agent/STATE.md`. This file records durable work outside the terminal campaign
 plus historical follow-ups.
 
 ## Still-open durable items

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "029-artemis-runtime-qa-migration",
-  "lastCampaign": "028-production-readiness",
+  "activeCampaign": null,
+  "lastCampaign": "031-golden-path-redesign",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

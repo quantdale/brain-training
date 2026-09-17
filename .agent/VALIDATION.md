@@ -5,6 +5,74 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 031 implementation checkpoint — implementation phase (historical)
+
+### Campaign 031 terminal closure — 2026-09-17
+
+- Safe synchronization: local `cb06df3` fast-forwarded to
+  `44ba1533f4eb5ebcd795723f801633caee914e17`; the concurrent remote
+  documentation checkpoint `5e9d3009ee1766f02ebfe2cdaae291204580ad69` was
+  reconciled before product edits. No pre-existing local user work existed or
+  was overwritten.
+- Product: Home, GameHost intro/handoff, shared/route Results, and final
+  completion were structurally redesigned within the Campaign 031 scope.
+  Existing mechanics, workout instance/provenance, lifecycle, SQLite,
+  scoring, tutorial, reward, XP/currency, rating, registry, offline, and
+  semantic contracts remain on their original seams.
+- Focused changed-surface tests: **PASS** — final rerun 4 suites / 26 tests,
+  5 snapshots passed; representative family canaries **PASS** — 8 suites / 82
+  tests.
+- Full CI-mode Jest: **PASS** — 553/557 suites passed, 6549/6554 tests passed,
+  0 failures, 5 snapshots; 5 pending tests exactly matched the Campaign 016
+  opt-in allowlist. Jest-signal validation: **PASS**, 5 classified, 0
+  unclassified/ambiguous/unexpected.
+- App gates: `npm run typecheck` **PASS**; `npm run lint` **PASS**; web export
+  **PASS** — 47 bundles / 20 static routes.
+- Repository gates: repo-state, task ownership, affected-map, registry,
+  provenance (+ 5/5 self-test), offline CLEAN (970 files), secrets CLEAN (2112
+  tracked text files), workflow hygiene (+ 44/44 self-test), dependency audit,
+  OpenSpec, runtime-QA contract, and Jest-signal self-test **PASS**.
+- Native: disposable normal `braintraining-c030b` / `emulator-5562`, Android
+  35 Google APIs x86_64, 1080×2400 density 420. Final debug build/install
+  **PASS**; APK SHA-256 `80E9B29134FB70D7C45E30B7BB0FB6F6E90EE8D358B1880B9FA236E98A877D6A`.
+  Stateful light/dark golden path and final static 6/6 capture completed with
+  real nonblank pixels; dynamic a11y audit 0/70 and static audit 0/6.
+- Native self-test: **PASS** — 5 passes / 0 failures / 2 documented launcher
+  hierarchy warning skips; no host input. Final logcat scan: 46,002 lines,
+  no fatal/RedBox/invariant pattern.
+- Clean dark replay: SQLite snapshots before/after relaunch are byte-identical
+  at hash `12C763AC74D1363BE006D7E1A909B969E2B804C4C320BD7F8B7B26F40DE11DB9`;
+  counts are 4 sessions, 4 ledger rows, 7 ratings, one completed 4/4 workout,
+  with zero duplicate rating keys or currency operation IDs.
+- Explicit non-green classifications: Expo Doctor 20/21 because of the
+  pre-existing 14-package SDK patch drift; ARTEMIS trace unavailable
+  (`Transport closed` / CLI `MissingSessionID`), so authorized ADB fallback is
+  reported; independent human validation remains pending in the exact handoff;
+  TalkBack, physical/iOS, SAF, and existing GitHub zero-step evidence remain
+  deferred/external. None was relabeled as PASS.
+- Required evidence package: `docs/redesign/evidence/campaign031/`.
+- Terminal state: Campaign 031 **VALIDATED**, no active successor, Campaign 032
+  not started; final commit/push and clean `main == origin/main` verification
+  remain the last handoff check.
+
+The earlier checkpoint immediately below is retained as the recovery history of
+the implementation phase.
+
+- Repository was safely fast-forwarded from `cb06df3` to the latest
+  `origin/main` at `44ba1533f4eb5ebcd795723f801633caee914e17`; there were no
+  local-only commits or pre-existing worktree modifications to overwrite.
+- Campaign 031 was bound to governance/OpenSpec from that synchronized SHA.
+  The Campaign 030B package remains the immutable before baseline.
+- Product implementation checkpoint: Home hierarchy, workout context, concise
+  GameHost intro, shared GameResults order/actions, and `/results` order/actions
+  changed within the authorized scope. Existing completion, provenance, and
+  persistence seams remain in use.
+- `cd apps/mobile && npm run typecheck`: **PASS**.
+- Focused changed-surface tests (GameHost, shared results/reward, in-game
+  continuation, `/results` route/hero): **PASS** after preserving the existing
+  length-aware completion assertions. Full Campaign 031 matrix and native
+  after-evidence remain **NOT VALIDATED** at this checkpoint.
+
 ### Campaign 029 live qualification continuation — 2026-09-17 16:57 +08:00
 
 - Brain Training started clean on `main` at `4fa2e3d` (`origin/main` aligned);

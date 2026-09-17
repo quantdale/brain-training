@@ -46,19 +46,32 @@ first successor, **Campaign 028 — production-readiness closure**
 closed VALIDATED. No new features; constitution-deferred systems stay
 deferred.
 
-## Owner migration directive — Campaign 029 (active)
+## Owner migration directive — Campaign 029 (historical)
 
 On 2026-09-16 the owner directed the agent to replace the custom Android
 Autobot/device-driving QA with Google ARTEMIS, keep the upstream checkout only
 at `D:\Tools\artemis`, use ARTEMIS as the Codex Android runtime, install only
 its supported MCP integration, remove obsolete repository driver code/docs/CI,
 preserve semantic observability seams, and validate Flash/Pro/device/build
-paths with honest blocker reporting. This is a bounded successor campaign,
-not a new product feature or automatic full-hardening campaign. The active
-OpenSpec binding is `029-artemis-runtime-qa-migration`.
+paths with honest blocker reporting. This was a bounded successor campaign,
+not a new product feature or automatic full-hardening campaign. Its OpenSpec
+binding was `029-artemis-runtime-qa-migration`; provider qualification remains
+historical/external and is not the current execution target.
+
+## Owner implementation directive — Campaign 031 (validated)
+
+On 2026-09-17 the owner directed the agent to safely synchronize `main` and
+execute `.agent/CAMPAIGN031_GOLDEN_PATH_REDESIGN_IMPLEMENTATION_PROMPT.md`
+exhaustively. Campaign 031 implemented and validated the authorized golden
+path from Today/Home through workout completion, preserved the existing game,
+workout, persistence, provenance, scoring, reward, and offline contracts, and
+was committed/pushed without beginning Campaign 032. The terminal state and
+evidence package are recorded in `.agent/STATE.md` and
+`docs/redesign/evidence/campaign031/`.
 
 ## Historical terminal campaign state before Campaign 029
 
 Campaign 028 was terminal for its authorized scope before the owner supplied
-the ARTEMIS migration. Current execution follows Campaign 029's active
-OpenSpec and durable state; do not reopen 028 or invent unrelated campaigns.
+the ARTEMIS migration. Campaign 029 and Campaign 031 are now historical
+terminal records; current execution has no active campaign. Do not reopen a
+closed campaign or invent Campaign 032 without a new owner directive.

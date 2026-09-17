@@ -1,65 +1,59 @@
-# Execution Prompt — Campaign 029: ARTEMIS runtime-QA migration
+# Execution Prompt — Campaign 031: Golden-path redesign
 
-**Status:** ACTIVE
-**Change:** `029-artemis-runtime-qa-migration`
-**Planned-From:** `13c0e5d`
-**Start-SHA:** `13c0e5d` (activation baseline; migration checkpoint pending)
-**Planned-At:** 2026-09-16
+**Status:** VALIDATED
+**Change:** `031-golden-path-redesign`
+**Planned-From:** `44ba1533f4eb5ebcd795723f801633caee914e17`
+**Start-SHA:** `44ba1533f4eb5ebcd795723f801633caee914e17`
+**Planned-At:** 2026-09-17
 **Target-Branch:** `main`
-**Predecessor:** `028-production-readiness` (VALIDATED)
+**Predecessor:** `029-artemis-runtime-qa-migration`
+
+## Authority
+
+Read and execute the complete
+`.agent/CAMPAIGN031_GOLDEN_PATH_REDESIGN_IMPLEMENTATION_PROMPT.md`. It is the
+authoritative product task specification for this campaign. Campaign 030B
+real-pixel/runtime evidence is the before baseline. Do not begin Campaign 032.
 
 ## Mission
 
-Execute the owner-supplied migration directive: replace the custom Android
-Autobot/device-driving QA with Google ARTEMIS, keep the upstream checkout only
-at `D:\Tools\artemis`, make ARTEMIS the Codex Android runtime, remove obsolete
-repository driver code/docs/CI, preserve semantic app observability seams, and
-leave a secure, buildable, recoverable `main` branch.
+Make the golden path obvious, coherent, focused, trustworthy, and polished:
 
-## Scope
+`Home → Start/Continue → Intro/Tutorial → Gameplay → Result → Next → Workout completion`
 
-1. Reconcile ARTEMIS upstream, external environment, doctor/helper/device
-   readiness, and safe trace storage.
-2. Run the requested system Flash and Brain Training Flash/Pro tasks when the
-   provider is usable; classify model/quota/device failures honestly.
-3. Generate and merge only the ARTEMIS Codex MCP server block; preserve all
-   unrelated user config and do not run `mcp --install all`.
-4. Remove `scripts/qa/autobot.mjs`, its lock integration, current invocations,
-   and current docs that describe it as authoritative.
-5. Keep `scripts/android/` to provisioning, installation/reset, hierarchy,
-   screenshot, logcat, and diagnostics; add an offline boundary validator.
-6. Update docs, OpenSpec, ownership, governance, state, validation, backlog,
-   and known-issue records, then run deterministic gates and an Android build.
+Implement structural hierarchy before cosmetic polish. Keep Today/Home's
+primary CTA singular; keep the intro concise; keep active play focused; make
+Results outcome-first with one primary Next/Finish action; and make completion
+explicit and idempotent.
 
-## Behavior to preserve
+## Protected behavior
 
-- Product mechanics, scoring, generators, persistence, navigation, and
-  constitution-deferred systems are unchanged.
-- Stable semantic IDs/accessibility labels, `braintraining://` deep links,
-  deterministic seeds/fixtures, versioned metadata, structured diagnostics,
-  and safe development-only QA hooks remain available to ARTEMIS.
-- No provider credential enters Git, Codex TOML, logs, traces, screenshots,
-  task text, or durable state.
-- One emulator and one runtime controller remain the default; host input and
-  desktop focus are never hijacked.
+Do not change SQLite schema/version semantics, workout instance identity,
+selection/generator/scoring versions, provenance, session identity or
+exactly-once finalization, pause/background lifecycle, rating/XP/currency and
+reward writes, tutorial persistence, registry determinism, offline behavior,
+or required semantic IDs. Use the existing durable CAS advance and persistence
+seams rather than adding a second transition path.
 
-## Validation
+## Scope exclusions
 
-Run the offline runtime-QA contract, repo-state/task-ownership/affected-map
-checks, app typecheck/tests/lint, changed-area validators, OpenSpec validation,
-and Android build/install diagnostics. Use external ARTEMIS doctor, MCP task
-management, and trace inspection for runtime evidence. Never label an
-incomplete, quota-blocked, or unrun task as PASS.
+Games discovery, full catalog redesign, full Progress redesign, Profile,
+Rewards architecture, economy, schema migrations without a proven blocker,
+dependency maintenance, CI repair, and unrelated technical debt are out of
+scope.
 
-## Completion / stop gate
+## Required validation and handoff
 
-Close only when all repository work is complete, deterministic checks are
-green, MCP convergence is verified, current docs/state are truthful, and every
-remaining external runtime item is complete or durably classified. If the
-same external blocker recurs across goal turns, preserve the work and follow
-the platform blocker threshold before marking the goal blocked.
+Run the full repository/native matrix from the campaign specification,
+including typecheck, lint, focused and full Jest, workout/persistence and
+idempotency checks, registry/provenance/offline/security/ownership/OpenSpec
+validators, disposable normal Android AVD real-pixel light/dark golden-path
+evidence, pause/resume/relaunch/persistence, accessibility, and representative
+game-family canaries. Perform independent human validation only when genuinely
+available; otherwise create the exact pending handoff without invented
+findings. Update all Campaign 031 evidence/state documents, commit and push
+`main`, and verify `main == origin/main` with a clean worktree.
 
-## Git requirements
-
-Commit coherent checkpoints to `main`, push to `origin/main`, never
-force-push, and leave no temporary repository worktrees or branches.
+Campaign 031 is now terminally validated. The required evidence package and
+explicit human/ARTEMIS pending classifications are under
+`docs/redesign/evidence/campaign031/`; Campaign 032 was not started.

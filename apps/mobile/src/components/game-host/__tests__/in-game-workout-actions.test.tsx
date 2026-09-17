@@ -17,7 +17,7 @@ import { advanceWorkoutForSession } from '@/workout/session-advance';
 import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
-  router: { push: jest.fn(), back: jest.fn() },
+  router: { push: jest.fn(), replace: jest.fn(), back: jest.fn() },
 }));
 
 jest.mock('@/workout/session-advance', () => ({
@@ -26,6 +26,7 @@ jest.mock('@/workout/session-advance', () => ({
 
 const mockedAdvance = jest.mocked(advanceWorkoutForSession);
 const mockedPush = jest.mocked(router.push);
+const mockedReplace = jest.mocked(router.replace);
 
 const PROVENANCE = {
   instanceKey: '2026-09-14',
@@ -122,6 +123,9 @@ describe('GameResults workout continuation', () => {
 
     expect(await screen.findByTestId('memory.workout-complete')).toBeOnTheScreen();
     expect(screen.queryByTestId('memory.next-game')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('memory.finish-workout'));
+    expect(mockedReplace).toHaveBeenCalledWith('/');
   });
 
   it('discloses a failed advance instead of silently dropping the leg', async () => {

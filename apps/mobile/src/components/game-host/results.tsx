@@ -2,10 +2,11 @@
  * `<GameResults>` — shared results-view chrome for GameHost-based games
  * (campaign 010, architecture-debt D1; campaign 023 reward moment).
  *
- * Owns the results layout every game duplicated: the headline, an optional
- * game-specific badge slot (e.g. Reaction Time's "ended early" notice), the
- * game's stat rows, the persistence-failure error line, the QA-forced badge,
- * and the Play again / Done actions. Games pass their stat rows as children.
+ * Owns the results layout every game duplicated: the outcome headline, an
+ * optional game-specific badge slot (e.g. Reaction Time's "ended early"
+ * notice), the game's stat rows, the persistence-failure error line, the
+ * bounded reward, workout continuation/completion, and the Play again / Done
+ * actions. Games pass their stat rows as children.
  *
  * Campaign 023: games may pass `reward` with the authoritative XP/coin
  * outcome. When persistence succeeds, the results view plays a bounded
@@ -22,10 +23,12 @@ import { trackSessionPersist } from '@/sdk/perf';
 import type { PerfMeasure } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
 import { FeedbackCard } from '@/components/shell';
-import { Confetti } from '@/components/ui';
+import { Card, Confetti, Spark } from '@/components/ui';
 import { GameButton } from '@/components/game-ui';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
 import { Motion, Spacing } from '@/constants/theme';
+import { getGameDefinition } from '@/registry/registry';
+import { useTheme } from '@/hooks/use-theme';
 import {
   advanceWorkoutForSession,
   type WorkoutSessionAdvanceResult,
@@ -33,6 +36,7 @@ import {
 import { emitWorkoutChanged } from '@/workout/events';
 import { useWorkoutSessionLaunch } from '@/workout/session-launch-context';
 import { gameHref } from '@/workout/routing';
+import type { WorkoutSessionProvenance } from '@/workout/session-provenance';
 
 /** Persistence lifecycle mirrored from the game reducers' `persistState`. */
 export type GameResultsPersistState = 'idle' | 'started' | 'succeeded' | 'failed';
@@ -53,6 +57,10 @@ export interface GameResultsReward {
 export interface GameResultsWorkoutActions {
   /** Next workout leg to launch, or null when there is none left. */
   nextGameId: string | null;
+  /** Optional exact ownership tuple for the next leg. */
+  nextProvenance?: WorkoutSessionProvenance | null;
+  /** Total legs in the workout, used only for completion presentation. */
+  totalGames?: number;
   /** Activate Next Game (caller owns navigation). */
   onNextGame: () => void;
   /** True when the workout is finished (completion copy, no Next Game). */
@@ -96,6 +104,7 @@ export function GameResults({
   onQuit,
   children,
 }: GameResultsProps) {
+  const theme = useTheme();
   // Dev-only perf seam (campaign 010, debt D4): bracket the session-completion
   // DB write as observed through the persistence lifecycle — from the first
   // render showing 'started' to the terminal 'succeeded'/'failed', or back to
@@ -221,6 +230,7 @@ export function GameResults({
     : succeeded
       ? (derivedAdvance?.nextGameId ?? null)
       : null;
+  const nextProvenance = workout?.nextProvenance ?? derivedAdvance?.nextProvenance ?? null;
   const workoutCompleted =
     workout !== undefined
       ? workout.completed === true
@@ -229,6 +239,18 @@ export function GameResults({
   const showWorkoutComplete = succeeded && workoutCompleted && !showNextGame;
   const showAdvanceError =
     succeeded && advanceError !== null && !showNextGame && !showWorkoutComplete;
+  const nextGameName = nextGameId ? (getGameDefinition(nextGameId)?.name ?? nextGameId) : null;
+  const nextPosition = nextProvenance ? nextProvenance.legIndex + 1 : null;
+  const workoutTotalGames =
+    workout?.totalGames ??
+    derivedAdvance?.instance?.gameIds.length ??
+    (workoutCompleted && workoutLaunch ? workoutLaunch.legIndex + 1 : null);
+  const completionProgress = workoutTotalGames
+    ? `${workoutTotalGames}/${workoutTotalGames} games complete`
+    : 'All games complete';
+  const nextGameDetail = nextGameName
+    ? `${nextGameName}${nextPosition !== null ? ` · Game ${nextPosition}${workoutTotalGames ? ` of ${workoutTotalGames}` : ''}` : ''}`
+    : undefined;
 
   const onNextGame = useCallback(() => {
     if (workout !== undefined) {
@@ -244,6 +266,48 @@ export function GameResults({
 
   return (
     <View style={styles.section} testID={testId(gameId, 'results')}>
+      {/* The result headline and player-owned facts lead. Reward feedback is
+          deliberately below them so the player understands the outcome before
+          the progression moment arrives. */}
+      <ThemedText type="title" testID={testId(gameId, 'result-headline')}>
+        {title}
+      </ThemedText>
+      {badge}
+      <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
+        {children}
+      </View>
+
+      {persistState === 'failed' ? (
+        <ThemedText type="small" themeColor="danger" testID={testId(gameId, 'persist-error')}>
+          Your session could not be saved. {lastError ?? ''}
+        </ThemedText>
+      ) : null}
+      {forced ? (
+        <ThemedText type="caption" themeColor="warning" testID={testId(gameId, 'forced-badge')}>
+          QA-forced session
+        </ThemedText>
+      ) : null}
+      {showWorkoutComplete ? (
+        <Card
+          variant="outlined"
+          tone="successSoft"
+          padding="md"
+          testID={testId(gameId, 'workout-complete')}
+          accessibilityLiveRegion="polite">
+          <View style={styles.completionHeader}>
+            <Spark size={20} color={theme.successSoftText} />
+            <ThemedText type="headline" themeColor="successSoftText">
+              Workout complete
+            </ThemedText>
+          </View>
+          <ThemedText type="numeral" themeColor="successSoftText" testID={testId(gameId, 'workout-progress')}>
+            {completionProgress}
+          </ThemedText>
+          <ThemedText type="bodySmall" themeColor="successSoftText">
+            This workout is saved. Nice work.
+          </ThemedText>
+        </Card>
+      ) : null}
       {showReward ? (
         <Animated.View
           style={{
@@ -269,27 +333,20 @@ export function GameResults({
           />
         </Animated.View>
       ) : null}
-      <ThemedText type="title">{title}</ThemedText>
-      {badge}
-      {children}
-
-      {persistState === 'failed' ? (
-        <ThemedText type="small" themeColor="danger" testID={testId(gameId, 'persist-error')}>
-          Your session could not be saved. {lastError ?? ''}
-        </ThemedText>
-      ) : null}
-      {forced ? (
-        <ThemedText type="caption" themeColor="warning" testID={testId(gameId, 'forced-badge')}>
-          QA-forced session
-        </ThemedText>
-      ) : null}
-      {showWorkoutComplete ? (
-        <ThemedText
-          type="small"
-          themeColor="success"
-          testID={testId(gameId, 'workout-complete')}>
-          Workout complete — nice work!
-        </ThemedText>
+      {showNextGame ? (
+        <Card variant="outlined" padding="sm" testID={testId(gameId, 'next-context')}>
+          <ThemedText type="eyebrow" themeColor="textMuted">
+            UP NEXT
+          </ThemedText>
+          <ThemedText type="label" testID={testId(gameId, 'next-title')}>
+            {nextGameName}
+          </ThemedText>
+          {nextPosition !== null ? (
+            <ThemedText type="caption" themeColor="textSecondary">
+              Game {nextPosition}{workoutTotalGames ? ` of ${workoutTotalGames}` : ''} · progress saved
+            </ThemedText>
+          ) : null}
+        </Card>
       ) : null}
       {showAdvanceError ? (
         <ThemedText
@@ -304,14 +361,27 @@ export function GameResults({
         {showNextGame ? (
           <GameButton
             testID={testId(gameId, 'next-game')}
-            label="Next Game"
+            label="Next game"
+            sublabel={nextGameDetail}
             onPress={onNextGame}
+          />
+        ) : null}
+        {showWorkoutComplete ? (
+          <GameButton
+            testID={testId(gameId, 'finish-workout')}
+            label="Finish workout"
+            sublabel="Back to Today"
+            // Next Game uses push, so the navigation stack contains the prior
+            // legs. Finish must clear that stack and return to Today rather
+            // than using the generic game-level back action (which would land
+            // on the previous result screen).
+            onPress={() => router.replace('/')}
           />
         ) : null}
         <GameButton
           testID={testId(gameId, 'restart')}
           label="Play again"
-          variant={showNextGame ? 'secondary' : 'primary'}
+          variant={showNextGame || showWorkoutComplete ? 'secondary' : 'primary'}
           onPress={onRestart}
         />
         <GameButton
@@ -328,6 +398,14 @@ export function GameResults({
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  facts: {
+    gap: Spacing.two,
+  },
+  completionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   buttonRow: {
     flexDirection: 'row',

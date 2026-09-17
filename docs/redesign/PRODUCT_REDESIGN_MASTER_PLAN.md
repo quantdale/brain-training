@@ -722,7 +722,12 @@ The following criteria are for a later implementation campaign. They are not cla
 
 This master plan, together with the five supporting documents in `docs/redesign/`, is the complete Campaign 029 discovery package. The package records what was inspected, what was not reachable, what the current repository already does well, why the current interface feels structurally dense, what the proposed IA owns, how the golden path should behave, how Games and Progress should be simplified, which systems are demoted rather than deleted, what visual direction follows from the IA, how a later implementation maps to real seams, and how humans must validate it.
 
-**No product redesign has been implemented.**
+The Campaign 029 discovery packet itself did not implement a product redesign.
+Campaign 031 subsequently implemented only its authorized golden-path slice;
+the closure and evidence are recorded under
+`evidence/campaign031/CAMPAIGN031_CLOSURE.md`. Games discovery, full Progress,
+Profile/Rewards restructuring, dependency maintenance, CI repair, schema work,
+and Campaign 032 remain outside that completed slice.
 
 ## Campaign 030B evidence addendum (2026-09-17)
 
@@ -744,7 +749,27 @@ Two current-baseline facts qualify the plan without changing its direction:
   density and human-comprehension hypotheses.
 
 The original Campaign 029 statements about unavailable current rendered runtime
-remain historical statements about that campaign head. Campaign 030B supplies
-the missing Android evidence; it does not provide human usability, iOS,
-large-font, landscape, or exhaustive 42-game validation, and it implements no
-redesign.
+remain historical statements about that campaign head. Campaign 030B supplied
+the missing Android evidence; it did not provide human usability, iOS,
+large-font, landscape, or exhaustive 42-game validation, and it implemented no
+redesign itself.
+
+## Campaign 031 implementation addendum (2026-09-17)
+
+Campaign 031 consumed this plan’s golden-path direction and implemented the
+first bounded production slice only:
+
+`Today/Home → Start/Continue → Intro/Tutorial → Gameplay → Result → Next → Completion`
+
+The implementation makes Today’s Workout the dominant Home decision, preserves
+the existing workout instance/provenance handoff, shortens the shared intro
+mechanic statement, keeps active gameplay and pause lifecycle intact, makes
+Results outcome/facts/reward/continuation ordered, and gives the final leg an
+explicit idempotent completion state. The exact changed files, native runtime
+evidence, and matrix are in `evidence/campaign031/`.
+
+The campaign did not redesign Games discovery, full Progress, Profile,
+Rewards/economy, dependencies, CI, schema, or the 42-game catalog. Human
+participant validation, physical/iOS/TalkBack/system-sheet evidence, and the
+ARTEMIS provider trace remain explicitly pending/deferred rather than inferred
+from the technical operator run.

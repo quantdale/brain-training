@@ -12,10 +12,11 @@
  * - the pause overlay mounts only for `paused && view === 'session'`.
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { BackHandler, View } from 'react-native';
 
 import { testId } from '@/sdk';
+import { WorkoutSessionLaunchProvider } from '@/workout/session-launch-context';
 
 import { GameHost } from '../game-host';
 import type { GameHostProps } from '../game-host';
@@ -161,5 +162,33 @@ describe('GameHost chrome mounting', () => {
     expect(screen.queryByTestId(testId(GAME, 'pause-title'))).toBeNull();
     expect(screen.queryByTestId(testId(GAME, 'start'))).toBeNull();
     expect(screen.getByTestId(`${GAME}-stats`)).toBeOnTheScreen();
+  });
+
+  it('frames a workout intro around one concise mechanic and one Start game action', async () => {
+    const onStart = jest.fn();
+    await render(
+      <WorkoutSessionLaunchProvider
+        provenance={{ instanceKey: '2026-09-17', legIndex: 1, gameId: GAME }}>
+        <GameHost
+          {...hostProps({
+            view: 'intro',
+            interceptBack: false,
+            description:
+              'Find the one item that is different. Choose it before time runs out.',
+            onStart,
+          })}
+        />
+      </WorkoutSessionLaunchProvider>,
+    );
+
+    expect(screen.getByTestId(testId(GAME, 'workout-context'))).toBeOnTheScreen();
+    expect(screen.getByTestId('game-description')).toHaveTextContent(
+      'Find the one item that is different.',
+    );
+    expect(screen.getByText('Start game')).toBeOnTheScreen();
+    expect(screen.getByText('Game 2 · ready when you are')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(testId(GAME, 'start')));
+    expect(onStart).toHaveBeenCalledTimes(1);
   });
 });

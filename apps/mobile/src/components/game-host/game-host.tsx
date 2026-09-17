@@ -29,6 +29,7 @@ import { getGameDefinition } from '@/registry/registry';
 import { Spacing, type DomainName } from '@/constants/theme';
 import type { ThemeColor } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
+import { useWorkoutSessionLaunch } from '@/workout/session-launch-context';
 
 /** Which chrome the host renders around the game's content. */
 export type GameHostView = 'intro' | 'session' | 'results';
@@ -52,6 +53,13 @@ const DOMAIN_BY_CATEGORY: Record<string, DomainName> = {
 function domainTone(category: string | undefined): DomainName | null {
   if (category === undefined) return null;
   return DOMAIN_BY_CATEGORY[category] ?? null;
+}
+
+/** Keep the intro's rule readable at a glance while leaving full detail to the tutorial. */
+function conciseMechanic(description: string | undefined): string | undefined {
+  if (description === undefined) return undefined;
+  const firstSentence = description.match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim();
+  return firstSentence && firstSentence.length > 0 ? firstSentence : description;
 }
 
 /** Player-facing label for the selected difficulty on the intro meta strip. */
@@ -171,9 +179,12 @@ export function GameHost({
 
   const definition = getGameDefinition(gameId);
   const tone = domainTone(definition?.primaryCategory);
-  const rules = description ?? definition?.description;
+  const rules = conciseMechanic(description ?? definition?.description);
   const categoryLabel = definition?.primaryCategory;
   const gameName = definition?.name ?? gameId;
+  const workoutLaunch = useWorkoutSessionLaunch();
+  const workoutPosition =
+    workoutLaunch?.gameId === gameId ? workoutLaunch.legIndex + 1 : null;
 
   return (
     <View style={styles.screen} testID={testId(gameId, 'screen')}>
@@ -211,6 +222,20 @@ export function GameHost({
                   testID="game-category"
                   style={tone ? { color: theme[`${tone}Text` as ThemeColor] } : undefined}>
                   {categoryLabel}
+                </ThemedText>
+              </View>
+            ) : null}
+
+            {workoutPosition !== null ? (
+              <View
+                style={styles.workoutContext}
+                testID={testId(gameId, 'workout-context')}
+                accessibilityLabel={`Today's workout, game ${workoutPosition}, ready to start`}>
+                <ThemedText type="eyebrow" themeColor="textMuted">
+                  TODAY&apos;S WORKOUT
+                </ThemedText>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  Game {workoutPosition} · your next game
                 </ThemedText>
               </View>
             ) : null}
@@ -253,8 +278,10 @@ export function GameHost({
 
             <Button
               testID={testId(gameId, 'start')}
-              label="Start"
+              label="Start game"
+              sublabel={workoutPosition !== null ? `Game ${workoutPosition} · ready when you are` : undefined}
               size="lg"
+              accessibilityHint="Begin this game"
               onPress={onStart}
             />
             {/* While the first-run tutorial is on screen it already explains
@@ -350,6 +377,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.one,
+  },
+  workoutContext: {
+    gap: Spacing.half,
+    marginTop: Spacing.one,
   },
   // Two-column reward box (reference: pre-game intro promises level + reward
   // in one hairline-divided strip rather than two competing cards).

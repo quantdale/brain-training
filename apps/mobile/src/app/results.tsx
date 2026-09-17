@@ -8,13 +8,12 @@
  * and a list of recent sessions to switch between. Adds an explicit loading
  * state and a performance-band headline over the raw percentage.
  *
- * Presentation (campaign 026, design-language v3 "Neon Arcade"):
- * celebration-first — outcome headline + hero metric (ring + numeralXl)
- * first, deterministic confetti confined to the hero margins for perfect /
- * personal-best outcomes, metrics as four equal `StatBlock` columns in ONE
- * row, then exactly one primary CTA (play again). The workout next-game
- * action stays a quiet ghost beside it; rating movement and recent sessions
- * are quiet outlined sections, never stacked uniform cards. A personal-best
+ * Presentation (campaign 026/031, design-language v3 "Neon Arcade"):
+ * outcome headline + hero metric (ring + numeralXl), four equal `StatBlock`
+ * columns, bounded persisted reward, then one context-appropriate primary
+ * action. Workout-owned results make Next game or Finish workout primary;
+ * standalone results retain Play again. Rating movement and recent sessions
+ * remain quiet outlined sections, never stacked uniform cards. A personal-best
  * session still renders the celebration treatment exactly once
  * (sensory-gated success feedback + badge, never blocking); routine
  * completions stay quiet.
@@ -329,16 +328,6 @@ export default function ResultsScreen() {
               <ThemedText type="eyebrow" themeColor="textSecondary">
                 Result
               </ThemedText>
-              <View style={styles.rewardRow}>
-                <Spark size={16} color={theme.xp} />
-                <AnimatedNumber
-                  value={session.xp}
-                  format={(n) => `+${Math.round(n)} XP`}
-                  type="numeral"
-                  themeColor="xp"
-                  testID="results-xp"
-                />
-              </View>
               {/* The session date is metadata, not part of the reward: glued
                   to the XP it read as "+50 XP Yesterday" (Campaign 026
                   visual-QA). Its own caption row keeps both facts legible. */}
@@ -398,9 +387,34 @@ export default function ResultsScreen() {
             </View>
           </Entrance>
 
-          {/* Workout progress (006R hardening): after finishing the current
-              workout game, the completion beat lands above the CTA; the next
-              game is offered as a quiet ghost beside the primary action. */}
+          {/* The outcome is understood before the progression reward. Keeping
+              this as its own bounded surface also prevents XP from competing
+              with the result headline. */}
+          <Entrance index={2}>
+            <Card
+              variant="outlined"
+              padding="md"
+              testID="results-reward"
+              accessibilityLiveRegion="polite"
+            >
+              <ThemedText type="eyebrow" themeColor="textMuted">
+                REWARD
+              </ThemedText>
+              <View style={styles.rewardRow}>
+                <Spark size={16} color={theme.xp} />
+                <AnimatedNumber
+                  value={session.xp}
+                  format={(n) => `+${Math.round(n)} XP`}
+                  type="numeral"
+                  themeColor="xp"
+                  testID="results-xp"
+                />
+              </View>
+            </Card>
+          </Entrance>
+
+          {/* Workout progress (006R hardening): completion is explicit and the
+              next leg is a single, clear handoff. */}
           {workoutCompleted ? (
             <Card
               variant="outlined"
@@ -415,30 +429,47 @@ export default function ResultsScreen() {
                   </ThemedText>
                   <ThemedText type="bodySmall" themeColor="successSoftText">
                     {workoutInstance?.gameIds.length
-                      ? `You finished all ${workoutInstance.gameIds.length} games today. Nice work!`
+                      ? `${workoutInstance.gameIds.length}/${workoutInstance.gameIds.length} games complete`
                       : "You finished today's workout. Nice work!"}
                   </ThemedText>
+                  {workoutInstance?.gameIds.length ? (
+                    <ThemedText type="caption" themeColor="successSoftText">
+                      {`You finished all ${workoutInstance.gameIds.length} games today. Nice work!`}
+                    </ThemedText>
+                  ) : null}
                 </View>
               </View>
             </Card>
           ) : null}
 
-          {/* One primary CTA (play again); the workout next-game action is a
-              ghost so the viewport never carries two competing primaries. */}
-          <Entrance index={2}>
+          {nextGameId && !workoutCompleted ? (
+            <Card
+              variant="outlined"
+              padding="md"
+              testID="results-next-context"
+            >
+              <ThemedText type="eyebrow" themeColor="textMuted">
+                UP NEXT
+              </ThemedText>
+              <ThemedText type="headline" testID="results-next-title">
+                {nextGame?.name ?? nextGameId}
+              </ThemedText>
+              <ThemedText type="bodySmall" themeColor="textSecondary">
+                {workoutInstance?.gameIds.length && nextProvenance
+                  ? `Game ${nextProvenance.legIndex + 1} of ${workoutInstance.gameIds.length} · progress saved`
+                  : "Your workout progress is saved."}
+              </ThemedText>
+            </Card>
+          ) : null}
+
+          {/* One primary CTA: continue the workout when a next leg exists,
+              finish the workout when complete, otherwise replay standalone. */}
+          <Entrance index={3}>
             <View style={styles.ctaBlock}>
-              <Button
-                variant="primary"
-                size="lg"
-                label="Play again"
-                sublabel={game?.name ?? session.gameId}
-                testID="results-play-again"
-                accessibilityHint={`Start a new session of ${game?.name ?? session.gameId}`}
-                onPress={() => router.push(gameHref(session.gameId))}
-              />
               {!workoutCompleted && nextGameId ? (
                 <Button
-                  variant="ghost"
+                  variant="primary"
+                  size="lg"
                   label="Next game"
                   sublabel={nextGame?.name ?? nextGameId}
                   testID="results-next-game"
@@ -446,10 +477,29 @@ export default function ResultsScreen() {
                   onPress={() => router.push(gameHref(nextGameId, nextProvenance))}
                 />
               ) : null}
+              {workoutCompleted ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  label="Finish workout"
+                  sublabel="Back to Today"
+                  testID="results-finish-workout"
+                  accessibilityHint="Return to Today after finishing the workout"
+                  onPress={() => router.push("/")}
+                />
+              ) : null}
+              <Button
+                variant={!workoutCompleted && nextGameId ? "secondary" : workoutCompleted ? "secondary" : "primary"}
+                label="Play again"
+                sublabel={game?.name ?? session.gameId}
+                testID="results-play-again"
+                accessibilityHint={`Start a new session of ${game?.name ?? session.gameId}`}
+                onPress={() => router.push(gameHref(session.gameId))}
+              />
             </View>
           </Entrance>
 
-          <Entrance index={3}>
+          <Entrance index={4}>
             <Card variant="outlined" testID="results-rating" style={styles.quietCard}>
               <SectionHeader title="Rating movement" />
               {ratingHistory.length > 0 ? (

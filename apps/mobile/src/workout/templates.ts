@@ -51,13 +51,20 @@ export interface WorkoutLengthSpec {
   gameCount: number;
   /** Player-facing label. */
   label: string;
+  /**
+   * Planning estimate used by the workout handoff. This is not a gameplay
+   * limit; individual games still report their real elapsed time in results.
+   * Keeping the estimate with the versioned length spec gives Home and the
+   * secondary picker one honest source for the expected session duration.
+   */
+  estimatedMinutes?: number;
 }
 
 /** Ordered shortest → longest; `standard` is the constitution default. */
 export const WORKOUT_LENGTHS: readonly WorkoutLengthSpec[] = [
-  { id: "short", gameCount: 2, label: "Short" },
-  { id: "standard", gameCount: 4, label: "Standard" },
-  { id: "extended", gameCount: 6, label: "Extended" },
+  { id: "short", gameCount: 2, label: "Short", estimatedMinutes: 4 },
+  { id: "standard", gameCount: 4, label: "Standard", estimatedMinutes: 8 },
+  { id: "extended", gameCount: 6, label: "Extended", estimatedMinutes: 12 },
 ];
 
 export const DEFAULT_WORKOUT_LENGTH: WorkoutLength = "standard";
@@ -74,6 +81,18 @@ export function workoutLengthSpec(id: WorkoutLength): WorkoutLengthSpec {
 /** Game count for a length variant. */
 export function gameCountForLength(id: WorkoutLength): number {
   return workoutLengthSpec(id).gameCount;
+}
+
+/**
+ * Expected wall-clock duration for a plan, when the selected length carries
+ * the product's planning estimate. A missing value remains missing so legacy
+ * or test-provided specs never invent a promise in the UI.
+ */
+export function estimatedWorkoutMinutes(id: WorkoutLength): number | null {
+  const minutes = workoutLengthSpec(id).estimatedMinutes;
+  return typeof minutes === "number" && Number.isFinite(minutes) && minutes > 0
+    ? minutes
+    : null;
 }
 
 /* ------------------------------------------------------------------ *

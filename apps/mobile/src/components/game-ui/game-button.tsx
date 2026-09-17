@@ -22,6 +22,8 @@ export type GameButtonVariant = 'primary' | 'secondary' | 'danger';
 
 export interface GameButtonProps {
   label: string;
+  /** Optional context line for handoff actions such as the next workout leg. */
+  sublabel?: string;
   testID: string;
   onPress: () => void;
   variant?: GameButtonVariant;
@@ -48,6 +50,7 @@ function resolveVariant(variant: GameButtonVariant, selected: boolean): ButtonVa
 
 export const GameButton = memo(function GameButton({
   label,
+  sublabel,
   testID,
   onPress,
   variant = 'primary',
@@ -62,6 +65,7 @@ export const GameButton = memo(function GameButton({
     <Button
       ref={ref}
       label={label}
+      sublabel={sublabel}
       testID={testID}
       onPress={onPress}
       variant={resolveVariant(variant, selected)}

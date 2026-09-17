@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
-  "change": "029-artemis-runtime-qa-migration",
-  "description": "Campaign 029 ARTEMIS runtime-QA migration. The orchestrator owns all shared docs, state, scripts, CI, OpenSpec, and MCP convergence plus the single-emulator runtime evidence. No parallel coder packets are active for this cross-cutting migration.",
+  "lifecycleStatus": "VALIDATED",
+  "change": "031-golden-path-redesign",
+  "description": "Terminal ownership record for validated Campaign 031 golden-path redesign. The orchestrator owned the shared Home, GameHost, Results, workout-handoff, evidence, docs, and governance surfaces; no parallel coder packets remain active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

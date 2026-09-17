@@ -1,7 +1,7 @@
 # Product & Autonomous Development Constitution v1.0
 
 **Status:** LOCKED / DECISION FREEZE  
-**Implementation:** 42-game catalog shipped; Campaigns 001–028 closed (028 — production-readiness closure — VALIDATED); Campaign 029 (ARTEMIS runtime-QA migration) is active as of 2026-09-16
+**Implementation:** 42-game catalog shipped; Campaigns 001–030B closed; Campaign 031 (golden-path redesign) is VALIDATED as of 2026-09-17; Campaign 032 is not activated
 **Repository:** `quantdale/brain-training` (product branding intentionally deferred)
 
 This document is the authoritative set of locked product and development decisions. Agents must not casually reopen these decisions. Intentionally deferred items are listed near the end.

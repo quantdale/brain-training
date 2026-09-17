@@ -1,6 +1,6 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 029 active (last completed: Campaign 028 VALIDATED)
+## Current status — Campaign 031 VALIDATED (no active successor)
 
 Campaign 028 (`028-production-readiness`, activated 2026-09-13 under the
 owner's successor campaign directive) closed **VALIDATED** and terminal; it
@@ -8,9 +8,15 @@ closed the residual release-confidence gaps recorded below (silent user-action
 failures, portability robustness, harness navigation reliability and artifact
 retention, validator/CI gate integrity, docs truth, cleanup). Predecessors 027
 (deep hardening, `212469d`) and 026 (visual identity rebuild) remain VALIDATED.
-Campaign 029 (`029-artemis-runtime-qa-migration`) is active under the owner-
-supplied 2026-09-16 migration directive. Repository-owned migration work is
-in progress; one external provider blocker is open for live ARTEMIS tasks.
+Campaign 029 (`029-artemis-runtime-qa-migration`) is a historical repository
+checkpoint. Its one external provider blocker remains classified below and is
+not a Campaign 031 product blocker.
+
+Campaign 031 (`031-golden-path-redesign`) was validated under the owner-supplied
+2026-09-17 implementation directive. The golden-path product work and its
+required native/evidence matrix are complete; its explicit pending/manual
+evidence classes remain listed below. No new Critical/High product issue was
+identified.
 
 The application is **not yet fully store/public-release cleared** because
 several evidence classes are deliberately external/manual:

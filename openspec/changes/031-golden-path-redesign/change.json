@@ -1,0 +1,17 @@
+{
+  "id": "031-golden-path-redesign",
+  "status": "VALIDATED",
+  "predecessor": "029-artemis-runtime-qa-migration",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "golden-path-redesign"
+  ],
+  "activationRule": "Owner directive supplied on 2026-09-17: execute the authoritative Campaign 031 golden-path redesign implementation prompt after safely synchronizing main; preserve existing workout, game, persistence, provenance, scoring, reward, and offline contracts; do not begin Campaign 032.",
+  "baselineAuditCommit": "44ba1533f4eb5ebcd795723f801633caee914e17",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes Campaign 030B rendered runtime evidence as the before baseline and Campaign 029/030 redesign research as product context. This change is limited to Today/Home through workout completion and does not reopen Games discovery, Progress, Profile, Rewards, dependency, CI, or schema work."
+}

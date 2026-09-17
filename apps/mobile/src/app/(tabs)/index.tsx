@@ -85,6 +85,7 @@ import { eligibleGames } from "@/workout/reconcile";
 import {
   applyTemplatePersonalization,
   DEFAULT_WORKOUT_LENGTH,
+  estimatedWorkoutMinutes,
   selectTemplateWorkout,
   workoutLengthSpec,
 } from "@/workout/templates";
@@ -402,6 +403,7 @@ export default function HomeScreen() {
 
   const lengthSpec = workoutLengthSpec(effectiveLength);
   const lengthLabel = lengthSpec.label;
+  const dailyExpectedMinutes = estimatedWorkoutMinutes(DEFAULT_WORKOUT_LENGTH);
 
   // Why-this-workout reasons: recompute the same deterministic selection the
   // engine will persist on start (pure functions, no side effects), then run
@@ -538,24 +540,23 @@ export default function HomeScreen() {
   // position), so the single primary button reads as a complete invitation.
   const isResuming = workoutStatus === "active" && workoutIndex > 0;
   const heroCtaLabel = isResuming ? "Continue workout" : "Start workout";
-  const heroCtaSublabel =
-    workout.length === 0
-      ? undefined
-      : isResuming
-        ? `${currentGame?.name ?? "Next game"} · Game ${workoutIndex + 1} of ${workout.length}`
-        : `Starts with ${workout[0]?.name ?? "game one"} · ${workout.length} games`;
   const heroCtaAccessibilityLabel =
-    workout.length === 0
-      ? heroCtaLabel
-      : isResuming
-        ? `Continue today's workout with ${currentGame?.name ?? "the next game"}`
-        : `Start today's workout, ${workout.length} games`;
+    workoutStatus === "completed"
+      ? "See today's progress"
+      : workout.length === 0
+        ? heroCtaLabel
+        : isResuming
+          ? `Continue today's workout with ${currentGame?.name ?? "the next game"}`
+          : `Start today's workout, ${workout.length} games`;
   // Same destination (with the same workout-leg provenance) the resume Link
   // used before the hero rebuild — null until a current game is known.
   // Before the workout is started there is no instance yet, so the CTA targets
   // the first planned leg — the action must exist in the first viewport, not
   // only once a session is already in flight.
-  const heroGameId = workoutFlow.currentGameId ?? workout[0]?.id ?? null;
+  const heroGameId =
+    workoutStatus === "active"
+      ? (workoutFlow.currentGameId ?? workout[0]?.id ?? null)
+      : null;
   const heroHref = heroGameId
     ? gameHref(
         heroGameId,
@@ -567,7 +568,19 @@ export default function HomeScreen() {
             }
           : null,
       )
-    : null;
+      : null;
+  const heroPlanLine =
+    workout.length > 0
+      ? `${workout.length} games${dailyExpectedMinutes ? ` · about ${dailyExpectedMinutes} minutes` : ""} · balanced across your recent training.`
+      : null;
+  const heroCtaSublabel =
+    workoutStatus === "completed"
+      ? `${workout.length}/${workout.length} games saved`
+      : workout.length === 0
+        ? undefined
+        : isResuming
+          ? `${currentGame?.name ?? "Next game"} · Game ${workoutIndex + 1} of ${workout.length}`
+          : `Starts with ${workout[0]?.name ?? "game one"} · ${workout.length} games`;
 
   // Error surfacing: only when a real game catalog is installed. With an empty
   // registry (fresh bootstrap / bare test harness) a db failure is expected
@@ -664,30 +677,40 @@ export default function HomeScreen() {
               </ThemedText>
             </View>
             <ThemedText type="headline">Today&apos;s Workout</ThemedText>
-            {workout.length > 0 ? (
-              <ThemedText type="bodySmall" themeColor="textSecondary">
-                {`Daily ${workout.length}-game plan · balanced toward your weakest domains.`}
+            {heroPlanLine ? (
+              <ThemedText type="bodySmall" themeColor="textSecondary" testID="home-workout-plan">
+                {heroPlanLine}
               </ThemedText>
             ) : null}
           </View>
           {workoutStatus === "completed" ? (
-            <Card tone="successSoft" padding="sm">
+            <Card tone="successSoft" padding="sm" testID="home-workout-complete-panel">
               <ThemedText
                 type="label"
                 themeColor="successSoftText"
                 testID="home-workout-complete"
               >
-                Workout complete — come back tomorrow to train again.
+                Workout complete
+              </ThemedText>
+              <ThemedText type="bodySmall" themeColor="successSoftText">
+                {`${workout.length}/${workout.length} games saved. See today's progress for a summary.`}
               </ThemedText>
             </Card>
           ) : workout.length > 0 ? (
             <View style={styles.progressRow}>
               <ThemedText type="numeralXl" testID="home-workout-progress">
-                {`${workoutIndex} of ${workout.length}`}
+                {`${workoutIndex}/${workout.length}`}
               </ThemedText>
-              <ThemedText type="bodySmall" themeColor="textSecondary">
-                games done — keep going!
-              </ThemedText>
+              <View style={styles.progressCopy}>
+                <ThemedText type="label" themeColor="textSecondary">
+                  {`${workoutIndex} of ${workout.length} complete`}
+                </ThemedText>
+                {currentGame ? (
+                  <ThemedText type="caption" themeColor="textSecondary">
+                    {`Next: ${currentGame.name}`}
+                  </ThemedText>
+                ) : null}
+              </View>
             </View>
           ) : null}
           {workout.length > 0 ? (
@@ -701,7 +724,18 @@ export default function HomeScreen() {
                     : `${workoutIndex} of ${workout.length} games done`
                 }
               />
-              {heroHref ? (
+              {workoutStatus === "completed" ? (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  label="See today's progress"
+                  sublabel={`${workout.length}/${workout.length} games saved`}
+                  testID="home-workout-continue"
+                  accessibilityLabel="See today's progress"
+                  accessibilityHint="Review your completed workout"
+                  onPress={() => router.push("/progress")}
+                />
+              ) : heroHref ? (
                 <Button
                   variant="primary"
                   size="lg"
@@ -755,28 +789,6 @@ export default function HomeScreen() {
                   );
                 })}
               </View>
-              <Button
-                variant="ghost"
-                label={rerollLabel}
-                testID="home-workout-reroll"
-                accessibilityHint={rerollHint}
-                disabled={
-                  !rerollAffordable ||
-                  rerollExhausted ||
-                  rerollInProgress ||
-                  workoutStatus === "completed"
-                }
-                onPress={onReroll}
-              />
-              {workoutStatus === "active" ? (
-                <ThemedText
-                  type="caption"
-                  themeColor="textSecondary"
-                  testID="home-reroll-hint"
-                >
-                  {rerollHint}
-                </ThemedText>
-              ) : null}
             </>
           ) : hasCatalog && workoutFlow.loadFailed ? (
             // A failed load-or-create must not read as "no catalog installed".
@@ -809,12 +821,21 @@ export default function HomeScreen() {
             />
           )}
 
-          {/* Hero metrics: streak as the identity day-dot strip and level as
-              the progression ring — inside the same dominant surface. */}
-          <View
-            style={[styles.heroDivider, { backgroundColor: theme.border }]}
-          />
-          <View style={styles.heroMetricCell} testID="home-streak-card">
+        </View>
+      </Card>
+
+      </Entrance>
+
+      {/* Context stays available, but outside the decision surface. The daily
+          action should be understood before streak, XP, or coins compete for
+          attention. */}
+      <Card
+        variant="outlined"
+        padding="md"
+        style={styles.contextCard}
+        testID="home-context">
+        <View style={styles.contextGrid}>
+          <View style={styles.contextMetric} testID="home-streak-card">
             <View style={styles.metricHeader}>
               <ThemedText
                 type="numeralXl"
@@ -849,12 +870,12 @@ export default function HomeScreen() {
             ) : null}
           </View>
 
-          <View style={styles.heroMetricCell} testID="home-level-card">
+          <View style={styles.contextMetric} testID="home-level-card">
             <View style={styles.levelRow}>
               <ProgressRing
                 value={levelRatio}
                 tone="xp"
-                size={96}
+                size={64}
                 label={
                   xpToNext > 0
                     ? `Level ${level}, ${data.totalXp} XP total, ${xpToNext} XP to Level ${level + 1}`
@@ -894,8 +915,6 @@ export default function HomeScreen() {
         </View>
       </Card>
 
-      </Entrance>
-
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
           finished today. Data-gated so first-run trees stay unchanged. */}
       {loaded && latestCompletedTemplate ? (
@@ -908,22 +927,52 @@ export default function HomeScreen() {
         />
       ) : null}
 
-      {/* W24: "More workouts" — Workout V2 rotation menu + length variants,
-          started through the engine hook. Secondary to the daily CTA above;
-          gated behind a loaded db + installed catalog for visual-baseline
-          stability. */}
+      {/* Workout configuration is deliberately one quiet secondary surface:
+          reroll and focus/length choices stay available without competing with
+          the Today CTA. */}
       {loaded && hasCatalog ? (
         <Card
-          padding="lg"
+          variant="outlined"
+          padding="md"
           style={styles.sectionCardGap}
           testID="home-workout-templates"
         >
           <SectionHeader
-            title="More workouts"
-            caption="Focus training beyond today's mix."
+            title="Choose a workout"
+            caption="Change the mix or choose a focus."
           />
+          <View testID="home-workout-options" style={styles.secondaryAction}>
+            {workout.length > 0 ? (
+              <>
+                <ThemedText type="label">Today&apos;s mix</ThemedText>
+                <Button
+                  variant="ghost"
+                  label={rerollLabel}
+                  testID="home-workout-reroll"
+                  accessibilityHint={rerollHint}
+                  disabled={
+                    !rerollAffordable ||
+                    rerollExhausted ||
+                    rerollInProgress ||
+                    workoutStatus === "completed"
+                  }
+                  onPress={onReroll}
+                />
+                {workoutStatus === "active" ? (
+                  <ThemedText
+                    type="caption"
+                    themeColor="textSecondary"
+                    testID="home-reroll-hint"
+                  >
+                    {rerollHint}
+                  </ThemedText>
+                ) : null}
+              </>
+            ) : null}
+          </View>
           {templateChoices.length > 0 ? (
             <>
+              <ThemedText type="label">Focus workouts</ThemedText>
               <WorkoutTemplateChips
                 templates={templateChoices}
                 selectedId={effectiveTemplateId}
@@ -1136,12 +1185,21 @@ const styles = StyleSheet.create({
     top: 0,
     width: 2,
     height: 2,
-    // Must stay non-zero: uiautomator drops alpha-0 views from its
-    // visible-to-user tree, so a fully transparent marker is invisible to
-    // the certify preflight's `source-bundle-bound` probe (device-verified:
-    // marker present in hierarchy only after opacity raised). Imperceptible
-    // on-device at 0.01.
+    // Keep the development marker in the accessibility hierarchy without
+    // creating visible product chrome.
     opacity: 0.01,
+  },
+  contextCard: {
+    gap: Spacing.two,
+  },
+  contextGrid: {
+    gap: Spacing.three,
+  },
+  contextMetric: {
+    gap: Spacing.two,
+  },
+  secondaryAction: {
+    gap: Spacing.one,
   },
   sectionCardGap: {
     gap: Spacing.two,
@@ -1162,8 +1220,12 @@ const styles = StyleSheet.create({
   },
   progressRow: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     gap: Spacing.two,
+  },
+  progressCopy: {
+    flex: 1,
+    gap: Spacing.half,
   },
   workoutList: {
     gap: Spacing.one,
