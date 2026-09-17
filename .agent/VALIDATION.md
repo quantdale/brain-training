@@ -5,6 +5,44 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 032 terminal closure — 2026-09-17
+
+- Safe synchronization reached `fa29742f08636b455f23a90c27cec61798fb1024`;
+  concurrent pre-existing ARTEMIS documentation was preserved in `63b4ea6`.
+  Product implementation is `7358959`; no user work was overwritten, no reset
+  or force push was used.
+- Product scope: Games discovery, Suggested Next/Browse All hierarchy,
+  search/category/Favorites/no-results states, catalog-wide identity metadata,
+  GameCard, Game Detail, and standalone entry. No Home, Progress, Profile,
+  Rewards, economy, schema, dependency, CI, scoring, generator, workout, or
+  game-mechanic source was changed.
+- Focused product tests **PASS** (3 suites / 15 tests); protected
+  favorites/mastery/registry/content/SDK catalog matrix **PASS** (12 suites /
+  319 tests); eight representative family suites **PASS** (8 suites / 82
+  tests).
+- Full CI-mode Jest **PASS**: 555/559 suites, 6,557/6,562 tests, 5 snapshots,
+  0 failures; 4 suites / 5 tests are the existing opt-in probes. Fresh
+  `D:\Temp\campaign032-jest-summary.json` passed Jest-signal validation with
+  5 classified and 0 unclassified/ambiguous skips.
+- Typecheck, lint, web export (47 bundles / 20 static routes), registry check,
+  provenance, offline CLEAN (972 source files), secrets CLEAN (2,139 tracked
+  text files), workflow hygiene, dependency audit, runtime-QA contract,
+  repo-state, ownership, affected-map sync, and OpenSpec 18/18 **PASS/CLEAN**.
+- Native: debug build/install **PASS** (APK SHA-256
+  `80E9B29134FB70D7C45E30B7BB0FB6F6E90EE8D358B1880B9FA236E98A877D6A`);
+  disposable `braintraining-c030b` / `emulator-5556`; 6/6 light/dark
+  nonblank route-verified Games/Detail/intro captures; 8/8 family detail
+  captures; helper self-test 5 pass / 0 fail / 2 documented launcher skips;
+  64,020-line logcat with no fatal/RedBox/invariant pattern.
+- Required accessibility matrix **PASS**, 0 violations across 6 surfaces;
+  broad exploratory partial-capture diagnostics are classified rather than
+  hidden in `docs/redesign/evidence/campaign032/ACCESSIBILITY_VALIDATION.md`.
+- Human validation is **PENDING**: no independent participant was available;
+  the exact uncoached task handoff is recorded. Manual TalkBack, physical/iOS,
+  store-signing, and system-sheet evidence remain NOT VALIDATED/DEFERRED.
+- Required evidence package: `docs/redesign/evidence/campaign032/`.
+  Campaign 033 was not started.
+
 ### Final ARTEMIS migration certification — 2026-09-17 (independent audit)
 
 - Baseline: this audit began on `main` at `eb10f72` (Campaign 031 terminal);

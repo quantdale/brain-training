@@ -69,6 +69,18 @@ was committed/pushed without beginning Campaign 032. The terminal state and
 evidence package are recorded in `.agent/STATE.md` and
 `docs/redesign/evidence/campaign031/`.
 
+## Owner implementation directive — Campaign 032 (validated)
+
+On 2026-09-17 the owner directed the agent to safely synchronize `main` and
+execute `.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`
+exhaustively. Campaign 032 delivered and validated the authorized Games
+discovery, shared game identity, card, Game Detail, and standalone-entry
+redesign while preserving the 42-game catalog, generated registry, favorites,
+mastery, tutorial/session, workout eligibility, offline, and game-mechanic
+contracts. The evidence package is under
+`docs/redesign/evidence/campaign032/`; independent human/manual platform
+evidence remains explicitly pending. Campaign 033 was not started.
+
 ## Historical terminal campaign state before Campaign 029
 
 Campaign 028 was terminal for its authorized scope before the owner supplied

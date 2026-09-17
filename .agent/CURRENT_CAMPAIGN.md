@@ -1,11 +1,11 @@
 # Campaign 032 — Games discovery and identity redesign
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `032-games-discovery-identity-redesign`
 **Predecessor:** `031-golden-path-redesign` (validated)
 **Mode:** day
 **Start SHA:** `fa29742f08636b455f23a90c27cec61798fb1024`
-**Change:** `032-games-discovery-identity-redesign` (ACTIVE)
+**Change:** `032-games-discovery-identity-redesign` (VALIDATED)
 **Authorization:** owner-supplied Campaign 032 directive on 2026-09-17; the
 authoritative task specification is
 `.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`.
@@ -17,6 +17,12 @@ favorites, game cards, Game Detail, and standalone game entry. Make Suggested
 Next answer “what should I play?” and Browse All answer “what can I choose?”;
 consolidate recommendation evidence; add a restrained identity system for all
 42 catalog entries; and make mechanic understanding and Play precede history.
+
+## Terminal result
+
+Campaign 032 is terminally validated. The complete evidence package is under
+`docs/redesign/evidence/campaign032/`; the 42-entry catalog and protected
+runtime/persistence contracts remain intact; and Campaign 033 was not started.
 
 ## Guardrails
 

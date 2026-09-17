@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 032: Games discovery and identity redesign
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `032-games-discovery-identity-redesign`
 **Planned-From:** `fa29742f08636b455f23a90c27cec61798fb1024`
 **Start-SHA:** `fa29742f08636b455f23a90c27cec61798fb1024`
@@ -41,3 +41,12 @@ human validation when genuinely available. Otherwise record the exact pending
 handoff without invented findings. Produce every required document under
 `docs/redesign/evidence/campaign032/`, update durable state, commit and push
 `main`, verify `main == origin/main`, and leave the worktree clean.
+
+## Terminal result
+
+Campaign 032 is terminally validated. The Games surface now has one
+evidence-backed Suggested Next model and a clear Browse All model; the 42-entry
+catalog has a shared identity vocabulary; Game Detail leads with mechanic and
+Play; and the protected catalog, persistence, tutorial/session, workout,
+offline, and mechanics contracts remain intact. The complete evidence package
+is under `docs/redesign/evidence/campaign032/`. Campaign 033 was not started.

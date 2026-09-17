@@ -1,6 +1,6 @@
 {
   "id": "032-games-discovery-identity-redesign",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "031-golden-path-redesign",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",

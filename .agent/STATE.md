@@ -1,20 +1,20 @@
 # Durable Project State
 
-**Last update:** 2026-09-17 — Campaign 032 is active on synchronized `main`;
-Campaign 031 is terminally validated and remains the before context.
+**Last update:** 2026-09-17 — Campaign 032 is terminally validated on
+synchronized `main`; Campaign 031 remains the before context.
 **Canonical branch:** `main`
-**Active campaign:** `032-games-discovery-identity-redesign`
-**Last campaign:** `031-golden-path-redesign`
+**Active campaign:** none
+**Last campaign:** `032-games-discovery-identity-redesign`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 032 (`032-games-discovery-identity-redesign`) is the active
-owner-directed product implementation successor. Its authoritative task
-specification is
+Campaign 032 (`032-games-discovery-identity-redesign`) is terminally validated
+after the owner-directed product implementation successor. Its authoritative
+task specification was
 `.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`; activation
-started from synchronized `main` at `fa29742`. Campaign 031 is terminally
-validated and its rendered/runtime package remains the prior context.
+started from synchronized `main` at `fa29742`. Campaign 031's terminal
+rendered/runtime package remains the prior visual context.
 
 The current implementation is limited to Games discovery, search/filter/
 favorites, shared game identity presentation, Game Detail hierarchy, and
@@ -22,7 +22,7 @@ standalone game entry. Existing catalog, registry, lazy-loading, SQLite/
 favorites/mastery/tutorial/session/workout-eligibility/offline/mechanics
 contracts remain protected; no schema or dependency change is authorized.
 
-## Campaign 032 checkpoint — Games discovery and identity redesign (ACTIVE)
+## Campaign 032 checkpoint — Games discovery and identity redesign (VALIDATED)
 
 - **Activation:** safe fast-forward synchronization reached `fa29742`; no
   pre-existing local user work was present to overwrite.
@@ -30,16 +30,28 @@ contracts remain protected; no schema or dependency change is authorized.
   Suggested Next, and Game Detail regression coverage have disjoint ownership;
   the orchestrator owns Game Detail implementation, governance, evidence,
   generated/catalog contracts, and final convergence.
-- **Required handoff:** preserve the 42-entry generated registry and all
-  protected behavior; validate eight primary families on a disposable normal
-  Android AVD with real light/dark pixels; record every Campaign 032 evidence
-  document and classify human/ARTEMIS limits honestly.
+- **Validation:** 42/42 catalog identity matrix; focused/persistence/catalog
+  tests PASS; eight family representatives PASS; full Jest 555/559 suites and
+  6,557/6,562 tests PASS with the five intentional opt-in skips classified;
+  typecheck/lint/web export/repository/catalog/offline/security/OpenSpec/native
+  gates PASS as recorded in the evidence package.
+- **Native evidence:** disposable normal `braintraining-c030b` /
+  `emulator-5556`, 6/6 nonblank route-verified light/dark captures, 0
+  violations in the required six-surface accessibility matrix, and 8/8 family
+  detail route captures. Raw artifacts remain outside Git under
+  `D:\Temp\campaign032-runtime-after`.
+- **Human/external limits:** independent human validation, manual TalkBack,
+  text-scaling extremes, physical-device/iOS/VoiceOver, store signing, and
+  system document-picker flows remain explicitly pending/deferred; no finding
+  is relabeled PASS. ARTEMIS interaction was not claimed; the repository-side
+  runtime-QA contract and emulator-local helper self-test passed.
+- **Terminal result:** all Campaign 032 exit criteria were evaluated, the
+  required evidence package is committed/pushed, main is synchronized and
+  clean, and Campaign 033 was not started.
 
 Campaign 029's ARTEMIS/provider evidence is historical context. The external
-ARTEMIS checkout remains outside this repository, credentials remain external,
-and its previously recorded OpenCode Go HTTP 503 is not being relabeled as a
-Campaign 031 product result. Campaign 031 will use one disposable normal AVD
-and classify any unavailable runtime or human evidence explicitly.
+ARTEMIS checkout remains outside this repository and credentials remain
+external; no provider trace is claimed for Campaign 032.
 
 ## Campaign 031 checkpoint — golden-path redesign (VALIDATED)
 

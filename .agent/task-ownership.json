@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "032-games-discovery-identity-redesign",
-  "description": "Campaign 032 ownership record. The orchestrator owns governance, OpenSpec, evidence, generated/catalog contracts, and final convergence. Product packets are disjoint and limited to Games discovery, shared game identity presentation, and focused tests.",
+  "description": "Terminal ownership record for validated Campaign 032 Games discovery and identity redesign. The orchestrator owned governance, OpenSpec, evidence, generated/catalog contracts, and final convergence; no parallel coder packets remain active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
@@ -31,80 +31,5 @@
     "apps/mobile/src/data-portability/types.ts",
     "apps/mobile/src/games/**"
   ],
-  "parallelPackets": [
-    {
-      "id": "032-identity-system",
-      "role": "coder",
-      "objective": "Implement the shared, restrained game-identity metadata and presentation seam for the full 42-game catalog, and update GameCard to expose the identity without changing game definitions, registry generation, or gameplay.",
-      "dependencies": [],
-      "allowedWriteSurfaces": [
-        "apps/mobile/src/components/discovery/game-identity.tsx",
-        "apps/mobile/src/components/discovery/game-card.tsx",
-        "apps/mobile/src/components/discovery/__tests__/game-identity.test.tsx"
-      ],
-      "prohibitedSharedWriteSurfaces": [
-        "apps/mobile/src/app/(tabs)/games.tsx",
-        "apps/mobile/src/app/game-detail/[id].tsx",
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/src/games/**",
-        "docs/**",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "All 42 registry IDs have deterministic identity metadata spanning the eight required families; GameCard renders identity and preserves existing navigation/favorite/mastery semantics; focused identity tests pass.",
-      "cheapValidation": "cd apps/mobile && npx jest src/components/discovery/__tests__/game-identity.test.tsx --runInBand",
-      "validation": "cd apps/mobile && npx jest src/components/discovery/__tests__/game-identity.test.tsx --runInBand",
-      "integrationRequirements": "Report changed files and any required orchestrator integration; do not edit shared governance, registry, SDK, catalog, or game files."
-    },
-    {
-      "id": "032-discovery-surface",
-      "role": "coder",
-      "objective": "Restructure the Games screen around one Suggested Next model and a clear Browse All section, consolidating existing recommendation evidence while preserving search, filters, favorites, lazy loading, and offline data behavior.",
-      "dependencies": ["032-identity-system"],
-      "allowedWriteSurfaces": [
-        "apps/mobile/src/app/(tabs)/games.tsx",
-        "apps/mobile/src/components/discovery/suggested-next.tsx",
-        "apps/mobile/src/components/discovery/discovery-shelves.tsx",
-        "apps/mobile/src/components/discovery/featured-hero.tsx"
-      ],
-      "prohibitedSharedWriteSurfaces": [
-        "apps/mobile/src/components/discovery/game-card.tsx",
-        "apps/mobile/src/components/discovery/game-identity.tsx",
-        "apps/mobile/src/app/game-detail/[id].tsx",
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/src/games/**",
-        "docs/**",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Default, search, category, favorite-empty/populated, no-results, light/dark, and offline states expose one primary Suggested Next area followed by Browse All with clear reset behavior; existing recommendation logic remains the source of evidence and no competing peer shelves render.",
-      "cheapValidation": "cd apps/mobile && npx jest src/app/__tests__/games-library.test.tsx --runInBand",
-      "validation": "cd apps/mobile && npx jest src/app/__tests__/games-library.test.tsx --runInBand",
-      "integrationRequirements": "Coordinate only through existing GameCard and discovery-data contracts; preserve stable test IDs where useful and report any orchestrator-only follow-up."
-    },
-    {
-      "id": "032-detail-tests",
-      "role": "coder",
-      "objective": "Add focused Game Detail regression coverage for the identity-first first viewport, dominant Play action, history ordering, and preserved favorite/mastery/session behavior without changing game mechanics.",
-      "dependencies": ["032-identity-system"],
-      "allowedWriteSurfaces": [
-        "apps/mobile/src/app/__tests__/game-detail.test.tsx"
-      ],
-      "prohibitedSharedWriteSurfaces": [
-        "apps/mobile/src/app/game-detail/[id].tsx",
-        "apps/mobile/src/sdk/**",
-        "apps/mobile/src/registry/**",
-        "apps/mobile/src/games/**",
-        "docs/**",
-        ".agent/**",
-        "openspec/**"
-      ],
-      "completionCriteria": "Focused tests make the identity/mechanic/Play-before-history contract executable and assert unknown-game fallback remains safe.",
-      "cheapValidation": "cd apps/mobile && npx jest src/app/__tests__/game-detail.test.tsx --runInBand",
-      "validation": "cd apps/mobile && npx jest src/app/__tests__/game-detail.test.tsx --runInBand",
-      "integrationRequirements": "Tests must use existing router/database mocking seams and must not add persistence or native dependencies."
-    }
-  ]
+  "parallelPackets": []
 }

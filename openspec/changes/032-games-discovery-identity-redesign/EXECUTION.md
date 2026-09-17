@@ -1,6 +1,6 @@
 # Execution — Campaign 032 Games discovery and identity redesign
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Mode:** day
 **Start SHA:** `fa29742f08636b455f23a90c27cec61798fb1024`
 **Authority:** `.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`
@@ -21,6 +21,13 @@ matrix from the authoritative prompt. Capture immutable before context and
 Campaign 032 after screenshots in light/dark mode, validate all eight primary
 families, classify human/provider limitations honestly, update evidence/state,
 and close only after `main == origin/main` with a clean tree.
+
+## Terminal result
+
+All Campaign 032 exit criteria were evaluated and recorded under
+`docs/redesign/evidence/campaign032/`. The product, repository, native,
+accessibility, catalog, and persistence checks passed within scope; manual
+human validation remains explicitly pending. Campaign 033 was not started.
 
 ## Scope
 
