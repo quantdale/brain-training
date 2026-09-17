@@ -42,8 +42,11 @@ unavailable checks into PASS.
   relabeled as globally resolved.
 - Human TalkBack/VoiceOver/iOS/physical-device/large-text/reduced-motion and
   independent usability validation: **NOT VALIDATED / PENDING**. External CI
-  status: **NOT CHECKED at this checkpoint**. Required evidence package:
-  `docs/redesign/evidence/campaign033/`.
+  status: **FAILED BEFORE EXECUTION / EXTERNAL** — all four push workflows for
+  `f7f800d` completed in roughly 2–6 seconds with `steps: []`; GitHub reported
+  no downloadable job logs. This is the known zero-step Actions/service
+  condition, not evidence of a product failure, and no workflow was edited to
+  hide it. Required evidence package: `docs/redesign/evidence/campaign033/`.
 
 ### Campaign 032 terminal closure — 2026-09-17
 

@@ -20,3 +20,10 @@ No schema, scoring, rating, mastery, session-persistence, generator, economy, ba
 
 The checkpoint was made from synchronized `main` at starting SHA `3253ca1437b9d70f58b3a89dca54403610c6fa0e`. The exact closing commit is recorded by Git history and in the overnight handoff.
 
+## External CI classification
+
+After the checkpoint was pushed, GitHub marked Repository Integrity, Android
+Build Smoke, App CI, and iOS Build Smoke as failures before any job steps ran.
+Each run had an empty job-step list and no downloadable log. This is recorded
+as `FAILED BEFORE EXECUTION / EXTERNAL`; local gates and native evidence are
+not relabeled as CI success, and no workflow was changed to silence it.

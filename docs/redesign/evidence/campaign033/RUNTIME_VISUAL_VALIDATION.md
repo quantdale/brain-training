@@ -25,3 +25,9 @@ All after entries were nonblank and route-verified. Both after Progress themes w
 
 After a fresh force-stop/relaunch, the current logcat sample contained successful `bootstrap-db-init`, `bootstrap-progression`, and `progress-snapshot-load` markers with one repository row and no fatal exception, SQLite exception, database-lock, ANR, or ReactNativeJS error signature in that fresh sample. A prior pre-clear emulator log contained a historical focus ANR and Metro WebSocket retry warnings; those were not reproduced in the fresh sample and are not represented as a global clean-log claim.
 
+## External CI
+
+The four GitHub push workflows for checkpoint `f7f800d` failed before execution
+with empty job-step lists and no downloadable logs. This is classified as an
+external zero-step Actions/service failure; it was not used to infer a product
+failure or success.

@@ -41,6 +41,9 @@ contracts remain protected; no schema or dependency change is authorized.
   these remain pending/deferred. A historical emulator focus ANR/WebSocket
   retry was observed in pre-existing logs, not reproduced in the fresh launch
   sample, and is not relabeled as globally resolved.
+- **External CI:** all four push workflows for `f7f800d` failed before running
+  any job steps and exposed no downloadable logs; this remains classified as
+  an external zero-step Actions/service failure, not product evidence.
 - **Terminal result:** all Campaign 033 exit criteria were evaluated and
   Campaign 034 is safe to open independently after this synchronized
   checkpoint.
