@@ -3394,6 +3394,11 @@ from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
   3/3 and GameHost intro 9/9 interactive controls labelled in each theme.
 - Fresh logcat: **PASS** — no fatal exception, SQLite error/lock, ANR,
   ReactNativeJS error, or RedBox signature in the retained sample.
+- External CI: the four workflows for terminal push `24f8381` completed as
+  **FAILED BEFORE EXECUTION / EXTERNAL** — Repository Integrity
+  `35263241639`, Android Build Smoke `35263241664`, App CI `35263241939`, and
+  iOS Build Smoke `35263241656`; each job had an empty step list and the App
+  CI log query returned `log not found`. No workflow was changed.
 - Pixel comparison: matching Game Detail light/dark images changed 47.86% /
   45.00% of pixels, with the dominant hero fill moving from domain soft
   pink/maroon to neutral raised white/plum. Exact hashes and the GameHost

@@ -43,3 +43,10 @@ accessibility, and fresh logcat review all passed as detailed in
 module loading state; warm rendered output was then captured and reviewed.
 No ARTEMIS or computer-use journey was needed for this visual-only slice.
 
+The four workflows triggered by the terminal push were classified
+`FAILED BEFORE EXECUTION / EXTERNAL`: Repository Integrity
+`35263241639`, Android Build Smoke `35263241664`, App CI `35263241939`, and
+iOS Build Smoke `35263241656`. Each job completed with an empty step list;
+the App CI log query returned `log not found`. No workflow was changed and
+this external Actions/service result is not relabeled as product failure or
+CI success.
