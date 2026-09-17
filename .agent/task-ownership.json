@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "038-accessibility-device-sensory-hardening",
-  "description": "Campaign 038 accessibility/device/sensory ownership record. The orchestrator owns the shared shell/inset audit, governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
+  "description": "Campaign 038 accessibility/device/sensory ownership record. The orchestrator owned the shared shell/inset audit, governance, OpenSpec, evidence, and final convergence; no parallel coder packets were active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

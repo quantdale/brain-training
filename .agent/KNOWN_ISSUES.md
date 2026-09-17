@@ -1,19 +1,28 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 038 ACTIVE
+## Campaign 038 VALIDATED
 
-Campaign 038 is active from the terminal Campaign 037 checkpoint `a158748`.
-The normal-font Campaign 037 audit was automated-clean but reported two
-tab-hosted interactive nodes clipped at the captured scroll position: Profile's
-Shield purchase control and a Games catalog card. Large-text, alternate
-viewport, reduced-motion, and disabled SFX/haptics relaunch evidence are not
-yet validated. Reproduce before changing source; do not infer a defect from a
-clipped initial viewport alone.
+Campaign 038 is terminally validated from the Campaign 037 checkpoint
+`a158748`, with source checkpoint `a7f1531` pushed to `origin/main`. Matching
+Android light/dark, large-text, compact-phone, settled-scroll, theme, motion,
+and sensory evidence is under `docs/redesign/evidence/campaign038/`.
+
+The two initial clipped nodes were followed to settled positions and were
+reachable; no layout fix was warranted. A real SQLite writer race was found
+when SFX/haptics writes overlapped and was repaired by a root-local queue with a
+focused regression test. Fresh post-fix logs and cold-relaunch settings are
+clean.
 
 The authorized scope is accessibility/device/motion/sensory hardening only.
 Manual TalkBack, VoiceOver, iOS, physical-device, independent human, store
 signing, and system document-picker evidence remain explicitly unavailable
 unless directly executed.
+
+The compact capture runner falsely labelled two real Game Intro loading cards
+as `BLANK`; direct pixel/XML inspection confirmed the route and rendered card.
+The initial `UiAutomationService already registered` event was tooling
+contention from overlapping hierarchy clients, not an app crash. Both remain
+documented as limits rather than suppressed.
 
 ## Campaign 037 VALIDATED (previous checkpoint)
 

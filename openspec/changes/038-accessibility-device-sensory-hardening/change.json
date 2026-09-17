@@ -1,6 +1,6 @@
 {
   "id": "038-accessibility-device-sensory-hardening",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "037-navigation-state-coherence",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -12,5 +12,5 @@
   "baselineAuditCommit": "a158748",
   "fullHardening": false,
   "reviewConsumption": "Consumes the Campaign 037 22-surface light/dark matrix and its clipped-control observations. Scope is limited to accessibility/device/motion/sensory operation and safe reachability; no gameplay, economy, schema, persistence, or router rewrite is authorized.",
-  "validationNote": "Active discovery and bounded hardening checkpoint. Manual TalkBack/VoiceOver, physical-device, iOS, and human evidence must remain explicitly pending unless actually executed."
+  "validationNote": "Validated for the tested Android emulator scope. Manual TalkBack/VoiceOver, physical-device, iOS, and human evidence remain explicitly pending."
 }

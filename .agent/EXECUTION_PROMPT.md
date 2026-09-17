@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 038: Accessibility, Device, Motion & Sensory Hardening
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `038-accessibility-device-sensory-hardening`
 **Planned-From:** `a158748`
 **Start-SHA:** `a158748`
@@ -22,12 +22,20 @@ Test and, only where observed, repair tab-bar reachability, text scaling,
 screen-reader semantics, reduced motion, sensory-disabled settings, theme, and
 alternate phone viewport behavior on the dedicated Android runtime.
 
-## Required validation and handoff
+## Terminal result
 
-Capture matching native baselines and after states, exercise the reported
-clipped controls at settled scroll positions, test available font/theme/motion/
-SFX/haptics conditions, run focused/full tests, typecheck, lint, relevant
-validators, a11y, fresh logcat, and record manual/platform limits honestly.
+The required Android evidence is complete for the tested scope. The matching
+22-surface light/dark matrix, font-scale-2 and compact matrices, settled
+Profile/Games scroll checks, reduced-motion device condition, sensory off/on
+cold-relaunch checks, real pixel comparison, fresh logcat, focused/full tests,
+typecheck, lint, validators, and Android build/install are recorded under
+`docs/redesign/evidence/campaign038/`. The only demonstrated product defect,
+overlapping SQLite sensory writes, was repaired at `a7f1531` with a regression
+test that was red before the fix.
+
+Campaign 038 is **VALIDATED / COMPLETE for the tested Android scope**. Manual
+TalkBack/VoiceOver, iOS, physical-device, production-signing, and independent
+human evidence remain explicitly pending.
 
 ## Guardrails
 

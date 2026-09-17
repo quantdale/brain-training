@@ -5,20 +5,58 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-### Campaign 038 Accessibility, Device, Motion & Sensory Hardening — 2026-09-18 (ACTIVE discovery)
+### Campaign 038 Accessibility, Device, Motion & Sensory Hardening — 2026-09-18 (VALIDATED)
 
 - Activation: **PASS** — Campaign 038 opened from terminal synchronized
   checkpoint `a158748`; no local or concurrent user work was overwritten.
-- Discovery lead: Campaign 037's normal-font audit reported 0 violations across
-  22 surfaces but exposed two clipped interactive nodes at the captured
-  tab-hosted viewport: Profile's Shield purchase control and a Games catalog
-  card. This is a lead to reproduce at settled scroll positions, not yet a
-  confirmed product defect.
-- Pending conditions: large text, smaller/expanded phone viewport,
-  reduced-motion, system/theme transition, and disabled SFX/haptics relaunch
-  behavior have not yet been validated on the current implementation.
-- ARTEMIS/computer-use: not yet used for 038; deterministic local Android
-  tooling remains the planned first evidence path.
+- Before/after native matrix: **PASS** — matching light/dark captures under
+  `D:\Temp\campaign038-runtime-before` and
+  `D:\Temp\campaign038-runtime-after-fixed` are 22/22 route-verified and
+  nonblank. Real PNG pixels and matching UIAutomator XML were compared; the
+  light Home pair was explicitly classified as capture-timing difference
+  because the after frame was a real loading/skeleton state.
+- Settled reachability: **PASS** — the Profile Shield moved from a clipped
+  `[751,2078][996,2126]` visible bound to `[751,198][996,314]`; the Games
+  Symbol Tracker moved from `[42,1864][1038,2126]` to
+  `[42,377][1038,867]`. No shared inset/layout change was justified.
+- Accessibility matrices: **PASS** — default 22 surfaces, font-scale-2 16
+  surfaces, and compact 720×1600/density-320 16 surfaces each reported 0
+  a11y violations. The compact runner’s two Game Intro `BLANK` labels were
+  verified as real themed loading cards by screenshot/XML and remain a
+  documented harness limitation.
+- Motion/theme/device: **PASS for tested conditions** — light/dark and
+  restored 1080×2400/density-420 display were exercised; final `font_scale=1.0`
+  and window/transition/animator scales were restored to 0. The shared
+  React Native reduced-motion hook was retained; no functional timer changed.
+- Sensory finding: **CLOSED** — rapid SFX/haptics changes reproduced a real
+  SQLite writer race in the old fire-and-forget root persistence seam. The
+  root-local promise queue in source checkpoint `a7f1531` serializes writes;
+  the new focused test was red before the fix and green after it. Emulator
+  XML verified both switches off, persisted across cold relaunch, then both
+  restored on; fresh filtered logcats had no SQLite-lock/app-fatal signature.
+- Focused/full validation: **PASS** — focused settings contracts 3 suites / 4
+  tests; full Jest 557 suites passed / 4 skipped, 6,567 tests passed / 5
+  skipped, 5 snapshots passed; typecheck and lint passed.
+- Repository validators: **PASS** — repo-state, task ownership, OpenSpec
+  24/24, generated registry, provenance, offline (973 source files clean),
+  secrets, workflow hygiene, dependency audit, affected-map sync/strict plan,
+  and runtime-QA contract.
+- Android build/install: **PASS** — dedicated `emulator-5554` /
+  `braintraining-ui35` (Android 15/API 35); 458 actionable tasks / 55
+  executed; APK installed successfully with SHA-256
+  `80E9B29134FB70D7C45E30B7BB0FB6F6E90EE8D358B1880B9FA236E98A877D6A`.
+- ARTEMIS/computer-use: ARTEMIS device-state inspection was used for a live
+  hierarchy observation; deterministic ADB/UIAutomator and repository QA
+  tooling supplied the campaign matrix. No computer-use or host-input
+  automation was used. The ARTEMIS helper was temporarily isolated during one
+  capture and restored exactly afterward.
+- External CI: **PENDING QUERY** for the new terminal push; prior zero-step
+  external workflow failures remain classified as external and are not
+  relabeled green.
+- Human/platform limits: **NOT VALIDATED / PENDING** — no independent human,
+  manual TalkBack, VoiceOver/iOS, physical-device, store-signed, or document-
+  picker evidence.
+- Evidence package: **PASS** — `docs/redesign/evidence/campaign038/`.
 
 ### Campaign 037 Navigation, State & Cross-Surface Coherence — 2026-09-18 (VALIDATED)
 

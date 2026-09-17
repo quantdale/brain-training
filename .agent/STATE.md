@@ -1,25 +1,37 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 038 is active after terminal Campaign
-037 validation; the deferred accessibility/device/sensory audit is underway.
+**Last update:** 2026-09-18 — Campaign 038 is terminally validated; Campaign
+039 is the next safe successor.
 **Canonical branch:** `main`
-**Active campaign:** `038-accessibility-device-sensory-hardening`
-**Last campaign:** `037-navigation-state-coherence`
+**Active campaign:** `none`
+**Last campaign:** `038-accessibility-device-sensory-hardening`
 **Last campaign status:** VALIDATED
 
-## Campaign 038 checkpoint — Accessibility, Device, Motion & Sensory Hardening (ACTIVE)
+## Campaign 038 checkpoint — Accessibility, Device, Motion & Sensory Hardening (VALIDATED)
 
 - **Activation:** opened from synchronized terminal Campaign 037 checkpoint
   `a158748`; no local or concurrent user work was present to overwrite.
-- **Discovery lead:** the Campaign 037 normal-font a11y report found no
-  violations across 22 surfaces, but reported two interactive nodes clipped by
-  the tab-hosted viewport at the captured scroll position: the Profile Shield
-  purchase control and a Games catalog card. Large-text, alternate viewport,
-  reduced-motion, and disabled sensory relaunch evidence remain unvalidated.
-- **Scope:** reproduce those nodes at settled scroll positions and test the
-  existing theme/font/motion/SFX/haptics seams. Only demonstrated reachability,
-  scaling, semantics, or sensory defects may be repaired; core state,
-  persistence, economy, gameplay, and router architecture remain protected.
+- **Discovery:** matching native light/dark captures covered 22/22 routes;
+  large-text and compact-phone matrices were exercised; Profile Shield and
+  Games Symbol Tracker were each followed to fully visible settled positions.
+  The automated a11y audit reported zero violations in all tested matrices.
+- **Finding:** the only demonstrated product defect was a real SQLite writer
+  race when two sensory Switch changes fired before the prior fire-and-forget
+  profile transaction settled. The captured clipped nodes were ordinary
+  visible-edge clipping, not unreachable controls.
+- **Implementation:** `_layout.tsx` now queues sensory profile writes per root
+  instance; the new deterministic concurrency test was red before the repair
+  and green after it. No layout, schema, migration, economy, session,
+  workout, gameplay, router, or dependency change was made.
+- **Validation:** focused/full Jest, typecheck, lint, repository validators,
+  strict affected mapping, Android assemble/install, 22-surface native
+  light/dark capture, font-scale-2 and compact capture/a11y audits, real
+  pixel comparison, sensory off/on relaunch checks, and fresh logcat passed.
+  Evidence is under `docs/redesign/evidence/campaign038/`.
+- **Terminal result:** Campaign 038 is complete for the tested Android scope
+  at source checkpoint `a7f1531`, pushed to `origin/main`. Human TalkBack,
+  VoiceOver/iOS, physical-device, production-signing, and independent human
+  evidence remain pending and are not global certification claims.
 
 ## Campaign 037 checkpoint — Navigation, State & Cross-Surface Coherence (VALIDATED)
 
