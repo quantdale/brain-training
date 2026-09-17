@@ -134,3 +134,13 @@ The three fresh runtime gates pass by the evidence rules above. Campaign 029 is
 now **VALIDATED / CLOSED** in its OpenSpec records. This continuation remains
 append-only; the concurrently active Campaign 031 control-plane files retain
 their own ownership and were intentionally not rewritten.
+
+### Repository-only closure validation
+
+The targeted closure validation wave passed: repository state, task ownership,
+impact-map sync, the offline ARTEMIS runtime contract, secrets scanning,
+provenance, and strict targeted OpenSpec validation. The targeted closure diff
+also passed whitespace validation. A broader working-tree diff still reports
+pre-existing whitespace in a concurrent Campaign 031 snapshot; that file was
+not edited, staged, or normalized. The closure-only commit
+`7cea4a457fdabf02b160c4e075cdf5a2b7d6529c` was pushed to `origin/main`.

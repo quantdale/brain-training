@@ -2,7 +2,8 @@
 
 **Status:** VALIDATED / CLOSED
 **Closure date:** 2026-09-17
-**Repository SHA:** `5e9d3009ee1766f02ebfe2cdaae291204580ad69`
+**Runtime qualification SHA:** `5e9d3009ee1766f02ebfe2cdaae291204580ad69`
+**Closure commit:** `7cea4a457fdabf02b160c4e075cdf5a2b7d6529c`
 **External runtime:** `D:\Tools\artemis` (local-only; never pushed upstream)
 
 Campaign 029's remaining fresh-session runtime gates were completed through the
