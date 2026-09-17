@@ -96,6 +96,12 @@ Current status: **BLOCKED / NOT VALIDATED** for all live tasks because
 `OPENCODE_GO_API_KEY` is not present in the environment or the external
 ARTEMIS `.env`. Do not substitute Gemini or any other model.
 
+MCP-issued tasks resolve their LLM profile through `ARTEMIS_CONFIG_DIR`
+(`llm-config.override.jsonc`) instead of `ARTEMIS_ARTEMIS_JSONC`. To keep the
+same pin for MCP, place the same role map in that file too (it is merged over
+the upstream defaults, so every role must be pinned there) and keep
+`ARTEMIS_ARTEMIS_JSONC` set for the agent behavior flags.
+
 For MCP clients, the runtime surface is:
 
 - `mobile_run_task` — schedule a Flash or Pro task, optionally with
