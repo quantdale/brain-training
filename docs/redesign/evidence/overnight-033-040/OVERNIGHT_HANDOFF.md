@@ -15,8 +15,9 @@ This handoff is intentionally not a global release-success label.
 - `main` remained the canonical branch. Each remote check was ancestry-safe;
   no force-push, reset, unknown-worktree discard, or concurrent user work
   overwrite occurred.
-- At the source checkpoint, `HEAD == origin/main`; the final documentation-only
-  pointer commit will also be pushed and rechecked before handoff.
+- Final terminal check: `HEAD == origin/main` and the worktree is clean at the
+  pushed handoff pointer; this was verified after the documentation-only
+  pointer push.
 - Uncommitted work at the final handoff: **none** after the final pointer
   commit; verified by the final command.
 
@@ -100,10 +101,12 @@ router contract, or CI workflow was changed in Campaign 040.
 - The full four-game daily workout was not completed in this pass; the first
   leg and live board were reached. All 42 mechanics were not claimed as
   manually played.
-- The four current GitHub runs for `0cb7727` (Repository Integrity, App CI,
-  Android Build Smoke, iOS Build Smoke) completed as failures before any job
-  step (`steps: []`). This is external runner/workflow evidence; CI was not
-  edited to mask it.
+- The latest CI query before this final documentation amendment covered both
+  the source/evidence checkpoint `0cb7727` and the handoff pointer `72994e1`:
+  all four runs for each push (Repository Integrity, App CI, Android Build
+  Smoke, iOS Build Smoke) completed as failures before any job step
+  (`steps: []`). This is external runner/workflow evidence; CI was not edited
+  to mask it.
 - Existing accepted dependency advisories, dev lazy-loading warm-up,
   compact-runner false-blank limitation, and manual/platform debt remain
   documented. No Critical/High product persistence, migration, session,
