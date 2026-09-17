@@ -27,6 +27,11 @@ import {
   masteryTierLabel,
   useDomainHue,
 } from "@/components/discovery/game-card";
+import {
+  getGameIdentity,
+  IdentityMark,
+  identityFamilyLabel,
+} from "@/components/discovery/game-identity";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
@@ -181,6 +186,7 @@ export default function GameDetailScreen() {
   const tierName = masteryTierLabel(summary.tier);
   const tierMax = MASTERY_TIERS.length - 1;
   const eyebrowColor = hue ? hue.softText : theme.accentText;
+  const identity = getGameIdentity(game);
 
   return (
     <ScreenShell>
@@ -205,6 +211,25 @@ export default function GameDetailScreen() {
         }>
         <View style={styles.resumeBody}>
           <View style={styles.resumeHead}>
+            <View style={styles.identityRow} testID="game-detail-identity">
+              <IdentityMark
+                family={identity.family}
+                color={hue?.base ?? theme.accent}
+                size={34}
+                testID="game-detail-identity-mark"
+              />
+              <View style={styles.identityCopy}>
+                <ThemedText
+                  type="eyebrow"
+                  style={{ color: eyebrowColor }}
+                  testID="game-detail-identity-verb">
+                  {identity.verb}
+                </ThemedText>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  {identityFamilyLabel(identity.family)}
+                </ThemedText>
+              </View>
+            </View>
             {/* The eyebrow names the category — unless the game IS the
                 category (e.g. "Memory"/Memory), where it would parrot the
                 title (Campaign 026 visual-QA edge case). */}
@@ -219,14 +244,14 @@ export default function GameDetailScreen() {
             <ThemedText type="title" testID="game-detail-title">
               {game.name}
             </ThemedText>
-            {game.description ? (
+            <View testID="game-detail-description">
               <ThemedText
                 type="bodySmall"
                 themeColor="textSecondary"
-                testID="game-detail-description">
-                {game.description}
+                testID="game-detail-mechanic">
+                {game.description ?? identity.interaction}
               </ThemedText>
-            ) : null}
+            </View>
             {game.hasTutorial ? (
               <ThemedText type="caption" themeColor="textSecondary">
                 Includes a short guided tutorial on first play.
@@ -441,6 +466,16 @@ const styles = StyleSheet.create({
   },
   resumeHead: {
     gap: Spacing.one,
+  },
+  identityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  identityCopy: {
+    flex: 1,
+    flexShrink: 1,
+    gap: Spacing.half,
   },
   masteryRow: {
     flexDirection: "row",

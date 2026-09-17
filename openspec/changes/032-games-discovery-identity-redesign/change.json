@@ -1,0 +1,17 @@
+{
+  "id": "032-games-discovery-identity-redesign",
+  "status": "ACTIVE",
+  "predecessor": "031-golden-path-redesign",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "games-discovery-identity"
+  ],
+  "activationRule": "Owner directive supplied on 2026-09-17: execute the authoritative Campaign 032 Games discovery and identity redesign prompt after safely synchronizing main; preserve the 42-entry catalog, generated registry, favorites, mastery, lazy loading, tutorial/session, workout eligibility, offline, and game-mechanic contracts; do not begin Campaign 033.",
+  "baselineAuditCommit": "fa29742f08636b455f23a90c27cec61798fb1024",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes Campaign 031 rendered Games and Game Detail context and the Campaign 032 authoritative prompt. This change is limited to Games discovery, search/filter/favorites, game cards, shared identity presentation, Game Detail, and standalone game entry."
+}

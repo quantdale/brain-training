@@ -1,19 +1,12 @@
 /**
- * Games — library screen (Campaign 024 UX wave; Campaign 026 identity
- * rebuild).
+ * Games — discovery screen (Campaign 032).
  *
- * Leads with the featured recommendation hero (the screen's strongest colour,
- * dyed in the recommended game's domain family), then the searchable library:
- * a `TextField` search, `Chip` category filters (with per-category counts) and
- * a favourite-only toggle, a live result count, and the game grid. The grid
- * chunks into `useGridColumns()` columns (1/2/3 by layout tier) so tablets get
- * multiple columns instead of one stretched phone column. Each card carries
- * its domain identity hue and links to the game detail screen
- * (`/game-detail/[id]`), which hosts the Play CTA.
- *
- * Empty states: `games-empty` when nothing is registered; `games-no-results`
- * when filters match nothing (with a one-tap Clear-filters recovery action).
- * Both are designed states with a `Spark` mark.
+ * The route has two explicit jobs: Suggested Next answers “what should I play
+ * now?” from the existing personalization snapshot, while Browse All answers
+ * “what can I choose?” through the complete registry-backed library. Search and
+ * filters intentionally hide the suggestion so an intentional lookup never
+ * competes with a recommendation. Cards remain lazy-loaded through the
+ * registry and keep their existing detail/favorite/mastery contracts.
  */
 
 import { useMemo, useState } from 'react';
@@ -22,16 +15,18 @@ import { StyleSheet, View } from 'react-native';
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
 import {
+  Button,
   Chip,
   EmptyState,
   IconButton,
   Spark,
   TextField,
 } from '@/components/ui';
-import { DiscoveryShelves } from '@/components/discovery/discovery-shelves';
+import { SectionHeader } from '@/components/shell';
 import { useDiscoveryData } from '@/components/discovery/discovery-data';
-import { FeaturedHero } from '@/components/discovery/featured-hero';
 import { GameCard } from '@/components/discovery/game-card';
+import { getGameIdentity } from '@/components/discovery/game-identity';
+import { SuggestedNext } from '@/components/discovery/suggested-next';
 import { useTheme } from '@/hooks/use-theme';
 import { useGridColumns } from '@/platform/layout';
 import { getAllGameDefinitions, type GameDefinition } from '@/registry/registry';
@@ -61,7 +56,7 @@ export default function GamesScreen() {
   // 1 column on phones, 2 on medium, 3 on expanded — the grid genuinely
   // follows the layout tier instead of stretching one phone column.
   const columns = useGridColumns();
-  // Single snapshot for hero, shelves and card badges (favourites + mastery);
+  // Single snapshot for Suggested Next and card badges (favourites + mastery);
   // refreshes on focus so detail-screen toggles land without a remount.
   const discovery = useDiscoveryData();
 
@@ -95,10 +90,13 @@ export default function GamesScreen() {
         if (normalizedQuery.length === 0) {
           return true;
         }
+        const identity = getGameIdentity(game);
         return (
           game.name.toLowerCase().includes(normalizedQuery) ||
           (game.description ?? '').toLowerCase().includes(normalizedQuery) ||
-          game.primaryCategory.toLowerCase().includes(normalizedQuery)
+          game.primaryCategory.toLowerCase().includes(normalizedQuery) ||
+          identity.verb.toLowerCase().includes(normalizedQuery) ||
+          identity.interaction.toLowerCase().includes(normalizedQuery)
         );
       }),
     [games, category, favOnly, normalizedQuery, discovery.favorites],
@@ -111,6 +109,14 @@ export default function GamesScreen() {
     setCategory(null);
     setFavOnly(false);
   };
+
+  const hasActiveFilters =
+    normalizedQuery.length > 0 || category !== null || favOnly;
+  const favoritesEmpty =
+    favOnly &&
+    normalizedQuery.length === 0 &&
+    category === null &&
+    discovery.favorites.size === 0;
 
   return (
     <ScreenShell>
@@ -135,13 +141,13 @@ export default function GamesScreen() {
         />
       ) : (
         <>
-          {isDefaultView ? <FeaturedHero data={discovery} /> : null}
+          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
 
           <View style={styles.searchRow}>
             <View style={styles.searchField}>
               <TextField
                 testID="games-search"
-                accessibilityLabel="Search games"
+                accessibilityLabel="Search all games"
                 placeholder="Search games…"
                 value={query}
                 onChangeText={setQuery}
@@ -162,10 +168,12 @@ export default function GamesScreen() {
             ) : null}
           </View>
 
-          <View style={styles.browseBlock}>
-            <ThemedText type="eyebrow" themeColor="textMuted">
-              BROWSE BY SKILL
-            </ThemedText>
+          <View style={styles.browseBlock} testID="games-browse-all">
+            <SectionHeader
+              title="Browse all games"
+              eyebrow={isDefaultView ? 'CHOOSE A GAME' : 'LIBRARY'}
+              caption="Every game in your offline library"
+            />
             <View style={styles.filterRow} testID="games-filters">
               <Chip
                 testID="games-filter-all"
@@ -187,13 +195,22 @@ export default function GamesScreen() {
               <Chip
                 testID="games-filter-favorites"
                 label="★ Favorites"
+                count={discovery.favorites.size}
                 selected={favOnly}
                 onPress={() => setFavOnly((value) => !value)}
               />
+              {hasActiveFilters ? (
+                <Button
+                  testID="games-filter-reset"
+                  label="Reset"
+                  variant="ghost"
+                  size="sm"
+                  fullWidth={false}
+                  onPress={clearFilters}
+                />
+              ) : null}
             </View>
           </View>
-
-          {isDefaultView ? <DiscoveryShelves data={discovery} /> : null}
 
           {/* Live result count so filtering feedback is explicit. */}
           <ThemedText type="caption" themeColor="textSecondary" testID="games-count">
@@ -202,11 +219,15 @@ export default function GamesScreen() {
 
           {visible.length === 0 ? (
             <EmptyState
-              testID="games-no-results"
+              testID={favoritesEmpty ? 'games-favorites-empty' : 'games-no-results'}
               icon={<Spark size={40} color={theme.warning} />}
-              title="No matches"
-              message="No games match your current search or filters."
-              actionLabel="Clear filters"
+              title={favoritesEmpty ? 'No favorites yet' : 'No matches'}
+              message={
+                favoritesEmpty
+                  ? 'Favorite a game from its details and it will appear here.'
+                  : 'No games match your current search or filters.'
+              }
+              actionLabel={favoritesEmpty ? 'Browse all games' : 'Clear filters'}
               onAction={clearFilters}
             />
           ) : (

@@ -124,7 +124,10 @@ describe('frontier-audit OpenSpec proposals (applied + archived)', () => {
       expect(APPLIED).not.toContain(governance.activeCampaign as (typeof APPLIED)[number]);
     }
     expect(state).not.toMatch(/Campaign 028.*is active/);
-    expect(read('docs/PROJECT_CONSTITUTION.md')).toMatch(/Campaigns 001–028 closed/);
+    // Campaign 031 updated the locked historical status line to include the
+    // completed 029/030B checkpoints; keep this governance assertion aligned
+    // with that authoritative prose rather than requiring a stale prefix.
+    expect(read('docs/PROJECT_CONSTITUTION.md')).toMatch(/Campaigns 001–030B closed/);
   });
 
   it('certify resolves a non-tautological provenance base (certify-provenance-parity evidence)', () => {

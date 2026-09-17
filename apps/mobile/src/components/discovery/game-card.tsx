@@ -1,19 +1,21 @@
 /**
  * Shared game card for the library grid and discovery shelves (Campaign 024;
- * Campaign 026 identity rebuild).
+ * Campaign 026 identity rebuild; Campaign 032 catalog identity).
  *
  * One card language everywhere a game appears outside a session: a pressable
- * {@link Card} carrying its domain identity — a coloured edge ribbon, a domain
- * monogram tile and the category line — so the eight skill hues are learnable
- * at a glance. The accessible name folds name, category, mastery and favourite
- * state into one label with an "Open game details" hint, so every card is
- * reachable by keyboard and screen reader without extra tab stops.
+ * {@link Card} carrying a restrained mechanic identity — a family motif, a
+ * mechanic verb, and one interaction sentence — with the existing domain hue
+ * retained as a quiet category cue. The accessible name folds name, category,
+ * mastery and favourite state into one label with an "Open game details" hint,
+ * so every card is reachable by keyboard and screen reader without extra tab
+ * stops.
  */
 
 import { router } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { getGameIdentity, IdentityMark } from '@/components/discovery/game-identity';
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
@@ -107,6 +109,7 @@ export const GameCard = memo(function GameCard({
 }: GameCardProps) {
   const theme = useTheme();
   const hue = useDomainHue(game.primaryCategory);
+  const identity = getGameIdentity(game);
   const tier = mastery ? masteryTierLabel(mastery.tier) : null;
 
   return (
@@ -117,28 +120,24 @@ export const GameCard = memo(function GameCard({
       onPress={() => router.push(`/game-detail/${game.id}`)}
       accessibilityLabel={`${game.name}, ${game.primaryCategory} game${isFavorite ? ', favorited' : ''}${tier ? `, ${tier}` : ''}`}
       accessibilityHint="Open game details">
-      {/* Domain edge: the category identity reads before any text. */}
+      {/* Domain edge keeps the existing category cue without competing with the mechanic identity. */}
       <View
         style={[styles.ribbon, hue ? { backgroundColor: hue.base } : { backgroundColor: theme.border }]}
       />
       <View style={styles.body}>
         <View style={styles.metaRow}>
-          {hue ? (
-            <View style={[styles.monogram, { backgroundColor: hue.soft }]}>
-              <ThemedText
-                type="headline"
-                allowFontScaling={false}
-                style={{ color: hue.softText }}>
-                {game.name.charAt(0)}
-              </ThemedText>
-            </View>
-          ) : null}
+          <IdentityMark
+            family={identity.family}
+            size={34}
+            color={hue?.softText ?? theme.textSecondary}
+            testID={testID ? `${testID}-identity` : `game-card-${game.id}-identity`}
+          />
           <ThemedText
             type="eyebrow"
             themeColor="textSecondary"
             style={hue ? { color: hue.softText } : undefined}
             numberOfLines={1}>
-            {game.primaryCategory}
+            {identity.verb} · {game.primaryCategory}
           </ThemedText>
           <View style={styles.metaSpacer} />
           {isFavorite ? (
@@ -150,9 +149,9 @@ export const GameCard = memo(function GameCard({
         <ThemedText type="headline" numberOfLines={2}>
           {game.name}
         </ThemedText>
-        {game.description ? (
+        {identity.interaction ? (
           <ThemedText type="bodySmall" themeColor="textSecondary" numberOfLines={3}>
-            {game.description}
+            {identity.interaction}
           </ThemedText>
         ) : null}
         {tier ? <Badge label={tier} size="sm" /> : null}
@@ -173,13 +172,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
-  },
-  monogram: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   metaSpacer: {
     flex: 1,

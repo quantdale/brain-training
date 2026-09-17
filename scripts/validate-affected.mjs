@@ -73,6 +73,16 @@ const RULES = [
     ],
   },
   {
+    name: 'Games discovery / identity',
+    impact: 'Games discovery and identity surfaces',
+    match: ['apps/mobile/src/components/discovery/**'],
+    checks: [
+      'cd apps/mobile && npm run typecheck',
+      'cd apps/mobile && npm run test:ci -- src/app/__tests__/games-library.test.tsx src/app/__tests__/game-detail.test.tsx src/components/discovery',
+      'Light/dark Games and Game Detail runtime capture plus accessibility audit',
+    ],
+  },
+  {
     name: 'workout',
     impact: 'workout',
     match: ['apps/mobile/src/workout/**', 'apps/mobile/src/db/workout*.ts', 'apps/mobile/src/db/__tests__/workout*.ts'],

@@ -1,54 +1,40 @@
-# Campaign 031 — Golden-path redesign
+# Campaign 032 — Games discovery and identity redesign
 
-**Status:** VALIDATED
-**Campaign id:** `031-golden-path-redesign`
-**Predecessor:** `029-artemis-runtime-qa-migration` (repository checkpoint;
-external ARTEMIS provider work remains separately classified)
+**Status:** ACTIVE
+**Campaign id:** `032-games-discovery-identity-redesign`
+**Predecessor:** `031-golden-path-redesign` (validated)
 **Mode:** day
-**Start SHA:** `44ba1533f4eb5ebcd795723f801633caee914e17`
-**Change:** `031-golden-path-redesign` (VALIDATED)
-**Authorization:** owner-supplied Campaign 031 implementation directive on
-2026-09-17; authoritative specification is
-`.agent/CAMPAIGN031_GOLDEN_PATH_REDESIGN_IMPLEMENTATION_PROMPT.md`.
+**Start SHA:** `fa29742f08636b455f23a90c27cec61798fb1024`
+**Change:** `032-games-discovery-identity-redesign` (ACTIVE)
+**Authorization:** owner-supplied Campaign 032 directive on 2026-09-17; the
+authoritative task specification is
+`.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`.
 
 ## Mission
 
-Execute Campaign 031 exhaustively: structurally redesign the golden path from
-Today/Home through workout completion while preserving the existing game,
-SQLite, workout-instance, provenance, lifecycle, scoring, rating, XP,
-currency, reward, tutorial, registry, offline, and deterministic-QA
-contracts. Use Campaign 030B as the before baseline. Do not begin Campaign
-032 or broaden into its explicitly excluded surfaces.
-
-## Terminal result
-
-Campaign 031 is terminally validated. Home separates the dominant Today CTA
-from compact context and secondary workout configuration; GameHost presents a
-concise mechanic and workout position; shared and route Results use the
-outcome → facts → reward → Next/Finish hierarchy; and final completion returns
-directly to Today. The existing workout, game, persistence, provenance,
-lifecycle, scoring, reward, offline, and tutorial contracts were exercised.
-
-The Campaign 030B screenshots and runtime traces remain immutable. The
-Campaign 031 evidence package is under `docs/redesign/evidence/campaign031/`
-and raw disposable-AVD artifacts remain under `D:\Temp\campaign031-*`.
+Execute Campaign 032 exhaustively within Games discovery, search/filter/
+favorites, game cards, Game Detail, and standalone game entry. Make Suggested
+Next answer “what should I play?” and Browse All answer “what can I choose?”;
+consolidate recommendation evidence; add a restrained identity system for all
+42 catalog entries; and make mechanic understanding and Play precede history.
 
 ## Guardrails
 
-- One disposable normal Android AVD; emulator-local/ADB or ARTEMIS only, no
-  host-input or desktop-focus automation and no user-owned emulator.
-- No schema, dependency, CI, discovery, Progress, Profile, Rewards, economy,
-  or unrelated debt work.
-- No credentials or external ARTEMIS source/traces in Git. Unavailable human
-  or provider evidence stays explicitly pending/blocked.
-- Campaign 031 is committed and pushed to `main`; the terminal state is
-  complete, no active successor is bound, and Campaign 032 was not started.
+- Preserve all 42 catalog entries, generated registry correctness, lazy loading,
+  favorites persistence, mastery semantics, tutorial/session behavior, workout
+  eligibility, offline behavior, and game mechanics.
+- Do not change Home, Progress, Profile, Rewards, economy, schema, dependencies,
+  CI, or unrelated game implementation.
+- Use one disposable normal Android AVD with emulator-local/ADB or ARTEMIS
+  automation only. Do not touch user-owned devices or inject host input.
+- Keep provider credentials and ARTEMIS traces external. Classify unavailable
+  human/provider evidence honestly.
 
 ## Recovery order
 
 1. `AGENTS.md`, `docs/PROJECT_CONSTITUTION.md`
 2. `.agent/GOVERNANCE.json`, `.agent/GOAL.md`, `.agent/STATE.md`
 3. this file, `.agent/EXECUTION_PROMPT.md`, and
-   `openspec/changes/031-golden-path-redesign/`
-4. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`, and Campaign 030B
-   evidence under `docs/redesign/evidence/campaign030b/**`
+   `openspec/changes/032-games-discovery-identity-redesign/`
+4. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`, and Campaign 031
+   evidence under `docs/redesign/evidence/campaign031/**`

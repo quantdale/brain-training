@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "032-games-discovery-identity-redesign",
   "lastCampaign": "031-golden-path-redesign",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {

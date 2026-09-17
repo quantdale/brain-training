@@ -1,30 +1,39 @@
 # Durable Project State
 
-**Last update:** 2026-09-17 — Campaign 031 is terminally validated on the
-latest synchronized `main`; Campaign 030B remains the immutable before
-baseline and Campaign 029 external provider evidence remains historical.
+**Last update:** 2026-09-17 — Campaign 032 is active on synchronized `main`;
+Campaign 031 is terminally validated and remains the before context.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `032-games-discovery-identity-redesign`
 **Last campaign:** `031-golden-path-redesign`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 031 (`031-golden-path-redesign`) is the terminally validated
+Campaign 032 (`032-games-discovery-identity-redesign`) is the active
 owner-directed product implementation successor. Its authoritative task
 specification is
-`.agent/CAMPAIGN031_GOLDEN_PATH_REDESIGN_IMPLEMENTATION_PROMPT.md`. The
-campaign activation/synchronization start SHA is `44ba153`; implementation was
-reconciled on the concurrent latest `origin/main` documentation checkpoint
-`5e9d300` before product edits. The Campaign 030B rendered/runtime package is
-preserved as the before baseline.
+`.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`; activation
+started from synchronized `main` at `fa29742`. Campaign 031 is terminally
+validated and its rendered/runtime package remains the prior context.
 
-The current implementation is converging the golden path only: Today/Home
-hierarchy and CTA, workout handoff context, concise GameHost intro and focused
-HUD, outcome-first shared/route Results, direct Next Game, and explicit final
-completion. Existing SQLite/workout/provenance/lifecycle/scoring/session/
-rating/XP/currency/reward/tutorial/registry/offline contracts remain protected;
-no schema or dependency change is authorized.
+The current implementation is limited to Games discovery, search/filter/
+favorites, shared game identity presentation, Game Detail hierarchy, and
+standalone game entry. Existing catalog, registry, lazy-loading, SQLite/
+favorites/mastery/tutorial/session/workout-eligibility/offline/mechanics
+contracts remain protected; no schema or dependency change is authorized.
+
+## Campaign 032 checkpoint — Games discovery and identity redesign (ACTIVE)
+
+- **Activation:** safe fast-forward synchronization reached `fa29742`; no
+  pre-existing local user work was present to overwrite.
+- **Implementation packets:** shared identity/GameCard, Games discovery/
+  Suggested Next, and Game Detail regression coverage have disjoint ownership;
+  the orchestrator owns Game Detail implementation, governance, evidence,
+  generated/catalog contracts, and final convergence.
+- **Required handoff:** preserve the 42-entry generated registry and all
+  protected behavior; validate eight primary families on a disposable normal
+  Android AVD with real light/dark pixels; record every Campaign 032 evidence
+  document and classify human/ARTEMIS limits honestly.
 
 Campaign 029's ARTEMIS/provider evidence is historical context. The external
 ARTEMIS checkout remains outside this repository, credentials remain external,

@@ -2,8 +2,8 @@
  * Games library render contract (Campaign 024).
  *
  * Exercises `GamesScreen` as a bare route with `@/db` mocked to an empty
- * store: featured hero, search/filter chips, tier-agnostic grid testIDs, the
- * discovery rail with its "See all" expansion, and both empty states. Card
+ * store: Suggested Next, Browse All, search/filter chips, tier-agnostic grid
+ * testIDs, and both empty states. Card
  * accessibility (role + name including game and category) is asserted through
  * the label query, mirroring how a screen reader meets each card.
  */
@@ -54,7 +54,7 @@ const GAMES: GameDefinition[] = [
   makeGame('logic-duo', 'Logic Duo', 'Logic & Problem Solving'),
 ];
 
-function makeFakeDb(): AppDatabase {
+function makeFakeDb(favoriteIds: string[] = []): AppDatabase {
   return {
     sessions: {
       getAggregates: async () => [],
@@ -65,7 +65,7 @@ function makeFakeDb(): AppDatabase {
       getRatings: async () => [],
     },
     favorites: {
-      listFavoriteGameIds: async () => [],
+      listFavoriteGameIds: async () => favoriteIds,
     },
   } as unknown as AppDatabase;
 }
@@ -88,7 +88,7 @@ describe('games library', () => {
     mockDbState.db = makeFakeDb();
   });
 
-  it('leads with the featured hero and the full searchable library', async () => {
+  it('leads with Suggested Next and the full Browse All library', async () => {
     await renderLibrary();
 
     expect(await screen.findByTestId('games-title')).toBeOnTheScreen();
@@ -98,10 +98,13 @@ describe('games library', () => {
     expect(screen.getByTestId('games-filter-memory')).toBeOnTheScreen();
     expect(screen.getByTestId('games-filter-favorites')).toBeOnTheScreen();
 
-    // Hero leads with the top recommendation (novelty orders the fresh
-    // catalog in registry order) and names the game.
-    const hero = screen.getByTestId('games-featured');
-    expect(within(hero).getByText('Memory Alpha')).toBeOnTheScreen();
+    // Suggested Next leads with the top recommendation (novelty orders the
+    // fresh catalog in registry order) and explains the source signal.
+    const suggested = screen.getByTestId('games-suggested-next');
+    expect(within(suggested).getByText('Suggested next')).toBeOnTheScreen();
+    expect(within(suggested).getByText('Memory Alpha')).toBeOnTheScreen();
+    expect(screen.getByTestId('games-suggested-reason')).toBeOnTheScreen();
+    expect(screen.getByTestId('games-browse-all')).toBeOnTheScreen();
 
     // Grid carries one card per game under the stable card testIDs.
     expect(screen.getByTestId('games-grid')).toBeOnTheScreen();
@@ -157,19 +160,33 @@ describe('games library', () => {
     expect(await screen.findByText('Showing 6 of 6 games')).toBeOnTheScreen();
   });
 
-  it('renders the recommendation rail collapsed with a working See all', async () => {
+  it('consolidates recommendation evidence without competing shelves', async () => {
     await renderLibrary();
 
-    // Hero takes the first pick; the rail lists the rest, collapsed to three.
-    const shelf = await screen.findByTestId('games-discovery-recommended');
-    expect(within(shelf).getByText('Recommended for today')).toBeOnTheScreen();
-    expect(screen.getByTestId('games-discovery-recommended.attention-evo')).toBeOnTheScreen();
-    expect(screen.getByTestId('games-discovery-recommended.speed-sprint')).toBeOnTheScreen();
-    expect(screen.queryByTestId('games-discovery-recommended.logic-prime')).toBeNull();
+    expect(await screen.findByTestId('games-suggested-next')).toBeOnTheScreen();
+    expect(screen.getByTestId('games-suggested-primary')).toBeOnTheScreen();
+    expect(screen.getByTestId('games-suggested-alternatives')).toBeOnTheScreen();
+    expect(screen.queryByTestId('games-discovery-recommended')).toBeNull();
+    expect(screen.queryByTestId('games-discovery-near-best')).toBeNull();
+    expect(screen.queryByTestId('games-discovery-rusty')).toBeNull();
+  });
 
-    fireEvent.press(screen.getByTestId('games-discovery-recommended-see-all'));
-    expect(await screen.findByTestId('games-discovery-recommended.logic-prime')).toBeOnTheScreen();
-    expect(screen.getByTestId('games-discovery-recommended.logic-duo')).toBeOnTheScreen();
+  it('shows populated and empty favorites as an intentional browse state', async () => {
+    mockDbState.db = makeFakeDb(['speed-sprint']);
+    await renderLibrary();
+
+    fireEvent.press(screen.getByTestId('games-filter-favorites'));
+    expect(await screen.findByText('Showing 1 of 6 games')).toBeOnTheScreen();
+    expect(screen.getByTestId('game-card-speed-sprint')).toBeOnTheScreen();
+    expect(screen.queryByTestId('games-suggested-next')).toBeNull();
+
+    mockDbState.db = makeFakeDb([]);
+    await renderLibrary();
+    fireEvent.press(screen.getByTestId('games-filter-favorites'));
+    expect(await screen.findByTestId('games-favorites-empty')).toBeOnTheScreen();
+    expect(screen.getByText('No favorites yet')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('games-favorites-empty-action'));
+    expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
   });
 
   it('recovers from no-results with Clear filters', async () => {

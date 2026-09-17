@@ -7,6 +7,7 @@ Executable rules live in `scripts/validate-affected.mjs` (`RULES`). This table i
 | `scripts/android/**` — Android setup/diagnostics | ARTEMIS runtime-QA contract; no-host-input proof; screenshot/log artifact check |
 | `.github/**`, `scripts/**`, `apps/mobile/scripts/**` — CI/scripts | run script locally where possible; validate workflow syntax/behavior through GitHub Actions |
 | `apps/mobile/src/app/**`, `apps/mobile/src/components/app-tabs*.tsx`, `apps/mobile/src/components/game-host/**` — app navigation/shell | typecheck; affected unit tests; app launch + navigation smoke |
+| `apps/mobile/src/components/discovery/**` — Games discovery and identity surfaces | typecheck; focused Games/GameCard/Game Detail tests; light/dark runtime capture and accessibility audit |
 | `apps/mobile/src/workout/**`, `apps/mobile/src/db/workout*.ts`, `apps/mobile/src/db/__tests__/workout*.ts` — workout | `npm run test:ci -- src/workout src/db/__tests__/workout`; typecheck; attribution/adversarial matrix if routing/ownership touched |
 | `apps/mobile/src/personalization/**`, `apps/mobile/src/mastery/**`, `apps/mobile/src/spotlight/**` — personalization/mastery/spotlight | `npm run test:ci -- src/personalization src/mastery src/spotlight`; typecheck; determinism checks |
 | `apps/mobile/src/sync/**`, `apps/mobile/src/data-portability/**`, `apps/mobile/src/persistence/**` — sync/data-portability | `npm run test:ci -- src/sync src/data-portability`; typecheck; export/wipe/import round-trip if envelope changed |
