@@ -9,8 +9,8 @@ This handoff is intentionally not a global release-success label.
 - Starting SHA after the requested safe synchronization: `3253ca1437b9d70f58b3a89dca54403610c6fa0e`.
 - Source repair checkpoint: `0cb7727590d4d5d087a090360c0f41e6439bf681`.
 - Final validated product/evidence SHA: `e213eca` — the pushed checkpoint
-  containing the source repair, Campaign 040 closure, and this handoff. The
-  final commit below is documentation-only and preserves this validated
+  containing the source repair and Campaign 040 closure. The subsequent
+  handoff-pointer commits are documentation-only and preserve this validated
   product checkpoint unchanged.
 - `main` remained the canonical branch. Each remote check was ancestry-safe;
   no force-push, reset, unknown-worktree discard, or concurrent user work
@@ -118,8 +118,8 @@ router contract, or CI workflow was changed in Campaign 040.
 - Human validation: **NOT VALIDATED / PENDING**; engineering automation is not
   human sign-off. See `docs/redesign/evidence/campaign040/HUMAN_VALIDATION_PENDING.md`.
 - External CI: **NOT PASS / EXTERNAL** as described above.
-- Safest next action: begin with the exact final pushed SHA recorded above,
-  verify `HEAD == origin/main` and clean status, then obtain the missing
-  manual/platform evidence or repair the external CI runner before making a
-  broader release claim. Do not reopen locked product scope solely to clear
-  the conditional label.
+- Safest next action: begin with the exact validated product/evidence
+  checkpoint `e213eca`, verify the current terminal `HEAD == origin/main` and
+  clean status, then obtain the missing manual/platform evidence or repair the
+  external CI runner before making a broader release claim. Do not reopen
+  locked product scope solely to clear the conditional label.
