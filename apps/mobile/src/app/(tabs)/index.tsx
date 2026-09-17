@@ -682,6 +682,13 @@ export default function HomeScreen() {
                 {heroPlanLine}
               </ThemedText>
             ) : null}
+            <ThemedText
+              type="caption"
+              themeColor="textSecondary"
+              testID="home-local-trust"
+            >
+              Your training is ready on this device and works offline.
+            </ThemedText>
           </View>
           {workoutStatus === "completed" ? (
             <Card tone="successSoft" padding="sm" testID="home-workout-complete-panel">

@@ -328,4 +328,15 @@ describe('rewards progression refresh wiring', () => {
 
     expect(mockedRefreshProgression).toHaveBeenCalled();
   });
+
+  it('explains the included starter cosmetics on a clean collection', async () => {
+    await renderRewards();
+
+    expect(screen.getByTestId('rewards-collection-intro')).toHaveTextContent(
+      /starter set is included/i,
+    );
+    expect(screen.getByTestId('rewards-collection-intro')).toHaveTextContent(
+      /earned coins/i,
+    );
+  });
 });

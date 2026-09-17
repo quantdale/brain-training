@@ -577,6 +577,29 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             >
                               Today's Workout
                             </Text>
+                            <Text
+                              maxFontSizeMultiplier={2}
+                              style={
+                                [
+                                  {
+                                    "color": "#5B5E77",
+                                  },
+                                  {
+                                    "fontSize": 12,
+                                    "fontWeight": "500",
+                                    "lineHeight": 16,
+                                  },
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  undefined,
+                                ]
+                              }
+                              testID="home-local-trust"
+                            >
+                              Your training is ready on this device and works offline.
+                            </Text>
                           </View>
                           <View
                             style={
@@ -4994,6 +5017,29 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       }
                     >
                       Today's Workout
+                    </Text>
+                    <Text
+                      maxFontSizeMultiplier={2}
+                      style={
+                        [
+                          {
+                            "color": "#5B5E77",
+                          },
+                          {
+                            "fontSize": 12,
+                            "fontWeight": "500",
+                            "lineHeight": 16,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                      testID="home-local-trust"
+                    >
+                      Your training is ready on this device and works offline.
                     </Text>
                   </View>
                   <View

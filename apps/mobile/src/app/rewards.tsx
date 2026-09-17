@@ -573,6 +573,14 @@ export default function RewardsScreen() {
                 title="Collection"
                 caption={`${collection.ownedTotal}/${collection.total} cosmetics collected (${Math.round(collection.ratio * 100)}%)`}
               />
+              <ThemedText
+                type="caption"
+                themeColor="textSecondary"
+                testID="rewards-collection-intro"
+              >
+                The starter set is included. Earn more through play or spend
+                earned coins on safe cosmetics.
+              </ThemedText>
               {collection.slots.map((slot) => (
                 <View
                   key={slot.slot}

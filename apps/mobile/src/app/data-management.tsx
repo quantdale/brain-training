@@ -101,6 +101,32 @@ export default function DataManagementScreen() {
     EMPTY_COUNTS,
   );
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  // The SQLite backend may be unable to report PRAGMA page metrics even when
+  // initialization has created the local profile/catalog/workout state. Do
+  // not call that populated local store "Empty"; the exact table counts below
+  // remain the source of truth for what is actually present.
+  const hasInitializedLocalState =
+    counts.hasProfile ||
+    [
+      counts.gameSessions,
+      counts.domainRatings,
+      counts.ratingHistory,
+      counts.currencyLedger,
+      counts.gameFavorites,
+      counts.xpAwards,
+      counts.tutorialState,
+      counts.workoutInstances,
+      counts.questDefinitions,
+      counts.questProgress,
+      counts.achievementDefinitions,
+      counts.achievementUnlocks,
+    ].some((count) => count > 0);
+  const storageSummary =
+    counts.storageBytes > 0
+      ? `${(counts.storageBytes / 1024).toFixed(1)} KB`
+      : hasInitializedLocalState
+        ? "Ready"
+        : "Empty";
   const [backupName, setBackupName] = useState("");
   const [exportText, setExportText] = useState<string | null>(null);
   const [lastExportName, setLastExportName] = useState<string | null>(null);
@@ -412,13 +438,10 @@ export default function DataManagementScreen() {
                 <View style={styles.heroText}>
                   <StatBlock
                     label="Local database"
-                    value={
-                      counts.storageBytes > 0
-                        ? `${(counts.storageBytes / 1024).toFixed(1)} KB`
-                        : "Empty"
-                    }
+                    value={storageSummary}
                     valueType="numeralXl"
                     tone="accent"
+                    testID="data-storage-summary"
                   />
                 </View>
                 <Spark size={44} color={theme.accent} />

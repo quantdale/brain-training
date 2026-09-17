@@ -86,6 +86,7 @@ jest.mock('@/data-portability', () => ({
     achievementDefinitions: 0,
     achievementUnlocks: 0,
     hasProfile: true,
+    storageBytes: 0,
   })),
   defaultBackupName: jest.fn(() => 'backup-test.json'),
   exportLocalDataBundle: jest.fn(async () => ({
@@ -221,6 +222,11 @@ describe('data-management UX contract', () => {
     // Counts bind to the mocked engine snapshot.
     expect(await screen.findByTestId('data-count-sessions')).toBeOnTheScreen();
     expect(await screen.findByText('7')).toBeOnTheScreen();
+    // A backend without PRAGMA byte metrics is still populated: the profile
+    // and exact local counts make the store ready, not empty.
+    expect(screen.getByTestId('data-storage-summary-value')).toHaveTextContent(
+      'Ready',
+    );
     // No invented cloud/account features: the phone is the only home for data.
     expect(screen.getByText(/lives only on this phone/i)).toBeOnTheScreen();
   });

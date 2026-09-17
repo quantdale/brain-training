@@ -124,6 +124,14 @@ afterEach(() => {
 });
 
 describe('home template-workout start failure path', () => {
+  it('explains the local offline first-run path', async () => {
+    await renderHome();
+
+    expect(screen.getByTestId('home-local-trust')).toHaveTextContent(
+      /ready on this device and works offline/i,
+    );
+  });
+
   it('surfaces a failed start, stays on Home, and keeps the CTA retryable', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderHome();
