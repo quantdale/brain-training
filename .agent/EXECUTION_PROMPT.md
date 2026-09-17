@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 036: First-Run, Empty-State & Trust Experience
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `036-first-run-trust-experience`
 **Planned-From:** `27fd1f27866401b35da875a5250648babc768431`
 **Start-SHA:** `27fd1f27866401b35da875a5250648babc768431`
@@ -39,11 +39,14 @@ medical claims, schema/economy/backup changes, or fabricated progression. Keep
 all existing navigation, semantic IDs, persistence, and destructive data
 management safeguards.
 
-## Current result
+## Terminal result
 
-Discovery is complete; implementation is pending. Baseline artifacts are
-outside Git under `D:\Temp\campaign036-runtime-before` and
-`D:\Temp\campaign036-runtime-before-all`.
+The bounded Home, Data Management, and Rewards clean-install clarity slice is
+validated. Baseline and matching after artifacts are outside Git under
+`D:\Temp\campaign036-runtime-before-all` and
+`D:\Temp\campaign036-runtime-after`; exact evidence is under
+`docs/redesign/evidence/campaign036/`. Campaign 037 is the next safe
+successor.
 
 ---
 

@@ -1,13 +1,13 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 036 is active after terminal Campaign
-035 validation and a true clean-install native baseline.
+**Last update:** 2026-09-18 — Campaign 036 is terminally validated after
+clean-install native before/after evidence; Campaign 037 is next.
 **Canonical branch:** `main`
-**Active campaign:** `036-first-run-trust-experience`
-**Last campaign:** `035-visual-system-consolidation`
+**Active campaign:** `none`
+**Last campaign:** `036-first-run-trust-experience`
 **Last campaign status:** VALIDATED
 
-## Campaign 036 checkpoint — First-Run, Empty-State & Trust (ACTIVE)
+## Campaign 036 checkpoint — First-Run, Empty-State & Trust (VALIDATED)
 
 - **Activation:** opened from synchronized `main` at
   `27fd1f27866401b35da875a5250648babc768431`; no local or concurrent user
@@ -24,9 +24,24 @@
   byte metric is unavailable even though initialization has a local profile,
   workout instance, and quest rows. Rewards shows `3/12` default-owned
   cosmetics without explaining the included starter set.
-- **Implementation:** pending. The authorized slice is limited to compact
+- **Implementation:** Home now states that training is ready on the device and
+  works offline; Data Management reports `Ready` when exact local counts show
+  initialized state but the byte metric is unavailable; and Rewards explains
+  the included starter cosmetics. The authorized slice remained limited to
   factual copy and a display-only local-store fallback; no onboarding,
-  persistence, schema, economy, backup, or gameplay change is authorized.
+  persistence, schema, economy, backup, or gameplay change was made.
+- **Validation:** focused contracts, full Jest (556 suites passed / 4 skipped;
+  6,563 tests passed / 5 skipped; 5 snapshots passed), typecheck, lint,
+  strict affected mapping, repository validators, 14-surface light/dark
+  native after captures, pixel comparison, automated accessibility (0
+  violations), fresh logcat, and Android build/install all passed. Exact
+  evidence is under `docs/redesign/evidence/campaign036/`.
+- **Runtime flow:** a clean Home CTA entered the real Cue Keeper intro,
+  tutorial example, and live `Round 1/5` board through emulator-local ADB;
+  final data was cleared again. ARTEMIS was not used for this campaign.
+- **Terminal result:** Campaign 036 is validated and Campaign 037 is the next
+  safe successor. Human/platform limits and zero-step external CI failures
+  remain explicitly classified in the evidence package.
 
 ## Campaign 035 checkpoint — Cross-Surface Visual System (VALIDATED)
 

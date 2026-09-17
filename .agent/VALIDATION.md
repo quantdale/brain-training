@@ -5,6 +5,62 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 036 First-Run, Empty-State & Trust — 2026-09-18 (VALIDATED)
+
+- Safe synchronization: **PASS** — Campaign 036 was opened from synchronized
+  `main` at `27fd1f27866401b35da875a5250648babc768431`; the source checkpoint
+  `65336b24d610049f73fc57a8e1bf40dbbf242e35` was pushed after an ancestry
+  check. No unrelated local or remote work was overwritten.
+- Before observation: **PASS** — app data was cleared on dedicated
+  `emulator-5554`; Home, Games, Progress, Profile, Rewards, Data Management,
+  and Game Detail were captured in light/dark as 14/14 route-verified,
+  nonblank core surfaces. Raw artifacts remain outside Git under
+  `D:\Temp\campaign036-runtime-before` and
+  `D:\Temp\campaign036-runtime-before-all`.
+- Product slice: **PASS** — Home adds factual local/offline trust copy; Data
+  Management shows `Ready` when exact local counts indicate initialized state
+  but byte metrics are unavailable; Rewards explains the included starter set.
+  No schema, persistence, economy, backup, gameplay, or fabricated progress
+  change was made.
+- Focused contracts: **PASS** — Home/Rewards/Data Management run completed 3
+  suites / 25 tests. The two intentional Home visual snapshot changes were
+  updated and rechecked.
+- Full Jest: **PASS** — 556 passing suites / 4 skipped suites, 6,563 passing
+  tests / 5 skipped tests, 5 snapshots passed. Typecheck and lint: **PASS**.
+- Repository gates: **PASS** — strict affected-area mapping, repo-state, task
+  ownership, OpenSpec 22/22, offline, provenance, secrets, workflow hygiene,
+  dependency audit, generated registry, and runtime-QA contract validators.
+- Native after-state: **PASS** — matching after captures under
+  `D:\Temp\campaign036-runtime-after` contain 14/14 nonblank,
+  route-verified core light/dark surfaces. Real pixels were compared with
+  SHA-256/RGB changed-pixel/RMSE metrics recorded in the Campaign 036
+  evidence package.
+- Native first-play flow: **PASS** — emulator-local ADB executed Home → real
+  Cue Keeper intro → tutorial example → live `Round 1/5` board. XML checkpoints
+  are `D:\Temp\campaign036-intro.xml`,
+  `D:\Temp\campaign036-tutorial.xml`, and
+  `D:\Temp\campaign036-game.xml`; app data was cleared again afterward.
+- Android build/install: **PASS** —
+  `apps/mobile/android/.gradlew.bat assembleDebug`, 458 actionable tasks / 55
+  executed / 403 up-to-date; APK installed successfully on `emulator-5554`,
+  SHA-256 `80E9B29134FB70D7C45E30B7BB0FB6F6E90EE8D358B1880B9FA236E98A877D6A`.
+- Accessibility: **PASS** — automated audit reported 0 violations across the
+  14-surface after matrix at density 420. Manual TalkBack, large-text,
+  reduced-motion, VoiceOver, and physical-device behavior remain pending.
+- Fresh logcat: **PASS** for the bounded clean-install sample — no fatal,
+  SQLite, lock, ANR, ReactNativeJS, RedBox, or unresolved-module signature.
+- ARTEMIS/computer-use: **NOT USED** for Campaign 036; the local ADB and
+  UIAutomator path supplied the evidence. Campaign 033/034 ARTEMIS traces are
+  not reused as Campaign 036 evidence.
+- External CI: **FAILED BEFORE EXECUTION / EXTERNAL** — Repository Integrity
+  `35267217853`, Android Build Smoke `35267217680`, App CI `35267217667`, and
+  iOS Build Smoke `35267217596`; each job had `steps: []`. No workflow was
+  edited and no CI success was inferred.
+- Human/platform validation: **NOT VALIDATED / PENDING** — no independent
+  participant, manual screen-reader session, physical device, iOS runtime,
+  store-signed build, or system document-picker flow was available.
+- Evidence package: **PASS** — `docs/redesign/evidence/campaign036/`.
+
 ### Campaign 034 Profile/Rewards ownership — 2026-09-18 (VALIDATED checkpoint)
 
 - Source before-state observation: **PASS** — the dedicated Android emulator

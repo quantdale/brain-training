@@ -1,11 +1,11 @@
 # Campaign 036 — First-Run, Empty-State & Trust Experience
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `036-first-run-trust-experience`
 **Predecessor:** `035-visual-system-consolidation` (validated)
 **Mode:** day
 **Start SHA:** `27fd1f27866401b35da875a5250648babc768431`
-**Change:** `036-first-run-trust-experience` (ACTIVE)
+**Change:** `036-first-run-trust-experience` (VALIDATED)
 **Authorization:** owner-supplied Campaign 033–040 overnight directive on
 2026-09-18, following the validated Campaign 035 checkpoint.
 
@@ -16,16 +16,16 @@ onboarding funnel: reassure the player that training is ready on-device and
 offline, distinguish initialized local setup from an unavailable storage-size
 metric, and explain the included starter cosmetics.
 
-## Current evidence
+## Terminal evidence
 
 The true clean-install baseline is retained outside Git under
 `D:\Temp\campaign036-runtime-before` and
-`D:\Temp\campaign036-runtime-before-all`. Home has a clear Today's Workout /
-Start workout path, Progress/Game Detail are honest about no sessions, and
-Profile identifies the local player. The bounded ambiguities are Home's lack
-of explicit local/offline trust copy, Data Management's `Empty` storage hero
-despite initialized profile/workout/quest rows, and Rewards' unexplained
-`3/12` default-owned collection.
+`D:\Temp\campaign036-runtime-before-all`; matching after captures are under
+`D:\Temp\campaign036-runtime-after`. Home now has explicit local/offline
+trust copy, Data Management reports `Ready` for initialized local state when
+the byte metric is unavailable, and Rewards explains the included starter set.
+Progress and Game Detail remain honest about no sessions, and Profile still
+identifies the local player.
 
 ## Bounded implementation
 
@@ -37,12 +37,13 @@ despite initialized profile/workout/quest rows, and Rewards' unexplained
 No account gate, large onboarding, schema/economy/backup/gameplay change, or
 fabricated progression is authorized.
 
-## Exit criteria
+## Terminal result
 
 A clean-install user can understand what to start, where the record lives,
 why the initial collection is nonzero, and what empty states mean. Matching
 native before/after evidence, focused/full validation, and a synchronized
-checkpoint must be recorded under `docs/redesign/evidence/campaign036/`.
+checkpoint are recorded under `docs/redesign/evidence/campaign036/`. Campaign
+036 is terminally validated; Campaign 037 is the next safe successor.
 
 ---
 

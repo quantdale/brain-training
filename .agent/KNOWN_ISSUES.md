@@ -1,20 +1,25 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 036 ACTIVE
+## Current status — Campaign 036 VALIDATED
 
-Campaign 036 is active from the synchronized Campaign 035 checkpoint. A true
-clean-install baseline identified three bounded comprehension seams: Home has
-no explicit local/offline trust line; Data Management reports `Empty` when the
-storage-size backend cannot report bytes even though initialized local state is
-present; and Rewards does not explain the included default cosmetics behind
-its `3/12` collection count. Native evidence is retained outside Git under
-`D:\Temp\campaign036-runtime-before` and
-`D:\Temp\campaign036-runtime-before-all`.
+Campaign 036 is terminally validated from the synchronized Campaign 035
+checkpoint. The bounded fixes add Home local/offline trust copy, a truthful
+Data Management `Ready` fallback for initialized local state with unavailable
+byte metrics, and Rewards starter-set explanation. Native evidence is retained
+outside Git under `D:\Temp\campaign036-runtime-before-all` and
+`D:\Temp\campaign036-runtime-after`; the committed evidence package is under
+`docs/redesign/evidence/campaign036/`.
 
 No large onboarding, account gate, permission funnel, unsupported cognitive or
-medical claim, schema/economy/backup change, or fabricated progression is
-authorized by this slice. Implementation and closure validation remain
-pending; do not label Campaign 036 complete until they are executed.
+medical claim, schema/economy/backup change, or fabricated progression was
+introduced. The existing clean Home plan line still says `balanced across your
+recent training` when no session history exists; it was observed, intentionally
+left outside this bounded slice, and is a candidate for Campaign 037's
+cross-surface copy audit.
+
+The manual/platform evidence limits and external zero-step CI failures remain
+explicitly pending/external; they are not relabeled as product failures or
+successes.
 
 ## Campaign 035 VALIDATED (previous checkpoint)
 

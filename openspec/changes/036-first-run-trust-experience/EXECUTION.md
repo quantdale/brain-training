@@ -1,6 +1,6 @@
 # Execution — Campaign 036 First-Run, Empty-State & Trust Experience
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Mode:** day
 **Start SHA:** `27fd1f27866401b35da875a5250648babc768431`
 **Authority:** `docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and
@@ -13,12 +13,21 @@ OpenSpec, evidence, and convergence. No parallel coder packet is needed: the
 three touched screens are intentionally kept together so clean-install
 language remains coherent.
 
-## Current result
+## Terminal result
 
-Discovery is complete. The native clean-install baseline is retained outside
-Git under `D:\Temp\campaign036-runtime-before` and
-`D:\Temp\campaign036-runtime-before-all`. Implementation and closure
-validation are pending.
+The clean-install Home hero now states that training is ready on the device
+and works offline; Data Management reports `Ready` when exact local counts
+show initialized state but the byte metric is unavailable; and Rewards
+explains the included starter cosmetics and existing earned-coin path. Existing
+empty/no-history states, routes, semantic IDs, persistence, economy, backup,
+and gameplay behavior remain unchanged. The source checkpoint is `65336b2`;
+the terminal evidence and durable-state checkpoint are recorded in
+`docs/redesign/evidence/campaign036/` and the overnight handoff.
+
+Native before/after pixels and XML, focused/full validation, accessibility,
+fresh logcat, and Android build/install all passed. Manual human, TalkBack,
+iOS, physical-device, large-text, reduced-motion, store-signing, and system
+document-picker evidence remains pending and is not inferred.
 
 ## Guardrails
 

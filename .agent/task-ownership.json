@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "036-first-run-trust-experience",
-  "description": "Campaign 036 first-run trust ownership record for the bounded Home, Rewards, and Data Management clean-install clarity slice. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
+  "description": "Campaign 036 validated first-run trust ownership record for the bounded Home, Rewards, and Data Management clean-install clarity slice. The orchestrator owned governance, OpenSpec, evidence, and final convergence; no parallel coder packets were active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

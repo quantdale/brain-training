@@ -10,19 +10,19 @@
 
 ## Product implementation
 
-- [ ] Add compact local/offline trust copy to the existing Home hero.
-- [ ] Make the Data Management storage fallback distinguish ready initialized
+- [x] Add compact local/offline trust copy to the existing Home hero.
+- [x] Make the Data Management storage fallback distinguish ready initialized
       local state from an actually empty store.
-- [ ] Explain the included starter cosmetic set in the existing Collection
+- [x] Explain the included starter cosmetic set in the existing Collection
       section.
-- [ ] Preserve all existing routes, IDs, empty states, persistence, and
+- [x] Preserve all existing routes, IDs, empty states, persistence, and
       progression/economy behavior.
 
 ## Validation and evidence
 
-- [ ] Add/update focused Home, Rewards, and Data Management contracts.
-- [ ] Capture matching native light/dark after pixels/XML and compare against
+- [x] Add/update focused Home, Rewards, and Data Management contracts.
+- [x] Capture matching native light/dark after pixels/XML and compare against
       the clean-install baseline.
-- [ ] Run accessibility, fresh logcat, full Jest, typecheck, lint, and relevant
+- [x] Run accessibility, fresh logcat, full Jest, typecheck, lint, and relevant
       repository validators.
-- [ ] Commit/push a truthful COMPLETE or PARTIAL checkpoint.
+- [x] Commit/push a truthful COMPLETE checkpoint.
