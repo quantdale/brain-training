@@ -52,8 +52,10 @@ unavailable checks into PASS.
   deferred/external. None was relabeled as PASS.
 - Required evidence package: `docs/redesign/evidence/campaign031/`.
 - Terminal state: Campaign 031 **VALIDATED**, no active successor, Campaign 032
-  not started; final commit/push and clean `main == origin/main` verification
-  remain the last handoff check.
+  not started. Implementation/evidence commit
+  `ad15e23d386e453590aae69cb33c4c427c27e1b8` is pushed; the final
+  documentation checkpoint still requires the final `main == origin/main` and
+  clean-tree handoff verification.
 
 The earlier checkpoint immediately below is retained as the recovery history of
 the implementation phase.

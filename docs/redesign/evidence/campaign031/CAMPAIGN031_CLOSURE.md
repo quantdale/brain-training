@@ -15,11 +15,11 @@ The Campaign 031 implementation was reconciled on that latest `main` before
 the product changes. No stash, reset, checkout, force operation, or deletion
 of user work was used.
 
-The final implementation/evidence commit and the terminal synchronized `main`
-SHA are reported by the final Git handoff after this closure package is
-committed. The final handoff must verify `HEAD == origin/main` and an empty
-`git status --porcelain`; the product source SHA is the same pushed commit
-that contains this package and the state transition.
+Final implementation/evidence commit: `ad15e23d386e453590aae69cb33c4c427c27e1b8`.
+This commit contains the product source, evidence package, and terminal state
+transition. The final handoff must verify the terminal documentation checkpoint
+also has `HEAD == origin/main` and an empty `git status --porcelain`; its exact
+final SHA is reported after that push.
 
 ## What changed
 

@@ -1,8 +1,9 @@
 # Campaign 031 regression matrix
 
 Date: 2026-09-17
-All results below are from the Campaign 031 working tree before the final
-commit/push unless marked as native final-artifact validation.
+The implementation/evidence results below were validated before the final
+implementation push `ad15e23d386e453590aae69cb33c4c427c27e1b8`; the terminal
+documentation checkpoint adds no product source changes.
 
 ## Repository and source gates
 
