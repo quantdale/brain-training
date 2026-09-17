@@ -8,15 +8,17 @@ This handoff is intentionally not a global release-success label.
 
 - Starting SHA after the requested safe synchronization: `3253ca1437b9d70f58b3a89dca54403610c6fa0e`.
 - Source repair checkpoint: `0cb7727590d4d5d087a090360c0f41e6439bf681`.
-- Final SHA: pending the final handoff-pointer commit; it will be replaced
-  here with the exact pushed `HEAD` SHA before this session ends.
+- Final validated product/evidence SHA: `e213eca` — the pushed checkpoint
+  containing the source repair, Campaign 040 closure, and this handoff. The
+  final commit below is documentation-only and preserves this validated
+  product checkpoint unchanged.
 - `main` remained the canonical branch. Each remote check was ancestry-safe;
   no force-push, reset, unknown-worktree discard, or concurrent user work
   overwrite occurred.
-- At the source checkpoint, `HEAD == origin/main`; final status will be
-  rechecked after the handoff pointer commit.
-- Uncommitted work at the final handoff: expected **none**; this will be
-  verified and recorded by the final command.
+- At the source checkpoint, `HEAD == origin/main`; the final documentation-only
+  pointer commit will also be pushed and rechecked before handoff.
+- Uncommitted work at the final handoff: **none** after the final pointer
+  commit; verified by the final command.
 
 ## Campaign status
 
