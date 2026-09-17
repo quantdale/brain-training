@@ -571,7 +571,11 @@ export default function HomeScreen() {
       : null;
   const heroPlanLine =
     workout.length > 0
-      ? `${workout.length} games${dailyExpectedMinutes ? ` · about ${dailyExpectedMinutes} minutes` : ""} · balanced across your recent training.`
+      ? `${workout.length} games${dailyExpectedMinutes ? ` · about ${dailyExpectedMinutes} minutes` : ""} · ${
+          data.recentSessions.length > 0
+            ? "balanced across your recent training."
+            : "a balanced starting set."
+        }`
       : null;
   const heroCtaSublabel =
     workoutStatus === "completed"

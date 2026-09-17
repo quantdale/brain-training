@@ -164,4 +164,27 @@ describe('app shell', () => {
     expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
     expect(result.getPathname()).toBe('/games');
   });
+
+  it('returns from Game Detail to the launching Games route', async () => {
+    const result = renderShell('/games');
+    await result;
+
+    await act(async () => {
+      router.push('/game-detail/memory');
+    });
+    expect(await screen.findByTestId('game-detail-title')).toBeOnTheScreen();
+
+    await act(async () => {
+      router.back();
+    });
+    expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
+    expect(result.getPathname()).toBe('/games');
+  }, 30_000);
+
+  it('keeps a missing result deep link in a recoverable empty state', async () => {
+    await renderShell('/results?id=missing-session');
+
+    expect(screen.getByTestId('results-empty')).toBeOnTheScreen();
+    expect(screen.getByTestId('results-empty-action')).toBeOnTheScreen();
+  });
 });

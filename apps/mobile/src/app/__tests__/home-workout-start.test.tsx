@@ -48,7 +48,7 @@ jest.mock('@/db', () => {
 function makeDailyWorkout(key: string): WorkoutInstance {
   return {
     date: key,
-    gameIds: [],
+    gameIds: ['memory'],
     status: 'active',
     currentIndex: 0,
     rerollAttempt: 0,
@@ -124,6 +124,17 @@ afterEach(() => {
 });
 
 describe('home template-workout start failure path', () => {
+  it('describes a starting set when there is no recorded session history', async () => {
+    await renderHome();
+
+    expect(screen.getByTestId('home-workout-plan')).toHaveTextContent(
+      /balanced starting set/i,
+    );
+    expect(screen.getByTestId('home-workout-plan')).not.toHaveTextContent(
+      /recent training/i,
+    );
+  });
+
   it('explains the local offline first-run path', async () => {
     await renderHome();
 
