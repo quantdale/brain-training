@@ -1,6 +1,21 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 036 VALIDATED
+## Current status — Campaign 037 ACTIVE
+
+Campaign 037 is active from the synchronized Campaign 036 checkpoint. The
+native 22-surface baseline and emulator-local route audit are retained under
+`D:\Temp\campaign037-runtime-before`. The major observed back/return paths
+and invalid/empty fallbacks are operational. The concrete bounded issue is
+Home's clean-state plan copy: it says `balanced across your recent training`
+even when no completed session exists.
+
+The authorized slice is a starting-set copy branch plus route/state regression
+contracts. No routing rewrite, session/workout identity change, persistence,
+schema/economy/backup change, gameplay change, or unsupported claim is
+authorized. Do not label Campaign 037 complete until implementation and
+closure validation run.
+
+## Campaign 036 VALIDATED (previous checkpoint)
 
 Campaign 036 is terminally validated from the synchronized Campaign 035
 checkpoint. The bounded fixes add Home local/offline trust copy, a truthful

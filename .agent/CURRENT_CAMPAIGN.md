@@ -1,3 +1,49 @@
+# Campaign 037 — Navigation, State & Cross-Surface Coherence Hardening
+
+**Status:** ACTIVE
+**Campaign id:** `037-navigation-state-coherence`
+**Predecessor:** `036-first-run-trust-experience` (validated)
+**Mode:** day
+**Start SHA:** `340d61a4fedffb46e8adf8245d57cb03a5831906`
+**Change:** `037-navigation-state-coherence` (ACTIVE)
+**Authorization:** owner-supplied Campaign 033–040 overnight directive on
+2026-09-18, following the validated Campaign 036 checkpoint.
+
+## Mission
+
+Audit the redesigned application as one product. Keep the observed major
+back/return journeys coherent, preserve recoverable invalid/empty routes, and
+remove the concrete clean-state copy contradiction without rewriting routing.
+
+## Current evidence
+
+The native baseline under `D:\Temp\campaign037-runtime-before` contains 22/22
+route-verified, nonblank light/dark surfaces. Emulator-local journeys showed
+Games → Game Detail → back, Game Detail → Play → GameHost → back, result and
+Progress drill-down returns, Profile → Rewards/Data returns, and recoverable
+invalid Game/Detail/Results deep links. The concrete issue is Home's clean
+plan line claiming it is balanced across recent training with no completed
+sessions.
+
+## Bounded implementation
+
+- Use a starting-set phrase for Home when the local recent-session list is
+  empty; retain the existing history-aware phrase for returning players.
+- Add focused contracts for the Home branch and the observed route/error
+  fallbacks.
+- Preserve Expo Router behavior, workout/session provenance, persistence,
+  empty states, economy, and gameplay.
+
+## Exit criteria
+
+Clean-state copy is honest and the observed major journeys retain context;
+invalid/loading/empty routes remain recoverable; focused/full validation and
+matching native evidence are recorded under
+`docs/redesign/evidence/campaign037/`. A safe partial result must be labeled
+PARTIAL.
+
+---
+
 # Campaign 036 — First-Run, Empty-State & Trust Experience
 
 **Status:** VALIDATED

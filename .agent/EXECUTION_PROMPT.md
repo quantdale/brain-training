@@ -1,3 +1,42 @@
+# Execution Prompt — Campaign 037: Navigation, State & Cross-Surface Coherence
+
+**Status:** ACTIVE
+**Change:** `037-navigation-state-coherence`
+**Planned-From:** `340d61a4fedffb46e8adf8245d57cb03a5831906`
+**Start-SHA:** `340d61a4fedffb46e8adf8245d57cb03a5831906`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `036-first-run-trust-experience`
+
+## Authority
+
+Execute Campaign 037 from
+`docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and the guardrails in
+`.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`. Campaign
+036 is validated; the native cross-surface audit authorizes this bounded
+copy/contract slice.
+
+## Mission
+
+Keep the observed navigation and return-context seams intact while making
+clean-state Home planning copy honest about the absence of recorded history.
+
+## Required validation and handoff
+
+Exercise and record Home, Games, Game Detail, GameHost, Result, Progress
+drill-down, Profile/Rewards/Data, invalid-ID, and empty-result paths before and
+after. Run focused/full tests, typecheck, lint, relevant validators, matching
+native pixels/XML, accessibility, and fresh logcat. Record manual/platform and
+external-CI limits honestly.
+
+## Guardrails
+
+Do not replace the router or introduce new navigation state. Do not change
+session identity, workout provenance, persistence, schema, economy, backup,
+offline behavior, or gameplay.
+
+---
+
 # Execution Prompt — Campaign 036: First-Run, Empty-State & Trust Experience
 
 **Status:** VALIDATED

@@ -1,0 +1,16 @@
+{
+  "id": "037-navigation-state-coherence",
+  "status": "ACTIVE",
+  "predecessor": "036-first-run-trust-experience",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["navigation-coherence"],
+  "activationRule": "Campaign 036 is terminally validated at 340d61a; native Campaign 037 observation found a bounded clean-state copy contradiction while the major back/return and invalid-ID paths remained operational.",
+  "baselineAuditCommit": "340d61a4fedffb46e8adf8245d57cb03a5831906",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the Campaign 037 native 22-surface baseline and emulator-local navigation observations across Home, Games, Game Detail, GameHost, Results, Progress drill-down, Profile, Rewards, Data Management, invalid IDs, and empty Results.",
+  "validationNote": "Active implementation checkpoint. The bounded target is honest clean-state plan copy plus route regression contracts; no routing architecture, session identity, persistence, schema, economy, or gameplay rewrite is authorized."
+}

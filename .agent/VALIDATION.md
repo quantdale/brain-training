@@ -5,6 +5,32 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 037 Navigation, State & Cross-Surface Coherence — 2026-09-18 (ACTIVE discovery)
+
+- Activation: **PASS** — Campaign 037 opened from synchronized `main` at
+  `340d61a4fedffb46e8adf8245d57cb03a5831906`; no local or concurrent user
+  work was overwritten.
+- Native baseline: **PASS** — `scripts/qa/ui-capture.mjs` captured 22/22
+  requested light/dark surfaces under
+  `D:\Temp\campaign037-runtime-before`; each was route-verified and
+  nonblank on dedicated `emulator-5554`.
+- Observed route journeys: **PASS** — emulator-local ADB/UIAutomator verified
+  Games → Game Detail → Android back → Games; Detail → Play → GameHost intro
+  → Android back → Detail; a real Odd One Out result → Android back → Detail;
+  Detail → Results drill-down → Android back → Detail; Profile → Rewards and
+  Profile → Data Management → Android back → Profile; Progress → domain
+  drill-down → Android back → Progress with the 30d selection preserved; and
+  invalid Game/Detail/Results IDs rendering recoverable states.
+- Finding: **OPEN** — clean Home still describes the plan as balanced across
+  recent training with zero completed sessions. This is the bounded 037
+  implementation target; no navigation rewrite is currently indicated.
+- Runtime caveat: the first lazy GameHost route stayed on its real loading
+  state until the development module settled; tapping its existing Cancel
+  returned to Games. This is recorded as a warm-up observation, not hidden as
+  a product pass/failure.
+- ARTEMIS/computer-use: **NOT USED** for 037 discovery; deterministic local
+  ADB/UIAutomator observation was sufficient so far.
+
 ### Campaign 036 First-Run, Empty-State & Trust — 2026-09-18 (VALIDATED)
 
 - Safe synchronization: **PASS** — Campaign 036 was opened from synchronized

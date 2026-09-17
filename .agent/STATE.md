@@ -1,11 +1,29 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 036 is terminally validated after
-clean-install native before/after evidence; Campaign 037 is next.
+**Last update:** 2026-09-18 — Campaign 037 is active after terminal Campaign
+036 validation and a native cross-surface navigation audit.
 **Canonical branch:** `main`
-**Active campaign:** `none`
+**Active campaign:** `037-navigation-state-coherence`
 **Last campaign:** `036-first-run-trust-experience`
 **Last campaign status:** VALIDATED
+
+## Campaign 037 checkpoint — Navigation, State & Cross-Surface Coherence (ACTIVE)
+
+- **Activation:** opened from synchronized `main` at
+  `340d61a4fedffb46e8adf8245d57cb03a5831906`; no local or concurrent user
+  work was present to overwrite.
+- **Discovery:** captured 22/22 route-verified, nonblank light/dark surfaces
+  under `D:\Temp\campaign037-runtime-before`. Emulator-local journeys
+  verified Games → Detail → back, Detail → Play → GameHost → back, result →
+  back, Progress drill-down → back, Profile → Rewards/Data → back, and
+  recoverable invalid Game/Detail/Results deep links.
+- **Finding:** clean Home still says the plan is balanced across recent
+  training while the local record has no completed sessions. The bounded
+  target is an honest starting-set branch plus focused route regression
+  contracts; no routing rewrite is authorized.
+- **Implementation:** pending. The existing navigation seams, session and
+  workout provenance, persistence, empty states, and invalid-route fallbacks
+  remain protected.
 
 ## Campaign 036 checkpoint — First-Run, Empty-State & Trust (VALIDATED)
 
