@@ -35,7 +35,8 @@ offline, or game-mechanics code changed.
 - Focused regression source: `apps/mobile/src/app/__tests__/profile-purchases.test.tsx`.
 
 The synchronized start SHA was
-`f64df0315e3dd1b7e2d8519c560e3c9aea1bccb0`. All native artifacts remain
+`f64df0315e3dd1b7e2d8519c560e3c9aea1bccb0`; the pushed closing checkpoint is
+`ead08f9cb191694defd425f0f12dd806b197ee4b`. All native artifacts remain
 outside Git under the paths listed in the evidence documents.
 
 ## Validation result
@@ -43,7 +44,9 @@ outside Git under the paths listed in the evidence documents.
 Full Jest, typecheck, lint, repository validators, Android debug
 build/install, native light/dark captures, an emulator-local scroll through
 Rewards/Data/Settings, the accessibility audit, and a fresh logcat sample
-were executed. The four known GitHub push workflows remain classified as
-`FAILED BEFORE EXECUTION / EXTERNAL` when they exhibit the previously observed
-zero-step Actions/service failure; this is not relabeled as CI success or a
-product failure.
+were executed. The four GitHub push workflows for `ead08f9` were classified as
+`FAILED BEFORE EXECUTION / EXTERNAL`: Repository Integrity `35258106101`,
+Android Build Smoke `35258106110`, App CI `35258106068`, and iOS Build Smoke
+`35258106061` each completed with an empty job-step list; the App CI failed-log
+query returned `log not found`. This is not relabeled as CI success or a
+product failure, and no workflow was changed.

@@ -73,6 +73,8 @@ was authorized.
   inferred from local results.
 - **Terminal result:** Campaign 034 is validated; Campaign 035 may be opened
   by the overnight orchestrator.
+- **Closing checkpoint:** pushed as `ead08f9cb191694defd425f0f12dd806b197ee4b`;
+  `HEAD` and `origin/main` were equal after the push.
 
 ## Campaign 032 checkpoint — Games discovery and identity redesign (VALIDATED)
 

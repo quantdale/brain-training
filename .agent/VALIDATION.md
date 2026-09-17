@@ -32,6 +32,11 @@ unavailable checks into PASS.
   `00117f8a-c773-4e4b-9473-87b9457cfdd1` completed Profile → Rewards
   navigation without a claim/purchase mutation.
 - Evidence package: **PASS** — `docs/redesign/evidence/campaign034/`.
+- External CI: **FAILED BEFORE EXECUTION / EXTERNAL** — the four workflows for
+  `ead08f9` (Repository Integrity `35258106101`, Android Build Smoke
+  `35258106110`, App CI `35258106068`, and iOS Build Smoke `35258106061`)
+  completed with `steps: []`; the failed-log query returned `log not found`.
+  This is not product evidence and no workflow was edited.
 - Human/platform validation and external CI remain **NOT VALIDATED / PENDING
   or EXTERNAL** as described by the evidence package; no global success label
   is inferred.
