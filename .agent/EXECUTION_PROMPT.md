@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 039: Performance, Reliability & Maintenance Isolation
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `039-performance-reliability-maintenance-isolation`
 **Planned-From:** `9672c07`
 **Start-SHA:** `9672c07`
@@ -20,6 +20,16 @@ Execute Campaign 039 from
 Measure current startup, route/loading, persistence/relaunch, data-loading,
 runtime-warning, and maintenance behavior. Apply only an evidence-backed
 material repair, and keep dependency work isolated.
+
+## Terminal result
+
+Campaign 039 is **VALIDATED / COMPLETE for the tested Android/repository
+scope**. No controlled profiler evidence justified a speculative source
+optimization. Expo SDK 57 patch drift was refreshed in isolated commit
+`eb4d7fb`; full tests/validators, debug and release native builds, the
+22-surface release matrix, automated a11y, repeated launches, Games search,
+and filtered logcat passed. Evidence is under
+`docs/redesign/evidence/campaign039/`.
 
 ## Required validation and handoff
 

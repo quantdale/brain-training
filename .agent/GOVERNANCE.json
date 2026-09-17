@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "039-performance-reliability-maintenance-isolation",
-  "lastCampaign": "038-accessibility-device-sensory-hardening",
+  "activeCampaign": null,
+  "lastCampaign": "039-performance-reliability-maintenance-isolation",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

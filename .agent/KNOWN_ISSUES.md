@@ -1,11 +1,24 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 039 ACTIVE
+## Current status — Campaign 039 VALIDATED; Campaign 040 next
 
-Campaign 039 is active from terminal Campaign 038 checkpoint `9672c07`.
-Current startup, route/loading, persistence/relaunch, list/progress, runtime
-warning, and maintenance behavior must be measured on the dedicated AVD before
-any optimization or dependency change. No 039 source change is justified yet.
+Campaign 039 is terminally validated for the tested Android/repository scope
+from Campaign 038 checkpoint `9672c07`. Current startup, route/loading,
+persistence/relaunch, list/progress, runtime warning, opt-in probes, and Expo
+patch drift were measured. No reproducible redesign-created source performance
+defect was established; the isolated Expo SDK 57 compatible patch refresh is
+at `eb4d7fb` and its evidence is under
+`docs/redesign/evidence/campaign039/`.
+
+Release startup timings varied across emulator/system conditions; they are
+recorded as non-causal observations, not a clean benchmark or an invented
+regression. The dev GameHost lazy loading card was a real explicit warm-up
+state; release bundling loaded the real GameHost intro.
+
+The post-refresh release matrix was 22/22 route-verified/nonblank and the
+automated a11y audit reported zero violations. No app-filtered fatal, ANR,
+SQLite-lock, or React Native error signal was found. Human/platform limits and
+external CI remain pending/external.
 
 Do not edit CI workflows to hide external zero-step failures. Keep any
 dependency maintenance isolated and rerun full native validation if it becomes

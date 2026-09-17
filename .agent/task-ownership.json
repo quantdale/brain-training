@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "039-performance-reliability-maintenance-isolation",
   "description": "Campaign 039 performance/reliability/maintenance ownership record. The orchestrator owns measurement, shared reliability seams, governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [

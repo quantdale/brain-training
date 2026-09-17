@@ -1,23 +1,39 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 039 is active from the terminal Campaign
-038 checkpoint; measurement-led reliability work is underway.
+**Last update:** 2026-09-18 — Campaign 039 is terminally validated for the
+tested Android/repository scope; Campaign 040 is the next safe successor.
 **Canonical branch:** `main`
-**Active campaign:** `039-performance-reliability-maintenance-isolation`
-**Last campaign:** `038-accessibility-device-sensory-hardening`
+**Active campaign:** `none`
+**Last campaign:** `039-performance-reliability-maintenance-isolation`
 **Last campaign status:** VALIDATED
 
-## Campaign 039 checkpoint — Performance, Reliability & Maintenance Isolation (ACTIVE)
+## Campaign 039 checkpoint — Performance, Reliability & Maintenance Isolation (VALIDATED)
 
 - **Activation:** opened from synchronized terminal Campaign 038 checkpoint
   `9672c07`; no local or concurrent user work was present to overwrite.
-- **Scope:** measure current cold/warm startup, route/loading transitions,
-  persistence/relaunch, representative data loads, runtime warnings, and
-  existing opt-in performance probes before changing code. Any dependency
-  maintenance must be isolated and evidence-backed.
-- **Guardrails:** no speculative optimization, CI workflow edits, dependency
-  churn, schema/migration/economy/session/workout/gameplay/router change, or
-  unsupported performance claim is authorized.
+- **Discovery:** current dev/release startup, route arrival, list/search,
+  memory, persistence/relaunch, logcat, and same-host probes were measured on
+  the dedicated `braintraining-ui35` AVD. Release Game Intro loaded the real
+  bundled GameHost; the dev lazy-module loading card was classified as a
+  Metro warm-up observation.
+- **Implementation:** no speculative source performance optimization was
+  justified. The Expo SDK 57 compatible patch drift was refreshed in an
+  isolated package manifest/lockfile commit `eb4d7fb`; no schema, migration,
+  economy, session/workout identity, gameplay, router, offline, or CI change
+  was made.
+- **Validation:** full Jest (557 suites passed / 4 skipped; 6,567 tests
+  passed / 5 skipped; 5 snapshots), typecheck, lint, repo-state, task
+  ownership, OpenSpec, registry, provenance, offline, secrets, workflows,
+  dependency audit, affected-map, runtime contract, debug/release Android
+  builds, 22-surface release matrix, a11y audit, pixel inspection, repeated
+  cold launches, Games search, and app-filtered logcat all passed. Exact
+  evidence is under `docs/redesign/evidence/campaign039/`.
+- **Limits:** startup timings were variable across emulator/system states and
+  are recorded without a causal regression claim. Human, TalkBack,
+  VoiceOver/iOS, physical-device, store-signing, system-sheet, and external
+  CI evidence remain pending/external.
+- **Terminal result:** Campaign 039 is complete for the tested
+  Android/repository scope. Campaign 040 is the next safe successor.
 
 ## Campaign 038 checkpoint — Accessibility, Device, Motion & Sensory Hardening (VALIDATED)
 

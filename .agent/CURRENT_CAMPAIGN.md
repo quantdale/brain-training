@@ -1,11 +1,11 @@
 # Campaign 039 — Performance, Reliability & Maintenance Isolation
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `039-performance-reliability-maintenance-isolation`
 **Predecessor:** `038-accessibility-device-sensory-hardening` (validated)
 **Mode:** day
 **Start SHA:** `9672c07`
-**Change:** `039-performance-reliability-maintenance-isolation` (ACTIVE)
+**Change:** `039-performance-reliability-maintenance-isolation` (VALIDATED)
 **Authorization:** owner-supplied Campaign 033–040 overnight directive on
 2026-09-18, following the validated Campaign 038 checkpoint.
 
@@ -17,8 +17,16 @@ material regression, keeping dependency maintenance isolated.
 
 ## Current evidence
 
-Campaign 038 is terminally validated for the tested Android scope. Campaign
-039 begins from its pushed checkpoint; no 039 product change has been made yet.
+Campaign 038 was terminally validated for the tested Android scope. Campaign
+039 measured current behavior, found no reproducible redesign-created source
+performance defect requiring speculative optimization, and aligned Expo SDK
+57 compatible patch dependencies in an isolated manifest/lockfile commit.
+
+The post-refresh release matrix is 22/22 route-verified/nonblank with zero
+automated accessibility violations; release GameHost loaded its bundled
+intro, Games search found `memory` among 42 entries, and filtered logcat had
+no fatal/ANR/SQLite-lock signal. Evidence is under
+`docs/redesign/evidence/campaign039/`.
 
 ## Bounded implementation
 
@@ -28,6 +36,13 @@ Campaign 038 is terminally validated for the tested Android scope. Campaign
   routes, and existing CI/workflow configuration.
 - Record an evidence-only result when current behavior shows no material
   redesign-created regression.
+
+## Terminal result
+
+Campaign 039 is **COMPLETE for the tested Android/repository scope**. The
+startup timing variance and manual/platform/external limits remain explicitly
+classified; no global release certification is implied. Campaign 040 is the
+next safe successor.
 
 ## Exit criteria
 

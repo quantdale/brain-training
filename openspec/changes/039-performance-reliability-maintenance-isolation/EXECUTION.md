@@ -1,6 +1,6 @@
 # Execution — Campaign 039 Performance, Reliability & Maintenance Isolation
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Mode:** day
 **Start SHA:** `9672c07`
 **Authority:** `docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and
@@ -18,6 +18,14 @@ Campaign 038 is terminally validated for the tested Android scope. Campaign
 039 starts from its pushed checkpoint and must establish current performance
 and reliability truth before changing code.
 
+The measurement pass found no reproducible redesign-created source
+performance regression that justified a speculative optimization. It did
+find that the repository's Expo SDK 57 patch dependencies had drifted from
+the installed compatible patch set. That maintenance slice was refreshed in
+the package manifest/lockfile only, then rebuilt and exercised on the
+dedicated Android runtime. No schema, persistence, session, workout,
+gameplay, router, or CI change was made.
+
 ## Guardrails
 
 - Use only the dedicated `emulator-5554` / `braintraining-ui35` target.
@@ -27,6 +35,13 @@ and reliability truth before changing code.
 - Do not edit CI workflows to hide external zero-step failures.
 - Record unavailable iOS, physical-device, human, and external evidence as
   NOT VALIDATED or external rather than inferring success.
+
+## Terminal result
+
+Campaign 039 is **COMPLETE for the tested Android/repository scope** at the
+source maintenance checkpoint recorded in the evidence package under
+`docs/redesign/evidence/campaign039/`. This is not a claim of human, iOS,
+physical-device, production-signing, or external-CI certification.
 
 ## Exit criteria
 

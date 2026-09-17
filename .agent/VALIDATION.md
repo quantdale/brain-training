@@ -5,16 +5,45 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-### Campaign 039 Performance, Reliability & Maintenance Isolation — 2026-09-18 (ACTIVE discovery)
+### Campaign 039 Performance, Reliability & Maintenance Isolation — 2026-09-18 (VALIDATED)
 
 - Activation: **PASS** — Campaign 039 opened from terminal synchronized
   checkpoint `9672c07`; no local or concurrent user work was overwritten.
-- Scope: **ACTIVE** — current startup, route/loading, persistence/relaunch,
-  representative list/progress data, runtime warnings, opt-in perf probes,
-  maintenance advisories, and external CI state are measurement work. No
-  source or dependency change has been made for 039 yet.
-- ARTEMIS/computer-use: no 039 task started; the dedicated ADB/emulator and
-  existing dev-only perf instrumentation are the planned measurement paths.
+- Measurement: **PASS** — dedicated `braintraining-ui35` / `emulator-5554`
+  captured dev/release startup, bootstrap marks, route arrival, memory
+  plateau, Games scroll/search, same-host data/sync probes, repeated relaunch,
+  and filtered logcat. Timings are recorded with harness/system caveats in
+  `docs/redesign/evidence/campaign039/PERFORMANCE_BASELINE.md`.
+- Maintenance decision: **PASS** — no controlled profiler evidence justified
+  speculative source optimization. Expo SDK 57 compatible patch drift was
+  refreshed in isolated manifest/lockfile commit `eb4d7fb`; no schema,
+  persistence, session/workout, gameplay, router, offline, or CI change was
+  made.
+- Repository validation: **PASS** — full Jest 557 suites passed / 4 skipped;
+  6,567 tests passed / 5 skipped; 5 snapshots; typecheck, lint, repo-state,
+  task ownership, OpenSpec 25/25, registry, provenance, offline (973 source
+  files), secrets, workflows, dependency audit, affected-map sync/strict,
+  and runtime-QA contract.
+- Native build/runtime: **PASS** — debug and release Android builds passed;
+  refreshed release APK SHA-256 is
+  `7CACB25F2C4CCCC298BE2CB1360396BA1F5148121274926B44F8C028E144CB78`;
+  22/22 light/dark routes were verified nonblank, automated a11y reported 0
+  violations, release GameHost loaded its bundled intro, and filtered logs
+  showed no fatal/ANR/SQLite-lock/React Native error signal.
+- Pixel/state comparison: **PASS with classification** — matching PNGs were
+  inspected. Large Profile/Rewards diffs were non-equivalent capture/local
+  states (before Rewards visibly had a load-error card; after showed the
+  initialized collection), not used as a dependency regression claim.
+- ARTEMIS/computer-use: no new ARTEMIS trace was claimed for this
+  dependency-only closure; earlier ARTEMIS device-state/journey evidence is
+  retained under the earlier campaigns. No computer-use or host-input
+  automation was used.
+- External CI: **NOT YET QUERIED FOR THE `eb4d7fb` PUSH**; prior zero-step
+  workflow failures remain external and no workflow was edited.
+- Human/platform limits: **NOT VALIDATED / PENDING** — no independent human,
+  manual TalkBack, VoiceOver/iOS, physical-device, store-signed, or system
+  document-picker evidence.
+- Evidence package: **PASS** — `docs/redesign/evidence/campaign039/`.
 
 ### Campaign 038 Accessibility, Device, Motion & Sensory Hardening — 2026-09-18 (VALIDATED)
 
