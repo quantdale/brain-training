@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "040-release-candidate-integration-certification",
-  "lastCampaign": "039-performance-reliability-maintenance-isolation",
+  "activeCampaign": null,
+  "lastCampaign": "040-release-candidate-integration-certification",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

@@ -1,15 +1,25 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 040 ACTIVE
+## Current status — Campaign 040 VALIDATED / CONDITIONAL
 
-Campaign 040 is active from terminal Campaign 039 checkpoint `174fff6`.
-The integrated product, 42-game catalog, representative mechanics, release
-build, persistence/relaunch, offline, theme, accessibility, copy, debt, and
-external CI status must be re-observed before assigning a readiness label.
-Human, iOS, physical-device, production-signing, system document-picker, and
-independent participant evidence must remain explicitly NOT VALIDATED unless
-actually executed. Do not perform destructive data actions or edit CI merely
-to produce a green result.
+Campaign 040 is complete for the executable repository and dedicated Android
+release-candidate scope, classified `CAMPAIGN_040_CONDITIONAL`. The final
+22-surface matrix and automated accessibility audit passed; the final release
+Memory flow, daily-workout start, relaunch persistence, invalid routes,
+catalog/search, offline routes, and filtered startup logcat were observed.
+Two bounded release interaction defects were repaired at `0cb7727` and have
+focused regressions. No severe product, persistence, migration, economy,
+backup/restore, workout/session-identity, or navigation trap remains open from
+this pass.
+
+The conditional label is required by unavailable independent human/manual
+accessibility, iOS, physical-device, store-signing/system-sheet, full manual
+catalog/workout, and external CI evidence. The current four GitHub runs fail
+before any job steps (`steps: []`); no workflow was edited. The composite
+clean-checkout certifier was not run because this runtime-enabled checkout
+contains its existing native/dependency trees; its constituent gates passed.
+Do not perform destructive Data actions or edit CI merely to produce green
+evidence.
 
 ## Campaign 039 VALIDATED
 

@@ -1,11 +1,12 @@
 # Overnight Autonomous Execution — Campaigns 033–040
 
-**Status:** READY FOR EXECUTION  
+**Status:** TERMINAL — `OVERNIGHT_COMPLETE_THROUGH_039_CAMPAIGN_040_CONDITIONAL`
 **Repository:** `quantdale/brain-training`  
 **Mode:** long-running autonomous implementation + observation + validation + durable handoff  
 **Starting point:** Campaign 032 is complete; begin with Campaign 033  
 **Target horizon:** continue sequentially as far as safely possible through Campaign 040  
-**Completion expectation:** substantial validated progress; later campaigns may be PARTIAL  
+**Completion expectation:** substantial validated progress; Campaign 040 is
+closed conditionally with explicit manual/platform/CI limits.
 
 ---
 

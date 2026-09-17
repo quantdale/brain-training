@@ -81,16 +81,16 @@ contracts. The evidence package is under
 `docs/redesign/evidence/campaign032/`; independent human/manual platform
 evidence remains explicitly pending.
 
-## Owner overnight directive — Campaigns 033–040 (active sequence)
+## Owner overnight directive — Campaigns 033–040 (completed sequence)
 
 On 2026-09-18 the owner directed the agent to safely synchronize `main`, read
 and execute `.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`
 and its coupled Campaign 033 prompt/roadmap, then continue autonomously through
-Campaign 040 as safely possible. Campaign 033 is now validated under
-`033-progress-disclosure-redesign`; its evidence is under
-`docs/redesign/evidence/campaign033/`. Campaign 034 may proceed as an
-independent bounded slice, with later campaigns remaining conditional on
-actual evidence and protected correctness.
+Campaign 040 as safely possible. Campaigns 033–039 are complete for their
+recorded scopes. Campaign 040 is terminally `CONDITIONAL` at source checkpoint
+`0cb7727`; its evidence is under `docs/redesign/evidence/campaign040/` and the
+overnight handoff. Independent human/platform and external CI limitations were
+preserved rather than relabelled.
 
 ## Historical terminal campaign state before Campaign 029
 

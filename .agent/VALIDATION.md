@@ -5,16 +5,52 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-### Campaign 040 Release-Candidate Integration & Certification — 2026-09-18 (ACTIVE)
+### Campaign 040 Release-Candidate Integration & Certification — 2026-09-18 (VALIDATED / CONDITIONAL)
 
 - Activation: **PASS** — Campaign 040 opened from terminal synchronized
   checkpoint `174fff6`; no local or concurrent user work was overwritten.
-- Scope: **ACTIVE** — current integrated native journeys, 42-game catalog,
-  representative mechanics, offline/theme/accessibility operation, copy/debt,
-  repository gates, release build, and external CI are being re-observed.
-- Certification rule: no global release label is assigned until current
-  evidence is written. Human, iOS, physical-device, signing, system-sheet,
-  and unavailable external evidence remain NOT VALIDATED/external.
+- Implementation: **PASS** — current release observation demonstrated two
+  bounded defects: the first-play GameHost tutorial could cover session
+  feedback CTAs, and populated Game Detail's trends link was 18 dp high. The
+  tutorial now mounts only in intro; the trends link uses the shared 44 dp
+  `MinTouchTarget`. Focused regressions were added and the source checkpoint
+  `0cb7727` was pushed.
+- Repository: **PASS** — full Jest 557 suites passed / 4 skipped; 6,568 tests
+  passed / 5 skipped; 5 snapshots; typecheck, lint, Expo Doctor 21/21, web
+  export, OpenSpec 26/26, repo-state, task ownership, affected-map sync,
+  provenance plus self-tests, offline (973 files), secrets (2,257 tracked
+  text files), workflows, dependency audit, generated registry, and runtime
+  contract all passed. The composite clean-checkout script was not run
+  because this runtime-enabled working copy contains the existing native and
+  dependency trees; its constituent gates were run directly.
+- Native: **PASS** — final release APK SHA-256
+  `1FF87618F190513BC04A84BA597BC0BE8764317EA8B5BC4720683EB4BE539DAA` was
+  installed on `braintraining-ui35` / `emulator-5554` (Android 15/API 35,
+  1080x2400 density 420). Light/dark capture was 22/22 route-verified and
+  nonblank; automated accessibility was 0 violations across 22 surfaces.
+  Daily workout start/first board, standalone Memory five-round result,
+  relaunch persistence, Games catalog/search, invalid-route recovery, offline
+  routes, and filtered fresh-start logcat were observed. Full daily workout
+  and all 42 mechanics were not claimed as manually played.
+- Pixel/state comparison: **PASS with classification** — before/after PNGs
+  were captured under `D:\Temp\campaign040-runtime-before` and
+  `D:\Temp\campaign040-runtime-after-all-fixes`. The all-pair comparison
+  changed 32.8595% of pixels (RMSE 33.620), primarily because the after state
+  includes a real persisted session; stable Game Intro changed 0.04% per
+  theme. The actual GameHost CTA overlay was separately reproduced and
+  verified fixed in final release screenshots/XML.
+- Catalog/copy/debt: **PASS** — 42 base card IDs were observed by scroll,
+  registry generation is current, no direct medical/efficacy/intelligence
+  promise was found in current player-facing source, and existing debt was
+  recorded without speculative cleanup.
+- External CI: **EXTERNAL / NOT PASS** — all four runs for `0cb7727` failed
+  before executing a job step (`steps: []`); no workflow was edited.
+- Human/platform limits: **NOT VALIDATED / PENDING** — no independent human,
+  TalkBack, VoiceOver/iOS, physical-device, store-signed, system document
+  sheet, or independent full-catalog/workout evidence. Terminal result is
+  `CAMPAIGN_040_CONDITIONAL`, not a global certification claim.
+- Evidence package: **PASS** — `docs/redesign/evidence/campaign040/`; overnight
+  handoff is under `docs/redesign/evidence/overnight-033-040/`.
 
 ### Campaign 039 Performance, Reliability & Maintenance Isolation — 2026-09-18 (VALIDATED)
 

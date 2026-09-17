@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 040: Release-Candidate Integration & Certification
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_040_CONDITIONAL`
 **Change:** `040-release-candidate-integration-certification`
 **Planned-From:** `174fff6`
 **Start-SHA:** `174fff6`

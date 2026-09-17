@@ -1,27 +1,39 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 040 is active from the terminal Campaign
-039 checkpoint; integrated release-candidate certification is underway.
+**Last update:** 2026-09-18 — Campaign 040 closed CONDITIONALLY after the
+integrated release-candidate pass.
 **Canonical branch:** `main`
-**Active campaign:** `040-release-candidate-integration-certification`
-**Last campaign:** `039-performance-reliability-maintenance-isolation`
+**Active campaign:** none
+**Last campaign:** `040-release-candidate-integration-certification`
 **Last campaign status:** VALIDATED
 
-## Campaign 040 checkpoint — Release-Candidate Integration & Certification (ACTIVE)
+## Campaign 040 checkpoint — Release-Candidate Integration & Certification (VALIDATED / CONDITIONAL)
 
 - **Activation:** opened from synchronized terminal Campaign 039 checkpoint
   `174fff6`; no local or concurrent user work was present to overwrite.
-- **Scope:** re-observe the integrated product on the dedicated normal-phone
-  Android runtime, run the broadest practical repository/release matrix,
-  recheck the 42-game catalog and representative mechanics, review copy/debt,
-  and classify unavailable human/platform/CI evidence honestly.
-- **Guardrails:** certification only; no automatic full hardening campaign,
-  feature expansion, broad schema/economy change, router rewrite, CI masking,
-  destructive data action, or unsupported cognitive/medical claim.
-- **Exit:** produce one of `CAMPAIGN_040_CERTIFIED`,
-  `CAMPAIGN_040_CONDITIONAL`, `CAMPAIGN_040_PARTIAL`, or
-  `CAMPAIGN_040_BLOCKED` with current source/runtime evidence and an updated
-  overnight handoff.
+- **Implementation:** current Android observation found and repaired two
+  bounded release interaction defects at `0cb7727`: an open first-play
+  tutorial could cover GameHost session CTAs, and populated Game Detail's
+  trends link was below the shared 44 dp target. Focused regressions cover
+  both repairs. No game mechanics, schema, migration, economy, workout or
+  session identity, backup/restore, router contract, or CI workflow changed.
+- **Repository evidence:** full Jest 557 suites passed / 4 skipped; 6,568
+  tests passed / 5 skipped; 5 snapshots; typecheck, lint, Expo Doctor 21/21,
+  web export, OpenSpec 26/26, repo-state, task ownership, affected map,
+  provenance, offline, secrets, workflows, dependency, registry, and runtime
+  contract gates passed. The final release APK was installed successfully.
+- **Native evidence:** dedicated `braintraining-ui35` / `emulator-5554`,
+  Android 15/API 35, 1080x2400 density 420. Final release matrix was 22/22
+  route-verified/nonblank with 0 automated accessibility violations. Daily
+  workout start/first board, standalone Memory five-round result, relaunch
+  persistence, catalog/search, invalid-route recovery, offline routes, and
+  filtered startup logcat were observed. Full daily workout and all mechanics
+  were not claimed as manually completed.
+- **Terminal result:** `CAMPAIGN_040_CONDITIONAL`. Human/manual TalkBack or
+  VoiceOver, iOS, physical-device, store-signing/system-sheet, full manual
+  catalog/workout, and external CI success remain unavailable or conditional.
+  Evidence is under `docs/redesign/evidence/campaign040/` and the overnight
+  handoff.
 
 ## Campaign 039 checkpoint — Performance, Reliability & Maintenance Isolation (VALIDATED)
 

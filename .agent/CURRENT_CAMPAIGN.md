@@ -1,11 +1,11 @@
 # Campaign 040 — Release-Candidate Integration & Certification
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_040_CONDITIONAL`
 **Campaign id:** `040-release-candidate-integration-certification`
 **Predecessor:** `039-performance-reliability-maintenance-isolation` (validated)
 **Mode:** day
 **Start SHA:** `174fff6`
-**Change:** `040-release-candidate-integration-certification` (ACTIVE)
+**Change:** `040-release-candidate-integration-certification` (VALIDATED)
 **Authorization:** owner-supplied Campaign 033–040 overnight directive on
 2026-09-18, following the validated Campaign 039 checkpoint.
 
@@ -22,6 +22,20 @@ Preserve SQLite/profile/session/workout identity, migrations, offline behavior,
 economy, gameplay, recoverable routing, and the no-medical-claims boundary.
 Avoid destructive Data Management actions and do not turn certification into
 a speculative feature or architecture rewrite.
+
+## Terminal result
+
+Campaign 040 is **CONDITIONAL** for the executable repository and dedicated
+Android release-candidate scope. The final release candidate passed the local
+repository gates, 22-surface light/dark matrix, automated accessibility audit,
+offline checks, catalog identity/search checks, representative workout and
+standalone-game journeys, and relaunch persistence observation. Two current
+release interaction defects were repaired with focused regressions.
+
+Independent human, manual TalkBack/VoiceOver, iOS, physical-device,
+store-signing/system-sheet, full manual catalog/workout, and external CI
+evidence remain unavailable or conditional. See
+`docs/redesign/evidence/campaign040/` and the overnight handoff.
 
 ## Exit
 

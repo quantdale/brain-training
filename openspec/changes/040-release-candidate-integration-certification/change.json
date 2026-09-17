@@ -1,6 +1,6 @@
 {
   "id": "040-release-candidate-integration-certification",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "039-performance-reliability-maintenance-isolation",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -12,5 +12,5 @@
   "baselineAuditCommit": "174fff6",
   "fullHardening": false,
   "reviewConsumption": "Consumes the validated Campaign 031–039 product, native evidence, persistence repair, dependency refresh, and explicit platform/tooling limits. Scope is integrated release-candidate certification, not a new feature wave or automatic full hardening campaign.",
-  "validationNote": "Active certification pass. Every result must be tied to current source, executable gates, or an observed dedicated Android runtime journey. External/manual limitations remain conditional or NOT VALIDATED."
+  "validationNote": "Validated as CAMPAIGN_040_CONDITIONAL at source checkpoint 0cb7727. Repository gates and dedicated Android release evidence passed; independent human, iOS/physical-device, signing/system-sheet, full manual catalog/workout, and external CI evidence remain conditional or NOT VALIDATED."
 }

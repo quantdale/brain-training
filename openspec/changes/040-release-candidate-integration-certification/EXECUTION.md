@@ -1,6 +1,6 @@
 # Execution — Campaign 040 Release-Candidate Integration & Certification
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_040_CONDITIONAL`
 **Mode:** day
 **Start SHA:** `174fff6`
 **Authority:** `docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and
@@ -21,6 +21,20 @@ bounded severe or release-blocking defect.
 - Do not claim human TalkBack/VoiceOver, iOS, physical-device, signing,
   document-sheet, or external-CI success without direct evidence.
 - Do not edit CI workflows to hide failures or reopen locked product choices.
+
+## Terminal result
+
+Campaign 040 is **CONDITIONAL** for the executable repository and dedicated
+Android release-candidate scope. The final release artifact passed the local
+repository gates, 22-surface light/dark matrix, automated accessibility audit,
+offline route checks, catalog identity/search checks, representative workout
+and standalone-game journeys, and relaunch persistence observation. Two
+current release interaction defects were repaired with focused regressions.
+
+The result is not unconditional certification: independent human, manual
+TalkBack/VoiceOver, iOS, physical-device, store-signing/system-sheet, full
+manual catalog/workout, and external CI evidence remain unavailable or
+conditional. See `docs/redesign/evidence/campaign040/`.
 
 ## Exit criteria
 

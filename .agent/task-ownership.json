@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "040-release-candidate-integration-certification",
   "description": "Campaign 040 integrated release-candidate certification ownership record. The orchestrator owns the product audit, native runtime, governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
