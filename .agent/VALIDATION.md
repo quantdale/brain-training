@@ -5,6 +5,46 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 033 Progress disclosure — 2026-09-18
+
+- Safe synchronization fast-forwarded from the prior terminal Campaign 032
+  head to `3253ca1437b9d70f58b3a89dca54403610c6fa0e`; no local or concurrent
+  user work was overwritten. Product changes are limited to Progress overview
+  disclosure, pure analytics summaries, Progress Detail row sizing, copy
+  snapshots, and evidence/control-plane records.
+- Focused disclosure/Progress/analytics Jest: **PASS** — 6 suites / 38 tests
+  across the final focused reruns (including the updated visual baseline
+  suite's 5 tests / 5 snapshots). Typecheck and lint: **PASS**.
+- Full Jest final rerun: **PASS** — 556 passing suites / 6,561 passing tests,
+  4 skipped suites / 5 skipped tests, 5 snapshots passed. The first run had
+  one failure in the pre-existing terminal-governance prose assertion; the
+  assertion was repaired by bringing durable Campaign 033 terminal state into
+  the wording expected by its own governance test, then the complete matrix
+  was rerun successfully.
+  Console output includes known test-harness errors/warnings from mocked DB,
+  router, persistence-failure, and React act scenarios; no suite failure was
+  attributed to the Progress source change.
+- Android debug build/install: **PASS** — `apps/mobile/android/app/build/
+  outputs/apk/debug/app-debug.apk`, SHA-256
+  `80E9B29134FB70D7C45E30B7BB0FB6F6E90EE8D358B1880B9FA236E98A877D6A`,
+  installed on dedicated `emulator-5554` with data preserved.
+- Native: `scripts/qa/ui-capture.mjs` produced nonblank, route-verified
+  Progress/Detail/Activity light/dark captures for populated state and
+  Progress light/dark captures for sparse state. ARTEMIS Flash trace
+  `4da312ad-74fd-4976-ada2-df23f943f9d5` completed one legitimate six-round
+  Odd One Out session and returned to the redesigned Progress screen. Raw
+  artifacts remain outside Git under the paths indexed in
+  `docs/redesign/evidence/campaign033/RUNTIME_VISUAL_VALIDATION.md`.
+- Automated accessibility audit: **PASS**, 0 violations across 6 populated
+  surfaces and 2 sparse surfaces at density 420. Fresh post-relaunch logcat:
+  no fatal/SQLite/lock/ANR/ReactNativeJS error signatures; older pre-clear
+  emulator logs contained a historical focus ANR/WebSocket retry and are not
+  relabeled as globally resolved.
+- Human TalkBack/VoiceOver/iOS/physical-device/large-text/reduced-motion and
+  independent usability validation: **NOT VALIDATED / PENDING**. External CI
+  status: **NOT CHECKED at this checkpoint**. Required evidence package:
+  `docs/redesign/evidence/campaign033/`.
+
 ### Campaign 032 terminal closure — 2026-09-17
 
 - Safe synchronization reached `fa29742f08636b455f23a90c27cec61798fb1024`;

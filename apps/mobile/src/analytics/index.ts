@@ -26,3 +26,4 @@ export * from './rolling-windows';
 export * from './category-comparison';
 export * from './workout-analytics';
 export * from './cooccurrence';
+export * from './progress-disclosure';

@@ -55,10 +55,17 @@ import {
   filterByWindow,
   loadProgressSnapshot,
   buildWorkoutAnalytics,
+  buildNextConsideration,
+  buildProgressConsistency,
+  buildProgressMovement,
+  formatDaysSince,
   type CalendarDay,
   type CompositeExplanation,
   type DomainInsight,
   type DomainSessionShare,
+  type NextConsideration,
+  type ProgressConsistency,
+  type ProgressMovement,
   type ProgressSnapshot,
   type RecentVsLifetime,
   type TimeWindowKey,
@@ -362,6 +369,23 @@ export default function ProgressScreen() {
   const level = levelForXp(data.totalXp);
   const isNewPlayer = data.sessions.length === 0;
 
+  // Campaign 033: answer the three overview questions from the same selected
+  // window before exposing the deeper analytics stack. These are pure
+  // summaries over existing rows; ratings, scoring, and persistence remain
+  // untouched.
+  const consistency = useMemo(
+    () => buildProgressConsistency(data.sessions, nowMs, windowKey),
+    [data.sessions, nowMs, windowKey],
+  );
+  const recordedMovement = useMemo(
+    () => buildProgressMovement(data.sessions, nowMs, windowKey),
+    [data.sessions, nowMs, windowKey],
+  );
+  const nextConsideration = useMemo(
+    () => buildNextConsideration(domainInsights, trainingBalance),
+    [domainInsights, trainingBalance],
+  );
+
   // Most/least trained domains for the equal-column insight pair (in-window shares).
   const trainedBalance = trainingBalance.perDomain.filter((entry) => entry.sessions > 0);
   const mostTrained = trainedBalance.length > 0 ? trainedBalance[0] : null;
@@ -377,13 +401,13 @@ export default function ProgressScreen() {
     <ScreenShell>
       <View style={styles.header}>
         <ThemedText type="eyebrow" themeColor="accentText">
-          TRACK GROWTH
+          YOUR TRAINING RECORD
         </ThemedText>
         <ThemedText type="title" testID="progress-title">
           Progress
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          Your training history, ratings and records.
+          A clear view of consistency, recorded movement and what to consider next.
         </ThemedText>
       </View>
 
@@ -432,7 +456,23 @@ export default function ProgressScreen() {
         </Entrance>
       ) : null}
 
-      <CompositeCard composite={composite} trend={heroTrend} testID="progress-composite" />
+      {!isNewPlayer ? (
+        <Entrance index={1}>
+          <ProgressAnswers
+            consistency={consistency}
+            movement={recordedMovement}
+            nextConsideration={nextConsideration}
+            windowLabel={WINDOW_LABELS[windowKey]}
+          />
+        </Entrance>
+      ) : null}
+
+      <CompositeCard
+        composite={composite}
+        trend={heroTrend}
+        testID="progress-composite"
+        empty={isNewPlayer}
+      />
 
       <Entrance index={isNewPlayer ? 1 : 0}>
         <Card testID="progress-summary">
@@ -892,6 +932,174 @@ export default function ProgressScreen() {
   );
 }
 
+/**
+ * Answer-first Progress summary. The sections are intentionally compact so a
+ * returning player can read the selected window, recorded movement, and one
+ * next consideration before the composite and advanced analytics.
+ */
+function ProgressAnswers({
+  consistency,
+  movement,
+  nextConsideration,
+  windowLabel,
+}: {
+  consistency: ProgressConsistency;
+  movement: ProgressMovement;
+  nextConsideration: NextConsideration | null;
+  windowLabel: string;
+}) {
+  const theme = useTheme();
+  const movementTone: 'success' | 'danger' | 'textSecondary' =
+    movement.direction === 'up'
+      ? 'success'
+      : movement.direction === 'down'
+        ? 'danger'
+        : 'textSecondary';
+
+  return (
+    <Card variant="raised" testID="progress-answers">
+      <View style={styles.cardHeader}>
+        <View style={styles.sectionHeading}>
+          <ThemedText type="subtitle">At a glance</ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Based on your recorded sessions in this window.
+          </ThemedText>
+        </View>
+        <Badge label={windowLabel} tone="info" size="sm" />
+      </View>
+
+      <View testID="progress-consistency" style={styles.answerSection}>
+        <ThemedText type="eyebrow" themeColor="textSecondary">
+          CONSISTENCY
+        </ThemedText>
+        <View style={styles.answerStatRow}>
+          <View style={styles.answerStat}>
+            <StatBlock
+              label="Trained days"
+              value={String(consistency.activeDays)}
+              metric="streak"
+              valueType="numeralLg"
+            />
+          </View>
+          <View style={styles.answerStat}>
+            <StatBlock
+              label="Sessions"
+              value={String(consistency.sessions)}
+              metric="score"
+              valueType="numeralLg"
+            />
+          </View>
+          <View style={styles.answerStat}>
+            <StatBlock
+              label="Per active day"
+              value={
+                consistency.averagePerActiveDay > 0
+                  ? consistency.averagePerActiveDay.toFixed(1)
+                  : '—'
+              }
+              metric="score"
+              valueType="numeralLg"
+            />
+          </View>
+        </View>
+        <ThemedText type="caption" themeColor="textSecondary">
+          {consistency.activeDays === 0
+            ? `No sessions recorded in ${windowLabel} yet.`
+            : `${plural(consistency.sessions, 'session')} across ${plural(consistency.activeDays, 'active day')}. ${explainMetric('progress-consistency')}`}
+        </ThemedText>
+      </View>
+
+      <View
+        testID="progress-movement"
+        style={[styles.answerSection, styles.answerSectionBorder, { borderTopColor: theme.border }]}
+      >
+        <ThemedText type="eyebrow" themeColor="textSecondary">
+          RECORDED MOVEMENT
+        </ThemedText>
+        <ThemedText type="headline" themeColor={movementTone}>
+          {movementHeadline(movement, windowLabel)}
+        </ThemedText>
+        <ThemedText type="caption" themeColor="textSecondary">
+          {movement.sampleSize === 0
+            ? 'Movement will appear after a session is recorded.'
+            : movement.sampleSize === 1
+              ? 'One session is not enough to describe movement yet.'
+              : `${plural(movement.sampleSize, 'session')} used. ${explainMetric('recorded-movement')}`}
+        </ThemedText>
+      </View>
+
+      <View
+        testID="progress-focus"
+        style={[styles.answerSection, styles.answerSectionBorder, { borderTopColor: theme.border }]}
+      >
+        <ThemedText type="eyebrow" themeColor="textSecondary">
+          NEXT CONSIDERATION
+        </ThemedText>
+        {nextConsideration ? (
+          <Tappable
+            testID="progress-focus-action"
+            onPress={() =>
+              router.push(
+                `/progress-domain?domain=${encodeURIComponent(nextConsideration.domain)}`,
+              )
+            }
+            accessibilityLabel={`Open ${nextConsideration.domain} details, ${nextConsiderationCopy(nextConsideration, windowLabel)}`}
+            accessibilityHint="Open this domain's recorded history"
+            style={styles.focusAction}
+            pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+            <View style={styles.focusIdentity}>
+              <DomainDot domain={nextConsideration.domain} />
+              <View style={styles.focusCopy}>
+                <ThemedText type="bodyLarge" numberOfLines={1}>
+                  {nextConsideration.domain}
+                </ThemedText>
+                <ThemedText type="caption" themeColor="textSecondary" numberOfLines={2}>
+                  {nextConsiderationCopy(nextConsideration, windowLabel)}
+                </ThemedText>
+              </View>
+            </View>
+            <ThemedText type="headline" themeColor="accentText">
+              ›
+            </ThemedText>
+          </Tappable>
+        ) : (
+          <ThemedText type="bodySmall" themeColor="textSecondary">
+            No additional consideration is available from this record yet.
+          </ThemedText>
+        )}
+      </View>
+    </Card>
+  );
+}
+
+function movementHeadline(movement: ProgressMovement, windowLabel: string): string {
+  if (movement.status === 'empty') {
+    return `No sessions in ${windowLabel}`;
+  }
+  if (movement.status === 'insufficient') {
+    return `One recorded result in ${windowLabel}`;
+  }
+  const delta = Math.round((movement.delta ?? 0) * 100);
+  if (movement.comparison === 'first-to-latest') {
+    return delta === 0
+      ? 'First and latest recorded results match'
+      : `${formatSigned(delta)} points from first to latest`;
+  }
+  return delta === 0
+    ? `${windowLabel} average matches lifetime`
+    : `${formatSigned(delta)} points vs lifetime average`;
+}
+
+function nextConsiderationCopy(next: NextConsideration, windowLabel: string): string {
+  if (next.reason === 'not-trained') {
+    return `No sessions recorded in ${windowLabel}`;
+  }
+  if (next.reason === 'not-recent') {
+    return `Not played recently · last update ${formatDaysSince(next.daysSinceUpdate)}`;
+  }
+  return `${plural(next.sessionsInWindow, 'session')} in ${windowLabel} · least practiced`;
+}
+
 /** Hero ring: the largest spacing step doubled, sized for a 4-digit numeral beside it. */
 const HERO_RING_SIZE = Spacing.six * 2 + Spacing.threeHalf;
 
@@ -1061,19 +1269,41 @@ export function CompositeCard({
   composite,
   trend,
   testID,
+  empty = false,
 }: {
   composite: CompositeExplanation;
   /** Labelled window-vs-lifetime delta rendered under the hero numeral. */
   trend?: { text: string; tone: 'success' | 'danger' | 'textSecondary' } | null;
   testID?: string;
+  /** New players get an explanatory compact state, not a hero score. */
+  empty?: boolean;
 }) {
   const trained = composite.domains.filter((d) => d.status !== 'unseen').length;
   const total = composite.domains.length;
   const trainedShare = total > 0 ? trained / total : 0;
   return (
     <Entrance index={0}>
-      <Card variant="hero" testID="progress-composite-card">
-        <View testID={testID} style={styles.hero}>
+      <Card variant={empty ? 'outlined' : 'hero'} testID="progress-composite-card">
+        <View testID={testID} style={empty ? styles.emptyComposite : styles.hero}>
+          {empty ? (
+            <>
+              <View style={styles.cardHeader}>
+                <ThemedText type="subtitle">How ratings start</ThemedText>
+                <Badge label="No history" tone="info" size="sm" />
+              </View>
+              <ThemedText
+                type="numeralLg"
+                themeColor="textSecondary"
+                testID={testID ? `${testID}-value` : undefined}>
+                {composite.composite}
+              </ThemedText>
+              <ThemedText type="caption" themeColor="textSecondary">
+                Each domain starts at {composite.initialRating}. A recorded rating will appear
+                here after you play.
+              </ThemedText>
+            </>
+          ) : (
+            <>
           <View style={styles.heroMain}>
             <ProgressRing
               value={trainedShare}
@@ -1088,7 +1318,7 @@ export function CompositeCard({
             </ProgressRing>
             <View style={styles.heroCopy}>
               <ThemedText type="eyebrow" themeColor="textSecondary" style={styles.heroText}>
-                Overall performance
+                Overall recorded rating
               </ThemedText>
               <ThemedText
                 type="numeralXl"
@@ -1113,9 +1343,11 @@ export function CompositeCard({
             </View>
           </View>
           <ThemedText type="caption" themeColor="textSecondary">
-            Average of all {total} domains. Untrained start at {composite.initialRating}; stale
-            updates count half.
+            Canonical average of all {total} domain ratings. Untrained domains start at{' '}
+            {composite.initialRating}; stale updates count half. {explainMetric('composite')}
           </ThemedText>
+            </>
+          )}
         </View>
       </Card>
     </Entrance>
@@ -1298,6 +1530,9 @@ const styles = StyleSheet.create({
   hero: {
     gap: Spacing.three,
   },
+  emptyComposite: {
+    gap: Spacing.two,
+  },
   heroMain: {
     alignItems: 'center',
     gap: Spacing.three,
@@ -1309,6 +1544,41 @@ const styles = StyleSheet.create({
   },
   heroText: {
     textAlign: 'center',
+  },
+  answerSection: {
+    gap: Spacing.one,
+  },
+  answerSectionBorder: {
+    borderTopWidth: 1,
+    paddingTop: Spacing.two,
+  },
+  answerStatRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  answerStat: {
+    flex: 1,
+    minWidth: 0,
+  },
+  focusAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+    minHeight: Spacing.six,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.one,
+    borderRadius: Radii.medium,
+  },
+  focusIdentity: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    flex: 1,
+  },
+  focusCopy: {
+    flex: 1,
+    gap: Spacing.half,
   },
   insightPair: {
     flexDirection: 'row',

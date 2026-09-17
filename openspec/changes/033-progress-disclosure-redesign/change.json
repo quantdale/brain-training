@@ -1,0 +1,17 @@
+{
+  "id": "033-progress-disclosure-redesign",
+  "status": "VALIDATED",
+  "predecessor": "032-games-discovery-identity-redesign",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "progress-disclosure"
+  ],
+  "activationRule": "Owner supplied the Campaign 033–040 overnight directive on 2026-09-18: execute the authoritative Campaign 033 Progress Summary and Progressive Disclosure prompt after safely synchronizing main; preserve analytics, rating, persistence, offline, and no-medical-claim contracts.",
+  "baselineAuditCommit": "3253ca1437b9d70f58b3a89dca54403610c6fa0e",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the current Progress source/runtime state at synchronized main and the Campaign 033 authoritative prompt. Scope is limited to Progress overview disclosure, Progress drill-down clarity, sparse/history states, chart explanation, and Progress-local accessibility debt."
+}

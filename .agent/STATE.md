@@ -1,26 +1,49 @@
 # Durable Project State
 
-**Last update:** 2026-09-17 — Campaign 032 is terminally validated on
-synchronized `main`; Campaign 031 remains the before context.
+**Last update:** 2026-09-18 — Campaign 033 is terminally validated on
+synchronized `main`; Campaign 032 remains the before context.
 **Canonical branch:** `main`
 **Active campaign:** none
-**Last campaign:** `032-games-discovery-identity-redesign`
+**Last campaign:** `033-progress-disclosure-redesign`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 032 (`032-games-discovery-identity-redesign`) is terminally validated
-after the owner-directed product implementation successor. Its authoritative
-task specification was
-`.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`; activation
-started from synchronized `main` at `fa29742`. Campaign 031's terminal
-rendered/runtime package remains the prior visual context.
+Campaign 033 (`033-progress-disclosure-redesign`) is terminally validated after
+the owner-directed overnight successor. Its authoritative task specification
+was `.agent/CAMPAIGN033_PROGRESS_DISCLOSURE_REDESIGN_PROMPT.md`; activation
+started from synchronized `main` at `3253ca1`. Campaign 032's terminal
+rendered/runtime package remains the prior visual context. There is no active campaign at this terminal checkpoint.
 
-The current implementation is limited to Games discovery, search/filter/
-favorites, shared game identity presentation, Game Detail hierarchy, and
-standalone game entry. Existing catalog, registry, lazy-loading, SQLite/
-favorites/mastery/tutorial/session/workout-eligibility/offline/mechanics
+The current implementation is limited to Progress overview disclosure,
+Progress drill-down clarity, sparse/history states, claim-safe language, and
+Progress-local touch-target debt. Existing analytics, rating/mastery,
+SQLite/session, offline, catalog, game, economy, backup, and no-medical-claim
 contracts remain protected; no schema or dependency change is authorized.
+
+## Campaign 033 checkpoint — Progress summary and progressive disclosure (VALIDATED)
+
+- **Activation:** safe fast-forward synchronization reached
+  `3253ca1437b9d70f58b3a89dca54403610c6fa0e`; no pre-existing local user work
+  was present to overwrite.
+- **Implementation:** the overview now leads with selected-window consistency,
+  sample-aware recorded movement, and a next domain consideration; empty
+  ratings are explained rather than presented as an achieved score; existing
+  detail routes remain reachable; Progress Detail static rows declare 44dp.
+- **Validation:** focused disclosure/Progress/analytics tests, full Jest
+  (556 passing suites / 6,561 passing tests; one stale governance prose
+  assertion was repaired and the complete matrix rerun), typecheck, lint, Android debug build/install, native
+  light/dark sparse/populated captures, accessibility audit, and fresh logcat
+  review were executed. Exact evidence is under
+  `docs/redesign/evidence/campaign033/`.
+- **Human/external limits:** no independent participant, manual TalkBack,
+  physical-device/iOS, large-text, or reduced-motion validation was executed;
+  these remain pending/deferred. A historical emulator focus ANR/WebSocket
+  retry was observed in pre-existing logs, not reproduced in the fresh launch
+  sample, and is not relabeled as globally resolved.
+- **Terminal result:** all Campaign 033 exit criteria were evaluated and
+  Campaign 034 is safe to open independently after this synchronized
+  checkpoint.
 
 ## Campaign 032 checkpoint — Games discovery and identity redesign (VALIDATED)
 

@@ -488,6 +488,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
+    // Rating-history entries are static evidence rows, but they remain
+    // reachable in the same vertical rhythm as interactive ListRow controls.
+    // Keep the campaign-033 minimum target explicit instead of relying on
+    // whichever text style happens to render tallest in a given font scale.
+    minHeight: 44,
   },
   domainBlock: {
     gap: Spacing.two,

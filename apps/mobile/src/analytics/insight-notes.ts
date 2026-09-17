@@ -40,7 +40,9 @@ export type ProgressMetricKey =
   | 'cooccurrence'
   | 'diversity'
   | 'activity-runs'
-  | 'weekday-pattern';
+  | 'weekday-pattern'
+  | 'progress-consistency'
+  | 'recorded-movement';
 
 const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   composite:
@@ -97,6 +99,10 @@ const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
     'Consecutive active days inside this view. Window-local frequency, not your engagement streak.',
   'weekday-pattern':
     'Which weekdays your sessions landed on inside this view \u2014 a record of habit, not advice.',
+  'progress-consistency':
+    'Count of completed sessions and distinct UTC days with a session inside the selected window.',
+  'recorded-movement':
+    'For a bounded window, the selected-window average is compared with your lifetime average; all-time compares the first and latest recorded results.',
 };
 
 /** The fixed derivation sentence for a metric (deterministic, testable). */

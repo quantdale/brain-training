@@ -1,52 +1,40 @@
-# Execution Prompt — Campaign 032: Games discovery and identity redesign
+# Execution Prompt — Campaign 033: Progress summary and progressive disclosure
 
 **Status:** VALIDATED
-**Change:** `032-games-discovery-identity-redesign`
-**Planned-From:** `fa29742f08636b455f23a90c27cec61798fb1024`
-**Start-SHA:** `fa29742f08636b455f23a90c27cec61798fb1024`
-**Planned-At:** 2026-09-17
+**Change:** `033-progress-disclosure-redesign`
+**Planned-From:** `3253ca1437b9d70f58b3a89dca54403610c6fa0e`
+**Start-SHA:** `3253ca1437b9d70f58b3a89dca54403610c6fa0e`
+**Planned-At:** 2026-09-18
 **Target-Branch:** `main`
-**Predecessor:** `031-golden-path-redesign`
+**Predecessor:** `032-games-discovery-identity-redesign`
 
 ## Authority
 
 Read and execute the complete
-`.agent/CAMPAIGN032_GAMES_DISCOVERY_IDENTITY_REDESIGN_PROMPT.md`. It is the
-authoritative product task specification for this campaign. Campaign 031
-real-pixel/runtime evidence is the before context. Do not begin Campaign 033.
+`.agent/CAMPAIGN033_PROGRESS_DISCLOSURE_REDESIGN_PROMPT.md`, coupled with
+the overnight execution prompt and roadmap. The current Progress source and
+native evidence outrank historical Campaign 029–032 narratives.
 
 ## Mission
 
-Restructure Games around one Suggested Next model and a clear Browse All model;
-preserve and consolidate the existing recommendation evidence; improve search,
-filters, favorites, and no-results behavior; give every catalog entry a
-restrained shared identity; and make Game Detail explain the mechanic and make
-Play dominant before deep history.
-
-## Protected behavior and scope
-
-Preserve all 42 catalog entries, the generated registry and provenance,
-lazy-loading, favorites persistence, mastery semantics, tutorial/session
-behavior, workout eligibility, standalone entry, scoring/generator metadata,
-and offline behavior. Do not change Home, Progress, Profile, Rewards,
-economy, dependencies, CI, schema, or game mechanics.
+Make the Progress overview answer consistency, recorded movement, and next
+consideration in the selected window before deeper analytics. Preserve the
+existing analytics, route, persistence, offline, scoring, and cautious
+language contracts. Campaign 033 is terminally validated; the overnight
+orchestrator may proceed to Campaign 034.
 
 ## Required validation and handoff
 
-Run the complete Campaign 032 matrix: repository/catalog/native/accessibility/
-persistence checks; focused and full Jest; eight primary domain/mechanic-family
-representatives; disposable normal Android AVD real-pixel before/after and
-light/dark evidence; offline/security/ownership/OpenSpec/web/native gates; and
-human validation when genuinely available. Otherwise record the exact pending
-handoff without invented findings. Produce every required document under
-`docs/redesign/evidence/campaign032/`, update durable state, commit and push
-`main`, verify `main == origin/main`, and leave the worktree clean.
+Campaign 033 evidence is committed under
+`docs/redesign/evidence/campaign033/`. Focused and full Jest, typecheck, lint,
+Android debug build/install, native light/dark sparse/populated captures,
+UIAutomator accessibility audit, and fresh logcat review were executed and
+classified there. Human, TalkBack, physical-device/iOS, large-text, and
+reduced-motion evidence remains pending/deferred.
 
 ## Terminal result
 
-Campaign 032 is terminally validated. The Games surface now has one
-evidence-backed Suggested Next model and a clear Browse All model; the 42-entry
-catalog has a shared identity vocabulary; Game Detail leads with mechanic and
-Play; and the protected catalog, persistence, tutorial/session, workout,
-offline, and mechanics contracts remain intact. The complete evidence package
-is under `docs/redesign/evidence/campaign032/`. Campaign 033 was not started.
+The first populated viewport is summary-first, sparse data is explicit, deep
+history remains reachable, and the 44dp Progress Detail row minimum is
+explicit. No schema, scoring, rating, mastery, session-write, generator,
+economy, or game-mechanics change was made.

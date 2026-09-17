@@ -3351,7 +3351,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           ]
                         }
                       >
-                        TRACK GROWTH
+                        YOUR TRAINING RECORD
                       </Text>
                       <Text
                         maxFontSizeMultiplier={1.6}
@@ -3397,7 +3397,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           ]
                         }
                       >
-                        Your training history, ratings and records.
+                        A clear view of consistency, recorded movement and what to consider next.
                       </Text>
                     </View>
                     <View
@@ -7279,7 +7279,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   ]
                 }
               >
-                TRACK GROWTH
+                YOUR TRAINING RECORD
               </Text>
               <Text
                 maxFontSizeMultiplier={1.6}
@@ -7325,7 +7325,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   ]
                 }
               >
-                Your training history, ratings and records.
+                A clear view of consistency, recorded movement and what to consider next.
               </Text>
             </View>
             <View

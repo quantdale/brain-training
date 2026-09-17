@@ -142,6 +142,10 @@ describe('Progress overview', () => {
     await result;
 
     expect(screen.getByTestId('progress-composite-value')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-answers')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-consistency')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-movement')).toBeOnTheScreen();
+    expect(screen.getByTestId('progress-focus')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-domain-memory')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-domain-speed')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-activity')).toBeOnTheScreen();

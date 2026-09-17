@@ -79,11 +79,22 @@ redesign while preserving the 42-game catalog, generated registry, favorites,
 mastery, tutorial/session, workout eligibility, offline, and game-mechanic
 contracts. The evidence package is under
 `docs/redesign/evidence/campaign032/`; independent human/manual platform
-evidence remains explicitly pending. Campaign 033 was not started.
+evidence remains explicitly pending.
+
+## Owner overnight directive — Campaigns 033–040 (active sequence)
+
+On 2026-09-18 the owner directed the agent to safely synchronize `main`, read
+and execute `.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`
+and its coupled Campaign 033 prompt/roadmap, then continue autonomously through
+Campaign 040 as safely possible. Campaign 033 is now validated under
+`033-progress-disclosure-redesign`; its evidence is under
+`docs/redesign/evidence/campaign033/`. Campaign 034 may proceed as an
+independent bounded slice, with later campaigns remaining conditional on
+actual evidence and protected correctness.
 
 ## Historical terminal campaign state before Campaign 029
 
 Campaign 028 was terminal for its authorized scope before the owner supplied
-the ARTEMIS migration. Campaign 029 and Campaign 031 are now historical
-terminal records; current execution has no active campaign. Do not reopen a
-closed campaign or invent Campaign 032 without a new owner directive.
+the ARTEMIS migration. Campaigns 029, 031, and 032 are historical terminal
+records; current execution is governed by the owner’s 033–040 sequence. Do not
+reopen a closed campaign or invent a different campaign binding.

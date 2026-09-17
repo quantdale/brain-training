@@ -1,18 +1,18 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 032 VALIDATED (no active successor)
+## Current status — Campaign 033 VALIDATED (no active successor)
 
-Campaign 032 (`032-games-discovery-identity-redesign`) is terminally validated.
-The authorized Games discovery/identity redesign is complete and its evidence
-package is under `docs/redesign/evidence/campaign032/`. No new Critical/High
-product regression was identified. Campaign 033 was not started.
+Campaign 033 (`033-progress-disclosure-redesign`) is terminally validated. The
+authorized Progress summary/disclosure redesign is complete and its evidence
+package is under `docs/redesign/evidence/campaign033/`. No new Critical/High
+product regression was identified. Campaign 034 is not yet bound.
 
 The following evidence classes remain explicitly pending or deferred and are
 not release-clearance claims: independent human usability validation, manual
 TalkBack/text-scaling review, physical-device behavior, manual iOS/VoiceOver,
 store signing, and Android system document-picker sheets. The required
 repository-owned tests, native disposable-AVD pixels, and accessibility matrix
-are recorded as PASS in the Campaign 032 evidence package.
+are recorded as PASS in the Campaign 033 evidence package.
 
 ## Campaign 031 VALIDATED (historical predecessor)
 

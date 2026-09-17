@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "canonicalBranch": "main",
   "activeCampaign": null,
-  "lastCampaign": "032-games-discovery-identity-redesign",
+  "lastCampaign": "033-progress-disclosure-redesign",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "lifecycleStatus": "VALIDATED",
-  "change": "032-games-discovery-identity-redesign",
-  "description": "Terminal ownership record for validated Campaign 032 Games discovery and identity redesign. The orchestrator owned governance, OpenSpec, evidence, generated/catalog contracts, and final convergence; no parallel coder packets remain active.",
+  "change": "033-progress-disclosure-redesign",
+  "description": "Terminal ownership record for validated Campaign 033 Progress summary and progressive disclosure redesign. The orchestrator owned governance, OpenSpec, evidence, analytics disclosure, and final convergence; no parallel coder packets remain active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
