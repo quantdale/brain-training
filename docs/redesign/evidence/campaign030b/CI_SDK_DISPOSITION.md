@@ -87,6 +87,23 @@ current GitHub step output implicates product code or tests. The owner should
 re-run after the external condition changes and retain the first run that
 creates actual steps.
 
+### Post-push confirmation
+
+The documentation commit itself reproduced the same external pattern, which
+strengthens the classification without implicating the documentation or
+product source:
+
+| Workflow | Run | Job | Conclusion | Runner | Steps | Duration |
+| --- | ---: | --- | --- | --- | ---: | ---: |
+| Android Build Smoke | [35208241684](https://github.com/quantdale/brain-training/actions/runs/35208241684) | Android clean native build | failure | none reported | 0 | about 2 s |
+| Repository Integrity | [35208241661](https://github.com/quantdale/brain-training/actions/runs/35208241661) | durable-state | failure | none reported | 0 | about 2 s |
+| App CI | [35208241645](https://github.com/quantdale/brain-training/actions/runs/35208241645) | Mobile app build/typecheck/tests | failure | none reported | 0 | about 2 s |
+| iOS Build Smoke | [35208241600](https://github.com/quantdale/brain-training/actions/runs/35208241600) | iOS Simulator compile smoke | failure | none reported | 0 | about 6 s |
+
+These post-push results were completed failures with zero steps and no runner
+assignment, matching the pre-push observations. No GitHub-side root cause is
+visible through the authorized API surface.
+
 ## Relationship to readiness
 
 Neither Expo patch drift nor the GitHub zero-step pattern is silently ignored.
