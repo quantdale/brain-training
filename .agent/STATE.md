@@ -1,11 +1,27 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 039 is terminally validated for the
-tested Android/repository scope; Campaign 040 is the next safe successor.
+**Last update:** 2026-09-18 — Campaign 040 is active from the terminal Campaign
+039 checkpoint; integrated release-candidate certification is underway.
 **Canonical branch:** `main`
-**Active campaign:** `none`
+**Active campaign:** `040-release-candidate-integration-certification`
 **Last campaign:** `039-performance-reliability-maintenance-isolation`
 **Last campaign status:** VALIDATED
+
+## Campaign 040 checkpoint — Release-Candidate Integration & Certification (ACTIVE)
+
+- **Activation:** opened from synchronized terminal Campaign 039 checkpoint
+  `174fff6`; no local or concurrent user work was present to overwrite.
+- **Scope:** re-observe the integrated product on the dedicated normal-phone
+  Android runtime, run the broadest practical repository/release matrix,
+  recheck the 42-game catalog and representative mechanics, review copy/debt,
+  and classify unavailable human/platform/CI evidence honestly.
+- **Guardrails:** certification only; no automatic full hardening campaign,
+  feature expansion, broad schema/economy change, router rewrite, CI masking,
+  destructive data action, or unsupported cognitive/medical claim.
+- **Exit:** produce one of `CAMPAIGN_040_CERTIFIED`,
+  `CAMPAIGN_040_CONDITIONAL`, `CAMPAIGN_040_PARTIAL`, or
+  `CAMPAIGN_040_BLOCKED` with current source/runtime evidence and an updated
+  overnight handoff.
 
 ## Campaign 039 checkpoint — Performance, Reliability & Maintenance Isolation (VALIDATED)
 

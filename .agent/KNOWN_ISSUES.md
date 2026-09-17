@@ -1,6 +1,17 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 039 VALIDATED; Campaign 040 next
+## Current status — Campaign 040 ACTIVE
+
+Campaign 040 is active from terminal Campaign 039 checkpoint `174fff6`.
+The integrated product, 42-game catalog, representative mechanics, release
+build, persistence/relaunch, offline, theme, accessibility, copy, debt, and
+external CI status must be re-observed before assigning a readiness label.
+Human, iOS, physical-device, production-signing, system document-picker, and
+independent participant evidence must remain explicitly NOT VALIDATED unless
+actually executed. Do not perform destructive data actions or edit CI merely
+to produce a green result.
+
+## Campaign 039 VALIDATED
 
 Campaign 039 is terminally validated for the tested Android/repository scope
 from Campaign 038 checkpoint `9672c07`. Current startup, route/loading,

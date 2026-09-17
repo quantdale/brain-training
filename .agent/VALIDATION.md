@@ -5,6 +5,17 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 040 Release-Candidate Integration & Certification — 2026-09-18 (ACTIVE)
+
+- Activation: **PASS** — Campaign 040 opened from terminal synchronized
+  checkpoint `174fff6`; no local or concurrent user work was overwritten.
+- Scope: **ACTIVE** — current integrated native journeys, 42-game catalog,
+  representative mechanics, offline/theme/accessibility operation, copy/debt,
+  repository gates, release build, and external CI are being re-observed.
+- Certification rule: no global release label is assigned until current
+  evidence is written. Human, iOS, physical-device, signing, system-sheet,
+  and unavailable external evidence remain NOT VALIDATED/external.
+
 ### Campaign 039 Performance, Reliability & Maintenance Isolation — 2026-09-18 (VALIDATED)
 
 - Activation: **PASS** — Campaign 039 opened from terminal synchronized

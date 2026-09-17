@@ -1,3 +1,36 @@
+# Campaign 040 — Release-Candidate Integration & Certification
+
+**Status:** ACTIVE
+**Campaign id:** `040-release-candidate-integration-certification`
+**Predecessor:** `039-performance-reliability-maintenance-isolation` (validated)
+**Mode:** day
+**Start SHA:** `174fff6`
+**Change:** `040-release-candidate-integration-certification` (ACTIVE)
+**Authorization:** owner-supplied Campaign 033–040 overnight directive on
+2026-09-18, following the validated Campaign 039 checkpoint.
+
+## Mission
+
+Re-observe the integrated release candidate, run the broadest practical local
+and dedicated-Android matrix, recheck the 42-game catalog and representative
+mechanics, review unsupported copy/debt, and classify actual readiness without
+inventing human, iOS, physical-device, signing, document-sheet, or CI success.
+
+## Guardrails
+
+Preserve SQLite/profile/session/workout identity, migrations, offline behavior,
+economy, gameplay, recoverable routing, and the no-medical-claims boundary.
+Avoid destructive Data Management actions and do not turn certification into
+a speculative feature or architecture rewrite.
+
+## Exit
+
+Campaign 040 must end with exactly one truthful label: `CERTIFIED`,
+`CONDITIONAL`, `PARTIAL`, or `BLOCKED`. Evidence belongs under
+`docs/redesign/evidence/campaign040/`, with the overnight handoff updated.
+
+---
+
 # Campaign 039 — Performance, Reliability & Maintenance Isolation
 
 **Status:** VALIDATED

@@ -1,3 +1,50 @@
+# Execution Prompt — Campaign 040: Release-Candidate Integration & Certification
+
+**Status:** ACTIVE
+**Change:** `040-release-candidate-integration-certification`
+**Planned-From:** `174fff6`
+**Start-SHA:** `174fff6`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `039-performance-reliability-maintenance-isolation`
+
+## Authority
+
+Execute Campaign 040 from
+`docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and the guardrails in
+`.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`. Campaign
+039 is validated for its tested Android/repository scope.
+
+## Mission
+
+Re-observe the complete integrated product, run broad local/native validation,
+exercise representative journeys, recheck all 42 catalog entries, review
+copy/debt, and classify release readiness. This is certification, not a new
+feature wave or automatic full hardening campaign.
+
+## Required validation and handoff
+
+Use the dedicated normal-phone AVD and current release build for workout/game,
+result, relaunch, discovery, Progress, Profile/Rewards/Data, invalid/empty,
+theme, accessibility, and offline paths. Record the exact extent of mechanics
+actually executed, inspect current pixels/XML, query external CI, and update
+the overnight handoff with manual/platform limits.
+
+## Guardrails
+
+Do not make broad schema/economy/router/gameplay changes, destructive data
+actions, unsupported cognitive/medical claims, or CI edits that mask failures.
+Stop for severe persistence, migration, session identity, data-loss, duplicate
+write, or navigation regressions.
+
+## Terminal labels
+
+The result must be one of `CAMPAIGN_040_CERTIFIED`,
+`CAMPAIGN_040_CONDITIONAL`, `CAMPAIGN_040_PARTIAL`, or
+`CAMPAIGN_040_BLOCKED`.
+
+---
+
 # Execution Prompt — Campaign 039: Performance, Reliability & Maintenance Isolation
 
 **Status:** VALIDATED
