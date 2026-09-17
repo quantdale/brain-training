@@ -1,6 +1,6 @@
 {
   "id": "029-artemis-runtime-qa-migration",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "028-production-readiness",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",

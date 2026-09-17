@@ -8,16 +8,21 @@
       on the single dedicated emulator; record no-secret readiness evidence.
 - [x] 1.3 Configure the provider environment externally without printing or
       committing the credential.
-- [ ] 1.4 Complete a system Settings Flash smoke task — **INVALID / NOT
-      VALIDATED** for the first attempted trace: the UI sequence completed, but
-      trace stderr showed the obsolete Gemini startup prewarm. The local
-      ARTEMIS fix removes that inactive-provider request path; a fresh Codex
-      MCP process must be loaded before rerunning the task. Evidence:
-      `docs/campaign029-muse-continuation-2026-09-17.md`.
-- [ ] 1.5 Complete Brain Training Flash and Pro tasks on the current APK —
-      **BLOCKED / NOT VALIDATED** because the patched MCP stdio transport closed
-      before a fresh Muse-only task could start. Do not claim a runtime pass
-      until fresh traces prove the Muse route and pass trace inspection.
+- [x] 1.4 Complete a system Settings Flash smoke task — **PASS** on fresh trace
+      `9aaa2db9-5743-4bf9-9835-ab5b537fb622` from the new Codex MCP session.
+      The Battery screen visibly showed `100%` and `Charged`. The historical
+      trace `4340ff06-befd-4af7-9404-527940fa68a9` remains **INVALID / NOT
+      VALIDATED** because it contained the obsolete Gemini startup prewarm.
+- [x] 1.5 Complete Brain Training Flash and Pro tasks on the current APK —
+      **PASS** by direct trace, screenshot, UI-state, and log inspection:
+      Flash `e927ade5-2b2d-4e2f-a150-7c316230a85d`; Pro
+      `5908e678-4b6d-4abf-8ece-2fcc41b3cc67`. Flash completed Home → Games →
+      Grid Recall with a legitimate five-cell recall and score 100. Pro
+      completed Today's Workout → Cue Keeper, pause/resume,
+      background/foreground, safe stop/relaunch, and coherent Home recovery.
+      The Pro task's optional ARTEMIS verifier subchecks were **INCONCLUSIVE**
+      due Muse request-schema errors; direct runtime evidence and the route log
+      were inspected separately and are not represented as verifier PASS.
 
 ## 2. Repository boundary migration
 

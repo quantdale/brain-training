@@ -1,6 +1,6 @@
 # Execution — Campaign 029: ARTEMIS runtime-QA migration
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `029-artemis-runtime-qa-migration`
 **Mode:** day
 **Start SHA:** `13c0e5d`
@@ -58,6 +58,25 @@ MCP is merged without collateral configuration changes, and live tasks are
 complete or explicitly `BLOCKED`/`NOT VALIDATED` with durable evidence. A live
 provider quota block may keep Brain Flash/Pro open; it must be the documented
 single external blocker and must not be relabeled as a product result.
+
+## Closure evidence — 2026-09-17
+
+Campaign 029's fresh-session runtime gates completed on the designated
+`emulator-5554` through Codex → ARTEMIS MCP:
+
+- Settings Flash: PASS — `9aaa2db9-5743-4bf9-9835-ab5b537fb622`.
+- Brain Training Flash: PASS — `e927ade5-2b2d-4e2f-a150-7c316230a85d`.
+- Brain Training Pro: PASS by direct trace/step/screenshot inspection —
+  `5908e678-4b6d-4abf-8ece-2fcc41b3cc67`.
+
+The Pro run's optional ARTEMIS verifier subchecks were recorded as
+`INCONCLUSIVE` because the Muse route rejected their verifier request schemas;
+the task itself completed and its direct UI evidence, route log, and screenshots
+were inspected. This is not reported as a verifier PASS or as a provider
+fallback. The effective route remained Muse Spark 1.3 Contributor XHigh with no
+Gemini, Union Alpha, or alternate provider use. The local-only ARTEMIS worker
+fix was loaded at `2ef304bbe17aa4fa80de033ead32000a33e74c41`; it was not pushed
+upstream.
 
 ## Git requirements
 

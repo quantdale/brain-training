@@ -70,3 +70,67 @@ produce Muse-only trace evidence. Union Alpha was not retried, and no
 alternate model was used as a fallback after the owner directive; the obsolete
 Gemini prewarm observed in the invalidated first trace is the reason that trace
 cannot satisfy the security/runtime gate.
+
+## Fresh-session runtime qualification and closure — 2026-09-17
+
+The fresh Codex session loaded the ARTEMIS MCP server from the corrected local
+checkout. The MCP task worker was restarted after the narrow local-only
+session-header propagation fix and ran at local revision
+`2ef304bbe17aa4fa80de033ead32000a33e74c41` (the required Gemini-prewarm
+removal remains present from `26124b4`). The external checkout stayed clean
+after its local commit and was not pushed upstream.
+
+### Reconciliation and readiness
+
+- Brain Training remained at `5e9d3009ee1766f02ebfe2cdaae291204580ad69`, equal
+  to `origin/main` at runtime start and finish.
+- Concurrent Campaign 031 product/control-plane changes were not edited,
+  staged, reverted, or committed.
+- Live `mobile_diagnose` returned READY with 5/5 required checks; the designated
+  target was `emulator-5554`, Android 15, unlocked, ADB-connected, and helper
+  v6/reported protocol v2 reachable. No task remained active at finish.
+- The external credential environment was present and usable for the already
+  qualified OpenCode Go route. No credential value, length, prefix, suffix, or
+  fingerprint was printed or stored in the repository. The generic doctor
+  labels its credential check “Gemini”; this is a generic readiness check and
+  is not runtime routing evidence.
+- The effective local MCP role map still contains 20/20 active roles on
+  `openai_responses` / `muse-spark-1.3-contributor` / `xhigh`, with
+  `fallback=null`; Union Alpha, Gemini, and alternate-provider routes are 0.
+
+### Fresh traces
+
+- **Settings Flash — PASS:**
+  `9aaa2db9-5743-4bf9-9835-ab5b537fb622`. Real semantic navigation opened
+  Settings → Battery and visibly verified `100%` / `Charged`. Trace-specific
+  inspection found no Gemini, Union Alpha, alternate-provider, or fallback
+  request. The old `4340ff06-befd-4af7-9404-527940fa68a9` trace remains
+  invalid and was not reused.
+- **Brain Training Flash — PASS:**
+  `e927ade5-2b2d-4e2f-a150-7c316230a85d`. The journey launched Home, opened
+  Games, selected the available Grid Recall memory game when the exact
+  “Memory Grid Recall” card was absent, completed the normal tutorial, recalled
+  five of five cells for score 100, observed the normal result, and returned
+  via normal navigation to Home. Screenshots and hierarchy evidence showed no
+  crash, ANR, error dialog, or system error. One malformed ARTEMIS
+  `click_sequence` argument was recovered by individual semantic taps; it was
+  not an app defect. The task trace had no `MissingSessionID` and its route
+  report identified Muse Spark 1.3 Contributor XHigh.
+- **Brain Training Pro — PASS by direct runtime evidence:**
+  `5908e678-4b6d-4abf-8ece-2fcc41b3cc67`. The bounded Today's Workout → Cue
+  Keeper journey entered a real game, observed a timeout result, verified the
+  visible Paused surface hid the challenge and froze timers, resumed without
+  losing the result, backgrounded/foregrounded with auto-pause recovery, then
+  safely stopped/relaunched without data clearing and returned to coherent Home
+  state (`0/4`, `Next: Cue Keeper`). The final trace log records 85
+  `openai_responses:muse-spark-1.3-contributor` calls and `fallback: none`.
+  The optional ARTEMIS verifier subchecks are recorded as `INCONCLUSIVE` due
+  Muse request-schema errors; direct step, screenshot, hierarchy, and log
+  evidence were inspected and are not relabeled as verifier PASS.
+
+### Disposition
+
+The three fresh runtime gates pass by the evidence rules above. Campaign 029 is
+now **VALIDATED / CLOSED** in its OpenSpec records. This continuation remains
+append-only; the concurrently active Campaign 031 control-plane files retain
+their own ownership and were intentionally not rewritten.

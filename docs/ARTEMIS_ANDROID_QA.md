@@ -96,12 +96,27 @@ startup cannot send requests to an inactive provider.
 Direct qualification is **PASS** for bounded text+XHigh, harmless-image
 multimodal reasoning, and the structured tool path using automatic tool
 selection plus stateless tool-result continuation. The first MCP Settings
-trace (`4340ff06-befd-4af7-9404-527940fa68a9`) is **INVALID / NOT VALIDATED**:
-the UI sequence completed and its ledger recorded Muse calls, but stderr also
-contained the obsolete Gemini startup prewarm. After the fix, the current
-Codex MCP subprocess was restarted and its stdio transport closed; a fresh
-MCP process must be loaded before Settings Flash or Brain Training Flash/Pro
-can be rerun. Do not substitute any other model.
+trace (`4340ff06-befd-4af7-9404-527940fa68a9`) remains **INVALID / NOT
+VALIDATED**: the UI sequence completed and its ledger recorded Muse calls, but
+stderr also contained the obsolete Gemini startup prewarm. A fresh Codex MCP
+session then loaded the corrected local ARTEMIS process and produced these
+runtime gates:
+
+- Settings Flash **PASS**:
+  `9aaa2db9-5743-4bf9-9835-ab5b537fb622`.
+- Brain Training Flash **PASS**:
+  `e927ade5-2b2d-4e2f-a150-7c316230a85d`.
+- Brain Training Pro **PASS by direct trace/step/screenshot inspection**:
+  `5908e678-4b6d-4abf-8ece-2fcc41b3cc67`.
+
+The Pro task's optional ARTEMIS verifier subchecks are recorded as
+`INCONCLUSIVE` because the Muse route rejected their verifier request schemas;
+this is kept distinct from the directly observed runtime evidence. The
+effective route remained Muse Spark 1.3 Contributor XHigh, with no Gemini,
+Union Alpha, alternate provider, or model fallback used. The local worker
+session-header fix was loaded from ARTEMIS revision
+`2ef304bbe17aa4fa80de033ead32000a33e74c41`, which remains local-only and was
+not pushed upstream.
 
 MCP-issued tasks resolve their LLM profile through `ARTEMIS_CONFIG_DIR`
 (`llm-config.override.jsonc`) instead of `ARTEMIS_ARTEMIS_JSONC`. To keep the
@@ -157,6 +172,10 @@ ARTEMIS traces and screenshots are kept outside the product repository under
 logcat, and DB snapshots use the disposable `qa-artifacts/` convention in
 [`QA_ARTIFACTS.md`](QA_ARTIFACTS.md). A missing trace, incomplete task, model
 error, or unavailable target is `BLOCKED`/`NOT VALIDATED`, never `PASS`.
+For the Campaign 029 Pro trace, the executed operator journey and its required
+route completed; only optional post-task verifier subchecks returned schema
+errors, so those subchecks remain `INCONCLUSIVE` rather than being presented
+as PASS.
 
 Every change still runs the relevant offline gates, including:
 
