@@ -180,6 +180,47 @@ describe('GameHost chrome mounting', () => {
     expect(screen.getByTestId(`${GAME}-stats`)).toBeOnTheScreen();
   });
 
+  it('unmounts an open tutorial when a session starts', async () => {
+    const tutorial = <View testID={`${GAME}-tutorial`} />;
+    const utils = await render(
+      <GameHost
+        {...hostProps({
+          view: 'intro',
+          interceptBack: false,
+          tutorialOpen: true,
+          tutorial,
+        })}
+      />,
+    );
+
+    expect(screen.getByTestId(`${GAME}-tutorial`)).toBeOnTheScreen();
+
+    await utils.rerender(
+      <GameHost
+        {...hostProps({
+          view: 'session',
+          tutorialOpen: true,
+          tutorial,
+        })}
+      />,
+    );
+
+    expect(screen.queryByTestId(`${GAME}-tutorial`)).toBeNull();
+
+    await utils.rerender(
+      <GameHost
+        {...hostProps({
+          view: 'results',
+          interceptBack: false,
+          tutorialOpen: true,
+          tutorial,
+        })}
+      />,
+    );
+
+    expect(screen.queryByTestId(`${GAME}-tutorial`)).toBeNull();
+  });
+
   it('frames a workout intro around one concise mechanic and one Start game action', async () => {
     const onStart = jest.fn();
     await render(

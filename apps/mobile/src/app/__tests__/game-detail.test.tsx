@@ -14,6 +14,7 @@ import { act, renderRouter, screen } from "expo-router/testing-library";
 import { StyleSheet } from "react-native";
 
 import GameDetailScreen from "@/app/game-detail/[id]";
+import { MIN_TOUCH_TARGET } from "@/components/a11y";
 import type {
   AppDatabase,
   GameAggregate,
@@ -217,6 +218,11 @@ describe("Game Detail — Campaign 032 identity-first contract", () => {
     expect(screen.getByTestId("game-detail-stat-sessions")).toHaveTextContent(/3/);
     expect(screen.getByTestId("game-detail-stat-best")).toHaveTextContent(/84%/);
     expect(screen.getByTestId("game-detail-session-session-1")).toHaveTextContent(/84%/);
+
+    const trendsLinkStyle = StyleSheet.flatten(
+      screen.getByTestId("game-detail-stats-link").props.style,
+    ) as { minHeight?: number };
+    expect(trendsLinkStyle.minHeight).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 
     const ids = collectTestIds(screen.toJSON());
     expectBefore(ids, "game-detail-play", "game-detail-records");

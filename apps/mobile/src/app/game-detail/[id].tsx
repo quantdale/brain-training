@@ -363,6 +363,7 @@ export default function GameDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="View detailed trends for this game"
                   testID="game-detail-stats-link"
+                  style={MinTouchTarget}
                 >
                   <ThemedText type="label" themeColor="accentText">
                     View detailed trends ›

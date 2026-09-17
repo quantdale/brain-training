@@ -339,7 +339,7 @@ export function GameHost({
         <PauseOverlay gameId={gameId} onResume={onResume} onQuit={onQuit} />
       ) : null}
 
-      {tutorialOpen && tutorial !== undefined ? (
+      {view === 'intro' && tutorialOpen && tutorial !== undefined ? (
         <View style={styles.tutorialOverlay} pointerEvents="box-none">
           {tutorial}
         </View>
