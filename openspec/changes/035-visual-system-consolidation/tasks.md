@@ -11,16 +11,16 @@
 
 ## Product implementation
 
-- [ ] Make Game Detail and GameHost identity heroes use the neutral shared
+- [x] Make Game Detail and GameHost identity heroes use the neutral shared
       hero surface.
-- [ ] Preserve domain taxonomy through existing identity motif/category cues.
-- [ ] Preserve game, tutorial, difficulty, QA, navigation, and accessibility
+- [x] Preserve domain taxonomy through existing identity motif/category cues.
+- [x] Preserve game, tutorial, difficulty, QA, navigation, and accessibility
       seams.
 
 ## Validation and evidence
 
-- [ ] Add/update focused visual contract coverage.
-- [ ] Capture matching native after pixels/XML and inspect light/dark output.
-- [ ] Run accessibility, fresh logcat, full Jest, typecheck, lint, validators,
+- [x] Add/update focused visual contract coverage.
+- [x] Capture matching native after pixels/XML and inspect light/dark output.
+- [x] Run accessibility, fresh logcat, full Jest, typecheck, lint, validators,
       and Android build/install.
-- [ ] Commit/push a truthful COMPLETE or PARTIAL checkpoint.
+- [x] Commit/push a truthful COMPLETE checkpoint.

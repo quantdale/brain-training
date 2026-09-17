@@ -1,9 +1,9 @@
 # Execution Prompt — Campaign 035: Cross-Surface Visual System Consolidation
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Change:** `035-visual-system-consolidation`
-**Planned-From:** `f1ed533`
-**Start-SHA:** `f1ed533`
+**Planned-From:** `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`
+**Start-SHA:** `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`
 **Planned-At:** 2026-09-18
 **Target-Branch:** `main`
 **Predecessor:** `034-profile-motivation-rewards`
@@ -31,6 +31,12 @@ typecheck, lint, relevant repository validators, matching light/dark captures,
 accessibility, and fresh logcat review. Preserve actual artifacts and classify
 human, iOS, physical-device, large-text, reduced-motion, and external-CI
 limits honestly.
+
+## Terminal result
+
+The bounded neutral-hero implementation and existing identity/action seams
+were validated. Evidence is under `docs/redesign/evidence/campaign035/` and
+the next safe campaign is 036.
 
 ## Protected contracts
 

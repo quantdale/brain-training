@@ -1,21 +1,24 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 035 is active from the synchronized
-Campaign 034 evidence checkpoint; cross-surface visual baseline is captured.
+**Last update:** 2026-09-18 — Campaign 035 is terminally validated from the
+synchronized Campaign 034 evidence checkpoint; Campaign 036 is next.
 **Canonical branch:** `main`
-**Active campaign:** `035-visual-system-consolidation`
-**Last campaign:** `034-profile-motivation-rewards`
+**Active campaign:** `none`
+**Last campaign:** `035-visual-system-consolidation`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 035 (`035-visual-system-consolidation`) is active from the synchronized
-Campaign 034 evidence checkpoint at `f1ed533`. The live baseline covers the
+Campaign 035 (`035-visual-system-consolidation`) was opened from the
+synchronized Campaign 034 evidence checkpoint at
+`f1ed5331dd2f2cec69bab01e2404ca4b7831d424`. The live baseline covers the
 core shell, game identity/detail, GameHost intro, Progress, Profile, Rewards,
 and Results in light/dark. The bounded implementation target is the observed
 domain-wash/border treatment competing with the global Play/Start accent on
-single-game identity heroes. Native baseline captures are outside Git under
-`D:\Temp\campaign035-runtime-before`.
+single-game identity heroes. Native baseline and after captures are outside Git
+under `D:\Temp\campaign035-runtime-before`,
+`D:\Temp\campaign035-runtime-after`, and
+`D:\Temp\campaign035-runtime-after-warm`.
 
 The implementation is limited to a shared visual-surface treatment. Existing
 game identity, tutorial, difficulty, gameplay, reward, streak, settings, data
@@ -23,9 +26,10 @@ portability, SQLite/session, offline, catalog, economy, backup, and
 no-medical-claim contracts remain protected; no schema or dependency change
 is authorized.
 
-## Campaign 035 checkpoint — Cross-Surface Visual System (ACTIVE)
+## Campaign 035 checkpoint — Cross-Surface Visual System (VALIDATED)
 
-- **Activation:** opened from synchronized `main` at `f1ed533`; no local or
+- **Activation:** opened from synchronized `main` at
+  `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`; no local or
   concurrent user work was present to overwrite.
 - **Discovery:** 16 nonblank, route-verified light/dark captures were produced
   for Home, Games, Game Detail, Progress, Profile, Rewards, Results, and
@@ -33,8 +37,23 @@ is authorized.
 - **Finding:** single-game identity heroes use a domain wash/border together
   with the global primary CTA; this is the bounded visual repair selected for
   implementation.
-- **Validation:** implementation and after-state checks are pending in this
-  active checkpoint.
+- **Implementation:** Game Detail and GameHost intro heroes now use the
+  neutral shared raised surface; domain identity remains in motif/category
+  cues. Existing Play/Start, tutorial, difficulty, QA, accessibility, and
+  navigation seams are preserved. Focused visual contract tests were added.
+- **Validation:** full Jest (556 passing suites / 6,561 passing tests; 4
+  skipped suites / 5 skipped tests), typecheck, lint, strict affected-area
+  mapping, repo-state, task ownership, OpenSpec 21/21, offline, provenance,
+  secrets, workflows, dependency audit, generated registry, runtime-QA
+  contract, Android build/install, warm light/dark native captures, a11y, and
+  fresh logcat all passed. Exact evidence is under
+  `docs/redesign/evidence/campaign035/`.
+- **Runtime caveat:** the first cold GameHost deep-link capture showed the
+  real loading state while Metro compiled the lazy module; the warm rendered
+  outputs were captured and reviewed after compilation. No fatal/SQLite/ANR/
+  ReactNativeJS/RedBox signature was found.
+- **Terminal result:** Campaign 035 is validated; Campaign 036 is safe to
+  open independently after this synchronized checkpoint.
 
 ## Campaign 033 checkpoint — Progress summary and progressive disclosure (VALIDATED)
 

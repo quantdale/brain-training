@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "035-visual-system-consolidation",
   "description": "Campaign 035 visual-system ownership record for the bounded Game Detail/GameHost hero consolidation. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [

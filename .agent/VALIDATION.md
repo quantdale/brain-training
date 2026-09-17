@@ -3369,6 +3369,41 @@ commit `6f2c3a8`. Evidence behind every item:
   TalkBack, SAF system sheets, physical device, iOS runtime remain
   **NOT VALIDATED** by policy, not PASS.
 
+## Campaign 035 — Cross-Surface Visual System (2026-09-18)
+
+Campaign 035 is terminally validated from source checkpoint `91994c2`, opened
+from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
+
+- Source: Game Detail and GameHost intro heroes now use the neutral shared
+  raised surface; domain identity marks/category cues and Play/Start/tutorial/
+  difficulty/QA/navigation seams remain. No game, registry, persistence,
+  schema, scoring, economy, backup, or offline code changed.
+- Focused contract tests: **PASS** — 3 suites / 19 tests / 5 snapshots.
+- Full Jest: **PASS** — 556 suites; 6,561 tests passed; 4 suites and 5 tests
+  skipped; 5 snapshots passed.
+- Typecheck and lint: **PASS**.
+- Repository gates: **PASS** — repo-state, task ownership, OpenSpec 21/21,
+  strict affected-area mapping (17/17), offline scan (973 files), provenance,
+  secrets (2,183 tracked text files), workflows, dependency audit (5 accepted
+  advisories), generated registry, and runtime-QA contract.
+- Native Android: **PASS** — dedicated `emulator-5554` / AVD
+  `braintraining-ui35` (Android 15/API 35); debug build (458 tasks; 55
+  executed), APK install, warm light/dark Game Detail/GameHost captures, and
+  UIAutomator XML inspection.
+- Accessibility: **PASS** — 0 violations across 4 warm surfaces; Game Detail
+  3/3 and GameHost intro 9/9 interactive controls labelled in each theme.
+- Fresh logcat: **PASS** — no fatal exception, SQLite error/lock, ANR,
+  ReactNativeJS error, or RedBox signature in the retained sample.
+- Pixel comparison: matching Game Detail light/dark images changed 47.86% /
+  45.00% of pixels, with the dominant hero fill moving from domain soft
+  pink/maroon to neutral raised white/plum. Exact hashes and the GameHost
+  cold-lazy-load caveat are in
+  `docs/redesign/evidence/campaign035/BEFORE_AFTER_VISUAL_SYSTEM.md`.
+- Human/platform limits: manual human, TalkBack, large-text, reduced-motion,
+  physical-device, iOS/VoiceOver, store-signing, and document-picker evidence
+  remain NOT VALIDATED/deferred. No ARTEMIS or computer-use journey was used
+  for this visual-only slice.
+
 ## Frontier-audit application (2026-09-14, owner directive; no campaign bound)
 
 - Owner instruction 2026-09-14: apply every pending OpenSpec proposal on the

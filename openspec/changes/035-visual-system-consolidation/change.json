@@ -1,6 +1,6 @@
 {
   "id": "035-visual-system-consolidation",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "034-profile-motivation-rewards",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -9,7 +9,8 @@
   "tasks": "tasks.md",
   "specOrder": ["visual-system"],
   "activationRule": "Owner supplied the Campaign 033–040 overnight directive; Campaign 034 is validated at f1ed533; execute the next bounded visual-system slice from the observed cross-surface baseline.",
-  "baselineAuditCommit": "f1ed533",
+  "baselineAuditCommit": "f1ed5331dd2f2cec69bab01e2404ca4b7831d424",
   "fullHardening": false,
-  "reviewConsumption": "Consumes the Campaign 035 native baseline across Home, Games, Game Detail, GameHost intro, Progress, Profile, Rewards, and Results. Scope is limited to one evidence-backed hero-surface consistency repair."
+  "reviewConsumption": "Consumes the Campaign 035 native baseline across Home, Games, Game Detail, GameHost intro, Progress, Profile, Rewards, and Results. Scope is limited to one evidence-backed hero-surface consistency repair.",
+  "validationNote": "Validated on the dedicated emulator with warm light/dark Game Detail and GameHost captures, zero-violation accessibility audit, fresh logcat review, full Jest, typecheck, lint, repository validators, and Android build/install. Manual human/iOS/physical-device evidence remains pending and is not inferred."
 }

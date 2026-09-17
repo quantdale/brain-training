@@ -1,11 +1,11 @@
 # Campaign 035 — Cross-Surface Visual System Consolidation
 
-**Status:** ACTIVE
+**Status:** VALIDATED
 **Campaign id:** `035-visual-system-consolidation`
 **Predecessor:** `034-profile-motivation-rewards` (validated)
 **Mode:** day
-**Start SHA:** `f1ed533`
-**Change:** `035-visual-system-consolidation` (ACTIVE)
+**Start SHA:** `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`
+**Change:** `035-visual-system-consolidation` (VALIDATED)
 **Authorization:** owner-supplied Campaign 033–040 overnight directive on
 2026-09-18, following the validated Campaign 034 checkpoint.
 
@@ -22,6 +22,16 @@ nonblank, route-verified light/dark captures across Home, Games, Game Detail,
 Progress, Profile, Rewards, Results, and GameHost intro. A warmed GameHost
 intro was separately inspected. The selected bounded finding is the saturated
 domain wash/border competing with the primary action on single-game heroes.
+
+## Terminal result
+
+Game Detail and GameHost intro now use the neutral shared hero surface while
+retaining the domain identity mark/category cue and the global Play/Start
+action hierarchy. Focused visual contracts, full Jest, typecheck, lint,
+repository validators, native light/dark captures/XML, accessibility, fresh
+logcat, and Android build/install passed. The complete evidence package is
+under `docs/redesign/evidence/campaign035/`; Campaign 035 is validated and
+Campaign 036 is the next safe successor.
 
 ## Guardrails
 

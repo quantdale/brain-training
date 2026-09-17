@@ -1,13 +1,19 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 035 ACTIVE
+## Current status — Campaign 035 VALIDATED
 
-Campaign 035 (`035-visual-system-consolidation`) is the active bounded
-successor to validated Campaign 034. Discovery identified one competing
+Campaign 035 (`035-visual-system-consolidation`) is terminally validated as the
+bounded successor to Campaign 034. Discovery identified one competing
 accent treatment in the single-game identity heroes; implementation is
 limited to neutralizing that treatment while preserving domain identity cues.
-Native baseline captures are indexed under
-`D:\Temp\campaign035-runtime-before`.
+Native before/after captures are indexed under
+`D:\Temp\campaign035-runtime-before`, `D:\Temp\campaign035-runtime-after`,
+and `D:\Temp\campaign035-runtime-after-warm`.
+
+The first cold GameHost capture showed the expected real loading screen while
+Metro compiled the lazy module; warm light/dark output then rendered and was
+reviewed. This remains a development warm-up observation, not a product
+failure or a hidden pass.
 
 The following evidence classes remain
 explicitly pending or deferred and are not release-clearance claims:
