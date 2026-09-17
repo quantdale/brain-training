@@ -8,15 +8,16 @@
       on the single dedicated emulator; record no-secret readiness evidence.
 - [x] 1.3 Configure the provider environment externally without printing or
       committing the credential.
-- [ ] 1.4 Complete a system Settings Flash smoke task — **BLOCKED / NOT
-      VALIDATED**: the former Gemini path was retired by owner directive; the
-      external adapter now resolves the OpenCode Go / `union-alpha` credential
-      from ARTEMIS `.env`, but the bounded authenticated Messages probe and one
-      same-session retry returned HTTP 503. Evidence: `.agent/VALIDATION.md`.
+- [ ] 1.4 Complete a system Settings Flash smoke task — **INVALID / NOT
+      VALIDATED** for the first attempted trace: the UI sequence completed, but
+      trace stderr showed the obsolete Gemini startup prewarm. The local
+      ARTEMIS fix removes that inactive-provider request path; a fresh Codex
+      MCP process must be loaded before rerunning the task. Evidence:
+      `docs/campaign029-muse-continuation-2026-09-17.md`.
 - [ ] 1.5 Complete Brain Training Flash and Pro tasks on the current APK —
-      **BLOCKED / NOT VALIDATED** by the same provider HTTP 503 condition; do
-      not claim a runtime pass until a fresh trace on the `union-alpha` route
-      completes after a valid text response.
+      **BLOCKED / NOT VALIDATED** because the patched MCP stdio transport closed
+      before a fresh Muse-only task could start. Do not claim a runtime pass
+      until fresh traces prove the Muse route and pass trace inspection.
 
 ## 2. Repository boundary migration
 

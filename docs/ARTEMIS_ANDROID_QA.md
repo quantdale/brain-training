@@ -28,9 +28,9 @@ uv run artemis helper install --serial <serial>
 ```
 
 `doctor --json` is the machine-readable readiness gate. A ready result requires
-the Python runtime, ARTEMIS configuration, integration host, Google credential,
-and ADB target. The helper is installed on the target by the first task or by
-the explicit `helper install` command above.
+the Python runtime, ARTEMIS configuration, integration host, configured
+OpenCode Go credential, and ADB target. The helper is installed on the target
+by the first task or by the explicit `helper install` command above.
 
 Credentials stay in the external ARTEMIS `.env` (or an existing process
 environment). They must never be copied into this repository, Codex config,
@@ -39,16 +39,18 @@ an unattended agent session: it is a showcase bootstrapper and can offer
 global MCP/rules installation. Use `uv sync`, `doctor`, and the CLI/MCP server
 directly.
 
-The upstream checkout's current configuration is the default. If a configured
-model is temporarily unavailable to the credential, use an external local
-override file selected with `ARTEMIS_ARTEMIS_JSONC`; keep the upstream source
-checkout itself clean and record the observed model/service reason in the
-validation ledger. For example, the local workstation may use:
+The upstream checkout's current configuration is not the Campaign 029 runtime
+route. Use the external local override selected with
+`ARTEMIS_ARTEMIS_JSONC`; keep the upstream source checkout itself clean and
+record the observed model/service reason in the validation ledger. Do not
+substitute another provider or model. For example, the local workstation may
+use:
 
 ```powershell
-$env:ARTEMIS_ARTEMIS_JSONC = 'D:\Tools\artemis-local-gemini35.jsonc'
+$env:ARTEMIS_ARTEMIS_JSONC = 'D:\Tools\artemis-local-muse-spark.jsonc'
+$env:ARTEMIS_CONFIG_DIR = 'C:\Users\<user>\AppData\Local\Artemis'
 uv run artemis run "<task>" --profile flash --device-serial <serial> --standalone
-Remove-Item Env:ARTEMIS_ARTEMIS_JSONC
+Remove-Item Env:ARTEMIS_ARTEMIS_JSONC, Env:ARTEMIS_CONFIG_DIR
 ```
 
 The override is a runtime compatibility measure, not an app dependency or a
@@ -69,40 +71,45 @@ uv run artemis run "Run today's Brain Training workout through its available leg
   --test-name braintraining-pro-stateful --without-video-recording-tools
 ```
 
-## OpenCode Go / `union-alpha` provider route
+## OpenCode Go / Muse Spark 1.3 Contributor route
 
-The owner-directed provider for Campaign 029 is OpenCode Go / `union-alpha`
-only (Anthropic-style Messages endpoint). The route is prepared external to
-this repository; nothing provider-specific lives in product code.
+The owner-directed provider for Campaign 029 is **OpenCode Go** with model
+`muse-spark-1.3-contributor` only. ARTEMIS uses the OpenAI Responses API at
+`https://opencode.ai/zen/go/v1/responses`, with `reasoning.effort=xhigh` and no
+fallback. Union Alpha is permanently abandoned and is historical evidence
+only; no Anthropic Messages transport or alternate model is active.
 
-```powershell
-$env:ARTEMIS_ARTEMIS_JSONC = 'D:\Tools\artemis-local-union-alpha.jsonc'
-$env:ANTHROPIC_API_KEY    = $env:OPENCODE_GO_API_KEY          # alias only, never stored
-$env:ANTHROPIC_BASE_URL   = 'https://opencode.ai/zen/go'      # SDK appends /v1/messages
-$env:ANTHROPIC_CUSTOM_HEADERS = "User-Agent: artemis-braintraining-qa/0.1`nx-opencode-session: $([guid]::NewGuid())"
-Remove-Item Env:ANTHROPIC_API_KEY, Env:ANTHROPIC_BASE_URL, Env:ANTHROPIC_CUSTOM_HEADERS
-```
+The route is prepared outside this repository. The external ARTEMIS `.env`
+resolves `OPENCODE_GO_API_KEY` in memory; its value must never be copied into
+this repository, Codex configuration, prompts, traces, screenshots, or logs.
+The adapter sends an honest User-Agent and a stable per-task
+`x-opencode-session` header.
 
-The override pins every ARTEMIS role (including the lightweight judge nodes and
-the object detector) to `anthropic`/`union-alpha` with the same-model fallback,
-and disables the two lens paths that ride a raw Google model with no provider
-routing (`flash.step_summarizer.enabled=false`,
-`memory.transcript.enabled=false`). The external checkout carries one small
-local compatibility series for custom Anthropic headers, those disable flags,
-and the dotenv-backed credential alias; upstream is never pushed. Offline audit
-(no provider call): 20/20 roles resolve to `anthropic`/`union-alpha`.
+The external override pins every active ARTEMIS role, including lightweight
+judges and the object/spatial path, to `openai_responses` /
+`muse-spark-1.3-contributor` with `xhigh` reasoning and `fallback=null`.
+Offline audit evidence: **20/20 active roles**, zero Union Alpha, Gemini,
+alternate-provider, or fallback violations. The obsolete provider-specific
+startup prewarm was removed from the local ARTEMIS compatibility checkout so
+startup cannot send requests to an inactive provider.
 
-Current status: **BLOCKED / NOT VALIDATED** for all live tasks because the
-external adapter resolves `OPENCODE_GO_API_KEY` from the ARTEMIS `.env`, but
-the bounded authenticated OpenCode Go / `union-alpha` Messages probe and one
-same-session retry both returned HTTP 503. Do not substitute Gemini or any
-other model.
+Direct qualification is **PASS** for bounded text+XHigh, harmless-image
+multimodal reasoning, and the structured tool path using automatic tool
+selection plus stateless tool-result continuation. The first MCP Settings
+trace (`4340ff06-befd-4af7-9404-527940fa68a9`) is **INVALID / NOT VALIDATED**:
+the UI sequence completed and its ledger recorded Muse calls, but stderr also
+contained the obsolete Gemini startup prewarm. After the fix, the current
+Codex MCP subprocess was restarted and its stdio transport closed; a fresh
+MCP process must be loaded before Settings Flash or Brain Training Flash/Pro
+can be rerun. Do not substitute any other model.
 
 MCP-issued tasks resolve their LLM profile through `ARTEMIS_CONFIG_DIR`
 (`llm-config.override.jsonc`) instead of `ARTEMIS_ARTEMIS_JSONC`. To keep the
-same pin for MCP, place the same role map in that file too (it is merged over
-the upstream defaults, so every role must be pinned there) and keep
-`ARTEMIS_ARTEMIS_JSONC` set for the agent behavior flags.
+same Muse pin for MCP, place the same role map in that file too (it is merged
+over the upstream defaults, so every role must be pinned there) and keep
+`ARTEMIS_ARTEMIS_JSONC` set for the agent behavior flags. A running Codex
+session must be restarted or its MCP servers reloaded after changing either
+file; configuration text alone is not live-process evidence.
 
 For MCP clients, the runtime surface is:
 
