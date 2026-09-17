@@ -5,6 +5,21 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 038 Accessibility, Device, Motion & Sensory Hardening — 2026-09-18 (ACTIVE discovery)
+
+- Activation: **PASS** — Campaign 038 opened from terminal synchronized
+  checkpoint `a158748`; no local or concurrent user work was overwritten.
+- Discovery lead: Campaign 037's normal-font audit reported 0 violations across
+  22 surfaces but exposed two clipped interactive nodes at the captured
+  tab-hosted viewport: Profile's Shield purchase control and a Games catalog
+  card. This is a lead to reproduce at settled scroll positions, not yet a
+  confirmed product defect.
+- Pending conditions: large text, smaller/expanded phone viewport,
+  reduced-motion, system/theme transition, and disabled SFX/haptics relaunch
+  behavior have not yet been validated on the current implementation.
+- ARTEMIS/computer-use: not yet used for 038; deterministic local Android
+  tooling remains the planned first evidence path.
+
 ### Campaign 037 Navigation, State & Cross-Surface Coherence — 2026-09-18 (VALIDATED)
 
 - Activation: **PASS** — Campaign 037 opened from synchronized `main` at

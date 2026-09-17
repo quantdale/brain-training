@@ -1,3 +1,48 @@
+# Campaign 038 — Accessibility, Device, Motion & Sensory Hardening
+
+**Status:** ACTIVE
+**Campaign id:** `038-accessibility-device-sensory-hardening`
+**Predecessor:** `037-navigation-state-coherence` (validated)
+**Mode:** day
+**Start SHA:** `a158748`
+**Change:** `038-accessibility-device-sensory-hardening` (ACTIVE)
+**Authorization:** owner-supplied Campaign 033–040 overnight directive on
+2026-09-18, following the validated Campaign 037 checkpoint.
+
+## Mission
+
+Move beyond the normal-font static audit into truthful Android evidence for
+reachability, text scale, motion, sensory settings, theme, and safe viewport
+conditions. Repair only defects demonstrated on the dedicated emulator.
+
+## Current evidence
+
+Campaign 037's clean normal-font matrix is 22/22 route-verified and automated-
+a11y clean. Its audit reports two clipped interactive nodes at the captured
+tab-hosted scroll position: Profile's Shield purchase control and a Games
+catalog card. Large text, alternate phone viewport, reduced motion, and
+disabled SFX/haptics relaunch behavior are still discovery work.
+
+## Bounded implementation
+
+- Follow the reported clipped controls to settled scroll positions before
+  changing source; add the smallest shared reachability fix only if needed.
+- Exercise existing font-scale, theme/system, reduced-motion, and SFX/haptics
+  seams with restored emulator settings.
+- Add focused regression contracts for any demonstrated defect.
+- Preserve session/workout identity, persistence, migrations, economy,
+  gameplay, offline boundaries, and router architecture.
+
+## Exit criteria
+
+High-value journeys remain operable under the conditions actually tested;
+demonstrated defects have focused regression proof; native pixels/XML, a11y,
+logcat, and manual/platform limits are recorded under
+`docs/redesign/evidence/campaign038/`. Result must be labelled COMPLETE or
+PARTIAL truthfully.
+
+---
+
 # Campaign 037 — Navigation, State & Cross-Surface Coherence Hardening
 
 **Status:** VALIDATED

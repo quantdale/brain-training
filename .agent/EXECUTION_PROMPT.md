@@ -1,3 +1,42 @@
+# Execution Prompt — Campaign 038: Accessibility, Device, Motion & Sensory Hardening
+
+**Status:** ACTIVE
+**Change:** `038-accessibility-device-sensory-hardening`
+**Planned-From:** `a158748`
+**Start-SHA:** `a158748`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `037-navigation-state-coherence`
+
+## Authority
+
+Execute Campaign 038 from
+`docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and the guardrails in
+`.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`. Campaign
+037 is validated; its 22-surface audit authorizes this accessibility/device/
+motion/sensory hardening scope.
+
+## Mission
+
+Test and, only where observed, repair tab-bar reachability, text scaling,
+screen-reader semantics, reduced motion, sensory-disabled settings, theme, and
+alternate phone viewport behavior on the dedicated Android runtime.
+
+## Required validation and handoff
+
+Capture matching native baselines and after states, exercise the reported
+clipped controls at settled scroll positions, test available font/theme/motion/
+SFX/haptics conditions, run focused/full tests, typecheck, lint, relevant
+validators, a11y, fresh logcat, and record manual/platform limits honestly.
+
+## Guardrails
+
+Do not add a new accessibility framework or non-functional setting. Do not
+replace the router or change game mechanics, session identity, persistence,
+migrations, schema, economy, backup/restore, offline behavior, or gameplay.
+
+---
+
 # Execution Prompt — Campaign 037: Navigation, State & Cross-Surface Coherence
 
 **Status:** VALIDATED

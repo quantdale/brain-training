@@ -1,0 +1,16 @@
+{
+  "id": "038-accessibility-device-sensory-hardening",
+  "status": "ACTIVE",
+  "predecessor": "037-navigation-state-coherence",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["accessibility-device-sensory"],
+  "activationRule": "Campaign 037 is terminally validated at a158748; the current normal-font native audit reports two tab-hosted controls clipped by the visible content viewport, while large-text, reduced-motion, sensory-disabled, and alternate phone viewport evidence remains unvalidated.",
+  "baselineAuditCommit": "a158748",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the Campaign 037 22-surface light/dark matrix and its clipped-control observations. Scope is limited to accessibility/device/motion/sensory operation and safe reachability; no gameplay, economy, schema, persistence, or router rewrite is authorized.",
+  "validationNote": "Active discovery and bounded hardening checkpoint. Manual TalkBack/VoiceOver, physical-device, iOS, and human evidence must remain explicitly pending unless actually executed."
+}

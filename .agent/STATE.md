@@ -1,11 +1,25 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 037 is terminally validated after its
-native cross-surface navigation audit and bounded clean-state copy fix.
+**Last update:** 2026-09-18 — Campaign 038 is active after terminal Campaign
+037 validation; the deferred accessibility/device/sensory audit is underway.
 **Canonical branch:** `main`
-**Active campaign:** `none`
+**Active campaign:** `038-accessibility-device-sensory-hardening`
 **Last campaign:** `037-navigation-state-coherence`
 **Last campaign status:** VALIDATED
+
+## Campaign 038 checkpoint — Accessibility, Device, Motion & Sensory Hardening (ACTIVE)
+
+- **Activation:** opened from synchronized terminal Campaign 037 checkpoint
+  `a158748`; no local or concurrent user work was present to overwrite.
+- **Discovery lead:** the Campaign 037 normal-font a11y report found no
+  violations across 22 surfaces, but reported two interactive nodes clipped by
+  the tab-hosted viewport at the captured scroll position: the Profile Shield
+  purchase control and a Games catalog card. Large-text, alternate viewport,
+  reduced-motion, and disabled sensory relaunch evidence remain unvalidated.
+- **Scope:** reproduce those nodes at settled scroll positions and test the
+  existing theme/font/motion/SFX/haptics seams. Only demonstrated reachability,
+  scaling, semantics, or sensory defects may be repaired; core state,
+  persistence, economy, gameplay, and router architecture remain protected.
 
 ## Campaign 037 checkpoint — Navigation, State & Cross-Surface Coherence (VALIDATED)
 
