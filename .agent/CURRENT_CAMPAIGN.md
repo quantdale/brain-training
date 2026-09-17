@@ -18,15 +18,20 @@ Codex MCP integration, and revalidate the build and deterministic gates.
 
 ## Current progress
 
-- External ARTEMIS is reconciled at `D:\Tools\artemis`, upstream revision
-  `371aa6d`; its Python environment is synced.
-- The single ARTEMIS-managed target previously reached **READY** as
-  `braintraining-ui35` / `emulator-5554` after a non-destructive host-GPU/
-  no-snapshot boot. The fresh Codex `mobile_diagnose` check found no attached
-  device, no active task, and no competing controller; no AVD was launched in
-  this blocked continuation.
-- Provider credentials are configured only in the external ARTEMIS `.env` and
-  have not been printed or copied into the repository.
+- External ARTEMIS is reconciled at `D:\Tools\artemis`, local revision
+  `07ecb21` over compatibility `e70ca52` / upstream `371aa6d`; its Python
+  environment is synced. The follow-up compatibility commit is local-only and
+  has not been pushed upstream.
+- ARTEMIS safely launched the dedicated `braintraining-ui35` AVD as
+  `emulator-5554`. Target-specific `mobile_diagnose` is **READY** with 5/5
+  required checks, helper v6 installed/enabled/reachable, and no active or
+  queued ARTEMIS task. The concurrent `braintraining-c030b` /
+  `emulator-5562` session was not touched.
+- The owner-provided `OPENCODE_GO_API_KEY` is present only in the external
+  ARTEMIS `.env`; the new external adapter path loads it in memory as the
+  Anthropic credential, forces the OpenCode Go base URL, and supplies an honest
+  User-Agent plus stable per-task session header. No credential detail was
+  printed or copied into the repository.
 - The custom `scripts/qa/autobot.mjs` driver and `.autobot.lock` ignore entry
   are removed. CI, certification, self-test, README, Android, and QA-boundary
   docs now point to ARTEMIS or repository-side setup/evidence tools.
@@ -49,31 +54,30 @@ Codex MCP integration, and revalidate the build and deterministic gates.
   authorized remote inference is **OpenCode Go / `union-alpha`** through its
   Anthropic-style Messages endpoint. Gemini, Gemini Robotics, and every other
   model are forbidden for this campaign.
-- The external route is prepared and verified offline (no live credential in
-  this session): all 20 ARTEMIS runtime roles resolve to
-  `anthropic`/`union-alpha` with no fallback (audit PASS), and a small local
-  ARTEMIS commit (`e70ca52` on top of upstream `371aa6d`) forwards
-  `ANTHROPIC_CUSTOM_HEADERS` so an honest client identity and a stable
-  per-task session header survive the SDK's header merge order, and keeps the
-  two Google-only lens paths inert when their flags are disabled.
-- Live provider work is **BLOCKED / NOT VALIDATED**: `OPENCODE_GO_API_KEY` is
-  absent from this session's environment and from the external ARTEMIS `.env`,
-  so the fail-closed probe sent no request and ARTEMIS cannot initialize the
-  provider. Settings Flash, Brain Training Flash, and Brain Training Pro
-  remain unrun on the new route; no other model was substituted. The
-  diagnostic also reported an existing Gemini credential in the external
-  environment; it was not used and remains unauthorized.
+- The external route is prepared and verified offline: all 20 ARTEMIS runtime
+  roles resolve to
+  `anthropic`/`union-alpha` with no fallback (audit PASS), and local ARTEMIS
+  compatibility commits (`e70ca52`, `07ecb21` over upstream
+  `371aa6d`) forward `ANTHROPIC_CUSTOM_HEADERS` so an honest client identity
+  and stable per-task session header survive the SDK's header merge order, and
+  keep the two Google-only lens paths inert when their flags are disabled.
+- Live provider work is **BLOCKED / NOT VALIDATED**: a bounded authenticated
+  `union-alpha` Anthropic Messages probe and one same-session retry each
+  returned HTTP 503. A credential-free catalog check returned HTTP 200 with
+  `union-alpha` listed, so no valid response was obtained and no fallback was
+  used. Settings Flash, multimodal, Brain Training Flash, and Brain Training
+  Pro remain unrun on the new route. The diagnostic also reported an existing
+  Gemini credential in the external environment; it was not used and remains
+  unauthorized.
 
 ## Remaining work
 
-1. Provide `OPENCODE_GO_API_KEY` (environment only; never Git/config/docs),
-   reload the ARTEMIS MCP server so the non-secret route paths take effect,
-   alias it for the ARTEMIS process, then run the staged gates in order:
-   tiny text probe -> multimodal image probe -> Settings Flash -> Brain
-   Training Flash -> Brain Training Pro. Do not substitute another model.
-2. No Android target is currently attached according to the fresh diagnostic;
-   re-establish the `braintraining-ui35` / single idle target before the
-   runtime stages, without adopting a competing session's device.
+1. Wait for the OpenCode Go Anthropic Messages route to return a valid
+   authenticated response, then run the staged gates in order: tiny text probe
+   -> multimodal image probe -> Settings Flash -> Brain Training Flash -> Brain
+   Training Pro. Do not substitute another model.
+2. Keep `braintraining-ui35` / `emulator-5554` as the exclusive target for this
+   campaign and do not adopt the concurrent `braintraining-c030b` device.
 3. Inspect each ARTEMIS trace and record only what actually completed.
 
 ## Protected constraints
@@ -90,7 +94,7 @@ Codex MCP integration, and revalidate the build and deterministic gates.
 
 The campaign closes after repository migration and deterministic validation are
 complete, MCP is safely merged, the app build/install is healthy, and each
-live runtime task is either completed or durably classified. The current
-missing `OPENCODE_GO_API_KEY` credential keeps the live Flash/Pro items open;
-it remains the single documented blocker until a run with that credential
-proves them on the `union-alpha` route.
+live runtime task is either completed or durably classified. OpenCode Go
+Messages HTTP 503 keeps the live text, multimodal, Flash, and Pro items open;
+it remains the single documented external blocker until a valid response and
+the staged `union-alpha` traces prove them.

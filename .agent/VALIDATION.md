@@ -5,6 +5,52 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 029 live qualification continuation — 2026-09-17 16:57 +08:00
+
+- Brain Training started clean on `main` at `4fa2e3d` (`origin/main` aligned);
+  no product source, dependency, or application build change was made. The
+  external ARTEMIS checkout was clean at local `07ecb21` over compatibility
+  `e70ca52` / upstream `371aa6d`; the new local commit is unpushed upstream.
+- Credential readiness: **PASS without secret details**. The external
+  `D:\Tools\artemis\.env` contains a non-empty `OPENCODE_GO_API_KEY`; the
+  adapter resolves that dotenv value in memory as the Anthropic credential,
+  forces the OpenCode Go base URL, and supplies the honest User-Agent plus a
+  stable per-task session header. A fresh adapter profile load validated 20
+  roles with zero route violations. Focused external tests: **9 passed**.
+  No value, length, substring, or fingerprint was printed, persisted in this
+  repository, or included in a trace.
+- Authenticated text probe: **BLOCKED / NOT VALIDATED**. Two bounded POST
+  attempts used model `union-alpha`, the OpenCode Go Anthropic Messages
+  endpoint, `max_tokens=16`, the honest User-Agent, and the same stable
+  `x-opencode-session`; both returned HTTP 503. A credential-free catalog
+  diagnosis returned HTTP 200 with `union-alpha` listed, and a credential-free
+  GET to `/v1/messages` returned the expected method rejection (HTTP 404).
+  No valid model response or authentication PASS was obtained; no fallback was
+  used and no further provider retry is authorized in this continuation.
+- Effective provider audit: **PASS** — source and MCP-destination override
+  hashes match; **20/20** primary/fallback roles resolve exclusively to
+  `anthropic`/`union-alpha`; zero Gemini routes, zero alternative-provider
+  routes, zero unauthorized fallbacks; Google-only step-summarizer and
+  transcript lenses are disabled.
+- Codex → ARTEMIS MCP: **PASS for live tool reachability** —
+  `mcp__artemis__mobile_diagnose` executed in this fresh session. The
+  target-specific result was **READY** at 5/5 required checks. ARTEMIS safely
+  launched `braintraining-ui35` as `emulator-5554`; helper v6 is installed,
+  enabled, reachable, and no ARTEMIS task is active or queued. The concurrent
+  `braintraining-c030b` / `emulator-5562` device was not touched.
+- Multimodal probe, Settings Flash, Brain Training Flash, and Brain Training
+  Pro: **NOT RUN / NOT VALIDATED** because the required text gate returned
+  HTTP 503. No new ARTEMIS task or trace was created in this continuation; the
+  historical Gemini-backed trace IDs remain historical and were not reused.
+- Post-documentation gates: **PASS** — repository state, task ownership,
+  affected-area sync, ARTEMIS runtime contract, provenance, tracked-source
+  secrets scan (2104 files), and OpenSpec validation (16/16). No application
+  test matrix was rerun because application code and dependencies were
+  unchanged.
+- Campaign 029 remains **ACTIVE** with one external provider blocker: OpenCode
+  Go Messages service HTTP 503 after credential resolution. No product defect
+  was exposed.
+
 ### Fresh Codex continuation checkpoint — 2026-09-17 15:37 +08:00
 
 - Brain Training was clean on `main` at `88d1393`, aligned with

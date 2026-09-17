@@ -2,6 +2,13 @@
 
 This is a bounded migration evidence map, not a product redesign audit.
 
+Live qualification continuation (2026-09-17): the external checkout is local
+at `07ecb21` over compatibility `e70ca52` / upstream `371aa6d`; the external
+dotenv credential resolves through the adapter without entering this repo. The
+target AVD/helper is ready, but the bounded OpenCode Go Messages probe and one
+same-session retry both returned HTTP 503, so provider-dependent task rows stay
+`BLOCKED` / `NOT VALIDATED`.
+
 | Item | Evidence source | Required disposition |
 |---|---|---|
 | External tool location and upstream revision | `D:\Tools\artemis`, official `google/artemis` checkout, revision `371aa6d` | Keep outside Git; record revision only |

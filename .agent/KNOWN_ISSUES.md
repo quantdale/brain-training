@@ -25,7 +25,11 @@ These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable.
 They are not failures of the repository-owned automated matrix, and they must
 not be reported as PASS until actually performed.
 
-## Campaign 029 — ARTEMIS migration status (2026-09-17)
+## Campaign 029 — ARTEMIS migration status (2026-09-17, live qualification continuation)
+
+- Continuation update: the external checkout is clean at local revision
+  `07ecb21` over compatibility `e70ca52` / upstream `371aa6d`; these local
+  compatibility commits are not pushed to Google's repository.
 
 - **External ARTEMIS setup:** the official checkout is at
   `D:\Tools\artemis`, revision `371aa6d`, with its synced Python environment.
@@ -48,34 +52,40 @@ not be reported as PASS until actually performed.
   `4ecca04c-ec32-467b-b05f-15eaf0049669`.
 - **Brain Training Flash/Pro:** **NOT VALIDATED**. The current debug APK
   build/install/start diagnostics are complete, but no task was started after
-  the provider condition became deterministic enough to identify the blocker.
-  A fresh provider-backed ARTEMIS task is still required.
+  the authorized provider route returned HTTP 503 at the text gate. A fresh
+  provider-backed ARTEMIS task is still required after a valid text response.
 - **Provider path (owner-directed, 2026-09-17):** the only authorized remote
   inference is OpenCode Go / `union-alpha` (Anthropic-style Messages endpoint);
   Gemini and all other models are forbidden. The external ARTEMIS route is
   prepared config-only, and the local ARTEMIS checkout carries one auditable
-  compatibility commit (`e70ca52` over upstream `371aa6d`) for custom
-  Anthropic headers and lens-disable flags. Offline audit: all 20 roles route
-  to `anthropic`/`union-alpha` with no fallback.
-- **Live provider blocker (current, single):** `OPENCODE_GO_API_KEY` is absent
-  from the session environment and the external ARTEMIS `.env`; the fail-closed
-  probe sent no request. The Settings/Brain Training Flash and Pro stages stay
-  **BLOCKED / NOT VALIDATED** until that credential is provided. Do not
-  substitute another model and do not blind-retry.
-- **Fresh Codex reconciliation (2026-09-17 15:37 +08:00):** the live
-  `mcp__artemis__mobile_diagnose` tool call succeeded, but returned 4/5
-  required checks because no Android device was attached; it found no active
-  ARTEMIS task and no AVD was launched. The diagnostic reported an existing
-  Gemini credential in the external environment. That credential is not
-  authorized and no provider-consuming call used it. The prepared override
-  was independently parsed from both its source and MCP destination: all
-  20 primary/fallback roles resolve to `anthropic`/`union-alpha`, with the
-  Google-only lens switches disabled. The current MCP process requires a
-  reload before its newly configured non-secret override paths are effective.
-- **Direct provider probes:** **NOT RUN**. The missing credential stopped the
-  authenticated text and multimodal probes before any request could be sent;
-  Settings Flash, Brain Training Flash, and Brain Training Pro remain
-  **BLOCKED / NOT VALIDATED**.
+  compatibility series (`e70ca52`, `07ecb21` over upstream `371aa6d`) for
+  custom Anthropic headers, lens-disable flags, and dotenv credential loading.
+  Offline audit: all 20 roles route to `anthropic`/`union-alpha` with no
+  fallback.
+- **Live provider blocker (current, single):** `OPENCODE_GO_API_KEY` is present
+  in the external ARTEMIS `.env` and the patched adapter resolves it in memory
+  as the Anthropic credential with the OpenCode Go base URL and per-task
+  headers. The bounded authenticated Messages probe and one same-session retry
+  both returned HTTP 503; a credential-free catalog check was HTTP 200 and
+  listed `union-alpha`. The Settings/Brain Training Flash and Pro stages stay
+  **BLOCKED / NOT VALIDATED** until a valid response is obtained. Do not
+  substitute another model or blind-retry.
+- **Fresh Codex reconciliation (2026-09-17 16:57 +08:00):** the live
+  `mcp__artemis__mobile_diagnose` tool executed successfully. ARTEMIS launched
+  `braintraining-ui35`; target-specific diagnosis returned **READY** at 5/5
+  required checks with helper v6 ready on `emulator-5554`, and no active or
+  queued task. The concurrent `braintraining-c030b` / `emulator-5562` device
+  was not touched. The diagnostic reports an existing Gemini credential in
+  the external environment; it is not authorized and no provider-consuming
+  call used it. The prepared override was independently parsed from both its
+  source and MCP destination: all 20 primary/fallback roles resolve to
+  `anthropic`/`union-alpha`, with the Google-only lens switches disabled.
+- **Direct provider probes:** authenticated text probe **BLOCKED / NOT
+  VALIDATED** — two bounded POST attempts using the same honest headers and
+  session returned HTTP 503; no valid response or authentication PASS was
+  obtained. Multimodal was not run because the text gate failed. Settings
+  Flash, Brain Training Flash, and Brain Training Pro remain **BLOCKED / NOT
+  VALIDATED**.
 - **Android setup self-test:** **RESOLVED / PASS** after the exact
   `braintraining-ui35` AVD was booted headlessly with host GPU and no snapshot
   restore. The self-test reported 5 passes, 0 failures, and 2 documented
@@ -85,11 +95,11 @@ not be reported as PASS until actually performed.
   setup/evidence-only, and the offline boundary contract replaces the old
   repository gameplay self-test.
 
-The single live blocker is the missing `OPENCODE_GO_API_KEY` credential for the
-owner-directed OpenCode Go / `union-alpha` route. Do not substitute another
-model, blind-retry, or record another provider-consuming task until the
-credential is provided; continue with non-secret repository validation and app
-build work.
+The single live blocker is the OpenCode Go Anthropic Messages HTTP 503 after
+the external `OPENCODE_GO_API_KEY` credential became available to the adapter.
+Do not substitute another model, blind-retry, or record another
+provider-consuming task until the route returns a valid response; continue
+with non-secret repository validation and app build work.
 
 ## Campaign 026/027 findings (added 2026-09-13)
 

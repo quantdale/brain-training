@@ -10,13 +10,13 @@
       committing the credential.
 - [ ] 1.4 Complete a system Settings Flash smoke task — **BLOCKED / NOT
       VALIDATED**: the former Gemini path was retired by owner directive; the
-      OpenCode Go / `union-alpha` route is prepared and audited offline, but
-      the live probe cannot run because `OPENCODE_GO_API_KEY` is absent (no
-      request sent). Evidence: `.agent/VALIDATION.md`.
+      external adapter now resolves the OpenCode Go / `union-alpha` credential
+      from ARTEMIS `.env`, but the bounded authenticated Messages probe and one
+      same-session retry returned HTTP 503. Evidence: `.agent/VALIDATION.md`.
 - [ ] 1.5 Complete Brain Training Flash and Pro tasks on the current APK —
-      **BLOCKED / NOT VALIDATED** by the same missing-credential condition; do
+      **BLOCKED / NOT VALIDATED** by the same provider HTTP 503 condition; do
       not claim a runtime pass until a fresh trace on the `union-alpha` route
-      completes.
+      completes after a valid text response.
 
 ## 2. Repository boundary migration
 

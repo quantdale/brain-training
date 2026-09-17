@@ -88,13 +88,15 @@ the object detector) to `anthropic`/`union-alpha` with the same-model fallback,
 and disables the two lens paths that ride a raw Google model with no provider
 routing (`flash.step_summarizer.enabled=false`,
 `memory.transcript.enabled=false`). The external checkout carries one small
-local compatibility commit for custom Anthropic headers and those disable
-flags; upstream is never pushed. Offline audit (no provider call): 20/20 roles
-resolve to `anthropic`/`union-alpha`.
+local compatibility series for custom Anthropic headers, those disable flags,
+and the dotenv-backed credential alias; upstream is never pushed. Offline audit
+(no provider call): 20/20 roles resolve to `anthropic`/`union-alpha`.
 
-Current status: **BLOCKED / NOT VALIDATED** for all live tasks because
-`OPENCODE_GO_API_KEY` is not present in the environment or the external
-ARTEMIS `.env`. Do not substitute Gemini or any other model.
+Current status: **BLOCKED / NOT VALIDATED** for all live tasks because the
+external adapter resolves `OPENCODE_GO_API_KEY` from the ARTEMIS `.env`, but
+the bounded authenticated OpenCode Go / `union-alpha` Messages probe and one
+same-session retry both returned HTTP 503. Do not substitute Gemini or any
+other model.
 
 MCP-issued tasks resolve their LLM profile through `ARTEMIS_CONFIG_DIR`
 (`llm-config.override.jsonc`) instead of `ARTEMIS_ARTEMIS_JSONC`. To keep the
