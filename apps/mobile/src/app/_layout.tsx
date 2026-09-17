@@ -49,6 +49,10 @@ export default function RootLayout() {
     Partial<Settings> | undefined
   >(undefined);
   const cancelledRef = useRef(false);
+  // SQLite has one writer at a time. Keep optimistic toggle updates
+  // responsive while ensuring rapid SFX/haptics changes do not overlap
+  // profile transactions and lose the later merged settings.
+  const sensoryPersistQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   /**
    * Persist the sensory toggles into the profile settings JSON. Fire-and-forget
@@ -65,15 +69,15 @@ export default function RootLayout() {
         tone: "danger",
       });
     };
-    try {
-      void getDb()
-        .profile.update({
+    sensoryPersistQueueRef.current = sensoryPersistQueueRef.current
+      .catch(() => undefined)
+      .then(() =>
+        getDb().profile.update({
           settings: { sfx: settings.sfx, haptics: settings.haptics },
-        })
-        .catch(onPersistFailure);
-    } catch (error) {
-      onPersistFailure(error);
-    }
+        }),
+      )
+      .then(() => undefined)
+      .catch(onPersistFailure);
   }, []);
 
   /**
