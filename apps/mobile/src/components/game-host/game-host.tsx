@@ -18,13 +18,14 @@ import { isDevBuild, testId } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 import { markGameFirstInteraction } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
+import { getGameIdentity, IdentityMark } from '@/components/discovery/game-identity';
 import {
   DifficultySelector,
   GameButton,
   PauseOverlay,
   SessionHeader,
 } from '@/components/game-ui';
-import { Button, Card, Spark } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
 import { getGameDefinition } from '@/registry/registry';
 import { Spacing, type DomainName } from '@/constants/theme';
 import type { ThemeColor } from '@/theme/tokens';
@@ -179,6 +180,7 @@ export function GameHost({
 
   const definition = getGameDefinition(gameId);
   const tone = domainTone(definition?.primaryCategory);
+  const identity = definition ? getGameIdentity(definition) : null;
   const rules = conciseMechanic(description ?? definition?.description);
   const categoryLabel = definition?.primaryCategory;
   const gameName = definition?.name ?? gameId;
@@ -194,35 +196,35 @@ export function GameHost({
         accessibilityElementsHidden={paused}
         accessible={false}>
         {view === 'intro' ? (
+          // Campaign 035 keeps the shared neutral hero so the global Start
+          // action remains primary; domain identity lives in the motif cue.
           <Card
             variant="hero"
             padding="lg"
             testID={testId(gameId, 'intro')}
-            // Campaign 026: the intro IS the game's identity card — domain wash
-            // plus a spark mark, so the game feels owned before the first tap.
-            style={[
-              styles.introCard,
-              tone !== null
-                ? {
-                    backgroundColor: theme[`${tone}Soft` as ThemeColor],
-                    borderColor: theme[tone as ThemeColor],
-                    borderWidth: 2,
-                  }
-                : null,
-            ]}>
+            style={styles.introCard}>
             {/* The intro card IS the game header: the route no longer renders a
                 second title/category/description block above it, and the
                 established testIDs move here with the content. */}
-            {categoryLabel !== undefined && categoryLabel !== gameName ? (
+            {categoryLabel !== undefined ? (
               <View style={styles.introEyebrow}>
-                {tone !== null ? <Spark size={16} color={theme[tone as ThemeColor]} /> : null}
-                <ThemedText
-                  type="eyebrow"
-                  themeColor="textSecondary"
-                  testID="game-category"
-                  style={tone ? { color: theme[`${tone}Text` as ThemeColor] } : undefined}>
-                  {categoryLabel}
-                </ThemedText>
+                {identity ? (
+                  <IdentityMark
+                    family={identity.family}
+                    size={28}
+                    color={tone ? theme[`${tone}Text` as ThemeColor] : theme.textSecondary}
+                    testID="game-identity-mark"
+                  />
+                ) : null}
+                {categoryLabel !== gameName ? (
+                  <ThemedText
+                    type="eyebrow"
+                    themeColor="textSecondary"
+                    testID="game-category"
+                    style={tone ? { color: theme[`${tone}Text` as ThemeColor] } : undefined}>
+                    {categoryLabel}
+                  </ThemedText>
+                ) : null}
               </View>
             ) : null}
 

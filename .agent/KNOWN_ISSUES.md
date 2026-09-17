@@ -1,20 +1,28 @@
 # Known Issues / Blockers
 
-## Current status — Campaign 034 VALIDATED
+## Current status — Campaign 035 ACTIVE
 
-Campaign 034 (`034-profile-motivation-rewards`) is terminally validated as the
-bounded successor to Campaign 033. Current Profile work is limited to grouped
-motivation disclosure and Rewards ownership; no Critical/High regression was
-identified. Native before/after captures are indexed under
-`D:\Temp\campaign034-runtime-before` and `D:\Temp\campaign034-runtime-after2`.
+Campaign 035 (`035-visual-system-consolidation`) is the active bounded
+successor to validated Campaign 034. Discovery identified one competing
+accent treatment in the single-game identity heroes; implementation is
+limited to neutralizing that treatment while preserving domain identity cues.
+Native baseline captures are indexed under
+`D:\Temp\campaign035-runtime-before`.
 
-Campaign 035 is not yet bound. The following evidence classes remain
+The following evidence classes remain
 explicitly pending or deferred and are not release-clearance claims:
 independent human usability validation, manual TalkBack/text-scaling review,
 physical-device behavior, manual iOS/VoiceOver, store signing, and Android
 system document-picker sheets.
 
-## Campaign 033 VALIDATED (previous checkpoint)
+## Campaign 034 VALIDATED (previous checkpoint)
+
+Campaign 034 (`034-profile-motivation-rewards`) is terminally validated. Its
+Profile/Rewards ownership evidence is under
+`docs/redesign/evidence/campaign034/`; no Critical/High regression was
+identified. Campaign 035 is now the active successor.
+
+## Campaign 033 VALIDATED (historical checkpoint)
 
 Campaign 033 (`033-progress-disclosure-redesign`) is terminally validated. The
 authorized Progress summary/disclosure redesign is complete and its evidence

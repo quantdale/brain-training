@@ -1,3 +1,45 @@
+# Execution Prompt — Campaign 035: Cross-Surface Visual System Consolidation
+
+**Status:** ACTIVE
+**Change:** `035-visual-system-consolidation`
+**Planned-From:** `f1ed533`
+**Start-SHA:** `f1ed533`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `034-profile-motivation-rewards`
+
+## Authority
+
+Execute Campaign 035 from
+`docs/redesign/CAMPAIGN033_040_OVERNIGHT_ROADMAP.md` and the guardrails in
+`.agent/CAMPAIGN033_040_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md`. Campaign
+034 is validated; this packet is the next bounded visual-system slice in the
+owner-directed overnight sequence.
+
+## Mission
+
+Consolidate the observed single-game identity hero treatment: neutralize the
+full domain wash/border on Game Detail and GameHost intro while retaining
+domain identity through the shared motif/category cue and preserving the
+global Play/Start action.
+
+## Required validation and handoff
+
+Observe the same Game Detail and warmed GameHost intro before and after on the
+dedicated Android emulator; run focused GameHost/Game Detail/visual tests,
+typecheck, lint, relevant repository validators, matching light/dark captures,
+accessibility, and fresh logcat review. Preserve actual artifacts and classify
+human, iOS, physical-device, large-text, reduced-motion, and external-CI
+limits honestly.
+
+## Protected contracts
+
+No game mechanics, scoring, rating, mastery, session-write, generator,
+economy, schema, backup/restore, export/delete, offline, or gameplay change
+belongs to this campaign.
+
+---
+
 # Execution Prompt — Campaign 034: Profile, Motivation, Rewards & Ownership
 
 **Status:** VALIDATED

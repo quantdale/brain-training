@@ -1,3 +1,56 @@
+# Campaign 035 — Cross-Surface Visual System Consolidation
+
+**Status:** ACTIVE
+**Campaign id:** `035-visual-system-consolidation`
+**Predecessor:** `034-profile-motivation-rewards` (validated)
+**Mode:** day
+**Start SHA:** `f1ed533`
+**Change:** `035-visual-system-consolidation` (ACTIVE)
+**Authorization:** owner-supplied Campaign 033–040 overnight directive on
+2026-09-18, following the validated Campaign 034 checkpoint.
+
+## Mission
+
+Make the single-game identity heroes read as one calm system: use the shared
+neutral hero surface, retain domain identity in the existing motif/category
+cue, and let the global Play/Start action be the clear primary accent.
+
+## Current evidence
+
+The baseline under `D:\Temp\campaign035-runtime-before` contains 16
+nonblank, route-verified light/dark captures across Home, Games, Game Detail,
+Progress, Profile, Rewards, Results, and GameHost intro. A warmed GameHost
+intro was separately inspected. The selected bounded finding is the saturated
+domain wash/border competing with the primary action on single-game heroes.
+
+## Guardrails
+
+- Preserve game identity metadata, tutorial/difficulty behavior, QA gating,
+  session identity, scoring, persistence, registry, and all mechanics.
+- Do not change tokens globally, schema, economy, backup format, or offline
+  behavior.
+- Use the dedicated `emulator-5554` only for native validation and keep all
+  automation emulator-local.
+- Record human/manual platform limits as pending rather than inferring them.
+
+## Exit criteria
+
+Game Detail and GameHost intro retain their existing identity/action behavior
+while using neutral hero surfaces with visible domain cues; matching light/dark
+before/after evidence, focused/full validation, and a synchronized checkpoint
+are recorded under `docs/redesign/evidence/campaign035/`. A safe partial result
+must be labeled PARTIAL.
+
+## Recovery order
+
+1. `AGENTS.md`, constitution, `.agent/GOVERNANCE.json`, `.agent/STATE.md`
+2. this file, `.agent/EXECUTION_PROMPT.md`, and
+   `openspec/changes/035-visual-system-consolidation/`
+3. `.agent/KNOWN_ISSUES.md`, `.agent/VALIDATION.md`, and
+   `docs/redesign/evidence/campaign035/**`
+
+---
+
 # Campaign 034 — Profile, Motivation, Rewards & Ownership Simplification
 
 **Status:** VALIDATED

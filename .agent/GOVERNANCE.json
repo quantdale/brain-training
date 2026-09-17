@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "035-visual-system-consolidation",
   "lastCampaign": "034-profile-motivation-rewards",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {

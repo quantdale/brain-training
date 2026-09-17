@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "034-profile-motivation-rewards",
-  "description": "Campaign 034 ownership record for Profile grouping and Rewards ownership simplification. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "035-visual-system-consolidation",
+  "description": "Campaign 035 visual-system ownership record for the bounded Game Detail/GameHost hero consolidation. The orchestrator owns governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

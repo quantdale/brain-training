@@ -1,27 +1,40 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 034 is terminally validated and its
-checkpoint is ready to advance to Campaign 035.
+**Last update:** 2026-09-18 — Campaign 035 is active from the synchronized
+Campaign 034 evidence checkpoint; cross-surface visual baseline is captured.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `035-visual-system-consolidation`
 **Last campaign:** `034-profile-motivation-rewards`
 **Last campaign status:** VALIDATED
 
 ## Current status
 
-Campaign 034 (`034-profile-motivation-rewards`) is terminally validated from
-the Campaign 033 checkpoint at `f64df03`. Profile is grouped around identity,
-motivation, rewards, data, and settings while Rewards remains the single owner
-of pending claim actions, full cosmetics, and reward history. Native before
-and after captures are stored outside Git under
-`D:\Temp\campaign034-runtime-before` and
-`D:\Temp\campaign034-runtime-after2`.
+Campaign 035 (`035-visual-system-consolidation`) is active from the synchronized
+Campaign 034 evidence checkpoint at `f1ed533`. The live baseline covers the
+core shell, game identity/detail, GameHost intro, Progress, Profile, Rewards,
+and Results in light/dark. The bounded implementation target is the observed
+domain-wash/border treatment competing with the global Play/Start accent on
+single-game identity heroes. Native baseline captures are outside Git under
+`D:\Temp\campaign035-runtime-before`.
 
-The implementation is limited to Profile presentation ownership and a
-read-only pending-count aggregation. Existing reward, streak, settings, data
-portability, SQLite/session, offline, catalog, game, economy, backup, and
+The implementation is limited to a shared visual-surface treatment. Existing
+game identity, tutorial, difficulty, gameplay, reward, streak, settings, data
+portability, SQLite/session, offline, catalog, economy, backup, and
 no-medical-claim contracts remain protected; no schema or dependency change
-was authorized.
+is authorized.
+
+## Campaign 035 checkpoint — Cross-Surface Visual System (ACTIVE)
+
+- **Activation:** opened from synchronized `main` at `f1ed533`; no local or
+  concurrent user work was present to overwrite.
+- **Discovery:** 16 nonblank, route-verified light/dark captures were produced
+  for Home, Games, Game Detail, Progress, Profile, Rewards, Results, and
+  GameHost intro. A warmed GameHost intro was also inspected after lazy load.
+- **Finding:** single-game identity heroes use a domain wash/border together
+  with the global primary CTA; this is the bounded visual repair selected for
+  implementation.
+- **Validation:** implementation and after-state checks are pending in this
+  active checkpoint.
 
 ## Campaign 033 checkpoint — Progress summary and progressive disclosure (VALIDATED)
 

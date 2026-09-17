@@ -13,9 +13,12 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { BackHandler, View } from 'react-native';
+import { BackHandler, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
+import { Colors } from '@/theme/tokens';
+import { registerGameDefinitions } from '@/registry/registry';
+import { registry } from '@/registry/registry.generated';
 import { WorkoutSessionLaunchProvider } from '@/workout/session-launch-context';
 
 import { GameHost } from '../game-host';
@@ -53,6 +56,19 @@ function hostProps(overrides: Partial<GameHostProps>): GameHostProps {
     children: <View testID={`${GAME}-body`} />,
     ...overrides,
   };
+}
+
+function collectTestIds(node: unknown, ids: string[] = []): string[] {
+  if (Array.isArray(node)) {
+    for (const child of node) collectTestIds(child, ids);
+    return ids;
+  }
+  if (node === null || typeof node !== 'object') return ids;
+
+  const candidate = node as { props?: { testID?: unknown }; children?: unknown };
+  if (typeof candidate.props?.testID === 'string') ids.push(candidate.props.testID);
+  collectTestIds(candidate.children, ids);
+  return ids;
 }
 
 describe('GameHost hardware-back guard', () => {
@@ -190,5 +206,30 @@ describe('GameHost chrome mounting', () => {
 
     fireEvent.press(screen.getByTestId(testId(GAME, 'start')));
     expect(onStart).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a real game intro hero neutral while retaining its domain cue', async () => {
+    registerGameDefinitions(registry);
+
+    await render(
+      <GameHost
+        {...hostProps({
+          gameId: 'memory-grid-recall',
+          view: 'intro',
+          interceptBack: false,
+        })}
+      />,
+    );
+
+    const heroStyle = StyleSheet.flatten(
+      screen.getByTestId(testId('memory-grid-recall', 'intro')).props.style,
+    );
+    expect([Colors.light.surfaceRaised, Colors.dark.surfaceRaised]).toContain(
+      heroStyle.backgroundColor,
+    );
+    expect(heroStyle.borderColor).toBeUndefined();
+    expect(collectTestIds(screen.toJSON())).toContain('game-identity-mark');
+    expect(screen.getByTestId('game-category')).toHaveTextContent('Memory');
+    expect(screen.getByText('Start game')).toBeOnTheScreen();
   });
 });

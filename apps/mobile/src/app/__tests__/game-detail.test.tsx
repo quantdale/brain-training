@@ -11,6 +11,7 @@
 
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, renderRouter, screen } from "expo-router/testing-library";
+import { StyleSheet } from "react-native";
 
 import GameDetailScreen from "@/app/game-detail/[id]";
 import type {
@@ -22,6 +23,7 @@ import { type MasteryInput } from "@/mastery";
 import { registerGameDefinitions } from "@/registry/registry";
 import { registry } from "@/registry/registry.generated";
 import type { GameDefinition } from "@/sdk";
+import { Colors } from "@/theme/tokens";
 
 const mockDbState: { db: AppDatabase | null } = { db: null };
 
@@ -168,6 +170,24 @@ describe("Game Detail — Campaign 032 identity-first contract", () => {
     expectBefore(ids, "game-detail-mechanic", "game-detail-play");
     expectBefore(ids, "game-detail-play", "game-detail-records");
     expectBefore(ids, "game-detail-play", "game-detail-recent");
+  }, 30_000);
+
+  it("keeps the hero neutral while retaining the domain identity cue", async () => {
+    mockDbState.db = makeFakeDb();
+
+    await renderDetail(MEMORY_GAME.id);
+
+    const heroStyle = StyleSheet.flatten(
+      screen.getByTestId("game-detail-mastery").props.style,
+    );
+    expect([Colors.light.surfaceRaised, Colors.dark.surfaceRaised]).toContain(
+      heroStyle.backgroundColor,
+    );
+    expect(heroStyle.borderColor).toBeUndefined();
+    expect(collectTestIds(screen.toJSON())).toContain("game-detail-identity-mark");
+    expect(screen.getByTestId("game-detail-play")).toHaveTextContent(
+      `Play ${MEMORY_GAME.name}`,
+    );
   }, 30_000);
 
   it("keeps favorite, mastery, aggregate, and recent-session evidence intact", async () => {

@@ -2,9 +2,9 @@
  * Game detail — `/game-detail/[id]` (Campaign 024 UX wave; Campaign 026
  * identity rebuild).
  *
- * One resume path: the hero card carries the domain eyebrow, the game title,
- * its description, the mastery ring with the concrete next-milestone line, and
- * the screen's single primary Play CTA. The favourite toggle is a quiet
+ * One resume path: the neutral hero card carries the domain identity cue, the
+ * game title, its description, the mastery ring with the concrete
+ * next-milestone line, and the screen's single primary Play CTA. The favourite toggle is a quiet
  * secondary action below the hero; records render as `StatBlock`s in their
  * metric identity colours and recent sessions as `ListRow`s into `/results`.
  *
@@ -193,22 +193,13 @@ export default function GameDetailScreen() {
       <BackLink />
 
       {/* Single-path resume block: eyebrow → title → progress → one CTA. */}
+      {/* Campaign 035: domain identity stays on the motif/eyebrow while the
+          neutral shared hero leaves the global Play action as the state cue. */}
       <Card
         variant="hero"
         padding="lg"
         testID="game-detail-mastery"
-        style={
-          hue
-            ? {
-                backgroundColor: hue.soft,
-                // 2 dp dyed-hero border, matching the game intro, progress and
-                // mastery heroes (Campaign 026 visual-QA: one hero border
-                // weight for dyed cards; hairlines stay on neutral rows).
-                borderWidth: 2,
-                borderColor: hue.base,
-              }
-            : undefined
-        }>
+      >
         <View style={styles.resumeBody}>
           <View style={styles.resumeHead}>
             <View style={styles.identityRow} testID="game-detail-identity">
