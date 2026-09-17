@@ -8,9 +8,9 @@ closed the residual release-confidence gaps recorded below (silent user-action
 failures, portability robustness, harness navigation reliability and artifact
 retention, validator/CI gate integrity, docs truth, cleanup). Predecessors 027
 (deep hardening, `212469d`) and 026 (visual identity rebuild) remain VALIDATED.
-Campaign 029 (`029-artemis-runtime-qa-migration`) is a historical repository
-checkpoint. Its one external provider blocker remains classified below and is
-not a Campaign 031 product blocker.
+Campaign 029 (`029-artemis-runtime-qa-migration`) is a historical checkpoint,
+**VALIDATED / CLOSED** on 2026-09-17 with its runtime qualification recorded
+below; it is not a Campaign 031 product blocker.
 
 Campaign 031 (`031-golden-path-redesign`) was validated under the owner-supplied
 2026-09-17 implementation directive. The golden-path product work and its
@@ -31,81 +31,35 @@ These remain **NOT VALIDATED / DEFERRED / EXTERNALLY BLOCKED** as applicable.
 They are not failures of the repository-owned automated matrix, and they must
 not be reported as PASS until actually performed.
 
-## Campaign 029 — ARTEMIS migration status (2026-09-17, live qualification continuation)
+## Campaign 029 — ARTEMIS migration status (closed VALIDATED, 2026-09-17)
 
-- Continuation update: the external checkout is clean at local revision
-  `07ecb21` over compatibility `e70ca52` / upstream `371aa6d`; these local
-  compatibility commits are not pushed to Google's repository.
+Campaign 029 (`029-artemis-runtime-qa-migration`) is **VALIDATED / CLOSED**.
+The fresh-session runtime gates completed through Codex to ARTEMIS MCP on the
+designated `emulator-5554` with the owner-directed OpenCode Go /
+`muse-spark-1.3-contributor` XHigh route (`fallback=null`):
 
-- **External ARTEMIS setup:** the official checkout is at
-  `D:\Tools\artemis`, revision `371aa6d`, with its synced Python environment.
-  ARTEMIS doctor and the bundled accessibility helper reached ready during
-  the initial setup when `braintraining-ui35` registered as `emulator-5554`.
-  A later non-destructive host-GPU/no-snapshot boot repaired the lifecycle
-  state: current doctor is **READY**, the helper is answering, and the
-  repository setup self-test passes 5 checks with 2 documented launcher skips.
-  No ARTEMIS source, trace, or provider credential is stored in this
-  repository.
-- **System Flash smoke:** **BLOCKED / NOT VALIDATED**. ARTEMIS launched
-  Android Settings and began the task, but the upstream/default model returned
-  repeated 503 availability responses. A compatibility attempt with a
-  currently available model reached the device but then encountered 503/429
-  free-tier quota responses; an auxiliary model used by the tool returned a
-  404 retired-model response. The task was stopped without leaving a
-  controller running. Safe external trace IDs are
-  `5d722b11-47a3-4b8b-b005-7217d9b52bc9`,
-  `1d2eccb4-f0d6-45e7-907d-0ee641d96d85`, and
-  `4ecca04c-ec32-467b-b05f-15eaf0049669`.
-- **Brain Training Flash/Pro:** **NOT VALIDATED**. The current debug APK
-  build/install/start diagnostics are complete, but no task was started after
-  the authorized provider route returned HTTP 503 at the text gate. A fresh
-  provider-backed ARTEMIS task is still required after a valid text response.
-- **Provider path (owner-directed, 2026-09-17):** the only authorized remote
-  inference is OpenCode Go / `union-alpha` (Anthropic-style Messages endpoint);
-  Gemini and all other models are forbidden. The external ARTEMIS route is
-  prepared config-only, and the local ARTEMIS checkout carries one auditable
-  compatibility series (`e70ca52`, `07ecb21` over upstream `371aa6d`) for
-  custom Anthropic headers, lens-disable flags, and dotenv credential loading.
-  Offline audit: all 20 roles route to `anthropic`/`union-alpha` with no
-  fallback.
-- **Live provider blocker (current, single):** `OPENCODE_GO_API_KEY` is present
-  in the external ARTEMIS `.env` and the patched adapter resolves it in memory
-  as the Anthropic credential with the OpenCode Go base URL and per-task
-  headers. The bounded authenticated Messages probe and one same-session retry
-  both returned HTTP 503; a credential-free catalog check was HTTP 200 and
-  listed `union-alpha`. The Settings/Brain Training Flash and Pro stages stay
-  **BLOCKED / NOT VALIDATED** until a valid response is obtained. Do not
-  substitute another model or blind-retry.
-- **Fresh Codex reconciliation (2026-09-17 16:57 +08:00):** the live
-  `mcp__artemis__mobile_diagnose` tool executed successfully. ARTEMIS launched
-  `braintraining-ui35`; target-specific diagnosis returned **READY** at 5/5
-  required checks with helper v6 ready on `emulator-5554`, and no active or
-  queued task. The concurrent `braintraining-c030b` / `emulator-5562` device
-  was not touched. The diagnostic reports an existing Gemini credential in
-  the external environment; it is not authorized and no provider-consuming
-  call used it. The prepared override was independently parsed from both its
-  source and MCP destination: all 20 primary/fallback roles resolve to
-  `anthropic`/`union-alpha`, with the Google-only lens switches disabled.
-- **Direct provider probes:** authenticated text probe **BLOCKED / NOT
-  VALIDATED** — two bounded POST attempts using the same honest headers and
-  session returned HTTP 503; no valid response or authentication PASS was
-  obtained. Multimodal was not run because the text gate failed. Settings
-  Flash, Brain Training Flash, and Brain Training Pro remain **BLOCKED / NOT
-  VALIDATED**.
-- **Android setup self-test:** **RESOLVED / PASS** after the exact
-  `braintraining-ui35` AVD was booted headlessly with host GPU and no snapshot
-  restore. The self-test reported 5 passes, 0 failures, and 2 documented
-  launcher skips; no emulator data wipe was used.
-- **Repository migration:** `scripts/qa/autobot.mjs` and its lock integration
-  are removed. ARTEMIS is now the documented runtime; `scripts/android/` is
-  setup/evidence-only, and the offline boundary contract replaces the old
-  repository gameplay self-test.
+- Settings Flash **PASS** — `9aaa2db9-5743-4bf9-9835-ab5b537fb622`
+  (Settings to Battery, visible `100%` / `Charged`).
+- Brain Training Flash **PASS** — `e927ade5-2b2d-4e2f-a150-7c316230a85d`
+  (Home to Games to Grid Recall, legitimate five-cell recall, score 100).
+- Brain Training Pro **PASS by direct trace/step/screenshot inspection** —
+  `5908e678-4b6d-4abf-8ece-2fcc41b3cc67` (Today's Workout to Cue Keeper,
+  pause/resume, background/foreground, safe stop/relaunch, coherent Home).
+  Its optional verifier subchecks remain `INCONCLUSIVE` because the Muse route
+  rejected their request schemas; they are never reported as verifier PASS.
 
-The single live blocker is the OpenCode Go Anthropic Messages HTTP 503 after
-the external `OPENCODE_GO_API_KEY` credential became available to the adapter.
-Do not substitute another model, blind-retry, or record another
-provider-consuming task until the route returns a valid response; continue
-with non-secret repository validation and app build work.
+No Gemini, Union Alpha, or alternate-provider call occurred in the passing
+runs. The earlier Gemini/Union Alpha attempts (including the OpenCode Go
+Messages HTTP 503 and the invalid Gemini-prewarm trace
+`4340ff06-befd-4af7-9404-527940fa68a9`) are historical only. The external
+checkout stays local-only and unpushed at revision `2ef304b` over upstream
+`371aa6d`; credentials remain only in the external ARTEMIS `.env`.
+
+There is **no open Campaign 029 provider blocker**. The repository migration
+(`scripts/qa/autobot.mjs` and its lock integration removed; ARTEMIS
+authoritative in CI/certification/self-test/docs; `scripts/android/`
+setup/evidence-only; offline runtime-QA contract in place) remains as recorded
+in `docs/ARTEMIS_ANDROID_QA.md`.
 
 ## Campaign 026/027 findings (added 2026-09-13)
 

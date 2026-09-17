@@ -108,6 +108,10 @@ runtime gates:
   `e927ade5-2b2d-4e2f-a150-7c316230a85d`.
 - Brain Training Pro **PASS by direct trace/step/screenshot inspection**:
   `5908e678-4b6d-4abf-8ece-2fcc41b3cc67`.
+- Final independent certification canary (2026-09-17, post-closure) **PASS**:
+  `fd39416f-50cb-4927-8c56-47b5d5056a83` — a bounded Flash run on the
+  Campaign 031 candidate (Home to Cue Keeper, one legitimate interaction and
+  result, then back Home) with Muse XHigh only and no fallback.
 
 The Pro task's optional ARTEMIS verifier subchecks are recorded as
 `INCONCLUSIVE` because the Muse route rejected their verifier request schemas;

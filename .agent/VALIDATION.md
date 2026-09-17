@@ -5,6 +5,53 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Final ARTEMIS migration certification — 2026-09-17 (independent audit)
+
+- Baseline: this audit began on `main` at `eb10f72` (Campaign 031 terminal);
+  while it ran, a concurrent session committed and pushed Campaign 032
+  activation `fa29742`, so the certification covers the tracked tree at
+  `fa29742` and leaves the concurrent Campaign 032 working-tree changes
+  untouched.
+- Repository gates re-run at the certified head: repo state, registry check,
+  task ownership, affected-map sync, provenance, offline CLEAN (970 files),
+  runtime-QA contract, secrets CLEAN (2127 tracked files), workflow hygiene,
+  dependency audit, and OpenSpec 17/17 **PASS**. `npm run typecheck` and
+  `npm run lint` **PASS**; focused golden-path Jest (Home, GameHost, in-game
+  workout actions, `/results`; 6 suites / 28 tests) **PASS**. The Campaign 031
+  full-matrix result was not re-run because no product source has changed since
+  `ad15e23`; only documentation and the concurrent Campaign 032 working tree
+  differ.
+- External ARTEMIS: `D:\Tools\artemis` clean at `2ef304b` over upstream
+  `371aa6d` (5 local commits; not pushed upstream). Scoped Ruff
+  (`artemis mcp_server apps tests packages`) and `compileall` **PASS**;
+  focused provider/router/memory unit suites **PASS** (152 tests). Whole-repo
+  Ruff reports 11 pre-existing findings only in the untouched upstream
+  `playground/` tree.
+- Effective routing audit through the MCP worker path
+  (`ARTEMIS_CONFIG_DIR/llm-config.override.jsonc`, byte-identical to the
+  external Muse override): **20/20** roles resolve to `openai_responses` /
+  `muse-spark-1.3-contributor` / `xhigh` with `fallback=null`; violations 0.
+- Codex to ARTEMIS MCP live from a fresh Codex 0.154.0 process:
+  `mobile_diagnose` **READY** at 5/5, helper v6 / protocol v2 on
+  `emulator-5554` (Android 15; no other device attached or touched).
+  Historical traces re-inspected: Settings Flash, Brain Training Flash, and
+  Brain Training Pro verified Muse-only (the Pro worker log holds 92 POSTs to
+  the OpenCode Go Responses endpoint; zero Gemini/Union calls); the Pro
+  optional verifier subchecks stay `INCONCLUSIVE`.
+- Fresh final canary (post-closure): trace
+  `fd39416f-50cb-4927-8c56-47b5d5056a83` **PASS** — Codex to ARTEMIS MCP Flash
+  on `emulator-5554` against the installed Campaign 031 candidate (APK SHA-256
+  `80E9B29134FB70D7C45E30B7BB0FB6F6E90EE8D358B1880B9FA236E98A877D6A`) with
+  current Metro JS: Home to Cue Keeper, one legitimate interaction and result,
+  then Home; 24 POSTs to the Muse Responses endpoint with one bounded 429
+  retry, no Gemini/Union/fallback, no crash.
+- Documentation drift repaired: this entry, the Campaign 029 closure entries
+  below, the Campaign 029 status in `.agent/STATE.md` and
+  `.agent/KNOWN_ISSUES.md`, and post-closure addenda in
+  `docs/ARTEMIS_ANDROID_QA.md` and the Campaign 031 regression matrix. No
+  product, script, CI, governance, or external-ARTEMIS code changed.
+- Verdict: **FINAL CERTIFICATION PASS — no material changes required.**
+
 ### Campaign 031 implementation checkpoint — implementation phase (historical)
 
 ### Campaign 031 terminal closure — 2026-09-17
@@ -75,7 +122,37 @@ the implementation phase.
   length-aware completion assertions. Full Campaign 031 matrix and native
   after-evidence remain **NOT VALIDATED** at this checkpoint.
 
+### Campaign 029 closure — Muse Spark 1.3 Contributor runtime qualification (2026-09-17)
+
+- The fresh Codex session loaded the corrected local ARTEMIS checkout and ran
+  the MCP task worker at local revision `2ef304b` over `26124b4` / `7328c4b` /
+  `07ecb21` / `e70ca52` (upstream `371aa6d`); the external checkout stayed
+  clean and was not pushed upstream. The repository stayed at `5e9d300`,
+  aligned with `origin/main`; concurrent Campaign 031 files were not touched.
+- Live `mobile_diagnose`: **READY**, 5/5 required checks, helper v6 /
+  protocol v2 reachable on `emulator-5554` (Android 15, unlocked); no active
+  or queued task.
+- Effective route audit (offline, no provider request): **20/20** active roles
+  resolve to `openai_responses` / `muse-spark-1.3-contributor` / `xhigh` with
+  `fallback=null`, base URL `https://opencode.ai/zen/go/v1`; Union Alpha,
+  Gemini, and alternate-provider routes: **0**. The Pro worker log recorded 92
+  POST requests to the OpenCode Go Responses endpoint with `fallback: none`
+  route lines; the Flash worker recorded 32 and Settings recorded 3. All
+  passing runs are Muse-only.
+- Settings Flash **PASS** `9aaa2db9-5743-4bf9-9835-ab5b537fb622`; Brain
+  Training Flash **PASS** `e927ade5-2b2d-4e2f-a150-7c316230a85d`; Brain
+  Training Pro **PASS by direct trace/step/screenshot inspection**
+  `5908e678-4b6d-4abf-8ece-2fcc41b3cc67` (optional verifier subchecks
+  `INCONCLUSIVE` on Muse request-schema errors, never reported as PASS).
+- Closure-only repository validation: repo state, task ownership, affected
+  sync, runtime-QA contract, secrets, provenance, and strict OpenSpec passed;
+  closure commit `7cea4a4` was pushed to `origin/main`.
+
 ### Campaign 029 live qualification continuation — 2026-09-17 16:57 +08:00
+
+**Superseded:** Campaign 029 closed VALIDATED later the same day on the Muse
+Spark 1.3 Contributor route — see the closure entry above. This section is a
+dated historical checkpoint of the earlier Union Alpha attempt.
 
 - Brain Training started clean on `main` at `4fa2e3d` (`origin/main` aligned);
   no product source, dependency, or application build change was made. The
@@ -122,6 +199,10 @@ the implementation phase.
   was exposed.
 
 ### Fresh Codex continuation checkpoint — 2026-09-17 15:37 +08:00
+
+**Superseded:** this dated checkpoint describes the pre-Muse Union Alpha
+credential/MCP state and was later resolved by the Campaign 029 closure entry
+above. It is retained as historical evidence only.
 
 - Brain Training was clean on `main` at `88d1393`, aligned with
   `origin/main`, before this documentation checkpoint. No product source or

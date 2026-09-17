@@ -59,3 +59,13 @@ documentation checkpoint adds no product source changes.
 None of these classifications hides a required Campaign 031 product or
 correctness failure. No test allowlist, dependency, schema, or workflow was
 weakened to obtain the reported green results.
+
+## Post-closure addendum — final ARTEMIS certification (2026-09-17)
+
+The Campaign 031 ARTEMIS-trace limitation above was resolved after closure. A
+fresh Codex to ARTEMIS MCP Flash canary
+(`fd39416f-50cb-4927-8c56-47b5d5056a83`) exercised Home to Cue Keeper to a
+legitimate interaction/result and back Home on the installed Campaign 031
+candidate with the current Metro JS, Muse Spark 1.3 Contributor XHigh only and
+no fallback. See `.agent/VALIDATION.md` "Final ARTEMIS migration
+certification".

@@ -53,35 +53,37 @@ and classify any unavailable runtime or human evidence explicitly.
   repository is ready for a separately authorized Campaign 032, which was not
   started in this session.
 
-## Historical Campaign 029 checkpoint — ARTEMIS migration
+## Historical Campaign 029 checkpoint — ARTEMIS migration (closed VALIDATED)
 
-- **External setup:** `D:\Tools\artemis` is clean at local revision
-  `07ecb21` over compatibility `e70ca52` / upstream `371aa6d`; the follow-up
-  adapter patch is local-only and unpushed. The target-specific
-  `mobile_diagnose` result is **READY** at 5/5 required checks with helper v6
-  ready on `braintraining-ui35` / `emulator-5554`; no active or queued task
-  exists. The repository setup self-test remains 5 checks passed with 2
-  documented launcher skips. No ARTEMIS source, trace, or credential is
+- **Closure:** Campaign 029 is **VALIDATED / CLOSED** (closure commit
+  `7cea4a4`; recovery record
+  `.agent/checkpoints/029-artemis-runtime-qa-migration-validated-20260917.md`).
+  The fresh-session runtime gates passed through Codex to ARTEMIS MCP on
+  `emulator-5554`:
+  - Settings Flash **PASS** — `9aaa2db9-5743-4bf9-9835-ab5b537fb622`.
+  - Brain Training Flash **PASS** — `e927ade5-2b2d-4e2f-a150-7c316230a85d`.
+  - Brain Training Pro **PASS by direct trace/step/screenshot inspection** —
+    `5908e678-4b6d-4abf-8ece-2fcc41b3cc67`; its optional verifier subchecks
+    remain `INCONCLUSIVE` (Muse request-schema errors) and are not reported as
+    PASS.
+- **Route:** OpenCode Go / `muse-spark-1.3-contributor` on the OpenAI Responses
+  API (`https://opencode.ai/zen/go/v1/responses`), `reasoning.effort=xhigh`,
+  `fallback=null`; 20/20 effective roles audit clean, with zero Union Alpha,
+  Gemini, Gemini Robotics, or alternate-provider routes.
+- **External checkout:** `D:\Tools\artemis` is clean at local revision
+  `2ef304b` over `26124b4` / `7328c4b` / `07ecb21` / `e70ca52` (upstream
+  `371aa6d`); local-only and never pushed upstream. Credentials stay in the
+  external `.env`. The repository setup self-test remains 5 checks passed with
+  2 documented launcher skips. No ARTEMIS source, trace, or credential is
   copied into Git.
 - **Repository boundary:** `scripts/qa/autobot.mjs` and its lock ignore entry
-  are removed. Current CI/certification/self-test/docs now use the offline
+  are removed. Current CI/certification/self-test/docs use the offline
   ARTEMIS contract or setup/evidence helpers; historical records retain old
   evidence only as historical context.
-- **Runtime:** the standalone Settings smoke drove the emulator through
-  ARTEMIS historically, then provider calls returned availability/quota
-  errors. In this continuation, the credential-free OpenCode Go catalog check
-  returned HTTP 200 with `union-alpha` listed, but the bounded authenticated
-  Messages probe and one same-session retry both returned HTTP 503. No valid
-  model response was obtained and no fallback was used.
-- **Completed:** MCP generator/merge, live MCP diagnostic reachability,
-  external dotenv credential resolution, 20/20 effective Union Alpha routing
-  audit, target AVD/helper/doctor readiness, app build/install, deterministic
-  gates, OpenSpec, current-doc/state reconciliation, and the offline runtime
-  contract.
-- **Remaining:** authenticated text success, multimodal, Settings Flash,
-  Brain Training Flash, and Brain Training Pro. These remain **BLOCKED / NOT
-  VALIDATED** by the OpenCode Go Messages HTTP 503; no ARTEMIS task was
-  started on the new route and no other model was substituted.
+- **Historical context:** the earlier Gemini/Union Alpha provider attempts
+  (including the OpenCode Go Messages HTTP 503 and the invalid Gemini-prewarm
+  trace `4340ff06-befd-4af7-9404-527940fa68a9`) are superseded and remain
+  historical only.
 
 ## Historical Campaign 028 workstreams (closed VALIDATED)
 
