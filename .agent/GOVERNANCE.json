@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "048-startup-performance-reliability-soak",
-  "lastCampaign": "047-persistence-migration-backup-resilience",
+  "activeCampaign": "049-accessibility-responsive-state-matrix",
+  "lastCampaign": "048-startup-performance-reliability-soak",
   "lastCampaignStatus": "COMPLETE",
   "hardening": {
     "automaticFullHardening": false,

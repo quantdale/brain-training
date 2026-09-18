@@ -1,0 +1,15 @@
+{
+  "id": "049-accessibility-responsive-state-matrix",
+  "status": "ACTIVE",
+  "predecessor": "048-startup-performance-reliability-soak",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["accessibility-responsive-state-matrix"],
+  "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 048 performance and reliability checkpoint.",
+  "baselineAuditCommit": "978adc5",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes bounded release responsive/accessibility captures and state-matrix evidence; repair only reproduced user-visible defects and rerun the affected matrix."
+}

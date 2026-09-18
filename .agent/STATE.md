@@ -1,31 +1,37 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 047 checkpoint pushed and Campaign 048
- activated for startup/performance/reliability soak.
+**Last update:** 2026-09-19 — Campaign 048 checkpoint pushed and Campaign 049
+ activated for accessibility, responsive, system-UI, and state-matrix hardening.
 **Canonical branch:** `main`
-**Active campaign:** 048-startup-performance-reliability-soak
-**Last campaign:** 047-persistence-migration-backup-resilience
+**Active campaign:** 049-accessibility-responsive-state-matrix
+**Last campaign:** 048-startup-performance-reliability-soak
 **Last campaign status:** COMPLETE
 
-## Campaign 048 — Startup, Performance, Resource & Reliability Soak (ACTIVE)
+## Campaign 049 — Accessibility, Responsive, System-UI & State-Matrix Hardening (ACTIVE)
 
-- **Activation:** Campaign 047 completed and pushed checkpoint `f8ef2fa` with
-  clean migration, portability, identity, and release relaunch evidence.
-- **Start SHA:** `f8ef2fa`.
-- **Measurements:** provided 5k/20k performance and sync-scan probes passed.
-  Three release force-stop/relaunch cycles rendered Home and workout content;
-  Activity TotalTime was 6,324 / 5,002 / 5,866 ms with zero filtered app
-  fatal/ANR/React/SQLite/lock/OOM markers.
-- **Decision:** no material current source regression is reproduced. Debug
-  Metro cold-start delay is recorded as a tooling boundary separate from the
-  Metro-independent release result.
-- **Route/resource sample:** Games, Progress, Profile, and Memory detail
-  rendered. Three post-navigation memory snapshots were 247,176 / 246,168 /
-  246,696 KB PSS with 2,251 views each; no monotonic short-sample growth was
-  observed.
-- **Evidence:** `docs/redesign/evidence/campaign048/`.
-- **Next action:** validate and push the Campaign 048 checkpoint, then activate
-  Campaign 049. Do not introduce speculative performance changes.
+- **Activation:** Campaign 048 closed at pushed checkpoint `978adc5` after
+  bounded release performance, route/resource, and relaunch evidence.
+- **Start SHA:** `978adc5`.
+- **Precheck:** six representative surfaces captured in light/dark compact and
+  font-scale-2 profiles; all 24 captures were nonblank and route verified.
+  Matching hierarchy audits found zero measured undersized or unlabelled
+  interactive nodes; clipped controls remain separately recorded because they
+  are under the scroll viewport/tab bar.
+- **Open observation:** the native bottom-tab labels visibly compress at
+  system font scale 2; inspect and repair only if the smallest native styling
+  adjustment preserves the supported accessibility contract.
+- **Next action:** complete the focused fixed-chrome decision, state/system
+  matrix evidence, validate and push the Campaign 049 checkpoint, then activate
+  Campaign 050.
+
+## Campaign 048 — Startup, Performance, Resource & Reliability Soak (VALIDATED)
+
+- **Terminal label:** `CAMPAIGN_048_COMPLETE` at checkpoint `978adc5`.
+- **Evidence:** timestamped 5k/20k repository probes, three release
+  force-stop/relaunch cycles, route/resource sample, memory sample, and
+  app-only logcat inspection are under `docs/redesign/evidence/campaign048/`.
+- **Decision:** no material source performance regression was reproduced; no
+  speculative optimization was introduced.
 
 ## Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience (VALIDATED)
 

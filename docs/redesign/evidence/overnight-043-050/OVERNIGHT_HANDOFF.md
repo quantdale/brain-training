@@ -11,7 +11,7 @@ external, human, and platform boundaries remain explicit.
 | 046 | `CAMPAIGN_046_COMPLETE` | All 42 game IDs covered through lifecycle stages; 44 persisted sessions across 42 games; SQLite and focused persistence checks passed; eight-domain mechanic canaries recorded. |
 | 047 | `CAMPAIGN_047_COMPLETE` | Migration/portability tests, disposable rollback/import fixtures, device export/load, valid merge/replace previews, malformed-input rejection, and a clean release relaunch sample passed. |
 | 048 | `CAMPAIGN_048_COMPLETE` | Opt-in 5k/20k probes passed; three release cold-start cycles rendered Home; Games/Progress/Profile/Memory detail rendered; bounded memory and app-only logcat checks were clean; no speculative optimization was made. |
-| 049 | `PARTIAL_PRECHECK` | Replayed the 12-surface light/dark technical a11y audit with 0 violations; responsive/state-matrix evidence still needs its campaign pass. |
+| 049 | `ACTIVE` | Campaign packet activated at `978adc5`; 24 compact/font-scale-2 captures are route-verified/nonblank and the matching technical audits have no measured target/name violations. Fixed native-tab large-text chrome and the remaining state/system boundaries are in progress. |
 | 050 | `PENDING` | Integrated release certification remains after Campaigns 047–049. |
 
 Raw screenshots, XML dumps, databases, and generated probe output remain under

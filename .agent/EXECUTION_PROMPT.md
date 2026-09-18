@@ -1,6 +1,35 @@
-# Execution Prompt — Campaign 048: Startup, Performance, Resource & Reliability Soak
+# Execution Prompt — Campaign 049: Accessibility, Responsive, System-UI & State-Matrix Hardening
 
 **Status:** ACTIVE
+**Change:** `049-accessibility-responsive-state-matrix`
+**Start-SHA:** `978adc5`
+**Target-Branch:** `main`
+**Predecessor:** `048-startup-performance-reliability-soak`
+
+## Authority
+
+Execute the active Campaign 049 OpenSpec change and the Campaigns 043–050
+overnight orchestration contract. Use the release matrix to cover compact,
+large-font, light/dark, fixed navigation, system/sensory settings, and the
+required state classifications. Repair only reproduced current defects.
+
+## Work model
+
+The orchestrator owns source convergence, dedicated Android runtime QA,
+evidence, governance, and final validation. Use only `braintraining-ui35` /
+`emulator-5554`; no host input automation and no parallel coder packets.
+
+## Progression
+
+Campaign 048 is complete at checkpoint `978adc5`. Complete and push the
+Campaign 049 evidence packet, then activate Campaign 050 integrated release
+certification.
+
+---
+
+# Execution Prompt — Campaign 048: Startup, Performance, Resource & Reliability Soak
+
+**Status:** VALIDATED — `CAMPAIGN_048_COMPLETE`
 **Change:** `048-startup-performance-reliability-soak`
 **Start-SHA:** `f8ef2fa`
 **Target-Branch:** `main`

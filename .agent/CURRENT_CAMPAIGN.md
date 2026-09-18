@@ -1,6 +1,39 @@
-# Campaign 048 — Startup, Performance, Resource & Reliability Soak
+# Campaign 049 — Accessibility, Responsive, System-UI & State-Matrix Hardening
 
 **Status:** ACTIVE
+**Campaign id:** `049-accessibility-responsive-state-matrix`
+**Predecessor:** `048-startup-performance-reliability-soak` (complete)
+**Mode:** day
+**Start SHA:** `978adc5`
+
+## Mission
+
+Extend release validation into compact, large-font, theme, fixed-navigation,
+system-surface, sensory, and state-matrix coverage. Repair only reproduced
+user-visible defects, preserve truthful manual/platform boundaries, and leave
+the release candidate ready for Campaign 050 certification.
+
+## Current progress
+
+The six-surface light/dark compact and font-scale-2 capture matrix has passed
+route/nonblank checks. The matching accessibility reports show zero measured
+undersized or unlabelled interactive nodes; clipped entries are retained as
+viewport/tab-bar evidence. Large system text exposed a native-tab label-density
+boundary that is being focused before closure.
+
+## Exit and progression
+
+Write `docs/redesign/evidence/campaign049/`, validate the OpenSpec change,
+update durable state, commit/push a coherent checkpoint, and continue to
+Campaign 050. Human TalkBack, iOS/VoiceOver, physical-device, store-signing,
+and external system-sheet usability remain separate boundaries unless actually
+executed.
+
+---
+
+# Campaign 048 — Startup, Performance, Resource & Reliability Soak
+
+**Status:** VALIDATED — `CAMPAIGN_048_COMPLETE`
 **Campaign id:** `048-startup-performance-reliability-soak`
 **Predecessor:** `047-persistence-migration-backup-resilience` (complete)
 **Mode:** day
