@@ -1,6 +1,46 @@
-# Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience
+# Campaign 048 — Startup, Performance, Resource & Reliability Soak
 
 **Status:** ACTIVE
+**Campaign id:** `048-startup-performance-reliability-soak`
+**Predecessor:** `047-persistence-migration-backup-resilience` (complete)
+**Mode:** day
+**Start SHA:** `f8ef2fa`
+
+## Mission
+
+Measure bounded release cold/warm/force-stop/offline and representative route
+behavior after the persistence checkpoint. Correlate Activity launch,
+semantic Home/content readiness, structured bootstrap/session persistence
+markers, repository-scale performance probes, and app-only crash/ANR logs.
+Optimize only a reproduced material regression.
+
+## Guardrails
+
+Use only `braintraining-ui35` / `emulator-5554`; use the release artifact for
+Metro-independent evidence and the provided performance probe for repository
+measurements. Keep sample sizes bounded, distinguish UIAutomator polling from
+application latency, and do not change source speculatively.
+
+## Current progress
+
+The 5k/20k query/export/progress/quest/achievement probes passed and produced
+timestamped baselines. A three-cycle release force-stop/relaunch sample
+rendered Home and `Today's Workout` in all cycles, with Activity `TotalTime`
+of 6,324 / 5,002 / 5,866 ms and zero filtered app error markers. Debug Metro
+cold starts showed a separate splash/black-frame bootstrap boundary; no
+release defect is reproduced.
+
+## Exit and progression
+
+Write `docs/redesign/evidence/campaign048/`, validate the OpenSpec change,
+update durable state, commit/push a coherent checkpoint, and continue to
+Campaign 049. Do not add a speculative optimization.
+
+---
+
+# Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience
+
+**Status:** VALIDATED — `CAMPAIGN_047_COMPLETE`
 **Campaign id:** `047-persistence-migration-backup-resilience`
 **Predecessor:** `046-full-catalog-repeatability-soak` (complete)
 **Mode:** day

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "047-persistence-migration-backup-resilience",
-  "lastCampaign": "046-full-catalog-repeatability-soak",
+  "activeCampaign": "048-startup-performance-reliability-soak",
+  "lastCampaign": "047-persistence-migration-backup-resilience",
   "lastCampaignStatus": "COMPLETE",
   "hardening": {
     "automaticFullHardening": false,

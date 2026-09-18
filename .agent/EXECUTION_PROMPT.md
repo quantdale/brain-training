@@ -1,17 +1,18 @@
-# Execution Prompt — Campaign 047: Persistence, Migration, Backup/Restore & Corruption Resilience
+# Execution Prompt — Campaign 048: Startup, Performance, Resource & Reliability Soak
 
 **Status:** ACTIVE
-**Change:** `047-persistence-migration-backup-resilience`
-**Start-SHA:** `af1baaa`
+**Change:** `048-startup-performance-reliability-soak`
+**Start-SHA:** `f8ef2fa`
 **Target-Branch:** `main`
-**Predecessor:** `046-full-catalog-repeatability-soak`
+**Predecessor:** `047-persistence-migration-backup-resilience`
 
 ## Authority
 
-Execute the active Campaign 047 OpenSpec change and the Campaigns 043–050
-overnight orchestration contract. Re-test fresh/v12 initialization, historical
-migrations, force-stop/relaunch, concurrent-looking writes, backup/export/
-import, duplicate replay, invalid/corrupt input, and durable identity.
+Execute the active Campaign 048 OpenSpec change and the Campaigns 043–050
+overnight orchestration contract. Measure bounded release cold starts,
+force-stop/relaunch, Home/content readiness, existing runtime markers, and the
+provided 5k/20k performance probes. Optimize only a reproduced material
+regression.
 
 ## Work model
 
@@ -21,9 +22,9 @@ coder packets are active. Use only `braintraining-ui35` / `emulator-5554`.
 
 ## Progression
 
-Campaign 046 is complete at checkpoint `af1baaa`. Write the Campaign 047
+Campaign 047 is complete at checkpoint `f8ef2fa`. Write the Campaign 048
 evidence packet, validate and close its OpenSpec change, push a coherent
-checkpoint, then continue to Campaign 048.
+checkpoint, then continue to Campaign 049.
 
 ---
 

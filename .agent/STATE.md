@@ -1,13 +1,28 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 046 checkpoint pushed and Campaign 047
- activated for persistence/migration/backup resilience.
+**Last update:** 2026-09-19 — Campaign 047 checkpoint pushed and Campaign 048
+ activated for startup/performance/reliability soak.
 **Canonical branch:** `main`
-**Active campaign:** 047-persistence-migration-backup-resilience
-**Last campaign:** 046-full-catalog-repeatability-soak
+**Active campaign:** 048-startup-performance-reliability-soak
+**Last campaign:** 047-persistence-migration-backup-resilience
 **Last campaign status:** COMPLETE
 
-## Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience (ACTIVE)
+## Campaign 048 — Startup, Performance, Resource & Reliability Soak (ACTIVE)
+
+- **Activation:** Campaign 047 completed and pushed checkpoint `f8ef2fa` with
+  clean migration, portability, identity, and release relaunch evidence.
+- **Start SHA:** `f8ef2fa`.
+- **Measurements:** provided 5k/20k performance and sync-scan probes passed.
+  Three release force-stop/relaunch cycles rendered Home and workout content;
+  Activity TotalTime was 6,324 / 5,002 / 5,866 ms with zero filtered app
+  fatal/ANR/React/SQLite/lock/OOM markers.
+- **Decision:** no material current source regression is reproduced. Debug
+  Metro cold-start delay is recorded as a tooling boundary separate from the
+  Metro-independent release result.
+- **Next action:** write the Campaign 048 evidence packet and checkpoint it;
+  do not introduce speculative performance changes.
+
+## Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience (VALIDATED)
 
 - **Activation:** Campaign 046 evidence and the catalog checkpoint were pushed
   as `af1baaa`; no product source repair was needed.

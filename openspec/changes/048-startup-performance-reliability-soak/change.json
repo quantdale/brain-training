@@ -1,0 +1,15 @@
+{
+  "id": "048-startup-performance-reliability-soak",
+  "status": "ACTIVE",
+  "predecessor": "047-persistence-migration-backup-resilience",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["startup-performance-reliability-soak"],
+  "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 047 persistence checkpoint.",
+  "baselineAuditCommit": "f8ef2fa",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes existing runtime performance markers and opt-in repository probes; optimize only a reproduced material regression."
+}
