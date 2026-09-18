@@ -7,6 +7,42 @@ integrated release-candidate pass.
 **Last campaign:** `040-release-candidate-integration-certification`
 **Last campaign status:** VALIDATED
 
+## Campaign 041 retrospective hardening overlay — 2026-09-18 (CONDITIONAL)
+
+- **Scope:** Owner-requested exhaustive retrospective hardening of Campaigns
+  001–040. This is an audit/evidence overlay, not a new feature or redesign
+  campaign; the machine-readable active campaign remains none and the last
+  campaign remains 040.
+- **Synchronization:** Starting SHA was `4c0e5f819bbc1d7fd83f9ac979e19406c50753a9`.
+  `origin/main` was fetched, had no newer commit, and the pre-existing local
+  `campaign-log.txt` work was preserved and fast-forward pushed. No reset or
+  force-push was used.
+- **Current evidence:** full Jest 557 passed / 4 skipped suites and 6,568
+  passed / 5 skipped tests; all five opt-in performance/backup probes passed;
+  typecheck, lint, repository validators, OpenSpec, Expo Doctor, web export,
+  Android debug, and Android release passed. The raw `npm audit` query still
+  exits nonzero with 15 moderate and 5 high reachable-tree findings; the
+  repository policy validator classifies the accepted/toolchain families and
+  passes.
+- **Native evidence:** current Android runtime completed the full four-game
+  workout through Next Game/final completion, persisted it across relaunch,
+  resumed an interrupted workout, round-tripped export/wipe/import, and
+  exercised all 42 registered game lifecycles plus all eight mechanic/domain
+  families. Direct SQLite checks found schema v12, integrity `ok`, no duplicate
+  session/rating/currency operation, and preserved completion.
+- **Conditional findings:** one intermittent unreduced
+  `NativeDatabase.prepareAsync` workout-load NPE; compact/font-scale Home row
+  clipping risk; light debug LogBox a11y contamination; release XML blocked by
+  UiAutomation registration; external GitHub runs failing before steps; raw
+  dependency-audit debt; and human/iOS/physical/store/signing/system-sheet
+  validation pending. No product source was changed.
+- **Evidence packet:** `docs/redesign/evidence/campaign041/` contains the
+  required closure, 001–040 ledger, contract, repository, persistence,
+  workout, catalog, native, accessibility, stress, performance, security,
+  CI, repair, adversarial, and human-handoff artifacts.
+- **Terminal audit label:** `CAMPAIGN_041_CONDITIONAL`, pending final Git SHA
+  and read-only convergence review recorded by the orchestrator.
+
 ## Campaign 040 checkpoint — Release-Candidate Integration & Certification (VALIDATED / CONDITIONAL)
 
 - **Activation:** opened from synchronized terminal Campaign 039 checkpoint

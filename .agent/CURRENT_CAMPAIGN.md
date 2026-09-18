@@ -1,5 +1,13 @@
 # Campaign 040 — Release-Candidate Integration & Certification
 
+> **Campaign 041 audit overlay (owner-requested, 2026-09-18):** The
+> Campaign 041 retrospective hardening/certification audit was executed after
+> this campaign’s terminal checkpoint without opening a new feature/redesign
+> campaign or changing the machine-readable active-campaign state. Its
+> evidence is under `docs/redesign/evidence/campaign041/`; current result is
+> `CAMPAIGN_041_CONDITIONAL`. See `.agent/STATE.md`, `.agent/VALIDATION.md`,
+> and the closure packet for current findings and pending handoff items.
+
 **Status:** VALIDATED — `CAMPAIGN_040_CONDITIONAL`
 **Campaign id:** `040-release-candidate-integration-certification`
 **Predecessor:** `039-performance-reliability-maintenance-isolation` (validated)

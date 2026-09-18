@@ -5,6 +5,48 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 041 exhaustive retrospective hardening — 2026-09-18 (CONDITIONAL)
+
+- Scope: **PASS** — owner-requested Campaigns 001–040 reconstruction and
+  current-product hardening. Product source, schema, scoring, economy,
+  registry, dependency, and workflow files were not changed. The pre-existing
+  `campaign-log.txt` work was preserved during safe remote synchronization.
+- Historical ledger: **PASS WITH BOUNDED STATUS** — one row exists for every
+  campaign number 001–040 in
+  `docs/redesign/evidence/campaign041/HISTORICAL_CAMPAIGN_LEDGER_001_040.md`.
+  Counts are 13 `CURRENTLY_VERIFIED`, 17
+  `SUPERSEDED_BUT_CURRENTLY_SAFE`, 10 `PARTIALLY_VERIFIED`, and zero rows in
+  the other three statuses. Campaign 006 is explicitly recorded as the
+  repository’s 006R recovery line; no missing details were invented.
+- Repository: **PASS** — full Jest 557 passed / 4 skipped suites; 6,568
+  passed / 5 skipped tests; 5 snapshots; typecheck, lint, Expo Doctor 21/21,
+  web export, OpenSpec 26/26, repo-state, task ownership, affected-map,
+  registry, provenance, offline, secrets, workflows, dependency-policy, and
+  runtime-QA gates passed. All five explicit opt-in performance/large-backup
+  probes passed, including the 20,000-session memory probe.
+- Persistence/workout: **PASS WITH CONDITIONAL OBSERVATION** — current schema
+  v12 databases passed integrity checks; the real four-game workout completed
+  with four sessions, 200 XP, four unique +10 currency operations, and eight
+  ratings; force-stop/relaunch and interruption/resume preserved state; native
+  backup wipe/import preserved representative records and checksum. One
+  intermittent `NativeDatabase.prepareAsync` workout-load NPE was observed,
+  recovered by cold relaunch, and not minimized; it remains open.
+- Catalog/native: **PASS WITH SCOPE** — 42/42 registry/detail/start lifecycles
+  passed after correcting three generic detector misses, and eight mechanic
+  families had fresh real interaction. Debug light/dark matrix was 22/22
+  nonblank/route-verified; compact/font-scale matrix was 12/12; release was
+  8/8. Light debug LogBox polluted a11y once; release XML was blocked by an
+  already-registered UiAutomation service.
+- External/platform: **NOT CERTIFIED** — current GitHub Actions runs
+  35313513609, 35313513511, 35313513495, and 35313513462 all failed with
+  zero job steps and no logs, classified `INDETERMINATE_EXTERNAL_PRE_STEP`.
+  Human TalkBack/VoiceOver, physical Android/iOS, production signing/store,
+  and system document/share-sheet validation remain pending.
+- Evidence: **PASS** — complete packet is under
+  `docs/redesign/evidence/campaign041/`. The first and mandatory adversarial
+  second pass are documented separately. Verdict is
+  `CAMPAIGN_041_CONDITIONAL`; no source repair was justified.
+
 ### Campaign 040 Release-Candidate Integration & Certification — 2026-09-18 (VALIDATED / CONDITIONAL)
 
 - Activation: **PASS** — Campaign 040 opened from terminal synchronized

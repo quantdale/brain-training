@@ -1,5 +1,38 @@
 # Known Issues / Blockers
 
+## Campaign 041 current audit findings — CONDITIONAL (2026-09-18)
+
+Campaign 041 re-proved the current Android/repository core but found bounded
+items that prevent unconditional release closure:
+
+- **Medium, unreduced runtime observation:** one debug matrix run reached
+  `Couldn’t load today’s workout`; logcat showed a
+  `NativeDatabase.prepareAsync`/`NullPointerException` in the workout-load
+  path after bootstrap. Cold relaunch recovered it and an exact replay was
+  clean, so no root cause or safe repair is claimed. Reproduce/minimize before
+  changing the database/workout seam.
+- **Low/Medium layout risk:** compact and font-scale-2 captures showed a Home
+  row with approximately 27dp and 19dp visible height respectively. This is a
+  current large-text/compact-viewport risk requiring a bounded layout decision,
+  not a reason to disable accessibility checks.
+- **Validation tooling:** the light debug a11y run saw a 20dp LogBox close
+  control on every light surface; the final reset replay had no LogBox. Release
+  XML capture was blocked by an already-registered UiAutomation service. These
+  are documented signal/tooling boundaries, not silently counted as clean.
+- **Dependency/release debt:** raw `npm audit --omit=dev` exits with 15
+  moderate and 5 high findings, while the repository policy validator passes
+  by classifying accepted/toolchain families. Resolve ownership before a broad
+  dependency upgrade. The local release APK is not production-signed.
+- **External CI:** all four current GitHub runs fail before any step with no
+  failed log; classification is `INDETERMINATE_EXTERNAL_PRE_STEP`. Do not edit
+  workflows to hide the result.
+
+Evidence and the mandatory second pass are under
+`docs/redesign/evidence/campaign041/`. No Campaign 041 product source repair
+was made. The next safe action is to minimize the SQLite startup observation,
+clear the UiAutomation collision, and repeat the release/a11y boundary before
+any release-certification label is strengthened.
+
 ## Current status — Campaign 040 VALIDATED / CONDITIONAL
 
 Campaign 040 is complete for the executable repository and dedicated Android
