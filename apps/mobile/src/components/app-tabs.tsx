@@ -7,12 +7,26 @@
  */
 
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { useWindowDimensions } from 'react-native';
 
 import { TAB_DEFINITIONS } from '@/constants/tabs';
 import { useTheme } from '@/hooks/use-theme';
+import { Typography } from '@/theme/tokens';
+
+/**
+ * Native Android tab labels are rendered by the platform in scaled `sp`.
+ * Keep fixed four-item chrome readable at large system text without allowing
+ * the longest label to collide with its neighbour. The accessible tab names
+ * remain full labels on the native trigger; only the painted chrome is capped.
+ */
+export function nativeTabLabelFontSize(fontScale: number): number {
+  return fontScale >= 1.5 ? 9 : Typography.caption.size;
+}
 
 export default function AppTabs() {
   const colors = useTheme();
+  const { fontScale } = useWindowDimensions();
+  const tabLabelFontSize = nativeTabLabelFontSize(fontScale);
 
   return (
     <NativeTabs
@@ -31,7 +45,10 @@ export default function AppTabs() {
       // Shipping `accentOn` for the label painted it white-on-surface and the
       // active destination lost its name in both themes (native screenshot).
       labelVisibilityMode="labeled"
-      labelStyle={{ selected: { color: colors.accentText }, default: { color: colors.textSecondary } }}>
+      labelStyle={{
+        selected: { color: colors.accentText, fontSize: tabLabelFontSize },
+        default: { color: colors.textSecondary, fontSize: tabLabelFontSize },
+      }}>
       {TAB_DEFINITIONS.map((tab) => (
         <NativeTabs.Trigger
           key={tab.name}

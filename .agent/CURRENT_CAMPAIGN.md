@@ -15,19 +15,20 @@ the release candidate ready for Campaign 050 certification.
 
 ## Current progress
 
-The six-surface light/dark compact and font-scale-2 capture matrix has passed
-route/nonblank checks. The matching accessibility reports show zero measured
-undersized or unlabelled interactive nodes; clipped entries are retained as
-viewport/tab-bar evidence. Large system text exposed a native-tab label-density
-boundary that is being focused before closure.
+The six-surface light/dark compact and font-scale-2 matrix passed 24/24
+post-fix route/nonblank checks. Matching audits reported zero measured
+undersized or unlabelled interactive nodes. A native-tab label-density defect
+was reproduced at system font scale 2, repaired with a fixed-chrome-only size
+cap, and re-captured successfully. Clipped rows remain explicitly classified
+as scroll-under-tab evidence.
 
 ## Exit and progression
 
-Write `docs/redesign/evidence/campaign049/`, validate the OpenSpec change,
-update durable state, commit/push a coherent checkpoint, and continue to
-Campaign 050. Human TalkBack, iOS/VoiceOver, physical-device, store-signing,
-and external system-sheet usability remain separate boundaries unless actually
-executed.
+The evidence packet is under `docs/redesign/evidence/campaign049/`; all tasks
+are checked and the focused source/test/build/runtime checks are complete.
+Validate and push this checkpoint, then activate Campaign 050. Human
+TalkBack, iOS/VoiceOver, physical-device, store-signing, and external
+system-sheet usability remain separate boundaries unless actually executed.
 
 ---
 

@@ -5,6 +5,35 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 049 accessibility, responsive, system-UI and state matrix — 2026-09-19 (COMPLETE)
+
+- Scope: **PASS** — post-fix compact 12/12 and font-scale-2 12/12 release
+  captures covered Home, Games, Game Detail, Progress, Profile, and Data
+  Management in light and dark themes. Every surface was route-verified and
+  nonblank; each retained a PNG and hierarchy XML.
+- Accessibility: **PASS** — matching density audits reported 0 measured
+  undersized or unlabelled interactive violations. Clipped rows were retained
+  as explicit scroll-under-tab evidence and excluded by the audit contract.
+- Repair: **PASS** — system font scale 2 reproduced a native four-tab label
+  collision. `nativeTabLabelFontSize` caps only fixed native chrome at 9sp for
+  large text; normal labels stay on the 12sp caption token and trigger names
+  remain full. The focused test passed 2/2.
+- Build/runtime: **PASS** — release package rerun succeeded after one
+  transient incremental splitter failure; installed APK SHA-256 is
+  `8F111FB590B7957AC710A05A53A422AACC1A95DE8C609F7B01152C40141B1864`.
+  Cold launch was `TotalTime: 6426 ms`; no app fatal/ANR/React/SQLite-lock/OOM
+  marker was found. Final emulator settings were restored to 1080×2400,
+  density 420, font scale 1.0, light theme, and auto-rotation.
+- Boundaries: **NOT VALIDATED** — human TalkBack/VoiceOver quality,
+  physical-device/OEM behavior, iOS layout, store signing, and human
+  system-share/document-provider usability remain explicit handoffs. Reduced
+  motion/sensory and Android share/DocumentsUI reachability are inherited from
+  Campaigns 038 and 043 with unchanged source modules.
+- Evidence: **PASS** — packet is under
+  `docs/redesign/evidence/campaign049/`; raw artifacts remain under
+  `D:\Temp\campaign049-matrix` and `D:\Temp\campaign049-matrix-fixed`.
+- Terminal label: `CAMPAIGN_049_COMPLETE`.
+
 ### Campaign 046 full catalog repeatability and soak — 2026-09-19 (COMPLETE)
 
 - Scope: **PASS** — the generated 42-game registry was covered through

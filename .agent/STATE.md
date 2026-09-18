@@ -17,12 +17,15 @@
   Matching hierarchy audits found zero measured undersized or unlabelled
   interactive nodes; clipped controls remain separately recorded because they
   are under the scroll viewport/tab bar.
-- **Open observation:** the native bottom-tab labels visibly compress at
-  system font scale 2; inspect and repair only if the smallest native styling
-  adjustment preserves the supported accessibility contract.
-- **Next action:** complete the focused fixed-chrome decision, state/system
-  matrix evidence, validate and push the Campaign 049 checkpoint, then activate
-  Campaign 050.
+- **Result:** post-fix compact 12/12 and font-scale-2 12/12 surfaces were
+  route-verified/nonblank in light and dark themes. Matching audits reported
+  zero measured undersized or unlabelled interactive nodes. The reproduced
+  native-tab label collision was repaired with a fixed-chrome-only size cap and
+  the affected matrix was rerun successfully.
+- **Evidence:** `docs/redesign/evidence/campaign049/` plus external raw
+  artifacts under `D:\Temp\campaign049-matrix-fixed`.
+- **Next action:** validate and push the Campaign 049 closure checkpoint, then
+  activate Campaign 050 integrated release certification.
 
 ## Campaign 048 — Startup, Performance, Resource & Reliability Soak (VALIDATED)
 
