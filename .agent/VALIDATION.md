@@ -46,9 +46,9 @@ unavailable checks into PASS.
   degraded dedicated AVD; this is recorded as blocked rendering evidence, not
   as a product PASS or FAIL.
 - External/platform: **NOT CERTIFIED** — current Campaign 041 checkpoint
-  GitHub Actions runs 35326181020, 35326181006, 35326180989, and 35326180987
-  all failed with zero job steps and no logs; the preceding operational SHA
-  had the same pattern. Classification is
+  GitHub Actions runs 35331615825, 35331615835, 35331615852, and 35331615864
+  for queried checkpoint `6babda4` all failed with zero job steps and no logs;
+  the preceding audit and operational SHAs had the same pattern. Classification is
   `INDETERMINATE_EXTERNAL_PRE_STEP`.
   Human TalkBack/VoiceOver, physical Android/iOS, production signing/store,
   and system document/share-sheet validation remain pending.
