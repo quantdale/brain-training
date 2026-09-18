@@ -2,7 +2,7 @@
 
 ## Secrets and offline boundary
 
-`[VERIFIED_TEST]` Secret validation was clean across 2,266 tracked text files, including its self-test. The offline-boundary validator was clean across 973 source files. No provider credential, signing secret, token, or external ARTEMIS credential was placed in the repository or evidence packet.
+`[VERIFIED_TEST]` Secret validation was clean across 2,282 tracked text files, including its self-test. The offline-boundary validator was clean across 973 source files. No provider credential, signing secret, token, or external ARTEMIS credential was placed in the repository or evidence packet.
 
 `[VERIFIED_BUILD]` The release app was installed and launched after the Metro process was stopped and port 8081 was no longer listening. The release path rendered Home, Games, Game Detail, and Game Intro, and the release screenshot showed no development QA panel. This is current evidence against a hidden Metro dependency for the exercised core routes.
 
@@ -27,4 +27,3 @@ The repository policy validator passed with five accepted advisory families and 
 Permissions include INTERNET, audio settings, legacy external-storage permissions capped at maxSdk32, VIBRATE, network state, wake lock, and the dynamic receiver permission. No unexpected exported component was found in the inspected tree.
 
 `[BLOCKED]` The locally built release artifact is not a production-signed distribution artifact; `adb run-as` correctly refused because the package is non-debuggable, but signing identity/store install was not certified. Human/system backup/share/document-picker behavior remains pending.
-

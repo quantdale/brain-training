@@ -31,20 +31,32 @@ unavailable checks into PASS.
   backup wipe/import preserved representative records and checksum. One
   intermittent `NativeDatabase.prepareAsync` workout-load NPE was observed,
   recovered by cold relaunch, and not minimized; it remains open.
-- Catalog/native: **PASS WITH SCOPE** — 42/42 registry/detail/start lifecycles
-  passed after correcting three generic detector misses, and eight mechanic
-  families had fresh real interaction. Debug light/dark matrix was 22/22
-  nonblank/route-verified; compact/font-scale matrix was 12/12; release was
-  8/8. Light debug LogBox polluted a11y once; release XML was blocked by an
-  already-registered UiAutomation service.
-- External/platform: **NOT CERTIFIED** — current GitHub Actions runs
-  35313513609, 35313513511, 35313513495, and 35313513462 all failed with
-  zero job steps and no logs, classified `INDETERMINATE_EXTERNAL_PRE_STEP`.
+- Catalog/native: **PARTIAL / TRUTH-CORRECTED** — 42/42 registry/detail/start/
+  first-interactive routes passed after correcting three generic detector
+  misses, but the retained result sweep is 39/42 full result-complete:
+  Equation Builder, Sequence Memory, and Coordinate Turn did not reach result.
+  Eight mechanic families had fresh real interaction. Debug light/dark matrix
+  was 22/22 nonblank/route-verified; compact/font-scale matrix was 12/12;
+  release was 8/8. These are route/theme captures, not every required state.
+  Search/filter/Favorites/no-results, settings, invalid-route, loading/error,
+  and every empty/populated branch were not all retained as current pixels.
+  Light debug LogBox polluted a11y once; release XML was blocked by an
+  already-registered UiAutomation service. A final clean release launch then
+  produced a uniform dark surface and a zero-byte follow-up screencap on the
+  degraded dedicated AVD; this is recorded as blocked rendering evidence, not
+  as a product PASS or FAIL.
+- External/platform: **NOT CERTIFIED** — current Campaign 041 checkpoint
+  GitHub Actions runs 35326181020, 35326181006, 35326180989, and 35326180987
+  all failed with zero job steps and no logs; the preceding operational SHA
+  had the same pattern. Classification is
+  `INDETERMINATE_EXTERNAL_PRE_STEP`.
   Human TalkBack/VoiceOver, physical Android/iOS, production signing/store,
   and system document/share-sheet validation remain pending.
-- Evidence: **PASS** — complete packet is under
+- Evidence: **PASS WITH CORRECTIONS** — complete packet is under
   `docs/redesign/evidence/campaign041/`. The first and mandatory adversarial
-  second pass are documented separately. Verdict is
+  second pass are documented separately; the second pass corrected the
+  overstatement exposed by the retained sweep and fresh read-only review.
+  Verdict is
   `CAMPAIGN_041_CONDITIONAL`; no source repair was justified.
 
 ### Campaign 040 Release-Candidate Integration & Certification — 2026-09-18 (VALIDATED / CONDITIONAL)

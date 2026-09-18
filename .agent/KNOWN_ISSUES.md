@@ -17,8 +17,11 @@ items that prevent unconditional release closure:
   not a reason to disable accessibility checks.
 - **Validation tooling:** the light debug a11y run saw a 20dp LogBox close
   control on every light surface; the final reset replay had no LogBox. Release
-  XML capture was blocked by an already-registered UiAutomation service. These
-  are documented signal/tooling boundaries, not silently counted as clean.
+  XML capture was blocked by an already-registered UiAutomation service. A
+  later clean release launch left a resumed activity with a uniform dark
+  surface and a zero-byte follow-up screencap while ADB remained connected;
+  logcat had no app fatal. This is retained as a dedicated-AVD rendering
+  evidence gap, not silently counted as clean or promoted to a product defect.
 - **Dependency/release debt:** raw `npm audit --omit=dev` exits with 15
   moderate and 5 high findings, while the repository policy validator passes
   by classifying accepted/toolchain families. Resolve ownership before a broad
@@ -26,6 +29,16 @@ items that prevent unconditional release closure:
 - **External CI:** all four current GitHub runs fail before any step with no
   failed log; classification is `INDETERMINATE_EXTERNAL_PRE_STEP`. Do not edit
   workflows to hide the result.
+- **Catalog lifecycle gap:** all 42 current game IDs reached detail and first
+  interactive state, but the retained result sweep is 39/42. Equation Builder,
+  Sequence Memory, and Coordinate Turn reached a board without reaching a
+  result. A clean rerun was blocked by the dedicated AVD’s repeated
+  UiAutomation registration and debug Metro/redbox instability. Do not report
+  this as 42/42 full lifecycle until result/persistence is re-proven.
+- **Native state-matrix gap:** the 22 light/dark captures are 11 routes × 2
+  themes, not every required search/filter/Favorites/no-results,
+  active/pause/final, settings, invalid-route, loading/error, and
+  empty/populated branch. Keep these states explicitly partial/not validated.
 
 Evidence and the mandatory second pass are under
 `docs/redesign/evidence/campaign041/`. No Campaign 041 product source repair

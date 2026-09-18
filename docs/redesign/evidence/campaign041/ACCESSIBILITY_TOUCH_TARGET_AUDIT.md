@@ -20,5 +20,4 @@
 
 ## Coverage conclusion
 
-The current Android automation signal is useful but not a clean release accessibility certificate. The app-level dark/compact/font-scale surfaces are clean under the repository analyzer, while the light debug run is contaminated by a known transient overlay and release XML is blocked. The safest next action is to rerun the release hierarchy after clearing the UiAutomation-service collision and separately decide whether the compact/font-scale row clipping warrants a bounded layout fix.
-
+The current Android automation signal is useful but not a clean release accessibility certificate. The app-level dark/compact/font-scale surfaces are clean under the repository analyzer, while the light debug run is contaminated by a known transient overlay, the required state matrix is incomplete, and release XML is blocked. A later recheck also pushed the dedicated debug runtime into redbox/Metro and UiAutomation contention; those tool failures were not promoted to app PASS or app FAIL. The safest next action is to rerun the required state hierarchy after clearing the UiAutomation-service collision and separately decide whether the compact/font-scale row clipping warrants a bounded layout fix.

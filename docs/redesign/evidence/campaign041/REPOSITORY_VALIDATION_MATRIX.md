@@ -12,11 +12,11 @@ All commands below were run against the current synchronized tree. “PASS” me
 | Generated registry | `node scripts/generate-game-registry.mjs --check` | `[VERIFIED_TEST]` PASS. |
 | Provenance | `node scripts/validate-provenance.mjs --check` | `[VERIFIED_TEST]` PASS; no changed product files at the starting product SHA. |
 | Offline boundary | `node scripts/validate-offline.mjs --check` | `[VERIFIED_TEST]` CLEAN across 973 source files. |
-| Secrets | `node scripts/validate-secrets.mjs --check` plus self-test | `[VERIFIED_TEST]` CLEAN across 2,266 tracked text files; self-test PASS. |
+| Secrets | `node scripts/validate-secrets.mjs --check` plus self-test | `[VERIFIED_TEST]` CLEAN across 2,282 tracked text files; self-test PASS. |
 | Workflow hygiene | `node scripts/validate-workflows.mjs` | `[VERIFIED_TEST]` PASS across 4 workflow files. |
 | Dependency policy | `node scripts/validate-dependency-audit.mjs` | `[VERIFIED_TEST]` PASS under repository policy: five accepted advisory families, no unallowlisted moderate+ production finding. Raw `npm audit` is separately recorded in the security document and is not claimed green. |
 | Runtime-QA contract | `node scripts/qa/validate-runtime-qa-contract.mjs` | `[VERIFIED_TEST]` PASS. |
-| OpenSpec | `npx --yes @fission-ai/openspec@1.6.0 validate --all` | `[VERIFIED_TEST]` 26 passed, 0 failed. |
+| OpenSpec | `npx --yes @fission-ai/openspec@1.6.0 validate --all` | `[VERIFIED_TEST]` 26 passed, 0 failed; the command emitted non-blocking PostHog telemetry flush timeouts after validation. |
 | Full Jest CI | `npm run test:ci -- --silent --json --outputFile=jest-summary-campaign041.json` | `[VERIFIED_TEST]` exit 0; 557 passed / 4 skipped suites out of 561; 6,568 passed / 5 skipped tests out of 6,573; 5 snapshots passed; 0 failed. |
 | Jest signal classification | `node scripts/certification/validate-jest-signal.mjs --summary ...` | `[VERIFIED_TEST]` PASS; all 5 skips classified, 0 unclassified/ambiguous warnings. |
 | Typecheck | `npm run typecheck` | `[VERIFIED_TEST]` PASS. |
@@ -52,3 +52,6 @@ The exactly-once tests use real migrations/triggers and cover double claim, inte
 
 `[INFERRED]` The high-risk persistence/economy tests model the authoritative database paths better than the historical snapshot-only claims. Remaining gaps are explicit: no full physical/iOS/human accessibility test, no complete manual mechanic mastery across 42 games, no historical on-disk fixture for every migration start version, and no successful external CI step execution.
 
+## Change-accounting note
+
+`[VERIFIED_GIT]` The operational audit started at `4c0e5f819bbc1d7fd83f9ac979e19406c50753a9`, after pre-existing/concurrent commit `56bf17d8b3a857f0ac645330ecbe1fe54fd8c8a1` changed one governance test assertion. The current full Jest run revalidated that assertion repair. Campaign 041 itself changed no product source or test implementation; its later commits are evidence/state documentation.

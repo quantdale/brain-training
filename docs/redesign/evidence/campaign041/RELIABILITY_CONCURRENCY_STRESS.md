@@ -23,6 +23,8 @@ No observed replay produced a duplicate session identity, duplicate currency ope
 
 This was not minimized to a deterministic reproduction, did not recur in the exact replay, and has no proven root cause. It is therefore an unresolved Medium/conditional reliability observation, not a repair claim. The likely source seam is the `useWorkout → workouts.reconcile → getByDate → expo SQLite getFirstAsync` path, but that is an investigation lead, not a root-cause finding.
 
+The adversarial lifecycle recheck also exposed a separate tooling/runtime boundary: after repeated hierarchy clients, Android reported a lingering `UiAutomationService ... already registered`; after a dedicated-AVD reboot, the debug client briefly showed the expected redbox “Unable to load script” until `adb reverse tcp:8081 tcp:8081` restored Metro connectivity. These events are classified as QA-environment failures, not product lifecycle evidence. They are the reason the three incomplete result paths were not promoted without a clean rerun.
+
 ## Test-quality/race notes
 
 The targeted tests are strong on authoritative writes: real migrations/triggers, append-only behavior, rollback windows, operation IDs, reward claim-all, rating/session identity, workout reconciliation, and settings serialization. Two passing tests emit mock-only noise: a results CTA mock lacks `db.workouts.reconcile`, and a minimal settings layout mock emits route warnings. These do not reproduce in the native current build but should remain visible as test-maintenance debt.
@@ -30,4 +32,3 @@ The targeted tests are strong on authoritative writes: real migrations/triggers,
 ## Conclusion
 
 `[INFERRED]` Current local persistence is resilient under the exercised bounded stress. The single unreduced SQLite startup observation, plus absent physical-device and production-network stress, prevents a claim of exhaustive reliability certification.
-

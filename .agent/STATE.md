@@ -27,21 +27,29 @@ integrated release-candidate pass.
 - **Native evidence:** current Android runtime completed the full four-game
   workout through Next Game/final completion, persisted it across relaunch,
   resumed an interrupted workout, round-tripped export/wipe/import, and
-  exercised all 42 registered game lifecycles plus all eight mechanic/domain
-  families. Direct SQLite checks found schema v12, integrity `ok`, no duplicate
+  exercised all 42 registered game routes through first interactive state plus
+  39/42 retained result-complete lifecycles. Equation Builder, Sequence
+  Memory, and Coordinate Turn remain result/persistence gaps; a clean rerun was
+  blocked by dedicated-AVD UiAutomation/Metro instability. All eight
+  mechanic/domain families still have fresh interaction evidence. Direct
+  SQLite checks found schema v12, integrity `ok`, no duplicate
   session/rating/currency operation, and preserved completion.
 - **Conditional findings:** one intermittent unreduced
   `NativeDatabase.prepareAsync` workout-load NPE; compact/font-scale Home row
-  clipping risk; light debug LogBox a11y contamination; release XML blocked by
-  UiAutomation registration; external GitHub runs failing before steps; raw
+  clipping risk; incomplete required-state pixel/a11y matrix; light debug
+  LogBox a11y contamination; release XML blocked by UiAutomation registration;
+  a final clean release launch produced no usable frame on the degraded
+  dedicated AVD; external GitHub runs failing before steps; raw
   dependency-audit debt; and human/iOS/physical/store/signing/system-sheet
-  validation pending. No product source was changed.
+  validation pending. No
+  production product source was changed; pre-existing test-only repair
+  `56bf17d` is explicitly accounted for in the evidence packet.
 - **Evidence packet:** `docs/redesign/evidence/campaign041/` contains the
   required closure, 001–040 ledger, contract, repository, persistence,
   workout, catalog, native, accessibility, stress, performance, security,
   CI, repair, adversarial, and human-handoff artifacts.
-- **Terminal audit label:** `CAMPAIGN_041_CONDITIONAL`, pending final Git SHA
-  and read-only convergence review recorded by the orchestrator.
+- **Terminal audit label:** `CAMPAIGN_041_CONDITIONAL`, pending the final Git
+  handoff and read-only convergence review recorded by the orchestrator.
 
 ## Campaign 040 checkpoint — Release-Candidate Integration & Certification (VALIDATED / CONDITIONAL)
 

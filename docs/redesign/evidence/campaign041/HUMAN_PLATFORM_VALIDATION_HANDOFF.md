@@ -17,11 +17,12 @@ The following items were not fabricated as complete. They are the safest next va
 
 ## Engineering follow-up before unconditional release closure
 
-1. Capture a deterministic reproduction or disposition for the intermittent `NativeDatabase.prepareAsync` workout-load NPE.
-2. Rerun release hierarchy/a11y capture after removing the UiAutomation-service registration collision.
-3. Decide and test the compact/font-scale Home row layout behavior.
-4. Resolve the raw npm-audit advisory ownership decision without hiding it behind the policy validator.
-5. Re-run the complete current matrix on the intended signed artifact and at least one physical Android device.
+1. Complete and inspect result/persistence for `math-equation-builder`, `memory-sequence-memory`, and `spatial-coordinate-turn`; the retained sweep is 39/42 result-complete even though all 42 reached first interactive state.
+2. Capture a deterministic reproduction or disposition for the intermittent `NativeDatabase.prepareAsync` workout-load NPE.
+3. Rerun release hierarchy/a11y capture after removing the UiAutomation-service registration collision.
+4. Capture the missing required native branches: search/filter/Favorites/no-results, settings, invalid route, loading/error, empty/populated variants, active/pause, and final workout result.
+5. Decide and test the compact/font-scale Home row layout behavior.
+6. Resolve the raw npm-audit advisory ownership decision without hiding it behind the policy validator.
+7. Re-run the complete current matrix on the intended signed artifact and at least one physical Android device.
 
 No human, iOS, physical-device, store, signing, or system-share UX claim is included in Campaign 041’s verdict.
-
