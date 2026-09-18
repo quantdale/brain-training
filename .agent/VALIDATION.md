@@ -54,6 +54,30 @@ unavailable checks into PASS.
   `D:\Temp`.
 - Terminal label: `CAMPAIGN_047_COMPLETE`.
 
+### Campaign 048 startup, performance, resource and reliability soak — 2026-09-19 (COMPLETE)
+
+- Scale probes: **PASS** — provided 5k/20k query, progress, export, quest,
+  and achievement probes passed; timestamped baselines are tracked under
+  `scripts/perf/baselines/`.
+- Release startup: **PASS** — three force-stop/relaunch cycles rendered Home
+  and `Today's Workout`; Activity TotalTime was 6,324 / 5,002 / 5,866 ms.
+  Semantic readiness timings were recorded separately because they include
+  UIAutomator polling and skeleton/content transition.
+- Route/resource: **PASS WITH BOUNDED SAMPLE** — Games, Progress, Profile, and
+  Memory detail rendered. Three memory snapshots were 247,176 / 246,168 /
+  246,696 KB PSS with a stable 2,251-view count. No monotonic growth trend was
+  observed in this sample.
+- Runtime: **PASS** — app-only logcat filtering found zero fatal/ANR/React/
+  script-load/SQLite/lock/OOM markers and `MainActivity` remained resumed.
+  Debug Metro splash/black-frame delay is documented as a dev-client boundary;
+  release evidence ran without Metro.
+- Source decision: **PASS** — no material current source regression was
+  reproduced, so no speculative optimization or dependency change was made.
+- Evidence: **PASS** — packet is under
+  `docs/redesign/evidence/campaign048/`; raw runtime artifacts remain under
+  `D:\Temp`.
+- Terminal label: `CAMPAIGN_048_COMPLETE`.
+
 ### Campaign 045 Expo SDK57 patch alignment — 2026-09-19 (COMPLETE)
 
 - Scope: **PASS** — supported Expo tooling aligned only `expo`, `expo-asset`,

@@ -10,5 +10,5 @@
       artifact result.
 - [x] Determine whether a current material source regression is reproduced;
       no optimization change is justified by this sample.
-- [ ] Write the Campaign 048 evidence packet, validate the OpenSpec change,
+- [x] Write the Campaign 048 evidence packet, validate the OpenSpec change,
       update durable state, commit, and push a coherent checkpoint.

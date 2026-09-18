@@ -19,8 +19,13 @@
 - **Decision:** no material current source regression is reproduced. Debug
   Metro cold-start delay is recorded as a tooling boundary separate from the
   Metro-independent release result.
-- **Next action:** write the Campaign 048 evidence packet and checkpoint it;
-  do not introduce speculative performance changes.
+- **Route/resource sample:** Games, Progress, Profile, and Memory detail
+  rendered. Three post-navigation memory snapshots were 247,176 / 246,168 /
+  246,696 KB PSS with 2,251 views each; no monotonic short-sample growth was
+  observed.
+- **Evidence:** `docs/redesign/evidence/campaign048/`.
+- **Next action:** validate and push the Campaign 048 checkpoint, then activate
+  Campaign 049. Do not introduce speculative performance changes.
 
 ## Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience (VALIDATED)
 

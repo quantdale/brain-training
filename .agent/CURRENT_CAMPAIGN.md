@@ -28,13 +28,17 @@ timestamped baselines. A three-cycle release force-stop/relaunch sample
 rendered Home and `Today's Workout` in all cycles, with Activity `TotalTime`
 of 6,324 / 5,002 / 5,866 ms and zero filtered app error markers. Debug Metro
 cold starts showed a separate splash/black-frame bootstrap boundary; no
-release defect is reproduced.
+release defect is reproduced. Games, Progress, Profile, and Memory detail also
+rendered in the bounded route sample; memory snapshots stayed within a
+246–247 MB PSS band with a stable view count. Evidence is under
+`docs/redesign/evidence/campaign048/`.
 
 ## Exit and progression
 
 Write `docs/redesign/evidence/campaign048/`, validate the OpenSpec change,
 update durable state, commit/push a coherent checkpoint, and continue to
-Campaign 049. Do not add a speculative optimization.
+Campaign 049. The packet is complete and no speculative optimization was
+introduced.
 
 ---
 

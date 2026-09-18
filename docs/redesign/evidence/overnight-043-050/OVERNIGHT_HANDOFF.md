@@ -10,7 +10,7 @@ external, human, and platform boundaries remain explicit.
 | 045 | `CAMPAIGN_045_COMPLETE` | Expo patch alignment, repository gates, Android debug/release, Metro-free launch, 12 route/theme captures, and technical a11y passed. |
 | 046 | `CAMPAIGN_046_COMPLETE` | All 42 game IDs covered through lifecycle stages; 44 persisted sessions across 42 games; SQLite and focused persistence checks passed; eight-domain mechanic canaries recorded. |
 | 047 | `CAMPAIGN_047_COMPLETE` | Migration/portability tests, disposable rollback/import fixtures, device export/load, valid merge/replace previews, malformed-input rejection, and a clean release relaunch sample passed. |
-| 048 | `ACTIVE` | Opt-in 5k/20k performance probes passed and a three-cycle release cold-start soak rendered Home; evidence packet is pending. |
+| 048 | `CAMPAIGN_048_COMPLETE` | Opt-in 5k/20k probes passed; three release cold-start cycles rendered Home; Games/Progress/Profile/Memory detail rendered; bounded memory and app-only logcat checks were clean; no speculative optimization was made. |
 | 049 | `PARTIAL_PRECHECK` | Replayed the 12-surface light/dark technical a11y audit with 0 violations; responsive/state-matrix evidence still needs its campaign pass. |
 | 050 | `PENDING` | Integrated release certification remains after Campaigns 047–049. |
 
