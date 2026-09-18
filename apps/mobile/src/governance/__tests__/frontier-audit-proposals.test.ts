@@ -118,7 +118,12 @@ describe('frontier-audit OpenSpec proposals (applied + archived)', () => {
       activeCampaign: string | null;
     };
     if (governance.activeCampaign === null) {
-      expect(state).toMatch(/There is no active campaign/);
+      // Terminal state: no active campaign. Assert the durable machine-checkable
+      // declaration rather than one exact prose sentence. Campaign 034 rewrote
+      // the surrounding prose and dropped the legacy sentence, which made a
+      // still-valid terminal condition read as a stale failure. The
+      // authoritative header declaration is the guard.
+      expect(state).toMatch(/\*\*Active campaign:\*\* none/);
     } else {
       expect(state).toMatch(/\*\*Active campaign:\*\* `[^`]+`/);
       expect(APPLIED).not.toContain(governance.activeCampaign as (typeof APPLIED)[number]);
