@@ -19,9 +19,12 @@
 - **Completed prechecks:** focused persistence/portability validation passed
   28 suites / 312 tests with one skipped test. Device export/load succeeded;
   merge preview was valid with zero additions and replace preview was valid but
-  unapplied. Release force-stop/relaunch and filtered app logcat were clean.
-- **Next action:** close the remaining disposable-import boundary if it can be
-  tested safely, write the evidence packet, and checkpoint before Campaign 048.
+  unapplied on the retained catalog database. Disposable fixtures covered
+  applied merge/replace and mid-import rollback. Release force-stop/relaunch
+  and filtered app logcat were clean.
+- **Evidence:** `docs/redesign/evidence/campaign047/`.
+- **Next action:** validate and push the Campaign 047 checkpoint, then activate
+  Campaign 048.
 
 ## Campaign 046 — Full Catalog Repeatability & Game-Lifecycle Soak (VALIDATED)
 

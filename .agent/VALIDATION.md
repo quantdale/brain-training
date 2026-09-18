@@ -32,6 +32,28 @@ unavailable checks into PASS.
   `D:\Temp\campaign046-runtime`.
 - Terminal label: `CAMPAIGN_046_COMPLETE`.
 
+### Campaign 047 persistence, migration, backup/restore and corruption resilience — 2026-09-19 (COMPLETE)
+
+- Scope: **PASS** — fresh/v12 initialization, migration matrix, migration
+  robustness, rollback, corrupt/invalid state, duplicate replay, idempotent
+  session/reward writes, settings/profile/favorites/tutorial/workout identity,
+  and disposable import fixtures were exercised.
+- Focused suite: **PASS** — 28 suites passed, 1 skipped; 312 tests passed, 1
+  skipped. Existing React act-environment and Expo Router mock warnings were
+  non-failing and unchanged.
+- Device backup: **PASS** — export and saved-backup load succeeded. Merge
+  preview was valid with 0 session and 0 ledger additions. Replace preview was
+  valid and destructive behavior was disclosed but not applied to retained
+  catalog data. Malformed input was rejected as invalid JSON without a write;
+  on-screen counts stayed 44 sessions / 8 ratings / 87 history / 44 ledger.
+- Relaunch: **PASS** — three release force-stop/relaunch cycles rendered Home;
+  `am start -W` TotalTime was 6,324 / 5,002 / 5,866 ms. Filtered app logcat
+  contained zero fatal/ANR/React/script-load/SQLite/lock/OOM markers.
+- Evidence: **PASS** — packet is under
+  `docs/redesign/evidence/campaign047/`; raw device artifacts remain under
+  `D:\Temp`.
+- Terminal label: `CAMPAIGN_047_COMPLETE`.
+
 ### Campaign 045 Expo SDK57 patch alignment — 2026-09-19 (COMPLETE)
 
 - Scope: **PASS** — supported Expo tooling aligned only `expo`, `expo-asset`,

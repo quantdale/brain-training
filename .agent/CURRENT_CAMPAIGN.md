@@ -27,17 +27,19 @@ backup/restore, or broken session/workout identity.
 The focused migration/portability/persistence suite has passed 28 suites and
 312 tests with one skipped test. Device export and saved-backup load succeeded;
 merge preview was valid with 0 additions and replace preview was valid but was
-not applied. A three-cycle release force-stop/relaunch sample rendered Home in
-all cycles and filtered app logcat had no fatal/ANR/React/SQLite/lock/OOM
-markers. Remaining work is to document the campaign and close or explicitly
-classify any disposable-import boundary.
+not applied to the retained catalog database. Disposable test fixtures covered
+the applied merge/replace and mid-import rollback paths. A three-cycle release
+force-stop/relaunch sample rendered Home in all cycles and filtered app logcat
+had no fatal/ANR/React/SQLite/lock/OOM markers. The evidence packet is under
+`docs/redesign/evidence/campaign047/`; the checkpoint is ready for validation
+and progression.
 
 ## Exit and progression
 
 Write `docs/redesign/evidence/campaign047/`, validate the OpenSpec change,
 update durable state, commit/push a coherent checkpoint, and continue to
-Campaign 048 only when migration, idempotency, backup, and identity checks are
-clean or a safe environment boundary is explicitly recorded.
+Campaign 048. Migration, idempotency, backup, and identity checks are clean;
+the retained-device destructive boundary is explicitly recorded.
 
 ---
 
