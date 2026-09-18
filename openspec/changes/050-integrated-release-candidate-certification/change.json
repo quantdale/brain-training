@@ -1,0 +1,15 @@
+{
+  "id": "050-integrated-release-candidate-certification",
+  "status": "ACTIVE",
+  "predecessor": "049-accessibility-responsive-state-matrix",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["integrated-release-candidate-certification"],
+  "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 049 responsive/accessibility checkpoint.",
+  "baselineAuditCommit": "d67aba5",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the current repository, release artifact, catalog, persistence, responsive/state, performance, and external-boundary evidence to classify the integrated candidate without overstating unavailable human, iOS, store, or external CI lanes."
+}

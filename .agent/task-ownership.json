@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "lifecycleStatus": "ACTIVE",
-  "change": "049-accessibility-responsive-state-matrix",
-  "description": "Campaign 049 accessibility/responsive/state-matrix ownership record. The orchestrator owns runtime QA, source convergence, governance, evidence, device inspection, and final convergence; no parallel coder packets are active.",
+  "change": "050-integrated-release-candidate-certification",
+  "description": "Campaign 050 integrated release-candidate certification ownership record. The orchestrator owns repository gates, native builds, runtime QA, evidence, governance, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

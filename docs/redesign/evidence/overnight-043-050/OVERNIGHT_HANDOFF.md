@@ -12,7 +12,7 @@ external, human, and platform boundaries remain explicit.
 | 047 | `CAMPAIGN_047_COMPLETE` | Migration/portability tests, disposable rollback/import fixtures, device export/load, valid merge/replace previews, malformed-input rejection, and a clean release relaunch sample passed. |
 | 048 | `CAMPAIGN_048_COMPLETE` | Opt-in 5k/20k probes passed; three release cold-start cycles rendered Home; Games/Progress/Profile/Memory detail rendered; bounded memory and app-only logcat checks were clean; no speculative optimization was made. |
 | 049 | `CAMPAIGN_049_COMPLETE` | Post-fix compact and font-scale-2 matrices passed 24/24 route-verified/nonblank captures with 0 measured target/name violations. A reproduced large-font native-tab label collision was repaired and rerun. Human screen-reader, physical/iOS, store-signing, and human system-sheet boundaries remain explicit. |
-| 050 | `PENDING` | Integrated release certification remains after Campaigns 047–049. |
+| 050 | `ACTIVE` | Final integrated release-candidate certification activated at `d67aba5`; current-state repository, native, protected-flow, and external-boundary gates are running. |
 
 Raw screenshots, XML dumps, databases, and generated probe output remain under
 `D:\Temp` or the repository's existing evidence locations unless explicitly

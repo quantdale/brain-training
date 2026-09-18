@@ -1,6 +1,37 @@
-# Campaign 049 — Accessibility, Responsive, System-UI & State-Matrix Hardening
+# Campaign 050 — Integrated Release Candidate Certification
 
 **Status:** ACTIVE
+**Campaign id:** `050-integrated-release-candidate-certification`
+**Predecessor:** `049-accessibility-responsive-state-matrix` (complete)
+**Mode:** day
+**Start SHA:** `d67aba5`
+
+## Mission
+
+Certify the integrated post-043–049 release candidate using current
+repository, native artifact, protected-flow, catalog, persistence, responsive,
+performance, and external-boundary evidence. This is convergence and
+classification, not feature expansion.
+
+## Current progress
+
+Campaign 049 is complete at `d67aba5`. The candidate currently has a fresh
+large-text native-tab repair, 24/24 post-fix compact/font-scale-2 captures,
+zero measured a11y violations in the matching audits, and restored emulator
+settings. The integrated current-state gates are now running.
+
+## Exit and progression
+
+Write `docs/redesign/evidence/campaign050/`, run the required current-state
+checks, classify technical versus human/platform/external boundaries, validate
+the OpenSpec change, update durable state and the overnight handoff, commit and
+push the final checkpoint.
+
+---
+
+# Campaign 049 — Accessibility, Responsive, System-UI & State-Matrix Hardening
+
+**Status:** VALIDATED — `CAMPAIGN_049_COMPLETE`
 **Campaign id:** `049-accessibility-responsive-state-matrix`
 **Predecessor:** `048-startup-performance-reliability-soak` (complete)
 **Mode:** day

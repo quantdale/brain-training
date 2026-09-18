@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "049-accessibility-responsive-state-matrix",
-  "lastCampaign": "048-startup-performance-reliability-soak",
+  "activeCampaign": "050-integrated-release-candidate-certification",
+  "lastCampaign": "049-accessibility-responsive-state-matrix",
   "lastCampaignStatus": "COMPLETE",
   "hardening": {
     "automaticFullHardening": false,

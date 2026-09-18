@@ -1,31 +1,33 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 048 checkpoint pushed and Campaign 049
- activated for accessibility, responsive, system-UI, and state-matrix hardening.
+**Last update:** 2026-09-19 — Campaign 049 closure pushed and Campaign 050
+ activated for integrated release-candidate certification.
 **Canonical branch:** `main`
-**Active campaign:** 049-accessibility-responsive-state-matrix
-**Last campaign:** 048-startup-performance-reliability-soak
+**Active campaign:** 050-integrated-release-candidate-certification
+**Last campaign:** 049-accessibility-responsive-state-matrix
 **Last campaign status:** COMPLETE
 
-## Campaign 049 — Accessibility, Responsive, System-UI & State-Matrix Hardening (ACTIVE)
+## Campaign 050 — Integrated Release Candidate Certification (ACTIVE)
 
-- **Activation:** Campaign 048 closed at pushed checkpoint `978adc5` after
-  bounded release performance, route/resource, and relaunch evidence.
-- **Start SHA:** `978adc5`.
-- **Precheck:** six representative surfaces captured in light/dark compact and
-  font-scale-2 profiles; all 24 captures were nonblank and route verified.
-  Matching hierarchy audits found zero measured undersized or unlabelled
-  interactive nodes; clipped controls remain separately recorded because they
-  are under the scroll viewport/tab bar.
-- **Result:** post-fix compact 12/12 and font-scale-2 12/12 surfaces were
-  route-verified/nonblank in light and dark themes. Matching audits reported
-  zero measured undersized or unlabelled interactive nodes. The reproduced
-  native-tab label collision was repaired with a fixed-chrome-only size cap and
-  the affected matrix was rerun successfully.
-- **Evidence:** `docs/redesign/evidence/campaign049/` plus external raw
-  artifacts under `D:\Temp\campaign049-matrix-fixed`.
-- **Next action:** validate and push the Campaign 049 closure checkpoint, then
-  activate Campaign 050 integrated release certification.
+- **Activation:** Campaign 049 closed at pushed checkpoint `d67aba5` after the
+  compact/large-font responsive matrix, focused native-tab repair, current
+  release rebuild, and matching audits passed.
+- **Start SHA:** `d67aba5`.
+- **Mission:** run the full local gates, native debug/release build, Metro-free
+  release smoke, protected journey/persistence/catalog reconciliation, current
+  responsive/state/performance summary, and final provenance/handoff.
+- **Next action:** execute the required current-state matrix and write a
+  truthful `CAMPAIGN_050_RELEASE_TECHNICALLY_CERTIFIED` or
+  `CAMPAIGN_050_RELEASE_CONDITIONAL` closure.
+
+## Campaign 049 — Accessibility, Responsive, System-UI & State-Matrix Hardening (VALIDATED)
+
+- **Terminal label:** `CAMPAIGN_049_COMPLETE` at checkpoint `d67aba5`.
+- **Result:** post-fix compact and font-scale-2 matrices passed 24/24
+  route-verified/nonblank captures in both themes with zero measured
+  undersized/unlabelled interactive nodes. The large-font native-tab collision
+  was repaired with a fixed-chrome-only font-size cap and rerun successfully.
+- **Evidence:** `docs/redesign/evidence/campaign049/`.
 
 ## Campaign 048 — Startup, Performance, Resource & Reliability Soak (VALIDATED)
 

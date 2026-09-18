@@ -1,6 +1,37 @@
-# Execution Prompt — Campaign 049: Accessibility, Responsive, System-UI & State-Matrix Hardening
+# Execution Prompt — Campaign 050: Integrated Release Candidate Certification
 
 **Status:** ACTIVE
+**Change:** `050-integrated-release-candidate-certification`
+**Start-SHA:** `d67aba5`
+**Target-Branch:** `main`
+**Predecessor:** `049-accessibility-responsive-state-matrix`
+
+## Authority
+
+Execute the final Campaign 050 OpenSpec change and the Campaigns 043–050
+overnight orchestration contract. Run current repository gates, sequential
+Android debug/release builds, Metro-free release smoke, protected journey and
+persistence canaries, current responsive/state/performance reconciliation, and
+final provenance/external-boundary classification.
+
+## Work model
+
+The orchestrator owns all repository gates, native builds, dedicated Android
+runtime QA, evidence, governance, and final convergence. Use only
+`braintraining-ui35` / `emulator-5554`; no host input automation and no
+parallel coder packets.
+
+## Progression
+
+Campaign 049 is complete at checkpoint `d67aba5`. Finish and push the Campaign
+050 closure and required overnight handoff with a truthful technical versus
+conditional verdict.
+
+---
+
+# Execution Prompt — Campaign 049: Accessibility, Responsive, System-UI & State-Matrix Hardening
+
+**Status:** VALIDATED — `CAMPAIGN_049_COMPLETE`
 **Change:** `049-accessibility-responsive-state-matrix`
 **Start-SHA:** `978adc5`
 **Target-Branch:** `main`
