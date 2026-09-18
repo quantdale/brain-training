@@ -1,6 +1,40 @@
-# Campaign 045 — Expo SDK57 Patch Alignment
+# Campaign 046 — Full Catalog Repeatability & Game-Lifecycle Soak
 
 **Status:** ACTIVE
+**Campaign id:** `046-full-catalog-repeatability-soak`
+**Predecessor:** `045-expo-sdk57-patch-alignment` (complete)
+**Mode:** day
+**Start SHA:** `d6864a9023e501506ada57b7e85aeca827a5040a`
+
+## Mission
+
+Increase confidence beyond one lifecycle per game by evaluating all 42
+generated-registry games at detail/start, first interactive state, legitimate
+result completion, result persistence, runtime health, and navigation return.
+Repeat complete lifecycles with real mechanic interaction across all eight
+domains/mechanic families. Keep deterministic force-completion evidence
+separate from mechanic correctness and inspect the device database for duplicate
+or stale durable state.
+
+## Guardrails
+
+Use only `braintraining-ui35` / `emulator-5554` and emulator-local input or the
+ARTEMIS runtime lane. Do not touch `emulator-5556`, do not edit game/SDK source
+without a reproduced current defect, and do not claim a lifecycle stage that
+was not observed. Preserve SQLite, session identity, scoring, progression,
+currency, routing, and offline contracts.
+
+## Exit and progression
+
+Write `docs/redesign/evidence/campaign046/`, validate the OpenSpec change,
+update durable state, commit/push a coherent checkpoint, and continue to
+Campaign 047. A failed persistence/idempotency check blocks progression.
+
+---
+
+# Campaign 045 — Expo SDK57 Patch Alignment
+
+**Status:** VALIDATED — `CAMPAIGN_045_COMPLETE`
 **Campaign id:** `045-expo-sdk57-patch-alignment`
 **Predecessor:** `044-external-ci-workflow-diagnosis` (validated,
 account/policy external)
@@ -26,10 +60,10 @@ passed. Evidence is under `docs/redesign/evidence/campaign045/`.
 
 ## Exit and progression
 
-Write `docs/redesign/evidence/campaign045/`, update durable state, validate the
-OpenSpec change, commit/push the coherent maintenance checkpoint, and continue
-to Campaign 046. Do not mask external CI account/policy failures with workflow
-changes.
+The evidence packet is complete, the OpenSpec change was validated, and the
+checkpoint was pushed as `d6864a9023e501506ada57b7e85aeca827a5040a`. Campaign
+046 is now active. Do not mask external CI account/policy failures with
+workflow changes.
 
 ---
 

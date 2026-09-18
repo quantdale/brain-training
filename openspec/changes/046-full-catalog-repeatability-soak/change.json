@@ -1,0 +1,15 @@
+{
+  "id": "046-full-catalog-repeatability-soak",
+  "status": "ACTIVE",
+  "predecessor": "045-expo-sdk57-patch-alignment",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["full-catalog-repeatability-soak"],
+  "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after Campaign 045 local validation.",
+  "baselineAuditCommit": "d6864a9023e501506ada57b7e85aeca827a5040a",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the 42-game registry, lifecycle, QA-hook, and persistence contracts without treating deterministic completion as mechanic correctness."
+}

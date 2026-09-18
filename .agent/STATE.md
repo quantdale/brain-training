@@ -1,13 +1,29 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 044 diagnosed as external account/policy
- failure and Campaign 045 activated for isolated Expo SDK57 maintenance.
+**Last update:** 2026-09-19 — Campaign 045 completed local SDK57 maintenance
+ and Campaign 046 activated for full-catalog repeatability/soak.
 **Canonical branch:** `main`
-**Active campaign:** 045-expo-sdk57-patch-alignment
-**Last campaign:** 044-external-ci-workflow-diagnosis
-**Last campaign status:** ACCOUNT_OR_POLICY_EXTERNAL
+**Active campaign:** 046-full-catalog-repeatability-soak
+**Last campaign:** 045-expo-sdk57-patch-alignment
+**Last campaign status:** COMPLETE
 
-## Campaign 045 — Expo SDK57 Patch Alignment (ACTIVE)
+## Campaign 046 — Full Catalog Repeatability & Game-Lifecycle Soak (ACTIVE)
+
+- **Activation:** Campaign 045 completed the supported Expo SDK57 patch
+  alignment and pushed checkpoint `d6864a9023e501506ada57b7e85aeca827a5040a`.
+- **Start SHA:** `d6864a9023e501506ada57b7e85aeca827a5040a`.
+- **Roster:** the generated registry and game directory currently contain 42
+  games across Attention, Flexibility, Language, Logic, Math, Memory, Spatial,
+  and Speed families.
+- **Mission:** re-prove current detail/start/first-interactive/result/
+  persistence/return lifecycle evidence for all 42 games; repeat complete
+  lifecycles with real mechanic interaction across all eight families; inspect
+  SQLite for duplicate or stale durable state. Deterministic completion hooks
+  must remain distinct from mechanic correctness.
+- **Runtime ownership:** continue using only `braintraining-ui35` /
+  `emulator-5554` and the ARTEMIS lane. No parallel coder packets are active.
+
+## Campaign 045 — Expo SDK57 Patch Alignment (VALIDATED)
 
 - **Activation:** Campaign 044 current GitHub evidence classified all four
   zero-step failures as `ACCOUNT_OR_POLICY_EXTERNAL`; local workflow and repo

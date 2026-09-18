@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "045-expo-sdk57-patch-alignment",
-  "lastCampaign": "044-external-ci-workflow-diagnosis",
-  "lastCampaignStatus": "ACCOUNT_OR_POLICY_EXTERNAL",
+  "activeCampaign": "046-full-catalog-repeatability-soak",
+  "lastCampaign": "045-expo-sdk57-patch-alignment",
+  "lastCampaignStatus": "COMPLETE",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

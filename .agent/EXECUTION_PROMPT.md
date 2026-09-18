@@ -1,6 +1,35 @@
-# Execution Prompt — Campaign 045: Expo SDK57 Patch Alignment
+# Execution Prompt — Campaign 046: Full Catalog Repeatability & Game-Lifecycle Soak
 
 **Status:** ACTIVE
+**Change:** `046-full-catalog-repeatability-soak`
+**Start-SHA:** `d6864a9023e501506ada57b7e85aeca827a5040a`
+**Target-Branch:** `main`
+**Predecessor:** `045-expo-sdk57-patch-alignment`
+
+## Authority
+
+Execute the active Campaign 046 OpenSpec change and the Campaigns 043–050
+overnight orchestration contract. All 42 generated-registry games need current
+lifecycle evidence. Use deterministic QA support honestly, distinguish it from
+real mechanic interaction, and inspect persistence after the batch.
+
+## Work model
+
+The orchestrator owns the dedicated Android runtime, ARTEMIS journeys,
+evidence, database inspection, governance, and final convergence. No parallel
+coder packets are active. Use only `braintraining-ui35` / `emulator-5554`.
+
+## Progression
+
+Campaign 045 is complete at checkpoint `d6864a9023e501506ada57b7e85aeca827a5040a`.
+Write the Campaign 046 evidence packet, validate and close its OpenSpec change,
+push a coherent checkpoint, then continue to Campaign 047.
+
+---
+
+# Execution Prompt — Campaign 045: Expo SDK57 Patch Alignment
+
+**Status:** VALIDATED — `CAMPAIGN_045_COMPLETE`
 **Change:** `045-expo-sdk57-patch-alignment`
 **Start-SHA:** `59bc801bbaa047834f78819370aa7a805acb1783`
 **Target-Branch:** `main`
@@ -8,12 +37,10 @@
 
 ## Authority
 
-Execute the active Campaign 045 OpenSpec change and the Campaigns 043–050
-overnight orchestration contract. Use the supported Expo installer only for the
-identified SDK57 patch alignment, then run the repository's dependency policy,
-typecheck, lint, test, export, Android build, and Metro-free runtime checks.
-Preserve all product contracts and record exact results; do not broaden the
-upgrade or weaken CI requirements.
+Campaign 045 is validated and complete. Its supported Expo patch alignment,
+repository gates, builds, release launch, and route/a11y evidence are recorded
+under `docs/redesign/evidence/campaign045/`; Campaign 046 is the active
+successor. Do not broaden the completed maintenance into an upgrade campaign.
 
 ## Work model
 
