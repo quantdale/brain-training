@@ -31,10 +31,11 @@ and dependency-policy deviations
 
 ## Explicit deviations
 
-- `[EXTERNAL_INDETERMINATE]` The latest GitHub Actions runs failed before any
-  job step; see `EXTERNAL_CI_RECHECK.md`. No repository command executed in
-  those runs, so they do not contradict the local gates but do not provide
-  external CI certification.
+- `[EXTERNAL_INDETERMINATE]` The terminal product/evidence push
+  `557c77606b94018afa119896d81a59e06fb220f1` triggered four GitHub Actions
+  runs that failed before any job step; see `EXTERNAL_CI_RECHECK.md`. No
+  repository command executed in those runs, so they do not contradict the
+  local gates but do not provide external CI certification.
 - `[NON_PRODUCT_DEPENDENCY_DRIFT]` `npx expo-doctor` reported 20/21 checks:
   five Expo SDK 57 patch packages are one patch behind the manifest ranges
   (`expo`, `expo-asset`, `expo-constants`, `expo-router`, `expo-sharing`). This

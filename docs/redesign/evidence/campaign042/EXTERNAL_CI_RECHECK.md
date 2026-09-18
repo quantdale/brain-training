@@ -24,3 +24,20 @@ validation commands passed and are recorded in
 `FINAL_REPOSITORY_VALIDATION.md`. The post-closure source push will be checked
 again; if it exhibits the same zero-step shape, it remains indeterminate rather
 than becoming a claimed external pass.
+
+## Terminal product/evidence push
+
+The exact terminal product/evidence commit
+`557c77606b94018afa119896d81a59e06fb220f1` was then checked. All four
+workflows reproduced the same pre-step shape:
+
+| Workflow | Run ID | Conclusion | Job | Steps | Logs |
+| --- | ---: | --- | --- | ---: | --- |
+| Android Build Smoke | [35355978303](https://github.com/quantdale/brain-training/actions/runs/35355978303) | failure | Android clean native build | 0 | `log not found` |
+| App CI | [35355978437](https://github.com/quantdale/brain-training/actions/runs/35355978437) | failure | Mobile app build/typecheck/tests | 0 | `log not found` |
+| Repository Integrity | [35355978540](https://github.com/quantdale/brain-training/actions/runs/35355978540) | failure | durable-state | 0 | `log not found` |
+| iOS Build Smoke | [35355978652](https://github.com/quantdale/brain-training/actions/runs/35355978652) | failure | iOS Simulator compile smoke | 0 | `log not found` |
+
+These terminal runs confirm the classification: external CI is
+`INDETERMINATE_EXTERNAL_PRE_STEP`, not a repository-command failure and not an
+external pass.
