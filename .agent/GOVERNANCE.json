@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "050-integrated-release-candidate-certification",
-  "lastCampaign": "049-accessibility-responsive-state-matrix",
-  "lastCampaignStatus": "COMPLETE",
+  "activeCampaign": null,
+  "lastCampaign": "050-integrated-release-candidate-certification",
+  "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

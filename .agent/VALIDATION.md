@@ -5,6 +5,53 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 050 integrated release-candidate certification — 2026-09-19 (VALIDATED / CONDITIONAL)
+
+- Scope: **PASS for the tested Android/repository boundary** — Campaign 050
+  reconciled the post-049 candidate with no runtime-source or dependency
+  manifest change; the candidate source SHA was `d67aba5`.
+- Repository: **PASS** — full Jest reported 559 passed suites / 4 skipped and
+  6,575 passed tests / 5 skipped with 5 passing snapshots. Typecheck, lint,
+  Expo Doctor 21/21, dependency policy, web export, offline/secrets/
+  workflows/runtime-QA/repo-state, registry, provenance, affected-map,
+  task-ownership, and OpenSpec 35/35 passed.
+- Native: **PASS** — sequential debug/release Gradle builds passed and the
+  installed APK SHA-256 was
+  `8F111FB590B7957AC710A05A53A422AACC1A95DE8C609F7B01152C40141B1864`.
+  Direct Metro-free cold launch returned `Status: ok`, `LaunchState: COLD`,
+  `MainActivity`, `TotalTime: 10047`; the activity remained resumed and
+  filtered app logcat had no fatal/ANR/React/RedBox/SQLite-lock/OOM/SIGSEGV
+  marker.
+- Runtime: **PASS WITH CONDITIONAL FIRST-LAUNCH OBSERVATION** — ARTEMIS Pro
+  trace `b1b2be3a-6801-430b-b336-e89fda68f567` on only `emulator-5554`
+  completed Cue Shift, Word Chain, Order Path, Color Stroop, force-stop/
+  relaunch persistence at 48 sessions, Pattern Tap Back, Signal Watch,
+  export share reachability, and invalid-route recovery. The first
+  post-install launch displayed an app ANR dialog; one bounded close/relaunch
+  recovered Home. Android Files import reached an external provider ANR, so
+  no file was selected and import usability is **NOT VALIDATED**.
+- Responsive/a11y: **PASS** — current font-scale-2 and compact matrices each
+  captured 12/12 light/dark surfaces; separate audits each reported 0
+  measured violations. One compact capture emitted a transient UiAutomation
+  null-root message while still producing a 12/12 manifest; it is recorded as
+  a tooling caveat.
+- Performance: **PASS** — current 5k/20k history/progress/export and
+  sync/quest/achievement probes passed and wrote timestamped baselines under
+  `scripts/perf/baselines/`. Campaign 048 release startup/resource evidence
+  remains the inherited bounded reliability sample.
+- Boundaries: **NOT VALIDATED / EXTERNAL** — human TalkBack/VoiceOver,
+  physical/OEM Android, iOS runtime, production/store signing, human
+  system-provider usability, and GitHub runner execution. Current GitHub run
+  IDs 35394095322, 35394095221, 35394095217, and 35394095140 at SHA
+  `5a4441d92339c723c91ea95549c581372de17822` failed before runner steps;
+  App CI reported an empty `steps` array. Campaign 044's account/payment-
+  policy classification remains applicable.
+- Evidence: **PASS** — packet under `docs/redesign/evidence/campaign050/`;
+  raw matrix artifacts under `D:\Temp\campaign050-matrix`, compact matrix
+  under `D:\Temp\campaign050-matrix\compact`, and ARTEMIS trace under
+  `D:\Tools\artemis\traces\b1b2be3a-6801-430b-b336-e89fda68f567`.
+- Terminal label: `CAMPAIGN_050_RELEASE_CONDITIONAL`.
+
 ### Campaign 049 accessibility, responsive, system-UI and state matrix — 2026-09-19 (COMPLETE)
 
 - Scope: **PASS** — post-fix compact 12/12 and font-scale-2 12/12 release

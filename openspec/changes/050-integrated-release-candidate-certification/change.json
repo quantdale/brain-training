@@ -1,6 +1,6 @@
 {
   "id": "050-integrated-release-candidate-certification",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "049-accessibility-responsive-state-matrix",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -11,5 +11,8 @@
   "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 049 responsive/accessibility checkpoint.",
   "baselineAuditCommit": "d67aba5",
   "fullHardening": false,
-  "reviewConsumption": "Consumes the current repository, release artifact, catalog, persistence, responsive/state, performance, and external-boundary evidence to classify the integrated candidate without overstating unavailable human, iOS, store, or external CI lanes."
+  "reviewConsumption": "Consumes the current repository, release artifact, catalog, persistence, responsive/state, performance, and external-boundary evidence to classify the integrated candidate without overstating unavailable human, iOS, store, or external CI lanes.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "Campaign 050 reached a conditional release verdict for the tested Android/repository scope. Local gates, sequential debug/release builds, Metro-free direct launch, protected workout/persistence/standalone flows, invalid-route recovery, current responsive/a11y captures, performance probes, provenance, and OpenSpec validation passed. ARTEMIS observed a transient first-install app ANR before bounded relaunch recovery, and the Android Files import provider presented an ANR; import usability, human/platform, store-signing, iOS, and external-CI lanes remain explicitly unvalidated or external.",
+  "verdict": "CAMPAIGN_050_RELEASE_CONDITIONAL"
 }

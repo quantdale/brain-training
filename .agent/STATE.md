@@ -1,24 +1,32 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 049 closure pushed and Campaign 050
- activated for integrated release-candidate certification.
+**Last update:** 2026-09-19 — Campaign 050 terminal closure reconciled after
+the integrated release-candidate gates and bounded Android runtime evidence.
 **Canonical branch:** `main`
-**Active campaign:** 050-integrated-release-candidate-certification
-**Last campaign:** 049-accessibility-responsive-state-matrix
-**Last campaign status:** COMPLETE
+**Active campaign:** none
+**Last campaign:** `050-integrated-release-candidate-certification`
+**Last campaign status:** VALIDATED
 
-## Campaign 050 — Integrated Release Candidate Certification (ACTIVE)
+## Campaign 050 — Integrated Release Candidate Certification (VALIDATED / CONDITIONAL)
 
-- **Activation:** Campaign 049 closed at pushed checkpoint `d67aba5` after the
-  compact/large-font responsive matrix, focused native-tab repair, current
-  release rebuild, and matching audits passed.
-- **Start SHA:** `d67aba5`.
-- **Mission:** run the full local gates, native debug/release build, Metro-free
-  release smoke, protected journey/persistence/catalog reconciliation, current
-  responsive/state/performance summary, and final provenance/handoff.
-- **Next action:** execute the required current-state matrix and write a
-  truthful `CAMPAIGN_050_RELEASE_TECHNICALLY_CERTIFIED` or
-  `CAMPAIGN_050_RELEASE_CONDITIONAL` closure.
+- **Activation:** opened from Campaign 049 checkpoint `d67aba5`.
+- **Terminal label:** `CAMPAIGN_050_RELEASE_CONDITIONAL`.
+- **Runtime source:** the candidate APK was built from `d67aba5`; Campaign 050
+  made no runtime-source or dependency-manifest change.
+- **Result:** local repository gates, sequential debug/release builds,
+  Metro-free direct launch after bounded recovery, four-game workout,
+  force-stop/relaunch persistence, two standalone games, invalid-route
+  recovery, current font-scale/compact matrices, separate zero-violation
+  audits, performance probes, provenance, and OpenSpec validation passed for
+  the documented scope.
+- **Conditional boundaries:** ARTEMIS observed a transient first-install
+  release ANR before one bounded close/relaunch recovered Home. The Android
+  Files import provider also presented an ANR; no file was selected or
+  imported. Human TalkBack/VoiceOver, physical/OEM, iOS, store signing,
+  human system-provider usability, and external GitHub runner execution remain
+  explicitly unvalidated or external.
+- **Evidence:** `docs/redesign/evidence/campaign050/` and the overnight
+  handoff.
 
 ## Campaign 049 — Accessibility, Responsive, System-UI & State-Matrix Hardening (VALIDATED)
 

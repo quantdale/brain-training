@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "VALIDATED",
   "change": "050-integrated-release-candidate-certification",
-  "description": "Campaign 050 integrated release-candidate certification ownership record. The orchestrator owns repository gates, native builds, runtime QA, evidence, governance, and final convergence; no parallel coder packets are active.",
+  "description": "Campaign 050 integrated release-candidate certification ownership record. Terminal VALIDATED closure: the orchestrator owned repository gates, native builds, runtime QA, evidence, governance, and final convergence; no parallel coder packets were active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

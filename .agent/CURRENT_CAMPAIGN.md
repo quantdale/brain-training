@@ -1,31 +1,28 @@
 # Campaign 050 — Integrated Release Candidate Certification
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_050_RELEASE_CONDITIONAL`
 **Campaign id:** `050-integrated-release-candidate-certification`
 **Predecessor:** `049-accessibility-responsive-state-matrix` (complete)
 **Mode:** day
 **Start SHA:** `d67aba5`
 
-## Mission
+## Terminal result
 
-Certify the integrated post-043–049 release candidate using current
-repository, native artifact, protected-flow, catalog, persistence, responsive,
-performance, and external-boundary evidence. This is convergence and
-classification, not feature expansion.
+Campaign 050 completed the integrated post-043–049 release-candidate
+certification for the tested Android/repository scope. Repository gates,
+sequential debug/release builds, direct Metro-free launch, protected workout
+and persistence flows, representative standalone games, invalid-route
+recovery, current responsive/a11y captures, performance probes, provenance,
+and OpenSpec validation are recorded under
+`docs/redesign/evidence/campaign050/`.
 
-## Current progress
+The result is conditional: the first ARTEMIS launch after release installation
+showed a transient Android app ANR before the bounded relaunch recovered Home,
+and the Android Files import provider presented an ANR. Human/platform,
+store-signing, iOS, physical/OEM, human system-provider, and external-CI
+boundaries remain explicitly unvalidated or external.
 
-Campaign 049 is complete at `d67aba5`. The candidate currently has a fresh
-large-text native-tab repair, 24/24 post-fix compact/font-scale-2 captures,
-zero measured a11y violations in the matching audits, and restored emulator
-settings. The integrated current-state gates are now running.
-
-## Exit and progression
-
-Write `docs/redesign/evidence/campaign050/`, run the required current-state
-checks, classify technical versus human/platform/external boundaries, validate
-the OpenSpec change, update durable state and the overnight handoff, commit and
-push the final checkpoint.
+No successor campaign is active. A future owner must deliberately open one.
 
 ---
 

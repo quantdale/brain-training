@@ -1,5 +1,23 @@
 # Known Issues / Blockers
 
+## Campaign 050 disposition — RELEASE CONDITIONAL (2026-09-19)
+
+The integrated release-candidate packet is complete for the tested
+Android/repository scope. ARTEMIS observed a transient first-install
+`Brain Training isn't responding` dialog; the mandated one-time close/relaunch
+recovered Home and the full protected journey continued. A direct later cold
+launch was `Status: ok`, `LaunchState: COLD`, `MainActivity`, `TotalTime:
+10047`, with no targeted app error markers. Reproduce this first-install
+startup observation before store/public release; do not present it as a clean
+first-launch PASS.
+
+The Android share sheet was reachable and safely cancelled. The Android Files
+provider reached the import picker but presented an external ANR during
+dismissal; no file was selected or imported, and import-provider usability is
+NOT VALIDATED. The local APK remains debug-signed. Human TalkBack/VoiceOver,
+physical/OEM, iOS, store-signing, human system-provider, and external GitHub
+runner evidence remain explicitly unavailable or external.
+
 ## Campaign 045 disposition — COMPLETE for technical local scope (2026-09-19)
 
 The Expo SDK57 patch drift was resolved with the supported five-package

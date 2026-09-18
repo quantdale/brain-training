@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 050: Integrated Release Candidate Certification
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_050_RELEASE_CONDITIONAL`
 **Change:** `050-integrated-release-candidate-certification`
 **Start-SHA:** `d67aba5`
 **Target-Branch:** `main`
@@ -23,9 +23,17 @@ parallel coder packets.
 
 ## Progression
 
-Campaign 049 is complete at checkpoint `d67aba5`. Finish and push the Campaign
-050 closure and required overnight handoff with a truthful technical versus
-conditional verdict.
+Campaign 049 was complete at checkpoint `d67aba5`. Campaign 050 is terminally
+closed with the required closure packet and overnight handoff. The conditional
+verdict preserves the observed first-install release ANR, the Files-provider
+import limitation, and all manual/platform/external boundaries.
+
+## Terminal result
+
+Local repository, native, protected-flow, catalog-lineage, responsive/a11y,
+performance, provenance, and OpenSpec evidence is complete for the tested
+scope. No human accessibility, physical/OEM, iOS, store-signing, human
+system-provider, or GitHub runner-success claim is made.
 
 ---
 

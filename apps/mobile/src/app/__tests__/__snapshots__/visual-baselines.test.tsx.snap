@@ -62,6 +62,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         labelStyle={
           {
             "color": "#5B5E77",
+            "fontSize": 9,
           }
         }
         labelVisibilityMode="labeled"
@@ -85,18 +86,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -111,18 +115,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -137,18 +144,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -162,6 +172,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedLabelStyle={
           {
             "color": "#C43A22",
+            "fontSize": 9,
           }
         }
         specialEffects={
@@ -185,18 +196,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -211,18 +225,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -237,18 +254,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -2527,6 +2547,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         labelStyle={
           {
             "color": "#5B5E77",
+            "fontSize": 9,
           }
         }
         labelVisibilityMode="labeled"
@@ -2550,18 +2571,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -2576,18 +2600,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -2602,18 +2629,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -2627,6 +2657,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedLabelStyle={
           {
             "color": "#C43A22",
+            "fontSize": 9,
           }
         }
         specialEffects={
@@ -2650,18 +2681,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -2676,18 +2710,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -2702,18 +2739,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3057,6 +3097,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         labelStyle={
           {
             "color": "#5B5E77",
+            "fontSize": 9,
           }
         }
         labelVisibilityMode="labeled"
@@ -3080,18 +3121,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3106,18 +3150,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3132,18 +3179,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3157,6 +3207,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedLabelStyle={
           {
             "color": "#C43A22",
+            "fontSize": 9,
           }
         }
         specialEffects={
@@ -3180,18 +3231,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3206,18 +3260,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3232,18 +3289,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3929,6 +3989,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         labelStyle={
           {
             "color": "#5B5E77",
+            "fontSize": 9,
           }
         }
         labelVisibilityMode="labeled"
@@ -3952,18 +4013,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -3978,18 +4042,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -4004,18 +4071,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -4029,6 +4099,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedLabelStyle={
           {
             "color": "#C43A22",
+            "fontSize": 9,
           }
         }
         specialEffects={
@@ -4052,18 +4123,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -4078,18 +4152,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
@@ -4104,18 +4181,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4284178039,
                 "tabBarItemTitleFontColor": 4284178039,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
                 "tabBarItemTitleFontColor": 4291050018,
+                "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },

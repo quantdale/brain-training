@@ -1,6 +1,6 @@
 # Execution — Campaign 050 Integrated Release Candidate Certification
 
-**Status:** ACTIVE  
+**Status:** VALIDATED — `CAMPAIGN_050_RELEASE_CONDITIONAL`
 **Change:** `050-integrated-release-candidate-certification`  
 **Start-SHA:** `d67aba5`  
 **Target-Branch:** `main`  
@@ -22,8 +22,17 @@ work or claim human/iOS/store/external CI success without that evidence.
 
 ## Progression
 
-Campaign 049 is complete at `d67aba5`. Run the integrated current-state
-validation, write the Campaign 050 closure and overnight handoff, validate
-governance/OpenSpec/provenance, commit and push the terminal checkpoint. The
-truthful verdict may be technically certified or conditional depending on the
-remaining external and human boundaries.
+Campaign 049 was complete at `d67aba5`. Campaign 050 completed the integrated
+current-state validation and wrote the closure and overnight handoff. The
+conditional verdict preserves the observed first-install ANR and the
+unvalidated Files-provider import path, along with the existing human,
+platform, store, iOS, and external-CI boundaries.
+
+## Terminal result
+
+`CAMPAIGN_050_RELEASE_CONDITIONAL` is valid for the tested Android/repository
+scope. The candidate is buildable, installable, Metro-free after bounded
+relaunch recovery, durable through the protected workout/persistence path, and
+covered by current repository, catalog, responsive, a11y, and performance
+evidence. The packet makes no human accessibility, physical/OEM, iOS, store
+signing, human system-provider, or GitHub runner-success claim.
