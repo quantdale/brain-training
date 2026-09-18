@@ -171,14 +171,29 @@ export class AppDatabase {
 }
 
 let instance: AppDatabase | null = null;
+let initializationPromise: Promise<AppDatabase> | null = null;
 
 /**
  * Open the app database, migrate it to SCHEMA_VERSION and ensure the
  * singleton profile exists. Call once at app startup (e.g. from the root
- * route layout before rendering). Idempotent: calling twice reuses the same
- * connection (expo-sqlite caches per name) and migrations are a no-op.
+ * route layout before rendering). Concurrent startup calls share one pass so
+ * React runtime remounts cannot initialize the same native file concurrently.
  */
 export async function initDatabase(options: AppDatabaseOptions = {}): Promise<AppDatabase> {
+  if (initializationPromise) {
+    return initializationPromise;
+  }
+
+  initializationPromise = initializeDatabase(options);
+  try {
+    return await initializationPromise;
+  } finally {
+    initializationPromise = null;
+  }
+}
+
+/** Perform one startup pass; concurrent callers are coalesced by initDatabase. */
+async function initializeDatabase(options: AppDatabaseOptions): Promise<AppDatabase> {
   const adapter = createExpoSqliteAdapter(openExpoDatabase(APP_DATABASE_NAME));
   await initializeConnection(adapter);
   await runMigrations(adapter);

@@ -24,7 +24,12 @@ class AsyncOperationQueue {
 const databaseQueues = new WeakMap<object, AsyncOperationQueue>();
 
 function queueForDatabase(db: SQLite.SQLiteDatabase): AsyncOperationQueue {
-  const key = db as unknown as object;
+  // Expo can return a new JS SQLiteDatabase wrapper around the same cached
+  // NativeDatabase (notably across fast-refresh/runtime remounts). Queueing by
+  // the wrapper would let those calls race on one native handle again. The
+  // native handle is the actual serialization boundary; the fallback keeps
+  // this seam tolerant of the minimal test doubles used by Jest.
+  const key = (db.nativeDatabase ?? db) as unknown as object;
   let queue = databaseQueues.get(key);
   if (!queue) {
     queue = new AsyncOperationQueue();
@@ -85,7 +90,14 @@ export function createExpoSqliteAdapter(
   };
 }
 
-/** Open (or reuse the cached connection for) the app database. */
+/**
+ * Open the app database on an isolated native connection.
+ *
+ * expo-sqlite SDK 57 caches NativeDatabase objects by name and has an Android
+ * runtime-teardown path that can double-close those cached handles. A fresh
+ * connection avoids reusing a handle poisoned by a prior React runtime while
+ * preserving the same on-device SQLite file.
+ */
 export function openExpoDatabase(databaseName: string): SQLite.SQLiteDatabase {
-  return SQLite.openDatabaseSync(databaseName);
+  return SQLite.openDatabaseSync(databaseName, { useNewConnection: true });
 }
