@@ -5,6 +5,41 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 042 conditional closure / defect isolation — 2026-09-18 (TECHNICAL CERTIFIED)
+
+- Scope: **PASS** — synchronized from `origin/main` at `8825be3`; source
+  repairs were limited to Expo SQLite runtime isolation and the demonstrated
+  font-scale-2 Results CTA reachability defect. No schema, migration, scoring,
+  economy, gameplay, router, workflow, or product-redesign change was made.
+- SQLite: **PASS** — pre-repair `NativeDatabase.prepareAsync` NPE reproduced in
+  release startup and font-scale teardown evidence; operations are now queued
+  by native handle, app DB opening uses `useNewConnection: true`, and concurrent
+  initialization is coalesced. Focused adapter tests are 5/5; final release
+  cold/transition/offline relaunch checks have no target error markers.
+- Lifecycle: **PASS** — Equation Builder, Sequence Memory, and Coordinate Turn
+  each have real mechanic evidence plus deterministic result completion and
+  direct persisted-session/reward/rating inspection. Combined DB integrity is
+  `ok`, schema v12, three sessions, 138 XP, 27 credits, and no duplicate
+  operations.
+- Release/a11y: **PASS** — non-debuggable final release APK, no Metro, 22/22
+  light/dark surfaces nonblank and route-verified, automated a11y violations
+  zero. Compact and font-scale-2 audits are 4/4 each with zero violations.
+- Responsive repair: **PASS** — final font-scale-2 Results Play Again bounds
+  are `[42,2186][1038,2355]` (169 px, approximately 64 dp), versus the
+  pre-repair partial 26 dp visibility.
+- Repository: **PASS** — full Jest 558 passed / 4 skipped suites; 6,573
+  passed / 5 skipped tests; 5 snapshots; typecheck, lint, Android debug and
+  release, web export, OpenSpec 27/27, registry, provenance, affected-map,
+  offline, secrets, workflows, dependency-policy, runtime contract, and
+  repo-state checks passed.
+- External/platform: **INDETERMINATE / NOT VALIDATED** — four latest GitHub
+  workflows failed before steps with no logs; Expo Doctor is 20/21 due to
+  documented patch drift; human/manual accessibility, iOS, physical-device,
+  store, and system-sheet evidence remains outside this technical verdict.
+- Evidence: **PASS** — complete Campaign 042 packet, including the required
+  adversarial second pass, is under `docs/redesign/evidence/campaign042/`.
+- Terminal label: `CAMPAIGN_042_TECHNICAL_CERTIFIED`.
+
 ### Campaign 041 exhaustive retrospective hardening — 2026-09-18 (CONDITIONAL)
 
 - Scope: **PASS** — owner-requested Campaigns 001–040 reconstruction and

@@ -1,0 +1,16 @@
+{
+  "id": "042-conditional-closure-defect-isolation",
+  "status": "VALIDATED",
+  "predecessor": "041-retrospective-hardening-overlay",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["conditional-closure-defect-isolation"],
+  "activationRule": "Campaign 041 left a reproduced-but-unreduced SQLite startup NPE, a font-scale-2 Results reachability defect, and representative result/state evidence gaps. Campaign 042 is the owner-authorized bounded closure pass.",
+  "baselineAuditCommit": "8825be34fea78eee9f01433bcaf1230c3d2f8b8e",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes Campaign 041's conditional findings and closes only reproduced technical defects and required evidence gaps. Human, iOS, physical-device, store, system-sheet, and external-CI evidence remains explicitly bounded.",
+  "validationNote": "Technically certified for the documented Android/repository scope. Local gates and release evidence pass; GitHub Actions is indeterminate because the latest runs failed before steps, and Expo Doctor reports pre-existing patch drift."
+}

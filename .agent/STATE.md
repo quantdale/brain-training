@@ -1,11 +1,47 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 040 closed CONDITIONALLY after the
-integrated release-candidate pass.
+**Last update:** 2026-09-18 — Campaign 042 closed with technical
+ certification after defect isolation and Android release revalidation.
 **Canonical branch:** `main`
 **Active campaign:** none
-**Last campaign:** `040-release-candidate-integration-certification`
+**Last campaign:** `042-conditional-closure-defect-isolation`
 **Last campaign status:** VALIDATED
+
+## Campaign 042 — Conditional Closure / Defect Isolation (TECHNICAL CERTIFIED)
+
+- **Activation:** synchronized from `origin/main` at
+  `8825be34fea78eee9f01433bcaf1230c3d2f8b8e`; no reset or force-push was
+  used. The source repair checkpoints are `abca9fb` and `3176577`, followed by
+  the bounded large-text Results repair in this closure wave.
+- **Implementation:** reproduced and isolated the Android Expo SQLite
+  runtime-teardown `NativeDatabase.prepareAsync` NPE; serialized operations by
+  native handle, opened the app database with `useNewConnection: true`, and
+  coalesced concurrent initialization. Repaired the demonstrated font-scale-2
+  Results CTA clipping with a local `fontScale >= 1.5` hero-density adjustment.
+  No product redesign, schema, migration, scoring, economy, game, or workflow
+  change was made.
+- **Runtime:** final release artifact was non-debuggable and loaded without
+  Metro. The 22-surface light/dark route matrix was nonblank and
+  route-verified with zero automated accessibility violations. Final font
+  transition and two offline relaunch runs had no targeted app error markers.
+- **Lifecycle:** Equation Builder, Sequence Memory, and Coordinate Turn each
+  had real mechanic evidence, deterministic completion/result evidence, direct
+  SQLite retention, and relaunch checks. The combined database passed
+  integrity, retained three sessions/138 XP/27 credits, and had no duplicate
+  session, currency, or rating operations.
+- **Repository:** full Jest (558 passed suites / 4 skipped; 6,573 passed tests
+  / 5 skipped; 5 snapshots), typecheck, lint, Android debug/release, web
+  export, OpenSpec, registry, provenance, affected-map, offline, secrets,
+  workflows, dependency-policy, runtime-QA, and repo-state gates passed.
+- **External boundaries:** latest GitHub runs remain
+  `INDETERMINATE_EXTERNAL_PRE_STEP` (four failures with zero job steps/logs),
+  Expo Doctor is 20/21 because of pre-existing Expo SDK patch drift, and
+  human/TalkBack/iOS/physical/store/system-sheet evidence remains explicitly
+  unvalidated. These are not presented as product-correctness passes.
+- **Evidence:** complete packet is under
+  `docs/redesign/evidence/campaign042/`, including the mandatory adversarial
+  second pass and human/platform boundary.
+- **Terminal label:** `CAMPAIGN_042_TECHNICAL_CERTIFIED`.
 
 ## Campaign 041 retrospective hardening overlay — 2026-09-18 (CONDITIONAL)
 

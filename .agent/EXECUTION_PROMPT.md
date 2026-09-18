@@ -1,3 +1,31 @@
+# Execution Prompt — Campaign 042: Conditional Closure / Defect Isolation
+
+**Status:** VALIDATED — `CAMPAIGN_042_TECHNICAL_CERTIFIED`
+**Change:** `042-conditional-closure-defect-isolation`
+**Planned-From:** `8825be3`
+**Start-SHA:** `8825be34fea78eee9f01433bcaf1230c3d2f8b8e`
+**Planned-At:** 2026-09-18
+**Target-Branch:** `main`
+**Predecessor:** `041-retrospective-hardening-overlay`
+
+## Authority
+
+Execute the owner-supplied `.agent/CAMPAIGN042_CONDITIONAL_CLOSURE_DEFECT_ISOLATION_PROMPT.md`.
+This is a bounded closure and defect-isolation campaign. Preserve the locked
+product constitution, use the dedicated Android runtime, and keep every
+unavailable human, platform, system-sheet, and external-CI result explicitly
+classified.
+
+## Terminal result
+
+The campaign repaired the reproduced SQLite startup NPE and the demonstrated
+large-text Results CTA clipping, then completed the required release,
+persistence, three-game lifecycle, responsive, state-matrix, repository, and
+adversarial evidence packet. The terminal label is
+`CAMPAIGN_042_TECHNICAL_CERTIFIED`.
+
+---
+
 # Execution Prompt — Campaign 040: Release-Candidate Integration & Certification
 
 **Status:** VALIDATED — `CAMPAIGN_040_CONDITIONAL`

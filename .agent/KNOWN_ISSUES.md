@@ -1,5 +1,26 @@
 # Known Issues / Blockers
 
+## Campaign 042 disposition — TECHNICAL CERTIFIED (2026-09-18)
+
+Campaign 042 reproduced and repaired the previously open SQLite startup NPE
+and the font-scale-2 Results CTA clipping. The release replays, three-game
+result/persistence checks, 22-surface route/theme matrix, responsive audits,
+and local repository gates passed for the documented Android scope. The full
+disposition and raw-artifact paths are under
+`docs/redesign/evidence/campaign042/`.
+
+Remaining boundaries are not silently closed:
+
+- GitHub Actions remains `INDETERMINATE_EXTERNAL_PRE_STEP`; the four latest
+  workflows failed before their first step and produced no repository logs.
+- Expo Doctor remains 20/21 because five Expo SDK 57 patch packages are one
+  patch behind the manifest ranges; this is dependency maintenance debt, not a
+  Campaign 042 product defect.
+- Human TalkBack/VoiceOver, iOS, physical-device, store-signing, and native
+  document/share-sheet validation remain `[NOT VALIDATED]`.
+- Ordinary non-actionable card-copy edge clipping remains documented; no
+  actionable control was clipped in the final audited matrices.
+
 ## Campaign 041 current audit findings — CONDITIONAL (2026-09-18)
 
 Campaign 041 re-proved the current Android/repository core but found bounded

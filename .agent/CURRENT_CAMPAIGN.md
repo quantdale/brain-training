@@ -1,3 +1,27 @@
+# Campaign 042 — Conditional Closure / Defect Isolation
+
+**Status:** VALIDATED — `CAMPAIGN_042_TECHNICAL_CERTIFIED`
+**Campaign id:** `042-conditional-closure-defect-isolation`
+**Predecessor:** `041-retrospective-hardening-overlay` (conditional)
+**Mode:** day
+**Start SHA:** `8825be34fea78eee9f01433bcaf1230c3d2f8b8e`
+
+## Terminal result
+
+Campaign 042 is technically certified for the Android/repository scope. It
+isolated and repaired the reproduced Expo SQLite runtime-teardown startup NPE,
+closed the three named game result lifecycles with direct persistence checks,
+repaired the demonstrated font-scale-2 Results action clipping, and
+revalidated the release route/theme, responsive, relaunch, persistence, and
+repository gates. External CI, human/platform, store, and system-sheet limits
+remain explicitly classified in the evidence packet.
+
+The complete packet is under `docs/redesign/evidence/campaign042/`, with
+terminal verdict `CAMPAIGN_042_TECHNICAL_CERTIFIED` in
+`CAMPAIGN042_CLOSURE.md`.
+
+---
+
 # Campaign 040 — Release-Candidate Integration & Certification
 
 > **Campaign 041 audit overlay (owner-requested, 2026-09-18):** The

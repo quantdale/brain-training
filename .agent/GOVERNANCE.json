@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "canonicalBranch": "main",
   "activeCampaign": null,
-  "lastCampaign": "040-release-candidate-integration-certification",
+  "lastCampaign": "042-conditional-closure-defect-isolation",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

@@ -26,7 +26,7 @@ import {
   useLocalSearchParams,
 } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
 import { SectionHeader, StateCard } from "@/components/shell";
 import { formatRelativeDay, performanceBand } from "@/components/shell/format";
@@ -139,6 +139,13 @@ const celebratedResults = new Set<string>();
 export default function ResultsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const theme = useTheme();
+  const { fontScale } = useWindowDimensions();
+  // At the OS 2x text setting, the results hero legitimately grows with the
+  // user's copy, but its original desktop-density rhythm pushed the primary
+  // replay action into the initial viewport edge. Keep the same hierarchy and
+  // content while tightening only this local hero's padding/gap at large text
+  // sizes so the first actionable handoff remains fully visible.
+  const largeTextHero = fontScale >= 1.5;
 
   // Reload whenever the screen regains focus (a session may have just landed).
   const [refreshKey, setRefreshKey] = useState(0);
@@ -278,7 +285,7 @@ export default function ResultsScreen() {
               padding="lg"
               testID="results-summary"
               accessibilityLiveRegion="polite"
-              style={styles.hero}
+              style={[styles.hero, largeTextHero && styles.heroLargeText]}
             >
               {celebrate ? (
                 <Confetti
@@ -611,6 +618,10 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: "center",
     gap: Spacing.three,
+  },
+  heroLargeText: {
+    gap: Spacing.two,
+    padding: Spacing.three,
   },
   headline: {
     textAlign: "center",
