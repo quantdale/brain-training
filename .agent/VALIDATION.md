@@ -5,6 +5,32 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 045 Expo SDK57 patch alignment — 2026-09-19 (COMPLETE)
+
+- Scope: **PASS** — supported Expo tooling aligned only `expo`, `expo-asset`,
+  `expo-constants`, `expo-router`, and `expo-sharing`; the package manifest and
+  lockfile contain no unrelated dependency churn. Expo Doctor is 21/21.
+- Repository: **PASS** — dependency policy validator, typecheck, lint, full
+  Jest (558 suites / 6,573 tests passed; 4 suites and 5 tests skipped), web
+  export (20 static routes), offline scan (973 files), runtime-QA contract,
+  workflows, repo-state, and task ownership all passed.
+- Native/runtime: **PASS** — debug and release Android builds succeeded. Fresh
+  release APK `003D77C44F215DB9654C5744472874934885E16E5C6FEC4989C511EF0DDC9D85`
+  launched cold without Metro. The 6-route × 2-theme smoke captured 12/12
+  surfaces with zero technical accessibility violations.
+- Audit/boundaries: **PASS WITH ACCEPTED DEBT** — raw production audit totals
+  were 15 moderate and 5 high; the repository validator accepted the five
+  documented advisory IDs. The APK uses the local debug certificate. A fatal
+  line from a competing uiautomator accessibility dump was isolated to the
+  shell, not the app; a clean app-only relaunch was green. Human, physical,
+  iOS/VoiceOver, TalkBack-human, store-signing, and external CI lanes remain
+  explicitly unavailable or externally blocked.
+- Evidence: **PASS** — packet is under
+  `docs/redesign/evidence/campaign045/`; raw audit and runtime artifacts remain
+  outside Git under `D:\Temp\campaign045-audit.json` and
+  `D:\Temp\campaign045-postupdate-matrix`.
+- Terminal label: `CAMPAIGN_045_COMPLETE`.
+
 ### Campaign 042 conditional closure / defect isolation — 2026-09-18 (TECHNICAL CERTIFIED)
 
 - Scope: **PASS** — synchronized from `origin/main` at `8825be3`; source

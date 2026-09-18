@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "043-independent-platform-release-validation",
-  "lastCampaign": "042-conditional-closure-defect-isolation",
-  "lastCampaignStatus": "VALIDATED",
+  "activeCampaign": "045-expo-sdk57-patch-alignment",
+  "lastCampaign": "044-external-ci-workflow-diagnosis",
+  "lastCampaignStatus": "ACCOUNT_OR_POLICY_EXTERNAL",
   "hardening": {
     "automaticFullHardening": false,
     "criticalHighRepairRequired": true

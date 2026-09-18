@@ -1,6 +1,73 @@
-# Campaign 043 — Independent Platform & Release-Boundary Validation
+# Campaign 045 — Expo SDK57 Patch Alignment
 
 **Status:** ACTIVE
+**Campaign id:** `045-expo-sdk57-patch-alignment`
+**Predecessor:** `044-external-ci-workflow-diagnosis` (validated,
+account/policy external)
+**Mode:** day
+**Start SHA:** `59bc801bbaa047834f78819370aa7a805acb1783`
+
+## Mission
+
+Align the installed Expo SDK57 patch family using the supported Expo installer,
+prove the dependency graph is internally consistent, and run proportionate
+typecheck, lint, test, export, Android build, and Metro-free runtime checks.
+Preserve application behavior and avoid unrelated dependency churn.
+
+## Current progress
+
+Initial Expo Doctor reported 20/21 checks passed because five Expo SDK57 patch
+versions were behind the installed SDK expectations. `npx expo install` updated
+only `expo`, `expo-asset`, `expo-constants`, `expo-router`, and `expo-sharing`
+within the patch family; Expo Doctor now reports 21/21. Typecheck, lint, full
+Jest, web export, offline scan, runtime contract, Android debug/release builds,
+fresh release launch, 12 light/dark route captures, and technical a11y all
+passed. Evidence is under `docs/redesign/evidence/campaign045/`.
+
+## Exit and progression
+
+Write `docs/redesign/evidence/campaign045/`, update durable state, validate the
+OpenSpec change, commit/push the coherent maintenance checkpoint, and continue
+to Campaign 046. Do not mask external CI account/policy failures with workflow
+changes.
+
+---
+
+# Campaign 044 — External CI / Workflow Infrastructure Diagnosis
+
+**Status:** VALIDATED — `CAMPAIGN_044_ACCOUNT_OR_POLICY_EXTERNAL`
+**Campaign id:** `044-external-ci-workflow-diagnosis`
+**Predecessor:** `043-independent-platform-release-validation` (partial,
+manual/platform pending)
+**Mode:** day
+**Start SHA:** `59bc801bbaa047834f78819370aa7a805acb1783`
+
+## Mission
+
+Determine why the current GitHub Actions workflows fail before repository steps
+execute. Inspect current runs, jobs, step arrays, annotations, runner metadata,
+workflow SHAs, runner labels, permissions/policies visible to the connected
+account, prior runs, and local workflow syntax. Modify workflow YAML only if a
+repository-side defect is proven.
+
+## Current classification
+
+`ACCOUNT_OR_POLICY`: current GitHub check-run annotations state that jobs were
+not started because recent account payments failed or the spending limit needs
+to be increased. The current jobs have zero steps, `runner_id: 0`, and no runner
+name. Do not mask this external condition by editing workflows.
+
+## Exit and progression
+
+Write `docs/redesign/evidence/campaign044/`, update durable state, commit/push
+the diagnosis, and continue to Campaign 045 when local workflow checks remain
+sound. External account repair is outside repository authority.
+
+---
+
+# Campaign 043 — Independent Platform & Release-Boundary Validation
+
+**Status:** VALIDATED — `CAMPAIGN_043_PARTIAL_MANUAL_PLATFORM_PENDING`
 **Campaign id:** `043-independent-platform-release-validation`
 **Predecessor:** `042-conditional-closure-defect-isolation` (validated)
 **Mode:** day

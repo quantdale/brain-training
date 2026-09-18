@@ -1,13 +1,61 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 043 activated from synchronized
- main for independent platform and release-boundary validation.
+**Last update:** 2026-09-19 — Campaign 044 diagnosed as external account/policy
+ failure and Campaign 045 activated for isolated Expo SDK57 maintenance.
 **Canonical branch:** `main`
-**Active campaign:** 043-independent-platform-release-validation
-**Last campaign:** `042-conditional-closure-defect-isolation`
-**Last campaign status:** VALIDATED
+**Active campaign:** 045-expo-sdk57-patch-alignment
+**Last campaign:** 044-external-ci-workflow-diagnosis
+**Last campaign status:** ACCOUNT_OR_POLICY_EXTERNAL
 
-## Campaign 043 — Independent Platform & Release-Boundary Validation (ACTIVE)
+## Campaign 045 — Expo SDK57 Patch Alignment (ACTIVE)
+
+- **Activation:** Campaign 044 current GitHub evidence classified all four
+  zero-step failures as `ACCOUNT_OR_POLICY_EXTERNAL`; local workflow and repo
+  validators passed and no workflow YAML was changed.
+- **Start SHA:** `59bc801bbaa047834f78819370aa7a805acb1783`.
+- **Initial doctor:** 20/21 checks passed; exactly five package patches were
+  behind the installed Expo SDK57 expectations: expo 57.0.23→57.0.24,
+  expo-asset 57.0.17→57.0.18, expo-constants 57.0.18→57.0.19,
+  expo-router 57.0.21→57.0.22, and expo-sharing 57.0.20→57.0.21.
+- **Maintenance applied:** supported `npx expo install` updated only that
+  five-package patch family and the npm lockfile. Expo Doctor now reports
+  21/21 checks passed. The manifest diff is limited to the five target
+  packages; the 74-line lockfile diff contains only coherent Expo patch-level
+  transitive updates.
+- **Validation:** dependency policy **PASS**; raw production audit records 15
+  moderate and 5 high findings, all covered by the repository's five accepted
+  advisory classifications. Typecheck, lint, 558-suite Jest, web export,
+  offline scan, runtime-QA contract, debug/release Android builds, fresh
+  release launch, and 12 light/dark route captures all passed. Technical a11y
+  audit reported zero violations.
+- **Release evidence:** release APK SHA-256 is
+  `003D77C44F215DB9654C5744472874934885E16E5C6FEC4989C511EF0DDC9D85` and
+  size is 109,559,713 bytes. The APK is locally debug-signed and not a store
+  artifact. One filtered `FATAL EXCEPTION` was isolated to the uiautomator
+  shell's accessibility registration contention, not the app process; clean
+  app-only relaunch passed.
+- **Closure:** `CAMPAIGN_045_COMPLETE`; evidence is under
+  `docs/redesign/evidence/campaign045/`. Campaign 046 is the next planned
+  catalog repeatability/soak campaign.
+
+## Campaign 044 — External CI / Workflow Infrastructure Diagnosis (VALIDATED)
+
+- **Activation:** Campaign 043 reached
+  `CAMPAIGN_043_PARTIAL_MANUAL_PLATFORM_PENDING` after current Android
+  release, system-UI, ARTEMIS, and persisted-state evidence; unavailable human,
+  physical, iOS/VoiceOver, TalkBack-human, and store lanes remain explicit.
+- **Start SHA:** `59bc801bbaa047834f78819370aa7a805acb1783`.
+- **Current external CI evidence:** the four current push runs for App CI,
+  Android Build Smoke, Repository Integrity, and iOS Build Smoke all failed
+  before steps. Every job has `steps: []`, `runner_id: 0`, and no runner name.
+  Check-run annotations explicitly say the job was not started because recent
+  account payments failed or the spending limit must be increased. This is
+  classified `ACCOUNT_OR_POLICY`; no workflow edit is justified.
+- **Next action:** cross-check local workflow syntax/integrity validators,
+  write the Campaign 044 evidence packet, commit/push the diagnosis, then
+  proceed to the isolated Expo maintenance and later campaigns.
+
+## Campaign 043 — Independent Platform & Release-Boundary Validation (VALIDATED PARTIAL)
 
 - **Activation:** safely fast-forwarded from `d7b1cd5` to synchronized
   `afeca4d6cf330e698513c3289e0c1ca5e83f4394`; the pre-existing worktree was
@@ -26,9 +74,18 @@
   automation target. `emulator-5556` is a Study Maker runtime and is not used.
 - **Evidence root:** `docs/redesign/evidence/campaign043/`.
 - **Starting SHA:** `afeca4d6cf330e698513c3289e0c1ca5e83f4394`.
-- **Next action:** build and inspect a fresh release APK, install it on the
-  dedicated runtime, and record the release-boundary baseline before any
-  bounded repair.
+- **Closure:** `CAMPAIGN_043_PARTIAL_MANUAL_PLATFORM_PENDING` at validated
+  release/control SHA `59bc801bbaa047834f78819370aa7a805acb1783`. A fresh
+  release APK launched without Metro; 18 light/dark routes captured with zero
+  technical a11y violations; real Memory gameplay reached a persisted result;
+  SQLite integrity/idempotency checks passed; Android share and DocumentsUI
+  boundaries opened and safely cancelled. Human, physical Android, iOS/
+  VoiceOver, human-quality TalkBack, and production store-signing remain
+  pending by environment.
+- **Evidence:** complete packet is under
+  `docs/redesign/evidence/campaign043/`; large raw runtime artifacts remain
+  outside Git under `D:\Temp\campaign043-runtime` and
+  `D:\Temp\campaign043-release-matrix`.
 
 ## Campaign 042 — Conditional Closure / Defect Isolation (TECHNICAL CERTIFIED)
 

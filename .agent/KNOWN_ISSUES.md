@@ -1,5 +1,18 @@
 # Known Issues / Blockers
 
+## Campaign 045 disposition — COMPLETE for technical local scope (2026-09-19)
+
+The Expo SDK57 patch drift was resolved with the supported five-package
+alignment. Expo Doctor is 21/21; the remaining raw `npm audit --omit=dev`
+findings are 15 moderate and 5 high and remain covered by the five accepted
+advisory classifications in `.agent/DEPENDENCY_AUDIT.md`. Do not run a broad
+major-version audit fix as part of the catalog campaigns.
+
+The local release artifact remains debug-signed. Human-quality TalkBack,
+physical Android, iOS/VoiceOver, store signing, and independent manual lanes
+remain unavailable. GitHub Actions is classified separately as the Campaign
+044 account/payment-policy external blocker; do not edit workflows to mask it.
+
 ## Campaign 042 disposition — TECHNICAL CERTIFIED (2026-09-18)
 
 Campaign 042 reproduced and repaired the previously open SQLite startup NPE
@@ -13,9 +26,9 @@ Remaining boundaries are not silently closed:
 
 - GitHub Actions remains `INDETERMINATE_EXTERNAL_PRE_STEP`; the four latest
   workflows failed before their first step and produced no repository logs.
-- Expo Doctor remains 20/21 because five Expo SDK 57 patch packages are one
-  patch behind the manifest ranges; this is dependency maintenance debt, not a
-  Campaign 042 product defect.
+- At the time of Campaign 042 this was dependency maintenance debt; Campaign
+  045 resolved the five-package Expo SDK57 patch drift and recorded the fresh
+  21/21 result.
 - Human TalkBack/VoiceOver, iOS, physical-device, store-signing, and native
   document/share-sheet validation remain `[NOT VALIDATED]`.
 - Ordinary non-actionable card-copy edge clipping remains documented; no

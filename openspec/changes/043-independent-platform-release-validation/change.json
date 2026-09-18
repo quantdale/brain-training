@@ -1,6 +1,6 @@
 {
   "id": "043-independent-platform-release-validation",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "042-conditional-closure-defect-isolation",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",

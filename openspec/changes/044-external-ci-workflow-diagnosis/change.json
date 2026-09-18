@@ -1,0 +1,15 @@
+{
+  "id": "044-external-ci-workflow-diagnosis",
+  "status": "VALIDATED",
+  "predecessor": "043-independent-platform-release-validation",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["external-ci-workflow-diagnosis"],
+  "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 043 partial platform handoff.",
+  "baselineAuditCommit": "59bc801bbaa047834f78819370aa7a805acb1783",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes current GitHub Actions evidence and changes workflow configuration only if a repository-side defect is proven."
+}

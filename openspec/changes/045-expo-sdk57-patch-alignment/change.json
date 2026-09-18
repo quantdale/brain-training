@@ -1,0 +1,15 @@
+{
+  "id": "045-expo-sdk57-patch-alignment",
+  "status": "ACTIVE",
+  "predecessor": "044-external-ci-workflow-diagnosis",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["expo-sdk57-patch-alignment"],
+  "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the external CI diagnosis.",
+  "baselineAuditCommit": "59bc801bbaa047834f78819370aa7a805acb1783",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the current Expo Doctor patch-drift finding and limits maintenance to the smallest supported SDK57 package set."
+}

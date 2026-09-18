@@ -1,6 +1,59 @@
-# Execution Prompt — Campaign 043: Independent Platform & Release-Boundary Validation
+# Execution Prompt — Campaign 045: Expo SDK57 Patch Alignment
 
 **Status:** ACTIVE
+**Change:** `045-expo-sdk57-patch-alignment`
+**Start-SHA:** `59bc801bbaa047834f78819370aa7a805acb1783`
+**Target-Branch:** `main`
+**Predecessor:** `044-external-ci-workflow-diagnosis`
+
+## Authority
+
+Execute the active Campaign 045 OpenSpec change and the Campaigns 043–050
+overnight orchestration contract. Use the supported Expo installer only for the
+identified SDK57 patch alignment, then run the repository's dependency policy,
+typecheck, lint, test, export, Android build, and Metro-free runtime checks.
+Preserve all product contracts and record exact results; do not broaden the
+upgrade or weaken CI requirements.
+
+## Work model
+
+The orchestrator owns package/lockfile changes, governance, evidence, builds,
+the dedicated Android runtime, and final convergence. No parallel coder
+packets are active. Use only `braintraining-ui35` / `emulator-5554`.
+
+## Progression
+
+Expo Doctor is now 21/21 after updating the five expected patch versions. The
+dependency, repository, test, export, native build, release launch, offline,
+and route/a11y checks passed. The evidence packet and OpenSpec change are
+validated; push the coherent checkpoint, then continue to Campaign 046.
+
+---
+
+# Execution Prompt — Campaign 044: External CI / Workflow Infrastructure Diagnosis
+
+**Status:** VALIDATED — `CAMPAIGN_044_ACCOUNT_OR_POLICY_EXTERNAL`
+**Change:** `044-external-ci-workflow-diagnosis`
+**Start-SHA:** `59bc801bbaa047834f78819370aa7a805acb1783`
+**Target-Branch:** `main`
+**Predecessor:** `043-independent-platform-release-validation`
+
+## Authority
+
+Execute `.agent/CAMPAIGN043_050_OVERNIGHT_AUTONOMOUS_EXECUTION_PROMPT.md` and
+the active Campaign 044 OpenSpec change. Inspect current GitHub Actions runs,
+jobs, step arrays, annotations, runner metadata, workflow source, and local
+workflow/repository validators. Current provider annotations and zero-step jobs
+must be classified honestly; do not edit workflow YAML without proof of a
+repository-side defect, and do not disable or weaken required checks. Record
+evidence under `docs/redesign/evidence/campaign044/`, commit/push a coherent
+checkpoint, then continue safely to Campaign 045.
+
+---
+
+# Execution Prompt — Campaign 043: Independent Platform & Release-Boundary Validation
+
+**Status:** VALIDATED — `CAMPAIGN_043_PARTIAL_MANUAL_PLATFORM_PENDING`
 **Change:** `043-independent-platform-release-validation`
 **Planned-From:** `afeca4d`
 **Start-SHA:** `afeca4d6cf330e698513c3289e0c1ca5e83f4394`
