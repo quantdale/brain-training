@@ -9,7 +9,7 @@ external, human, and platform boundaries remain explicit.
 | 044 | `CAMPAIGN_044_ACCOUNT_OR_POLICY_EXTERNAL` | GitHub jobs failed before steps because of account/payment policy; local workflow checks remained sound and no workflow workaround was made. |
 | 045 | `CAMPAIGN_045_COMPLETE` | Expo patch alignment, repository gates, Android debug/release, Metro-free launch, 12 route/theme captures, and technical a11y passed. |
 | 046 | `CAMPAIGN_046_COMPLETE` | All 42 game IDs covered through lifecycle stages; 44 persisted sessions across 42 games; SQLite and focused persistence checks passed; eight-domain mechanic canaries recorded. |
-| 047 | `NEXT` | Persistence/migration/backup campaign is the next active checkpoint. Device export/load plus non-destructive merge/replace previews are already evidenced. |
+| 047 | `ACTIVE` | Persistence/migration/backup campaign is active. Focused migration/portability tests, device export/load, valid merge/replace previews, and a clean release relaunch sample are complete; evidence packet is pending. |
 | 048 | `PARTIAL_PRECHECK` | Opt-in 5k/20k performance probes passed and a three-cycle release cold-start soak rendered Home; full campaign certification remains pending. |
 | 049 | `PARTIAL_PRECHECK` | Replayed the 12-surface light/dark technical a11y audit with 0 violations; responsive/state-matrix evidence still needs its campaign pass. |
 | 050 | `PENDING` | Integrated release certification remains after Campaigns 047–049. |

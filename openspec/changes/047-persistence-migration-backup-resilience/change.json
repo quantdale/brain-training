@@ -1,0 +1,15 @@
+{
+  "id": "047-persistence-migration-backup-resilience",
+  "status": "ACTIVE",
+  "predecessor": "046-full-catalog-repeatability-soak",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["persistence-migration-backup-resilience"],
+  "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 046 catalog checkpoint.",
+  "baselineAuditCommit": "af1baaa",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the current SQLite v12, migration, portability, session, workout, and data-management contracts without changing product behavior unless a current data-loss or identity defect is reproduced."
+}

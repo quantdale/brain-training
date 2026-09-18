@@ -1,13 +1,29 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 046 completed full-catalog
- repeatability/soak and passed its persistence checkpoint.
+**Last update:** 2026-09-19 — Campaign 046 checkpoint pushed and Campaign 047
+ activated for persistence/migration/backup resilience.
 **Canonical branch:** `main`
-**Active campaign:** 046-full-catalog-repeatability-soak
-**Last campaign:** 045-expo-sdk57-patch-alignment
+**Active campaign:** 047-persistence-migration-backup-resilience
+**Last campaign:** 046-full-catalog-repeatability-soak
 **Last campaign status:** COMPLETE
 
-## Campaign 046 — Full Catalog Repeatability & Game-Lifecycle Soak (ACTIVE)
+## Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience (ACTIVE)
+
+- **Activation:** Campaign 046 evidence and the catalog checkpoint were pushed
+  as `af1baaa`; no product source repair was needed.
+- **Start SHA:** `af1baaa`.
+- **Mission:** adversarially re-test fresh/v12 initialization, historical
+  migrations, repeated relaunch, concurrent-looking writes, backup/export/
+  import, duplicate replay, corrupt input, and session/workout/settings/
+  profile/reward identity.
+- **Completed prechecks:** focused persistence/portability validation passed
+  28 suites / 312 tests with one skipped test. Device export/load succeeded;
+  merge preview was valid with zero additions and replace preview was valid but
+  unapplied. Release force-stop/relaunch and filtered app logcat were clean.
+- **Next action:** close the remaining disposable-import boundary if it can be
+  tested safely, write the evidence packet, and checkpoint before Campaign 048.
+
+## Campaign 046 — Full Catalog Repeatability & Game-Lifecycle Soak (VALIDATED)
 
 - **Activation:** Campaign 045 completed the supported Expo SDK57 patch
   alignment and pushed checkpoint `d6864a9023e501506ada57b7e85aeca827a5040a`.

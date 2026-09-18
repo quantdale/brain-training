@@ -1,6 +1,49 @@
-# Campaign 046 — Full Catalog Repeatability & Game-Lifecycle Soak
+# Campaign 047 — Persistence, Migration, Backup/Restore & Corruption Resilience
 
 **Status:** ACTIVE
+**Campaign id:** `047-persistence-migration-backup-resilience`
+**Predecessor:** `046-full-catalog-repeatability-soak` (complete)
+**Mode:** day
+**Start SHA:** `af1baaa`
+
+## Mission
+
+Adversarially re-test durable state after the Campaign 042 database
+serialization repair and the Campaign 046 full-catalog session batch. Cover
+fresh and existing v12 databases, historical migrations, repeated relaunch,
+concurrent-looking writes, export/import, duplicate replay, invalid/corrupt
+input, and session/workout/settings/profile/reward identity.
+
+## Guardrails
+
+Use only `braintraining-ui35` / `emulator-5554` and emulator-local input. Keep
+destructive cases disposable; do not apply Replace Import to the retained
+catalog database when a valid non-destructive preview answers the question.
+Stop on data loss, duplicate irreversible writes, broken migration, broken
+backup/restore, or broken session/workout identity.
+
+## Current progress
+
+The focused migration/portability/persistence suite has passed 28 suites and
+312 tests with one skipped test. Device export and saved-backup load succeeded;
+merge preview was valid with 0 additions and replace preview was valid but was
+not applied. A three-cycle release force-stop/relaunch sample rendered Home in
+all cycles and filtered app logcat had no fatal/ANR/React/SQLite/lock/OOM
+markers. Remaining work is to document the campaign and close or explicitly
+classify any disposable-import boundary.
+
+## Exit and progression
+
+Write `docs/redesign/evidence/campaign047/`, validate the OpenSpec change,
+update durable state, commit/push a coherent checkpoint, and continue to
+Campaign 048 only when migration, idempotency, backup, and identity checks are
+clean or a safe environment boundary is explicitly recorded.
+
+---
+
+# Campaign 046 — Full Catalog Repeatability & Game-Lifecycle Soak
+
+**Status:** VALIDATED — `CAMPAIGN_046_COMPLETE`
 **Campaign id:** `046-full-catalog-repeatability-soak`
 **Predecessor:** `045-expo-sdk57-patch-alignment` (complete)
 **Mode:** day

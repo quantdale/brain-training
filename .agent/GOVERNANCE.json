@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "046-full-catalog-repeatability-soak",
-  "lastCampaign": "045-expo-sdk57-patch-alignment",
+  "activeCampaign": "047-persistence-migration-backup-resilience",
+  "lastCampaign": "046-full-catalog-repeatability-soak",
   "lastCampaignStatus": "COMPLETE",
   "hardening": {
     "automaticFullHardening": false,

@@ -1,17 +1,17 @@
-# Execution Prompt — Campaign 046: Full Catalog Repeatability & Game-Lifecycle Soak
+# Execution Prompt — Campaign 047: Persistence, Migration, Backup/Restore & Corruption Resilience
 
 **Status:** ACTIVE
-**Change:** `046-full-catalog-repeatability-soak`
-**Start-SHA:** `d6864a9023e501506ada57b7e85aeca827a5040a`
+**Change:** `047-persistence-migration-backup-resilience`
+**Start-SHA:** `af1baaa`
 **Target-Branch:** `main`
-**Predecessor:** `045-expo-sdk57-patch-alignment`
+**Predecessor:** `046-full-catalog-repeatability-soak`
 
 ## Authority
 
-Execute the active Campaign 046 OpenSpec change and the Campaigns 043–050
-overnight orchestration contract. All 42 generated-registry games need current
-lifecycle evidence. Use deterministic QA support honestly, distinguish it from
-real mechanic interaction, and inspect persistence after the batch.
+Execute the active Campaign 047 OpenSpec change and the Campaigns 043–050
+overnight orchestration contract. Re-test fresh/v12 initialization, historical
+migrations, force-stop/relaunch, concurrent-looking writes, backup/export/
+import, duplicate replay, invalid/corrupt input, and durable identity.
 
 ## Work model
 
@@ -21,9 +21,9 @@ coder packets are active. Use only `braintraining-ui35` / `emulator-5554`.
 
 ## Progression
 
-Campaign 045 is complete at checkpoint `d6864a9023e501506ada57b7e85aeca827a5040a`.
-Write the Campaign 046 evidence packet, validate and close its OpenSpec change,
-push a coherent checkpoint, then continue to Campaign 047.
+Campaign 046 is complete at checkpoint `af1baaa`. Write the Campaign 047
+evidence packet, validate and close its OpenSpec change, push a coherent
+checkpoint, then continue to Campaign 048.
 
 ---
 
