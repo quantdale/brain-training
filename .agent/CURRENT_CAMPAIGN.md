@@ -1,3 +1,46 @@
+# Campaign 043 — Independent Platform & Release-Boundary Validation
+
+**Status:** ACTIVE
+**Campaign id:** `043-independent-platform-release-validation`
+**Predecessor:** `042-conditional-closure-defect-isolation` (validated)
+**Mode:** day
+**Start SHA:** `afeca4d6cf330e698513c3289e0c1ca5e83f4394`
+
+## Mission
+
+Independently validate the current release boundaries that the environment
+can genuinely execute: a fresh release APK, Metro-independent Android
+startup and core routes, reachable system document/share UI, technical
+accessibility traversal where safely executable, and signing/store limits.
+Keep unavailable human, physical-device, iOS, VoiceOver, TalkBack-human,
+and store evidence explicitly unavailable. Repair only a reproduced current
+product defect.
+
+## Guardrails
+
+Preserve SQLite schema/migrations, session/workout identity, scoring,
+progression/currency, gameplay, offline behavior, routing, and the
+no-medical-claims boundary. Use only the dedicated `braintraining-ui35` /
+`emulator-5554` runtime and emulator-local input. Do not edit CI to hide
+external failures, do not touch the Study Maker `emulator-5556`, and do not
+commit secrets, signing material, private traces, APKs, or giant raw dumps.
+
+## Required evidence
+
+Evidence belongs under `docs/redesign/evidence/campaign043/`, including the
+fresh release baseline, system-UI boundary result, physical Android status,
+technical TalkBack status, iOS/VoiceOver status, signing/store boundary,
+human-validation handoff, defect-repair log, and a truthful closure verdict.
+
+## Exit labels
+
+Use exactly one of `CAMPAIGN_043_COMPLETE`,
+`CAMPAIGN_043_PARTIAL_MANUAL_PLATFORM_PENDING`, or
+`CAMPAIGN_043_BLOCKED`. Manual/platform gaps alone are partial, not a reason
+to stop independent later campaigns.
+
+---
+
 # Campaign 042 — Conditional Closure / Defect Isolation
 
 **Status:** VALIDATED — `CAMPAIGN_042_TECHNICAL_CERTIFIED`

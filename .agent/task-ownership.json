@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "042-conditional-closure-defect-isolation",
-  "description": "Campaign 042 conditional closure and defect-isolation ownership record. The orchestrator owns the product audit, native runtime, governance, OpenSpec, evidence, and final convergence; no parallel coder packets are active.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "043-independent-platform-release-validation",
+  "description": "Campaign 043 independent platform and release-boundary validation ownership record. The orchestrator owns the release artifact, native runtime, governance, evidence, external-boundary classification, and final convergence; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",

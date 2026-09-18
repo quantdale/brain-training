@@ -1,11 +1,34 @@
 # Durable Project State
 
-**Last update:** 2026-09-18 — Campaign 042 closed with technical
- certification after defect isolation and Android release revalidation.
+**Last update:** 2026-09-19 — Campaign 043 activated from synchronized
+ main for independent platform and release-boundary validation.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** 043-independent-platform-release-validation
 **Last campaign:** `042-conditional-closure-defect-isolation`
 **Last campaign status:** VALIDATED
+
+## Campaign 043 — Independent Platform & Release-Boundary Validation (ACTIVE)
+
+- **Activation:** safely fast-forwarded from `d7b1cd5` to synchronized
+  `afeca4d6cf330e698513c3289e0c1ca5e83f4394`; the pre-existing worktree was
+  clean and no local or concurrent user changes were overwritten.
+- **Mode:** day. No explicit night resource-mode selection was supplied; the
+  overnight contract is being executed with the repository default mode and
+  one dedicated Android emulator.
+- **Scope:** independently validate the current release APK, Metro-independent
+  startup, system document/share boundaries, technical accessibility/platform
+  limits, and signing/store boundaries. Repair only a reproduced current
+  product defect.
+- **Protected contracts:** SQLite schema/migrations, session/workout identity,
+  scoring, progression/currency, gameplay, offline behavior, routing, and the
+  no-medical-claims boundary.
+- **Runtime ownership:** `braintraining-ui35` / `emulator-5554` is the sole
+  automation target. `emulator-5556` is a Study Maker runtime and is not used.
+- **Evidence root:** `docs/redesign/evidence/campaign043/`.
+- **Starting SHA:** `afeca4d6cf330e698513c3289e0c1ca5e83f4394`.
+- **Next action:** build and inspect a fresh release APK, install it on the
+  dedicated runtime, and record the release-boundary baseline before any
+  bounded repair.
 
 ## Campaign 042 — Conditional Closure / Defect Isolation (TECHNICAL CERTIFIED)
 

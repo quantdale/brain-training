@@ -1,3 +1,43 @@
+# Execution Prompt — Campaign 043: Independent Platform & Release-Boundary Validation
+
+**Status:** ACTIVE
+**Change:** `043-independent-platform-release-validation`
+**Planned-From:** `afeca4d`
+**Start-SHA:** `afeca4d6cf330e698513c3289e0c1ca5e83f4394`
+**Planned-At:** 2026-09-19
+**Target-Branch:** `main`
+**Predecessor:** `042-conditional-closure-defect-isolation`
+
+## Authority
+
+Execute `.agent/CAMPAIGN043_INDEPENDENT_PLATFORM_RELEASE_VALIDATION_PROMPT.md`
+and the Campaigns 043–050 overnight orchestration contract. Current runtime,
+persisted state, executable validators, source, build/package behavior, and
+external evidence outrank historical Campaign 042 documentation.
+
+## Work model
+
+The orchestrator owns the release APK, dedicated Android runtime, system-UI
+observation, accessibility/platform boundary classification, evidence,
+governance, and final convergence. No parallel coder packets are active.
+
+## Guardrails
+
+Use only `braintraining-ui35` / `emulator-5554`; do not touch the attached
+Study Maker `emulator-5556`. Preserve schema, migrations, gameplay,
+session/workout identity, scoring, progression, currency, offline behavior,
+and routing. Never fabricate human, TalkBack-human-quality, physical-device,
+iOS, VoiceOver, signing, store, or system-sheet evidence. Repair only a
+reproduced current defect.
+
+## Exit labels
+
+The truthful Campaign 043 result is one of `CAMPAIGN_043_COMPLETE`,
+`CAMPAIGN_043_PARTIAL_MANUAL_PLATFORM_PENDING`, or
+`CAMPAIGN_043_BLOCKED`.
+
+---
+
 # Execution Prompt — Campaign 042: Conditional Closure / Defect Isolation
 
 **Status:** VALIDATED — `CAMPAIGN_042_TECHNICAL_CERTIFIED`

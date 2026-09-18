@@ -1,0 +1,15 @@
+{
+  "id": "043-independent-platform-release-validation",
+  "status": "ACTIVE",
+  "predecessor": "042-conditional-closure-defect-isolation",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["independent-platform-release-validation"],
+  "activationRule": "Owner directive requires independent Campaign 043 release-boundary validation before continuing through Campaigns 044-050.",
+  "baselineAuditCommit": "afeca4d6cf330e698513c3289e0c1ca5e83f4394",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes Campaign 042's technical certification and rechecks current release behavior without reopening product design or claiming unavailable platform evidence."
+}
