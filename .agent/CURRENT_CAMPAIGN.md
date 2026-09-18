@@ -22,13 +22,26 @@ Use only `braintraining-ui35` / `emulator-5554` and emulator-local input or the
 ARTEMIS runtime lane. Do not touch `emulator-5556`, do not edit game/SDK source
 without a reproduced current defect, and do not claim a lifecycle stage that
 was not observed. Preserve SQLite, session identity, scoring, progression,
-currency, routing, and offline contracts.
+ currency, routing, and offline contracts.
+
+## Current progress
+
+The 42-game registry was traversed through detail, start, first-interactive,
+terminal result, persistence, and return navigation. The final pulled database
+contains 44 sessions across all 42 game IDs, with clean SQLite integrity,
+foreign-key, identity, operation, reward, JSON, numeric-result, and version
+metadata audits. Representative real mechanic states were observed across all
+eight domains, while deterministic QA completion was kept as a separate
+evidence class. Campaign 046's focused persistence/portability run passed 312
+tests in 28 suites with one skipped test. Evidence is under
+`docs/redesign/evidence/campaign046/`.
 
 ## Exit and progression
 
 Write `docs/redesign/evidence/campaign046/`, validate the OpenSpec change,
-update durable state, commit/push a coherent checkpoint, and continue to
-Campaign 047. A failed persistence/idempotency check blocks progression.
+update durable state, commit/push a coherent checkpoint, and then continue to
+Campaign 047. A failed persistence/idempotency check blocks progression; the
+Campaign 046 check passed.
 
 ---
 

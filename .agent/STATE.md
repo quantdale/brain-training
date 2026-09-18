@@ -1,7 +1,7 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 045 completed local SDK57 maintenance
- and Campaign 046 activated for full-catalog repeatability/soak.
+**Last update:** 2026-09-19 — Campaign 046 completed full-catalog
+ repeatability/soak and passed its persistence checkpoint.
 **Canonical branch:** `main`
 **Active campaign:** 046-full-catalog-repeatability-soak
 **Last campaign:** 045-expo-sdk57-patch-alignment
@@ -22,6 +22,17 @@
   must remain distinct from mechanic correctness.
 - **Runtime ownership:** continue using only `braintraining-ui35` /
   `emulator-5554` and the ARTEMIS lane. No parallel coder packets are active.
+- **Result:** 42/42 registry IDs reached the recorded lifecycle stages. The
+  final database contains 44 sessions across 42 distinct games, 44 ledger
+  rows, 87 rating-history rows, schema v12, integrity `ok`, zero foreign-key
+  violations, and empty duplicate/orphan/version-mismatch audits. Real
+  mechanic canaries cover all eight domains; deterministic QA completion is
+  explicitly separate.
+- **Focused validation:** the Campaign 047 persistence/portability command
+  set passed 28 suites / 312 tests with one skipped test. The Data Management
+  export loaded successfully; merge preview was valid with 0 sessions and 0
+  ledger additions, and replace preview was valid but not applied.
+- **Evidence:** `docs/redesign/evidence/campaign046/`.
 
 ## Campaign 045 — Expo SDK57 Patch Alignment (VALIDATED)
 

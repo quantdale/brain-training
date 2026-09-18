@@ -5,6 +5,33 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 046 full catalog repeatability and soak — 2026-09-19 (COMPLETE)
+
+- Scope: **PASS** — the generated 42-game registry was covered through
+  detail/start/first-interactive/result/persistence/return evidence. The final
+  pull retained 44 sessions across all 42 IDs; the extra two rows are
+  intentional `memory` repeat coverage. Deterministic QA completion and real
+  mechanic interaction were recorded as separate evidence classes across all
+  eight domains.
+- SQLite: **PASS** — schema v12, `PRAGMA integrity_check=ok`, zero foreign-key
+  violations, no duplicate session IDs/rating natural keys/currency operation
+  IDs, no orphan rows, no stale game/generator metadata, and valid normalized
+  results/reward invariants. Counts: 44 sessions, 44 ledger rows, 87 history
+  rows, 8 domain ratings, 1 profile.
+- Portability: **PASS** — focused migration, backup/restore, corruption,
+  idempotency, repository, session, workout, settings, and persistence suites
+  passed 28 suites / 312 tests with one skipped test. Device export/load and
+  valid merge/replace previews completed; neither import mode was applied.
+- Runtime: **PASS WITH DEBUG BOUNDARY** — release cold-start sample remained
+  resumed and rendered Home with no filtered app fatal/ANR/React/SQLite/lock/
+  OOM markers. Debug Metro cold starts were slower than the bounded probe and
+  showed splash/black frames before bootstrap; this is recorded as a tooling
+  boundary, not a reproduced release defect.
+- Evidence: **PASS** — packet is under
+  `docs/redesign/evidence/campaign046/`; raw runtime artifacts remain under
+  `D:\Temp\campaign046-runtime`.
+- Terminal label: `CAMPAIGN_046_COMPLETE`.
+
 ### Campaign 045 Expo SDK57 patch alignment — 2026-09-19 (COMPLETE)
 
 - Scope: **PASS** — supported Expo tooling aligned only `expo`, `expo-asset`,
