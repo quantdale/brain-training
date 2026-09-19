@@ -463,6 +463,7 @@ export default function RewardsScreen() {
           <Entrance index={1}>
             <Card
               variant="hero"
+              shape="poster"
               tone={data.inbox.length > 0 ? "successSoft" : null}
               testID="rewards-hero"
             >

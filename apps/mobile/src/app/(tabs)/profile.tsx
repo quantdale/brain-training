@@ -573,7 +573,7 @@ export default function ProfileScreen() {
       {/* Identity hero: avatar row plus a quiet level/XP summary; streak and
           coin context belongs with the motivation controls below. */}
       <Entrance index={1}>
-        <Card variant="hero" testID="profile-identity" padding="lg">
+        <Card variant="hero" shape="poster" testID="profile-identity" padding="lg">
           <View style={styles.heroRow}>
             <Avatar
               size="lg"

@@ -18,7 +18,7 @@ import { isDevBuild, testId } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 import { markGameFirstInteraction } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
-import { getGameIdentity, IdentityMark } from '@/components/discovery/game-identity';
+import { GameWorldArt, getGameIdentity, IdentityMark } from '@/components/discovery/game-identity';
 import {
   DifficultySelector,
   GameButton,
@@ -189,7 +189,7 @@ export function GameHost({
     workoutLaunch?.gameId === gameId ? workoutLaunch.legIndex + 1 : null;
 
   return (
-    <View style={styles.screen} testID={testId(gameId, 'screen')}>
+    <View style={[styles.screen, { backgroundColor: theme.background }]} testID={testId(gameId, 'screen')}>
       <View
         style={styles.content}
         importantForAccessibility={paused ? 'no-hide-descendants' : 'auto'}
@@ -200,12 +200,15 @@ export function GameHost({
           // action remains primary; domain identity lives in the motif cue.
           <Card
             variant="hero"
+            shape="soft"
             padding="lg"
             testID={testId(gameId, 'intro')}
             style={styles.introCard}>
             {/* The intro card IS the game header: the route no longer renders a
                 second title/category/description block above it, and the
                 established testIDs move here with the content. */}
+            {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'world')} /> : null}
+
             {categoryLabel !== undefined ? (
               <View style={styles.introEyebrow}>
                 {identity ? (
@@ -326,7 +329,11 @@ export function GameHost({
 
             {isDevBuild() && qaPanelPosition === 'above' ? qaPanel : null}
 
-            {children}
+            <View
+              style={[styles.mechanicStage, { backgroundColor: theme.surfaceSunken, borderColor: theme.border }]}
+              testID={testId(gameId, 'stage')}>
+              {children}
+            </View>
 
             {isDevBuild() && qaPanelPosition === 'below' ? qaPanel : null}
           </View>
@@ -371,6 +378,12 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.three,
+  },
+  mechanicStage: {
+    gap: Spacing.three,
+    padding: Spacing.twoHalf,
+    borderWidth: 1,
+    borderRadius: Spacing.two,
   },
   introCard: {
     gap: Spacing.twoHalf,

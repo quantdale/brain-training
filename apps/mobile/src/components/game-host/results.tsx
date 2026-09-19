@@ -22,6 +22,7 @@ import { liveAudioHaptics, testId } from '@/sdk';
 import { trackSessionPersist } from '@/sdk/perf';
 import type { PerfMeasure } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
+import { GameWorldArt } from '@/components/discovery/game-identity';
 import { FeedbackCard } from '@/components/shell';
 import { Card, Confetti, Spark } from '@/components/ui';
 import { GameButton } from '@/components/game-ui';
@@ -105,6 +106,7 @@ export function GameResults({
   children,
 }: GameResultsProps) {
   const theme = useTheme();
+  const definition = getGameDefinition(gameId);
   // Dev-only perf seam (campaign 010, debt D4): bracket the session-completion
   // DB write as observed through the persistence lifecycle — from the first
   // render showing 'started' to the terminal 'succeeded'/'failed', or back to
@@ -266,12 +268,18 @@ export function GameResults({
 
   return (
     <View style={styles.section} testID={testId(gameId, 'results')}>
-      {/* The result headline and player-owned facts lead. Reward feedback is
-          deliberately below them so the player understands the outcome before
-          the progression moment arrives. */}
-      <ThemedText type="title" testID={testId(gameId, 'result-headline')}>
-        {title}
-      </ThemedText>
+      {/* Completion is an object first, then a fact record. Reward feedback is
+          deliberately below the player-owned outcome so persistence remains
+          authoritative while the screen still feels like a finish line. */}
+      <View style={styles.resultHero}>
+        {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'result-world')} /> : null}
+        <View style={styles.resultTitleRow}>
+          <Spark size={24} color={theme.accent} />
+          <ThemedText type="title" testID={testId(gameId, 'result-headline')}>
+            {title}
+          </ThemedText>
+        </View>
+      </View>
       {badge}
       <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
         {children}
@@ -398,6 +406,14 @@ export function GameResults({
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  resultHero: {
+    gap: Spacing.two,
+  },
+  resultTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   facts: {
     gap: Spacing.two,

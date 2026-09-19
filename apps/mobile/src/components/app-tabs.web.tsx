@@ -22,7 +22,7 @@ import { ThemedView } from './themed-view';
 
 import { TAB_DEFINITIONS } from '@/constants/tabs';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function AppTabs() {
@@ -68,8 +68,8 @@ export function TabButton({
       accessibilityState={{ selected: isFocused }}
       style={({ pressed }) => [styles.tabButton, pressed && styles.pressed]}>
       <ThemedView
-        type={isFocused ? 'accent' : 'backgroundElement'}
-        style={styles.tabButtonView}>
+        type={isFocused ? 'accent' : 'background'}
+        style={[styles.tabButtonView, !isFocused && styles.inactiveTab]}>
         <SymbolView
           tintColor={isFocused ? theme.accentOn : theme.textSecondary}
           name={{ ios: sf, web: symbol }}
@@ -87,11 +87,12 @@ export function TabButton({
 }
 
 export function CustomTabList(props: TabListProps) {
+  const theme = useTheme();
   return (
     <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
+      <ThemedView type="backgroundElement" style={[styles.innerContainer, { borderColor: theme.borderStrong }]}>
         <ThemedText type="smallBold" style={styles.brandText}>
-          Brain Training
+          Signal Arcade
         </ThemedText>
 
         {props.children}
@@ -113,7 +114,8 @@ const styles = StyleSheet.create({
   innerContainer: {
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,
-    borderRadius: Spacing.five,
+    borderRadius: Radii.medium,
+    borderWidth: 2,
     flexDirection: 'row',
     alignItems: 'center',
     flexGrow: 1,
@@ -135,10 +137,14 @@ const styles = StyleSheet.create({
   tabButtonView: {
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.twoHalf,
-    borderRadius: 999,
+    borderRadius: Radii.medium,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.one,
+  },
+  inactiveTab: {
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   tabLabel: {
     lineHeight: 18,

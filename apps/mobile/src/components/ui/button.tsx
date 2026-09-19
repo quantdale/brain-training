@@ -34,11 +34,10 @@ import {
 } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Fonts, MinTouchTarget, Spacing, Typography, type ColorTheme, type ThemeColor, Depth } from '@/theme/tokens';
+import { Fonts, MinTouchTarget, Radii, Spacing, Typography, type ColorTheme, type ThemeColor, Depth } from '@/theme/tokens';
 import { ThemedText } from '@/components/themed-text';
 import { Tappable } from './tappable';
 import { PRESS_SCALE } from './motion';
-import { RADIUS_CAP } from './radius';
 
 /** Visual variants of {@link Button}. */
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
@@ -160,7 +159,7 @@ export const Button = forwardRef<React.ComponentRef<typeof Pressable>, ButtonCom
           minHeight: HEIGHT[size],
           backgroundColor: colors.background,
           borderColor: colors.border,
-          borderRadius: RADIUS_CAP,
+          borderRadius: Radii.medium,
         },
         variant === 'ghost' && styles.outlined,
         hasLip && styles.lipInner,
@@ -221,7 +220,7 @@ const styles = StyleSheet.create({
   // Physical key: the wrapper's own translucent floor shows as a 4 dp shadow
   // edge under the raised face. Same shading language as the Spark node.
   lipOuter: {
-    borderRadius: RADIUS_CAP,
+    borderRadius: Radii.medium,
     backgroundColor: Depth.lip,
   },
   lipInner: {

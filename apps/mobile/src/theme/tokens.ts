@@ -5,11 +5,11 @@
  * comes from this file. Screens and components must not hardcode magic colours
  * or sizes; add a token here instead of inventing a one-off value.
  *
- * Design language v3 (campaign 026) — "Neon Arcade":
- *   warm-paper light theme and deep-plum ink dark theme, vermillion primary,
- *   volt rewards and violet progression, eight vivid domain identities, chunky
- *   rounded geometry, tactile buttons with a physical lip, and heavier display
- *   type. Clarity stays first; the arcade energy is the identity.
+ * Design language v4 (campaign 051) — "Signal Arcade":
+ *   ink navy + warm paper, signal coral, electric cyan, voltage yellow and
+ *   mint, with poster/block geometry and a tactile console-key action language.
+ *   The palette is expressive where the player makes a decision and quiet
+ *   where the product reports evidence.
  *
  * Colour contract: every family exposes five slots so callers pick the right
  * one instead of guessing contrast:
@@ -74,26 +74,26 @@ export type DomainName =
  */
 export const Families = {
   light: {
-    accent: { base: '#D6402A', text: '#C43A22', soft: '#FFE7E1', softText: '#A62B18', on: '#FFFFFF' },
-    success: { base: '#157347', text: '#157347', soft: '#DDF6E4', softText: '#0F5132', on: '#FFFFFF' },
-    warning: { base: '#B45309', text: '#9A4A08', soft: '#FEF0D3', softText: '#7A3B06', on: '#FFFFFF' },
-    danger: { base: '#C92A20', text: '#B42318', soft: '#FEE4E2', softText: '#912018', on: '#FFFFFF' },
-    info: { base: '#1E63D0', text: '#175CD3', soft: '#DCEBFD', softText: '#12469E', on: '#FFFFFF' },
-    streak: { base: '#C2410C', text: '#B03A0A', soft: '#FFE8D7', softText: '#8F3208', on: '#FFFFFF' },
-    xp: { base: '#7C3AED', text: '#6D28D9', soft: '#EDE9FE', softText: '#5B21B6', on: '#FFFFFF' },
-    currency: { base: '#A16207', text: '#8A5406', soft: '#F7EFDD', softText: '#6F4405', on: '#FFFFFF' },
+    accent: { base: '#C74632', text: '#B23828', soft: '#FFE1D8', softText: '#8D2B20', on: '#FFFFFF' },
+    success: { base: '#176B46', text: '#176B46', soft: '#DDF4E8', softText: '#0F5135', on: '#FFFFFF' },
+    warning: { base: '#8C5A00', text: '#795000', soft: '#FFF0C8', softText: '#604000', on: '#FFFFFF' },
+    danger: { base: '#B3261E', text: '#A3211B', soft: '#FDE3E1', softText: '#7A1B17', on: '#FFFFFF' },
+    info: { base: '#0D628C', text: '#0B587D', soft: '#D9F1FA', softText: '#084764', on: '#FFFFFF' },
+    streak: { base: '#A94318', text: '#963A14', soft: '#FFE3D4', softText: '#72300F', on: '#FFFFFF' },
+    xp: { base: '#633BAF', text: '#58339D', soft: '#EDE4FA', softText: '#482A7E', on: '#FFFFFF' },
+    currency: { base: '#705900', text: '#624D00', soft: '#F8EEC7', softText: '#4E3D00', on: '#FFFFFF' },
   },
   dark: {
-    // Dark-mode fills are luminous with dark text on them (`on`), which is what
-    // keeps CTAs readable on the ink canvas; see the contrast test.
-    accent: { base: '#FF8A73', text: '#FF9C88', soft: '#3A1F22', softText: '#FFB4A3', on: '#2A0F0A' },
-    success: { base: '#4ADE80', text: '#6EE7A0', soft: '#16301F', softText: '#86EFAC', on: '#062B14' },
-    warning: { base: '#FBBF24', text: '#FCD34D', soft: '#3A2E12', softText: '#FDE68A', on: '#3A2500' },
-    danger: { base: '#FF7A7A', text: '#FF9B9B', soft: '#3A1B1F', softText: '#FFB4B4', on: '#330B0B' },
-    info: { base: '#6AA9FF', text: '#8FC0FF', soft: '#17263F', softText: '#A9CEFF', on: '#0A1B33' },
-    streak: { base: '#FF9A4D', text: '#FFB067', soft: '#3A2413', softText: '#FFC48F', on: '#331500' },
-    xp: { base: '#B79CFF', text: '#C4ADFF', soft: '#2A2145', softText: '#D6C7FF', on: '#1C1033' },
-    currency: { base: '#5EEAD4', text: '#7DF0DE', soft: '#123430', softText: '#A0F5E8', on: '#042A24' },
+    // Dark-mode fills are luminous with dark ink on them (`on`), while the
+    // canvas is a blue-black instrument surface rather than pure black.
+    accent: { base: '#FF806D', text: '#FF9D8C', soft: '#3A2428', softText: '#FFC0B2', on: '#25100D' },
+    success: { base: '#5DD69A', text: '#7BE6AF', soft: '#17382A', softText: '#9AF1C2', on: '#062719' },
+    warning: { base: '#FFD166', text: '#FFDB82', soft: '#3C321A', softText: '#FFE6A3', on: '#332400' },
+    danger: { base: '#FF8179', text: '#FFAAA4', soft: '#3C2025', softText: '#FFC0BB', on: '#340B0A' },
+    info: { base: '#69C9F0', text: '#8ADAF7', soft: '#143545', softText: '#A9E6FB', on: '#08212D' },
+    streak: { base: '#FF9D5C', text: '#FFB77E', soft: '#3B281A', softText: '#FFD0A5', on: '#321506' },
+    xp: { base: '#B99AFF', text: '#CBB3FF', soft: '#2A2248', softText: '#DFD0FF', on: '#1A1030' },
+    currency: { base: '#62DEC9', text: '#83EBDD', soft: '#143C38', softText: '#A7F4E8', on: '#062B26' },
   },
 } as const satisfies { light: Record<SemanticName, ColorFamily>; dark: Record<SemanticName, ColorFamily> };
 
@@ -103,24 +103,24 @@ export const Families = {
  */
 export const DomainColors = {
   light: {
-    memory: { base: '#BE185D', text: '#BE185D', soft: '#FCE7F3', softText: '#9D174D', on: '#FFFFFF' },
-    attention: { base: '#C2410C', text: '#B03A0A', soft: '#FFE8D7', softText: '#8F3208', on: '#FFFFFF' },
-    speed: { base: '#A16207', text: '#854D0E', soft: '#FEF3C7', softText: '#713F12', on: '#FFFFFF' },
-    math: { base: '#1D4ED8', text: '#1D4ED8', soft: '#E4EBFF', softText: '#1E40AF', on: '#FFFFFF' },
-    language: { base: '#0369A1', text: '#0369A1', soft: '#E0F2FE', softText: '#075985', on: '#FFFFFF' },
-    logic: { base: '#0F766E', text: '#0F766E', soft: '#D9F2EF', softText: '#115E59', on: '#FFFFFF' },
-    flexibility: { base: '#7C3AED', text: '#6D28D9', soft: '#EDE9FE', softText: '#5B21B6', on: '#FFFFFF' },
-    spatial: { base: '#15803D', text: '#15803D', soft: '#DCFCE7', softText: '#166534', on: '#FFFFFF' },
+    memory: { base: '#A52A5E', text: '#982554', soft: '#F8DFEA', softText: '#762046', on: '#FFFFFF' },
+    attention: { base: '#B34A16', text: '#9F3F12', soft: '#FFE5D5', softText: '#83330D', on: '#FFFFFF' },
+    speed: { base: '#8A6400', text: '#795700', soft: '#FFF0BE', softText: '#654800', on: '#FFFFFF' },
+    math: { base: '#1B55B7', text: '#194DA6', soft: '#DEE9FF', softText: '#153D83', on: '#FFFFFF' },
+    language: { base: '#086A86', text: '#075F79', soft: '#D9F3FA', softText: '#075166', on: '#FFFFFF' },
+    logic: { base: '#0C6E66', text: '#0B625B', soft: '#D8F3EE', softText: '#07534E', on: '#FFFFFF' },
+    flexibility: { base: '#6B36A5', text: '#603092', soft: '#EDE2FA', softText: '#512276', on: '#FFFFFF' },
+    spatial: { base: '#0D743B', text: '#0C6936', soft: '#DDF5E7', softText: '#0C5A31', on: '#FFFFFF' },
   },
   dark: {
-    memory: { base: '#F472B6', text: '#F9A8D4', soft: '#3A1D2E', softText: '#FBCFE8', on: '#3A0A22' },
-    attention: { base: '#FB923C', text: '#FDBA74', soft: '#3A2413', softText: '#FED7AA', on: '#331500' },
-    speed: { base: '#FACC15', text: '#FDE047', soft: '#3A3210', softText: '#FEF08A', on: '#3A2A00' },
-    math: { base: '#60A5FA', text: '#93C5FD', soft: '#182740', softText: '#BFDBFE', on: '#0A1B33' },
-    language: { base: '#38BDF8', text: '#7DD3FC', soft: '#122A3D', softText: '#BAE6FD', on: '#04263A' },
-    logic: { base: '#2DD4BF', text: '#5EEAD4', soft: '#11302C', softText: '#99F6E4', on: '#042A24' },
-    flexibility: { base: '#A78BFA', text: '#C4B5FD', soft: '#271F44', softText: '#DDD6FE', on: '#1C1033' },
-    spatial: { base: '#4ADE80', text: '#86EFAC', soft: '#16301F', softText: '#BBF7D0', on: '#052B12' },
+    memory: { base: '#F28BBC', text: '#FFB4D2', soft: '#422337', softText: '#FFD0E1', on: '#3A0D25' },
+    attention: { base: '#FFAB70', text: '#FFC08E', soft: '#43291C', softText: '#FFD8B7', on: '#351506' },
+    speed: { base: '#FFD75E', text: '#FFE28A', soft: '#423715', softText: '#FFEBAA', on: '#342800' },
+    math: { base: '#78B5FF', text: '#A0CBFF', soft: '#1B304E', softText: '#C7E0FF', on: '#091D35' },
+    language: { base: '#5AD3F3', text: '#8DE2F9', soft: '#153746', softText: '#BDEFFC', on: '#062B39' },
+    logic: { base: '#55DDC6', text: '#83E8D7', soft: '#143A36', softText: '#B1F4E8', on: '#052B26' },
+    flexibility: { base: '#C3A9FF', text: '#D4C0FF', soft: '#30264E', softText: '#E3D7FF', on: '#211337' },
+    spatial: { base: '#6BE39A', text: '#91EEB3', soft: '#183A29', softText: '#B6F5CA', on: '#072B17' },
   },
 } as const satisfies { light: Record<DomainName, ColorFamily>; dark: Record<DomainName, ColorFamily> };
 
@@ -174,38 +174,38 @@ interface NeutralTheme {
 
 const NEUTRALS = {
   light: {
-    text: '#1A1B2E',
-    textSecondary: '#5B5E77',
-    textMuted: '#6E7189',
-    background: '#FFF8EF',
-    backgroundElement: '#F6EEE2',
-    backgroundSelected: '#F3E4D3',
-    surface: '#FFFFFF',
-    surfaceRaised: '#FFFFFF',
-    surfaceSunken: '#F6EEE2',
-    border: '#EADFD0',
-    borderStrong: '#6E6A5E',
-    accentStrong: '#B23522',
-    scrim: 'rgba(26, 18, 12, 0.55)',
-    overlaySurface: 'rgba(20, 22, 34, 0.92)',
+    text: '#10232D',
+    textSecondary: '#4C5D63',
+    textMuted: '#5B6B70',
+    background: '#F4F1E8',
+    backgroundElement: '#E8ECEA',
+    backgroundSelected: '#DCE7E5',
+    surface: '#FFFDF7',
+    surfaceRaised: '#FFFDF7',
+    surfaceSunken: '#E8ECEA',
+    border: '#C9D6D3',
+    borderStrong: '#4A6267',
+    accentStrong: '#A63829',
+    scrim: 'rgba(10, 22, 30, 0.58)',
+    overlaySurface: 'rgba(13, 27, 36, 0.94)',
     overlayText: '#FFFFFF',
     overlayTextMuted: '#D9DCE8',
   },
   dark: {
     text: '#F6F1E7',
-    textSecondary: '#B3AEC6',
-    textMuted: '#9A94AF',
-    background: '#14102A',
-    backgroundElement: '#100C22',
-    backgroundSelected: '#2A2447',
-    surface: '#1E1838',
-    surfaceRaised: '#251E44',
-    surfaceSunken: '#110D24',
-    border: '#322A52',
-    borderStrong: '#7A7396',
-    accentStrong: '#FF9C88',
-    scrim: 'rgba(6, 4, 14, 0.68)',
-    overlaySurface: 'rgba(20, 22, 34, 0.92)',
+    textSecondary: '#B9C7C8',
+    textMuted: '#94A8AB',
+    background: '#0E1922',
+    backgroundElement: '#0A1219',
+    backgroundSelected: '#213742',
+    surface: '#152733',
+    surfaceRaised: '#1D323E',
+    surfaceSunken: '#0A141C',
+    border: '#2C4752',
+    borderStrong: '#86A4A9',
+    accentStrong: '#FF9D8C',
+    scrim: 'rgba(4, 12, 18, 0.72)',
+    overlaySurface: 'rgba(9, 20, 28, 0.95)',
     overlayText: '#FFFFFF',
     overlayTextMuted: '#D9DCE8',
   },
@@ -270,6 +270,35 @@ export const Colors: { readonly light: ColorTheme; readonly dark: ColorTheme } =
     ...flattenDomains(DomainColors.dark),
   } as ColorTheme,
 };
+
+/**
+ * Non-semantic art pigments used by the code-native Signal Arcade illustrations.
+ * UI copy and controls still use `Colors`; these values are deliberately
+ * stable so an eight-domain world keeps its recognizable poster ink in both
+ * themes without leaking arbitrary hex values into screens.
+ */
+export const ArcadePalette = {
+  light: {
+    ink: '#10232D',
+    paper: '#F4F1E8',
+    paperBright: '#FFFDF7',
+    coral: '#F0644F',
+    cyan: '#1CB8D0',
+    yellow: '#F3C744',
+    mint: '#4EBE9E',
+    violet: '#8064C8',
+  },
+  dark: {
+    ink: '#08131A',
+    paper: '#F6F1E7',
+    paperBright: '#E4F0ED',
+    coral: '#FF806D',
+    cyan: '#55D4E8',
+    yellow: '#FFD45A',
+    mint: '#67D4B1',
+    violet: '#B59AFF',
+  },
+} as const;
 
 /** Semantic colour slot usable by themed components (`ThemedView`, `ThemedText`). */
 export type ThemeColor = keyof ColorTheme;
@@ -345,11 +374,11 @@ export const Spacing = {
 
 /** Corner radii scale. */
 export const Radii = {
-  extraSmall: 8,
-  small: 10,
-  medium: 16,
-  large: 22,
-  extraLarge: 30,
+  extraSmall: 4,
+  small: 8,
+  medium: 12,
+  large: 16,
+  extraLarge: 22,
   pill: 999,
 } as const;
 
@@ -385,7 +414,7 @@ export const Typography: Record<
   TypographyToken
 > = {
   /** Uppercase section eyebrow above a title. */
-  eyebrow: { size: 11, lineHeight: 14, weight: '800', tracking: 1 },
+  eyebrow: { size: 11, lineHeight: 14, weight: '800', tracking: 1.4 },
   /** Small labels, captions, metadata. */
   caption: { size: 12, lineHeight: 16, weight: '500' },
   /** Form/detail labels that pair with a value. */
@@ -397,11 +426,11 @@ export const Typography: Record<
   /** Emphasis within body copy. */
   bodyLarge: { size: 17, lineHeight: 24, weight: '600' },
   /** Section headers. */
-  headline: { size: 24, lineHeight: 30, weight: '800', tracking: -0.3 },
+  headline: { size: 24, lineHeight: 30, weight: '800', tracking: -0.4 },
   /** Screen titles. */
-  title: { size: 30, lineHeight: 36, weight: '800', tracking: -0.6 },
+  title: { size: 32, lineHeight: 37, weight: '900', tracking: -0.8 },
   /** Hero/dashboard display. */
-  display: { size: 38, lineHeight: 44, weight: '900', tracking: -1 },
+  display: { size: 42, lineHeight: 46, weight: '900', tracking: -1.2 },
   /** Inline metric (rows, chips). */
   numeral: { size: 20, lineHeight: 24, weight: '800', tabular: true },
   /** Card-level metric. */
@@ -442,14 +471,11 @@ export const Elevation: Record<'none' | 'flat' | 'card' | 'raised' | 'hero' | 'o
   /** Recessed/grouped content that must not compete. */
   flat: { boxShadow: 'none', elevation: 0 },
   /** Default card lift above the page background. */
-  card: {
-    boxShadow: '0 1px 2px rgba(64, 38, 12, 0.05), 0 6px 18px rgba(64, 38, 12, 0.07)',
-    elevation: 3,
-  },
+  card: { boxShadow: 'none', elevation: 0 },
   /** Raised surfaces: reward/completion cards and primary CTAs. */
-  raised: { boxShadow: '0 3px 0 rgba(64, 38, 12, 0.10), 0 8px 24px rgba(64, 38, 12, 0.13)', elevation: 6 },
+  raised: { boxShadow: '0 3px 0 rgba(16, 35, 45, 0.14), 0 8px 20px rgba(16, 35, 45, 0.10)', elevation: 5 },
   /** The hero surface of a screen. */
-  hero: { boxShadow: '0 4px 0 rgba(64, 38, 12, 0.12), 0 16px 40px rgba(64, 38, 12, 0.18)', elevation: 10 },
+  hero: { boxShadow: '0 4px 0 rgba(16, 35, 45, 0.16), 0 16px 36px rgba(16, 35, 45, 0.16)', elevation: 8 },
   /** Overlays/modals above everything. */
   overlay: { boxShadow: '0 24px 56px rgba(26, 12, 4, 0.34)', elevation: 16 },
 };

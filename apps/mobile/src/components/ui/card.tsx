@@ -2,12 +2,10 @@
  * `Card` — the app's single surface primitive.
  *
  * The campaign-024 recon found every screen stacking identical white cards, so
- * hierarchy was flat everywhere. Cards now declare their role, which is what
- * makes a screen readable at a glance:
- *   - `plain`    grouped content (default)
- *   - `outlined` grouped content that needs a boundary but no lift
- *   - `raised`   the one elevated surface of a region
- *   - `hero`     the screen's hero surface
+ * hierarchy was flat everywhere. Campaign 051 adds a second axis: surfaces
+ * declare a shape language as well as a role. A poster card can be graphic and
+ * flat while an analytics group stays quiet; no screen has to hand-roll the
+ * radius/elevation/border combination.
  *
  * `tone` paints a family's soft fill (success/warning/danger/xp/streak/domain)
  * for state, so a callout never invents its own colour.
@@ -25,6 +23,9 @@ import type { FeedbackEvent } from '@/sdk';
 /** Visual role of a card. */
 export type CardVariant = 'plain' | 'outlined' | 'raised' | 'hero';
 
+/** Geometry language for the surface. `poster` is reserved for game worlds. */
+export type CardShape = 'block' | 'soft' | 'poster';
+
 /** Internal padding steps. */
 export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 
@@ -36,6 +37,8 @@ export type CardPadding = 'none' | 'sm' | 'md' | 'lg';
 export interface CardProps extends Omit<ViewProps, 'style' | 'children' | 'hitSlop'> {
   children: ReactNode;
   variant?: CardVariant;
+  /** Signal Arcade geometry; defaults to soft for heroes and block elsewhere. */
+  shape?: CardShape;
   /** Family soft-fill token (e.g. `successSoft`, `xpSoft`) used as background. */
   tone?: ThemeColor | null;
   padding?: CardPadding;
@@ -69,6 +72,7 @@ const ELEVATION_BY_VARIANT: Record<CardVariant, ElevationName> = {
 export function Card({
   children,
   variant = 'plain',
+  shape = variant === 'hero' ? 'soft' : 'block',
   tone = null,
   padding = 'md',
   onPress,
@@ -82,10 +86,17 @@ export function Card({
   const theme = useTheme();
   const surface: ViewStyle = {
     backgroundColor: tone ? theme[tone] : variant === 'hero' ? theme.surfaceRaised : theme.surface,
-    borderRadius: variant === 'hero' ? Radii.extraLarge : Radii.large,
+    borderRadius:
+      shape === 'poster'
+        ? Radii.small
+        : shape === 'soft' || variant === 'hero'
+          ? Radii.extraLarge
+          : Radii.medium,
     padding: PADDING[padding],
     ...Elevation[ELEVATION_BY_VARIANT[variant]],
-    ...(variant === 'outlined' ? { borderWidth: HAIRLINE, borderColor: theme.border } : null),
+    ...(variant === 'outlined' || shape === 'poster'
+      ? { borderWidth: shape === 'poster' ? 2 : HAIRLINE, borderColor: theme.border }
+      : null),
   };
 
   if (onPress) {

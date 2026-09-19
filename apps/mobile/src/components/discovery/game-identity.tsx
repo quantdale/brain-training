@@ -7,10 +7,11 @@
  * scoring, and session records remain owned by the SDK and game modules.
  */
 
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import type { GameDefinition } from '@/sdk';
-import { Radii, Spacing } from '@/theme/tokens';
+import { ArcadePalette, Radii, Spacing, type ColorTheme } from '@/theme/tokens';
+import { useTheme } from '@/hooks/use-theme';
 
 /** The eight mechanic families used by the catalog-wide identity system. */
 export type GameIdentityFamily =
@@ -564,6 +565,244 @@ export function IdentityMark({ family, size = 36, color = '#1D4ED8', testID }: I
   );
 }
 
+/** Size presets for the code-native world illustration. */
+export type GameWorldArtSize = 'card' | 'hero' | 'stage';
+
+export interface GameWorldArtProps {
+  /** Game metadata only; no game logic or registry mutation is involved. */
+  game: GameIdentitySource;
+  size?: GameWorldArtSize;
+  testID?: string;
+}
+
+const DOMAIN_BY_CATEGORY: Readonly<Record<string, keyof typeof ArcadePalette.light>> = {
+  Memory: 'coral',
+  Attention: 'cyan',
+  Speed: 'yellow',
+  Math: 'violet',
+  Language: 'cyan',
+  'Logic & Problem Solving': 'mint',
+  Flexibility: 'coral',
+  Spatial: 'yellow',
+};
+
+const DOMAIN_THEME_KEYS: Readonly<Record<string, string>> = {
+  Memory: 'memory',
+  Attention: 'attention',
+  Speed: 'speed',
+  Math: 'math',
+  Language: 'language',
+  'Logic & Problem Solving': 'logic',
+  Flexibility: 'flexibility',
+  Spatial: 'spatial',
+};
+
+function variantFor(id: string): number {
+  return [...id].reduce((sum, character) => sum + character.charCodeAt(0), 0) % 3;
+}
+
+function worldColors(theme: ColorTheme, category: string) {
+  const key = DOMAIN_THEME_KEYS[category] ?? 'accent';
+  const staticKey = DOMAIN_BY_CATEGORY[category] ?? 'coral';
+  const record = theme as unknown as Record<string, string>;
+  return {
+    base: record[key] ?? theme.accent,
+    soft: record[`${key}Soft`] ?? theme.accentSoft,
+    on: record[`${key}On`] ?? theme.accentOn,
+    ink: theme.text,
+    secondary: ArcadePalette.light[staticKey],
+  };
+}
+
+/** Small geometric tile used by the world stages. */
+function WorldTile({
+  color,
+  size,
+  style,
+}: {
+  color: string;
+  size: number;
+  style?: ViewStyle;
+}) {
+  return <View style={[styles.worldTile, { width: size, height: size, backgroundColor: color }, style]} />;
+}
+
+function WorldLines({ color, vertical = false }: { color: string; vertical?: boolean }) {
+  return (
+    <View style={styles.worldLines} pointerEvents="none">
+      {[0, 1, 2, 3].map((index) => (
+        <View
+          key={index}
+          style={[
+            vertical ? styles.worldLineVertical : styles.worldLine,
+            { [vertical ? 'left' : 'top']: `${(index + 1) * 20}%`, backgroundColor: color },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function WorldMotif({
+  family,
+  colors,
+  variant,
+  scale,
+}: {
+  family: GameIdentityFamily;
+  colors: ReturnType<typeof worldColors>;
+  variant: number;
+  scale: number;
+}) {
+  const tile = Math.max(12, Math.round(20 * scale));
+  const accent = variant === 1 ? colors.secondary : colors.base;
+  switch (family) {
+    case 'attention-visual-search':
+      return (
+        <>
+          <WorldLines color={colors.base} />
+          <View style={[styles.lens, { width: tile * 2.6, height: tile * 2.6, borderColor: accent }]} />
+          <View style={[styles.lensHandle, { backgroundColor: accent, width: tile * 1.2, transform: [{ rotate: '45deg' }] }]} />
+          <WorldTile color={colors.secondary} size={tile} style={styles.attentionTileOne} />
+          <WorldTile color={colors.base} size={tile} style={styles.attentionTileTwo} />
+          <WorldTile color={colors.on} size={tile * 0.72} style={styles.attentionTileThree} />
+        </>
+      );
+    case 'memory-recall':
+      return (
+        <>
+          <WorldLines color={colors.base} vertical />
+          {[0, 1, 2, 3].map((index) => (
+            <WorldTile
+              key={index}
+              color={index === (variant + 1) % 4 ? accent : colors.on}
+              size={tile}
+              style={{ left: `${18 + index * 18}%`, top: `${30 + (index % 2) * 18}%` }}
+            />
+          ))}
+          <View style={[styles.memoryBar, { backgroundColor: accent, width: `${38 + variant * 12}%` }]} />
+        </>
+      );
+    case 'speed-reaction':
+      return (
+        <>
+          <View style={styles.speedBars}>
+            {[0.28, 0.48, 0.78, 0.4, 0.62].map((height, index) => (
+              <View
+                key={index}
+                style={[styles.speedBar, { height: `${height * 100}%`, backgroundColor: index === 2 ? accent : colors.base }]}
+              />
+            ))}
+          </View>
+          <View style={[styles.targetOuter, { borderColor: colors.on }]}>
+            <View style={[styles.targetInner, { backgroundColor: accent }]} />
+          </View>
+        </>
+      );
+    case 'math-structured-input':
+      return (
+        <>
+          <View style={styles.mathEquation}>
+            <View style={[styles.mathBlock, { backgroundColor: colors.on }]} />
+            <View style={[styles.mathOperator, { backgroundColor: accent }]} />
+            <View style={[styles.mathBlock, { backgroundColor: colors.base }]} />
+            <View style={[styles.mathEquals, { backgroundColor: colors.ink }]} />
+            <View style={[styles.mathBlock, { backgroundColor: colors.secondary }]} />
+          </View>
+          <View style={styles.mathKeys}>
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <View key={index} style={[styles.mathKey, { backgroundColor: index === variant + 1 ? accent : colors.on }]} />
+            ))}
+          </View>
+        </>
+      );
+    case 'language-association-context':
+      return (
+        <>
+          <View style={styles.associationPath}>
+            <View style={[styles.associationNode, { backgroundColor: colors.base }]} />
+            <View style={[styles.associationConnector, { backgroundColor: accent }]} />
+            <View style={[styles.associationNodeLarge, { backgroundColor: colors.on, borderColor: accent }]} />
+            <View style={[styles.associationConnector, { backgroundColor: accent }]} />
+            <View style={[styles.associationNode, { backgroundColor: colors.secondary }]} />
+          </View>
+          <View style={[styles.wordBar, { backgroundColor: colors.ink, width: `${38 + variant * 10}%` }]} />
+          <View style={[styles.wordBar, { backgroundColor: accent, width: '26%' }]} />
+        </>
+      );
+    case 'logic-deduction':
+      return (
+        <>
+          <View style={[styles.logicStem, { backgroundColor: accent }]} />
+          <View style={styles.logicLeaves}>
+            {[0, 1, 2].map((index) => (
+              <WorldTile key={index} color={index === variant ? accent : colors.on} size={tile * 0.8} />
+            ))}
+          </View>
+          <View style={styles.logicClues}>
+            <View style={[styles.clueLine, { backgroundColor: colors.ink, width: '70%' }]} />
+            <View style={[styles.clueLine, { backgroundColor: colors.base, width: '44%' }]} />
+          </View>
+        </>
+      );
+    case 'flexibility-rule-switching':
+      return (
+        <>
+          <View style={styles.switchBlocks}>
+            <WorldTile color={colors.base} size={tile * 1.2} />
+            <View style={[styles.switchArrow, { borderColor: accent, transform: [{ rotate: variant === 1 ? '135deg' : '45deg' }] }]} />
+            <WorldTile color={colors.secondary} size={tile * 0.8} />
+          </View>
+          <View style={[styles.switchRule, { backgroundColor: colors.ink }]} />
+          <View style={[styles.switchRule, { backgroundColor: accent, width: '42%' }]} />
+        </>
+      );
+    case 'spatial-transformation':
+      return (
+        <>
+          <View style={[styles.spatialDiamond, { borderColor: accent, transform: [{ rotate: variant === 1 ? '30deg' : '45deg' }] }]} />
+          <View style={[styles.spatialCore, { backgroundColor: colors.base }]} />
+          <View style={[styles.spatialOrbit, { borderColor: colors.on }]} />
+          <WorldTile color={colors.secondary} size={tile * 0.72} style={styles.spatialTile} />
+        </>
+      );
+  }
+}
+
+/**
+ * Code-native stage for the catalog. It is deliberately decorative and
+ * bounded: a domain world supplies the palette, while the stable mechanic
+ * family supplies the shape grammar. Text beside it remains authoritative.
+ */
+export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps) {
+  const theme = useTheme();
+  const colors = worldColors(theme, game.primaryCategory);
+  const identity = getGameIdentity(game);
+  const height = size === 'stage' ? 220 : size === 'hero' ? 164 : 112;
+  const scale = height / 112;
+  const variant = variantFor(game.id);
+
+  return (
+    <View
+      testID={testID}
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+      style={[styles.world, { height, backgroundColor: colors.soft, borderColor: colors.base }]}>
+      <View style={[styles.worldCorner, { backgroundColor: colors.base }]} />
+      <View style={[styles.worldCornerSecondary, { backgroundColor: colors.secondary }]} />
+      <WorldMotif family={identity.family} colors={colors} variant={variant} scale={scale} />
+      <View style={[styles.worldBadge, { backgroundColor: colors.base }]}>
+        <IdentityMark family={identity.family} size={Math.round(22 * Math.min(scale, 1.5))} color={colors.on} />
+      </View>
+      <View style={[styles.worldTicks, { borderColor: colors.ink }]}>
+        {[0, 1, 2, 3, 4].map((index) => (
+          <View key={index} style={[styles.worldTick, { backgroundColor: colors.ink, opacity: index <= variant + 1 ? 0.82 : 0.2 }]} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   mark: {
     alignItems: 'center',
@@ -649,4 +888,163 @@ const styles = StyleSheet.create({
   transformInner: {
     borderRadius: Radii.extraSmall,
   },
+  world: {
+    position: 'relative',
+    width: '100%',
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderRadius: Radii.small,
+  },
+  worldLines: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    opacity: 0.16,
+  },
+  worldLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+  },
+  worldLineVertical: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 1,
+  },
+  worldCorner: {
+    position: 'absolute',
+    width: 46,
+    height: 46,
+    right: -18,
+    top: -18,
+    transform: [{ rotate: '45deg' }],
+    opacity: 0.9,
+  },
+  worldCornerSecondary: {
+    position: 'absolute',
+    width: 28,
+    height: 28,
+    left: -12,
+    bottom: -10,
+    transform: [{ rotate: '45deg' }],
+    opacity: 0.75,
+  },
+  worldBadge: {
+    position: 'absolute',
+    right: Spacing.two,
+    top: Spacing.two,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 34,
+    height: 34,
+    borderRadius: Radii.small,
+  },
+  worldTicks: {
+    position: 'absolute',
+    left: Spacing.two,
+    bottom: Spacing.two,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 4,
+    borderBottomWidth: 1,
+  },
+  worldTick: {
+    width: 10,
+    height: 4,
+  },
+  worldTile: {
+    position: 'absolute',
+    borderRadius: 2,
+  },
+  lens: {
+    position: 'absolute',
+    left: '32%',
+    top: '22%',
+    borderWidth: 4,
+    borderRadius: 999,
+  },
+  lensHandle: {
+    position: 'absolute',
+    left: '57%',
+    top: '60%',
+    height: 5,
+  },
+  attentionTileOne: { left: '18%', top: '24%' },
+  attentionTileTwo: { left: '18%', top: '61%' },
+  attentionTileThree: { left: '74%', top: '54%' },
+  memoryBar: { position: 'absolute', left: '14%', bottom: '22%', height: 6 },
+  speedBars: {
+    position: 'absolute',
+    left: '15%',
+    right: '18%',
+    bottom: '20%',
+    height: '54%',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 6,
+  },
+  speedBar: { flex: 1, minHeight: 8 },
+  targetOuter: {
+    position: 'absolute',
+    right: '14%',
+    top: '22%',
+    width: 42,
+    height: 42,
+    borderWidth: 4,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  targetInner: { width: 14, height: 14, borderRadius: 999 },
+  mathEquation: {
+    position: 'absolute',
+    left: '14%',
+    right: '14%',
+    top: '24%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  mathBlock: { width: 22, height: 22, borderRadius: 2 },
+  mathOperator: { width: 14, height: 4 },
+  mathEquals: { width: 18, height: 4 },
+  mathKeys: {
+    position: 'absolute',
+    left: '19%',
+    right: '19%',
+    bottom: '17%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 5,
+  },
+  mathKey: { width: 18, height: 14, borderRadius: 2 },
+  associationPath: {
+    position: 'absolute',
+    left: '16%',
+    right: '16%',
+    top: '27%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  associationNode: { width: 20, height: 20, borderRadius: 999 },
+  associationNodeLarge: { width: 42, height: 42, borderRadius: 12, borderWidth: 4 },
+  associationConnector: { height: 4, flex: 1, marginHorizontal: 6 },
+  wordBar: { position: 'absolute', left: '17%', bottom: '24%', height: 6 },
+  logicStem: { position: 'absolute', left: '50%', top: '21%', width: 4, height: '28%' },
+  logicLeaves: { position: 'absolute', left: '20%', right: '20%', top: '46%', flexDirection: 'row', justifyContent: 'space-between' },
+  logicClues: { position: 'absolute', left: '18%', bottom: '20%', right: '18%', gap: 7 },
+  clueLine: { height: 5 },
+  switchBlocks: { position: 'absolute', left: '20%', right: '20%', top: '24%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  switchArrow: { width: 24, height: 24, borderTopWidth: 5, borderRightWidth: 5 },
+  switchRule: { position: 'absolute', left: '18%', bottom: '25%', height: 6, width: '62%' },
+  spatialDiamond: { position: 'absolute', left: '35%', top: '19%', width: 54, height: 54, borderWidth: 5 },
+  spatialCore: { position: 'absolute', left: '46%', top: '30%', width: 24, height: 24, transform: [{ rotate: '45deg' }] },
+  spatialOrbit: { position: 'absolute', left: '26%', top: '15%', width: 90, height: 66, borderWidth: 2, borderRadius: 999, transform: [{ rotate: '-25deg' }] },
+  spatialTile: { right: '15%', bottom: '22%' },
 });

@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { getGameIdentity, IdentityMark } from '@/components/discovery/game-identity';
+import { GameWorldArt, getGameIdentity, IdentityMark } from '@/components/discovery/game-identity';
 import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
@@ -115,11 +115,13 @@ export const GameCard = memo(function GameCard({
   return (
     <Card
       variant="plain"
+      shape="poster"
       padding="none"
       testID={testID ?? `game-card-${game.id}`}
       onPress={() => router.push(`/game-detail/${game.id}`)}
       accessibilityLabel={`${game.name}, ${game.primaryCategory} game${isFavorite ? ', favorited' : ''}${tier ? `, ${tier}` : ''}`}
       accessibilityHint="Open game details">
+      <GameWorldArt game={game} size="card" testID={testID ? `${testID}-world` : `game-card-${game.id}-world`} />
       {/* Domain edge keeps the existing category cue without competing with the mechanic identity. */}
       <View
         style={[styles.ribbon, hue ? { backgroundColor: hue.base } : { backgroundColor: theme.border }]}
@@ -165,8 +167,8 @@ const styles = StyleSheet.create({
     height: Spacing.oneHalf,
   },
   body: {
-    padding: Spacing.three,
-    gap: Spacing.two,
+    padding: Spacing.twoHalf,
+    gap: Spacing.oneHalf,
   },
   metaRow: {
     flexDirection: 'row',

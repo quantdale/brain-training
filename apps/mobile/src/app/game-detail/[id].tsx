@@ -29,6 +29,7 @@ import {
 } from "@/components/discovery/game-card";
 import {
   getGameIdentity,
+  GameWorldArt,
   IdentityMark,
   identityFamilyLabel,
 } from "@/components/discovery/game-identity";
@@ -197,9 +198,11 @@ export default function GameDetailScreen() {
           neutral shared hero leaves the global Play action as the state cue. */}
       <Card
         variant="hero"
-        padding="lg"
+        shape="soft"
+        padding="none"
         testID="game-detail-mastery"
       >
+        <GameWorldArt game={game} size="hero" testID="game-detail-world" />
         <View style={styles.resumeBody}>
           <View style={styles.resumeHead}>
             <View style={styles.identityRow} testID="game-detail-identity">
@@ -455,6 +458,7 @@ const SessionRow = memo(function SessionRow({
 const styles = StyleSheet.create({
   resumeBody: {
     gap: Spacing.three,
+    padding: Spacing.four,
   },
   resumeHead: {
     gap: Spacing.one,

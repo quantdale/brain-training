@@ -1283,7 +1283,7 @@ export function CompositeCard({
   const trainedShare = total > 0 ? trained / total : 0;
   return (
     <Entrance index={0}>
-      <Card variant={empty ? 'outlined' : 'hero'} testID="progress-composite-card">
+      <Card variant={empty ? 'outlined' : 'hero'} shape={empty ? 'block' : 'poster'} testID="progress-composite-card">
         <View testID={testID} style={empty ? styles.emptyComposite : styles.hero}>
           {empty ? (
             <>

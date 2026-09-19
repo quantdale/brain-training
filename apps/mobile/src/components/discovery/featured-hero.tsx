@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { GameWorldArt } from '@/components/discovery/game-identity';
 import { useTheme } from '@/hooks/use-theme';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -40,7 +41,8 @@ export function FeaturedHero({ data }: { data: DiscoverySnapshot }) {
   return (
     <Card
       variant="hero"
-      padding="lg"
+      shape="poster"
+      padding="none"
       testID="games-featured"
       style={{
         backgroundColor: hue?.soft ?? theme.accentSoft,
@@ -52,6 +54,7 @@ export function FeaturedHero({ data }: { data: DiscoverySnapshot }) {
       onPress={() => router.push(`/game-detail/${topGame.id}`)}
       accessibilityLabel={`Featured game: ${topGame.name}, ${topGame.primaryCategory} game${favorite ? ', favorited' : ''}${summary ? `, ${masteryTierLabel(summary.tier)}` : ''}${why ? `. ${why}` : ''}`}
       accessibilityHint="Open game details">
+      <GameWorldArt game={topGame} size="hero" testID="games-featured-world" />
       <View style={styles.body}>
         <View style={styles.metaRow}>
           <Badge label="★ Recommended" size="sm" />
@@ -94,6 +97,7 @@ export function FeaturedHero({ data }: { data: DiscoverySnapshot }) {
 const styles = StyleSheet.create({
   body: {
     gap: Spacing.twoHalf,
+    padding: Spacing.four,
   },
   metaRow: {
     flexDirection: 'row',

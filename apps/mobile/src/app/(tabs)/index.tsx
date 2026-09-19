@@ -36,6 +36,7 @@ import { useCallback, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { SectionHeader } from "@/components/shell";
+import { GameWorldArt } from "@/components/discovery/game-identity";
 import {
   Button,
   Card,
@@ -512,6 +513,7 @@ export default function HomeScreen() {
   const currentGame = workoutFlow.currentGameId
     ? allGames.find((g) => g.id === workoutFlow.currentGameId)
     : undefined;
+  const consoleGame = currentGame ?? workout[0] ?? allGames[0];
 
   const streak = reconstructStreak(
     data.activityDates,
@@ -671,8 +673,24 @@ export default function HomeScreen() {
       {/* Today's Workout hero: goal progress + the screen's single primary
           CTA. The meter and legs mirror the durable resume position. */}
       <Entrance index={0}>
-      <Card variant="hero" padding="lg" testID="home-workout-cta">
+      <Card variant="hero" shape="poster" padding="lg" testID="home-workout-cta">
         <View style={styles.heroBody}>
+          {consoleGame ? (
+            <View style={styles.consoleStage} testID="home-training-console">
+              <GameWorldArt game={consoleGame} size="hero" testID="home-training-console-world" />
+              <View style={styles.consoleReadout}>
+                <ThemedText type="eyebrow" themeColor="textMuted">
+                  FOCUS MODULE
+                </ThemedText>
+                <ThemedText type="headline" numberOfLines={1}>
+                  {consoleGame.name}
+                </ThemedText>
+                <ThemedText type="caption" themeColor="textSecondary">
+                  {consoleGame.primaryCategory} · ready on this device
+                </ThemedText>
+              </View>
+            </View>
+          ) : null}
           <View style={styles.heroTitle}>
             <View style={styles.heroEyebrowRow}>
               <Spark size={14} color={theme.accent} />
@@ -1220,6 +1238,13 @@ const styles = StyleSheet.create({
   },
   heroBody: {
     gap: Spacing.three,
+  },
+  consoleStage: {
+    gap: Spacing.two,
+  },
+  consoleReadout: {
+    gap: Spacing.half,
+    paddingHorizontal: Spacing.one,
   },
   heroEyebrowRow: {
     flexDirection: "row",

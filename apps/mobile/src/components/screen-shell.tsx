@@ -20,6 +20,7 @@ import { SafeAreaInsetsContext, SafeAreaView } from 'react-native-safe-area-cont
 import { useSegments } from 'expo-router';
 
 import { BottomTabInset, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { useContentMaxWidth, useLayoutTier, useScreenGutter } from '@/platform/layout';
 
 /**
@@ -46,6 +47,7 @@ function resolveBottomPadding(insetsBottom: number | null | undefined, isTabRout
 }
 
 export function ScreenShell({ children }: { children: ReactNode }) {
+  const theme = useTheme();
   const insets = useContext(SafeAreaInsetsContext);
   // Responsive chrome (campaign 024): gutters and content width follow the
   // layout tier, so an expanded (tablet/landscape) viewport gets wider gutters
@@ -62,7 +64,7 @@ export function ScreenShell({ children }: { children: ReactNode }) {
   const bottomPadding = resolveBottomPadding(insets?.bottom, isTabRoute);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
