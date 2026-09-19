@@ -38,8 +38,9 @@ describe('GameResults reward moment', () => {
     );
 
     expect(getByTestId('demo.reward')).toBeTruthy();
-    expect(getByText('+30 XP earned!')).toBeTruthy();
-    expect(getByText('+2 coins · Progress saved')).toBeTruthy();
+    expect(getByText(/\+30 XP/)).toBeTruthy();
+    expect(getByText(/\+2 coins/)).toBeTruthy();
+    expect(getByText('Progress saved')).toBeTruthy();
   });
 
   it('renders a neutral success card when only coins were paid', async () => {
@@ -54,7 +55,7 @@ describe('GameResults reward moment', () => {
       </GameResults>,
     );
 
-    expect(getByText('Session complete!')).toBeTruthy();
+    expect(getByText(/Reward/)).toBeTruthy();
     expect(getByText(/\+5 coins/)).toBeTruthy();
   });
 

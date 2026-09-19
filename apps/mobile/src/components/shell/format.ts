@@ -63,3 +63,18 @@ export function performanceBand(normalizedResult: number): PerformanceBand {
   }
   return { label: 'Keep training', tone: 'textSecondary' };
 }
+
+/**
+ * Strip internal rating figures out of a personalization reason for display
+ * (campaign 055): "weak Language domain (rating 986)" is evidence, not product
+ * language. The signal (why this game) survives; the stored rating number and
+ * its parenthetical bookkeeping do not.
+ */
+export function playerFacingReason(detail: string): string {
+  const notPlayed = /not played for ~(\d+)d/.exec(detail);
+  const cleaned = detail
+    .replace(/\s*\(rating[^)]*\)?/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return notPlayed ? `${cleaned} · not played for ~${notPlayed[1]}d` : cleaned;
+}

@@ -14,6 +14,8 @@ export { Tappable, pressStyles, type TappableProps } from './tappable';
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './button';
 export { IconButton, type IconButtonProps } from './icon-button';
 export { Card, type CardPadding, type CardProps, type CardShape, type CardVariant } from './card';
+export { ArcadePanel, type ArcadePanelProps, type PanelPadding } from './arcade-panel';
+export { Report, ReportRow, type ReportProps, type ReportRowProps } from './report';
 export { SectionGrid, type SectionGridProps } from './section-grid';
 export { BackLink, type BackLinkProps } from './back-link';
 export { Entrance, type EntranceProps } from './entrance';

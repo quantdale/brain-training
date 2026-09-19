@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from '@jest/globals';
 
-import { formatRelativeDay, performanceBand } from '../format';
+import { formatRelativeDay, performanceBand, playerFacingReason } from '../format';
 
 // Fixed reference clock: 2026-08-21T12:00:00 local (midday avoids any
 // DST-boundary midnight edge in the test timezone).
@@ -50,5 +50,25 @@ describe('performanceBand', () => {
 
   it('treats non-numeric results as a neutral completion band', () => {
     expect(performanceBand(Number.NaN).label).toBe('Session complete');
+  });
+});
+
+describe('playerFacingReason', () => {
+  it('strips the internal rating figure from a weak-domain reason', () => {
+    expect(playerFacingReason('weak Language domain (rating 986)')).toBe(
+      'weak Language domain',
+    );
+  });
+
+  it('keeps the staleness fact while dropping the rating', () => {
+    expect(
+      playerFacingReason('rusty Attention domain (rating 1200, not played for ~40d)'),
+    ).toBe('rusty Attention domain · not played for ~40d');
+  });
+
+  it('leaves rating-free reasons untouched', () => {
+    expect(playerFacingReason('undertrained Logic domain (0 sessions so far)')).toBe(
+      'undertrained Logic domain (0 sessions so far)',
+    );
   });
 });

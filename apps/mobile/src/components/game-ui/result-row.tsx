@@ -7,7 +7,9 @@
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Radii, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { HAIRLINE } from '@/components/ui/radius';
+import { Spacing } from '@/constants/theme';
 
 export interface ResultRowProps {
   label: string;
@@ -17,8 +19,9 @@ export interface ResultRowProps {
 }
 
 export function ResultRow({ label, value, testID }: ResultRowProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, styles.divider, { borderBottomColor: theme.border }]}>
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>
@@ -29,14 +32,19 @@ export function ResultRow({ label, value, testID }: ResultRowProps) {
   );
 }
 
-/** Variant used inside compact game results (value in bodyLarge). */
+/**
+ * Variant used inside compact game results. Campaign 055 report grammar: rows
+ * are separated by hairlines instead of floating in a gap list, and the value
+ * stays readable without out-shouting the result headline above it.
+ */
 export function StatRow({ label, value, testID }: ResultRowProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.statRow}>
-      <ThemedText type="small" themeColor="textSecondary">
+    <View style={[styles.statRow, styles.divider, { borderBottomColor: theme.border }]}>
+      <ThemedText type="bodySmall" themeColor="textSecondary">
         {label}
       </ThemedText>
-      <ThemedText type="bodyLarge" testID={testID}>
+      <ThemedText type="body" testID={testID} style={styles.statValue}>
         {value}
       </ThemedText>
     </View>
@@ -51,11 +59,17 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   statRow: {
+    minHeight: 44,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: Spacing.two,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Radii.medium,
+  },
+  statValue: {
+    fontWeight: '700',
+  },
+  divider: {
+    borderBottomWidth: HAIRLINE,
   },
 });

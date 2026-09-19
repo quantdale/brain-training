@@ -404,10 +404,13 @@ export const Typography: Record<
   | 'label'
   | 'bodySmall'
   | 'body'
+  | 'bodyRead'
   | 'bodyLarge'
   | 'headline'
   | 'title'
   | 'display'
+  | 'gameTitle'
+  | 'resultHeadline'
   | 'numeral'
   | 'numeralLg'
   | 'numeralXl',
@@ -423,6 +426,12 @@ export const Typography: Record<
   bodySmall: { size: 14, lineHeight: 20, weight: '500' },
   /** Primary body text. */
   body: { size: 16, lineHeight: 24, weight: '500' },
+  /**
+   * Long-form reading copy: rules, tutorial concepts, progress narrative.
+   * Lighter and roomier than `body` so explanation never shouts like a
+   * headline (campaign 055 role split).
+   */
+  bodyRead: { size: 16, lineHeight: 26, weight: '400' },
   /** Emphasis within body copy. */
   bodyLarge: { size: 17, lineHeight: 24, weight: '600' },
   /** Section headers. */
@@ -431,6 +440,14 @@ export const Typography: Record<
   title: { size: 32, lineHeight: 37, weight: '900', tracking: -0.8 },
   /** Hero/dashboard display. */
   display: { size: 42, lineHeight: 46, weight: '900', tracking: -1.2 },
+  /** Game names on stages, panels, tiles and detail (campaign 055 voice). */
+  gameTitle: { size: 26, lineHeight: 30, weight: '900', tracking: -0.4 },
+  /**
+   * The single result band headline on Results. Deliberately heavier and
+   * larger than `headline` so the emotional peak outranks surrounding
+   * report copy (campaign 055).
+   */
+  resultHeadline: { size: 34, lineHeight: 38, weight: '900', tracking: -0.8 },
   /** Inline metric (rows, chips). */
   numeral: { size: 20, lineHeight: 24, weight: '800', tabular: true },
   /** Card-level metric. */

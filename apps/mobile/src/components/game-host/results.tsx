@@ -24,6 +24,8 @@ import type { PerfMeasure } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
 import { GameWorldArt } from '@/components/discovery/game-identity';
 import { FeedbackCard } from '@/components/shell';
+import { performanceBand } from '@/components/shell/format';
+import { ArcadePanel } from '@/components/ui/arcade-panel';
 import { Card, Confetti, Spark } from '@/components/ui';
 import { GameButton } from '@/components/game-ui';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
@@ -70,8 +72,14 @@ export interface GameResultsWorkoutActions {
 
 export interface GameResultsProps {
   readonly gameId: string;
-  /** Headline; defaults to "Session complete". */
+  /** Headline; defaults to the performance band when `normalizedResult` is known. */
   readonly title?: string;
+  /**
+   * Normalized session outcome (0..1) from the game's own result builder.
+   * When provided, the artifact headline uses the shared honest band language
+   * and celebration is reserved for strong/personal-best outcomes.
+   */
+  readonly normalizedResult?: number;
   /** Optional game-specific notice rendered directly under the headline. */
   readonly badge?: React.ReactNode;
   /** True when the session ended via a dev-only QA force hook. */
@@ -94,7 +102,8 @@ export interface GameResultsProps {
 
 export function GameResults({
   gameId,
-  title = 'Session complete',
+  title,
+  normalizedResult,
   badge,
   forced = false,
   persistState = 'idle',
@@ -141,6 +150,19 @@ export function GameResults({
   const showReward =
     persistState === 'succeeded' && reward !== undefined && (rewardXp > 0 || rewardCoins > 0);
 
+  // ---- Campaign 055 honest result logic. The band is derived from the
+  // session's own normalized performance when the game provides it; a weak
+  // outcome never borrows success colour, copy or confetti. Strong and
+  // personal-best outcomes keep the celebration beat.
+  const band =
+    normalizedResult !== undefined && Number.isFinite(normalizedResult)
+      ? performanceBand(normalizedResult)
+      : null;
+  const headline = title ?? band?.label ?? 'Session complete';
+  const strongOutcome =
+    band !== null && (band.label === 'Outstanding' || band.label === 'Strong run');
+  const weakOutcome = band !== null && !strongOutcome && band.label !== 'Session complete';
+
   useEffect(() => {
     if (persistState === 'idle' || persistState === 'started') {
       rewardFiredRef.current = false;
@@ -152,8 +174,9 @@ export function GameResults({
     }
     rewardFiredRef.current = true;
     // Canonical feedback event: resolves to the reward SFX + success haptic
-    // only when the user's sensory settings allow it.
-    liveAudioHaptics.feedback('reward');
+    // only when the user's sensory settings allow it. Weak outcomes still
+    // acknowledge the saved session but never borrow the success sting.
+    liveAudioHaptics.feedback(weakOutcome ? 'tap' : 'reward');
     if (prefersReducedMotion) {
       entrance.setValue(1);
       return;
@@ -164,14 +187,14 @@ export function GameResults({
       easing: Easing.out(Easing.back(1.4)),
       useNativeDriver: true,
     }).start();
-  }, [persistState, showReward, prefersReducedMotion, entrance]);
+  }, [persistState, showReward, prefersReducedMotion, entrance, weakOutcome]);
 
   const rewardDetail = [
+    rewardXp > 0 ? `+${rewardXp} XP` : null,
     rewardCoins > 0 ? `+${rewardCoins} coin${rewardCoins === 1 ? '' : 's'}` : null,
-    'Progress saved',
   ]
     .filter(Boolean)
-    .join(' · ');
+    .join('  ·  ');
 
   // ---- Workout continuation (frontier audit `in-game-workout-next-leg`).
   // A workout-launched session advances the SAME durable CAS `/results` uses,
@@ -268,19 +291,17 @@ export function GameResults({
 
   return (
     <View style={styles.section} testID={testId(gameId, 'results')}>
-      {/* Completion is an object first, then a fact record. Reward feedback is
-          deliberately below the player-owned outcome so persistence remains
-          authoritative while the screen still feels like a finish line. */}
-      <View style={styles.resultHero}>
+      {/* One result artifact (campaign 055): the game world and the band
+          headline are the event. Facts, reward and actions support it. */}
+      <ArcadePanel padding="none" emphasis="focal" testID={testId(gameId, 'result-artifact')}>
         {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'result-world')} /> : null}
-        <View style={styles.resultTitleRow}>
-          <Spark size={24} color={theme.accent} />
-          <ThemedText type="title" testID={testId(gameId, 'result-headline')}>
-            {title}
+        <View style={styles.resultBody}>
+          <ThemedText type="resultHeadline" testID={testId(gameId, 'result-headline')}>
+            {headline}
           </ThemedText>
+          {badge}
         </View>
-      </View>
-      {badge}
+      </ArcadePanel>
       <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
         {children}
       </View>
@@ -329,14 +350,16 @@ export function GameResults({
               },
             ],
           }}>
-          {/* Campaign 026 celebration beat: a bounded, deterministic burst
-              behind the reward card (margins only, reduced-motion collapses). */}
-          <Confetti count={14} seed={`reward-${gameId}`} height={180} />
+          {/* Campaign 026 celebration beat, campaign 055 honesty gate: a
+              bounded deterministic burst only after a strong outcome. Weak
+              and unknown outcomes get the same saved fact without fanfare. */}
+          {strongOutcome ? (
+            <Confetti count={14} seed={`reward-${gameId}`} height={180} />
+          ) : null}
           <FeedbackCard
-            tone="success"
-            emoji="🎉"
-            title={rewardXp > 0 ? `+${rewardXp} XP earned!` : 'Session complete!'}
-            detail={rewardDetail}
+            tone={strongOutcome ? 'success' : 'neutral'}
+            title={`Reward  ${rewardDetail}`}
+            detail="Progress saved"
             testID={testId(gameId, 'reward')}
           />
         </Animated.View>
@@ -407,16 +430,12 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
   },
-  resultHero: {
-    gap: Spacing.two,
-  },
-  resultTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  resultBody: {
+    padding: Spacing.three,
     gap: Spacing.two,
   },
   facts: {
-    gap: Spacing.two,
+    gap: Spacing.half,
   },
   completionHeader: {
     flexDirection: 'row',
