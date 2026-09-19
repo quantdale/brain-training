@@ -5,6 +5,45 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 053 full-system hardening discovery and OpenSpec proposal — 2026-09-19 (READY / NOT ACTIVATED)
+
+- Scope: **PASS for discovery/proposal only** — no production source,
+  dependency, schema, or production-test implementation was changed. The
+  durable exploration record and full proposal packet are at
+  `openspec/changes/053-full-system-hardening/`.
+- Baseline repository: **PASS** — repository state, task ownership,
+  affected-area sync, registry, offline, secrets, dependency-policy,
+  runtime-QA-contract, workflow hygiene, and Jest-signal validators passed.
+  `npm ci` restored the canonical lockfile installation; Expo dependency check
+  was current and Expo Doctor reported 21/21.
+- Static/full test: **PASS WITH ACTIONABLE SIGNAL DEBT** — typecheck and lint
+  passed. `npm run test:ci` passed 559 suites of 563 and 6,575 tests of 6,580
+  with five snapshots; four suites/five tests are documented opt-in performance
+  probes. The passing run emitted known uncontrolled React `act`, animation,
+  deprecated test-query, and expected-error console noise; this is the
+  proposed test-signal hardening target, not a fake clean baseline.
+- Android build: **PASS** — `:app:assembleDebug --no-daemon` completed in
+  10m 26s. Third-party/toolchain deprecations, cross-volume hard-link fallbacks,
+  SDK XML-version, and unset-`NODE_ENV` warnings did not prevent assembly.
+- Runtime observation: **PASS WITH LIMITED SCOPE** — ARTEMIS diagnosis was
+  ready (5/5) and a read-only hierarchy/screenshot observation on the dedicated
+  Android 15 target rendered persisted Home state. No app state was changed,
+  no ARTEMIS journey was run, and the observation has no exact-build identity.
+- OpenSpec: **PASS** — `openspec validate 053-full-system-hardening --strict`
+  passed; `openspec validate --all --strict` passed 37/37. The proposal has
+  four capability specs and five sequenced implementation groups.
+- Findings: **NO CURRENT CRITICAL/HIGH DEFECT REPRODUCED**. Medium/preventive
+  findings are combined bootstrap degradation, time-bounded runtime dependency
+  debt, test-signal noise, and representative-only catalog persistence failure
+  coverage. Prior SQLite teardown NPE evidence is resolved and is not proposed
+  for speculative rewrite.
+- External/manual boundaries: **NOT VALIDATED / EXTERNAL** — current GitHub
+  Actions runs fail before steps under the existing account/policy
+  classification; human TalkBack/VoiceOver, physical/OEM Android, iOS,
+  store-signing, and system-provider usability remain unavailable.
+- Governance: **UNCHANGED** — no campaign is activated; the proposed
+  implementation must be deliberately opened in a later session.
+
 ### Campaign 051 Signal Arcade visual reboot — 2026-09-19 (VALIDATED / COMPLETE)
 
 - Scope: **PASS for the repository-owned visual reboot** — Signal Arcade

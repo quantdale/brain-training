@@ -1,10 +1,41 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 051 terminal validation complete.
+**Last update:** 2026-09-19 — Campaign 053 hardening proposal ready; no implementation campaign activated.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Last campaign status:** VALIDATED
+
+## Campaign 053 — Full-System Hardening Proposal (READY / NOT ACTIVATED)
+
+- **Authorization:** the owner explicitly authorized a whole-repository
+  discovery and OpenSpec proposal only. No implementation, dependency,
+  schema, product-source, or production-test change is authorized in this
+  campaign.
+- **Starting SHA:** `12f9cf7f6354c12f0392cc2b4c65bc2a2fde84be`.
+- **Output:** complete Explore/Propose packet at
+  `openspec/changes/053-full-system-hardening/`, including a durable
+  investigation record, proposal, four new capability specs, design, and
+  sequenced implementation tasks. `openspec validate --strict` and the
+  repository-wide OpenSpec validation both pass (37/37).
+- **Current evidence:** fresh typecheck, lint, full Jest (559 passed suites,
+  6,575 passed tests; four suites/five tests are intentional opt-in probes),
+  Expo Doctor (21/21), repository validators, and local Android debug assembly
+  pass. ARTEMIS diagnosis was ready and a read-only emulator hierarchy
+  observation rendered Home; this is not exact-build runtime certification.
+- **Prioritized themes:** truthful foundational bootstrap recovery;
+  compatible disposition of the accepted runtime router advisory; test-signal
+  integrity; and registry-derived all-catalog persistence failure coverage.
+  No current Critical or High product defect was reproduced. The historic
+  SQLite teardown NPE remains a resolved prior issue, not a new rewrite target.
+- **Boundaries:** GitHub Actions currently fails before any job step under the
+  existing account/policy classification; human accessibility, physical/OEM
+  Android, iOS, store signing, and system-provider usability remain external
+  or manual evidence gaps.
+- **Governance:** `activeCampaign` intentionally remains `null`; Campaign 051
+  remains the last validated implementation campaign. The safest next action
+  is a separately authorized implementation activation of this OpenSpec change,
+  beginning with bootstrap integrity and recovery.
 
 ## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (VALIDATED / COMPLETE)
 
