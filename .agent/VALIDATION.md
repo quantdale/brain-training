@@ -5,6 +5,49 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 055 Signal Arcade desirability pass — 2026-09-20 (PARTIAL — env blocker on final native matrix)
+
+- Scope: **PARTIAL** — the owner-directed desirability pass executed the full
+  refinement: research + refinement lock, shared Stage/Panel/Report/Slot roles,
+  new typography voices, Games storefront, honest Results, identity-first
+  Profile, collectible Rewards, focused Home, world-stage Game Detail,
+  tutorial/gameplay chrome, Progress narrative and the copy audit, with three
+  recorded critique passes and before/after native pixels from the release
+  artifact. Verdict `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL` because the
+  final native matrix could not be completed (host emulator crash loop).
+- Repository gates: **PASS** — full gated Jest **565 suites / 6,731 tests**
+  (4 suites / 5 tests classified opt-in skips, 5 snapshots, 0 unexpected
+  console output; the single snapshot was intentionally re-baselined for the
+  restyle); typecheck, lint (0 warnings), repo-state, task ownership,
+  affected-map sync, registry, provenance, offline, secrets, workflows,
+  dependency audit, runtime-QA contract, Expo Doctor 21/21, OpenSpec strict
+  39/39, web export, Android debug build and release build all pass.
+- Opt-in probes: **5/5 PASS** (`PERF_PROBE=1`, `LARGE_BACKUP_PROBE=1`; 22
+  tests).
+- Artifacts: runtime evidence APK SHA-256
+  `9E6B94FCED9A70DDBE828C99734D846DF7A1DB4ED5F42B3FFDC6691A236A367A`;
+  frozen-tree rebuild `E1E9C4BD74442C47D26CD22FF00E467D5D2896AE91B30472FD2F3E2AF172D414`
+  (delta = two non-visual convergence edits). Both debug-signed local builds.
+- Native evidence: **PASS for the captured scope** — Home active/completed,
+  Games (+scrolled), Game Detail, tutorial, gameplay, in-session weak result,
+  route result, Progress, Profile, Rewards (+collectible grid), dark Games and
+  dark Result, and an 11/11 compact/light matrix on the runtime artifact.
+- Native gaps: **NOT VALIDATED** — compact/dark, font-scale-2, runtime
+  recovery/log review on the frozen tree, and the four-game workout on the
+  final artifact. The host emulator crashed mid-profile-switch and could not
+  be restarted (`0xC0000005` crash loop, wedged guests; the alternate AVD
+  showed the same behaviour; a host reboot is the documented recovery).
+- Accessibility: **PARTIAL** — 0 unlabelled nodes and 0 decorative leaks on
+  the compact/light matrix; 27 measured `target<44dp` observations, mostly
+  pre-existing text-style controls and the known 4 dp console-lip
+  measurement, enumerated in `ACCESSIBILITY_RESPONSIVE_QA.md` for the resumed
+  pass.
+- Protected floor: mechanics, scoring, timers, generators, difficulty,
+  registry IDs, workout semantics, XP, currency, economy, migrations,
+  persistence and routing were not changed; their suites stay green. The only
+  `games/**` edits are display-only (rounded ms text, one removed duplicate
+  result row).
+
 ### Campaign 054 terminal gap closure — 2026-09-19 (VALIDATED / GAPS CLOSED)
 
 - Scope: **PASS** — the owner-directed terminal gap-closure campaign executed

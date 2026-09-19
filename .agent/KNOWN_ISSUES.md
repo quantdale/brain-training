@@ -1,5 +1,35 @@
 # Known Issues / Blockers
 
+## Campaign 055 disposition — DESIRABILITY PASS (2026-09-20, PARTIAL)
+
+Verdict `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`. All RETHINK/REFINE surfaces
+were materially improved with before/after release pixels and the repository
+matrix is green; the remaining items are a host-environment blocker on the
+final native matrix plus non-blocking visual debt:
+
+- **Host emulator crash loop (environment, High for validation only).**
+  `emulator.exe` 37.1.11 exits `0xC0000005` immediately after the WHPX
+  handshake across `-gpu swiftshader_indirect` / `-gpu off` / `-accel off` /
+  `-no-snapshot` / `-wipe-data`, and a wedged instance holding port 5555 had to
+  be killed. The alternate API-35 AVD showed the same wedged-guest behaviour.
+  Recovery: reboot the host, then re-run `ui-capture` (default/compact/font2,
+  light/dark) and the runtime recovery/log/SQLite checks on the existing
+  release artifact family. Recorded in `FINAL_NATIVE_VALIDATION.md`.
+- **Compact/light accessibility observations (Medium).** 27 measured
+  `target<44dp` nodes (0 unlabelled, 0 decorative leaks): mostly pre-existing
+  text-style controls (back links, segmented control, difficulty keys) and the
+  known 4 dp console-lip measurement on primary keys; a few re-composed rows
+  need clipping/undersize triage on device.
+- **In-game Results band adoption (Low).** Games do not yet pass
+  `normalizedResult` to the shared results chrome, so their headline stays the
+  game's own `title`; most games also still duplicate `Final score`/`Score`.
+  The prop and honest band treatment exist and are used by the route Results.
+- **Progress drill-downs (Low).** The domain/game/activity/detail screens keep
+  their analytical `explainMetric` captions; only the main Progress surface was
+  in scope.
+- **Gameplay dead space (Low).** Short boards leave lower-viewport space; the
+  shared chrome no longer adds to it, but board sizing is game-owned.
+
 ## Campaign 054 disposition — TERMINAL GAP CLOSURE (2026-09-19)
 
 The Campaign 054 terminal gap-closure campaign produced a 44-gap census

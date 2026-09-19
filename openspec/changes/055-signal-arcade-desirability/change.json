@@ -15,5 +15,7 @@
   "reviewConsumption": "Consumes the Campaign 052 visual acceptance packet (REVIEW_FOR_CHATGPT, VISUAL_DEBT_MAP, FIRST_IMPRESSION_REVIEW, INDEPENDENT_VISUAL_CRITIQUE, REFERENCE_REALITY_CHECK and the committed pixels) plus the Campaign 054 protected technical floor. It is a bounded visual/product refinement: Signal Arcade is preserved and deepened; no mechanics, scoring, economy, schema, registry, routing, or persistence change.",
   "validatedAt": null,
   "validationNote": null,
+  "partialVerdict": "CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL",
+  "partialNote": "Refinement landed with before/after release pixels and a green repository matrix (565 suites / 6,731 tests; OpenSpec strict 39/39; debug + release builds; web export; 5/5 opt-in probes). Runtime artifact 9E6B94FCED9A70DDBE828C99734D846DF7A1DB4ED5F42B3FFDC6691A236A367A; frozen-tree rebuild E1E9C4BD74442C47D26CD22FF00E467D5D2896AE91B30472FD2F3E2AF172D414 (non-visual delta). The final native matrix (compact/dark, font-scale-2, runtime recovery/log/SQLite re-checks, four-game workout) is NOT VALIDATED due to a host emulator crash loop that requires a host reboot to recover; see docs/redesign/evidence/campaign055/FINAL_NATIVE_VALIDATION.md. Campaign remains active for the resumed native pass.",
   "verdict": null
 }

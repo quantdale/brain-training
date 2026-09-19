@@ -1,6 +1,6 @@
 # Execution Prompt — Campaign 055: Signal Arcade Desirability Pass
 
-**Status:** ACTIVE
+**Status:** ACTIVE — `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`
 **Change:** `055-signal-arcade-desirability`
 **Start-SHA:** `698bfd3`
 **Target-Branch:** `main`
@@ -22,10 +22,18 @@ schema, routing, testID, accessibility-semantics, probe, console-gate,
 bootstrap or route-envelope change. No unsupported cognitive/medical claims.
 Emulator-local input only; one dedicated AVD.
 
-## Terminal result
+## Partial result (2026-09-20)
 
-To be recorded at closure in this file, `change.json`, and the Campaign 055
-evidence packet under `docs/redesign/evidence/campaign055/`.
+The refinement landed and the repository matrix is green (565 suites / 6,731
+tests; OpenSpec strict 39/39; debug + release builds; web export; five opt-in
+probes). Before/after release pixels and the compact/light matrix are recorded
+under `docs/redesign/evidence/campaign055/`. The final native matrix
+(compact/dark, font-scale-2, runtime recovery/log/SQLite re-checks, four-game
+workout on the final artifact) is `NOT VALIDATED` because the host emulator
+entered an access-violation crash loop mid-pass and could not be restarted
+(`FINAL_NATIVE_VALIDATION.md`). Recovery: reboot the host, reinstall the
+release APK, run `ui-capture` + runtime diagnostics + the workout journey,
+then triage the 27 compact `target<44dp` observations.
 
 ---
 

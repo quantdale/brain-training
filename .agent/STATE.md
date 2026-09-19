@@ -6,7 +6,7 @@
 **Last campaign:** `054-terminal-gap-closure`
 **Last campaign status:** VALIDATED
 
-## Campaign 055 — Signal Arcade Desirability Pass (ACTIVE)
+## Campaign 055 — Signal Arcade Desirability Pass (ACTIVE — PARTIAL_WITH_ENV_BLOCKER)
 
 - **Authorization:** owner goal-mode directive to execute
   `.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`.
@@ -15,11 +15,21 @@
   `1B6EBC20…B0FB985F` verified installed at baseline.
 - **Mode:** day (repository default); one dedicated AVD `braintraining-ui35` /
   `emulator-5554`; emulator-local input only.
-- **Scope:** bounded visual/product refinement of Home, Games, Game Detail,
-  Tutorial, gameplay chrome, Results, Progress, Profile, Rewards, dark mode
-  and visible copy through locked shared roles; Campaign 054 is the protected
-  technical floor; Signal Arcade is refined rather than replaced.
-- **OpenSpec:** `openspec/changes/055-signal-arcade-desirability`.
+- **Progress:** refinement lock + targeted Refero research; shared
+  Stage/Panel/Report/Slot roles with new typography voices; Games storefront;
+  honest Results (in-session + route); identity-first Profile; collectible
+  Rewards grid; focused Home; world-stage Game Detail; tutorial/gameplay
+  chrome; Progress narrative; copy audit; three critique passes; before/after
+  release pixels; repository matrix green (565 suites / 6,731 tests; OpenSpec
+  strict 39/39; debug + release builds; web export).
+- **Blocker (environment, final native matrix):** the host emulator crashed
+  mid-profile-switch and could not be restarted (access-violation crash loop,
+  wedged guests; alternate AVD identical). Compact/dark, font-scale-2,
+  runtime recovery/log/SQLite re-checks and the four-game workout on the final
+  artifact are `NOT VALIDATED`; recovery requires a host reboot
+  (`FINAL_NATIVE_VALIDATION.md`).
+- **Verdict recorded:** `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
+- **OpenSpec:** `openspec/changes/055-signal-arcade-desirability` (ACTIVE).
 - **Evidence root:** `docs/redesign/evidence/campaign055/`.
 
 The Campaign 054 sections below remain the validated predecessor record.

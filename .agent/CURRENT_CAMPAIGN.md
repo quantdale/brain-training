@@ -1,6 +1,6 @@
 # Campaign 055 — Signal Arcade Desirability Pass
 
-**Status:** ACTIVE
+**Status:** ACTIVE (PARTIAL_WITH_ENV_BLOCKER)
 **Campaign id:** `055-signal-arcade-desirability`
 **Predecessor:** `054-terminal-gap-closure` (validated)
 **Mode:** day
@@ -17,13 +17,17 @@ Games worth browsing, make Results feel like an event, make Profile feel owned,
 make Rewards feel collectible, keep Progress credible, and keep the mechanic
 first while protecting Campaign 054's technical floor.
 
-## Classification consumed
+## Progress (partial)
 
-KEEP: active gameplay architecture, dark mode. REFINE: Home/Today, Game
-Detail, Tutorial, Progress, Rewards. RETHINK: Games discovery, Results,
-Profile. REPLACE_DIRECTION: none. The independent critic's lower rating of
-active gameplay is resolved by preserving its architecture and raising its
-visual identity where fresh evidence supports it.
+The full refinement landed and the repository matrix is green (565 suites /
+6,731 tests; OpenSpec strict 39/39; debug + release builds; web export).
+Before/after release pixels cover Home active/completed, Games (+scrolled),
+Game Detail, tutorial, gameplay, in-session and route Results, Progress,
+Profile, Rewards (+collection grid), dark Games/Result and an 11/11
+compact/light matrix. The final native matrix (compact/dark, font-scale-2,
+runtime recovery/log/SQLite re-checks, four-game workout on the final
+artifact) is `NOT VALIDATED`: the host emulator crashed mid-pass and could not
+be restarted. Verdict: `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
 
 ## Guardrails
 
