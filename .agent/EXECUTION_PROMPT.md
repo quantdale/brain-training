@@ -1,3 +1,48 @@
+# Execution Prompt — Campaign 051: Visual DNA Reboot & Massive UI Overhaul
+
+**Status:** ACTIVE
+**Change:** `051-visual-dna-reboot-massive-ui-overhaul`
+**Start-SHA:** `2a1a0c3`
+**Target-Branch:** `main`
+**Predecessor:** `050-integrated-release-candidate-certification`
+
+## Authority
+
+Execute the owner-supplied Campaign 051 visual reboot contract and its active
+OpenSpec packet. Research before design, lock one direction, implement through
+shared primitives and protected route seams, critique the real result twice,
+and classify native/external boundaries honestly.
+
+## Work model
+
+The orchestrator owns the design system, shared UI, route convergence,
+catalog-wide identity presentation, native runtime QA, evidence, governance,
+and final validation. Use day mode and only `braintraining-ui35` /
+`emulator-5554`; no host-input automation and no parallel coder packets are
+active for this campaign.
+
+## Guardrails
+
+- Preserve SQLite ownership, Game SDK contracts, generated registry ownership,
+  scoring/generator versions, stable test IDs, accessibility semantics, and
+  offline behavior.
+- Do not claim current native visual evidence until the rebuilt artifact is
+  installed and captured on the dedicated target.
+- Do not claim human TalkBack/VoiceOver, physical/OEM, iOS, store-signing,
+  system-provider, or external-CI success without direct evidence.
+- Keep generated assets limited to a documented, license-safe concept or
+  production manifest; prefer code-native shapes for scalable game identity.
+
+## Progression
+
+Start with `CURRENT_VISUAL_AUTOPSY.md`, fresh Refero research, three visual
+directions, image-generation exploration, and `REFERENCE_LOCK_FINAL.md`.
+Then implement the design-system rebuild and surface transformations, run the
+two mandatory critique loops, and complete the repository/native evidence
+packet before terminal convergence.
+
+---
+
 # Execution Prompt — Campaign 050: Integrated Release Candidate Certification
 
 **Status:** VALIDATED — `CAMPAIGN_050_RELEASE_CONDITIONAL`

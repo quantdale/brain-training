@@ -1,3 +1,44 @@
+# Campaign 051 — Visual DNA Reboot & Massive UI Overhaul
+
+**Status:** ACTIVE
+**Campaign id:** `051-visual-dna-reboot-massive-ui-overhaul`
+**Predecessor:** `050-integrated-release-candidate-certification` (validated)
+**Mode:** day
+**Start SHA:** `2a1a0c3`
+
+## Mission
+
+Rebuild the product's visual identity around a distinctive pocket cognitive
+arcade / training-console language. The work is research-led: fresh Refero
+research and generated visual exploration establish one final reference lock,
+then shared tokens, game identity, and product surfaces converge on that lock.
+The underlying offline, scoring, persistence, routing, and Game SDK contracts
+remain protected.
+
+## Current progress
+
+The fresh research packet is complete. Refero styles, mobile screens, and
+progression flows were retrieved; three genuinely different visual directions
+were explored with image generation. The source autopsy found a stacked
+dashboard/card grammar, repeated neutral game cards, and facts-first result
+chrome. The dedicated Android ADB lane is responsive, but the installed
+package is disabled with no resolvable launch activity, so a current native
+baseline is NOT VALIDATED pending a rebuild/install.
+
+## Exit and progression
+
+Implement the locked Signal Arcade direction across Home, Games, Game Detail,
+GameHost/gameplay, Results, Progress, Profile, Rewards, and Data Management;
+preserve all stable test IDs and protected behavior; run both critique loops;
+execute the repository/native gates that are available; and write one of the
+truthful terminal labels `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`,
+`CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`, or `CAMPAIGN_051_BLOCKED`.
+
+Evidence lives under `docs/redesign/evidence/campaign051/`. The OpenSpec
+execution packet is `openspec/changes/051-visual-dna-reboot-massive-ui-overhaul/`.
+
+---
+
 # Campaign 050 — Integrated Release Candidate Certification
 
 **Status:** VALIDATED — `CAMPAIGN_050_RELEASE_CONDITIONAL`

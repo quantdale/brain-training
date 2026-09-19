@@ -1,11 +1,28 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 050 terminal closure reconciled after
-the integrated release-candidate gates and bounded Android runtime evidence.
+**Last update:** 2026-09-19 — Campaign 051 activated after the Campaign 050
+closure; research/autopsy checkpoint recorded before implementation.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Last campaign:** `050-integrated-release-candidate-certification`
 **Last campaign status:** VALIDATED
+
+## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (ACTIVE)
+
+- **Activation:** opened from the Campaign 050 checkpoint `2a1a0c3`.
+- **Mission:** replace the accumulated rounded-card/dashboard grammar with
+  the locked Signal Arcade visual system across product surfaces while
+  preserving the SDK, game, persistence, offline, and accessibility contracts.
+- **Research checkpoint:** fresh Refero style/screen/flow research, three
+  generated concept boards, source autopsy, three-direction scorecard, and
+  final reference lock are under `docs/redesign/evidence/campaign051/`.
+- **Native boundary:** target-only ADB is responsive, but the installed
+  `com.braintraining.app` package was disabled and had no resolvable launch
+  activity. Current native pixels are NOT VALIDATED until a rebuilt artifact
+  is installed on `emulator-5554`; `emulator-5556` was not touched.
+- **Next action:** implement the shared Signal Arcade tokens/identity system,
+  then converge Home, Games, Detail, GameHost, Results, Progress, Profile,
+  Rewards, and Data Management before the critique and validation waves.
 
 ## Campaign 050 — Integrated Release Candidate Certification (VALIDATED / CONDITIONAL)
 

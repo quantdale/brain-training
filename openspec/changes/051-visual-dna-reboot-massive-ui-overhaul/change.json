@@ -1,0 +1,15 @@
+{
+  "id": "051-visual-dna-reboot-massive-ui-overhaul",
+  "status": "ACTIVE",
+  "predecessor": "050-integrated-release-candidate-certification",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["visual-dna-reboot"],
+  "activationRule": "Owner-supplied Campaign 051 execution contract after the Campaign 050 conditional release-candidate checkpoint.",
+  "baselineAuditCommit": "2a1a0c3",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the Campaign 050 integrated candidate and its explicit native/external boundaries; this is a focused product visual reboot, not automatic full hardening or a rewrite of protected gameplay/persistence contracts."
+}

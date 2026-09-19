@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "050-integrated-release-candidate-certification",
-  "description": "Campaign 050 integrated release-candidate certification ownership record. Terminal VALIDATED closure: the orchestrator owned repository gates, native builds, runtime QA, evidence, governance, and final convergence; no parallel coder packets were active.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "051-visual-dna-reboot-massive-ui-overhaul",
+  "description": "Campaign 051 visual DNA reboot ownership record. The orchestrator owns design-system tokens, shared UI primitives, route convergence, game identity presentation, runtime QA, evidence, and governance; no parallel coder packets are active.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
