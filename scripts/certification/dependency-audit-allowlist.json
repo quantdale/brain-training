@@ -31,9 +31,9 @@
       "package": "decode-uri-component",
       "advisory": "GHSA-vcc3-ghjq-m6fr",
       "classification": "runtime-accepted-debt",
-      "rationale": "ReDoS (exponential decoding of malformed percent-encoded input, CWE-400/405/407) reached at runtime via expo-router@57 -> query-string@7.1.3 -> decode-uri-component. Impact is a crafted deep-link query string hanging the JS thread; no compatible fix exists: query-string@7 pins ^0.2.2, the patched 0.5.0 is ESM-only and would break the CJS require, and npm audit's only \"fix\" is an expo-router semver-major downgrade (5.1.11), which is out of scope for this hardening campaign. Follow-up: drop this entry when expo-router advances to a query-string major that carries the fix (next planned Expo SDK upgrade); tracked in .agent/KNOWN_ISSUES.md.",
-      "expires": "2026-12-31T00:00:00.000Z",
-      "tracking": ".agent/KNOWN_ISSUES.md -> Runtime dependency advisory (Campaign 027)"
+      "rationale": "ReDoS (exponential decoding of malformed percent-encoded input, CWE-400/405/407) reached at runtime via expo-router@57 -> query-string@7.1.3 -> decode-uri-component. Impact is a crafted deep-link query string hanging the JS thread. Campaign 053 re-evaluated the officially compatible remediation envelope: expo-router@57.0.22 (current SDK 57 line, latest 57.x) pins query-string ^7.1.3, and every query-string 7.x release pins decode-uri-component ^0.2.2, so no patch within the supported line can carry the fix; query-string@9.x would supply the patched decode-uri-component@^0.5.0 but 0.5.0 is `\"type\": \"module\"` (ESM-only) while expo-router requires query-string from CommonJS (`__importStar(require(\"query-string\"))` in build/getPathFromState.js), so forcing it would break route parsing at runtime; npm audit's only offered fix remains an expo-router semver-major downgrade to 5.1.11, which is out of scope and would regress SDK 57. App-owned route parameters are additionally bounded by `apps/mobile/src/routing/route-params.ts`, which is defense in depth only and does NOT remediate this upstream decoder advisory. Follow-up: drop this entry when expo-router advances to a query-string major that carries the fix (next planned Expo SDK upgrade); tracked in .agent/KNOWN_ISSUES.md.",
+      "expires": "2027-03-31T00:00:00.000Z",
+      "tracking": ".agent/KNOWN_ISSUES.md -> Runtime dependency advisory (Campaign 027; re-evaluated Campaign 053)"
     }
   ]
 }
