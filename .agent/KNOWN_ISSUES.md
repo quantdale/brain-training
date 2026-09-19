@@ -1,5 +1,29 @@
 # Known Issues / Blockers
 
+## Campaign 053 disposition — IMPLEMENTATION APPLIED (2026-09-19)
+
+The Campaign 053 whole-system hardening change was implemented under an
+owner goal-mode directive. Bootstrap is now a classified pipeline whose
+foundational failures (database, catalog registration, progression init)
+withhold the normal shell behind honest recovery screens, with fault
+injection and idempotency contracts; the router advisory disposition was
+renewed after proving no compatible Expo remediation exists; the app-owned
+route input envelope bounds canonical parameters as defense in depth; the
+known test-console noise was repaired at the source and a reviewable
+unexpected-console gate (empty baseline) is active; and a registry-derived
+persistence matrix covers all 42 games for success, rejected save, and stale
+completion with an explicit exemption mechanism.
+
+The full gated suite is 563 suites / 6,724 tests passing with 5 classified
+opt-in skips; typecheck, lint, every repository validator, and OpenSpec
+37/37 strict pass. The release APK containing these changes is installed on
+the dedicated `emulator-5554` and the startup/relaunch/route-boundary journey
+is recorded under `docs/redesign/evidence/campaign053/`.
+
+Human TalkBack/VoiceOver, physical/OEM Android, iOS, store signing, human
+system-provider usability, and external GitHub runner execution remain
+NOT VALIDATED / external and are not implied by any local result.
+
 ## Campaign 051 disposition — VISUAL REBOOT COMPLETE (2026-09-19)
 
 The Signal Arcade visual reboot is validated for the repository-owned and

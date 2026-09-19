@@ -1,41 +1,52 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 053 hardening proposal ready; no implementation campaign activated.
+**Last update:** 2026-09-19 — Campaign 053 implementation applied; convergent runtime evidence pending.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `053-full-system-hardening` (implementation applied; tasks 1–4 complete)
 **Last campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Last campaign status:** VALIDATED
 
-## Campaign 053 — Full-System Hardening Proposal (READY / NOT ACTIVATED)
+## Campaign 053 — Full-System Hardening (IMPLEMENTATION APPLIED / CONVERGING)
 
-- **Authorization:** the owner explicitly authorized a whole-repository
-  discovery and OpenSpec proposal only. No implementation, dependency,
-  schema, product-source, or production-test change is authorized in this
-  campaign.
-- **Starting SHA:** `12f9cf7f6354c12f0392cc2b4c65bc2a2fde84be`.
-- **Output:** complete Explore/Propose packet at
-  `openspec/changes/053-full-system-hardening/`, including a durable
-  investigation record, proposal, four new capability specs, design, and
-  sequenced implementation tasks. `openspec validate --strict` and the
-  repository-wide OpenSpec validation both pass (37/37).
-- **Current evidence:** fresh typecheck, lint, full Jest (559 passed suites,
-  6,575 passed tests; four suites/five tests are intentional opt-in probes),
-  Expo Doctor (21/21), repository validators, and local Android debug assembly
-  pass. ARTEMIS diagnosis was ready and a read-only emulator hierarchy
-  observation rendered Home; this is not exact-build runtime certification.
-- **Prioritized themes:** truthful foundational bootstrap recovery;
-  compatible disposition of the accepted runtime router advisory; test-signal
-  integrity; and registry-derived all-catalog persistence failure coverage.
-  No current Critical or High product defect was reproduced. The historic
-  SQLite teardown NPE remains a resolved prior issue, not a new rewrite target.
-- **Boundaries:** GitHub Actions currently fails before any job step under the
-  existing account/policy classification; human accessibility, physical/OEM
-  Android, iOS, store signing, and system-provider usability remain external
-  or manual evidence gaps.
-- **Governance:** `activeCampaign` intentionally remains `null`; Campaign 051
-  remains the last validated implementation campaign. The safest next action
-  is a separately authorized implementation activation of this OpenSpec change,
-  beginning with bootstrap integrity and recovery.
+- **Authorization:** the owner directed the repository to apply the pending
+  OpenSpec change (`053-full-system-hardening`) in goal mode and continue
+  until it is done. The proposal-only constraint from the discovery pass no
+  longer applies.
+- **Starting SHA:** `e027066` (proposal head) / `12f9cf7` discovery baseline.
+- **Implementation checkpoints:** `11e917f` (classified bootstrap + route
+  envelope), `e154f5b` (test-signal repair + console gate + catalog
+  persistence matrix), `ba2c18c` (dependency disposition + task progress),
+  `57d0be1` (affected-area map coverage). Pushed to `origin/main`.
+- **Workstreams applied:**
+  - Bootstrap is a classified pipeline (`src/bootstrap/run-bootstrap.ts`);
+    foundational failure (database/catalog/progression) withholds the normal
+    shell behind honest recovery screens; ancillary preference failure stays
+    nonfatal with a stage diagnostic; fault-injection + idempotency contracts
+    added. Five screen-test fixtures that relied on the previously masked
+    failure were repaired honestly.
+  - No compatible Expo remediation exists for the router advisory; the
+    machine-readable disposition was renewed with reachability evidence,
+    2027-03-31 expiry, and the re-evaluation condition. The app-owned route
+    input envelope validates canonical form/bounds as defense in depth.
+  - Known test noise repaired at the source; `jest/setup.js` installs a
+    reviewable unexpected-console gate with an empty baseline; expected-error
+    paths assert through `expectConsoleNoise()`; opt-in perf-probe enable
+    conditions pinned.
+  - Registry-derived catalog persistence matrix (42/42 games, success /
+    rejected-save / stale completion); explicit exemption mechanism requiring
+    identity + reason + alternate evidence (currently empty).
+- **Repository gates (current):** full gated Jest 563 suites / 6724 tests
+  pass with 5 classified opt-in skips; typecheck and lint clean; repo-state,
+  dependency-audit (5 accepted), jest-signal self-test, offline, provenance,
+  secrets, workflow, runtime-QA contract, and OpenSpec (37/37 strict) pass;
+  Android debug and release assemblies succeed; Android JS export succeeds.
+- **Runtime evidence:** `emulator-5554` (`braintraining-ui35`, API 35) is the
+  single dedicated target; the release artifact is installed and the startup
+  / relaunch / route-boundary journey is recorded under
+  `docs/redesign/evidence/campaign053/`.
+- **Boundaries:** human TalkBack/VoiceOver, physical/OEM Android, iOS,
+  store signing, human system-sheet/provider usability, and external GitHub
+  runner execution remain NOT VALIDATED / external.
 
 ## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (VALIDATED / COMPLETE)
 

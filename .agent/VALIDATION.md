@@ -5,6 +5,59 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 053 full-system hardening implementation — 2026-09-19 (IMPLEMENTATION APPLIED; CONVERGING)
+
+- Scope: **PASS for implementation** — the pending OpenSpec change
+  `053-full-system-hardening` was applied under an owner goal-mode directive.
+- Implementation checkpoints: `11e917f` classified bootstrap + route input
+  envelope; `e154f5b` test-signal repair + console gate + catalog persistence
+  matrix; `ba2c18c` renewed dependency disposition + task progress; `57d0be1`
+  affected-area map coverage for `src/bootstrap/**` and `src/routing/**`.
+  Pushed to `origin/main`.
+- Bootstrap: **PASS** — classified pipeline with foundational/ancillary
+  outcomes, recovery-safe screens, retry/relaunch convergence, stage
+  diagnostics, and fault-injection + durable-effect idempotency contracts.
+  Five screen suites whose partial db fixtures relied on the previously masked
+  progression failure were repaired honestly (progression-capable fixture or
+  precise failure scoping).
+- Dependency decision: **PASS (RENEWED DISPOSITION)** — reproduced
+  `expo-router@57.0.22 -> query-string@7.1.3 -> decode-uri-component@0.2.2`
+  (GHSA-vcc3-ghjq-m6fr, range <=0.4.2). No compatible remediation exists in
+  the SDK 57 envelope (query-string 9.x fix is ESM-only against a CJS require;
+  audit's only fix is a router major downgrade). Disposition renewed to
+  2027-03-31 with reachability + re-evaluation evidence; the route envelope is
+  defense in depth only.
+- Route envelope: **PASS** — canonical form/bounds for game id, session id,
+  workout instance key, leg index, and domain label (the SDK `GameCategory`
+  label used by real production links); malformed/oversized values fall to the
+  existing recoverable fallbacks without selection or persistence.
+- Test signal: **PASS** — all known `act`/overlap/animation/deprecation/expected
+  error noise repaired at the source (awaited events, mount no-op timing runs
+  removed, supported `findBy*` option form, full declared route set). A
+  reviewable unexpected-console gate is installed in `jest/setup.js` with an
+  **empty baseline**; deliberate error paths assert via `expectConsoleNoise()`.
+  Opt-in performance-probe enable conditions are pinned by contract test.
+- Catalog persistence contract: **PASS** — registry-derived matrix (42/42
+  games) exercises success, rejected-save, and stale-completion via the shared
+  injection seams; durable-effect safety asserted; exemption mechanism with
+  identity + reason + alternate evidence (currently no exemptions).
+- Repository gates: **PASS** — full gated Jest 563 suites / 6,724 tests with
+  5 classified opt-in skips and 0 unexpected console output; typecheck and lint
+  clean; repository-state, dependency-audit (5 accepted, none expired),
+  jest-signal self-test, affected-map sync, offline, provenance, secrets,
+  workflow-hygiene, and runtime-QA-contract validators pass; OpenSpec
+  `--changes --strict` 37/37.
+- Android artifact: **PASS** — debug and release assemblies succeed; the
+  release APK bundles the implementation (debug builds serve JS from Metro and
+  are not used as change evidence). Artifact identity is recorded in the
+  campaign evidence packet and the runtime section below.
+- Runtime evidence: see the campaign runtime record under
+  `docs/redesign/evidence/campaign053/`.
+- Boundaries: **NOT VALIDATED / EXTERNAL** — human TalkBack/VoiceOver,
+  physical/OEM Android, iOS, store signing, human system-provider usability,
+  and external GitHub runner execution remain unvalidated and are never
+  inferred from local results.
+
 ### Campaign 053 full-system hardening discovery and OpenSpec proposal — 2026-09-19 (READY / NOT ACTIVATED)
 
 - Scope: **PASS for discovery/proposal only** — no production source,
