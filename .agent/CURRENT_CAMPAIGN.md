@@ -1,3 +1,39 @@
+# Campaign 055 — Signal Arcade Desirability Pass
+
+**Status:** ACTIVE
+**Campaign id:** `055-signal-arcade-desirability`
+**Predecessor:** `054-terminal-gap-closure` (validated)
+**Mode:** day
+**Start SHA:** `698bfd3` (synchronized remote `main`; product baseline `f59c066`)
+**Change:** `openspec/changes/055-signal-arcade-desirability`
+**Authorization:** owner goal-mode directive to execute
+`.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`.
+
+## Mission
+
+Refine Signal Arcade into a desirable game product without replacing its
+visual direction: reduce dashboard grammar, strengthen game fantasy, make
+Games worth browsing, make Results feel like an event, make Profile feel owned,
+make Rewards feel collectible, keep Progress credible, and keep the mechanic
+first while protecting Campaign 054's technical floor.
+
+## Classification consumed
+
+KEEP: active gameplay architecture, dark mode. REFINE: Home/Today, Game
+Detail, Tutorial, Progress, Rewards. RETHINK: Games discovery, Results,
+Profile. REPLACE_DIRECTION: none. The independent critic's lower rating of
+active gameplay is resolved by preserving its architecture and raising its
+visual identity where fresh evidence supports it.
+
+## Guardrails
+
+No mechanics, scoring, timers, generators, difficulty, registry IDs, workout
+semantics, XP, currency, reward economy, migrations, persistence semantics,
+schema, routing, testIDs, accessibility semantics, probes, console gate,
+bootstrap recovery or route-envelope change. Emulator-local input only.
+
+---
+
 # Campaign 054 — Terminal Gap Closure
 
 **Status:** VALIDATED — `CAMPAIGN_054_GAPS_CLOSED`

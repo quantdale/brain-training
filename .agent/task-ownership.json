@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "VALIDATED",
-  "change": "054-terminal-gap-closure",
-  "description": "Campaign 054 terminal gap closure is terminally validated. The orchestrator owned the gap census, validation-count reconciliation, artifact provenance, startup/provider re-tests, external CI and dependency dispositions, the skips/probes audit, durable-state reconciliation, the full repository matrix, Android convergence, the adversarial pass, and the terminal ledger; no parallel coder packets were active.",
+  "lifecycleStatus": "ACTIVE",
+  "change": "055-signal-arcade-desirability",
+  "description": "Campaign 055 Signal Arcade desirability pass. The orchestrator owns the refinement lock, shared visual-system roles, surface refinements, mandatory critique passes, native before/after evidence, the full repository matrix, and durable state. Coder packets, when used in day mode, must stay inside their assigned surface files and must not edit shared hotspots (tokens, ui kit index, registries, governance) concurrently; the orchestrator performs convergence edits.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
@@ -18,7 +18,10 @@
     "apps/mobile/package-lock.json",
     "apps/mobile/app.json",
     "apps/mobile/src/sdk/**",
-    "apps/mobile/src/registry/**"
+    "apps/mobile/src/registry/**",
+    "apps/mobile/src/theme/**",
+    "apps/mobile/src/components/ui/**",
+    "apps/mobile/src/components/discovery/game-identity.tsx"
   ],
   "generatedFilePatterns": [
     "**/*.generated.ts",
@@ -29,7 +32,11 @@
     "apps/mobile/src/db/schema.ts",
     "apps/mobile/src/db/migrate.ts",
     "apps/mobile/src/data-portability/types.ts",
-    "apps/mobile/src/games/**"
+    "apps/mobile/src/games/**",
+    "apps/mobile/src/rating/**",
+    "apps/mobile/src/progression/sync.ts",
+    "apps/mobile/src/cosmetics/registry.ts",
+    "apps/mobile/src/rewards/inbox.ts"
   ],
   "parallelPackets": []
 }

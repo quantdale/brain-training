@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
+  "activeCampaign": "055-signal-arcade-desirability",
   "lastCampaign": "054-terminal-gap-closure",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {

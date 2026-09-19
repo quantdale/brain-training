@@ -1,3 +1,34 @@
+# Execution Prompt — Campaign 055: Signal Arcade Desirability Pass
+
+**Status:** ACTIVE
+**Change:** `055-signal-arcade-desirability`
+**Start-SHA:** `698bfd3`
+**Target-Branch:** `main`
+**Predecessor:** `054-terminal-gap-closure` (validated)
+
+## Authority
+
+Owner goal-mode directive: safely synchronize `main`, then execute
+`.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md` exhaustively
+from the Campaign 054 terminal baseline. Campaign 052's acceptance evidence is
+the starting map; Campaign 054 is the protected technical floor; Signal Arcade
+is refined in place.
+
+## Guardrails
+
+No mechanics, scoring, timers, generators, difficulty, registry IDs, workout
+semantics, XP, currency, reward economy, migrations, persistence semantics,
+schema, routing, testID, accessibility-semantics, probe, console-gate,
+bootstrap or route-envelope change. No unsupported cognitive/medical claims.
+Emulator-local input only; one dedicated AVD.
+
+## Terminal result
+
+To be recorded at closure in this file, `change.json`, and the Campaign 055
+evidence packet under `docs/redesign/evidence/campaign055/`.
+
+---
+
 # Execution Prompt — Campaign 054: Terminal Gap Closure
 
 **Status:** VALIDATED — `CAMPAIGN_054_GAPS_CLOSED`

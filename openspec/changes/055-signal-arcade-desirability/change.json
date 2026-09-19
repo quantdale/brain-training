@@ -1,0 +1,19 @@
+{
+  "id": "055-signal-arcade-desirability",
+  "status": "ACTIVE",
+  "predecessor": "054-terminal-gap-closure",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["visual-desirability-refinement"],
+  "activationRule": "Owner goal-mode directive to execute .agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md from the synchronized Campaign 054 terminal baseline.",
+  "baselineAuditCommit": "698bfd33449f42f10479c17c7cd8cd37a6564b7b",
+  "productBaselineCommit": "f59c066d36a21e361197c0ad991ee1565751cad3",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the Campaign 052 visual acceptance packet (REVIEW_FOR_CHATGPT, VISUAL_DEBT_MAP, FIRST_IMPRESSION_REVIEW, INDEPENDENT_VISUAL_CRITIQUE, REFERENCE_REALITY_CHECK and the committed pixels) plus the Campaign 054 protected technical floor. It is a bounded visual/product refinement: Signal Arcade is preserved and deepened; no mechanics, scoring, economy, schema, registry, routing, or persistence change.",
+  "validatedAt": null,
+  "validationNote": null,
+  "verdict": null
+}

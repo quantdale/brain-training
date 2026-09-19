@@ -1,10 +1,28 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 054 terminal gap closure validated; no active campaign.
+**Last update:** 2026-09-20 — Campaign 055 Signal Arcade desirability pass activated from synchronized `main` (`698bfd3`).
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** 055-signal-arcade-desirability
 **Last campaign:** `054-terminal-gap-closure`
 **Last campaign status:** VALIDATED
+
+## Campaign 055 — Signal Arcade Desirability Pass (ACTIVE)
+
+- **Authorization:** owner goal-mode directive to execute
+  `.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`.
+- **Starting SHA:** `698bfd3` (synchronized remote `main`; prompt-only commit
+  over `f59c066`). Product baseline: `f59c066`, release artifact
+  `1B6EBC20…B0FB985F` verified installed at baseline.
+- **Mode:** day (repository default); one dedicated AVD `braintraining-ui35` /
+  `emulator-5554`; emulator-local input only.
+- **Scope:** bounded visual/product refinement of Home, Games, Game Detail,
+  Tutorial, gameplay chrome, Results, Progress, Profile, Rewards, dark mode
+  and visible copy through locked shared roles; Campaign 054 is the protected
+  technical floor; Signal Arcade is refined rather than replaced.
+- **OpenSpec:** `openspec/changes/055-signal-arcade-desirability`.
+- **Evidence root:** `docs/redesign/evidence/campaign055/`.
+
+The Campaign 054 sections below remain the validated predecessor record.
 
 ## Campaign 054 — Terminal Gap Closure (VALIDATED / GAPS CLOSED)
 
