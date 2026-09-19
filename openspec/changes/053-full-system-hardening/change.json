@@ -1,0 +1,23 @@
+{
+  "id": "053-full-system-hardening",
+  "status": "VALIDATED",
+  "predecessor": "051-visual-dna-reboot-massive-ui-overhaul",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": [
+    "startup-integrity-recovery",
+    "dependency-route-safety",
+    "automated-test-signal-integrity",
+    "catalog-persistence-failure-contract"
+  ],
+  "activationRule": "Owner goal-mode directive to apply the pending Campaign 053 OpenSpec change (proposed under the discovery pass) and continue until its tasks and completion gate are satisfied.",
+  "baselineAuditCommit": "12f9cf7f6354c12f0392cc2b4c65bc2a2fde84be",
+  "fullHardening": true,
+  "reviewConsumption": "Consumes the Campaign 053 discovery findings (H-01 bootstrap truthfulness, H-02 time-bounded router advisory, H-03 test-signal debt, H-04 representative-only catalog persistence coverage) and the Campaign 051 validated product baseline. It is a bounded integrity hardening change: no schema migration, gameplay/scoring change, visual redesign, or router replacement.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "All 26 tasks applied. Classified bootstrap with recovery-safe screens, retry/relaunch idempotency contracts, and honest fixture repairs; renewed router-advisory disposition after proving no compatible Expo remediation exists; app-owned route input envelope as defense in depth; source-level test signal repair with a reviewable empty-baseline console gate; registry-derived all-catalog persistence matrix (42/42 games) with an explicit exemption mechanism. Full gated Jest 563 suites / 6,724 tests pass with 5 classified opt-in skips, 0 unexpected console output; typecheck, lint, every repository validator, and OpenSpec 37/37 strict pass; release APK exercised on the dedicated emulator (9/9 startup/route/relaunch, 4/4 storage-failure recovery, 7/7 representative completion with durable SQLite confirmation). Human/platform/store/external-CI boundaries remain NOT VALIDATED.",
+  "verdict": "CAMPAIGN_053_COMPLETE"
+}

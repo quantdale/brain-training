@@ -33,8 +33,8 @@
 
 ## 5. Convergence, runtime evidence, and durable state
 
-- [ ] 5.1 Select and run required checks through `.agent/IMPACT_MAP.md`, including repository state, dependency-policy, affected tests, full suite, typecheck, lint, and applicable catalog/startup validators.
-- [ ] 5.2 Assemble the Android artifact that contains the implemented changes and record build identity with the validation result.
-- [ ] 5.3 Run an emulator-local ARTEMIS/ADB-safe startup, failure-recovery, and representative completion journey on the one dedicated AVD without host-input automation.
-- [ ] 5.4 Record iOS, physical/OEM Android, assistive technology, store-signing, system-sheet, and zero-step remote-CI boundaries as NOT VALIDATED unless actual evidence becomes available.
-- [ ] 5.5 Update campaign/governance/validation/known-issue durable records at the implementation checkpoint, commit coherent slices, push buildable `main`, and preserve no abandoned worktrees.
+- [x] 5.1 Select and run required checks through `.agent/IMPACT_MAP.md`, including repository state, dependency-policy, affected tests, full suite, typecheck, lint, and applicable catalog/startup validators.
+- [x] 5.2 Assemble the Android artifact that contains the implemented changes and record build identity with the validation result.
+- [x] 5.3 Run an emulator-local ARTEMIS/ADB-safe startup, failure-recovery, and representative completion journey on the one dedicated AVD without host-input automation.
+- [x] 5.4 Record iOS, physical/OEM Android, assistive technology, store-signing, system-sheet, and zero-step remote-CI boundaries as NOT VALIDATED unless actual evidence becomes available.
+- [x] 5.5 Update campaign/governance/validation/known-issue durable records at the implementation checkpoint, commit coherent slices, push buildable `main`, and preserve no abandoned worktrees.

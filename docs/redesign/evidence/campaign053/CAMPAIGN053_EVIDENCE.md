@@ -60,6 +60,78 @@ Evaluated options:
    upgrade. The app-owned route envelope is explicitly **not** remediation for
    this advisory.
 
+## Runtime evidence on the dedicated emulator (task 5.3)
+Artifact: `app-release.apk`, 109,586,373 bytes, SHA-256
+`1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F`,
+built from `02a7ecb` (release bundling; Metro-free). Installed on
+`emulator-5554` (`braintraining-ui35`, Android 15 / API 35, 1080x2400,
+density 420). Raw captures live outside Git under
+`D:\Temp\campaign053\runtime\`; the result lines are duplicated here.
+
+### Startup, route boundary, and relaunch journey — 9/9 PASS
+
+```
+PASS  canonical game route renders intro
+PASS  oversized game id -> not-found fallback
+PASS  oversized game id does not corrupt startup
+PASS  oversized results id -> recoverable empty state
+PASS  malformed workout provenance -> standalone launch
+PASS  malformed provenance rejected before selection
+PASS  relaunch renders Home
+PASS  relaunch shows no recovery screen
+PASS  app logcat has no fatal/ANR/SQLite marker
+```
+
+Method: fresh install with cleared app data; `am start -W` cold launch
+rendered `home-workout-cta`; deep links drove `/game/memory`, an oversized
+(4000-char) game id, an oversized results id, and a malformed/oversized
+workout provenance tuple; force-stop plus relaunch re-rendered Home with no
+recovery screen; `logcat -d` filtered to app/ReactNativeJS/AndroidRuntime
+lines contained no FATAL/ANR/SIGSEGV/OOM/SQLite marker.
+
+### Failure-recovery journey — 4/4 PASS
+
+```
+PASS  unopenable store -> storage-unavailable recovery screen
+PASS  recovery screen exposes the retry control
+PASS  recovery screen withholds the normal shell
+PASS  restoring the store recovers Home
+```
+
+Method: the release build is not debuggable and QA controls compile out, so
+the canonical DB file was moved aside and replaced with an unreadable entry
+using the dedicated emulator's root adb (emulator-local only). Cold launch
+presented `storage-unavailable` with its retry control and no normal shell;
+restoring the file and relaunching rendered Home again. The retry/relaunch
+convergence semantics themselves are proven deterministically by
+`src/bootstrap/__tests__/run-bootstrap.test.ts` and
+`src/app/__tests__/storage-unavailable.test.tsx` (fault injection plus
+durable-effect idempotency), not by this device check.
+
+### Representative completion journey — 7/7 PASS (debug build + Metro)
+
+```
+PASS  debug+Metro cold start reaches Home
+PASS  game session completes to results (1st)
+PASS  first completion persists without failure UI
+PASS  restart completes a second session
+PASS  second completion persists without failure UI
+PASS  quit returns Home
+PASS  no app fatal/ANR/SQLite marker during journey
+```
+
+Method: the release build compiles the dev-only QA seam out, so deterministic
+force-completion ran on the debug build with Metro serving the same current JS
+source (all campaign workstreams are JS-only; the native shell is unchanged).
+Every interaction was an emulator-local `adb shell input tap` resolved from
+semantic `resource-id` bounds (Memory game: start -> tutorial QA-skip ->
+start -> QA force-win -> results -> restart -> force-win -> quit). Direct
+SQLite inspection of the pulled canonical database confirmed the durable
+result: integrity `ok`, one profile row, two memory sessions persisted
+(`memory-mu8d6ytx-1-tgcnf1`, `memory-mu8d7car-2-thzav2`), and no persistence
+error UI in either completion. The release APK was reinstalled and verified
+Home afterward, which is the final device state.
+
 ## Boundaries (task 5.4)
 
 Recorded as NOT VALIDATED / external, never inferred:

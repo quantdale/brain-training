@@ -51,8 +51,20 @@ unavailable checks into PASS.
   release APK bundles the implementation (debug builds serve JS from Metro and
   are not used as change evidence). Artifact identity is recorded in the
   campaign evidence packet and the runtime section below.
-- Runtime evidence: see the campaign runtime record under
-  `docs/redesign/evidence/campaign053/`.
+- Runtime evidence (release `app-release.apk`, SHA-256
+  `1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F`, from
+  `02a7ecb`): **PASS 9/9** startup/route-boundary/relaunch checks on
+  `emulator-5554` (canonical game route; oversized game and results ids fall to
+  recoverable fallbacks without startup corruption; malformed workout
+  provenance rejected before selection; relaunch Home without recovery; no
+  app fatal/ANR/SQLite marker). **PASS 4/4** failure-recovery checks with an
+  unopenable canonical store (recovery screen shown with retry, normal shell
+  withheld, store restoration recovers Home). **PASS 7/7** representative
+  completion journey on the debug build with Metro (two Memory sessions
+  completed, results shown, persistence error UI absent, quit Home); direct
+  SQLite inspection confirmed integrity `ok` and both sessions persisted. The
+  release artifact was reinstalled and verified Home as the final device
+  state. Raw captures are outside Git under `D:\Temp\campaign053\runtime\`.
 - Boundaries: **NOT VALIDATED / EXTERNAL** — human TalkBack/VoiceOver,
   physical/OEM Android, iOS, store signing, human system-provider usability,
   and external GitHub runner execution remain unvalidated and are never

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "canonicalBranch": "main",
   "activeCampaign": null,
-  "lastCampaign": "051-visual-dna-reboot-massive-ui-overhaul",
+  "lastCampaign": "053-full-system-hardening",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

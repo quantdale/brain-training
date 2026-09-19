@@ -1,22 +1,21 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 053 implementation applied; convergent runtime evidence pending.
+**Last update:** 2026-09-19 — Campaign 053 full-system hardening applied and validated; no active campaign.
 **Canonical branch:** `main`
-**Active campaign:** `053-full-system-hardening` (implementation applied; tasks 1–4 complete)
-**Last campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
+**Active campaign:** none
+**Last campaign:** `053-full-system-hardening`
 **Last campaign status:** VALIDATED
 
-## Campaign 053 — Full-System Hardening (IMPLEMENTATION APPLIED / CONVERGING)
+## Campaign 053 — Full-System Hardening (VALIDATED / COMPLETE)
 
-- **Authorization:** the owner directed the repository to apply the pending
-  OpenSpec change (`053-full-system-hardening`) in goal mode and continue
-  until it is done. The proposal-only constraint from the discovery pass no
-  longer applies.
+- **Authorization:** the owner directed the repository (goal mode) to apply the
+  pending OpenSpec change `053-full-system-hardening` and continue until it was
+  done. The proposal-only constraint from the discovery pass no longer applies.
 - **Starting SHA:** `e027066` (proposal head) / `12f9cf7` discovery baseline.
 - **Implementation checkpoints:** `11e917f` (classified bootstrap + route
   envelope), `e154f5b` (test-signal repair + console gate + catalog
   persistence matrix), `ba2c18c` (dependency disposition + task progress),
-  `57d0be1` (affected-area map coverage). Pushed to `origin/main`.
+  `57d0be1` (affected-area map coverage), `02a7ecb` (durable state + evidence).
 - **Workstreams applied:**
   - Bootstrap is a classified pipeline (`src/bootstrap/run-bootstrap.ts`);
     foundational failure (database/catalog/progression) withholds the normal
@@ -40,10 +39,9 @@
   dependency-audit (5 accepted), jest-signal self-test, offline, provenance,
   secrets, workflow, runtime-QA contract, and OpenSpec (37/37 strict) pass;
   Android debug and release assemblies succeed; Android JS export succeeds.
-- **Runtime evidence:** `emulator-5554` (`braintraining-ui35`, API 35) is the
-  single dedicated target; the release artifact is installed and the startup
-  / relaunch / route-boundary journey is recorded under
-  `docs/redesign/evidence/campaign053/`.
+- **Terminal result:** `CAMPAIGN_053_COMPLETE`. Detailed packet under
+  `docs/redesign/evidence/campaign053/`; the OpenSpec change metadata records
+  the terminal verdict.
 - **Boundaries:** human TalkBack/VoiceOver, physical/OEM Android, iOS,
   store signing, human system-sheet/provider usability, and external GitHub
   runner execution remain NOT VALIDATED / external.

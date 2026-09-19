@@ -1,3 +1,52 @@
+# Campaign 053 — Full-System Hardening
+
+**Status:** VALIDATED — `CAMPAIGN_053_COMPLETE`
+**Campaign id:** `053-full-system-hardening`**Predecessor:** `051-visual-dna-reboot-massive-ui-overhaul` (validated)
+**Mode:** day
+**Start SHA:** `e027066` (proposal head) / `12f9cf7` discovery baseline
+**Authorization:** owner goal-mode directive to apply the pending OpenSpec change
+
+## Mission
+
+Close four bounded integrity gaps that could conceal failure or weaken
+confidence: post-initialization bootstrap failures yielding a ready shell, an
+accepted runtime router advisory needing a safe remediation decision,
+uncontrolled test-console signal, and representative-only catalog persistence
+failure coverage.
+
+## Terminal result
+
+The change is fully applied. Bootstrap is a classified pipeline
+(foundational vs ancillary) with recovery-safe screens, deterministic
+retry/relaunch convergence, and no duplicate durable effects. No compatible
+Expo-compatible remediation exists for the router advisory, so its
+machine-readable disposition was renewed with current reachability evidence
+and a 2027-03-31 expiry; the app-owned route input envelope bounds canonical
+parameters as defense in depth. All known test-console noise was repaired at
+the source and a reviewable unexpected-console gate (empty baseline) is
+active. A registry-derived matrix covers all 42 games for success,
+rejected-save, and stale completion with an explicit exemption mechanism.
+
+## Evidence
+
+- Repository gates: full gated Jest 563+ suites / 6,724+ tests pass,
+typecheck and lint clean, every repository validator passes, OpenSpec
+`--changes --strict` 37/37.
+- Android: debug and release assemblies succeed; release artifact SHA-256
+`1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F` built
+from `02a7ecb` and exercised on `emulator-5554`:
+9/9 startup/route-boundary/relaunch checks, 4/4 storage-failure recovery
+checks, 7/7 representative completion checks (debug+Metro, same JS), with
+direct SQLite confirmation of two persisted sessions and integrity `ok`.
+- Boundaries: human TalkBack/VoiceOver, physical/OEM Android, iOS, store
+signing, human system-provider usability, and external GitHub runner
+execution remain NOT VALIDATED / external.
+- Evidence packet: `docs/redesign/evidence/campaign053/`.
+
+No successor campaign is active. A future owner must deliberately open one.
+
+---
+
 # Campaign 051 — Visual DNA Reboot & Massive UI Overhaul
 
 **Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`

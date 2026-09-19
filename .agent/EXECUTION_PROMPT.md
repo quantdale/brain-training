@@ -1,3 +1,37 @@
+# Execution Prompt — Campaign 053: Full-System Hardening
+
+**Status:** VALIDATED — `CAMPAIGN_053_COMPLETE`
+**Change:** `053-full-system-hardening`
+**Start-SHA:** `e027066`
+**Target-Branch:** `main`
+**Predecessor:** `051-visual-dna-reboot-massive-ui-overhaul`
+
+## Authority
+
+Execute the owner-directed application of the pending Campaign 053 OpenSpec
+change: classify the bootstrap pipeline with honest recovery-safe states,
+decide the router advisory within the compatible Expo envelope, repair test
+signal at the source and gate unexpected console output, and derive catalog
+persistence failure coverage from the registry. Preserve SQLite, SDK,
+scoring, gameplay, routing, offline, and accessibility contracts; keep every
+unavailable human/platform/store/external-CI boundary explicitly NOT
+VALIDATED.
+
+## Terminal result
+
+All 26 tasks applied and validated. Bootstrap is a classified pipeline with
+recovery-safe screens and idempotent retry/relaunch; the router advisory
+disposition was renewed after proving no compatible remediation exists; the
+app-owned route envelope bounds canonical inputs as defense in depth; the
+known test-console noise is repaired with a reviewable unexpected-console gate
+(empty baseline) and the opt-in probe conditions are pinned; and the
+registry-derived persistence matrix covers all 42 games for success,
+rejected-save, and stale completion. Repository gates, Android debug/release
+builds, and the dedicated-emulator startup/failure-recovery/completion
+journeys passed. Evidence: `docs/redesign/evidence/campaign053/`.
+
+---
+
 # Execution Prompt — Campaign 051: Visual DNA Reboot & Massive UI Overhaul
 
 **Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`
