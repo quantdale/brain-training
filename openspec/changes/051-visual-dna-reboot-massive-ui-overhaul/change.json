@@ -1,6 +1,6 @@
 {
   "id": "051-visual-dna-reboot-massive-ui-overhaul",
-  "status": "VALIDATED",
+  "status": "ACTIVE",
   "predecessor": "050-integrated-release-candidate-certification",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -14,5 +14,7 @@
   "reviewConsumption": "Consumes the Campaign 050 integrated candidate and its explicit native/external boundaries; this is a focused product visual reboot, not automatic full hardening or a rewrite of protected gameplay/persistence contracts.",
   "validatedAt": "2026-09-19",
   "validationNote": "Campaign 051 completed the Signal Arcade visual reboot and passed repository-owned gates, sequential Android builds, representative release captures, accessibility/source contracts, and one bounded ARTEMIS semantic trace. The current full responsive/font-scale matrix, complete 42-route native visual matrix, and human/platform/store/CI lanes remain explicitly unvalidated or external.",
-  "verdict": "CAMPAIGN_051_VISUAL_REBOOT_PARTIAL"
+  "verdict": "CAMPAIGN_051_VISUAL_REBOOT_PARTIAL",
+  "reopenedAt": "2026-09-19",
+  "reopenReason": "Continue the same campaign to close the prompt-required current native compact/font-scale, all-42 reachability, eight-domain gameplay, and state-flow evidence gaps before the final verdict."
 }

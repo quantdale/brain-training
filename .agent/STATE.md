@@ -1,16 +1,18 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 051 terminal closure recorded after
-implementation, release validation, and evidence convergence.
+**Last update:** 2026-09-19 — Campaign 051 validation continuation reopened
+to close the remaining current native matrix after the partial checkpoint.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Last campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Last campaign status:** VALIDATED
 
-## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (VALIDATED / PARTIAL)
+## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (ACTIVE CONTINUATION)
 
-- **Terminal label:** `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`.
-- **Activation:** opened from the Campaign 050 checkpoint `2a1a0c3`.
+- **Previous checkpoint:** `3cc3be7`, terminal label
+  `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`.
+- **Activation:** opened from the Campaign 050 checkpoint `2a1a0c3`; reopened
+  for the same campaign's missing current native matrix.
 - **Implementation checkpoint:** `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`.
 - **Result:** the locked Signal Arcade visual system, code-native eight-domain
   identity layer, and route convergence were implemented while SDK, scoring,
@@ -18,12 +20,14 @@ implementation, release validation, and evidence convergence.
 - **Repository/native result:** full local gates, sequential debug/release
   builds, representative release captures, and one bounded ARTEMIS semantic
   trace passed. The release APK installed and resolved `MainActivity`.
-- **Boundaries:** the current full compact/font-scale matrix and complete
-  42-route native visual matrix were not rerun. Human TalkBack/VoiceOver,
-  physical/OEM, iOS, store signing, system-provider usability, and external
-  CI remain explicitly unvalidated or external.
-- **Next action:** none; no successor campaign is active. A future owner must
-  deliberately open the next campaign.
+- **Open validation:** current full compact/font-scale route coverage,
+  complete 42-route reachability, eight-domain gameplay representatives, and
+  required state-flow checks.
+- **Boundaries:** human TalkBack/VoiceOver, physical/OEM, iOS, store signing,
+  system-provider usability, and external CI remain explicitly unvalidated or
+  external.
+- **Next action:** execute the native completion matrix, repair only reproduced
+  current defects, then converge the terminal verdict.
 
 ## Campaign 050 — Integrated Release Candidate Certification (VALIDATED / CONDITIONAL)
 

@@ -1,23 +1,20 @@
 # Campaign 051 — Visual DNA Reboot & Massive UI Overhaul
 
-**Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
+**Status:** ACTIVE — continuation of `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
 **Campaign id:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Predecessor:** `050-integrated-release-candidate-certification` (validated)
 **Mode:** day
 **Start SHA:** `2a1a0c3`
 
-## Terminal result
+## Continuation audit
 
-Campaign 051 completed the Signal Arcade visual reboot through repository-owned
-implementation, critique, release-artifact capture, and bounded ARTEMIS
-runtime evidence. The implementation checkpoint is `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`.
-Repository gates, builds, source contracts, representative native surfaces,
-and one semantic runtime trace passed for the documented scope.
-
-The terminal label is partial because the current full compact/font-scale
-matrix and complete 42-route native visual matrix were not rerun after this
-visual change. Human/platform/store/CI boundaries remain external or manual.
-There is no active successor campaign.
+The prior checkpoint `3cc3be7` recorded
+`CAMPAIGN_051_VISUAL_REBOOT_PARTIAL` after the Signal Arcade implementation.
+This continuation reopens the same campaign to close the prompt's remaining
+current native evidence: complete compact/font-scale route coverage, all-42
+reachability, eight-domain gameplay representatives, and required state-flow
+checks. The implementation checkpoint remains
+`ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`.
 
 ## Mission
 
@@ -39,8 +36,9 @@ offline, routing, and stable accessibility contracts were preserved.
 
 ## Exit and progression
 
-The OpenSpec packet is terminally validated and no campaign is active. Future
-work requires a deliberate owner-supplied successor campaign.
+Finish the current native completion matrix and re-run the affected repository
+gates before writing the final truthful Campaign 051 verdict. Do not claim
+completion from the previous partial checkpoint alone.
 
 Evidence lives under `docs/redesign/evidence/campaign051/`. The OpenSpec
 execution packet is `openspec/changes/051-visual-dna-reboot-massive-ui-overhaul/`.
