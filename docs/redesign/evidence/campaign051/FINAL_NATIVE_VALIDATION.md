@@ -1,50 +1,87 @@
 # Campaign 051 Final Native Validation
 
+**Verdict:** `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE` for the repository-owned
+Android/native scope
 **Target:** `braintraining-ui35` / `emulator-5554`
-**Platform:** Android 15 / API 35, 1080×2400, density approximately 420
-**Artifact:** `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`
+**Platform:** Android 15 / API 35, 1080x2400, density approximately 420
+**Mode:** day
 
-## Artifact and launch
+## Final release artifact
 
-- Release Gradle build — **PASS**.
+- `:app:assembleRelease --no-daemon` — **PASS**.
 - APK install with ADB — **PASS**.
 - Resolved activity — `com.braintraining.app/.MainActivity`.
-- APK size — **109,576,529 bytes**.
-- SHA-256 — `C4B05F30CED48400DE677A845ED547FF50245AD7442016E2166496528E26B9B0`.
-- Narrow post-capture logcat scan — **0** `FATAL EXCEPTION`, app ANR,
-  `OutOfMemoryError`, or `SIGSEGV` markers.
+- APK size — **109,576,793 bytes**.
+- SHA-256 — `C91389622D7D90B58065550FC1F28A30D0086103D99A5956FDEA501667806A4C`.
+- The final APK was installed after the compact Results and GameHost
+  accessibility fixes and was launched Metro-free on the dedicated device.
 
-The first release screenshot showed a transient Android System UI “isn't
-responding” dialog. It was dismissed through emulator-local UI hierarchy and
-the app subsequently rendered the clear Home frame and the remaining routes.
-This is retained as a first-capture system boundary, not relabeled as a clean
-first-launch result. The debug artifact's Metro-required red screen is a
-development-launch limitation and is not product visual evidence.
+The first native completion lane used the same dedicated AVD. Repeated
+force-stop route probing later left Android framework services unavailable;
+only the disposable `braintraining-ui35` AVD was recovered (clean boot with
+data wipe), the final APK was reinstalled, and the exact artifact received a
+fresh ARTEMIS smoke. This is test-device recovery, not a product data-loss
+claim.
 
-## Native visual surfaces captured
+## Native visual matrix
 
-- Home training console and dominant workout action.
-- Games storefront, including poster cards, search, filter chips, and catalog
-  count.
-- Game Detail poster hero and dominant Play action.
-- GameHost intro and tutorial/gameplay stage.
-- Progress record view.
-- Profile player identity, XP, and streak view.
+All captures were route-verified and nonblank. Each matrix contains the same
+11 surfaces: Home, Games, Game Detail, Progress, Progress Activity, Progress
+Detail, Profile, Rewards, Data Management, Results, and GameHost intro.
 
-Results, Rewards, and Data Management were covered by source/component tests
-and inherited repository/runtime evidence, but were not each captured as a new
-Campaign 051 release screenshot. The complete 42-game native route matrix was
-not rerun in this campaign; registry membership and source lifecycle coverage
-remain green.
+- Default light/dark: **22/22 captures** under
+  `D:\Temp\campaign051-native-final-20260919-default`.
+- Compact 720x1600 light/dark: **22/22 captures** under
+  `D:\Temp\campaign051-native-final-20260919-compact`.
+- Android font scale 2 light/dark: **22/22 captures** under
+  `D:\Temp\campaign051-native-final-20260919-font2`.
+- Total current Campaign 051 matrix: **66/66 captures**.
+- The capture harness now resets system font scale for every profile, so a
+  compact run following font-scale-2 cannot inherit the preceding profile.
 
-## ARTEMIS evidence
+The compact pass reproduced and closed the two remaining current findings:
+the tutorial's hidden-behind content is removed from the accessibility tree,
+and compact Results metrics wrap into a readable 2x2 layout. The final audit
+reported zero measured violations for default, compact, and font-scale-2
+profiles. Clipped rows called out by the audit are scroll-under-tab evidence,
+not undersized or unlabelled controls.
 
-- `mobile_diagnose` reported `ready`; all 5/5 required device checks passed.
-- Successful Flash trace: `ceced6a6-a075-4f23-9f4d-a05ed4f944a5`.
-- The trace started from Games, opened Sequence Memory detail through the
-  visible semantic action, and verified `Play Sequence Memory` completion.
+## Catalog and invalid-route reachability
 
-The earlier exploratory Flash trace
-`08161201-ec31-4c10-8759-0779829a19ef` was cancelled after it followed an
-off-path loop and is not counted as a pass. ARTEMIS traces remain external
-evidence under `D:\Tools\artemis\traces` and are not copied into Git.
+- Generated registry count: **42 game IDs**.
+- Final installed APK, paced semantic deep-link sweep: **42/42 first-pass
+  route arrivals**; no retries or failures.
+- Invalid `braintraining://game/not-a-real-game` route: **PASS** — rendered
+  the `game-title`/not-found fallback, did not render `Storage Unavailable`,
+  and returned to MainActivity/Home.
+
+## ARTEMIS runtime evidence
+
+All device actions were emulator-local semantic actions; no host mouse,
+keyboard, focus stealing, QA controls, or force-complete controls were used.
+
+- Pro workout trace `d347c773-7e39-491a-b8cc-d5f0b3e13c82`: started through
+  visible Today's Workout context, completed four ordinary legs — Signal
+  Watch (480), Next in Sequence (651), Symbol Tracker (0 by natural timeout),
+  and Word Scramble (800) — with visible pause/resume, Next game x3,
+  Finish workout, `4/4 games saved`, four Done rows, Progress `55 sessions /
+  8 of 8`, and UI-driven Settings/Apps force-stop plus launcher relaunch.
+  The task summary records exact labels and screenshots. Three optional
+  provider/schema verifiers were inconclusive; the execution history and
+  manual screenshot evidence independently confirm the checkpoints.
+- Exact final APK Flash trace `046ba41c-2e1b-447f-b5b5-c1a04c2569b9`: recovered
+  from the intentionally invalid-route starting state, opened the visible
+  Games catalog, launched Signal Watch, respected its tutorial, allowed
+  ordinary natural timeouts through the 30-trial session, and verified
+  `Session complete / Final score 480 / +22 XP earned! +4 coins · Progress
+  saved`. Visible Done/back/Home navigation ended on usable Home.
+- Earlier exploratory trace `08161201-ec31-4c10-8759-0779829a19ef` and the
+  stale standalone trace `8ebfe381-ddb6-4fcf-9aa6-259ed787ea4b` are excluded
+  from the pass count.
+
+## Boundaries
+
+Human TalkBack/VoiceOver quality, physical/OEM Android, iOS runtime,
+production/store signing, human system-provider usability, and external CI
+execution remain external/manual boundaries. They are not inferred from this
+local native evidence.

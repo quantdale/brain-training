@@ -5,7 +5,7 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-### Campaign 051 Signal Arcade visual reboot — 2026-09-19 (VALIDATED / PARTIAL)
+### Campaign 051 Signal Arcade visual reboot — 2026-09-19 (VALIDATED / COMPLETE)
 
 - Scope: **PASS for the repository-owned visual reboot** — Signal Arcade
   tokens, geometry, typography, code-native eight-domain identity worlds, and
@@ -18,31 +18,32 @@ unavailable checks into PASS.
   skipped; 6,575 tests passed / 5 skipped; 5 snapshots), Expo Doctor 21/21,
   web export, offline, secrets, workflows, runtime-QA contract, provenance,
   task ownership, repo-state, OpenSpec 36/36, and both performance probes.
-- Native: **PASS for bounded release evidence** — sequential debug/release
-  builds passed; release APK SHA-256 is
-  `C4B05F30CED48400DE677A845ED547FF50245AD7442016E2166496528E26B9B0`.
-  Home, Games, Detail, GameHost, Progress, and Profile were captured on
-  `emulator-5554`. A narrow post-capture log scan found zero app fatal, ANR,
-  OOM, or SIGSEGV markers. A transient Android System UI dialog in the first
-  capture is retained as a boundary observation.
-- Runtime: **PASS for bounded ARTEMIS evidence** — device diagnosis passed
-  5/5 checks and Flash trace
-  `ceced6a6-a075-4f23-9f4d-a05ed4f944a5` reached Sequence Memory detail and
-  Play through semantic interaction. The earlier exploratory trace was
-  cancelled and is not counted as a pass.
-- Accessibility/responsive: **PASS for source contracts and exercised
-  surfaces; current full matrix NOT VALIDATED** — decorative world art is
-  hidden from accessibility, stable IDs remain present, and existing a11y/
-  reduced-motion contracts passed. Campaign 049's 12/12 compact and
-  font-scale-2 matrix is inherited evidence; Campaign 051 did not rerun it
-  after the visual changes.
-- Boundaries: **NOT VALIDATED / EXTERNAL** — complete fresh native capture of
-  all 42 routes, human TalkBack/VoiceOver, physical/OEM Android, iOS, store
-  signing, human system-provider usability, and GitHub runner execution.
+- Native: **PASS** — sequential debug/release builds passed; final release
+  APK SHA-256 is
+  `C91389622D7D90B58065550FC1F28A30D0086103D99A5956FDEA501667806A4C` and
+  size is 109,576,793 bytes. Default, compact, and font-scale-2 light/dark
+  matrices produced 66/66 route-verified, nonblank captures. The final
+  generated catalog reached 42/42 routes; invalid-route recovery passed.
+- Runtime: **PASS** — Pro trace
+  `d347c773-7e39-491a-b8cc-d5f0b3e13c82` completed the four-leg Today's
+  Workout with pause/resume, Next/Finish, saved completion, and UI-driven
+  force-stop/relaunch persistence. Exact-final-APK Flash trace
+  `046ba41c-2e1b-447f-b5b5-c1a04c2569b9` completed a normal Signal Watch
+  session and returned Home. ARTEMIS diagnosis passed 5/5 required checks.
+  The Pro provider/schema verifiers were inconclusive, so manual execution
+  history and screenshots are the authoritative evidence for those checkpoints.
+- Accessibility/responsive: **PASS** — separate audits for default, compact,
+  and font-scale-2 each reported zero measured violations across 22 surfaces.
+  The GameHost tutorial tree and compact Results action regressions were
+  repaired and rechecked.
+- Boundaries: **NOT VALIDATED / EXTERNAL** — human TalkBack/VoiceOver,
+  physical/OEM Android, iOS, store signing, human system-provider usability,
+  and GitHub runner execution.
 - Evidence: **PASS** — packet under
   `docs/redesign/evidence/campaign051/`; generated concept boards are
   evidence-only and no external trace or credential was copied into Git.
-- Terminal label: `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`.
+- Terminal label: `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE` for the repository-owned
+  and dedicated Android scope.
 
 ### Campaign 050 integrated release-candidate certification — 2026-09-19 (VALIDATED / CONDITIONAL)
 

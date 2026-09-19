@@ -1,20 +1,17 @@
 # Campaign 051 — Visual DNA Reboot & Massive UI Overhaul
 
-**Status:** ACTIVE — continuation of `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
+**Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`
 **Campaign id:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Predecessor:** `050-integrated-release-candidate-certification` (validated)
 **Mode:** day
 **Start SHA:** `2a1a0c3`
 
-## Continuation audit
+## Terminal audit
 
 The prior checkpoint `3cc3be7` recorded
 `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL` after the Signal Arcade implementation.
-This continuation reopens the same campaign to close the prompt's remaining
-current native evidence: complete compact/font-scale route coverage, all-42
-reachability, eight-domain gameplay representatives, and required state-flow
-checks. The implementation checkpoint remains
-`ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`.
+The continuation closed the remaining native evidence and terminally validated
+the campaign at `fe5757b9b7c280652b424e98fe764c9dbc2a2c28`.
 
 ## Mission
 
@@ -36,9 +33,11 @@ offline, routing, and stable accessibility contracts were preserved.
 
 ## Exit and progression
 
-Finish the current native completion matrix and re-run the affected repository
-gates before writing the final truthful Campaign 051 verdict. Do not claim
-completion from the previous partial checkpoint alone.
+The final release artifact passed the current native completion matrix: 66/66
+light/dark default, compact, and font-scale-2 captures; zero measured a11y
+violations; 42/42 catalog routes; invalid-route recovery; exact-final-APK
+standalone smoke; and full four-leg workout/relaunch evidence. No successor is
+active. Human/platform/store/CI boundaries remain explicitly external.
 
 Evidence lives under `docs/redesign/evidence/campaign051/`. The OpenSpec
 execution packet is `openspec/changes/051-visual-dna-reboot-massive-ui-overhaul/`.

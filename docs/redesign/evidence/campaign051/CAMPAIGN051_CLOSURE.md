@@ -1,6 +1,6 @@
 # Campaign 051 Closure
 
-**Terminal label:** `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
+**Terminal label:** `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`
 **Start SHA:** `2a1a0c3`
 **Implementation checkpoint:** `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`
 **Direction:** Signal Arcade
@@ -13,11 +13,13 @@ console language, code-native domain worlds, poster-like game identity, and
 surface-level visual convergence while the offline, Game SDK, persistence,
 scoring, routing, and stable accessibility contracts remain protected.
 
-The terminal result is **partial** because the current campaign did not rerun
-the complete responsive/font-scale matrix or the full 42-route native visual
-matrix, and human/platform/store/CI lanes remain outside the executable local
-boundary. This is a coverage classification, not a known Critical or High
-product regression.
+The terminal result is **complete for the repository-owned Signal Arcade and
+dedicated Android scope**. The current release artifact received the complete
+66-capture responsive/theme matrix, 42-game route reachability, invalid-route
+recovery, full four-leg workout/relaunch evidence, and exact-final-APK
+standalone ARTEMIS smoke. Human/platform/store/CI lanes remain outside the
+executable local boundary and are explicitly retained as external/manual
+limitations, not inferred as passes.
 
 ## Research and reference lock
 
@@ -55,9 +57,15 @@ product regression.
 - Sequential Android debug/release builds passed. The release APK installed,
   resolved `MainActivity`, and rendered representative Home, Games, Detail,
   GameHost, Progress, and Profile surfaces.
-- ARTEMIS device diagnosis passed 5/5 checks and the bounded Sequence Memory
-  semantic Flash trace passed.
-- No fatal app marker was found in the narrowed post-capture log scan.
+- ARTEMIS diagnosis passed 5/5 required checks. Pro trace
+  `d347c773-7e39-491a-b8cc-d5f0b3e13c82` completed the four-game Today's
+  Workout, pause/resume, visible Next/Finish flow, and UI-driven relaunch
+  persistence. Exact-final-APK Flash trace
+  `046ba41c-2e1b-447f-b5b5-c1a04c2569b9` completed a normal Signal Watch
+  session and returned Home.
+- The final native matrix contains 66/66 route-verified, nonblank captures;
+  default, compact, and font-scale-2 audits each reported zero measured
+  violations. The generated 42-game registry reached 42/42 routes.
 
 Detailed records are split across `FINAL_REPO_VALIDATION.md`,
 `FINAL_NATIVE_VALIDATION.md`, `ACCESSIBILITY_RESPONSIVE_QA.md`, and
@@ -66,6 +74,6 @@ Detailed records are split across `FINAL_REPO_VALIDATION.md`,
 ## Handoff
 
 No Campaign 051 successor is active. A future owner may open a deliberate
-campaign for the current full responsive/native catalog matrix, human/platform
-review, or another product direction. No token budget was supplied for this
-campaign, so no token-budget claim is made.
+campaign for human/platform review, store/CI boundaries, or another product
+direction. No token budget was supplied for this campaign, so no token-budget
+claim is made.

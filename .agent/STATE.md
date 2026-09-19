@@ -1,33 +1,34 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 051 validation continuation reopened
-to close the remaining current native matrix after the partial checkpoint.
+**Last update:** 2026-09-19 — Campaign 051 terminal validation complete.
 **Canonical branch:** `main`
-**Active campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
+**Active campaign:** none
 **Last campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Last campaign status:** VALIDATED
 
-## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (ACTIVE CONTINUATION)
+## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (VALIDATED / COMPLETE)
 
 - **Previous checkpoint:** `3cc3be7`, terminal label
-  `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`.
-- **Activation:** opened from the Campaign 050 checkpoint `2a1a0c3`; reopened
-  for the same campaign's missing current native matrix.
-- **Implementation checkpoint:** `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`.
+  `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`; the continuation closed the missing
+  native evidence.
+- **Activation:** opened from the Campaign 050 checkpoint `2a1a0c3` and
+  completed on the canonical `main` branch.
+- **Implementation checkpoint:** `fe5757b9b7c280652b424e98fe764c9dbc2a2c28`.
 - **Result:** the locked Signal Arcade visual system, code-native eight-domain
   identity layer, and route convergence were implemented while SDK, scoring,
   persistence, offline, routing, and accessibility contracts remained green.
 - **Repository/native result:** full local gates, sequential debug/release
-  builds, representative release captures, and one bounded ARTEMIS semantic
-  trace passed. The release APK installed and resolved `MainActivity`.
-- **Open validation:** current full compact/font-scale route coverage,
-  complete 42-route reachability, eight-domain gameplay representatives, and
-  required state-flow checks.
+  builds, 66 current light/dark responsive captures, zero measured a11y
+  violations, 42/42 route reachability, exact-final-APK ARTEMIS smoke, and a
+  four-leg Pro workout/relaunch trace passed. The final release APK installed
+  and resolved `MainActivity`.
+- **Terminal label:** `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE` for the
+  repository-owned and dedicated Android scope.
 - **Boundaries:** human TalkBack/VoiceOver, physical/OEM, iOS, store signing,
   system-provider usability, and external CI remain explicitly unvalidated or
   external.
-- **Next action:** execute the native completion matrix, repair only reproduced
-  current defects, then converge the terminal verdict.
+- **Next action:** no successor is active; future work must open a deliberate
+  campaign. Human/platform/store/CI boundaries remain external/manual.
 
 ## Campaign 050 — Integrated Release Candidate Certification (VALIDATED / CONDITIONAL)
 

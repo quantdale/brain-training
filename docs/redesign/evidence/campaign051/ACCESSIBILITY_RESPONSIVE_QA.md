@@ -1,45 +1,50 @@
 # Campaign 051 Accessibility and Responsive QA
 
-**Scope:** source contracts, release smoke, and representative native pixels
-**Verdict:** PASS for exercised contracts; current full matrix `NOT VALIDATED`
+**Scope:** source contracts, final release pixels, semantic hierarchy, and
+responsive native profiles
+**Verdict:** **PASS** for the exercised repository-owned Android scope
 
 ## Accessibility contracts
 
-- Full Jest: **559 suites passed, 4 skipped; 6,575 tests passed, 5 skipped**;
-  5 visual snapshots passed.
+- Full Jest: **559 suites passed, 4 skipped; 6,575 tests passed, 5 skipped;
+  5 snapshots passed**.
 - Focused GameHost, accessibility-contract, pause-overlay, and workout-results
-  checks passed: **4 suites / 22 tests**.
-- Stable semantic IDs, labels, and test hooks were preserved. The native
-  hierarchy exposed labels for Games, game detail, Play, and the current
-  workout controls after release installation.
-- `GameWorldArt` is decorative and hidden from the accessibility tree. World
-  identity is supplementary; titles, domain labels, score/readout text, and
-  actions remain the semantic content.
-- Existing contrast, reduced-motion, pause, and game-UI contracts remained
-  green in the full suite. No new accessibility dependency or native module
-  was introduced.
+  checks: **4 suites / 22 tests passed**.
+- Stable semantic IDs, labels, and test hooks were preserved. World art is
+  decorative and hidden from the accessibility tree; game identity, domain,
+  score/readouts, and actions remain semantic content.
+- A reproduced compact GameHost issue is fixed by hiding the mounted gameplay
+  controls from accessibility while the tutorial modal owns focus. A
+  reproduced compact Results issue is fixed by wrapping the four metrics into
+  a 2x2 layout instead of pushing the Play Again control below the viewport.
+- The capture harness resets system font scale for each profile, preventing
+  cross-profile contamination in sequential theme/profile runs.
 
-## Responsive implementation review
+## Final responsive matrix
 
-The changed surfaces continue to use the shared `ScreenShell`, safe-area
-insets, responsive grid-column calculation, bounded poster art, and existing
-font-scale-aware layout seams. Web export also completed successfully with 20
-static routes, providing a second layout compilation target.
+The final release APK was captured on `emulator-5554` in light and dark themes
+for three independent profiles:
 
-The Campaign 049 release matrix remains the latest complete compact and
-font-scale-2 matrix: 12/12 surfaces in each theme/profile with zero measured
-interactive-node violations. Campaign 051's current native captures cover
-Home, Games, Detail, GameHost, Progress, and Profile, but the full 12/12
-large-font and compact matrix was not rerun after this visual change. That
-current matrix is therefore **NOT VALIDATED**, not silently inherited as a
-new Campaign 051 pass.
+- Default: **22/22 captures; 0 a11y violations**.
+- Compact 720x1600: **22/22 captures; 0 a11y violations**.
+- Android font scale 2: **22/22 captures; 0 a11y violations**.
+
+Total: **66/66 route-verified, nonblank captures and zero measured
+undersized/unlabelled interactive nodes**. The audit retains explicit notes
+for rows whose content is intentionally scrollable beneath the tab bar; those
+are not counted as violations by the repository audit contract.
 
 ## Runtime observability
 
-ARTEMIS device diagnosis reported `ready` with all 5/5 required checks on
-`emulator-5554`; its successful Flash trace reached Sequence Memory detail and
-the Play action using semantic interaction. ADB/UIAutomator hierarchy capture
-also remained available for the release artifact.
+ARTEMIS diagnosis reported all **5/5 required checks pass**; after the
+dedicated AVD was recovered, the exact final APK Flash smoke completed a
+normal Signal Watch session and returned Home. The full Pro workout trace and
+its UI-driven relaunch persistence evidence are recorded in
+`FINAL_NATIVE_VALIDATION.md`.
 
-Human TalkBack, VoiceOver, physical/OEM Android, and manual large-text review
-were not performed in this campaign. They remain external/manual boundaries.
+## Manual/platform boundaries
+
+Human TalkBack, VoiceOver, physical/OEM Android, iOS, production signing,
+human system-provider usability, and external CI remain **NOT VALIDATED /
+EXTERNAL**. Reduced-motion and sensory contracts remain source-level and
+automated-test evidence, not a claim of human perceptual review.

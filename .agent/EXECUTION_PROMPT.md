@@ -1,19 +1,21 @@
 # Execution Prompt — Campaign 051: Visual DNA Reboot & Massive UI Overhaul
 
-**Status:** ACTIVE — continuation after `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
+**Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`
 **Change:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Start-SHA:** `2a1a0c3`
 **Target-Branch:** `main`
 **Predecessor:** `050-integrated-release-candidate-certification`
 
-## Continuation result
+## Terminal result
 
-The prior checkpoint was partial. Continue the same Campaign 051 work from
-`ab5cf7f5f4ceb51243ffd8030797dc3753b196ae` and close the missing current
-native matrix: compact/font-scale route coverage, all-42 reachability,
-eight-domain gameplay representatives, and the required state flows. Keep
-human, physical/OEM, iOS, signing, system-provider, and external-CI boundaries
-explicit.
+The prior checkpoint was partial. The continuation completed the missing
+current native matrix from `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae` and
+terminally validated the campaign at
+`fe5757b9b7c280652b424e98fe764c9dbc2a2c28`: 66/66 responsive/theme captures,
+zero measured a11y violations, 42/42 game routes, invalid-route recovery,
+full four-leg workout/relaunch evidence, and exact-final-APK standalone smoke.
+Human, physical/OEM, iOS, signing, system-provider, and external-CI boundaries
+remain explicit external/manual limits.
 
 ## Authority
 

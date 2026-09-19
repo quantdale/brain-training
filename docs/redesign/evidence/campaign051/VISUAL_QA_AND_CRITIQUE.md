@@ -1,8 +1,8 @@
 # Campaign 051 Visual QA and Critique
 
 **Direction:** Signal Arcade
-**Verdict:** `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
-**Implementation checkpoint:** `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`
+**Verdict:** `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`
+**Implementation checkpoint:** `fe5757b9b7c280652b424e98fe764c9dbc2a2c28`
 
 ## Evidence reviewed
 
@@ -68,13 +68,13 @@ kept:
   shipped as a production asset; production identity is code-native.
 
 The review found no Critical or High visual regression in the exercised
-surfaces. The remaining partial label reflects coverage boundaries rather than
-a known broken visual contract.
+surfaces. The final native packet now closes the previously open coverage
+items with 66/66 responsive/theme captures, zero measured accessibility
+violations, and 42/42 current catalog route arrivals.
 
 ## Remaining visual boundary
 
-Campaign 051 did not rerun the complete Campaign 049 compact/font-scale matrix
-or capture every one of the 42 game routes natively. Those are recorded as
-`NOT VALIDATED` for this campaign, while the inherited Campaign 049 evidence,
-current source tests, and the captured release routes remain valid evidence
-for their respective scopes.
+Campaign 051 reran the current default, compact, and font-scale-2 matrices
+independently across light and dark themes (66/66) and reached every generated
+game route (42/42). Human TalkBack/VoiceOver, physical/OEM, iOS, signing,
+system-provider, and external-CI evidence remains outside this local packet.

@@ -175,7 +175,11 @@ function applyProfile(device, name) {
   adb(device, ['shell', 'wm', 'reset']);
   if (profile.size) adb(device, ['shell', 'wm', 'size', profile.size]);
   if (profile.density) adb(device, ['shell', 'wm', 'density', String(profile.density)]);
-  if (profile.fontScale) adb(device, ['shell', 'settings', 'put', 'system', 'font_scale', profile.fontScale]);
+  // Profiles are applied independently, even when multiple profiles are
+  // captured under the same theme. Reset the inherited system font scale so
+  // `compact` after `font-scale-2` is genuinely compact/default text rather
+  // than a mislabeled 2x capture.
+  adb(device, ['shell', 'settings', 'put', 'system', 'font_scale', profile.fontScale ?? '1.0']);
   adb(device, [
     'shell',
     'settings',

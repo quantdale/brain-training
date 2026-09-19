@@ -1,13 +1,13 @@
 # Known Issues / Blockers
 
-## Campaign 051 disposition — VISUAL REBOOT PARTIAL (2026-09-19)
+## Campaign 051 disposition — VISUAL REBOOT COMPLETE (2026-09-19)
 
 The Signal Arcade visual reboot is validated for the repository-owned and
-bounded Android scope. The current full compact/font-scale matrix and fresh
-native visual capture of every 42-game route were not rerun after the shared
-visual changes; do not describe those evidence classes as current Campaign 051
-passes. Source registry/lifecycle coverage, stable semantic contracts, and the
-representative release surfaces remain green.
+dedicated Android scope. The final artifact has current default, compact, and
+font-scale-2 light/dark evidence (66/66 captures), zero measured a11y
+violations, 42/42 route arrivals, invalid-route recovery, and exact-final-APK
+ARTEMIS smoke. Source registry/lifecycle coverage and stable semantic
+contracts remain green.
 
 The local release capture also recorded a transient Android System UI
 “isn't responding” dialog on the first screenshot. Emulator-local hierarchy
@@ -18,7 +18,10 @@ bounded first-capture observation rather than a clean first-launch claim.
 Human TalkBack/VoiceOver, physical/OEM Android, iOS, production/store
 signing, human system-provider usability, and external GitHub runner execution
 remain external or manual boundaries. No new Critical or High product issue
-was identified by this campaign.
+was identified by this campaign. During native probing, repeated cold route
+restarts destabilized the disposable AVD framework; the dedicated AVD was
+recovered with a clean boot and the final APK was reinstalled. This is a
+test-infrastructure caveat, not an app failure classification.
 
 ## Campaign 050 disposition — RELEASE CONDITIONAL (2026-09-19)
 
