@@ -1,50 +1,43 @@
 /**
- * Rewards — engagement hub (engagement V2, campaign 010 / W12).
+ * Rewards — the collection surface (campaign 055).
  *
- * One coherent surface over the whole engagement layer:
- * - balance card (append-only ledger derived);
- * - CLAIMABLE INBOX: unlocked achievements / completed quests / reached
- *   streak milestones with per-item claims and an idempotent Claim-all
- *   (each underlying claim is once-only, so retries can never double-grant);
- * - COLLECTION PROGRESS: owned/total cosmetic coverage per slot;
- * - the full cosmetic registry with earn/unlock/equip/buy (unchanged model:
- *   earned ownership is derived, purchases spend normal earned currency only);
- * - RECENT REWARDS: newest-first projection of xp_awards + currency ledger.
+ * Campaign 052: the mechanics were real but the presentation read as
+ * inventory. The refinement lock (§2.8) turns the cosmetic registry into a
+ * collection: code-native `CollectibleTile` objects in one grid per slot,
+ * with the exact same ownership/unlock/economy semantics as before. The claim
+ * band is the hero only while rewards are actually waiting; collection
+ * progress is a quiet per-slot rail plus one "n/12" caption, never the hero.
  *
- * Reward moments emit a non-blocking celebration plus a kit toast; nothing
- * here blocks play.
- *
- * Presentation (campaign 026, design-language v3 "Neon Arcade"): the
- * claimable inbox leads with a success-tinted hero (count + Claim all); the
- * inbox is the action treatment, collection meters are the in-progress
- * treatment and earn-only badges stay desaturated; the cosmetic registry is a
- * 2-column badge gallery with identity marks; history rows carry metric hues.
+ * All claim/purchase/equip flows, idempotency, the two-tap purchase confirm,
+ * the toast and the celebration host are untouched.
  */
 import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, type ViewStyle } from "react-native";
 
 import { ScreenShell } from "@/components/screen-shell";
-import { SectionHeader, StateCard } from "@/components/shell";
+import { StateCard } from "@/components/shell";
 import { ThemedText } from "@/components/themed-text";
-import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
+import { CollectibleTile, type CollectibleState } from "@/components/rewards/collectible-tile";
+import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
+  ArcadePanel,
   Badge,
   Button,
-  Card,
   EmptyState,
   Entrance,
   HAIRLINE,
-  ListRow,
   ProgressBar,
+  Report,
+  ReportRow,
   showToast,
   Spark,
-  StatBlock,
 } from "@/components/ui";
 import type { AppDatabase } from "@/db";
 import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
+import { useIsWideWidth } from "@/platform/layout";
 import {
   COSMETIC_DEFINITIONS,
   COSMETIC_SLOTS,
@@ -77,13 +70,6 @@ const SLOT_LABELS: Record<CosmeticSlot, string> = {
   avatarFrame: "Avatar Frames",
   accent: "Accents",
   celebration: "Celebrations",
-};
-
-/** Identity fill per cosmetic slot, so collection meters keep one hue language. */
-const SLOT_TONES: Record<CosmeticSlot, ThemeColor> = {
-  avatarFrame: "accent",
-  accent: "xp",
-  celebration: "success",
 };
 
 interface RewardsData {
@@ -212,8 +198,6 @@ function inboxTestId(item: RewardInboxItem): string {
   return item.key.replace(/[^a-zA-Z0-9]+/g, "-");
 }
 
-/** History testIDs sanitize the entry id inline (ids contain `:`). */
-
 /** How long a purchase stays armed (awaiting its confirming second tap). */
 const PURCHASE_CONFIRM_MS = 4000;
 
@@ -222,6 +206,7 @@ type PurchaseArmTimer = ReturnType<typeof setTimeout>;
 
 export default function RewardsScreen() {
   const theme = useTheme();
+  const wide = useIsWideWidth();
   const [refreshKey, setRefreshKey] = useState(0);
   const { data, loaded, error } = useDbData(loadRewards, [refreshKey], EMPTY_REWARDS);
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
@@ -421,23 +406,37 @@ export default function RewardsScreen() {
     data.cosmeticProgression,
     data.profileSettings,
   );
+  const hasInbox = data.inbox.length > 0;
+
+  // Equipped set identity for the quiet hero state (names only; the collection
+  // grid below owns the objects).
+  const equippedNames = COSMETIC_SLOTS.map((slot) => {
+    const id = data.equippedIds[slot];
+    return id ? COSMETIC_DEFINITIONS.find((def) => def.id === id)?.name : undefined;
+  }).filter((name): name is string => name !== undefined);
+
+  // Grid columns: 3 on phone/compact, 4 once the content width supports it
+  // (lock §2.8 asks for a dense set, not a two-column badge gallery). A fixed
+  // basis with a max width keeps a short final row at cell size instead of
+  // stretching one collectible across the whole grid (campaign 055 visual QA).
+  const cellWidth: ViewStyle = {
+    flexBasis: wide ? '22%' : '30%',
+    maxWidth: wide ? '23.5%' : '31.5%',
+  };
 
   return (
     <ScreenShell>
       <Entrance index={0}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerText}>
-            <ThemedText type="eyebrow" themeColor="accentText">
-              CLAIM &amp; COLLECT
-            </ThemedText>
-            <ThemedText type="title" testID="rewards-title">
-              Rewards
-            </ThemedText>
-            <ThemedText type="caption" themeColor="textSecondary">
-              Claim what you earned, then grow your collection.
-            </ThemedText>
-          </View>
-          <Spark size={30} color={theme.currency} />
+        <View style={styles.headerText}>
+          <ThemedText type="eyebrow" themeColor="textMuted">
+            CLAIM &amp; COLLECT
+          </ThemedText>
+          <ThemedText type="title" testID="rewards-title">
+            Rewards
+          </ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Claim what you earned, then grow your collection.
+          </ThemedText>
         </View>
       </Entrance>
 
@@ -458,26 +457,26 @@ export default function RewardsScreen() {
         />
       ) : (
         <>
-          {/* Claimable hero: the ready-to-claim count is the metric and Claim
-              all is the screen's single primary action. */}
+          {/* The screen's one focal object: the claim band while rewards are
+              ready, otherwise the collection identity. */}
           <Entrance index={1}>
-            <Card
-              variant="hero"
-              shape="poster"
-              tone={data.inbox.length > 0 ? "successSoft" : null}
+            <ArcadePanel
+              emphasis="focal"
+              tone={hasInbox ? "warningSoft" : null}
               testID="rewards-hero"
             >
-              <View style={styles.heroRow}>
-                <StatBlock
-                  label="Ready to claim"
-                  value={`${data.inbox.length}`}
-                  valueType="numeralXl"
-                  tone={data.inbox.length > 0 ? "successSoftText" : "text"}
-                />
-                {data.inbox.length > 0 ? (
-                  <Spark size={40} color={theme.success} />
-                ) : null}
-                <View style={styles.heroAction}>
+              {hasInbox ? (
+                <View style={styles.heroRow}>
+                  <View style={styles.heroText}>
+                    <ThemedText type="numeralXl" themeColor="warningSoftText">
+                      {data.inbox.length}
+                    </ThemedText>
+                    <ThemedText type="label" themeColor="warningSoftText">
+                      {data.inbox.length === 1
+                        ? "reward ready to claim"
+                        : "rewards ready to claim"}
+                    </ThemedText>
+                  </View>
                   {data.inbox.length > 1 ? (
                     <Button
                       label={`Claim all ${data.inbox.length}`}
@@ -490,25 +489,34 @@ export default function RewardsScreen() {
                     />
                   ) : null}
                 </View>
-              </View>
+              ) : (
+                <View style={styles.heroText}>
+                  <ThemedText type="eyebrow" themeColor="textSecondary">
+                    COLLECTION
+                  </ThemedText>
+                  <ThemedText type="gameTitle">Your collection</ThemedText>
+                  <ThemedText type="bodySmall" themeColor="textSecondary">
+                    {equippedNames.length > 0
+                      ? `Equipped: ${equippedNames.join(" · ")}`
+                      : "The starter set is included."}
+                  </ThemedText>
+                </View>
+              )}
               <ThemedText
                 type="caption"
-                themeColor="textSecondary"
+                themeColor={hasInbox ? "warningSoftText" : "textSecondary"}
                 testID="rewards-balance"
               >
                 {data.balance} coins · Earn coins from play, quests and
                 achievements. Spend only on safe cosmetics.
               </ThemedText>
-            </Card>
+            </ArcadePanel>
           </Entrance>
 
-          {/* Claimable inbox: the action treatment — one tap each or all. */}
+          {/* Claim inbox: reward rows with an object chip, the requirement and
+              one Claim key each; Claim all lives in the hero band. */}
           <Entrance index={2}>
-            <Card
-              testID="rewards-inbox"
-              tone={data.inbox.length > 0 ? "successSoft" : null}
-            >
-              <SectionHeader title="Ready to claim" />
+            <Report title="Rewards to claim" testID="rewards-inbox">
               {data.inbox.length === 0 ? (
                 <EmptyState
                   icon={<Spark size={22} color={theme.textMuted} />}
@@ -517,24 +525,33 @@ export default function RewardsScreen() {
                   testID="rewards-inbox-empty"
                 />
               ) : (
-                data.inbox.map((item) => (
+                data.inbox.map((item, index) => (
                   <View
                     key={item.key}
-                    style={styles.itemRow}
+                    style={[
+                      styles.itemRow,
+                      index < data.inbox.length - 1
+                        ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border }
+                        : null,
+                    ]}
                     testID={`rewards-item-${inboxTestId(item)}`}
                   >
                     <View
                       style={[
                         styles.itemIcon,
-                        { backgroundColor: theme.surface },
+                        { backgroundColor: theme.surfaceSunken },
                       ]}
                     >
-                      <ThemedText type="headline" allowFontScaling={false}>
+                      <ThemedText
+                        type="headline"
+                        allowFontScaling={false}
+                        aria-hidden
+                      >
                         {item.kind === "milestone" ? "🔥" : "🏆"}
                       </ThemedText>
                     </View>
                     <View style={styles.itemText}>
-                      <ThemedText type="body">{item.title}</ThemedText>
+                      <ThemedText type="bodySmall">{item.title}</ThemedText>
                       <ThemedText type="caption" themeColor="textSecondary">
                         {item.description}
                       </ThemedText>
@@ -563,45 +580,59 @@ export default function RewardsScreen() {
                   </View>
                 ))
               )}
-            </Card>
+            </Report>
           </Entrance>
 
-          {/* Collection progress — the in-progress treatment: meters, never a
-              claim action, so it reads differently at a glance. */}
+          {/* Collection progress: quiet rails plus one "n/12" caption — the
+              grid below is the content, never this. */}
           <Entrance index={3}>
-            <Card testID="rewards-collection">
-              <SectionHeader
-                title="Collection"
-                caption={`${collection.ownedTotal}/${collection.total} cosmetics collected (${Math.round(collection.ratio * 100)}%)`}
-              />
+            <Report
+              title="Collection"
+              testID="rewards-collection"
+              action={
+                <ThemedText
+                  type="caption"
+                  themeColor="textMuted"
+                  testID="rewards-collection-total"
+                >
+                  {`${collection.ownedTotal}/${collection.total}`}
+                </ThemedText>
+              }
+            >
               <ThemedText
                 type="caption"
                 themeColor="textSecondary"
                 testID="rewards-collection-intro"
+                style={styles.collectionIntro}
               >
                 The starter set is included. Earn more through play or spend
                 earned coins on safe cosmetics.
               </ThemedText>
-              {collection.slots.map((slot) => (
+              {collection.slots.map((slot, index) => (
                 <View
                   key={slot.slot}
-                  style={styles.collectionRow}
+                  style={[
+                    styles.collectionRow,
+                    { borderBottomColor: theme.border },
+                    index < collection.slots.length - 1
+                      ? { borderBottomWidth: HAIRLINE }
+                      : null,
+                  ]}
                   testID={`rewards-collection-slot-${slot.slot}`}
                 >
                   <ProgressBar
                     value={slot.ratio}
-                    tone={SLOT_TONES[slot.slot]}
+                    tone="success"
                     label={SLOT_LABELS[slot.slot]}
                     valueLabel={`${slot.owned}/${slot.total}`}
                   />
                 </View>
               ))}
-            </Card>
+            </Report>
           </Entrance>
 
-          {/* Badge gallery: a 2-column grid. Equipped/owned badges stay
-              full-colour, purchasable badges carry the coin action, and
-              earn-only locked badges stay desaturated with their unlock hint. */}
+          {/* The collection itself: one grid per slot, owned/equipped/locked
+              tiles sharing the same set. Economy semantics are unchanged. */}
           {COSMETIC_SLOTS.map((slot, slotIndex) => {
             const defs = COSMETIC_DEFINITIONS.filter((d) => d.slot === slot);
             const ownedCount = defs.filter((d) =>
@@ -609,12 +640,16 @@ export default function RewardsScreen() {
             ).length;
             return (
               <Entrance key={slot} index={4 + slotIndex}>
-                <Card testID={`rewards-slot-${slot}`}>
-                  <SectionHeader
-                    title={SLOT_LABELS[slot]}
-                    caption={`${ownedCount}/${defs.length} collected`}
-                  />
-                  <View style={styles.badgeGrid}>
+                <Report
+                  title={SLOT_LABELS[slot]}
+                  testID={`rewards-slot-${slot}`}
+                  action={
+                    <ThemedText type="caption" themeColor="textMuted">
+                      {`${ownedCount}/${defs.length}`}
+                    </ThemedText>
+                  }
+                >
+                  <View style={styles.tileGrid}>
                     {defs.map((def) => {
                       const owned = isCosmeticOwned(
                         def,
@@ -623,69 +658,36 @@ export default function RewardsScreen() {
                       );
                       const equipped = data.equippedIds[slot] === def.id;
                       const armed = armedBuyId === def.id;
-                      const state = equipped
-                        ? "Equipped"
+                      const state: CollectibleState = equipped
+                        ? "equipped"
                         : owned
-                          ? "Owned"
-                          : `Locked. ${unlockHint(def)}`;
+                          ? "owned"
+                          : "locked";
                       return (
                         <View
                           key={def.id}
                           testID={`rewards-cosmetic-${def.id}`}
-                          accessibilityLabel={`${def.name}. ${state}`}
-                          style={[
-                            styles.badgeCard,
-                            {
-                              backgroundColor: owned
-                                ? theme.surface
-                                : theme.surfaceSunken,
-                              borderColor: theme.border,
-                            },
-                            !owned ? styles.badgeLocked : null,
-                          ]}
+                          accessibilityLabel={`${def.name}. ${
+                            equipped ? "Equipped" : owned ? "Owned" : `Locked. ${unlockHint(def)}`
+                          }`}
+                          style={[styles.tileCell, cellWidth]}
                         >
-                          <View
-                            style={[
-                              styles.badgeMark,
-                              {
-                                backgroundColor: owned
-                                  ? theme.accentSoft
-                                  : theme.surface,
-                              },
-                            ]}
-                          >
-                            <ThemedText
-                              type="headline"
-                              allowFontScaling={false}
-                            >
-                              {def.preview.emoji ?? def.name.slice(0, 1)}
-                            </ThemedText>
-                          </View>
-                          <ThemedText
-                            type="bodySmall"
-                            themeColor={owned ? "text" : "textMuted"}
-                            numberOfLines={1}
-                          >
-                            {def.name}
-                          </ThemedText>
-                          {equipped ? (
-                            <Badge
-                              tone="success"
-                              label="✓ Equipped"
-                              size="sm"
+                          <View style={styles.tileWrap}>
+                            <CollectibleTile
+                              name={def.name}
+                              slot={slot}
+                              preview={def.preview}
+                              state={state}
+                              detail={
+                                equipped
+                                  ? undefined
+                                  : owned
+                                    ? "Owned"
+                                    : unlockHint(def)
+                              }
                             />
-                          ) : owned ? (
-                            <Badge tone="accent" label="Owned" size="sm" />
-                          ) : (
-                            <ThemedText
-                              type="caption"
-                              themeColor="textMuted"
-                              numberOfLines={2}
-                            >
-                              🔒 {unlockHint(def)}
-                            </ThemedText>
-                          )}
-                          <View style={styles.badgeAction}>
+                          </View>
+                          <View style={styles.tileAction}>
                             {owned && !equipped ? (
                               <Button
                                 label="Equip"
@@ -725,78 +727,67 @@ export default function RewardsScreen() {
                       );
                     })}
                   </View>
-                </Card>
+                </Report>
               </Entrance>
             );
           })}
 
           {/* Recent rewards: unified xp_awards + ledger feed (newest first). */}
           <Entrance index={7}>
-            <Card testID="rewards-history">
-              <SectionHeader title="Recent rewards" />
+            <Report title="Recent rewards" testID="rewards-history">
               {data.history.length === 0 ? (
                 <EmptyState
-                  icon={<Spark size={20} color={theme.xp} />}
+                  icon={<Spark size={20} color={theme.textMuted} />}
                   title="No rewards yet"
                   message="Complete a session to earn your first XP and coins."
                   testID="rewards-history-empty"
                 />
               ) : (
-                data.history.map((entry) => {
+                data.history.map((entry, index) => {
                   const xpEntry = (entry.xp ?? 0) !== 0;
                   const negativeCoins = (entry.coins ?? 0) < 0;
                   return (
-                    <View
+                    <ReportRow
                       key={entry.id}
-                      style={styles.historyRow}
-                      testID={`rewards-history-${entry.id.replace(/[^a-zA-Z0-9]+/g, "-")}`}
-                    >
-                      <View style={styles.itemText}>
-                        <ListRow
-                          title={entry.label}
-                          subtitle={
-                            entry.detail
-                              ? `${formatHistoryDate(entry.at)} · ${entry.detail}`
-                              : formatHistoryDate(entry.at)
-                          }
-                          icon={
-                            <Spark
-                              size={14}
-                              color={
-                                xpEntry
-                                  ? theme.xpText
-                                  : negativeCoins
-                                    ? theme.dangerText
-                                    : theme.currencyText
-                              }
-                            />
-                          }
-                          tone={
+                      label={entry.label}
+                      hint={
+                        entry.detail
+                          ? `${formatHistoryDate(entry.at)} · ${entry.detail}`
+                          : formatHistoryDate(entry.at)
+                      }
+                      icon={
+                        <Spark
+                          size={14}
+                          color={
                             xpEntry
-                              ? "xpSoft"
+                              ? theme.xpText
                               : negativeCoins
-                                ? "dangerSoft"
-                                : "currencySoft"
+                                ? theme.dangerText
+                                : theme.currencyText
                           }
                         />
-                      </View>
-                      <ThemedText
-                        type="numeral"
-                        themeColor={
-                          xpEntry
-                            ? "xp"
-                            : negativeCoins
-                              ? "danger"
-                              : "currency"
-                        }
-                      >
-                        {formatHistoryAmount(entry)}
-                      </ThemedText>
-                    </View>
+                      }
+                      trailing={
+                        <ThemedText
+                          type="numeral"
+                          themeColor={
+                            xpEntry
+                              ? "xp"
+                              : negativeCoins
+                                ? "danger"
+                                : "currency"
+                          }
+                        >
+                          {formatHistoryAmount(entry)}
+                        </ThemedText>
+                      }
+                      testID={`rewards-history-${entry.id.replace(/[^a-zA-Z0-9]+/g, "-")}`}
+                      divider={index < data.history.length - 1}
+                    />
                   );
                 })
               )}
-            </Card>
+            </Report>
           </Entrance>
 
           <Button
@@ -839,31 +830,26 @@ function formatHistoryAmount(entry: RewardHistoryEntry): string {
 }
 
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: Spacing.three,
-  },
   headerText: {
-    flex: 1,
     gap: Spacing.half,
   },
   heroRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.three,
   },
-  heroAction: {
-    alignItems: "flex-end",
-    flexShrink: 0,
-    marginLeft: "auto",
+  heroText: {
+    flexShrink: 1,
+    gap: Spacing.half,
   },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.three,
+    minHeight: 44,
+    paddingVertical: Spacing.two,
   },
   itemIcon: {
     width: 40,
@@ -872,57 +858,39 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  historyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
   itemText: {
     flex: 1,
     gap: Spacing.half,
-  },
-  itemActions: {
-    flexDirection: "row",
-    gap: Spacing.two,
   },
   rewardPills: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.one,
   },
-  badgeGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  badgeCard: {
-    flexBasis: "47%",
-    flexGrow: 1,
-    borderRadius: Radii.large,
-    borderWidth: HAIRLINE,
-    padding: Spacing.twoHalf,
-    gap: Spacing.one,
-    alignItems: "center",
-  },
-  // Locked badges are desaturated (not just dim text) so the state reads at a
-  // glance; the border/background colours are passed inline from the theme.
-  badgeLocked: {
-    opacity: 0.55,
-  },
-  badgeMark: {
-    width: 48,
-    height: 48,
-    borderRadius: Radii.medium,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeAction: {
-    minHeight: 44,
-    alignItems: "center",
-    justifyContent: "center",
+  collectionIntro: {
+    paddingVertical: Spacing.two,
   },
   collectionRow: {
     gap: Spacing.half,
+    paddingVertical: Spacing.two,
+  },
+  tileGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.two,
+    paddingTop: Spacing.two,
+  },
+  tileCell: {
+    gap: Spacing.one,
+  },
+  // Row wrapper so the tile's `flex: 1` resolves its width inside the cell
+  // while its height still comes from the square plate + plinth content.
+  tileWrap: {
+    flexDirection: "row",
+  },
+  tileAction: {
+    minHeight: 44,
+    justifyContent: "center",
   },
   doneButton: {
     alignSelf: "center",

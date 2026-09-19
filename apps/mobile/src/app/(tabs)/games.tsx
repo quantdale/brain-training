@@ -1,16 +1,21 @@
 /**
- * Games — discovery screen (Campaign 032).
+ * Games — storefront (Campaign 032; Campaign 055 storefront pass).
  *
  * The route has two explicit jobs: Suggested Next answers “what should I play
  * now?” from the existing personalization snapshot, while Browse All answers
  * “what can I choose?” through the complete registry-backed library. Search and
  * filters intentionally hide the suggestion so an intentional lookup never
- * competes with a recommendation. Cards remain lazy-loaded through the
- * registry and keep their existing detail/favorite/mastery contracts.
+ * competes with a recommendation.
+ *
+ * Campaign 055 composition: the default view leads with the featured
+ * `GameStage` moment, and the library below is a dense poster grid of
+ * `GamePosterTile`s — identity (world art) before metadata, no repeated
+ * banner→badge→title→description card grammar. Routing, search matching,
+ * favourites and mastery semantics are unchanged.
  */
 
 import { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
 
 import { ScreenShell } from '@/components/screen-shell';
 import { ThemedText } from '@/components/themed-text';
@@ -24,7 +29,7 @@ import {
 } from '@/components/ui';
 import { SectionHeader } from '@/components/shell';
 import { useDiscoveryData } from '@/components/discovery/discovery-data';
-import { GameCard } from '@/components/discovery/game-card';
+import { GamePosterTile } from '@/components/discovery/game-poster-tile';
 import { getGameIdentity } from '@/components/discovery/game-identity';
 import { SuggestedNext } from '@/components/discovery/suggested-next';
 import { useTheme } from '@/hooks/use-theme';
@@ -33,11 +38,14 @@ import { getAllGameDefinitions, type GameDefinition } from '@/registry/registry'
 import { GAME_CATEGORIES } from '@/sdk';
 import { Spacing } from '@/theme/tokens';
 
+/** The poster grid is never a single column: compact phones go two-up. */
+const MIN_GRID_COLUMNS = 2;
+
 function categoryTestID(category: string): string {
   return `games-filter-${category.toLowerCase().replace(/[^a-z]/g, '')}`;
 }
 
-/** Split the visible games into tier-driven rows of `columns` cards. */
+/** Split the visible games into poster rows of `columns` tiles. */
 function chunkRows(
   games: readonly GameDefinition[],
   columns: number,
@@ -53,11 +61,11 @@ function chunkRows(
 export default function GamesScreen() {
   const theme = useTheme();
   const games = getAllGameDefinitions();
-  // 1 column on phones, 2 on medium, 3 on expanded — the grid genuinely
-  // follows the layout tier instead of stretching one phone column.
-  const columns = useGridColumns();
-  // Single snapshot for Suggested Next and card badges (favourites + mastery);
-  // refreshes on focus so detail-screen toggles land without a remount.
+  // Two-up on phones, following the layout tier once it offers more.
+  const columns = Math.max(MIN_GRID_COLUMNS, useGridColumns());
+  // Single snapshot for Suggested Next and poster badges (favourites +
+  // mastery); refreshes on focus so detail-screen toggles land without a
+  // remount.
   const discovery = useDiscoveryData();
 
   const [query, setQuery] = useState('');
@@ -169,12 +177,14 @@ export default function GamesScreen() {
           </View>
 
           <View style={styles.browseBlock} testID="games-browse-all">
-            <SectionHeader
-              title="Browse all games"
-              eyebrow={isDefaultView ? 'CHOOSE A GAME' : 'LIBRARY'}
-              caption="Every game in your offline library"
-            />
-            <View style={styles.filterRow} testID="games-filters">
+            <SectionHeader title="Browse all games" />
+            {/* One scrollable rail instead of a wrapping pill cloud
+                (campaign 052: crowded filters pushed the grid down). */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterRow}
+              testID="games-filters">
               <Chip
                 testID="games-filter-all"
                 label="All"
@@ -209,7 +219,7 @@ export default function GamesScreen() {
                   onPress={clearFilters}
                 />
               ) : null}
-            </View>
+            </ScrollView>
           </View>
 
           {/* Live result count so filtering feedback is explicit. */}
@@ -236,13 +246,19 @@ export default function GamesScreen() {
                 <View key={row[0].id} style={styles.gridRow}>
                   {row.map((game) => (
                     <View key={game.id} style={styles.gridCell}>
-                      <GameCard
+                      <GamePosterTile
                         game={game}
                         isFavorite={discovery.favorites.has(game.id)}
                         mastery={discovery.masteryByGame.get(game.id) ?? null}
                       />
                     </View>
                   ))}
+                  {/* Keep the last row on the grid's column width. */}
+                  {row.length < columns
+                    ? Array.from({ length: columns - row.length }, (_, index) => (
+                        <View key={`spacer-${index}`} style={styles.gridCell} />
+                      ))
+                    : null}
                 </View>
               ))}
             </View>
@@ -270,15 +286,16 @@ const styles = StyleSheet.create({
   },
   filterRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: Spacing.two,
+    paddingRight: Spacing.three,
   },
   grid: {
-    gap: Spacing.three,
+    gap: Spacing.two,
   },
   gridRow: {
     flexDirection: 'row',
-    gap: Spacing.three,
+    gap: Spacing.two,
   },
   gridCell: {
     flex: 1,

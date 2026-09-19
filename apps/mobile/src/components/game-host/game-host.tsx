@@ -4,8 +4,8 @@
  *
  * Every game screen renders through this host, so the intro/session/results
  * chrome is written once and inherits the app-wide design language: a
- * category-tinted eyebrow, the game's own name as the hero, one rules block,
- * one primary action, and a single-row HUD during play.
+ * game-world Stage with the identity kicker and name, one rules block, one
+ * primary action, and a single-row instrument strip during play.
  *
  * Contracts preserved: pause overlay opacity/focus behaviour, hardware-back
  * interception, dev-only QA panel placement, tutorial overlay anchoring, and
@@ -15,17 +15,21 @@ import { useCallback, useEffect, useRef } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 
 import { isDevBuild, testId } from '@/sdk';
-import type { DifficultyLevel } from '@/sdk';
+import type { DifficultyLevel, GameCategory } from '@/sdk';
 import { markGameFirstInteraction } from '@/sdk/perf';
 import { ThemedText } from '@/components/themed-text';
-import { GameWorldArt, getGameIdentity, IdentityMark } from '@/components/discovery/game-identity';
+import {
+  getGameIdentity,
+  type GameIdentitySource,
+} from '@/components/discovery/game-identity';
+import { GameStage } from '@/components/discovery/game-stage';
 import {
   DifficultySelector,
   GameButton,
   PauseOverlay,
   SessionHeader,
 } from '@/components/game-ui';
-import { Button, Card } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { getGameDefinition } from '@/registry/registry';
 import { Spacing, type DomainName } from '@/constants/theme';
 import type { ThemeColor } from '@/theme/tokens';
@@ -180,10 +184,22 @@ export function GameHost({
 
   const definition = getGameDefinition(gameId);
   const tone = domainTone(definition?.primaryCategory);
-  const identity = definition ? getGameIdentity(definition) : null;
-  const rules = conciseMechanic(description ?? definition?.description);
   const categoryLabel = definition?.primaryCategory;
   const gameName = definition?.name ?? gameId;
+  const rules = conciseMechanic(description ?? definition?.description);
+  // The intro is always a GameStage. An unregistered id (bare test harness,
+  // renamed game) still gets a valid identity source rather than different
+  // chrome, so the same composition renders in every case.
+  const stageGame: GameIdentitySource =
+    definition ?? {
+      id: gameId,
+      name: gameName,
+      // Bare-harness ids have no category; the empty string keeps
+      // getGameIdentity's generic fallback instead of inventing a domain.
+      primaryCategory: '' as GameCategory,
+      description: rules,
+    };
+  const identity = getGameIdentity(stageGame);
   const workoutLaunch = useWorkoutSessionLaunch();
   const workoutPosition =
     workoutLaunch?.gameId === gameId ? workoutLaunch.legIndex + 1 : null;
@@ -201,41 +217,28 @@ export function GameHost({
         accessibilityElementsHidden={contentHidden}
         accessible={false}>
         {view === 'intro' ? (
-          // Campaign 035 keeps the shared neutral hero so the global Start
-          // action remains primary; domain identity lives in the motif cue.
-          <Card
-            variant="hero"
-            shape="soft"
-            padding="lg"
+          // Campaign 055: the intro is a game-world Stage — world art leads,
+          // the identity kicker and title follow, then workout context, rules,
+          // difficulty, the Start key and How to play.
+          <GameStage
+            game={stageGame}
             testID={testId(gameId, 'intro')}
-            style={styles.introCard}>
-            {/* The intro card IS the game header: the route no longer renders a
-                second title/category/description block above it, and the
-                established testIDs move here with the content. */}
-            {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'world')} /> : null}
-
-            {categoryLabel !== undefined ? (
-              <View style={styles.introEyebrow}>
-                {identity ? (
-                  <IdentityMark
-                    family={identity.family}
-                    size={28}
-                    color={tone ? theme[`${tone}Text` as ThemeColor] : theme.textSecondary}
-                    testID="game-identity-mark"
-                  />
-                ) : null}
-                {categoryLabel !== gameName ? (
-                  <ThemedText
-                    type="eyebrow"
-                    themeColor="textSecondary"
-                    testID="game-category"
-                    style={tone ? { color: theme[`${tone}Text` as ThemeColor] } : undefined}>
-                    {categoryLabel}
-                  </ThemedText>
-                ) : null}
-              </View>
-            ) : null}
-
+            artTestID={testId(gameId, 'world')}
+            identityTestID="game-identity-mark"
+            titleTestID="game-title"
+            size="hero"
+            kicker={identity.verb}
+            meta={
+              categoryLabel !== undefined && categoryLabel !== gameName ? (
+                <ThemedText
+                  type="eyebrow"
+                  themeColor="textSecondary"
+                  testID="game-category"
+                  style={tone ? { color: theme[`${tone}Text` as ThemeColor] } : undefined}>
+                  {categoryLabel}
+                </ThemedText>
+              ) : null
+            }>
             {workoutPosition !== null ? (
               <View
                 style={styles.workoutContext}
@@ -250,12 +253,8 @@ export function GameHost({
               </View>
             ) : null}
 
-            <ThemedText type="title" testID="game-title">
-              {gameName}
-            </ThemedText>
-
             {rules !== undefined && rules.length > 0 ? (
-              <ThemedText type="body" themeColor="textSecondary" testID="game-description">
+              <ThemedText type="bodyRead" themeColor="textSecondary" testID="game-description">
                 {rules}
               </ThemedText>
             ) : null}
@@ -308,7 +307,7 @@ export function GameHost({
             )}
 
             {isDevBuild() ? qaPanel : null}
-          </Card>
+          </GameStage>
         ) : null}
 
         {view === 'session' ? (
@@ -389,14 +388,6 @@ const styles = StyleSheet.create({
     padding: Spacing.twoHalf,
     borderWidth: 1,
     borderRadius: Spacing.two,
-  },
-  introCard: {
-    gap: Spacing.twoHalf,
-  },
-  introEyebrow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
   },
   workoutContext: {
     gap: Spacing.half,

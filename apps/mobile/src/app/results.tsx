@@ -30,16 +30,18 @@ import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
 import { useLayoutTier } from "@/platform/layout";
 import { parseCanonicalSessionId } from "@/routing/route-params";
-import { SectionHeader, StateCard } from "@/components/shell";
+import { StateCard } from "@/components/shell";
 import { formatRelativeDay, performanceBand } from "@/components/shell/format";
 import { formatDayLabel } from "@/analytics/format";
 import { ThemedText } from "@/components/themed-text";
+import { GameWorldArt } from "@/components/discovery/game-identity";
+import { ArcadePanel } from "@/components/ui/arcade-panel";
+import { Report, ReportRow } from "@/components/ui/report";
 import {
   AnimatedNumber,
   BackLink,
   Badge,
   Button,
-  Card,
   Confetti,
   Entrance,
   ProgressRing,
@@ -172,6 +174,12 @@ export default function ResultsScreen() {
   );
   const { session, recent, ratingHistory, isPersonalBest } = data;
 
+  // Campaign 055 honesty gate: a first-ever session is technically a best, but
+  // presenting "New personal best" (or the success beat) on a weak result
+  // implies success. Only a mid-band-or-better personal best earns it.
+  const showPersonalBest =
+    session !== null && isPersonalBest && session.normalizedResult >= 0.5;
+
   // Cross-feature wiring (006R hardening): advance the durable workout when this
   // session finished the current game, and surface the next game / completion.
   const {
@@ -187,7 +195,7 @@ export default function ResultsScreen() {
   // sensory service honours the global toggles, so a muted device stays
   // silent while the badge still shows.
   useEffect(() => {
-    if (!isPersonalBest || session === null) {
+    if (!showPersonalBest || session === null) {
       return;
     }
     if (celebratedResults.has(session.id)) {
@@ -195,7 +203,7 @@ export default function ResultsScreen() {
     }
     celebratedResults.add(session.id);
     liveAudioHaptics.feedback("success");
-  }, [isPersonalBest, session]);
+  }, [showPersonalBest, session]);
 
   // Workout-advance failure (Campaign 027): the session is saved, but the
   // leg transition did not land. Surface it once per distinct message; the
@@ -253,10 +261,10 @@ export default function ResultsScreen() {
   const nextGame = nextGameId ? getGameDefinition(nextGameId) : undefined;
   // NaN maps to the neutral "Session complete" band; only rendered with a session.
   const band = performanceBand(session?.normalizedResult ?? Number.NaN);
-  // Celebration beat: a perfect score or a personal best earns the confetti
-  // margins; routine completions stay quiet. `Confetti` collapses to nothing
-  // under reduced motion and is non-interactive (`pointerEvents="none"`).
-  const celebrate = session !== null && (isPersonalBest || session.normalizedResult >= 1);
+  // Celebration beat: a perfect score or a real personal best earns the
+  // confetti margins; routine completions stay quiet. `Confetti` collapses to
+  // nothing under reduced motion and is non-interactive (`pointerEvents="none"`).
+  const celebrate = session !== null && (showPersonalBest || session.normalizedResult >= 1);
 
   return (
     <ScreenShell>
@@ -283,13 +291,12 @@ export default function ResultsScreen() {
         />
       ) : session ? (
         <>
-          {/* Celebration-first hero: outcome headline, then the hero metric
-              (ring + numeralXl). The live region announces the headline result
-              when the session loads or the user switches between sessions. */}
+          {/* One result artifact (campaign 055): the game world and the band
+              headline are the event; the score ring is its evidence. */}
           <Entrance index={0}>
-            <Card
-              variant="hero"
-              padding="lg"
+            <ArcadePanel
+              padding="none"
+              emphasis="focal"
               testID="results-summary"
               accessibilityLiveRegion="polite"
               style={[styles.hero, largeTextHero && styles.heroLargeText]}
@@ -301,58 +308,58 @@ export default function ResultsScreen() {
                   height={300}
                 />
               ) : null}
-              {isPersonalBest ? (
-                <Badge
-                  label="New personal best"
-                  tone="streak"
-                  icon={<Spark size={14} color={theme.streakSoftText} />}
-                  testID="results-personal-best"
-                />
-              ) : null}
-              <ThemedText
-                type="eyebrow"
-                themeColor="textSecondary"
-                testID="results-game"
-              >
-                {game?.name ?? session.gameId}
-              </ThemedText>
-              {/* Performance band headline (constitution §16): an encouraging,
-                  non-clinical read of the normalized score above the ring. */}
-              <ThemedText
-                type="display"
-                themeColor={band.tone}
-                testID="results-band"
-                style={styles.headline}
-              >
-                {band.label}
-              </ThemedText>
-              <ProgressRing
-                value={session.normalizedResult}
-                tone="accent"
-                testID="results-ring"
-              >
-                <AnimatedNumber
-                  value={scorePercent}
-                  format={(n) => `${Math.round(n)}%`}
-                  type="numeralXl"
-                  themeColor="accent"
-                  testID="results-score"
-                />
-              </ProgressRing>
-              <ThemedText type="eyebrow" themeColor="textSecondary">
-                Result
-              </ThemedText>
-              {/* The session date is metadata, not part of the reward: glued
-                  to the XP it read as "+50 XP Yesterday" (Campaign 026
-                  visual-QA). Its own caption row keeps both facts legible. */}
-              <ThemedText
-                type="caption"
-                themeColor="textSecondary"
-                testID="results-timestamp"
-              >
-                Played {formatRelativeDay(session.completedAt, mountedAt)}
-              </ThemedText>
-            </Card>
+              {game ? <GameWorldArt game={game} size="stage" testID="results-world" /> : null}
+              <View style={styles.heroBody}>
+                {showPersonalBest ? (
+                  <Badge
+                    label="New personal best"
+                    tone="streak"
+                    icon={<Spark size={14} color={theme.streakSoftText} />}
+                    testID="results-personal-best"
+                  />
+                ) : null}
+                {/* Performance band headline (constitution §16): an encouraging,
+                    non-clinical read of the normalized score above the ring. */}
+                <ThemedText
+                  type="resultHeadline"
+                  themeColor={band.tone}
+                  testID="results-band"
+                  style={styles.headline}
+                >
+                  {band.label}
+                </ThemedText>
+                <ProgressRing
+                  value={session.normalizedResult}
+                  tone="accent"
+                  testID="results-ring"
+                >
+                  <AnimatedNumber
+                    value={scorePercent}
+                    format={(n) => `${Math.round(n)}%`}
+                    type="numeralXl"
+                    themeColor="accent"
+                    testID="results-score"
+                  />
+                </ProgressRing>
+                <ThemedText
+                  type="eyebrow"
+                  themeColor="textSecondary"
+                  testID="results-game"
+                >
+                  {game?.name ?? session.gameId}
+                </ThemedText>
+                {/* The session date is metadata, not part of the reward: glued
+                    to the XP it read as "+50 XP Yesterday" (Campaign 026
+                    visual-QA). Its own caption row keeps both facts legible. */}
+                <ThemedText
+                  type="caption"
+                  themeColor="textSecondary"
+                  testID="results-timestamp"
+                >
+                  Played {formatRelativeDay(session.completedAt, mountedAt)}
+                </ThemedText>
+              </View>
+            </ArcadePanel>
           </Entrance>
 
           {/* Metrics as four equal columns in ONE row (kit StatBlock); each
@@ -401,40 +408,33 @@ export default function ResultsScreen() {
             </View>
           </Entrance>
 
-          {/* The outcome is understood before the progression reward. Keeping
-              this as its own bounded surface also prevents XP from competing
-              with the result headline. */}
+          {/* The outcome is understood before the progression reward. The
+              reward is a factual row, not a competing panel. */}
           <Entrance index={2}>
-            <Card
-              variant="outlined"
-              padding="md"
-              testID="results-reward"
-              accessibilityLiveRegion="polite"
-            >
-              <ThemedText type="eyebrow" themeColor="textMuted">
-                REWARD
-              </ThemedText>
-              <View style={styles.rewardRow}>
-                <Spark size={16} color={theme.xp} />
-                <AnimatedNumber
-                  value={session.xp}
-                  format={(n) => `+${Math.round(n)} XP`}
-                  type="numeral"
-                  themeColor="xp"
-                  testID="results-xp"
-                />
-              </View>
-            </Card>
+            <Report testID="results-reward" accessibilityLiveRegion="polite">
+              <ReportRow
+                label="Reward"
+                hint="Saved on this device"
+                trailing={
+                  <View style={styles.rewardValue}>
+                    <Spark size={16} color={theme.xp} />
+                    <AnimatedNumber
+                      value={session.xp}
+                      format={(n) => `+${Math.round(n)} XP`}
+                      type="numeral"
+                      themeColor="xp"
+                      testID="results-xp"
+                    />
+                  </View>
+                }
+              />
+            </Report>
           </Entrance>
 
           {/* Workout progress (006R hardening): completion is explicit and the
               next leg is a single, clear handoff. */}
           {workoutCompleted ? (
-            <Card
-              variant="outlined"
-              tone="successSoft"
-              testID="results-workout-complete"
-            >
+            <ArcadePanel tone="successSoft" testID="results-workout-complete">
               <View style={styles.completeRow}>
                 <Spark size={20} color={theme.successSoftText} />
                 <View style={styles.completeText}>
@@ -453,15 +453,11 @@ export default function ResultsScreen() {
                   ) : null}
                 </View>
               </View>
-            </Card>
+            </ArcadePanel>
           ) : null}
 
           {nextGameId && !workoutCompleted ? (
-            <Card
-              variant="outlined"
-              padding="md"
-              testID="results-next-context"
-            >
+            <ArcadePanel testID="results-next-context">
               <ThemedText type="eyebrow" themeColor="textMuted">
                 UP NEXT
               </ThemedText>
@@ -473,7 +469,7 @@ export default function ResultsScreen() {
                   ? `Game ${nextProvenance.legIndex + 1} of ${workoutInstance.gameIds.length} · progress saved`
                   : "Your workout progress is saved."}
               </ThemedText>
-            </Card>
+            </ArcadePanel>
           ) : null}
 
           {/* One primary CTA: continue the workout when a next leg exists,
@@ -514,92 +510,70 @@ export default function ResultsScreen() {
           </Entrance>
 
           <Entrance index={4}>
-            <Card variant="outlined" testID="results-rating" style={styles.quietCard}>
-              <SectionHeader title="Rating movement" />
+            <Report title="Rating movement" testID="results-rating">
               {ratingHistory.length > 0 ? (
-                <View style={styles.rows}>
-                  {ratingHistory.map((h) => (
-                    <View key={h.domain} style={styles.ratingRow}>
-                      <ThemedText
-                        type="body"
-                        themeColor="textSecondary"
-                        style={styles.ratingDomain}
-                        numberOfLines={1}
-                      >
-                        {h.domain}
-                      </ThemedText>
-                      <ThemedText
-                        type="label"
-                        themeColor={
-                          h.delta > 0 ? "success" : h.delta < 0 ? "danger" : undefined
-                        }
-                        testID={`results-rating-delta-${h.domain
-                          .replace(/[^a-z]/gi, "")
-                          .toLowerCase()}`}
-                      >
-                        {`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
-                      </ThemedText>
-                    </View>
-                  ))}
-                </View>
+                ratingHistory.map((h, index) => (
+                  <ReportRow
+                    key={h.domain}
+                    label={h.domain}
+                    divider={index < ratingHistory.length - 1}
+                    value={`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
+                    valueTone={h.delta > 0 ? "success" : h.delta < 0 ? "danger" : "textSecondary"}
+                    testID={`results-rating-delta-${h.domain
+                      .replace(/[^a-z]/gi, "")
+                      .toLowerCase()}`}
+                  />
+                ))
               ) : (
-                <ThemedText type="bodySmall" themeColor="textSecondary">
-                  No rating movement recorded for this session.
-                </ThemedText>
+                <ReportRow
+                  label="No rating movement recorded for this session"
+                  hint="Ratings update as you play more sessions"
+                />
               )}
-              {ratingHistory.length > 0 ? (
-                <ThemedText type="caption" themeColor="textSecondary">
-                  Deltas show how each domain rating changed because of this
-                  session.
-                </ThemedText>
-              ) : null}
-            </Card>
+            </Report>
           </Entrance>
 
           <Entrance index={4}>
-            <Card
-              variant="outlined"
-              testID="results-recent-sessions"
-              style={styles.quietCard}
-            >
-              <SectionHeader title="Recent sessions" />
-              <View style={styles.rows}>
-                {recent.slice(0, 10).map((s) => {
-                  const active = s.id === session.id;
-                  return (
-                    <Link key={s.id} href={`/results?id=${s.id}`} asChild>
-                      <Pressable
-                        testID={`results-session-${s.id}`}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${getGameDefinition(s.gameId)?.name ?? s.gameId} result from ${formatDayLabel(s.completedAt)}, ${Math.round(s.normalizedResult * 100)} percent`}
-                        accessibilityHint="Shows this session's results"
-                        accessibilityState={{ selected: active }}
-                        // Flattened: expo-router's <Link asChild> (Radix Slot) THROWS
-                        // on array styles in dev builds — this exact array crashed the
-                        // /results route on device and made the durable workout
-                        // journey impossible to complete (campaign 011 finding).
-                        style={StyleSheet.flatten([
-                          styles.recentRow,
-                          active && { backgroundColor: theme.backgroundSelected },
-                        ])}
-                      >
-                        <View style={styles.recentText}>
-                          <ThemedText type="body" numberOfLines={1}>
-                            {getGameDefinition(s.gameId)?.name ?? s.gameId}
-                          </ThemedText>
-                          <ThemedText type="caption" themeColor="textSecondary">
-                            {formatDayLabel(s.completedAt)}
-                          </ThemedText>
-                        </View>
-                        <ThemedText type="numeral" themeColor="accent">
-                          {Math.round(s.normalizedResult * 100)}%
+            <Report title="Recent sessions" testID="results-recent-sessions">
+              {recent.slice(0, 10).map((s, index) => {
+                const active = s.id === session.id;
+                return (
+                  <Link key={s.id} href={`/results?id=${s.id}`} asChild>
+                    <Pressable
+                      testID={`results-session-${s.id}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${getGameDefinition(s.gameId)?.name ?? s.gameId} result from ${formatDayLabel(s.completedAt)}, ${Math.round(s.normalizedResult * 100)} percent`}
+                      accessibilityHint="Shows this session's results"
+                      accessibilityState={{ selected: active }}
+                      // Flattened: expo-router's <Link asChild> (Radix Slot) THROWS
+                      // on array styles in dev builds — this exact array crashed the
+                      // /results route on device and made the durable workout
+                      // journey impossible to complete (campaign 011 finding).
+                      style={StyleSheet.flatten([
+                        styles.recentRow,
+                        index < recent.slice(0, 10).length - 1 && {
+                          borderBottomWidth: StyleSheet.hairlineWidth,
+                          borderBottomColor: theme.border,
+                        },
+                        active && { backgroundColor: theme.backgroundSelected },
+                      ])}
+                    >
+                      <View style={styles.recentText}>
+                        <ThemedText type="body" numberOfLines={1}>
+                          {getGameDefinition(s.gameId)?.name ?? s.gameId}
                         </ThemedText>
-                      </Pressable>
-                    </Link>
-                  );
-                })}
-              </View>
-            </Card>
+                        <ThemedText type="caption" themeColor="textSecondary">
+                          {formatDayLabel(s.completedAt)}
+                        </ThemedText>
+                      </View>
+                      <ThemedText type="numeral" themeColor="textSecondary">
+                        {Math.round(s.normalizedResult * 100)}%
+                      </ThemedText>
+                    </Pressable>
+                  </Link>
+                );
+              })}
+            </Report>
           </Entrance>
         </>
       ) : (
@@ -620,20 +594,24 @@ export default function ResultsScreen() {
 }
 
 const styles = StyleSheet.create({
-  // Hero content stacks on one centered axis (celebration frame → headline →
-  // hero metric → quiet reward row).
+  // The artifact owns the world art; its body stacks the band headline and
+  // the score ring on one centered axis.
   hero: {
     alignItems: "center",
-    gap: Spacing.three,
   },
   heroLargeText: {
-    gap: Spacing.two,
-    padding: Spacing.three,
+    padding: 0,
+  },
+  heroBody: {
+    alignItems: "center",
+    gap: Spacing.three,
+    padding: Spacing.four,
+    alignSelf: "stretch",
   },
   headline: {
     textAlign: "center",
   },
-  rewardRow: {
+  rewardValue: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.two,
@@ -656,24 +634,6 @@ const styles = StyleSheet.create({
     flex: 0,
     width: "47%",
   },
-  // Quiet grouped sections (outlined, not elevated) sit below the CTA.
-  quietCard: {
-    gap: Spacing.three,
-  },
-  rows: {
-    gap: Spacing.two,
-  },
-  ratingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: Spacing.two,
-    minHeight: MinTouchTarget,
-  },
-  ratingDomain: {
-    flexShrink: 1,
-    textTransform: "capitalize",
-  },
   completeRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -693,8 +653,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     minHeight: MinTouchTarget,
     paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.two,
-    borderRadius: Radii.medium,
+    borderRadius: Radii.small,
   },
   recentText: {
     flex: 1,

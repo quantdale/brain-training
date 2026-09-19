@@ -2,11 +2,11 @@
  * Game detail — `/game-detail/[id]` (Campaign 024 UX wave; Campaign 026
  * identity rebuild).
  *
- * One resume path: the neutral hero card carries the domain identity cue, the
- * game title, its description, the mastery ring with the concrete
- * next-milestone line, and the screen's single primary Play CTA. The favourite toggle is a quiet
- * secondary action below the hero; records render as `StatBlock`s in their
- * metric identity colours and recent sessions as `ListRow`s into `/results`.
+ * One resume path: the game-world Stage carries the domain identity cue, the
+ * game title, its interaction line, the mastery ring with the concrete
+ * next-milestone line, and the screen's single primary Play CTA. The favourite
+ * toggle is a quiet secondary action below the stage; records and recent
+ * sessions render as Report hairline rows into `/results`.
  *
  * Reloads persisted data on focus (a played session pops back here), keeps
  * hooks above the unknown-game early return, and never invents records for an
@@ -29,10 +29,9 @@ import {
 } from "@/components/discovery/game-card";
 import {
   getGameIdentity,
-  GameWorldArt,
-  IdentityMark,
   identityFamilyLabel,
 } from "@/components/discovery/game-identity";
+import { GameStage } from "@/components/discovery/game-stage";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
@@ -41,10 +40,10 @@ import {
   Button,
   Card,
   EmptyState,
-  ListRow,
   ProgressRing,
+  Report,
+  ReportRow,
   Spark,
-  StatBlock,
 } from "@/components/ui";
 import { Spacing } from "@/constants/theme";
 import { getDb, type AppDatabase } from "@/db";
@@ -199,65 +198,45 @@ export default function GameDetailScreen() {
     <ScreenShell>
       <BackLink />
 
-      {/* Single-path resume block: eyebrow → title → progress → one CTA. */}
-      {/* Campaign 035: domain identity stays on the motif/eyebrow while the
-          neutral shared hero leaves the global Play action as the state cue. */}
-      <Card
-        variant="hero"
-        shape="soft"
-        padding="none"
-        testID="game-detail-mastery"
-      >
-        <GameWorldArt game={game} size="hero" testID="game-detail-world" />
-        <View style={styles.resumeBody}>
-          <View style={styles.resumeHead}>
-            <View style={styles.identityRow} testID="game-detail-identity">
-              <IdentityMark
-                family={identity.family}
-                color={hue?.base ?? theme.accent}
-                size={34}
-                testID="game-detail-identity-mark"
-              />
-              <View style={styles.identityCopy}>
-                <ThemedText
-                  type="eyebrow"
-                  style={{ color: eyebrowColor }}
-                  testID="game-detail-identity-verb">
-                  {identity.verb}
-                </ThemedText>
-                <ThemedText type="caption" themeColor="textSecondary">
-                  {identityFamilyLabel(identity.family)}
-                </ThemedText>
-              </View>
-            </View>
-            {/* The eyebrow names the category — unless the game IS the
-                category (e.g. "Memory"/Memory), where it would parrot the
-                title (Campaign 026 visual-QA edge case). */}
-            {game.primaryCategory !== game.name ? (
+      {/* Game-world first: GameStage leads with the world art and a compact
+          identity plinth; records below are evidence, not the event. */}
+      <View testID="game-detail-description">
+        <GameStage
+          game={game}
+          size="stage"
+          showInteraction
+          testID="game-detail-mastery"
+          artTestID="game-detail-world"
+          identityTestID="game-detail-identity-mark"
+          titleTestID="game-detail-title"
+          describeTestID="game-detail-mechanic"
+          kicker={identityFamilyLabel(identity.family)}
+          meta={
+            <View style={styles.stageMeta} testID="game-detail-identity">
               <ThemedText
                 type="eyebrow"
                 style={{ color: eyebrowColor }}
-                testID="game-detail-category">
-                {game.primaryCategory}
+                testID="game-detail-identity-verb">
+                {identity.verb}
               </ThemedText>
-            ) : null}
-            <ThemedText type="title" testID="game-detail-title">
-              {game.name}
-            </ThemedText>
-            <View testID="game-detail-description">
-              <ThemedText
-                type="bodySmall"
-                themeColor="textSecondary"
-                testID="game-detail-mechanic">
-                {game.description ?? identity.interaction}
-              </ThemedText>
+              {/* The trailing tag names the category — unless the game IS the
+                  category (e.g. "Memory"/Memory), where it would parrot the
+                  title (Campaign 026 visual-QA edge case). */}
+              {game.primaryCategory !== game.name ? (
+                <ThemedText
+                  type="caption"
+                  themeColor="textSecondary"
+                  testID="game-detail-category">
+                  {game.primaryCategory}
+                </ThemedText>
+              ) : null}
             </View>
-            {game.hasTutorial ? (
-              <ThemedText type="caption" themeColor="textSecondary">
-                Includes a short guided tutorial on first play.
-              </ThemedText>
-            ) : null}
-          </View>
+          }>
+          {game.hasTutorial ? (
+            <ThemedText type="caption" themeColor="textSecondary">
+              Includes a short guided tutorial on first play.
+            </ThemedText>
+          ) : null}
 
           <View style={styles.masteryRow}>
             <ProgressRing
@@ -285,8 +264,8 @@ export default function GameDetailScreen() {
             testID="game-detail-play"
             onPress={() => router.push(`/game/${game.id}`)}
           />
-        </View>
-      </Card>
+        </GameStage>
+      </View>
 
       {/* Quiet secondary action: favourite toggle. */}
       <Button
@@ -331,75 +310,59 @@ export default function GameDetailScreen() {
         />
       ) : (
         <>
-          <Card testID="game-detail-records">
-            <ThemedText type="headline">Records</ThemedText>
+          {/* Records are evidence: Report/ReportRow hairline grammar, no card. */}
+          <Report title="Records" testID="game-detail-records">
             {data.aggregate ? (
-              <View style={styles.statsRow}>
-                <View style={styles.statCell}>
-                  <StatBlock
-                    label="Sessions"
-                    value={String(data.aggregate.count)}
-                    delta={`Last played ${formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}`}
-                    testID="game-detail-stat-sessions"
-                  />
-                </View>
-                <View style={styles.statCell}>
-                  <StatBlock
-                    label="Best"
-                    value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
-                    metric="score"
-                    testID="game-detail-stat-best"
-                  />
-                </View>
-                <View style={styles.statCell}>
-                  <StatBlock
-                    label="Average"
-                    value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
-                    metric="score"
-                    testID="game-detail-stat-average"
-                  />
-                </View>
-              </View>
+              <>
+                <ReportRow
+                  label="Sessions"
+                  value={String(data.aggregate.count)}
+                  hint={`Last played ${formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}`}
+                  testID="game-detail-stat-sessions"
+                  divider
+                />
+                <ReportRow
+                  label="Best"
+                  value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
+                  testID="game-detail-stat-best"
+                  divider
+                />
+                <ReportRow
+                  label="Average"
+                  value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
+                  testID="game-detail-stat-average"
+                  divider
+                />
+                {/* Drill-down: per-game trends live on the analytics screen. */}
+                <ReportRow
+                  label="View detailed trends"
+                  testID="game-detail-stats-link"
+                  accessibilityLabel="View detailed trends for this game"
+                  onPress={() => router.push(`/progress-game?gameId=${game.id}`)}
+                />
+              </>
             ) : (
               <ThemedText type="bodySmall" themeColor="textSecondary">
                 No sessions yet — play once to see records.
               </ThemedText>
             )}
-            {/* Drill-down: per-game trends live on the analytics screen. */}
-            {data.aggregate ? (
-              <Link href={`/progress-game?gameId=${game.id}`} asChild>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="View detailed trends for this game"
-                  testID="game-detail-stats-link"
-                  style={MinTouchTarget}
-                >
-                  <ThemedText type="label" themeColor="accentText">
-                    View detailed trends ›
-                  </ThemedText>
-                </Pressable>
-              </Link>
-            ) : null}
-          </Card>
+          </Report>
 
-          <Card testID="game-detail-recent">
-            <ThemedText type="headline">Recent sessions</ThemedText>
+          <Report title="Recent sessions" testID="game-detail-recent">
             {data.recent.length > 0 ? (
-              <View>
-                {data.recent.map((session) => (
-                  <SessionRow
-                    key={(session as { id: string }).id}
-                    session={session}
-                    nowMs={nowMs}
-                  />
-                ))}
-              </View>
+              data.recent.map((session) => (
+                <SessionRow
+                  key={(session as { id: string }).id}
+                  session={session}
+                  nowMs={nowMs}
+                />
+              ))
             ) : (
               <ThemedText type="bodySmall" themeColor="textSecondary">
                 Nothing here yet.
               </ThemedText>
             )}
-          </Card>
+          </Report>
         </>
       )}
 
@@ -450,33 +413,19 @@ const SessionRow = memo(function SessionRow({
   const day = formatRelativeDay(s.completedAt, nowMs);
   const percent = Math.round(s.normalizedResult * 100);
   return (
-    <ListRow
+    <ReportRow
       testID={`game-detail-session-${s.id}`}
-      title={`${day} · ${s.difficulty?.level ?? "?"}`}
-      meta={`${percent}% · +${s.xp} XP`}
+      label={`${day} · ${s.difficulty?.level ?? "?"}`}
+      value={`${percent}% · +${s.xp} XP`}
       onPress={() => router.push(`/results?id=${s.id}`)}
       accessibilityLabel={`Open result from ${day}, ${percent} percent`}
-      accessibilityHint="Opens the session result"
     />
   );
 });
 
 const styles = StyleSheet.create({
-  resumeBody: {
-    gap: Spacing.three,
-    padding: Spacing.four,
-  },
-  resumeHead: {
-    gap: Spacing.one,
-  },
-  identityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.two,
-  },
-  identityCopy: {
-    flex: 1,
-    flexShrink: 1,
+  stageMeta: {
+    alignItems: "flex-end",
     gap: Spacing.half,
   },
   masteryRow: {
@@ -488,13 +437,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexShrink: 1,
     gap: Spacing.one,
-  },
-  statsRow: {
-    flexDirection: "row",
-    gap: Spacing.three,
-  },
-  statCell: {
-    flex: 1,
   },
   unknownAction: {
     alignItems: "center",

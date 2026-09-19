@@ -422,7 +422,7 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
                 themeColor="textSecondary"
                 testID={testId(GAME_ID, 'fail-reason')}>
                 {state.roundOutcome === 'passed'
-                  ? `Found it in ${state.lastResponseMs}ms — +${state.lastRoundPoints} pts`
+                  ? `Found it in ${Math.round(state.lastResponseMs)}ms — +${state.lastRoundPoints} pts`
                   : state.failReason === 'timeout'
                     ? `Time's up — the odd tile was tile ${state.targetIndex + 1}`
                     : `Wrong tile — ${DISTRACTOR_PENALTY_MS / 1000}s time penalty`}
@@ -491,7 +491,7 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
           />
           <StatRow
             label="Fastest response"
-            value={state.stats.fastestResponseMs > 0 ? `${state.stats.fastestResponseMs}ms` : '—'}
+            value={state.stats.fastestResponseMs > 0 ? `${Math.round(state.stats.fastestResponseMs)}ms` : '—'}
             testID={testId(GAME_ID, 'fastest-response')}
           />
           <StatRow

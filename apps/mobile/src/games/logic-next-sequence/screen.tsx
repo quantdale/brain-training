@@ -467,7 +467,7 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
           />
           <StatRow
             label="Fastest answer"
-            value={state.stats.fastestMs === null ? '—' : `${state.stats.fastestMs} ms`}
+            value={state.stats.fastestMs === null ? '—' : `${Math.round(state.stats.fastestMs)} ms`}
             testID={testId(GAME_ID, 'fastest-answer')}
           />
           <StatRow label="XP" value={String(state.authoritativeXp ?? state.xp)} testID={testId(GAME_ID, 'xp')} />

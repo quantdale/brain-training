@@ -1,31 +1,26 @@
 /**
- * Progress — analytics dashboard (WP-2H; constitution §15, §17, §21; V2 in
- * campaign 010).
+ * Progress — a training record with a narrative lead (WP-2H; constitution §15,
+ * §17, §21; V2 in campaign 010; framing in campaign 055).
  *
- * A personal analytics surface built entirely from stored session and rating
- * evidence:
- *  - an overall composite that reuses the canonical `computeComposite` (no
- *    second score is invented) with a transparent, itemized explanation;
- *  - per-domain cards showing rating, freshness (stale / unseen), net movement
- *    inside the selected window, and recent direction;
- *  - a training-balance card: each session counts toward its game's primary
- *    domain, with per-domain shares, untrained domains called out, plus V2
- *    evenness (effective domains) and a week-by-week share history;
- *  - a time-window selector (7d / 30d / 90d / all) that drives the activity
- *    calendar, domain movement and recent-vs-lifetime comparisons;
- *  - an activity-frequency calendar (no streaks/engagement scores);
- *  - per-game records with a recent-vs-lifetime direction arrow, plus a
- *    "days since last session" staleness indicator;
- *  - V2 additions: session volume vs the previous equal-length window, a
- *    cross-category comparison, personal-best history summary, a rolling
- *    average refinement, workout-completion analytics (read-only consumption
- *    of the persisted workout instances), and a domain-breadth co-occurrence
- *    view rendered strictly as co-occurrence (never causation).
+ * A personal record built entirely from stored session and rating evidence:
+ *  - a compact consistency rail (day cells) and the canonical composite ring
+ *    carry the first viewport, so the screen reads as a training story before
+ *    it reads as a table;
+ *  - recent form ("Your recent training") and one evidence-backed suggestion
+ *    ("Suggested next") follow the focal ring;
+ *  - every analytical block below — summary, domain ratings, training balance,
+ *    activity, volume, records — uses Report/ReportRow hairline grammar
+ *    (campaign 055 §2.9) instead of stacked cards.
  *
  * All aggregation runs through the pure functions in `@/analytics`; this screen
  * only fetches already-persisted rows and renders them. Every number carries an
  * explainability caption (`explainMetric`). Wording is kept neutral:
  * this is a record of training activity, not a medical or scientific claim.
+ *
+ * The composite reuses the canonical `computeComposite` (no second score is
+ * invented) with a transparent, itemized explanation. The time-window selector
+ * (7d / 30d / 90d / all) drives consistency, activity, domain movement and the
+ * recent-vs-lifetime comparisons.
  *
  * Degrades to a recoverable error state (not a new-player empty state) when
  * the db is unavailable; retry reruns the load.
@@ -74,30 +69,32 @@ import {
   WINDOW_DAYS,
 } from '@/analytics';
 import { ScreenShell } from '@/components/screen-shell';
-import { SectionHeader, StateCard } from '@/components/shell';
+import { StateCard } from '@/components/shell';
 import { MasteryInsights } from '@/components/mastery/mastery-insights';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import {
   CalendarHeatmap,
   CompareBars,
+  HeatmapCell,
   MiniBarChart,
   StackedShareBar,
 } from '@/components/progress-charts';
 import {
+  ArcadePanel,
   Badge,
   Card,
   EmptyState,
   Entrance,
-  ListRow,
   ProgressBar,
   ProgressRing,
+  Report,
+  ReportRow,
   SectionGrid,
   SegmentedControl,
   Skeleton,
   SkeletonText,
   Spark,
-  StatBlock,
   Tappable,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type DomainName } from '@/constants/theme';
@@ -119,6 +116,9 @@ const WORKOUT_RECENT_LIMIT = 30;
 
 /** How many weekly slices the balance-history strip shows. */
 const BALANCE_HISTORY_WEEKS = 4;
+
+/** Day cells in the first-viewport consistency rail (the most recent days). */
+const CONSISTENCY_RAIL_DAYS = 14;
 
 interface ProgressData extends ProgressSnapshot {
   /** Persisted workout instances for the lookback window (may be empty). */
@@ -356,12 +356,12 @@ export default function ProgressScreen() {
     }
     if (delta === 0) {
       return {
-        text: `Even with lifetime · last ${WINDOW_LABELS[windowKey]}`,
+        text: `Matching your lifetime average · last ${WINDOW_LABELS[windowKey]}`,
         tone: 'textSecondary',
       };
     }
     return {
-      text: `${directionArrow(delta > 0 ? 'up' : 'down')} ${formatSigned(Math.round(delta * 100))}% vs lifetime · last ${WINDOW_LABELS[windowKey]}`,
+      text: `${directionArrow(delta > 0 ? 'up' : 'down')} ${formatSigned(Math.round(delta * 100))}% vs your lifetime average · last ${WINDOW_LABELS[windowKey]}`,
       tone: delta > 0 ? 'success' : 'danger',
     };
   }, [recentVsLifetime, windowKey]);
@@ -407,7 +407,7 @@ export default function ProgressScreen() {
           Progress
         </ThemedText>
         <ThemedText type="small" themeColor="textSecondary">
-          A clear view of consistency, recorded movement and what to consider next.
+          Your consistency, recent form and what to try next.
         </ThemedText>
       </View>
 
@@ -415,6 +415,7 @@ export default function ProgressScreen() {
         testID="progress-window-selector"
         value={windowKey}
         onChange={(next) => setWindowKey(next as TimeWindowKey)}
+        compact
         options={WINDOW_ORDER.map((k) => ({
           value: k,
           label: WINDOW_LABELS[k],
@@ -456,10 +457,30 @@ export default function ProgressScreen() {
         </Entrance>
       ) : null}
 
+      {/* Narrative lead: the consistency rail (day cells) and the composite
+          ring frame the window before any metric table appears. */}
       {!isNewPlayer ? (
-        <Entrance index={1}>
-          <ProgressAnswers
+        <Entrance index={0}>
+          <ConsistencyRail
             consistency={consistency}
+            days={calendar.days}
+            windowLabel={WINDOW_LABELS[windowKey]}
+          />
+        </Entrance>
+      ) : null}
+
+      <Entrance index={1}>
+        <CompositeCard
+          composite={composite}
+          trend={heroTrend}
+          testID="progress-composite"
+          empty={isNewPlayer}
+        />
+      </Entrance>
+
+      {!isNewPlayer ? (
+        <Entrance index={2}>
+          <ProgressNarrative
             movement={recordedMovement}
             nextConsideration={nextConsideration}
             windowLabel={WINDOW_LABELS[windowKey]}
@@ -467,167 +488,140 @@ export default function ProgressScreen() {
         </Entrance>
       ) : null}
 
-      <CompositeCard
-        composite={composite}
-        trend={heroTrend}
-        testID="progress-composite"
-        empty={isNewPlayer}
-      />
-
-      <Entrance index={isNewPlayer ? 1 : 0}>
-        <Card testID="progress-summary">
-          <View style={styles.cardHeader}>
-            <ThemedText type="subtitle">Summary</ThemedText>
-            <Badge label={WINDOW_LABELS[windowKey]} tone="info" size="sm" />
-          </View>
-          <View style={styles.statRow}>
-            <View style={styles.statCell}>
-              <StatBlock label="Level" value={String(level)} metric="xp" valueType="numeral" />
-            </View>
-            <View style={styles.statCell}>
-              <StatBlock
-                label="XP"
-                value={String(data.totalXp)}
-                metric="xp"
-                valueType="numeral"
+      <Entrance index={isNewPlayer ? 2 : 3}>
+        <Report testID="progress-domains" title="Domain ratings">
+          <View style={styles.reportBody}>
+            {domainInsights.map((d, index) => (
+              <DomainRatingRow
+                key={d.domain}
+                insight={d}
+                divider={index < domainInsights.length - 1}
               />
-            </View>
-            <View style={styles.statCell}>
-              <StatBlock
-                label="Sessions"
-                value={String(windowedSessions.length)}
-                metric="score"
-                valueType="numeral"
-              />
-            </View>
-            <View style={styles.statCell}>
-              <StatBlock
-                label="Coins"
-                value={String(data.balance)}
-                metric="currency"
-                valueType="numeral"
-              />
-            </View>
-          </View>
-          <ProgressBar
-            value={levelProgress(data.totalXp)}
-            tone="xp"
-            label={`Level ${level}`}
-            valueLabel={`${xpIntoLevel(data.totalXp)} / ${xpForNextLevel(data.totalXp)} XP to level ${level + 1}`}
-            testID="progress-level-bar"
-          />
-          {!isNewPlayer && daysSinceLast !== null ? (
-            <ThemedText type="caption" themeColor="textSecondary" testID="progress-last-session">
-              Last session:{' '}
-              {daysSinceLast === 0 ? 'today' : `${daysSinceLast}d ago`} ·{' '}
-              {explainMetric('recency').toLowerCase()}
+            ))}
+            <ThemedText type="caption" themeColor="textSecondary">
+              Each domain keeps its own colour everywhere. Ratings never decay — stale ratings
+              refresh when you train that domain again.
             </ThemedText>
-          ) : null}
-        </Card>
+          </View>
+        </Report>
       </Entrance>
 
-      <Entrance index={isNewPlayer ? 2 : 1}>
-        <View testID="progress-domains" style={styles.section}>
-          <SectionHeader
-            title="Domain ratings"
-            caption="Each domain keeps its own colour everywhere. Ratings never decay — stale cards refresh when you train that domain again."
-          />
-          <SectionGrid>
-            {domainInsights.map((d) => (
-              <DomainRatingCard key={d.domain} insight={d} />
-            ))}
-          </SectionGrid>
-        </View>
+      <Entrance index={isNewPlayer ? 3 : 4}>
+        <Report
+          testID="progress-summary"
+          title="Summary"
+          action={<Badge label={WINDOW_LABELS[windowKey]} tone="info" size="sm" />}>
+          <View style={styles.reportBody}>
+            <ReportRow label="Level" value={String(level)} valueTone="xp" divider />
+            <ReportRow label="XP" value={String(data.totalXp)} valueTone="xp" divider />
+            <ReportRow label="Sessions" value={String(windowedSessions.length)} divider />
+            <ReportRow label="Coins" value={String(data.balance)} divider />
+            <ProgressBar
+              value={levelProgress(data.totalXp)}
+              tone="xp"
+              label={`Level ${level}`}
+              valueLabel={`${xpIntoLevel(data.totalXp)} / ${xpForNextLevel(data.totalXp)} XP to level ${level + 1}`}
+              testID="progress-level-bar"
+            />
+            {!isNewPlayer && daysSinceLast !== null ? (
+              <ThemedText type="caption" themeColor="textSecondary" testID="progress-last-session">
+                Last session:{' '}
+                {daysSinceLast === 0 ? 'today' : `${daysSinceLast}d ago`} ·{' '}
+                {explainMetric('recency').toLowerCase()}
+              </ThemedText>
+            ) : null}
+          </View>
+        </Report>
       </Entrance>
 
       {!isNewPlayer ? (
-        <Entrance index={2}>
-          <Card testID="progress-balance">
-            <View style={styles.cardHeader}>
-              <ThemedText type="subtitle">Training balance</ThemedText>
+        <Entrance index={5}>
+          <Report
+            testID="progress-balance"
+            title="Training balance"
+            action={
               <Badge
                 label={`${trainingBalance.trainedDomains}/${DOMAINS.length} domains`}
                 tone="info"
                 size="sm"
               />
-            </View>
-            <StackedShareBar segments={balanceSegments} height={14} testID="progress-balance-bar" />
-            {mostTrained ? (
-              <BalancePair
-                most={mostTrained}
-                least={leastTrained}
-                total={trainingBalance.mappedSessions}
-              />
-            ) : null}
-            <View style={styles.rows}>
-              {trainingBalance.perDomain
-                .filter((entry) => entry.sessions > 0)
-                .map((entry) => (
-                  <ListRow
-                    key={entry.domain}
-                    title={entry.domain}
-                    icon={<DomainDot domain={entry.domain} />}
-                    meta={`${entry.sessions}× · ${formatPercent(entry.share)}`}
-                    testID={`progress-balance-${domainSlug(entry.domain)}`}
-                  />
-                ))}
-            </View>
-            {trainingBalance.untrainedDomains.length > 0 ? (
-              <ThemedText type="caption" themeColor="textSecondary" testID="progress-balance-untrained">
-                Not trained in this window: {trainingBalance.untrainedDomains.join(', ')}.
-              </ThemedText>
-            ) : null}
-            {trainingBalance.unmappedSessions > 0 ? (
-              <ThemedText type="caption" themeColor="textSecondary">
-                {trainingBalance.unmappedSessions} session
-                {trainingBalance.unmappedSessions === 1 ? '' : 's'} not counted (game or domain
-                unknown).
-              </ThemedText>
-            ) : null}
-            {!isNewPlayer && trainingBalance.mappedSessions > 0 ? (
-              <View style={styles.rows} testID="progress-balance-diversity">
-                <ThemedText type="caption" themeColor="textSecondary">
-                  Evenness: {effectiveDomains.toFixed(1)} effective domains of{' '}
-                  {DOMAINS.length} ({formatPercent(coverage)} coverage).{' '}
-                  {explainMetric('diversity')}
-                </ThemedText>
-                {weeklyBalance
-                  .filter((slice) => slice.sessions > 0)
-                  .map((slice) => (
-                    <View key={slice.endOffsetDays} style={styles.rows}>
-                      <ThemedText type="caption" themeColor="textSecondary">
-                        {slice.endOffsetDays === 0
-                          ? 'This week'
-                          : `Ended ${slice.endOffsetDays}d ago`}{' '}
-                        · {slice.sessions} session{slice.sessions === 1 ? '' : 's'}
-                      </ThemedText>
-                      <StackedShareBar
-                        height={6}
-                        testID={`progress-balance-week-${slice.endOffsetDays}`}
-                        segments={slice.perDomain
-                          .filter((entry) => entry.share > 0)
-                          .map((entry) => ({ key: entry.domain, fraction: entry.share }))}
-                      />
-                    </View>
+            }>
+            <View style={styles.reportBody}>
+              <StackedShareBar segments={balanceSegments} height={14} testID="progress-balance-bar" />
+              {mostTrained ? (
+                <BalancePair
+                  most={mostTrained}
+                  least={leastTrained}
+                  total={trainingBalance.mappedSessions}
+                />
+              ) : null}
+              <View style={styles.stack}>
+                {trainingBalance.perDomain
+                  .filter((entry) => entry.sessions > 0)
+                  .map((entry, index, rows) => (
+                    <ReportRow
+                      key={entry.domain}
+                      label={entry.domain}
+                      icon={<DomainDot domain={entry.domain} />}
+                      value={`${entry.sessions}× · ${formatPercent(entry.share)}`}
+                      testID={`progress-balance-${domainSlug(entry.domain)}`}
+                      divider={index < rows.length - 1}
+                    />
                   ))}
               </View>
-            ) : null}
-            <ThemedText type="caption" themeColor="textSecondary">
-              {explainMetric('balance')}
-            </ThemedText>
-          </Card>
+              {trainingBalance.untrainedDomains.length > 0 ? (
+                <ThemedText type="caption" themeColor="textSecondary" testID="progress-balance-untrained">
+                  Not trained in this window: {trainingBalance.untrainedDomains.join(', ')}.
+                </ThemedText>
+              ) : null}
+              {trainingBalance.unmappedSessions > 0 ? (
+                <ThemedText type="caption" themeColor="textSecondary">
+                  {trainingBalance.unmappedSessions} session
+                  {trainingBalance.unmappedSessions === 1 ? '' : 's'} not counted (game or domain
+                  unknown).
+                </ThemedText>
+              ) : null}
+              {!isNewPlayer && trainingBalance.mappedSessions > 0 ? (
+                <View style={styles.stack} testID="progress-balance-diversity">
+                  <ThemedText type="caption" themeColor="textSecondary">
+                    Evenness: {effectiveDomains.toFixed(1)} effective domains of{' '}
+                    {DOMAINS.length} ({formatPercent(coverage)} coverage).{' '}
+                    {explainMetric('diversity')}
+                  </ThemedText>
+                  {weeklyBalance
+                    .filter((slice) => slice.sessions > 0)
+                    .map((slice) => (
+                      <View key={slice.endOffsetDays} style={styles.stack}>
+                        <ThemedText type="caption" themeColor="textSecondary">
+                          {slice.endOffsetDays === 0
+                            ? 'This week'
+                            : `Ended ${slice.endOffsetDays}d ago`}{' '}
+                          · {slice.sessions} session{slice.sessions === 1 ? '' : 's'}
+                        </ThemedText>
+                        <StackedShareBar
+                          height={6}
+                          testID={`progress-balance-week-${slice.endOffsetDays}`}
+                          segments={slice.perDomain
+                            .filter((entry) => entry.share > 0)
+                            .map((entry) => ({ key: entry.domain, fraction: entry.share }))}
+                        />
+                      </View>
+                    ))}
+                </View>
+              ) : null}
+              <ThemedText type="caption" themeColor="textSecondary">
+                {explainMetric('balance')}
+              </ThemedText>
+            </View>
+          </Report>
         </Entrance>
       ) : null}
 
-      <Entrance index={3}>
-        <Card testID="progress-activity">
-          <View style={styles.cardHeader}>
-            <View style={styles.sectionHeading}>
-              <ThemedText type="subtitle">Activity</ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                Your training rhythm, one cell per day.
-              </ThemedText>
-            </View>
+      <Entrance index={isNewPlayer ? 4 : 6}>
+        <Report
+          testID="progress-activity"
+          title="Activity"
+          action={
             <Tappable
               testID="progress-activity-link"
               onPress={() => router.push('/progress-activity')}
@@ -637,57 +631,63 @@ export default function ProgressScreen() {
                 Full calendar ›
               </ThemedText>
             </Tappable>
+          }>
+          <View style={styles.reportBody}>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Your training rhythm, one cell per day.
+            </ThemedText>
+            <ActivityHeatmap
+              days={calendar.days}
+              maxCount={calendar.busiest?.count ?? 0}
+              testID="progress-activity-heatmap"
+            />
+            <ThemedText type="caption" themeColor="textSecondary">
+              {calendar.activeDays} active days · {calendar.totalSessions} sessions in this
+              view
+            </ThemedText>
           </View>
-          <ActivityHeatmap
-            days={calendar.days}
-            maxCount={calendar.busiest?.count ?? 0}
-            testID="progress-activity-heatmap"
-          />
-          <ThemedText type="caption" themeColor="textSecondary">
-            {calendar.activeDays} active days · {calendar.totalSessions} sessions in this
-            view
-          </ThemedText>
-        </Card>
+        </Report>
       </Entrance>
 
-      <Entrance index={4}>
+      <Entrance index={isNewPlayer ? 5 : 7}>
       <SectionGrid>
       {!isNewPlayer ? (
-        <Card testID="progress-volume">
-          <ThemedText type="subtitle">Session volume</ThemedText>
-          <CompareBars
-            testID="progress-volume-compare"
-            rows={volumeCompareRows}
-            summary={`This window ${volume.windowSessions} sessions${volume.previousWindowSessions !== null ? `, previous window ${volume.previousWindowSessions}` : ''}`}
-          />
-          {volume.deltaSessions !== null && volume.deltaSessions !== 0 ? (
-            <ThemedText
-              type="caption"
-              themeColor={volume.direction === 'up' ? 'success' : 'danger'}
-              testID="progress-volume-delta">
-              {directionArrow(volume.direction)} {formatSigned(volume.deltaSessions)} sessions
-              vs previous window
+        <Report testID="progress-volume" title="Session volume">
+          <View style={styles.reportBody}>
+            <CompareBars
+              testID="progress-volume-compare"
+              rows={volumeCompareRows}
+              summary={`This window ${volume.windowSessions} sessions${volume.previousWindowSessions !== null ? `, previous window ${volume.previousWindowSessions}` : ''}`}
+            />
+            {volume.deltaSessions !== null && volume.deltaSessions !== 0 ? (
+              <ThemedText
+                type="caption"
+                themeColor={volume.direction === 'up' ? 'success' : 'danger'}
+                testID="progress-volume-delta">
+                {directionArrow(volume.direction)} {formatSigned(volume.deltaSessions)} sessions
+                vs previous window
+              </ThemedText>
+            ) : null}
+            <MiniBarChart
+              values={volume.weeklyCounts}
+              testID="progress-volume-weekly"
+              emptyLabel="Weekly buckets need a bounded window"
+              labels={volume.weeklyCounts.map((_, i) =>
+                i === volume.weeklyCounts.length - 1 ? 'Now' : `-${volume.weeklyCounts.length - 1 - i}w`,
+              )}
+              summary={
+                volume.weeklyCounts.length === 0
+                  ? 'Weekly buckets need a bounded window'
+                  : `Sessions per week, oldest first. Busiest week ${plural(Math.max(...volume.weeklyCounts), 'session')}.`
+              }
+            />
+            <ThemedText type="caption" themeColor="textSecondary">
+              {volume.activeDays} active day{volume.activeDays === 1 ? '' : 's'} ·{' '}
+              {volume.perWeek === null ? '—' : volume.perWeek.toFixed(1)} sessions/week.{' '}
+              {explainMetric('volume')}
             </ThemedText>
-          ) : null}
-          <MiniBarChart
-            values={volume.weeklyCounts}
-            testID="progress-volume-weekly"
-            emptyLabel="Weekly buckets need a bounded window"
-            labels={volume.weeklyCounts.map((_, i) =>
-              i === volume.weeklyCounts.length - 1 ? 'Now' : `-${volume.weeklyCounts.length - 1 - i}w`,
-            )}
-            summary={
-              volume.weeklyCounts.length === 0
-                ? 'Weekly buckets need a bounded window'
-                : `Sessions per week, oldest first. Busiest week ${plural(Math.max(...volume.weeklyCounts), 'session')}.`
-            }
-          />
-          <ThemedText type="caption" themeColor="textSecondary">
-            {volume.activeDays} active day{volume.activeDays === 1 ? '' : 's'} ·{' '}
-            {volume.perWeek === null ? '—' : volume.perWeek.toFixed(1)} sessions/week.{' '}
-            {explainMetric('volume')}
-          </ThemedText>
-        </Card>
+          </View>
+        </Report>
       ) : null}
 
       <RecentVsLifetimeCard
@@ -699,231 +699,213 @@ export default function ProgressScreen() {
       </SectionGrid>
       </Entrance>
 
-      <Entrance index={5}>
+      <Entrance index={isNewPlayer ? 6 : 8}>
       <SectionGrid>
       {!isNewPlayer && bestHistory.current !== null ? (
-        <Card testID="progress-personal-best">
-          <ThemedText type="subtitle">Personal best</ThemedText>
-          <View style={styles.summaryRow}>
-            <SummaryStat
+        <Report testID="progress-personal-best" title="Personal best">
+          <View style={styles.reportBody}>
+            <ReportRow
               label="Best session"
               value={formatPercent(bestHistory.current.value)}
+              divider
             />
-            <SummaryStat label="Set" value={formatDayLabel(bestHistory.current.t)} />
-            <SummaryStat
+            <ReportRow label="Set" value={formatDayLabel(bestHistory.current.t)} divider />
+            <ReportRow
               label="Standing"
               value={
                 bestHistory.standingDays === 0
                   ? 'Today'
                   : `${bestHistory.standingDays ?? 0}d`
               }
+              divider
             />
-            <SummaryStat label="Times raised" value={String(bestHistory.timesBeaten)} />
+            <ReportRow label="Times raised" value={String(bestHistory.timesBeaten)} divider />
+            <ThemedText type="caption" themeColor="textSecondary">
+              {explainMetric('personal-best-history')}
+            </ThemedText>
           </View>
-          <ThemedText type="caption" themeColor="textSecondary">
-            {explainMetric('personal-best-history')}
-          </ThemedText>
-        </Card>
+        </Report>
       ) : null}
 
       {hasWorkoutData ? (
-        <Card testID="progress-workouts">
-          <ThemedText type="subtitle">Workout completion</ThemedText>
-          <View style={styles.summaryRow}>
-            <SummaryStat
+        <Report testID="progress-workouts" title="Workout completion">
+          <View style={styles.reportBody}>
+            <ReportRow
               label={`Done (last ${WORKOUT_RECENT_LIMIT})`}
               value={`${workoutAnalytics.completedInstances}/${workoutAnalytics.loadedInstances}`}
+              divider
             />
-            <SummaryStat
+            <ReportRow
               label="Rate"
               value={
                 workoutAnalytics.completionRate === null
                   ? '—'
                   : formatPercent(workoutAnalytics.completionRate)
               }
+              divider
             />
-            <SummaryStat
+            <ReportRow
               label="Current run"
               value={`${workoutAnalytics.currentCompletedRun}d`}
+              divider
             />
-            <SummaryStat label="All-time" value={String(workoutAnalytics.lifetimeCompleted)} />
+            <ReportRow label="All-time" value={String(workoutAnalytics.lifetimeCompleted)} divider />
+            <ThemedText type="caption" themeColor="textSecondary" testID="progress-workouts-games">
+              Games finished inside workouts: {workoutAnalytics.gamesCompleted} of{' '}
+              {workoutAnalytics.gamesAssigned} assigned · longest completed run{' '}
+              {workoutAnalytics.longestCompletedRun}d.
+            </ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              {explainMetric('workout-completion')}
+            </ThemedText>
           </View>
-          <ThemedText type="caption" themeColor="textSecondary" testID="progress-workouts-games">
-            Games finished inside workouts: {workoutAnalytics.gamesCompleted} of{' '}
-            {workoutAnalytics.gamesAssigned} assigned · longest completed run{' '}
-            {workoutAnalytics.longestCompletedRun}d.
-          </ThemedText>
-          <ThemedText type="caption" themeColor="textSecondary">
-            {explainMetric('workout-completion')}
-          </ThemedText>
-        </Card>
+        </Report>
       ) : null}
       </SectionGrid>
       </Entrance>
 
-      <Entrance index={6}>
+      <Entrance index={isNewPlayer ? 7 : 9}>
       <SectionGrid>
       {!isNewPlayer ? (
-        <Card testID="progress-categories">
-          <ThemedText type="subtitle">Category comparison</ThemedText>
-          <View style={styles.rows}>
-            {categoryComparison.rows.map((row) => (
-              <ListRow
+        <Report testID="progress-categories" title="Category comparison">
+          <View style={styles.reportBody}>
+            {categoryComparison.rows.map((row, index) => (
+              <ReportRow
                 key={row.domain}
-                title={row.domain}
+                label={row.domain}
                 icon={<DomainDot domain={row.domain} />}
-                subtitle={`${row.sessions}× this window${row.avgNormalized !== null ? ` · avg ${formatPercent(row.avgNormalized)}` : ''}`}
-                meta={`${row.rating === null ? '—' : row.rating}${row.movement !== 0 ? ` ${directionArrow(row.direction)} ${formatSigned(row.movement)}` : ''}`}
+                hint={`${row.sessions}× this window${row.avgNormalized !== null ? ` · avg ${formatPercent(row.avgNormalized)}` : ''}`}
+                value={`${row.rating === null ? '—' : row.rating}${row.movement !== 0 ? ` ${directionArrow(row.direction)} ${formatSigned(row.movement)}` : ''}`}
                 onPress={() => router.push(`/progress-domain?domain=${encodeURIComponent(row.domain)}`)}
-                accessibilityHint={`Open ${row.domain} details`}
                 testID={`progress-category-${domainSlug(row.domain)}`}
+                divider={index < categoryComparison.rows.length - 1}
               />
             ))}
+            <ThemedText type="caption" themeColor="textSecondary">
+              {explainMetric('category-comparison')}
+            </ThemedText>
           </View>
-          <ThemedText type="caption" themeColor="textSecondary">
-            {explainMetric('category-comparison')}
-          </ThemedText>
-        </Card>
+        </Report>
       ) : null}
 
       {!isNewPlayer && breadth.groups.length > 0 ? (
-        <Card testID="progress-cooccurrence">
-          <ThemedText type="subtitle">Training breadth &amp; results</ThemedText>
-          <View style={styles.rows}>
-            {breadth.groups.map((group) => (
-              <View
+        <Report testID="progress-cooccurrence" title="Training breadth & results">
+          <View style={styles.reportBody}>
+            {breadth.groups.map((group, index) => (
+              <ReportRow
                 key={group.breadth}
-                style={styles.row}
-                testID={`progress-cooccurrence-breadth-${group.breadth}`}>
-                <ThemedText type="small">
-                  {group.breadth} domain{group.breadth === 1 ? '' : 's'} / day
-                </ThemedText>
-                <ThemedText type="smallBold">
-                  {group.days} day{group.days === 1 ? '' : 's'} ·{' '}
-                  {group.avgNormalized === null ? '—' : formatPercent(group.avgNormalized)} avg
-                </ThemedText>
-              </View>
+                testID={`progress-cooccurrence-breadth-${group.breadth}`}
+                label={`${group.breadth} domain${group.breadth === 1 ? '' : 's'} / day`}
+                value={`${group.days} day${group.days === 1 ? '' : 's'} · ${
+                  group.avgNormalized === null ? '—' : formatPercent(group.avgNormalized)
+                } avg`}
+                divider={index < breadth.groups.length - 1}
+              />
             ))}
+            <ThemedText type="caption" themeColor="textSecondary">
+              {COOCCURRENCE_CAPTION}
+            </ThemedText>
           </View>
-          <ThemedText type="caption" themeColor="textSecondary">
-            {COOCCURRENCE_CAPTION}
-          </ThemedText>
-        </Card>
+        </Report>
       ) : null}
       </SectionGrid>
       </Entrance>
 
-      <Entrance index={7}>
-        <Card
-          onPress={() => router.push('/progress-detail')}
-          testID="progress-detail-link"
-          accessibilityLabel="Open the full training history"
-          accessibilityHint="Shows per-domain trends, game records and recent sessions">
-          <View style={styles.cardHeader}>
-            <View style={styles.sectionHeading}>
-              <ThemedText type="bodyLarge">Full history</ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                Per-domain trends, game records and recent sessions.
-              </ThemedText>
-            </View>
-            <ThemedText type="headline" themeColor="accentText">
-              ›
-            </ThemedText>
-          </View>
-        </Card>
+      <Entrance index={isNewPlayer ? 8 : 10}>
+        <Report testID="progress-detail">
+          <ReportRow
+            label="Full history"
+            hint="Per-domain trends, game records and recent sessions."
+            onPress={() => router.push('/progress-detail')}
+            testID="progress-detail-link"
+            accessibilityLabel="Open the full training history"
+          />
+        </Report>
       </Entrance>
 
-      <Entrance index={8}>
+      <Entrance index={isNewPlayer ? 9 : 11}>
       <SectionGrid>
-      <Card testID="progress-game-stats">
-        <ThemedText type="subtitle">Per game</ThemedText>
-        {data.aggregates.length > 0 ? (
-          <View style={styles.rows}>
-            {data.aggregates.map((a) => {
+      <Report testID="progress-game-stats" title="Per game">
+        <View style={styles.reportBody}>
+          {data.aggregates.length > 0 ? (
+            data.aggregates.map((a, index) => {
               const def = getGameDefinition(a.gameId);
+              const delta = perGameDelta.get(a.gameId);
               return (
-                <View key={a.gameId}>
-                  <ListRow
-                    title={def?.name ?? a.gameId}
-                    icon={def ? <DomainDot domain={def.primaryCategory} /> : undefined}
-                    subtitle={`${a.count}× · best ${Math.round(a.bestNormalized * 100)}%`}
-                    onPress={() => router.push(`/progress-game?gameId=${encodeURIComponent(a.gameId)}`)}
-                    accessibilityHint={`Open ${def?.name ?? a.gameId} analytics`}
-                    testID={`progress-game-${a.gameId}`}
-                  />
-                  {perGameDelta.get(a.gameId) !== undefined ? (
-                    <ThemedText
-                      type="caption"
-                      themeColor={
-                        perGameDelta.get(a.gameId)! > 0
-                          ? 'success'
-                          : perGameDelta.get(a.gameId)! < 0
-                            ? 'danger'
-                            : 'textSecondary'
-                      }
-                      testID={`progress-game-trend-${a.gameId}`}>
-                      {directionArrow(
-                        perGameDelta.get(a.gameId)! > 0
-                          ? 'up'
-                          : perGameDelta.get(a.gameId)! < 0
-                            ? 'down'
-                            : 'flat',
-                      )}{' '}
-                      vs lifetime ({WINDOW_LABELS[windowKey]})
-                    </ThemedText>
-                  ) : null}
-                </View>
+                <ReportRow
+                  key={a.gameId}
+                  label={def?.name ?? a.gameId}
+                  hint={`${a.count}× · best ${Math.round(a.bestNormalized * 100)}%`}
+                  icon={def ? <DomainDot domain={def.primaryCategory} /> : undefined}
+                  onPress={() => router.push(`/progress-game?gameId=${encodeURIComponent(a.gameId)}`)}
+                  testID={`progress-game-${a.gameId}`}
+                  divider={index < data.aggregates.length - 1}
+                  trailing={
+                    delta !== undefined ? (
+                      <ThemedText
+                        type="caption"
+                        themeColor={
+                          delta > 0 ? 'success' : delta < 0 ? 'danger' : 'textSecondary'
+                        }
+                        testID={`progress-game-trend-${a.gameId}`}>
+                        {directionArrow(delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat')}{' '}
+                        vs lifetime ({WINDOW_LABELS[windowKey]})
+                      </ThemedText>
+                    ) : undefined
+                  }
+                />
               );
-            })}
-          </View>
-        ) : (
-          <ThemedText type="small" themeColor="textSecondary">
-            No games played yet.
-          </ThemedText>
-        )}
-      </Card>
+            })
+          ) : (
+            <ThemedText type="small" themeColor="textSecondary">
+              No games played yet.
+            </ThemedText>
+          )}
+        </View>
+      </Report>
 
-      <Card testID="progress-recent-sessions">
-        <ThemedText type="subtitle">Recent sessions</ThemedText>
-        {data.sessions.length > 0 ? (
-          <View style={styles.rows}>
-            {data.sessions.slice(0, 10).map((session) => (
-              <View key={session.id} style={styles.sessionRow}>
-                <View style={styles.sessionRowMain}>
-                  <ListRow
-                    title={`${getGameDefinition(session.gameId)?.name ?? session.gameId} · ${formatDayLabel(session.completedAt)}`}
-                    subtitle={pbSessionIds.has(session.id) ? 'Personal best' : undefined}
-                    meta={`${Math.round(session.normalizedResult * 100)}%`}
-                    onPress={() => router.push(`/results?id=${encodeURIComponent(session.id)}`)}
-                    accessibilityHint="Open session results"
-                    testID={`progress-session-${session.id}`}
-                  />
-                </View>
-                {pbSessionIds.has(session.id) ? (
-                  <ThemedView
-                    type="accentSoft"
-                    style={styles.pbBadge}
-                    testID={`progress-session-pb-${session.id}`}>
-                    <ThemedText type="caption" themeColor="accent">
-                      PB
-                    </ThemedText>
-                  </ThemedView>
-                ) : null}
-              </View>
-            ))}
-          </View>
-        ) : (
-          <ThemedText type="small" themeColor="textSecondary">
-            Your latest sessions will show up here.
-          </ThemedText>
-        )}
-      </Card>
+      <Report testID="progress-recent-sessions" title="Recent sessions">
+        <View style={styles.reportBody}>
+          {data.sessions.length > 0 ? (
+            data.sessions.slice(0, 10).map((session, index) => {
+              const isPb = pbSessionIds.has(session.id);
+              return (
+                <ReportRow
+                  key={session.id}
+                  label={`${getGameDefinition(session.gameId)?.name ?? session.gameId} · ${formatDayLabel(session.completedAt)}`}
+                  hint={isPb ? 'Personal best' : undefined}
+                  value={`${Math.round(session.normalizedResult * 100)}%`}
+                  onPress={() => router.push(`/results?id=${encodeURIComponent(session.id)}`)}
+                  testID={`progress-session-${session.id}`}
+                  divider={index < Math.min(data.sessions.length, 10) - 1}
+                  trailing={
+                    isPb ? (
+                      <ThemedView
+                        type="accentSoft"
+                        style={styles.pbBadge}
+                        testID={`progress-session-pb-${session.id}`}>
+                        <ThemedText type="caption" themeColor="accent">
+                          PB
+                        </ThemedText>
+                      </ThemedView>
+                    ) : undefined
+                  }
+                />
+              );
+            })
+          ) : (
+            <ThemedText type="small" themeColor="textSecondary">
+              Your latest sessions will show up here.
+            </ThemedText>
+          )}
+        </View>
+      </Report>
       </SectionGrid>
       </Entrance>
 
       {/* Campaign 014 (W5): mastery distribution + closest milestones —
           the forward-looking interpretation layer, one scroll away. */}
-      <Entrance index={9}>
+      <Entrance index={isNewPlayer ? 10 : 12}>
         <MasteryInsights />
       </Entrance>
         </>
@@ -933,17 +915,70 @@ export default function ProgressScreen() {
 }
 
 /**
- * Answer-first Progress summary. The sections are intentionally compact so a
- * returning player can read the selected window, recorded movement, and one
- * next consideration before the composite and advanced analytics.
+ * First-viewport consistency rail: the most recent days of the selected
+ * window as day cells, followed by the window's plain-language facts. The
+ * cells are a rhythm strip (the window's exact numbers live in the sentence
+ * and in the Activity report), so the rail never claims more than it shows.
  */
-function ProgressAnswers({
+function ConsistencyRail({
   consistency,
+  days,
+  windowLabel,
+}: {
+  consistency: ProgressConsistency;
+  days: readonly CalendarDay[];
+  windowLabel: string;
+}) {
+  const railDays = days.slice(-CONSISTENCY_RAIL_DAYS);
+  const maxCount = Math.max(1, ...railDays.map((day) => day.count));
+  const railSessions = railDays.reduce((sum, day) => sum + day.count, 0);
+  const railActive = railDays.filter((day) => day.hasSession).length;
+  const railSummary = `${plural(railSessions, 'session')} across ${plural(railActive, 'active day')} in the last ${railDays.length} days`;
+  return (
+    <Report
+      testID="progress-consistency"
+      title="Consistency"
+      action={<Badge label={windowLabel} tone="info" size="sm" />}>
+      <View style={styles.reportBody}>
+        <View
+          style={styles.consistencyRail}
+          accessible
+          accessibilityRole="image"
+          accessibilityLabel={railSummary}>
+          {railDays.map((day) => (
+            <HeatmapCell key={day.dateKey} intensity={day.count / maxCount} />
+          ))}
+        </View>
+        <ThemedText type="caption" themeColor="textMuted">
+          Last {railDays.length} days
+        </ThemedText>
+        {consistency.activeDays === 0 ? (
+          <ThemedText type="bodyRead" themeColor="textSecondary">
+            No sessions in this window yet.
+          </ThemedText>
+        ) : (
+          <ThemedText type="bodyRead" themeColor="textSecondary">
+            {plural(consistency.sessions, 'session')} across{' '}
+            {plural(consistency.activeDays, 'active day')} ·{' '}
+            {consistency.averagePerActiveDay.toFixed(1)} per active day.
+          </ThemedText>
+        )}
+      </View>
+    </Report>
+  );
+}
+
+/**
+ * Narrative pair under the ring: what the recent sessions say ("Your recent
+ * training") and one evidence-backed domain to consider next ("Suggested
+ * next"). Facts and disclosure rules are unchanged — only the framing order
+ * and player-facing language (campaign 055 §2.9).
+ */
+function ProgressNarrative({
   movement,
   nextConsideration,
   windowLabel,
 }: {
-  consistency: ProgressConsistency;
   movement: ProgressMovement;
   nextConsideration: NextConsideration | null;
   windowLabel: string;
@@ -957,84 +992,23 @@ function ProgressAnswers({
         : 'textSecondary';
 
   return (
-    <Card variant="raised" testID="progress-answers">
-      <View style={styles.cardHeader}>
-        <View style={styles.sectionHeading}>
-          <ThemedText type="subtitle">At a glance</ThemedText>
+    <View testID="progress-answers" style={styles.answers}>
+      <Report testID="progress-movement" title="Your recent training">
+        <View style={styles.reportBody}>
+          <ThemedText type="headline" themeColor={movementTone}>
+            {movementHeadline(movement)}
+          </ThemedText>
           <ThemedText type="caption" themeColor="textSecondary">
-            Based on your recorded sessions in this window.
+            {movement.sampleSize === 0
+              ? 'Your recent form will appear after your next session.'
+              : movement.sampleSize === 1
+                ? "One session isn't enough to show a trend yet."
+                : `${plural(movement.sampleSize, 'session')} in this window. ${explainMetric('recorded-movement')}`}
           </ThemedText>
         </View>
-        <Badge label={windowLabel} tone="info" size="sm" />
-      </View>
+      </Report>
 
-      <View testID="progress-consistency" style={styles.answerSection}>
-        <ThemedText type="eyebrow" themeColor="textSecondary">
-          CONSISTENCY
-        </ThemedText>
-        <View style={styles.answerStatRow}>
-          <View style={styles.answerStat}>
-            <StatBlock
-              label="Trained days"
-              value={String(consistency.activeDays)}
-              metric="streak"
-              valueType="numeralLg"
-            />
-          </View>
-          <View style={styles.answerStat}>
-            <StatBlock
-              label="Sessions"
-              value={String(consistency.sessions)}
-              metric="score"
-              valueType="numeralLg"
-            />
-          </View>
-          <View style={styles.answerStat}>
-            <StatBlock
-              label="Per active day"
-              value={
-                consistency.averagePerActiveDay > 0
-                  ? consistency.averagePerActiveDay.toFixed(1)
-                  : '—'
-              }
-              metric="score"
-              valueType="numeralLg"
-            />
-          </View>
-        </View>
-        <ThemedText type="caption" themeColor="textSecondary">
-          {consistency.activeDays === 0
-            ? `No sessions recorded in ${windowLabel} yet.`
-            : `${plural(consistency.sessions, 'session')} across ${plural(consistency.activeDays, 'active day')}. ${explainMetric('progress-consistency')}`}
-        </ThemedText>
-      </View>
-
-      <View
-        testID="progress-movement"
-        style={[styles.answerSection, styles.answerSectionBorder, { borderTopColor: theme.border }]}
-      >
-        <ThemedText type="eyebrow" themeColor="textSecondary">
-          RECORDED MOVEMENT
-        </ThemedText>
-        <ThemedText type="headline" themeColor={movementTone}>
-          {movementHeadline(movement, windowLabel)}
-        </ThemedText>
-        <ThemedText type="caption" themeColor="textSecondary">
-          {movement.sampleSize === 0
-            ? 'Movement will appear after a session is recorded.'
-            : movement.sampleSize === 1
-              ? 'One session is not enough to describe movement yet.'
-              : `${plural(movement.sampleSize, 'session')} used. ${explainMetric('recorded-movement')}`}
-        </ThemedText>
-      </View>
-
-      <View
-        testID="progress-focus"
-        style={[styles.answerSection, styles.answerSectionBorder, { borderTopColor: theme.border }]}
-      >
-        <ThemedText type="eyebrow" themeColor="textSecondary">
-          NEXT CONSIDERATION
-        </ThemedText>
+      <Report testID="progress-focus" title="Suggested next">
         {nextConsideration ? (
           <Tappable
             testID="progress-focus-action"
@@ -1043,7 +1017,7 @@ function ProgressAnswers({
                 `/progress-domain?domain=${encodeURIComponent(nextConsideration.domain)}`,
               )
             }
-            accessibilityLabel={`Open ${nextConsideration.domain} details, ${nextConsiderationCopy(nextConsideration, windowLabel)}`}
+            accessibilityLabel={`Open ${nextConsideration.domain} details, ${nextConsiderationCopy(nextConsideration)}`}
             accessibilityHint="Open this domain's recorded history"
             style={styles.focusAction}
             pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
@@ -1054,7 +1028,7 @@ function ProgressAnswers({
                   {nextConsideration.domain}
                 </ThemedText>
                 <ThemedText type="caption" themeColor="textSecondary" numberOfLines={2}>
-                  {nextConsiderationCopy(nextConsideration, windowLabel)}
+                  {nextConsiderationCopy(nextConsideration)}
                 </ThemedText>
               </View>
             </View>
@@ -1063,41 +1037,43 @@ function ProgressAnswers({
             </ThemedText>
           </Tappable>
         ) : (
-          <ThemedText type="bodySmall" themeColor="textSecondary">
-            No additional consideration is available from this record yet.
-          </ThemedText>
+          <View style={styles.reportBody}>
+            <ThemedText type="bodySmall" themeColor="textSecondary">
+              Nothing to suggest yet.
+            </ThemedText>
+          </View>
         )}
-      </View>
-    </Card>
+      </Report>
+    </View>
   );
 }
 
-function movementHeadline(movement: ProgressMovement, windowLabel: string): string {
+function movementHeadline(movement: ProgressMovement): string {
   if (movement.status === 'empty') {
-    return `No sessions in ${windowLabel}`;
+    return 'No sessions in this window';
   }
   if (movement.status === 'insufficient') {
-    return `One recorded result in ${windowLabel}`;
+    return 'One result so far';
   }
   const delta = Math.round((movement.delta ?? 0) * 100);
   if (movement.comparison === 'first-to-latest') {
     return delta === 0
-      ? 'First and latest recorded results match'
-      : `${formatSigned(delta)} points from first to latest`;
+      ? 'Your first and latest sessions match'
+      : `${formatSigned(delta)} points since your first session`;
   }
   return delta === 0
-    ? `${windowLabel} average matches lifetime`
-    : `${formatSigned(delta)} points vs lifetime average`;
+    ? "This window's average matches your lifetime"
+    : `${formatSigned(delta)} points vs your lifetime average`;
 }
 
-function nextConsiderationCopy(next: NextConsideration, windowLabel: string): string {
+function nextConsiderationCopy(next: NextConsideration): string {
   if (next.reason === 'not-trained') {
-    return `No sessions recorded in ${windowLabel}`;
+    return 'Not trained in this window yet';
   }
   if (next.reason === 'not-recent') {
-    return `Not played recently · last update ${formatDaysSince(next.daysSinceUpdate)}`;
+    return `Not played recently · last trained ${formatDaysSince(next.daysSinceUpdate)}`;
   }
-  return `${plural(next.sessionsInWindow, 'session')} in ${windowLabel} · least practiced`;
+  return `${plural(next.sessionsInWindow, 'session')} in this window · least practiced`;
 }
 
 /** Hero ring: the largest spacing step doubled, sized for a 4-digit numeral beside it. */
@@ -1138,12 +1114,12 @@ function DomainDot({ domain, size = Spacing.three }: { domain: string; size?: nu
 }
 
 /**
- * One domain's rating as an identity card: the domain's soft fill and hue
- * carry recognition, while status and movement stay in text so colour is
- * never the only signal. Preserves the contracted `progress-domain-<slug>`
- * testID and the drill-down route.
+ * One domain's rating as a report line: the identity dot carries the domain
+ * hue, status and movement stay in text so colour is never the only signal.
+ * Preserves the contracted `progress-domain-<slug>` and
+ * `progress-domain-value-<slug>` testIDs and the drill-down route.
  */
-function DomainRatingCard({ insight }: { insight: DomainInsight }) {
+function DomainRatingRow({ insight, divider }: { insight: DomainInsight; divider: boolean }) {
   const theme = useTheme();
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const key = domainKeyFor(insight.domain);
@@ -1166,54 +1142,36 @@ function DomainRatingCard({ insight }: { insight: DomainInsight }) {
         ? theme.dangerText
         : theme.textSecondary;
   return (
-    <Card
-      variant="outlined"
-      onPress={() => router.push(`/progress-domain?domain=${encodeURIComponent(insight.domain)}`)}
+    <ReportRow
       testID={`progress-domain-${slug}`}
+      icon={<DomainDot domain={insight.domain} />}
+      label={insight.domain}
+      hint={statusLine}
+      divider={divider}
+      onPress={() => router.push(`/progress-domain?domain=${encodeURIComponent(insight.domain)}`)}
       accessibilityLabel={`${insight.domain}, ${
         unseen ? 'untrained' : `rating ${insight.rating}`
       }${movement ? `, ${movement} in this window` : ''}`}
-      accessibilityHint={`Open ${insight.domain} details`}
-      style={[
-        styles.domainCard,
-        {
-          backgroundColor: family ? (unseen ? theme.surfaceSunken : family.soft) : theme.surface,
-          borderColor: family ? family.base : theme.border,
-        },
-      ]}>
-      <View style={styles.domainCardHeader}>
-        <View style={[styles.domainDot, { backgroundColor: family ? family.base : theme.borderStrong }]} />
-        <ThemedText
-          type="eyebrow"
-          numberOfLines={1}
-          style={[styles.domainName, { color: family ? family.softText : theme.textSecondary }]}>
-          {insight.domain}
-        </ThemedText>
-      </View>
-      <View style={styles.domainValueRow}>
-        <ThemedText
-          type="numeralLg"
-          testID={`progress-domain-value-${slug}`}
-          style={{ color: family ? family.softText : theme.textSecondary }}>
-          {insight.rating === null ? '—' : insight.rating}
-        </ThemedText>
-        {movement ? (
-          <ThemedText type="label" style={{ color: movementTone }}>
-            {movement}
+      trailing={
+        <View style={styles.domainValueRow}>
+          <ThemedText
+            type="numeral"
+            testID={`progress-domain-value-${slug}`}
+            style={{ color: family ? family.softText : theme.textSecondary }}>
+            {insight.rating === null ? '—' : insight.rating}
           </ThemedText>
-        ) : null}
-      </View>
-      <ThemedText
-        type="caption"
-        numberOfLines={2}
-        style={{ color: family ? family.softText : theme.textSecondary }}>
-        {statusLine}
-      </ThemedText>
-    </Card>
+          {movement ? (
+            <ThemedText type="label" style={{ color: movementTone }}>
+              {movement}
+            </ThemedText>
+          ) : null}
+        </View>
+      }
+    />
   );
 }
 
-/** Most/least-trained pair: two equal identity columns from stored session shares. */
+/** Most/least-trained pair: two report rows from stored session shares. */
 function BalancePair({
   most,
   least,
@@ -1224,46 +1182,31 @@ function BalancePair({
   total: number;
 }) {
   return (
-    <View style={styles.insightPair} testID="progress-balance-insights">
-      <InsightPane label="Most trained" entry={most} total={total} />
-      {least ? <InsightPane label="Needs attention" entry={least} total={total} /> : null}
-    </View>
-  );
-}
-
-function InsightPane({ label, entry, total }: { label: string; entry: DomainSessionShare; total: number }) {
-  const theme = useTheme();
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const key = domainKeyFor(entry.domain);
-  const family = key ? DomainColors[scheme][key] : null;
-  const foreground = family ? family.softText : theme.textSecondary;
-  return (
-    <View
-      style={[
-        styles.insightPane,
-        {
-          backgroundColor: family ? family.soft : theme.surfaceSunken,
-          borderColor: family ? family.base : theme.border,
-        },
-      ]}>
-      <ThemedText type="eyebrow" style={{ color: foreground }}>
-        {label}
-      </ThemedText>
-      <ThemedText type="bodyLarge" numberOfLines={1} style={{ color: foreground }}>
-        {entry.domain}
-      </ThemedText>
-      <ThemedText type="caption" style={{ color: foreground }}>
-        {entry.sessions} session{entry.sessions === 1 ? '' : 's'} ·{' '}
-        {formatPercent(total > 0 ? entry.share : 0)}
-      </ThemedText>
+    <View testID="progress-balance-insights">
+      <ReportRow
+        label="Most trained"
+        value={most.domain}
+        hint={`${plural(most.sessions, 'session')} · ${formatPercent(total > 0 ? most.share : 0)}`}
+        icon={<DomainDot domain={most.domain} />}
+        divider={least !== null}
+      />
+      {least ? (
+        <ReportRow
+          label="Needs attention"
+          value={least.domain}
+          hint={`${plural(least.sessions, 'session')} · ${formatPercent(total > 0 ? least.share : 0)}`}
+          icon={<DomainDot domain={least.domain} />}
+        />
+      ) : null}
     </View>
   );
 }
 
 /**
- * Hero composite surface: a domain-coverage ring plus the canonical composite
+ * Focal composite surface: a domain-coverage ring plus the canonical composite
  * numeral (never a second score — `explainComposite` stays the source), the
- * labelled window trend and the transparent weight explanation.
+ * labelled window trend and the transparent weight explanation. The one
+ * elevated panel on the screen (campaign 055 §2.3).
  */
 export function CompositeCard({
   composite,
@@ -1282,75 +1225,73 @@ export function CompositeCard({
   const total = composite.domains.length;
   const trainedShare = total > 0 ? trained / total : 0;
   return (
-    <Entrance index={0}>
-      <Card variant={empty ? 'outlined' : 'hero'} shape={empty ? 'block' : 'poster'} testID="progress-composite-card">
-        <View testID={testID} style={empty ? styles.emptyComposite : styles.hero}>
-          {empty ? (
-            <>
-              <View style={styles.cardHeader}>
-                <ThemedText type="subtitle">How ratings start</ThemedText>
-                <Badge label="No history" tone="info" size="sm" />
-              </View>
-              <ThemedText
-                type="numeralLg"
-                themeColor="textSecondary"
-                testID={testID ? `${testID}-value` : undefined}>
-                {composite.composite}
-              </ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                Each domain starts at {composite.initialRating}. A recorded rating will appear
-                here after you play.
-              </ThemedText>
-            </>
-          ) : (
-            <>
-          <View style={styles.heroMain}>
-            <ProgressRing
-              value={trainedShare}
-              size={HERO_RING_SIZE}
-              tone="accent"
-              label={`${trained} of ${total} domains trained`}
-              testID={testID ? `${testID}-ring` : undefined}>
-              <ThemedText type="numeral">{trained}</ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
-                of {total}
-              </ThemedText>
-            </ProgressRing>
-            <View style={styles.heroCopy}>
-              <ThemedText type="eyebrow" themeColor="textSecondary" style={styles.heroText}>
-                Overall recorded rating
-              </ThemedText>
-              <ThemedText
-                type="numeralXl"
-                themeColor="accent"
-                style={styles.heroText}
-                testID={testID ? `${testID}-value` : undefined}
-                accessibilityLabel={`Overall rating ${composite.composite}`}>
-                {composite.composite}
-              </ThemedText>
-              {trend ? (
-                <ThemedText
-                  type="bodySmall"
-                  themeColor={trend.tone}
-                  style={styles.heroText}
-                  testID={testID ? `${testID}-trend` : undefined}>
-                  {trend.text}
-                </ThemedText>
-              ) : null}
-              <ThemedText type="caption" themeColor="textSecondary" style={styles.heroText}>
-                {trained} trained · {composite.unseenDomains} untrained · {composite.staleDomains} stale
-              </ThemedText>
+    <ArcadePanel emphasis={empty ? 'flat' : 'focal'} testID="progress-composite-card">
+      <View testID={testID} style={empty ? styles.emptyComposite : styles.hero}>
+        {empty ? (
+          <>
+            <View style={styles.cardHeader}>
+              <ThemedText type="subtitle">How ratings start</ThemedText>
+              <Badge label="No history" tone="info" size="sm" />
             </View>
+            <ThemedText
+              type="numeralLg"
+              themeColor="textSecondary"
+              testID={testID ? `${testID}-value` : undefined}>
+              {composite.composite}
+            </ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              Each domain starts at {composite.initialRating}. Your rating will appear here
+              after you play.
+            </ThemedText>
+          </>
+        ) : (
+          <>
+        <View style={styles.heroMain}>
+          <ProgressRing
+            value={trainedShare}
+            size={HERO_RING_SIZE}
+            tone="accent"
+            label={`${trained} of ${total} domains trained`}
+            testID={testID ? `${testID}-ring` : undefined}>
+            <ThemedText type="numeral">{trained}</ThemedText>
+            <ThemedText type="caption" themeColor="textSecondary">
+              of {total}
+            </ThemedText>
+          </ProgressRing>
+          <View style={styles.heroCopy}>
+            <ThemedText type="eyebrow" themeColor="textSecondary" style={styles.heroText}>
+              OVERALL RATING
+            </ThemedText>
+            <ThemedText
+              type="numeralXl"
+              themeColor="accent"
+              style={styles.heroText}
+              testID={testID ? `${testID}-value` : undefined}
+              accessibilityLabel={`Overall rating ${composite.composite}`}>
+              {composite.composite}
+            </ThemedText>
+            {trend ? (
+              <ThemedText
+                type="bodySmall"
+                themeColor={trend.tone}
+                style={styles.heroText}
+                testID={testID ? `${testID}-trend` : undefined}>
+                {trend.text}
+              </ThemedText>
+            ) : null}
+            <ThemedText type="caption" themeColor="textSecondary" style={styles.heroText}>
+              {trained} trained · {composite.unseenDomains} untrained · {composite.staleDomains} stale
+            </ThemedText>
           </View>
-          <ThemedText type="caption" themeColor="textSecondary">
-            Canonical average of all {total} domain ratings. Untrained domains start at{' '}
-            {composite.initialRating}; stale updates count half. {explainMetric('composite')}
-          </ThemedText>
-            </>
-          )}
         </View>
-      </Card>
-    </Entrance>
+        <ThemedText type="caption" themeColor="textSecondary">
+          Average of all {total} domain ratings. Untrained domains start at{' '}
+          {composite.initialRating}; stale updates count half.
+        </ThemedText>
+          </>
+        )}
+      </View>
+    </ArcadePanel>
   );
 }
 
@@ -1385,28 +1326,46 @@ export function RecentVsLifetimeCard({
   const avg = rvl.recentAvgNormalized;
   const delta = rvl.deltaAvgNormalized;
   const hasRecent = rvl.recentCount > 0;
+  const deltaTone =
+    delta === null ? 'textSecondary' : delta > 0 ? 'success' : delta < 0 ? 'danger' : 'textSecondary';
+  const accuracyTone =
+    rvl.deltaAvgAccuracy === null
+      ? 'textSecondary'
+      : rvl.deltaAvgAccuracy > 0
+        ? 'success'
+        : rvl.deltaAvgAccuracy < 0
+          ? 'danger'
+          : 'textSecondary';
+  const reactionTone =
+    rvl.deltaAvgReactionMs === null
+      ? 'textSecondary'
+      : rvl.deltaAvgReactionMs < 0
+        ? 'success'
+        : rvl.deltaAvgReactionMs > 0
+          ? 'danger'
+          : 'textSecondary';
   return (
-    <Card testID="progress-rvl-card">
-      <View testID={testID} style={styles.card}>
-        <View style={styles.cardHeader}>
-          <ThemedText type="subtitle">Recent vs lifetime</ThemedText>
-          <Badge label={windowLabel} tone="info" size="sm" />
-        </View>
+    <Report
+      testID="progress-rvl-card"
+      title="Recent vs lifetime"
+      action={<Badge label={windowLabel} tone="info" size="sm" />}>
+      <View testID={testID} style={styles.reportBody}>
         <ThemedText type="caption" themeColor="textSecondary">
-          Avg performance ({windowLabel}) compared with all-time.
+          This window compared with all time.
         </ThemedText>
-        <View style={styles.summaryRow}>
-          <SummaryStat
-            label={`Avg (${windowLabel})`}
-            value={hasRecent ? formatPercent(avg ?? 0) : '—'}
-          />
-          <SummaryStat label="Avg (all)" value={formatPercent(rvl.lifetimeAvgNormalized)} />
-          <SummaryStat
-            label="Δ avg"
-            value={delta === null ? '—' : formatSigned(Math.round((delta ?? 0) * 100)) + '%'}
-            tone={delta === null ? undefined : delta > 0 ? 'success' : delta < 0 ? 'danger' : undefined}
-          />
-        </View>
+        <ReportRow
+          label="Average"
+          hint={`${windowLabel} vs all time`}
+          value={`${hasRecent ? formatPercent(avg ?? 0) : '—'} · ${formatPercent(rvl.lifetimeAvgNormalized)}`}
+          trailing={
+            delta === null ? undefined : (
+              <ThemedText type="label" themeColor={deltaTone}>
+                {`Δ ${formatSigned(Math.round((delta ?? 0) * 100))}%`}
+              </ThemedText>
+            )
+          }
+          divider
+        />
         {rollingLatest !== null ? (
           <ThemedText type="caption" themeColor="textSecondary" testID={`${testID}-rolling`}>
             Rolling last-5-session average: {formatPercent(rollingLatest)}.{' '}
@@ -1414,81 +1373,41 @@ export function RecentVsLifetimeCard({
           </ThemedText>
         ) : null}
         {rvl.lifetimeAvgAccuracy !== null ? (
-          <View style={styles.summaryRow}>
-            <SummaryStat
-              label={`Acc (${windowLabel})`}
-              value={rvl.recentAvgAccuracy === null ? '—' : formatPercent(rvl.recentAvgAccuracy)}
-            />
-            <SummaryStat label="Acc (all)" value={formatPercent(rvl.lifetimeAvgAccuracy)} />
-            <SummaryStat
-              label="Δ acc"
-              value={
-                rvl.deltaAvgAccuracy === null
-                  ? '—'
-                  : formatSigned(Math.round((rvl.deltaAvgAccuracy ?? 0) * 100)) + '%'
-              }
-              tone={
-                rvl.deltaAvgAccuracy === null
-                  ? undefined
-                  : rvl.deltaAvgAccuracy > 0
-                    ? 'success'
-                    : rvl.deltaAvgAccuracy < 0
-                      ? 'danger'
-                      : undefined
-              }
-            />
-          </View>
+          <ReportRow
+            label="Accuracy"
+            hint={`${windowLabel} vs all time`}
+            value={`${rvl.recentAvgAccuracy === null ? '—' : formatPercent(rvl.recentAvgAccuracy)} · ${formatPercent(rvl.lifetimeAvgAccuracy)}`}
+            trailing={
+              rvl.deltaAvgAccuracy === null ? undefined : (
+                <ThemedText type="label" themeColor={accuracyTone}>
+                  {`Δ ${formatSigned(Math.round((rvl.deltaAvgAccuracy ?? 0) * 100))}%`}
+                </ThemedText>
+              )
+            }
+            divider
+          />
         ) : null}
         {rvl.lifetimeAvgReactionMs !== null ? (
-          <View style={styles.summaryRow}>
-            <SummaryStat
-              label={`React (${windowLabel})`}
-              value={rvl.recentAvgReactionMs === null ? '—' : formatMs(rvl.recentAvgReactionMs)}
-            />
-            <SummaryStat label="React (all)" value={formatMs(rvl.lifetimeAvgReactionMs)} />
-            <SummaryStat
-              label="Δ react"
-              value={
-                rvl.deltaAvgReactionMs === null
-                  ? '—'
-                  : formatSigned(Math.round(rvl.deltaAvgReactionMs)) + 'ms'
-              }
-              // Lower reaction time is better: a negative delta is the good direction.
-              tone={
-                rvl.deltaAvgReactionMs === null
-                  ? undefined
-                  : rvl.deltaAvgReactionMs < 0
-                    ? 'success'
-                    : rvl.deltaAvgReactionMs > 0
-                      ? 'danger'
-                      : undefined
-              }
-            />
-          </View>
+          <ReportRow
+            label="Reaction"
+            hint={`${windowLabel} vs all time · lower is better`}
+            value={`${rvl.recentAvgReactionMs === null ? '—' : formatMs(rvl.recentAvgReactionMs)} · ${formatMs(rvl.lifetimeAvgReactionMs)}`}
+            trailing={
+              rvl.deltaAvgReactionMs === null ? undefined : (
+                <ThemedText type="label" themeColor={reactionTone}>
+                  {`Δ ${formatSigned(Math.round(rvl.deltaAvgReactionMs))}ms`}
+                </ThemedText>
+              )
+            }
+          />
         ) : null}
         {!hasRecent ? (
           <ThemedText type="caption" themeColor="textSecondary">
-            No sessions in this window yet — keep training to compare.
+            No sessions in this window yet.
           </ThemedText>
         ) : null}
       </View>
-    </Card>
-  );
-}
-
-function SummaryStat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: 'success' | 'danger';
-}) {
-  return (
-    <View style={styles.stat}>
-      <StatBlock label={label} value={value} tone={tone} valueType="numeralLg" />
-    </View>
+    </Report>
   );
 }
 
@@ -1496,36 +1415,18 @@ const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
   },
-  section: {
-    gap: Spacing.twoHalf,
-  },
-  card: {
-    gap: Spacing.two,
-  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.two,
   },
-  sectionHeading: {
-    flex: 1,
-    gap: Spacing.half,
-  },
-  statRow: {
-    flexDirection: 'row',
+  reportBody: {
     gap: Spacing.two,
+    paddingTop: Spacing.two,
   },
-  statCell: {
-    flex: 1,
-  },
-  summaryRow: {
-    flexDirection: 'row',
+  stack: {
     gap: Spacing.two,
-  },
-  stat: {
-    flex: 1,
-    gap: Spacing.half,
   },
   hero: {
     gap: Spacing.three,
@@ -1545,20 +1446,13 @@ const styles = StyleSheet.create({
   heroText: {
     textAlign: 'center',
   },
-  answerSection: {
-    gap: Spacing.one,
-  },
-  answerSectionBorder: {
-    borderTopWidth: 1,
-    paddingTop: Spacing.two,
-  },
-  answerStatRow: {
+  consistencyRail: {
     flexDirection: 'row',
-    gap: Spacing.two,
+    flexWrap: 'wrap',
+    gap: Spacing.half,
   },
-  answerStat: {
-    flex: 1,
-    minWidth: 0,
+  answers: {
+    gap: Spacing.three,
   },
   focusAction: {
     flexDirection: 'row',
@@ -1580,55 +1474,11 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.half,
   },
-  insightPair: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  insightPane: {
-    flex: 1,
-    gap: Spacing.half,
-    borderWidth: 2,
-    borderRadius: Radii.medium,
-    padding: Spacing.twoHalf,
-  },
-  domainCard: {
-    borderWidth: 2,
-  },
-  domainCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  domainDot: {
-    width: Spacing.three,
-    height: Spacing.three,
-    borderRadius: Radii.pill,
-  },
-  domainName: {
-    flex: 1,
-  },
   domainValueRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    justifyContent: 'space-between',
     gap: Spacing.two,
-  },
-  rows: {
-    gap: Spacing.two,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  sessionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  sessionRowMain: {
-    flex: 1,
+    flexShrink: 0,
   },
   pbBadge: {
     borderRadius: Radii.pill,

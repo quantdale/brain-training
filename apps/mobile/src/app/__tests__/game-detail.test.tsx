@@ -181,10 +181,18 @@ describe("Game Detail — Campaign 032 identity-first contract", () => {
     const heroStyle = StyleSheet.flatten(
       screen.getByTestId("game-detail-mastery").props.style,
     );
-    expect([Colors.light.surfaceRaised, Colors.dark.surfaceRaised]).toContain(
+    // Campaign 055: the hero is a GameStage/ArcadePanel now. The legacy Card
+    // hero was raised and borderless; the Stage is the neutral paper surface
+    // with a hairline border. The neutral intent (no domain hue on the hero
+    // surface) is unchanged, so the assertion tracks the new shape role.
+    expect([Colors.light.surface, Colors.dark.surface]).toContain(
       heroStyle.backgroundColor,
     );
-    expect(heroStyle.borderColor).toBeUndefined();
+    expect([Colors.light.border, Colors.dark.border]).toContain(
+      heroStyle.borderColor,
+    );
+    // Campaign 055: GameStage keeps the decorative mark on `-mark`; the
+    // visible identity block (verb + category) carries `game-detail-identity`.
     expect(collectTestIds(screen.toJSON())).toContain("game-detail-identity-mark");
     expect(screen.getByTestId("game-detail-play")).toHaveTextContent(
       `Play ${MEMORY_GAME.name}`,

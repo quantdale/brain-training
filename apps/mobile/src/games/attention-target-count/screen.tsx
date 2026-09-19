@@ -563,11 +563,6 @@ export default function TargetCountScreen(props: TargetCountScreenProps = {}) {
             />
           </View>
           <StatRow
-            label="Score"
-            value={String(state.stats.score)}
-            testID={testId(GAME_ID, 'score')}
-          />
-          <StatRow
             label="Accuracy"
             value={`${Math.round(
               (state.stats.roundsPlayed > 0 ? state.stats.roundsCorrect / state.stats.roundsPlayed : 0) * 100,

@@ -446,11 +446,11 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             {
                               "backgroundColor": "#FFFDF7",
                               "borderColor": "#C9D6D3",
-                              "borderRadius": 8,
-                              "borderWidth": 2,
-                              "boxShadow": "0 4px 0 rgba(16, 35, 45, 0.16), 0 16px 36px rgba(16, 35, 45, 0.16)",
-                              "elevation": 8,
-                              "padding": 24,
+                              "borderRadius": 12,
+                              "borderWidth": 0.5,
+                              "boxShadow": "0 3px 0 rgba(16, 35, 45, 0.14), 0 8px 20px rgba(16, 35, 45, 0.10)",
+                              "elevation": 5,
+                              "padding": 0,
                             },
                             undefined,
                           ]
@@ -460,7 +460,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         <View
                           style={
                             {
-                              "gap": 16,
+                              "gap": 12,
+                              "padding": 16,
                             }
                           }
                         >
@@ -775,20 +776,9 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       style={
                         [
                           {
-                            "overflow": "hidden",
-                          },
-                          {
-                            "backgroundColor": "#FFFDF7",
-                            "borderColor": "#C9D6D3",
-                            "borderRadius": 12,
-                            "borderWidth": 0.5,
-                            "boxShadow": "none",
-                            "elevation": 0,
-                            "padding": 16,
-                          },
-                          {
                             "gap": 8,
                           },
+                          undefined,
                         ]
                       }
                       testID="home-context"
@@ -796,15 +786,62 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       <View
                         style={
                           {
-                            "gap": 16,
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                            "gap": 8,
                           }
+                        }
+                      >
+                        <Text
+                          maxFontSizeMultiplier={2}
+                          style={
+                            [
+                              {
+                                "color": "#4C5D63",
+                              },
+                              {
+                                "fontSize": 11,
+                                "fontWeight": "800",
+                                "letterSpacing": 1.4,
+                                "lineHeight": 14,
+                              },
+                              false,
+                              false,
+                              false,
+                              false,
+                              {
+                                "flex": 1,
+                              },
+                            ]
+                          }
+                        >
+                          Your training
+                        </Text>
+                      </View>
+                      <View
+                        style={
+                          [
+                            {
+                              "borderTopWidth": 0.5,
+                            },
+                            {
+                              "borderTopColor": "#C9D6D3",
+                            },
+                          ]
                         }
                       >
                         <View
                           style={
-                            {
-                              "gap": 8,
-                            }
+                            [
+                              {
+                                "borderBottomWidth": 0.5,
+                                "gap": 4,
+                                "paddingVertical": 8,
+                              },
+                              {
+                                "borderBottomColor": "#C9D6D3",
+                              },
+                            ]
                           }
                           testID="home-streak-card"
                         >
@@ -814,9 +851,32 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "alignItems": "baseline",
                                 "flexDirection": "row",
                                 "gap": 8,
+                                "justifyContent": "space-between",
                               }
                             }
                           >
+                            <Text
+                              maxFontSizeMultiplier={2}
+                              style={
+                                [
+                                  {
+                                    "color": "#4C5D63",
+                                  },
+                                  {
+                                    "fontSize": 14,
+                                    "fontWeight": "500",
+                                    "lineHeight": 20,
+                                  },
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Day streak
+                            </Text>
                             <Text
                               maxFontSizeMultiplier={1.4}
                               style={
@@ -845,28 +905,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               testID="home-stat-streak"
                             >
                               0
-                            </Text>
-                            <Text
-                              maxFontSizeMultiplier={2}
-                              style={
-                                [
-                                  {
-                                    "color": "#4C5D63",
-                                  },
-                                  {
-                                    "fontSize": 14,
-                                    "fontWeight": "500",
-                                    "lineHeight": 20,
-                                  },
-                                  false,
-                                  false,
-                                  false,
-                                  false,
-                                  undefined,
-                                ]
-                              }
-                            >
-                              day streak
                             </Text>
                           </View>
                           <View
@@ -1076,9 +1114,17 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         </View>
                         <View
                           style={
-                            {
-                              "gap": 8,
-                            }
+                            [
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 8,
+                                "minHeight": 44,
+                                "paddingVertical": 8,
+                              },
+                              null,
+                              undefined,
+                            ]
                           }
                           testID="home-level-card"
                         >
@@ -1086,8 +1132,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               {
                                 "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 16,
+                                "justifyContent": "center",
                               }
                             }
                           >
@@ -1103,8 +1148,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               }
                               style={
                                 {
-                                  "height": 64,
-                                  "width": 64,
+                                  "height": 48,
+                                  "width": 48,
                                 }
                               }
                               testID="home-stat-xp"
@@ -1115,15 +1160,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "0deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1137,15 +1182,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "6.428571428571428deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1159,15 +1204,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "12.857142857142856deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1181,15 +1226,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "19.285714285714285deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1203,15 +1248,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "25.71428571428571deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1225,15 +1270,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "32.142857142857146deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1247,15 +1292,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "38.57142857142857deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1269,15 +1314,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "45deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1291,15 +1336,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "51.42857142857142deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1313,15 +1358,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "57.85714285714286deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1335,15 +1380,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "64.28571428571429deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1357,15 +1402,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "70.71428571428571deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1379,15 +1424,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "77.14285714285714deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1401,15 +1446,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "83.57142857142857deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1423,15 +1468,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "90deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1445,15 +1490,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "96.42857142857143deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1467,15 +1512,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "102.85714285714285deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1489,15 +1534,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "109.28571428571428deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1511,15 +1556,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "115.71428571428572deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1533,15 +1578,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "122.14285714285715deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1555,15 +1600,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "128.57142857142858deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1577,15 +1622,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "135deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1599,15 +1644,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "141.42857142857142deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1621,15 +1666,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "147.85714285714286deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1643,15 +1688,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "154.28571428571428deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1665,15 +1710,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "160.71428571428572deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1687,15 +1732,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "167.14285714285714deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1709,15 +1754,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "173.57142857142858deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1731,15 +1776,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "180deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1753,15 +1798,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "186.42857142857144deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1775,15 +1820,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "192.85714285714286deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1797,15 +1842,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "199.2857142857143deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1819,15 +1864,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "205.7142857142857deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1841,15 +1886,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "212.14285714285714deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1863,15 +1908,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "218.57142857142856deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1885,15 +1930,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "225deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1907,15 +1952,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "231.42857142857144deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1929,15 +1974,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "237.85714285714286deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1951,15 +1996,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "244.2857142857143deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1973,15 +2018,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "250.7142857142857deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -1995,15 +2040,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "257.14285714285717deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2017,15 +2062,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "263.57142857142856deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2039,15 +2084,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "270deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2061,15 +2106,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "276.42857142857144deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2083,15 +2128,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "282.85714285714283deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2105,15 +2150,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "289.2857142857143deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2127,15 +2172,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "295.7142857142857deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2149,15 +2194,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "302.14285714285717deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2171,15 +2216,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "308.57142857142856deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2193,15 +2238,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "315deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2215,15 +2260,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "321.42857142857144deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2237,15 +2282,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "327.85714285714283deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2259,15 +2304,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "334.2857142857143deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2281,15 +2326,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "340.7142857142857deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2303,15 +2348,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "347.14285714285717deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2325,15 +2370,15 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                     "backgroundColor": "#C9D6D3",
                                     "borderRadius": 2,
                                     "height": 12,
-                                    "left": 30,
+                                    "left": 22,
                                     "position": "absolute",
-                                    "top": 26,
+                                    "top": 18,
                                     "transform": [
                                       {
                                         "rotate": "353.57142857142856deg",
                                       },
                                       {
-                                        "translateY": -22,
+                                        "translateY": -14,
                                       },
                                     ],
                                     "width": 4,
@@ -2366,13 +2411,13 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                         "color": "#633BAF",
                                       },
                                       {
-                                        "fontSize": 44,
+                                        "fontSize": 30,
                                         "fontVariant": [
                                           "tabular-nums",
                                         ],
                                         "fontWeight": "900",
-                                        "letterSpacing": -1.2,
-                                        "lineHeight": 48,
+                                        "letterSpacing": -0.6,
+                                        "lineHeight": 34,
                                       },
                                       false,
                                       false,
@@ -2387,60 +2432,89 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 </Text>
                               </View>
                             </View>
-                            <View
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                                "flexShrink": 1,
+                                "gap": 2,
+                              }
+                            }
+                          >
+                            <Text
+                              maxFontSizeMultiplier={2}
+                              numberOfLines={2}
                               style={
-                                {
-                                  "flex": 1,
-                                  "gap": 2,
-                                }
+                                [
+                                  {
+                                    "color": "#4C5D63",
+                                  },
+                                  {
+                                    "fontSize": 14,
+                                    "fontWeight": "500",
+                                    "lineHeight": 20,
+                                  },
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  undefined,
+                                ]
                               }
                             >
-                              <Text
-                                maxFontSizeMultiplier={2}
-                                style={
-                                  [
-                                    {
-                                      "color": "#10232D",
-                                    },
-                                    {
-                                      "fontSize": 13,
-                                      "fontWeight": "700",
-                                      "lineHeight": 18,
-                                    },
-                                    false,
-                                    false,
-                                    false,
-                                    false,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                Level 1
-                              </Text>
-                              <Text
-                                maxFontSizeMultiplier={2}
-                                style={
-                                  [
-                                    {
-                                      "color": "#4C5D63",
-                                    },
-                                    {
-                                      "fontSize": 12,
-                                      "fontWeight": "500",
-                                      "lineHeight": 16,
-                                    },
-                                    false,
-                                    false,
-                                    false,
-                                    false,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                0 XP · 100 XP to Level 2
-                              </Text>
-                            </View>
+                              Level
+                            </Text>
+                            <Text
+                              maxFontSizeMultiplier={2}
+                              numberOfLines={2}
+                              style={
+                                [
+                                  {
+                                    "color": "#5B6B70",
+                                  },
+                                  {
+                                    "fontSize": 12,
+                                    "fontWeight": "500",
+                                    "lineHeight": 16,
+                                  },
+                                  false,
+                                  false,
+                                  false,
+                                  false,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              100 XP to Level 2
+                            </Text>
                           </View>
+                          <Text
+                            maxFontSizeMultiplier={2}
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#10232D",
+                                },
+                                {
+                                  "fontSize": 13,
+                                  "fontWeight": "700",
+                                  "lineHeight": 18,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                {
+                                  "flexShrink": 0,
+                                  "fontWeight": "700",
+                                },
+                              ]
+                            }
+                          >
+                            0 XP
+                          </Text>
                         </View>
                       </View>
                     </View>
@@ -3497,7 +3571,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           ]
                         }
                       >
-                        A clear view of consistency, recorded movement and what to consider next.
+                        Your consistency, recent form and what to try next.
                       </Text>
                     </View>
                     <View
@@ -3511,7 +3585,9 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "flexDirection": "row",
                             "padding": 2,
                           },
-                          false,
+                          {
+                            "borderRadius": 12,
+                          },
                           {
                             "backgroundColor": "#E8ECEA",
                           },
@@ -3557,6 +3633,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
+                        hitSlop={
+                          {
+                            "bottom": 6,
+                            "left": 6,
+                            "right": 6,
+                            "top": 6,
+                          }
+                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3569,11 +3653,11 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "borderRadius": 999,
+                            "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 8,
+                            "minHeight": 32,
+                            "paddingHorizontal": 4,
                             "transform": [
                               {
                                 "scale": 1,
@@ -3592,9 +3676,9 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "color": "#4C5D63",
                               },
                               {
-                                "fontSize": 14,
+                                "fontSize": 12,
                                 "fontWeight": "500",
-                                "lineHeight": 20,
+                                "lineHeight": 16,
                               },
                               false,
                               false,
@@ -3630,6 +3714,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
+                        hitSlop={
+                          {
+                            "bottom": 6,
+                            "left": 6,
+                            "right": 6,
+                            "top": 6,
+                          }
+                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3642,11 +3734,11 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "borderRadius": 999,
+                            "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 8,
+                            "minHeight": 32,
+                            "paddingHorizontal": 4,
                             "transform": [
                               {
                                 "scale": 1,
@@ -3665,9 +3757,9 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "color": "#10232D",
                               },
                               {
-                                "fontSize": 14,
+                                "fontSize": 12,
                                 "fontWeight": "500",
-                                "lineHeight": 20,
+                                "lineHeight": 16,
                               },
                               false,
                               false,
@@ -3703,6 +3795,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
+                        hitSlop={
+                          {
+                            "bottom": 6,
+                            "left": 6,
+                            "right": 6,
+                            "top": 6,
+                          }
+                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3715,11 +3815,11 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "borderRadius": 999,
+                            "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 8,
+                            "minHeight": 32,
+                            "paddingHorizontal": 4,
                             "transform": [
                               {
                                 "scale": 1,
@@ -3738,9 +3838,9 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "color": "#4C5D63",
                               },
                               {
-                                "fontSize": 14,
+                                "fontSize": 12,
                                 "fontWeight": "500",
-                                "lineHeight": 20,
+                                "lineHeight": 16,
                               },
                               false,
                               false,
@@ -3776,6 +3876,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
+                        hitSlop={
+                          {
+                            "bottom": 6,
+                            "left": 6,
+                            "right": 6,
+                            "top": 6,
+                          }
+                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3788,11 +3896,11 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "borderRadius": 999,
+                            "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 8,
+                            "minHeight": 32,
+                            "paddingHorizontal": 4,
                             "transform": [
                               {
                                 "scale": 1,
@@ -3811,9 +3919,9 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "color": "#4C5D63",
                               },
                               {
-                                "fontSize": 14,
+                                "fontSize": 12,
                                 "fontWeight": "500",
-                                "lineHeight": 20,
+                                "lineHeight": 16,
                               },
                               false,
                               false,
@@ -4974,11 +5082,11 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     {
                       "backgroundColor": "#FFFDF7",
                       "borderColor": "#C9D6D3",
-                      "borderRadius": 8,
-                      "borderWidth": 2,
-                      "boxShadow": "0 4px 0 rgba(16, 35, 45, 0.16), 0 16px 36px rgba(16, 35, 45, 0.16)",
-                      "elevation": 8,
-                      "padding": 24,
+                      "borderRadius": 12,
+                      "borderWidth": 0.5,
+                      "boxShadow": "0 3px 0 rgba(16, 35, 45, 0.14), 0 8px 20px rgba(16, 35, 45, 0.10)",
+                      "elevation": 5,
+                      "padding": 0,
                     },
                     undefined,
                   ]
@@ -4988,7 +5096,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 <View
                   style={
                     {
-                      "gap": 16,
+                      "gap": 12,
+                      "padding": 16,
                     }
                   }
                 >
@@ -5303,20 +5412,9 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               style={
                 [
                   {
-                    "overflow": "hidden",
-                  },
-                  {
-                    "backgroundColor": "#FFFDF7",
-                    "borderColor": "#C9D6D3",
-                    "borderRadius": 12,
-                    "borderWidth": 0.5,
-                    "boxShadow": "none",
-                    "elevation": 0,
-                    "padding": 16,
-                  },
-                  {
                     "gap": 8,
                   },
+                  undefined,
                 ]
               }
               testID="home-context"
@@ -5324,15 +5422,62 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               <View
                 style={
                   {
-                    "gap": 16,
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
                   }
+                }
+              >
+                <Text
+                  maxFontSizeMultiplier={2}
+                  style={
+                    [
+                      {
+                        "color": "#4C5D63",
+                      },
+                      {
+                        "fontSize": 11,
+                        "fontWeight": "800",
+                        "letterSpacing": 1.4,
+                        "lineHeight": 14,
+                      },
+                      false,
+                      false,
+                      false,
+                      false,
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                >
+                  Your training
+                </Text>
+              </View>
+              <View
+                style={
+                  [
+                    {
+                      "borderTopWidth": 0.5,
+                    },
+                    {
+                      "borderTopColor": "#C9D6D3",
+                    },
+                  ]
                 }
               >
                 <View
                   style={
-                    {
-                      "gap": 8,
-                    }
+                    [
+                      {
+                        "borderBottomWidth": 0.5,
+                        "gap": 4,
+                        "paddingVertical": 8,
+                      },
+                      {
+                        "borderBottomColor": "#C9D6D3",
+                      },
+                    ]
                   }
                   testID="home-streak-card"
                 >
@@ -5342,9 +5487,32 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         "alignItems": "baseline",
                         "flexDirection": "row",
                         "gap": 8,
+                        "justifyContent": "space-between",
                       }
                     }
                   >
+                    <Text
+                      maxFontSizeMultiplier={2}
+                      style={
+                        [
+                          {
+                            "color": "#4C5D63",
+                          },
+                          {
+                            "fontSize": 14,
+                            "fontWeight": "500",
+                            "lineHeight": 20,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      Day streak
+                    </Text>
                     <Text
                       maxFontSizeMultiplier={1.4}
                       style={
@@ -5373,28 +5541,6 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       testID="home-stat-streak"
                     >
                       0
-                    </Text>
-                    <Text
-                      maxFontSizeMultiplier={2}
-                      style={
-                        [
-                          {
-                            "color": "#4C5D63",
-                          },
-                          {
-                            "fontSize": 14,
-                            "fontWeight": "500",
-                            "lineHeight": 20,
-                          },
-                          false,
-                          false,
-                          false,
-                          false,
-                          undefined,
-                        ]
-                      }
-                    >
-                      day streak
                     </Text>
                   </View>
                   <View
@@ -5604,9 +5750,17 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 </View>
                 <View
                   style={
-                    {
-                      "gap": 8,
-                    }
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 8,
+                        "minHeight": 44,
+                        "paddingVertical": 8,
+                      },
+                      null,
+                      undefined,
+                    ]
                   }
                   testID="home-level-card"
                 >
@@ -5614,8 +5768,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     style={
                       {
                         "alignItems": "center",
-                        "flexDirection": "row",
-                        "gap": 16,
+                        "justifyContent": "center",
                       }
                     }
                   >
@@ -5631,8 +5784,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       }
                       style={
                         {
-                          "height": 64,
-                          "width": 64,
+                          "height": 48,
+                          "width": 48,
                         }
                       }
                       testID="home-stat-xp"
@@ -5643,15 +5796,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "0deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5665,15 +5818,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "6.428571428571428deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5687,15 +5840,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "12.857142857142856deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5709,15 +5862,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "19.285714285714285deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5731,15 +5884,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "25.71428571428571deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5753,15 +5906,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "32.142857142857146deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5775,15 +5928,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "38.57142857142857deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5797,15 +5950,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "45deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5819,15 +5972,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "51.42857142857142deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5841,15 +5994,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "57.85714285714286deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5863,15 +6016,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "64.28571428571429deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5885,15 +6038,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "70.71428571428571deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5907,15 +6060,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "77.14285714285714deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5929,15 +6082,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "83.57142857142857deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5951,15 +6104,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "90deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5973,15 +6126,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "96.42857142857143deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -5995,15 +6148,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "102.85714285714285deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6017,15 +6170,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "109.28571428571428deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6039,15 +6192,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "115.71428571428572deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6061,15 +6214,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "122.14285714285715deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6083,15 +6236,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "128.57142857142858deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6105,15 +6258,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "135deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6127,15 +6280,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "141.42857142857142deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6149,15 +6302,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "147.85714285714286deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6171,15 +6324,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "154.28571428571428deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6193,15 +6346,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "160.71428571428572deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6215,15 +6368,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "167.14285714285714deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6237,15 +6390,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "173.57142857142858deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6259,15 +6412,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "180deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6281,15 +6434,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "186.42857142857144deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6303,15 +6456,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "192.85714285714286deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6325,15 +6478,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "199.2857142857143deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6347,15 +6500,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "205.7142857142857deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6369,15 +6522,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "212.14285714285714deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6391,15 +6544,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "218.57142857142856deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6413,15 +6566,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "225deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6435,15 +6588,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "231.42857142857144deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6457,15 +6610,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "237.85714285714286deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6479,15 +6632,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "244.2857142857143deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6501,15 +6654,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "250.7142857142857deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6523,15 +6676,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "257.14285714285717deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6545,15 +6698,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "263.57142857142856deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6567,15 +6720,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "270deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6589,15 +6742,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "276.42857142857144deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6611,15 +6764,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "282.85714285714283deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6633,15 +6786,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "289.2857142857143deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6655,15 +6808,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "295.7142857142857deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6677,15 +6830,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "302.14285714285717deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6699,15 +6852,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "308.57142857142856deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6721,15 +6874,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "315deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6743,15 +6896,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "321.42857142857144deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6765,15 +6918,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "327.85714285714283deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6787,15 +6940,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "334.2857142857143deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6809,15 +6962,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "340.7142857142857deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6831,15 +6984,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "347.14285714285717deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6853,15 +7006,15 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                             "backgroundColor": "#C9D6D3",
                             "borderRadius": 2,
                             "height": 12,
-                            "left": 30,
+                            "left": 22,
                             "position": "absolute",
-                            "top": 26,
+                            "top": 18,
                             "transform": [
                               {
                                 "rotate": "353.57142857142856deg",
                               },
                               {
-                                "translateY": -22,
+                                "translateY": -14,
                               },
                             ],
                             "width": 4,
@@ -6894,13 +7047,13 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                                 "color": "#633BAF",
                               },
                               {
-                                "fontSize": 44,
+                                "fontSize": 30,
                                 "fontVariant": [
                                   "tabular-nums",
                                 ],
                                 "fontWeight": "900",
-                                "letterSpacing": -1.2,
-                                "lineHeight": 48,
+                                "letterSpacing": -0.6,
+                                "lineHeight": 34,
                               },
                               false,
                               false,
@@ -6915,60 +7068,89 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         </Text>
                       </View>
                     </View>
-                    <View
+                  </View>
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                        "flexShrink": 1,
+                        "gap": 2,
+                      }
+                    }
+                  >
+                    <Text
+                      maxFontSizeMultiplier={2}
+                      numberOfLines={2}
                       style={
-                        {
-                          "flex": 1,
-                          "gap": 2,
-                        }
+                        [
+                          {
+                            "color": "#4C5D63",
+                          },
+                          {
+                            "fontSize": 14,
+                            "fontWeight": "500",
+                            "lineHeight": 20,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
                       }
                     >
-                      <Text
-                        maxFontSizeMultiplier={2}
-                        style={
-                          [
-                            {
-                              "color": "#10232D",
-                            },
-                            {
-                              "fontSize": 13,
-                              "fontWeight": "700",
-                              "lineHeight": 18,
-                            },
-                            false,
-                            false,
-                            false,
-                            false,
-                            undefined,
-                          ]
-                        }
-                      >
-                        Level 1
-                      </Text>
-                      <Text
-                        maxFontSizeMultiplier={2}
-                        style={
-                          [
-                            {
-                              "color": "#4C5D63",
-                            },
-                            {
-                              "fontSize": 12,
-                              "fontWeight": "500",
-                              "lineHeight": 16,
-                            },
-                            false,
-                            false,
-                            false,
-                            false,
-                            undefined,
-                          ]
-                        }
-                      >
-                        0 XP · 100 XP to Level 2
-                      </Text>
-                    </View>
+                      Level
+                    </Text>
+                    <Text
+                      maxFontSizeMultiplier={2}
+                      numberOfLines={2}
+                      style={
+                        [
+                          {
+                            "color": "#5B6B70",
+                          },
+                          {
+                            "fontSize": 12,
+                            "fontWeight": "500",
+                            "lineHeight": 16,
+                          },
+                          false,
+                          false,
+                          false,
+                          false,
+                          undefined,
+                        ]
+                      }
+                    >
+                      100 XP to Level 2
+                    </Text>
                   </View>
+                  <Text
+                    maxFontSizeMultiplier={2}
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#10232D",
+                        },
+                        {
+                          "fontSize": 13,
+                          "fontWeight": "700",
+                          "lineHeight": 18,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        {
+                          "flexShrink": 0,
+                          "fontWeight": "700",
+                        },
+                      ]
+                    }
+                  >
+                    0 XP
+                  </Text>
                 </View>
               </View>
             </View>
@@ -7495,7 +7677,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   ]
                 }
               >
-                A clear view of consistency, recorded movement and what to consider next.
+                Your consistency, recent form and what to try next.
               </Text>
             </View>
             <View
@@ -7509,7 +7691,9 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     "flexDirection": "row",
                     "padding": 2,
                   },
-                  false,
+                  {
+                    "borderRadius": 12,
+                  },
                   {
                     "backgroundColor": "#E8ECEA",
                   },
@@ -7555,6 +7739,14 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
+                hitSlop={
+                  {
+                    "bottom": 6,
+                    "left": 6,
+                    "right": 6,
+                    "top": 6,
+                  }
+                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -7567,11 +7759,11 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 999,
+                    "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 8,
+                    "minHeight": 32,
+                    "paddingHorizontal": 4,
                     "transform": [
                       {
                         "scale": 1,
@@ -7590,9 +7782,9 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         "color": "#4C5D63",
                       },
                       {
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "500",
-                        "lineHeight": 20,
+                        "lineHeight": 16,
                       },
                       false,
                       false,
@@ -7628,6 +7820,14 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
+                hitSlop={
+                  {
+                    "bottom": 6,
+                    "left": 6,
+                    "right": 6,
+                    "top": 6,
+                  }
+                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -7640,11 +7840,11 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 999,
+                    "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 8,
+                    "minHeight": 32,
+                    "paddingHorizontal": 4,
                     "transform": [
                       {
                         "scale": 1,
@@ -7663,9 +7863,9 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         "color": "#10232D",
                       },
                       {
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "500",
-                        "lineHeight": 20,
+                        "lineHeight": 16,
                       },
                       false,
                       false,
@@ -7701,6 +7901,14 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
+                hitSlop={
+                  {
+                    "bottom": 6,
+                    "left": 6,
+                    "right": 6,
+                    "top": 6,
+                  }
+                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -7713,11 +7921,11 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 999,
+                    "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 8,
+                    "minHeight": 32,
+                    "paddingHorizontal": 4,
                     "transform": [
                       {
                         "scale": 1,
@@ -7736,9 +7944,9 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         "color": "#4C5D63",
                       },
                       {
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "500",
-                        "lineHeight": 20,
+                        "lineHeight": 16,
                       },
                       false,
                       false,
@@ -7774,6 +7982,14 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
+                hitSlop={
+                  {
+                    "bottom": 6,
+                    "left": 6,
+                    "right": 6,
+                    "top": 6,
+                  }
+                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -7786,11 +8002,11 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   {
                     "alignItems": "center",
-                    "borderRadius": 999,
+                    "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 8,
+                    "minHeight": 32,
+                    "paddingHorizontal": 4,
                     "transform": [
                       {
                         "scale": 1,
@@ -7809,9 +8025,9 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                         "color": "#4C5D63",
                       },
                       {
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "500",
-                        "lineHeight": 20,
+                        "lineHeight": 16,
                       },
                       false,
                       false,

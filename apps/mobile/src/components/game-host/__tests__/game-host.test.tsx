@@ -265,10 +265,16 @@ describe('GameHost chrome mounting', () => {
     const heroStyle = StyleSheet.flatten(
       screen.getByTestId(testId('memory-grid-recall', 'intro')).props.style,
     );
-    expect([Colors.light.surfaceRaised, Colors.dark.surfaceRaised]).toContain(
+    // Campaign 055: the intro is a GameStage/ArcadePanel now. The legacy Card
+    // hero was raised and borderless; the Stage is the neutral paper surface
+    // with a hairline border. The neutral intent (no domain hue on the chrome)
+    // is unchanged, so the assertion tracks the new shape role.
+    expect([Colors.light.surface, Colors.dark.surface]).toContain(
       heroStyle.backgroundColor,
     );
-    expect(heroStyle.borderColor).toBeUndefined();
+    expect([Colors.light.border, Colors.dark.border]).toContain(
+      heroStyle.borderColor,
+    );
     expect(collectTestIds(screen.toJSON())).toContain('game-identity-mark');
     expect(screen.getByTestId('game-category')).toHaveTextContent('Memory');
     expect(screen.getByText('Start game')).toBeOnTheScreen();

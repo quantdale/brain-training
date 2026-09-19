@@ -38,13 +38,17 @@ import { StyleSheet, View } from "react-native";
 import { SectionHeader } from "@/components/shell";
 import { GameWorldArt } from "@/components/discovery/game-identity";
 import {
+  ArcadePanel,
   Button,
   Card,
   EmptyState,
   Entrance,
+  HAIRLINE,
   ListRow,
   ProgressBar,
   ProgressRing,
+  Report,
+  ReportRow,
   SectionGrid,
   Skeleton,
   SkeletonText,
@@ -670,279 +674,277 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* Today's Workout hero: goal progress + the screen's single primary
-          CTA. The meter and legs mirror the durable resume position. */}
+      {/* Today's Workout — the screen's single focal object (campaign 055).
+          The focus-module world art leads, a compact body carries the plan,
+          progress and the one primary key, and the per-game legs move to a
+          quiet Report directly below. */}
       <Entrance index={0}>
-      <Card variant="hero" shape="poster" padding="lg" testID="home-workout-cta">
-        <View style={styles.heroBody}>
+        <ArcadePanel padding="none" emphasis="focal" testID="home-workout-cta">
           {consoleGame ? (
-            <View style={styles.consoleStage} testID="home-training-console">
-              <GameWorldArt game={consoleGame} size="hero" testID="home-training-console-world" />
-              <View style={styles.consoleReadout}>
-                <ThemedText type="eyebrow" themeColor="textMuted">
-                  FOCUS MODULE
-                </ThemedText>
-                <ThemedText type="headline" numberOfLines={1}>
-                  {consoleGame.name}
-                </ThemedText>
-                <ThemedText type="caption" themeColor="textSecondary">
-                  {consoleGame.primaryCategory} · ready on this device
-                </ThemedText>
-              </View>
-            </View>
-          ) : null}
-          <View style={styles.heroTitle}>
-            <View style={styles.heroEyebrowRow}>
-              <Spark size={14} color={theme.accent} />
-              <ThemedText type="eyebrow" themeColor="accent">
-                TODAY
-              </ThemedText>
-            </View>
-            <ThemedText type="headline">Today&apos;s Workout</ThemedText>
-            {heroPlanLine ? (
-              <ThemedText type="bodySmall" themeColor="textSecondary" testID="home-workout-plan">
-                {heroPlanLine}
-              </ThemedText>
-            ) : null}
-            <ThemedText
-              type="caption"
-              themeColor="textSecondary"
-              testID="home-local-trust"
-            >
-              Your training is ready on this device and works offline.
-            </ThemedText>
-          </View>
-          {workoutStatus === "completed" ? (
-            <Card tone="successSoft" padding="sm" testID="home-workout-complete-panel">
-              <ThemedText
-                type="label"
-                themeColor="successSoftText"
-                testID="home-workout-complete"
-              >
-                Workout complete
-              </ThemedText>
-              <ThemedText type="bodySmall" themeColor="successSoftText">
-                {`${workout.length}/${workout.length} games saved. See today's progress for a summary.`}
-              </ThemedText>
-            </Card>
-          ) : workout.length > 0 ? (
-            <View style={styles.progressRow}>
-              <ThemedText type="numeralXl" testID="home-workout-progress">
-                {`${workoutIndex}/${workout.length}`}
-              </ThemedText>
-              <View style={styles.progressCopy}>
-                <ThemedText type="label" themeColor="textSecondary">
-                  {`${workoutIndex} of ${workout.length} complete`}
-                </ThemedText>
-                {currentGame ? (
-                  <ThemedText type="caption" themeColor="textSecondary">
-                    {`Next: ${currentGame.name}`}
-                  </ThemedText>
-                ) : null}
-              </View>
-            </View>
-          ) : null}
-          {workout.length > 0 ? (
-            <>
-              <ProgressBar
-                value={workoutIndex / workout.length}
-                testID="home-workout-progress-bar"
-                accessibilityLabel={
-                  workoutStatus === "completed"
-                    ? `Workout complete, ${workout.length} of ${workout.length} games done`
-                    : `${workoutIndex} of ${workout.length} games done`
-                }
+            <View testID="home-training-console">
+              <GameWorldArt
+                game={consoleGame}
+                size="stage"
+                testID="home-training-console-world"
               />
-              {workoutStatus === "completed" ? (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  label="See today's progress"
-                  sublabel={`${workout.length}/${workout.length} games saved`}
-                  testID="home-workout-continue"
-                  accessibilityLabel="See today's progress"
-                  accessibilityHint="Review your completed workout"
-                  onPress={() => router.push("/progress")}
-                />
-              ) : heroHref ? (
-                <Button
-                  variant="primary"
-                  size="lg"
-                  label={heroCtaLabel}
-                  sublabel={heroCtaSublabel}
-                  testID="home-workout-continue"
-                  accessibilityLabel={heroCtaAccessibilityLabel}
-                  onPress={() => router.push(heroHref)}
-                />
-              ) : null}
-              <View style={styles.workoutList} testID="home-workout-list">
-                {workout.map((game, index) => {
-                  const isCompleted =
-                    workoutStatus === "completed" || index < workoutIndex;
-                  const isCurrent =
-                    workoutStatus === "active" && index === workoutIndex;
-                  const status = isCompleted
-                    ? "Done"
-                    : isCurrent
-                      ? "Now"
-                      : "Up next";
-                  return (
-                    <View key={`${game.id}-${index}`}>
-                      <ListRow
-                        title={game.name}
-                        subtitle={game.primaryCategory}
-                        meta={status}
-                        // Contract: automation reads each leg's status text from
-                        // this node (and excludes the prefix from leg counting).
-                        metaTestID={`home-workout-game-status-${game.id}`}
-                        testID={`home-workout-game-${game.id}`}
-                        accessibilityLabel={`${game.name}, ${game.primaryCategory}, ${
-                          isCompleted ? "done" : isCurrent ? "up now" : "up next"
-                        }`}
-                        onPress={() =>
-                          router.push(
-                            gameHref(
-                              game.id,
-                              workoutFlow.instance
-                                ? {
-                                    instanceKey: workoutFlow.instance.date,
-                                    legIndex: index,
-                                    gameId: game.id,
-                                  }
-                                : null,
-                            ),
-                          )
-                        }
-                      />
-                    </View>
-                  );
-                })}
-              </View>
-            </>
-          ) : hasCatalog && workoutFlow.loadFailed ? (
-            // A failed load-or-create must not read as "no catalog installed".
-            <Card tone="dangerSoft" testID="home-workout-error">
-              <View style={styles.errorBody}>
-                <ThemedText type="label" themeColor="dangerSoftText">
-                  Couldn&apos;t load today&apos;s workout
-                </ThemedText>
-                <ThemedText type="bodySmall" themeColor="dangerSoftText">
-                  Your plan is stored on this phone — try again to reload it.
-                </ThemedText>
-                <Button
-                  variant="secondary"
-                  label="Try again"
-                  testID="home-workout-retry"
-                  onPress={workoutFlow.retry}
-                />
-              </View>
-            </Card>
-          ) : hasCatalog && workoutFlow.status === "loading" ? (
-            // Hold the skeleton instead of flashing the empty-plan copy while
-            // the durable instance loads.
-            <Skeleton height={Spacing.six * 2} testID="home-workout-loading" />
-          ) : (
-            <EmptyState
-              testID="home-workout-empty"
-              icon={<Spark size={32} color={theme.accent} />}
-              title="No plan yet"
-              message="Your daily 4-game training plan will appear here once games are registered."
-            />
-          )}
-
-        </View>
-      </Card>
-
-      </Entrance>
-
-      {/* Context stays available, but outside the decision surface. The daily
-          action should be understood before streak, XP, or coins compete for
-          attention. */}
-      <Card
-        variant="outlined"
-        padding="md"
-        style={styles.contextCard}
-        testID="home-context">
-        <View style={styles.contextGrid}>
-          <View style={styles.contextMetric} testID="home-streak-card">
-            <View style={styles.metricHeader}>
-              <ThemedText
-                type="numeralXl"
-                style={{ color: theme.streak }}
-                testID="home-stat-streak">
-                {currentStreak}
-              </ThemedText>
-              <ThemedText type="bodySmall" themeColor="textSecondary">
-                day streak
-              </ThemedText>
             </View>
-            <StreakStrip
-              count={currentStreak}
-              testID="home-streak-card-tracker"
-            />
-            {streakMilestoneLine ? (
+          ) : null}
+          <View style={styles.heroBody}>
+            <View style={styles.heroTitle}>
+              <View style={styles.heroEyebrowRow}>
+                <Spark size={14} color={theme.accent} />
+                <ThemedText type="eyebrow" themeColor="accent">
+                  TODAY
+                </ThemedText>
+              </View>
+              <ThemedText type="headline">Today&apos;s Workout</ThemedText>
+              {heroPlanLine ? (
+                <ThemedText
+                  type="bodySmall"
+                  themeColor="textSecondary"
+                  testID="home-workout-plan">
+                  {heroPlanLine}
+                </ThemedText>
+              ) : null}
               <ThemedText
                 type="caption"
                 themeColor="textSecondary"
-                testID="home-streak-card-next-milestone">
-                {streakMilestoneLine}
+                testID="home-local-trust">
+                Your training is ready on this device and works offline.
               </ThemedText>
-            ) : null}
-            {loaded && streak.atRisk ? (
-              <View
-                style={[styles.atRisk, { backgroundColor: theme.warningSoft }]}
-                testID="home-streak-at-risk">
-                <ThemedText type="caption" themeColor="warningSoftText">
-                  Play today to keep your streak alive.
-                </ThemedText>
-              </View>
-            ) : null}
-          </View>
-
-          <View style={styles.contextMetric} testID="home-level-card">
-            <View style={styles.levelRow}>
-              <ProgressRing
-                value={levelRatio}
-                tone="xp"
-                size={64}
-                label={
-                  xpToNext > 0
-                    ? `Level ${level}, ${data.totalXp} XP total, ${xpToNext} XP to Level ${level + 1}`
-                    : `Level ${level}, ${data.totalXp} XP total, max level`
-                }
-                testID="home-stat-xp">
-                <ThemedText
-                  type="numeralXl"
-                  themeColor="xp"
-                  testID="home-stat-level">
-                  {level}
-                </ThemedText>
-              </ProgressRing>
-              <View style={styles.levelText}>
-                <ThemedText type="label">{`Level ${level}`}</ThemedText>
-                <ThemedText type="caption" themeColor="textSecondary">
-                  {`${data.totalXp} XP · ${xpToNext > 0 ? `${xpToNext} XP to Level ${level + 1}` : "Max level"}`}
-                </ThemedText>
-                {data.balance > 0 ? (
-                  <View
-                    testID="home-stat-coins"
-                    accessible
-                    accessibilityLabel={`${data.balance} coins`}
-                    style={[
-                      styles.coinChip,
-                      { backgroundColor: theme.currencySoft },
-                    ]}
-                  >
-                    <ThemedText type="caption" themeColor="currencySoftText">
-                      🪙 {data.balance}
-                    </ThemedText>
-                  </View>
-                ) : null}
-              </View>
             </View>
+            {workoutStatus === "completed" ? (
+              <View
+                style={[styles.completePanel, { backgroundColor: theme.successSoft }]}
+                testID="home-workout-complete-panel">
+                <ThemedText
+                  type="label"
+                  themeColor="successSoftText"
+                  testID="home-workout-complete">
+                  Workout complete
+                </ThemedText>
+                <ThemedText type="caption" themeColor="successSoftText">
+                  {`${workout.length}/${workout.length} games saved. See today's progress for a summary.`}
+                </ThemedText>
+              </View>
+            ) : workout.length > 0 ? (
+              <View style={styles.progressRow}>
+                <ThemedText type="numeralXl" testID="home-workout-progress">
+                  {`${workoutIndex}/${workout.length}`}
+                </ThemedText>
+                <View style={styles.progressCopy}>
+                  <ThemedText type="label" themeColor="textSecondary">
+                    {`${workoutIndex} of ${workout.length} complete`}
+                  </ThemedText>
+                  {currentGame ? (
+                    <ThemedText type="caption" themeColor="textSecondary">
+                      {`Next: ${currentGame.name}`}
+                    </ThemedText>
+                  ) : null}
+                </View>
+              </View>
+            ) : null}
+            {workout.length > 0 ? (
+              <>
+                <ProgressBar
+                  value={workoutIndex / workout.length}
+                  testID="home-workout-progress-bar"
+                  accessibilityLabel={
+                    workoutStatus === "completed"
+                      ? `Workout complete, ${workout.length} of ${workout.length} games done`
+                      : `${workoutIndex} of ${workout.length} games done`
+                  }
+                />
+                {workoutStatus === "completed" ? (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    label="See today's progress"
+                    sublabel={`${workout.length}/${workout.length} games saved`}
+                    testID="home-workout-continue"
+                    accessibilityLabel="See today's progress"
+                    accessibilityHint="Review your completed workout"
+                    onPress={() => router.push("/progress")}
+                  />
+                ) : heroHref ? (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    label={heroCtaLabel}
+                    sublabel={heroCtaSublabel}
+                    testID="home-workout-continue"
+                    accessibilityLabel={heroCtaAccessibilityLabel}
+                    onPress={() => router.push(heroHref)}
+                  />
+                ) : null}
+              </>
+            ) : hasCatalog && workoutFlow.loadFailed ? (
+              // A failed load-or-create must not read as "no catalog installed".
+              <Card tone="dangerSoft" testID="home-workout-error">
+                <View style={styles.errorBody}>
+                  <ThemedText type="label" themeColor="dangerSoftText">
+                    Couldn&apos;t load today&apos;s workout
+                  </ThemedText>
+                  <ThemedText type="bodySmall" themeColor="dangerSoftText">
+                    Your plan is stored on this phone — try again to reload it.
+                  </ThemedText>
+                  <Button
+                    variant="secondary"
+                    label="Try again"
+                    testID="home-workout-retry"
+                    onPress={workoutFlow.retry}
+                  />
+                </View>
+              </Card>
+            ) : hasCatalog && workoutFlow.status === "loading" ? (
+              // Hold the skeleton instead of flashing the empty-plan copy while
+              // the durable instance loads.
+              <Skeleton height={Spacing.six * 2} testID="home-workout-loading" />
+            ) : (
+              <EmptyState
+                testID="home-workout-empty"
+                icon={<Spark size={32} color={theme.accent} />}
+                title="No plan yet"
+                message="Your daily 4-game training plan will appear here once games are registered."
+              />
+            )}
           </View>
+        </ArcadePanel>
+
+        {/* The leg list is evidence of the plan, not part of the decision
+            surface — it leaves the artifact for a quiet Report below. */}
+        {workout.length > 0 ? (
+          <Report title="Today's plan" testID="home-workout-list" style={styles.planReport}>
+            {workout.map((game, index) => {
+              const isCompleted =
+                workoutStatus === "completed" || index < workoutIndex;
+              const isCurrent =
+                workoutStatus === "active" && index === workoutIndex;
+              const status = isCompleted ? "Done" : isCurrent ? "Now" : "Up next";
+              return (
+                <ReportRow
+                  key={`${game.id}-${index}`}
+                  label={game.name}
+                  hint={game.primaryCategory}
+                  trailing={
+                    // Contract: automation reads each leg's status text from
+                    // this node (and excludes the prefix from leg counting).
+                    <ThemedText
+                      type="label"
+                      testID={`home-workout-game-status-${game.id}`}>
+                      {status}
+                    </ThemedText>
+                  }
+                  divider={index < workout.length - 1}
+                  testID={`home-workout-game-${game.id}`}
+                  accessibilityLabel={`${game.name}, ${game.primaryCategory}, ${
+                    isCompleted ? "done" : isCurrent ? "up now" : "up next"
+                  }`}
+                  onPress={() =>
+                    router.push(
+                      gameHref(
+                        game.id,
+                        workoutFlow.instance
+                          ? {
+                              instanceKey: workoutFlow.instance.date,
+                              legIndex: index,
+                              gameId: game.id,
+                            }
+                          : null,
+                      ),
+                    )
+                  }
+                />
+              );
+            })}
+          </Report>
+        ) : null}
+      </Entrance>
+
+      {/* Context stays available, but outside the decision surface. Report
+          grammar keeps streak, level and coins as evidence — not a second
+          hero competing with today's workout. */}
+      <Report title="Your training" testID="home-context">
+        {/* The streak row carries the strip, milestone line and at-risk note;
+            ReportRow has no testID slots for those nodes, so the row is
+            composed directly inside Report's hairline grammar. */}
+        <View
+          style={[styles.reportRow, { borderBottomColor: theme.border }]}
+          testID="home-streak-card">
+          <View style={styles.reportRowHead}>
+            <ThemedText type="bodySmall" themeColor="textSecondary">
+              Day streak
+            </ThemedText>
+            <ThemedText
+              type="numeralXl"
+              style={{ color: theme.streak }}
+              testID="home-stat-streak">
+              {currentStreak}
+            </ThemedText>
+          </View>
+          <StreakStrip
+            count={currentStreak}
+            testID="home-streak-card-tracker"
+          />
+          {streakMilestoneLine ? (
+            <ThemedText
+              type="caption"
+              themeColor="textSecondary"
+              testID="home-streak-card-next-milestone">
+              {streakMilestoneLine}
+            </ThemedText>
+          ) : null}
+          {loaded && streak.atRisk ? (
+            <View
+              style={[styles.atRisk, { backgroundColor: theme.warningSoft }]}
+              testID="home-streak-at-risk">
+              <ThemedText type="caption" themeColor="warningSoftText">
+                Play today to keep your streak alive.
+              </ThemedText>
+            </View>
+          ) : null}
         </View>
-      </Card>
+
+        <ReportRow
+          testID="home-level-card"
+          icon={
+            <ProgressRing
+              value={levelRatio}
+              tone="xp"
+              size={48}
+              label={
+                xpToNext > 0
+                  ? `Level ${level}, ${data.totalXp} XP total, ${xpToNext} XP to Level ${level + 1}`
+                  : `Level ${level}, ${data.totalXp} XP total, max level`
+              }
+              testID="home-stat-xp">
+              <ThemedText
+                type="numeralLg"
+                themeColor="xp"
+                testID="home-stat-level">
+                {level}
+              </ThemedText>
+            </ProgressRing>
+          }
+          label="Level"
+          value={`${data.totalXp} XP`}
+          hint={
+            xpToNext > 0
+              ? `${xpToNext} XP to Level ${level + 1}`
+              : "Max level"
+          }
+          divider={data.balance > 0}
+        />
+
+        {data.balance > 0 ? (
+          <ReportRow
+            testID="home-stat-coins"
+            label="Coins"
+            value={`🪙 ${data.balance}`}
+            accessibilityLabel={`${data.balance} coins`}
+          />
+        ) : null}
+      </Report>
 
       {/* W24: post-workout feedback — the most recent TEMPLATE workout
           finished today. Data-gated so first-run trees stay unchanged. */}
@@ -1218,15 +1220,6 @@ const styles = StyleSheet.create({
     // creating visible product chrome.
     opacity: 0.01,
   },
-  contextCard: {
-    gap: Spacing.two,
-  },
-  contextGrid: {
-    gap: Spacing.three,
-  },
-  contextMetric: {
-    gap: Spacing.two,
-  },
   secondaryAction: {
     gap: Spacing.one,
   },
@@ -1237,14 +1230,27 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   heroBody: {
-    gap: Spacing.three,
+    gap: Spacing.twoHalf,
+    padding: Spacing.three,
   },
-  consoleStage: {
-    gap: Spacing.two,
-  },
-  consoleReadout: {
+  completePanel: {
+    borderRadius: Radii.medium,
+    padding: Spacing.two,
     gap: Spacing.half,
-    paddingHorizontal: Spacing.one,
+  },
+  planReport: {
+    marginTop: Spacing.three,
+  },
+  reportRow: {
+    gap: Spacing.one,
+    paddingVertical: Spacing.two,
+    borderBottomWidth: HAIRLINE,
+  },
+  reportRowHead: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    gap: Spacing.two,
   },
   heroEyebrowRow: {
     flexDirection: "row",
@@ -1263,41 +1269,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.half,
   },
-  workoutList: {
-    gap: Spacing.one,
-  },
-  heroDivider: {
-    height: 1,
-  },
-  heroMetricCell: {
-    gap: Spacing.two,
-  },
-  metricHeader: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: Spacing.two,
-  },
   atRisk: {
     alignSelf: "flex-start",
     borderRadius: Radii.medium,
     paddingVertical: Spacing.oneHalf,
-    paddingHorizontal: Spacing.twoHalf,
-  },
-  levelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.three,
-  },
-  levelText: {
-    flex: 1,
-    gap: Spacing.half,
-  },
-  coinChip: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: Radii.pill,
-    paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.twoHalf,
   },
   errorBody: {

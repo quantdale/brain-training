@@ -1,10 +1,14 @@
 /**
- * SessionHeader — the in-session HUD row shared by every game screen.
+ * SessionHeader — the in-session instrument strip shared by every game screen.
  *
- * Reference pattern (Brilliant/Moises, `PATTERNS-PLAY` 3–4): one compact row —
+ * Reference pattern (Brilliant/Moises, `PATTERNS-PLAY` 3–4): one compact strip —
  * the game's own round/exit affordance on the leading side, progress in the
  * middle, score at the trailing end, and the pause control at the edge. Never
  * a second HUD line competing with the board.
+ *
+ * Campaign 055: the row is framed as a paper instrument strip (surface +
+ * hairline + `Radii.medium`) so gameplay chrome reads as hardware under the
+ * mechanic stage rather than another card. Semantics are unchanged.
  *
  * One implementation, no "legacy vs structured" split: a game-supplied
  * `children` node takes the leading slot (so a custom round chip keeps its own
@@ -17,7 +21,9 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ProgressBar } from '@/components/ui/progress-bar';
-import { Spacing } from '@/theme/tokens';
+import { HAIRLINE } from '@/components/ui/radius';
+import { useTheme } from '@/hooks/use-theme';
+import { Radii, Spacing } from '@/theme/tokens';
 
 /** Round progress shown as a segmented bar in the HUD centre. */
 export interface SessionProgress {
@@ -46,7 +52,7 @@ export interface SessionHeaderProps {
 }
 
 /**
- * HUD row. The score is the only numeric emphasis; the round label and the
+ * HUD strip. The score is the only numeric emphasis; the round label and the
  * progress bar carry position without shouting.
  */
 export function SessionHeader({
@@ -57,8 +63,13 @@ export function SessionHeader({
   scoreTestID,
   trailing,
 }: SessionHeaderProps) {
+  const theme = useTheme();
   return (
-    <View style={styles.row}>
+    <View
+      style={[
+        styles.strip,
+        { backgroundColor: theme.surface, borderColor: theme.border },
+      ]}>
       {children !== undefined ? (
         children
       ) : round !== undefined ? (
@@ -90,10 +101,14 @@ export function SessionHeader({
 }
 
 const styles = StyleSheet.create({
-  row: {
+  strip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.twoHalf,
+    paddingHorizontal: Spacing.twoHalf,
+    paddingVertical: Spacing.oneHalf,
+    borderRadius: Radii.medium,
+    borderWidth: HAIRLINE,
   },
   round: {
     flexShrink: 1,

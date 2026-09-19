@@ -1,22 +1,16 @@
 /**
- * Profile / More — identity, motivation (streaks + quests + achievements +
- * milestones), theme selection and global settings toggles.
+ * Profile — player identity, records and quiet settings (campaign 055).
  *
- * Engagement-cosmetics wave: streak item purchases now flow through the
- * idempotent economy (`purchaseStreakItem`); owned Freeze/Shield/Recovery can
- * be APPLIED (persisting covered dates); streak milestones show progress and
- * a one-time claim; reward claims and cosmetics are owned by the dedicated
- * `/rewards` route and summarized here. Streak protection remains an active
- * motivation control on Profile. Everything degrades gracefully when the db
- * is unavailable.
+ * Campaign 052: identity dissolved into a long record/settings document of
+ * stacked stat cards. The refinement lock (§2.7) makes the first viewport a
+ * player card: monogram plate + name (`display_name` or "Player") + level
+ * emblem + XP progress + streak rail + equipped cosmetic chips, with an
+ * on-device honesty line. Motivation, milestones, quests and achievements
+ * follow in Report grammar; data and settings become quiet entry rows.
  *
- * Presentation (campaign 026, design-language v3 "Neon Arcade"): the identity
- * hero owns a quiet level / XP summary with exactly one accent-filled identity
- * cell (level); streak / coin context lives with the controls that use it; the streak beat is a
- * day-dot `StreakStrip` plus protection items with identity sparks; quests /
- * achievements / milestones keep three distinct read-only treatments
- * (complete = available in Rewards, in-progress = meter, locked = desaturated
- * + lock); settings navigate through `ListRow`s with identity icons.
+ * All economy behaviour is untouched: streak item purchase/apply still flows
+ * through the idempotent repositories, rewards stay owned by `/rewards`, and
+ * every existing testID/accessibility seam is preserved.
  */
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState, type ReactNode } from "react";
@@ -26,20 +20,26 @@ import { ScreenShell } from "@/components/screen-shell";
 import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
-import { SectionHeader, StateCard } from "@/components/shell";
-import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
+import { StateCard } from "@/components/shell";
+import { ArcadePanel } from "@/components/ui/arcade-panel";
+import { Report, ReportRow } from "@/components/ui/report";
+import {
+  MinTouchTarget,
+  Radii,
+  Spacing,
+  type ThemeColor,
+} from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import {
-  Avatar,
   Badge,
   Button,
-  Card,
   Entrance,
   HAIRLINE,
   ListRow,
   ProgressBar,
   Spark,
   StreakStrip,
+  Tappable,
   showToast,
 } from "@/components/ui";
 import type { AppDatabase, QuestProgress } from "@/db";
@@ -135,7 +135,17 @@ interface WeekDay {
   isToday: boolean;
 }
 
+/** One equipped cosmetic rendered as an identity chip in the player card. */
+interface EquippedCosmetic {
+  slot: CosmeticSlot;
+  name: string;
+  color?: string;
+  emoji?: string;
+}
+
 interface ProfileData {
+  /** Player's own name, or "Player" when the profile has none. */
+  displayName: string;
   balance: number;
   /** Session XP + award XP, for the identity context line. */
   totalXp: number;
@@ -163,12 +173,12 @@ interface ProfileData {
     string,
     { progress: number; goal: number; ratio: number }
   >;
-  equippedIds: Partial<Record<CosmeticSlot, string>>;
-  equippedFrameEmoji: string;
-  equippedAccentName: string;
+  /** Equipped cosmetic per slot, already resolved from ownership. */
+  equippedCosmetics: EquippedCosmetic[];
 }
 
 const EMPTY_PROFILE: ProfileData = {
+  displayName: "Player",
   balance: 0,
   totalXp: 0,
   claimableRewardCount: null,
@@ -195,9 +205,7 @@ const EMPTY_PROFILE: ProfileData = {
     longestStreak: 0,
   },
   achievementProgress: new Map(),
-  equippedIds: {},
-  equippedFrameEmoji: "🟦",
-  equippedAccentName: "Indigo",
+  equippedCosmetics: [],
 };
 
 async function loadProfile(
@@ -340,11 +348,16 @@ async function loadProfile(
     profileSettings,
     cosmeticProgression,
   );
-  const equippedIds: Partial<Record<CosmeticSlot, string>> = {};
+  const equippedCosmetics: EquippedCosmetic[] = [];
   for (const slot of COSMETIC_SLOTS) {
     const def = equipped[slot];
     if (def) {
-      equippedIds[slot] = def.id;
+      equippedCosmetics.push({
+        slot,
+        name: def.name,
+        color: def.preview.color,
+        emoji: def.preview.emoji,
+      });
     }
   }
 
@@ -360,6 +373,9 @@ async function loadProfile(
   }
 
   return {
+    // Never surface the placeholder profile name: an empty display_name is
+    // simply "Player" (never "Local player", lock §2.7).
+    displayName: (profile?.displayName ?? "").trim() || "Player",
     balance,
     totalXp: sessionXp + awardsXp,
     claimableRewardCount,
@@ -381,9 +397,7 @@ async function loadProfile(
     })),
     cosmeticProgression,
     achievementProgress,
-    equippedIds,
-    equippedFrameEmoji: equipped.avatarFrame?.preview.emoji ?? "🟦",
-    equippedAccentName: equipped.accent?.name ?? "Indigo",
+    equippedCosmetics,
   };
 }
 
@@ -408,9 +422,8 @@ export default function ProfileScreen() {
     setRefreshKey((key) => key + 1);
   }, []);
 
-  // Contextual claim counters: surface the single Rewards destination at the
-  // top of the motivation sections so completed-but-unclaimed work is
-  // impossible to miss in a long list.
+  // Contextual claim counters: surface the single Rewards destination so
+  // completed-but-unclaimed work is impossible to miss from the records.
   const claimableQuests = data.questEvals.filter((evaluation) => {
     const row = data.questRows.get(evaluation.questId);
     const completed = evaluation.completed || row?.completedAt != null;
@@ -430,7 +443,7 @@ export default function ProfileScreen() {
   const pendingRewardCount =
     data.claimableRewardCount ?? localPendingRewardCount;
 
-  // Next unreached streak milestone, teased under the 7-day strip.
+  // Next unreached streak milestone, teased in the milestones record.
   const nextMilestone = data.milestoneRows.find((row) => !row.reached) ?? null;
 
   // In-flight guard per item kind: a fast double tap must not pass the
@@ -531,6 +544,12 @@ export default function ProfileScreen() {
 
   const level = levelForXp(data.totalXp);
   const hasProgress = data.totalXp > 0 || data.balance > 0;
+  const monogram = data.displayName.charAt(0).toUpperCase() || "P";
+  const frameColor =
+    data.equippedCosmetics.find((item) => item.slot === "avatarFrame")?.color ??
+    theme.accent;
+  const protectionCount =
+    data.inventory.freeze + data.inventory.shield + data.inventory.recovery;
 
   // A failed load must not present the zeroed fallback as a new-player profile:
   // show the recoverable error with a retry, matching Home/progress-detail.
@@ -554,99 +573,115 @@ export default function ProfileScreen() {
   return (
     <ScreenShell>
       <Entrance index={0}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerText}>
-            <ThemedText type="eyebrow" themeColor="accentText">
-              PLAYER
-            </ThemedText>
-            <ThemedText type="title" testID="profile-title">
-              Profile
-            </ThemedText>
-            <ThemedText type="caption" themeColor="textSecondary">
-              Your local training record, motivation and settings.
-            </ThemedText>
-          </View>
-          <Spark size={30} color={theme.accent} />
+        <View style={styles.headerText}>
+          <ThemedText type="eyebrow" themeColor="textMuted">
+            PLAYER
+          </ThemedText>
+          <ThemedText type="title" testID="profile-title">
+            Profile
+          </ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            Your level, streak, rewards and settings.
+          </ThemedText>
         </View>
       </Entrance>
 
-      {/* Identity hero: avatar row plus a quiet level/XP summary; streak and
-          coin context belongs with the motivation controls below. */}
+      {/* The screen's one focal object: the player card. Level/XP/streak read
+          as identity attributes here, not four equal stat tiles. */}
       <Entrance index={1}>
-        <Card variant="hero" shape="poster" testID="profile-identity" padding="lg">
-          <View style={styles.heroRow}>
-            <Avatar
-              size="lg"
-              emoji={data.equippedFrameEmoji}
-              label="Local player"
-            />
+        <ArcadePanel
+          emphasis="focal"
+          padding="lg"
+          testID="profile-identity"
+        >
+          <View style={styles.identityRow}>
+            <View
+              style={[
+                styles.monogram,
+                {
+                  backgroundColor: theme.surfaceSunken,
+                  borderColor: frameColor,
+                },
+              ]}
+              accessibilityRole="image"
+              accessibilityLabel={`${data.displayName} avatar`}
+            >
+              <ThemedText
+                type="headline"
+                themeColor="text"
+                allowFontScaling={false}
+                aria-hidden
+              >
+                {monogram}
+              </ThemedText>
+            </View>
             <View style={styles.identityText}>
-              <ThemedText type="bodyLarge">Local player</ThemedText>
-              {/* Progression context (gated on real data so the db-unavailable
-                  fallback stays honest instead of inventing progress). */}
+              <ThemedText
+                type="headline"
+                numberOfLines={1}
+                testID="profile-name"
+              >
+                {data.displayName}
+              </ThemedText>
               <ThemedText type="caption" themeColor="textSecondary">
-                {hasProgress
-                  ? `Level ${level} · ${data.equippedAccentName} accent`
-                  : "Profile name and avatar customization arrive in a later wave."}
+                Your training record is saved on this device.
               </ThemedText>
             </View>
           </View>
 
-          <View style={styles.metricGrid}>
-            <MetricTile
+          <View style={styles.levelRow}>
+            <View
               testID="profile-metric-level"
-              label="Level"
-              value={`${level}`}
-              tone="accent"
-              icon={<Spark size={16} color={theme.accentOn} />}
-            />
-            <MetricTile
-              testID="profile-metric-xp"
-              label="Total XP"
-              value={compactNumber(data.totalXp)}
-              valueColor="xpText"
-              icon={<Spark size={16} color={theme.xpText} />}
-            />
+              style={[styles.levelPill, { backgroundColor: theme.xp }]}
+            >
+              <ThemedText type="label" themeColor="xpOn">
+                Level {level}
+              </ThemedText>
+            </View>
+            <View style={styles.levelProgress}>
+              {hasProgress ? (
+                <ProgressBar
+                  value={levelProgress(data.totalXp)}
+                  tone="xp"
+                  valueLabel={`${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
+                  accessibilityLabel={`Level ${level} progress: ${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
+                />
+              ) : (
+                <ThemedText type="caption" themeColor="textSecondary">
+                  No XP yet — play a game to start your level.
+                </ThemedText>
+              )}
+            </View>
           </View>
 
-          {hasProgress ? (
-            <ProgressBar
-              value={levelProgress(data.totalXp)}
-              tone="xp"
-              label={`Level ${level} progress`}
-              valueLabel={`${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
+          <View style={styles.metricStrip}>
+            <Metric
+              testID="profile-metric-xp"
+              value={compactNumber(data.totalXp)}
+              label="Total XP"
+              valueColor="xp"
             />
-          ) : null}
-        </Card>
-      </Entrance>
-
-      <Entrance index={2}>
-        <SectionHeader
-          eyebrow="MOTIVATION"
-          title="Keep your rhythm"
-          caption="Streaks, goals and milestones show what to consider next."
-        />
-      </Entrance>
-
-      {/* Streak rhythm: day-dot strip + count pill, never a plain text row. */}
-      <Entrance index={3}>
-        <Card testID="profile-streak">
-          <ThemedText type="headline">Streak</ThemedText>
-          <View style={styles.statRow}>
-            <Stat
+            <View
+              style={[styles.metricDivider, { backgroundColor: theme.border }]}
+            />
+            <Metric
               testID="profile-metric-streak"
               value={`${data.currentStreak}`}
               label="Day streak"
-              valueColor="streakText"
+              valueColor="streak"
             />
-            <Stat
+            <View
+              style={[styles.metricDivider, { backgroundColor: theme.border }]}
+            />
+            <Metric
               testID="profile-metric-coins"
               value={compactNumber(data.balance)}
               label="Coins"
-              valueColor="currencyText"
+              valueColor="currency"
             />
           </View>
-          <View style={styles.streakBeat}>
+
+          <View style={styles.railRow}>
             <StreakStrip
               count={data.currentStreak}
               days={7}
@@ -656,7 +691,8 @@ export default function ProfileScreen() {
               <Badge tone="warning" label="At risk" size="sm" />
             ) : null}
           </View>
-          {data.atRisk && (
+
+          {data.atRisk ? (
             <ThemedText
               type="caption"
               themeColor="warning"
@@ -665,48 +701,92 @@ export default function ProfileScreen() {
             >
               Your streak is at risk — play today to keep it alive.
             </ThemedText>
-          )}
-          {nextMilestone ? (
-            <ThemedText type="caption" themeColor="textSecondary">
-              Next milestone: {nextMilestone.milestone.label} —{" "}
-              {nextMilestone.remaining} days to go
-            </ThemedText>
           ) : null}
-          <View style={styles.statRow}>
-            <Stat
-              value={`${data.longestStreak}`}
-              label="Longest streak"
-              valueColor="streakText"
-            />
-            <Stat
-              value={`${data.inventory.freeze + data.inventory.shield + data.inventory.recovery}`}
-              label="Protection items"
-              valueColor="infoText"
-            />
-          </View>
-          <View style={styles.itemList}>
-            {STREAK_ITEMS.map((item) => {
-              const canApply =
-                item.kind === "freeze"
-                  ? canApplyFreeze(
+
+          {data.equippedCosmetics.length > 0 ? (
+            <Tappable
+              testID="profile-equipped"
+              onPress={() => router.push("/rewards")}
+              feedback="tap"
+              accessibilityLabel={`Equipped cosmetics: ${data.equippedCosmetics
+                .map((item) => item.name)
+                .join(", ")}. Opens Rewards`}
+              accessibilityHint="Opens Rewards to change your cosmetics"
+              style={styles.equippedRow}
+              pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+              <ThemedText type="caption" themeColor="textMuted">
+                Equipped
+              </ThemedText>
+              {data.equippedCosmetics.map((item) => (
+                <View
+                  key={item.slot}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: theme.surfaceSunken,
+                      borderColor: theme.border,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.chipObject,
+                      { backgroundColor: item.color ?? theme.accent },
+                    ]}
+                  />
+                  <ThemedText type="caption" themeColor="textSecondary">
+                    {item.name}
+                  </ThemedText>
+                </View>
+              ))}
+              <ThemedText type="body" themeColor="textMuted" aria-hidden>
+                {"›"}
+              </ThemedText>
+            </Tappable>
+          ) : null}
+        </ArcadePanel>
+      </Entrance>
+
+      {/* Streak protection: the controls that use coins and inventory. The
+          records below stay borderless with hairline rows (Report grammar). */}
+      <Entrance index={2}>
+        <Report title="Streak" testID="profile-streak">
+          <ReportRow
+            label="Longest streak"
+            value={`${data.longestStreak} days`}
+            valueTone="streakText"
+            divider
+          />
+          <ReportRow
+            label="Protection items"
+            value={`${protectionCount}`}
+            valueTone="infoText"
+            divider
+          />
+          {STREAK_ITEMS.map((item, index) => {
+            const canApply =
+              item.kind === "freeze"
+                ? canApplyFreeze(
+                    data.streakState,
+                    data.profileSettings,
+                    new Date(),
+                  )
+                : item.kind === "recovery"
+                  ? canApplyRecovery(
                       data.streakState,
                       data.profileSettings,
                       new Date(),
                     )
-                  : item.kind === "recovery"
-                    ? canApplyRecovery(
-                        data.streakState,
-                        data.profileSettings,
-                        new Date(),
-                      )
-                    : canApplyShield(
-                        data.streakState,
-                        data.profileSettings,
-                        new Date(),
-                      );
-              const itemTone = ITEM_TONES[item.kind];
-              return (
-                <View key={item.kind} style={styles.itemRow}>
+                  : canApplyShield(
+                      data.streakState,
+                      data.profileSettings,
+                      new Date(),
+                    );
+            const itemTone = ITEM_TONES[item.kind];
+            return (
+              <ReportRow
+                key={item.kind}
+                icon={
                   <View
                     style={[
                       styles.itemIcon,
@@ -715,16 +795,14 @@ export default function ProfileScreen() {
                   >
                     <Spark size={16} color={theme[itemTone.ink]} />
                   </View>
-                  <View style={styles.itemText}>
-                    <ThemedText type="body">
-                      {item.label} × {data.inventory[item.kind]}
-                    </ThemedText>
-                    <ThemedText type="caption" themeColor="textSecondary">
-                      {item.caption}
-                    </ThemedText>
-                  </View>
+                }
+                label={`${item.label} × ${data.inventory[item.kind]}`}
+                hint={item.caption}
+                accessibilityLabel={`${item.label}: ${data.inventory[item.kind]} owned. ${item.caption}`}
+                divider={index < STREAK_ITEMS.length - 1}
+                trailing={
                   <View style={styles.itemActions}>
-                    {canApply && (
+                    {canApply ? (
                       <Button
                         label="Apply"
                         size="sm"
@@ -734,7 +812,7 @@ export default function ProfileScreen() {
                         accessibilityLabel={`Apply ${item.label}`}
                         onPress={() => onApplyStreakItem(item.kind)}
                       />
-                    )}
+                    ) : null}
                     <Button
                       label={`${ITEM_COSTS[item.kind]} coins`}
                       size="sm"
@@ -753,26 +831,31 @@ export default function ProfileScreen() {
                       onPress={() => onBuyStreakItem(item.kind)}
                     />
                   </View>
-                </View>
-              );
-            })}
-          </View>
-        </Card>
+                }
+              />
+            );
+          })}
+        </Report>
       </Entrance>
 
       {/* Streak milestones are motivation evidence; Rewards owns the claim. */}
-      <Entrance index={4}>
-        <Card testID="profile-milestones">
-          <ThemedText type="headline">Streak Milestones</ThemedText>
+      <Entrance index={3}>
+        <Report title="Streak milestones" testID="profile-milestones">
+          {nextMilestone ? (
+            <ReportRow
+              label="Next milestone"
+              value={nextMilestone.milestone.label}
+              hint={`${nextMilestone.remaining} days to go`}
+              divider
+            />
+          ) : null}
           {data.milestoneRows.map(
-            ({ milestone, reached, claimed, remaining }) => (
-              <View
+            ({ milestone, reached, claimed, remaining }, index) => (
+              <RecordRow
                 key={milestone.id}
-                style={styles.stateRow}
                 testID={`profile-milestone-${milestone.id}`}
-              >
-                <View style={styles.itemText}>
-                  <ThemedText type="body">{milestone.label}</ThemedText>
+                title={milestone.label}
+                meter={
                   <ProgressBar
                     value={
                       milestone.days <= 0
@@ -783,54 +866,52 @@ export default function ProfileScreen() {
                     valueLabel={`${Math.min(data.longestStreak, milestone.days)}/${milestone.days} days`}
                     accessibilityLabel={`${milestone.label}, ${Math.min(data.longestStreak, milestone.days)} of ${milestone.days} days`}
                   />
-                  <ThemedText type="caption" themeColor="textSecondary">
-                    {milestone.description}
-                    {milestone.rewardXp || milestone.rewardCurrency
-                      ? ` · +${milestone.rewardXp ?? 0} XP / +${milestone.rewardCurrency ?? 0} coins`
-                      : ""}
-                    {!reached && remaining > 0
-                      ? ` · ${remaining} days to go`
-                      : ""}
-                    {reached && !claimed
-                      ? " · Complete — available in Rewards"
-                      : ""}
-                    {claimed ? " · ✓ Claimed" : ""}
-                  </ThemedText>
-                </View>
-                {reached && !claimed ? (
-                  <View style={styles.stateAction}>
+                }
+                hint={`${milestone.description}${
+                  milestone.rewardXp || milestone.rewardCurrency
+                    ? ` · +${milestone.rewardXp ?? 0} XP / +${milestone.rewardCurrency ?? 0} coins`
+                    : ""
+                }${
+                  !reached && remaining > 0 ? ` · ${remaining} days to go` : ""
+                }${reached && !claimed ? " · Complete — available in Rewards" : ""}${
+                  claimed ? " · ✓ Claimed" : ""
+                }`}
+                badge={
+                  reached && !claimed ? (
                     <Badge tone="accent" label="In Rewards" size="sm" />
-                  </View>
-                ) : claimed ? (
-                  <Badge tone="success" label="✓ Claimed" size="sm" />
-                ) : null}
-              </View>
+                  ) : claimed ? (
+                    <Badge tone="success" label="✓ Claimed" size="sm" />
+                  ) : null
+                }
+                divider={index < data.milestoneRows.length - 1}
+              />
             ),
           )}
-        </Card>
+        </Report>
       </Entrance>
 
       {/* Quests — live progress; the once-only claim lives in Rewards. */}
-      <Entrance index={5}>
-        <Card testID="profile-quests">
-          <ThemedText type="headline">Quests</ThemedText>
-          {claimableQuests > 0 && (
+      <Entrance index={4}>
+        <Report title="Quests" testID="profile-quests">
+          {claimableQuests > 0 ? (
             <ThemedText
               type="caption"
-              themeColor="accent"
+              themeColor="warningText"
               testID="profile-quests-ready"
               accessibilityLiveRegion="polite"
+              style={styles.readyLine}
             >
               {claimableQuests} quest reward{claimableQuests === 1 ? "" : "s"}{" "}
               available in Rewards.
             </ThemedText>
-          )}
+          ) : null}
           {data.questEvals.length === 0 ? (
-            <ThemedText type="small" themeColor="textSecondary">
-              No quests yet.
-            </ThemedText>
+            <ReportRow
+              label="No quests yet"
+              hint="Quests appear as you play."
+            />
           ) : (
-            data.questEvals.map((evaluation) => {
+            data.questEvals.map((evaluation, index) => {
               const row = data.questRows.get(evaluation.questId);
               const claimed = row?.claimedAt != null;
               const completed =
@@ -846,58 +927,55 @@ export default function ProfileScreen() {
                   : Math.min(evaluation.progress / evaluation.goal, 1);
               const shown = Math.min(evaluation.progress, evaluation.goal);
               return (
-                <View
+                <RecordRow
                   key={evaluation.questId}
-                  style={styles.stateRow}
                   testID={`profile-quest-${evaluation.questId}`}
-                >
-                  <View style={styles.itemText}>
-                    <ThemedText type="body">
-                      {definition?.title ?? evaluation.questId}
-                    </ThemedText>
+                  title={definition?.title ?? evaluation.questId}
+                  meter={
                     <ProgressBar
                       value={progress}
                       valueLabel={`${shown}/${evaluation.goal}`}
                       accessibilityLabel={`${definition?.title ?? evaluation.questId}, ${shown} of ${evaluation.goal}`}
                     />
-                    <ThemedText type="caption" themeColor="textSecondary">
-                      {claimed
-                        ? "✓ Claimed"
-                        : completed
-                          ? "Complete — available in Rewards"
-                          : "In progress"}
-                    </ThemedText>
-                  </View>
-                  {completed && !claimed && definition ? (
-                    <View style={styles.stateAction}>
+                  }
+                  hint={
+                    claimed
+                      ? "✓ Claimed"
+                      : completed
+                        ? "Complete — available in Rewards"
+                        : "In progress"
+                  }
+                  badge={
+                    completed && !claimed && definition ? (
                       <Badge tone="accent" label="In Rewards" size="sm" />
-                    </View>
-                  ) : claimed ? (
-                    <Badge tone="success" label="✓ Claimed" size="sm" />
-                  ) : null}
-                </View>
+                    ) : claimed ? (
+                      <Badge tone="success" label="✓ Claimed" size="sm" />
+                    ) : null
+                  }
+                  divider={index < data.questEvals.length - 1}
+                />
               );
             })
           )}
-        </Card>
+        </Report>
       </Entrance>
 
       {/* Achievements — unlocked vs in-progress vs locked treatments. */}
-      <Entrance index={6}>
-        <Card testID="profile-achievements">
-          <ThemedText type="headline">Achievements</ThemedText>
-          {claimableAchievements > 0 && (
+      <Entrance index={5}>
+        <Report title="Achievements" testID="profile-achievements">
+          {claimableAchievements > 0 ? (
             <ThemedText
               type="caption"
-              themeColor="accent"
+              themeColor="warningText"
               testID="profile-achievements-ready"
               accessibilityLiveRegion="polite"
+              style={styles.readyLine}
             >
               {claimableAchievements} achievement reward
               {claimableAchievements === 1 ? "" : "s"} available in Rewards.
             </ThemedText>
-          )}
-          {ACHIEVEMENT_DEFINITIONS_V1.map((definition) => {
+          ) : null}
+          {ACHIEVEMENT_DEFINITIONS_V1.map((definition, index) => {
             const unlock = data.unlocks.get(definition.id);
             const claimed = unlock?.claimedAt != null;
             const unlocked = unlock != null;
@@ -906,63 +984,47 @@ export default function ProfileScreen() {
             const goal = evaluated?.goal ?? 1;
             const ratio = evaluated?.ratio ?? (unlocked ? 1 : 0);
             return (
-              <View
+              <RecordRow
                 key={definition.id}
-                style={[styles.stateRow, !unlocked ? styles.lockedRow : null]}
                 testID={`profile-achievement-${definition.id}`}
-              >
-                <View style={styles.itemText}>
-                  <ThemedText
-                    type="body"
-                    themeColor={unlocked || claimed ? "text" : "textMuted"}
-                  >
-                    {!unlocked ? "🔒 " : ""}
-                    {definition.title}
-                  </ThemedText>
-                  {progress > 0 || unlocked ? (
+                title={`${!unlocked ? "🔒 " : ""}${definition.title}`}
+                titleTone={unlocked || claimed ? "text" : "textMuted"}
+                meter={
+                  progress > 0 || unlocked ? (
                     <ProgressBar
                       value={ratio}
                       valueLabel={`${Math.min(progress, goal)}/${goal}`}
                       accessibilityLabel={`${definition.title}, ${Math.min(progress, goal)} of ${goal}`}
                     />
-                  ) : null}
-                  <ThemedText type="caption" themeColor="textSecondary">
-                    {definition.description} ·{" "}
-                    {claimed
-                      ? "✓ Claimed"
-                      : unlocked
-                        ? "Unlocked — available in Rewards"
-                        : progress > 0
-                          ? "In progress — locked"
-                          : "Locked"}
-                  </ThemedText>
-                </View>
-                {unlocked && !claimed ? (
-                  <View style={styles.stateAction}>
+                  ) : undefined
+                }
+                hint={`${definition.description} · ${
+                  claimed
+                    ? "✓ Claimed"
+                    : unlocked
+                      ? "Unlocked — available in Rewards"
+                      : progress > 0
+                        ? "In progress — locked"
+                        : "Locked"
+                }`}
+                badge={
+                  unlocked && !claimed ? (
                     <Badge tone="accent" label="In Rewards" size="sm" />
-                  </View>
-                ) : claimed ? (
-                  <Badge tone="success" label="✓ Claimed" size="sm" />
-                ) : null}
-              </View>
+                  ) : claimed ? (
+                    <Badge tone="success" label="✓ Claimed" size="sm" />
+                  ) : null
+                }
+                divider={index < ACHIEVEMENT_DEFINITIONS_V1.length - 1}
+              />
             );
           })}
-        </Card>
+        </Report>
       </Entrance>
 
       {/* Rewards owns all claim actions, cosmetics and reward history. Profile
-          keeps a single entry point plus a live pending count. */}
-      <Entrance index={7}>
-        <SectionHeader
-          eyebrow="REWARDS"
-          title="Claim and collect"
-          caption={
-            pendingRewardCount > 0
-              ? `${pendingRewardCount} reward${pendingRewardCount === 1 ? "" : "s"} waiting for you.`
-              : "Claimable rewards and cosmetics live in one place."
-          }
-        />
-        <Card testID="profile-rewards">
+          keeps a single quiet entry row plus a live pending count. */}
+      <Entrance index={6}>
+        <Report title="Rewards" testID="profile-rewards">
           <View testID="profile-rewards-entry">
             <ListRow
               title="Open Rewards"
@@ -979,71 +1041,67 @@ export default function ProfileScreen() {
               tone="currencySoft"
               onPress={() => router.push("/rewards")}
               // Preserve the established automation seam while the row's
-              // visible ownership language moves from Cosmetics to Rewards.
+              // visible ownership language stays player-facing.
               testID="profile-cosmetics"
               accessibilityLabel="Open Rewards. Claim rewards and manage cosmetics"
               accessibilityHint="Opens the single place to claim rewards and manage cosmetics"
             />
           </View>
-        </Card>
+        </Report>
       </Entrance>
 
       {/* Data portability — export / import / wipe (Session 05). */}
-      <Entrance index={8}>
-        <SectionHeader
-          eyebrow="DATA"
-          title="Your local data"
-          caption="Back up, restore or delete training data on this device."
-        />
-        <Card>
-          <ListRow
-            title="Data Management"
-            subtitle="Backup, restore, and delete your local training data"
-            icon={<Spark size={16} color={theme.infoText} />}
-            tone="infoSoft"
+      <Entrance index={7}>
+        <Report title="Your data">
+          <ReportRow
+            label="Data Management"
+            hint="Backup, restore, and delete your local training data"
+            icon={
+              <View
+                style={[
+                  styles.itemIcon,
+                  { backgroundColor: theme.infoSoft },
+                ]}
+              >
+                <Spark size={16} color={theme.infoText} />
+              </View>
+            }
             onPress={() => router.push("/data-management")}
             testID="profile-data-management"
-            accessibilityLabel="Data Management. Backup, restore, and delete your local training data"
           />
-        </Card>
+        </Report>
       </Entrance>
 
       {/* Theme selection (theme registry seam). */}
-      <Entrance index={9}>
-        <SectionHeader
-          eyebrow="SETTINGS"
-          title="Make it yours"
-          caption="Theme, sound, haptics and sensory options."
-        />
-        <Card testID="theme-card">
-          <ThemedText type="headline">Theme</ThemedText>
-          {THEME_OPTIONS.map((option) => {
+      <Entrance index={8}>
+        <Report title="Theme" testID="theme-card">
+          {THEME_OPTIONS.map((option, index) => {
             const selected = option.id === themeId;
             return (
               <View key={option.id} testID={`theme-option-${option.id}`}>
-                <ListRow
-                  title={option.label}
-                  subtitle={selected ? `Active · ${option.mode}` : option.mode}
-                  meta={selected ? "✓ Active" : undefined}
+                <ReportRow
+                  label={option.label}
+                  hint={selected ? "Active" : option.mode}
                   icon={
                     <Spark
                       size={14}
                       color={selected ? theme.accentOn : theme.textMuted}
                     />
                   }
-                  tone={selected ? "accent" : "surfaceSunken"}
+                  trailing={
+                    selected ? (
+                      <Badge tone="success" label="✓ Active" size="sm" />
+                    ) : undefined
+                  }
                   onPress={() => onSelectTheme(option)}
                   testID={`profile-settings-theme-${option.id}`}
                   accessibilityLabel={`Theme ${option.label}${selected ? ", active" : ""}`}
-                  accessibilityHint={
-                    selected ? undefined : `Switch to the ${option.label} theme`
-                  }
-                  showChevron={false}
+                  divider={index < THEME_OPTIONS.length - 1}
                 />
               </View>
             );
           })}
-        </Card>
+        </Report>
       </Entrance>
 
       {/* Sensory toggles live in the shared sensory card (owned outside this
@@ -1057,10 +1115,14 @@ export default function ProfileScreen() {
   );
 }
 
-function Stat({
+/**
+ * One quiet identity attribute (value over label) in the player card strip.
+ * No surface of its own: the metric is ink, not a tile (lock §2.7).
+ */
+function Metric({
   value,
   label,
-  valueColor = "accent",
+  valueColor,
   testID,
 }: {
   value: string;
@@ -1068,16 +1130,9 @@ function Stat({
   valueColor?: ThemeColor;
   testID?: string;
 }) {
-  const theme = useTheme();
   return (
-    <View
-      testID={testID}
-      style={[
-        styles.stat,
-        { backgroundColor: theme.surfaceSunken, borderColor: theme.border },
-      ]}
-    >
-      <ThemedText type="numeral" themeColor={valueColor}>
+    <View testID={testID} style={styles.metric}>
+      <ThemedText type="numeral" themeColor={valueColor ?? "text"}>
         {value}
       </ThemedText>
       <ThemedText type="caption" themeColor="textSecondary">
@@ -1088,58 +1143,53 @@ function Stat({
 }
 
 /**
- * One cell of the hero metric grid. The filled variant is the single
- * accent-owned identity metric; neutral cells keep their surface quiet and let
- * the metric hue live in the numeral and the spark mark only.
+ * One progress record inside a Report. `ReportRow` has no meter slot, so the
+ * meterized rows (milestones, quests, achievements) share this local row that
+ * keeps the same hairline grammar and 44 dp floor.
  */
-function MetricTile({
-  label,
-  value,
-  icon,
-  tone,
-  valueColor,
+function RecordRow({
   testID,
+  title,
+  titleTone = "text",
+  meter,
+  hint,
+  badge,
+  divider = false,
 }: {
-  label: string;
-  value: string;
-  icon?: ReactNode;
-  /** Filled family background (accent, for the identity cell). */
-  tone?: ThemeColor;
-  /** Numeral colour on a neutral cell. */
-  valueColor?: ThemeColor;
-  testID?: string;
+  testID: string;
+  title: string;
+  titleTone?: ThemeColor;
+  meter?: ReactNode;
+  hint: string;
+  badge?: ReactNode;
+  divider?: boolean;
 }) {
   const theme = useTheme();
-  const filled = tone !== undefined;
   return (
     <View
       testID={testID}
       style={[
-        styles.metricTile,
-        {
-          backgroundColor: filled ? theme[tone] : theme.surfaceSunken,
-          borderColor: filled ? theme[tone] : theme.border,
-        },
+        styles.recordRow,
+        divider
+          ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border }
+          : null,
       ]}
     >
-      {icon}
-      <ThemedText
-        type="numeralLg"
-        themeColor={filled ? "accentOn" : (valueColor ?? "text")}
-      >
-        {value}
-      </ThemedText>
-      <ThemedText
-        type="eyebrow"
-        themeColor={filled ? "accentOn" : "textSecondary"}
-      >
-        {label}
-      </ThemedText>
+      <View style={styles.recordText}>
+        <ThemedText type="bodySmall" themeColor={titleTone}>
+          {title}
+        </ThemedText>
+        {meter}
+        <ThemedText type="caption" themeColor="textSecondary">
+          {hint}
+        </ThemedText>
+      </View>
+      {badge ? <View style={styles.recordBadge}>{badge}</View> : null}
     </View>
   );
 }
 
-/** Compact XP/coin display so a large balance cannot break a metric tile. */
+/** Compact XP/coin display so a large balance cannot break the identity strip. */
 function compactNumber(value: number): string {
   if (!Number.isFinite(value)) {
     return "0";
@@ -1154,93 +1204,107 @@ function compactNumber(value: number): string {
 }
 
 const styles = StyleSheet.create({
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: Spacing.three,
-  },
   headerText: {
-    flex: 1,
     gap: Spacing.half,
   },
-  heroRow: {
+  identityRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.three,
+  },
+  monogram: {
+    width: 64,
+    height: 64,
+    borderRadius: Radii.pill,
+    borderWidth: 3,
+    alignItems: "center",
+    justifyContent: "center",
   },
   identityText: {
     flex: 1,
     gap: Spacing.half,
   },
-  metricGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  metricTile: {
-    flexBasis: "47%",
-    flexGrow: 1,
-    minHeight: 96,
-    borderRadius: Radii.large,
-    borderWidth: HAIRLINE,
-    padding: Spacing.three,
-    gap: Spacing.one,
-    // Value and label anchor to the bottom so uneven content still aligns.
-    justifyContent: "flex-end",
-  },
-  streakBeat: {
+  levelRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: Spacing.two,
   },
-  statRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
+  levelPill: {
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.twoHalf,
+    paddingVertical: Spacing.one,
   },
-  stat: {
+  levelProgress: {
     flex: 1,
-    borderRadius: Radii.large,
-    borderWidth: HAIRLINE,
-    padding: Spacing.three,
+  },
+  metricStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  metric: {
+    flex: 1,
     gap: Spacing.half,
+    alignItems: "flex-start",
   },
-  itemList: {
-    gap: Spacing.two,
+  metricDivider: {
+    width: HAIRLINE,
+    alignSelf: "stretch",
+    marginHorizontal: Spacing.two,
   },
-  itemRow: {
+  railRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: Spacing.three,
+    gap: Spacing.two,
+  },
+  equippedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: Spacing.oneHalf,
+    minHeight: MinTouchTarget,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.one,
+    borderWidth: HAIRLINE,
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.half,
+  },
+  chipObject: {
+    width: 14,
+    height: 14,
+    borderRadius: Radii.extraSmall,
   },
   itemIcon: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     borderRadius: Radii.medium,
     alignItems: "center",
     justifyContent: "center",
-  },
-  stateRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.three,
-  },
-  stateAction: {
-    alignItems: "flex-end",
-    gap: Spacing.one,
-  },
-  itemText: {
-    flex: 1,
-    gap: Spacing.half,
   },
   itemActions: {
     flexDirection: "row",
     gap: Spacing.two,
   },
-  lockedRow: {
-    opacity: 0.6,
+  readyLine: {
+    paddingVertical: Spacing.one,
+  },
+  recordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.three,
+    minHeight: MinTouchTarget,
+    paddingVertical: Spacing.two,
+  },
+  recordText: {
+    flex: 1,
+    gap: Spacing.one,
+  },
+  recordBadge: {
+    alignItems: "flex-end",
+    flexShrink: 0,
   },
 });
