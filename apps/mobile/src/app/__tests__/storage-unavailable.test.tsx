@@ -18,6 +18,7 @@ import { View } from 'react-native';
 
 import RootLayout from '@/app/_layout';
 import { initDatabase } from '@/db';
+import { expectConsoleNoise, rootLayoutRoutes } from '@/test-utils';
 
 /** Test-controlled init seam: fails by default until a test flips it. */
 const mockDbLifecycle = { failInit: true };
@@ -54,8 +55,15 @@ beforeEach(() => {
 
 describe('storage-unavailable recovery (task 8.4)', () => {
   it('renders the recoverable storage-unavailable screen when init fails', async () => {
-    const result = renderRouter({ _layout: RootLayout, index: () => null }, { initialUrl: '/' });
-    await result;
+    // The injected storage failure logs its classified diagnostic by design;
+    // scope it to this test instead of letting it read as unexpected noise.
+    await expectConsoleNoise(/\[bootstrap\] stage failed.*"stage":"database"/, async () => {
+      const result = renderRouter(
+        { _layout: RootLayout, ...rootLayoutRoutes({}) },
+        { initialUrl: '/results' },
+      );
+      await result;
+    });
 
     // Recoverable state is shown with diagnostic detail, not the normal app.
     expect(await screen.findByTestId('storage-unavailable')).toBeOnTheScreen();
@@ -71,14 +79,26 @@ describe('storage-unavailable recovery (task 8.4)', () => {
   });
 
   it('re-attempts initialization when the retry control is pressed', async () => {
-    const result = renderRouter({ _layout: RootLayout, index: () => null }, { initialUrl: '/' });
-    await result;
+    await expectConsoleNoise(
+      /\[bootstrap\] stage failed.*"stage":"database"/,
+      async () => {
+        const result = renderRouter(
+          { _layout: RootLayout, ...rootLayoutRoutes({}) },
+          { initialUrl: '/results' },
+        );
+        await result;
+      },
+      { max: 3 },
+    );
 
     await screen.findByTestId('storage-unavailable');
     const before = initCallCount();
     expect(before).toBeGreaterThanOrEqual(1);
 
-    await fireEvent.press(screen.getByTestId('storage-unavailable-retry'));
+    // The retry attempt fails again and logs its expected diagnostic.
+    await expectConsoleNoise(/\[bootstrap\] stage failed.*"stage":"database"/, async () => {
+      await fireEvent.press(screen.getByTestId('storage-unavailable-retry'));
+    });
 
     // Retry re-invokes the bootstrap/init path.
     expect(initCallCount()).toBe(before + 1);
@@ -87,14 +107,20 @@ describe('storage-unavailable recovery (task 8.4)', () => {
   });
 
   it('renders the normal app shell after a retry re-initialises successfully', async () => {
-    const result = renderRouter(
-      {
-        _layout: RootLayout,
-        index: () => <View testID="normal-shell-route" />,
+    await expectConsoleNoise(
+      /\[bootstrap\] stage failed.*"stage":"database"/,
+      async () => {
+        const result = renderRouter(
+          {
+            _layout: RootLayout,
+            ...rootLayoutRoutes({ results: () => <View testID="normal-shell-route" /> }),
+          },
+          { initialUrl: '/results' },
+        );
+        await result;
       },
-      { initialUrl: '/' },
+      { max: 2 },
     );
-    await result;
 
     await screen.findByTestId('storage-unavailable');
     const before = initCallCount();

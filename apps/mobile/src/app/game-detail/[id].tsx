@@ -52,6 +52,7 @@ import { useDbData } from "@/hooks/use-db-data";
 import { useTheme } from "@/hooks/use-theme";
 import { computeMastery, MASTERY_TIERS, type MasteryInput } from "@/mastery";
 import { getGameDefinition } from "@/registry/registry";
+import { parseCanonicalGameId } from "@/routing/route-params";
 
 interface DetailData {
   /** Load-time clock for relative-day formatting (set outside render). */
@@ -92,7 +93,12 @@ const EMPTY_DETAIL: DetailData = {
 export default function GameDetailScreen() {
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const game = getGameDefinition(id ?? "");
+  // App-owned input envelope (Campaign 053): malformed or oversized ids never
+  // reach catalog lookup or persistence and fall through to the unknown-game
+  // fallback below.
+  const routeGameId = parseCanonicalGameId(id);
+  const game =
+    routeGameId === null ? undefined : getGameDefinition(routeGameId);
   const hue = useDomainHue(game?.primaryCategory ?? "");
 
   // Reload persisted data whenever the screen regains focus (e.g. after a
@@ -105,8 +111,8 @@ export default function GameDetailScreen() {
   );
 
   const { data, loaded, error } = useDbData(
-    (db) => loadDetail(db, id ?? ""),
-    [id, refreshKey],
+    (db) => loadDetail(db, routeGameId ?? ""),
+    [routeGameId, refreshKey],
     EMPTY_DETAIL,
   );
   const [favoriteOverride, setFavoriteOverride] = useState<boolean | null>(

@@ -29,6 +29,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
 import { useLayoutTier } from "@/platform/layout";
+import { parseCanonicalSessionId } from "@/routing/route-params";
 import { SectionHeader, StateCard } from "@/components/shell";
 import { formatRelativeDay, performanceBand } from "@/components/shell/format";
 import { formatDayLabel } from "@/analytics/format";
@@ -139,6 +140,10 @@ const celebratedResults = new Set<string>();
 
 export default function ResultsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
+  // App-owned input envelope (Campaign 053): a malformed or oversized session
+  // id is treated as absent, so the route renders the recoverable empty state
+  // instead of querying for it.
+  const sessionId = parseCanonicalSessionId(id) ?? undefined;
   const theme = useTheme();
   const compactMetrics = useLayoutTier() === "compact";
   const { fontScale } = useWindowDimensions();
@@ -161,8 +166,8 @@ export default function ResultsScreen() {
   );
 
   const { data, loaded, error } = useDbData(
-    (db) => loadResults(db, id),
-    [id, refreshKey],
+    (db) => loadResults(db, sessionId),
+    [sessionId, refreshKey],
     EMPTY,
   );
   const { session, recent, ratingHistory, isPersonalBest } = data;

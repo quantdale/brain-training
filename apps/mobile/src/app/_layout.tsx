@@ -1,9 +1,13 @@
 /**
  * Root layout — app-level providers + navigation stack.
  *
- * - Initializes SQLite (`initDatabase`) and the generated game registry
- *   (`registerGameDefinitions`) before first render; seeds the versioned
- *   quest/achievement definitions and syncs progression (`initializeProgression`).
+ * - Runs the classified startup pipeline (`runBootstrap`): database
+ *   initialization, game registry registration, and progression seeding are
+ *   FOUNDATIONAL stages — a failure surfaces an honest recovery-safe screen
+ *   instead of a normal shell (`StorageUnavailable` for the storage stage,
+ *   `BootstrapRecovery` for catalog/progression). Preference reads are
+ *   ANCILLARY: a failure falls back to provider defaults with a stage
+ *   diagnostic and the shell still becomes ready.
  * - Theme + settings providers wrap everything, including the game route.
  *   The selected theme id (profile settings, default 'system') is resolved
  *   against the OS scheme by `RootNavigator` so theme changes apply live.
@@ -32,16 +36,45 @@ import {
   registerGameDefinitions,
   getGameDefinition,
 } from "@/registry/registry";
+import {
+  runBootstrap,
+  type BootstrapDiagnostic,
+  type FoundationalBootstrapStage,
+} from "@/bootstrap/run-bootstrap";
 import StorageUnavailable from "@/app/storage-unavailable";
+import BootstrapRecovery from "@/app/bootstrap-recovery";
 import { THEME_SETTINGS_KEY, resolveThemeMode } from "@/theme/registry";
 import { Colors } from "@/theme/tokens";
 import { ToastHost, showToast } from "@/components/ui/toast";
 
-export default function RootLayout() {
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading",
+/** Shell state driven by the classified bootstrap outcome. */
+type ShellState =
+  | { readonly kind: "loading" }
+  | { readonly kind: "ready" }
+  | {
+      readonly kind: "recovery";
+      readonly stage: FoundationalBootstrapStage;
+      readonly error: Error | null;
+    };
+
+/**
+ * Log one ancillary/foundational stage diagnostic with its classification, so
+ * a degraded-but-ready shell leaves a stage-specific trace instead of the old
+ * generic post-initialization message.
+ */
+function logBootstrapDiagnostic(diagnostic: BootstrapDiagnostic): void {
+  console.error(
+    "[bootstrap] stage failed",
+    JSON.stringify({
+      stage: diagnostic.stage,
+      classification: diagnostic.classification,
+      message: diagnostic.message,
+    }),
   );
-  const [initError, setInitError] = useState<Error | null>(null);
+}
+
+export default function RootLayout() {
+  const [shellState, setShellState] = useState<ShellState>({ kind: "loading" });
   const [initialThemeId, setInitialThemeId] = useState<string | undefined>(
     undefined,
   );
@@ -81,86 +114,108 @@ export default function RootLayout() {
   }, []);
 
   /**
-   * Bootstrap the app. Database initialization is the one storage-critical
-   * step: a failure here means the local store cannot be opened, so we surface
-   * the recoverable storage-unavailable screen (task 8.4) instead of a
-   * silently broken app. Post-init steps (registry registration, progression
-   * seeding, profile read) are non-fatal — a failure must not brick startup.
+   * Run the classified bootstrap pipeline. Every stage is idempotent, so
+   * Retry and cold relaunch safely re-run the whole pipeline; a foundational
+   * failure returns early with its stage named and the recovery-safe screen
+   * renders in place of the shell.
    */
   const bootstrap = useCallback(async () => {
-    setStatus("loading");
+    setShellState({ kind: "loading" });
 
-    // Storage-critical: a failed open/migrate means the canonical local DB is
-    // unavailable, so show the recoverable storage-unavailable screen.
-    const dbInitMeasure = startPerfMeasure('bootstrap-db-init');
-    try {
-      // Rating pipeline: per-domain XP/rating/currency applied atomically
-      // with every completed session. Primary category moves at full
-      // weight, secondary domains at half (see src/rating/pipeline.ts).
-      await initDatabase({
-        rating: createRatingPipeline({
-          getDomains: (gameId) => {
-            const definition = getGameDefinition(gameId);
-            if (!definition) {
-              return [];
-            }
-            return [
-              definition.primaryCategory,
-              ...(definition.secondaryDomains ?? []),
-            ];
-          },
-        }),
-      });
-      dbInitMeasure.end({ outcome: "success" });
-    } catch (error) {
-      dbInitMeasure.end({ outcome: "failure" });
-      if (!cancelledRef.current) {
-        setInitError(error instanceof Error ? error : new Error(String(error)));
-        setStatus("error");
-      }
+    const outcome = await runBootstrap({
+      initializeDatabase: async () => {
+        // Storage-critical: a failed open/migrate means the canonical local
+        // DB is unavailable, so the recovery screen must appear instead of a
+        // silently broken app.
+        const dbInitMeasure = startPerfMeasure("bootstrap-db-init");
+        try {
+          // Rating pipeline: per-domain XP/rating/currency applied atomically
+          // with every completed session. Primary category moves at full
+          // weight, secondary domains at half (see src/rating/pipeline.ts).
+          await initDatabase({
+            rating: createRatingPipeline({
+              getDomains: (gameId) => {
+                const definition = getGameDefinition(gameId);
+                if (!definition) {
+                  return [];
+                }
+                return [
+                  definition.primaryCategory,
+                  ...(definition.secondaryDomains ?? []),
+                ];
+              },
+            }),
+          });
+          dbInitMeasure.end({ outcome: "success" });
+        } catch (error) {
+          dbInitMeasure.end({ outcome: "failure" });
+          throw error;
+        }
+      },
+      registerCatalog: () => {
+        registerGameDefinitions(registry);
+      },
+      initializeProgression: async (now) => {
+        const progressionMeasure = startPerfMeasure("bootstrap-progression");
+        try {
+          // Seed versioned quest/achievement definitions and sync
+          // progression (idempotent).
+          await initializeProgression(getDb(), now);
+          progressionMeasure.end({ outcome: "success" });
+        } catch (error) {
+          progressionMeasure.end({ outcome: "failure" });
+          throw error;
+        }
+      },
+      readPreferences: async () => {
+        // Persisted theme + sensory selections (profile settings), applied
+        // through the providers' initial values.
+        const profile = await getDb().profile.get();
+        const theme = profile?.settings?.[THEME_SETTINGS_KEY];
+        const sfx = profile?.settings?.sfx;
+        const haptics = profile?.settings?.haptics;
+        return {
+          ...(typeof theme === "string" ? { themeId: theme } : {}),
+          ...(typeof sfx === "boolean" ? { sfx } : {}),
+          ...(typeof haptics === "boolean" ? { haptics } : {}),
+        };
+      },
+    });
+
+    if (cancelledRef.current) {
       return;
     }
 
-    // Non-fatal post-init work: registry registration, progression seeding,
-    // and the persisted theme read. Any failure is logged but must not brick
-    // startup (original design intent).
-    try {
-      registerGameDefinitions(registry);
-      // Seed versioned quest/achievement definitions and sync progression
-      // (idempotent).
-      const progressionMeasure = startPerfMeasure('bootstrap-progression');
-      await initializeProgression(getDb(), new Date());
-      progressionMeasure.end({ outcome: "success" });
-      // Persisted theme selection (profile settings), applied via the
-      // SettingsProvider initial value.
-      const profile = await getDb().profile.get();
-      const theme = profile?.settings?.[THEME_SETTINGS_KEY];
-      if (!cancelledRef.current && typeof theme === "string") {
-        setInitialThemeId(theme);
-      }
-      const sfx = profile?.settings?.sfx;
-      const haptics = profile?.settings?.haptics;
-      if (
-        !cancelledRef.current &&
-        (typeof sfx === "boolean" || typeof haptics === "boolean")
-      ) {
-        setInitialAudioSettings({
-          ...(typeof sfx === "boolean" ? { sfx } : {}),
-          ...(typeof haptics === "boolean" ? { haptics } : {}),
-        });
-      }
-    } catch (error) {
-      console.error("[startup] post-initialization step failed", error);
+    for (const diagnostic of outcome.diagnostics) {
+      logBootstrapDiagnostic(diagnostic);
     }
 
-    if (!cancelledRef.current) {
-      setStatus("ready");
+    if (outcome.status === "recovery-required") {
+      setShellState({
+        kind: "recovery",
+        stage: outcome.failedStage,
+        error: outcome.error,
+      });
+      return;
     }
+
+    const { themeId, sfx, haptics } = outcome.preferences;
+    if (typeof themeId === "string") {
+      setInitialThemeId(themeId);
+    }
+    if (typeof sfx === "boolean" || typeof haptics === "boolean") {
+      setInitialAudioSettings({
+        ...(typeof sfx === "boolean" ? { sfx } : {}),
+        ...(typeof haptics === "boolean" ? { haptics } : {}),
+      });
+    }
+
+    setShellState({ kind: "ready" });
   }, []);
 
   useEffect(() => {
     cancelledRef.current = false;
-    // Initial app bootstrap must set loading/ready/error state on mount.
+    // Initial app bootstrap must set the shell state on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     bootstrap();
     return () => {
@@ -168,10 +223,22 @@ export default function RootLayout() {
     };
   }, [bootstrap]);
 
-  if (status === "error") {
-    return <StorageUnavailable error={initError} onRetry={bootstrap} />;
+  if (shellState.kind === "recovery") {
+    // The storage stage keeps its dedicated copy/testIDs; every other
+    // foundational failure gets stage-specific recovery copy. Either way the
+    // normal shell is withheld until a retry succeeds.
+    if (shellState.stage === "database") {
+      return <StorageUnavailable error={shellState.error} onRetry={bootstrap} />;
+    }
+    return (
+      <BootstrapRecovery
+        stage={shellState.stage}
+        error={shellState.error}
+        onRetry={bootstrap}
+      />
+    );
   }
-  if (status === "loading") {
+  if (shellState.kind === "loading") {
     return null;
   }
 

@@ -7,7 +7,16 @@
  * round-trips. The in-memory launch map bridges the route and the existing
  * shared game persister without requiring every one of the 42 game modules to
  * grow a new prop.
+ *
+ * Campaign 053: route parsing now runs through the app-owned input envelope
+ * (`@/routing/route-params`), which enforces canonical form and bounded size
+ * before a launch tuple can select a game or reach persistence.
  */
+import {
+  parseBoundedLegIndex,
+  parseCanonicalGameId,
+  parseCanonicalInstanceKey,
+} from '@/routing/route-params';
 
 export interface WorkoutSessionProvenance {
   /** Persisted workout-instance primary key (daily date or template key). */
@@ -123,22 +132,11 @@ export function parseWorkoutLaunchProvenance(input: {
   instanceKey: unknown;
   legIndex?: unknown;
 }): WorkoutSessionProvenance | null {
-  const gameId = firstQueryValue(input.gameId);
-  const instanceKey = firstQueryValue(input.instanceKey);
-  const rawIndex = firstQueryValue(input.legIndex);
-  if (typeof gameId !== "string" || typeof instanceKey !== "string") {
+  const gameId = parseCanonicalGameId(input.gameId);
+  const instanceKey = parseCanonicalInstanceKey(input.instanceKey);
+  const legIndex = parseBoundedLegIndex(input.legIndex);
+  if (gameId === null || instanceKey === null || legIndex === null) {
     return null;
   }
-  const legIndex =
-    typeof rawIndex === "number"
-      ? rawIndex
-      : typeof rawIndex === "string" && rawIndex.trim() !== ""
-        ? Number(rawIndex)
-        : NaN;
-  const provenance = { gameId, instanceKey, legIndex };
-  return isWorkoutSessionProvenance(provenance) ? provenance : null;
-}
-
-function firstQueryValue(value: unknown): unknown {
-  return Array.isArray(value) ? value[0] : value;
+  return { gameId, instanceKey, legIndex };
 }

@@ -6,6 +6,11 @@
  * `scripts/generate-game-registry.mjs`). Falls back to NotReady states for
  * unknown ids or registered-but-not-yet-implemented games.
  *
+ * App-owned input envelope (Campaign 053): the route id and workout-launch
+ * query values are validated through `@/routing/route-params` before any
+ * registry lookup or session selection, so a malformed or oversized deep
+ * link cannot select or persist a target.
+ *
  * Note: tutorial persistence is hydrated from `getDb().tutorials` by
  * `usePersistentTutorialStore` before the game mounts and injected through the
  * screens' `tutorialStore` prop, so first-play completion survives process
@@ -29,6 +34,7 @@ import { Radii, Spacing } from "@/constants/theme";
 import { getGameDefinition } from "@/registry/registry";
 import { gameScreenLoaders } from "@/registry/registry.generated";
 import { usePersistentTutorialStore } from "@/hooks/use-persistent-tutorial-store";
+import { parseCanonicalGameId } from "@/routing/route-params";
 import type { TutorialStore } from "@/sdk";
 import { WorkoutSessionLaunchProvider } from "@/workout/session-launch-context";
 import { parseWorkoutLaunchProvenance } from "@/workout/session-provenance";
@@ -57,15 +63,19 @@ export default function GameScreen() {
     workoutKey?: string | string[];
     workoutIndex?: string | string[];
   }>();
-  const game = getGameDefinition(id ?? "");
+  // App-owned input envelope: a malformed or oversized id never reaches
+  // registry lookup or workout-launch selection; it falls through to the
+  // recoverable not-found presentation below.
+  const routeGameId = parseCanonicalGameId(id);
+  const game = routeGameId === null ? undefined : getGameDefinition(routeGameId);
   const workoutProvenance = useMemo(
     () =>
       parseWorkoutLaunchProvenance({
-        gameId: id,
+        gameId: routeGameId,
         instanceKey: workoutKey,
         legIndex: workoutIndex,
       }),
-    [id, workoutKey, workoutIndex],
+    [routeGameId, workoutKey, workoutIndex],
   );
 
   // Task 10.1: Cache the lazy component identity outside render (lazy creation is intentionally memoized).

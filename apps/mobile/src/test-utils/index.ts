@@ -10,6 +10,8 @@
  *   (`fixtures.ts`).
  * - `makeSessionPersister`, `makeCompletedTutorialStore` — game-screen seams
  *   (`game-screen.ts`).
+ * - `withBootstrapContract` — wraps a partial fake db so the classified
+ *   bootstrap pipeline can complete (`bootstrap-db.ts`).
  *
  * Rules for this directory: helpers must stay deterministic (no wall-clock,
  * no `Math.random()`) and must never be imported by product code.
@@ -23,3 +25,13 @@ export {
   makeSessionPersister,
 } from './game-screen';
 export type { SessionPersisterSpy } from './game-screen';
+export { withBootstrapContract } from './bootstrap-db';
+export type { PartialAppDatabase } from './bootstrap-db';
+export { ROOT_LAYOUT_ROUTE_NAMES, rootLayoutRoutes } from './root-layout-routes';
+export {
+  assertNoUnexpectedConsoleOutput,
+  expectConsoleNoise,
+  installConsoleSignalGuard,
+  resetConsoleSignal,
+} from './console-signal';
+export type { ConsoleBaselineEntry } from './console-signal';

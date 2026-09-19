@@ -58,6 +58,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
 import { useTheme } from '@/hooks/use-theme';
 import { getGameDefinition } from '@/registry/registry';
+import { parseCanonicalGameId } from '@/routing/route-params';
 import { directionArrow, formatDayLabel, formatMs, formatPercent, formatSigned, plural } from '@/analytics/format';
 
 const EMPTY: GameSessionRecord[] = [];
@@ -91,7 +92,9 @@ export default function ProgressGameScreen() {
   const theme = useTheme();
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const params = useLocalSearchParams<{ gameId?: string }>();
-  const gameId = typeof params.gameId === 'string' ? params.gameId : '';
+  // App-owned input envelope (Campaign 053): a malformed or oversized gameId
+  // renders the empty analytics state instead of being queried.
+  const gameId = parseCanonicalGameId(params.gameId) ?? '';
 
   const [refreshKey, setRefreshKey] = useState(0);
   const [nowMs, setNowMs] = useState(0);

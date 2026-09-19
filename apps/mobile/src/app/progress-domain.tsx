@@ -60,6 +60,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
 import { useTheme } from '@/hooks/use-theme';
 import { getGameDefinition } from '@/registry/registry';
+import { parseCanonicalDomain } from '@/routing/route-params';
 import {
   directionArrow,
   formatDayLabel,
@@ -101,7 +102,9 @@ export default function ProgressDomainScreen() {
   const theme = useTheme();
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const params = useLocalSearchParams<{ domain?: string }>();
-  const domain = typeof params.domain === 'string' ? params.domain : '';
+  // App-owned input envelope (Campaign 053): malformed/oversized domains
+  // render the empty-domain state instead of being queried.
+  const domain = parseCanonicalDomain(params.domain) ?? '';
 
   const [refreshKey, setRefreshKey] = useState(0);
   const [nowMs, setNowMs] = useState(0);
