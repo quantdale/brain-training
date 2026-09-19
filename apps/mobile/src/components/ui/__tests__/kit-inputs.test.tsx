@@ -53,7 +53,7 @@ describe('TextField', () => {
     expect(screen.getByText('Name is required')).toBeTruthy();
     const input = screen.getByTestId('name');
     expect(input.props.editable).toBe(true);
-    fireEvent.changeText(input, 'Ada');
+    await fireEvent.changeText(input, 'Ada');
     expect(onChangeText).toHaveBeenCalledWith('Ada');
   });
 
@@ -67,7 +67,7 @@ describe('TextField', () => {
     await render(
       <TextField label="Name" value="Ada" onChangeText={() => {}} onClear={onClear} testID="name" />,
     );
-    fireEvent.press(screen.getByLabelText('Clear Name'));
+    await fireEvent.press(screen.getByLabelText('Clear Name'));
     expect(onClear).toHaveBeenCalledTimes(1);
   });
 
@@ -84,14 +84,14 @@ describe('Chip', () => {
     const onPress = jest.fn();
     await render(<Chip label="Memory" selected onPress={onPress} testID="chip" />);
     expect(screen.getByTestId('chip').props.accessibilityState.selected).toBe(true);
-    fireEvent.press(screen.getByTestId('chip'));
+    await fireEvent.press(screen.getByTestId('chip'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('blocks presses while disabled and reports it', async () => {
     const onPress = jest.fn();
     await render(<Chip label="Memory" onPress={onPress} disabled testID="chip" />);
-    fireEvent.press(screen.getByTestId('chip'));
+    await fireEvent.press(screen.getByTestId('chip'));
     expect(onPress).not.toHaveBeenCalled();
     expect(screen.getByTestId('chip').props.accessibilityState.disabled).toBe(true);
   });
@@ -138,7 +138,7 @@ describe('ListRow', () => {
     // discovery counts every row twice.
     expect(screen.queryByTestId('row-chevron')).toBeNull();
     expect(screen.getByText('›')).toBeTruthy();
-    fireEvent.press(screen.getByTestId('row'));
+    await fireEvent.press(screen.getByTestId('row'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
@@ -163,7 +163,7 @@ describe('EmptyState', () => {
       />,
     );
     expect(screen.getAllByRole('button')).toHaveLength(1);
-    fireEvent.press(screen.getByText('Browse games'));
+    await fireEvent.press(screen.getByText('Browse games'));
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 });

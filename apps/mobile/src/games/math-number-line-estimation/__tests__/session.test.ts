@@ -1,6 +1,7 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it, jest } from '@jest/globals';
 
+import { expectConsoleNoise } from '@/test-utils';
 import { NUMBER_LINE_DIFFICULTY_PARAMS } from '../difficulty';
 import {
   buildNumberLineRawResult,
@@ -140,10 +141,17 @@ describe('persistNumberLineSession', () => {
         throw new Error('db locked');
       },
     };
-    const outcome = await persistNumberLineSession({ id: 'x' } as never, failing);
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(String(outcome.error)).toContain('db locked');
-    }
+    // The rejected-save path logs its expected diagnostic; scope it to this
+    // test instead of letting it read as suite noise.
+    await expectConsoleNoise(
+      /\[math-number-line-estimation\] failed to persist completed session/,
+      async () => {
+        const outcome = await persistNumberLineSession({ id: 'x' } as never, failing);
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(String(outcome.error)).toContain('db locked');
+        }
+      },
+    );
   });
 });

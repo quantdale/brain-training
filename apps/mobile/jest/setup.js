@@ -101,3 +101,17 @@ jest.mock('expo-haptics', () => ({
   },
   AndroidHaptics: {},
 }));
+
+// ---- Console signal contract (Campaign 053, tasks 3.1–3.4) -----------------
+// Known noise was repaired at the source, so unexpected console errors and
+// warnings now fail the test that produced them. Deliberate error paths must
+// scope their message with `expectConsoleNoise()` from `@/test-utils`.
+const consoleSignal = jest.requireActual('@/test-utils/console-signal');
+consoleSignal.installConsoleSignalGuard();
+afterEach(() => {
+  try {
+    consoleSignal.assertNoUnexpectedConsoleOutput();
+  } finally {
+    consoleSignal.resetConsoleSignal();
+  }
+});

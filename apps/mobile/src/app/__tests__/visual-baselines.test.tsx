@@ -36,8 +36,23 @@ import ProgressScreen from '@/app/(tabs)/progress';
 import AppTabs from '@/components/app-tabs';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { registerGameDefinitions } from '@/registry/registry';
+import { expectConsoleNoise } from '@/test-utils';
 
 import { normalizeRouterTree } from './router-tree-normalizer';
+
+/**
+ * This suite deliberately renders the shell screens with NO initialized
+ * database, so the Home dashboard's workout loader logs its expected
+ * diagnostic. Scope that message to the tests that render Home rather than
+ * letting it read as unexpected noise.
+ */
+function scopeDbUnavailableNoise(fn: () => Promise<void>): Promise<void> {
+  return expectConsoleNoise(
+    /\[workout\] load failed/,
+    fn,
+    { max: 8 },
+  );
+}
 
 /** Render one screen as a bare route so no tab host enters the tree. */
 function renderBare(Screen: ComponentType, initialUrl: string) {
@@ -53,7 +68,9 @@ function renderBare(Screen: ComponentType, initialUrl: string) {
 describe('visual baselines (canary set)', () => {
   it('Home — first-run dashboard snapshot', async () => {
     registerGameDefinitions([]);
-    await renderBare(HomeScreen, '/');
+    await scopeDbUnavailableNoise(async () => {
+      await renderBare(HomeScreen, '/');
+    });
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -99,20 +116,22 @@ describe('visual baselines (canary set)', () => {
     // wired as selected, and each tab's screen content renders its expected
     // first-run/db-unavailable fallback INSIDE the shell.
     registerGameDefinitions([]);
-    await renderRouter(
-      {
-        '(tabs)/_layout': () => <AppTabs />,
-        '(tabs)/index': () => <HomeScreen />,
-        '(tabs)/games': () => <GamesScreen />,
-        '(tabs)/progress': () => <ProgressScreen />,
-        '(tabs)/profile': () => (
-          <SettingsProvider>
-            <ProfileScreen />
-          </SettingsProvider>
-        ),
-      },
-      { initialUrl: '/' },
-    );
+    await scopeDbUnavailableNoise(async () => {
+      await renderRouter(
+        {
+          '(tabs)/_layout': () => <AppTabs />,
+          '(tabs)/index': () => <HomeScreen />,
+          '(tabs)/games': () => <GamesScreen />,
+          '(tabs)/progress': () => <ProgressScreen />,
+          '(tabs)/profile': () => (
+            <SettingsProvider>
+              <ProfileScreen />
+            </SettingsProvider>
+          ),
+        },
+        { initialUrl: '/' },
+      );
+    });
     expect(normalizeRouterTree(screen.toJSON())).toMatchSnapshot();
   });
 });

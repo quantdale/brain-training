@@ -63,7 +63,7 @@ describe("QaPanelShell accessibility", () => {
           expect(screen.queryByTestId("memory.qa-panel")).toBeNull();
 
           await act(async () => {
-               fireEvent.press(toggle);
+               await fireEvent.press(toggle);
           });
           const panel = await screen.findByTestId("memory.qa-panel");
           expect(panel).toBeTruthy();
@@ -74,11 +74,11 @@ describe("QaPanelShell accessibility", () => {
           expect(lose.props.accessibilityRole).toBe("button");
 
           await act(async () => {
-               fireEvent.press(win);
+               await fireEvent.press(win);
           });
           expect(onForceWin).toHaveBeenCalledTimes(1);
           await act(async () => {
-               fireEvent.press(lose);
+               await fireEvent.press(lose);
           });
           expect(onForceLose).toHaveBeenCalledTimes(1);
      });

@@ -126,7 +126,7 @@ describe("WorkoutLengthChips", () => {
         testIDPrefix="t"
       />,
     );
-    fireEvent.press(getByTestId("t-short"));
+    await fireEvent.press(getByTestId("t-short"));
     expect(picked).toBe("short");
   });
 });

@@ -24,6 +24,7 @@ import ResultsScreen from "@/app/results";
 import { ToastHost, resetToastQueueForTests } from "@/components/ui";
 import { registerGameDefinitions } from "@/registry/registry";
 import { registry as generatedRegistry } from "@/registry/registry.generated";
+import { eligibleGameIds, reconcileWorkout } from "@/workout/reconcile";
 import { onWorkoutChanged } from "@/workout/events";
 
 /** Test-only db state holder served by the mocked `@/db` module below. */
@@ -101,6 +102,14 @@ function makeFakeDb(workout: WorkoutInstance | null): AppDatabase {
     ratings: { getHistoryForSession: async () => [] },
     workouts: {
       findActiveInstanceForSession: async () => workout,
+      // The real repository re-checks the repaired row against the eligible
+      // catalog after an advance; the fixture mirrors that contract with the
+      // pure reconcile helper instead of omitting the method (which the
+      // screen logs as a reconciliation failure).
+      reconcile: jest.fn(async (date: string) => {
+        if (!workout || workout.date !== date) return null;
+        return reconcileWorkout(workout, eligibleGameIds()).instance;
+      }),
       // Mirror the real repository: advancing past the last game completes
       // the workout; otherwise currentIndex moves to the next position.
       advanceForSession: jest.fn(async () => {

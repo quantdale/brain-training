@@ -133,7 +133,7 @@ describe('games library', () => {
     await renderLibrary();
 
     await screen.findByTestId('games-grid');
-    fireEvent.press(screen.getByTestId('games-filter-memory'));
+    await fireEvent.press(screen.getByTestId('games-filter-memory'));
     expect(await screen.findByText('Showing 2 of 6 games')).toBeOnTheScreen();
     expect(screen.getByTestId('game-card-memory-alpha')).toBeOnTheScreen();
     expect(screen.getByTestId('game-card-memory-beta')).toBeOnTheScreen();
@@ -142,7 +142,7 @@ describe('games library', () => {
     expect(screen.queryByTestId('games-featured')).toBeNull();
     expect(screen.queryByTestId('games-discovery')).toBeNull();
 
-    fireEvent.press(screen.getByTestId('games-filter-all'));
+    await fireEvent.press(screen.getByTestId('games-filter-all'));
     expect(await screen.findByText('Showing 6 of 6 games')).toBeOnTheScreen();
   });
 
@@ -152,11 +152,11 @@ describe('games library', () => {
     await screen.findByTestId('games-grid');
     expect(screen.queryByTestId('games-search-clear')).toBeNull();
 
-    fireEvent.changeText(screen.getByTestId('games-search'), 'speed');
+    await fireEvent.changeText(screen.getByTestId('games-search'), 'speed');
     expect(await screen.findByText('Showing 1 of 6 games')).toBeOnTheScreen();
     expect(screen.getByTestId('game-card-speed-sprint')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId('games-search-clear'));
+    await fireEvent.press(screen.getByTestId('games-search-clear'));
     expect(await screen.findByText('Showing 6 of 6 games')).toBeOnTheScreen();
   });
 
@@ -175,17 +175,17 @@ describe('games library', () => {
     mockDbState.db = makeFakeDb(['speed-sprint']);
     await renderLibrary();
 
-    fireEvent.press(screen.getByTestId('games-filter-favorites'));
+    await fireEvent.press(screen.getByTestId('games-filter-favorites'));
     expect(await screen.findByText('Showing 1 of 6 games')).toBeOnTheScreen();
     expect(screen.getByTestId('game-card-speed-sprint')).toBeOnTheScreen();
     expect(screen.queryByTestId('games-suggested-next')).toBeNull();
 
     mockDbState.db = makeFakeDb([]);
     await renderLibrary();
-    fireEvent.press(screen.getByTestId('games-filter-favorites'));
+    await fireEvent.press(screen.getByTestId('games-filter-favorites'));
     expect(await screen.findByTestId('games-favorites-empty')).toBeOnTheScreen();
     expect(screen.getByText('No favorites yet')).toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId('games-favorites-empty-action'));
+    await fireEvent.press(screen.getByTestId('games-favorites-empty-action'));
     expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
   });
 
@@ -193,10 +193,10 @@ describe('games library', () => {
     await renderLibrary();
 
     await screen.findByTestId('games-grid');
-    fireEvent.changeText(screen.getByTestId('games-search'), 'zzz-no-match');
+    await fireEvent.changeText(screen.getByTestId('games-search'), 'zzz-no-match');
 
     expect(await screen.findByTestId('games-no-results')).toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId('games-no-results-action'));
+    await fireEvent.press(screen.getByTestId('games-no-results-action'));
     expect(await screen.findByTestId('games-grid')).toBeOnTheScreen();
     expect(await screen.findByText('Showing 6 of 6 games')).toBeOnTheScreen();
   });

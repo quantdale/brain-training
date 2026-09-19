@@ -136,7 +136,7 @@ describe('SegmentedControl', () => {
     expect(week.props.accessibilityRole).toBe('tab');
     expect(week.props.accessibilityState).toMatchObject({ selected: true });
     expect(month.props.accessibilityState).toMatchObject({ selected: false });
-    fireEvent.press(month);
+    await fireEvent.press(month);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith('month');
   });
@@ -151,7 +151,7 @@ describe('IconButton', () => {
     const control = screen.getByTestId('retry');
     expect(control.props.accessibilityRole).toBe('button');
     expect(control.props.accessibilityLabel).toBe('Retry level');
-    fireEvent.press(control);
+    await fireEvent.press(control);
     expect(onPress).not.toHaveBeenCalled();
     expect(control.props.accessibilityState).toMatchObject({ disabled: true });
   });
@@ -159,7 +159,7 @@ describe('IconButton', () => {
   it('fires onPress when enabled', async () => {
     const onPress = jest.fn();
     await render(<IconButton icon={<Text>★</Text>} label="Retry level" onPress={onPress} testID="retry" />);
-    fireEvent.press(screen.getByTestId('retry'));
+    await fireEvent.press(screen.getByTestId('retry'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 });
@@ -172,7 +172,7 @@ describe('ScreenHeader', () => {
     expect(back.props.accessibilityRole).toBe('button');
     expect(back.props.accessibilityLabel).toBe('Back');
     expect(flatten(back.props.style).height).toBeGreaterThanOrEqual(MinTouchTarget);
-    fireEvent.press(back);
+    await fireEvent.press(back);
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 

@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 
 import type { CompleteSessionInput, GameSessionRecord } from '@/db';
 import type { DifficultyProfile } from '@/sdk';
+import { expectConsoleNoise } from '@/test-utils';
 
 import { loadContentPack } from '../content-validation';
 import {
@@ -121,7 +122,11 @@ describe('session building', () => {
     });
     const okRes = await persistContextFitSession(record, ok);
     expect(okRes.ok).toBe(true);
-    const failRes = await persistContextFitSession(record, fail);
-    expect(failRes.ok).toBe(false);
+    // The rejected-save path logs its expected diagnostic; scope it to this
+    // test instead of letting it read as suite noise.
+    await expectConsoleNoise(/\[language-context-fit\] failed to persist completed session/, async () => {
+      const failRes = await persistContextFitSession(record, fail);
+      expect(failRes.ok).toBe(false);
+    });
   });
 });

@@ -12,7 +12,7 @@
  * work stays off the JS thread during list scrolling and dense screens.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, type ViewStyle } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
@@ -170,6 +170,10 @@ export function useAnimatedProgress(
   const reducedMotion = usePrefersReducedMotion();
   const [animated] = useState(() => new Animated.Value(target));
   const [numericValue, setNumericValue] = useState<number | null>(withNumericValue ? target : null);
+  // The initial Animated.Value already equals `target`, so a mount-time timing
+  // run would only burn frames (and re-render `withNumericValue` consumers)
+  // without any visual change. Only animate genuine transitions.
+  const mountedRef = useRef(false);
 
   useEffect(() => {
     if (!withNumericValue) return;
@@ -178,6 +182,11 @@ export function useAnimatedProgress(
   }, [animated, withNumericValue]);
 
   useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      animated.setValue(target);
+      return;
+    }
     if (!enabled || reducedMotion) {
       animated.setValue(target);
       return;

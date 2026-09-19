@@ -195,12 +195,12 @@ async function renderScreen() {
     { initialUrl: '/data-management' },
   );
   jest.useRealTimers();
-  await screen.findByTestId('data-management-title', { timeout: 10_000 });
+  await screen.findByTestId('data-management-title', {}, { timeout: 10_000 });
 }
 
 async function typeImportJson(text = '{"backup":true}') {
   const input = await screen.findByTestId('data-import-input');
-  fireEvent.changeText(input, text);
+  await fireEvent.changeText(input, text);
   // Concurrent React flushes the controlled-value update asynchronously;
   // wait until it has round-tripped through state before acting further.
   await waitFor(() => {
@@ -243,7 +243,7 @@ describe('data-management UX contract', () => {
   it('export saves to the transport, lists it, and offers Share', async () => {
     await renderScreen();
 
-    fireEvent.press(await screen.findByTestId('data-export-button'));
+    await fireEvent.press(await screen.findByTestId('data-export-button'));
 
     const message = await screen.findByTestId('data-message');
     expect(message).toHaveTextContent(
@@ -272,7 +272,7 @@ describe('data-management UX contract', () => {
     await transport.writeBackup('b1.json', '{}');
     await renderScreen();
 
-    fireEvent.press(await screen.findByTestId('data-backup-share-b1.json'));
+    await fireEvent.press(await screen.findByTestId('data-backup-share-b1.json'));
 
     const message = await screen.findByTestId('data-message');
     await waitFor(() =>
@@ -285,7 +285,7 @@ describe('data-management UX contract', () => {
     await transport.writeBackup('b1.json', '{}');
     await renderScreen();
 
-    fireEvent.press(await screen.findByTestId('data-backup-share-b1.json'));
+    await fireEvent.press(await screen.findByTestId('data-backup-share-b1.json'));
 
     const message = await screen.findByTestId('data-message');
     await waitFor(() =>
@@ -300,13 +300,13 @@ describe('data-management UX contract', () => {
     await typeImportJson();
 
     const replaceButton = screen.getByTestId('data-import-replace');
-    fireEvent.press(replaceButton);
+    await fireEvent.press(replaceButton);
 
     // Armed only: no write may have happened yet.
     await screen.findByText(/Tap again to erase and restore/);
     expect(mockedApplyImport).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByTestId('data-import-replace'));
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
 
     await waitFor(() =>
       expect(mockedApplyImport).toHaveBeenCalledWith(
@@ -326,10 +326,10 @@ describe('data-management UX contract', () => {
     await renderScreen();
     await typeImportJson();
 
-    fireEvent.press(screen.getByTestId('data-import-replace'));
+    await fireEvent.press(screen.getByTestId('data-import-replace'));
     await screen.findByText(/Tap again to erase and restore/);
 
-    fireEvent.changeText(await screen.findByTestId('data-import-input'), '');
+    await fireEvent.changeText(await screen.findByTestId('data-import-input'), '');
     await waitFor(() => {
       expect(screen.getByTestId('data-import-input').props.value).toBe('');
     });
@@ -346,7 +346,7 @@ describe('data-management UX contract', () => {
     await renderScreen();
     await typeImportJson();
 
-    fireEvent.press(await screen.findByTestId('data-import-merge'));
+    await fireEvent.press(await screen.findByTestId('data-import-merge'));
 
     await waitFor(() =>
       expect(mockedApplyImport).toHaveBeenCalledWith(
@@ -373,7 +373,7 @@ describe('data-management UX contract', () => {
     await renderScreen();
     await typeImportJson('{bad json');
 
-    fireEvent.press(await screen.findByTestId('data-preview-merge'));
+    await fireEvent.press(await screen.findByTestId('data-preview-merge'));
 
     const message = await screen.findByTestId('data-message');
     await waitFor(() => expect(message).toHaveTextContent(/checksum mismatch/));
@@ -385,11 +385,11 @@ describe('data-management UX contract', () => {
     await renderScreen();
 
     // First tap only arms the destructive control.
-    fireEvent.press(await screen.findByTestId('data-backup-delete-old.json'));
+    await fireEvent.press(await screen.findByTestId('data-backup-delete-old.json'));
     expect(await screen.findByText(/Tap to confirm/)).toBeOnTheScreen();
     expect(transport.deleteBackup).not.toHaveBeenCalled();
 
-    fireEvent.press(screen.getByTestId('data-backup-delete-old.json'));
+    await fireEvent.press(screen.getByTestId('data-backup-delete-old.json'));
     await waitFor(() =>
       expect(transport.deleteBackup).toHaveBeenCalledWith('old.json'),
     );
@@ -400,10 +400,10 @@ describe('data-management UX contract', () => {
   it('gates the wipe behind typed DELETE confirmation', async () => {
     await renderScreen();
 
-    fireEvent.press(await screen.findByTestId('data-wipe-button'));
+    await fireEvent.press(await screen.findByTestId('data-wipe-button'));
     expect(jest.mocked(wipeLocalData)).not.toHaveBeenCalled();
 
-    fireEvent.changeText(
+    await fireEvent.changeText(
       await screen.findByTestId('data-wipe-confirm'),
       'DELETE',
     );
@@ -412,7 +412,7 @@ describe('data-management UX contract', () => {
         'DELETE',
       );
     });
-    fireEvent.press(screen.getByTestId('data-wipe-button'));
+    await fireEvent.press(screen.getByTestId('data-wipe-button'));
 
     await waitFor(() => expect(jest.mocked(wipeLocalData)).toHaveBeenCalled());
     const message = await screen.findByTestId('data-message');
@@ -431,8 +431,8 @@ describe('data-management UX contract', () => {
       .mockRejectedValueOnce(new Error('disk I/O error while clearing'));
     await renderScreen();
 
-    fireEvent.press(await screen.findByTestId('data-wipe-button'));
-    fireEvent.changeText(
+    await fireEvent.press(await screen.findByTestId('data-wipe-button'));
+    await fireEvent.changeText(
       await screen.findByTestId('data-wipe-confirm'),
       'DELETE',
     );
@@ -441,7 +441,7 @@ describe('data-management UX contract', () => {
         'DELETE',
       );
     });
-    fireEvent.press(screen.getByTestId('data-wipe-button'));
+    await fireEvent.press(screen.getByTestId('data-wipe-button'));
 
     await waitFor(() =>
       expect(jest.mocked(wipeLocalData)).toHaveBeenCalledTimes(1),
@@ -469,7 +469,7 @@ describe('data-management UX contract', () => {
   it('offers a backup-first export inside the wipe card', async () => {
     await renderScreen();
 
-    fireEvent.press(await screen.findByTestId('data-wipe-export-first'));
+    await fireEvent.press(await screen.findByTestId('data-wipe-export-first'));
 
     await waitFor(() =>
       expect(mockedExportLocalDataBundle).toHaveBeenCalled(),
@@ -481,7 +481,7 @@ describe('data-management UX contract', () => {
   it('surfaces picker cancellation without an error message', async () => {
     await renderScreen();
 
-    fireEvent.press(await screen.findByTestId('data-import-from-file'));
+    await fireEvent.press(await screen.findByTestId('data-import-from-file'));
     await waitFor(() => expect(mockedPickBackupFile).toHaveBeenCalled());
     // Canceled pickers are not errors — no message card should appear.
     expect(screen.queryByTestId('data-message')).toBeNull();
@@ -497,13 +497,13 @@ describe('data-management UX contract', () => {
     await renderScreen();
     await typeImportJson();
 
-    fireEvent.press(await screen.findByTestId('data-preview-merge'));
+    await fireEvent.press(await screen.findByTestId('data-preview-merge'));
     await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(1));
 
     // Fast repeat taps (different preview modes) while the first is pending:
     // neither may start another preview pass.
-    fireEvent.press(screen.getByTestId('data-preview-merge'));
-    fireEvent.press(screen.getByTestId('data-preview-replace'));
+    await fireEvent.press(screen.getByTestId('data-preview-merge'));
+    await fireEvent.press(screen.getByTestId('data-preview-replace'));
     expect(mockedPreviewImport).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('data-preview-merge').props.accessibilityState?.disabled).toBe(true);
 
@@ -524,13 +524,13 @@ describe('data-management UX contract', () => {
     await renderScreen();
     await typeImportJson();
 
-    fireEvent.press(await screen.findByTestId('data-preview-merge'));
+    await fireEvent.press(await screen.findByTestId('data-preview-merge'));
     await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(1));
     await waitFor(() =>
       expect(screen.getByTestId('data-preview-merge').props.accessibilityState?.disabled).toBe(false),
     );
 
-    fireEvent.press(screen.getByTestId('data-preview-merge'));
+    await fireEvent.press(screen.getByTestId('data-preview-merge'));
     await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(2));
   });
 });

@@ -64,8 +64,8 @@ async function startTrial(seed: string) {
   return firstTrial(seed);
 }
 
-function answer(color: StroopColor) {
-  return fireEvent.press(screen.getByTestId(testId(GAME_ID, `answer-buttons-${color}`)));
+async function answer(color: StroopColor) {
+  await fireEvent.press(screen.getByTestId(testId(GAME_ID, `answer-buttons-${color}`)));
 }
 
 describe('ColorStroopScreen verdict cues', () => {

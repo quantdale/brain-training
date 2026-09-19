@@ -106,7 +106,7 @@ describe('MathEquationBuilderScreen verdict cue', () => {
     ).toBeOnTheScreen();
     expect(within(correctVerdict).queryByText('✕', { includeHiddenElements: true })).toBeNull();
     expect(String(correctVerdict.props.accessibilityLabel)).toMatch(/Correct:/);
-    correctTree.unmount();
+    await correctTree.unmount();
 
     const wrongTree = await render(
       <EquationDisplay target={10} tokens={[4, '+', 5]} result={9} isCorrect={false} />,
@@ -119,7 +119,7 @@ describe('MathEquationBuilderScreen verdict cue', () => {
     ).toBeOnTheScreen();
     expect(within(wrongVerdict).queryByText('✓', { includeHiddenElements: true })).toBeNull();
     expect(String(wrongVerdict.props.accessibilityLabel)).toMatch(/Wrong answer/);
-    wrongTree.unmount();
+    await wrongTree.unmount();
 
     // Fill channel: verdict panels use distinct fills.
     expect(correctFill).not.toBe(wrongFill);

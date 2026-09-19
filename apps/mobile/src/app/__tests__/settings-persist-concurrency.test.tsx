@@ -12,9 +12,10 @@ import { Pressable } from 'react-native';
 
 import RootLayout from '@/app/_layout';
 import { useSettings } from '@/components/settings/settings-provider';
+import { rootLayoutRoutes } from '@/test-utils';
 
 let mockActiveWrites = 0;
-const mockProfileUpdate = jest.fn(async () => {
+const mockProfileUpdate = jest.fn(async (_input: unknown) => {
   if (mockActiveWrites > 0) {
     throw new Error('database is locked');
   }
@@ -28,14 +29,25 @@ jest.mock('@/db', () => {
   return {
     ...actual,
     getDb: () => {
-      const db = (actual.getDb as () => { profile: Record<string, unknown> })();
-      return {
-        ...db,
-        profile: {
-          ...db.profile,
-          update: mockProfileUpdate,
-        },
+      const db = (actual.getDb as () => { profile: object })();
+      // Prototype-preserving override (spreading a repository instance would
+      // drop its prototype methods). The concurrency probe replaces ONLY the
+      // sensory settings write; the bootstrap preference read and the
+      // progression fingerprint write stay real so the classified pipeline
+      // reaches the ready shell.
+      const profile = Object.create(db.profile) as {
+        update: (input: { settings?: Record<string, unknown> }) => Promise<void>;
       };
+      const realUpdate = (db.profile as { update: (input: unknown) => Promise<void> })
+        .update;
+      profile.update = jest.fn(async (input: { settings?: Record<string, unknown> }) => {
+        const settings = input.settings ?? {};
+        if ('sfx' in settings || 'haptics' in settings) {
+          return mockProfileUpdate(input);
+        }
+        return realUpdate.call(db.profile, input);
+      });
+      return { ...db, profile };
     },
   };
 });
@@ -66,8 +78,8 @@ describe('sensory settings persistence concurrency', () => {
   it('serializes rapid SFX and haptics writes through the real root seam', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const result = renderRouter(
-      { _layout: RootLayout, index: RapidToggleProbe },
-      { initialUrl: '/' },
+      { _layout: RootLayout, ...rootLayoutRoutes({ results: RapidToggleProbe }) },
+      { initialUrl: '/results' },
     );
     await result;
     mockProfileUpdate.mockClear();

@@ -245,7 +245,7 @@ describe('GameHost chrome mounting', () => {
     expect(screen.getByText('Start game')).toBeOnTheScreen();
     expect(screen.getByText('Game 2 · ready when you are')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId(testId(GAME, 'start')));
+    await fireEvent.press(screen.getByTestId(testId(GAME, 'start')));
     expect(onStart).toHaveBeenCalledTimes(1);
   });
 

@@ -18,6 +18,7 @@ import { act, fireEvent, renderRouter, screen, within } from 'expo-router/testin
 
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
+import { withBootstrapContract } from '@/test-utils';
 
 /** Test-only db state holder served by the mocked `@/db` module below. */
 const mockDbState: { db: AppDatabase | null } = { db: null };
@@ -47,7 +48,9 @@ function makeFakeDb(overrides: {
   const history = overrides.history ?? [];
   const aggregates = overrides.aggregates ?? [];
   const recent = overrides.recent ?? [];
-  return {
+  // The classified bootstrap requires a progression-capable db; the partial
+  // fake above only implements the reads the progress screens use.
+  return withBootstrapContract({
     sessions: {
       getTotalXp: async () => 0,
       getAggregates: async () => aggregates,
@@ -66,7 +69,7 @@ function makeFakeDb(overrides: {
     // rejected and the old code masked the failure as an empty snapshot.
     xpAwards: { getTotalAwardedXp: async () => 0 },
     favorites: { isFavorite: async () => false },
-  } as unknown as AppDatabase;
+  });
 }
 
 /** Register a single fabricated game so record rows render its name. */

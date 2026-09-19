@@ -6,7 +6,7 @@
  * indicator snaps with no transition while selection itself stays immediate.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
@@ -44,8 +44,16 @@ export function SegmentedControl({ options, value, onChange, testID, compact = f
   // being read through a ref during render.
   const [position] = useState(() => new Animated.Value(selectedIndex));
   const [innerWidth, setInnerWidth] = useState(0);
+  // The initial Animated.Value already equals `selectedIndex`, so a mount-time
+  // timing run would only burn frames without any visual change.
+  const mountedRef = useRef(false);
 
   useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      position.setValue(selectedIndex);
+      return;
+    }
     if (reducedMotion) {
       position.setValue(selectedIndex);
       return;

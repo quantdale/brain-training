@@ -36,12 +36,12 @@ describe('ConfirmButton', () => {
 
     expect(api.getByText('Delete')).toBeOnTheScreen();
 
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     // Armed: confirm label shown, action NOT yet run.
     await api.findByText('Tap to confirm');
     expect(onConfirm).not.toHaveBeenCalled();
 
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(1));
     // Disarmed after firing.
     await api.findByText('Delete');
@@ -59,13 +59,13 @@ describe('ConfirmButton', () => {
       />,
     );
 
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     await api.findByText('Tap to confirm');
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     await waitFor(() => expect(onConfirm).toHaveBeenCalledTimes(1));
 
     // Third tap begins a fresh arm; it does not confirm again.
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     await api.findByText('Tap to confirm');
     expect(onConfirm).toHaveBeenCalledTimes(1);
   }, ARM_WINDOW_MS);
@@ -82,7 +82,7 @@ describe('ConfirmButton', () => {
       />,
     );
 
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     await api.findByText('Tap to confirm');
 
     // Let the arm window lapse entirely (real wall-clock time).
@@ -93,7 +93,7 @@ describe('ConfirmButton', () => {
     expect(api.getByText('Delete')).toBeOnTheScreen();
 
     // A late single press cannot confirm an expired arm.
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     expect(onConfirm).not.toHaveBeenCalled();
   }, ARM_WINDOW_MS * 2);
 
@@ -110,8 +110,8 @@ describe('ConfirmButton', () => {
       />,
     );
 
-    fireEvent.press(api.getByTestId('cb'));
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
 
     expect(onConfirm).not.toHaveBeenCalled();
     expect(api.getByText('Delete')).toBeOnTheScreen();
@@ -135,7 +135,7 @@ describe('ConfirmButton', () => {
     expect(api.getByTestId('cb').props.accessibilityLabel).toBe(
       'Apply replace import',
     );
-    fireEvent.press(api.getByTestId('cb'));
+    await fireEvent.press(api.getByTestId('cb'));
     await api.findByText('Tap again to erase and restore');
     expect(api.getByTestId('cb').props.accessibilityLabel).toBe(
       'Tap again to erase and restore. Apply replace import',

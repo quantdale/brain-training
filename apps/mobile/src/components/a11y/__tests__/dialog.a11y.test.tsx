@@ -113,14 +113,14 @@ describe('A11yDialog', () => {
     // first child of the `-scrim` layout container.
     const scrim = screen.getByTestId('dlg-scrim').children[0] as TestInstance;
     expect(scrim.props.accessibilityState).toMatchObject({ disabled: false });
-    fireEvent.press(scrim);
+    await fireEvent.press(scrim);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('dismisses via the Close button', async () => {
     const onClose = jest.fn();
     await render(<A11yDialog visible title="Paused" onRequestClose={onClose} testID="dlg" />);
-    fireEvent.press(screen.getByTestId('dlg-close'));
+    await fireEvent.press(screen.getByTestId('dlg-close'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -129,7 +129,7 @@ describe('A11yDialog', () => {
     // Same structural seam as the dismissable-scrim test above.
     const scrim = screen.getByTestId('dlg-scrim').children[0] as TestInstance;
     expect(scrim.props.accessibilityState).toMatchObject({ disabled: true });
-    fireEvent.press(scrim);
+    await fireEvent.press(scrim);
     expect(screen.queryByTestId('dlg-close')).toBeNull();
   });
 

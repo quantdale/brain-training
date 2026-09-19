@@ -102,7 +102,7 @@ describe('GameResults workout continuation', () => {
     expect(screen.queryByTestId('memory.workout-complete')).toBeNull();
 
     // Activating it launches the next provenance tuple.
-    fireEvent.press(screen.getByTestId('memory.next-game'));
+    await fireEvent.press(screen.getByTestId('memory.next-game'));
     expect(mockedPush).toHaveBeenCalledWith(
       '/game/speed-tap-rush?workoutKey=2026-09-14&workoutIndex=1',
     );
@@ -124,7 +124,7 @@ describe('GameResults workout continuation', () => {
     expect(await screen.findByTestId('memory.workout-complete')).toBeOnTheScreen();
     expect(screen.queryByTestId('memory.next-game')).toBeNull();
 
-    fireEvent.press(screen.getByTestId('memory.finish-workout'));
+    await fireEvent.press(screen.getByTestId('memory.finish-workout'));
     expect(mockedReplace).toHaveBeenCalledWith('/');
   });
 
@@ -159,7 +159,7 @@ describe('GameResults workout continuation', () => {
       workout: { nextGameId: 'logic-next-sequence', onNextGame },
     });
 
-    fireEvent.press(screen.getByTestId('memory.next-game'));
+    await fireEvent.press(screen.getByTestId('memory.next-game'));
     expect(onNextGame).toHaveBeenCalledTimes(1);
     expect(mockedAdvance).not.toHaveBeenCalled();
   });

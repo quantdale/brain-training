@@ -35,14 +35,14 @@ describe('Button', () => {
   it('fires onPress when enabled', async () => {
     const onPress = jest.fn();
     await render(<Button label="Start workout" onPress={onPress} testID="cta" />);
-    fireEvent.press(screen.getByTestId('cta'));
+    await fireEvent.press(screen.getByTestId('cta'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('blocks activation while disabled', async () => {
     const onPress = jest.fn();
     await render(<Button label="Start workout" onPress={onPress} disabled testID="cta" />);
-    fireEvent.press(screen.getByTestId('cta'));
+    await fireEvent.press(screen.getByTestId('cta'));
     expect(onPress).not.toHaveBeenCalled();
     expect(screen.getByTestId('cta').props.accessibilityState).toMatchObject({ disabled: true });
   });
@@ -50,7 +50,7 @@ describe('Button', () => {
   it('blocks activation while loading and reports busy', async () => {
     const onPress = jest.fn();
     await render(<Button label="Saving" onPress={onPress} loading testID="cta" />);
-    fireEvent.press(screen.getByTestId('cta'));
+    await fireEvent.press(screen.getByTestId('cta'));
     expect(onPress).not.toHaveBeenCalled();
     expect(screen.getByTestId('cta').props.accessibilityState).toMatchObject({ busy: true });
   });
@@ -79,7 +79,7 @@ describe('Button', () => {
     mockReduceMotion.mockReturnValue(true);
     const onPress = jest.fn();
     await render(<Button label="Start" onPress={onPress} testID="cta" />);
-    fireEvent.press(screen.getByTestId('cta'));
+    await fireEvent.press(screen.getByTestId('cta'));
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 });
@@ -120,7 +120,7 @@ describe('Tappable', () => {
         <Text>Locked</Text>
       </Tappable>,
     );
-    fireEvent.press(screen.getByTestId('locked'));
+    await fireEvent.press(screen.getByTestId('locked'));
     expect(onPress).not.toHaveBeenCalled();
   });
 });
@@ -142,7 +142,7 @@ describe('Card', () => {
         <Text>Memory</Text>
       </Card>,
     );
-    fireEvent.press(screen.getByTestId('tile'));
+    await fireEvent.press(screen.getByTestId('tile'));
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('tile').props.accessibilityRole).toBe('button');
     expect(screen.getByTestId('tile').props.accessibilityLabel).toBe('Memory game');

@@ -17,22 +17,33 @@ import { Pressable } from 'react-native';
 
 import RootLayout from '@/app/_layout';
 import { useSettings } from '@/components/settings/settings-provider';
+import { rootLayoutRoutes } from '@/test-utils';
 
 jest.mock('@/db', () => {
   const actual = jest.requireActual('@/db') as Record<string, unknown>;
   return {
     ...actual,
     getDb: () => {
-      const db = (actual.getDb as () => { profile: Record<string, unknown> })();
-      return {
-        ...db,
-        profile: {
-          ...db.profile,
-          update: jest.fn(async () => {
-            throw new Error('settings persist boom');
-          }),
-        },
+      const db = (actual.getDb as () => { profile: object })();
+      // Prototype-preserving override: spreading a repository instance would
+      // drop its prototype methods (get/ensureExists), which the classified
+      // bootstrap preference read genuinely needs. Only the SENSORY settings
+      // write is injected to fail; the progression fingerprint write (also
+      // routed through profile.update) must still succeed or the foundational
+      // progression stage would fail for the wrong reason.
+      const profile = Object.create(db.profile) as {
+        update: (input: { settings?: Record<string, unknown> }) => Promise<void>;
       };
+      const realUpdate = (db.profile as { update: (input: unknown) => Promise<void> })
+        .update;
+      profile.update = jest.fn(async (input: { settings?: Record<string, unknown> }) => {
+        const settings = input.settings ?? {};
+        if ('sfx' in settings || 'haptics' in settings) {
+          throw new Error('settings persist boom');
+        }
+        return realUpdate.call(db.profile, input);
+      });
+      return { ...db, profile };
     },
   };
 });
@@ -55,8 +66,8 @@ describe('sensory settings persist failure', () => {
   it('discloses a failed sfx persist with a danger toast', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const result = renderRouter(
-      { _layout: RootLayout, index: SettingsProbe },
-      { initialUrl: '/' },
+      { _layout: RootLayout, ...rootLayoutRoutes({ results: SettingsProbe }) },
+      { initialUrl: '/results' },
     );
     await result;
 
