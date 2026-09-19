@@ -187,13 +187,18 @@ export function GameHost({
   const workoutLaunch = useWorkoutSessionLaunch();
   const workoutPosition =
     workoutLaunch?.gameId === gameId ? workoutLaunch.legIndex + 1 : null;
+  // A tutorial is a modal learning surface. Keep the intro mounted behind it
+  // for a smooth dismissal, but remove its controls from the accessibility
+  // tree while the tutorial owns focus; otherwise a clipped Start button can
+  // be discovered behind the visible demo on compact screens.
+  const contentHidden = paused || (view === 'intro' && tutorialOpen);
 
   return (
     <View style={[styles.screen, { backgroundColor: theme.background }]} testID={testId(gameId, 'screen')}>
       <View
         style={styles.content}
-        importantForAccessibility={paused ? 'no-hide-descendants' : 'auto'}
-        accessibilityElementsHidden={paused}
+        importantForAccessibility={contentHidden ? 'no-hide-descendants' : 'auto'}
+        accessibilityElementsHidden={contentHidden}
         accessible={false}>
         {view === 'intro' ? (
           // Campaign 035 keeps the shared neutral hero so the global Start

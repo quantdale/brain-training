@@ -28,6 +28,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
+import { useLayoutTier } from "@/platform/layout";
 import { SectionHeader, StateCard } from "@/components/shell";
 import { formatRelativeDay, performanceBand } from "@/components/shell/format";
 import { formatDayLabel } from "@/analytics/format";
@@ -139,6 +140,7 @@ const celebratedResults = new Set<string>();
 export default function ResultsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const theme = useTheme();
+  const compactMetrics = useLayoutTier() === "compact";
   const { fontScale } = useWindowDimensions();
   // At the OS 2x text setting, the results hero legitimately grows with the
   // user's copy, but its original desktop-density rhythm pushed the primary
@@ -351,8 +353,8 @@ export default function ResultsScreen() {
           {/* Metrics as four equal columns in ONE row (kit StatBlock); each
               value keeps its metric identity colour. */}
           <Entrance index={1}>
-            <View style={styles.metricRow}>
-              <View style={styles.metric}>
+            <View style={[styles.metricRow, compactMetrics && styles.metricRowCompact]}>
+              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
                 <StatBlock
                   label="Score"
                   value={rawScore !== null ? String(Math.round(rawScore)) : "—"}
@@ -361,7 +363,7 @@ export default function ResultsScreen() {
                   testID="results-metric-score"
                 />
               </View>
-              <View style={styles.metric}>
+              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
                 <StatBlock
                   label="Accuracy"
                   value={
@@ -374,7 +376,7 @@ export default function ResultsScreen() {
                   testID="results-metric-accuracy"
                 />
               </View>
-              <View style={styles.metric}>
+              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
                 <StatBlock
                   label="Time"
                   value={`${Math.round(session.durationMs / 1000)}s`}
@@ -383,7 +385,7 @@ export default function ResultsScreen() {
                   testID="results-metric-time"
                 />
               </View>
-              <View style={styles.metric}>
+              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
                 <StatBlock
                   label="Difficulty"
                   value={difficultyLevel}
@@ -637,8 +639,17 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     gap: Spacing.three,
   },
+  metricRowCompact: {
+    flexWrap: "wrap",
+    gap: Spacing.two,
+  },
   metric: {
     flex: 1,
+    minWidth: 0,
+  },
+  metricCompact: {
+    flex: 0,
+    width: "47%",
   },
   // Quiet grouped sections (outlined, not elevated) sit below the CTA.
   quietCard: {
