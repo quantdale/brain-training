@@ -1,6 +1,6 @@
 {
   "id": "048-startup-performance-reliability-soak",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "047-persistence-migration-backup-resilience",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -11,5 +11,8 @@
   "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 047 persistence checkpoint.",
   "baselineAuditCommit": "f8ef2fa",
   "fullHardening": false,
-  "reviewConsumption": "Consumes existing runtime performance markers and opt-in repository probes; optimize only a reproduced material regression."
+  "reviewConsumption": "Consumes existing runtime performance markers and opt-in repository probes; optimize only a reproduced material regression.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "All 8 tasks complete. The 5k/20k query/export/progress/quest/achievement probes passed with timestamped baselines; a three-cycle release force-stop/relaunch sample rendered Home in all cycles (Activity TotalTime 6,324 / 5,002 / 5,866 ms) with zero filtered app error markers; Games, Progress, Profile, and Memory detail rendered in the bounded route sample; memory stayed in a 246-247 MB PSS band. Debug Metro cold starts showed the known splash/black-frame warm-up boundary; no release defect was reproduced, so no speculative optimization was introduced. Evidence: docs/redesign/evidence/campaign048/.",
+  "verdict": "CAMPAIGN_048_COMPLETE"
 }

@@ -1,10 +1,35 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 053 full-system hardening applied and validated; no active campaign.
+**Last update:** 2026-09-19 — Campaign 054 terminal gap closure validated; no active campaign.
 **Canonical branch:** `main`
 **Active campaign:** none
-**Last campaign:** `053-full-system-hardening`
+**Last campaign:** `054-terminal-gap-closure`
 **Last campaign status:** VALIDATED
+
+## Campaign 054 — Terminal Gap Closure (VALIDATED / GAPS CLOSED)
+
+- **Authorization:** owner goal-mode directive to execute
+  `.agent/CAMPAIGN054_TERMINAL_GAP_CLOSURE_PROMPT.md` exhaustively.
+- **Starting SHA:** `9fe9b41` (synchronized remote `main`); product/source SHA
+  unchanged from `02a7ecb` — no executable product source changed.
+- **Result:** 44-gap census with 0 open repository-owned Critical/High/Medium
+  defects; validation counts reconciled to **564 suites / 6,726 tests**
+  (4 suites / 5 tests classified opt-in skips, 5 snapshots); release APK
+  SHA-256 `1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F`
+  proven byte-identical to a forced re-bundle of the current tree;
+  first-install startup (30 bounded launches incl. a true emulator cold boot)
+  and the system Files import path re-tested on that artifact with no
+  reproduction of the historical ANRs; external CI re-verified as
+  `ACCOUNT_OR_POLICY`; `js-yaml` GHSA-2883-xcg3-v3hh remediated in-range; all
+  five opt-in probes executed; OpenSpec 38/38 strict after reconciling the
+  stale 045-049 statuses; adversarial second pass recorded no hidden
+  repository-owned blocker.
+- **Evidence:** `docs/redesign/evidence/campaign054/` (terminal ledger:
+  `TERMINAL_GAP_LEDGER.md`).
+- **Boundaries:** human TalkBack/VoiceOver quality, physical/OEM Android, iOS
+  runtime, production/store signing, store-install path, human
+  system-provider usability, and independent human participation remain
+  NOT VALIDATED / `MANUAL_PLATFORM_PENDING` with executable handoffs.
 
 ## Campaign 053 — Full-System Hardening (VALIDATED / COMPLETE)
 
@@ -34,11 +59,15 @@
   - Registry-derived catalog persistence matrix (42/42 games, success /
     rejected-save / stale completion); explicit exemption mechanism requiring
     identity + reason + alternate evidence (currently empty).
-- **Repository gates (current):** full gated Jest 563 suites / 6724 tests
-  pass with 5 classified opt-in skips; typecheck and lint clean; repo-state,
-  dependency-audit (5 accepted), jest-signal self-test, offline, provenance,
+- **Repository gates (current):** full gated Jest 564 suites / 6,726 tests
+  pass with 4 suites / 5 tests classified opt-in skips; typecheck and lint
+  clean; repo-state,
+  dependency-audit (5 accepted, none expired), jest-signal self-test, offline, provenance,
   secrets, workflow, runtime-QA contract, and OpenSpec (37/37 strict) pass;
   Android debug and release assemblies succeed; Android JS export succeeds.
+  (The intermediate `e154f5b` count of 563 suites / 6,724 tests was captured
+  before the final `perf-probe-contract` suite existed; the terminal count is
+  reconciled in `docs/redesign/evidence/campaign054/VALIDATION_COUNT_RECONCILIATION.md`.)
 - **Terminal result:** `CAMPAIGN_053_COMPLETE`. Detailed packet under
   `docs/redesign/evidence/campaign053/`; the OpenSpec change metadata records
   the terminal verdict.

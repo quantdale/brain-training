@@ -1,3 +1,40 @@
+# Execution Prompt — Campaign 054: Terminal Gap Closure
+
+**Status:** VALIDATED — `CAMPAIGN_054_GAPS_CLOSED`
+**Change:** `054-terminal-gap-closure`
+**Start-SHA:** `9fe9b41`
+**Target-Branch:** `main`
+**Predecessor:** `053-full-system-hardening`
+
+## Authority
+
+Owner goal-mode directive: execute
+`.agent/CAMPAIGN054_TERMINAL_GAP_CLOSURE_PROMPT.md` exhaustively. Build the
+current gap census, close every honestly closable repository-owned gap,
+refresh external/dependency classifications, run the full repository matrix
+and final Android convergence on the exact release artifact, perform an
+adversarial second pass, and leave one terminal current-state ledger.
+
+## Guardrails
+
+No new product work, redesign, scoring/economy/schema change, workflow YAML
+edit to mask external CI, broad dependency upgrade, or fabricated
+human/platform/store evidence; historical records are preserved rather than
+rewritten for uniformity.
+
+## Terminal result
+
+All 44 census gaps carry a final disposition with zero open repository-owned
+Critical/High/Medium correctness gaps. Validation counts reconciled
+(564 suites / 6,726 tests); release APK provenance proven byte-identical to a
+forced rebuild; first-install and provider observations re-tested on the exact
+artifact with bounded repetition and no reproduction; external CI re-verified
+as `ACCOUNT_OR_POLICY`; `js-yaml` remediated in-range; all five opt-in probes
+executed; OpenSpec strict 38/38; adversarial review clean. Evidence:
+`docs/redesign/evidence/campaign054/`.
+
+---
+
 # Execution Prompt — Campaign 053: Full-System Hardening
 
 **Status:** VALIDATED — `CAMPAIGN_053_COMPLETE`

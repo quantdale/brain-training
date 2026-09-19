@@ -1,5 +1,38 @@
 # Known Issues / Blockers
 
+## Campaign 054 disposition — TERMINAL GAP CLOSURE (2026-09-19)
+
+The Campaign 054 terminal gap-closure campaign produced a 44-gap census
+(`docs/redesign/evidence/campaign054/GAP_CENSUS.md`) with **zero open
+repository-owned Critical/High/Medium correctness gaps**. Highlights:
+
+- Validation counts reconciled to **564 suites / 6,726 tests** (the
+  intermediate 563/6,724 figure was missing the `perf-probe-contract` suite).
+- Release APK SHA-256
+  `1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F` proven
+  byte-identical to a forced rebuild of the current tree (product source
+  unchanged from `02a7ecb`). The APK is debug-signed.
+- First-install/cold-start ANR: `NOT_REPRODUCIBLE_WITH_BOUNDED_EVIDENCE`
+  (30 bounded launches including a true emulator cold boot; 0 ANR dialogs and
+  0 fatal/ANR/SQLite markers).
+- System Files import path: `CLOSED_VERIFIED` technically (export → picker →
+  cancel → selection → valid preview 0 additions → idempotent merge →
+  malformed rejection, 0 provider ANR); human provider usability remains
+  `MANUAL_PLATFORM_PENDING`.
+- External CI: `EXTERNAL_BLOCKER_VERIFIED` / `ACCOUNT_OR_POLICY` (current runs
+  zero-step with the provider billing annotation; no workflow edited).
+- Dependencies: `js-yaml` GHSA-2883-xcg3-v3hh remediated in-range; remaining
+  advisories keep time-bounded accepted dispositions (see
+  `DEPENDENCY_AUDIT.md`).
+- All five opt-in probes executed; unexpected-console baseline and the 42-game
+  persistence exemption roster remain empty.
+- Human TalkBack/VoiceOver quality, physical/OEM Android, iOS runtime,
+  production/store signing, store-install path, human system-provider
+  usability, and independent human participation remain NOT VALIDATED /
+  `MANUAL_PLATFORM_PENDING` with executable handoffs.
+
+Terminal ledger: `docs/redesign/evidence/campaign054/TERMINAL_GAP_LEDGER.md`.
+
 ## Campaign 053 disposition — IMPLEMENTATION APPLIED (2026-09-19)
 
 The Campaign 053 whole-system hardening change was implemented under an
@@ -14,8 +47,12 @@ unexpected-console gate (empty baseline) is active; and a registry-derived
 persistence matrix covers all 42 games for success, rejected save, and stale
 completion with an explicit exemption mechanism.
 
-The full gated suite is 563 suites / 6,724 tests passing with 5 classified
-opt-in skips; typecheck, lint, every repository validator, and OpenSpec
+The full gated suite is 564 suites / 6,726 tests passing with 4 suites / 5
+tests classified opt-in skips (the intermediate 563 suites / 6,724 tests
+figure was captured before the final `perf-probe-contract` suite existed and
+was reconciled by Campaign 054:
+`docs/redesign/evidence/campaign054/VALIDATION_COUNT_RECONCILIATION.md`);
+typecheck, lint, every repository validator, and OpenSpec
 37/37 strict pass. The release APK containing these changes is installed on
 the dedicated `emulator-5554` and the startup/relaunch/route-boundary journey
 is recorded under `docs/redesign/evidence/campaign053/`.
@@ -33,9 +70,13 @@ violations, 42/42 route arrivals, invalid-route recovery, and exact-final-APK
 ARTEMIS smoke. Source registry/lifecycle coverage and stable semantic
 contracts remain green.
 
-The local release capture also recorded a transient Android System UI
-“isn't responding” dialog on the first screenshot. Emulator-local hierarchy
-dismissal led to clear subsequent app frames, and the narrowed post-capture
+The local release capture also recorded a transient Android System UI dialog
+on the first screenshot. The Campaign 051 evidence records exactly a
+“transient Android System UI dialog” (`VISUAL_QA_AND_CRITIQUE.md`,
+`EXTERNAL_BOUNDARIES.md`); it does not identify an “isn't responding” ANR —
+that wording belongs to the Campaign 050 observation, which Campaign 054
+re-tested on the exact final APK. Emulator-local hierarchy
+simplified dismissal led to clear subsequent app frames, and the narrowed post-capture
 app log scan found no fatal, app-ANR, OOM, or SIGSEGV markers. Keep this as a
 bounded first-capture observation rather than a clean first-launch claim.
 
@@ -89,8 +130,10 @@ disposition and raw-artifact paths are under
 
 Remaining boundaries are not silently closed:
 
-- GitHub Actions remains `INDETERMINATE_EXTERNAL_PRE_STEP`; the four latest
-  workflows failed before their first step and produced no repository logs.
+- GitHub Actions at the time was `INDETERMINATE_EXTERNAL_PRE_STEP`; that
+  classification was SUPERSEDED by Campaign 044's provider-annotation
+  diagnosis, `ACCOUNT_OR_POLICY` (the four latest workflows failed before
+  their first step and produced no repository logs).
 - At the time of Campaign 042 this was dependency maintenance debt; Campaign
   045 resolved the five-package Expo SDK57 patch drift and recorded the fresh
   21/21 result.
@@ -99,51 +142,48 @@ Remaining boundaries are not silently closed:
 - Ordinary non-actionable card-copy edge clipping remains documented; no
   actionable control was clipped in the final audited matrices.
 
-## Campaign 041 current audit findings — CONDITIONAL (2026-09-18)
+## Campaign 041 findings — HISTORICAL / SUPERSEDED (2026-09-18; reconciled 2026-09-19)
 
-Campaign 041 re-proved the current Android/repository core but found bounded
-items that prevent unconditional release closure:
+Campaign 041 was an audit overlay whose `CAMPAIGN_041_CONDITIONAL` label was
+correct at the time. Every technical item it left open was subsequently closed
+by a later campaign; the items below are **historical, not current**. External
+and manual boundaries are tracked separately in this file.
 
-- **Medium, unreduced runtime observation:** one debug matrix run reached
-  `Couldn’t load today’s workout`; logcat showed a
-  `NativeDatabase.prepareAsync`/`NullPointerException` in the workout-load
-  path after bootstrap. Cold relaunch recovered it and an exact replay was
-  clean, so no root cause or safe repair is claimed. Reproduce/minimize before
-  changing the database/workout seam.
-- **Low/Medium layout risk:** compact and font-scale-2 captures showed a Home
-  row with approximately 27dp and 19dp visible height respectively. This is a
-  current large-text/compact-viewport risk requiring a bounded layout decision,
-  not a reason to disable accessibility checks.
-- **Validation tooling:** the light debug a11y run saw a 20dp LogBox close
-  control on every light surface; the final reset replay had no LogBox. Release
-  XML capture was blocked by an already-registered UiAutomation service. A
-  later clean release launch left a resumed activity with a uniform dark
-  surface and a zero-byte follow-up screencap while ADB remained connected;
-  logcat had no app fatal. This is retained as a dedicated-AVD rendering
-  evidence gap, not silently counted as clean or promoted to a product defect.
-- **Dependency/release debt:** raw `npm audit --omit=dev` exits with 15
-  moderate and 5 high findings, while the repository policy validator passes
-  by classifying accepted/toolchain families. Resolve ownership before a broad
-  dependency upgrade. The local release APK is not production-signed.
-- **External CI:** all four current GitHub runs fail before any step with no
-  failed log; classification is `INDETERMINATE_EXTERNAL_PRE_STEP`. Do not edit
-  workflows to hide the result.
-- **Catalog lifecycle gap:** all 42 current game IDs reached detail and first
-  interactive state, but the retained result sweep is 39/42. Equation Builder,
-  Sequence Memory, and Coordinate Turn reached a board without reaching a
-  result. A clean rerun was blocked by the dedicated AVD’s repeated
-  UiAutomation registration and debug Metro/redbox instability. Do not report
-  this as 42/42 full lifecycle until result/persistence is re-proven.
-- **Native state-matrix gap:** the 22 light/dark captures are 11 routes × 2
-  themes, not every required search/filter/Favorites/no-results,
-  active/pause/final, settings, invalid-route, loading/error, and
-  empty/populated branch. Keep these states explicitly partial/not validated.
+- **SQLite `NativeDatabase.prepareAsync` NPE (was Medium):** SUPERSEDED —
+  reproduced, isolated, and repaired in Campaign 042 (per-native-handle
+  serialization, `useNewConnection: true`, coalesced initialization) with
+  focused tests and release relaunch revalidation. Source still carries the
+  repair (`apps/mobile/src/db/adapters/expo.ts`). Evidence:
+  `docs/redesign/evidence/campaign042/SQLITE_STARTUP_NPE_ISOLATION.md`.
+- **Compact/font-scale clipping risk (Home row ~27dp/19dp visible):**
+  SUPERSEDED — the actionable large-text defect (Results CTA) was repaired in
+  Campaign 042; the residual was classified as non-actionable card-copy debt;
+  Campaign 051 rebuilt the Home surface and compact/font-scale matrices then
+  passed with zero measured violations.
+- **Release XML/a11y capture blocked by UiAutomation registration:**
+  SUPERSEDED — Campaign 042 obtained release UIAutomator hierarchy and a11y
+  captures (22 surfaces, 0 violations); Campaigns 043/049/051 added release
+  PNG+XML matrices.
+- **Catalog lifecycle 39/42:** SUPERSEDED — Campaign 042 closed the three named
+  games and Campaign 046 re-proved detail/start/first-interactive/result/
+  persistence/return for all 42 registry ids (44 sessions across 42 ids,
+  integrity `ok`).
+- **Dependency/release debt:** PARTIALLY SUPERSEDED — Campaign 045 resolved
+  the Expo patch drift; Campaign 054 applied the in-range js-yaml
+  remediation. The local APK remains debug-signed and store signing remains a
+  manual/platform boundary (see Campaign 045 disposition above).
+- **External CI:** SUPERSEDED classification — Campaign 044 established
+  `ACCOUNT_OR_POLICY` from provider check-run annotations; Campaign 054
+  re-verified the current runs under the same classification
+  (`docs/redesign/evidence/campaign054/EXTERNAL_CI_FINAL_CLASSIFICATION.md`).
+- **Native state-matrix scope:** the 22 captures were 11 routes x 2 themes;
+  later campaigns added invalid-route, storage-failure recovery, settings,
+  journey, and responsive states (042/049/050/051/053 and the Campaign 054
+  final convergence). Enumerated branch-level exhaustive coverage is not
+  claimed beyond the recorded matrices.
 
-Evidence and the mandatory second pass are under
-`docs/redesign/evidence/campaign041/`. No Campaign 041 product source repair
-was made. The next safe action is to minimize the SQLite startup observation,
-clear the UiAutomation collision, and repeat the release/a11y boundary before
-any release-certification label is strengthened.
+Historical packet and its mandatory second pass: `docs/redesign/evidence/campaign041/`.
+Campaign 041 made no product source repair.
 
 ## Current status — Campaign 040 VALIDATED / CONDITIONAL
 

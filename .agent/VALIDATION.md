@@ -5,6 +5,59 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 054 terminal gap closure — 2026-09-19 (VALIDATED / GAPS CLOSED)
+
+- Scope: **PASS** — the owner-directed terminal gap-closure campaign executed
+  `CAMPAIGN054_TERMINAL_GAP_CLOSURE_PROMPT.md`: full gap census, validation
+  count reconciliation, exact-final artifact provenance, startup/provider
+  re-tests, external CI refresh, dependency remediation, skips/probe audit,
+  governance reconciliation, full matrix, final Android convergence, and an
+  adversarial second pass. Verdict `CAMPAIGN_054_GAPS_CLOSED`.
+- Start SHA `9fe9b41`; product/source SHA unchanged from `02a7ecb` (no
+  executable source changed); final governance SHA recorded in `STATE.md`.
+- Validation counts: **564 suites / 6,726 tests passed** (4 suites / 5 tests
+  classified opt-in skips, 5 snapshots, 0 unexpected console output) —
+  authoritative run at `9fe9b41`; the intermediate 563/6,724 figure was
+  root-caused to the then-missing `perf-probe-contract` suite and reconciled
+  across all documents (`VALIDATION_COUNT_RECONCILIATION.md`).
+- Artifact: release APK SHA-256
+  `1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F`
+  (109,586,373 bytes), rebuilt with a forced Metro re-bundle and proven
+  byte-identical to the Campaign 053 artifact; embedded bundle hash matches.
+  The APK is debug-signed (store signing remains manual/platform pending).
+- Startup: **NOT REPRODUCED (bounded)** — 30 assessed launches across fresh
+  install, clear-data, 10+4 cold relaunches, warm launch, offline launch,
+  reinstall-over, and a true emulator cold boot (`-no-snapshot` process
+  restart): every launch reached Home with 0 ANR dialogs and 0 filtered
+  fatal/ANR/SQLite markers (`FIRST_INSTALL_STARTUP_CLOSURE.md`).
+- Runtime: **PASS for the exercised scope** — fresh install first launch,
+  Games (suggested-next surface), Game Detail, deterministic tutorial
+  completion, a real time-boxed Sequence Memory session to `Time's up!`
+  results with XP and no persist error, force-stop/relaunch persistence,
+  offline launch, invalid/oversized/malformed route recovery, and the storage
+  fault path (Storage Unavailable + Retry with withheld shell, then restored
+  Home) all passed with zero filtered app fatal/ANR/SQLite markers.
+- Provider: **PASS** — export wrote a durable backup; the system DocumentsUI
+  picker opened, cancelled back to the app, listed Downloads, selected the
+  disposable backup, previewed `Valid (0 additions)`, applied an idempotent
+  merge, and rejected a malformed file (`Not valid JSON` / import rejected)
+  with zero ANR/dialog evidence across all cycles.
+- External CI: **EXTERNAL_BLOCKER_VERIFIED / ACCOUNT_OR_POLICY** — the four
+  latest runs at `9fe9b41` (IDs 35444630023/100/078/111) all failed before
+  steps with zero-step jobs, blank runners, and the provider billing
+  annotation; last success 2026-09-05.
+- Dependencies: `js-yaml` GHSA-2883-xcg3-v3hh remediated via in-range patch
+  lockfile update; audit 19 findings (15 moderate / 4 high) with 4 accepted
+  dispositions; dependency policy PASS.
+- Skipped/opt-in probes: all five executed; unexpected-console baseline and
+  42-game persistence exemption roster remain empty.
+- OpenSpec: **PASS** — `validate --all --strict` 38/38 after status/count
+  reconciliation and the new `054-terminal-gap-closure` packet.
+- Boundaries: **NOT VALIDATED / EXTERNAL** — human TalkBack/VoiceOver quality,
+  physical/OEM Android, iOS runtime, production/store signing, store-install
+  path, human system-provider usability, and independent human participant.
+- Evidence: `docs/redesign/evidence/campaign054/`.
+
 ### Campaign 053 full-system hardening implementation — 2026-09-19 (IMPLEMENTATION APPLIED; CONVERGING)
 
 - Scope: **PASS for implementation** — the pending OpenSpec change
@@ -41,12 +94,16 @@ unavailable checks into PASS.
   games) exercises success, rejected-save, and stale-completion via the shared
   injection seams; durable-effect safety asserted; exemption mechanism with
   identity + reason + alternate evidence (currently no exemptions).
-- Repository gates: **PASS** — full gated Jest 563 suites / 6,724 tests with
-  5 classified opt-in skips and 0 unexpected console output; typecheck and lint
+- Repository gates: **PASS** — full gated Jest 564 suites / 6,726 tests with
+  4 suites / 5 tests classified opt-in skips and 0 unexpected console output;
+  typecheck and lint
   clean; repository-state, dependency-audit (5 accepted, none expired),
   jest-signal self-test, affected-map sync, offline, provenance, secrets,
   workflow-hygiene, and runtime-QA-contract validators pass; OpenSpec
-  `--changes --strict` 37/37.
+  `--changes --strict` 37/37. (The intermediate 563 suites / 6,724 tests figure
+  recorded during implementation predates the final `perf-probe-contract`
+  suite; Campaign 054 reconciled the terminal count in
+  `docs/redesign/evidence/campaign054/VALIDATION_COUNT_RECONCILIATION.md`.)
 - Android artifact: **PASS** — debug and release assemblies succeed; the
   release APK bundles the implementation (debug builds serve JS from Metro and
   are not used as change evidence). Artifact identity is recorded in the

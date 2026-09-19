@@ -1,6 +1,6 @@
 {
   "id": "047-persistence-migration-backup-resilience",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "046-full-catalog-repeatability-soak",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -11,5 +11,8 @@
   "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 046 catalog checkpoint.",
   "baselineAuditCommit": "af1baaa",
   "fullHardening": false,
-  "reviewConsumption": "Consumes the current SQLite v12, migration, portability, session, workout, and data-management contracts without changing product behavior unless a current data-loss or identity defect is reproduced."
+  "reviewConsumption": "Consumes the current SQLite v12, migration, portability, session, workout, and data-management contracts without changing product behavior unless a current data-loss or identity defect is reproduced.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "All 8 tasks complete. Fresh/v12 initialization, historical migration, repeated relaunch, concurrent-looking writes, export/import, duplicate replay, corrupt input, and session/workout/settings/profile/reward identity checks passed; focused persistence/portability run 28 suites / 312 tests (1 skipped). Device export and saved-backup load succeeded; merge preview was valid with 0 additions and replace preview was valid but intentionally not applied to the retained catalog database; disposable fixtures covered applied merge/replace and mid-import rollback. Release force-stop/relaunch and filtered app logcat were clean. Evidence: docs/redesign/evidence/campaign047/.",
+  "verdict": "CAMPAIGN_047_COMPLETE"
 }

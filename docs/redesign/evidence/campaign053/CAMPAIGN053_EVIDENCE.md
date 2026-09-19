@@ -132,6 +132,15 @@ result: integrity `ok`, one profile row, two memory sessions persisted
 error UI in either completion. The release APK was reinstalled and verified
 Home afterward, which is the final device state.
 
+## Terminal validation counts
+
+The terminal gated suite at campaign close is **564 suites / 6,726 tests**
+passing (4 suites / 5 tests classified opt-in skips, 5 snapshots, 0
+unexpected console output). An intermediate implementation figure of 563
+suites / 6,724 tests was captured before the final `perf-probe-contract` suite
+existed; the full reconciliation is in
+`docs/redesign/evidence/campaign054/VALIDATION_COUNT_RECONCILIATION.md`.
+
 ## Boundaries (task 5.4)
 
 Recorded as NOT VALIDATED / external, never inferred:

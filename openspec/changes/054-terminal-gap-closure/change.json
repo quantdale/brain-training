@@ -1,0 +1,18 @@
+{
+  "id": "054-terminal-gap-closure",
+  "status": "VALIDATED",
+  "predecessor": "053-full-system-hardening",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["terminal-gap-closure"],
+  "activationRule": "Owner goal-mode directive to execute .agent/CAMPAIGN054_TERMINAL_GAP_CLOSURE_PROMPT.md exhaustively.",
+  "baselineAuditCommit": "9fe9b41ec7a27f3097a3b5d319bcf73c5214dd86",
+  "fullHardening": false,
+  "reviewConsumption": "Consumes the terminal Campaign 053 state: its validation-count mismatch, stale historical known-issue wording, intermediate-SHA runtime evidence, unclosed first-install/provider observations, external CI and dependency dispositions, and the skips/allowlists inventory. No new product work.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "All 15 groups complete. 44-gap census with final dispositions and zero open repository-owned Critical/High/Medium correctness gaps. Validation counts reconciled from the authoritative full run: 564 suites / 6,726 tests passed (4 suites / 5 tests classified opt-in skips, 5 snapshots, 0 unexpected console output); the intermediate 563/6,724 figure was root-caused to the then-missing perf-probe-contract suite. Release APK SHA-256 1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F (109,586,373 bytes, debug-signed) proven byte-identical to a forced Metro re-bundle at the current tree and exercised on emulator-5554: 30 bounded startup launches including a true cold boot with no ANR reproduction; full system Files import path (export, picker, cancel, selection, valid preview 0 additions, idempotent merge, malformed rejection) with no provider ANR; route boundaries and storage-fault recovery passed; SQLite integrity ok with no duplicate sessions/ledger operations. External CI re-verified ACCOUNT_OR_POLICY (four runs at 9fe9b41 zero-step with provider billing annotation). js-yaml GHSA-2883-xcg3-v3hh remediated in-range; 19 audit findings (15 moderate / 4 high) covered by 4 accepted dispositions. All five opt-in probes executed; unexpected-console baseline and catalog exemption roster empty. OpenSpec --all --strict 38/38 after reconciling the stale 045-049 statuses and this packet. Human/platform/store/CI boundaries remain NOT VALIDATED / MANUAL_PLATFORM_PENDING.",
+  "verdict": "CAMPAIGN_054_GAPS_CLOSED"
+}

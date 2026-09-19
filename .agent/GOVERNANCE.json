@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "canonicalBranch": "main",
   "activeCampaign": null,
-  "lastCampaign": "053-full-system-hardening",
+  "lastCampaign": "054-terminal-gap-closure",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

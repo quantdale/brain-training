@@ -1,6 +1,6 @@
 {
   "id": "049-accessibility-responsive-state-matrix",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "048-startup-performance-reliability-soak",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -11,5 +11,8 @@
   "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the Campaign 048 performance and reliability checkpoint.",
   "baselineAuditCommit": "978adc5",
   "fullHardening": false,
-  "reviewConsumption": "Consumes bounded release responsive/accessibility captures and state-matrix evidence; repair only reproduced user-visible defects and rerun the affected matrix."
+  "reviewConsumption": "Consumes bounded release responsive/accessibility captures and state-matrix evidence; repair only reproduced user-visible defects and rerun the affected matrix.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "All 8 tasks complete. The post-fix compact and font-scale-2 matrices passed 24/24 route-verified, nonblank captures in both themes with zero measured undersized or unlabelled interactive nodes. The native-tab label-density defect at system font scale 2 was reproduced and repaired with a fixed-chrome-only size cap, then re-captured successfully; clipped rows remained explicitly classified as scroll-under-tab tooling evidence. Evidence: docs/redesign/evidence/campaign049/.",
+  "verdict": "CAMPAIGN_049_COMPLETE"
 }

@@ -1,6 +1,6 @@
 {
   "id": "045-expo-sdk57-patch-alignment",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "044-external-ci-workflow-diagnosis",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -11,5 +11,8 @@
   "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after the external CI diagnosis.",
   "baselineAuditCommit": "59bc801bbaa047834f78819370aa7a805acb1783",
   "fullHardening": false,
-  "reviewConsumption": "Consumes the current Expo Doctor patch-drift finding and limits maintenance to the smallest supported SDK57 package set."
+  "reviewConsumption": "Consumes the current Expo Doctor patch-drift finding and limits maintenance to the smallest supported SDK57 package set.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "All 5 tasks complete. The supported five-package Expo SDK57 patch alignment (expo, expo-asset, expo-constants, expo-router, expo-sharing) was applied via `npx expo install`; Expo Doctor is 21/21. Typecheck, lint, full Jest, web export, offline/runtime-QA/repository validators, and Android debug/release builds passed; release launch and 12 light/dark route captures with zero automated a11y violations passed. The local release APK is debug-signed and not a store artifact. External CI remained account/policy-blocked. Evidence: docs/redesign/evidence/campaign045/.",
+  "verdict": "CAMPAIGN_045_COMPLETE"
 }

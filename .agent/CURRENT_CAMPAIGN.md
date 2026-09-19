@@ -1,3 +1,44 @@
+# Campaign 054 — Terminal Gap Closure
+
+**Status:** VALIDATED — `CAMPAIGN_054_GAPS_CLOSED`
+**Campaign id:** `054-terminal-gap-closure`
+**Predecessor:** `053-full-system-hardening` (validated)
+**Mode:** day
+**Start SHA:** `9fe9b41`
+**Product/source SHA:** `02a7ecb` (unchanged through this campaign)
+**Authorization:** owner goal-mode directive to execute
+`.agent/CAMPAIGN054_TERMINAL_GAP_CLOSURE_PROMPT.md`.
+
+## Mission
+
+Close every honestly closable repository-owned gap — validation counts, stale
+historical issues, exact-artifact provenance, first-install/provider runtime
+observations, external CI and dependency classifications, skips/allowlists,
+and governance consistency — then run the full matrix, final Android
+convergence, and an adversarial second pass before a terminal ledger.
+
+## Terminal result
+
+A 44-gap census with zero open repository-owned Critical/High/Medium
+correctness gaps. The validation-count inconsistency is reconciled at
+564 suites / 6,726 tests; the release APK (SHA-256
+`1B6EBC20498785F9498A769F8F57968D9FB18C63DBBB19528F3E4954B0FB985F`) is
+proven byte-identical to a forced rebuild of the current tree; first-install
+startup and the system Files import path were re-tested on that exact artifact
+with bounded repetition and no reproduction; external CI is re-verified as an
+account/policy external blocker; one safe in-range dependency remediation was
+applied; all five opt-in probes were executed; and governance/OpenSpec are
+reconciled (OpenSpec strict 38/38). Human/platform/store boundaries remain
+`MANUAL_PLATFORM_PENDING` with executable handoffs.
+
+## Evidence
+
+`docs/redesign/evidence/campaign054/` — including `GAP_CENSUS.md`,
+`TERMINAL_GAP_LEDGER.md`, `ADVERSARIAL_GAP_REVIEW.md`, runtime closure
+packets, and the final repository matrix.
+
+---
+
 # Campaign 053 — Full-System Hardening
 
 **Status:** VALIDATED — `CAMPAIGN_053_COMPLETE`
@@ -29,7 +70,7 @@ rejected-save, and stale completion with an explicit exemption mechanism.
 
 ## Evidence
 
-- Repository gates: full gated Jest 563+ suites / 6,724+ tests pass,
+- Repository gates: full gated Jest 564+ suites / 6,726+ tests pass,
 typecheck and lint clean, every repository validator passes, OpenSpec
 `--changes --strict` 37/37.
 - Android: debug and release assemblies succeed; release artifact SHA-256

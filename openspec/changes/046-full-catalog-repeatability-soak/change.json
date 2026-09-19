@@ -1,6 +1,6 @@
 {
   "id": "046-full-catalog-repeatability-soak",
-  "status": "ACTIVE",
+  "status": "VALIDATED",
   "predecessor": "045-expo-sdk57-patch-alignment",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -11,5 +11,8 @@
   "activationRule": "Continue the owner-supplied Campaign 043-050 overnight contract after Campaign 045 local validation.",
   "baselineAuditCommit": "d6864a9023e501506ada57b7e85aeca827a5040a",
   "fullHardening": false,
-  "reviewConsumption": "Consumes the 42-game registry, lifecycle, QA-hook, and persistence contracts without treating deterministic completion as mechanic correctness."
+  "reviewConsumption": "Consumes the 42-game registry, lifecycle, QA-hook, and persistence contracts without treating deterministic completion as mechanic correctness.",
+  "validatedAt": "2026-09-19",
+  "validationNote": "All 7 tasks complete. All 42 registry game ids reached detail, start, first-interactive, terminal result, persistence, and return navigation; the final device database held 44 sessions across all 42 game ids with schema v12, integrity `ok`, zero foreign-key violations, and empty duplicate/orphan/version-mismatch audits. Real mechanic canaries covered all eight domains and deterministic QA completion stayed a separate evidence class. Focused persistence run: 28 suites / 312 tests (1 skipped). Evidence: docs/redesign/evidence/campaign046/.",
+  "verdict": "CAMPAIGN_046_COMPLETE"
 }

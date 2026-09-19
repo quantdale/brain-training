@@ -22,12 +22,6 @@
       "rationale": "v3/v5/v6 buffer-bounds advisory for uuid < 11.1.1 reached only through xcode -> @expo/config-plugins -> Expo CLI/prebuild/config toolchain. The vulnerable call pattern (explicit buf argument) is not exercised by first-party code or the toolchain; not runtime-bundled."
     },
     {
-      "package": "js-yaml",
-      "advisory": "GHSA-2883-xcg3-v3hh",
-      "classification": "build-dev-toolchain",
-      "rationale": "maxTotalMergeKeys CPU advisory on Node-side YAML parsing only (@expo/xcpretty xcodebuild log formatting, eslint config, istanbul coverage on dev/CI machines). Not imported by the app bundle. Non-breaking fix (4.3.2) is available and should be picked up by the next planned lockfile/Expo refresh; accepted here without dependency churn."
-    },
-    {
       "package": "decode-uri-component",
       "advisory": "GHSA-vcc3-ghjq-m6fr",
       "classification": "runtime-accepted-debt",
