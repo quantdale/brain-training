@@ -65,6 +65,8 @@ const RULES = [
       'apps/mobile/src/app/**',
       'apps/mobile/src/components/app-tabs*.tsx',
       'apps/mobile/src/components/game-host/**',
+      'apps/mobile/src/bootstrap/**',
+      'apps/mobile/src/routing/**',
     ],
     checks: [
       'cd apps/mobile && npm run typecheck',
