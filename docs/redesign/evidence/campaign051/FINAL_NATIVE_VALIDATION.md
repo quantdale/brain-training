@@ -16,6 +16,25 @@ Android/native scope
 - The final APK was installed after the compact Results and GameHost
   accessibility fixes and was launched Metro-free on the dedicated device.
 
+## Native before/after visual proof
+
+The source autopsy baseline was rebuilt as a release APK from the exact
+Campaign 051 start SHA `2a1a0c38be80eb6e65a9105e8d1c22999611a66e` in a detached
+worktree. The debug variant was excluded because it does not package the
+Metro-free JavaScript bundle.
+
+- Baseline release APK: 109,558,148 bytes,
+  SHA-256 `DFD4C2A21ADF6388A7B2A5CC5C527680A6B45B11596E69578E7CB1C9B424C629`.
+- Baseline captures: `D:\Temp\campaign051-before-home-release.png`,
+  `D:\Temp\campaign051-before-games-release.png`, and
+  `D:\Temp\campaign051-before-game-detail-release.png` plus UIAutomator XML.
+- Restored final captures: `D:\Temp\campaign051-after-home-release-restored.png`,
+  `D:\Temp\campaign051-after-games-release-restored.png`, and
+  `D:\Temp\campaign051-after-game-detail-release-restored.png` plus XML.
+- The final APK was reinstalled after the comparison and a fresh Home launch
+  produced a nonblank frame with no filtered `ReactNativeJS:E` or
+  `AndroidRuntime:E` entries in the retained sample.
+
 The first native completion lane used the same dedicated AVD. Repeated
 force-stop route probing later left Android framework services unavailable;
 only the disposable `braintraining-ui35` AVD was recovered (clean boot with

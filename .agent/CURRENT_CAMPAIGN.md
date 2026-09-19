@@ -24,12 +24,15 @@ remain protected.
 
 ## Completed scope
 
-The fresh research packet, source autopsy, three-direction exploration,
-Signal Arcade reference lock, shared token/shape rebuild, eight-domain
-code-native game identity system, route convergence, critique loops, release
-builds, native captures, and evidence packet are under
+The fresh research packet (five style searches, full style retrievals, required
+surface searches, and retrieved flows), source autopsy, three-direction
+exploration, Signal Arcade reference lock, shared token/shape rebuild,
+eight-domain code-native game identity system, route convergence, critique
+loops, release builds, native captures, and evidence packet are under
 `docs/redesign/evidence/campaign051/`. Protected SDK, scoring, persistence,
-offline, routing, and stable accessibility contracts were preserved.
+offline, routing, and stable accessibility contracts were preserved. The
+starting-SHA release was also installed beside the restored final release on
+the dedicated emulator for direct Home/Games/Detail before-and-after proof.
 
 ## Exit and progression
 

@@ -21,6 +21,35 @@ following real-pixel captures:
 The first `home-release.png` frame contained a transient Android System UI
 dialog and is retained as boundary evidence, not as product visual proof.
 
+## Same-device before/after proof
+
+The earlier neutral-card release was rebuilt from the exact starting SHA
+`2a1a0c38be80eb6e65a9105e8d1c22999611a66e` as a Metro-free release APK and
+installed on the same dedicated `emulator-5554` used for the final audit.
+The debug baseline was excluded because it does not package the JavaScript
+bundle.
+
+- Baseline release APK: 109,558,148 bytes,
+  SHA-256 `DFD4C2A21ADF6388A7B2A5CC5C527680A6B45B11596E69578E7CB1C9B424C629`.
+- Final release APK restored after comparison: 109,576,793 bytes,
+  SHA-256 `C91389622D7D90B58065550FC1F28A30D0086103D99A5956FDEA501667806A4C`.
+- Baseline captures: `D:\Temp\campaign051-before-home-release.png`,
+  `D:\Temp\campaign051-before-games-release.png`,
+  `D:\Temp\campaign051-before-game-detail-release.png`.
+- Final captures: `D:\Temp\campaign051-after-home-release-restored.png`,
+  `D:\Temp\campaign051-after-games-release-restored.png`,
+  `D:\Temp\campaign051-after-game-detail-release-restored.png`.
+
+PNG SHA-256 records are retained for the exact pairs: baseline Home
+`28B55864CCE7C2A4F18A1FF136168AD30B375E32D45245D4E6498836AE035693`, Games
+`1A452D7F91DE4E36BD05FAD1C7871D22103D72089086A0C2298A48FA27E30F94`, Detail
+`1FB190C1C3C7FCA19E19AB3840B4B63E93962EFB900EB3AA91F5ACE934018F61`; final
+Home `B3866BFF11B5B05DFAD46530BDA3416350171B26D94658587CD2236A25F9A3F0`,
+Games `6B7366213A3DF63256D3F65405C8D582334F334D7FE7D6DDF790C359AB8228AE`,
+Detail `522D40DEA87E43B08D09A1E34D5040EC94C7BAD66C0B6A49A090807FAD2B57A5`.
+The pairs show the change from neutral white card repetition to authored world
+art, domain poster identity, and a game-board-led detail hero.
+
 ## Critique one — still boring?
 
 The pre-reboot source had a repeated rounded-card/dashboard grammar, neutral

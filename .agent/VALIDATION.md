@@ -24,6 +24,12 @@ unavailable checks into PASS.
   size is 109,576,793 bytes. Default, compact, and font-scale-2 light/dark
   matrices produced 66/66 route-verified, nonblank captures. The final
   generated catalog reached 42/42 routes; invalid-route recovery passed.
+- Native visual baseline: **PASS** — the exact start-SHA release APK was
+  rebuilt in a detached worktree (109,558,148 bytes,
+  `DFD4C2A21ADF6388A7B2A5CC5C527680A6B45B11596E69578E7CB1C9B424C629`),
+  installed on the same dedicated emulator, and compared across Home, Games,
+  and Game Detail before the final release was reinstalled. The debug
+  baseline was excluded because it does not package the Metro-free bundle.
 - Runtime: **PASS** — Pro trace
   `d347c773-7e39-491a-b8cc-d5f0b3e13c82` completed the four-leg Today's
   Workout with pause/resume, Next/Finish, saved completion, and UI-driven

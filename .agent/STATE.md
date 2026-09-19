@@ -17,6 +17,12 @@
 - **Result:** the locked Signal Arcade visual system, code-native eight-domain
   identity layer, and route convergence were implemented while SDK, scoring,
   persistence, offline, routing, and accessibility contracts remained green.
+- **Research/visual proof:** the final evidence packet records five fresh
+  Refero style searches, four full style retrievals, required product-surface
+  screen searches, four retrieved flows, three scored directions, and the
+  imagegen concept-board exploration. The starting-SHA release APK was
+  installed beside the restored final APK on `emulator-5554`; Home, Games, and
+  Game Detail before/after captures close the native baseline gap.
 - **Repository/native result:** full local gates, sequential debug/release
   builds, 66 current light/dark responsive captures, zero measured a11y
   violations, 42/42 route reachability, exact-final-APK ARTEMIS smoke, and a

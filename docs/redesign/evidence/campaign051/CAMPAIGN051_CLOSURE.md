@@ -24,6 +24,9 @@ limitations, not inferred as passes.
 ## Research and reference lock
 
 - Fresh Refero research is recorded in `REFERO_RESEARCH.md`.
+- The fresh pass used five distinct style searches, four full style retrievals,
+  ten product-surface screen searches, and four retrieved flows; the exact
+  queries, IDs, borrowed traits, and rejected traits are recorded there.
 - The source autopsy is recorded in `CURRENT_VISUAL_AUTOPSY.md`.
 - Three directions were scored in `VISUAL_DIRECTIONS.md`.
 - The final lock is `REFERENCE_LOCK_FINAL.md`.
@@ -49,6 +52,12 @@ limitations, not inferred as passes.
 
 ## Validation result
 
+- The native source-baseline comparison is now closed: the starting-SHA
+  release APK (`DFD4C2A21ADF6388A7B2A5CC5C527680A6B45B11596E69578E7CB1C9B424C629`)
+  and the restored final release (`C91389622D7D90B58065550FC1F28A30D0086103D99A5956FDEA501667806A4C`)
+  were installed on the same dedicated emulator and captured across Home,
+  Games, and Game Detail. The before/after PNG paths and hashes are in
+  `VISUAL_QA_AND_CRITIQUE.md` and `CURRENT_VISUAL_AUTOPSY.md`.
 - Full Jest: 559 suites passed / 4 skipped; 6,575 tests passed / 5 skipped;
   5 snapshots passed.
 - Typecheck, lint, Expo Doctor 21/21, web export, offline, secrets,

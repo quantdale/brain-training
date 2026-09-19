@@ -1,8 +1,9 @@
 # Campaign 051 — Current Visual Autopsy
 
 **Baseline SHA:** `2a1a0c38be80eb6e65a9105e8d1c22999611a66e`
-**Observed:** 2026-09-19, source audit plus target-only ADB probe
-**Native baseline:** `NOT VALIDATED` — see the runtime note below
+**Observed:** 2026-09-19, source audit plus dedicated release before/after ADB capture
+**Native baseline:** `VALIDATED` — the release artifact from the starting SHA was
+installed on the dedicated QA emulator and compared with the restored final release.
 
 ## What the current product actually says
 
@@ -65,17 +66,37 @@ The current shared primitives also reveal the safest leverage points:
 - `ThemedText`, `ScreenShell`, `NativeTabs`, and the existing domain families
   are protected accessibility/layout seams and should be evolved, not bypassed.
 
-## Native observation boundary
+## Native observation and before/after evidence
 
-ADB on the dedicated `emulator-5554` responded to `get-state`, shell property,
-and a screenshot probe. The screenshot was a black frame because the package
-was not in a launchable state. Package inspection showed
-`com.braintraining.app` installed but `com.braintraining.app/.MainActivity`
-disabled; `monkey` reported no activities and a direct start returned “Activity
-class … does not exist.” The shell could not re-enable the component due to
-Android package-manager security policy. The separate `emulator-5556` target
-was not touched. A rebuilt/installable artifact is required before Campaign
-051 can claim current native pixels, UI hierarchy, or device visual QA.
+The valid baseline was built as a release APK from the exact starting SHA
+`2a1a0c38be80eb6e65a9105e8d1c22999611a66e` in a disposable detached worktree.
+The debug variant was intentionally excluded because it does not package the
+Metro-free JavaScript bundle; the release build succeeded in 7m46s.
+
+- Baseline release APK: 109,558,148 bytes,
+  SHA-256 `DFD4C2A21ADF6388A7B2A5CC5C527680A6B45B11596E69578E7CB1C9B424C629`.
+- Final release APK restored after the comparison: 109,576,793 bytes,
+  SHA-256 `C91389622D7D90B58065550FC1F28A30D0086103D99A5956FDEA501667806A4C`.
+- Device: dedicated `braintraining-ui35` / `emulator-5554`, Android 15/API 35,
+  1080x2400; the separate `emulator-5556` target was not touched.
+- Baseline real-pixel captures: `D:\Temp\campaign051-before-home-release.png`,
+  `D:\Temp\campaign051-before-games-release.png`, and
+  `D:\Temp\campaign051-before-game-detail-release.png`, with matching
+  UIAutomator XML files beside them.
+- Final real-pixel captures after reinstall: `D:\Temp\campaign051-after-home-release-restored.png`,
+  `D:\Temp\campaign051-after-games-release-restored.png`, and
+  `D:\Temp\campaign051-after-game-detail-release-restored.png`, with matching
+  UIAutomator XML files beside them.
+
+The direct comparison is substantive: baseline Home is a neutral white card
+stack with no world-art anchor; final Home leads with the mint Focus Module
+stage, a recognizable Next in Sequence identity, and one tactile workout
+action. Baseline Games repeats white cards with small outlined marks; final
+Games uses authored poster worlds, domain color, recommendation framing, and a
+clear storefront hierarchy. Baseline Detail is a neutral white hero; final
+Detail opens with the game board as a large identity object before the mechanic,
+mastery, and Play action. The same emulator, route family, and Metro-free
+release boundary were used for both sides.
 
 ## Reboot thesis
 
