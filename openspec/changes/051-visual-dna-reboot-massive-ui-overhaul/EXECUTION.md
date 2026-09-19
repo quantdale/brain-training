@@ -1,8 +1,17 @@
 # Execution — Campaign 051 Visual DNA Reboot
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
 **Mode:** day
 **Start SHA:** `2a1a0c3`
+
+## Terminal result
+
+The Signal Arcade implementation checkpoint is
+`ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`. Repository gates, sequential
+Android builds, representative release captures, and the bounded ARTEMIS
+semantic trace passed. The current complete responsive/font-scale matrix and
+full 42-route native visual matrix were not rerun; human/platform/store/CI
+lanes remain explicit boundaries. No successor campaign is active.
 
 The orchestrator follows the owner-supplied Campaign 051 prompt and this
 packet. Work is serialized at shared hotspots; no parallel coder packets are

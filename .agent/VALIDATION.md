@@ -5,6 +5,45 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Campaign 051 Signal Arcade visual reboot — 2026-09-19 (VALIDATED / PARTIAL)
+
+- Scope: **PASS for the repository-owned visual reboot** — Signal Arcade
+  tokens, geometry, typography, code-native eight-domain identity worlds, and
+  Home/Games/Detail/GameHost/Results/Progress/Profile/Rewards/navigation
+  convergence were implemented at checkpoint
+  `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`. Protected Game SDK, scoring,
+  persistence, offline, routing, and stable accessibility seams were not
+  redesigned.
+- Repository: **PASS** — typecheck, lint, full Jest (559 suites passed / 4
+  skipped; 6,575 tests passed / 5 skipped; 5 snapshots), Expo Doctor 21/21,
+  web export, offline, secrets, workflows, runtime-QA contract, provenance,
+  task ownership, repo-state, OpenSpec 36/36, and both performance probes.
+- Native: **PASS for bounded release evidence** — sequential debug/release
+  builds passed; release APK SHA-256 is
+  `C4B05F30CED48400DE677A845ED547FF50245AD7442016E2166496528E26B9B0`.
+  Home, Games, Detail, GameHost, Progress, and Profile were captured on
+  `emulator-5554`. A narrow post-capture log scan found zero app fatal, ANR,
+  OOM, or SIGSEGV markers. A transient Android System UI dialog in the first
+  capture is retained as a boundary observation.
+- Runtime: **PASS for bounded ARTEMIS evidence** — device diagnosis passed
+  5/5 checks and Flash trace
+  `ceced6a6-a075-4f23-9f4d-a05ed4f944a5` reached Sequence Memory detail and
+  Play through semantic interaction. The earlier exploratory trace was
+  cancelled and is not counted as a pass.
+- Accessibility/responsive: **PASS for source contracts and exercised
+  surfaces; current full matrix NOT VALIDATED** — decorative world art is
+  hidden from accessibility, stable IDs remain present, and existing a11y/
+  reduced-motion contracts passed. Campaign 049's 12/12 compact and
+  font-scale-2 matrix is inherited evidence; Campaign 051 did not rerun it
+  after the visual changes.
+- Boundaries: **NOT VALIDATED / EXTERNAL** — complete fresh native capture of
+  all 42 routes, human TalkBack/VoiceOver, physical/OEM Android, iOS, store
+  signing, human system-provider usability, and GitHub runner execution.
+- Evidence: **PASS** — packet under
+  `docs/redesign/evidence/campaign051/`; generated concept boards are
+  evidence-only and no external trace or credential was copied into Git.
+- Terminal label: `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`.
+
 ### Campaign 050 integrated release-candidate certification — 2026-09-19 (VALIDATED / CONDITIONAL)
 
 - Scope: **PASS for the tested Android/repository boundary** — Campaign 050

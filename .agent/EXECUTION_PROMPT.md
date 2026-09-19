@@ -1,10 +1,23 @@
 # Execution Prompt — Campaign 051: Visual DNA Reboot & Massive UI Overhaul
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
 **Change:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Start-SHA:** `2a1a0c3`
 **Target-Branch:** `main`
 **Predecessor:** `050-integrated-release-candidate-certification`
+
+## Terminal result
+
+The Signal Arcade reboot is complete for the repository-owned and bounded
+Android scope. The implementation checkpoint is
+`ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`; repository gates, release builds,
+representative native captures, and the successful bounded ARTEMIS trace are
+recorded under `docs/redesign/evidence/campaign051/`.
+
+The verdict remains partial because Campaign 051 did not rerun the complete
+responsive/font-scale matrix or full 42-route native visual matrix, and human,
+physical/OEM, iOS, signing, system-provider, and external-CI lanes remain
+outside the local executable boundary. No successor is active.
 
 ## Authority
 

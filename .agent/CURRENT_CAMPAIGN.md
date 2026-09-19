@@ -1,10 +1,23 @@
 # Campaign 051 — Visual DNA Reboot & Massive UI Overhaul
 
-**Status:** ACTIVE
+**Status:** VALIDATED — `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`
 **Campaign id:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Predecessor:** `050-integrated-release-candidate-certification` (validated)
 **Mode:** day
 **Start SHA:** `2a1a0c3`
+
+## Terminal result
+
+Campaign 051 completed the Signal Arcade visual reboot through repository-owned
+implementation, critique, release-artifact capture, and bounded ARTEMIS
+runtime evidence. The implementation checkpoint is `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`.
+Repository gates, builds, source contracts, representative native surfaces,
+and one semantic runtime trace passed for the documented scope.
+
+The terminal label is partial because the current full compact/font-scale
+matrix and complete 42-route native visual matrix were not rerun after this
+visual change. Human/platform/store/CI boundaries remain external or manual.
+There is no active successor campaign.
 
 ## Mission
 
@@ -15,24 +28,19 @@ then shared tokens, game identity, and product surfaces converge on that lock.
 The underlying offline, scoring, persistence, routing, and Game SDK contracts
 remain protected.
 
-## Current progress
+## Completed scope
 
-The fresh research packet is complete. Refero styles, mobile screens, and
-progression flows were retrieved; three genuinely different visual directions
-were explored with image generation. The source autopsy found a stacked
-dashboard/card grammar, repeated neutral game cards, and facts-first result
-chrome. The dedicated Android ADB lane is responsive, but the installed
-package is disabled with no resolvable launch activity, so a current native
-baseline is NOT VALIDATED pending a rebuild/install.
+The fresh research packet, source autopsy, three-direction exploration,
+Signal Arcade reference lock, shared token/shape rebuild, eight-domain
+code-native game identity system, route convergence, critique loops, release
+builds, native captures, and evidence packet are under
+`docs/redesign/evidence/campaign051/`. Protected SDK, scoring, persistence,
+offline, routing, and stable accessibility contracts were preserved.
 
 ## Exit and progression
 
-Implement the locked Signal Arcade direction across Home, Games, Game Detail,
-GameHost/gameplay, Results, Progress, Profile, Rewards, and Data Management;
-preserve all stable test IDs and protected behavior; run both critique loops;
-execute the repository/native gates that are available; and write one of the
-truthful terminal labels `CAMPAIGN_051_VISUAL_REBOOT_COMPLETE`,
-`CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`, or `CAMPAIGN_051_BLOCKED`.
+The OpenSpec packet is terminally validated and no campaign is active. Future
+work requires a deliberate owner-supplied successor campaign.
 
 Evidence lives under `docs/redesign/evidence/campaign051/`. The OpenSpec
 execution packet is `openspec/changes/051-visual-dna-reboot-massive-ui-overhaul/`.

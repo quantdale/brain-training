@@ -1,5 +1,25 @@
 # Known Issues / Blockers
 
+## Campaign 051 disposition — VISUAL REBOOT PARTIAL (2026-09-19)
+
+The Signal Arcade visual reboot is validated for the repository-owned and
+bounded Android scope. The current full compact/font-scale matrix and fresh
+native visual capture of every 42-game route were not rerun after the shared
+visual changes; do not describe those evidence classes as current Campaign 051
+passes. Source registry/lifecycle coverage, stable semantic contracts, and the
+representative release surfaces remain green.
+
+The local release capture also recorded a transient Android System UI
+“isn't responding” dialog on the first screenshot. Emulator-local hierarchy
+dismissal led to clear subsequent app frames, and the narrowed post-capture
+app log scan found no fatal, app-ANR, OOM, or SIGSEGV markers. Keep this as a
+bounded first-capture observation rather than a clean first-launch claim.
+
+Human TalkBack/VoiceOver, physical/OEM Android, iOS, production/store
+signing, human system-provider usability, and external GitHub runner execution
+remain external or manual boundaries. No new Critical or High product issue
+was identified by this campaign.
+
 ## Campaign 050 disposition — RELEASE CONDITIONAL (2026-09-19)
 
 The integrated release-candidate packet is complete for the tested

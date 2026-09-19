@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": "051-visual-dna-reboot-massive-ui-overhaul",
-  "lastCampaign": "050-integrated-release-candidate-certification",
+  "activeCampaign": null,
+  "lastCampaign": "051-visual-dna-reboot-massive-ui-overhaul",
   "lastCampaignStatus": "VALIDATED",
   "hardening": {
     "automaticFullHardening": false,

@@ -1,28 +1,29 @@
 # Durable Project State
 
-**Last update:** 2026-09-19 — Campaign 051 activated after the Campaign 050
-closure; research/autopsy checkpoint recorded before implementation.
+**Last update:** 2026-09-19 — Campaign 051 terminal closure recorded after
+implementation, release validation, and evidence convergence.
 **Canonical branch:** `main`
-**Active campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
-**Last campaign:** `050-integrated-release-candidate-certification`
+**Active campaign:** none
+**Last campaign:** `051-visual-dna-reboot-massive-ui-overhaul`
 **Last campaign status:** VALIDATED
 
-## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (ACTIVE)
+## Campaign 051 — Visual DNA Reboot & Massive UI Overhaul (VALIDATED / PARTIAL)
 
+- **Terminal label:** `CAMPAIGN_051_VISUAL_REBOOT_PARTIAL`.
 - **Activation:** opened from the Campaign 050 checkpoint `2a1a0c3`.
-- **Mission:** replace the accumulated rounded-card/dashboard grammar with
-  the locked Signal Arcade visual system across product surfaces while
-  preserving the SDK, game, persistence, offline, and accessibility contracts.
-- **Research checkpoint:** fresh Refero style/screen/flow research, three
-  generated concept boards, source autopsy, three-direction scorecard, and
-  final reference lock are under `docs/redesign/evidence/campaign051/`.
-- **Native boundary:** target-only ADB is responsive, but the installed
-  `com.braintraining.app` package was disabled and had no resolvable launch
-  activity. Current native pixels are NOT VALIDATED until a rebuilt artifact
-  is installed on `emulator-5554`; `emulator-5556` was not touched.
-- **Next action:** implement the shared Signal Arcade tokens/identity system,
-  then converge Home, Games, Detail, GameHost, Results, Progress, Profile,
-  Rewards, and Data Management before the critique and validation waves.
+- **Implementation checkpoint:** `ab5cf7f5f4ceb51243ffd8030797dc3753b196ae`.
+- **Result:** the locked Signal Arcade visual system, code-native eight-domain
+  identity layer, and route convergence were implemented while SDK, scoring,
+  persistence, offline, routing, and accessibility contracts remained green.
+- **Repository/native result:** full local gates, sequential debug/release
+  builds, representative release captures, and one bounded ARTEMIS semantic
+  trace passed. The release APK installed and resolved `MainActivity`.
+- **Boundaries:** the current full compact/font-scale matrix and complete
+  42-route native visual matrix were not rerun. Human TalkBack/VoiceOver,
+  physical/OEM, iOS, store signing, system-provider usability, and external
+  CI remain explicitly unvalidated or external.
+- **Next action:** none; no successor campaign is active. A future owner must
+  deliberately open the next campaign.
 
 ## Campaign 050 — Integrated Release Candidate Certification (VALIDATED / CONDITIONAL)
 
