@@ -37,3 +37,52 @@ Committed: `screens/before/*.jpg`, `screens/after/*.jpg`,
 - The tutorial capture required resetting one persisted tutorial row on the
   device between runs (test state, not product data).
 - Compact and font-scale-2 matrices are in `ACCESSIBILITY_RESPONSIVE_QA.md`.
+
+---
+
+# Final-artifact certification section (2026-09-20, pixel-certification session)
+
+This is the first time the Campaign 055 before/after claims are verified against
+trustworthy **composited pixels of an exact final artifact** rather than
+hierarchy evidence. Certified artifact: release APK SHA-256
+`99D1D132FD21E4A49D46EF10997305D62949291B1771F755E7B010200C990C55`
+(109,595,521 bytes) from product checkpoint `34c9b2d`; six-way matrix, 66/66
+canonical + 42/42 interaction captures, full accessibility classification and
+the runtime matrix in `PIXEL_CERT_MATRIX.md`; contact sheets under
+`screens/final-cert/contact-*.jpg`; curated full-frame surfaces beside them.
+
+## Candid assessment against the Campaign 055 intent
+
+| Claim | Verdict on final pixels |
+| --- | --- |
+| Less dashboard grammar | **Holds.** Home is one artifact + one key + a hairline plan report; Progress leads with consistency/rating; Profile demotes records. No stacked KPI cards remain. |
+| One focal object per surface | **Holds.** Home artifact, Games featured stage, Detail world stage, one result artifact, Profile identity panel. |
+| Identity before metadata | **Holds.** Poster tiles lead with game identity art; detail leads with the world and verb before facts. |
+| Honest result bands | **Holds.** 0% sessions render “Keep training” with no celebration and a neutral, separate reward row; the route Result repeats the honest band from persisted data. |
+| Single score presentation | **Holds after repair.** The certification found and removed a duplicate unrounded `Score` row in ten games; the focal numeral is now the only score on every in-session result. |
+| Collectible Rewards | **Holds.** Code-native plates with owned/equipped/locked states; claim rows with visible keys in both themes. |
+| Credible Progress | **Holds.** Focal rating/consistency, sparse-data honesty, drill-down copy in player language. |
+| Authored dark mode | **Holds.** Ink canvas with re-authored world art and coral keys; dark clearly differs from a simple inversion. |
+| Gameplay prominence | **Holds after repair.** Mechanic-first board; the instrument strip wraps at large text so the Pause control stays reachable, and the mechanic stage dominates. |
+| Games desirability | **Holds.** Storefront composition with featured stage and identity-first 2-up posters; search and filter rail remain truthful and usable at every profile. |
+
+## What materially changed since the first-session after-images
+
+- The three defects repaired in this session (HUD pause clipping, duplicate
+  unrounded score row, clipped tutorial retry) are visible improvements over
+  the earlier after-images; before/after crops are committed as
+  `defect-hud-*.jpg` and `fixed-hud-*.jpg`.
+- The dark-mode and font-scale-2 evidence is now real pixels on every required
+  surface rather than hierarchy-only evidence.
+
+## Remaining visual debt (honest)
+
+- Game-owned short-board dead space in some gameplay stages (Class B,
+  mechanic-owned; unchanged, `LOW_ACCEPTED_DEBT`).
+- At font-scale-2, Game Detail's `Add to favorites` and the route-Result
+  primary action sit just below the first fold (scrollable containers;
+  `CLIPPED_BUT_REACHABLE`, `LOW_ACCEPTED_DEBT`).
+- The HUD wraps to a second instrument line at large text/compact widths; this
+  is the intended graceful behaviour rather than debt.
+- Human TalkBack/VoiceOver quality, physical-device and iOS rendering remain
+  outside this session's boundary.

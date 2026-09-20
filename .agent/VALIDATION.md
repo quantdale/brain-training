@@ -5,7 +5,52 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-### Campaign 055 Signal Arcade desirability pass — 2026-09-20 resumption (PARTIAL — pixel matrix blocked by host display failure)
+### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
+
+- Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt
+  fast-forwarded from `origin/main`). Recovered the host display path on the
+  dedicated `braintraining-ui35` AVD with the emulator's valid `-gpu host`
+  mode; the earlier failures came from the legacy `-gpu swiftshader_indirect`
+  value (invalid in emulator 37.1.11) and the `aosp_atd` fallback image
+  (cannot composite app frames). Full environment proof in
+  `docs/redesign/evidence/campaign055/PIXEL_CERT_ENVIRONMENT.md`.
+- Product-source checkpoint: **`34c9b2d`** (three minimal defect repairs after
+  the matrix exposed them: HUD pause clipping `f95c5dd`, duplicate unrounded
+  score row in ten games `53468e4`, clipped tutorial retry control `34c9b2d`).
+- **Authoritative final artifact:** release APK SHA-256
+  `99D1D132FD21E4A49D46EF10997305D62949291B1771F755E7B010200C990C55`
+  (109,595,521 bytes, `com.braintraining.app` v0.1.0, debug-signed local
+  release, Metro-independent). The earlier `A83729AE…`, `2208174A…` and
+  `B1B4D1D5…` artifacts were invalidated by real defect repairs.
+- Pixel matrix on the exact final artifact: **PASS** — 66/66 canonical
+  `ui-capture` surfaces plus 42/42 interaction surfaces across
+  default/compact/font-scale-2 × light/dark; all nonblank, route-verified,
+  dialog-free; 0 duplicate frames; correct profile/theme pixel deltas; 108/108
+  captures pass the deterministic PIL validity gate.
+- Accessibility on the final matrices: **PASS** — 0 unlabelled interactive
+  nodes, 0 decorative-art leaks (empirical scan), 0 unresolved
+  TRUE_UNDERSIZED_TARGET; 52 COMPLIANT_PARENT_OR_HITSLOP, 11
+  CLIPPED_BUT_REACHABLE, 4 MEASUREMENT_ARTIFACT.
+- Runtime matrix on the final artifact: **PASS** — clean install/first launch,
+  warm and offline launches, invalid/oversized/malformed route recovery, 8/8
+  domains at Game Detail, real tutorial/gameplay interaction, honest weak
+  Result, dark Games/Result, a full four-game workout ending in Finish workout
+  with Home “4/4 games saved”, relaunch retention, SQLite audit (integrity ok,
+  FK 0, schema v12, 0 duplicate session/ledger/rating ids, workout completed at
+  index 4), and 138,631 log lines with 0 fatal/ANR/OOM/SQLite/RedBox patterns.
+- Repository gates on the final checkpoint: **PASS** — full gated Jest **567
+  suites / 6,734 tests** (4 suites / 5 tests opt-in skips, 5 snapshots, 0
+  unexpected console output), typecheck, lint 0/0, Expo Doctor 21/21, OpenSpec
+  strict 39/39, repo-state, task ownership, affected-map sync, registry,
+  provenance, offline (983 files), secrets (2,545 files), workflows,
+  dependency audit (exit 0), runtime-QA contract, opt-in probes 5/5 (22 tests),
+  web export, Android debug build (3 m 21 s) and release build (4 m 34 s).
+- Verdict: **`CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`**. Evidence:
+  `PIXEL_CERT_MATRIX.md`, `PIXEL_CERT_ENVIRONMENT.md`, updated closure/native/
+  accessibility/before-after/critique/repository documents, curated images in
+  `screens/final-cert/`.
+
+### Campaign 055 Signal Arcade desirability pass — 2026-09-20 resumption (PARTIAL — pixel matrix blocked by host display failure; superseded by the terminal entry above)
 
 - Scope: **PARTIAL** — resumed from `90169bf7` (prompt commit `18b7851`,
   fast-forwarded). Closed the bounded Campaign 055 debt: result duplication

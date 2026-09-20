@@ -160,20 +160,25 @@ error/fatal lines, **0** RedBox/LogBox contamination. The only app-adjacent
 messages are informational (`artd` dexopt I/O notices, MediaSessionService
 state changes).
 
-## NOT VALIDATED — pixel matrix (host display/compositing blocker)
+## RESOLVED — pixel matrix (later session)
 
-The six-way visual matrix (default/compact/font-scale-2 × light/dark) was
-attempted on this exact artifact with the canonical `ui-capture` harness. The
-host's emulator display/compositing path produces no composited frames
-(`UpdateLayeredWindowIndirect failed … A device attached to the system is not
-functioning`; `dumpsys gfxinfo` = 0 frames) in every GPU mode tried, so every
-PNG is a uniform frame and the harness reports `BLANK`. The captures' XML
-hierarchies were still produced and used for the accessibility audit; the
-pixel-level visual matrix, before/after pixel comparison on the final artifact,
-and on-device frame-timing measurements remain **NOT VALIDATED**. Full attempt
-matrix and root cause: `RESUMPTION_ENVIRONMENT_RECOVERY.md`. This is an
-environment blocker, not a product defect: the guest runs, renders its view
-tree, persists, and answers every semantic check.
+The host display/compositing blocker was resolved in the later pixel-
+certification session (`PIXEL_CERT_ENVIRONMENT.md`): the failure came from the
+legacy `-gpu swiftshader_indirect` launch value (invalid in emulator 37.1.11)
+and from the `aosp_atd` fallback image, which cannot composite app frames on
+this host. `braintraining-ui35` with `-gpu host` produces real composited
+frames (152 frames rendered, 2,523 unique colours on the Home capture).
+
+Because the six-way matrix then exposed three genuine product defects (HUD
+pause clipping, a duplicate unrounded score row in ten games, and a clipped
+tutorial retry control), the artifact was rebuilt from checkpoint `34c9b2d`
+and the complete pixel, accessibility and runtime matrices were re-executed on
+the final APK `99D1D132…0C55`. The terminal results — 66/66 canonical
+captures, 42/42 interaction captures, the accessibility classification, the
+full four-game workout, the SQLite audit and the log review — are recorded in
+`PIXEL_CERT_MATRIX.md`. The pre-repair captures are preserved under
+`qa-artifacts/campaign055-prefix-cert*` (gitignored) with the defect crops in
+`screens/final-cert/defect-*.jpg`.
 
 ## Boundaries (unchanged, manual/external)
 

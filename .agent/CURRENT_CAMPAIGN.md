@@ -1,14 +1,15 @@
 # Campaign 055 — Signal Arcade Desirability Pass
 
-**Status:** ACTIVE (PARTIAL_PIXEL_MATRIX_BLOCKED)
+**Status:** VALIDATED — `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
 **Campaign id:** `055-signal-arcade-desirability`
 **Predecessor:** `054-terminal-gap-closure` (validated)
 **Mode:** day
-**Start SHA:** `698bfd3` (first session); resumption from `90169bf7` → `18b7851` (product baseline `f59c066`)
-**Change:** `openspec/changes/055-signal-arcade-desirability`
+**Start SHA:** `698bfd3` (first session); resumed from `90169bf7` → `18b7851`; pixel-certification session from `0de77dc` (product baseline `f59c066`, final product checkpoint `34c9b2d`)
+**Change:** `openspec/changes/055-signal-arcade-desirability` (VALIDATED)
 **Authorization:** owner goal-mode directive to execute
 `.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`, resumed under
-`.agent/CAMPAIGN055R_RESUMPTION_NATIVE_CLOSURE_PROMPT.md`.
+`.agent/CAMPAIGN055R_RESUMPTION_NATIVE_CLOSURE_PROMPT.md`, closed under
+`.agent/CAMPAIGN055P_PIXEL_CERTIFICATION_CLOSURE_PROMPT.md`.
 
 ## Mission
 
@@ -33,11 +34,43 @@ Game Detail, real tutorial/gameplay, honest weak Result, dark Games/Result, a
 full four-game workout with Next/Next/Next/Finish, relaunch retention, clean
 SQLite audit and clean log review.
 
-The pixel-level six-way visual matrix remains `NOT VALIDATED`: the host
-emulator display/compositing path produces no composited frames in every GPU
-mode, `ui-capture` reports every capture `BLANK`, and profile switches can
-crash the emulator (`braintraining-ui35` itself still crashes `0xC0000005`).
-Verdict: `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
+## Terminal result (pixel-certification session)
+
+The host display blocker was recovered on the dedicated `braintraining-ui35`
+AVD with the emulator's valid `-gpu host` mode; the earlier failures came from
+the legacy `-gpu swiftshader_indirect` value (invalid in emulator 37.1.11) and
+from the `aosp_atd` fallback image (cannot composite app frames). The six-way
+matrix (default/compact/font-scale-2 × light/dark) then produced real pixels
+and exposed **three genuine product defects**, each minimally repaired with a
+new checkpoint, a new release APK and a complete re-certification:
+
+1. the in-session HUD `Pause` overflowed the non-wrapping instrument strip and
+   was clipped past the screen edge (off-screen at font-scale-2) — `f95c5dd`;
+2. ten in-session results rendered a duplicate `Score` fact row printing the
+   raw float beside the focal numeral — `53468e4`;
+3. tall tutorial demo steps clipped the `Try again` control to negative height,
+   dead-ending the deduction-table tutorial — `34c9b2d`.
+
+The terminal artifact is release APK SHA-256
+`99D1D132FD21E4A49D46EF10997305D62949291B1771F755E7B010200C990C55`
+(109,595,521 bytes) from product checkpoint `34c9b2d`. Terminal evidence:
+66/66 canonical + 42/42 interaction captures across all six combinations (all
+nonblank, route-verified, dialog-free), 0 unlabelled interactive nodes, 0
+decorative-art leaks, 0 unresolved TRUE_UNDERSIZED_TARGET, a full four-game
+workout ending in Finish workout with Home 4/4 saved, relaunch retention, a
+clean SQLite audit (integrity ok, schema v12, no duplicate ids, workout
+completed) and a clean log review (138,631 lines, 0 fatal patterns)
+(`PIXEL_CERT_ENVIRONMENT.md`, `PIXEL_CERT_MATRIX.md`,
+`ACCESSIBILITY_RESPONSIVE_QA.md`). Repository matrix on the final checkpoint:
+567 suites / 6,734 tests / 5 snapshots; probes 5/5; typecheck; lint 0/0; Expo
+Doctor 21/21; OpenSpec strict 39/39; all validators; web export; debug and
+release builds. Remaining boundaries are manual/external only.
+
+**Verdict: `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`.** The historical
+environment failures (initial `0xC0000005` crash loop, resumed 0-frame
+compositing failure) are preserved in `RESUMPTION_ENVIRONMENT_RECOVERY.md`
+and `FINAL_NATIVE_VALIDATION.md`; the later successful pixel certification is
+recorded separately. No campaign is active; Campaign 056 is not bound.
 
 ## Guardrails
 

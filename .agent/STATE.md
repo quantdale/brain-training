@@ -1,12 +1,13 @@
 # Durable Project State
 
-**Last update:** 2026-09-20 — Campaign 055 resumed under the owner resumption prompt (`18b7851`): catalog-wide result-system debt closed, repository matrix green, native semantic closure executed on one authoritative final artifact; the pixel matrix remains blocked by the host emulator display failure.
+**Last update:** 2026-09-20 — Campaign 055 closed terminally under the owner pixel-certification prompt (`0de77dc`): the host display path was recovered, the six-way pixel matrix exposed and repaired three genuine defects, and the full pixel + accessibility + runtime matrix passed on the final artifact `99D1D132…0C55` (checkpoint `34c9b2d`). Verdict `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`.
 **Canonical branch:** `main`
-**Active campaign:** 055-signal-arcade-desirability
-**Last campaign:** `054-terminal-gap-closure`
+**Active campaign:** none
+**Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
+**Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
 
-## Campaign 055 — Signal Arcade Desirability Pass (ACTIVE — PARTIAL_PIXEL_MATRIX_BLOCKED)
+## Campaign 055 — Signal Arcade Desirability Pass (VALIDATED / COMPLETE)
 
 - **Authorization:** owner goal-mode directive to execute
   `.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`, then resumed
@@ -43,17 +44,34 @@
   Next/Next/Next/Finish, relaunch retention, clean post-workout SQLite audit
   (integrity ok, schema v12, zero duplicate session/ledger/rating ids, workout
   `completed`) and a clean log review (0 fatal/ANR/OOM/SQLite/RedBox).
-- **Blocker (environment, pixel matrix):** the host emulator
-  display/compositing path produces no composited frames in every GPU mode
-  (`UpdateLayeredWindowIndirect failed … A device attached to the system is not
-  functioning`; `dumpsys gfxinfo` 0 frames); the canonical `ui-capture` harness
-  reports every capture `BLANK`, and profile switches can crash the emulator.
-  The pixel-level six-way visual matrix (default/compact/font-scale-2 ×
-  light/dark) and pixel before/after comparison remain `NOT VALIDATED`
-  (`RESUMPTION_ENVIRONMENT_RECOVERY.md`, `FINAL_NATIVE_VALIDATION.md`).
-- **Verdict recorded:** `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
-- **OpenSpec:** `openspec/changes/055-signal-arcade-desirability` (ACTIVE;
-  tasks reconciled, native-matrix task explicitly partial).
+- **Pixel-certification session (2026-09-20, later):** started at `0de77dc`.
+  The host display blocker was resolved on the dedicated `braintraining-ui35`
+  AVD with the emulator's valid `-gpu host` mode (the earlier failures came
+  from the legacy `-gpu swiftshader_indirect` value, invalid in emulator
+  37.1.11, and from the `aosp_atd` fallback image, which cannot composite app
+  frames). The six-way matrix then exposed three genuine defects, each
+  minimally repaired with a new checkpoint, APK and complete re-certification:
+  HUD pause clipping (`f95c5dd`), a duplicate unrounded score row in ten
+  in-session results (`53468e4`), and a clipped tutorial retry control that
+  dead-ended the deduction-table tutorial (`34c9b2d`).
+- **Final artifact:** release APK SHA-256
+  `99D1D132FD21E4A49D46EF10997305D62949291B1771F755E7B010200C990C55`
+  (109,595,521 bytes) from product checkpoint `34c9b2d`.
+- **Terminal pixel evidence:** 66/66 canonical captures + 42/42 interaction
+  captures across default/compact/font-scale-2 × light/dark, all nonblank,
+  route-verified and dialog-free; 0 unlabelled interactive nodes, 0
+  decorative-art leaks, 0 unresolved TRUE_UNDERSIZED_TARGET; full four-game
+  workout with Finish, relaunch retention, SQLite integrity/schema v12/no
+  duplicates, and 138,631 log lines with 0 fatal patterns
+  (`PIXEL_CERT_ENVIRONMENT.md`, `PIXEL_CERT_MATRIX.md`).
+- **Historical environment failures preserved:** the initial emulator
+  `0xC0000005` crash loop and the resumed host 0-frame compositing failure
+  remain recorded as history in `RESUMPTION_ENVIRONMENT_RECOVERY.md` and
+  `FINAL_NATIVE_VALIDATION.md`; the later successful pixel certification is
+  recorded separately.
+- **Verdict recorded:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`.
+- **OpenSpec:** `openspec/changes/055-signal-arcade-desirability` (VALIDATED,
+  validatedAt 2026-09-20; strict 39/39).
 - **Evidence root:** `docs/redesign/evidence/campaign055/`.
 
 ## Campaign 054 — Terminal Gap Closure (VALIDATED / GAPS CLOSED)

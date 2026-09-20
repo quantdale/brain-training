@@ -161,3 +161,44 @@ host-level failure documented in `RESUMPTION_ENVIRONMENT_RECOVERY.md`); the
 classifications above do not depend on them: the compact re-audit and the
 final-artifact default re-audit both resolve to the same four hit-slop-compliant
 tabs, and every other observation is ≥44 dp at its capture density.
+
+---
+
+# Terminal six-way re-audit (2026-09-20, pixel-certification session)
+
+The full six-way matrix (canonical + interaction surfaces) was re-audited on
+the final artifact `99D1D132…0C55` with each profile's true capture density
+(420 / 320 / 420). Every measured finding is classified below; the full
+detail is in `PIXEL_CERT_MATRIX.md`.
+
+| Profile | Surfaces | Measured `target<44dp` | Unlabelled | Decorative leaks | Unresolved true undersized |
+| --- | --- | --- | --- | --- | --- |
+| default | 36 | 28 | 0 | 0 | 0 |
+| compact | 36 | 21 | 0 | 0 | 0 |
+| font-scale-2 | 36 | 18 | 0 | 0 | 0 |
+
+Classification totals across all 108 dumps: **52**
+`COMPLIANT_PARENT_OR_HITSLOP` (the Progress 7d/30d/90d/All tabs through the
+shared `Tappable` hit-slop and the `IconButton` clear control), **11**
+`CLIPPED_BUT_REACHABLE` (fold/rail clips: route-Result `Play again`, fs2
+`Add to favorites`, Games `Open game details`, horizontal filter-rail chips,
+the scrolled-out `Math, 5` sliver), **4** `MEASUREMENT_ARTIFACT` (the search
+`TextInput` inside the shared 44 dp `TextField` box), **0**
+`TRUE_UNDERSIZED_TARGET`, **0** unlabelled interactive nodes, **0**
+decorative-art leaks (empirically: zero unlabelled `ImageView`/
+`ReactImageView` nodes across all 108 hierarchy dumps).
+
+The HUD `Pause` finding from this session's first capture is **closed by a
+real defect repair** (see `CAMPAIGN055_CLOSURE.md`); it no longer appears in
+any matrix. No new profile/theme-specific accessibility defect appeared, and
+the previously-recorded 27 compact observations remain correctly classified.
+
+## Font-scale-2 layout debt (honest classification)
+
+Two controls sit just below the first fold at font-scale-2 and are reachable by
+scrolling their (verified scrollable) containers: `Add to favorites` on Game
+Detail (`379×36 dp` visible) and the route-Result primary action
+(`379×23 dp` visible). Neither is a hit-target defect — the containers are
+`scrollable=true` and the controls measure ≥44 dp when scrolled into view.
+Classified `CLIPPED_BUT_REACHABLE` / `LOW_ACCEPTED_DEBT`; no source change was
+warranted.

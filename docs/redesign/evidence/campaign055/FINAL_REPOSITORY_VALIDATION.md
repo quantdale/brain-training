@@ -111,3 +111,45 @@ counts.
   reward/currency idempotency, backup/import/export, offline, schema v12:
   untouched by the display changes; their suites are green in the full run and
   the native workout/SQLite evidence is in `FINAL_NATIVE_VALIDATION.md`.
+
+---
+
+# Pixel-certification addendum (2026-09-20, final checkpoint `34c9b2d`)
+
+The pixel certification repaired three real display defects, so the executable
+tree changed after the resumption matrix and the authoritative matrix was
+re-run on the final checkpoint. Exact commands and observed counts:
+
+| Gate | Result |
+| --- | --- |
+| Full Jest (gated, `npx jest --ci --maxWorkers=2`) | **PASS** — 567 passed suites (4 skipped); **6,734 passed tests** (5 skipped); 5 snapshots; 0 unexpected console output (219 s) |
+| Typecheck (`npx tsc --noEmit`) | **PASS** |
+| Lint (`npx expo lint`) | **PASS** — 0 errors, 0 warnings |
+| Expo Doctor | **PASS** — 21/21 checks |
+| Opt-in probes (`PERF_PROBE=1 LARGE_BACKUP_PROBE=1` × 5 suites) | **PASS** — 5 suites / 22 tests (64 s) |
+| Web export (`npx expo export --platform web`) | **PASS** — all routes exported to `dist` |
+| Android debug build | **BUILD SUCCESSFUL** (3 m 21 s) |
+| Android release build | **BUILD SUCCESSFUL** — final APK SHA-256 `99D1D132FD21E4A49D46EF10997305D62949291B1771F755E7B010200C990C55`, 109,595,521 bytes |
+| Repository state | **PASS** |
+| Task ownership | **PASS** |
+| Affected-map sync | **PASS** — 16 areas, 46 patterns |
+| Registry | **PASS** — generated registry up to date (42 games) |
+| Provenance | **PASS** — no drift |
+| Offline | **PASS** — 983 files, CLEAN |
+| Secrets | **PASS** — 2,545 tracked text files CLEAN |
+| Workflow hygiene | **PASS** — 4 files |
+| Dependency audit policy | **PASS** — accepted dispositions unchanged (exit 0) |
+| Runtime QA contract | **PASS** |
+| OpenSpec strict | **PASS** — 39/39 items after the terminal reconciliation |
+
+## Count reconciliation
+
+- Resumption checkpoint: 565 suites / 6,731 tests / 5 snapshots.
+- After the HUD + score repairs and their focused tests: 566 / 6,733.
+- After the tutorial-frame repair and its layout test: **567 / 6,734**.
+- The three repairs are display-only: the HUD strip wrap, the small-button
+  content sizing, the removal of a duplicate fact row in ten games (with three
+  deliberate obsolete-assertion migrations where the persisted raw score is
+  asserted on the same path) and the tutorial card height cap. No mechanic,
+  scoring, timer, generator, difficulty, persistence, routing or registry
+  change; no test weakened, skipped or deleted.

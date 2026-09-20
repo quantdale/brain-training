@@ -1,7 +1,7 @@
 # Execution Prompt — Campaign 055: Signal Arcade Desirability Pass
 
-**Status:** ACTIVE — `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL` (resumption closure complete; pixel matrix blocked)
-**Change:** `055-signal-arcade-desirability`
+**Status:** VALIDATED — `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE` (pixel certification closed 2026-09-20)
+**Change:** `055-signal-arcade-desirability` (VALIDATED)
 **Start-SHA:** `698bfd3` (first session); resumption from `90169bf7`
 **Target-Branch:** `main`
 **Predecessor:** `054-terminal-gap-closure` (validated)
@@ -41,13 +41,27 @@ Detail, real tutorial/gameplay, honest weak Result, dark Games/Result, a full
 four-game workout with Next/Next/Next/Finish, relaunch retention, clean SQLite
 audit and clean log review.
 
-The one remaining `NOT VALIDATED` lane is the pixel-level six-way visual
-matrix: the host emulator display/compositing path produces no composited
-frames in every GPU mode (`ui-capture` reports every capture `BLANK`;
-`braintraining-ui35` still crashes `0xC0000005`), which is a host environment
-blocker, not a product defect. Evidence:
+The one remaining `NOT VALIDATED` lane was the pixel-level six-way visual
+matrix: the host emulator display/compositing path produced no composited
+frames in every GPU mode (`ui-capture` reported every capture `BLANK`;
+`braintraining-ui35` crashed `0xC0000005`), a host environment blocker rather
+than a product defect. Evidence:
 `docs/redesign/evidence/campaign055/RESUMPTION_ENVIRONMENT_RECOVERY.md`,
 `FINAL_NATIVE_VALIDATION.md`, `CAMPAIGN055_CLOSURE.md`.
+
+## Terminal closure (2026-09-20, later session — `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`)
+
+Executed under `.agent/CAMPAIGN055P_PIXEL_CERTIFICATION_CLOSURE_PROMPT.md` from
+`0de77dc`. The display path was recovered on `braintraining-ui35` with the
+emulator's valid `-gpu host` mode (the legacy `-gpu swiftshader_indirect` value
+is invalid in emulator 37.1.11 and the `aosp_atd` fallback cannot composite app
+frames). The six-way matrix then exposed and repaired three genuine defects —
+HUD pause clipping (`f95c5dd`), a duplicate unrounded score row in ten games
+(`53468e4`), and a clipped tutorial retry control (`34c9b2d`) — and the full
+pixel, accessibility and runtime matrices were re-executed on the final
+artifact `99D1D132…0C55`. Evidence: `PIXEL_CERT_ENVIRONMENT.md`,
+`PIXEL_CERT_MATRIX.md`. Campaign 055 is terminal VALIDATED; no campaign is
+active and Campaign 056 is not bound.
 
 ---
 

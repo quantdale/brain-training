@@ -156,3 +156,44 @@ The historical first-session emulator-crash episode is preserved above as
 historical truth; this resumption records the successful recovery of a
 dedicated runtime, the completed semantic closure, and the remaining
 host-display blocker separately.
+
+---
+
+# Pixel certification addendum (2026-09-20, later session)
+
+**Terminal verdict: `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`.**
+
+Starting SHA `0de77dc` (prompt commit fast-forwarded from `origin/main`). The
+host display path was recovered by using the dedicated `braintraining-ui35`
+AVD with the emulator's valid `-gpu host` mode (the earlier failure used the
+legacy `-gpu swiftshader_indirect` value, which emulator 37.1.11 no longer
+accepts, and the `aosp_atd` fallback image which cannot composite app frames).
+The full environment proof is in `PIXEL_CERT_ENVIRONMENT.md`.
+
+The six-way matrix then exposed **three genuine product defects** that no
+semantic pass could see, each repaired with the smallest fix and followed by a
+fresh checkpoint, a fresh release APK and a complete re-certification:
+
+1. **HUD pause clipping** — the in-session instrument strip is a single
+   non-wrapping row; the trailing `Pause` control overflowed the strip and was
+   clipped past the screen edge (off-screen at font-scale-2, squeezed at
+   compact, already bleeding past the frame at default). Fixed by letting the
+   strip wrap and by sizing the small `GameButton` to its content
+   (`f95c5dd`).
+2. **Duplicate unrounded score** — ten games rendered a `Score` fact row
+   printing the raw float (`Score 965.1614386889669`) beside the focal
+   numeral; the resumption's duplication inventory had missed the animated
+   numeral in those games. Fixed by removing the redundant row (`53468e4`).
+3. **Tutorial retry unreachable** — tall demo steps (deduction table) clipped
+   the `Try again` control to negative height after a wrong answer, dead-ending
+   the tutorial. Fixed by raising the `TutorialFrame` height cap to the full
+   overlay height (`34c9b2d`).
+
+The terminal artifact is the release APK SHA-256
+`99D1D132FD21E4A49D46EF10997305D62949291B1771F755E7B010200C990C55`
+(109,595,521 bytes) built from product checkpoint `34c9b2d`.
+`PIXEL_CERT_MATRIX.md` records the 66/66 canonical captures, the 42/42
+interaction captures, the accessibility classification, the visual review, the
+runtime matrix (including the full four-game workout, SQLite audit and log
+review) and the adversarial review. `PIXEL_CERT_ENVIRONMENT.md` records the
+runtime recovery and the composited-frame proof.

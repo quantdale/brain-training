@@ -1,26 +1,38 @@
 # Known Issues / Blockers
 
-## Campaign 055 disposition — DESIRABILITY PASS (2026-09-20, resumption PARTIAL)
+## Campaign 055 disposition — DESIRABILITY PASS (2026-09-20, VALIDATED / COMPLETE)
 
-Verdict `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`. All RETHINK/REFINE surfaces
-were materially improved with before/after release pixels; the resumption
-closed the bounded result/accessibility/copy debt and re-ran the repository and
-semantic native closure on one authoritative final artifact. The only remaining
-blocker is the host display/compositing path (pixel matrix):
+Verdict `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`. All RETHINK/REFINE surfaces
+were materially improved; the resumption closed the bounded
+result/accessibility/copy debt; the pixel-certification session recovered the
+host display path, ran the six-way matrix with real composited pixels, found
+and repaired three genuine defects, and re-certified the final artifact
+(`99D1D132…0C55`, checkpoint `34c9b2d`) with the complete pixel, accessibility
+and runtime matrices (`PIXEL_CERT_ENVIRONMENT.md`, `PIXEL_CERT_MATRIX.md`).
 
-- **Host emulator display failure (environment, High for validation only).**
-  After the host reboot `braintraining-ui35` still exits `0xC0000005` on every
-  launch and android-36 images crash the same way. The fresh dedicated
-  `braintraining-c055r-atd` (aosp_atd) runtime boots and answers every semantic
-  check, but no GPU mode composites content frames
-  (`UpdateLayeredWindowIndirect failed … A device attached to the system is not
-  functioning`; `dumpsys gfxinfo` 0 frames), so `ui-capture` reports every
-  capture `BLANK` and profile switches can crash the emulator. The pixel-level
-  six-way visual matrix and pixel before/after comparison remain
-  `NOT VALIDATED`. Recovery requires host-level display/driver intervention
-  (e.g. disabling Memory Integrity / a driver reset) outside this session's
-  authority. Recorded in `RESUMPTION_ENVIRONMENT_RECOVERY.md` and
-  `FINAL_NATIVE_VALIDATION.md`.
+- **Historical environment failures (CLOSED).** The first session's emulator
+  `0xC0000005` crash loop and the resumption's 0-frame host compositing
+  failure are preserved as history in `RESUMPTION_ENVIRONMENT_RECOVERY.md`.
+  Root causes for closure: the legacy `-gpu swiftshader_indirect` value is
+  invalid in emulator 37.1.11, and the `aosp_atd` fallback image cannot
+  composite app frames on this host; `braintraining-ui35` with `-gpu host`
+  produces real frames.
+- **HUD pause clipping (FIXED).** The in-session instrument strip clipped the
+  trailing pause control (off-screen at font-scale-2); `SessionHeader` now
+  wraps and the small `GameButton` sizes to content (`f95c5dd`).
+- **Duplicate unrounded score row (FIXED).** Ten games printed the raw score
+  float in a duplicate fact row beside the focal numeral; the redundant row
+  was removed (`53468e4`).
+- **Tutorial retry unreachable (FIXED).** Tall demo steps clipped the
+  `Try again` control to negative height and dead-ended the deduction-table
+  tutorial; the `TutorialFrame` cap now allows the full overlay height
+  (`34c9b2d`).
+- **Remaining visual debt (LOW, accepted).** Game-owned short-board dead
+  space; at font-scale-2 two controls sit just below the first fold inside
+  verified scrollable containers (`Add to favorites`, route-Result primary
+  action). Manual/external boundaries (human TalkBack/VoiceOver quality,
+  physical/OEM devices, iOS runtime, store signing) remain outside repository
+  authority.
 - **Compact/light accessibility observations (CLOSED).** The 27 measured
   `target<44dp` nodes were an audit-density artifact (420 default against
   320-dpi compact captures); correct re-measurement leaves only the four

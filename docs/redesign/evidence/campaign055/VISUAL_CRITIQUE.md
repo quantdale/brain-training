@@ -118,3 +118,27 @@ retuned, no mechanic was altered. Short-board dead space is recorded as
 game-specific future visual debt (a per-game board-composition opportunity, not
 a Campaign 055 defect). This keeps the investigation bounded and avoids a new
 redesign wave.
+
+---
+
+# Pixel-certification critique addendum (2026-09-20)
+
+The first trustworthy composited pixels of the final artifact were reviewed
+surface by surface (see `PIXEL_CERT_MATRIX.md` for the full table). The review
+found three real, blocking defects that hierarchy-only evidence could not see;
+each was reproduced in pixels, minimally repaired, and the complete matrix was
+re-executed on a new artifact:
+
+1. **HUD `Pause` clipped** (all profiles; off-screen at font-scale-2). Repair:
+   `SessionHeader` wraps, small `GameButton` sizes to content.
+2. **Duplicate unrounded `Score` row** in ten in-session results. Repair:
+   redundant row removed; focal numeral remains.
+3. **Tutorial `Try again` clipped to negative height** in tall demo steps
+   (deduction table dead-end). Repair: `TutorialFrame` height cap raised to the
+   full overlay height.
+
+After the repairs, no blocking visual or accessibility defect remains. Honest
+remaining visual debt: game-owned short-board dead space (Class B) and two
+font-scale-2 below-the-fold controls inside verified scrollable containers
+(`CLIPPED_BUT_REACHABLE`). No aesthetic preference edits were made; the repair
+set stayed limited to defects that blocked certification.

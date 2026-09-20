@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "ACTIVE",
+  "lifecycleStatus": "COMPLETED",
   "change": "055-signal-arcade-desirability",
-  "description": "Campaign 055 Signal Arcade desirability pass. The orchestrator owns the refinement lock, shared visual-system roles, surface refinements, mandatory critique passes, native before/after evidence, the full repository matrix, and durable state. Coder packets, when used in day mode, must stay inside their assigned surface files and must not edit shared hotspots (tokens, ui kit index, registries, governance) concurrently; the orchestrator performs convergence edits.",
+  "description": "Campaign 055 Signal Arcade desirability pass (VALIDATED, verdict CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE). The orchestrator owned the refinement lock, shared visual-system roles, surface refinements, mandatory critique passes, native before/after evidence, the pixel-certification matrix, the full repository matrix, and durable state. No coder packets remain active; no follow-on campaign is bound.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
