@@ -103,6 +103,12 @@ export function SessionHeader({
 const styles = StyleSheet.create({
   strip: {
     flexDirection: 'row',
+    // Campaign 055P (pixel certification): at compact widths or a 2x system
+    // font scale the four HUD slots exceed the strip; without wrapping the
+    // trailing pause control was clipped past the strip/screen edge (and at
+    // 2x it sat almost fully off-screen). Wrapping moves the overflow to a
+    // second instrument line instead of hiding a control.
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: Spacing.twoHalf,
     paddingHorizontal: Spacing.twoHalf,

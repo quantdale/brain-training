@@ -75,4 +75,17 @@ describe('GameButton accessibility', () => {
     await render(<GameButton testID="b-small" label="Go" onPress={() => {}} small />);
     expect(effectiveTargetHeight(screen.getByTestId('b-small'))).toBeGreaterThanOrEqual(44);
   });
+
+  it('lets the small variant size to its content (no forced 120pt floor)', async () => {
+    // Campaign 055P: the forced wide minimum pushed the in-session HUD pause
+    // past the strip edge (off-screen at 2x font scale). The small variant is
+    // the compact instrument control and must not carry the wide floor.
+    await render(<GameButton testID="b-small" label="Pause" onPress={() => {}} small />);
+    const el = screen.getByTestId('b-small');
+    const minWidths = resolvedStyle(el.props.style)
+      .flat()
+      .map((entry) => (entry as { minWidth?: number } | null)?.minWidth)
+      .filter((value): value is number => typeof value === 'number');
+    expect(Math.max(0, ...minWidths)).toBeLessThanOrEqual(44);
+  });
 });

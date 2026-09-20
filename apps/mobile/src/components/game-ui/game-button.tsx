@@ -74,16 +74,23 @@ export const GameButton = memo(function GameButton({
       fullWidth={false}
       accessibilityHint={hint}
       accessibilityState={{ disabled, selected }}
-      style={[styles.button, style]}
+      style={[small ? styles.buttonSmall : styles.button, style]}
     />
   );
 });
 
-const styles: { button: ViewStyle } = {
+const styles: { button: ViewStyle; buttonSmall: ViewStyle } = {
   button: {
     // Game controls keep their own minimum so a "Pause"/"Quit" pair never
     // collapses to icon width next to a board.
     minWidth: 120,
+    paddingHorizontal: Spacing.four,
+  },
+  // The small variant is the compact instrument control (the in-session HUD
+  // pause). It sizes to its content so the HUD strip can fit it beside the
+  // round/score metrics; a forced 120 dp floor made it overflow the strip
+  // and clip past the screen edge (Campaign 055P pixel certification).
+  buttonSmall: {
     paddingHorizontal: Spacing.four,
   },
 };
