@@ -67,6 +67,21 @@ describe('RewardCelebrationHost', () => {
     expect(getAllByText('Fan-out')).toHaveLength(2);
   });
 
+  it('061: unmounting mid-flight stops the entrance driver', async () => {
+    const { getByTestId, queryByTestId, unmount } = await render(
+      <RewardCelebrationHost />,
+    );
+
+    await emit({ title: 'Interrupted', xp: 5 });
+    expect(getByTestId('reward-celebration')).toBeTruthy();
+    // Tearing down while the 220ms entrance is in flight must not throw
+    // (the driver is stopped by the effect cleanup).
+    await act(async () => {
+      unmount();
+    });
+    expect(queryByTestId('reward-celebration')).toBeNull();
+  });
+
   // LAST: uses real wall-clock time (~3.5s) because react-native's jest
   // polyfill routes component-level setTimeout around jest's fake clock.
   // W13: the fixed 3600ms sleep raced the component's 3500ms timer with only
