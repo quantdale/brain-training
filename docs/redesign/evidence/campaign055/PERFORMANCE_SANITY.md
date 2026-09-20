@@ -37,3 +37,35 @@ nodes per viewport and no new asset decoding. The earlier Campaign 048/054
 probe baselines remain valid for the untouched data/query paths. On-device
 profiling of the re-composed screens is listed as a follow-up for the resumed
 native pass rather than claimed.
+
+---
+
+# Resumption addendum (2026-09-20)
+
+## Re-run results (frozen product source)
+
+| Check | Result |
+| --- | --- |
+| Full gated Jest (authoritative) | **565 suites passed** / 4 skipped; **6,731 tests passed** / 5 skipped; 5 snapshots; 0 unexpected console output (204 s) |
+| Opt-in probes (5/5, `PERF_PROBE=1 LARGE_BACKUP_PROBE=1`) | **5 suites / 22 tests passed** (29 s) — `perf-baseline-probe`, `perf-sync-scan-probe`, `perf-quest-eval-ab`, `projections-differential`, `large-backup-memory` |
+| Web export | PASS |
+| Android debug build | **BUILD SUCCESSFUL** (2 m 26 s) |
+| Android release build | see `FINAL_REPOSITORY_VALIDATION.md` |
+
+## Native on-device sanity — NOT VALIDATED (environment blocker)
+
+The dedicated `braintraining-c055r-atd` runtime boots and the exact final
+release APK installs and runs, but the host's emulator display/compositing path
+produces **no composited frames** in every GPU mode tried (`dumpsys gfxinfo`
+reports `Total frames rendered: 0`; the emulator log records
+`UpdateLayeredWindowIndirect failed … (A device attached to the system is not
+functioning.)`). On-device frame/scroll timings therefore cannot be measured
+this session; see `RESUMPTION_ENVIRONMENT_RECOVERY.md` for the full matrix of
+attempts. The full Jest run (which includes the repository-scale measurement
+probes when opted in) and the five opt-in probes passed unchanged, so no
+performance-relevant structure regressed at the repository level.
+
+The display-only source delta of this resumption (27 removed duplicate fact
+rows, one band prop per game, shared caption strings) adds no lists, assets,
+animation loops or nested work; the Campaign 055 performance assessment above
+still describes the structure.

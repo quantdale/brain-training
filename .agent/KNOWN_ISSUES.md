@@ -1,34 +1,45 @@
 # Known Issues / Blockers
 
-## Campaign 055 disposition — DESIRABILITY PASS (2026-09-20, PARTIAL)
+## Campaign 055 disposition — DESIRABILITY PASS (2026-09-20, resumption PARTIAL)
 
 Verdict `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`. All RETHINK/REFINE surfaces
-were materially improved with before/after release pixels and the repository
-matrix is green; the remaining items are a host-environment blocker on the
-final native matrix plus non-blocking visual debt:
+were materially improved with before/after release pixels; the resumption
+closed the bounded result/accessibility/copy debt and re-ran the repository and
+semantic native closure on one authoritative final artifact. The only remaining
+blocker is the host display/compositing path (pixel matrix):
 
-- **Host emulator crash loop (environment, High for validation only).**
-  `emulator.exe` 37.1.11 exits `0xC0000005` immediately after the WHPX
-  handshake across `-gpu swiftshader_indirect` / `-gpu off` / `-accel off` /
-  `-no-snapshot` / `-wipe-data`, and a wedged instance holding port 5555 had to
-  be killed. The alternate API-35 AVD showed the same wedged-guest behaviour.
-  Recovery: reboot the host, then re-run `ui-capture` (default/compact/font2,
-  light/dark) and the runtime recovery/log/SQLite checks on the existing
-  release artifact family. Recorded in `FINAL_NATIVE_VALIDATION.md`.
-- **Compact/light accessibility observations (Medium).** 27 measured
-  `target<44dp` nodes (0 unlabelled, 0 decorative leaks): mostly pre-existing
-  text-style controls (back links, segmented control, difficulty keys) and the
-  known 4 dp console-lip measurement on primary keys; a few re-composed rows
-  need clipping/undersize triage on device.
-- **In-game Results band adoption (Low).** Games do not yet pass
-  `normalizedResult` to the shared results chrome, so their headline stays the
-  game's own `title`; most games also still duplicate `Final score`/`Score`.
-  The prop and honest band treatment exist and are used by the route Results.
-- **Progress drill-downs (Low).** The domain/game/activity/detail screens keep
-  their analytical `explainMetric` captions; only the main Progress surface was
-  in scope.
-- **Gameplay dead space (Low).** Short boards leave lower-viewport space; the
-  shared chrome no longer adds to it, but board sizing is game-owned.
+- **Host emulator display failure (environment, High for validation only).**
+  After the host reboot `braintraining-ui35` still exits `0xC0000005` on every
+  launch and android-36 images crash the same way. The fresh dedicated
+  `braintraining-c055r-atd` (aosp_atd) runtime boots and answers every semantic
+  check, but no GPU mode composites content frames
+  (`UpdateLayeredWindowIndirect failed … A device attached to the system is not
+  functioning`; `dumpsys gfxinfo` 0 frames), so `ui-capture` reports every
+  capture `BLANK` and profile switches can crash the emulator. The pixel-level
+  six-way visual matrix and pixel before/after comparison remain
+  `NOT VALIDATED`. Recovery requires host-level display/driver intervention
+  (e.g. disabling Memory Integrity / a driver reset) outside this session's
+  authority. Recorded in `RESUMPTION_ENVIRONMENT_RECOVERY.md` and
+  `FINAL_NATIVE_VALIDATION.md`.
+- **Compact/light accessibility observations (CLOSED).** The 27 measured
+  `target<44dp` nodes were an audit-density artifact (420 default against
+  320-dpi compact captures); correct re-measurement leaves only the four
+  Progress window tabs at 32 dp, which meet the 44 dp interaction contract via
+  the shared `Tappable` hit-slop. 0 unresolved TRUE_UNDERSIZED_TARGET, 0
+  unlabelled nodes, 0 decorative-art leaks
+  (`ACCESSIBILITY_RESPONSIVE_QA.md`).
+- **In-game Results band adoption (CLOSED).** All 42 games now pass their
+  canonical normalized result; the redundant duplicate `Score` row was removed
+  in the 27 games that showed it twice. 0 legitimate non-adopters; no invented
+  normalization (`NORMALIZED_RESULT_ADOPTION.md`,
+  `RESULT_DUPLICATION_CLOSURE.md`).
+- **Progress drill-downs (CLOSED).** Nine shared `explainMetric` captions were
+  rewritten in player language with no figure or analytical semantic change
+  (`COPY_AND_LABEL_AUDIT.md`).
+- **Gameplay dead space (CLOSED as non-issue).** Classified Class B
+  (game-owned board geometry); no shared layout defect, no board stretching
+  (`VISUAL_CRITIQUE.md`). Short-board composition remains game-specific future
+  visual debt.
 
 ## Campaign 054 disposition — TERMINAL GAP CLOSURE (2026-09-19)
 

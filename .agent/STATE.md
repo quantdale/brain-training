@@ -1,38 +1,60 @@
 # Durable Project State
 
-**Last update:** 2026-09-20 — Campaign 055 Signal Arcade desirability pass activated from synchronized `main` (`698bfd3`).
+**Last update:** 2026-09-20 — Campaign 055 resumed under the owner resumption prompt (`18b7851`): catalog-wide result-system debt closed, repository matrix green, native semantic closure executed on one authoritative final artifact; the pixel matrix remains blocked by the host emulator display failure.
 **Canonical branch:** `main`
 **Active campaign:** 055-signal-arcade-desirability
 **Last campaign:** `054-terminal-gap-closure`
 **Last campaign status:** VALIDATED
 
-## Campaign 055 — Signal Arcade Desirability Pass (ACTIVE — PARTIAL_WITH_ENV_BLOCKER)
+## Campaign 055 — Signal Arcade Desirability Pass (ACTIVE — PARTIAL_PIXEL_MATRIX_BLOCKED)
 
 - **Authorization:** owner goal-mode directive to execute
-  `.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`.
-- **Starting SHA:** `698bfd3` (synchronized remote `main`; prompt-only commit
-  over `f59c066`). Product baseline: `f59c066`, release artifact
-  `1B6EBC20…B0FB985F` verified installed at baseline.
-- **Mode:** day (repository default); one dedicated AVD `braintraining-ui35` /
-  `emulator-5554`; emulator-local input only.
-- **Progress:** refinement lock + targeted Refero research; shared
-  Stage/Panel/Report/Slot roles with new typography voices; Games storefront;
-  honest Results (in-session + route); identity-first Profile; collectible
-  Rewards grid; focused Home; world-stage Game Detail; tutorial/gameplay
-  chrome; Progress narrative; copy audit; three critique passes; before/after
-  release pixels; repository matrix green (565 suites / 6,731 tests; OpenSpec
-  strict 39/39; debug + release builds; web export).
-- **Blocker (environment, final native matrix):** the host emulator crashed
-  mid-profile-switch and could not be restarted (access-violation crash loop,
-  wedged guests; alternate AVD identical). Compact/dark, font-scale-2,
-  runtime recovery/log/SQLite re-checks and the four-game workout on the final
-  artifact are `NOT VALIDATED`; recovery requires a host reboot
-  (`FINAL_NATIVE_VALIDATION.md`).
+  `.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`, then resumed
+  under `.agent/CAMPAIGN055R_RESUMPTION_NATIVE_CLOSURE_PROMPT.md` (no new
+  change, no Campaign 056).
+- **Starting SHA (resumption):** `90169bf7`; synchronized to prompt commit
+  `18b7851` by fast-forward before any work. Product baseline: `f59c066`.
+- **Mode:** day; one dedicated Brain Training AVD. The resumption created
+  `braintraining-c055r-atd` (android-35 `aosp_atd`, 1080×2400 @ 420) because
+  `braintraining-ui35` still crashes with `0xC0000005` on every launch;
+  `emulator-5556` and every other runtime were untouched.
+- **Closed in the resumption:** result-duplication inventory 42/42 (27
+  redundant `Score` rows removed, unique metrics preserved); canonical
+  `normalizedResult` adoption 42/42 (0 non-adopters, no invented semantics);
+  27/27 compact target observations classified (0 unresolved
+  TRUE_UNDERSIZED_TARGET; the findings were an audit-density artifact and the 4
+  Progress tabs meet 44dp via the shared `Tappable` hit-slop contract); nine
+  Progress drill-down `explainMetric` captions refined; gameplay dead space
+  classified game-owned (Class B); repository matrix green (565 suites /
+  6,731 tests / 5 snapshots; probes 5/5; typecheck; lint 0/0; Expo Doctor
+  21/21; OpenSpec strict 39/39; all validators; web export; debug + release
+  builds).
+- **Authoritative final artifact:** product checkpoint
+  `ddfe539d1a25b5bf47b2b3975ee37783e0f81f60`, release APK SHA-256
+  `A83729AEFC9C00D398A215880CFB5B6837A3F08CA248EEC770BAAF2D33C48AA5`
+  (109,596,169 bytes, debug-signed local release, Metro-independent). The
+  previous `9E6B94FC…` / `E1E9C4BD…` builds are historical intermediate
+  artifacts only.
+- **Native semantic closure on that artifact:** clean install/first launch,
+  warm and offline launches, invalid/oversized/malformed route recovery, Home
+  ready/completed, Games + search/filter, 8 games across 8 domains at Detail,
+  real tutorial/gameplay interaction, honest weak Result ("Keep training",
+  neutral reward, no PB), dark Games/Result, a full four-game workout with
+  Next/Next/Next/Finish, relaunch retention, clean post-workout SQLite audit
+  (integrity ok, schema v12, zero duplicate session/ledger/rating ids, workout
+  `completed`) and a clean log review (0 fatal/ANR/OOM/SQLite/RedBox).
+- **Blocker (environment, pixel matrix):** the host emulator
+  display/compositing path produces no composited frames in every GPU mode
+  (`UpdateLayeredWindowIndirect failed … A device attached to the system is not
+  functioning`; `dumpsys gfxinfo` 0 frames); the canonical `ui-capture` harness
+  reports every capture `BLANK`, and profile switches can crash the emulator.
+  The pixel-level six-way visual matrix (default/compact/font-scale-2 ×
+  light/dark) and pixel before/after comparison remain `NOT VALIDATED`
+  (`RESUMPTION_ENVIRONMENT_RECOVERY.md`, `FINAL_NATIVE_VALIDATION.md`).
 - **Verdict recorded:** `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
-- **OpenSpec:** `openspec/changes/055-signal-arcade-desirability` (ACTIVE).
+- **OpenSpec:** `openspec/changes/055-signal-arcade-desirability` (ACTIVE;
+  tasks reconciled, native-matrix task explicitly partial).
 - **Evidence root:** `docs/redesign/evidence/campaign055/`.
-
-The Campaign 054 sections below remain the validated predecessor record.
 
 ## Campaign 054 — Terminal Gap Closure (VALIDATED / GAPS CLOSED)
 

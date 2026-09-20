@@ -1,8 +1,8 @@
 # Execution Prompt — Campaign 055: Signal Arcade Desirability Pass
 
-**Status:** ACTIVE — `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`
+**Status:** ACTIVE — `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL` (resumption closure complete; pixel matrix blocked)
 **Change:** `055-signal-arcade-desirability`
-**Start-SHA:** `698bfd3`
+**Start-SHA:** `698bfd3` (first session); resumption from `90169bf7`
 **Target-Branch:** `main`
 **Predecessor:** `054-terminal-gap-closure` (validated)
 
@@ -10,9 +10,11 @@
 
 Owner goal-mode directive: safely synchronize `main`, then execute
 `.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md` exhaustively
-from the Campaign 054 terminal baseline. Campaign 052's acceptance evidence is
-the starting map; Campaign 054 is the protected technical floor; Signal Arcade
-is refined in place.
+from the Campaign 054 terminal baseline, resumed under
+`.agent/CAMPAIGN055R_RESUMPTION_NATIVE_CLOSURE_PROMPT.md` without opening a new
+change or Campaign 056. Campaign 052's acceptance evidence is the starting map;
+Campaign 054 is the protected technical floor; Signal Arcade is refined in
+place.
 
 ## Guardrails
 
@@ -20,20 +22,32 @@ No mechanics, scoring, timers, generators, difficulty, registry IDs, workout
 semantics, XP, currency, reward economy, migrations, persistence semantics,
 schema, routing, testID, accessibility-semantics, probe, console-gate,
 bootstrap or route-envelope change. No unsupported cognitive/medical claims.
-Emulator-local input only; one dedicated AVD.
+Emulator-local input only; one dedicated AVD; `emulator-5556` untouched.
 
-## Partial result (2026-09-20)
+## Resumption result (2026-09-20)
 
-The refinement landed and the repository matrix is green (565 suites / 6,731
-tests; OpenSpec strict 39/39; debug + release builds; web export; five opt-in
-probes). Before/after release pixels and the compact/light matrix are recorded
-under `docs/redesign/evidence/campaign055/`. The final native matrix
-(compact/dark, font-scale-2, runtime recovery/log/SQLite re-checks, four-game
-workout on the final artifact) is `NOT VALIDATED` because the host emulator
-entered an access-violation crash loop mid-pass and could not be restarted
-(`FINAL_NATIVE_VALIDATION.md`). Recovery: reboot the host, reinstall the
-release APK, run `ui-capture` + runtime diagnostics + the workout journey,
-then triage the 27 compact `target<44dp` observations.
+The resumption closed the bounded Campaign 055 debt: result duplication 42/42
+(27 redundant `Score` rows removed), canonical `normalizedResult` adoption
+42/42 (0 non-adopters), 27/27 compact target observations classified (0
+unresolved TRUE_UNDERSIZED_TARGET), Progress drill-down copy refined, gameplay
+dead space classified game-owned, and the full repository matrix re-run green
+(565 suites / 6,731 tests / 5 snapshots; probes 5/5; typecheck; lint 0/0; Expo
+Doctor 21/21; OpenSpec strict 39/39; web export; debug + release builds).
+Native semantic closure ran on one authoritative final artifact (product
+checkpoint `ddfe539`, release APK SHA-256
+`A83729AEFC9C00D398A215880CFB5B6837A3F08CA248EEC770BAAF2D33C48AA5`,
+109,596,169 bytes): clean/warm/offline launches, route recovery, 8-domain Game
+Detail, real tutorial/gameplay, honest weak Result, dark Games/Result, a full
+four-game workout with Next/Next/Next/Finish, relaunch retention, clean SQLite
+audit and clean log review.
+
+The one remaining `NOT VALIDATED` lane is the pixel-level six-way visual
+matrix: the host emulator display/compositing path produces no composited
+frames in every GPU mode (`ui-capture` reports every capture `BLANK`;
+`braintraining-ui35` still crashes `0xC0000005`), which is a host environment
+blocker, not a product defect. Evidence:
+`docs/redesign/evidence/campaign055/RESUMPTION_ENVIRONMENT_RECOVERY.md`,
+`FINAL_NATIVE_VALIDATION.md`, `CAMPAIGN055_CLOSURE.md`.
 
 ---
 

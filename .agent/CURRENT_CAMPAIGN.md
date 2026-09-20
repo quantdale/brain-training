@@ -1,13 +1,14 @@
 # Campaign 055 — Signal Arcade Desirability Pass
 
-**Status:** ACTIVE (PARTIAL_WITH_ENV_BLOCKER)
+**Status:** ACTIVE (PARTIAL_PIXEL_MATRIX_BLOCKED)
 **Campaign id:** `055-signal-arcade-desirability`
 **Predecessor:** `054-terminal-gap-closure` (validated)
 **Mode:** day
-**Start SHA:** `698bfd3` (synchronized remote `main`; product baseline `f59c066`)
+**Start SHA:** `698bfd3` (first session); resumption from `90169bf7` → `18b7851` (product baseline `f59c066`)
 **Change:** `openspec/changes/055-signal-arcade-desirability`
 **Authorization:** owner goal-mode directive to execute
-`.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`.
+`.agent/CAMPAIGN055_SIGNAL_ARCADE_DESIRABILITY_PASS_PROMPT.md`, resumed under
+`.agent/CAMPAIGN055R_RESUMPTION_NATIVE_CLOSURE_PROMPT.md`.
 
 ## Mission
 
@@ -17,17 +18,26 @@ Games worth browsing, make Results feel like an event, make Profile feel owned,
 make Rewards feel collectible, keep Progress credible, and keep the mechanic
 first while protecting Campaign 054's technical floor.
 
-## Progress (partial)
+## Progress (partial — resumption)
 
-The full refinement landed and the repository matrix is green (565 suites /
-6,731 tests; OpenSpec strict 39/39; debug + release builds; web export).
-Before/after release pixels cover Home active/completed, Games (+scrolled),
-Game Detail, tutorial, gameplay, in-session and route Results, Progress,
-Profile, Rewards (+collection grid), dark Games/Result and an 11/11
-compact/light matrix. The final native matrix (compact/dark, font-scale-2,
-runtime recovery/log/SQLite re-checks, four-game workout on the final
-artifact) is `NOT VALIDATED`: the host emulator crashed mid-pass and could not
-be restarted. Verdict: `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
+The resumption closed the bounded Campaign 055 debt: result duplication 42/42
+(27 redundant `Score` rows removed), canonical `normalizedResult` adoption
+42/42, 27/27 compact target observations classified (0 unresolved true
+undersized targets), Progress drill-down copy refined, gameplay dead space
+classified game-owned, and the full repository matrix re-run green (565 suites /
+6,731 tests / 5 snapshots; probes 5/5; typecheck; lint 0/0; Expo Doctor 21/21;
+OpenSpec strict 39/39; web export; debug + release builds). Native semantic
+closure ran on one authoritative final artifact (product checkpoint `ddfe539`,
+APK `A83729AE…48AA5`): clean/warm/offline launches, route recovery, 8-domain
+Game Detail, real tutorial/gameplay, honest weak Result, dark Games/Result, a
+full four-game workout with Next/Next/Next/Finish, relaunch retention, clean
+SQLite audit and clean log review.
+
+The pixel-level six-way visual matrix remains `NOT VALIDATED`: the host
+emulator display/compositing path produces no composited frames in every GPU
+mode, `ui-capture` reports every capture `BLANK`, and profile switches can
+crash the emulator (`braintraining-ui35` itself still crashes `0xC0000005`).
+Verdict: `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
 
 ## Guardrails
 

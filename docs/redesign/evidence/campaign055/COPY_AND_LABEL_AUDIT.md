@@ -46,3 +46,46 @@ changed.
 - Reward/XP/coin amounts, prices, unlock conditions, difficulty labels, score semantics.
 - All empty/error states keep their testIDs and truthful meaning.
 - No IQ, brain-age, intelligence-improvement, medical or unsupported transfer claims were introduced; none existed to remove.
+
+---
+
+# Resumption addendum (2026-09-20) — Progress drill-down copy
+
+Scope: the shared `explainMetric` captions rendered by the Progress drill-downs
+(`progress-detail`, `progress-activity`, `progress-game`, `progress-domain`) and
+the two shared captions still used on the refined main Progress surface. Copy
+only: no figure, calculation, rating, window, record or analytical semantics
+changed, and no unsupported claim was introduced.
+
+## Rewritten (robotic / internal / bureaucratic / excessively analytical)
+
+| Key | Before | After | Why |
+| --- | --- | --- | --- |
+| `trend-summary` | "First and last values of the series in this view, plus how steady it is around its own average. Derived only from the points shown." | "Your first and last values in this view, and how steady the series is around its own average." | Drops the analytical bookkeeping sentence; the chart already shows the points. |
+| `accuracy-trend` | "Accuracy values across sessions over time, using whatever each game stored; games without a stored accuracy contribute nothing." | "Accuracy across your sessions over time, using the accuracy each game records. Games that do not record accuracy are left out." | "stored / contribute nothing" is database language. |
+| `reaction-trend` | "Stored response times across sessions over time; lower is faster. Games without a stored reaction time contribute nothing." | "Response times across your sessions over time; lower is faster. Games that do not record a response time are left out." | Same internal phrasing. |
+| `difficulty-progression` | "Challenge ratings you attempted over time, shown neutrally: a change in challenge is not a better or worse result." | "The challenge levels you played over time. A change in challenge is not a better or worse result — it is just a different one." | Keeps the honesty caveat (pinned by `analytics-v2-references.test.ts`) in player language. |
+| `personal-best-history` | "Every moment a personal best was raised, derived from stored results; ties keep the earliest holder." | "Every time you set a new personal best, from your recorded results. If two sessions tie, the earlier one keeps the mark." | "raised / derived / ties keep the earliest holder" is record-keeping jargon. |
+| `rolling-average` | "Mean of the last N sessions at each point, so single-session spikes do not dominate the shape." | "This keeps one unusually strong or weak session from dominating the shape." | The screen already prints "Mean of the last 5 sessions at each point." — the caption repeated it verbatim. |
+| `activity-runs` | "Consecutive active days inside this view. Window-local frequency, not your engagement streak." | "Consecutive active days in this view — a count of back-to-back days, not your engagement streak." | "Window-local frequency" is statistical jargon. |
+| `weekday-pattern` | "Which weekdays your sessions landed on inside this view — a record of habit, not advice." | "Which weekdays your sessions landed on in this view — a record of habit, not advice." | Minor: "inside" → "in". |
+| `recorded-movement` | "For a bounded window, the selected-window average is compared with your lifetime average; all-time compares the first and latest recorded results." | "Compares this window's average with your lifetime average; all time compares your first and latest results." | Removes "bounded window / selected-window / recorded" bureaucracy. |
+
+## Explicitly left unchanged (outside scope or not problematic)
+
+- `composite`, `domain-rating`, `avg-normalized`, `recent-form`,
+  `best-normalized`, `score`, `accuracy`, `reaction`, `difficulty`, `duration`,
+  `balance`, `activity-calendar`, `recency`, `recent-vs-lifetime`, `volume`,
+  `category-comparison`, `workout-completion`, `cooccurrence`, `diversity`,
+  `progress-consistency`: not rendered by the drill-down screens (or, for
+  `volume` / `workout-completion` / `category-comparison`, pinned by existing
+  analytics reference tests whose wording is already neutral and truthful).
+- `cooccurrence` keeps its explicit "does not show cause and effect" caution;
+  `difficulty-progression` keeps its "not a better or worse result" caution.
+- No number, window label, rating, streak, record or calculation was altered.
+
+## Unsupported-claim check
+
+The rewritten copy contains no IQ, brain-age, intelligence, medical or
+transfer-effect claim. The Progress surfaces remain records of training
+activity with the same evidence links as before.

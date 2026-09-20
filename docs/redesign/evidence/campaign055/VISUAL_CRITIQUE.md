@@ -86,3 +86,35 @@ Fixes produced by pass C:
    the shared chrome no longer adds to it but does not resize boards.
 4. The Progress drill-down screens (domain/game/activity/detail) keep several
    `explainMetric` captions; the main Progress surface was the campaign scope.
+
+---
+
+# Resumption addendum (2026-09-20) — gameplay dead-space investigation
+
+Debt item 3 above ("Gameplay dead space below short boards is game-owned") was
+re-investigated against the shared container source rather than assumed.
+
+## Evidence
+
+- `components/game-host/game-host.tsx` session view is
+  `screen (flex:1)` → `content (flex:1, gap)` → `section (gap, no flex)` →
+  `mechanicStage` (`padding: Spacing.twoHalf`, hairline border, radius; **no
+  `flex`, no fixed height, no `justifyContent`**). The stage is content-sized:
+  the shared chrome adds no height and stretches nothing.
+- The remaining canvas below a short board is therefore the screen background,
+  not a container defect. Boards are game-owned geometry: e.g.
+  `attention-target-count` renders a 4-row symbol grid plus a 5-key answer row
+  (`screens/after/gameplay.jpg`), while taller boards (e.g. sequence/grid games)
+  occupy more of the stage.
+- A shared `flex: 1` on `mechanicStage` would not resize any board; it would
+  only move the same empty space inside the hairline border and could regress
+  games whose controls intentionally anchor directly below the board.
+
+## Disposition
+
+**Class B — legitimate game-owned board sizing / mechanic geometry.** No shared
+layout change was made. No board was stretched, no target position or timing was
+retuned, no mechanic was altered. Short-board dead space is recorded as
+game-specific future visual debt (a per-game board-composition opportunity, not
+a Campaign 055 defect). This keeps the investigation bounded and avoids a new
+redesign wave.

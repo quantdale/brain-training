@@ -89,3 +89,70 @@ environment gaps, not product defects, and are fully enumerated in
 4. Adopt the `normalizedResult` band prop in the remaining games' results
    children and remove their duplicate `Score`/`Final score` rows
    (`VISUAL_CRITIQUE.md` remaining debt).
+
+---
+
+# Resumption addendum (2026-09-20)
+
+**Resumption verdict: `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL` (unchanged).**
+
+The resumption synchronized `main` (starting SHA
+`90169bf73a6d848f21c4b8d7419fc2ac67a0cf7d` → prompt commit `18b7851…`), closed
+the bounded result-system debt across the 42-game catalog, re-classified the 27
+compact touch-target observations, refined the remaining Progress drill-down
+copy, investigated the gameplay dead-space question, and executed the
+repository matrix and the semantic native pass on one exact final artifact.
+
+## Closed in this resumption
+
+1. **Result duplication 42/42** — registry-derived inventory; the redundant
+   `Score` fact row was removed in the 27 games that also render the focal
+   `Final score` numeral; 15 single-presentation games untouched; no unique
+   metric lost (`RESULT_DUPLICATION_CLOSURE.md`).
+2. **Honest performance bands 42/42** — every game now passes its canonical
+   normalized result to the shared results chrome; 0 legitimate non-adopters;
+   no invented normalization (`NORMALIZED_RESULT_ADOPTION.md`). Verified on the
+   final artifact: a 0-score session renders "Keep training" with a neutral
+   factual reward row and no personal-best badge.
+3. **27/27 compact target classification** — the 27 observations were an audit
+   density artifact (420 default against 320-dpi compact captures); correct
+   re-measurement leaves 4 Progress tabs that expand to 44 dp through the
+   shared `Tappable` hit-slop contract. **0 TRUE_UNDERSIZED_TARGET**
+   (`ACCESSIBILITY_RESPONSIVE_QA.md`).
+4. **Progress drill-down copy** — nine shared `explainMetric` captions rewritten
+   in player language; no figure or analytical semantic changed
+   (`COPY_AND_LABEL_AUDIT.md`).
+5. **Gameplay dead space** — classified Class B (game-owned board geometry);
+   no shared layout defect, no board stretching, no mechanic retuning
+   (`VISUAL_CRITIQUE.md`).
+6. **Repository matrix on the frozen source** — full Jest 565/6,731, 5 probes,
+   typecheck, lint, Expo Doctor 21/21, OpenSpec strict 39/39, all validators,
+   web export, debug + release builds (`FINAL_REPOSITORY_VALIDATION.md`).
+7. **Native semantic closure on the exact final artifact**
+   (`A83729AE…48AA5`, 109,596,169 bytes, from checkpoint `ddfe539…`): clean
+   install/first launch, warm/offline launches, invalid/oversized/malformed
+   route recovery, Home ready/completed, Games + search/filter, 8 games across
+   8 domains at Detail, real tutorial/gameplay interaction, weak Result, dark
+   Games/Result, a full four-game workout with Next/Next/Next/Finish, relaunch
+   retention, a clean SQLite audit (integrity ok, schema v12, zero duplicate
+   session/ledger/rating ids, workout `completed`) and a clean log review
+   (0 fatal/ANR/OOM/SQLite/RedBox) (`FINAL_NATIVE_VALIDATION.md`).
+
+## Why still PARTIAL
+
+The one mandatory closure lane that remains `NOT VALIDATED` is the **pixel
+matrix**: default/compact/font-scale-2 × light/dark screenshots and the
+pixel-level before/after comparison on the final artifact. The host's emulator
+display/compositing path produces no composited frames in every GPU mode
+(`UpdateLayeredWindowIndirect failed … A device attached to the system is not
+functioning`; `dumpsys gfxinfo` = 0 frames), the canonical `ui-capture` harness
+reports every capture `BLANK`, and `braintraining-ui35` (the AVD that produced
+the first session's captures) now crashes with `0xC0000005` on every launch.
+The guest itself is healthy — views, database, input, logs and every semantic
+check work on the exact final artifact — so this is an environment blocker, not
+a product defect (`RESUMPTION_ENVIRONMENT_RECOVERY.md`).
+
+The historical first-session emulator-crash episode is preserved above as
+historical truth; this resumption records the successful recovery of a
+dedicated runtime, the completed semantic closure, and the remaining
+host-display blocker separately.

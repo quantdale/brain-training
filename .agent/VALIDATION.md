@@ -5,7 +5,54 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
-### Campaign 055 Signal Arcade desirability pass — 2026-09-20 (PARTIAL — env blocker on final native matrix)
+### Campaign 055 Signal Arcade desirability pass — 2026-09-20 resumption (PARTIAL — pixel matrix blocked by host display failure)
+
+- Scope: **PARTIAL** — resumed from `90169bf7` (prompt commit `18b7851`,
+  fast-forwarded). Closed the bounded Campaign 055 debt: result duplication
+  42/42 (27 redundant `Score` rows removed, unique metrics preserved),
+  canonical `normalizedResult` adoption 42/42 (0 non-adopters), 27/27 compact
+  target observations classified (0 unresolved TRUE_UNDERSIZED_TARGET; the
+  findings were an audit-density artifact and the 4 Progress tabs meet 44 dp via
+  the shared `Tappable` hit-slop), nine Progress drill-down `explainMetric`
+  captions refined, gameplay dead space classified game-owned (Class B).
+- Product-source checkpoint: `ddfe539d1a25b5bf47b2b3975ee37783e0f81f60`.
+- **Authoritative final artifact:** release APK SHA-256
+  `A83729AEFC9C00D398A215880CFB5B6837A3F08CA248EEC770BAAF2D33C48AA5`
+  (109,596,169 bytes, `com.braintraining.app` v0.1.0, debug-signed local
+  release, Metro-independent). The previous `9E6B94FC…` / `E1E9C4BD…` builds
+  are historical intermediate artifacts only.
+- Repository gates on the frozen source: **PASS** — full gated Jest **565
+  suites / 6,731 tests** (4 suites / 5 tests opt-in skips, 5 snapshots, 0
+  unexpected console output), typecheck, lint 0/0, Expo Doctor 21/21, OpenSpec
+  strict 39/39, repo-state, task ownership, affected-map sync, registry,
+  provenance, offline (983 files), secrets (2,527 files), workflows,
+  dependency audit, runtime-QA contract, web export, Android debug build
+  (2 m 26 s) and release build (2 m 49 s).
+- Opt-in probes: **5/5 PASS** (22 tests).
+- Native semantic closure on the exact final artifact: **PASS** — clean
+  install/first launch (702 ms), warm (451 ms) and offline (485 ms) launches,
+  invalid/oversized game id and oversized Results id recovery, malformed
+  workout provenance ignored safely, Home ready/completed, Games + search
+  ("Showing 7 of 42 games") + scroll, 8 games across 8 domains at Detail, real
+  tutorial/gameplay interaction, honest weak Result ("Keep training", neutral
+  reward, no PB), dark Games/Result, a full four-game workout with
+  Next/Next/Next/Finish and 4/4 Home completion, relaunch retention, clean
+  SQLite audit (integrity ok, FK 0, schema v12, 0 duplicate session/ledger/
+  rating ids, workout `completed`) and clean log review (0 fatal/ANR/OOM/
+  SQLite/RedBox).
+- **NOT VALIDATED:** the pixel-level six-way visual matrix
+  (default/compact/font-scale-2 × light/dark) and pixel before/after
+  comparison. The host emulator display/compositing path produces no composited
+  frames in every GPU mode (`UpdateLayeredWindowIndirect failed … A device
+  attached to the system is not functioning`; `dumpsys gfxinfo` 0 frames), the
+  canonical `ui-capture` harness reports every capture `BLANK`, profile
+  switches wedge the transport, and `braintraining-ui35` still crashes
+  `0xC0000005` on every launch. `emulator-5556` and all non-target runtimes
+  were untouched. Evidence: `RESUMPTION_ENVIRONMENT_RECOVERY.md`,
+  `FINAL_NATIVE_VALIDATION.md`, `CAMPAIGN055_CLOSURE.md`.
+- Verdict: `CAMPAIGN_055_DESIRABILITY_PASS_PARTIAL`.
+
+### Campaign 055 Signal Arcade desirability pass — 2026-09-20 first session (PARTIAL — env blocker on final native matrix)
 
 - Scope: **PARTIAL** — the owner-directed desirability pass executed the full
   refinement: research + refinement lock, shared Stage/Panel/Report/Slot roles,
