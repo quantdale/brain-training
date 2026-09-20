@@ -40,7 +40,6 @@ export async function runMigrations(
       throw new Error(`Duplicate migration version ${migrations[i].version}`);
     }
   }
-
   const current = await getSchemaVersion(adapter);
 
   // Task 8.2: Reject if database has newer schema than code supports
@@ -61,6 +60,26 @@ export async function runMigrations(
   }
 
   const pending = migrations.filter((m) => m.version > current && m.version <= target);
+
+  // 059: the applied range must be gap-free. Without this, a gappy set
+  // would silently skip a version while user_version advances past it,
+  // leaving the database reporting a version whose objects were never
+  // created. Single-migration custom sets (e.g. a lone v6 over a v5
+  // database) and partial targets keep working — only versions inside the
+  // range this run would apply are required to be contiguous. Fail fast
+  // before touching the database.
+  if (pending.length > 0) {
+    const applied = new Set(pending.map((m) => m.version));
+    const maxApplied = Math.max(...applied);
+    for (let v = current + 1; v <= maxApplied; v++) {
+      if (!applied.has(v)) {
+        throw new Error(
+          `Migration set gap: missing version ${v} inside the applied range ` +
+            `(${current + 1}..${maxApplied}). Versions applied by one run must be contiguous.`,
+        );
+      }
+    }
+  }
 
   for (const migration of pending) {
     await adapter.transaction(async (txn) => {

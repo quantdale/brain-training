@@ -17,6 +17,7 @@ import {
   getDb,
   type AppDatabase,
   WorkoutRepository,
+  WorkoutWriteConflictError,
   type WorkoutInstance,
 } from "@/db";
 import { paidReroll } from "@/db/economy";
@@ -284,29 +285,47 @@ export function useWorkout(args: {
       .slice(0, remainingSlots);
     const ids = [...current.gameIds.slice(0, current.currentIndex), ...freshIds];
     const cost = rerollCost(current.rerollAttempt);
+    // 059: the CAS baseline is the row this reroll selected from, so a
+    // concurrent advance/reroll between selection and write loses loudly.
+    const baseline = {
+      rerollAttempt: current.rerollAttempt,
+      currentIndex: current.currentIndex,
+      gameIds: current.gameIds,
+    };
 
-    if (cost > 0) {
-      // Atomic: debit + workout transition in one transaction, deduplicated by
-      // a stable per-(date,attempt) operationId so a "committed-but-unconfirmed"
-      // retry at the same attempt cannot re-debit (F1, task 7.5). After a
-      // successful reroll nextAttempt advances, so a later attempt gets a
-      // different id — this is intentional; a post-advance lost-confirmation
-      // is a known small edge (advance already durable).
-      await paidReroll(db, {
-        cost,
-        reason: "workout-reroll",
-        operationId: `workout-reroll:${date}:${nextAttempt}`,
-        mutateWorkout: async (txn: SQLiteAdapter) => {
-          await new WorkoutRepository(txn).applyReroll(date, ids, nextAttempt);
-        },
-      });
-    } else {
-      await db.workouts.applyReroll(date, ids, nextAttempt);
+    // 059: a concurrent advance/reroll between our read and the write loses
+    // loudly (WorkoutWriteConflictError) instead of resurrecting played
+    // legs. Refresh so the screen shows the true row, then propagate — the
+    // existing error surfacing (paid-debit failures propagate identically).
+    try {
+      if (cost > 0) {
+        // Atomic: debit + workout transition in one transaction, deduplicated by
+        // a stable per-(date,attempt) operationId so a "committed-but-unconfirmed"
+        // retry at the same attempt cannot re-debit (F1, task 7.5). After a
+        // successful reroll nextAttempt advances, so a later attempt gets a
+        // different id — this is intentional; a post-advance lost-confirmation
+        // is a known small edge (advance already durable).
+        await paidReroll(db, {
+          cost,
+          reason: "workout-reroll",
+          operationId: `workout-reroll:${date}:${nextAttempt}`,
+          mutateWorkout: async (txn: SQLiteAdapter) => {
+            await new WorkoutRepository(txn).applyReroll(date, ids, nextAttempt, baseline);
+          },
+        });
+      } else {
+        await db.workouts.applyReroll(date, ids, nextAttempt, baseline);
+      }
+    } catch (error) {
+      if (error instanceof WorkoutWriteConflictError) {
+        refresh();
+      }
+      throw error;
     }
     const updated = await db.workouts.getByDate(date);
     if (updated) setInstance(updated);
     emitWorkoutChanged();
-  }, [date]);
+  }, [date, refresh]);
 
   // Re-read the instance when another screen changes it (e.g. the result screen
   // advances the workout after a completed session). Router-free + synchronous so

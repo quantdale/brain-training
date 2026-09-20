@@ -128,4 +128,41 @@ describe('future / unknown schema handling', () => {
     ];
     await expect(runMigrations(adapter, { migrations: dupes })).rejects.toThrow(/Duplicate migration version/i);
   });
+
+  it('059: a gappy custom migration set fails fast before any write', async () => {
+    const adapter = createNodeSqliteAdapter(':memory:');
+    const gappy = [
+      { version: 1, up: async () => undefined },
+      { version: 2, up: async () => undefined },
+      { version: 4, up: async () => undefined },
+    ];
+    await expect(runMigrations(adapter, { migrations: gappy })).rejects.toThrow(
+      /missing version 3/,
+    );
+    // Nothing applied: user_version untouched, no tables created.
+    expect(await getSchemaVersion(adapter)).toBe(0);
+    await adapter.close();
+  });
+
+  it('059: single-migration custom sets and partial targets keep working', async () => {
+    // Lone v6 over a v5 database: the applied range (5,6] is contiguous.
+    const loneV6 = [
+      {
+        version: 6,
+        up: async (txn: SQLiteAdapter) => {
+          await txn.exec('CREATE TABLE lone_v6_probe (id INTEGER)');
+        },
+      },
+    ];
+    const adapter = createNodeSqliteAdapter(':memory:');
+    await runMigrations(adapter, { targetVersion: 5 });
+    await runMigrations(adapter, { migrations: loneV6, targetVersion: 6 });
+    expect(await getSchemaVersion(adapter)).toBe(6);
+    // Partial target over the shipped set: only (0,2] applies, contiguous.
+    const adapter2 = createNodeSqliteAdapter(':memory:');
+    await runMigrations(adapter2, { targetVersion: 2 });
+    expect(await getSchemaVersion(adapter2)).toBe(2);
+    await adapter.close();
+    await adapter2.close();
+  });
 });

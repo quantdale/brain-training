@@ -42,6 +42,29 @@ import {
 
 export type WorkoutStatus = "active" | "completed";
 
+/**
+ * Caller-observed row snapshot a reroll must still match to commit (059).
+ * The hook passes the row it selected from so a concurrent advance/reroll
+ * between selection and write loses loudly instead of being overwritten.
+ */
+export interface RerollBaseline {
+  readonly rerollAttempt: number;
+  readonly currentIndex: number;
+  readonly gameIds: readonly string[];
+}
+
+/**
+ * Thrown when a workout write's compare-and-swap precondition fails: the
+ * row changed under the caller (concurrent advance/reroll). Callers refresh
+ * and surface honestly instead of silently overwriting (059).
+ */
+export class WorkoutWriteConflictError extends Error {
+  constructor(key: string) {
+    super(`workout changed under write for key ${key}: refresh and retry`);
+    this.name = "WorkoutWriteConflictError";
+  }
+}
+
 export interface WorkoutInstance {
   /** Instance key: bare local date (daily) or `<date>::<templateId>::<length>`. */
   date: string;
@@ -111,6 +134,50 @@ function rowToInstance(row: WorkoutRow): WorkoutInstance {
     updatedAt: row.updated_at,
     ...(metadata ? { metadata } : {}),
   };
+}
+
+/**
+ * Boot janitor for corrupt empty workout rows (059; closes the 056-F8
+ * residual). A row whose `game_ids_json` parses to zero playable games —
+ * `[]`, corrupt JSON, or a non-array — carries no playable games: backup
+ * import rejects such rows, and with a registered catalog selection always
+ * fills every slot (an empty catalog fails bootstrap before any workout
+ * loads), so in practice only corruption reaches this state. Deletes them
+ * (any status) in one transaction and returns the deleted count for
+ * evidence. Healthy rows are never touched. Uses the same string-filter
+ * as `rowToInstance` so the janitor and the reader agree on what "empty"
+ * means.
+ */
+export async function deleteEmptyWorkoutInstances(
+  adapter: SQLiteAdapter,
+): Promise<number> {
+  const rows = await adapter.all<{ date: string; game_ids_json: string }>(
+    "SELECT date, game_ids_json FROM workout_instances",
+  );
+  const emptyDates: string[] = [];
+  for (const row of rows) {
+    let gameIds: string[] = [];
+    try {
+      const parsed: unknown = JSON.parse(row.game_ids_json);
+      if (Array.isArray(parsed)) {
+        gameIds = parsed.filter((g): g is string => typeof g === "string");
+      }
+    } catch {
+      gameIds = [];
+    }
+    if (gameIds.length === 0) {
+      emptyDates.push(row.date);
+    }
+  }
+  if (emptyDates.length === 0) {
+    return 0;
+  }
+  await adapter.transaction(async (txn) => {
+    for (const date of emptyDates) {
+      await txn.run("DELETE FROM workout_instances WHERE date = ?", [date]);
+    }
+  });
+  return emptyDates.length;
 }
 
 /** Exact ownership predicate shared by lookup and the conditional write path. */
@@ -390,6 +457,7 @@ export class WorkoutRepository {
     date: string,
     newGameIds: string[],
     newAttempt: number,
+    expected?: RerollBaseline,
   ): Promise<WorkoutInstance> {
     const current = await this.getByDate(date);
     if (!current) {
@@ -404,12 +472,40 @@ export class WorkoutRepository {
     const future = newGameIds.slice(current.currentIndex);
     const merged = [...completedPrefix, ...future];
     const updatedAt = this.now();
-    await this.adapter.run(
+    // Compare-and-swap on the caller's read snapshot when provided (the
+    // hook passes the row it selected from), else on this call's fresh
+    // read. A concurrent advance shifts the positional merge base and a
+    // concurrent reroll bumps the attempt — either must lose loudly
+    // instead of resurrecting played legs or double-applying. Mirrors
+    // advanceForSession's conditional-write discipline.
+    //
+    // The list comparison uses canonical forms on both sides (059/i): a
+    // hand-edited row may store non-canonical JSON (whitespace, filtered
+    // members) that still parses to the same playable list — predicating
+    // on raw bytes would fail such rows permanently with no converging
+    // retry. Real list moves (reconcile substitution) still mismatch.
+    const baseline = expected ?? current;
+    if (
+      JSON.stringify(baseline.gameIds) !== JSON.stringify(current.gameIds)
+    ) {
+      throw new WorkoutWriteConflictError(date);
+    }
+    const applied = await this.adapter.run(
       `UPDATE workout_instances
        SET game_ids_json = ?, reroll_attempt = ?, updated_at = ?
-       WHERE date = ?`,
-      [JSON.stringify(merged), newAttempt, updatedAt, date],
+       WHERE date = ? AND reroll_attempt = ? AND current_index = ?`,
+      [
+        JSON.stringify(merged),
+        newAttempt,
+        updatedAt,
+        date,
+        baseline.rerollAttempt,
+        baseline.currentIndex,
+      ],
     );
+    if (applied.changes === 0) {
+      throw new WorkoutWriteConflictError(date);
+    }
     return {
       ...current,
       gameIds: merged,

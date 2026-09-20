@@ -18,7 +18,7 @@ import { RatingRepository } from './rating';
 import { SessionRepository } from './sessions';
 import { TutorialRepository } from './tutorial';
 import type { RatingService } from './types';
-import { WorkoutRepository } from './workout';
+import { WorkoutRepository, deleteEmptyWorkoutInstances } from './workout';
 import { XpAwardsRepository } from './xp-awards';
 
 export type { SQLiteAdapter, SQLiteRunResult } from './adapter';
@@ -57,8 +57,8 @@ export type { XpAward } from './xp-awards';
 export { SessionRepository } from './sessions';
 export { TutorialRepository } from './tutorial';
 export type { CompleteSessionResult, GameAggregate } from './sessions';
-export { WorkoutRepository } from './workout';
-export type { WorkoutAdvanceResult, WorkoutInstance, WorkoutStatus } from './workout';
+export { WorkoutRepository, WorkoutWriteConflictError, deleteEmptyWorkoutInstances } from './workout';
+export type { RerollBaseline, WorkoutAdvanceResult, WorkoutInstance, WorkoutStatus } from './workout';
 export { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 export {
   spendCurrency,
@@ -114,6 +114,11 @@ export interface AppDatabaseOptions {
   now?: () => number;
   /** Rating service applied by `completeSession` (see `RatingService`). */
   rating?: RatingService;
+  /**
+   * Injectable adapter opener (059). Defaults to the Expo native database;
+   * tests inject a disposable adapter to prove failed passes close up.
+   */
+  createAdapter?: () => SQLiteAdapter;
 }
 
 /** Typed facade over the seven repositories, bound to one connection. */
@@ -194,16 +199,31 @@ export async function initDatabase(options: AppDatabaseOptions = {}): Promise<Ap
 
 /** Perform one startup pass; concurrent callers are coalesced by initDatabase. */
 async function initializeDatabase(options: AppDatabaseOptions): Promise<AppDatabase> {
-  const adapter = createExpoSqliteAdapter(openExpoDatabase(APP_DATABASE_NAME));
-  await initializeConnection(adapter);
-  await runMigrations(adapter);
-  // Self-heal any schema guard lost to a crash during a previous
-  // replace-import/wipe (drop-then-recreate window). No-op on healthy DBs.
-  await ensureSchemaGuards(adapter);
-  const app = new AppDatabase(adapter, options);
-  await app.profile.ensureExists(); // create-on-first-launch
-  instance = app;
-  return app;
+  const createAdapter =
+    options.createAdapter ??
+    (() => createExpoSqliteAdapter(openExpoDatabase(APP_DATABASE_NAME)));
+  const adapter = createAdapter();
+  try {
+    await initializeConnection(adapter);
+    await runMigrations(adapter);
+    // Self-heal any schema guard lost to a crash during a previous
+    // replace-import/wipe (drop-then-recreate window). No-op on healthy DBs.
+    await ensureSchemaGuards(adapter);
+    // Purge definitionally-corrupt empty workout rows (any status) so
+    // `countCompleted` can never include them (059; closes the 056-F8
+    // residual). No-op on healthy DBs; healthy rows are never touched.
+    await deleteEmptyWorkoutInstances(adapter);
+    const app = new AppDatabase(adapter, options);
+    await app.profile.ensureExists(); // create-on-first-launch
+    instance = app;
+    return app;
+  } catch (error) {
+    // A failed pass must not leak its native connection: bootstrap retry
+    // would otherwise stack connections against the same file (059).
+    // Best-effort — a half-opened handle may already be unusable.
+    await adapter.close().catch(() => {});
+    throw error;
+  }
 }
 
 /** Access the initialized database; throws when initDatabase() was not run. */

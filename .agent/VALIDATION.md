@@ -55,6 +55,21 @@ unavailable checks into PASS.
 - Boundaries: manual/platform/store/CI per program. Evidence:
   `openspec/changes/058-product-ux-navigation-residuals/`.
 
+### Change 059 persistence & transaction atomicity — 2026-09-20 (VALIDATED / CHANGE_059_COMPLETE)
+
+- Scope: **PASS** — reroll CAS (canonical-compare + attempt/index),
+  init close-on-failure + factory seam, migration applied-range
+  contiguity, empty-workout boot janitor (closes 056-F8). Trigger/
+  fan-out/export/v12/snapshot census claims closed by design evidence.
+  Adversarial CLOSE_WITH_FIXES fully repaired.
+- Repository gates: **PASS** — full gated Jest **572 passed / 4 skipped
+  suites, 6,825 passed / 5 skipped tests, 5 snapshots** (exit 0, console
+  gate clean); typecheck; lint; repo-state PASS; OpenSpec `--all --strict`
+  43/43.
+- Native/artifact: **NOT APPLICABLE** — no UI/route/game change.
+- Boundaries: manual/platform/store/CI per program. Evidence:
+  `openspec/changes/059-persistence-transaction-atomicity/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

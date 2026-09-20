@@ -16,8 +16,12 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
 import { createMigratedDb } from './helpers';
+import {
+  WorkoutRepository,
+  WorkoutWriteConflictError,
+  deleteEmptyWorkoutInstances,
+} from '../workout';
 import { SessionRepository } from '../sessions';
-import { WorkoutRepository } from '../workout';
 import type { GameSessionRecord } from '../types';
 import {
   createWorkoutMetadata,
@@ -449,6 +453,95 @@ describe('corrupt persisted rows never crash reads or writes', () => {
     await expect(workouts.applyReroll('2099-01-01', ['a'], 1)).rejects.toThrow(
       /No workout instance/,
     );
+  });
+});
+
+describe('059: reroll compare-and-swap + empty-row janitor', () => {
+  let adapter: SQLiteAdapter;
+  let workouts: WorkoutRepository;
+
+  beforeEach(async () => {
+    adapter = await createMigratedDb();
+    workouts = makeWorkouts(adapter);
+  });
+
+  it('a stale reroll baseline loses loudly instead of resurrecting played legs', async () => {
+    await workouts.getOrCreate('2026-08-20', {
+      gameIds: ['a', 'b', 'c', 'd'],
+      seedVersion: 1,
+    });
+    // The hook's-eye snapshot, read before a concurrent completion lands.
+    const stale = await workouts.getByDate('2026-08-20');
+    expect(stale?.currentIndex).toBe(0);
+    // Concurrent completion advances 0 -> 1 through the owned path.
+    await workouts.advance('2026-08-20');
+    // Applying the stale snapshot's reroll must throw, not rewrite leg 1
+    // back into the future.
+    await expect(
+      workouts.applyReroll('2026-08-20', ['a', 'x', 'y', 'z'], 1, stale!),
+    ).rejects.toThrow(WorkoutWriteConflictError);
+    const untouched = await workouts.getByDate('2026-08-20');
+    expect(untouched?.gameIds).toEqual(['a', 'b', 'c', 'd']);
+    expect(untouched?.currentIndex).toBe(1);
+    expect(untouched?.rerollAttempt).toBe(0);
+    // Honest retry from a fresh read commits normally.
+    const fresh = await workouts.getByDate('2026-08-20');
+    const done = await workouts.applyReroll('2026-08-20', ['a', 'x', 'y', 'z'], 1, fresh!);
+    expect(done.rerollAttempt).toBe(1);
+    expect(done.gameIds).toEqual(['a', 'x', 'y', 'z']);
+    expect(done.currentIndex).toBe(1); // played prefix immutable
+  });
+
+  it('purges corrupt empty rows of any status and counts them, leaving healthy rows intact', async () => {
+    await insertRawRow(adapter, {
+      date: '2026-08-20',
+      game_ids_json: JSON.stringify(['a', 'b']),
+      status: 'active',
+      current_index: 0,
+    });
+    await insertRawRow(adapter, {
+      date: '2026-08-21',
+      game_ids_json: JSON.stringify(['a', 'b']),
+      status: 'completed',
+      current_index: 2,
+    });
+    await insertRawRow(adapter, { date: '2026-08-22', game_ids_json: '[]' });
+    await insertRawRow(adapter, {
+      date: '2026-08-23',
+      game_ids_json: '[]',
+      status: 'completed',
+      current_index: 0,
+    });
+    await insertRawRow(adapter, { date: '2026-08-24', game_ids_json: 'NOT_JSON{{[' });
+    await insertRawRow(adapter, { date: '2026-08-25', game_ids_json: '{"a":1}' });
+    // Both completed rows count while the corrupt one exists.
+    expect(await workouts.countCompleted()).toBe(2);
+
+    expect(await deleteEmptyWorkoutInstances(adapter)).toBe(4);
+
+    expect(await workouts.getByDate('2026-08-20')).toMatchObject({
+      status: 'active',
+      currentIndex: 0,
+    });
+    expect(await workouts.getByDate('2026-08-21')).toMatchObject({
+      status: 'completed',
+      currentIndex: 2,
+    });
+    expect(await workouts.getByDate('2026-08-22')).toBeNull();
+    expect(await workouts.getByDate('2026-08-23')).toBeNull();
+    expect(await workouts.getByDate('2026-08-24')).toBeNull();
+    expect(await workouts.getByDate('2026-08-25')).toBeNull();
+    // The corrupt completed row no longer inflates the count.
+    expect(await workouts.countCompleted()).toBe(1);
+  });
+
+  it('is a no-op returning 0 on a healthy database', async () => {
+    await workouts.getOrCreate('2026-08-20', {
+      gameIds: ['a', 'b'],
+      seedVersion: 1,
+    });
+    expect(await deleteEmptyWorkoutInstances(adapter)).toBe(0);
+    expect((await workouts.getByDate('2026-08-20'))?.gameIds).toEqual(['a', 'b']);
   });
 });
 

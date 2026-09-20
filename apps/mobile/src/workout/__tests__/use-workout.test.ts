@@ -6,10 +6,10 @@
  * instance loads/creates on mount, reroll persists the attempt count and is
  * transactional, and advance moves the resume index and persists it.
  */
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { getDb, initDatabase } from '@/db';
+import { getDb, initDatabase, WorkoutWriteConflictError } from '@/db';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions } from '@/registry/registry';
 import { localDateString } from '@/workout/today';
@@ -84,5 +84,38 @@ describe('useWorkout (task 6.2 / 6.5)', () => {
 
     const persisted = await getDb().workouts.getByDate(localDateString());
     expect(persisted?.currentIndex).toBe(2);
+  });
+
+  it('059: a conflicted reroll refreshes and propagates instead of silently overwriting', async () => {
+    const { result } = await renderHook(() =>
+      useWorkout({ domainRatings: [], recentGameIds: [], balance: 0 }),
+    );
+    await waitFor(() => expect(result.current.instance).not.toBeNull());
+
+    // First reroll is free: force the CAS to lose once.
+    const apply = jest.spyOn(getDb().workouts, 'applyReroll');
+    apply.mockRejectedValueOnce(
+      new WorkoutWriteConflictError(localDateString()),
+    );
+    try {
+      await act(async () => {
+        await expect(result.current.reroll()).rejects.toThrow(
+          WorkoutWriteConflictError,
+        );
+      });
+    } finally {
+      apply.mockRestore();
+    }
+    // The hook re-read the true row (still attempt 0) and stayed usable:
+    // a retry from the fresh read commits.
+    await waitFor(() =>
+      expect(result.current.instance!.rerollAttempt).toBe(0),
+    );
+    await act(async () => {
+      await result.current.reroll();
+    });
+    await waitFor(() =>
+      expect(result.current.instance!.rerollAttempt).toBe(1),
+    );
   });
 });

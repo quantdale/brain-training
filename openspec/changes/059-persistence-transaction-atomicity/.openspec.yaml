@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-20
+goal: Harden persistence and boot integrity where the design evidence shows a real gap — atomic reroll transitions, leak-free retry initialization, fail-fast migration sets, and healing of corrupt empty workout rows — while leaving proven self-healing paths exactly as designed.

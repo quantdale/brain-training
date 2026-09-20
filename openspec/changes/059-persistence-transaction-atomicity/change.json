@@ -1,0 +1,21 @@
+{
+  "id": "059-persistence-transaction-atomicity",
+  "status": "VALIDATED",
+  "predecessor": "058-product-ux-navigation-residuals",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["persistence-transaction-atomicity"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Fourth of Changes 056-067; first theme-059-061 structural item.",
+  "baselineAuditCommit": "5598dfb",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "Overnight census lane 4 (persistence) re-verified at 5598dfb before speccing: trigger window (boot-heal tested), quest fan-out (idempotent), export lock (consistency), v12 repair (accepted), snapshot tear (accepted LOW) all closed by design evidence — no change. Seed FNV explicitly deferred to 060.",
+  "validatedAt": "2026-09-20",
+  "validationNote": "Terminal close after adversarial CLOSE_WITH_FIXES (all 6 repaired: canonical-compare CAS, spec/design/audit wording, carve-out tests, empty-catalog documentation). Full gated Jest 572 passed / 4 skipped suites, 6,825 passed / 5 skipped tests, 5 snapshots (exit 0, console gate clean); typecheck; lint; repo-state PASS; OpenSpec --all --strict 43/43. Census trigger/fan-out/export/v12/snapshot claims closed by design evidence (no change). Product checkpoint unchanged (34c9b2d); no UI/artifact change.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_059_COMPLETE"
+}
