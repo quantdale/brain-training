@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-20
+goal: Make workout lifecycle transitions honest under catalog drift, hostile routes, and corrupt rows — no unplayed completion credit, no rewritten played history, no ownership bypass — while keeping the ownership architecture (route tuple + launch map + durable decoration + conditional advance) intact.

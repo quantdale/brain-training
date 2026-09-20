@@ -93,10 +93,28 @@ export async function advanceWorkoutForSession(
   const db = getDb();
   const loaded = await db.workouts.findActiveInstanceForSession(signal);
 
-  // Not the owning current leg: already advanced/completed/standalone. Read
-  // the durable row for correct navigation without any write.
+  // Not the owning current leg: already advanced/completed/standalone. Repair
+  // the durable row before navigating: since 056 the pure repair can
+  // substitute a retired leg, and navigation computed from an unrepaired row
+  // would point Next at a game the durable row does not own (standalone
+  // save, no advance). `reconcile` persists only when the repair changed
+  // anything, so this stays a read in the common no-drift case.
   if (!shouldAdvanceWorkout(signal, loaded)) {
     const current = await readCurrentInstance(signal);
+    if (current) {
+      try {
+        const repaired =
+          (await db.workouts.reconcile(current.date, eligibleGameIds())) ??
+          current;
+        return withNavigation(repaired, false);
+      } catch (error) {
+        console.error("[workout] navigation reconciliation failed", error);
+      }
+    }
+    // Persist-repair unavailable (failing store): navigate from the repaired
+    // shape anyway. A Next launch from it degrades to a standalone save by
+    // design (ownership fails safely) rather than crashing or pointing at a
+    // retired game — no false credit is possible on this path (056 F5).
     return withNavigation(
       reconcileWorkout(current, eligibleGameIds()).instance,
       false,
@@ -119,6 +137,8 @@ export async function advanceWorkoutForSession(
       console.error("[workout] advance reconciliation failed", error);
     }
   }
+  // `display` is already repaired+persisted above, so this pure call is a
+  // no-op convergence check, not a second repair.
   return withNavigation(
     reconcileWorkout(display, eligibleGameIds()).instance,
     advanced,

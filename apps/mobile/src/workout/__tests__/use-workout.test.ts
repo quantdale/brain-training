@@ -68,11 +68,16 @@ describe('useWorkout (task 6.2 / 6.5)', () => {
     );
     await waitFor(() => expect(result.current.instance).not.toBeNull());
 
+    // 056: the hook no longer exposes the unconditional `advance()` bypass;
+    // explicit progress moves through the db primitive, and the hook
+    // re-reads via `refresh()`.
     await act(async () => {
-      await result.current.advance();
+      await getDb().workouts.advance(localDateString());
+      await result.current.refresh();
     });
     await act(async () => {
-      await result.current.advance();
+      await getDb().workouts.advance(localDateString());
+      await result.current.refresh();
     });
 
     await waitFor(() => expect(result.current.instance!.currentIndex).toBe(2));

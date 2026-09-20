@@ -6,9 +6,10 @@
  * the selection when absent) so the workout survives restart/resume. Reroll is
  * transactional: the currency debit and the workout transition commit together
  * via `paidReroll` (the free first reroll omits the debit). The result screen
- * uses the provenance-checked `WorkoutRepository.advanceForSession`; this
- * hook's `advance` remains a direct/manual helper for local workout controls
- * and legacy callers.
+ * uses the provenance-checked `WorkoutRepository.advanceForSession` via
+ * `advanceWorkoutForSession`; no UI-reachable path advances a leg without
+ * proving session ownership (056 — the old hook-level `advance` bypass was
+ * removed).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SQLiteAdapter } from "@/db/adapter";
@@ -54,8 +55,6 @@ export interface UseWorkoutResult {
   rerollExhausted: boolean;
   /** Apply a reroll (persisted + currency-debited when paid). */
   reroll: () => Promise<void>;
-  /** Legacy/manual direct advance helper; result UI uses advanceForSession. */
-  advance: () => Promise<void>;
   /** Re-read the persisted instance (call when the screen regains focus). */
   refresh: () => void;
   /** Re-run the failed load-or-create pass. */
@@ -314,13 +313,6 @@ export function useWorkout(args: {
   // it is safe under unit tests; keeps Home's completed/current markers accurate.
   useEffect(() => onWorkoutChanged(refresh), [refresh]);
 
-  const advance = useCallback(async () => {
-    const db = getDb();
-    const updated = await db.workouts.advance(date);
-    setInstance(updated);
-    emitWorkoutChanged();
-  }, [date]);
-
   return {
     instance,
     currentGameId: instance
@@ -336,7 +328,6 @@ export function useWorkout(args: {
     canReroll,
     rerollExhausted,
     reroll,
-    advance,
     refresh,
     retry,
   };

@@ -21,6 +21,8 @@ import {
   parseRegisteredGameId,
 } from '@/routing/route-params';
 import { registerGameDefinitions } from '@/registry/registry';
+// Test-only static import (templates never imports routing, so no cycle).
+import { MAX_WORKOUT_LEG_INDEX } from '@/workout/templates';
 
 const OVERSIZED = 'a'.repeat(MAX_ROUTE_PARAM_LENGTH + 1);
 
@@ -86,6 +88,16 @@ describe('route input envelope: workout leg index', () => {
       MAX_ROUTE_LEG_INDEX,
     );
     expect(parseBoundedLegIndex(['2'])).toBe(2);
+  });
+
+  it('056: bound equals the longest real workout length (templates authority)', () => {
+    // The envelope keeps a literal so the startup path never inherits the
+    // selection module graph; this contract fails the suite if they drift.
+    expect(MAX_ROUTE_LEG_INDEX).toBe(MAX_WORKOUT_LEG_INDEX);
+    expect(MAX_ROUTE_LEG_INDEX).toBe(5); // extended = 6 games
+    // Previously accepted (31-bound era) indices now degrade to standalone.
+    expect(parseBoundedLegIndex('6')).toBeNull();
+    expect(parseBoundedLegIndex('31')).toBeNull();
   });
 
   it('rejects out-of-bounds, non-integer, and oversized values', () => {

@@ -290,15 +290,23 @@ export class WorkoutRepository {
    * Legacy/manual direct advance primitive. Result completion must use
    * `advanceForSession`, which proves the persisted session's ownership and
    * performs a conditional one-shot transition. This helper remains for
-   * explicit workout controls and historical callers.
+   * tests and template flows as an explicit control; UI surfaces must NOT
+   * use it to skip legs (056 — use `advanceWorkoutForSession` instead).
    */
   async advance(date: string): Promise<WorkoutInstance> {
     const current = await this.getByDate(date);
     if (!current) {
       throw new Error(`No workout instance for key ${date}`);
     }
+    if (current.gameIds.length === 0) {
+      // A corrupt/empty row must heal through reconcile → regenerate, never
+      // transition to `completed` and be counted (056).
+      throw new Error(`Cannot advance an empty workout instance for key ${date}`);
+    }
+    // Contain a corrupted negative index instead of driving it further
+    // negative; reconcile heals the row on the next load (056 F9).
     const nextIndex = Math.min(
-      current.currentIndex + 1,
+      Math.max(current.currentIndex, 0) + 1,
       current.gameIds.length,
     );
     const status: WorkoutStatus =
@@ -386,6 +394,11 @@ export class WorkoutRepository {
     const current = await this.getByDate(date);
     if (!current) {
       throw new Error(`No workout instance for key ${date}`);
+    }
+    if (current.gameIds.length === 0) {
+      // Same corrupt-row guard as `advance`: rerolling an empty instance
+      // would fabricate games onto a row that must regenerate instead (056).
+      throw new Error(`Cannot reroll an empty workout instance for key ${date}`);
     }
     const completedPrefix = current.gameIds.slice(0, current.currentIndex);
     const future = newGameIds.slice(current.currentIndex);

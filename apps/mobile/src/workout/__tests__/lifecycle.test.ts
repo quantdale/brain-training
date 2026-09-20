@@ -15,8 +15,10 @@
  *    REFUSED on a completed workout (no pointless debit),
  *  - date rollover leaves yesterday's partial row untouched and starts a fresh
  *    active instance for the new local date,
- *  - stored instances referencing retired game ids are reconciled on load
- *    (dropped / regenerated) instead of crashing or launching a dead game.
+  *  - stored instances referencing retired game ids are reconciled on load
+  *    (played history kept, future legs substituted, empty rows regenerated)
+  *    instead of crashing, launching a dead game, or granting unplayed
+  *    completion credit.
  */
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
@@ -25,6 +27,7 @@ import { getDb, initDatabase } from '@/db';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions } from '@/registry/registry';
 import { nextWorkoutGameId, shouldAdvanceWorkout } from '@/workout/advance';
+import { advanceWorkoutForSession } from '@/workout/session-advance';
 import { localDateString } from '@/workout/today';
 import { MAX_REROLLS_PER_DAY } from '@/workout/reroll';
 import { useWorkout } from '@/workout/use-workout';
@@ -45,6 +48,18 @@ jest.mock('@/workout/today', () => {
     localDateString: () => mockClock.today,
   };
 });
+
+/**
+ * 056: play a leg through the production ownership path (persisted-signal →
+ * conditional advance) instead of the removed hook-level `advance()` bypass.
+ */
+async function playLeg(gameId: string, instanceKey: string, legIndex: number) {
+  const result = await advanceWorkoutForSession({
+    gameId,
+    workoutProvenance: { instanceKey, legIndex, gameId },
+  });
+  expect(result.advanced).toBe(true);
+}
 
 describe('workout lifecycle (real db + real registry)', () => {
   beforeEach(async () => {
@@ -98,10 +113,13 @@ describe('workout lifecycle (real db + real registry)', () => {
         shouldAdvanceWorkout(session, result.current.instance),
       ).toBe(true);
       await act(async () => {
-        await result.current.advance();
+        await playLeg(ids[i]!, result.current.instance!.date, i);
+        result.current.refresh();
       });
       if (i < ids.length - 1) {
-        expect(result.current.instance!.currentIndex).toBe(i + 1);
+        await waitFor(() =>
+          expect(result.current.instance!.currentIndex).toBe(i + 1),
+        );
         expect(nextWorkoutGameId(result.current.instance)).toBe(ids[i + 1]);
       }
     }
@@ -112,9 +130,20 @@ describe('workout lifecycle (real db + real registry)', () => {
     expect(nextWorkoutGameId(result.current.instance)).toBeNull();
     expect(await getDb().workouts.countCompleted()).toBe(1);
 
-    // Idempotency: extra advances and re-viewed sessions change nothing.
+    // Idempotency: replaying the finished leg through the ownership path
+    // changes nothing (already completed → no write).
+    const lastSignal = {
+      gameId: ids[ids.length - 1]!,
+      workoutProvenance: {
+        instanceKey: result.current.instance!.date,
+        legIndex: ids.length - 1,
+        gameId: ids[ids.length - 1]!,
+      },
+    };
     await act(async () => {
-      await result.current.advance();
+      const replay = await advanceWorkoutForSession(lastSignal);
+      expect(replay.advanced).toBe(false);
+      result.current.refresh();
     });
     expect(result.current.instance!.currentIndex).toBe(ids.length);
     expect(result.current.instance!.status).toBe('completed');
@@ -142,9 +171,11 @@ describe('workout lifecycle (real db + real registry)', () => {
     );
     await waitFor(() => expect(first.result.current.instance).not.toBeNull());
     const ids = first.result.current.instance!.gameIds;
+    const dateKey = first.result.current.instance!.date;
     await act(async () => {
-      await first.result.current.advance();
-      await first.result.current.advance();
+      await playLeg(ids[0]!, dateKey, 0);
+      await playLeg(ids[1]!, dateKey, 1);
+      first.result.current.refresh();
     });
 
     // Relaunch: a brand-new hook over the SAME store resumes mid-workout.
@@ -172,7 +203,8 @@ describe('workout lifecycle (real db + real registry)', () => {
 
     // Complete game 1, then take the FREE first reroll.
     await act(async () => {
-      await result.current.advance();
+      await playLeg(ids[0]!, result.current.instance!.date, 0);
+      result.current.refresh();
     });
     await act(async () => {
       await result.current.reroll();
@@ -228,13 +260,15 @@ describe('workout lifecycle (real db + real registry)', () => {
     await waitFor(() => expect(result.current.instance).not.toBeNull());
     const ids = result.current.instance!.gameIds;
 
-    // Finish the whole day.
+    // Finish the whole day through the ownership path.
+    const finishKey = result.current.instance!.date;
     for (let i = 0; i < ids.length; i += 1) {
       await act(async () => {
-        await result.current.advance();
+        await playLeg(ids[i]!, finishKey, i);
+        result.current.refresh();
       });
     }
-    expect(result.current.status).toBe('completed');
+    await waitFor(() => expect(result.current.status).toBe('completed'));
 
     // A reroll now would replace nothing yet still debit — the hook refuses.
     await act(async () => {
@@ -266,10 +300,18 @@ describe('workout lifecycle (real db + real registry)', () => {
     await waitFor(() => expect(result.current.instance).not.toBeNull());
 
     const inst = result.current.instance!;
-    expect(inst.gameIds).toEqual([a, b, c]); // ghost dropped, order kept
-    expect(inst.currentIndex).toBe(1); // resume lands on the same game b
+    // 056 substitute-and-preserve: the ghost's slot is filled from the
+    // eligible pool, length is preserved, played history is untouched.
+    expect(inst.gameIds).toHaveLength(4);
+    expect(inst.gameIds[0]).toBe(a); // played prefix immutable
+    expect(inst.gameIds[1]).toBe(b); // resume lands on the same game b
+    expect(inst.gameIds[2]).toBe(c);
+    expect(inst.gameIds[3]).not.toBe(ghost);
+    expect(new Set(inst.gameIds).size).toBe(4); // no duplicate fill
+    expect(inst.currentIndex).toBe(1);
     expect(result.current.currentGameId).toBe(b);
-    expect(result.current.progress).toEqual({ current: 1, total: 3 });
+    expect(result.current.progress).toEqual({ current: 1, total: 4 });
+    expect(inst.status).toBe('active'); // no unplayed completion credit
   });
 
   it('catalog drift: fully-stale instance regenerates a fresh selection', async () => {
@@ -312,9 +354,12 @@ describe('date rollover (injected local date)', () => {
     );
     const day1 = evening.result.current.instance!;
     await act(async () => {
-      await evening.result.current.advance();
+      await playLeg(day1.gameIds[0]!, day1.date, 0);
+      evening.result.current.refresh();
     });
-    expect(evening.result.current.instance!.currentIndex).toBe(1);
+    await waitFor(() =>
+      expect(evening.result.current.instance!.currentIndex).toBe(1),
+    );
 
     // Next day: a relaunch must create a NEW active instance while
     // yesterday's partial row stays exactly as it was left.

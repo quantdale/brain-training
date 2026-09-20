@@ -8,6 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameSessionRecord, WorkoutInstance } from "@/db";
+import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { shouldAdvanceWorkout } from "./advance";
 import { emitWorkoutChanged } from "./events";
@@ -59,6 +60,7 @@ export function useWorkoutResultAdvance(
 
   const advancingRef = useRef(false);
   const advancedForSessionRef = useRef<string | null>(null);
+  const persistedRepairRef = useRef<string | null>(null);
   const [advanceError, setAdvanceError] = useState<string | null>(null);
   const [next, setNext] = useState<{
     id: string | null;
@@ -78,6 +80,30 @@ export function useWorkoutResultAdvance(
       return;
     }
     if (!shouldAdvanceWorkout(session, loadedInstance)) {
+      // No advance owed, but the displayed reconciled shape may differ from
+      // the durable row (retired legs substituted in memory). Persist the
+      // repair once per session so display and durable state converge;
+      // `reconcile` is idempotent, so this is a single write at most (056).
+      if (persistedRepairRef.current === session.id) {
+        return;
+      }
+      persistedRepairRef.current = session.id;
+      const { instance: fixed, changed } = reconcileWorkout(
+        loadedInstance,
+        eligibleGameIds(),
+      );
+      if (changed && fixed) {
+        try {
+          void getDb()
+            .workouts.reconcile(loadedInstance.date, eligibleGameIds())
+            .then(() => emitWorkoutChanged())
+            .catch((e: unknown) =>
+              console.error("[results] workout repair failed", e),
+            );
+        } catch (e: unknown) {
+          console.error("[results] workout repair unavailable", e);
+        }
+      }
       return;
     }
 

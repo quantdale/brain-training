@@ -1,0 +1,22 @@
+{
+  "id": "056-workout-lifecycle-integrity",
+  "status": "VALIDATED",
+  "predecessor": "055-signal-arcade-desirability",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["workout-lifecycle-integrity"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). First of Changes 056-067; theme 056-058 product/behavioral completeness.",
+  "baselineAuditCommit": "428d293",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "Overnight census lanes 1 (architecture), 2 (history), 4 (persistence), 6 (security input bounds) at 428d293. Reconcile auto-complete, leg-bound mismatch, hook advance exposure, corrupt-row completion, and launch-map recovery contracts verified against current source before speccing.",
+  "validatedAt": "2026-09-20",
+  "validationNote": "Terminal close post-adversarial repair. Full gated Jest 567 passed / 4 skipped suites, 6747 passed / 5 skipped tests, 5 snapshots (exit 0, console gate clean); typecheck; lint 0/0; Expo Doctor 21/21; repo-state PASS; OpenSpec --all --strict 40/40. Adversarial review CLOSE_WITH_FIXES: all 12 findings repaired (completed-verbatim freeze, result-advance effect-persist, negative-index containment, multi-slot/order tests, txn-fault + route-parse recovery tests, drift-nav persist test, spec/doc corrections) or bounded-disclosed (in-flight-leg replay window, historical corrupt-completed rows, persist-failure nav degradation). No UI/artifact change: no new APK matrix; product checkpoint unchanged from 34c9b2d.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_056_COMPLETE"
+
+}

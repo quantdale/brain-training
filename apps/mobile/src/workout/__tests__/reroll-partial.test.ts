@@ -26,6 +26,7 @@ import {
 } from '@/workout/reconcile';
 import { localDateString } from '@/workout/today';
 import { nextWorkoutAfterReroll } from '@/workout/reroll';
+import { advanceWorkoutForSession } from '@/workout/session-advance';
 import { useWorkout } from '@/workout/use-workout';
 
 describe('reroll after partial completion keeps every fresh game', () => {
@@ -47,14 +48,28 @@ describe('reroll after partial completion keeps every fresh game', () => {
       const total = original.gameIds.length;
       expect(total).toBeGreaterThanOrEqual(2);
 
-      // Complete the first k games durably.
+      // Complete the first k games durably through the ownership path (056:
+      // the hook no longer exposes the unconditional `advance()` bypass).
+      const playKey = result.current.instance!.date;
+      const playIds = result.current.instance!.gameIds;
       for (let i = 0; i < completionsBeforeReroll; i += 1) {
         await act(async () => {
-          await result.current.advance();
+          const played = await advanceWorkoutForSession({
+            gameId: playIds[i]!,
+            workoutProvenance: {
+              instanceKey: playKey,
+              legIndex: i,
+              gameId: playIds[i]!,
+            },
+          });
+          expect(played.advanced).toBe(true);
+          result.current.refresh();
         });
       }
-      expect(result.current.instance!.currentIndex).toBe(
-        completionsBeforeReroll,
+      await waitFor(() =>
+        expect(result.current.instance!.currentIndex).toBe(
+          completionsBeforeReroll,
+        ),
       );
 
       // Mirror the production reroll formula BEFORE calling reroll so the

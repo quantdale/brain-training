@@ -16,7 +16,8 @@
  * - workout instance keys are `<date>` or `<date>::<templateId>::<length>`
  *   (see `@/workout/metadata`), both bounded well under 128 chars;
  * - workout leg indices are non-negative safe integers within the longest
- *   supported workout length.
+ *   supported workout length (`MAX_WORKOUT_LEG_INDEX`, derived from the
+ *   extended length variant).
  *
  * DEFENSE IN DEPTH ATTRIBUTION (spec: dependency-route-safety): this
  * validation runs in application code AFTER expo-router/query-string have
@@ -38,8 +39,15 @@ import { isGameCategory } from '@/sdk';
  */
 export const MAX_ROUTE_PARAM_LENGTH = 128;
 
-/** Maximum accepted workout leg index (longest supported workout = 8 games). */
-export const MAX_ROUTE_LEG_INDEX = 31;
+/**
+ * Maximum accepted workout leg index. The longest length variant is
+ * `extended` = 6 games (`workout/templates`), so 5 is the highest leg any
+ * real workout can own. Kept as a literal (not an import) so this
+ * startup-path envelope never inherits the workout selection module graph;
+ * `routing/__tests__/route-params.test.ts` asserts equality with the
+ * templates authority (056).
+ */
+export const MAX_ROUTE_LEG_INDEX = 5;
 
 /**
  * Canonical generated-registry game id form: lowercase alphanumeric segments

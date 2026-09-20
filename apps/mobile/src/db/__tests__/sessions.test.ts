@@ -77,6 +77,59 @@ describe("completeSession", () => {
     clearWorkoutSessionLaunch("session-1");
   });
 
+  it("056: keeps launch ownership when the persist transaction itself fails", async () => {
+    // The validation-failure test above covers pre-transaction throws; this
+    // pins the mid-transaction leg of the clear-only-after-commit contract
+    // (sessions.ts): a faulted commit must leave the map so the same
+    // completion retry recovers ownership instead of saving standalone.
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+    const provenance = {
+      instanceKey: "2026-08-28",
+      legIndex: 0,
+      gameId: "game-memoria",
+    } as const;
+    registerWorkoutSessionLaunch("session-1", provenance);
+    const fault = jest
+      .spyOn(adapter, "transaction")
+      .mockRejectedValueOnce(new Error("injected storage fault"));
+    try {
+      await expect(
+        sessions.completeSession({ session: makeSession() }),
+      ).rejects.toThrow(/injected storage fault/);
+    } finally {
+      fault.mockRestore();
+    }
+    expect(peekWorkoutSessionLaunch("session-1")).toEqual(provenance);
+    expect(await sessions.getById("session-1")).toBeNull();
+    // The retry commits with ownership intact.
+    const retry = await sessions.completeSession({ session: makeSession() });
+    expect(retry.session.workoutProvenance).toEqual(provenance);
+    expect(peekWorkoutSessionLaunch("session-1")).toBeUndefined();
+  });
+
+  it("056: honors explicit record provenance with no map entry (restart-safe path)", async () => {
+    // After a process restart the in-memory map is empty; a session record
+    // that already carries its ownership tuple must still decorate and link.
+    const adapter = await createMigratedDb();
+    const sessions = new SessionRepository(adapter, () => T0);
+    const provenance = {
+      instanceKey: "2026-08-28",
+      legIndex: 0,
+      gameId: "game-memoria",
+    } as const;
+    expect(peekWorkoutSessionLaunch("session-1")).toBeUndefined();
+
+    const result = await sessions.completeSession({
+      session: makeSession({ workoutProvenance: { ...provenance } }),
+    });
+
+    expect(result.session.workoutProvenance).toEqual(provenance);
+    expect((await sessions.getById("session-1"))?.workoutProvenance).toEqual(
+      provenance,
+    );
+  });
+
   it("coerces INTEGER-declared columns at the persistence boundary (fractional monotonic-clock durations)", async () => {
     // Device-verified defect (campaign 013 certification): the SDK monotonic
     // clock is fractional-ms, so durationMs arrived as e.g. 27646.5688 and

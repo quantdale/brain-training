@@ -1,11 +1,17 @@
 # Durable Project State
 
-**Last update:** 2026-09-20 — Campaign 055 closed terminally under the owner pixel-certification prompt (`0de77dc`): the host display path was recovered, the six-way pixel matrix exposed and repaired three genuine defects, and the full pixel + accessibility + runtime matrix passed on the final artifact `99D1D132…0C55` (checkpoint `34c9b2d`). Verdict `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`.
+**Last update:** 2026-09-20 — Overnight program 056→067 active (NIGHT mode, program SHA `428d293`): safe fast-forward `73525cb` → `428d293`, 7-lane census complete, Change 056 (`056-workout-lifecycle-integrity`) terminally VALIDATED (`CHANGE_056_COMPLETE`). Campaign 055 baseline unchanged and protected.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
 **Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
+
+## Overnight program 056→067 (ACTIVE — Change 056 VALIDATED)
+
+- **Authorization:** `.agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md` (NIGHT/OVERNIGHT, program start `428d293`). Living ledger: `.agent/OVERNIGHT_056_067_STATE.md`.
+- **Change 056 — `056-workout-lifecycle-integrity` (VALIDATED / `CHANGE_056_COMPLETE`):** drift repair is substitute-and-preserve (played prefix immutable, retired future legs deterministically substituted, completed records verbatim, fully-stale → regenerate); leg-index envelope bound to the real max (`5`); hook-level unconditional `advance` removed; empty-row direct writes throw; launch-map recovery contracts pinned. Full matrix 567 suites / 6,747 tests / 5 snapshots green; typecheck/lint/Expo Doctor 21/21/repo-state/OpenSpec 40/40 strict; adversarial CLOSE_WITH_FIXES fully repaired/disclosed. Product checkpoint unchanged (`34c9b2d`); no new APK (no UI/artifact change).
+- **Next:** Change 057 (`result-reward-correctness`) per ledger plan; 058–067 pending; post-067 hardening not started.
 
 ## Campaign 055 — Signal Arcade Desirability Pass (VALIDATED / COMPLETE)
 

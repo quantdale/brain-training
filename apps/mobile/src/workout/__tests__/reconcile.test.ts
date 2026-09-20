@@ -34,12 +34,15 @@ describe("reconcileWorkout", () => {
     expect(instance).toBe(inst);
   });
 
-  it("drops a retired game that is not the current position", () => {
+  it("falls back to honest truncation when the pool has no spare (degenerate)", () => {
+    // 056: b retired at the current position with NO eligible substitute —
+    // the repair truncates instead of inventing a game. Same visible shape
+    // as the old truncation, now an explicit fallback rather than the rule.
     const inst = makeInstance({
       gameIds: ["a", "b", "c", "d"],
       currentIndex: 1,
     });
-    const { instance, changed } = reconcileWorkout(inst, ["a", "c", "d"]); // b retired
+    const { instance, changed } = reconcileWorkout(inst, ["a", "c", "d"]); // b retired, no spare
     expect(changed).toBe(true);
     expect(instance?.gameIds).toEqual(["a", "c", "d"]);
     // Current game (b at index 1) was dropped; index advances to the next valid slot.
@@ -48,27 +51,113 @@ describe("reconcileWorkout", () => {
     expect(instance?.status).toBe("active");
   });
 
-  it("advances the resume point past a retired CURRENT game", () => {
+  it("advances the resume point past a retired CURRENT game (no-spare fallback)", () => {
     const inst = makeInstance({
       gameIds: ["a", "b", "c", "d"],
       currentIndex: 1,
     });
-    const { instance } = reconcileWorkout(inst, ["a", "c", "d"]); // b (current) retired
+    const { instance } = reconcileWorkout(inst, ["a", "c", "d"]); // b (current) retired, no spare
     // b was the current game; after dropping b the resume point lands on c.
     expect(instance?.currentIndex).toBe(1);
     expect(instance?.gameIds[instance.currentIndex ?? -1]).toBe("c");
   });
 
-  it("drops a retired game before the current position and keeps current stable", () => {
+  it("056: substitutes multiple retired legs in pool order without overfilling", () => {
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 1,
+    });
+    // b and c retired (current + future); spares e, f, g — only two slots
+    // need filling. The surviving future leg keeps its slot, then pool order
+    // decides: e then f, never g (no overfill).
+    const { instance, changed } = reconcileWorkout(inst, ["a", "d", "e", "f", "g"]);
+    expect(changed).toBe(true);
+    expect(instance?.gameIds).toEqual(["a", "d", "e", "f"]);
+    expect(instance?.gameIds).toHaveLength(4);
+    expect(instance?.currentIndex).toBe(1);
+    expect(instance?.status).toBe("active");
+  });
+
+  it("056: never substitutes into or rewrites a completed record", () => {
+    // Corrupt shape: completed but resume mid-list with a retired future.
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 2,
+      status: "completed",
+    });
+    const { instance, changed } = reconcileWorkout(inst, ["a", "b", "c", "e"]);
+    expect(instance?.status).toBe("completed");
+    expect(instance?.gameIds).toEqual(["a", "b", "c", "d"]);
+    expect(instance?.currentIndex).toBe(2);
+    expect(changed).toBe(false);
+  });
+
+  it("keeps a retired PLAYED game verbatim and never rewrites history", () => {
+    // 056 substitute-and-preserve: a was already played (leg 0 done, resume
+    // at leg 2), so its later retirement must not rewrite the played prefix.
     const inst = makeInstance({
       gameIds: ["a", "b", "c", "d"],
       currentIndex: 2,
     });
-    const { instance } = reconcileWorkout(inst, ["b", "c", "d"]); // a retired (before current)
-    expect(instance?.gameIds).toEqual(["b", "c", "d"]);
-    // c was the current game (index 2 in original); it stays the current game.
-    expect(instance?.currentIndex).toBe(1);
+    const { instance, changed } = reconcileWorkout(inst, ["b", "c", "d"]); // a retired (played)
+    expect(changed).toBe(false);
+    expect(instance).toBe(inst);
+    expect(instance?.gameIds).toEqual(["a", "b", "c", "d"]);
+    expect(instance?.currentIndex).toBe(2);
     expect(instance?.gameIds[instance.currentIndex]).toBe("c");
+  });
+
+  it("substitutes a retired FUTURE leg and preserves length without completing", () => {
+    // 056: the word-match-shaped case — last unplayed leg retired while a
+    // substitute exists. No credit is granted; the user must play the sub.
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 3,
+      status: "active",
+    });
+    const { instance, changed } = reconcileWorkout(inst, ["a", "b", "c", "e"]);
+    expect(changed).toBe(true);
+    expect(instance?.gameIds).toEqual(["a", "b", "c", "e"]);
+    expect(instance?.currentIndex).toBe(3);
+    expect(instance?.status).toBe("active");
+  });
+
+  it("never invents a pool-order workout for a fully-stale instance (regenerate instead)", () => {
+    // Nothing played, nothing survives: even though x/y could fill slots,
+    // the caller must run the real seeded selection.
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 0,
+    });
+    const { instance, changed } = reconcileWorkout(inst, ["x", "y"]);
+    expect(instance).toBeNull();
+    expect(changed).toBe(true);
+  });
+
+  it("never resurrects a completed instance, even when its games retired", () => {
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 4,
+      status: "completed",
+    });
+    const { instance, changed } = reconcileWorkout(inst, ["a", "b"]);
+    expect(instance?.status).toBe("completed");
+    // Played history is preserved verbatim, not truncated.
+    expect(instance?.gameIds).toEqual(["a", "b", "c", "d"]);
+    expect(instance?.currentIndex).toBe(4);
+    expect(changed).toBe(false);
+  });
+
+  it("substitution is deterministic: re-running converges without churning", () => {
+    const inst = makeInstance({
+      gameIds: ["a", "b", "c", "d"],
+      currentIndex: 3,
+    });
+    const first = reconcileWorkout(inst, ["a", "b", "c", "e"]);
+    const second = reconcileWorkout(first.instance, ["a", "b", "c", "e"]);
+    expect(second.changed).toBe(false);
+    expect(second.instance).toBe(first.instance);
+    expect(first.instance?.gameIds).toEqual(["a", "b", "c", "e"]);
   });
 
   it("returns null when every stored game is ineligible (caller regenerates)", () => {

@@ -372,16 +372,23 @@ describe('corrupt persisted rows never crash reads or writes', () => {
     workouts = makeWorkouts(adapter);
   });
 
-  it('garbage game_ids_json loads as an empty selection and advances safely', async () => {
+  it('garbage game_ids_json loads as an empty selection and refuses to complete', async () => {
     await insertRawRow(adapter, { date: '2026-08-20', game_ids_json: 'NOT_JSON{{[' });
 
     const loaded = await workouts.getByDate('2026-08-20');
     expect(loaded?.gameIds).toEqual([]);
 
-    // Advancing an exhausted/empty list clamps and completes — never throws.
-    const advanced = await workouts.advance('2026-08-20');
-    expect(advanced.currentIndex).toBe(0);
-    expect(advanced.status).toBe('completed');
+    // 056: direct writes must never complete an empty row (it would be
+    // counted by countCompleted). The row heals via reconcile → regenerate.
+    await expect(workouts.advance('2026-08-20')).rejects.toThrow(
+      /empty workout instance/,
+    );
+    await expect(
+      workouts.applyReroll('2026-08-20', ['a', 'b'], 1),
+    ).rejects.toThrow(/empty workout instance/);
+    const repaired = await workouts.reconcile('2026-08-20', new Set(['a', 'b']));
+    expect(repaired).toBeNull();
+    expect(await workouts.getByDate('2026-08-20')).toBeNull();
   });
 
   it('drifted negative and overflowing current_index are contained', async () => {
@@ -422,6 +429,19 @@ describe('corrupt persisted rows never crash reads or writes', () => {
     expect(extra.currentIndex).toBe(3);
     expect(extra.status).toBe('completed');
     expect(await workouts.countCompleted()).toBe(1);
+  });
+
+  it('056: advance contains (never worsens) a corrupted negative index', async () => {
+    await insertRawRow(adapter, {
+      date: '2026-08-20',
+      game_ids_json: JSON.stringify(['a', 'b']),
+      current_index: -7,
+    });
+    // Clamped to 0 before stepping: resumes at the first game instead of
+    // persisting -6. Reconcile heals the row fully on the next load.
+    const advanced = await workouts.advance('2026-08-20');
+    expect(advanced.currentIndex).toBe(1);
+    expect(advanced.status).toBe('active');
   });
 
   it('throws for advance/reroll on an unknown key', async () => {

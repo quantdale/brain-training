@@ -5,6 +5,22 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+### Change 056 workout lifecycle integrity — 2026-09-20 (VALIDATED / CHANGE_056_COMPLETE)
+
+- Scope: **PASS** — substitute-and-preserve drift repair, leg-index bound 5,
+  provenance bounds, hook `advance` removal, empty-row guards, recovery
+  contracts, display-vs-durable convergence (`session-advance` + results
+  effect-persist). Adversarial review CLOSE_WITH_FIXES; all 12 findings
+  repaired or bounded-disclosed in `audit-map.md`.
+- Repository gates: **PASS** — full gated Jest **567 passed / 4 skipped
+  suites, 6,747 passed / 5 skipped tests, 5 snapshots** (exit 0, console gate
+  clean); typecheck; lint; Expo Doctor 21/21; repo-state PASS; OpenSpec
+  `--all --strict` 40/40.
+- Native/artifact: **NOT APPLICABLE** — no game/route UI, schema, or artifact
+  change; product checkpoint unchanged (`34c9b2d`); no new APK matrix.
+- Boundaries: manual/platform/store/CI per program (NOT VALIDATED /
+  EXTERNAL). Evidence: `openspec/changes/056-workout-lifecycle-integrity/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

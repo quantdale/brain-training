@@ -28,6 +28,65 @@ describe("workout session provenance", () => {
     expect(isWorkoutSessionProvenance(null)).toBe(false);
   });
 
+  it("056: rejects leg indices no real workout can own and oversized strings", () => {
+    // Longest workout is 6 games (extended) → max leg index 5.
+    expect(isWorkoutSessionProvenance({ ...PROVENANCE, legIndex: 5 })).toBe(true);
+    expect(isWorkoutSessionProvenance({ ...PROVENANCE, legIndex: 6 })).toBe(false);
+    expect(isWorkoutSessionProvenance({ ...PROVENANCE, legIndex: 31 })).toBe(false);
+    expect(
+      isWorkoutSessionProvenance({ ...PROVENANCE, gameId: "a".repeat(129) }),
+    ).toBe(false);
+    expect(
+      isWorkoutSessionProvenance({
+        ...PROVENANCE,
+        instanceKey: "a".repeat(129),
+      }),
+    ).toBe(false);
+    // Same bound through the route parser: unownable legs degrade to
+    // standalone instead of claiming a workout leg.
+    expect(
+      parseWorkoutLaunchProvenance({
+        gameId: PROVENANCE.gameId,
+        instanceKey: PROVENANCE.instanceKey,
+        legIndex: "6",
+      }),
+    ).toBeNull();
+    expect(
+      parseWorkoutLaunchProvenance({
+        gameId: PROVENANCE.gameId,
+        instanceKey: PROVENANCE.instanceKey,
+        legIndex: "5",
+      }),
+    ).toEqual({ ...PROVENANCE, legIndex: 5 });
+  });
+
+  it("056: re-registration after a map loss restores launch ownership (restart recovery)", () => {
+    // A process restart drops the in-memory map; beginning the session again
+    // from the same route params must re-establish ownership so the
+    // completion still decorates and advances. This test goes through the
+    // real route parser, not a recycled object, to pin the actual path.
+    const fromRoute = parseWorkoutLaunchProvenance({
+      gameId: PROVENANCE.gameId,
+      instanceKey: PROVENANCE.instanceKey,
+      legIndex: String(PROVENANCE.legIndex),
+    });
+    expect(fromRoute).toEqual(PROVENANCE);
+    registerWorkoutSessionLaunch("restart-session", fromRoute!);
+    expect(peekWorkoutSessionLaunch("restart-session")).toEqual(PROVENANCE);
+    // Simulate the restart: drop the entry without completing.
+    clearWorkoutSessionLaunch("restart-session");
+    expect(peekWorkoutSessionLaunch("restart-session")).toBeUndefined();
+    // Re-begin from route params re-registers the identical tuple.
+    const relaunched = parseWorkoutLaunchProvenance({
+      gameId: PROVENANCE.gameId,
+      instanceKey: PROVENANCE.instanceKey,
+      legIndex: String(PROVENANCE.legIndex),
+    });
+    registerWorkoutSessionLaunch("restart-session", relaunched!);
+    expect(peekWorkoutSessionLaunch("restart-session")).toEqual(PROVENANCE);
+    clearWorkoutSessionLaunch("restart-session");
+  });
+
   it("parses valid route values and degrades malformed routes to standalone", () => {
     expect(
       parseWorkoutLaunchProvenance({

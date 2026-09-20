@@ -136,6 +136,38 @@ describe('advanceWorkoutForSession', () => {
     );
   });
 
+  it('056: non-owning navigation persists the drift repair (no display/durable skew)', async () => {
+    const db = await makeDb();
+    mockDbState.db = db;
+    // Drifted row: a retired ghost sits in the future legs.
+    await db.workouts.getOrCreate(KEY, {
+      gameIds: [GAMES[0]!, 'ghost-retired-game', GAMES[2]!, GAMES[3]!],
+      seedVersion: 1,
+    });
+
+    // A stale (non-owning) signal: leg 1 claimed, but the resume point is 0.
+    const result = await advanceWorkoutForSession({
+      gameId: GAMES[0],
+      workoutProvenance: { instanceKey: KEY, legIndex: 1, gameId: GAMES[0]! },
+    });
+
+    expect(result.advanced).toBe(false);
+    expect(result.completed).toBe(false);
+    // Navigation and the durable row converge on the repaired list: the
+    // ghost's slot is substituted, length preserved, resume still at leg 0.
+    const persisted = await db.workouts.getByDate(KEY);
+    expect(persisted?.gameIds).toHaveLength(4);
+    expect(persisted?.gameIds).not.toContain('ghost-retired-game');
+    expect(persisted?.gameIds[0]).toBe(GAMES[0]);
+    expect(persisted?.currentIndex).toBe(0);
+    expect(result.nextGameId).toBe(persisted?.gameIds[0] ?? null);
+    expect(result.nextProvenance).toEqual({
+      instanceKey: KEY,
+      legIndex: 0,
+      gameId: persisted?.gameIds[0],
+    });
+  });
+
   it('resolves completion without writing when the workout is already completed', async () => {
     const db = await makeDb();
     mockDbState.db = db;

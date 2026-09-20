@@ -13,6 +13,8 @@
  * before a launch tuple can select a game or reach persistence.
  */
 import {
+  MAX_ROUTE_LEG_INDEX,
+  MAX_ROUTE_PARAM_LENGTH,
   parseBoundedLegIndex,
   parseCanonicalGameId,
   parseCanonicalInstanceKey,
@@ -40,14 +42,20 @@ export function isWorkoutSessionProvenance(
     return false;
   }
   const candidate = value as Record<string, unknown>;
+  // Bounds mirror the route envelope (056): provenance crossing a persistence
+  // boundary (DB rows, backup files) must satisfy the same canonical form or
+  // it degrades to standalone instead of claiming a leg it cannot own.
   return (
     typeof candidate.instanceKey === "string" &&
     candidate.instanceKey.trim().length > 0 &&
+    candidate.instanceKey.length <= MAX_ROUTE_PARAM_LENGTH &&
     typeof candidate.gameId === "string" &&
     candidate.gameId.trim().length > 0 &&
+    candidate.gameId.length <= MAX_ROUTE_PARAM_LENGTH &&
     typeof candidate.legIndex === "number" &&
     Number.isSafeInteger(candidate.legIndex) &&
-    candidate.legIndex >= 0
+    candidate.legIndex >= 0 &&
+    candidate.legIndex <= MAX_ROUTE_LEG_INDEX
   );
 }
 

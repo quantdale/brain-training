@@ -84,6 +84,16 @@ export function gameCountForLength(id: WorkoutLength): number {
 }
 
 /**
+ * Maximum 0-based workout leg index any real workout can own. Derived from
+ * the longest length variant (`extended` = 6 games → max index 5). The route
+ * input envelope and provenance validation share this bound so a crafted
+ * deep link can never claim a leg no workout can own (056).
+ */
+export const MAX_WORKOUT_LEG_INDEX = Math.max(
+  ...WORKOUT_LENGTHS.map((spec) => spec.gameCount),
+) - 1;
+
+/**
  * Expected wall-clock duration for a plan, when the selected length carries
  * the product's planning estimate. A missing value remains missing so legacy
  * or test-provided specs never invent a promise in the UI.
