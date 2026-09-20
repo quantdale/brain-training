@@ -40,9 +40,14 @@ const styles = StyleSheet.create({
     borderRadius: Radii.medium,
     // Keeps the full-bleed rail clipped to the card's corners.
     overflow: 'hidden',
-    // Pure safety valve — observed tutorials stay far below this. Keeps a
-    // pathological future step from pushing controls off-screen.
-    maxHeight: '88%',
+    // Safety valve — observed tutorials stay below this. Keeps a pathological
+    // future step from pushing controls off-screen. Campaign 055P: the
+    // previous 88% cap resolved against a shorter reference than the visible
+    // viewport on some game intros, so the deduction-table demo's "Try again"
+    // (which appears after a wrong answer) measured negative height and could
+    // not be tapped; the full overlay height leaves the valve intact while
+    // keeping every observed step reachable.
+    maxHeight: '100%',
   },
   rail: {
     height: 3,
