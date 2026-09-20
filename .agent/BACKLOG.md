@@ -10,6 +10,16 @@ plus historical follow-ups.
 
 ## Still-open durable items
 
+- Owner product decision (from Change 062, 2026-09-20): exported backup
+  files live in the files domain and Android auto-backup carries them
+  under the default `allowBackup=true` (only the `database` domain is
+  excluded by `with-android-backup-rules`; no explicit `allowBackup`
+  manifest attribute is pinned in-repo — the TRUE value rides the
+  platform default, verified by inspection). Decide whether to exclude
+  `backups/` from cloud auto-backup (and/or keep device-transfer) or
+  keep current behavior; the Data Management header now discloses the
+  real story either way. Changes restore semantics — do not implement
+  without explicit owner direction.
 - iOS build validation when a macOS/Xcode environment exists (static
   compatibility maintained source-level today).
 - SAF share/picker consent sheets require an interactive manual QA path;

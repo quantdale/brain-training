@@ -1,0 +1,21 @@
+{
+  "id": "062-backup-import-export-robustness",
+  "status": "VALIDATED",
+  "predecessor": "061-performance-lifecycle-cleanup",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["backup-import-export-robustness"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Seventh of Changes 056-067; first theme-062-064 release-resilience item.",
+  "baselineAuditCommit": "563435b",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "Overnight census lane 6 (security/privacy) re-verified file-by-file at 563435b: picker/paste gates real, allowBackup exclusion verified by config inspection, nonce/filename/listing accepted LOW with rationale.",
+  "validatedAt": "2026-09-20",
+  "validationNote": "Terminal close after adversarial CLOSE_WITH_FIXES (all 7 repaired: export/wipe copy, residual notes, mock label, allowBackup record). Full gated Jest 577 passed / 4 skipped suites, 6,847 passed / 5 skipped tests, 5 snapshots (exit 0, console gate clean); typecheck; clean lint 0/0; repo-state PASS; OpenSpec --all --strict 46/46. Nonce/filename/listing/plaintext/export-lock closed by design evidence. Product checkpoint unchanged (34c9b2d); no UI-layout/artifact change.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_062_COMPLETE"
+}

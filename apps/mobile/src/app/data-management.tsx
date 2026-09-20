@@ -3,7 +3,8 @@
  * campaign 012 W12 maturity).
  *
  * - Everything is local-first: backups live in the app documents folder via a
- *   file transport; nothing is uploaded anywhere.
+ *   file transport; the app itself uploads nothing (the OS device backup
+ *   may still carry exported files — see the Data Management header copy).
  * - Previews never write; Replace/Delete are two-tap (shared ConfirmButton);
  *   wipe additionally requires typing DELETE.
  * - Destructive actions are two-tap (Replace import, per-backup Delete) using
@@ -45,6 +46,7 @@ import {
   countLocalData,
   defaultBackupName,
   exportLocalDataBundle,
+  MAX_BACKUP_TEXT_LENGTH,
   parseAndValidateBackup,
   previewImport,
   wipeLocalData,
@@ -282,6 +284,14 @@ export default function DataManagementScreen() {
         setMessage("Paste a backup JSON first.");
         return;
       }
+      // 062: refuse oversized pastes before preview parsing materializes
+      // multiples of the text in memory (parse + canonical copy).
+      if (importText.length > MAX_BACKUP_TEXT_LENGTH) {
+        setMessage(
+          `That text is too large to preview (limit ${MAX_BACKUP_TEXT_LENGTH} characters). Load it from a file instead — large files are size-checked before reading.`,
+        );
+        return;
+      }
       setBusy(true);
       setMessage(null);
       try {
@@ -312,6 +322,14 @@ export default function DataManagementScreen() {
       }
       if (!importText.trim()) {
         setMessage("Paste a backup JSON first.");
+        return;
+      }
+      // 062: same oversized-paste refusal as preview (import re-validates
+      // through previewImport, which would otherwise parse the huge text).
+      if (importText.length > MAX_BACKUP_TEXT_LENGTH) {
+        setMessage(
+          `That text is too large to import (limit ${MAX_BACKUP_TEXT_LENGTH} characters). Load it from a file instead.`,
+        );
         return;
       }
       // Validate before mutation (the engine validates again inside its own
@@ -412,11 +430,13 @@ export default function DataManagementScreen() {
               Data Management
             </ThemedText>
             <ThemedText type="caption" themeColor="textSecondary">
-              Your training history lives only on this phone — there is no
-              account or cloud copy. Export a backup file you control, preview
-              exactly what a restore would change, and delete local data only
-              when you mean it. All operations validate before they write and
-              work fully offline.
+              Your training history lives in this app on this phone — there
+              is no account copy. Files you export or share leave through
+              the share sheet, and Android&apos;s own device backup may carry
+              exported files to a new phone. Export a backup file you
+              control, preview exactly what a restore would change, and
+              delete local data only when you mean it. All operations
+              validate before they write and work fully offline.
             </ThemedText>
           </View>
           <Spark size={30} color={theme.info} />
@@ -510,8 +530,8 @@ export default function DataManagementScreen() {
             Creates one versioned, checksummed JSON file containing your full
             local training history: sessions, ratings, coins, quests,
             achievements, streak inventory and settings. It is saved in this
-            app&apos;s backups folder on your phone; nothing is uploaded
-            anywhere. Use Share to put a copy outside the app.
+            app&apos;s backups folder on your phone; the app itself uploads
+            nothing. Use Share to put a copy outside the app.
           </ThemedText>
           <TextField
             label="Backup name"
@@ -676,6 +696,9 @@ export default function DataManagementScreen() {
             multiline
             autoCapitalize="none"
             autoCorrect={false}
+            // 062: native-side cap matching the supported backup maximum —
+            // equal-to-cap pastes still preview (deserialize uses `>`).
+            maxLength={MAX_BACKUP_TEXT_LENGTH}
             style={[
               styles.textArea,
               {
@@ -788,9 +811,9 @@ export default function DataManagementScreen() {
           />
           <ThemedText type="caption" themeColor="textSecondary">
             Permanently deletes every session, rating, coin ledger entry,
-            quest, achievement and setting on this phone. There is no cloud
-            copy to fall back on. Export a backup first — you cannot undo this
-            unless you have one.
+            quest, achievement and setting on this phone. There is no account
+            or sync copy of your live data to fall back on. Export a backup
+            first — you cannot undo this unless you have one.
           </ThemedText>
           <View style={styles.row}>
             <Button

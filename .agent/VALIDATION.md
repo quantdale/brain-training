@@ -99,6 +99,20 @@ unavailable checks into PASS.
 - Boundaries: manual/platform/store/CI per program. Evidence:
   `openspec/changes/061-performance-lifecycle-cleanup/`.
 
+### Change 062 backup / import / export robustness — 2026-09-20 (VALIDATED / CHANGE_062_COMPLETE)
+
+- Scope: **PASS** — picker stat fallback, paste guards + maxLength,
+  honest copy + BACKLOG cloud decision. Adversarial CLOSE_WITH_FIXES
+  fully repaired (copy, residuals, mock label, allowBackup record).
+- Repository gates: **PASS** — full gated Jest **577 passed / 4 skipped
+  suites, 6,847 passed / 5 skipped tests, 5 snapshots** (exit 0, console
+  gate clean); typecheck; clean lint 0/0; repo-state PASS; OpenSpec
+  `--all --strict` 46/46.
+- Native/artifact: **NOT APPLICABLE** as certification (copy + guards
+  only); SAF variance re-proven at 067.
+- Boundaries: manual/platform/store/CI per program. Evidence:
+  `openspec/changes/062-backup-import-export-robustness/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

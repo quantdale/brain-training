@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-20
+goal: Make backup import/export hostile-file safe and privacy-copy honest — size gates before materialization, bounded paste handling, accurate device-copy disclosure — while preserving restore robustness, traversal protection, and user-data visibility.

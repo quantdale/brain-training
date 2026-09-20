@@ -89,6 +89,17 @@ jest.mock('expo-file-system', () => {
     get exists(): boolean {
       return mockStore.get(this.uri)?.kind === 'file';
     }
+    // Content length in code units (062: stands in for the native byte
+    // size for the ASCII fixtures used here; the seam under test only
+    // needs a size signal, and byte-vs-char direction is documented in
+    // the change notes).
+    get size(): number {
+      const entry = mockStore.get(this.uri);
+      if (!entry || entry.kind !== 'file') {
+        return 0;
+      }
+      return (entry.content as string).length;
+    }
     write(contents: string): void {
       if (mockFsFault?.op === 'write') {
         const { error } = mockFsFault;
@@ -315,6 +326,36 @@ describe('pickBackupFile (mocked expo-document-picker)', () => {
 
     await expect(pickBackupFile()).rejects.toThrow(/too large/i);
     expect(mockTextReads).toBe(0);
+  });
+
+  it('062: rejects a size-absent hostile file via its stat size, unread', async () => {
+    // Providers that omit `asset.size` used to bypass the gate entirely.
+    // The content is large; only the picker report is silent.
+    mockStore.set('file:///cache/nosize-huge.json', {
+      kind: 'file',
+      content: 'x'.repeat(MAX_BACKUP_TEXT_LENGTH + 1),
+    });
+    mockGetDocumentAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file:///cache/nosize-huge.json', name: 'nosize-huge.json' }],
+    });
+
+    await expect(pickBackupFile()).rejects.toThrow(/too large/i);
+    expect(mockTextReads).toBe(0);
+  });
+
+  it('062: reads a size-absent file that fits within the cap', async () => {
+    mockStore.set('file:///cache/nosize-ok.json', { kind: 'file', content: '{"format":"x"}' });
+    mockGetDocumentAsync.mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file:///cache/nosize-ok.json', name: 'nosize-ok.json' }],
+    });
+
+    await expect(pickBackupFile()).resolves.toEqual({
+      name: 'nosize-ok.json',
+      text: '{"format":"x"}',
+    });
+    expect(mockTextReads).toBe(1);
   });
 
   it('still reads an asset whose reported size is within the cap', async () => {

@@ -220,23 +220,36 @@ export async function pickBackupFile(): Promise<PickedBackupFile | null> {
  if (!file.exists) {
   throw new Error(`Picked file "${asset.name}" could not be opened`);
  }
- // Reject oversized files BEFORE `file.text()` materializes them in memory.
- // The picker reports a byte size for most providers; the deserialize cap only
- // runs after the whole string exists, so a multi-hundred-MB pick would OOM
- // the JS runtime first. UTF-8 byte length is always >= UTF-16 code-unit
- // length, so this can only reject a file whose byte size alone exceeds the
- // cap — erring on the side of not materializing a large document, never
- // accepting one that deserialize would reject.
- if (
-  typeof asset.size === "number" &&
-  Number.isFinite(asset.size) &&
-  asset.size > MAX_BACKUP_TEXT_LENGTH
- ) {
-  throw new MalformedBackupError(
-   `Picked backup "${asset.name}" is too large (${asset.size} bytes; the maximum supported backup size is ${MAX_BACKUP_TEXT_LENGTH} characters).`,
-  );
- }
- return { name: asset.name, text: await file.text() };
+  // Reject oversized files BEFORE `file.text()` materializes them in memory.
+  // The picker reports a byte size for most providers; the deserialize cap only
+  // runs after the whole string exists, so a multi-hundred-MB pick would OOM
+  // the JS runtime first. UTF-8 byte length is always >= UTF-16 code-unit
+  // length, so this can only reject a file whose byte size alone exceeds the
+  // cap — erring on the side of not materializing a large document, never
+  // accepting one that deserialize would reject.
+  const reportedBytes =
+    typeof asset.size === "number" && Number.isFinite(asset.size) ? asset.size : null;
+  // 062: providers that omit `asset.size` fall back to the copied file's
+  // own stat size (the pick is already a cache copy, so stating it costs
+  // no extra I/O of consequence). Defensive access: a quirky bridge falls
+  // through to the pre-existing text/deserialize gates instead of breaking
+  // picking.
+  let statBytes: number | null = null;
+  try {
+    const statSize: unknown = (file as { size?: unknown }).size;
+    if (typeof statSize === "number" && Number.isFinite(statSize)) {
+      statBytes = statSize;
+    }
+  } catch {
+    // Fall through to the text/deserialize gates below.
+  }
+  const knownBytes = reportedBytes ?? statBytes;
+  if (knownBytes !== null && knownBytes > MAX_BACKUP_TEXT_LENGTH) {
+    throw new MalformedBackupError(
+      `Picked backup "${asset.name}" is too large (${knownBytes} bytes; the maximum supported backup size is ${MAX_BACKUP_TEXT_LENGTH} characters).`,
+    );
+  }
+  return { name: asset.name, text: await file.text() };
 }
 
 /**

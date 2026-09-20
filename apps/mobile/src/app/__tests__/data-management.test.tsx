@@ -20,6 +20,7 @@ import {
 } from 'expo-router/testing-library';
 
 import type { ImportPreview } from '@/data-portability';
+import { MAX_BACKUP_TEXT_LENGTH } from '@/data-portability/deserialize';
 import DataManagementScreen from '@/app/data-management';
 import { refreshProgression } from '@/progression';
 
@@ -72,6 +73,11 @@ jest.mock('@/data-portability/file-transport', () => {
 });
 
 jest.mock('@/data-portability', () => ({
+  // The screen reads the supported-maximum constant from this barrel;
+  // re-export the real value so size-guard behavior is tested, not mocked.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  MAX_BACKUP_TEXT_LENGTH: require('@/data-portability/deserialize')
+    .MAX_BACKUP_TEXT_LENGTH as number,
   countLocalData: jest.fn(async () => ({
     gameSessions: 7,
     domainRatings: 0,
@@ -227,8 +233,11 @@ describe('data-management UX contract', () => {
     expect(screen.getByTestId('data-storage-summary-value')).toHaveTextContent(
       'Ready',
     );
-    // No invented cloud/account features: the phone is the only home for data.
-    expect(screen.getByText(/lives only on this phone/i)).toBeOnTheScreen();
+    // Honest device-copy disclosure: app-local history, share-sheet egress,
+    // and Android device-backup carriage of exported files (062).
+    expect(screen.getByText(/lives in this app on this phone/i)).toBeOnTheScreen();
+    expect(screen.getByText(/share sheet/i)).toBeOnTheScreen();
+    expect(screen.getByText(/device backup may carry/i)).toBeOnTheScreen();
   });
 
   it('lists saved backups from earlier sessions on mount', async () => {
@@ -359,6 +368,30 @@ describe('data-management UX contract', () => {
     expect(message).toHaveTextContent(/Merge complete/);
     // Merge keeps existing definitions; only replace/wipe re-seed.
     expect(mockedRefreshProgression).not.toHaveBeenCalled();
+  });
+
+  it('062: refuses oversized pastes before preview parsing, capped natively too', async () => {
+    await renderScreen();
+    await typeImportJson('x'.repeat(MAX_BACKUP_TEXT_LENGTH + 1));
+    expect(screen.getByTestId('data-import-input').props.maxLength).toBe(
+      MAX_BACKUP_TEXT_LENGTH,
+    );
+
+    await fireEvent.press(await screen.findByTestId('data-preview-merge'));
+    const message = await screen.findByTestId('data-message');
+    await waitFor(() => expect(message).toHaveTextContent(/too large/));
+    expect(mockedPreviewImport).not.toHaveBeenCalled();
+  });
+
+  it('062: refuses oversized pastes on import without applying', async () => {
+    await renderScreen();
+    await typeImportJson('x'.repeat(MAX_BACKUP_TEXT_LENGTH + 1));
+
+    await fireEvent.press(await screen.findByTestId('data-import-merge'));
+    const message = await screen.findByTestId('data-message');
+    await waitFor(() => expect(message).toHaveTextContent(/too large/));
+    expect(mockedPreviewImport).not.toHaveBeenCalled();
+    expect(mockedApplyImport).not.toHaveBeenCalled();
   });
 
   it('rejects an invalid backup without writing anything', async () => {

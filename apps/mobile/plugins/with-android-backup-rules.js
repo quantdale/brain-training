@@ -4,8 +4,11 @@
  * Codifies the campaign-010 audit-B7 auto-backup policy into committed
  * source-of-truth configuration so it survives `expo prebuild --clean`:
  *
- *   - `allowBackup` stays TRUE: non-progress settings (theme, sensory
- *     preferences) survive device restore;
+ *   - `allowBackup` stays TRUE (platform default; no explicit manifest
+ *     attribute is pinned in-repo — verified by inspection, not by test):
+ *     non-progress settings (theme, sensory preferences) survive device
+ *     restore; exported backup files in the files domain are likewise
+ *     carried (see Change 062);
  *   - the SQLite `database` domain is EXCLUDED from cloud backup, device-to-
  *     device transfer, and (API <= 30) full backup, so a restore can never
  *     resurrect wiped progression data.
