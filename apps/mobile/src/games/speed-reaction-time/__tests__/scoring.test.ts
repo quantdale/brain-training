@@ -97,6 +97,13 @@ describe('medianOf / meanOf / bestOf', () => {
     expect(bestOf([500, 400, 600])).toBe(400);
     expect(bestOf([])).toBeNull();
   });
+
+  it('057: bestOf is iterative — hostile-length arrays cannot overflow the stack', () => {
+    const hostile = new Array<number>(1_000_000).fill(500);
+    hostile[123_456] = 100;
+    expect(bestOf(hostile)).toBe(100);
+    expect(bestOf([400, Number.NaN, 300])).toBeNaN();
+  });
 });
 
 describe('completionOf', () => {
@@ -118,9 +125,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -268,6 +276,17 @@ describe('normalizeSpeedResult (documented formula)', () => {
       { gameId: 'speed-reaction-time', difficulty: 'normal', durationMs: 0 },
     );
     expect(normalized.value).toBe(1);
+  });
+
+  it('collapses a corrupt median-reaction stat to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeSpeedResult(
+        rawResult({ reactions: [], medianReactionMs: Number.NaN }),
+        { gameId: 'speed-reaction-time', difficulty: 'normal', durationMs: 0 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

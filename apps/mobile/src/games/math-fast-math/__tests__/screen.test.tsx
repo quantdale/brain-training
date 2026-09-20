@@ -196,7 +196,7 @@ describe('MathScreen', () => {
     expect(input.session.gameId).toBe('math-fast-math');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(problems.length * ANSWER_MS); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    expect(input.session.xp).toBe(48); // pipeline hook: round((10 + 40 * 0.9375) * 1)
     // accuracy 1 × (0.5 + 0.5 × (1 − 1000/8000)) = 0.9375
     expect(input.session.normalizedResult).toBeCloseTo(0.9375);
     const raw = input.session.rawResult as MathRawResult;

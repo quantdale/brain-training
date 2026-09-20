@@ -12,11 +12,13 @@ import {
 import type { ContextFitRawResult } from '../types';
 
 describe('scoring', () => {
-  it('clamp01 bounds and rejects non-finite', () => {
+  it('clamp01 bounds and collapses non-finite to 0', () => {
     expect(clamp01(-1)).toBe(0);
     expect(clamp01(2)).toBe(1);
     expect(clamp01(0.4)).toBe(0.4);
-    expect(() => clamp01(Number.NaN)).toThrow();
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 
   it('roundScore peaks at instant answer and floors at the budget', () => {
@@ -67,6 +69,34 @@ describe('scoring', () => {
     const n = normalizeContextFitResult(zero, { gameId: 'language-context-fit', difficulty: 'normal', durationMs: 0 });
     expect(n.value).toBe(0);
     expect(n.scale).toBe('0..1');
+  });
+
+  it('normalizeContextFitResult collapses a corrupt count to 0 instead of throwing', () => {
+    const corrupt: ContextFitRawResult = {
+      score: 900,
+      totalRounds: 6,
+      roundsPlayed: 6,
+      roundsCorrect: Number.NaN,
+      accuracy: Number.NaN,
+      bestStreak: 6,
+      totalAnswerMs: 0,
+      sumAnswerRatio: 0,
+      roundOutcomes: [],
+      contentPackId: 'p',
+      contentPackVersion: '1.0.0',
+      challengeRating: 0.5,
+      finalTier: 't1',
+      difficulty: 'normal',
+      seed: 's',
+      gameVersion: '1.0.0',
+      generatorVersion: '1.0.0',
+      scoringVersion: '1.1.0',
+      forced: false,
+      generatorInfo: { packId: 'p', packVersion: '1.0.0', rounds: 6, tierMask: 3, timePerRoundMs: 8000, rngAlgorithm: 'v' },
+      diagnosticMetadata: {} as any,
+    };
+    const n = normalizeContextFitResult(corrupt, { gameId: 'language-context-fit', difficulty: 'normal', durationMs: 0 });
+    expect(n.value).toBe(0);
   });
 
   it('performance normalizer exposes the game id', () => {

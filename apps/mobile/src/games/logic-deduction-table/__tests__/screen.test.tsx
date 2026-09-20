@@ -23,6 +23,7 @@ import {
   testId,
 } from "@/sdk";
 import type { CompleteSessionInput } from "@/db";
+import { computeXp } from "@/rating/pipeline";
 
 import { TUTORIAL_DEMO_PARAMS, TUTORIAL_DEMO_SEED } from "../components/tutorial";
 import { LOGIC_DEDUCTION_DIFFICULTY_PARAMS, ADAPTIVE_PARAMS, adaptiveRoundParams } from "../difficulty";
@@ -276,7 +277,7 @@ describe("LogicDeductionScreen", () => {
     expect(input.session.gameId).toBe("logic-deduction-table");
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBeGreaterThan(0);
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(computeXp(1, "normal")); // pipeline: 10 + 40×1 = 50
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as LogicDeductionRawResult;
     expect(raw.score).toBe(perfectSessionScore(NORMAL));

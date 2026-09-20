@@ -23,6 +23,7 @@ import {
   testId,
 } from "@/sdk";
 import type { CompleteSessionInput } from "@/db";
+import { computeXp } from "@/rating/pipeline";
 
 import { TUTORIAL_DEMO_SEED } from "../components/tutorial";
 import { generateTargetCells } from "../generator";
@@ -242,7 +243,9 @@ describe("GridRecallScreen", () => {
     expect(input.session.gameId).toBe("memory-grid-recall");
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBeGreaterThan(0);
-    expect(input.session.xp).toBe(0);
+    // Pipeline-backed optimistic XP: round((10 + 40 × 1) × normal mult 1) = 50.
+    expect(input.session.xp).toBe(50);
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, "normal"));
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as GridRecallRawResult;
     expect(raw.score).toBe(

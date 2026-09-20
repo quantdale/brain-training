@@ -46,10 +46,10 @@ export function speedScoreOf(sumAnswerRatio: number, roundsPlayed: number): numb
   return roundsPlayed > 0 ? clamp01(1 - sumAnswerRatio / roundsPlayed) : 0;
 }
 
-/** Clamp to [0, 1]; rejects non-finite input. */
+/** Clamp to [0, 1]; collapses non-finite input to 0 (matches rating/pipeline.ts collapsing clamp01). */
 export function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
-    throw new RangeError(`normalized performance must be finite, got ${value}`);
+    return 0;
   }
   return Math.min(1, Math.max(0, value));
 }

@@ -111,9 +111,10 @@ describe('clamp01', () => {
     expect(clamp01(2)).toBe(1);
     expect(clamp01(0.4)).toBe(0.4);
   });
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow();
-    expect(() => clamp01(Infinity)).toThrow();
+  it('collapses non-finite input to 0 (rating/pipeline.ts parity)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -156,6 +157,17 @@ describe('normalizeSpatialFoldMatchResult', () => {
     );
     expect(extremes.value).toBeGreaterThanOrEqual(0);
     expect(extremes.value).toBeLessThanOrEqual(1);
+  });
+
+  it('collapses a corrupt counter to 0 instead of throwing', () => {
+    // Corrupt stat natural to this game: the rounds-passed counter read back
+    // as NaN (e.g. damaged persistence). Accuracy becomes NaN and the final
+    // clamp collapses it to worst-case 0 rather than throwing.
+    const corrupt = normalizeSpatialFoldMatchResult(
+      raw({ roundsPassed: Number.NaN }),
+      CONTEXT,
+    );
+    expect(corrupt.value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

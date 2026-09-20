@@ -107,9 +107,10 @@ describe("clamp01", () => {
     expect(clamp01(0.4)).toBe(0.4);
   });
 
-  it("rejects non-finite input", () => {
-    expect(() => clamp01(NaN)).toThrow();
-    expect(() => clamp01(Infinity)).toThrow();
+  it("collapses non-finite input to 0", () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -167,6 +168,14 @@ describe("normalizeWordChainResult", () => {
     );
     expect(weird.value).toBeGreaterThanOrEqual(0);
     expect(weird.value).toBeLessThanOrEqual(1);
+  });
+
+  it("collapses a corrupt correct-count to 0 instead of throwing", () => {
+    const corrupt = normalizeWordChainResult(
+      raw({ roundsCorrect: NaN }),
+      context,
+    );
+    expect(corrupt.value).toBe(0);
   });
 
   it("keeps the raw snapshot for diagnostics", () => {

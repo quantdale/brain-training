@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { SENTENCE_BANK } from '../content/sentence-bank';
 import { generateRound } from '../generator';
@@ -213,7 +214,7 @@ describe('SentenceBuilderScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect(input.session.gameId).toBe('language-sentence-builder');
     expect(input.session.seed).toBe(seedToNumber(seed));
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal')); // pipeline hook parity
     expect(input.session.normalizedResult).toBeGreaterThan(0);
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as SentenceBuilderRawResult;

@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-20
+goal: Make every game's result and reward path honest under corrupt stats, slow/failed persistence, and clock skew — no lost sessions, no zero-XP flicker, no skewed personal bests — while keeping scoring formulas, rating math, economy, and the authoritative DB pipeline untouched.

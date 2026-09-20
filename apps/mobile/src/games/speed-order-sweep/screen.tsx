@@ -21,7 +21,6 @@ import { useRouter } from 'expo-router';
 import {
   isDevBuild,
   liveAudioHaptics,
-  noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
@@ -30,6 +29,7 @@ import type {
   TutorialStore,
   XpRatingHook,
 } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
@@ -214,7 +214,7 @@ export interface OrderSweepScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the shared pipeline-backed hook. */
   xpHook?: XpRatingHook;
 }
 
@@ -224,7 +224,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const router = useRouter();
   const [state, dispatch] = useReducer(
@@ -349,8 +349,6 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizeOrderSweepResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
-    // Phase-2 seam: rating deltas are computed but unused while the shared
-    // hook is a no-op.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({

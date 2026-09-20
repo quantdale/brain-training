@@ -96,9 +96,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -156,6 +157,17 @@ describe('normalizeVisualSearchResult (documented formula)', () => {
       { gameId: 'attention-visual-search', difficulty: 'normal', durationMs: 0 },
     );
     expect(normalized.value).toBe(1);
+  });
+
+  it('collapses a corrupt passed-round counter to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeVisualSearchResult(
+        rawResult({ roundsPlayed: 12, roundsPassed: Number.NaN, avgSpeedRatio: 1 }),
+        { gameId: 'attention-visual-search', difficulty: 'normal', durationMs: 0 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

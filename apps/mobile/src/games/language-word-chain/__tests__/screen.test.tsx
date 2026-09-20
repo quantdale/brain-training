@@ -23,6 +23,7 @@ import {
   testId,
 } from "@/sdk";
 import type { CompleteSessionInput } from "@/db";
+import { computeXp } from "@/rating/pipeline";
 
 import { TUTORIAL_DEMO_PARAMS, TUTORIAL_DEMO_SEED } from "../components/tutorial";
 import { loadContentPack } from "../content-validation";
@@ -306,7 +307,7 @@ describe("WordChainScreen", () => {
     expect(input.session.gameId).toBe("language-word-chain");
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBeGreaterThan(0);
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, "normal")); // pipeline hook parity
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as LanguageWordChainRawResult;
     // Natural perfect play: every step instant (base + max speed bonus) plus

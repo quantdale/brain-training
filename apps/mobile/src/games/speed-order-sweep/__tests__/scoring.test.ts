@@ -2,6 +2,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
+  bestOf,
   clearRatioOf,
   clamp01,
   correctPoints,
@@ -35,12 +36,22 @@ describe('raw scoring', () => {
     expect(perfectSessionScore(ORDER_SWEEP_DIFFICULTY_PARAMS.easy)).toBe(4 * 6 * 190);
   });
 
-  it('guards: clearRatioOf divides over dealt tokens, meanSpeedOf is 0 with no clears, clamp01 rejects non-finite input', () => {
+  it('guards: clearRatioOf divides over dealt tokens, meanSpeedOf is 0 with no clears, clamp01 collapses non-finite input to 0', () => {
     expect(clearRatioOf(27, 45)).toBeCloseTo(0.6);
     expect(clearRatioOf(0, 0)).toBe(0);
     expect(meanSpeedOf([0.5, 1])).toBeCloseTo(0.75);
     expect(meanSpeedOf([])).toBe(0);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
+  });
+
+  it('057: bestOf is iterative — hostile-length arrays cannot overflow the stack', () => {
+    const hostile = new Array<number>(1_000_000).fill(500);
+    hostile[123_456] = 100;
+    expect(bestOf(hostile)).toBe(100);
+    expect(bestOf([])).toBeNull();
+    expect(bestOf([2, Number.NaN, 1])).toBeNaN();
   });
 });
 
@@ -121,5 +132,16 @@ describe('normalizeOrderSweepResult (documented formula)', () => {
       context,
     );
     expect(blended.value).toBeCloseTo(0.68);
+  });
+
+  it('collapses a corrupt mean-speed stat to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeOrderSweepResult(
+        rawResult({ tokensCleared: 0, tokensExpired: 45, meanSpeed: Number.NaN }),
+        { gameId: 'speed-order-sweep', difficulty: 'normal' as const, durationMs: 0 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 });

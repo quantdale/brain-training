@@ -51,9 +51,10 @@ describe('clamp01', () => {
     expect(clamp01(1.5)).toBe(1);
   });
 
-  it('throws on non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow('finite');
-    expect(() => clamp01(Infinity)).toThrow('finite');
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -148,5 +149,56 @@ describe('normalizeRuleGridResult', () => {
     });
     // accuracy=1, efficiency=1-(0/80000)=1, value=1*(0.5+0.5*1)=1
     expect(result.value).toBeCloseTo(1);
+  });
+});
+
+describe('normalizeRuleGridResult corrupt-stat collapse', () => {
+  function buildCorruptRaw(overrides: Partial<RuleGridRawResult> = {}): RuleGridRawResult {
+    return {
+      score: 400,
+      totalRounds: 7,
+      roundsPlayed: 4,
+      roundsCorrect: 3,
+      accuracy: 0.75,
+      bestStreak: 2,
+      bestRoundTimeMs: 1200,
+      totalElapsedMs: 0,
+      totalBudgetMs: 1,
+      size: 4,
+      roundTimeMs: 20_000,
+      challengeRating: 0.5,
+      difficulty: 'normal',
+      seed: '42',
+      gameVersion: '1.0.0',
+      generatorVersion: '1.0.0',
+      scoringVersion: '1.0.0',
+      forced: false,
+      generatorInfo: {},
+      diagnosticMetadata: {
+        gameId: 'logic-rule-grid',
+        sdkVersion: '0.1.0',
+        gameVersion: '1.0.0',
+        generatorVersion: '1.0.0',
+        seed: '42',
+        difficulty: 'normal',
+        startedAtMs: 1000,
+        activeDurationMs: 45000,
+        pausedDurationMs: 5000,
+      },
+      ...overrides,
+    };
+  }
+
+  it('collapses a corrupt correct-count stat to 0 instead of throwing', () => {
+    const raw = buildCorruptRaw({ roundsCorrect: NaN });
+    let result: ReturnType<typeof normalizeRuleGridResult> | undefined;
+    expect(() => {
+      result = normalizeRuleGridResult(raw, {
+        gameId: 'logic-rule-grid',
+        difficulty: 'normal',
+        durationMs: 45000,
+      });
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
   });
 });

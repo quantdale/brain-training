@@ -91,9 +91,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -174,6 +175,17 @@ describe('normalizePatternTapBackResult (documented formula)', () => {
     // accuracy 1, avg progress = (0+0.25+0.5+0.75+1)/5 = 0.5
     // 1 * (0.5 + 0.5*0.5) = 0.75
     expect(normalized.value).toBeCloseTo(0.75);
+  });
+
+  it('collapses a corrupt passed-round counter to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizePatternTapBackResult(
+        rawResult({ roundsPlayed: 5, roundsPassed: Number.NaN }),
+        { gameId: 'memory-pattern-tap-back', difficulty: 'normal', durationMs: 0 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

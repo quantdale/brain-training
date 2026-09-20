@@ -42,11 +42,15 @@ describe('closenessOf / isHit', () => {
     expect(isHit(-NORMAL_SPAN, NORMAL_SPAN)).toBe(true);
   });
 
-  it('rejects non-finite or degenerate spans', () => {
+  it('rejects non-finite or degenerate spans (programmer-error validation)', () => {
     expect(() => closenessOf(1, 0)).toThrow(RangeError);
     expect(() => closenessOf(1, NaN)).toThrow(RangeError);
-    expect(() => clamp01(NaN)).toThrow(RangeError);
-    expect(() => clamp01(Infinity)).toThrow(RangeError);
+  });
+
+  it('collapses non-finite DATA to 0 (057 — pipeline safe failure mode)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -136,5 +140,38 @@ describe('normalizeNumberLineResult', () => {
     expect(
       numberLinePerformanceNormalizer.normalize(raw({}), context).value,
     ).toBe(1);
+  });
+});
+
+describe('normalizeNumberLineResult corrupt-data degradation (057)', () => {
+  it('degrades a NaN rounds-hit stat to value 0 without throwing', () => {
+    function rawLocal(overrides: Partial<NumberLineRawResult>): NumberLineRawResult {
+      return {
+        score: 0,
+        roundsTotal: NORMAL.rounds,
+        roundsPlayed: NORMAL.rounds,
+        roundsHit: NORMAL.rounds,
+        meanCloseness: 1,
+        avgAbsoluteError: 0,
+        finalTolerancePct: NORMAL.tolerancePct,
+        challengeRating: 0.5,
+        difficulty: 'normal',
+        seed: 's',
+        gameVersion: '1.0.0',
+        generatorVersion: '1.0.0',
+        scoringVersion: '1.0.0',
+        forced: false,
+        generatorInfo: {} as NumberLineRawResult['generatorInfo'],
+        diagnosticMetadata: {} as NumberLineRawResult['diagnosticMetadata'],
+        ...overrides,
+      };
+    }
+    const context = { gameId: 'math-number-line-estimation', difficulty: 'normal' as const, durationMs: 1000 };
+    let result;
+    expect(() => {
+      result = normalizeNumberLineResult(rawLocal({ roundsHit: NaN, meanCloseness: 0.5 }), context);
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
+    expect(result!.scale).toBe('0..1');
   });
 });

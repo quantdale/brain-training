@@ -12,6 +12,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { flexibilityTaskSwitchParamsFromProfile, resolveFlexibilityTaskSwitchDifficulty } from '../difficulty';
@@ -233,7 +234,7 @@ describe('TaskSwitchScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'accuracy'))).toHaveTextContent('100%');
     expect(screen.getByTestId(testId(GAME_ID, 'switch-accuracy'))).toHaveTextContent('100%');
-    expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent('0');
+    expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent(String(computeXp(1, 'normal')));
     expect(screen.queryByTestId(testId(GAME_ID, 'forced-badge'))).toBeNull();
 
     await act(async () => {});
@@ -243,7 +244,7 @@ describe('TaskSwitchScreen', () => {
     expect(input.session.gameId).toBe('flexibility-task-switch');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBeGreaterThan(0);
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal'));
     expect(input.session.normalizedResult).toBeCloseTo(1);
     const raw = input.session.rawResult as FlexibilityTaskSwitchRawResult;
     expect(raw.score).toBe(perfectSessionScore(NORMAL));

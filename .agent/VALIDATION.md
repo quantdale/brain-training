@@ -21,6 +21,25 @@ unavailable checks into PASS.
 - Boundaries: manual/platform/store/CI per program (NOT VALIDATED /
   EXTERNAL). Evidence: `openspec/changes/056-workout-lifecycle-integrity/`.
 
+### Change 057 result & reward correctness — 2026-09-20 (VALIDATED / CHANGE_057_COMPLETE)
+
+- Scope: **PASS** — 42/42 normalizer survival, 42/42 optimistic-XP parity
+  (`rating/xp-hook.ts` + shared parity suite), PB time-universe clamp,
+  bestOf stack-safety ×5 sites; 8 domain swarm packets, zero shared-file
+  violations. Adversarial CLOSE_WITH_FIXES fully repaired/disclosed.
+- Repository gates: **PASS** — full gated Jest **569 passed / 4 skipped
+  suites, 6,810 passed / 5 skipped tests, 5 snapshots** (exit 0, console
+  gate clean); typecheck; lint; Expo Doctor 21/21; repo-state PASS; OpenSpec
+  `--all --strict` 41/41.
+- Native canary: **PARTIAL** — debug `BUILD SUCCESSFUL`; Metro reachable;
+  expo-router entry bundled 1729 modules error-free; device bundle-load
+  initiated with zero JS/RedBox errors; no rendered frame in the bounded
+  window (host stall class, same as 055 flakiness). Completion flow covered
+  by 42 screen suites against the real DB; full device certification
+  deferred to 067.
+- Boundaries: manual/platform/store/CI per program. Evidence:
+  `openspec/changes/057-result-reward-correctness/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

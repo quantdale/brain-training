@@ -44,10 +44,12 @@ export function accuracyOf(roundsCompleted: number, totalRounds: number): number
   return totalRounds > 0 ? roundsCompleted / totalRounds : 0;
 }
 
-/** Clamp to [0, 1]; rejects non-finite input (mirrors the SDK clamp). */
+/** Clamp to [0, 1]; non-finite DATA collapses to 0 (057 — matches the
+ * rating pipeline's safe failure mode). Programmer-error validation
+ * (bad params, unknown modes) still throws RangeError at its own site. */
 export function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
-    throw new RangeError(`normalized performance must be finite, got ${value}`);
+    return 0;
   }
   return Math.min(1, Math.max(0, value));
 }

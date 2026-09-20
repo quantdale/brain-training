@@ -83,11 +83,13 @@ describe('accuracyOf / clamp01 / lengthProgress', () => {
     expect(accuracyOf(0, 0)).toBe(0);
   });
 
-  it('clamps to [0, 1] and rejects non-finite input', () => {
+  it('clamps into [0, 1] and collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
     expect(clamp01(1.5)).toBe(1);
     expect(clamp01(-0.5)).toBe(0);
     expect(clamp01(0.5)).toBe(0.5);
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 
   it('measures escalation progress relative to the pad ceiling', () => {
@@ -135,6 +137,17 @@ describe('normalizeSequenceMemoryResult', () => {
       context,
     );
     expect(result.value).toBeCloseTo(0.5);
+  });
+
+  it('collapses a corrupt passed-round counter to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeSequenceMemoryResult(
+        raw({ roundsPlayed: 4, roundsPassed: Number.NaN, longestSequence: 5 }),
+        context,
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('snapshots the raw result for diagnostics', () => {

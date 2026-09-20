@@ -80,9 +80,10 @@ describe("clamp01", () => {
     expect(clamp01(2)).toBe(1);
     expect(clamp01(0.4)).toBe(0.4);
   });
-  it("rejects non-finite input", () => {
-    expect(() => clamp01(NaN)).toThrow();
-    expect(() => clamp01(Infinity)).toThrow();
+  it("collapses non-finite input to 0 (matches rating/pipeline.ts)", () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -136,5 +137,20 @@ describe("normalizeLogicDeductionResult", () => {
       durationMs: 1000,
     });
     expect((r.raw as LogicDeductionRawResult).seed).toBe("diag");
+  });
+});
+
+describe("normalizeLogicDeductionResult corrupt-stat collapse", () => {
+  it("collapses a corrupt correct-count stat to 0 instead of throwing", () => {
+    const corrupt = raw({ roundsCorrect: NaN });
+    let result: ReturnType<typeof normalizeLogicDeductionResult> | undefined;
+    expect(() => {
+      result = normalizeLogicDeductionResult(corrupt, {
+        gameId: "logic-deduction-table",
+        difficulty: "normal",
+        durationMs: 1000,
+      });
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
   });
 });

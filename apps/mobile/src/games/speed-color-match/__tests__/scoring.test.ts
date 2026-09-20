@@ -87,9 +87,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -173,6 +174,23 @@ describe('normalizeSpeedColorMatchResult (documented formula)', () => {
       { gameId: 'speed-color-match', difficulty: 'normal', durationMs: 0 },
     );
     expect(normalized.value).toBeLessThanOrEqual(1);
+  });
+
+  it('collapses a corrupt reaction-time stat to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeSpeedColorMatchResult(
+        rawResult({
+          trialsPlayed: 20,
+          trialsCorrect: 20,
+          bestStreak: 20,
+          avgReactionMs: Number.NaN,
+          stimulusTimeoutMs: 4_000,
+        }),
+        { gameId: 'speed-color-match', difficulty: 'normal', durationMs: 0 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

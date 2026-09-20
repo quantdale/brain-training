@@ -110,9 +110,10 @@ describe('clamp01', () => {
     expect(clamp01(0.4)).toBe(0.4);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow();
-    expect(() => clamp01(Infinity)).toThrow();
+  it('collapses non-finite input to 0 (rating/pipeline.ts parity)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -156,6 +157,17 @@ describe('normalizeSpatialCoordinateTurnResult', () => {
     );
     expect(extreme.value).toBeLessThanOrEqual(1);
     expect(extreme.value).toBeGreaterThanOrEqual(0);
+  });
+
+  it('collapses a corrupt counter to 0 instead of throwing', () => {
+    // Corrupt stat natural to this game: the correct-pick counter read back
+    // as NaN (e.g. damaged persistence). Accuracy becomes NaN and the final
+    // clamp collapses it to worst-case 0 rather than throwing.
+    const corrupt = normalizeSpatialCoordinateTurnResult(
+      raw({ correctPicks: Number.NaN }),
+      context,
+    );
+    expect(corrupt.value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

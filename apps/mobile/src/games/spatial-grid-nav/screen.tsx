@@ -24,11 +24,11 @@ import {
   assertDevOnly,
   isDevBuild,
   liveAudioHaptics,
-  noopXpRatingHook,
   systemClock,
   testId,
 } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
+import { pipelineXpRatingHook } from "@/rating/xp-hook";
 import { ThemedText } from "@/components/themed-text";
 import { AnimatedNumber } from "@/components/ui";
 import { StatRow } from "@/components/game-ui";
@@ -74,7 +74,7 @@ export interface SpatialGridNavScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the pipeline-backed optimistic hook. */
   xpHook?: XpRatingHook;
 }
 
@@ -86,7 +86,7 @@ export default function SpatialGridNavScreen(
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
   const router = useRouter();

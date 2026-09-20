@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { loadContentPack } from '../content-validation';
@@ -241,7 +242,7 @@ describe('LanguageWordMatchScreen', () => {
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.generatorVersion).toBe(1_000_000); // "1.0.0" — seeded pack selection is versioned provenance
     expect(input.session.durationMs).toBe(6 * 500); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal')); // pipeline hook parity
     expect(input.session.normalizedResult).toBeCloseTo(0.96875); // 1 * (0.5 + 0.5 * (1 - 0.375/6))
     const raw = input.session.rawResult as LanguageRawResult;
     expect(raw.score).toBe(882); // 6 × roundScore(500, 8000)

@@ -100,9 +100,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -171,6 +172,17 @@ describe('normalizeOddOneOutResult (documented formula)', () => {
     );
     // 1 * 0.5 * 0.55
     expect(sloppy.value).toBeCloseTo(0.275);
+  });
+
+  it('collapses a corrupt passed-round counter to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeOddOneOutResult(
+        rawResult({ roundsPlayed: 6, roundsPassed: Number.NaN, firstTryCorrect: 6 }),
+        { gameId: 'attention-odd-one-out', difficulty: 'normal', durationMs: 0 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

@@ -107,9 +107,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite DATA to 0 (057 — pipeline safe failure mode)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -180,5 +181,19 @@ describe('normalizeMathEquationBuilderResult (documented formula)', () => {
       durationMs: 0,
     });
     expect(normalized.raw).toEqual(expect.objectContaining({ seed: 's', difficulty: 'normal' }));
+  });
+});
+
+describe('normalizeMathEquationBuilderResult corrupt-data degradation (057)', () => {
+  it('degrades a NaN rounds-passed stat to value 0 without throwing', () => {
+    let normalized;
+    expect(() => {
+      normalized = normalizeMathEquationBuilderResult(
+        rawResult({ roundsPlayed: 5, roundsPassed: NaN, totalTimeBonus: 100 }),
+        { gameId: 'math-equation-builder', difficulty: 'normal', durationMs: 0 },
+      );
+    }).not.toThrow();
+    expect(normalized!.value).toBe(0);
+    expect(normalized!.scale).toBe('0..1');
   });
 });

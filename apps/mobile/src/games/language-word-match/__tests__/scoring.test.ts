@@ -110,9 +110,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -157,6 +158,14 @@ describe('normalizeLanguageResult (documented formula)', () => {
       { gameId: 'language-word-match', difficulty: 'normal', durationMs: 0 },
     );
     expect(normalized.value).toBe(1);
+  });
+
+  it('collapses a corrupt correct-count to 0 instead of throwing', () => {
+    const normalized = normalizeLanguageResult(
+      rawResult({ roundsPlayed: 6, roundsCorrect: Number.NaN, sumAnswerRatio: 0 }),
+      { gameId: 'language-word-match', difficulty: 'normal', durationMs: 0 },
+    );
+    expect(normalized.value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

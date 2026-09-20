@@ -20,8 +20,9 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
@@ -65,7 +66,7 @@ export interface TapRushScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the shared pipeline-backed hook. */
   xpHook?: XpRatingHook;
 }
 /**
@@ -139,7 +140,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const router = useRouter();
   const [state, dispatch] = useReducer(tapRushGameReducer, undefined, createInitialTapRushState);
@@ -235,8 +236,6 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizeTapRushResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
-    // Phase-2 seam: rating deltas are computed but unused while the shared
-    // hook is a no-op.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({

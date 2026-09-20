@@ -62,14 +62,21 @@ function makeSession(id: string): GameSessionRecord {
  */
 function makeFakeDb(
   session: GameSessionRecord,
-  options: { earlierAtOrAbove?: number; workout?: WorkoutInstance | null } = {},
+  options: {
+    earlierAtOrAbove?: number;
+    workout?: WorkoutInstance | null;
+    onCountSessions?: (query: Record<string, unknown>) => void;
+  } = {},
 ): AppDatabase {
-  const { earlierAtOrAbove = 1, workout = null } = options;
+  const { earlierAtOrAbove = 1, workout = null, onCountSessions } = options;
   return {
     sessions: {
       getById: async (id: string) => (id === session.id ? session : null),
       listRecent: async () => [session],
-      countSessions: async () => earlierAtOrAbove,
+      countSessions: async (query: Record<string, unknown>) => {
+        onCountSessions?.(query);
+        return earlierAtOrAbove;
+      },
     },
     ratings: { getHistoryForSession: async () => [] },
     workouts: {
@@ -195,6 +202,46 @@ describe("/results hero anatomy (campaign 024)", () => {
     await act(async () => {});
     expect(screen.queryByTestId("results-personal-best")).toBeNull();
     expect(feedback).not.toHaveBeenCalled();
+  });
+
+  it("057: clamps the personal-best comparison to now for future-dated sessions", async () => {
+    // Clock skew: the session claims a completion a day in the future. The
+    // PB pushdown must compare within the displayed time universe, and an
+    // earlier stronger session must still win (no skewed best).
+    const testStart = Date.now();
+    const futureAt = testStart + 24 * 3_600_000;
+    const session = {
+      ...makeSession("hero-future-skew"),
+      startedAt: futureAt - 60_000,
+      completedAt: futureAt,
+      normalizedResult: 0.7, // mid-band: passes the honesty gate on its own
+    };
+    let seenToMs: unknown = null;
+    // Two sessions reach 0.7 (self + a genuinely earlier best): not a best.
+    mockDbState.db = makeFakeDb(session, {
+      earlierAtOrAbove: 2,
+      onCountSessions: (query) => {
+        seenToMs = query.toMs;
+      },
+    });
+
+    await act(async () => {
+      renderRouter(
+        { index: () => null, results: ResultsScreen },
+        { initialUrl: `/results?id=${session.id}` },
+      );
+    });
+
+    await screen.findByTestId("results-score", {}, { timeout: 5000 });
+    await act(async () => {});
+    // Bound is exactly min(completedAt, now): inside the test window, never
+    // the future timestamp.
+    expect(typeof seenToMs).toBe("number");
+    expect(seenToMs as number).toBeGreaterThanOrEqual(testStart);
+    expect(seenToMs as number).toBeLessThanOrEqual(Date.now());
+    expect(seenToMs as number).toBeLessThan(futureAt);
+    // Outcome: the earlier best wins, so no PB badge despite mid-band play.
+    expect(screen.queryByTestId("results-personal-best")).toBeNull();
   });
 
   it("demotes the workout next game to a ghost beside the primary CTA", async () => {

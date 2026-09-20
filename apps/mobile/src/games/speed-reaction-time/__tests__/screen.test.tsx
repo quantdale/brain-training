@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_DELAY_MS } from '../components/tutorial';
 import { generateRoundDelay, isNoGoRound } from '../generator';
@@ -287,7 +288,8 @@ describe('SpeedScreen', () => {
     expect(input.session.gameId).toBe('speed-reaction-time');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(expectedActiveMs); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    expect(input.session.xp).toBe(50); // pipeline-backed default hook: (10 + 40 × 1) × normal mult 1
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal'));
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as SpeedRawResult;
     expect(raw.medianReactionMs).toBe(goTrials > 0 ? 400 : null);

@@ -4,6 +4,7 @@ import { describe, expect, it } from '@jest/globals';
 import { VIGILANCE_DIFFICULTY_PARAMS } from '../difficulty';
 import {
   applyScoreDelta,
+  clamp01,
   hitScore,
   normalizeVigilanceResult,
   perfectSessionScore,
@@ -73,6 +74,14 @@ describe('speedFactorOf', () => {
   });
 });
 
+describe('clamp01', () => {
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
+  });
+});
+
 describe('normalizeVigilanceResult', () => {
   it('reaches exactly 1.0 for a perfect session and 0 for a fully failed one', () => {
     const context = {
@@ -91,6 +100,34 @@ describe('normalizeVigilanceResult', () => {
       context,
     );
     expect(failed.value).toBe(0);
+  });
+
+  it('still rejects a degenerate response window (programmer error)', () => {
+    expect(() =>
+      speedFactorOf(500, { ...params, rtFailMs: params.rtTargetMs }),
+    ).toThrow(RangeError);
+  });
+
+  it('collapses corrupt hit/speed counters to 0 instead of throwing', () => {
+    const context = {
+      gameId: 'attention-sustained-vigilance' as const,
+      difficulty: 'normal' as const,
+      durationMs: 30_000,
+    };
+    let value = -1;
+    expect(() => {
+      value = normalizeVigilanceResult(
+        rawWith({
+          hits: Number.NaN,
+          omissions: 0,
+          correctHolds: 0,
+          commissions: 0,
+          meanSpeed: Number.NaN,
+        }),
+        context,
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('rewards a clean mixed session more than an error-prone one', () => {

@@ -12,6 +12,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { DifficultyLevel } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { RULE_LABELS } from '../components/rule-banner';
@@ -259,7 +260,7 @@ describe('CardSortScreen', () => {
     expect(input.session.gameId).toBe('flexibility-card-sort');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(NOTICE_MS); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    expect(input.session.xp).toBe(computeXp(1, 'easy')); // pipeline-backed default hook
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as FlexibilityRawResult;
     expect(raw.score).toBe(8 * 150); // 100 + full speed bonus per round

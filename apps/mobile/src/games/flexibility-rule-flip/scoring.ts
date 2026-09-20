@@ -136,10 +136,10 @@ export function uncuedAccuracyOf(uncuedCorrect: number, uncuedPlayed: number): n
   return uncuedPlayed > 0 ? uncuedCorrect / uncuedPlayed : 0;
 }
 
-/** Clamp to [0, 1]; rejects non-finite input (mirrors the SDK clamp). */
+/** Clamp to [0, 1]; non-finite input collapses to 0 (matches rating/pipeline.ts). */
 export function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
-    throw new RangeError(`normalized performance must be finite, got ${value}`);
+    return 0;
   }
   return Math.min(1, Math.max(0, value));
 }

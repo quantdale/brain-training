@@ -13,7 +13,8 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
@@ -63,7 +64,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const router = useRouter();
   const [state, dispatch] = useReducer(contextFitGameReducer, undefined, createInitialContextFitState);
@@ -155,8 +156,8 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizeContextFitResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
-    // Phase-2 seam: rating deltas are computed but unused while the shared
-    // hook is a no-op.
+    // Rating deltas land via the authoritative completion outcome; the
+    // pipeline hook intentionally returns none here.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({

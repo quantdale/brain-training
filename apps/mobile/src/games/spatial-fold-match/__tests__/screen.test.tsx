@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { DIFFICULTY_PARAMS } from '../difficulty';
@@ -257,7 +258,10 @@ describe('SpatialFoldMatchScreen', () => {
     // Campaign 055P: the redundant unrounded `Score` fact row was removed; the
     // focal `score-animated` numeral is the single score presentation and the
     // persisted raw score is asserted below.
-    expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent('0');
+    // Optimistic reward via the pipeline hook: round((10 + 40 * 1) * 1.0) = 50.
+    expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent(
+      String(computeXp(1, 'normal')),
+    );
 
     // Flush the persistence promise.
     await act(async () => {});
@@ -268,7 +272,7 @@ describe('SpatialFoldMatchScreen', () => {
     expect(input.session.gameId).toBe('spatial-fold-match');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBeGreaterThan(0);
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(computeXp(1, 'normal')); // 50, see above
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as SpatialFoldMatchRawResult;
     expect(raw.score).toBe(perfectSessionScore(NORMAL));

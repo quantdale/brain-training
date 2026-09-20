@@ -103,9 +103,10 @@ describe('clamp01', () => {
     expect(clamp01(2)).toBe(1);
     expect(clamp01(0.4)).toBe(0.4);
   });
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow();
-    expect(() => clamp01(Infinity)).toThrow();
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -158,6 +159,14 @@ describe('normalizeFlexibilityTaskSwitchResult', () => {
       context,
     );
     expect(capped.value).toBeLessThanOrEqual(1);
+  });
+
+  it('collapses a corrupt correct-pick counter to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeFlexibilityTaskSwitchResult(raw({ correctPicks: Number.NaN }), context).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

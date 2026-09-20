@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { ORDER_PATH_DIFFICULTY_PARAMS, orderPathParamsForLevel } from '../difficulty';
 import { generateRound } from '../generator';
@@ -199,7 +200,7 @@ describe('OrderPathScreen', () => {
     expect(input.session.gameId).toBe('logic-order-path');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(rounds.length * ANSWER_MS); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    expect(input.session.xp).toBe(computeXp(0.99, 'normal')); // pipeline: round(10 + 40×0.99) = 50
     // accuracy 1 × (0.5 + 0.5 × (1 − 2500/125000)) = 0.99
     expect(input.session.normalizedResult).toBeCloseTo(0.99);
     const raw = input.session.rawResult as OrderPathRawResult;

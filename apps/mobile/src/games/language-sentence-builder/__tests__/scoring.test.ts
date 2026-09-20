@@ -139,9 +139,10 @@ describe('clamp01', () => {
     expect(clamp01(0.5)).toBe(0.5);
   });
 
-  it('rejects non-finite', () => {
-    expect(() => clamp01(NaN)).toThrow('finite');
-    expect(() => clamp01(Infinity)).toThrow('finite');
+  it('collapses non-finite to 0', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -185,6 +186,34 @@ describe('normalizeSentenceBuilderResult', () => {
     });
     expect(result.value).toBe(1);
     expect(result.scale).toBe('0..1');
+  });
+
+  it('collapses a corrupt word-length factor to 0 instead of throwing', () => {
+    const raw: SentenceBuilderRawResult = {
+      score: 750,
+      totalRounds: 5,
+      roundsPlayed: 5,
+      roundsPassed: 5,
+      accuracy: 1,
+      bestStreak: 5,
+      longestSentence: 7,
+      avgWordLengthFactor: Number.NaN,
+      challengeRating: 0.5,
+      difficulty: 'normal',
+      seed: 'test',
+      gameVersion: '1.0.0',
+      generatorVersion: '1.0.0',
+      scoringVersion: '1.0.0',
+      forced: false,
+      generatorInfo: {},
+      diagnosticMetadata: {} as any,
+    };
+    const result = normalizeSentenceBuilderResult(raw, {
+      gameId: 'language-sentence-builder',
+      difficulty: 'normal',
+      durationMs: 30_000,
+    });
+    expect(result.value).toBe(0);
   });
 
   it('returns 0 for a failed session', () => {

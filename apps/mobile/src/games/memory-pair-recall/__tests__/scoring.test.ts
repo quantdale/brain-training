@@ -92,6 +92,17 @@ describe("normalizePairRecallResult", () => {
     ).toBe(0);
   });
 
+  it("collapses a corrupt passed-round counter to 0 instead of throwing", () => {
+    let value = -1;
+    expect(() => {
+      value = normalizePairRecallResult(
+        makeRaw({ roundsPlayed: 5, roundsPassed: Number.NaN }),
+        { gameId: GAME_ID, difficulty: "normal", durationMs: 1000 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
+  });
+
   it("exposes the SDK normalizer contract", () => {
     expect(pairRecallPerformanceNormalizer.gameId).toBe(GAME_ID);
     expect(typeof pairRecallPerformanceNormalizer.normalize).toBe("function");
@@ -110,8 +121,10 @@ describe("helpers", () => {
     expect(pairProgress(3, 6)).toBe(0.5);
   });
 
-  it("clamp01 rejects non-finite input", () => {
-    expect(() => clamp01(Number.NaN)).toThrow();
+  it("clamp01 collapses non-finite input to 0 (matches rating/pipeline.ts)", () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
     expect(clamp01(1.5)).toBe(1);
   });
 

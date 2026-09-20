@@ -88,9 +88,10 @@ describe('clamp01', () => {
     expect(clamp01(0.4)).toBe(0.4);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow();
-    expect(() => clamp01(Infinity)).toThrow();
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -182,5 +183,20 @@ describe('normalizeOrderPathResult', () => {
     expect(orderPathPerformanceNormalizer.normalize(raw(), context)).toEqual(
       normalizeOrderPathResult(raw(), context),
     );
+  });
+});
+
+describe('normalizeOrderPathResult corrupt-stat collapse', () => {
+  it('collapses a corrupt correct-count stat to 0 instead of throwing', () => {
+    const corrupt = raw({ roundsCorrect: NaN });
+    let result: ReturnType<typeof normalizeOrderPathResult> | undefined;
+    expect(() => {
+      result = normalizeOrderPathResult(corrupt, {
+        gameId: 'logic-order-path',
+        difficulty: 'normal' as const,
+        durationMs: 1000,
+      });
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
   });
 });

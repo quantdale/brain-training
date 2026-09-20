@@ -111,9 +111,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (rating/pipeline.ts parity)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -171,6 +172,17 @@ describe('normalizeSpatialResult (documented formula)', () => {
       { gameId: 'spatial-mental-rotation', difficulty: 'normal', durationMs: 0 },
     );
     expect(normalized.value).toBeCloseTo(0.6);
+  });
+
+  it('collapses a corrupt counter to 0 instead of throwing', () => {
+    // Corrupt stat natural to this game: the rounds-passed counter read back
+    // as NaN (e.g. damaged persistence). Accuracy becomes NaN and the final
+    // clamp collapses it to worst-case 0 rather than throwing.
+    const corrupt = normalizeSpatialResult(
+      rawResult({ roundsPlayed: 5, roundsPassed: Number.NaN, totalBudgetMs: 80_000 }),
+      { gameId: 'spatial-mental-rotation', difficulty: 'normal', durationMs: 0 },
+    );
+    expect(corrupt.value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

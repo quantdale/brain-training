@@ -33,6 +33,7 @@ import {
   testId,
 } from "@/sdk";
 import type { CompleteSessionInput } from "@/db";
+import { computeXp } from "@/rating/pipeline";
 
 import { PROSPECTIVE_CUE_DIFFICULTY_PARAMS } from "../difficulty";
 import { GO_HIT_POINTS, GO_SPEED_BONUS, SIGNAL_HIT_POINTS } from "../scoring";
@@ -258,6 +259,9 @@ describe("SignalWatchScreen", () => {
 
     expect(persister.completeSession).toHaveBeenCalledTimes(1);
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
+    // Pipeline-backed optimistic XP matches the rating pipeline for the persisted record.
+    expect(input.session.difficulty).toEqual(expect.objectContaining({ level: "adaptive" }));
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, "adaptive"));
     const raw = input.session.rawResult as { challengeRating: number };
     const difficulty = input.session.difficulty as { challengeRating: number };
     expect(difficulty.challengeRating).toBeCloseTo(raw.challengeRating);

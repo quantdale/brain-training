@@ -20,8 +20,10 @@ export function speedScoreOf(sumAnswerRatio: number, roundsPlayed: number): numb
   return roundsPlayed > 0 ? clamp01(1 - sumAnswerRatio / roundsPlayed) : 0;
 }
 
+// Collapse non-finite input to 0 (mirrors rating/pipeline.ts clamp01): a
+// corrupt normalized stat degrades to worst-case instead of throwing.
 export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) throw new RangeError(`normalized performance must be finite, got ${value}`);
+  if (!Number.isFinite(value)) return 0;
   return Math.min(1, Math.max(0, value));
 }
 

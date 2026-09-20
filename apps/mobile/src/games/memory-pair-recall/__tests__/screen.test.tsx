@@ -25,6 +25,7 @@ import {
   testId,
 } from "@/sdk";
 import type { CompleteSessionInput } from "@/db";
+import { computeXp } from "@/rating/pipeline";
 
 import { PAIR_RECALL_DIFFICULTY_PARAMS } from "../difficulty";
 import { generateRound } from "../generator";
@@ -230,6 +231,9 @@ describe("PairRecallScreen", () => {
       .calls[0][0] as CompleteSessionInput;
     expect(input.session.gameId).toBe(GAME_ID);
     expect((input.session.rawResult as { forced: boolean }).forced).toBe(false);
+    // Pipeline-backed optimistic XP matches the rating pipeline for the persisted record.
+    expect(input.session.difficulty).toEqual(expect.objectContaining({ level: "normal" }));
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, "normal"));
   });
 
   it("pauses: the opaque overlay appears and the study window freezes until resume", async () => {

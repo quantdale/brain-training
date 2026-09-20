@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED, buildDemoRound } from '../components/tutorial';
 import { SPATIAL_DIFFICULTY_PARAMS, spatialParamsForLevel } from '../difficulty';
@@ -210,7 +211,8 @@ describe('SpatialScreen', () => {
     expect(input.session.gameId).toBe('spatial-mental-rotation');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(5 * 1000); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    // Optimistic reward via the pipeline hook on the recorded normalized value.
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal'));
     expect(input.session.normalizedResult).toBeGreaterThan(0);
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as SpatialRawResult;

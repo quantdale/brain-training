@@ -165,7 +165,7 @@ describe('NumberLineScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect(input.session.gameId).toBe('math-number-line-estimation');
     expect(input.session.seed).toBe(seedToNumber(seed));
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(50); // pipeline hook: round((10 + 40 * 1) * 1)
     expect(input.session.normalizedResult).toBeCloseTo(1);
     const raw = input.session.rawResult as NumberLineRawResult;
     expect(raw.roundsHit).toBe(rounds.length);

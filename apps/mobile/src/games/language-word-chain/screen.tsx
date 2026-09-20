@@ -20,10 +20,10 @@ import { useRouter } from 'expo-router';
 import {
   isDevBuild,
   liveAudioHaptics,
-  noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type {
   Clock,
   TutorialStore,
@@ -78,7 +78,7 @@ export interface WordChainScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the pipeline hook for optimistic display parity. */
   xpHook?: XpRatingHook;
 }
 
@@ -88,7 +88,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
   const router = useRouter();
@@ -203,8 +203,8 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     };
     const normalized = normalizeWordChainResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
-    // Phase-2 seam: rating deltas are computed but unused while the shared
-    // hook is a no-op.
+    // Rating deltas land via the authoritative completion outcome; the
+    // pipeline hook intentionally returns none here.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({

@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import {
@@ -219,7 +220,9 @@ describe('OddOneOutScreen', () => {
     expect(input.session.gameId).toBe(GAME_ID);
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(6 * 2_000); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    // Pipeline-backed optimistic XP: round((10 + 40 × normalized) × normal mult 1) = 46.
+    expect(input.session.xp).toBe(46);
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal'));
     // All first-try, mean solve ratio 2000/(12000,10500,9000×4) ≈ 0.2077 →
     // normalized ≈ 0.896.
     expect(input.session.normalizedResult).toBeGreaterThan(0);

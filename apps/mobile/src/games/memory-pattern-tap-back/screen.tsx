@@ -24,11 +24,11 @@ import { useRouter } from 'expo-router';
 import {
   isDevBuild,
   liveAudioHaptics,
-  noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { AnimatedNumber } from '@/components/ui';
@@ -71,7 +71,7 @@ export interface PatternTapBackScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the shared pipeline-backed hook. */
   xpHook?: XpRatingHook;
 }
 
@@ -81,7 +81,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
     tutorialStore,
     sessionSeed,
     persistSession: persister = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
   const router = useRouter();
@@ -195,8 +195,6 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizePatternTapBackResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
-    // Phase-2 seam: rating deltas are computed but unused while the shared
-    // hook is a no-op.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({

@@ -58,9 +58,12 @@ export interface XpRatingContext {
 }
 
 /**
- * XP/rating integration hook — Phase 2 implements the real algorithms
- * (hybrid lifetime/recent rating updates, XP curve, currency). Phase 1 code
- * should wire the shared `noopXpRatingHook` so the seam exists end-to-end.
+ * XP/rating integration hook. The rating pipeline (`@/rating/pipeline`,
+ * wired in `_layout` bootstrap) is the authoritative computer of XP, rating
+ * deltas, and currency. Game screens default to `pipelineXpRatingHook`
+ * (`@/rating/xp-hook`) for optimistic display parity; `noopXpRatingHook`
+ * below remains the explicit no-op for test seams that must observe the
+ * pre-pipeline behavior.
  */
 export interface XpRatingHook {
   /** XP awarded for the session (engagement reward; poor attempts still earn some). */
@@ -69,7 +72,11 @@ export interface XpRatingHook {
   computeRatingDeltas(performance: NormalizedPerformance, context: XpRatingContext): readonly RatingDelta[];
 }
 
-/** No-op default: awards 0 XP and no rating movement. Phase 2 replaces this. */
+/**
+ * No-op hook: awards 0 XP and no rating movement. Preserved exactly for
+ * test seams (pinned by `sdk/contracts.test.ts`); NOT the game-screen
+ * default (screens use the pipeline-backed hook for optimistic parity).
+ */
 export const noopXpRatingHook: XpRatingHook = {
   computeXp: () => 0,
   computeRatingDeltas: () => [],

@@ -22,6 +22,7 @@ import {
   testId,
 } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import SpatialCoordinateTurnScreen from '../screen';
 import { generateSession } from '../generator';
@@ -228,7 +229,10 @@ describe('SpatialCoordinateTurnScreen', () => {
     // persisted raw score is asserted below.
     expect(screen.getByTestId(testId(GAME_ID, 'speed'))).toHaveTextContent('0 ms');
     expect(screen.getByTestId(testId(GAME_ID, 'position-accuracy'))).toHaveTextContent('—');
-    expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent('0');
+    // Optimistic reward via the pipeline hook: round((10 + 40 * 1) * 1.0) = 50.
+    expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent(
+      String(computeXp(1, 'normal')),
+    );
 
     // Flush the persistence promise chain.
     await act(async () => {});
@@ -239,7 +243,7 @@ describe('SpatialCoordinateTurnScreen', () => {
     expect(input.session.gameId).toBe('spatial-coordinate-turn');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBeGreaterThanOrEqual(0);
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(computeXp(1, 'normal')); // 50, see above
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as SpatialCoordinateTurnRawResult;
     expect(raw.score).toBe(perfectSessionScore(DIFFICULTY_PARAMS.normal));

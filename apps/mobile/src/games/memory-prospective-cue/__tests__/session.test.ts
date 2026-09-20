@@ -150,20 +150,22 @@ describe("normalization contract", () => {
     expect(under.value).toBe(0);
   });
 
-  it("throws on non-finite inputs instead of emitting a broken rating", () => {
-    expect(() =>
-      normalizeProspectiveCueResult(
-        { ...base, signalAccuracy: Number.NaN },
-        context,
-      ),
-    ).toThrow(RangeError);
-    expect(() =>
-      normalizeProspectiveCueResult(
-        { ...base, signalAccuracy: Number.POSITIVE_INFINITY },
-        context,
-      ),
-    ).toThrow(RangeError);
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
+  it("collapses non-finite inputs to 0 instead of emitting a broken rating (matches rating/pipeline.ts)", () => {
+    for (const bad of [
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ]) {
+      expect(clamp01(bad)).toBe(0);
+      let value = -1;
+      expect(() => {
+        value = normalizeProspectiveCueResult(
+          { ...base, signalAccuracy: bad },
+          context,
+        ).value;
+      }).not.toThrow();
+      expect(value).toBe(0);
+    }
     expect(clamp01(-0.5)).toBe(0);
     expect(clamp01(1.5)).toBe(1);
   });

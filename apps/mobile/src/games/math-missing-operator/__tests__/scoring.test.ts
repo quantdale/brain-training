@@ -90,12 +90,13 @@ describe('accuracyOf / avgResponseMs / clamp01', () => {
     expect(avgResponseMs({ ...stats, roundsPlayed: 2, timeouts: 2 })).toBe(0);
   });
 
-  it('clamps to [0, 1] and rejects non-finite input', () => {
+  it('clamps to [0, 1] and collapses non-finite DATA to 0 (057)', () => {
     expect(clamp01(-0.2)).toBe(0);
     expect(clamp01(1.4)).toBe(1);
     expect(clamp01(0.42)).toBe(0.42);
-    expect(() => clamp01(Number.NaN)).toThrow(/finite/);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(/finite/);
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -150,5 +151,19 @@ describe('normalizeMathMissingOperatorResult', () => {
 describe('mathMissingOperatorPerformanceNormalizer', () => {
   it('is bound to the game id', () => {
     expect(mathMissingOperatorPerformanceNormalizer.gameId).toBe('math-missing-operator');
+  });
+});
+
+describe('normalizeMathMissingOperatorResult corrupt-data degradation (057)', () => {
+  it('degrades a NaN rounds-correct stat to value 0 without throwing', () => {
+    let result;
+    expect(() => {
+      result = normalizeMathMissingOperatorResult(
+        raw({ roundsPlayed: 7, roundsCorrect: NaN, avgResponseMs: 2000, baseTimeMs: 10000 }),
+        { gameId: 'math-missing-operator', difficulty: 'normal', durationMs: 1000 },
+      );
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
+    expect(result!.scale).toBe('0..1');
   });
 });

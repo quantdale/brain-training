@@ -57,9 +57,10 @@ describe('clamp01', () => {
     expect(clamp01(1.5)).toBe(1);
   });
 
-  it('throws on non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow('finite');
-    expect(() => clamp01(Infinity)).toThrow('finite');
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -136,6 +137,21 @@ describe('normalizeTargetCountResult', () => {
       durationMs: 45000,
     });
     expect(result.value).toBe(0);
+  });
+
+  it('collapses a corrupt correct-round counter to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeTargetCountResult(
+        buildRaw({ roundsCorrect: Number.NaN, roundsPlayed: 8 }),
+        {
+          gameId: 'attention-target-count',
+          difficulty: 'normal',
+          durationMs: 45000,
+        },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('returns 1 for a perfect session with instant answers', () => {

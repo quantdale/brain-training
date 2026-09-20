@@ -25,11 +25,11 @@ import { useRouter } from 'expo-router';
 import {
   isDevBuild,
   liveAudioHaptics,
-  noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
@@ -77,7 +77,7 @@ export interface MathMissingOperatorScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the pipeline-backed hook for optimistic parity. */
   xpHook?: XpRatingHook;
 }
 
@@ -87,7 +87,7 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const router = useRouter();
   const [state, dispatch] = useReducer(
@@ -208,8 +208,8 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizeMathMissingOperatorResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
-    // Phase-2 seam: rating deltas are computed but unused while the shared
-    // hook is a no-op.
+    // Rating deltas are intentionally empty optimistically; screens render
+    // deltas only from the authoritative completionOutcome.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({

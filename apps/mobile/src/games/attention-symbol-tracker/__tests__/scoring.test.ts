@@ -90,8 +90,10 @@ describe('clamp01', () => {
     expect(clamp01(2)).toBe(1);
     expect(clamp01(0.4)).toBe(0.4);
   });
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow();
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -136,6 +138,17 @@ describe('normalizeSymbolTrackerResult', () => {
     );
     expect(partial.value).toBeGreaterThan(0);
     expect(partial.value).toBeLessThan(1);
+  });
+
+  it('collapses a corrupt passed-round counter to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeSymbolTrackerResult(
+        raw({ roundsPlayed: 5, roundsPassed: Number.NaN, bestRecall: 6 }),
+        { gameId: 'attention-symbol-tracker', difficulty: 'normal', durationMs: 1000 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

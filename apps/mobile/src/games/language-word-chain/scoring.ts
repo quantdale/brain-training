@@ -82,12 +82,12 @@ export function speedScoreOf(
  return stepsPlayed > 0 ? clamp01(1 - sumAnswerRatio / stepsPlayed) : 0;
 }
 
-/** Clamp to [0, 1]; rejects non-finite input (mirrors the SDK clamp). */
+/** Clamp to [0, 1]; non-finite input collapses to 0 (mirrors rating/pipeline.ts). */
 export function clamp01(value: number): number {
- if (!Number.isFinite(value)) {
-  throw new RangeError(`normalized performance must be finite, got ${value}`);
- }
- return Math.min(1, Math.max(0, value));
+  if (!Number.isFinite(value)) {
+   return 0;
+  }
+  return Math.min(1, Math.max(0, value));
 }
 
 /** Raw → normalized (see module docs for the formula). */

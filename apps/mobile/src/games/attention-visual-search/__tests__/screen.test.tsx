@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { generateRoundTarget, generateSessionTargets } from '../generator';
@@ -179,7 +180,9 @@ describe('VisualSearchScreen', () => {
     expect(input.session.gameId).toBe('attention-visual-search');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(0); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    // Pipeline-backed optimistic XP: round((10 + 40 × 1) × normal mult 1) = 50.
+    expect(input.session.xp).toBe(50);
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal'));
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as VisualSearchRawResult;
     expect(raw.score).toBe(2_400); // 12 rounds × 200

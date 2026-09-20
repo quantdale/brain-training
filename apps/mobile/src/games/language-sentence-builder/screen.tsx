@@ -23,7 +23,8 @@ import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { isDevBuild, liveAudioHaptics, noopXpRatingHook, systemClock, testId } from '@/sdk';
+import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
@@ -69,7 +70,7 @@ export interface SentenceBuilderScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the pipeline hook for optimistic display parity. */
   xpHook?: XpRatingHook;
 }
 
@@ -79,7 +80,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
   const router = useRouter();

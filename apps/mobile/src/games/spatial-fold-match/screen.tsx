@@ -23,11 +23,11 @@ import { useRouter } from 'expo-router';
 import {
   isDevBuild,
   liveAudioHaptics,
-  noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
@@ -74,7 +74,7 @@ export interface SpatialFoldMatchScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the pipeline-backed optimistic hook. */
   xpHook?: XpRatingHook;
 }
 
@@ -87,7 +87,7 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const router = useRouter();
   const [state, dispatch] = useReducer(

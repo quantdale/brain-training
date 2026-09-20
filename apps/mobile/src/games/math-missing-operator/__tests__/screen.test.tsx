@@ -202,7 +202,7 @@ describe('MathMissingOperatorScreen', () => {
     expect(input.session.gameId).toBe('math-missing-operator');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBe(7 * 2000); // active play time only
-    expect(input.session.xp).toBe(0); // no-op hook in Phase 1
+    expect(input.session.xp).toBe(47); // pipeline hook: round((10 + 40 * 0.92) * 1)
     // avg response 2000 of a 10000 base → speed 0.8 → value 0.92.
     expect(input.session.normalizedResult).toBeCloseTo(0.92, 4);
     const raw = input.session.rawResult as MathMissingOperatorRawResult;

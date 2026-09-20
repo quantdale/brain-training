@@ -31,10 +31,12 @@ import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } f
 import { GAME_ID } from './types';
 import type { QuickCompareDifficultyParams, QuickCompareRawResult, QuickCompareStats } from './types';
 
-/** Clamp to [0, 1]; rejects non-finite input (mirrors the SDK clamp). */
+/** Clamp to [0, 1]; non-finite DATA collapses to 0 (057 — matches the
+ * rating pipeline's safe failure mode). Programmer-error validation
+ * (bad params, unknown modes) still throws RangeError at its own site. */
 export function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
-    throw new RangeError(`normalized performance must be finite, got ${value}`);
+    return 0;
   }
   return Math.min(1, Math.max(0, value));
 }
@@ -73,12 +75,26 @@ export function meanOf(values: readonly number[]): number | null {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-/** Minimum of a numeric list; null for an empty list. */
+/**
+ * Minimum of a numeric list; null for an empty list. Iterative (not
+ * `Math.min(...spread)`) so hostile-length arrays cannot overflow the call
+ * stack in the raw-builder path; NaN-poisoning matches `Math.min` exactly
+ * (057).
+ */
 export function bestOf(values: readonly number[]): number | null {
   if (values.length === 0) {
     return null;
   }
-  return Math.min(...values);
+  let best: number | null = null;
+  for (const value of values) {
+    if (Number.isNaN(value)) {
+      return Number.NaN;
+    }
+    if (best === null || value < best) {
+      best = value;
+    }
+  }
+  return best;
 }
 
 /** Mean per-answer speed factor; 0 when nothing was answered. */

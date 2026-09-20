@@ -39,11 +39,11 @@ import { useRouter } from 'expo-router';
 import {
   isDevBuild,
   liveAudioHaptics,
-  noopXpRatingHook,
   systemClock,
   testId,
 } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
+import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
@@ -84,7 +84,7 @@ export interface RuleFlipScreenProps {
   sessionSeed?: string | number;
   /** Injectable session persister (tests); defaults to the db layer. */
   persistSession?: SessionPersistence;
-  /** Injectable XP/rating hook; defaults to the shared no-op (Phase 2 real impl). */
+  /** Injectable XP/rating hook; defaults to the shared pipeline-backed hook. */
   xpHook?: XpRatingHook;
 }
 
@@ -98,7 +98,7 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     tutorialStore,
     sessionSeed,
     persistSession = dbSessionPersister,
-    xpHook = noopXpRatingHook,
+    xpHook = pipelineXpRatingHook,
   } = props;
   const router = useRouter();
   const [state, dispatch] = useReducer(flexibilityRuleFlipReducer, undefined, createInitialFlexibilityRuleFlipState);
@@ -220,8 +220,8 @@ export default function RuleFlipScreen(props: RuleFlipScreenProps = {}) {
     const context = { gameId: GAME_ID, difficulty, durationMs: activeDurationMs };
     const normalized = normalizeFlexibilityRuleFlipResult(raw, context);
     const xp = xpHook.computeXp(normalized, context);
-    // Phase-2 seam: rating deltas are computed but unused while the shared
-    // hook is a no-op.
+    // Pipeline seam: pre-persist rating deltas are empty by design; the
+    // authoritative outcome arrives via persistence below.
     xpHook.computeRatingDeltas(normalized, context);
 
     dispatch({

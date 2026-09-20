@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { generateRoundData } from '../generator';
 import SpatialTransformMatchScreen from '../screen';
@@ -175,7 +176,8 @@ describe('SpatialTransformMatchScreen', () => {
     const input = persister.completeSession.mock.calls[0][0] as CompleteSessionInput;
     expect(input.session.gameId).toBe('spatial-transform-match');
     expect(input.session.seed).toBe(seedToNumber(seed));
-    expect(input.session.xp).toBe(0);
+    // Optimistic reward via the pipeline hook on the recorded normalized value.
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, 'normal'));
     expect(input.session.normalizedResult).toBeGreaterThan(0);
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as SpatialTransformMatchRawResult;

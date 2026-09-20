@@ -20,6 +20,7 @@ import {
 } from '../generator';
 import type { ExpressionOperator } from '../generator';
 import {
+  clamp01,
   normalizeValueOrderingResult,
   perfectSessionScore,
   roundScore,
@@ -246,5 +247,59 @@ describe('restart state hygiene', () => {
     expect(state.authoritativeXp).toBeNull();
     expect(state.authoritativeCurrency).toBeNull();
     expect(state.authoritativeDeltas).toEqual([]);
+  });
+});
+
+describe('clamp01 corrupt-data collapse (057)', () => {
+  it('collapses non-finite DATA to 0 instead of throwing', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
+    expect(clamp01(1.5)).toBe(1);
+    expect(clamp01(-0.2)).toBe(0);
+  });
+});
+
+describe('normalizeValueOrderingResult corrupt-data degradation (057)', () => {
+  it('degrades a NaN rounds-hit stat to value 0 without throwing', () => {
+    const base = {
+      roundsTotal: 2,
+      roundsPlayed: 2,
+      finalTiles: 4,
+      challengeRating: 0.5,
+      difficulty: 'normal' as const,
+      seed: 'corrupt-seed',
+      gameVersion: '1.0.0',
+      generatorVersion: '1.0.0',
+      scoringVersion: '1.0.0',
+      forced: false,
+      generatorInfo: {},
+      diagnosticMetadata: {},
+    };
+    const corrupt: ValueOrderingRawResult = {
+      ...base,
+      score: 0,
+      roundsHit: NaN,
+      meanSpeedFactor: 0.5,
+      avgProgress: 0.5,
+      diagnosticMetadata: {
+        gameId: 'math-value-ordering',
+        sdkVersion: '0.1.0',
+        gameVersion: base.gameVersion,
+        generatorVersion: base.generatorVersion,
+        seed: base.seed,
+        difficulty: base.difficulty,
+        startedAtMs: 0,
+        activeDurationMs: 1,
+        pausedDurationMs: 0,
+      },
+    };
+    const context = { gameId: 'math-value-ordering', difficulty: 'normal' as const, durationMs: 1 };
+    let result;
+    expect(() => {
+      result = normalizeValueOrderingResult(corrupt, context);
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
+    expect(result!.scale).toBe('0..1');
   });
 });

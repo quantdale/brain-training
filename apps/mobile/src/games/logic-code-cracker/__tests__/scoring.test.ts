@@ -50,9 +50,10 @@ describe('clamp01', () => {
     expect(clamp01(1.5)).toBe(1);
   });
 
-  it('throws on non-finite input', () => {
-    expect(() => clamp01(NaN)).toThrow('finite');
-    expect(() => clamp01(Infinity)).toThrow('finite');
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -149,5 +150,58 @@ describe('normalizeCodeCrackerResult', () => {
     });
     // accuracy=1, efficiency=1-(4/40)=0.9, value=1*(0.5+0.5*0.9)=0.95
     expect(result.value).toBeCloseTo(0.95);
+  });
+});
+
+describe('normalizeCodeCrackerResult corrupt-stat collapse', () => {
+  function buildCorruptRaw(overrides: Partial<CodeCrackerRawResult> = {}): CodeCrackerRawResult {
+    return {
+      score: 400,
+      totalRounds: 4,
+      roundsPlayed: 4,
+      roundsSolved: 3,
+      accuracy: 0.75,
+      totalGuessesUsed: 20,
+      totalGuessesBudget: 40,
+      bestStreak: 2,
+      bestSolveGuesses: 2,
+      codeLength: 4,
+      colorCount: 6,
+      guessBudget: 10,
+      challengeRating: 0.5,
+      difficulty: 'normal',
+      seed: '42',
+      gameVersion: '1.0.0',
+      generatorVersion: '1.0.0',
+      scoringVersion: '1.0.0',
+      forced: false,
+      guessHistory: [],
+      generatorInfo: {},
+      diagnosticMetadata: {
+        gameId: 'logic-code-cracker',
+        sdkVersion: '0.1.0',
+        gameVersion: '1.0.0',
+        generatorVersion: '1.0.0',
+        seed: '42',
+        difficulty: 'normal',
+        startedAtMs: 1000,
+        activeDurationMs: 45000,
+        pausedDurationMs: 5000,
+      },
+      ...overrides,
+    };
+  }
+
+  it('collapses a corrupt solved-count stat to 0 instead of throwing', () => {
+    const raw = buildCorruptRaw({ roundsSolved: NaN });
+    let result: ReturnType<typeof normalizeCodeCrackerResult> | undefined;
+    expect(() => {
+      result = normalizeCodeCrackerResult(raw, {
+        gameId: 'logic-code-cracker',
+        difficulty: 'normal',
+        durationMs: 45000,
+      });
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
   });
 });

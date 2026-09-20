@@ -109,9 +109,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -194,5 +195,20 @@ describe('normalizeLogicResult (documented formula: accuracy × (0.6 + 0.4 × sp
     expect(normalized.raw).toEqual(
       expect.objectContaining({ seed: 's', difficulty: 'normal', finalTier: 1 }),
     );
+  });
+});
+
+describe('normalizeLogicResult corrupt-stat collapse', () => {
+  it('collapses a corrupt passed-count stat to 0 instead of throwing', () => {
+    const corrupt = rawResult({ roundsPlayed: 5, roundsPassed: NaN, totalMs: 20000, targetMs: 40000 });
+    let result: ReturnType<typeof normalizeLogicResult> | undefined;
+    expect(() => {
+      result = normalizeLogicResult(corrupt, {
+        gameId: 'logic-next-sequence',
+        difficulty: 'normal',
+        durationMs: 20000,
+      });
+    }).not.toThrow();
+    expect(result!.value).toBe(0);
   });
 });

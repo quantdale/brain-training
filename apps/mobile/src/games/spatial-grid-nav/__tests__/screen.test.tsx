@@ -17,6 +17,7 @@ import {
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { createFakeClock, createInMemoryTutorialStore, testId } from "@/sdk";
 import type { CompleteSessionInput } from "@/db";
+import { computeXp } from "@/rating/pipeline";
 
 import { generateSession } from "../generator";
 import {
@@ -189,7 +190,9 @@ describe("SpatialGridNavScreen", () => {
       .calls[0][0] as CompleteSessionInput;
     expect(input.session.gameId).toBe("spatial-grid-nav");
     expect(input.session.seed).toBe(seedToNumber(seed));
-    expect(input.session.xp).toBe(0);
+    // Optimistic reward via the pipeline hook on the recorded normalized
+    // value (perfect instant run, no hard rounds → 0.8 → round(10 + 40*0.8) = 42).
+    expect(input.session.xp).toBe(computeXp(input.session.normalizedResult, "normal"));
     expect(input.session.normalizedResult).toBeGreaterThan(0);
     expect(input.session.normalizedResult).toBeLessThanOrEqual(1);
     const raw = input.session.rawResult as SpatialGridNavRawResult;

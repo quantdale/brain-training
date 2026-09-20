@@ -19,12 +19,13 @@ import { QUICK_COMPARE_DIFFICULTY_PARAMS } from '../difficulty';
 import type { QuickCompareStats } from '../types';
 
 describe('clamp01', () => {
-  it('clamps to [0, 1] and rejects non-finite input', () => {
+  it('clamps to [0, 1] and collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
     expect(clamp01(0.4)).toBe(0.4);
     expect(clamp01(-1)).toBe(0);
     expect(clamp01(5)).toBe(1);
-    expect(() => clamp01(NaN)).toThrow();
-    expect(() => clamp01(Infinity)).toThrow();
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Infinity)).toBe(0);
+    expect(clamp01(-Infinity)).toBe(0);
   });
 });
 
@@ -57,6 +58,13 @@ describe('aggregate helpers', () => {
     expect(bestOf([])).toBeNull();
     expect(meanOf([2, 4, 6])).toBe(4);
     expect(bestOf([2, 4, 6])).toBe(2);
+  });
+
+  it('057: bestOf is iterative — hostile-length arrays cannot overflow the stack', () => {
+    const hostile = new Array<number>(1_000_000).fill(500);
+    hostile[123_456] = 100;
+    expect(bestOf(hostile)).toBe(100);
+    expect(bestOf([2, Number.NaN, 1])).toBeNaN();
   });
 
   it('meanSpeedOf falls back to 0 with no factors', () => {
@@ -199,6 +207,29 @@ describe('normalizeQuickCompareResult', () => {
       { gameId: 'speed-quick-compare', difficulty: 'normal', durationMs: 30000 },
     );
     expect(result.value).toBeCloseTo(0.375);
+  });
+
+  it('collapses a corrupt speed-factor stat to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeQuickCompareResult(
+        raw({
+          stats: {
+            score: 0,
+            roundsTotal: 10,
+            roundsCorrect: 0,
+            roundsWrong: 10,
+            roundsMissed: 0,
+            reactions: Array(10).fill(500),
+            speedFactors: Array(10).fill(Number.NaN),
+            bestStreak: 0,
+            streak: 0,
+          },
+        }),
+        { gameId: 'speed-quick-compare', difficulty: 'normal', durationMs: 30000 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('never folds difficulty into the normalized value', () => {

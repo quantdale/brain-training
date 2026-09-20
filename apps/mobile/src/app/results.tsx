@@ -92,9 +92,12 @@ async function loadPersonalBest(
     if (typeof db.sessions.countSessions !== "function") {
       return false;
     }
+    // 057: clamp the comparison universe to the same `now` the recent list
+    // uses — a clock-skewed future-dated session must not judge itself
+    // against sessions that have not happened yet from the UI's perspective.
     const atOrAbove = await db.sessions.countSessions({
       gameIds: [session.gameId],
-      toMs: session.completedAt,
+      toMs: Math.min(session.completedAt, Date.now()),
       minNormalized: session.normalizedResult,
     });
     return atOrAbove <= 1;

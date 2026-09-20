@@ -18,6 +18,7 @@ import {
   testId,
 } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { computeXp } from '@/rating/pipeline';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS } from '../difficulty';
@@ -230,7 +231,7 @@ describe('RuleFlipScreen', () => {
     expect(input.session.gameId).toBe('flexibility-rule-flip');
     expect(input.session.seed).toBe(seedToNumber(seed));
     expect(input.session.durationMs).toBeGreaterThan(0);
-    expect(input.session.xp).toBe(0);
+    expect(input.session.xp).toBe(computeXp(1, 'normal')); // pipeline-backed default hook
     expect(input.session.normalizedResult).toBe(1);
     const raw = input.session.rawResult as FlexibilityRuleFlipRawResult;
     expect(raw.score).toBe(perfectPlanScore(plan));

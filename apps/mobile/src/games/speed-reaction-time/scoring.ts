@@ -76,12 +76,25 @@ export function meanOf(reactions: readonly number[]): number | null {
   return reactions.reduce((sum, value) => sum + value, 0) / reactions.length;
 }
 
-/** Fastest reaction; null when empty. */
+/**
+ * Fastest reaction; null when empty. Iterative (not `Math.min(...spread)`)
+ * so hostile-length arrays cannot overflow the call stack in the raw-builder
+ * path; NaN-poisoning matches `Math.min` exactly (057).
+ */
 export function bestOf(reactions: readonly number[]): number | null {
   if (reactions.length === 0) {
     return null;
   }
-  return Math.min(...reactions);
+  let best: number | null = null;
+  for (const value of reactions) {
+    if (Number.isNaN(value)) {
+      return Number.NaN;
+    }
+    if (best === null || value < best) {
+      best = value;
+    }
+  }
+  return best;
 }
 
 /** Share of the session's rounds completed with a valid reaction; 0 guard. */
@@ -89,10 +102,12 @@ export function completionOf(validReactions: number, totalRounds: number): numbe
   return totalRounds > 0 ? validReactions / totalRounds : 0;
 }
 
-/** Clamp to [0, 1]; rejects non-finite input (mirrors the SDK clamp). */
+/** Clamp to [0, 1]; non-finite DATA collapses to 0 (057 — matches the
+ * rating pipeline's safe failure mode). Programmer-error validation
+ * (bad params, unknown modes) still throws RangeError at its own site. */
 export function clamp01(value: number): number {
   if (!Number.isFinite(value)) {
-    throw new RangeError(`normalized performance must be finite, got ${value}`);
+    return 0;
   }
   return Math.min(1, Math.max(0, value));
 }

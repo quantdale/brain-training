@@ -1,0 +1,21 @@
+{
+  "id": "057-result-reward-correctness",
+  "status": "VALIDATED",
+  "predecessor": "056-workout-lifecycle-integrity",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["result-reward-correctness"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Second of Changes 056-067; theme 056-058 product/behavioral completeness.",
+  "baselineAuditCommit": "c14d44d",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "Overnight census lanes 1 (normalization contradiction, XP flicker), 2 (duplicate-score reintro risk noted, not reopened), 7 (no-medical-claims guard stays) at 428d293; 057 pre-implementation source verification at c14d44d (42/42 throwing clamp01; 42/42 noop default; production createRatingPipeline wiring; PB tie handling already present). Seed FNV gap explicitly deferred to 060.",
+  "validatedAt": "2026-09-20",
+  "validationNote": "Terminal close post-adversarial repair. Full gated Jest 569 passed / 4 skipped suites, 6,810 passed / 5 skipped tests, 5 snapshots (exit 0, console gate clean); typecheck; lint; Expo Doctor 21/21 (pre-swarm) + repo-state PASS; OpenSpec --all --strict 40/40. Adversarial CLOSE_WITH_FIXES: spec narrowed to evidenced behavior, PB outcome test, bestOf stack-safety x5 sites, audit-map de-overclaimed. Native canary PARTIAL: debug build success, Metro reachable, expo-router entry bundled 1729 modules error-free, device bundle-load initiated with zero JS/RedBox errors, no rendered frame in the bounded window (host stall class, same as 055 documented flakiness); completion flow covered by 42 screen suites against real DB; full device certification deferred to 067. Product checkpoint unchanged (34c9b2d); no release APK (no UI-layout/artifact change).",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_057_COMPLETE"
+}

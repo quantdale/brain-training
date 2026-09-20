@@ -82,6 +82,15 @@ describe('meanOf / bestOf / meanSpeedOf', () => {
     expect(bestOf([])).toBeNull();
   });
 
+  it('057: bestOf is iterative — hostile-length arrays cannot overflow the stack', () => {
+    const hostile = new Array<number>(1_000_000).fill(500);
+    hostile[123_456] = 100;
+    expect(bestOf(hostile)).toBe(100);
+    // Math.min parity, including NaN poisoning.
+    expect(bestOf([2, Number.NaN, 1])).toBeNaN();
+    expect(bestOf([Number.POSITIVE_INFINITY])).toBe(Number.POSITIVE_INFINITY);
+  });
+
   it('meanSpeedOf averages speed factors and returns 0 with no hits', () => {
     expect(meanSpeedOf([0.5, 1])).toBeCloseTo(0.75);
     expect(meanSpeedOf([])).toBe(0);
@@ -95,9 +104,10 @@ describe('clamp01', () => {
     expect(clamp01(0.42)).toBe(0.42);
   });
 
-  it('rejects non-finite input', () => {
-    expect(() => clamp01(Number.NaN)).toThrow(RangeError);
-    expect(() => clamp01(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+  it('collapses non-finite input to 0 (matches rating/pipeline.ts)', () => {
+    expect(clamp01(Number.NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -198,6 +208,22 @@ describe('normalizeTapRushResult (documented formula)', () => {
       { gameId: 'speed-tap-rush', difficulty: 'normal', durationMs: 0 },
     );
     expect(normalized.value).toBeCloseTo(0.6);
+  });
+
+  it('collapses a corrupt speed-factor stat to 0 instead of throwing', () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeTapRushResult(
+        rawResult({
+          targetsHit: 0,
+          targetsMissed: 10,
+          accuracy: 0,
+          speedFactors: [Number.NaN],
+        }),
+        { gameId: 'speed-tap-rush', difficulty: 'normal', durationMs: 0 },
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it('keeps the raw snapshot for diagnostics', () => {

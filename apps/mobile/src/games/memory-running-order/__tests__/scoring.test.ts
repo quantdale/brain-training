@@ -95,8 +95,10 @@ describe("clamp01", () => {
     expect(clamp01(2)).toBe(1);
     expect(clamp01(0.4)).toBe(0.4);
   });
-  it("rejects non-finite input", () => {
-    expect(() => clamp01(NaN)).toThrow();
+  it("collapses non-finite input to 0 (matches rating/pipeline.ts)", () => {
+    expect(clamp01(NaN)).toBe(0);
+    expect(clamp01(Number.POSITIVE_INFINITY)).toBe(0);
+    expect(clamp01(Number.NEGATIVE_INFINITY)).toBe(0);
   });
 });
 
@@ -124,6 +126,17 @@ describe("normalizeRunningOrderResult", () => {
       CONTEXT,
     );
     expect(blended.value).toBeCloseTo(0.525);
+  });
+
+  it("collapses a corrupt passed-round counter to 0 instead of throwing", () => {
+    let value = -1;
+    expect(() => {
+      value = normalizeRunningOrderResult(
+        raw({ roundsPlayed: 5, roundsPassed: Number.NaN }),
+        CONTEXT,
+      ).value;
+    }).not.toThrow();
+    expect(value).toBe(0);
   });
 
   it("is 0 when no round passed", () => {
