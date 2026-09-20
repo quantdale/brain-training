@@ -20,6 +20,9 @@ import { AccessibilityInfo, type HostInstance } from 'react-native';
 /** Delay between focus attempts (ms) — covers Android's attach/layout race. */
 const FOCUS_RETRY_DELAY_MS = 250;
 
+/** Generation counter backing cross-request invalidation (061). */
+let latestGeneration = 0;
+
 /** Default attempt count: immediate + two delayed retries. */
 const FOCUS_ATTEMPTS = 3;
 
@@ -27,13 +30,25 @@ const FOCUS_ATTEMPTS = 3;
  * Ask the platform screen reader to focus `target`. Best-effort by design:
  * failures are swallowed (focus must never crash a screen) and pending
  * retries self-cancel once the ref clears on unmount.
+ *
+ * Returns a cancel function clearing the pending retry timer (061): owner
+ * effects call it on cleanup so overlay transitions stop holding ref
+ * closures. A newer request for any target additionally cancels the
+ * previous one's pending timer via a generation guard.
  */
 export function requestAccessibilityFocus(
   target: RefObject<Component | null>,
   attempts: number = FOCUS_ATTEMPTS,
-): void {
+): () => void {
+  const generation = (latestGeneration += 1);
   let remaining = attempts;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let cancelled = false;
   const attempt = (): void => {
+    timer = null;
+    if (cancelled || generation !== latestGeneration) {
+      return;
+    }
     if (!target.current || remaining <= 0) {
       return;
     }
@@ -52,10 +67,17 @@ export function requestAccessibilityFocus(
       // Focus is best-effort; never surface this to users.
     }
     if (remaining > 0) {
-      setTimeout(attempt, FOCUS_RETRY_DELAY_MS);
+      timer = setTimeout(attempt, FOCUS_RETRY_DELAY_MS);
     }
   };
   attempt();
+  return () => {
+    cancelled = true;
+    if (timer !== null) {
+      clearTimeout(timer);
+      timer = null;
+    }
+  };
 }
 
 /**
@@ -67,9 +89,12 @@ export function useInitialA11yFocus<T extends Component>(active: boolean): RefOb
   const ref = useRef<T | null>(null);
 
   useEffect(() => {
-    if (active) {
-      requestAccessibilityFocus(ref as RefObject<T | null>);
+    if (!active) {
+      return;
     }
+    // 061: cancel pending retries on cleanup (deactivation/unmount) so
+    // overlay transitions stop holding this ref closure.
+    return requestAccessibilityFocus(ref as RefObject<T | null>);
   }, [active]);
 
   return ref;

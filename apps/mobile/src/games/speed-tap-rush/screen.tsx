@@ -26,7 +26,7 @@ import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
-import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { MinTouchTarget, Motion } from '@/theme/tokens';
@@ -38,7 +38,6 @@ import {
   useGameSession,
 } from '@/components/game-host';
 
-import { Countdown } from './components/countdown';
 import { Playfield } from './components/playfield';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';

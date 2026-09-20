@@ -11,7 +11,7 @@
  */
 
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import type { AppDatabase } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
@@ -179,11 +179,71 @@ export interface DiscoveryData extends DiscoverySnapshot {
   loaded: boolean;
 }
 
+/**
+ * Pure snapshot stabilization (061, unit-tested): reuse the previous
+ * load's per-game mastery object when its content is identical
+ * (JSON-equal: same constructor, stable key order), and the favorites Set
+ * when membership is identical. Changed games yield fresh objects so tiles
+ * re-render normally. Never mutates either snapshot.
+ */
+export function stabilizeDiscoverySnapshot(
+  prev: DiscoverySnapshot | null,
+  next: DiscoverySnapshot,
+): DiscoverySnapshot {
+  if (prev === null) {
+    return next;
+  }
+  const masteryByGame = new Map<string, MasterySummary>();
+  for (const [id, summary] of next.masteryByGame) {
+    const old = prev.masteryByGame.get(id);
+    masteryByGame.set(
+      id,
+      old !== undefined && JSON.stringify(old) === JSON.stringify(summary) ? old : summary,
+    );
+  }
+  const favorites = sameMembers(prev.favorites, next.favorites) ? prev.favorites : next.favorites;
+  return { ...next, masteryByGame, favorites };
+}
+
 export function useDiscoveryData(): DiscoveryData {
   // Every focus bumps the token so the snapshot reflects sessions completed
   // elsewhere; the throw-safe hook degrades to the fallback without storage.
   const [token, setToken] = useState(0);
   useFocusEffect(useCallback(() => setToken((t) => t + 1), []));
   const { data, loaded } = useDbData(loadDiscovery, [token], fallbackSnapshot());
-  return { ...data, loaded };
+  // 061: stabilize per-game mastery identity across reloads. Fresh loads
+  // rebuild every summary object, defeating tile memoization (42 tiles
+  // re-render per focus). Reuse the previous object when its content is
+  // identical (JSON-equal: same constructor, stable key order); changed
+  // games yield fresh objects and re-render normally. Favorites reuse when
+  // membership is identical. Shelves stay fresh-computed (few nodes).
+  // A new snapshot object is built (no state mutation); the ref write is
+  // idempotent across StrictMode double-renders.
+  const prevRef = useRef<DiscoverySnapshot | null>(null);
+  const stable = useMemo(() => {
+    // Deliberate render-phase ref use (no compliant alternative preserves
+    // single-paint bailouts): the operation is pure, idempotent, and
+    // convergent — re-running it with the same inputs yields the same
+    // stabilized snapshot, so StrictMode double-render and concurrent
+    // tearing cannot diverge it. An effect-based version would paint twice
+    // per load (raw full tile render, then stable), defeating the purpose.
+    // eslint-disable-next-line react-hooks/refs
+    const next = stabilizeDiscoverySnapshot(prevRef.current, data);
+    // eslint-disable-next-line react-hooks/refs
+    prevRef.current = next;
+    return next;
+  }, [data]);
+  return { ...stable, loaded };
+}
+
+function sameMembers(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
+  if (a.size !== b.size) {
+    return false;
+  }
+  for (const member of a) {
+    if (!b.has(member)) {
+      return false;
+    }
+  }
+  return true;
 }

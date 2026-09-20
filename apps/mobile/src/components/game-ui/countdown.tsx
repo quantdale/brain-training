@@ -1,15 +1,20 @@
 /**
- * Countdown — the shrinking visible window of the Tap Rush game.
+ * Countdown — the shrinking visible response-window bar for reflex games.
  *
  * Renders the fraction of the current target's response window that remains.
  * Time is always read from the monotonic `Clock` (never the wall clock); the
  * bar polls at a coarse 50 ms interval so it is smooth without burning
- * renders, and clamps at 0 once the window closes (the game logic's expiry
- * timer owns the actual resolution).
+ * renders, settles the interval once the window closes (061), and clamps at
+ * 0 (the game logic's expiry timer owns the actual resolution).
  *
  * The component is mounted only while a target is live and the game is not
  * paused, so pausing naturally freezes the bar: on resume it remounts with
  * the unchanged deadline and shows the exact remaining fraction.
+ *
+ * Canonical shared copy (061): `speed-tap-rush` and `speed-quick-compare`
+ * carried byte-identical twins (down to the docstring) that drifted apart
+ * the moment one was repaired. Per-game copies are deleted; both games use
+ * this module.
  */
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -37,8 +42,15 @@ export function Countdown({ deadlineMs, windowMs, clock, testID }: CountdownProp
   );
 
   useEffect(() => {
+    // Settle at zero: a live 20Hz setState past the deadline is pure churn
+    // during the reflex-critical window (the expiry timer owns resolution,
+    // not this bar).
     const timer = setInterval(() => {
-      setRemaining(Math.max(0, deadlineMs - clock.now()));
+      const left = Math.max(0, deadlineMs - clock.now());
+      setRemaining(left);
+      if (left <= 0) {
+        clearInterval(timer);
+      }
     }, TICK_MS);
     return () => clearInterval(timer);
   }, [deadlineMs, clock]);

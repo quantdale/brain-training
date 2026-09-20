@@ -24,6 +24,7 @@ import { ThemedText } from '@/components/themed-text';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
 import { useTheme } from '@/hooks/use-theme';
 import { Card, ListRow, ProgressBar, Spark, StatBlock } from '@/components/ui';
+import { launchAnimation } from '@/components/ui/motion';
 import { Motion, Spacing } from '@/constants/theme';
 import { liveAudioHaptics } from '@/sdk';
 import { parseInstanceKey } from '@/workout/metadata';
@@ -87,12 +88,16 @@ export function WorkoutCompletionCard({
       entrance.setValue(1);
       return;
     }
-    Animated.timing(entrance, {
-      toValue: 1,
-      duration: Motion.entrance,
-      easing: Easing.out(Easing.back(1.4)),
-      useNativeDriver: true,
-    }).start();
+    // 061: launchAnimation stops the driver on unmount (fast Next-game
+    // taps orphan it).
+    return launchAnimation(
+      Animated.timing(entrance, {
+        toValue: 1,
+        duration: Motion.entrance,
+        easing: Easing.out(Easing.back(1.4)),
+        useNativeDriver: true,
+      }),
+    );
   }, [summary.key, summary.totalXp, prefersReducedMotion, entrance]);
 
   return (

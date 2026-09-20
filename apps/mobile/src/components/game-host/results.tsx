@@ -27,6 +27,7 @@ import { FeedbackCard } from '@/components/shell';
 import { performanceBand } from '@/components/shell/format';
 import { ArcadePanel } from '@/components/ui/arcade-panel';
 import { Card, Confetti, Spark } from '@/components/ui';
+import { launchAnimation } from '@/components/ui/motion';
 import { GameButton } from '@/components/game-ui';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
 import { Motion, Spacing } from '@/constants/theme';
@@ -181,12 +182,16 @@ export function GameResults({
       entrance.setValue(1);
       return;
     }
-    Animated.timing(entrance, {
-      toValue: 1,
-      duration: Motion.entrance,
-      easing: Easing.out(Easing.back(1.4)),
-      useNativeDriver: true,
-    }).start();
+    // 061: launchAnimation stops the driver on unmount (fast Done/Next taps
+    // orphan it). Curves and reduced-motion behavior are unchanged.
+    return launchAnimation(
+      Animated.timing(entrance, {
+        toValue: 1,
+        duration: Motion.entrance,
+        easing: Easing.out(Easing.back(1.4)),
+        useNativeDriver: true,
+      }),
+    );
   }, [persistState, showReward, prefersReducedMotion, entrance, weakOutcome]);
 
   const rewardDetail = [

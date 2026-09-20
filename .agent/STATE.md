@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-20 — Overnight program 056→067 active (NIGHT mode): Changes 056–060 terminally VALIDATED and pushed (`CHANGE_056`–`CHANGE_060_COMPLETE`). Campaign 055 baseline unchanged and protected.
+**Last update:** 2026-09-20 — Overnight program 056→067 active (NIGHT mode): Changes 056–061 terminally VALIDATED and pushed (`CHANGE_056`–`CHANGE_061_COMPLETE`). Campaign 055 baseline unchanged and protected.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** `055-signal-arcade-desirability`
@@ -11,7 +11,8 @@
 
 - **Authorization:** `.agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md` (NIGHT/OVERNIGHT, program start `428d293`). Living ledger: `.agent/OVERNIGHT_056_067_STATE.md`.
 - **Change 056 — `056-workout-lifecycle-integrity` (VALIDATED / `CHANGE_056_COMPLETE`):** drift repair is substitute-and-preserve (played prefix immutable, retired future legs deterministically substituted, completed records verbatim, fully-stale → regenerate); leg-index envelope bound to the real max (`5`); hook-level unconditional `advance` removed; empty-row direct writes throw; launch-map recovery contracts pinned. Full matrix 567 suites / 6,747 tests / 5 snapshots green; typecheck/lint/Expo Doctor 21/21/repo-state/OpenSpec 40/40 strict; adversarial CLOSE_WITH_FIXES fully repaired/disclosed. Product checkpoint unchanged (`34c9b2d`); no new APK (no UI/artifact change).
-- **Next:** Change 061 (`performance-lifecycle-cleanup`) per ledger plan; 062–067 pending; post-067 hardening not started.
+- **Next:** Change 062 (`release-resilience-platform-robustness`) per ledger plan; 063–067 pending; post-067 hardening not started.
+- **Change 061 — `061-performance-lifecycle-cleanup` (VALIDATED / `CHANGE_061_COMPLETE`):** 9 bounded repairs (Progress throttle, discovery stabilization, countdown settle via game-ui dedupe, animation cleanups, ring memo, press drivers, db-data sequence, focus cancel, toast cap). 5 census claims closed by evidence. Full matrix 577 suites / 6,843 tests / 5 snapshots; adversarial CLOSE_WITH_FIXES closed. Product checkpoint unchanged (`34c9b2d`).
 - **Change 060 — `060-idempotency-economy-merge-safety` (VALIDATED / `CHANGE_060_COMPLETE`):** ledger race dedupe, merge-ownership pins + in-txn re-check closing a real latent charge path. xpAwards/merge/timestamps/forgery/seed closed by design evidence. Full matrix 572 suites / 6,829 tests / 5 snapshots; adversarial CLOSE_WITH_FIXES closed. Product checkpoint unchanged (`34c9b2d`).
 - **Change 059 — `059-persistence-transaction-atomicity` (VALIDATED / `CHANGE_059_COMPLETE`):** reroll CAS with canonical-compare, init close-on-failure + factory seam, migration applied-range contiguity, empty-workout boot janitor (closes 056-F8). Trigger/fan-out/export/v12/snapshot census claims closed by design evidence (no change). Full matrix 572 suites / 6,825 tests / 5 snapshots; adversarial CLOSE_WITH_FIXES closed. Product checkpoint unchanged (`34c9b2d`).
 - **Change 058 — `058-product-ux-navigation-residuals` (VALIDATED / `CHANGE_058_COMPLETE`):** safe-back fallback on 8 app-route usages via 6 hook sites, style touch floors, EmptyState wrap, 3 regenerated snapshots (verified diff), 4 census claims corrected by evidence. Full matrix 571 suites / 6,818 tests / 5 snapshots; adversarial NOT_READY repaired. Product checkpoint unchanged (`34c9b2d`).

@@ -34,15 +34,31 @@ let nextToastId = 1;
 const toastQueue: QueuedToast[] = [];
 const toastListeners = new Set<() => void>();
 
+/**
+ * Max toasts held for a not-yet-mounted host (061). Queued bursts must
+ * not accumulate unboundedly while no host exists to drain them; beyond
+ * the cap the oldest unshown toast is dropped. (Bootstrap itself never
+ * toasts — this is cheap insurance for failure-burst paths.)
+ */
+export const MAX_QUEUED_TOASTS = 8;
+
 /** Enqueue a toast; flushed by the mounted host, or held until one mounts. */
 export function showToast(options: ToastOptions): void {
   toastQueue.push({ ...options, id: nextToastId++ });
+  while (toastQueue.length > MAX_QUEUED_TOASTS) {
+    toastQueue.shift();
+  }
   toastListeners.forEach((notify) => notify());
 }
 
 /** Empties the module queue without rendering. Test isolation only. */
 export function resetToastQueueForTests(): void {
   toastQueue.length = 0;
+}
+
+/** Queued-toast titles, oldest first. Test isolation only. */
+export function toastQueueTitlesForTests(): readonly string[] {
+  return toastQueue.map((toast) => toast.title);
 }
 
 // Bounded visibility from the celebration token: long enough to read,

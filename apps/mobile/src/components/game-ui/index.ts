@@ -3,7 +3,7 @@
  *
  * Canonical extraction of the per-game copies that drifted across the
  * 20-game catalog (button, pause overlay, QA panel, tutorial frame,
- * result rows, session header, difficulty selector).
+ * result rows, session header, difficulty selector, countdown bar).
  *
  * Keep mechanics out: these components are theme-aware layout/controls
  * only. Game-specific logic stays in the per-game modules.
@@ -29,5 +29,8 @@ export type { SessionHeaderProps } from './session-header';
 
 export { DifficultySelector } from './difficulty-selector';
 export type { DifficultySelectorProps } from './difficulty-selector';
+
+export { Countdown } from './countdown';
+export type { CountdownProps } from './countdown';
 
 export { usePrefersReducedMotion } from './use-reduced-motion';

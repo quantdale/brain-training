@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import type { AppDatabase } from '@/db';
 import { getDb } from '@/db';
@@ -18,23 +18,28 @@ export function useDbData<T>(
   const [data, setData] = useState<T>(fallback);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  // 061: monotonic load generation — a slow load superseded by a newer
+  // bump (rapid focus bounce, error retry mid-flight) must not overwrite
+  // the fresh resolution when it finally lands.
+  const seqRef = useRef(0);
 
   useEffect(() => {
+    const seq = (seqRef.current += 1);
     let cancelled = false;
     (async () => {
       try {
         const db = getDb(); // throws when initDatabase() never ran
         const result = await load(db);
-        if (!cancelled) {
+        if (!cancelled && seq === seqRef.current) {
           setData(result);
           setError(null);
         }
       } catch (e) {
-        if (!cancelled) {
+        if (!cancelled && seq === seqRef.current) {
           setError(e);
         }
       } finally {
-        if (!cancelled) {
+        if (!cancelled && seq === seqRef.current) {
           setLoaded(true);
         }
       }

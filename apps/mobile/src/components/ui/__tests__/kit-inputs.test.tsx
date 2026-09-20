@@ -19,7 +19,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ListRow } from '@/components/ui/list-row';
 import { Skeleton, SkeletonText } from '@/components/ui/skeleton';
 import { TextField } from '@/components/ui/text-field';
-import { ToastHost, resetToastQueueForTests, showToast } from '@/components/ui/toast';
+import { ToastHost, resetToastQueueForTests, showToast, toastQueueTitlesForTests } from '@/components/ui/toast';
 import { MinTouchTarget, Motion } from '@/theme/tokens';
 
 // `mock`-prefixed name: jest.mock factories are hoisted and may only close
@@ -214,6 +214,22 @@ describe('Toast', () => {
     });
     expect(screen.queryByText('Synced')).toBeNull();
   });
+  it('061: bounds the pre-mount queue, dropping oldest first', () => {
+    for (let i = 1; i <= 9; i += 1) {
+      showToast({ title: `toast-${i}` });
+    }
+    expect(toastQueueTitlesForTests()).toEqual([
+      'toast-2',
+      'toast-3',
+      'toast-4',
+      'toast-5',
+      'toast-6',
+      'toast-7',
+      'toast-8',
+      'toast-9',
+    ]);
+  });
+
   it('never blocks touches and announces politely', async () => {
     showToast({ title: 'Saved' });
     await render(<ToastHost testID="host" />);

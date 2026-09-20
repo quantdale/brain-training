@@ -84,6 +84,21 @@ unavailable checks into PASS.
 - Boundaries: manual/platform/store/CI per program. Evidence:
   `openspec/changes/060-idempotency-economy-merge-safety/`.
 
+### Change 061 performance & lifecycle cleanup — 2026-09-20 (VALIDATED / CHANGE_061_COMPLETE)
+
+- Scope: **PASS** — 9 bounded repairs (throttle, stabilization, settle
+  via game-ui dedupe, cleanups, memo, drivers, sequence, cancel, cap).
+  5 census claims closed by evidence. Adversarial CLOSE_WITH_FIXES fully
+  repaired (twin dedupe).
+- Repository gates: **PASS** — full gated Jest **577 passed / 4 skipped
+  suites, 6,843 passed / 5 skipped tests, 5 snapshots** (exit 0, console
+  gate clean) + targeted 29-suite re-run on cosmetic deltas; typecheck;
+  clean lint 0/0; repo-state PASS; OpenSpec `--all --strict` 45/45.
+- Native/artifact: **NOT APPLICABLE** as certification (no layout/route
+  change); device frame proof stays with 067.
+- Boundaries: manual/platform/store/CI per program. Evidence:
+  `openspec/changes/061-performance-lifecycle-cleanup/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

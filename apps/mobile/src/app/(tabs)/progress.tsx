@@ -27,7 +27,7 @@
  */
 
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -142,6 +142,22 @@ const EMPTY_DATA: ProgressData = {
 /** Calendar span for the overview heatmap (days). */
 const OVERVIEW_CALENDAR_DAYS = 84; // ~12 weeks
 
+/**
+ * Minimum age of the last snapshot load before a focus schedules another
+ * (061). Sessions take minutes, so a bounce inside this window cannot hide
+ * real data — it only skips re-materializing the full history.
+ */
+const FOCUS_RELOAD_MIN_MS = 5000;
+
+/**
+ * Pure focus-throttle decision (061, unit-tested): reload only when the
+ * last scheduled load is older than the minimum interval. `nowMs` label
+ * freshness is handled separately by the caller on every focus.
+ */
+export function shouldScheduleFocusReload(lastLoadMs: number, nowMs: number): boolean {
+  return nowMs - lastLoadMs > FOCUS_RELOAD_MIN_MS;
+}
+
 async function load(db: AppDatabase): Promise<ProgressData> {
   const snapshot = await loadProgressSnapshot(db, Date.now());
   // Read-only workout consumption through the existing repository API: one
@@ -160,10 +176,19 @@ export default function ProgressScreen() {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
   const [nowMs, setNowMs] = useState(0);
+  // 061: throttle focus reloads — the snapshot materializes the whole
+  // history, and a session takes minutes, so a bounce within 5s of a load
+  // cannot hide real data. `nowMs` still updates per focus (labels stay
+  // fresh); explicit retry always reloads.
+  const lastLoadRef = useRef(0);
   useFocusEffect(
     useCallback(() => {
-      setNowMs(Date.now());
-      setRefreshKey((k) => k + 1);
+      const now = Date.now();
+      setNowMs(now);
+      if (shouldScheduleFocusReload(lastLoadRef.current, now)) {
+        lastLoadRef.current = now;
+        setRefreshKey((k) => k + 1);
+      }
     }, []),
   );
 

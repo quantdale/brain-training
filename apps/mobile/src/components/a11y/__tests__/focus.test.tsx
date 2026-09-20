@@ -167,14 +167,28 @@ describe('useInitialA11yFocus', () => {
     expect(typeof focused).toBe('object');
     expect(focused?.props?.testID).toBe('hook-target');
 
-    // Deactivating does not re-request. Pending retries from the active
-    // window keep running while the node stays mounted — cancellation is
-    // ref-detachment-based (unmount), and repeat-focusing a live node is
-    // harmless by design.
+    // 061: deactivating cancels pending retries via the effect cleanup.
+    // The mocked timer queue cannot un-list the scheduled retry, but the
+    // fired callback is dead: no further platform call happens.
     await rerender(<HookTarget active={false} />);
+    expect(pendingTimers).toHaveLength(1);
     runNextRetry(pendingTimers, sendSpy);
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(pendingTimers).toHaveLength(0);
+  });
+
+  it('061: cancelling a request drops its pending retries', async () => {
+    const targetRef: RefObject<View | null> = { current: null };
+    await render(<HostTarget targetRef={targetRef} />);
+
+    const cancel = requestAccessibilityFocus(targetRef);
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    cancel();
     runNextRetry(pendingTimers, sendSpy);
-    expect(sendSpy).toHaveBeenCalledTimes(3);
+    // The cancelled retry fired but bailed before the platform call, and
+    // scheduled nothing further.
+    expect(sendSpy).toHaveBeenCalledTimes(1);
+    expect(pendingTimers).toHaveLength(0);
   });
 });
 

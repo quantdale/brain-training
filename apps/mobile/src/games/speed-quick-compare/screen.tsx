@@ -30,7 +30,7 @@ import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { AnimatedNumber } from '@/components/ui';
-import { GameButton, StatRow } from '@/components/game-ui';
+import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
   GameHost,
@@ -42,7 +42,6 @@ import {
 import type { GameHostView } from '@/components/game-host';
 
 import { Comparison } from './components/comparison';
-import { Countdown } from './components/countdown';
 import { QaPanel } from './components/qa-panel';
 import { Tutorial } from './components/tutorial';
 import { VerdictCue } from './components/verdict-cue';

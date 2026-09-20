@@ -63,10 +63,24 @@ export function usePressFeedback(options: PressFeedbackOptions = {}): PressFeedb
   const [pressed, setPressed] = useState(false);
   const animate = enabled && !reducedMotion;
 
-  // A mid-press re-render (e.g. the press opens a sheet and the surface
+  // 061: track drivers so a new press stops the in-flight one (rapid
+  // taps must not accumulate drivers) and unmount stops everything. A
+  // mid-press re-render (e.g. the press opens a sheet and the surface
   // unmounts) must not leave the surface stuck at the pressed scale.
+  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const runDriver = (animation: Animated.CompositeAnimation) => {
+    animRef.current?.stop();
+    animRef.current = animation;
+    animation.start(() => {
+      if (animRef.current === animation) {
+        animRef.current = null;
+      }
+    });
+  };
   useEffect(() => {
     return () => {
+      animRef.current?.stop();
+      animRef.current = null;
       scale.setValue(1);
     };
   }, [scale]);
@@ -74,12 +88,14 @@ export function usePressFeedback(options: PressFeedbackOptions = {}): PressFeedb
   const handlePressIn = () => {
     setPressed(true);
     if (animate) {
-      Animated.timing(scale, {
-        toValue: pressedScale,
-        duration: Motion.press,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }).start();
+      runDriver(
+        Animated.timing(scale, {
+          toValue: pressedScale,
+          duration: Motion.press,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      );
     }
     onPressIn?.();
   };
@@ -87,11 +103,13 @@ export function usePressFeedback(options: PressFeedbackOptions = {}): PressFeedb
   const handlePressOut = () => {
     setPressed(false);
     if (animate) {
-      Animated.spring(scale, {
-        toValue: 1,
-        ...Springs.press,
-        useNativeDriver: true,
-      }).start();
+      runDriver(
+        Animated.spring(scale, {
+          toValue: 1,
+          ...Springs.press,
+          useNativeDriver: true,
+        }),
+      );
     }
     onPressOut?.();
   };
@@ -205,4 +223,16 @@ export function useAnimatedProgress(
   // is derived rather than written back through state inside an effect.
   const mirroredValue = !enabled || reducedMotion ? target : numericValue;
   return { value: animated, numericValue: withNumericValue ? mirroredValue : null };
+}
+
+/**
+ * Fire-and-forget animation with unmount safety (061). Starts the driver
+ * and returns an effect cleanup that stops it, so fast navigation (Done /
+ * Next / dismiss mid-flight) cannot orphan drivers writing to unmounted
+ * values. Effect authors use it as:
+ * `useEffect(() => launchAnimation(Animated.timing(...)), [...])`.
+ */
+export function launchAnimation(animation: Animated.CompositeAnimation): () => void {
+  animation.start();
+  return () => animation.stop();
 }

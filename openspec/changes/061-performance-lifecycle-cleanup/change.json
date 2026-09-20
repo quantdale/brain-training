@@ -1,0 +1,21 @@
+{
+  "id": "061-performance-lifecycle-cleanup",
+  "status": "VALIDATED",
+  "predecessor": "060-idempotency-economy-merge-safety",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["performance-lifecycle-cleanup"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Sixth of Changes 056-067; last theme-059-061 structural item.",
+  "baselineAuditCommit": "eb88e69",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "Overnight census lane 5 (runtime/performance) verified file-by-file at eb88e69 before speccing: 5 claims closed by evidence (search debounce, hydration cache, startup order, release instrumentation, first-interaction windows). 9 bounded repairs specced.",
+  "validatedAt": "2026-09-20",
+  "validationNote": "Terminal close after adversarial CLOSE_WITH_FIXES (all repaired: quick-compare twin deduped into game-ui, ProgressRing spec added, wording corrected, lint 0/0). Full gated Jest 577 passed / 4 skipped suites, 6,843 passed / 5 skipped tests, 5 snapshots (exit 0, console gate clean) on behavioral code; post-matrix cosmetic deltas (comments, dep-array, test imports) covered by targeted 29-suite re-run + typecheck + clean lint; repo-state PASS; OpenSpec --all --strict 45/45. Census debounce/hydration/startup/probes/abandon claims closed by evidence. Product checkpoint unchanged (34c9b2d); no UI-layout/artifact change.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_061_COMPLETE"
+}

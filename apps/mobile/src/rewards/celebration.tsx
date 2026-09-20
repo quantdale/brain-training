@@ -21,6 +21,7 @@ import {
 } from "react-native";
 
 import { Elevation, Spacing } from "@/constants/theme";
+import { launchAnimation } from "@/components/ui/motion";
 import { useTheme } from "@/hooks/use-theme";
 import { usePrefersReducedMotion } from "@/components/game-ui/use-reduced-motion";
 export interface RewardCelebrationPayload {
@@ -105,12 +106,16 @@ export function RewardCelebrationHost() {
       return;
     }
     opacity.setValue(0);
-    Animated.timing(opacity, {
-      toValue: 1,
-      duration: 220,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: true,
-    }).start();
+    // 061: launchAnimation stops the driver on unmount (fast dismissals
+    // orphan it).
+    return launchAnimation(
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 220,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+    );
   }, [current, opacity, prefersReducedMotion]);
 
   if (!current) {

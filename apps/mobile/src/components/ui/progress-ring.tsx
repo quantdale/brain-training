@@ -7,7 +7,7 @@
  * while reduced motion renders one static tick set at the final value.
  */
 
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
@@ -63,26 +63,32 @@ export function ProgressRing({
   const tickLength = Spacing.twoHalf;
   const radius = Math.max(0, (size - tickLength) / 2 - stroke);
   const centre = size / 2;
-  const ticks: ReactNode[] = [];
-  for (let index = 0; index < count; index += 1) {
-    const degrees = (index / count) * 360;
-    ticks.push(
-      <View
-        key={index}
-        testID={testID ? `${testID}-tick-${index}` : undefined}
-        style={{
-          position: 'absolute',
-          left: centre - stroke / 2,
-          top: centre - tickLength / 2,
-          width: stroke,
-          height: tickLength,
-          borderRadius: stroke / 2,
-          backgroundColor: index < filled ? theme[tone] : theme.border,
-          transform: [{ rotate: `${degrees}deg` }, { translateY: -radius }],
-        }}
-      />,
-    );
-  }
+  // 061: the numeric mirror re-renders per animation frame; memoize the
+  // tick elements on the filled count so reconciliation skips the 56 views
+  // on frames where nothing visibly changed. Pixels are identical.
+  const ticks: ReactNode[] = useMemo(() => {
+    const nodes: ReactNode[] = [];
+    for (let index = 0; index < count; index += 1) {
+      const degrees = (index / count) * 360;
+      nodes.push(
+        <View
+          key={index}
+          testID={testID ? `${testID}-tick-${index}` : undefined}
+          style={{
+            position: 'absolute',
+            left: centre - stroke / 2,
+            top: centre - tickLength / 2,
+            width: stroke,
+            height: tickLength,
+            borderRadius: stroke / 2,
+            backgroundColor: index < filled ? theme[tone] : theme.border,
+            transform: [{ rotate: `${degrees}deg` }, { translateY: -radius }],
+          }}
+        />,
+      );
+    }
+    return nodes;
+  }, [filled, count, centre, radius, stroke, tickLength, testID, tone, theme]);
 
   return (
     <View
