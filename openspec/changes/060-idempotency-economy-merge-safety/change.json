@@ -1,0 +1,21 @@
+{
+  "id": "060-idempotency-economy-merge-safety",
+  "status": "VALIDATED",
+  "predecessor": "059-persistence-transaction-atomicity",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["idempotency-economy-merge-safety"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Fifth of Changes 056-067; second theme-059-061 structural item.",
+  "baselineAuditCommit": "09b9af9",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "Overnight census lane 4 (idempotency/economy/merge) + lane 1 seed item re-verified at 09b9af9: xpAwards (022 stands), purchase TOCTOU (sequential safe; interleave race real — fixed in-txn), merge/timestamps/forgery (single-user semantics accepted), seed (accepted LOW). Adversarial CLOSE_WITH_FIXES: OR IGNORE wording, F5 race fix + test, gate completion.",
+  "validatedAt": "2026-09-20",
+  "validationNote": "Terminal close after adversarial CLOSE_WITH_FIXES (all 3 repaired: OR IGNORE wording, F5 interleave race fixed in-txn + forced-interleave test, gates completed). Full gated Jest 572 passed / 4 skipped suites, 6,829 passed / 5 skipped tests, 5 snapshots (exit 0, console gate clean); typecheck; lint; repo-state PASS; OpenSpec --all --strict 44/44. xpAwards/merge/timestamps/forgery/seed closed by design evidence. Product checkpoint unchanged (34c9b2d); no UI/artifact change.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_060_COMPLETE"
+}

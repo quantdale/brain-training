@@ -25,8 +25,14 @@ const SELECT_RECENT = `SELECT id, amount, reason, session_id, created_at, operat
 const SELECT_BALANCE = 'SELECT balance FROM currency_balance';
 const SELECT_BY_OPERATION =
   'SELECT id, amount, reason, session_id, created_at, operation_id FROM currency_ledger WHERE operation_id = ?';
+// OR IGNORE: a same-key race resolves via the reselect below instead of
+// surfacing a UNIQUE violation (060). Given append()'s pre-validation
+// (integers/strings checked before this statement), changes===0 with a key
+// is reachable only via the partial unique index — OR IGNORE would also
+// swallow NOT NULL/CHECK, but those cannot reach this statement. Genuine
+// constraint violations (FK, trigger ABORT) still throw.
 const INSERT_ENTRY =
-  'INSERT INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)';
+  'INSERT OR IGNORE INTO currency_ledger (amount, reason, session_id, created_at, operation_id) VALUES (?, ?, ?, ?, ?)';
 
 function requireLedgerInteger(value: unknown, field: string): number {
   if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
@@ -93,6 +99,18 @@ export class LedgerRepository {
       }
     }
     const result = await a.run(INSERT_ENTRY, [amount, reason, sessionId, createdAt, operationId]);
+    if (operationId !== null && result.changes === 0) {
+      // Lost a same-key race between the pre-check and the insert (or
+      // landed after a committed twin): return the winner instead of
+      // surfacing a UNIQUE violation. Given the pre-validation above,
+      // `changes === 0` with a key means the partial unique index fired
+      // (060).
+      const winner = await a.get<LedgerRow>(SELECT_BY_OPERATION, [operationId]);
+      if (winner) {
+        return mapRow(winner);
+      }
+      throw new Error(`ledger append lost a race with no winner for ${operationId}`);
+    }
     return { id: result.lastInsertRowId, amount, reason, sessionId, createdAt };
   }
 

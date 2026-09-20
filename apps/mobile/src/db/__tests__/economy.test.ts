@@ -10,7 +10,7 @@
  * a crash mid-transaction. Because the node adapter uses BEGIN IMMEDIATE +
  * ROLLBACK, every partial write is undone.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import type { SQLiteAdapter, SQLiteRunResult } from '../adapter';
 import type { SQLiteValue } from '../types';
 import {
@@ -138,6 +138,47 @@ describe('spendCurrency', () => {
     expect(second).toEqual(first); // same ledger entry returned
     expect(await db.ledger.getBalance()).toBe(70);
     expect(await db.ledger.list()).toHaveLength(2); // seed + exactly one debit
+  });
+
+  it('060: an interleaved same-operationId append dedupes instead of throwing UNIQUE', async () => {
+    const real = await createMigratedDb();
+    const ledger = new LedgerRepository(real, () => T0);
+    const first = await ledger.append({ amount: 10, reason: 'quest', operationId: 'op:race' });
+    // Simulate the race: the pre-check runs before the twin commits by
+    // hiding the committed row from exactly one read.
+    const get = jest.spyOn(real, 'get');
+    get.mockResolvedValueOnce(null);
+    let second;
+    try {
+      second = await ledger.append({ amount: 10, reason: 'quest', operationId: 'op:race' });
+    } finally {
+      get.mockRestore();
+    }
+    // No throw; the winner is returned.
+    expect(second.id).toBe(first.id);
+    const rows = await real.all<{ id: number }>(
+      'SELECT id FROM currency_ledger WHERE operation_id = ?',
+      ['op:race'],
+    );
+    expect(rows).toHaveLength(1);
+    await real.close();
+  });
+
+  it('060: overlapping same-key appends converge to one row without throwing', async () => {
+    const real = await createMigratedDb();
+    const ledger = new LedgerRepository(real, () => T0);
+    const results = await Promise.all([
+      ledger.append({ amount: 5, reason: 'quest', operationId: 'op:burst' }),
+      ledger.append({ amount: 5, reason: 'quest', operationId: 'op:burst' }),
+      ledger.append({ amount: 5, reason: 'quest', operationId: 'op:burst' }),
+    ]);
+    expect(new Set(results.map((r) => r.id)).size).toBe(1);
+    const rows = await real.all<{ id: number }>(
+      'SELECT id FROM currency_ledger WHERE operation_id = ?',
+      ['op:burst'],
+    );
+    expect(rows).toHaveLength(1);
+    await real.close();
   });
 
   it('rejects a non-positive/non-integer amount before opening a transaction', async () => {

@@ -56,6 +56,12 @@ export async function purchaseCosmetic(
         }
         return 'already-owned' as const;
       }
+      // 060 F5: re-check ownership inside the txn — a backup merge (which
+      // writes no ledger entry) may have granted the flag after the fast
+      // path read. Never charge for what the player already owns.
+      if (isCosmeticOwned(def, progression, profile?.settings ?? {})) {
+        return 'already-owned' as const;
+      }
       const balance = await db.ledger.getBalance(txn);
       if (balance < price) {
         throw new InsufficientFundsError(price, balance);

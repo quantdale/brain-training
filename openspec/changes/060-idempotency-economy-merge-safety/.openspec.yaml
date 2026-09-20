@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-20
+goal: Close the last genuine economy/idempotency race (ledger operationId) and pin the merge-ownership guarantee with tests, while reaffirming deliberate designs with evidence instead of speculative rewrites.

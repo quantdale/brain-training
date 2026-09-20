@@ -3,13 +3,14 @@
  * atomic purchase with normal earned currency through the ledger, ownership
  * persistence, insufficient-funds refusal, and the free equip guard.
  */
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 
 import { AppDatabase, LedgerRepository, ProfileRepository } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import {
   COSMETIC_DEFINITIONS,
   equipCosmeticPersisted,
+  grantOwned,
   isCosmeticOwned,
   purchaseCosmetic,
   type CosmeticProgression,
@@ -62,6 +63,48 @@ describe('purchaseCosmetic', () => {
     const entries = await db.ledger.list();
     // seed + exactly one cosmetic debit (both reason 'cosmetic').
     expect(entries.filter((e) => e.reason === 'cosmetic')).toHaveLength(1);
+  });
+
+  it('060: merge-owned cosmetics (settings union, no ledger entry) are never charged', async () => {
+    const db = await healthy(500);
+    // Simulate a backup-merge union: the owned flag arrives via settings
+    // with no `cosmetic:<id>` ledger entry on this device.
+    const merged = grantOwned({}, PURCHASEABLE.id);
+    await db.profile.update({ settings: merged });
+    expect(
+      await db.ledger.getByOperation(`cosmetic:${PURCHASEABLE.id}`),
+    ).toBeNull();
+
+    expect(await purchaseCosmetic(db, PURCHASEABLE, PROGRESSION)).toBe(
+      'already-owned',
+    );
+    expect(await db.ledger.getBalance()).toBe(500);
+    expect(
+      (await db.ledger.list()).filter((e) => e.reason === 'cosmetic'),
+    ).toHaveLength(0);
+  });
+
+  it('060 F5: a merge landing mid-purchase is not charged (in-txn re-check)', async () => {
+    const db = await healthy(500);
+    // Simulate the interleave: the fast path reads pre-merge (unowned),
+    // then a backup merge commits the owned flag (no ledger entry) before
+    // the purchase transaction reads.
+    const get = jest.spyOn(db.profile, 'get');
+    get.mockResolvedValueOnce({ settings: {} } as never);
+    get.mockResolvedValueOnce({
+      settings: grantOwned({}, PURCHASEABLE.id),
+    } as never);
+    let result;
+    try {
+      result = await purchaseCosmetic(db, PURCHASEABLE, PROGRESSION);
+    } finally {
+      get.mockRestore();
+    }
+    expect(result).toBe('already-owned');
+    expect(await db.ledger.getBalance()).toBe(500);
+    expect(
+      (await db.ledger.list()).filter((e) => e.reason === 'cosmetic'),
+    ).toHaveLength(0);
   });
 
   it('reports not-purchasable for earned cosmetics', async () => {
