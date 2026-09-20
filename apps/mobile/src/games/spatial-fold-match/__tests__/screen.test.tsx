@@ -254,9 +254,9 @@ describe('SpatialFoldMatchScreen', () => {
     expect(
       screen.getByTestId(testId(GAME_ID, 'rounds-passed')),
     ).toHaveTextContent(`${NORMAL.rounds}/${NORMAL.rounds}`);
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(
-      String(perfectSessionScore(NORMAL)),
-    );
+    // Campaign 055P: the redundant unrounded `Score` fact row was removed; the
+    // focal `score-animated` numeral is the single score presentation and the
+    // persisted raw score is asserted below.
     expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent('0');
 
     // Flush the persistence promise.

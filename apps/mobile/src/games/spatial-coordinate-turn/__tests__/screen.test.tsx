@@ -223,9 +223,9 @@ describe('SpatialCoordinateTurnScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'accuracy'))).toHaveTextContent('100%');
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(
-      String(perfectSessionScore(DIFFICULTY_PARAMS.normal)),
-    );
+    // Campaign 055P: the redundant unrounded `Score` fact row was removed; the
+    // focal `score-animated` numeral is the single score presentation and the
+    // persisted raw score is asserted below.
     expect(screen.getByTestId(testId(GAME_ID, 'speed'))).toHaveTextContent('0 ms');
     expect(screen.getByTestId(testId(GAME_ID, 'position-accuracy'))).toHaveTextContent('—');
     expect(screen.getByTestId(testId(GAME_ID, 'xp'))).toHaveTextContent('0');

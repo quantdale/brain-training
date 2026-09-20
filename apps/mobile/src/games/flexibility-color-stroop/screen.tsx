@@ -515,11 +515,6 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
           lastError={state.lastError}
           onRestart={handleRestart}
           onQuit={quitToLibrary}>
-          <StatRow
-            label="Score"
-            value={String(state.stats.score)}
-            testID={testId(GAME_ID, "score")}
-          />
           <AnimatedNumber
             value={state.stats.score}
             type="numeralLg"

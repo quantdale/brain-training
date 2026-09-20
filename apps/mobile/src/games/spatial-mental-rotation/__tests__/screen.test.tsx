@@ -198,7 +198,9 @@ describe('SpatialScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'rounds-passed'))).toHaveTextContent('5/5');
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent('735'); // 5 × 147
+    // Campaign 055P: the redundant unrounded `Score` fact row was removed; the
+    // focal `score-animated` numeral is the single score presentation and the
+    // persisted raw score is asserted below (735 = 5 × 147).
 
     // Flush the async persistence chain.
     await act(async () => {});
