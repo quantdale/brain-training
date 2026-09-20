@@ -53,8 +53,10 @@ import {
   Spark,
   StatBlock,
   Tappable,
+  useSafeBack,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type ColorFamily, type DomainName } from '@/constants/theme';
+import { MinTouchTarget } from '@/theme/tokens';
 import type { AppDatabase, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
@@ -100,6 +102,8 @@ function sessionsForDomain(
 
 export default function ProgressDomainScreen() {
   const theme = useTheme();
+  // 058: cold deep links land with an empty stack — fall back to /progress.
+  const goBack = useSafeBack('/progress');
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const params = useLocalSearchParams<{ domain?: string }>();
   // App-owned input envelope (Campaign 053): malformed/oversized domains
@@ -217,6 +221,7 @@ export default function ProgressDomainScreen() {
         <Tappable
           testID="progress-domain-back-link"
           onPress={() => router.push('/progress')}
+          style={styles.textLinkRow}
           accessibilityLabel="Back to Progress">
           <ThemedText type="smallBold" themeColor="accent">
             ‹ Back to Progress
@@ -233,7 +238,7 @@ export default function ProgressDomainScreen() {
 
   return (
     <ScreenShell>
-      <BackLink testID="progress-domain-back" onPress={() => router.back()} />
+      <BackLink testID="progress-domain-back" onPress={goBack} />
 
       <View style={styles.header}>
         <View style={styles.titleRow}>
@@ -634,6 +639,12 @@ function DomainStat({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
+  },
+  // 058: text-only links meet the 44dp floor by style, not by accident.
+  textLinkRow: {
+    minHeight: MinTouchTarget,
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
   },
   titleRow: {
     flexDirection: 'row',

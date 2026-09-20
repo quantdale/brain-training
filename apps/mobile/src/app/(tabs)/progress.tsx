@@ -98,6 +98,7 @@ import {
   Tappable,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type DomainName } from '@/constants/theme';
+import { MinTouchTarget } from '@/theme/tokens';
 import type { AppDatabase, GameSessionRecord, WorkoutInstance } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
@@ -625,6 +626,7 @@ export default function ProgressScreen() {
             <Tappable
               testID="progress-activity-link"
               onPress={() => router.push('/progress-activity')}
+              style={styles.textLinkRow}
               accessibilityLabel="Open the full activity calendar"
               accessibilityHint="Shows every training day in this view">
               <ThemedText type="smallBold" themeColor="accent">
@@ -1414,6 +1416,12 @@ export function RecentVsLifetimeCard({
 const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
+  },
+  // 058: text-only links meet the 44dp floor by style, not by accident.
+  textLinkRow: {
+    minHeight: MinTouchTarget,
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
   },
   cardHeader: {
     flexDirection: 'row',

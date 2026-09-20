@@ -10,7 +10,9 @@
  * the label vertically centred, a chevron, and an explicit accessible name.
  */
 
+import { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
+import { useRouter, type Href } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
 import { MinTouchTarget, Spacing } from '@/theme/tokens';
@@ -24,6 +26,30 @@ export interface BackLinkProps {
   /** Accessible name; defaults to `Go back`. */
   accessibilityLabel?: string;
   testID?: string;
+}
+
+/**
+ * Pure empty-stack decision (unit-tested): go back when the stack allows
+ * it, otherwise fall back to a route that is always reachable.
+ */
+export function backOrFallback(canGoBack: boolean): 'back' | 'replace' {
+  return canGoBack ? 'back' : 'replace';
+}
+
+/**
+ * Back with an empty-stack fallback for cold deep-link landings (058): a
+ * bare `router.back()` no-ops when nothing is on the stack, stranding the
+ * user. Normal pushed flows are byte-identical (`canGoBack() === true`).
+ */
+export function useSafeBack(fallbackHref: Href): () => void {
+  const router = useRouter();
+  return useCallback(() => {
+    if (backOrFallback(router.canGoBack()) === 'back') {
+      router.back();
+    } else {
+      router.replace(fallbackHref);
+    }
+  }, [router, fallbackHref]);
 }
 
 export function BackLink({

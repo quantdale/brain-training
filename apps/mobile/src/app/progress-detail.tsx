@@ -42,6 +42,7 @@ import {
   Skeleton,
   SkeletonText,
   Spark,
+  useSafeBack,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type DomainName } from '@/constants/theme';
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
@@ -84,6 +85,8 @@ const EMPTY: ProgressDetailData = { history: [], aggregates: [], recent: [] };
 
 export default function ProgressDetailScreen() {
   const theme = useTheme();
+  // 058: cold deep links land with an empty stack — fall back to /progress.
+  const goBack = useSafeBack('/progress');
   // Reload whenever the screen regains focus (a session may have just landed).
   const [refreshKey, setRefreshKey] = useState(0);
   const [nowMs, setNowMs] = useState(0);
@@ -128,7 +131,7 @@ export default function ProgressDetailScreen() {
 
   return (
     <ScreenShell>
-      <BackLink testID="progress-detail-back" onPress={() => router.back()} />
+      <BackLink testID="progress-detail-back" onPress={goBack} />
 
       <View style={styles.header}>
         <ThemedText type="title" testID="progress-detail-title">

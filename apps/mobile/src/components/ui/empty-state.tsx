@@ -1,6 +1,7 @@
 /**
- * `EmptyState` — the reference empty anatomy: glyph, ~22pt title, one-line
- * explanation, then a single action.
+ * `EmptyState` — the reference empty anatomy: glyph, ~22pt title, a
+ * wrapping explanation (058: recovery guidance must never truncate for
+ * sighted users), then a single action.
  *
  * Centered with generous vertical padding. The action is an intrinsic-width
  * {@link Button} (the column centers it; a stretched CTA would dominate the
@@ -41,7 +42,7 @@ export function EmptyState({
         {title}
       </ThemedText>
       {message ? (
-        <ThemedText type="bodySmall" themeColor="textSecondary" numberOfLines={1} style={styles.center}>
+        <ThemedText type="bodySmall" themeColor="textSecondary" style={styles.center}>
           {message}
         </ThemedText>
       ) : null}

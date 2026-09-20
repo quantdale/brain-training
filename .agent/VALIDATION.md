@@ -40,6 +40,21 @@ unavailable checks into PASS.
 - Boundaries: manual/platform/store/CI per program. Evidence:
   `openspec/changes/057-result-reward-correctness/`.
 
+### Change 058 product UX & navigation residuals — 2026-09-20 (VALIDATED / CHANGE_058_COMPLETE)
+
+- Scope: **PASS** — safe-back fallback (8 usages / 6 sites), style touch
+  floors, EmptyState wrap, recovery retry floor, AVS floor; 4 census claims
+  corrected by evidence (no change). Adversarial NOT_READY fully repaired
+  (snapshots, count, label, floor assertions).
+- Repository gates: **PASS** — full gated Jest **571 passed / 4 skipped
+  suites, 6,818 passed / 5 skipped tests, 5 snapshots** (exit 0, console
+  gate clean); typecheck; lint; repo-state PASS; OpenSpec `--all --strict`
+  42/42.
+- Native/pixels: **NOT APPLICABLE** — style floors only, no
+  visual-direction change; six-way certification stays with 067.
+- Boundaries: manual/platform/store/CI per program. Evidence:
+  `openspec/changes/058-product-ux-navigation-residuals/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

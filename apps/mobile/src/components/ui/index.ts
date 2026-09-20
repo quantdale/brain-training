@@ -17,7 +17,7 @@ export { Card, type CardPadding, type CardProps, type CardShape, type CardVarian
 export { ArcadePanel, type ArcadePanelProps, type PanelPadding } from './arcade-panel';
 export { Report, ReportRow, type ReportProps, type ReportRowProps } from './report';
 export { SectionGrid, type SectionGridProps } from './section-grid';
-export { BackLink, type BackLinkProps } from './back-link';
+export { BackLink, backOrFallback, useSafeBack, type BackLinkProps } from './back-link';
 export { Entrance, type EntranceProps } from './entrance';
 export { HAIRLINE, ICON_BUTTON_SIZE, RADIUS_CAP } from './radius';
 

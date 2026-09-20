@@ -245,6 +245,12 @@ describe("Game Detail — Campaign 032 identity-first contract", () => {
 
     expect(screen.getByTestId("game-detail-unknown")).toBeOnTheScreen();
     expect(screen.getByTestId("game-detail-unknown-browse")).toBeOnTheScreen();
+    // 058: the 44dp floor lives on the visible label child (Link-asChild
+    // hides the Pressable's own style — game-not-ready pattern).
+    const browseLabelStyle = StyleSheet.flatten(
+      screen.getByText("Browse games ›").props.style,
+    ) as { minHeight?: number };
+    expect(browseLabelStyle.minHeight).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
     expect(screen.getByTestId("game-detail-back")).toBeOnTheScreen();
     expect(screen.queryByTestId("game-detail-play")).toBeNull();
     expect(screen.queryByTestId("game-detail-records")).toBeNull();

@@ -12,6 +12,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { MinTouchTarget } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
@@ -81,6 +82,11 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
 const styles = StyleSheet.create({
   tile: {
     aspectRatio: 1,
+    // Explicit touch-target floor (mirrors memory-grid-recall cells); the
+    // grid layout sizes tiles well above it on every tier, so this only
+    // guards degenerate widths and future grid growth (058).
+    minHeight: MinTouchTarget,
+    minWidth: MinTouchTarget,
     borderRadius: Radii.medium,
     borderWidth: 1.5,
     alignItems: 'center',

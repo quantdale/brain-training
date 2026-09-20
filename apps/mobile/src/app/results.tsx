@@ -48,6 +48,7 @@ import {
   Spark,
   StatBlock,
   showToast,
+  useSafeBack,
 } from '@/components/ui';
 import { MinTouchTarget, Radii, Spacing } from "@/constants/theme";
 import type { AppDatabase, GameSessionRecord } from "@/db";
@@ -164,6 +165,8 @@ export default function ResultsScreen() {
   // Captured once at mount: the relative-day label must not drift between
   // renders, and reading the clock during render is impure.
   const [mountedAt] = useState(() => Date.now());
+  // 058: cold deep links land with an empty stack — fall back to home.
+  const goBack = useSafeBack('/');
   useFocusEffect(
     useCallback(() => {
       setRefreshKey((k) => k + 1);
@@ -271,7 +274,7 @@ export default function ResultsScreen() {
 
   return (
     <ScreenShell>
-      <BackLink testID="results-back" onPress={() => router.back()} />
+      <BackLink testID="results-back" onPress={goBack} />
 
       <ThemedText type="headline" testID="results-title">
         Results

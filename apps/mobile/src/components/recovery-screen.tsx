@@ -101,6 +101,10 @@ export function RecoveryScreen({
         accessibilityRole="button"
         accessibilityLabel={retryAccessibilityLabel ?? 'Retry initialization'}
         accessibilityHint={retryHint}
+        // 058: plain primitives only — Tappable/Button depend on providers
+        // that may have failed on this degraded surface. The 44dp floor is
+        // enforced by style plus hit slop instead of the shared contract.
+        hitSlop={12}
         style={({ pressed }) => [styles.retry, pressed && styles.retryPressed]}>
         <Text style={styles.retryText} maxFontSizeMultiplier={1.35}>
           {retryLabel}
@@ -156,6 +160,9 @@ function makeStyles(theme: (typeof Colors)[keyof typeof Colors]) {
       maxWidth: 320,
     },
     retry: {
+      // Explicit floor: padding arithmetic alone does not guarantee it.
+      minHeight: 44,
+      justifyContent: 'center' as const,
       paddingVertical: Spacing.twoHalf,
       paddingHorizontal: Spacing.five,
       borderRadius: Radii.large,

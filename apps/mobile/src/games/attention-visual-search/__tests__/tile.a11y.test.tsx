@@ -44,6 +44,18 @@ describe('VisualSearch Tile accessibility (no answer leak)', () => {
     });
   });
 
+  it('058: declares a touch-target floor by construction', async () => {
+    const { getByTestId } = await render(
+      <Tile index={1} visual="idle" onPressTile={() => {}} />,
+    );
+    const rawStyle = getByTestId(testId(GAME_ID, 'tile', '1')).props.style;
+    const resolved =
+      typeof rawStyle === 'function' ? rawStyle({ pressed: false }) : rawStyle;
+    const flat = Array.isArray(resolved) ? Object.assign({}, ...resolved) : resolved;
+    expect(flat.minHeight).toBeGreaterThanOrEqual(44);
+    expect(flat.minWidth).toBeGreaterThanOrEqual(44);
+  });
+
   it('exposes the button role and disabled state', async () => {
     const { getByTestId } = await render(
       <Tile index={0} visual="idle" disabled onPressTile={() => {}} />,

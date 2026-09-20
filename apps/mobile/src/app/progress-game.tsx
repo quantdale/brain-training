@@ -51,6 +51,7 @@ import {
   Skeleton,
   SkeletonText,
   Spark,
+  useSafeBack,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord } from '@/db';
@@ -90,6 +91,8 @@ function sparsePointLabels(points: readonly { t: number }[]): string[] {
 
 export default function ProgressGameScreen() {
   const theme = useTheme();
+  // 058: cold deep links land with an empty stack — fall back to /progress.
+  const goBack = useSafeBack('/progress');
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const params = useLocalSearchParams<{ gameId?: string }>();
   // App-owned input envelope (Campaign 053): a malformed or oversized gameId
@@ -154,7 +157,7 @@ export default function ProgressGameScreen() {
   if (!gameId || !insight) {
     return (
       <ScreenShell>
-        <BackLink testID="progress-game-back" onPress={() => router.back()} />
+        <BackLink testID="progress-game-back" onPress={goBack} />
         <ThemedText type="title" testID="progress-game-title">
           {def?.name ?? gameId ?? 'Game'}
         </ThemedText>
@@ -194,7 +197,7 @@ export default function ProgressGameScreen() {
 
   return (
     <ScreenShell>
-      <BackLink testID="progress-game-back" onPress={() => router.back()} />
+      <BackLink testID="progress-game-back" onPress={goBack} />
 
       <View style={styles.header}>
         <View style={styles.titleRow}>

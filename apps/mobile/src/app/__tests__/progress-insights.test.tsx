@@ -12,6 +12,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import type { ComponentType } from 'react';
+import { StyleSheet } from 'react-native';
 
 import type {
   AppDatabase,
@@ -152,6 +153,30 @@ describe('Progress overview', () => {
     expect(screen.getByTestId('progress-recent')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-domain-attention')).toBeOnTheScreen();
     expect(screen.getByTestId('progress-game-memory')).toBeOnTheScreen();
+  });
+
+  it('058: text links meet the touch floor by style, not by accident', async () => {
+    const ratings: DomainRating[] = [
+      { domain: 'Memory', rating: 1040, sessions: 5, updatedAt: NOW - 2 * DAY },
+    ];
+    mockDbState.db = makeFakeDb({ ratings });
+    const result = renderBare(ProgressScreen, '/progress');
+    await result;
+    const linkStyle = StyleSheet.flatten(
+      screen.getByTestId('progress-activity-link').props.style,
+    ) as { minHeight?: number };
+    expect(linkStyle.minHeight).toBeGreaterThanOrEqual(44);
+  });
+
+  it('058: missing-domain back link meets the touch floor', async () => {
+    mockDbState.db = makeFakeDb();
+    const result = renderBare(ProgressDomainScreen, '/progress-domain?domain=Bogus');
+    await result;
+    expect(screen.getByTestId('progress-domain-missing')).toBeOnTheScreen();
+    const backStyle = StyleSheet.flatten(
+      screen.getByTestId('progress-domain-back-link').props.style,
+    ) as { minHeight?: number };
+    expect(backStyle.minHeight).toBeGreaterThanOrEqual(44);
   });
 
   it('shows the 7d/30d/90d/all window selector', async () => {

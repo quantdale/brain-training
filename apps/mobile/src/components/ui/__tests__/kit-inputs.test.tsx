@@ -166,6 +166,14 @@ describe('EmptyState', () => {
     await fireEvent.press(screen.getByText('Browse games'));
     expect(onAction).toHaveBeenCalledTimes(1);
   });
+
+  it('058: never truncates the guidance message', async () => {
+    const longMessage =
+      'This game is not in your library. It may have been renamed or removed — browse the library to find something to play.';
+    await render(<EmptyState title="Unknown game" message={longMessage} testID="empty" />);
+    // No one-line cap: sighted users keep the full guidance.
+    expect(screen.getByText(longMessage).props.numberOfLines).toBeUndefined();
+  });
 });
 
 describe('Skeleton', () => {

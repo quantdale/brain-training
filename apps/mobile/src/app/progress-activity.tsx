@@ -43,6 +43,7 @@ import {
   SkeletonText,
   Spark,
   StatBlock,
+  useSafeBack,
 } from '@/components/ui';
 import { Spacing, type ThemeColor } from '@/constants/theme';
 import type { AppDatabase } from '@/db';
@@ -67,6 +68,8 @@ function load(db: AppDatabase): Promise<ProgressSnapshot> {
 
 export default function ProgressActivityScreen() {
   const theme = useTheme();
+  // 058: cold deep links land with an empty stack — fall back to /progress.
+  const goBack = useSafeBack('/progress');
   const [refreshKey, setRefreshKey] = useState(0);
   const [nowMs, setNowMs] = useState(0);
   useFocusEffect(
@@ -99,7 +102,7 @@ export default function ProgressActivityScreen() {
 
   return (
     <ScreenShell>
-      <BackLink testID="progress-activity-back" onPress={() => router.back()} />
+      <BackLink testID="progress-activity-back" onPress={goBack} />
 
       <ThemedText type="title" testID="progress-activity-title">
         Activity

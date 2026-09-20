@@ -37,6 +37,7 @@ import { StateCard } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
 import { ThemedText } from "@/components/themed-text";
 import {
+  BackLink,
   Button,
   Card,
   EmptyState,
@@ -44,6 +45,7 @@ import {
   Report,
   ReportRow,
   Spark,
+  useSafeBack,
 } from "@/components/ui";
 import { Spacing } from "@/constants/theme";
 import { getDb, type AppDatabase } from "@/db";
@@ -125,6 +127,8 @@ export default function GameDetailScreen() {
 
   // Hooks stay above the unknown-game early return so the hook count cannot
   // change across navigations between valid and invalid ids.
+  // 058: cold deep links land with an empty stack — fall back to /games.
+  const goBack = useSafeBack('/games');
   const onToggleFavorite = useCallback(async () => {
     if (!game) return;
     try {
@@ -163,14 +167,17 @@ export default function GameDetailScreen() {
                 accessibilityLabel="Browse the game library"
                 testID="game-detail-unknown-browse"
               >
-                <ThemedText type="label" themeColor="accentText">
+                {/* 058: Link-asChild hides the Pressable's own style, so the
+                    44dp floor lives on the visible child (game-not-ready
+                    pattern). */}
+                <ThemedText type="label" themeColor="accentText" style={MinTouchTarget}>
                   Browse games ›
                 </ThemedText>
               </Pressable>
             </Link>
           </View>
         </Card>
-        <BackLink />
+        <BackLink testID="game-detail-back" onPress={goBack} accessibilityLabel="Back to Games" />
       </ScreenShell>
     );
   }
@@ -196,7 +203,7 @@ export default function GameDetailScreen() {
 
   return (
     <ScreenShell>
-      <BackLink />
+      <BackLink testID="game-detail-back" onPress={goBack} accessibilityLabel="Back to Games" />
 
       {/* Game-world first: GameStage leads with the world art and a compact
           identity plinth; records below are evidence, not the event. */}
@@ -377,22 +384,6 @@ export default function GameDetailScreen() {
           : " · curated content"}
       </ThemedText>
     </ScreenShell>
-  );
-}
-
-function BackLink() {
-  return (
-    <Pressable
-      testID="game-detail-back"
-      accessibilityRole="button"
-      accessibilityLabel="Back to Games"
-      onPress={() => router.back()}
-      style={MinTouchTarget}
-    >
-      <ThemedText type="label" themeColor="accentText">
-        ‹ Back
-      </ThemedText>
-    </Pressable>
   );
 }
 
