@@ -244,7 +244,5 @@ describe("PairRecallScreen verdict cues", () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-win")));
     expect(screen.getByTestId(testId(GAME_ID, "results"))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, "score-final"))).toBeOnTheScreen();
-    // The plain StatRow score survives next to the animated readout.
-    expect(screen.getByTestId(testId(GAME_ID, "score"))).toBeOnTheScreen();
   });
 });

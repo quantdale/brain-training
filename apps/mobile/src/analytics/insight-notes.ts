@@ -74,19 +74,19 @@ const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   'recent-vs-lifetime':
     'The recent average covers only sessions inside the selected window; the lifetime average covers every stored session.',
   'trend-summary':
-    'First and last values of the series in this view, plus how steady it is around its own average. Derived only from the points shown.',
+    'Your first and last values in this view, and how steady the series is around its own average.',
   volume:
     'Count of completed sessions inside the selected window compared with the immediately preceding window of equal length.',
   'accuracy-trend':
-    'Accuracy values across sessions over time, using whatever each game stored; games without a stored accuracy contribute nothing.',
+    'Accuracy across your sessions over time, using the accuracy each game records. Games that do not record accuracy are left out.',
   'reaction-trend':
-    'Stored response times across sessions over time; lower is faster. Games without a stored reaction time contribute nothing.',
+    'Response times across your sessions over time; lower is faster. Games that do not record a response time are left out.',
   'difficulty-progression':
-    'Challenge ratings you attempted over time, shown neutrally: a change in challenge is not a better or worse result.',
+    'The challenge levels you played over time. A change in challenge is not a better or worse result \u2014 it is just a different one.',
   'personal-best-history':
-    'Every moment a personal best was raised, derived from stored results; ties keep the earliest holder.',
+    'Every time you set a new personal best, from your recorded results. If two sessions tie, the earlier one keeps the mark.',
   'rolling-average':
-    'Mean of the last N sessions at each point, so single-session spikes do not dominate the shape.',
+    'This keeps one unusually strong or weak session from dominating the shape.',
   'category-comparison':
     'One row per domain: its stored rating plus this window\u2019s sessions attributed by each game\u2019s primary category.',
   'workout-completion':
@@ -96,13 +96,13 @@ const NOTES: Readonly<Record<ProgressMetricKey, string>> = {
   diversity:
     'How evenly sessions spread across domains: the effective number of domains you trained at equal share.',
   'activity-runs':
-    'Consecutive active days inside this view. Window-local frequency, not your engagement streak.',
+    'Consecutive active days in this view \u2014 a count of back-to-back days, not your engagement streak.',
   'weekday-pattern':
-    'Which weekdays your sessions landed on inside this view \u2014 a record of habit, not advice.',
+    'Which weekdays your sessions landed on in this view \u2014 a record of habit, not advice.',
   'progress-consistency':
     'Count of completed sessions and distinct UTC days with a session inside the selected window.',
   'recorded-movement':
-    'For a bounded window, the selected-window average is compared with your lifetime average; all-time compares the first and latest recorded results.',
+    'Compares this window\u2019s average with your lifetime average; all time compares your first and latest results.',
 };
 
 /** The fixed derivation sentence for a metric (deterministic, testable). */

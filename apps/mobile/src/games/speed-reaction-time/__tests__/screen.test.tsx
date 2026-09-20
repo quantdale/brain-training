@@ -272,7 +272,7 @@ describe('SpeedScreen', () => {
     if (goTrials > 0) {
       expect(screen.getByTestId(testId(GAME_ID, 'median-reaction'))).toHaveTextContent('400 ms');
     }
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(String(expectedScore));
+    expect(screen.getByTestId(testId(GAME_ID, 'score-final'))).toHaveTextContent(String(expectedScore));
     if (withholds > 0) {
       expect(screen.getByTestId(testId(GAME_ID, 'no-go-held'))).toHaveTextContent(
         `${withholds}/${withholds}`,

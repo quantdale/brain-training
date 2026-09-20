@@ -286,7 +286,7 @@ describe("RunningOrderScreen", () => {
     expect(
       screen.getByTestId(testId(GAME_ID, "best-recall")),
     ).toHaveTextContent(String(referenceMaxTargets(NORMAL)));
-    expect(screen.getByTestId(testId(GAME_ID, "score"))).toHaveTextContent(
+    expect(screen.getByTestId(testId(GAME_ID, "score-final"))).toHaveTextContent(
       String(perfectSessionScore(NORMAL)),
     );
 

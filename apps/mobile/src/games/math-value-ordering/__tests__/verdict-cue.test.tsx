@@ -186,6 +186,5 @@ describe('ValueOrderingScreen verdict cues', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'score-final'))).toBeOnTheScreen();
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toBeOnTheScreen();
   });
 });

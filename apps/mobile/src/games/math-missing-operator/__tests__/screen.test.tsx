@@ -191,7 +191,7 @@ describe('MathMissingOperatorScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'next-round')));
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'correct'))).toHaveTextContent('7/7');
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(String(expectedScore));
+    expect(screen.getByTestId(testId(GAME_ID, 'score-final'))).toHaveTextContent(String(expectedScore));
     expect(screen.getByTestId(testId(GAME_ID, 'avg-response'))).toHaveTextContent('2.0 s');
 
     // Flush the async persistence chain.

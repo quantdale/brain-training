@@ -227,7 +227,5 @@ describe('PatternTapBackScreen verdict cues', () => {
 
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'score-final'))).toBeOnTheScreen();
-    // The plain StatRow score survives next to the animated readout.
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toBeOnTheScreen();
   });
 });

@@ -503,6 +503,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
+          normalizedResult={state.normalized ?? undefined}
           forced={state.forced}
           persistState={state.persistState}
           lastError={state.lastError}

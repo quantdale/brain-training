@@ -554,6 +554,5 @@ describe("GridRecallScreen verdict language (campaign 025)", () => {
     expect(
       screen.getByTestId(testId(GAME_ID, "score-final")),
     ).toBeOnTheScreen();
-    expect(screen.getByTestId(testId(GAME_ID, "score"))).toBeOnTheScreen();
   });
 });

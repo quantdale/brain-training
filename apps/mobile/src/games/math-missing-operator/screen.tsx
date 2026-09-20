@@ -474,6 +474,7 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
+          normalizedResult={state.normalized ?? undefined}
           forced={state.forced}
           persistState={state.persistState}
           lastError={state.lastError}
@@ -491,11 +492,6 @@ export default function MathMissingOperatorScreen(props: MathMissingOperatorScre
               testID={testId(GAME_ID, 'score-final')}
             />
           </View>
-          <StatRow
-            label="Score"
-            value={String(state.stats.score)}
-            testID={testId(GAME_ID, 'score')}
-          />
           <StatRow
             label="Accuracy"
             value={`${Math.round(

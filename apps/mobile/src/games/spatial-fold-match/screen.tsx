@@ -507,6 +507,7 @@ export default function SpatialFoldMatchScreen(props: SpatialFoldMatchScreenProp
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
+          normalizedResult={state.normalized ?? undefined}
           forced={state.forced}
           persistState={state.persistState}
           lastError={state.lastError}

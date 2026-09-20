@@ -657,6 +657,7 @@ export default function SignalWatchScreen(
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
+          normalizedResult={state.normalized ?? undefined}
           forced={state.forced}
           persistState={state.persistState}
           lastError={state.lastError}
@@ -675,11 +676,6 @@ export default function SignalWatchScreen(
               testID={testId(GAME_ID, "score-final")}
             />
           </View>
-          <StatRow
-            label="Score"
-            value={String(state.stats.score)}
-            testID={testId(GAME_ID, "score")}
-          />
           <StatRow
             label="Signals caught"
             value={`${state.stats.signalHits}/${state.stats.totalSignals}`}

@@ -182,7 +182,7 @@ describe('ValueOrderingScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'hits'))).toHaveTextContent(
       `${NORMAL.rounds}/${NORMAL.rounds}`,
     );
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(
+    expect(screen.getByTestId(testId(GAME_ID, 'score-final'))).toHaveTextContent(
       String(perfectSessionScore(NORMAL)),
     );
 

@@ -489,6 +489,7 @@ export default function SpatialScreen(props: SpatialScreenProps = {}) {
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
+          normalizedResult={state.normalized ?? undefined}
           persistState={state.persistState}
           lastError={state.lastError}
           forced={state.forced}

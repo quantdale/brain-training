@@ -419,6 +419,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
+          normalizedResult={state.normalized ?? undefined}
           forced={state.forced}
           persistState={state.persistState}
           lastError={state.lastError}
@@ -437,7 +438,6 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
               testID={testId(GAME_ID, 'score-animated')}
             />
           </View>
-          <StatRow label="Score" value={String(state.stats.score)} testID={testId(GAME_ID, 'score')} />
           <StatRow
             label="Go hits"
             value={`${state.stats.hits}/${state.stats.hits + state.stats.omissions}`}

@@ -188,7 +188,7 @@ describe('OrderPathScreen', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'rounds-correct'))).toHaveTextContent('5/5');
     expect(screen.getByTestId(testId(GAME_ID, 'accuracy'))).toHaveTextContent('100%');
     // Per round: 100 + round(50 * (1 - 500/25000)) = 149.
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent(String(5 * 149));
+    expect(screen.getByTestId(testId(GAME_ID, 'score-final'))).toHaveTextContent(String(5 * 149));
     expect(screen.getByTestId(testId(GAME_ID, 'best-time'))).toHaveTextContent('0.5s');
 
     // Flush the async persistence chain.

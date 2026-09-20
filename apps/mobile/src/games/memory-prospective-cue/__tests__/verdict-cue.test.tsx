@@ -287,7 +287,5 @@ describe("SignalWatchScreen verdict cues", () => {
 
     expect(screen.getByTestId(testId(GAME_ID, "results"))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, "score-final"))).toBeOnTheScreen();
-    // The plain StatRow score survives beside the animated readout.
-    expect(screen.getByTestId(testId(GAME_ID, "score"))).toBeOnTheScreen();
   });
 });

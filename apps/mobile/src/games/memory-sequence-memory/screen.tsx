@@ -570,7 +570,11 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
-          title={state.timeUp ? "Time's up!" : 'Session complete'}
+          normalizedResult={state.normalized ?? undefined}
+          // Campaign 055 resumption: only the exceptional outcome keeps a
+          // game-specific title; a normal completion falls through to the
+          // shared honest performance band (state.normalized).
+          title={state.timeUp ? "Time's up!" : undefined}
           forced={state.forced}
           persistState={state.persistState}
           lastError={state.lastError}
@@ -588,11 +592,6 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
               testID={testId(GAME_ID, 'score-final')}
             />
           </View>
-          <StatRow
-            label="Score"
-            value={String(state.stats.score)}
-            testID={testId(GAME_ID, 'score')}
-          />
           <StatRow
             label="Accuracy"
             value={`${Math.round(

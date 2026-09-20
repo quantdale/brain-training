@@ -530,7 +530,11 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
-          title={state.stats.falseStartAborted ? 'Session ended early' : 'Session complete'}
+          normalizedResult={state.normalized ?? undefined}
+          // Campaign 055 resumption: only the aborted outcome keeps a
+          // game-specific title; a normal completion falls through to the
+          // shared honest performance band (state.normalized).
+          title={state.stats.falseStartAborted ? 'Session ended early' : undefined}
           badge={
             state.stats.falseStartAborted ? (
               <ThemedText
@@ -559,11 +563,6 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
               testID={testId(GAME_ID, 'score-final')}
             />
           </View>
-          <StatRow
-            label="Score"
-            value={String(state.stats.score)}
-            testID={testId(GAME_ID, 'score')}
-          />
           <StatRow
             label="Median reaction"
             value={reactionMs}

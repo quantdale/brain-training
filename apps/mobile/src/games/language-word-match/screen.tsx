@@ -475,6 +475,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
             coins: state.authoritativeCurrency ?? 0,
           }}
           gameId={GAME_ID}
+          normalizedResult={state.normalized ?? undefined}
           persistState={state.persistState}
           lastError={state.lastError}
           forced={state.forced}
@@ -490,11 +491,6 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
               testID={testId(GAME_ID, 'score', 'animated')}
             />
           </View>
-          <StatRow
-            label="Score"
-            value={String(state.stats.score)}
-            testID={testId(GAME_ID, 'score')}
-          />
           <StatRow
             label="Accuracy"
             value={`${Math.round(

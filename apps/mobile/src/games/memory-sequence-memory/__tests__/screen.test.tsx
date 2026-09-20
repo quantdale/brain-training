@@ -363,7 +363,7 @@ describe('SequenceMemoryScreen', () => {
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-perfect')));
 
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
-    expect(screen.getByTestId(testId(GAME_ID, 'score'))).toHaveTextContent('975');
+    expect(screen.getByTestId(testId(GAME_ID, 'score-final'))).toHaveTextContent('975');
     expect(screen.getByTestId(testId(GAME_ID, 'rounds-passed'))).toHaveTextContent('6/6');
     expect(screen.getByTestId(testId(GAME_ID, 'longest-sequence'))).toHaveTextContent('8');
     await act(async () => {});
