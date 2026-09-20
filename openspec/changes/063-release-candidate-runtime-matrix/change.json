@@ -1,0 +1,21 @@
+{
+  "id": "063-release-candidate-runtime-matrix",
+  "status": "VALIDATED",
+  "predecessor": "062-backup-import-export-robustness",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["release-candidate-runtime-matrix"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Eighth of Changes 056-067; second theme-062-064 release-resilience item.",
+  "baselineAuditCommit": "e627473",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "Changes 056-062 (all VALIDATED) changed product source after the 055-certified APK; this change builds and certifies the converged tree. Historical ANR/provider/SQLite sensitivities carried as bounded re-probes, not assumptions.",
+  "validatedAt": "2026-09-20",
+  "validationNote": "Terminal close after adversarial NOT_READY with all items closed: bundle-marker provenance (10/10 markers + bundle hash), machine evidence committed (a11y JSON, versionCode, log command), picker mechanism corrected + import-picker lane exercised, weak-path-only completion scope, extended route probes, explicit NOT VALIDATED list, closure doc. Artifact 20e28c64 (109,598,957 bytes) from e627473. Matrix: 3/3 installs, 12/12 captures, share/picker open-cancel 0 ANR, real weak completion retained, SQLite ok/v12/0-dup/0-FK, 24,792 log lines 0 fatal. Repository gates at 062 close (577/6,847); 063 adds no source. OpenSpec --all --strict 47/47.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CAMPAIGN_063_RUNTIME_MATRIX_COMPLETE"
+}

@@ -113,6 +113,21 @@ unavailable checks into PASS.
 - Boundaries: manual/platform/store/CI per program. Evidence:
   `openspec/changes/062-backup-import-export-robustness/`.
 
+### Change 063 release-candidate runtime matrix — 2026-09-20 (VALIDATED / CAMPAIGN_063_RUNTIME_MATRIX_COMPLETE)
+
+- Scope: **PASS** — artifact 20e28c64 from e627473 (10/10 bundle
+  markers + hash committed); 3/3 clean installs + relaunches 0 ANR;
+  12/12 captures + recovery probes; share/picker open-cancel 0 ANR;
+  real weak completion retained; SQLite ok/v12/0-dup/0-FK; 24,792 log
+  lines 0 fatal; a11y machine JSON committed. No defects reproduced.
+  Adversarial NOT_READY fully closed.
+- Repository gates: carried from 062 close (577/6,847 green); 063 adds
+  no source. OpenSpec `--all --strict` 47/47.
+- Boundaries: explicit NOT VALIDATED list in closure (compact/font-scale,
+  dark interaction, soak, 2nd game, workout legs, mid/strong, import
+  apply, wipe, cold boot, human/platform/store/CI). Evidence:
+  `docs/redesign/evidence/campaign063/` + `openspec/changes/063-*/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

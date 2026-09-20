@@ -1,0 +1,240 @@
+{
+  "dir": "D:\\Temp\\campaign063-matrix",
+  "density": 420,
+  "surfaces": [
+    {
+      "surface": "default/dark/game-detail",
+      "interactive": 3,
+      "labelled": 3,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": []
+    },
+    {
+      "surface": "default/dark/games",
+      "interactive": 6,
+      "labelled": 6,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": [
+        {
+          "label": "Signal Watch, Attention game, New",
+          "heightDp": 97
+        },
+        {
+          "label": "Symbol Tracker, Attention game, New",
+          "heightDp": 97
+        }
+      ]
+    },
+    {
+      "surface": "default/dark/home",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": [
+        {
+          "label": "Deduction Table, Logic &amp; Problem Solving, up next",
+          "heightDp": 9
+        }
+      ]
+    },
+    {
+      "surface": "default/dark/profile",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": []
+    },
+    {
+      "surface": "default/dark/progress",
+      "interactive": 9,
+      "labelled": 9,
+      "undersized": [
+        {
+          "label": "7d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "label": "30d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "label": "90d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "label": "All",
+          "widthDp": 94,
+          "heightDp": 32
+        }
+      ],
+      "unlabelled": [],
+      "clipped": [
+        {
+          "label": "Memory, untrained",
+          "heightDp": 54
+        }
+      ]
+    },
+    {
+      "surface": "default/dark/rewards",
+      "interactive": 0,
+      "labelled": 0,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": []
+    },
+    {
+      "surface": "default/light/game-detail",
+      "interactive": 3,
+      "labelled": 3,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": []
+    },
+    {
+      "surface": "default/light/games",
+      "interactive": 6,
+      "labelled": 6,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": [
+        {
+          "label": "Signal Watch, Attention game, New",
+          "heightDp": 97
+        },
+        {
+          "label": "Symbol Tracker, Attention game, New",
+          "heightDp": 97
+        }
+      ]
+    },
+    {
+      "surface": "default/light/home",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": [
+        {
+          "label": "Deduction Table, Logic &amp; Problem Solving, up next",
+          "heightDp": 9
+        }
+      ]
+    },
+    {
+      "surface": "default/light/profile",
+      "interactive": 7,
+      "labelled": 7,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": []
+    },
+    {
+      "surface": "default/light/progress",
+      "interactive": 9,
+      "labelled": 9,
+      "undersized": [
+        {
+          "label": "7d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "label": "30d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "label": "90d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "label": "All",
+          "widthDp": 94,
+          "heightDp": 32
+        }
+      ],
+      "unlabelled": [],
+      "clipped": [
+        {
+          "label": "Memory, untrained",
+          "heightDp": 54
+        }
+      ]
+    },
+    {
+      "surface": "default/light/rewards",
+      "interactive": 0,
+      "labelled": 0,
+      "undersized": [],
+      "unlabelled": [],
+      "clipped": []
+    }
+  ],
+  "violations": [
+    {
+      "surface": "default/dark/progress",
+      "kind": "target<44dp",
+      "label": "7d",
+      "widthDp": 94,
+      "heightDp": 32
+    },
+    {
+      "surface": "default/dark/progress",
+      "kind": "target<44dp",
+      "label": "30d",
+      "widthDp": 94,
+      "heightDp": 32
+    },
+    {
+      "surface": "default/dark/progress",
+      "kind": "target<44dp",
+      "label": "90d",
+      "widthDp": 94,
+      "heightDp": 32
+    },
+    {
+      "surface": "default/dark/progress",
+      "kind": "target<44dp",
+      "label": "All",
+      "widthDp": 94,
+      "heightDp": 32
+    },
+    {
+      "surface": "default/light/progress",
+      "kind": "target<44dp",
+      "label": "7d",
+      "widthDp": 94,
+      "heightDp": 32
+    },
+    {
+      "surface": "default/light/progress",
+      "kind": "target<44dp",
+      "label": "30d",
+      "widthDp": 94,
+      "heightDp": 32
+    },
+    {
+      "surface": "default/light/progress",
+      "kind": "target<44dp",
+      "label": "90d",
+      "widthDp": 94,
+      "heightDp": 32
+    },
+    {
+      "surface": "default/light/progress",
+      "kind": "target<44dp",
+      "label": "All",
+      "widthDp": 94,
+      "heightDp": 32
+    }
+  ]
+}
