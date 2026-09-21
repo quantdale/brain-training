@@ -9,7 +9,7 @@
   "tasks": "tasks.md",
   "specOrder": ["adversarial-convergence-static-governance"],
   "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Eleventh of Changes 056-067; second theme-065-066 adversarial convergence item.",
-  "baselineAuditCommit": "eab173f",
+  "baselineAuditCommit": "5ef707d",
   "productBaselineCommit": "34c9b2d",
   "certifiedArtifactCommit": "e627473",
   "fullHardening": false,
