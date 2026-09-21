@@ -23,6 +23,7 @@ import { createMigratedDb } from '@/db/__tests__/helpers';
 import { exportLocalDataBundle , serializeEnvelopeWithChecksum, buildBackupManifest } from '../serialize';
 import { serializeBackup, parseAndValidateBackup } from '../index';
 import { T0 } from './helpers';
+import { expectConsoleNoise } from '@/test-utils';
 
 const enabled = process.env.LARGE_BACKUP_PROBE === '1';
 const d = enabled ? describe : describe.skip;
@@ -151,7 +152,9 @@ d('20k-session large-backup behavior', () => {
         postGcHeap: memBefore.postGc && memAfter.postGc,
         node: process.version,
       };
-      console.log(`LARGE_BACKUP_MEMORY_JSON:${JSON.stringify(report)}`);
+      await expectConsoleNoise(/LARGE_BACKUP_MEMORY_JSON:/, () => {
+        console.log(`LARGE_BACKUP_MEMORY_JSON:${JSON.stringify(report)}`);
+      });
 
       // Deterministic correctness gates at scale (never timing-based):
       expect(parsed.data.gameSessions).toHaveLength(N_SESSIONS);

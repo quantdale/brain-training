@@ -32,6 +32,7 @@ import {
   type QuestKind,
   type QuestSessionSample,
 } from '@/quests';
+import { expectConsoleNoise } from '@/test-utils';
 
 const enabled = process.env.PERF_PROBE === '1';
 const d = enabled ? describe : describe.skip;
@@ -91,7 +92,7 @@ function timeMinOf(fn: () => unknown, reps = 5, warmup = 3): number {
 }
 
 d('perf quest eval A/B (opt-in via PERF_PROBE=1)', () => {
-  it('compares engine scan vs partitioned single pass in-process', () => {
+  it('compares engine scan vs partitioned single pass in-process', async () => {
     const active = selectActiveQuests(QUEST_DEFINITIONS_V1, NOW);
     expect(active.length).toBeGreaterThan(0);
 
@@ -163,7 +164,9 @@ d('perf quest eval A/B (opt-in via PERF_PROBE=1)', () => {
       }),
     };
 
-    console.log(`PERF_QUEST_AB_JSON:${JSON.stringify(results)}`);
+    await expectConsoleNoise(/PERF_QUEST_AB_JSON:/, () => {
+      console.log(`PERF_QUEST_AB_JSON:${JSON.stringify(results)}`);
+    });
 
     expect(results.engineFirst_ms).toBeGreaterThan(0);
     expect(results.partitionedFirst_ms).toBeGreaterThan(0);

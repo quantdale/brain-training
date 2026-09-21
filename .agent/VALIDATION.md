@@ -128,6 +128,40 @@ unavailable checks into PASS.
   apply, wipe, cold boot, human/platform/store/CI). Evidence:
   `docs/redesign/evidence/campaign063/` + `openspec/changes/063-*/`.
 
+### Change 064 dependency & security validation gates — 2026-09-21 (VALIDATED / CHANGE_064_COMPLETE)
+
+- Scope: **PASS** — 12 gate repairs: ReDoS expiry reconciled across durable
+  state + renewal owner; provenance `--check-allowlist` (owner required,
+  impossible date/date-time rejected, missing file fails); jest-skip schema v3
+  with per-entry `expires` and renewal-safe self-test invariants;
+  analytics/quests/achievements/streaks/theme affected-area rules + per-row
+  IMPACT_MAP sync + pinned `--strict` semantics; all-level console gate with
+  expected-output forwarding, seven scoped emitters, dead debug print removed,
+  and `[perf]` suppressed under jest only; npm/Google API/Stripe secret
+  patterns; banned-specifier offline scan (static/require/dynamic/comment/
+  side-effect/template) + runtime `EventSource`/`navigator.sendBeacon` ban;
+  5/5 probe runner + `--list`; structural runtime-QA contract with real route
+  resolution for placeholder deep links; `.spec` testMatch + config guard test;
+  deny-by-default APK permission gate (8-entry expected set); CI wiring on
+  push + weekly schedule with network-audit ownership documented. Two
+  adversarial NOT_READY reviews and one closure verifier: all findings
+  repaired and re-verified.
+- Repository gates: **PASS** — full gated Jest 583 suites (578 passed + 1
+  green-with-allowlisted-pending JSON label + 4 skipped), 6,854 passed / 5
+  classified opt-in skips (6,859), 5 snapshots, 0 unexpected console output,
+  exit 0 (269.983 s); typecheck; lint; Expo Doctor 21/21; repo-state PASS;
+  task-ownership PASS; OpenSpec `--all --strict` 48/48; every validator
+  self-test and freshness mode green; probe runner 5/5; local aapt2
+  permission diff 8/8 (`PERMISSION_SET_MATCH`).
+- Native/artifact: **NOT APPLICABLE** — no product behavior change (one
+  test-runner-only `sdk/perf.ts` guard); product checkpoint unchanged
+  (`34c9b2d`); the 063 APK remains the certified artifact.
+- Boundaries: local-vs-CI install divergence, network-audit BLOCKED flapping,
+  provenance identity scope, Jest-vs-native SQLite adapter, Android ABI
+  matrix, external CI/iOS/physical/store/human remain NOT VALIDATED / MANUAL /
+  EXTERNAL. Evidence: `docs/redesign/evidence/campaign064/` +
+  `openspec/changes/064-*/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

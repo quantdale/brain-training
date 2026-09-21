@@ -24,6 +24,7 @@ import * as fs from 'fs';
 import type { SQLiteAdapter } from '@/db';
 import { AppDatabase } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
+import { expectConsoleNoise } from '@/test-utils';
 import { loadProgressSnapshot } from '@/analytics/queries';
 import {
   exportLocalData,
@@ -142,7 +143,9 @@ d('perf baselines (opt-in via PERF_PROBE=1)', () => {
       serializeBackup(envelope),
     );
 
-    console.log(`PERF_BASELINE_JSON:${JSON.stringify(results)}`);
+    await expectConsoleNoise(/PERF_BASELINE_JSON:/, () => {
+      console.log(`PERF_BASELINE_JSON:${JSON.stringify(results)}`);
+    });
 
     if (process.env.PERF_OUT) {
       fs.writeFileSync(process.env.PERF_OUT, JSON.stringify(results, null, 2));

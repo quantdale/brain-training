@@ -156,10 +156,6 @@ describe('sentence uniqueness (audit regression)', () => {
             usedCategories: prev !== null ? [prev] : [],
           });
           const _ok = hasNoDuplicateWords(sentence);
-          if (!_ok) {
-             
-            console.log('DUP', lo, hi, JSON.stringify(sentence.text), 'wc', sentence.wordCount);
-          }
           expect(_ok).toBe(true);
           expect(sentence.wordCount).toBeGreaterThanOrEqual(lo);
           expect(sentence.wordCount).toBeLessThanOrEqual(hi);

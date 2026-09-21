@@ -59,10 +59,12 @@
     "setupFilesAfterEnv": [
       "<rootDir>/jest/setup.js"
     ],
-    "testMatch": [
-      "**/__tests__/**/*.test.ts",
-      "**/__tests__/**/*.test.tsx"
-    ],
+  "testMatch": [
+    "**/__tests__/**/*.test.ts",
+    "**/__tests__/**/*.test.tsx",
+    "**/__tests__/**/*.spec.ts",
+    "**/__tests__/**/*.spec.tsx"
+  ],
     "testTimeout": 15000
   }
 }

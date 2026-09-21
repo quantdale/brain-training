@@ -20,6 +20,9 @@ const PATTERNS = [
   { id: 'slack-token', expression: /\bxox[baprs]-[A-Za-z0-9-]{20,}\b/ },
   { id: 'openai-style-key', expression: /\bsk-[A-Za-z0-9]{20,}\b/ },
   { id: 'supabase-service-key', expression: /\bsbp_[A-Za-z0-9_-]{20,}\b/ },
+  { id: 'npm-token', expression: /\bnpm_[A-Za-z0-9_]{20,}\b/ },
+  { id: 'google-api-key', expression: /\bAIza[0-9A-Za-z_-]{35}\b/ },
+  { id: 'stripe-live-secret', expression: /\b(?:sk|rk)_live_[A-Za-z0-9]{16,}\b/ },
 ];
 
 function scanText(source, file = '<memory>') {
@@ -66,11 +69,26 @@ function selfTest() {
   const privateKey = ['-----BEGIN ', 'RSA PRIVATE KEY-----'].join('');
   const awsKey = ['AKIA', '1234567890123456'].join('');
   const githubToken = ['ghp_', 'A'.repeat(24)].join('');
+  const npmToken = ['npm_', 'A'.repeat(20)].join('');
+  const googleApiKey = ['AIza', 'B'.repeat(35)].join('');
+  const stripeLiveKey = ['sk_', 'live_', 'C'.repeat(16)].join('');
+  const stripeLiveRestrictedKey = ['rk_', 'live_', 'C'.repeat(16)].join('');
   assert.deepEqual(scanText('ordinary token documentation'), []);
+  assert.deepEqual(scanText('discussing the npm token, google api key, and stripe live key formats'), []);
   assert.equal(scanText(privateKey)[0]?.pattern, 'private-key');
   assert.equal(scanText(awsKey)[0]?.pattern, 'aws-access-key');
   assert.equal(scanText(githubToken)[0]?.pattern, 'github-token');
+  assert.equal(scanText(npmToken)[0]?.pattern, 'npm-token');
+  assert.equal(scanText(googleApiKey)[0]?.pattern, 'google-api-key');
+  assert.equal(scanText(stripeLiveKey)[0]?.pattern, 'stripe-live-secret');
+  assert.equal(scanText(stripeLiveRestrictedKey)[0]?.pattern, 'stripe-live-secret');
   assert.equal(scanText('prefix ' + githubToken + ' suffix').length, 1);
+  assert.equal(scanText('prefix ' + npmToken + ' suffix').length, 1);
+  assert.equal(scanText('prefix ' + googleApiKey + ' suffix').length, 1);
+  assert.equal(scanText('prefix ' + stripeLiveKey + ' suffix').length, 1);
+  assert.deepEqual(scanText(['npm_', 'A'.repeat(19)].join('')), []);
+  assert.deepEqual(scanText(['AIza', 'B'.repeat(34)].join('')), []);
+  assert.deepEqual(scanText(['sk_', 'live_', 'C'.repeat(15)].join('')), []);
   console.log('validate-secrets self-test: PASS');
 }
 

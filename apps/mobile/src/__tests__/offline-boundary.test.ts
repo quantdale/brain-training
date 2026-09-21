@@ -7,11 +7,18 @@
  * attempt fails the test at the exact call site.
  *
  * A static scan of the core module trees (`src/games`, `src/workout`,
- * `src/rating`, `src/sdk`, `src/db`) additionally greps for network APIs and
- * fails the suite listing offenders. The allowlist is intentionally empty;
+ * `src/rating`, `src/sdk`, `src/db`) additionally greps for network APIs
+ * and fails the suite listing offenders. The allowlist is intentionally empty;
  * any legit exception must be named in ALLOWLIST below with a comment. The
  * repo-wide counterpart, run from the repo root, is
  * `node scripts/validate-offline.mjs`.
+ *
+ * Runtime ban (campaign 064): every network global the Node environment
+ * exposes is replaced with a thrower — `fetch`, `XMLHttpRequest`,
+ * `WebSocket`, `EventSource` — and `navigator.sendBeacon` is patched through
+ * a Proxy on the global navigator. Imported network libraries (`axios`, etc.)
+ * cannot be intercepted at the global layer; for those the static
+ * banned-specifier scan below (mirroring the validator) is the authority.
  *
  * Scan limitations (shared with the validator script): the regexes are light
  * identifier checks — `fetch(` also matches a property method named `fetch`.
@@ -82,6 +89,41 @@ const BRACKET_GLOBAL_PATTERN =
   /\b(?:globalThis|global|window)\s*\[\s*["'`](?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)["'`]\s*\]/g;
 
 /**
+ * Banned network package specifiers, mirroring `scripts/validate-offline.mjs`.
+ * The identifier patterns above cannot see `import { get } from 'axios'`
+ * because the specifier is a string literal, so this raw-code scan is the
+ * static authority for imported network libraries.
+ */
+const BANNED_MODULE_SPECIFIERS = new Set([
+  'axios',
+  'expo/fetch',
+  'expo-network',
+  'node-fetch',
+  'cross-fetch',
+  'undici',
+  'got',
+  'superagent',
+]);
+const MODULE_SPECIFIER_PATTERNS: readonly RegExp[] = [
+  /\bfrom\s*['"`]([^'"`]+)['"`]/g,
+  /\brequire\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+  /\bimport\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+  // Side-effect-only import: `import 'pkg';`.
+  /\bimport\s*['"`]([^'"`]+)['"`]/g,
+];
+/** `import(/* bundler comment *\/ 'pkg')` — needs the raw line (mirrors the validator). */
+const COMMENTED_DYNAMIC_IMPORT_PATTERN =
+  /\bimport\s*\(\s*\/\*[\s\S]*?\*\/\s*['"`]([^'"`]+)['"`]\s*\)/g;
+
+function isBannedSpecifier(specifier: string): boolean {
+  if (BANNED_MODULE_SPECIFIERS.has(specifier)) return true;
+  for (const banned of BANNED_MODULE_SPECIFIERS) {
+    if (specifier.startsWith(`${banned}/`)) return true;
+  }
+  return false;
+}
+
+/**
  * String literals, including escaped quotes (single, double, backtick).
  * Stripped BEFORE comment detection so a URL like `"https://..."` inside a
  * real call does not make the line look like a comment (`//` is also a URL
@@ -142,28 +184,59 @@ async function createMigratedExpoAdapter(): Promise<SQLiteAdapter> {
   return adapter;
 }
 
-const NETWORK_GLOBALS = ['fetch', 'XMLHttpRequest', 'WebSocket'] as const;
+const NETWORK_GLOBALS = ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource'] as const;
 
 /**
  * Replace the network globals with throwers. Node 24 provides `fetch` and
- * `WebSocket` but not `XMLHttpRequest`; `in` handles all three uniformly.
- * Returns a restore function; jest gives each test file its own global, so
- * the patch cannot leak into other suites, but we restore anyway.
+ * `WebSocket` but not `XMLHttpRequest`/`EventSource`; `in` handles all
+ * uniformly. `navigator.sendBeacon` is patched through a Proxy because it is
+ * a method on a global object rather than a global function. Returns a
+ * restore function; jest gives each test file its own global, so the patch
+ * cannot leak into other suites, but we restore anyway.
  */
 function banNetworkApis(): () => void {
   const g = globalThis as Record<string, unknown>;
   const saved: { key: string; present: boolean; value: unknown }[] = [];
+  // Regular function (not an arrow) so `new EventSource()` reaches the
+  // thrower instead of failing earlier with "is not a constructor".
+  const throwOffline = (name: string) =>
+    function offlineThrower(): never {
+      throw new Error(`${OFFLINE_ERROR} (${name})`);
+    };
   for (const key of NETWORK_GLOBALS) {
     saved.push({ key, present: key in g, value: g[key] });
     Object.defineProperty(g, key, {
       configurable: true,
       enumerable: true,
       writable: true,
-      value: () => {
-        throw new Error(`${OFFLINE_ERROR} (${key})`);
-      },
+      value: throwOffline(key),
     });
   }
+
+  // `navigator.sendBeacon` is the remaining network-shaped global API. Patch
+  // it only when the navigator property is configurable (Node 24: yes); the
+  // Proxy forwards every other property untouched. The replacement descriptor
+  // is rebuilt explicitly: Node exposes `navigator` as a configurable
+  // accessor, where spreading the original descriptor plus a `value` key is
+  // an invalid descriptor. If it is not patchable, the static
+  // banned-specifier scan remains the authority for that shape.
+  const navigatorDescriptor = Object.getOwnPropertyDescriptor(g, 'navigator');
+  let restoreNavigator: (() => void) | null = null;
+  const navigator = g.navigator as Record<string, unknown> | undefined;
+  if (navigatorDescriptor?.configurable && navigator) {
+    const shim = new Proxy(navigator, {
+      get(target, prop, receiver) {
+        if (prop === 'sendBeacon') return throwOffline('navigator.sendBeacon');
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+    const shimDescriptor = navigatorDescriptor.get
+      ? { configurable: true, enumerable: navigatorDescriptor.enumerable, get: () => shim }
+      : { configurable: true, enumerable: navigatorDescriptor.enumerable, writable: true, value: shim };
+    Object.defineProperty(g, 'navigator', shimDescriptor);
+    restoreNavigator = () => Object.defineProperty(g, 'navigator', navigatorDescriptor);
+  }
+
   return () => {
     for (const { key, present, value } of saved) {
       if (present) {
@@ -172,6 +245,7 @@ function banNetworkApis(): () => void {
         Reflect.deleteProperty(g, key);
       }
     }
+    restoreNavigator?.();
   };
 }
 
@@ -241,6 +315,22 @@ function scanForNetworkApis(root: string): ScanHit[] {
       if (code.trim()) {
         for (const { name, re } of NETWORK_API_PATTERNS) {
           if (code.match(re)) names.push(name);
+        }
+      }
+      // Banned package specifiers live inside string literals, so they are
+      // scanned on the raw code (mirrors scripts/validate-offline.mjs).
+      const rawCode = codeBeforeComment(line);
+      if (rawCode.trim()) {
+        for (const re of MODULE_SPECIFIER_PATTERNS) {
+          for (const match of rawCode.matchAll(re)) {
+            if (isBannedSpecifier(match[1])) names.push('network-module-specifier');
+          }
+        }
+      }
+      const trimmed = line.trimStart();
+      if (!trimmed.startsWith('*') && !trimmed.startsWith('/*') && !trimmed.startsWith('//')) {
+        for (const match of line.matchAll(COMMENTED_DYNAMIC_IMPORT_PATTERN)) {
+          if (isBannedSpecifier(match[1])) names.push('network-module-specifier');
         }
       }
       if (line.match(BRACKET_GLOBAL_PATTERN)) {
@@ -450,6 +540,15 @@ describe('offline runtime flows', () => {
     expect(summary.totalSizeEstimateBytes).toBeGreaterThan(0);
     // Deterministic: identical input yields identical output.
     expect(getStorageSummary()).toEqual(summary);
+  });
+});
+
+describe('network ban coverage', () => {
+  it('throws the offline error on EventSource construction and navigator.sendBeacon', () => {
+    const g = globalThis as Record<string, unknown>;
+    expect(() => new (g.EventSource as new () => unknown)()).toThrow(OFFLINE_ERROR);
+    const nav = g.navigator as { sendBeacon: (url: string) => boolean };
+    expect(() => nav.sendBeacon('https://example.com/collect')).toThrow(OFFLINE_ERROR);
   });
 });
 

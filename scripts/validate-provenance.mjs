@@ -11,6 +11,9 @@
  *   --json   output JSON instead of human-readable text
  *   --base   explicit base ref (default: PROVENANCE_BASE_REF / origin/main)
  *   --self-test  offline fixture self-test (no git history required)
+ *   --check-allowlist  verify waiver reasons/expiries (no git history required);
+ *                      exits 1 on invalid/expired waivers and warns when a
+ *                      waiver expires within 45 days
  *
  * Allowlist: files listed in `.agent/provenance-allowlist.json` are excluded
  * from drift detection (for non-semantic edits like comments, formatting).
@@ -23,6 +26,8 @@ import { execFileSync } from 'node:child_process';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const GAMES_DIR = join(REPO_ROOT, 'apps', 'mobile', 'src', 'games');
 const ALLOWLIST_PATH = join(REPO_ROOT, '.agent', 'provenance-allowlist.json');
+/** Waivers expiring within this window are reported (non-fatal) by --check-allowlist. */
+const ALLOWLIST_WARN_WINDOW_DAYS = 45;
 
 /**
  * Files that affect challenge identity for each game type.
@@ -204,8 +209,110 @@ function isValidAllowlistEntry(entry, now = new Date()) {
   if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return false;
   if (typeof entry.reason !== 'string' || entry.reason.trim() === '') return false;
   if (typeof entry.expires !== 'string') return false;
-  const expiry = new Date(entry.expires);
-  return Number.isFinite(expiry.getTime()) && expiry > now;
+  // Route through the shared parser so an impossible calendar date cannot be
+  // silently rolled over here while the freshness gate rejects it.
+  const expiry = parseWaiverExpiry(entry.expires);
+  return expiry !== null && expiry > now.getTime();
+}
+
+/** ISO-8601 date or date-time with optional zone (2026-11-11 or 2026-11-11T18:14:06.296Z). */
+const ISO_DATE_PATTERN =
+  /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;
+
+/**
+ * Parse a waiver expiry to epoch ms; null when it is not a real instant.
+ * Date-only values get a UTC calendar round-trip so impossible dates
+ * (2027-02-30) are rejected instead of silently rolling over to March.
+ */
+function parseWaiverExpiry(value) {
+  const text = String(value).trim();
+  const datePrefix = /^(\d{4})-(\d{2})-(\d{2})(?:[T ]|$)/.exec(text);
+  if (datePrefix) {
+    const year = Number(datePrefix[1]);
+    const month = Number(datePrefix[2]);
+    const day = Number(datePrefix[3]);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (
+      date.getUTCFullYear() !== year ||
+      date.getUTCMonth() !== month - 1 ||
+      date.getUTCDate() !== day
+    ) {
+      return null;
+    }
+    // Date-only values are the whole instant; date-time values still need the
+    // generic parse for the time component (the calendar date is now proven).
+    if (text.length === datePrefix[0].length) return date.getTime();
+  }
+  const parsed = new Date(text).getTime();
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Pure waiver-freshness policy shared by `--check-allowlist` and `selfTest`.
+ *
+ * Every entry must carry a non-empty `reason` and a parseable ISO `expires`.
+ * Entries already past their expiry are fatal errors; entries expiring within
+ * `warnWindowDays` are non-fatal warnings so owners get a renewal window
+ * before the gate starts failing.
+ *
+ * Returns `{ errors, warnings, earliestExpiry }`: `errors`/`warnings` are the
+ * exact report tokens, and `earliestExpiry` is the stored date string of the
+ * soonest parseable expiry (null when the allowlist is empty or unparseable).
+ * `now` is injected so the policy is deterministic under test.
+ */
+function checkAllowlistFreshness(
+  allowlist,
+  now = new Date(),
+  warnWindowDays = ALLOWLIST_WARN_WINDOW_DAYS,
+) {
+  const errors = [];
+  const warnings = [];
+  const nowTime = new Date(now).getTime();
+  const warnWindowMs = warnWindowDays * 24 * 60 * 60 * 1000;
+  let earliestExpiry = null;
+  let earliestTime = Number.POSITIVE_INFINITY;
+
+  for (const [path, entry] of Object.entries(allowlist ?? {})) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      errors.push(`INVALID_PROVENANCE_WAIVER: ${path} (entry must be an object)`);
+      continue;
+    }
+    if (typeof entry.reason !== 'string' || entry.reason.trim() === '') {
+      errors.push(`INVALID_PROVENANCE_WAIVER: ${path} (reason must be a non-empty string)`);
+      continue;
+    }
+    if (typeof entry.owner !== 'string' || entry.owner.trim() === '') {
+      errors.push(`INVALID_PROVENANCE_WAIVER: ${path} (owner must be a non-empty string)`);
+      continue;
+    }
+    const expires = entry.expires;
+    if (typeof expires !== 'string' || !ISO_DATE_PATTERN.test(expires.trim())) {
+      errors.push(
+        `INVALID_PROVENANCE_WAIVER: ${path} (expires must be a parseable ISO date: ${JSON.stringify(expires)})`,
+      );
+      continue;
+    }
+    const expiryTime = parseWaiverExpiry(expires);
+    if (expiryTime === null) {
+      errors.push(
+        `INVALID_PROVENANCE_WAIVER: ${path} (expires must be a parseable ISO date: ${JSON.stringify(expires)})`,
+      );
+      continue;
+    }
+    if (expiryTime < earliestTime) {
+      earliestTime = expiryTime;
+      earliestExpiry = expires;
+    }
+    if (expiryTime <= nowTime) {
+      errors.push(`EXPIRED_PROVENANCE_WAIVER: ${path}`);
+      continue;
+    }
+    if (expiryTime - nowTime <= warnWindowMs) {
+      warnings.push(`EXPIRING_SOON_PROVENANCE_WAIVER: ${path} (expires ${expires})`);
+    }
+  }
+
+  return { errors, warnings, earliestExpiry };
 }
 
 /**
@@ -352,7 +459,9 @@ function validate(baseRef = process.env.PROVENANCE_BASE_REF || 'origin/main', ov
  */
 function selfTest() {
   const failures = [];
+  let checkCount = 0;
   const check = (name, condition, detail) => {
+    checkCount += 1;
     if (!condition) failures.push(`${name}${detail ? ` — ${detail}` : ''}`);
   };
 
@@ -418,12 +527,151 @@ function selfTest() {
   });
   check('empty diff is valid', empty.valid === true, JSON.stringify(empty));
 
+  // Allowlist freshness policy. The fixed `now` keeps the outcomes below
+  // deterministic: the shipped waivers expire at 2026-11-11T18:14:06.296Z,
+  // which is ~27.8 days after this pinned date -> inside the 45-day window.
+  const FRESHNESS_TEST_NOW = new Date('2026-10-15T00:00:00.000Z');
+
+  const farFuture = checkAllowlistFreshness(
+    {
+      'apps/mobile/src/games/memory/generator.ts': {
+        reason: 'fixture',
+        owner: 'fixture-owner',
+        expires: '2099-01-01T00:00:00.000Z',
+      },
+    },
+    FRESHNESS_TEST_NOW,
+  );
+  check(
+    'far-future waiver is valid without warnings',
+    farFuture.errors.length === 0 &&
+      farFuture.warnings.length === 0 &&
+      farFuture.earliestExpiry === '2099-01-01T00:00:00.000Z',
+    JSON.stringify(farFuture),
+  );
+
+  const expiringSoon = checkAllowlistFreshness(
+    {
+      'apps/mobile/src/games/memory/generator.ts': {
+        reason: 'fixture',
+        owner: 'fixture-owner',
+        expires: '2026-10-20T00:00:00.000Z',
+      },
+    },
+    FRESHNESS_TEST_NOW,
+  );
+  check(
+    'waiver expiring within 45 days warns without failing',
+    expiringSoon.errors.length === 0 &&
+      expiringSoon.warnings.length === 1 &&
+      expiringSoon.warnings[0] ===
+        'EXPIRING_SOON_PROVENANCE_WAIVER: apps/mobile/src/games/memory/generator.ts (expires 2026-10-20T00:00:00.000Z)',
+    JSON.stringify(expiringSoon),
+  );
+
+  const expiredWaiver = checkAllowlistFreshness(
+    {
+      'apps/mobile/src/games/memory/generator.ts': {
+        reason: 'fixture',
+        owner: 'fixture-owner',
+        expires: '2026-10-01T00:00:00.000Z',
+      },
+    },
+    FRESHNESS_TEST_NOW,
+  );
+  check(
+    'expired waiver is an error',
+    expiredWaiver.errors.length === 1 &&
+      expiredWaiver.errors[0] ===
+        'EXPIRED_PROVENANCE_WAIVER: apps/mobile/src/games/memory/generator.ts',
+    JSON.stringify(expiredWaiver),
+  );
+
+  const missingExpiry = checkAllowlistFreshness(
+    { 'apps/mobile/src/games/memory/generator.ts': { reason: 'fixture', owner: 'fixture-owner' } },
+    FRESHNESS_TEST_NOW,
+  );
+  check(
+    'missing expires is an error',
+    missingExpiry.errors.length === 1 &&
+      missingExpiry.errors[0].startsWith(
+        'INVALID_PROVENANCE_WAIVER: apps/mobile/src/games/memory/generator.ts',
+      ),
+    JSON.stringify(missingExpiry),
+  );
+
+  const missingOwner = checkAllowlistFreshness(
+    {
+      'apps/mobile/src/games/memory/generator.ts': {
+        reason: 'fixture',
+        expires: '2099-01-01T00:00:00.000Z',
+      },
+    },
+    FRESHNESS_TEST_NOW,
+  );
+  check(
+    'missing renewal owner is an error',
+    missingOwner.errors.length === 1 &&
+      missingOwner.errors[0].includes('owner must be a non-empty string'),
+    JSON.stringify(missingOwner),
+  );
+
+  const impossibleDate = checkAllowlistFreshness(
+    {
+      'apps/mobile/src/games/memory/generator.ts': {
+        reason: 'fixture',
+        owner: 'fixture-owner',
+        expires: '2027-02-30',
+      },
+    },
+    FRESHNESS_TEST_NOW,
+  );
+  check(
+    'impossible calendar date is an error',
+    impossibleDate.errors.length === 1 &&
+      impossibleDate.errors[0].startsWith('INVALID_PROVENANCE_WAIVER'),
+    JSON.stringify(impossibleDate),
+  );
+
+  const impossibleDateTime = checkAllowlistFreshness(
+    {
+      'apps/mobile/src/games/memory/generator.ts': {
+        reason: 'fixture',
+        owner: 'fixture-owner',
+        expires: '2027-02-30T00:00:00.000Z',
+      },
+    },
+    FRESHNESS_TEST_NOW,
+  );
+  check(
+    'impossible calendar date-time is an error',
+    impossibleDateTime.errors.length === 1 &&
+      impossibleDateTime.errors[0].startsWith('INVALID_PROVENANCE_WAIVER'),
+    JSON.stringify(impossibleDateTime),
+  );
+
+  // Shipped-allowlist invariants (renewal-safe): the real file must load and
+  // every waiver must be schema-valid and unexpired at the REAL now. Exact
+  // dates/counts are deliberately NOT pinned — a legitimate renewal must not
+  // turn the self-test (and CI) red, while a genuinely expired waiver must.
+  const shipped = loadAllowlist();
+  const shippedFreshness = checkAllowlistFreshness(shipped ?? {}, new Date());
+  check(
+    'shipped allowlist loads with every waiver valid and unexpired',
+    shipped !== null &&
+      Object.keys(shipped).length > 0 &&
+      shippedFreshness.errors.length === 0 &&
+      typeof shippedFreshness.earliestExpiry === 'string' &&
+      !Number.isNaN(Date.parse(shippedFreshness.earliestExpiry)),
+    JSON.stringify(shippedFreshness),
+  );
+
   if (failures.length > 0) {
     for (const failure of failures) console.error(`provenance self-test FAIL: ${failure}`);
     process.exitCode = 1;
     return;
   }
-  console.log('provenance self-test: PASS (5 checks)');
+  console.log(`provenance self-test: PASS (${checkCount} checks)`);
 }
 
 /** Generate allowlist template for current state. */
@@ -460,11 +708,54 @@ function generateAllowlist() {
   return allowlist;
 }
 
+/**
+ * `--check-allowlist` entry point: freshness gate over the shipped waivers.
+ * Deliberately git-free — it inspects only the allowlist file, so it runs
+ * where no base ref (and no git history) is available.
+ */
+function runAllowlistCheck(overrides = {}) {
+  const loadAllowlistFn = overrides.loadAllowlist ?? loadAllowlist;
+  const now = overrides.now ?? new Date();
+
+  // A missing file must not read as "zero waivers, all fresh": the freshness
+  // gate exists to prove the shipped waivers are reviewed, so absence is an
+  // error (an intentionally empty allowlist file still passes).
+  if (!existsSync(ALLOWLIST_PATH)) {
+    console.error(`provenance allowlist check: FAIL — allowlist file missing at ${ALLOWLIST_PATH}`);
+    process.exit(1);
+  }
+
+  const allowlist = loadAllowlistFn();
+  if (allowlist === null) {
+    console.error('provenance allowlist check: FAIL — allowlist is malformed or unreadable');
+    process.exit(1);
+  }
+
+  const { errors, warnings, earliestExpiry } = checkAllowlistFreshness(allowlist, now);
+  for (const warning of warnings) console.log(warning);
+  for (const error of errors) console.error(error);
+
+  const entryCount = Object.keys(allowlist).length;
+  const entryLabel = entryCount === 1 ? 'entry' : 'entries';
+  if (errors.length > 0) {
+    console.error(
+      `provenance allowlist check: FAIL (${entryCount} ${entryLabel}; ${errors.length} error(s), ${warnings.length} warning(s))`,
+    );
+    process.exit(1);
+  }
+  console.log(
+    `provenance allowlist check: OK (${entryCount} ${entryLabel}; earliest expiry ${
+      earliestExpiry ?? 'none'
+    })`,
+  );
+}
+
 // CLI
 const checkOnly = process.argv.includes('--check');
 const jsonOutput = process.argv.includes('--json');
 const selfTestMode = process.argv.includes('--self-test');
 const generateMode = process.argv.includes('--generate-allowlist');
+const allowlistCheckMode = process.argv.includes('--check-allowlist');
 const baseArg = process.argv.find(arg => arg.startsWith('--base='));
 const baseRef = baseArg ? baseArg.slice('--base='.length) : undefined;
 
@@ -504,6 +795,8 @@ const runMain = () => {
 
 if (selfTestMode) {
   selfTest();
+} else if (allowlistCheckMode) {
+  runAllowlistCheck();
 } else if (generateMode) {
   const allowlist = generateAllowlist();
   writeFileSync(ALLOWLIST_PATH, JSON.stringify(allowlist, null, 2));

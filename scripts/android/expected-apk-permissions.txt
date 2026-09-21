@@ -1,0 +1,19 @@
+# Expected packaged-APK permission set (deny-by-default gate).
+#
+# Consumed by .github/workflows/android-build-smoke.yml: the step extracts the
+# `uses-permission:` names from `aapt2 dump permissions` and diffs them against
+# this sorted set. ANY addition or removal fails the workflow until this file
+# is reviewed and updated in the same change.
+#
+# Certified against the Campaign 063 release artifact (20e28c64…, 109,598,957
+# bytes) built from e627473; re-verified locally with build-tools 35.0.0 on
+# 2026-09-21. RECORD_AUDIO and SYSTEM_ALERT_WINDOW are explicitly blocked in
+# app.json and must never appear here.
+android.permission.ACCESS_NETWORK_STATE
+android.permission.INTERNET
+android.permission.MODIFY_AUDIO_SETTINGS
+android.permission.READ_EXTERNAL_STORAGE
+android.permission.VIBRATE
+android.permission.WAKE_LOCK
+android.permission.WRITE_EXTERNAL_STORAGE
+com.braintraining.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION

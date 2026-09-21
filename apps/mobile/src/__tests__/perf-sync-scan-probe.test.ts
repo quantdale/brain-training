@@ -26,6 +26,7 @@ import * as fs from 'fs';
 import type { SQLiteAdapter } from '@/db';
 import { AppDatabase } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
+import { expectConsoleNoise } from '@/test-utils';
 import {
   buildAchievementSnapshot,
   buildQuestSamples,
@@ -194,7 +195,9 @@ d('perf sync scans (opt-in via PERF_PROBE=1)', () => {
       );
     }
 
-    console.log(`PERF_SYNC_JSON:${JSON.stringify(results)}`);
+    await expectConsoleNoise(/PERF_SYNC_JSON:/, () => {
+      console.log(`PERF_SYNC_JSON:${JSON.stringify(results)}`);
+    });
 
     if (process.env.PERF_OUT) {
       fs.writeFileSync(process.env.PERF_OUT, JSON.stringify(results, null, 2));

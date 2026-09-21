@@ -31,6 +31,7 @@ export { ROOT_LAYOUT_ROUTE_NAMES, rootLayoutRoutes } from './root-layout-routes'
 export {
   assertNoUnexpectedConsoleOutput,
   expectConsoleNoise,
+  GUARDED_CONSOLE_LEVELS,
   installConsoleSignalGuard,
   resetConsoleSignal,
 } from './console-signal';

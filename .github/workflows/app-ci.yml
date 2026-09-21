@@ -77,6 +77,10 @@ jobs:
         run: node scripts/validate-task-ownership.cjs
 
       # Offline-first app must not ship network deps (GOVERNANCE offline boundary).
+      # The network-dependent production dependency audit is intentionally NOT
+      # run here: it lives in the Repository Integrity workflow (push + weekly
+      # schedule), which is allowed to reach the npm registry. App CI stays
+      # hermetic so a registry/network outage cannot flap this job.
       - name: Offline boundary check
         working-directory: ${{ github.workspace }}
         run: node scripts/validate-offline.mjs --check

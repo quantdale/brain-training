@@ -55,6 +55,10 @@ The machine-readable dispositions are in
 - `decode-uri-component` GHSA-vcc3-ghjq-m6fr — `runtime-accepted-debt`,
   expires **2027-03-31**, with the re-evaluation condition tied to the next
   Expo SDK upgrade; the app-owned route envelope is defense in depth only.
+  **Renewal owner:** release-engineering orchestrator; renew before
+  2027-03-31 or at the next Expo SDK upgrade review, whichever comes first,
+  and re-run this re-evaluation before renewing. The same expiry is stated
+  in `.agent/KNOWN_ISSUES.md` (reconciled in Campaign 064).
 - `image-size` GHSA-w3rx-r6r6-pgpr and GHSA-5p2g-fcmc-qvqq —
   `build-dev-toolchain` (never bundled).
 - `uuid` GHSA-w5hq-g745-h8pq — `build-dev-toolchain`.

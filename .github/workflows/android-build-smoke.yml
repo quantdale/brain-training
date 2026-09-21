@@ -117,6 +117,17 @@ jobs:
             echo 'SYSTEM_ALERT_WINDOW unexpectedly present in packaged APK' >&2
             exit 1
           fi
+          # Deny-by-default permission set (campaign 064): every packaged
+          # permission must be reviewed into the expected set; an addition or
+          # removal fails until the file is updated in the same change.
+          expected_file="../../scripts/android/expected-apk-permissions.txt"
+          test -f "$expected_file"
+          expected="$(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' "$expected_file" | sort -u)"
+          actual="$(sed -n "s/^uses-permission: name='\([^']*\)'.*/\1/p" <<< "$permissions" | sort -u)"
+          if ! diff -u <(printf '%s\n' "$expected") <(printf '%s\n' "$actual"); then
+            echo "APK permission set drifted from $expected_file" >&2
+            exit 1
+          fi
           echo "APK: $apk"
           sha256sum "$apk"
           echo "APK_BYTES=$(stat -c '%s' "$apk")"

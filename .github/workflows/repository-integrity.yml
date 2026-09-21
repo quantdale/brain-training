@@ -6,9 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
   schedule:
-    # Weekly Monday 05:23 UTC (campaign 028, task 4.7): catches time-based
-    # drift — dependency-audit waiver expiry, stale jest-skip allowlist
-    # entries — even when the repository sees no pushes.
+    # Weekly Monday 05:23 UTC (campaign 028, task 4.7; extended campaign 064):
+    # catches time-based drift even when the repository sees no pushes —
+    # dependency-audit waiver expiry, provenance waiver expiry, and
+    # jest-skip waiver expiry (all three freshness checks run below).
     - cron: '23 5 * * 1'
 
 permissions:
@@ -67,13 +68,30 @@ jobs:
           node scripts/validate-dependency-audit.mjs --self-test
           node scripts/certification/validate-jest-signal.mjs --self-test
           node scripts/validate-provenance.mjs --self-test
+          node scripts/validate-affected.mjs --self-test
+          node scripts/qa/validate-runtime-qa-contract.mjs --self-test
           node scripts/certification/certify-clean-checkout.mjs --self-test
+
+      # Time-based waiver freshness (campaign 064): expired waivers fail
+      # closed; waivers inside their renewal window warn without failing.
+      # This is what makes the weekly schedule meaningful for the two
+      # expiring allowlists.
+      - name: Allowlist freshness
+        run: |
+          node scripts/validate-provenance.mjs --check-allowlist
+          node scripts/certification/validate-jest-signal.mjs --check-allowlist
 
       # Production dependency-audit gate (campaign 027). Fails closed:
       # exit 1 on an unallowlisted moderate+ advisory reachable from the
       # production tree; exit 2 (BLOCKED, never a silent pass) when npm
       # audit cannot run. Accepted build/dev-toolchain advisories and their
       # rationales live in scripts/certification/dependency-audit-allowlist.json.
+      #
+      # OWNERSHIP (campaign 064): this is the network-dependent gate's home.
+      # App CI is hermetic by design and must not gain a network-dependent
+      # audit step; `npm audit` runs here on push and on the weekly schedule,
+      # and its BLOCKED status (exit 2) is an honest environment result, not
+      # a product failure.
       - name: Validate production dependency audit
         run: node scripts/validate-dependency-audit.mjs
 

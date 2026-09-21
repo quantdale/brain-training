@@ -110,6 +110,13 @@ function pushRecord(record: PerfRecord): void {
 }
 
 function emitPerfRecord(record: PerfRecord): void {
+  // Jest captures this line as console noise and the QA artifact channel is
+  // the device logcat, not the test runner. Suppress only under jest so
+  // device/dev-build logging is unchanged; the ring buffer (the in-process
+  // seam tests read) is still written by pushRecord above.
+  if (process.env.JEST_WORKER_ID !== undefined) {
+    return;
+  }
   // Single-line JSON keeps QA-artifact logs greppable (`[perf] {…}`).
   console.log(`[perf] ${JSON.stringify(record)}`);
 }

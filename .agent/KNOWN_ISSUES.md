@@ -513,9 +513,18 @@ High product defect.
   the 22 inert no-expiry entries were replaced with two precise, expiring
   non-semantic entries (attention-target-count generator + language-context-fit
   content-validation dead-export removals); `validate-provenance --check` is
-  clean and no permanent inert entry remains.
-- **Runtime dependency advisory — accepted debt, expires 2026-12-31
-  (Campaign 027 W4; expiry now gate-enforced by Campaign 028 W4.1):** `decode-uri-component` GHSA-vcc3-ghjq-m6fr (ReDoS on
+  clean and no permanent inert entry remains. Both waivers expire
+  **2026-11-11** and are now gate-checked by
+  `node scripts/validate-provenance.mjs --check-allowlist` (expired → fail,
+  ≤45 days → warn; wired into Repository Integrity push + weekly runs by
+  Campaign 064). **Renewal owner:** release-engineering orchestrator; renew
+  only if the dead-export removal still needs the exemption — otherwise
+  replace it with the appropriate version bump and delete the entry.
+- **Runtime dependency advisory — accepted debt, expires 2027-03-31
+  (Campaign 027 W4; expiry now gate-enforced by Campaign 028 W4.1;
+  expiry value reconciled with
+  `scripts/certification/dependency-audit-allowlist.json` and
+  `.agent/DEPENDENCY_AUDIT.md` in Campaign 064):** `decode-uri-component` GHSA-vcc3-ghjq-m6fr (ReDoS on
   malformed percent-encoded input, moderate) is reachable at runtime via
   `expo-router@57 -> query-string@7.1.3 -> decode-uri-component`. No compatible
   fix exists: query-string@7 pins `^0.2.2`, the patched 0.5.0 is ESM-only and
@@ -525,6 +534,10 @@ High product defect.
   (classification `runtime-accepted-debt`, expiring) with the production-audit
   gate still failing on any new advisory; drop the entry when expo-router
   advances to a query-string major carrying the fix (next Expo SDK upgrade).
+  **Renewal owner:** release-engineering orchestrator; renew the expiry
+  before 2027-03-31 or at the next Expo SDK upgrade review, whichever
+  comes first, and repeat the re-evaluation recorded in
+  `.agent/DEPENDENCY_AUDIT.md` before renewing.
 - **QA artifact retention — RESOLVED in Campaign 028 W3:** `initRunDir` now
   prunes completed harness run dirs to the newest `QA_KEEP_RUNS` (default 10)
   and never touches curated evidence dirs; `QA_NO_PRUNE=1` opts out.

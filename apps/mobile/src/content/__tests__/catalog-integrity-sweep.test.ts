@@ -22,6 +22,7 @@
  */
 import { describe, expect, it } from '@jest/globals';
 import { createRng } from '@/sdk';
+import { expectConsoleNoise } from '@/test-utils';
 
 import * as oddOneOutGen from '@/games/attention-odd-one-out/generator';
 import { ODD_ONE_OUT_DIFFICULTY_PARAMS } from '@/games/attention-odd-one-out/difficulty';
@@ -1016,7 +1017,7 @@ function runValidator(
 }
 
 describe('W10 throwaway content-integrity audit sweep', () => {
-  it('sweeps every non-math game across seeds x difficulties', () => {
+  it('sweeps every non-math game across seeds x difficulties', async () => {
     const dupIds = ALL_GAMES.map((g) => g.id).filter(
       (v, i, a) => a.indexOf(v) !== i,
     );
@@ -1095,10 +1096,12 @@ describe('W10 throwaway content-integrity audit sweep', () => {
       }
     }
 
-    console.log(
-      `catalog-integrity sweep: ${ALL_GAMES.length} games, ` +
-        `${findings.length} findings, ${notes.length} notes`,
-    );
+    await expectConsoleNoise(/catalog-integrity sweep:/, () => {
+      console.log(
+        `catalog-integrity sweep: ${ALL_GAMES.length} games, ` +
+          `${findings.length} findings, ${notes.length} notes`,
+      );
+    });
     expect([...new Set(findings)]).toEqual([]);
   }, 900000);
 });

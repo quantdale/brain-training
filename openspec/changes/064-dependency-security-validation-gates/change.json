@@ -1,0 +1,21 @@
+{
+  "id": "064-dependency-security-validation-gates",
+  "status": "VALIDATED",
+  "predecessor": "063-release-candidate-runtime-matrix",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["validation-security-gates"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Ninth of Changes 056-067; third theme-062-064 release-resilience item.",
+  "baselineAuditCommit": "09043e1",
+  "productBaselineCommit": "34c9b2d",
+  "fullHardening": false,
+  "reviewConsumption": "063 certified the converged tree from e627473; 064 changes validation/CI/test-harness surfaces plus one test-runner-only guard in apps/mobile/src/sdk/perf.ts (suppresses the [perf] log line when JEST_WORKER_ID is set; device logging and the in-process ring buffer are unchanged), so the 063 artifact remains the certified product checkpoint.",
+  "validatedAt": "2026-09-21",
+  "validationNote": "Terminal close after two adversarial NOT_READY reviews and one closure verification pass; all findings repaired and re-verified. 12 gate repairs: ReDoS expiry reconciled + renewal owner; provenance --check-allowlist (owner required, impossible date/date-time rejected, missing file fails, expired fails, <=45d warns); jest-skip schema v3 with per-entry expires (calendar-validated, renewal-safe self-test invariants, --check-allowlist); affected-area rules for analytics/quests+achievements+streaks/theme with per-row IMPACT_MAP sync, --self-test (16) and pinned --strict semantics; all-level console gate (error/warn/log/info/debug) with expected-output forwarding, seven scoped emitters, dead debug print removed, [perf] suppressed under jest only; secrets scanner npm/Google/Stripe patterns; offline banned-specifier scan (static/require/dynamic/commented/side-effect/template) + runtime EventSource/navigator.sendBeacon ban with assertions; probe runner 5/5 probes + --list (all five ran, baselines written, markers captured); runtime-QA contract structural with placeholder deep-link route resolution and testID export; jest testMatch .spec globs + config guard test; deny-by-default APK permission gate (8-entry expected set, local aapt2 PERMISSION_SET_MATCH); CI wiring on push + weekly schedule with network-audit ownership documented and App CI hermetic. Full matrix 583 suites (578 passed + 1 green-with-allowlisted-pending JSON label + 4 skipped) / 6,854 passed / 5 classified opt-in skips / 5 snapshots / 0 unexpected console output / exit 0 (269.983s); typecheck; lint; Expo Doctor 21/21; repo-state; task-ownership; OpenSpec --all --strict 48/48; validator self-tests: offline 30, secrets PASS, provenance 13, jest-signal PASS, affected 16, runtime-QA 16, dependency-audit 41, workflows 44. No product behavior change; product checkpoint unchanged (34c9b2d); 063 APK remains certified.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_064_COMPLETE"
+}

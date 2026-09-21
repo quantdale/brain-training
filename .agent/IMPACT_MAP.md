@@ -10,6 +10,9 @@ Executable rules live in `scripts/validate-affected.mjs` (`RULES`). This table i
 | `apps/mobile/src/components/discovery/**` — Games discovery and identity surfaces | typecheck; focused Games/GameCard/Game Detail tests; light/dark runtime capture and accessibility audit |
 | `apps/mobile/src/workout/**`, `apps/mobile/src/db/workout*.ts`, `apps/mobile/src/db/__tests__/workout*.ts` — workout | `npm run test:ci -- src/workout src/db/__tests__/workout`; typecheck; attribution/adversarial matrix if routing/ownership touched |
 | `apps/mobile/src/personalization/**`, `apps/mobile/src/mastery/**`, `apps/mobile/src/spotlight/**` — personalization/mastery/spotlight | `npm run test:ci -- src/personalization src/mastery src/spotlight`; typecheck; determinism checks |
+| `apps/mobile/src/analytics/**` — analytics/progress projections | `npm run test:ci -- src/analytics`; typecheck; Progress numbers unchanged on a seeded fixture if a projection/envelope is touched |
+| `apps/mobile/src/quests/**`, `apps/mobile/src/achievements/**`, `apps/mobile/src/streaks/**` — quests/achievements/streaks progression | `npm run test:ci -- src/quests src/achievements src/streaks`; typecheck; claim/period-key and persistence reload smoke for affected progression data |
+| `apps/mobile/src/theme/**` — theme tokens/registry | `npm run test:ci -- src/theme`; typecheck; affected screenshots + contrast check for changed tokens |
 | `apps/mobile/src/sync/**`, `apps/mobile/src/data-portability/**`, `apps/mobile/src/persistence/**` — sync/data-portability | `npm run test:ci -- src/sync src/data-portability`; typecheck; export/wipe/import round-trip if envelope changed |
 | `apps/mobile/src/content/**`, `apps/mobile/src/registry/**`, `apps/mobile/src/games/**/content/**`, `apps/mobile/src/games/**/registry/**`, `scripts/generate-game-registry.mjs`, `scripts/validate-provenance.mjs` — content/registry/provenance | `npm run test:ci -- src/content`; registry `--check`; provenance check; content validation |
 | `openspec/**`, `.agent/**`, `AGENTS.md`, `docs/**`, `apps/mobile/src/governance/**` — OpenSpec/governance | `node scripts/validate-repo-state.mjs`; `node scripts/validate-task-ownership.cjs`; OpenSpec validate; doc/reference consistency |
@@ -22,3 +25,10 @@ Executable rules live in `scripts/validate-affected.mjs` (`RULES`). This table i
 | `apps/mobile/package.json`, `apps/mobile/package-lock.json` — package manifest/lockfile | clean dependency install; repository validator; available typecheck/build |
 
 Full catalog, stress, broad visual regression, failure injection, and deep performance profiling belong to explicit hardening campaigns unless a Critical/High issue requires targeted repair.
+
+`--strict` is an orchestrator tool, not a CI gate: run
+`node scripts/validate-affected.mjs --strict <source paths>` on the source
+subset of a change to prove every touched source path maps to an area. CI
+cannot run it over raw diffs because tests, evidence, and configuration paths
+legitimately match no area. `node scripts/validate-affected.mjs --self-test`
+pins the matching semantics offline.

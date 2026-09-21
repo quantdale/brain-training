@@ -43,6 +43,7 @@ import type {
   SQLiteValue,
 } from '@/db';
 import { AppDatabase, isValidSessionCursor } from '@/db';
+import { expectConsoleNoise } from '@/test-utils';
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import {
   PROJECTED_SESSIONS_ALL_SQL,
@@ -992,7 +993,9 @@ pd('perf: projection vs legacy read cost (opt-in via PERF_PROBE=1)', () => {
           loadProgressSnapshot_ms: await medianMs(3, () => loadProgressSnapshot(db)),
         };
          
-        console.log(`PERF_W10_JSON:${JSON.stringify({ sessions: n, ...report })}`);
+        await expectConsoleNoise(/PERF_W10_JSON:/, () => {
+          console.log(`PERF_W10_JSON:${JSON.stringify({ sessions: n, ...report })}`);
+        });
 
         // Sanity only — never a timing gate.
         expect(report.listProgressProjection_new_ms).toBeGreaterThan(0);

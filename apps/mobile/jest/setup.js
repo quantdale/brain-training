@@ -103,9 +103,10 @@ jest.mock('expo-haptics', () => ({
 }));
 
 // ---- Console signal contract (Campaign 053, tasks 3.1–3.4) -----------------
-// Known noise was repaired at the source, so unexpected console errors and
-// warnings now fail the test that produced them. Deliberate error paths must
-// scope their message with `expectConsoleNoise()` from `@/test-utils`.
+// Known noise was repaired at the source, so unexpected console output on any
+// guarded level (error/warn/log/info/debug) now fails the test that produced
+// it. Deliberate output must be scoped with `expectConsoleNoise()` from
+// `@/test-utils`.
 const consoleSignal = jest.requireActual('@/test-utils/console-signal');
 consoleSignal.installConsoleSignalGuard();
 afterEach(() => {

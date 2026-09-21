@@ -50,6 +50,7 @@ import {
 } from '../metric-trends';
 import { buildDifficultyProgression } from '../difficulty-progression';
 import { buildGameInsight } from '../game-insights';
+import { expectConsoleNoise } from '@/test-utils';
 
 const DAY = 24 * 60 * 60 * 1000;
 const WEEK = 7 * DAY;
@@ -890,7 +891,7 @@ describe('scale @20k seeded sessions (correctness + finiteness, no timing assert
     return out;
   }
 
-  it('every V2 view agrees with efficient references and leaks no NaN/±Infinity', () => {
+  it('every V2 view agrees with efficient references and leaks no NaN/±Infinity', async () => {
     const started = Date.now();
     const sessions = generateScale(20260821, 20_000);
 
@@ -976,6 +977,8 @@ describe('scale @20k seeded sessions (correctness + finiteness, no timing assert
     expect(Number.isFinite(balanceEffectiveDomains(bal))).toBe(true);
 
     // Informational duration log (never asserted — CI hosts vary).
-    console.log(`[W09] 20k-session aggregate pass took ${Date.now() - started}ms`);
+    await expectConsoleNoise(/\[W09\] 20k-session aggregate pass took/, () => {
+      console.log(`[W09] 20k-session aggregate pass took ${Date.now() - started}ms`);
+    });
   });
 });

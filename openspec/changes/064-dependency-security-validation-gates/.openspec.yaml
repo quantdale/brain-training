@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-20
+goal: Close the honestly repository-owned validation/diagnostic gate gaps — expiry/doc contradictions, missing affected-area rules, console-gate level blind spots, scanner coverage gaps, probe-runner incompleteness, string-only runtime-QA checks, testMatch/spec drift, and a deny-by-default APK permission gate — while recording architectural boundaries (Jest-vs-native SQLite, provenance identity scope, network-dependent audit ownership, external CI) as explicit non-goals instead of pretending to fix them.

@@ -4,13 +4,17 @@
  * campaign 003, packet WP-3D; hardened in campaign 028).
  *
  * Scans `apps/mobile/src` (recursively) for network APIs — `fetch`,
- * `XMLHttpRequest`, `axios`, `WebSocket`, `EventSource`, `sendBeacon`, and
- * aliased/dynamic global access to them — outside an explicit allowlist and
- * outside test artifacts. Prints a deterministic table of hits (file:line +
- * pattern, sorted) and exits 0 when clean, 1 when violations are found.
+ * `XMLHttpRequest`, `axios`, `WebSocket`, `EventSource`, `sendBeacon`,
+ * aliased/dynamic global access to them, and banned network package
+ * specifiers (`axios`, `expo/fetch`, `expo-network`, `node-fetch`,
+ * `cross-fetch`, `undici`, `got`, `superagent`) — outside an explicit
+ * allowlist and outside test artifacts. Prints a deterministic table of hits
+ * (file:line + pattern, sorted) and exits 0 when clean, 1 when violations
+ * are found.
  *
  * Usage (from the repo root):
  *   node scripts/validate-offline.mjs            # scan
+ *   node scripts/validate-offline.mjs --check    # same scan (explicit CI alias)
  *   node scripts/validate-offline.mjs --self-test  # offline fixture self-test
  *
  * Exclusions:
@@ -28,6 +32,11 @@
  *   - Dynamic global access (`globalThis['fetch']`) is scanned on the raw line
  *     because string stripping blanks the bracket key; dot access and
  *     destructuring aliases are scanned on the stripped code.
+ *   - Banned package specifiers are scanned on the raw code (before string
+ *     stripping), so `import { get } from 'axios'` is caught even though the
+ *     module name lives inside a string literal. This is the static authority
+ *     for imported network libraries, which a runtime global ban cannot
+ *     intercept.
  *
  * Known limitations (not silent passes — the in-jest monkeypatch suite in
  * `apps/mobile/src/__tests__/offline-boundary.test.ts` is the authoritative
@@ -37,6 +46,10 @@
  *     `require('axios')` string forms are not reconstructed.
  *   - Property methods named `fetch` on non-global objects are flagged as
  *     false positives; allowlist the file/pattern if that ever occurs.
+ *   - The banned-specifier scan runs on the raw line, so a prose string that
+ *     literally contains `from 'axios'` (e.g. documentation text inside a
+ *     string) is flagged; that is the price of seeing through string
+ *     stripping, and the fix is an allowlist entry, not a weaker scan.
  *
  * No dependencies: plain ESM using node:fs / node:path only. Deterministic
  * output (hits sorted by file and line).
@@ -73,6 +86,49 @@ const CODE_PATTERNS = [
 /** Raw-line pattern: string stripping would blank the bracket key. */
 const BRACKET_GLOBAL_PATTERN =
   /\b(?:globalThis|global|window)\s*\[\s*["'`](?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)["'`]\s*\]/g;
+
+/**
+ * Network-capable packages banned from the app source. The identifier scan
+ * above cannot see `import { get } from 'axios'` (the specifier is a string
+ * literal, stripped before matching), and a runtime global ban cannot
+ * intercept an imported module — this raw-code scan is the authority for
+ * both. Relative paths and same-named local modules are not flagged.
+ */
+const BANNED_MODULE_SPECIFIERS = new Set([
+  'axios',
+  'expo/fetch',
+  'expo-network',
+  'node-fetch',
+  'cross-fetch',
+  'undici',
+  'got',
+  'superagent',
+]);
+
+/** Import/require specifier shapes scanned on the raw (unstripped) code. */
+const MODULE_SPECIFIER_PATTERNS = [
+  /\bfrom\s*['"`]([^'"`]+)['"`]/g,
+  /\brequire\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+  /\bimport\s*\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+  // Side-effect-only import: `import 'pkg';`.
+  /\bimport\s*['"`]([^'"`]+)['"`]/g,
+];
+
+/**
+ * `import(/* bundler comment *\/ 'pkg')` needs the raw line: comment
+ * truncation would cut the specifier away. Scanned separately, skipping
+ * full-line comments so commented-out code stays ignored.
+ */
+const COMMENTED_DYNAMIC_IMPORT_PATTERN =
+  /\bimport\s*\(\s*\/\*[\s\S]*?\*\/\s*['"`]([^'"`]+)['"`]\s*\)/g;
+
+function isBannedSpecifier(specifier) {
+  if (BANNED_MODULE_SPECIFIERS.has(specifier)) return true;
+  for (const banned of BANNED_MODULE_SPECIFIERS) {
+    if (specifier.startsWith(`${banned}/`)) return true;
+  }
+  return false;
+}
 
 /**
  * String literals, including escaped quotes (single, double, backtick).
@@ -152,6 +208,26 @@ export function scanText(text) {
         }
       }
     }
+    // Banned package specifiers: scanned on the raw code so the string
+    // literal containing the module name is still visible.
+    const rawCode = codeBeforeComment(line);
+    if (rawCode.trim()) {
+      for (const re of MODULE_SPECIFIER_PATTERNS) {
+        for (const match of rawCode.matchAll(re)) {
+          if (isBannedSpecifier(match[1])) {
+            hits.push({ line: index + 1, pattern: 'network-module-specifier' });
+          }
+        }
+      }
+    }
+    const trimmed = line.trimStart();
+    if (!trimmed.startsWith('*') && !trimmed.startsWith('/*') && !trimmed.startsWith('//')) {
+      for (const match of line.matchAll(COMMENTED_DYNAMIC_IMPORT_PATTERN)) {
+        if (isBannedSpecifier(match[1])) {
+          hits.push({ line: index + 1, pattern: 'network-module-specifier' });
+        }
+      }
+    }
     // Dynamic bracket access: the raw line keeps the key inside the string.
     for (const _match of line.matchAll(BRACKET_GLOBAL_PATTERN)) {
       hits.push({ line: index + 1, pattern: 'global-bracket-access' });
@@ -216,6 +292,27 @@ function selfTest() {
   expect(hitCount('const url = "https://example.com/fetch(data)";') === 0, 'string literal ignored');
   expect(hitCount('// note: refetch() then axios') === 0, 'pattern name inside comment ignored');
 
+  // Banned package specifiers (campaign 064): the identifier scan cannot see
+  // a specifier that only exists inside a string literal.
+  expect(hitCount(`import { get } from 'axios';`) === 1, 'axios specifier import detected');
+  expect(hitCount(`const client = require('got');`) === 1, 'require specifier detected');
+  expect(hitCount(`const mod = await import('node-fetch');`) === 1, 'dynamic import specifier detected');
+  expect(hitCount(`import * as ExpoFetch from 'expo/fetch';`) === 1, 'expo/fetch specifier detected');
+  expect(
+    hitCount(`import { fetch } from 'expo/fetch';`) === 2,
+    'expo/fetch destructured fetch and specifier are both detected',
+  );
+  expect(hitCount(`import * as Network from 'expo-network';`) === 1, 'expo-network specifier detected');
+  expect(hitCount(`import axiosRetry from 'axios-retry';`) === 0, 'unrelated same-prefix package not flagged');
+  expect(hitCount(`import 'axios';`) === 1, 'side-effect import specifier detected');
+  expect(
+    hitCount(`const m = await import(/* chunk */ 'axios');`) === 1,
+    'dynamic import with a bundler comment is detected',
+  );
+  expect(hitCount(`const m = await import(\`axios\`);`) === 1, 'template-literal dynamic import is detected');
+  expect(hitCount(`import { get } from './fetch-utils';`) === 0, 'relative specifier not flagged');
+  expect(hitCount(`// import { get } from 'axios';`) === 0, 'commented specifier ignored');
+
   console.log(`Offline validator self-test: ${pass} passed, ${fail} failed`);
   return fail === 0;
 }
@@ -223,7 +320,7 @@ function selfTest() {
 function main() {
   if (process.argv.includes('--help')) {
     console.log('validate-offline.mjs — scan apps/mobile/src for network API usage');
-    console.log('Usage: node scripts/validate-offline.mjs [--self-test]');
+    console.log('Usage: node scripts/validate-offline.mjs [--check] [--self-test]');
     return;
   }
 

@@ -105,6 +105,36 @@ const RULES = [
     ],
   },
   {
+    name: 'analytics / progress projections',
+    impact: 'analytics/progress projections',
+    match: ['apps/mobile/src/analytics/**'],
+    checks: [
+      'cd apps/mobile && npm run test:ci -- src/analytics --no-coverage',
+      'cd apps/mobile && npm run typecheck',
+      'Progress numbers unchanged on a seeded fixture if a projection/envelope is touched',
+    ],
+  },
+  {
+    name: 'quests / achievements / streaks progression',
+    impact: 'quests/achievements/streaks progression',
+    match: ['apps/mobile/src/quests/**', 'apps/mobile/src/achievements/**', 'apps/mobile/src/streaks/**'],
+    checks: [
+      'cd apps/mobile && npm run test:ci -- src/quests src/achievements src/streaks --no-coverage',
+      'cd apps/mobile && npm run typecheck',
+      'Claim/period-key and persistence reload smoke for affected progression data',
+    ],
+  },
+  {
+    name: 'theme tokens / visual registry',
+    impact: 'theme tokens/registry',
+    match: ['apps/mobile/src/theme/**'],
+    checks: [
+      'cd apps/mobile && npm run test:ci -- src/theme --no-coverage',
+      'cd apps/mobile && npm run typecheck',
+      'Affected screenshots + contrast check for changed tokens',
+    ],
+  },
+  {
     name: 'sync / data-portability',
     impact: 'sync/data-portability',
     match: ['apps/mobile/src/sync/**', 'apps/mobile/src/data-portability/**', 'apps/mobile/src/persistence/**'],
@@ -286,8 +316,9 @@ function impactMapRows() {
 }
 
 /**
- * Content-level drift check: the pattern set in the table must equal the set
- * of RULES match patterns (neither may add, drop, or rename a pattern).
+ * Content-level drift check: each RULES area must have exactly one
+ * IMPACT_MAP.md row with the identical pattern set. A global set comparison
+ * is not enough — moving a pattern to a different row must fail too.
  */
 function syncIssues() {
   const rows = impactMapRows();
@@ -296,18 +327,112 @@ function syncIssues() {
   if (rows.length !== RULES.length) {
     issues.push(`WARNING: .agent/IMPACT_MAP.md lists ${rows.length} affected areas but validate-affected.mjs defines ${RULES.length}.`);
   }
-  const rulePatterns = new Set(RULES.flatMap((r) => r.match));
-  const mapPatterns = new Set(rows.flatMap((r) => r.patterns));
-  const missingFromMap = [...rulePatterns].filter((p) => !mapPatterns.has(p));
-  const missingFromRules = [...mapPatterns].filter((p) => !rulePatterns.has(p));
-  if (missingFromMap.length) issues.push(`WARNING: RULES patterns missing from IMPACT_MAP.md: ${missingFromMap.join(', ')}`);
-  if (missingFromRules.length) issues.push(`WARNING: IMPACT_MAP.md patterns missing from RULES: ${missingFromRules.join(', ')}`);
+  const rowsByImpact = new Map();
+  for (const row of rows) {
+    const impact = impactOfLabel(row.label);
+    if (rowsByImpact.has(impact)) {
+      issues.push(`WARNING: .agent/IMPACT_MAP.md has a duplicate area label "${impact}".`);
+      continue;
+    }
+    rowsByImpact.set(impact, new Set(row.patterns));
+  }
+  for (const rule of RULES) {
+    const rowPatterns = rowsByImpact.get(rule.impact);
+    if (!rowPatterns) {
+      issues.push(`WARNING: no IMPACT_MAP.md row for area "${rule.name}" (impact: ${rule.impact}).`);
+      continue;
+    }
+    const rulePatterns = new Set(rule.match);
+    const missingFromMap = [...rulePatterns].filter((p) => !rowPatterns.has(p));
+    const missingFromRules = [...rowPatterns].filter((p) => !rulePatterns.has(p));
+    if (missingFromMap.length) {
+      issues.push(`WARNING: RULES patterns missing from IMPACT_MAP.md row "${rule.impact}": ${missingFromMap.join(', ')}`);
+    }
+    if (missingFromRules.length) {
+      issues.push(`WARNING: IMPACT_MAP.md row "${rule.impact}" has patterns missing from RULES: ${missingFromRules.join(', ')}`);
+    }
+  }
   return issues;
 }
 
 function syncWarning() {
   const issues = syncIssues();
   return issues.length ? issues.join('\n') : null;
+}
+
+/** Area label = the impact text after the em dash in the table's first cell. */
+function impactOfLabel(label) {
+  const parts = label.split('—');
+  return parts.length > 1 ? parts[parts.length - 1].trim() : label.trim();
+}
+
+/**
+ * The `--strict` exit predicate, extracted so the self-test pins the exact
+ * semantics the CLI uses (unmatched path + strict flag => failure).
+ */
+function strictFailure(plan, strict) {
+  return Boolean(strict && plan.unmatched.length > 0);
+}
+
+/**
+ * Offline self-test (campaign 064) for the matching semantics the area map
+ * depends on: tree-prefix selection, segment boundaries, the CI rule's
+ * `**` crossing, plan classification, strict exit semantics, and
+ * IMPACT_MAP mirror sync. Pure in-process checks — no subprocesses, no
+ * reliance on the caller's cwd.
+ */
+function selfTest() {
+  let pass = 0;
+  let fail = 0;
+  const expect = (condition, name) => {
+    if (condition) {
+      pass += 1;
+    } else {
+      fail += 1;
+      console.error(`SELF-TEST FAIL: ${name}`);
+    }
+  };
+  const rule = (name) => compiled.find((r) => r.name === name);
+
+  const matches = [
+    ['analytics / progress projections', 'apps/mobile/src/analytics/projections.ts'],
+    ['analytics / progress projections', 'apps/mobile/src/analytics'],
+    ['quests / achievements / streaks progression', 'apps/mobile/src/quests/definitions.ts'],
+    ['quests / achievements / streaks progression', 'apps/mobile/src/streaks/reconstruct.ts'],
+    ['theme tokens / visual registry', 'apps/mobile/src/theme/tokens.ts'],
+  ];
+  for (const [name, path] of matches) {
+    expect(matchesRule(rule(name), path), `${name} matches ${path}`);
+  }
+
+  expect(
+    !matchesRule(rule('analytics / progress projections'), 'apps/mobile/src/analytics-v2/foo.ts'),
+    'analytics rule does not match the analytics-v2 sibling',
+  );
+  expect(
+    !matchesRule(rule('theme tokens / visual registry'), 'apps/mobile/src/theme-dark/tokens.ts'),
+    'theme rule does not match the theme-dark sibling',
+  );
+
+  expect(matchesRule(rule('CI / scripts'), 'scripts/validate-affected.mjs'), 'nested script matches CI rule');
+  expect(matchesRule(rule('CI / scripts'), '.github/workflows/app-ci.yml'), 'workflow matches CI rule');
+  expect(matchesRule(rule('individual game module'), 'apps/mobile/src/games'), 'bare games dir matches its tree prefix');
+
+  const plan = buildPlan(['apps/mobile/src/analytics/x.ts', 'apps/mobile/src/analytics-extra/y.ts']);
+  expect(plan.areas.some((area) => area.name === 'analytics / progress projections'), 'plan includes the analytics area');
+  expect(
+    plan.unmatched.length === 1 && plan.unmatched[0] === 'apps/mobile/src/analytics-extra/y.ts',
+    'unmatched path is recorded exactly once',
+  );
+  expect(strictFailure(plan, true), 'strict fails when a path is unmatched');
+  expect(!strictFailure(plan, false), 'non-strict never fails on unmatched paths');
+  expect(!strictFailure(buildPlan(['apps/mobile/src/analytics/x.ts']), true), 'strict passes when every path is matched');
+
+  const sync = syncIssues();
+  expect(sync.length === 0, `IMPACT_MAP sync clean${sync.length ? `: ${sync.join('; ')}` : ''}`);
+
+  console.log(`validate-affected self-test: ${pass} passed, ${fail} failed`);
+  return fail === 0;
 }
 
 function buildPlan(changedPaths) {
@@ -362,9 +487,14 @@ function printUsage() {
   node scripts/validate-affected.mjs <path> [path...]   print required checks for changed paths
   node scripts/validate-affected.mjs --list-areas [--json]  list all known areas and their patterns
   node scripts/validate-affected.mjs --check-sync       exit 1 if IMPACT_MAP.md patterns drift from RULES
+  node scripts/validate-affected.mjs --self-test        offline fixture self-test of the matching semantics
   node scripts/validate-affected.mjs --json <path...>   machine-readable output
   node scripts/validate-affected.mjs --strict <path...> exit 1 if any path matches no area
-  node scripts/validate-affected.mjs --help`);
+  node scripts/validate-affected.mjs --help
+
+--strict is an orchestrator tool: CI cannot run it over raw diffs because
+not every legitimate path (tests, evidence, config) belongs to a source
+area. Use it on the source subset of a change to prove coverage.`);
 }
 
 const args = process.argv.slice(2);
@@ -377,6 +507,10 @@ for (const a of args) {
   else if (a === '--check-sync') opts.checkSync = true;
   else if (a === '--help') { printUsage(); process.exit(0); }
   else paths.push(a);
+}
+
+if (args.includes('--self-test')) {
+  process.exit(selfTest() ? 0 : 1);
 }
 
 if (opts.list) {
@@ -414,4 +548,4 @@ if (opts.json) {
   printHuman(plan, opts);
 }
 
-process.exit(opts.strict && plan.unmatched.length > 0 ? 1 : 0);
+process.exit(strictFailure(plan, opts.strict) ? 1 : 0);

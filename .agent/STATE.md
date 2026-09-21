@@ -1,17 +1,18 @@
 # Durable Project State
 
-**Last update:** 2026-09-20 — Overnight program 056→067 active (NIGHT mode): Changes 056–063 terminally VALIDATED and pushed (`CHANGE_056`–`CAMPAIGN_063_RUNTIME_MATRIX_COMPLETE`). Campaign 055 baseline unchanged and protected.
+**Last update:** 2026-09-21 — Overnight program 056→067 active (NIGHT mode): Changes 056–064 terminally VALIDATED and pushed (`CHANGE_056`–`CHANGE_064_COMPLETE`). Campaign 055 baseline unchanged and protected.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
 **Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
 
-## Overnight program 056→067 (ACTIVE — Change 056 VALIDATED)
+## Overnight program 056→067 (ACTIVE — Change 064 VALIDATED)
 
 - **Authorization:** `.agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md` (NIGHT/OVERNIGHT, program start `428d293`). Living ledger: `.agent/OVERNIGHT_056_067_STATE.md`.
 - **Change 056 — `056-workout-lifecycle-integrity` (VALIDATED / `CHANGE_056_COMPLETE`):** drift repair is substitute-and-preserve (played prefix immutable, retired future legs deterministically substituted, completed records verbatim, fully-stale → regenerate); leg-index envelope bound to the real max (`5`); hook-level unconditional `advance` removed; empty-row direct writes throw; launch-map recovery contracts pinned. Full matrix 567 suites / 6,747 tests / 5 snapshots green; typecheck/lint/Expo Doctor 21/21/repo-state/OpenSpec 40/40 strict; adversarial CLOSE_WITH_FIXES fully repaired/disclosed. Product checkpoint unchanged (`34c9b2d`); no new APK (no UI/artifact change).
-- **Next:** Change 064 (`dependency-security-validation-gates`) per ledger plan; 065–067 pending; post-067 hardening not started.
+- **Next:** Change 065 (`adversarial-convergence-runtime-data-pixel`) per ledger plan; 066–067 pending; post-067 hardening not started.
+- **Change 064 — `064-dependency-security-validation-gates` (VALIDATED / `CHANGE_064_COMPLETE`):** 12 gate repairs (expiry governance, affected-area completeness, all-level console gate with forwarding, secret/offline scanner coverage, 5/5 probe runner, structural runtime-QA contract, `.spec` testMatch guard, deny-by-default APK permission gate, CI wiring). Two adversarial NOT_READY reviews + closure verifier fully repaired. Full matrix 583 suites (578 passed + 1 green-with-pending + 4 skipped) / 6,854 passed / 5 snapshots / 0 unexpected console output; OpenSpec 48/48 strict. No product behavior change (one test-runner-only `sdk/perf.ts` guard); product checkpoint unchanged (`34c9b2d`). Evidence: `docs/redesign/evidence/campaign064/`.
 - **Change 063 — `063-release-candidate-runtime-matrix` (VALIDATED / `CAMPAIGN_063_RUNTIME_MATRIX_COMPLETE`):** artifact 20e28c64 from e627473 (bundle-marker proven), full startup/route/provider/lifecycle/completion/SQLite/log matrix green, 0 defects reproduced. Adversarial NOT_READY closed. Evidence under `docs/redesign/evidence/campaign063/`.
 - **Change 062 — `062-backup-import-export-robustness` (VALIDATED / `CHANGE_062_COMPLETE`):** picker stat fallback, paste guards + maxLength, honest copy + BACKLOG cloud decision. Full matrix 577 suites / 6,847 tests / 5 snapshots; adversarial CLOSE_WITH_FIXES closed. Product checkpoint unchanged (`34c9b2d`).
 - **Change 061 — `061-performance-lifecycle-cleanup` (VALIDATED / `CHANGE_061_COMPLETE`):** 9 bounded repairs (Progress throttle, discovery stabilization, countdown settle via game-ui dedupe, animation cleanups, ring memo, press drivers, db-data sequence, focus cancel, toast cap). 5 census claims closed by evidence. Full matrix 577 suites / 6,843 tests / 5 snapshots; adversarial CLOSE_WITH_FIXES closed. Product checkpoint unchanged (`34c9b2d`).
