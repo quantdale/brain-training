@@ -45,6 +45,33 @@ export function normalizeSeed(seed: string | number): string {
 }
 
 /**
+ * Canonical seed string → integer `sessions.seed` column mapping.
+ *
+ * Pure-numeric seeds are kept verbatim (up to `Number.MAX_SAFE_INTEGER`); any
+ * other string is hashed with FNV-1a (32-bit, ECMA-safe integer math) so the
+ * stored value is stable and reproducible.
+ *
+ * Invariant: the returned integer is persisted in the sessions table and
+ * identifies the seed for replay/analytics. The mapping for any given input
+ * must never change, and it must stay identical across every game — game
+ * modules re-export it as `seedToNumber` to preserve their public API.
+ */
+export function canonicalSeedToNumber(seed: string): number {
+  if (/^[0-9]+$/.test(seed)) {
+    const numeric = Number(seed);
+    if (Number.isSafeInteger(numeric)) {
+      return numeric;
+    }
+  }
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash >>> 0;
+}
+
+/**
  * xmur3: fast 32-bit string hash with good avalanche. Deterministic across
  * engines because it only uses `Math.imul` and bitwise ops.
  */

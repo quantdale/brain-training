@@ -7,7 +7,9 @@
  * `games/language-word-match/content/pack.json`. Its own validator
  * (`content-validation.ts` → `loadContentPack`) performs the full mechanical
  * pack check (ids, semver, itemCount vs items.length, confusability), so the
- * registry reuses it rather than duplicating validation. Future packs extend
+ * registry reuses it rather than duplicating validation. Each source exposes
+ * the minimal shared `PackEnvelope` (see `types.ts`); the game's richer pack
+ * structurally satisfies it, so sources need no casts. Future packs extend
  * `BUNDLED_PACK_SOURCES` with one line each — no API churn.
  *
  * Size heuristic (documented, deterministic): `sizeEstimateBytes` is the sum,
@@ -16,27 +18,25 @@
  * items in a constant field order), and UTF-8 length is computed with pure
  * arithmetic (no `TextEncoder`), so the estimate is identical across runs and
  * JS engines. The estimate covers the items payload only — the envelope
- * (`packId`/`packVersion`/families) is small and constant by comparison; the
+ * (`packId`/`packVersion`/itemCount) is small and constant by comparison; the
  * seam's purpose is relative storage accounting, not byte-exact on-disk size.
  */
 import { loadContentPack } from '@/games/language-word-match/content-validation';
 import { loadContentPack as loadContextFitPack } from '@/games/language-context-fit/content-validation';
-import type { ContentPack } from '@/games/language-word-match/content-validation';
-
-import type { PackInfo, StorageSummary } from './types';
+import type { PackEnvelope, PackInfo, StorageSummary } from './types';
 
 /** A bundled pack source: the game module that ships + validates the pack. */
 export interface BundledPackSource {
   /** Stable game id of the module shipping the pack. */
   readonly sourceGameId: string;
   /** Loads and validates the pack; throws on a broken pack (fail-fast). */
-  readonly load: () => ContentPack;
+  readonly load: () => PackEnvelope;
 }
 
 /** Static enumeration of known bundled packs. Extend here for future packs. */
 const BUNDLED_PACK_SOURCES: readonly BundledPackSource[] = [
   { sourceGameId: 'language-word-match', load: loadContentPack },
-  { sourceGameId: 'language-context-fit', load: loadContextFitPack as unknown as () => ContentPack },
+  { sourceGameId: 'language-context-fit', load: loadContextFitPack },
 ];
 
 /**

@@ -28,6 +28,7 @@
  * it is recorded on the raw result / diagnostic metadata so the Phase-2
  * rating pipeline can weight it.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -73,12 +74,8 @@ export function switchAccuracyOf(switchCorrect: number, switchPlayed: number): n
 }
 
 /** Clamp to [0, 1]; non-finite input collapses to 0 (matches rating/pipeline.ts). */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /** Raw → normalized (see module docs for the formula). */
 export function normalizeFlexibilityCueResult(

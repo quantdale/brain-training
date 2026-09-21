@@ -9,8 +9,9 @@
 export { SDK_VERSION, RNG_ALGORITHM_VERSION } from './version';
 
 // Core services
-export { createRng, normalizeSeed } from './rng';
+export { createRng, normalizeSeed, canonicalSeedToNumber } from './rng';
 export type { Rng } from './rng';
+export { canonicalClamp01 } from './numeric';
 export { systemClock, createFakeClock, createMonotonicClock, Stopwatch } from './timing';
 export type { Clock, FakeClock } from './timing';
 export { SessionLifecycle, IllegalTransitionError } from './lifecycle';

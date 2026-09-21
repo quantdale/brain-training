@@ -15,7 +15,7 @@ import {
   type MasteryTier,
 } from "@/mastery";
 import { useMasterySummaries } from "@/mastery/use-mastery";
-import { registry } from "@/registry/registry.generated";
+import { getGameDefinition } from "@/registry/registry";
 
 const TIER_LABEL: Record<MasteryTier, string> = {
   unplayed: "New",
@@ -58,7 +58,7 @@ export function MasteryInsights() {
     .map((summary) => ({
       gameId: summary.gameId,
       name:
-        registry.find((g) => g.id === summary.gameId)?.name ?? summary.gameId,
+        getGameDefinition(summary.gameId)?.name ?? summary.gameId,
       summary,
     }));
 

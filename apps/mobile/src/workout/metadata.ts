@@ -21,6 +21,7 @@
  * game list for the same version.
  */
 
+import { isGameCategory } from "@/sdk";
 import type { GameCategory } from "@/sdk";
 import type { WorkoutSelectionReason } from "./personalize";
 
@@ -244,8 +245,10 @@ export function parseWorkoutMetadata(raw: unknown): WorkoutMetadata | undefined 
   ) {
     return undefined;
   }
-  const focus =
-    typeof value.focus === "string" ? (value.focus as GameCategory) : null;
+  // Focus is a closed SDK vocabulary: a drifted category string degrades to
+  // null (same policy as an absent/non-string focus) instead of smuggling an
+  // unvalidated string through the `GameCategory` type.
+  const focus = isGameCategory(value.focus) ? value.focus : null;
   const rawInputs = value.inputs;
   let inputs: WorkoutGenerationInputs | undefined;
   if (typeof rawInputs === "object" && rawInputs !== null && !Array.isArray(rawInputs)) {

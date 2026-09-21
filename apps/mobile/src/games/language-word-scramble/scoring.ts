@@ -17,6 +17,7 @@
  * on the raw result / diagnostic metadata so the Phase-2 rating pipeline
  * can weight it.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -40,12 +41,8 @@ export function accuracyOf(roundsPassed: number, roundsPlayed: number): number {
 }
 
 /** Clamp to [0, 1]; non-finite input collapses to 0 (mirrors rating/pipeline.ts). */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /** Word difficulty progress relative to the length range, clamped to [0, 1]. */
 export function wordDifficultyProgress(

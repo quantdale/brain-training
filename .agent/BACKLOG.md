@@ -4,7 +4,9 @@ Historical phase list — superseded by implementation reality (42-game
 catalog, Workout V3 signal-ranked templates over the V2 template engine,
 full progression/portability shipped; see
 `docs/PARITY_MATRIX.md`). Campaign 031 (`031-golden-path-redesign`) is
-validated and no successor is active; durable current state lives in
+validated; the owner-authorized 056–067 overnight program is the active
+successor (see `.agent/GOVERNANCE.json` `activeProgram` and
+`.agent/OVERNIGHT_056_067_STATE.md`); durable current state lives in
 `.agent/STATE.md`. This file records durable work outside the terminal campaign
 plus historical follow-ups.
 
@@ -26,6 +28,50 @@ plus historical follow-ups.
   external ARTEMIS does not replace explicit/manual consent review.
 - Deferred product decisions (see `docs/DEFERRED_DECISIONS.md`) stay untouched
   until the owner decides.
+- Coverage thresholds (deferred by Change 065, 2026-09-21): the Jest pipeline
+  has no `collectCoverage`/`coverageThreshold`; critical trees (`db`,
+  `data-portability`, `workout`, `rating`, `quests`) have no per-module floor.
+  Owner: release-engineering orchestrator; decide the infrastructure cost and
+  thresholds in the post-067 hardening phase. The skip/floor/console gates are
+  the current substitute.
+- Backup file rename durability (deferred by Change 065):
+  `data-portability/file-transport.ts` writes a temp file then renames with no
+  fsync, so a sudden power loss can lose the new backup after the old one was
+  replaced. Owner: release-engineering orchestrator; fix if expo-file-system
+  exposes fsync, otherwise rotate a `.prev` copy. Post-067 product/data
+  decision.
+- Snapshot review debt (deferred by Change 065):
+  `apps/mobile/src/app/__tests__/visual-baselines.test.tsx` holds the only
+  snapshots (one ~304 KB file) with a history of wholesale `-u` regenerations;
+  no review mechanism exists. Owner: release-engineering orchestrator; review
+  or replace with targeted assertions in the post-067 hardening phase.
+- v12 rating-history repair semantics (deferred by Change 065): the v12
+  migration keeps the earliest duplicate `rating_history` row per
+  session/domain without reconciling `domain_ratings` or archiving the dropped
+  movement. Owner: release-engineering orchestrator; either rebuild
+  `domain_ratings` from retained history or record an explicit accepted
+  mismatch. Requires schema work; post-067.
+- Layering: `content/registry.ts` imports two game modules' pack validators
+  (Change 066 recon F2). Owner: release-engineering orchestrator; generate or
+  register the bundled pack-source list from game metadata so the Content
+  Platform does not depend on specific games (needed only if games become
+  removable).
+- Type-only import cycle cluster `db ↔ workout ↔ personalization ↔ rating`
+  (Change 066 recon F1): runtime graph is acyclic; the remaining edges are
+  intentional type imports. Owner: release-engineering orchestrator; break via
+  leaf type modules only if a module extraction is planned.
+- Test-only UI components (`Avatar`, `ScreenHeader`, `LevelCard`, `StreakCard`,
+  `ResultRow`/`StatRow`, `LiveRegion`) have no product importers (Change 066
+  recon F10). Owner: product/release-engineering; adopt or drop in the post-067
+  hardening phase. Do not delete while tests depend on them.
+- UI-automator partial-tree race (tooling bound, recorded 2026-09-21): the
+  `uiautomator --compressed` dump can miss a mid-transition node (observed on
+  the vigilance pause control). Closure criterion: a rerun with an explicit
+  settle wait reproduces or clears it; otherwise keep as tooling-noted and
+  prefer semantic retries in device lanes.
+- Jest-skip waivers (5 opt-in probes) now name `release-engineering
+  orchestrator` as renewal owner and expire 2027-03-31; review them at the next
+  campaign boundary (recorded by Change 066).
 
 ## Resolved
 

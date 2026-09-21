@@ -487,7 +487,7 @@ High product defect.
   `qa-artifacts/campaign026/before-recovery/**` and merged into the baseline
   manifest with `regeneratedFrom` notes.
 
-## Open non-blocking maintenance
+## Maintenance ledger (open items and resolved records)
 
 - **`xp_awards` schema-level idempotency idea — RESOLVED AS DESIGNED
   (Campaign 022 audit):** Campaign 022 proved every production award writer
@@ -509,17 +509,16 @@ High product defect.
   documented static-analysis bound; the monkeypatched runtime offline suite
   stays the stronger evidence.
 - **Seeding test-fixture seam noise — Low:** partial Jest DB facades can emit non-fatal startup noise not representative of the production facade.
-- **Permanent provenance allowlist dead entries — RESOLVED in Campaign 027 W6:**
+- **Permanent provenance allowlist dead entries — RESOLVED in Campaign 027 W6; closed out in Campaign 066:**
   the 22 inert no-expiry entries were replaced with two precise, expiring
   non-semantic entries (attention-target-count generator + language-context-fit
-  content-validation dead-export removals); `validate-provenance --check` is
-  clean and no permanent inert entry remains. Both waivers expire
-  **2026-11-11** and are now gate-checked by
-  `node scripts/validate-provenance.mjs --check-allowlist` (expired → fail,
-  ≤45 days → warn; wired into Repository Integrity push + weekly runs by
-  Campaign 064). **Renewal owner:** release-engineering orchestrator; renew
-  only if the dead-export removal still needs the exemption — otherwise
-  replace it with the appropriate version bump and delete the entry.
+  content-validation dead-export removals). Campaign 066 verified both edits
+  are already in the drift base (`212469d`), so the entries exempted nothing
+  while still carrying a 2026-11-11 expiry that would have hard-failed the
+  freshness gate; both entries were therefore removed and
+  `.agent/provenance-allowlist.json` is now empty. Future edits to those two
+  files require the normal version bump (generatorVersion / contentVersion).
+  The freshness gate stays wired into Repository Integrity (push + weekly).
 - **Runtime dependency advisory — accepted debt, expires 2027-03-31
   (Campaign 027 W4; expiry now gate-enforced by Campaign 028 W4.1;
   expiry value reconciled with

@@ -32,6 +32,7 @@
  * folded into the value — it is recorded on the raw result / diagnostic
  * metadata so the Phase-2 rating pipeline can weight it.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -105,12 +106,8 @@ export function completionOf(validReactions: number, totalRounds: number): numbe
 /** Clamp to [0, 1]; non-finite DATA collapses to 0 (057 — matches the
  * rating pipeline's safe failure mode). Programmer-error validation
  * (bad params, unknown modes) still throws RangeError at its own site. */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /**
  * Reaction component: 1 at `targetMs` or faster, 0 at `failMs` or slower,

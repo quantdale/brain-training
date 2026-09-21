@@ -15,6 +15,7 @@
  * on the raw result / diagnostic metadata so the Phase-2 rating pipeline can
  * weight it.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type {
   NormalizeContext,
   NormalizedPerformance,
@@ -61,12 +62,8 @@ export function speedScoreOf(
 }
 
 /** Clamp to [0, 1]; collapses non-finite input to 0 (matches rating/pipeline.ts collapsing clamp01). */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /** Raw → normalized (see module docs for the formula). */
 export function normalizeLogicDeductionResult(

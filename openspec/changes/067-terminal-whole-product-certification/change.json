@@ -1,0 +1,22 @@
+{
+  "id": "067-terminal-whole-product-certification",
+  "status": "IN_PROGRESS",
+  "predecessor": "066-adversarial-convergence-static-governance",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["terminal-whole-product-certification"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Final of Changes 056-067; terminal certification.",
+  "baselineAuditCommit": "d42bb2b",
+  "productBaselineCommit": "34c9b2d",
+  "certifiedArtifactCommit": "e627473",
+  "fullHardening": false,
+  "reviewConsumption": "066 closed with the matrix at 585/6900, the residual census (Pass A/B/C), and the 067 precondition checklist; 067 builds and certifies the final artifact from its own frozen commit, runs the full native and six-way pixel/a11y matrices, disposes every deferral, and produces the terminal ledger that seeds the post-067 hardening phase.",
+  "validatedAt": null,
+  "validationNote": null,
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": null
+}

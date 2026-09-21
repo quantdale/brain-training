@@ -17,7 +17,7 @@ import { Badge, Button, Card, Spark } from "@/components/ui";
 import { useTheme } from "@/hooks/use-theme";
 import { Spacing } from "@/theme/tokens";
 import { useDbData } from "@/hooks/use-db-data";
-import { registry } from "@/registry/registry.generated";
+import { getAllGameDefinitions, getGameDefinition } from "@/registry/registry";
 import { dailySpotlight, localDayWindow } from "@/spotlight/spotlight";
 import { localDateString } from "@/workout/today";
 
@@ -25,7 +25,7 @@ export function SpotlightCard() {
   const theme = useTheme();
   const date = localDateString();
   const spotlight = useMemo(
-    () => dailySpotlight(registry.map((g) => g.id), date),
+    () => dailySpotlight(getAllGameDefinitions().map((g) => g.id), date),
     [date],
   );
   const [reloadToken, setReloadToken] = useState(0);
@@ -48,7 +48,7 @@ export function SpotlightCard() {
   if (!spotlight) {
     return null;
   }
-  const game = registry.find((g) => g.id === spotlight.gameId);
+  const game = getGameDefinition(spotlight.gameId);
   const done = completedCount > 0;
 
   return (

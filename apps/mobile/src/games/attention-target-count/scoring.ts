@@ -22,6 +22,7 @@
  *   - Correct: 100 base + speed bonus up to 100 (faster = more).
  *   - Wrong/timeout: 0.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -53,12 +54,8 @@ export function accuracyOf(roundsCorrect: number, roundsPlayed: number): number 
 /** Clamp to [0, 1]; non-finite DATA collapses to 0 (057 — matches the
  * rating pipeline's safe failure mode). Programmer-error validation
  * (bad params, unknown modes) still throws RangeError at its own site. */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /**
  * Efficiency relative to the time budget. 1.0 means every round was answered

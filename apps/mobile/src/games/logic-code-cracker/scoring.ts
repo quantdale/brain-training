@@ -22,6 +22,7 @@
  *   - Base solve: 100 points
  *   - Bonus for fewer guesses: (budget - guessesUsed) * 10 points
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -43,12 +44,8 @@ export function accuracyOf(roundsSolved: number, roundsPlayed: number): number {
 }
 
 /** Clamp to [0, 1]; collapses non-finite input to 0 (matches rating/pipeline.ts collapsing clamp01). */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /**
  * Efficiency relative to the guess budget. 1.0 means every guess was used

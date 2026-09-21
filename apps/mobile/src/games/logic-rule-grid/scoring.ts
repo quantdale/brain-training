@@ -22,6 +22,7 @@
  *   - Correct round: 100 base + size * 10 bonus (bigger grids are worth more).
  *   - Wrong/timeout round: 0 points.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -43,12 +44,8 @@ export function accuracyOf(roundsCorrect: number, roundsPlayed: number): number 
 }
 
 /** Clamp to [0, 1]; collapses non-finite input to 0 (matches rating/pipeline.ts collapsing clamp01). */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /**
  * Efficiency relative to the time budget. 1.0 means every round was answered

@@ -29,6 +29,7 @@
  * the same formula at `PERFECT_RESPONSE_MS`, keeping QA force-win totals and
  * session arithmetic coherent across difficulties.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -93,12 +94,8 @@ export function accuracyOf(correctTrials: number, trialsPlayed: number): number 
 }
 
 /** Clamp to [0, 1]; non-finite input collapses to 0 (matches rating/pipeline.ts). */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /**
  * Speed bonus factor for NORMALIZATION (0..1): faster average responses yield

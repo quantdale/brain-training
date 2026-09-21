@@ -45,14 +45,20 @@ App shell
 │   ├── pack version/integrity metadata
 │   └── future optional downloadable packs
 │
-└── Future seams (not implemented early)
-    ├── auth
-    ├── cloud sync
-    ├── AI/RAG
-    ├── entitlements/monetization
-    ├── notifications/widgets
-    └── public-release services
+└── Future seams (see notes below)
+    ├── auth (not implemented)
+    ├── cloud sync (seam exists: src/sync/** is an offline no-op change log)
+    ├── AI/RAG (not implemented)
+    ├── entitlements/monetization (scope stubs exist: src/entitlements/**)
+    ├── notifications/widgets (scope stubs exist: src/notifications/**)
+    └── public-release services (not implemented)
 ```
+
+Seam status (reconciled 2026-09-21, Campaign 066): `src/sync`,
+`src/entitlements`, `src/notifications`, and `src/assistant` exist as
+non-shipping seams or stubs; auth and public-release services are not
+implemented. Product decisions behind any of these remain deferred
+(`docs/DEFERRED_DECISIONS.md`).
 
 ## Non-negotiable architectural characteristics
 
@@ -68,4 +74,6 @@ App shell
 
 ## Pending architecture
 
-The exact directory structure and APIs are intentionally left to Phase 1 implementation research and ADRs. Agents should prefer architecture that permits multiple coder agents to add game modules without touching the same shared files.
+Phase 1 shipped; the directory structure and APIs are implemented in
+`apps/mobile/src/**` and governed by the layer rules above. Any
+structural change still needs an ADR under `docs/adr/`.

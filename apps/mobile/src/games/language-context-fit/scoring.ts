@@ -1,3 +1,4 @@
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -22,10 +23,8 @@ export function speedScoreOf(sumAnswerRatio: number, roundsPlayed: number): numb
 
 // Collapse non-finite input to 0 (mirrors rating/pipeline.ts clamp01): a
 // corrupt normalized stat degrades to worst-case instead of throwing.
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 export function normalizeContextFitResult(
   raw: ContextFitRawResult,

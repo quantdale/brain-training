@@ -8,6 +8,24 @@
  * API churn.
  */
 
+/**
+ * Minimal shared envelope every bundled pack source must satisfy, so the
+ * registry can consume packs from different games (their full `ContentPack`
+ * shapes differ per game) without casts. The shipping game's own validator
+ * still owns the full contract; the registry reads only identity + item
+ * accounting from here.
+ */
+export interface PackEnvelope {
+  /** Stable, kebab-case pack id (never renamed once shipped). */
+  readonly packId: string;
+  /** Semantic version of the pack payload, e.g. "1.0.0". */
+  readonly packVersion: string;
+  /** Number of playable items in the pack; must equal `items.length`. */
+  readonly itemCount: number;
+  /** Validated pack items; the item shape is owned by the shipping game. */
+  readonly items: readonly unknown[];
+}
+
 /** Identity + metadata of one content pack known to the app. */
 export interface PackInfo {
   /** Stable, kebab-case pack id (never renamed once shipped). */

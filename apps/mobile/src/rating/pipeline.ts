@@ -17,13 +17,17 @@
  * Ratings never decay on inactivity — consumers mark stale via
  * `isRatingStale` (db layer). All functions are pure and deterministic; the
  * db layer applies the outcome atomically with the session row.
+ *
+ * Types are imported from the `@/db/types` leaf (not the `@/db` barrel) to keep
+ * this module out of the db ↔ workout ↔ personalization ↔ rating type-only
+ * cycle: `rating → db/types → workout/session-provenance` touches no barrel.
  */
 import type {
- GameSessionRecord,
- RatingDelta,
- RatingOutcome,
- RatingService,
-} from "@/db";
+  GameSessionRecord,
+  RatingDelta,
+  RatingOutcome,
+  RatingService,
+} from "@/db/types";
 
 /** XP multiplier per difficulty level (Adaptive sits between Normal and Hard). */
 export const DIFFICULTY_XP_MULTIPLIER: Readonly<Record<string, number>> = {

@@ -651,18 +651,19 @@ function selfTest() {
   );
 
   // Shipped-allowlist invariants (renewal-safe): the real file must load and
-  // every waiver must be schema-valid and unexpired at the REAL now. Exact
-  // dates/counts are deliberately NOT pinned — a legitimate renewal must not
-  // turn the self-test (and CI) red, while a genuinely expired waiver must.
+  // every waiver must be schema-valid and unexpired at the REAL now. An empty
+  // allowlist is valid (no exemptions); exact dates/counts are deliberately
+  // NOT pinned — a legitimate renewal must not turn the self-test (and CI)
+  // red, while a genuinely expired waiver must.
   const shipped = loadAllowlist();
   const shippedFreshness = checkAllowlistFreshness(shipped ?? {}, new Date());
   check(
     'shipped allowlist loads with every waiver valid and unexpired',
     shipped !== null &&
-      Object.keys(shipped).length > 0 &&
       shippedFreshness.errors.length === 0 &&
-      typeof shippedFreshness.earliestExpiry === 'string' &&
-      !Number.isNaN(Date.parse(shippedFreshness.earliestExpiry)),
+      (Object.keys(shipped).length === 0 ||
+        (typeof shippedFreshness.earliestExpiry === 'string' &&
+          !Number.isNaN(Date.parse(shippedFreshness.earliestExpiry)))),
     JSON.stringify(shippedFreshness),
   );
 

@@ -27,6 +27,7 @@
  * allowing timing artifacts to dominate"). A perfect, instant, switch-perfect
  * run reaches 1.0.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type {
  NormalizeContext,
  NormalizedPerformance,
@@ -88,12 +89,8 @@ export function switchAccuracyOf(
 }
 
 /** Clamp to [0, 1]; non-finite input collapses to 0 (matches rating/pipeline.ts). */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /** Raw → normalized (see module docs for the formula). */
 export function normalizeFlexibilityTaskSwitchResult(

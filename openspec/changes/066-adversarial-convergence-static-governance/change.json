@@ -1,6 +1,6 @@
 {
   "id": "066-adversarial-convergence-static-governance",
-  "status": "IN_PROGRESS",
+  "status": "VALIDATED",
   "predecessor": "065-adversarial-convergence-runtime-data-pixel",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -13,10 +13,10 @@
   "productBaselineCommit": "34c9b2d",
   "certifiedArtifactCommit": "e627473",
   "fullHardening": false,
-  "reviewConsumption": "065 closed with the matrix at 584/6893, a bounded device pass on 3A3C4CC5, and a closure verification; 066 attacks the static/architecture/contract and governance surfaces that runtime tests cannot see, and produces the residual census that seeds the post-067 hardening phase.",
-  "validatedAt": null,
-  "validationNote": null,
+  "reviewConsumption": "065 closed with the matrix at 584/6893, a bounded device pass on 3A3C4CC5, and a closure verification; 066 attacked the static/architecture/contract and governance surfaces that runtime tests cannot see, repaired the verified findings, and produced the residual census that seeds the post-067 hardening phase. The 063 artifact remains the last certified executable until 067 builds the final one.",
+  "validatedAt": "2026-09-21",
+  "validationNote": "Terminal close after three independent read-only lanes (static/architecture/contract, flake/allowlist/debt, governance/state); every accepted finding reproduced before disposition. Repairs: canonicalSeedToNumber + canonicalClamp01 single-sourced in @/sdk with all 42 game modules re-exporting (84 files) + contract test; rating/pipeline type import moved to the @/db/types leaf; parseWorkoutMetadata validates focus with isGameCategory; mastery-card/mastery-insights/spotlight-card use the validated registry accessors; shared PackEnvelope removes the content-registry cast; both dead provenance waivers removed (allowlist empty, gate still wired, renewal semantics documented); jest-skip waiver owner updated to release-engineering orchestrator; BACKLOG rows added for coverage thresholds, backup fsync, snapshot review debt, v12 repair semantics, content→games layering, type-only cycle cluster, test-only UI components, and the uiautomator race closure criterion; 057 validationNote corrected to OpenSpec 41/41; STATE.md/ledger/governance cursors reconciled to 056–065 validated + 066 in progress; 13 untracked perf-baseline residue files removed; KNOWN_ISSUES/BACKLOG titles and successor text corrected; ARCHITECTURE.md seam/phase text reconciled. Full matrix 589 suites (585 passed + 4 skipped) / 6,900 passed / 5 classified opt-in skips / 5 snapshots / 0 unexpected console output / exit 0 (241.6s); typecheck/lint clean in both packets; OpenSpec --all --strict 50/50 (then 51/51 with 067 opened at close); repo-state (active program cursor enforced) + task-ownership; validators offline 30, secrets PASS, provenance 13 + empty-allowlist OK, affected 16, runtime-QA 16, dependency-audit 41, workflows 44. Device NOT APPLICABLE (static/governance-only); 067 certifies the final artifact. Residual census Pass A/B/C + 067 preconditions delivered under docs/redesign/evidence/campaign066/.",
   "partialVerdict": null,
   "partialNote": null,
-  "verdict": null
+  "verdict": "CHANGE_066_COMPLETE"
 }

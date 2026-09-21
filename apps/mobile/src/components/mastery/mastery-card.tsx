@@ -15,7 +15,7 @@ import {
   type DomainName,
 } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { registry } from "@/registry/registry.generated";
+import { getGameDefinition } from "@/registry/registry";
 import { MASTERY_TIERS, type MasterySummary } from "@/mastery";
 import { router } from "expo-router";
 
@@ -79,7 +79,7 @@ export function MilestoneStrip({
         onActionPress={() => router.push("/games")}
       />
       {sorted.map(({ gameId, name, summary }) => {
-        const category = registry.find((g) => g.id === gameId)?.primaryCategory;
+        const category = getGameDefinition(gameId)?.primaryCategory;
         return (
           <ListRow
             key={gameId}

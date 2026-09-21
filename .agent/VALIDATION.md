@@ -199,6 +199,35 @@ unavailable checks into PASS.
   deferred with recorded rationale. Evidence:
   `docs/redesign/evidence/campaign065/` + `openspec/changes/065-*/`.
 
+### Change 066 adversarial convergence (static/governance) — 2026-09-21 (VALIDATED / CHANGE_066_COMPLETE)
+
+- Scope: **PASS** — three read-only lanes (static/architecture/contract,
+  flake/allowlist/debt, governance/state); every accepted finding
+  reproduced before disposition. Repairs: `canonicalSeedToNumber` and
+  `canonicalClamp01` single-sourced in `@/sdk` with all 42 game modules
+  re-exporting (84 files) + contract test; `rating/pipeline.ts` type
+  import moved to the `@/db/types` leaf; `parseWorkoutMetadata` validates
+  `focus` with `isGameCategory`; mastery/spotlight components use the
+  validated registry accessors; shared `PackEnvelope` removes the
+  content-registry cast; both dead provenance waivers removed (allowlist
+  empty, gate wired, semantics documented); jest-skip waiver owner
+  updated; BACKLOG rows for coverage/fsync/snapshot/v12/layering/
+  type-cycles/test-only components/uiautomator race; 057 count corrected
+  to 41/41; STATE/ledger/governance cursors reconciled; baseline residue
+  removed; ARCHITECTURE seam text reconciled.
+- Repository gates: **PASS** — full gated Jest 589 suites (585 passed +
+  4 skipped), 6,900 passed / 5 classified opt-in skips, 5 snapshots, 0
+  unexpected console output, exit 0 (241.6 s); OpenSpec `--all --strict`
+  50/50 at close (51/51 with 067 opened); repo-state (program cursor
+  enforced); task-ownership; offline 30/30; secrets PASS; provenance
+  13/13 + empty-allowlist OK; affected 16/16; runtime-QA 16/16;
+  dependency-audit 41/41; workflows 44/44.
+- Native/artifact: **NOT APPLICABLE** — static/governance-only change;
+  067 certifies the final artifact.
+- Deliverables: `docs/redesign/evidence/campaign066/RESIDUAL_CENSUS.md`
+  (Pass A/B/C + 067 preconditions),
+  `CRITIC_FINDINGS.md`, `GOVERNANCE_RECONCILIATION.md`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

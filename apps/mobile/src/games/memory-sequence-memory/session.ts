@@ -12,7 +12,7 @@
  * property of play, not of the seed, because the score attack is bounded by
  * the monotonic time budget rather than a fixed round count.
  */
-import { createDiagnosticMetadata, RNG_ALGORITHM_VERSION } from '@/sdk';
+import { createDiagnosticMetadata, RNG_ALGORITHM_VERSION, canonicalSeedToNumber as seedToNumber } from '@/sdk';
 import type {
   DiagnosticMetadata,
   DifficultyLevel,
@@ -120,20 +120,8 @@ export function buildSequenceMemoryRawResult(
  * (Same contract as the Phase-2 memory module; a shared SDK helper would be a
  * natural convergence candidate — see packet report.)
  */
-export function seedToNumber(seed: string): number {
-  if (/^[0-9]+$/.test(seed)) {
-    const numeric = Number(seed);
-    if (Number.isSafeInteger(numeric)) {
-      return numeric;
-    }
-  }
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash ^= seed.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193) >>> 0;
-  }
-  return hash >>> 0;
-}
+// Re-exported from the shared SDK (single source: canonicalSeedToNumber).
+export { seedToNumber };
 
 export interface BuildSessionRecordInput {
   readonly sessionId: string;

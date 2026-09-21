@@ -107,7 +107,7 @@ describe('parseWorkoutMetadata (defensive)', () => {
     expect(parseWorkoutMetadata({ ...valid, length: 'infinite' })).toBeUndefined();
   });
 
-  it('coerces focus to null when absent and keeps parsing tolerant of drift', () => {
+  it('coerces focus to null when absent or not a known category', () => {
     const parsed = parseWorkoutMetadata({
       version: 1,
       kind: 'daily',
@@ -115,6 +115,18 @@ describe('parseWorkoutMetadata (defensive)', () => {
       length: 'standard',
       focus: 42,
     });
+    expect(parsed?.focus).toBeNull();
+  });
+
+  it('rejects a drifted focus string instead of casting it to GameCategory', () => {
+    const parsed = parseWorkoutMetadata({
+      version: 1,
+      kind: 'daily',
+      templateId: 'daily-mix',
+      length: 'standard',
+      focus: 'not-a-category',
+    });
+    expect(parsed).not.toBeUndefined();
     expect(parsed?.focus).toBeNull();
   });
 

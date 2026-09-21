@@ -15,6 +15,7 @@
  *
  * Streak bonus: bestStreak / totalTrials (0..1).
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { NormalizeContext, NormalizedPerformance, PerformanceNormalizer } from '@/sdk';
 
 import { GAME_ID } from './types';
@@ -61,12 +62,8 @@ export function accuracyOf(trialsCorrect: number, trialsPlayed: number): number 
 /** Clamp to [0, 1]; non-finite DATA collapses to 0 (057 — matches the
  * rating pipeline's safe failure mode). Programmer-error validation
  * (bad params, unknown modes) still throws RangeError at its own site. */
-export function clamp01(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(1, Math.max(0, value));
-}
+// Re-exported from the shared SDK (single source: canonicalClamp01).
+export { clamp01 };
 
 /**
  * Raw → normalized (see module docs for the formula).

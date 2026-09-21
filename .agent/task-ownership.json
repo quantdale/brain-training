@@ -3,7 +3,7 @@
   "lifecycleStatus": "COMPLETED",
   "change": "055-signal-arcade-desirability",
   "activeProgram": "056-067-overnight-autonomous-program",
-  "programCurrentChange": "066-adversarial-convergence-static-governance",
+  "programCurrentChange": "067-terminal-whole-product-certification",
   "description": "Campaign 055 Signal Arcade desirability pass (VALIDATED, verdict CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE). The orchestrator owned the refinement lock, shared visual-system roles, surface refinements, mandatory critique passes, native before/after evidence, the pixel-certification matrix, the full repository matrix, and durable state. The owner-authorized 056–067 overnight program (NIGHT mode) is active on top of the terminal campaign: each numbered change is specced under openspec/changes/<id> and validated sequentially; governance tracks it through GOVERNANCE.activeProgram and .agent/OVERNIGHT_056_067_STATE.md. No parallel coder packets remain bound here.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
