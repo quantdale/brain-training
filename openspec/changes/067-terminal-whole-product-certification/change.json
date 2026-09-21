@@ -9,7 +9,7 @@
   "tasks": "tasks.md",
   "specOrder": ["terminal-whole-product-certification"],
   "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Final of Changes 056-067; terminal certification.",
-  "baselineAuditCommit": "d42bb2b",
+  "baselineAuditCommit": "6700578",
   "productBaselineCommit": "34c9b2d",
   "certifiedArtifactCommit": "e627473",
   "fullHardening": false,
