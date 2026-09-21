@@ -1,6 +1,8 @@
 /**
  * 061: useDbData supersession — a slow load overtaken by a newer bump must
  * not overwrite the fresh resolution when it finally lands.
+ * Hardening: a deps change must drop the previous payload in the same render
+ * pass, so a same-route param change never paints stale data for one tick.
  */
 import { describe, expect, it, jest } from "@jest/globals";
 import { act, renderHook, waitFor } from "@testing-library/react-native";
@@ -39,6 +41,40 @@ describe("useDbData supersession (061)", () => {
     });
     await act(async () => {});
     expect(result.current.data).toBe("fresh");
+    expect(result.current.loaded).toBe(true);
+  });
+});
+
+describe("useDbData deps-change reset (hardening)", () => {
+  it("drops the previous payload and loading flag when deps change", async () => {
+    const pending: ((value: string) => void)[] = [];
+    const load = (): Promise<string> =>
+      new Promise<string>((resolve) => {
+        pending.push(resolve);
+      });
+
+    const { result, rerender } = await renderHook(
+      ({ token }: { token: number }) => useDbData(load, [token], "fallback"),
+      { initialProps: { token: 0 } },
+    );
+
+    await act(async () => {
+      pending[0]("first");
+    });
+    await waitFor(() => expect(result.current.data).toBe("first"));
+    expect(result.current.loaded).toBe(true);
+
+    // Same-route param change: the render pass that observes the new token
+    // must already have dropped the old payload.
+    await rerender({ token: 1 });
+    expect(result.current.data).toBe("fallback");
+    expect(result.current.loaded).toBe(false);
+    expect(pending).toHaveLength(2);
+
+    await act(async () => {
+      pending[1]("second");
+    });
+    await waitFor(() => expect(result.current.data).toBe("second"));
     expect(result.current.loaded).toBe(true);
   });
 });

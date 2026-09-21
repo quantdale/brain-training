@@ -13,12 +13,15 @@
  * so mutation can never run against an untrusted payload.
  */
 
+import { MAX_WORKOUT_GAME_IDS } from '@/workout/templates';
+
 import { canonicalString } from './canonical-json';
 import { CHECKSUM_ALGORITHM, computeChecksum } from './checksum';
 import {
   BACKUP_FORMAT,
   BACKUP_FORMAT_VERSION,
   BackupDataValidationError,
+  BackupError,
   ChecksumMismatchError,
   MalformedBackupError,
   UnsupportedVersionError,
@@ -250,6 +253,16 @@ function validateData(data: unknown): BackupData {
       !isSafeInteger(r.updatedAt)
     ) {
       issues.push('workoutInstances contains an invalid entry');
+      return false;
+    }
+    // Bound the list at the template engine's maximum (workout/templates.ts).
+    // A valid checksum proves integrity, not sane size: Home renders one row
+    // per leg, so a hostile backup with 100k ids would freeze the app on the
+    // first render after import. Reject before anything is persisted.
+    if (r.gameIds.length > MAX_WORKOUT_GAME_IDS) {
+      issues.push(
+        `workoutInstances entry ${JSON.stringify(r.date)} has ${r.gameIds.length} game ids (the maximum is ${MAX_WORKOUT_GAME_IDS})`,
+      );
       return false;
     }
     if (
@@ -523,7 +536,24 @@ export function parseAndValidateBackup(text: string): ParsedBackup {
   if (!isString(provided)) {
     throw new MalformedBackupError('Backup is missing a `checksum`.');
   }
-  const actual = computeChecksum(canonicalString(payload as Record<string, unknown>));
+  // The canonical writer is recursive, so a deeply nested payload (JSON.parse
+  // itself accepts ~100k levels) throws RangeError before shape validation
+  // could reject it. Convert ANY non-Backup failure here into the existing
+  // typed malformed-backup error: a validation failure must never surface as
+  // an untyped stack overflow.
+  let actual: string;
+  try {
+    actual = computeChecksum(canonicalString(payload as Record<string, unknown>));
+  } catch (error) {
+    if (error instanceof BackupError) {
+      throw error;
+    }
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new MalformedBackupError(
+      `Backup payload could not be canonicalized for checksum verification: ${detail}`,
+      error,
+    );
+  }
   if (actual !== (provided as string)) {
     throw new ChecksumMismatchError(provided as string, actual);
   }

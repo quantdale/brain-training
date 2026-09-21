@@ -20,6 +20,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -63,14 +64,19 @@ export function SettingsProvider({
 }) {
   const [settings, setSettings] = useState<Settings>({ ...DEFAULT_SETTINGS, ...initialSettings });
   const [themeId, setThemeId] = useState<string>(initialThemeId);
+  // Latest committed settings, so two synchronous toggles compose correctly
+  // without reading state inside a setState updater. Persistence is a side
+  // effect: React may replay/discard an updater, so a discarded concurrent
+  // render must never double-persist. `settings` only changes through
+  // `setSetting`, so this ref cannot drift from the state.
+  const settingsRef = useRef(settings);
 
   const setSetting = useCallback(
     (key: SettingKey, value: boolean) => {
-      setSettings((prev) => {
-        const next = { ...prev, [key]: value };
-        onSettingsChange?.(next);
-        return next;
-      });
+      const next = { ...settingsRef.current, [key]: value };
+      settingsRef.current = next;
+      setSettings(next);
+      onSettingsChange?.(next);
     },
     [onSettingsChange],
   );

@@ -14,31 +14,69 @@
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
+/**
+ * Module-level shared store (hardening packet, finding 2).
+ *
+ * The hook used to create an `AccessibilityInfo` subscription + async native
+ * seed call per instance — the Games screen alone mounts dozens of controls
+ * that gate motion, so a single screen issued dozens of redundant native
+ * calls. One subscription and one seed now serve every consumer: the store is
+ * updated on change, late consumers read the latest value, and only a
+ * test-only reset tears the native subscription down.
+ */
+const listeners = new Set<(value: boolean) => void>();
+let prefersReducedMotion = false;
+let nativeSubscription: { remove: () => void } | null = null;
+let nativeSeedRequested = false;
+
+/** Update the shared value and notify every mounted consumer. */
+function publish(value: boolean): void {
+  prefersReducedMotion = value;
+  listeners.forEach((listener) => listener(value));
+}
+
+/** Lazily open the one native subscription + seed read (idempotent). */
+function ensureNativeSubscription(): void {
+  if (nativeSubscription === null) {
+    nativeSubscription = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      publish,
+    );
+  }
+  if (!nativeSeedRequested) {
+    nativeSeedRequested = true;
+    // Seed the current value (best-effort; older platforms resolve async).
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((value) => publish(value))
+      .catch(() => undefined);
+  }
+}
+
 /** True when the device requests reduced motion; false otherwise. */
 export function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
+  const [reduced, setReduced] = useState(prefersReducedMotion);
 
   useEffect(() => {
-    let active = true;
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (value) => {
-      if (active) {
-        setReduced(value);
-      }
-    });
-    // Seed the current value (best-effort; older platforms resolve async).
-    AccessibilityInfo.isReduceMotionEnabled().then((value) => {
-      if (active) {
-        setReduced(value);
-      }
-    });
-
+    listeners.add(setReduced);
+    ensureNativeSubscription();
     return () => {
-      active = false;
-      subscription.remove();
+      listeners.delete(setReduced);
     };
   }, []);
 
   return reduced;
+}
+
+/**
+ * Test-only: drop the shared native subscription and reset the store so each
+ * suite starts from a clean, unsubscribed state.
+ */
+export function resetReducedMotionStoreForTests(): void {
+  nativeSubscription?.remove();
+  nativeSubscription = null;
+  nativeSeedRequested = false;
+  prefersReducedMotion = false;
+  listeners.clear();
 }
 
 /**

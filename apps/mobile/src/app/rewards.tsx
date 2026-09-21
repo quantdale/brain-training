@@ -58,6 +58,12 @@ import {
 } from "@/rewards/inbox";
 import { refreshProgression } from "@/progression";
 import {
+  progressionFocusSyncDue,
+  progressionInputFingerprint,
+  readNewestProgressionInput,
+  runProgressionSync,
+} from "@/progression/focus-sync";
+import {
   loadRewardHistory,
   type RewardHistoryEntry,
 } from "@/rewards/history";
@@ -100,13 +106,19 @@ async function loadRewards(
 ): Promise<RewardsData> {
   // Sync first so a quest completed by the latest persisted session appears as
   // claimable without visiting Profile (the inbox reads persisted progress).
-  // Best-effort: if the refresh pass itself fails, the inbox still reads the
-  // persisted rows and the screen's own load-error surface covers primary read
-  // failures.
-  try {
-    await refreshProgression(db, now);
-  } catch (error) {
-    console.error('[rewards] progression refresh failed', error);
+  // Finding 1: the focus-time sync is throttled by the shared input-aware
+  // gate; a newly completed session changes the fingerprint and forces an
+  // immediate sync. Best-effort: if the refresh pass itself fails, the inbox
+  // still reads the persisted rows and the screen's own load-error surface
+  // covers primary read failures.
+  const newest = await readNewestProgressionInput(db, now.getTime());
+  const fingerprint = progressionInputFingerprint(newest);
+  if (progressionFocusSyncDue(now.getTime(), fingerprint)) {
+    try {
+      await runProgressionSync((syncNow) => refreshProgression(db, syncNow), now, fingerprint);
+    } catch (error) {
+      console.error('[rewards] progression refresh failed', error);
+    }
   }
 
   const [balance, profile, unlockRows, questProgressAll, activityDates, inbox, history] =

@@ -19,14 +19,13 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -77,7 +76,7 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
     persistSession = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(languageGameReducer, undefined, createInitialLanguageState);
   // Theme slots for the round-result feedback panel (soft verdict tints).
   const theme = useTheme();
@@ -239,8 +238,8 @@ export default function LanguageWordMatchScreen(props: LanguageWordMatchScreenPr
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleAnswer = useCallback(
     (index: number) => {

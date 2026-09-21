@@ -84,14 +84,22 @@ export function gameCountForLength(id: WorkoutLength): number {
 }
 
 /**
- * Maximum 0-based workout leg index any real workout can own. Derived from
- * the longest length variant (`extended` = 6 games → max index 5). The route
+ * Maximum number of games any real workout instance can own. Derived from the
+ * longest length variant (`extended` = 6). Persistence/import validation uses
+ * this bound so a crafted backup cannot persist an unbounded `gameIds` list
+ * (Home renders one row per leg and would freeze on a hostile file).
+ */
+export const MAX_WORKOUT_GAME_IDS = Math.max(
+  ...WORKOUT_LENGTHS.map((spec) => spec.gameCount),
+);
+
+/**
+ * Maximum 0-based workout leg index any real workout can own. Derived from the
+ * longest length variant (`extended` = 6 games → max index 5). The route
  * input envelope and provenance validation share this bound so a crafted
  * deep link can never claim a leg no workout can own (056).
  */
-export const MAX_WORKOUT_LEG_INDEX = Math.max(
-  ...WORKOUT_LENGTHS.map((spec) => spec.gameCount),
-) - 1;
+export const MAX_WORKOUT_LEG_INDEX = MAX_WORKOUT_GAME_IDS - 1;
 
 /**
  * Expected wall-clock duration for a plan, when the selected length carries

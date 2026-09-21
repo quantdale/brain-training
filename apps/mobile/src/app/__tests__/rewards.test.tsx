@@ -35,6 +35,7 @@ import {
   purchaseCosmetic,
 } from '@/cosmetics';
 import { refreshProgression } from '@/progression';
+import { resetProgressionFocusSyncForTests } from '@/progression/focus-sync';
 import { expectConsoleNoise } from '@/test-utils';
 import type { AchievementUnlock, AppDatabase } from '@/db';
 
@@ -136,6 +137,7 @@ async function expectFailureToast(title: string) {
 beforeEach(() => {
   jest.clearAllMocks();
   resetToastQueueForTests();
+  resetProgressionFocusSyncForTests();
   mockDbState.unlockRows = [];
   mockDbState.balance = 0;
   mockDbState.settings = {};

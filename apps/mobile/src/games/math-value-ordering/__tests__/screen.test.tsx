@@ -26,6 +26,7 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockRouterBack = jest.fn();
+const mockRouterReplace = jest.fn();
 
 const NORMAL = VALUE_ORDERING_DIFFICULTY_PARAMS.normal;
 
@@ -97,9 +98,14 @@ describe('ValueOrderingScreen', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockRouterBack.mockClear();
+    mockRouterReplace.mockClear();
     (useRouter as unknown as jest.Mock).mockReturnValue({
       back: mockRouterBack,
+      replace: mockRouterReplace,
       navigate: jest.fn(),
+      // Pushed-route path: the stack can go back, so `useSafeBack` must stay
+      // byte-identical to the old bare `router.back()`.
+      canGoBack: () => true,
     });
   });
 
@@ -218,6 +224,7 @@ describe('ValueOrderingScreen', () => {
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'quit')));
     expect(mockRouterBack).toHaveBeenCalledTimes(1);
+    expect(mockRouterReplace).not.toHaveBeenCalled();
     await result.unmount();
   });
 });

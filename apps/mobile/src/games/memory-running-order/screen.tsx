@@ -17,14 +17,13 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton, StatRow } from '@/components/game-ui';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -77,7 +76,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
     xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(runningOrderGameReducer, undefined, createInitialRunningOrderState);
 
   const stateRef = useRef(state);
@@ -234,8 +233,8 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleTapSymbol = useCallback(
     (id: number) => {

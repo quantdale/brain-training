@@ -4,6 +4,12 @@
  * A flex-wrap layout of glyph cells. Selection is not required for this game
  * (the answer is a number), but `onCellPress` is kept optional so the grid can
  * be reused by future interactive variants or tests.
+ *
+ * Accessibility: the non-interactive display grid is decorative for assistive
+ * tech — each cell would otherwise surface as an unlabelled `image` node — so
+ * cells are hidden (`accessible={false}`) unless a press handler is supplied.
+ * Interactive cells become labelled buttons so the grid stays operable beyond
+ * touch.
  */
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -27,6 +33,7 @@ export interface GridProps {
 
 export function Grid({ cells, testIdCell, onCellPress, disabled }: GridProps) {
   const theme = useTheme();
+  const interactive = onCellPress !== undefined;
   return (
     <View style={styles.grid}>
       {cells.map((glyph, i) => (
@@ -34,8 +41,11 @@ export function Grid({ cells, testIdCell, onCellPress, disabled }: GridProps) {
           key={i}
           testID={testIdCell(i)}
           disabled={disabled}
-          onPress={onCellPress ? () => onCellPress(i) : undefined}
-          accessibilityRole="image"
+          onPress={interactive ? () => onCellPress?.(i) : undefined}
+          accessible={interactive}
+          accessibilityRole={interactive ? 'button' : undefined}
+          accessibilityLabel={interactive ? `Cell ${i + 1}` : undefined}
+          accessibilityState={interactive ? { disabled: disabled === true } : undefined}
           style={({ pressed }) => [
             styles.cell,
             // Hairline cell boundary from the token ramp — never a raw

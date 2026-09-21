@@ -18,13 +18,12 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -90,7 +89,7 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
     xpHook = pipelineXpRatingHook,
     numberLineWidth,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(
     numberLineGameReducer,
     undefined,
@@ -252,8 +251,8 @@ export default function NumberLineScreen(props: NumberLineScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleEstimate = useCallback(
     (value: number) => {

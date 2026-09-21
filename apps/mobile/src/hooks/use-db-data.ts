@@ -3,6 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import type { AppDatabase } from '@/db';
 import { getDb } from '@/db';
 
+/** Same deps equality React applies before re-running an effect. */
+function sameDeps(a: readonly unknown[], b: readonly unknown[]): boolean {
+  return a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
+}
+
 /**
  * Load data from the app database into component state.
  *
@@ -18,10 +23,26 @@ export function useDbData<T>(
   const [data, setData] = useState<T>(fallback);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  // The deps snapshot the current state belongs to. Kept in state (not a ref)
+  // so the reset follows React's "adjust state when props change" contract and
+  // a discarded concurrent render cannot persist a mismatched snapshot.
+  const [trackedDeps, setTrackedDeps] = useState<readonly unknown[]>(deps);
   // 061: monotonic load generation — a slow load superseded by a newer
   // bump (rapid focus bounce, error retry mid-flight) must not overwrite
   // the fresh resolution when it finally lands.
   const seqRef = useRef(0);
+
+  if (!sameDeps(trackedDeps, deps)) {
+    // Deps changed: drop the previous payload during the SAME render pass, so
+    // a same-route param change can never paint the old payload for even one
+    // tick. The effect below then loads the new payload; supersession still
+    // runs through seqRef, and the old effect's cleanup marks its in-flight
+    // load cancelled before any microtask can land it.
+    setTrackedDeps(deps);
+    setData(fallback);
+    setLoaded(false);
+    setError(null);
+  }
 
   useEffect(() => {
     const seq = (seqRef.current += 1);

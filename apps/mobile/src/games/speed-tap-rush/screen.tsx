@@ -18,14 +18,13 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -141,7 +140,7 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
     persistSession = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(tapRushGameReducer, undefined, createInitialTapRushState);
 
   const stateRef = useRef(state);
@@ -306,8 +305,8 @@ export default function TapRushScreen(props: TapRushScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleFieldTap = useCallback(
     (x: number, y: number) => {

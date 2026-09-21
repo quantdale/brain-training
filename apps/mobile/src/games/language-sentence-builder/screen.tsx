@@ -21,13 +21,12 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -83,7 +82,7 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
     xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(sentenceBuilderReducer, undefined, createInitialState);
 
   const stateRef = useRef(state);
@@ -251,8 +250,8 @@ export default function SentenceBuilderScreen(props: SentenceBuilderScreenProps 
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleTapWord = useCallback(
     (scrambledIndex: number) => {

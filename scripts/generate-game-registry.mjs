@@ -13,8 +13,9 @@
  * `apps/mobile/src/sdk/types/game-definition.ts`; the app re-validates at
  * startup via `registerGameDefinitions`.
  *
- * Usage: node scripts/generate-game-registry.mjs [--check]
- *   --check  verify the generated file is up to date (exit 1 if stale).
+ * Usage: node scripts/generate-game-registry.mjs [--check] [--self-check]
+ *   --check       verify the generated file is up to date (exit 1 if stale).
+ *   --self-check  run the in-memory validation contract fixtures and exit.
  */
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -80,11 +81,30 @@ function parseGameJson(file, raw) {
   }
   assertString(raw.sdkVersion, file, 'sdkVersion');
   assertString(raw.gameVersion, file, 'gameVersion');
-  if (raw.generatorVersion !== null && typeof raw.generatorVersion !== 'string') {
+  // Mirror the runtime SDK contract exactly (parseGameDefinitionJson/defineGame
+  // in src/sdk/types/game-definition.ts): `generatorVersion` is null or a
+  // NON-EMPTY string, `contentVersion` is null/undefined or a non-empty string,
+  // and `description` (when present) is a non-empty string. The app re-validates
+  // at bootstrap, so a value accepted only here would surface as a startup crash
+  // — reject it at generation time instead, naming the game.
+  if (
+    raw.generatorVersion !== null &&
+    (typeof raw.generatorVersion !== 'string' || raw.generatorVersion.length === 0)
+  ) {
     fail(file, 'generatorVersion must be a non-empty string or null');
   }
-  if (raw.contentVersion !== null && raw.contentVersion !== undefined && typeof raw.contentVersion !== 'string') {
-    fail(file, 'contentVersion must be a string, null, or undefined');
+  if (
+    raw.contentVersion !== null &&
+    raw.contentVersion !== undefined &&
+    (typeof raw.contentVersion !== 'string' || raw.contentVersion.length === 0)
+  ) {
+    fail(file, 'contentVersion must be a non-empty string, null, or undefined');
+  }
+  if (
+    raw.description !== undefined &&
+    (typeof raw.description !== 'string' || raw.description.length === 0)
+  ) {
+    fail(file, 'description must be a non-empty string or undefined');
   }
   if (typeof raw.hasTutorial !== 'boolean') {
     fail(file, 'hasTutorial must be a boolean');
@@ -103,6 +123,10 @@ function collectGameIds() {
   return entries
     .filter((e) => e.isDirectory())
     .map((e) => e.name)
+    // Test-support folders (`__tests__`, `__fixtures__`, …) may live alongside
+    // game modules by repository convention. They are not game ids and must not
+    // be treated as game directories missing a game.json.
+    .filter((name) => !name.startsWith('__'))
     .sort();
 }
 
@@ -122,7 +146,7 @@ function generate() {
         `game.json id "${raw.id}" must match its directory name "${gameId}"`,
       );
     }
-    games.push(parseGameJson(gameJsonPath, raw));
+    games.push(parseGameJson(join('src/games', gameId, 'game.json'), raw));
   }
 
   const body = games
@@ -170,6 +194,77 @@ function generate() {
 }
 
 const checkOnly = process.argv.includes('--check');
+
+/**
+ * In-memory fixtures pinning the SDK-mirrored validation contract. Runs the
+ * SAME `parseGameJson` used for real game.json files, so a drift between this
+ * generator and the runtime SDK (which rejects these at bootstrap) fails a
+ * cheap, filesystem-free self-check. Invoked by `--self-check` and by the
+ * governance test suite.
+ */
+function selfCheck() {
+  const valid = {
+    id: 'memory-sequence',
+    name: 'Memory Sequence',
+    primaryCategory: 'Memory',
+    sdkVersion: '0.1.0',
+    gameVersion: '1.0.0',
+    generatorVersion: '1',
+    contentVersion: null,
+    hasTutorial: true,
+    description: 'Remember and repeat the sequence.',
+  };
+  const cases = [
+    { name: 'accepts a valid game.json', json: valid, expectError: null },
+    {
+      name: 'rejects an empty generatorVersion',
+      json: { ...valid, generatorVersion: '' },
+      expectError: /generatorVersion must be a non-empty string or null/,
+    },
+    {
+      name: 'rejects an empty description',
+      json: { ...valid, description: '' },
+      expectError: /description must be a non-empty string or undefined/,
+    },
+    {
+      name: 'rejects an empty contentVersion',
+      json: { ...valid, contentVersion: '' },
+      expectError: /contentVersion must be a non-empty string, null, or undefined/,
+    },
+  ];
+
+  const failures = [];
+  for (const fixture of cases) {
+    let error = null;
+    try {
+      parseGameJson(`src/games/${fixture.name}/game.json`, fixture.json);
+    } catch (err) {
+      error = err;
+    }
+    if (fixture.expectError === null) {
+      if (error) {
+        failures.push(`${fixture.name}: unexpectedly rejected (${error.message})`);
+      }
+    } else if (!error || !fixture.expectError.test(error.message)) {
+      failures.push(
+        `${fixture.name}: expected rejection ${fixture.expectError} but got ${error ? error.message : 'acceptance'}`,
+      );
+    }
+  }
+  if (failures.length > 0) {
+    for (const failure of failures) {
+      console.error(`registry generator self-check: ${failure}`);
+    }
+    process.exit(1);
+  }
+  console.log(`registry generator self-check: ${cases.length} cases passed`);
+}
+
+if (process.argv.includes('--self-check')) {
+  selfCheck();
+  process.exit(0);
+}
+
 const output = generate();
 
 if (checkOnly) {

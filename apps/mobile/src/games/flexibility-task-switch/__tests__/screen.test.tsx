@@ -30,6 +30,7 @@ jest.mock('expo-router', () => ({
 }));
 
 const mockRouterBack = jest.fn();
+const mockRouterReplace = jest.fn();
 
 const NORMAL = flexibilityTaskSwitchParamsFromProfile(
   resolveFlexibilityTaskSwitchDifficulty('normal'),
@@ -111,9 +112,14 @@ describe('TaskSwitchScreen', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockRouterBack.mockClear();
+    mockRouterReplace.mockClear();
     (useRouter as unknown as jest.Mock).mockReturnValue({
       back: mockRouterBack,
+      replace: mockRouterReplace,
       navigate: jest.fn(),
+      // Pushed-route path: the stack can go back, so `useSafeBack` must stay
+      // byte-identical to the old bare `router.back()`.
+      canGoBack: () => true,
     });
   });
   afterEach(() => {
@@ -380,6 +386,7 @@ describe('TaskSwitchScreen', () => {
 
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'quit')));
     expect(mockRouterBack).toHaveBeenCalledTimes(1);
+    expect(mockRouterReplace).not.toHaveBeenCalled();
     await result.unmount();
   });
 

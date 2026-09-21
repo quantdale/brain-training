@@ -16,7 +16,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   assertDevOnly,
@@ -28,7 +27,7 @@ import {
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -89,7 +88,7 @@ export default function SpatialCoordinateTurnScreen(
     persistSession: persisterProp = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(gameReducer, undefined, createInitialSpatialCoordinateTurnState);
 
   const stateRef = useRef(state);
@@ -283,8 +282,8 @@ export default function SpatialCoordinateTurnScreen(
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleSelectAnswer = useCallback(
     (index: number) => {

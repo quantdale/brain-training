@@ -15,7 +15,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   isDevBuild,
@@ -30,7 +29,7 @@ import type {
   XpRatingHook,
 } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -91,7 +90,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
     xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(
     wordChainReducer,
     undefined,
@@ -279,8 +278,8 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleAnswer = useCallback(
     (index: number) => {

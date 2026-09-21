@@ -18,13 +18,12 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-import { useRouter } from "expo-router";
 
 import { isDevBuild, liveAudioHaptics, systemClock, testId } from "@/sdk";
 import type { Clock, TutorialStore, XpRatingHook } from "@/sdk";
 import { pipelineXpRatingHook } from "@/rating/xp-hook";
 import { ThemedText } from "@/components/themed-text";
-import { AnimatedNumber } from "@/components/ui";
+import { AnimatedNumber, useSafeBack } from "@/components/ui";
 import { StatRow } from "@/components/game-ui";
 import { Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -90,7 +89,7 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
     xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(
     pairRecallGameReducer,
     undefined,
@@ -318,8 +317,8 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleRespond = useCallback(
     (responseId: number) => {

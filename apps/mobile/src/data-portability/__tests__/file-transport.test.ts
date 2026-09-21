@@ -229,6 +229,23 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
       'brain-training-backup_2026-08-20_09-00-00.json',
     ]);
   });
+
+  it('hides dotfiles and leftover .tmp partials from the listing', async () => {
+    const t = createFileBackupTransport();
+    await t.writeBackup('real.json', 'complete');
+    // An aborted atomic write can leave the writer's `.<name>.<nonce>.tmp`
+    // partial behind, and platform metadata files are dotfiles; neither is a
+    // restorable backup and neither may be selectable in the UI.
+    mockStore.set('file:///mock-documents/backups/.real.json.abc123.tmp', {
+      kind: 'file',
+      content: 'partial',
+    });
+    mockStore.set('file:///mock-documents/backups/.hidden.json', {
+      kind: 'file',
+      content: '{}',
+    });
+    expect(await t.listBackups()).toEqual(['real.json']);
+  });
 });
 
 describe('write failures (mocked ENOSPC/EACCES)', () => {

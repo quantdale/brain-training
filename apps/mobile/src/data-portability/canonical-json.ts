@@ -23,12 +23,33 @@ export function canonicalize(value: unknown): unknown {
     const obj = value as Record<string, unknown>;
     const sorted: Record<string, unknown> = {};
     for (const key of Object.keys(obj).sort()) {
-      sorted[key] = canonicalize(obj[key]);
+      // defineProperty, not `sorted[key] = …`: a parsed `__proto__` own key
+      // would otherwise hit Object.prototype's inherited setter and mutate the
+      // prototype instead of becoming an own property. For every other key the
+      // result is an ordinary own enumerable property, so output semantics (and
+      // key order) are unchanged.
+      Object.defineProperty(sorted, key, {
+        value: canonicalize(obj[key]),
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
     }
     return sorted;
   }
   return value;
 }
+
+/**
+ * Output coalescing threshold for the canonical writer. The writer walks the
+ * value one token at a time; forwarding every token straight to `emit` made
+ * callers retain millions of tiny strings (measured ~3.5M chunks / ~305 MB
+ * heap for a 20k-session export). Adjacent tokens are buffered and flushed as
+ * one string once the buffer reaches this size. Output is byte-for-byte
+ * identical — only chunk boundaries change — and callers that hash chunks
+ * still receive the same bytes in the same order.
+ */
+const CANONICAL_EMIT_FLUSH_SIZE = 16 * 1024;
 
 /**
  * Stream the canonical JSON text of `value` through `emit`, chunk by chunk.
@@ -38,7 +59,8 @@ export function canonicalize(value: unknown): unknown {
  * objects and become `null` inside arrays, non-finite numbers become `null`,
  * exotic objects (Date via `toJSON`, wrappers, Map/Set/RegExp) delegate to
  * `JSON.stringify` exactly like the legacy canonicalize-then-stringify
- * pipeline, and BigInt throws.
+ * pipeline, and BigInt throws. Emitted chunks are coalesced (see
+ * {@link CANONICAL_EMIT_FLUSH_SIZE}); the joined bytes are unchanged.
  *
  * This is the memory-conscious primitive: callers can hash chunks as they are
  * produced (see `Sha256`) instead of materializing a second full-size copy of
@@ -48,7 +70,18 @@ export function writeCanonicalJson(
   value: unknown,
   emit: (chunk: string) => void,
 ): void {
-  writeValue(value, emit);
+  let buffer = '';
+  writeValue(value, (chunk) => {
+    buffer += chunk;
+    if (buffer.length >= CANONICAL_EMIT_FLUSH_SIZE) {
+      const flushed = buffer;
+      buffer = '';
+      emit(flushed);
+    }
+  });
+  if (buffer.length > 0) {
+    emit(buffer);
+  }
 }
 
 function writeValue(value: unknown, emit: (chunk: string) => void): void {

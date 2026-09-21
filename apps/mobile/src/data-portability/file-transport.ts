@@ -176,6 +176,10 @@ export function createFileBackupTransport(): BackupTransport {
     .list()
     .filter((entry): entry is FsFile => entry instanceof fs.File)
     .map((file) => file.name)
+    // Listing hygiene: dotfiles and atomic-write temp leftovers (the writer's
+    // own `.<name>.<nonce>.tmp` pattern, plus any other `.tmp` partial) are
+    // never restorable backups and must not be selectable in the UI.
+    .filter((name) => !name.startsWith('.') && !name.endsWith('.tmp'))
     .sort((a, b) => b.localeCompare(a));
   },
 

@@ -12,12 +12,17 @@
  *     without a label (decorative art should be hidden from the a11y tree),
  *   - a per-surface summary of roles present.
  *
- * Clipping rule (Campaign 026): uiautomator reports the VISIBLE bounds of a
- * node, so a control scrolled under the bottom tab bar measures shorter than
- * it lays out (a 44 dp button measured 16 dp when 28 dp of it sat behind the
- * bar). A row clipped by the tab bar is unmeasurable, not undersized; those
- * nodes are counted as `clipped` and excluded from the violation list, and
- * each is reported with its clipped size so the exclusion stays visible.
+ * Clipping/occlusion rule (Campaign 026, revised Campaign 067 hardening):
+ * uiautomator reports the VISIBLE bounds of a node, so a control scrolled under
+ * the bottom tab bar (or past the screen edge) measures shorter than it lays
+ * out (a 44 dp button measured 16 dp when 28 dp of it sat behind the bar). A
+ * partially visible row is unmeasurable, not undersized; those nodes are
+ * counted as `occluded` (with the reason: the tab-bar overlay or the screen
+ * edge) and excluded from the violation list, and each is reported with its
+ * visible size so the exclusion stays visible. The visible viewport falls back
+ * to the dump's screen extent when no scroll container is inset, so stack
+ * routes without a tab bar are measured against the screen edge instead of
+ * being re-classified as undersized.
  *
  * Usage:
  *   node scripts/qa/a11y-audit.mjs --dir qa-artifacts/campaign024/after
@@ -68,26 +73,39 @@ function boundsSize(bounds) {
 }
 
 /**
- * Bottom edge (px) of the content viewport: the deepest scroll container
- * that ends above the screen bottom (the bottom tab bar clips it). Null when
- * every scroll container spans the full screen (no bottom bar on the screen).
+ * Screen extent (px) from the dump: the furthest bottom edge across every
+ * node. uiautomator clips node bounds to the visible window, so the root
+ * frame's bottom is the screen height.
  */
-function viewportBottom(parsed) {
-  const bottoms = [];
-  let screenBottom = 0;
+function screenBottom(parsed) {
+  let bottom = 0;
   for (const node of parsed) {
-    const match = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(node.bounds ?? '');
-    if (!match) continue;
-    screenBottom = Math.max(screenBottom, Number(match[4]));
+    const value = boundsBottom(node.bounds);
+    if (value !== null) bottom = Math.max(bottom, value);
   }
+  return bottom;
+}
+
+/**
+ * Visible content viewport (px) for a surface: the deepest scroll container
+ * that ends above the screen bottom (the bottom tab bar clips it). When every
+ * scroll container spans the full screen — a stack route with no tab bar — the
+ * viewport is the screen bottom, so a node scrolled past the screen edge is
+ * still classified as occluded instead of re-measured as short.
+ *
+ * Returns `{ bottom, reason }`: `tab-bar-overlay` when a tab-bar inset was
+ * found, `screen-edge` when the screen extent itself is the limit.
+ */
+function visibleViewport(parsed) {
+  const screen = screenBottom(parsed);
+  const bottoms = [];
   for (const node of parsed) {
     if (!/ScrollView/.test(node.className)) continue;
-    const match = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(node.bounds ?? '');
-    if (!match) continue;
-    const bottom = Number(match[4]);
-    if (bottom < screenBottom) bottoms.push(bottom);
+    const bottom = boundsBottom(node.bounds);
+    if (bottom !== null && bottom < screen) bottoms.push(bottom);
   }
-  return bottoms.length > 0 ? Math.max(...bottoms) : null;
+  if (bottoms.length > 0) return { bottom: Math.max(...bottoms), reason: 'tab-bar-overlay' };
+  return { bottom: screen, reason: 'screen-edge' };
 }
 
 /** Top edge (px) of a node's bounds. */
@@ -143,7 +161,7 @@ function main() {
   }
 
   const scale = options.density / 160;
-  const report = { dir: root, density: options.density, surfaces: [], violations: [] };
+  const report = { dir: root, density: options.density, surfaces: [], violations: [], occluded: [] };
 
   for (const dump of dumps) {
     const surface = dump.slice(root.length + 1).replace(/\\/g, '/').replace(/\.xml$/, '');
@@ -152,28 +170,28 @@ function main() {
     const labelled = interactive.filter((n) => n.contentDesc.length > 0 || n.text.length > 0);
     const undersized = [];
     const unlabelled = [];
-    const clipped = [];
-    const viewport = viewportBottom(parsed);
+    const occluded = [];
+    const viewport = visibleViewport(parsed);
 
     for (const node of interactive) {
       const size = boundsSize(node.bounds);
       if (!size) continue;
       const bottom = boundsBottom(node.bounds);
       const top = boundsTop(node.bounds);
-      // A node that starts INSIDE the content viewport but whose bottom pins to
+      // A node that starts INSIDE the visible viewport but whose bottom pins to
       // its edge is partially scrolled out of view; its visible bounds are not
       // its laid-out size. Nodes below the viewport (the tab bar itself) are
       // fully visible and excluded by the `top` condition.
       if (
-        viewport !== null &&
         top !== null &&
         bottom !== null &&
-        top < viewport - 1 &&
-        bottom >= viewport - 1
+        top < viewport.bottom - 1 &&
+        bottom >= viewport.bottom - 1
       ) {
-        clipped.push({
+        occluded.push({
           label: node.contentDesc || node.text || node.resourceId || node.className,
           heightDp: Math.round(size.height / scale),
+          reason: viewport.reason,
         });
         continue;
       }
@@ -197,7 +215,7 @@ function main() {
       labelled: labelled.length,
       undersized,
       unlabelled,
-      clipped,
+      occluded,
     };
     report.surfaces.push(entry);
     for (const violation of undersized) {
@@ -205,6 +223,9 @@ function main() {
     }
     for (const violation of unlabelled) {
       report.violations.push({ surface, kind: 'unlabelled-interactive', ...violation });
+    }
+    for (const node of occluded) {
+      report.occluded.push({ surface, kind: 'occluded', ...node });
     }
   }
 
@@ -220,7 +241,7 @@ function main() {
       console.log(
         `${status} ${surface.surface.padEnd(38)} interactive=${surface.interactive} labelled=${surface.labelled} ` +
           `undersized=${surface.undersized.length} unlabelled=${surface.unlabelled.length} ` +
-          `clipped=${surface.clipped.length}`,
+          `occluded=${surface.occluded.length}`,
       );
       for (const node of surface.undersized.slice(0, 5)) {
         console.log(`        <44dp: ${node.label} (${node.widthDp}x${node.heightDp} dp)`);
@@ -228,14 +249,19 @@ function main() {
       for (const node of surface.unlabelled.slice(0, 5)) {
         console.log(`        unlabelled: ${node.className} ${node.bounds}`);
       }
-      for (const node of surface.clipped.slice(0, 5)) {
-        console.log(`        clipped (unmeasured, scrolled under tab bar): ${node.label} (visible ${node.heightDp} dp)`);
+      for (const node of surface.occluded.slice(0, 5)) {
+        console.log(
+          `        occluded (${node.reason}, unmeasured; partially past the visible viewport): ${node.label} (visible ${node.heightDp} dp)`,
+        );
       }
     }
   }
 
   console.log(
     `\n${report.violations.length === 0 ? '[PASS]' : '[FAIL]'} ${report.violations.length} violation(s) across ${report.surfaces.length} surface(s)`,
+  );
+  console.log(
+    `${report.occluded.length} occluded node(s) excluded as unmeasurable (not size violations)`,
   );
   process.exit(report.violations.length === 0 ? 0 : 1);
 }

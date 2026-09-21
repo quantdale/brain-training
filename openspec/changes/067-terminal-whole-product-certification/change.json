@@ -1,6 +1,6 @@
 {
   "id": "067-terminal-whole-product-certification",
-  "status": "IN_PROGRESS",
+  "status": "VALIDATED",
   "predecessor": "066-adversarial-convergence-static-governance",
   "canonicalBranch": "main",
   "entrypoint": "EXECUTION.md",
@@ -11,12 +11,12 @@
   "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Final of Changes 056-067; terminal certification.",
   "baselineAuditCommit": "6700578",
   "productBaselineCommit": "34c9b2d",
-  "certifiedArtifactCommit": "e627473",
+  "certifiedArtifactCommit": "a17c019",
   "fullHardening": false,
   "reviewConsumption": "066 closed with the matrix at 585/6900, the residual census (Pass A/B/C), and the 067 precondition checklist; 067 builds and certifies the final artifact from its own frozen commit, runs the full native and six-way pixel/a11y matrices, disposes every deferral, and produces the terminal ledger that seeds the post-067 hardening phase.",
-  "validatedAt": null,
-  "validationNote": null,
+  "validatedAt": "2026-09-21",
+  "validationNote": "Terminal certification of the program at a17c019: release APK B7AA4102 (109,598,109 bytes, com.braintraining.app 0.1.0, debug-signed local release, Metro-free), embedded bundle 416DD854 (4,879,768 bytes) with 10/10 freshness markers, 8/8 permission-set match. Device (emulator-5554): clean install, cold 5,454 ms plus warm/offline/force-stop relaunches with 0 ANR; six routes and four recovery probes PASS; share sheet and Files picker open/cancel PASS; a real weak completion persisted (speed-tap-rush, XP 10, +2 coins) with relaunch retention; SQLite integrity ok/v12/0-FK/0 duplicate rating rows; 5,180 log lines with 0 fatal/ANR/SQLite/RedBox. Canonical six-way pixel matrix 66/66 captures PASS (11 surfaces x default/compact/font-scale-2 x light/dark); a11y audit 0 unlabelled interactive nodes, with a hardening-phase correction: the Progress period tabs were true 32 dp targets (initially misclassified) and were repaired after certification, while the remaining flags were occlusion false positives (audit tool fixed). NOT VALIDATED (recorded): 42-game six-way interaction expansion, crafted replace-import via the two-tap UI apply, mid/strong results, workout legs, soak, cold boot. MANUAL/EXTERNAL: human TalkBack, iOS, physical/OEM, store signing, external CI/account policy. Pre-hardening terminal matrix: 589 suites (585 passed + 4 skipped) / 6,900 passed / 5 snapshots / 0 unexpected console output; OpenSpec --all --strict 51/51; all validators green. Post-067 hardening (PHASE_2_HARDENING) repaired the verified Critical/High/Medium findings (validator state gate, 42-screen deep-link exit dead-end, import bounds, export heap amplification, focus-sync throttle, Progress tab targets, a11y audit tool) with device proofs on hardening artifact 146F63BF (109,602,821 bytes): deep-link game pause Quit lands on Games; fresh Progress capture audits 0 violations; launch 1,487 ms with 0 fatal/ANR. Evidence: docs/redesign/evidence/campaign067/ and docs/hardening/post067/.",
   "partialVerdict": null,
   "partialNote": null,
-  "verdict": null
+  "verdict": "CHANGE_067_COMPLETE"
 }

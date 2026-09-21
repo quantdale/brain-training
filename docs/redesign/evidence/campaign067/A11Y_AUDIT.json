@@ -1,0 +1,1008 @@
+{
+  "campaign": "067",
+  "artifact": "B7AA41024EAAD6D031FB76C953F8A0048B10B400930C034544B9387AB8338464",
+  "method": "scripts/qa/a11y-audit.mjs per display profile",
+  "profiles": {
+    "default": {
+      "dir": "D:\\Temp\\campaign067-captures\\default",
+      "density": 420,
+      "surfaces": [
+        {
+          "surface": "dark/data-management",
+          "interactive": 2,
+          "labelled": 2,
+          "undersized": [
+            {
+              "label": "Export backup to JSON",
+              "widthDp": 141,
+              "heightDp": 29
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/game-detail",
+          "interactive": 3,
+          "labelled": 3,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/game-intro",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/games",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Card Sort, Flexibility game, New",
+              "heightDp": 113
+            },
+            {
+              "label": "Color Stroop, Flexibility game, New",
+              "heightDp": 113
+            }
+          ]
+        },
+        {
+          "surface": "dark/home",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Symbol Tracker, Attention, up next",
+              "heightDp": 43
+            }
+          ]
+        },
+        {
+          "surface": "dark/profile",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress-activity",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress-detail",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [
+            {
+              "label": "7d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "30d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "90d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "All",
+              "widthDp": 94,
+              "heightDp": 32
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/results",
+          "interactive": 2,
+          "labelled": 2,
+          "undersized": [
+            {
+              "label": "Play again. Tap Rush",
+              "widthDp": 379,
+              "heightDp": 23
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/rewards",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/data-management",
+          "interactive": 2,
+          "labelled": 2,
+          "undersized": [
+            {
+              "label": "Export backup to JSON",
+              "widthDp": 141,
+              "heightDp": 29
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/game-detail",
+          "interactive": 3,
+          "labelled": 3,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/game-intro",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/games",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Card Sort, Flexibility game, New",
+              "heightDp": 113
+            },
+            {
+              "label": "Color Stroop, Flexibility game, New",
+              "heightDp": 113
+            }
+          ]
+        },
+        {
+          "surface": "light/home",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Symbol Tracker, Attention, up next",
+              "heightDp": 43
+            }
+          ]
+        },
+        {
+          "surface": "light/profile",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress-activity",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress-detail",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [
+            {
+              "label": "7d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "30d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "90d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "All",
+              "widthDp": 94,
+              "heightDp": 32
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/results",
+          "interactive": 2,
+          "labelled": 2,
+          "undersized": [
+            {
+              "label": "Play again. Tap Rush",
+              "widthDp": 379,
+              "heightDp": 23
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/rewards",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        }
+      ],
+      "violations": [
+        {
+          "surface": "dark/data-management",
+          "kind": "target<44dp",
+          "label": "Export backup to JSON",
+          "widthDp": 141,
+          "heightDp": 29
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "7d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "30d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "90d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "All",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/results",
+          "kind": "target<44dp",
+          "label": "Play again. Tap Rush",
+          "widthDp": 379,
+          "heightDp": 23
+        },
+        {
+          "surface": "light/data-management",
+          "kind": "target<44dp",
+          "label": "Export backup to JSON",
+          "widthDp": 141,
+          "heightDp": 29
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "7d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "30d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "90d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "All",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/results",
+          "kind": "target<44dp",
+          "label": "Play again. Tap Rush",
+          "widthDp": 379,
+          "heightDp": 23
+        }
+      ]
+    },
+    "compact": {
+      "dir": "D:\\Temp\\campaign067-captures\\compact",
+      "density": 320,
+      "surfaces": [
+        {
+          "surface": "dark/data-management",
+          "interactive": 0,
+          "labelled": 0,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/game-detail",
+          "interactive": 3,
+          "labelled": 3,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/game-intro",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/games",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Card Sort, Flexibility game, New",
+              "heightDp": 8
+            },
+            {
+              "label": "Color Stroop, Flexibility game, New",
+              "heightDp": 8
+            }
+          ]
+        },
+        {
+          "surface": "dark/home",
+          "interactive": 4,
+          "labelled": 4,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/profile",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress-activity",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress-detail",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [
+            {
+              "label": "7d",
+              "widthDp": 81,
+              "heightDp": 32
+            },
+            {
+              "label": "30d",
+              "widthDp": 81,
+              "heightDp": 32
+            },
+            {
+              "label": "90d",
+              "widthDp": 81,
+              "heightDp": 32
+            },
+            {
+              "label": "All",
+              "widthDp": 81,
+              "heightDp": 32
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/results",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/rewards",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/data-management",
+          "interactive": 0,
+          "labelled": 0,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/game-detail",
+          "interactive": 3,
+          "labelled": 3,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/game-intro",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/games",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Card Sort, Flexibility game, New",
+              "heightDp": 8
+            },
+            {
+              "label": "Color Stroop, Flexibility game, New",
+              "heightDp": 8
+            }
+          ]
+        },
+        {
+          "surface": "light/home",
+          "interactive": 4,
+          "labelled": 4,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/profile",
+          "interactive": 6,
+          "labelled": 6,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress-activity",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress-detail",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [
+            {
+              "label": "7d",
+              "widthDp": 81,
+              "heightDp": 32
+            },
+            {
+              "label": "30d",
+              "widthDp": 81,
+              "heightDp": 32
+            },
+            {
+              "label": "90d",
+              "widthDp": 81,
+              "heightDp": 32
+            },
+            {
+              "label": "All",
+              "widthDp": 81,
+              "heightDp": 32
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/results",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/rewards",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        }
+      ],
+      "violations": [
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "7d",
+          "widthDp": 81,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "30d",
+          "widthDp": 81,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "90d",
+          "widthDp": 81,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "All",
+          "widthDp": 81,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "7d",
+          "widthDp": 81,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "30d",
+          "widthDp": 81,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "90d",
+          "widthDp": 81,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "All",
+          "widthDp": 81,
+          "heightDp": 32
+        }
+      ]
+    },
+    "font-scale-2": {
+      "dir": "D:\\Temp\\campaign067-captures\\font-scale-2",
+      "density": 420,
+      "surfaces": [
+        {
+          "surface": "dark/data-management",
+          "interactive": 0,
+          "labelled": 0,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/game-detail",
+          "interactive": 3,
+          "labelled": 3,
+          "undersized": [
+            {
+              "label": "Add to favorites",
+              "widthDp": 379,
+              "heightDp": 36
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/game-intro",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/games",
+          "interactive": 4,
+          "labelled": 4,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Open game details",
+              "heightDp": 20
+            }
+          ]
+        },
+        {
+          "surface": "dark/home",
+          "interactive": 4,
+          "labelled": 4,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Start today's workout, 4 games",
+              "heightDp": 55
+            }
+          ]
+        },
+        {
+          "surface": "dark/profile",
+          "interactive": 5,
+          "labelled": 5,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Buy Freeze for 100 coins",
+              "heightDp": 5
+            }
+          ]
+        },
+        {
+          "surface": "dark/progress-activity",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress-detail",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/progress",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [
+            {
+              "label": "7d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "30d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "90d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "All",
+              "widthDp": 94,
+              "heightDp": 32
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/results",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "dark/rewards",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/data-management",
+          "interactive": 0,
+          "labelled": 0,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/game-detail",
+          "interactive": 3,
+          "labelled": 3,
+          "undersized": [
+            {
+              "label": "Add to favorites",
+              "widthDp": 379,
+              "heightDp": 36
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/game-intro",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/games",
+          "interactive": 4,
+          "labelled": 4,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Open game details",
+              "heightDp": 20
+            }
+          ]
+        },
+        {
+          "surface": "light/home",
+          "interactive": 4,
+          "labelled": 4,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Start today's workout, 4 games",
+              "heightDp": 55
+            }
+          ]
+        },
+        {
+          "surface": "light/profile",
+          "interactive": 5,
+          "labelled": 5,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": [
+            {
+              "label": "Buy Freeze for 100 coins",
+              "heightDp": 5
+            }
+          ]
+        },
+        {
+          "surface": "light/progress-activity",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress-detail",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/progress",
+          "interactive": 7,
+          "labelled": 7,
+          "undersized": [
+            {
+              "label": "7d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "30d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "90d",
+              "widthDp": 94,
+              "heightDp": 32
+            },
+            {
+              "label": "All",
+              "widthDp": 94,
+              "heightDp": 32
+            }
+          ],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/results",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        },
+        {
+          "surface": "light/rewards",
+          "interactive": 1,
+          "labelled": 1,
+          "undersized": [],
+          "unlabelled": [],
+          "clipped": []
+        }
+      ],
+      "violations": [
+        {
+          "surface": "dark/game-detail",
+          "kind": "target<44dp",
+          "label": "Add to favorites",
+          "widthDp": 379,
+          "heightDp": 36
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "7d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "30d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "90d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "dark/progress",
+          "kind": "target<44dp",
+          "label": "All",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/game-detail",
+          "kind": "target<44dp",
+          "label": "Add to favorites",
+          "widthDp": 379,
+          "heightDp": 36
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "7d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "30d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "90d",
+          "widthDp": 94,
+          "heightDp": 32
+        },
+        {
+          "surface": "light/progress",
+          "kind": "target<44dp",
+          "label": "All",
+          "widthDp": 94,
+          "heightDp": 32
+        }
+      ]
+    }
+  },
+  "classification": "All flagged nodes are rendered visual bounds of Tappable-backed controls (hit-slop expands to the 44dp MinTouchTarget): progress SegmentedControl tabs, kit Button (Export/Play again/Add to favorites). Zero unlabelled interactive nodes."
+}

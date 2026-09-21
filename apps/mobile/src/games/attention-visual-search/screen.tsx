@@ -23,7 +23,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   isDevBuild,
@@ -44,6 +43,7 @@ import {
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
+import { useSafeBack } from '@/components/ui';
 
 import { TileGrid } from './components/grid';
 import type { TileVisualState } from './components/tile';
@@ -93,7 +93,7 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
     persistSession = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(
     visualSearchGameReducer,
     undefined,
@@ -254,8 +254,8 @@ export default function VisualSearchScreen(props: VisualSearchScreenProps = {}) 
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleTapTile = useCallback(
     (index: number) => {

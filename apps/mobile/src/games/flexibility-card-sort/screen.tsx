@@ -19,7 +19,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   isDevBuild,
@@ -30,7 +29,7 @@ import {
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { GameButton, StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -85,7 +84,7 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
     persistSession = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(flexibilityGameReducer, undefined, createInitialFlexibilityState);
 
   const stateRef = useRef(state);
@@ -283,8 +282,8 @@ export default function CardSortScreen(props: CardSortScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handlePick = useCallback(
     (index: number) => {

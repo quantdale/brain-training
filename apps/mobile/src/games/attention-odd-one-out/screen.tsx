@@ -19,7 +19,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   isDevBuild,
@@ -40,6 +39,7 @@ import {
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
+import { useSafeBack } from '@/components/ui';
 
 import { ItemGrid } from './components/grid';
 import type { TileVisualState } from './components/tile';
@@ -85,7 +85,7 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
     persistSession = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(oddOneOutReducer, undefined, createInitialOddOneOutState);
 
   const stateRef = useRef(state);
@@ -263,8 +263,8 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleTapTile = useCallback(
     (index: number) => {

@@ -33,6 +33,7 @@ import {
   BackupDataValidationError,
 } from '../index';
 import { makeDb, seedFixture, buildEnvelope, emptyData, T0 } from './helpers';
+import { MAX_WORKOUT_GAME_IDS } from '@/workout/templates';
 
 describe('oversized backup text', () => {
   it('rejects text above MAX_BACKUP_TEXT_LENGTH before parsing', () => {
@@ -543,5 +544,73 @@ describe('wipe completeness against the live schema', () => {
       );
       expect(rows).toEqual([]);
     }
+  });
+});
+
+function workoutWithGameIds(gameIds: string[]) {
+  return {
+    date: '2026-08-20',
+    gameIds,
+    status: 'active' as const,
+    currentIndex: 0,
+    rerollAttempt: 0,
+    seedVersion: 1,
+    createdAt: T0,
+    updatedAt: T0,
+  };
+}
+
+describe('workout gameIds are bounded by the template engine maximum', () => {
+  it('rejects an imported workout with more legs than any real workout can own', () => {
+    const data = emptyData();
+    const ids = Array.from(
+      { length: MAX_WORKOUT_GAME_IDS + 1 },
+      (_, i) => `game-${i}`,
+    );
+    data.workoutInstances.push(workoutWithGameIds(ids));
+
+    let error: unknown;
+    try {
+      parseAndValidateBackup(serializeBackup(buildEnvelope(data)));
+    } catch (err) {
+      error = err;
+    }
+    // Typed validation rejection — never a Home-screen freeze after import.
+    expect(error).toBeInstanceOf(BackupDataValidationError);
+    expect((error as BackupDataValidationError).issues.join('; ')).toContain(
+      `has ${MAX_WORKOUT_GAME_IDS + 1} game ids (the maximum is ${MAX_WORKOUT_GAME_IDS})`,
+    );
+  });
+
+  it('accepts workouts at and below the maximum (4 and 6 ids)', () => {
+    for (const count of [4, MAX_WORKOUT_GAME_IDS]) {
+      const data = emptyData();
+      const ids = Array.from({ length: count }, (_, i) => `game-${i}`);
+      data.workoutInstances.push(workoutWithGameIds(ids));
+      const parsed = parseAndValidateBackup(serializeBackup(buildEnvelope(data)));
+      expect(parsed.data.workoutInstances).toHaveLength(1);
+      expect(parsed.data.workoutInstances[0].gameIds).toHaveLength(count);
+    }
+  });
+});
+
+describe('deeply nested backups fail with the typed malformed error', () => {
+  it('wraps the canonical writer RangeError instead of letting it escape', () => {
+    // JSON.parse accepts ~100k nesting levels; the recursive canonical writer
+    // does not. The checksum gate must surface a typed malformed-backup error
+    // before any validation/mutation path, never an untyped stack overflow.
+    const depth = 100_000;
+    const nested = `${'['.repeat(depth)}0${']'.repeat(depth)}`;
+    const text =
+      '{"format":"brain-training-backup","version":1,"createdAt":1,' +
+      '"schemaVersion":1,"checksum":"deadbeef","checksumAlgorithm":"sha256",' +
+      '"data":{"schemaVersion":1,"profile":null,"gameSessions":[],' +
+      '"domainRatings":[],"ratingHistory":[],"currencyLedger":[],' +
+      `"gameFavorites":${nested},"xpAwards":[],"tutorialState":[],` +
+      '"workoutInstances":[],"questDefinitions":[],"questProgress":[],' +
+      '"achievementDefinitions":[],"achievementUnlocks":[]}}';
+
+    expect(() => parseAndValidateBackup(text)).toThrow(MalformedBackupError);
+    expect(() => parseAndValidateBackup(text)).toThrow(/could not be canonicalized/);
   });
 });

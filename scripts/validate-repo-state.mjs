@@ -278,8 +278,8 @@ if (activeProgram !== undefined) {
     if (typeof activeCampaign === 'string' && activeCampaign.trim()) {
       errors.push('GOVERNANCE cannot declare both an activeCampaign and an activeProgram');
     }
-    if (activeProgram.state !== 'ACTIVE') {
-      errors.push(`GOVERNANCE.activeProgram.state must be 'ACTIVE' while the program runs, got '${activeProgram.state ?? 'missing'}'`);
+    if (!['ACTIVE', 'PHASE_2_HARDENING', 'COMPLETE'].includes(activeProgram.state)) {
+      errors.push(`GOVERNANCE.activeProgram.state must be one of ACTIVE, PHASE_2_HARDENING, COMPLETE, got '${activeProgram.state ?? 'missing'}'`);
     } else {
       const currentChange =
         typeof activeProgram.currentChange === 'string' ? activeProgram.currentChange.trim() : '';
@@ -306,12 +306,26 @@ if (activeProgram !== undefined) {
             if (meta.id !== currentChange) {
               errors.push('activeProgram.currentChange change.json id does not match the program binding');
             }
-            if (!['IN_PROGRESS', 'ACTIVE'].includes(meta.status)) {
+            if (activeProgram.state === 'ACTIVE' && !['IN_PROGRESS', 'ACTIVE'].includes(meta.status)) {
               errors.push(`activeProgram.currentChange '${currentChange}' must be IN_PROGRESS while the program runs, got '${meta.status}'`);
+            }
+            if (activeProgram.state !== 'ACTIVE' && meta.status !== 'VALIDATED') {
+              errors.push(`activeProgram.currentChange '${currentChange}' must be VALIDATED in state ${activeProgram.state}, got '${meta.status}'`);
             }
           } catch (error) {
             errors.push(`cannot read activeProgram.currentChange change.json: ${error.message}`);
           }
+        }
+      }
+      // Phase 2 (post-067 hardening) must name its evidence root, and the
+      // directory must exist so the phase cannot start without a home for
+      // its evidence.
+      if (activeProgram.state === 'PHASE_2_HARDENING') {
+        const evidenceRoot = activeProgram.hardeningEvidenceRoot;
+        if (typeof evidenceRoot !== 'string' || !evidenceRoot.trim()) {
+          errors.push('GOVERNANCE.activeProgram.hardeningEvidenceRoot must be a non-empty path in PHASE_2_HARDENING');
+        } else if (!fs.existsSync(path.join(root, evidenceRoot))) {
+          errors.push(`GOVERNANCE.activeProgram.hardeningEvidenceRoot references missing path '${evidenceRoot}'`);
         }
       }
     }

@@ -140,6 +140,29 @@ describe('SegmentedControl', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith('month');
   });
+
+  it('lays out compact options at the 44 dp floor, not just via hit slop', async () => {
+    // uiautomator exposes the option's laid-out bounds to assistive tech, so a
+    // compact row must be a real 44 dp node; hit-slop expansion is invisible
+    // to the Android accessibility tree and read as a 32 dp target.
+    await render(
+      <SegmentedControl
+        options={[
+          { value: '7d', label: '7d' },
+          { value: '30d', label: '30d' },
+        ]}
+        value="7d"
+        onChange={() => {}}
+        compact
+        testID="compact"
+      />,
+    );
+    for (const id of ['compact-option-7d', 'compact-option-30d']) {
+      expect(flatten(screen.getByTestId(id).props.style).minHeight).toBeGreaterThanOrEqual(
+        MinTouchTarget,
+      );
+    }
+  });
 });
 
 describe('IconButton', () => {

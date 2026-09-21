@@ -29,7 +29,11 @@ export interface SegmentedControlProps {
   value: string;
   onChange: (value: string) => void;
   testID?: string;
-  /** Denser labels and padding; the interaction area still meets the floor. */
+  /**
+   * Denser labels and padding. The row still lays out at the 44 dp floor:
+   * uiautomator exposes the option's visual bounds to assistive tech, so a
+   * 32 dp row would read as an undersized target even with hit-slop expansion.
+   */
   compact?: boolean;
 }
 
@@ -113,7 +117,6 @@ export function SegmentedControl({ options, value, onChange, testID, compact = f
             accessibilityState={{ selected }}
             accessibilityLabel={option.label}
             onPress={() => onChange(option.value)}
-            renderedSize={compact ? Spacing.five : MinTouchTarget}
             style={[styles.option, compact && styles.optionCompact]}>
             <ThemedText
               type={compact ? 'caption' : 'bodySmall'}
@@ -154,7 +157,8 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS_CAP,
   },
   optionCompact: {
-    minHeight: Spacing.five,
+    // The compact variant shrinks type and padding, never the target.
+    minHeight: MinTouchTarget,
     paddingHorizontal: Spacing.one,
     borderRadius: Radii.medium,
   },

@@ -18,7 +18,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-import { useRouter } from "expo-router";
 
 import {
   isDevBuild,
@@ -33,7 +32,7 @@ import type {
 } from "@/sdk";
 import { pipelineXpRatingHook } from "@/rating/xp-hook";
 import { ThemedText } from "@/components/themed-text";
-import { AnimatedNumber } from "@/components/ui";
+import { AnimatedNumber, useSafeBack } from "@/components/ui";
 import { GameButton, StatRow } from "@/components/game-ui";
 import { Radii, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -92,7 +91,7 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
     persistSession = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const theme = useTheme();
   const [state, dispatch] = useReducer(
     orderPathGameReducer,
@@ -272,8 +271,8 @@ export default function OrderPathScreen(props: OrderPathScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleSelectItem = useCallback(
     (item: string) => {

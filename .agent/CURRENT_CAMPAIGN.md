@@ -3,7 +3,7 @@
 **Program id:** `056-067-overnight-autonomous-program` · **Status:** ACTIVE
 **Prompt:** `.agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md` (program SHA `428d293`)
 **Living ledger:** `.agent/OVERNIGHT_056_067_STATE.md`
-**Current change:** `067-terminal-whole-product-certification` (IN PROGRESS; 056–066 VALIDATED)
+**Current change:** `067-terminal-whole-product-certification` (VALIDATED; post-067 hardening PHASE_2 active, evidence root `docs/hardening/post067/`)
 **Note:** the authoritative `**Campaign id:**` / `**Status:**` fields below belong to the terminal
 Campaign 055 record and are intentionally left intact; the active program is registered in
 `.agent/GOVERNANCE.json` (`activeProgram`) and reconciled by `node scripts/validate-repo-state.mjs`.

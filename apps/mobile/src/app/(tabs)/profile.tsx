@@ -51,6 +51,13 @@ import {
 } from "@/achievements";
 import { buildAchievementSnapshot, refreshProgression } from "@/progression";
 import {
+  lastSyncedQuestSnapshot,
+  progressionFocusSyncDue,
+  progressionInputFingerprint,
+  readNewestProgressionInput,
+  runProgressionSync,
+} from "@/progression/focus-sync";
+import {
   levelForXp,
   levelProgress,
   xpForNextLevel,
@@ -213,12 +220,24 @@ async function loadProfile(
   now = new Date(),
 ): Promise<ProfileData> {
   // Re-evaluate quests/achievements from persisted sessions first so the
-  // screen reflects sessions completed since the last visit. The shared
-  // refresh also re-seeds definitions if a wipe/replace dropped them, and
-  // returns the exact snapshot it evaluated — the screen derives its quest
-  // rows from the same bounded sample + lifetime aggregates, no second full
-  // scan (Campaign 027 performance work).
-  const questSnapshot = await refreshProgression(db, now);
+  // screen reflects sessions completed since the last visit. Finding 1: the
+  // focus-time sync is throttled by the shared input-aware gate; when the
+  // window is still fresh the last successful sync's snapshot is reused (the
+  // persisted rows cannot have changed inside the window), and a newly
+  // completed session forces an immediate sync. The refresh also re-seeds
+  // definitions if a wipe/replace dropped them, and returns the exact snapshot
+  // it evaluated — the screen derives its quest rows from the same bounded
+  // sample + lifetime aggregates, no second full scan (Campaign 027).
+  const newest = await readNewestProgressionInput(db, now.getTime());
+  const fingerprint = progressionInputFingerprint(newest);
+  let questSnapshot = lastSyncedQuestSnapshot();
+  if (progressionFocusSyncDue(now.getTime(), fingerprint) || questSnapshot === null) {
+    questSnapshot = await runProgressionSync(
+      (syncNow) => refreshProgression(db, syncNow),
+      now,
+      fingerprint,
+    );
+  }
 
   const [balance, profile, unlockRows, progressRows, sessionXp, awardsXp] =
     await Promise.all([

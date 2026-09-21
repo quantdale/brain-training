@@ -5,10 +5,10 @@
  * current selection and the dispatch callback; no reducer or game mechanics
  * live here.
  *
- * Accessibility: the row is announced as a difficulty radio group (chips keep
- * the button role with a truthful `selected` state, which screen readers read
- * as "selected"), and every chip inherits GameButton's 44pt touch-target
- * contract.
+ * Accessibility: the row is announced as a difficulty radio group and each
+ * chip carries the `radio` role with a truthful `selected` state, so screen
+ * readers announce the group/choice relationship instead of four unrelated
+ * buttons. Every chip inherits GameButton's 44pt touch-target contract.
  */
 import { View, StyleSheet } from 'react-native';
 
@@ -37,6 +37,7 @@ export function DifficultySelector({ gameId, selected, onSelect }: DifficultySel
             label={label}
             variant={isSelected ? 'primary' : 'secondary'}
             selected={isSelected}
+            accessibilityRole="radio"
             hint={isSelected ? `Selected difficulty: ${label}` : `Set difficulty to ${label}`}
             onPress={() => onSelect(level as DifficultyLevel)}
           />

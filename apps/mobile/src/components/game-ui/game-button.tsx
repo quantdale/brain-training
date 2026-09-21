@@ -11,7 +11,7 @@
  * Mechanics stay out: this is a dumb pressable with themed variants only.
  */
 import { memo, type Ref } from 'react';
-import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type AccessibilityRole, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Button } from '@/components/ui';
 import type { ButtonVariant } from '@/components/ui/button';
@@ -33,6 +33,11 @@ export interface GameButtonProps {
   selected?: boolean;
   /** Optional screen-reader hint describing the action's result. */
   hint?: string;
+  /**
+   * Overrides the default `button` role for controls that belong to a
+   * composite widget (e.g. a difficulty chip inside a radio group).
+   */
+  accessibilityRole?: AccessibilityRole;
   /** Host view ref for focus management (React 19 ref-as-prop). */
   ref?: Ref<View>;
   style?: StyleProp<ViewStyle>;
@@ -58,6 +63,7 @@ export const GameButton = memo(function GameButton({
   disabled = false,
   selected = false,
   hint,
+  accessibilityRole,
   ref,
   style,
 }: GameButtonProps) {
@@ -72,6 +78,7 @@ export const GameButton = memo(function GameButton({
       size={small ? 'sm' : 'md'}
       disabled={disabled}
       fullWidth={false}
+      accessibilityRole={accessibilityRole}
       accessibilityHint={hint}
       accessibilityState={{ disabled, selected }}
       style={[small ? styles.buttonSmall : styles.button, style]}

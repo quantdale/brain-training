@@ -73,9 +73,15 @@ import type { AppDatabase, DomainRating } from "@/db";
 import type { GameDefinition } from "@/sdk";
 import { levelForXp, levelProgress, xpForLevel } from "@/rating";
 import { useDbData } from "@/hooks/use-db-data";
-import { getAllGameDefinitions } from "@/registry/registry";
+import { getAllGameDefinitions, getGameDefinition } from "@/registry/registry";
 import { collectClaimableRewards } from "@/rewards/inbox";
 import { refreshProgression } from "@/progression";
+import {
+  progressionFocusSyncDue,
+  progressionInputFingerprint,
+  runProgressionSync,
+  type ProgressionInput,
+} from "@/progression/focus-sync";
 import {
   effectiveCurrent,
   milestoneProgress,
@@ -159,6 +165,9 @@ interface TemplateResumeEntry {
 
 async function loadHome(db: AppDatabase): Promise<HomeData> {
   const nowMs = Date.now();
+  // One focus-time progression sync per throttle window (finding 1): the
+  // newest persisted session is the fingerprint, so a completion always wins
+  // over the window. Home already reads the newest sessions below.
   const [
     domainRatings,
     recent,
@@ -179,8 +188,10 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
       db.profile.get(),
     ]);
 
-  // Task 9.6: Build recent sessions with game names
-  const { getGameDefinition } = await import("@/registry/registry");
+  // Task 9.6: Build recent sessions with game names. The registry is already
+  // statically imported above; the former dynamic import broke this loader in
+  // the Jest environment (untransformed `import()`), hiding the whole tail of
+  // the load from every Home test.
   const recentSessions = recent.slice(0, 5).map((session) => ({
     id: session.id,
     gameId: session.gameId,
@@ -199,7 +210,7 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
     balance,
     totalXp: sessionXp + awardsXp,
     recentSessions,
-    claimableRewards: await loadClaimableRewardCount(db),
+    claimableRewards: await loadClaimableRewardCount(db, recent[0] ?? null, nowMs),
   };
 }
 
@@ -208,15 +219,28 @@ async function loadHome(db: AppDatabase): Promise<HomeData> {
  * claimable rewards for the Rewards quick-action hint. Isolated try/catch so
  * an engagement-layer failure can never blank the core dashboard slots —
  * the hint simply stays at zero.
+ *
+ * Finding 1: the progression sync is throttled by the shared focus gate. The
+ * fingerprint comes from the newest session Home already read; a completion
+ * changes it and forces an immediate sync regardless of the window.
  */
-async function loadClaimableRewardCount(db: AppDatabase): Promise<number> {
-  // Sync quests/achievements first: a session completed in this process must
-  // be reflected in the hint without a Profile detour. Both steps are isolated
-  // so an engagement-layer failure can never blank the core dashboard slots.
-  try {
-    await refreshProgression(db);
-  } catch (error) {
-    console.error('[home] progression refresh failed', error);
+async function loadClaimableRewardCount(
+  db: AppDatabase,
+  newestSession: ProgressionInput | null,
+  nowMs: number,
+): Promise<number> {
+  const fingerprint = progressionInputFingerprint(newestSession);
+  if (progressionFocusSyncDue(nowMs, fingerprint)) {
+    // Sync quests/achievements first: a session completed in this process must
+    // be reflected in the hint without a Profile detour. Both steps are
+    // isolated so an engagement-layer failure can never blank the core
+    // dashboard slots.
+    try {
+      const now = new Date(nowMs);
+      await runProgressionSync((syncNow) => refreshProgression(db, syncNow), now, fingerprint);
+    } catch (error) {
+      console.error('[home] progression refresh failed', error);
+    }
   }
   try {
     return (await collectClaimableRewards(db)).length;

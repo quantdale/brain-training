@@ -18,7 +18,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   isDevBuild,
@@ -29,7 +28,7 @@ import {
 import type { Clock, TutorialStore, XpRatingHook } from '@/sdk';
 import { pipelineXpRatingHook } from '@/rating/xp-hook';
 import { ThemedText } from '@/components/themed-text';
-import { AnimatedNumber } from '@/components/ui';
+import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
 import { Spacing } from '@/constants/theme';
 import {
@@ -91,7 +90,7 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
     persistSession = dbSessionPersister,
     xpHook = pipelineXpRatingHook,
   } = props;
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(
     vigilanceGameReducer,
     undefined,
@@ -256,8 +255,8 @@ export default function VigilanceScreen(props: VigilanceScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleGo = useCallback(() => {
     const current = stateRef.current;

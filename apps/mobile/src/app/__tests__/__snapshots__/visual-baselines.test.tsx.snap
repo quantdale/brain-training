@@ -3631,14 +3631,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 6,
-                            "left": 6,
-                            "right": 6,
-                            "top": 6,
-                          }
-                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3654,7 +3646,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 32,
+                            "minHeight": 44,
                             "paddingHorizontal": 4,
                             "transform": [
                               {
@@ -3712,14 +3704,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 6,
-                            "left": 6,
-                            "right": 6,
-                            "top": 6,
-                          }
-                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3735,7 +3719,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 32,
+                            "minHeight": 44,
                             "paddingHorizontal": 4,
                             "transform": [
                               {
@@ -3793,14 +3777,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 6,
-                            "left": 6,
-                            "right": 6,
-                            "top": 6,
-                          }
-                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3816,7 +3792,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 32,
+                            "minHeight": 44,
                             "paddingHorizontal": 4,
                             "transform": [
                               {
@@ -3874,14 +3850,6 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         accessible={true}
                         collapsable={false}
                         focusable={true}
-                        hitSlop={
-                          {
-                            "bottom": 6,
-                            "left": 6,
-                            "right": 6,
-                            "top": 6,
-                          }
-                        }
                         onBlur={[Function]}
                         onClick={[Function]}
                         onFocus={[Function]}
@@ -3897,7 +3865,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "borderRadius": 12,
                             "flex": 1,
                             "justifyContent": "center",
-                            "minHeight": 32,
+                            "minHeight": 44,
                             "paddingHorizontal": 4,
                             "transform": [
                               {
@@ -7735,14 +7703,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
-                hitSlop={
-                  {
-                    "bottom": 6,
-                    "left": 6,
-                    "right": 6,
-                    "top": 6,
-                  }
-                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -7758,7 +7718,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 32,
+                    "minHeight": 44,
                     "paddingHorizontal": 4,
                     "transform": [
                       {
@@ -7816,14 +7776,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
-                hitSlop={
-                  {
-                    "bottom": 6,
-                    "left": 6,
-                    "right": 6,
-                    "top": 6,
-                  }
-                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -7839,7 +7791,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 32,
+                    "minHeight": 44,
                     "paddingHorizontal": 4,
                     "transform": [
                       {
@@ -7897,14 +7849,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
-                hitSlop={
-                  {
-                    "bottom": 6,
-                    "left": 6,
-                    "right": 6,
-                    "top": 6,
-                  }
-                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -7920,7 +7864,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 32,
+                    "minHeight": 44,
                     "paddingHorizontal": 4,
                     "transform": [
                       {
@@ -7978,14 +7922,6 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 accessible={true}
                 collapsable={false}
                 focusable={true}
-                hitSlop={
-                  {
-                    "bottom": 6,
-                    "left": 6,
-                    "right": 6,
-                    "top": 6,
-                  }
-                }
                 onBlur={[Function]}
                 onClick={[Function]}
                 onFocus={[Function]}
@@ -8001,7 +7937,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     "borderRadius": 12,
                     "flex": 1,
                     "justifyContent": "center",
-                    "minHeight": 32,
+                    "minHeight": 44,
                     "paddingHorizontal": 4,
                     "transform": [
                       {

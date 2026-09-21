@@ -9,7 +9,8 @@
     "prompt": ".agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md",
     "ledger": ".agent/OVERNIGHT_056_067_STATE.md",
     "currentChange": "067-terminal-whole-product-certification",
-    "state": "ACTIVE"
+    "state": "COMPLETE",
+    "hardeningEvidenceRoot": "docs/hardening/post067"
   },
   "lastCampaign": "055-signal-arcade-desirability",
   "lastCampaignStatus": "VALIDATED",

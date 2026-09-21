@@ -1,6 +1,6 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import TestRenderer, { act } from 'react-test-renderer';
-import { useEffect } from 'react';
+import { StrictMode, useEffect } from 'react';
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { SettingsProvider, useSettings, type Settings, type SettingsContextValue } from '../settings-provider';
@@ -51,5 +51,28 @@ describe('SettingsProvider persistence', () => {
 
     expect(sinkRef.current!.settings.haptics).toBe(false);
     expect(onChange).toHaveBeenCalledWith({ sfx: true, haptics: false });
+  });
+
+  it('persists exactly once per toggle even when React replays the render (StrictMode)', () => {
+    // React may invoke state updaters more than once (StrictMode) and discard
+    // the extra render. Persisting from inside the updater therefore risks a
+    // double write; the provider must compute the next value outside it.
+    const sinkRef = { current: null as SettingsContextValue | null };
+    const onChange = jest.fn<(settings: Settings) => void>();
+    act(() => {
+      TestRenderer.create(
+        <StrictMode>
+          <SettingsProvider onSettingsChange={onChange}>
+            <Probe sinkRef={sinkRef} />
+          </SettingsProvider>
+        </StrictMode>,
+      );
+    });
+
+    act(() => sinkRef.current!.setSetting('sfx', false));
+
+    expect(sinkRef.current!.settings.sfx).toBe(false);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith({ sfx: false, haptics: true });
   });
 });

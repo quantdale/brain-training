@@ -27,6 +27,7 @@ import { ToastHost, resetToastQueueForTests } from '@/components/ui';
 import type { AppDatabase, WorkoutInstance } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
 import { registry as generatedRegistry } from '@/registry/registry.generated';
+import { resetProgressionFocusSyncForTests } from '@/progression/focus-sync';
 import { expectConsoleNoise } from '@/test-utils';
 
 /** Test-controlled db surface served by the mocked `@/db` module. */
@@ -42,6 +43,20 @@ jest.mock('@/db', () => {
     ...actual,
     getDb: () => mockDbState.db,
     initDatabase: jest.fn(async () => undefined),
+  };
+});
+
+// Home's focus-time progression sync is mocked: the partial fake db has no
+// progression catalogs, and the finding-1 gate (not the sync engine) is what
+// these Home tests exercise.
+jest.mock('@/progression', () => {
+  const actual = jest.requireActual('@/progression') as Record<string, unknown>;
+  return {
+    ...actual,
+    refreshProgression: jest.fn(async () => ({
+      sessions: [],
+      lifetime: { sessionCount: 0, totalXp: 0 },
+    })),
   };
 });
 
@@ -117,6 +132,7 @@ beforeEach(() => {
   // The real app registers the catalog in _layout.tsx; this minimal route map
   // must do it explicitly or the "More workouts" section never mounts.
   registerGameDefinitions(generatedRegistry);
+  resetProgressionFocusSyncForTests();
   resetToastQueueForTests();
 });
 

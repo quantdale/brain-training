@@ -47,6 +47,7 @@ import {
   type SQLiteAdapter,
 } from '@/db';
 import { createMigratedDb } from '@/db/__tests__/helpers';
+import { resetProgressionFocusSyncForTests } from '@/progression/focus-sync';
 import { applyOwnedStreakItem } from '@/streaks';
 import { expectConsoleNoise } from '@/test-utils';
 
@@ -198,6 +199,7 @@ async function findLoadedBuyButton(balance: number) {
 beforeEach(() => {
   jest.clearAllMocks();
   resetToastQueueForTests();
+  resetProgressionFocusSyncForTests();
   mockDbState.balance = 0;
   mockDbState.settings = {};
   mockDbState.unlockRows = [];

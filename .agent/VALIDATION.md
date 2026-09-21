@@ -228,6 +228,53 @@ unavailable checks into PASS.
   (Pass A/B/C + 067 preconditions),
   `CRITIC_FINDINGS.md`, `GOVERNANCE_RECONCILIATION.md`.
 
+### Change 067 terminal whole-product certification — 2026-09-21 (VALIDATED / CHANGE_067_COMPLETE)
+
+- Scope: **PASS** — strict-validated package; frozen at `a17c019`; release
+  APK `B7AA4102…` (109,598,109 B, bundle `416DD854…` 4,879,768 B,
+  10/10 freshness markers, 8/8 permissions, Metro-free). Full native
+  journey on `emulator-5554`: clean install; cold 5,454 ms + warm /
+  offline / force-stop relaunches 0 ANR; six routes + four recovery
+  probes; share sheet + Files picker open/cancel; real weak completion
+  (speed-tap-rush, XP 10, +2 coins) persisted with relaunch retention;
+  SQLite integrity ok / v12 / 0 FK / 0 duplicate rating rows; 5,180 log
+  lines 0 fatal/ANR/SQLite/RedBox. Canonical six-way pixel matrix 66/66
+  captures PASS; a11y 0 unlabelled interactive nodes (with a hardening
+  correction: Progress tabs were true 32 dp targets, repaired after
+  certification). Terminal ledger + deferral disposition + 067
+  preconditions delivered.
+- Repository gates: **PASS** — pre-hardening matrix 589 suites (585 + 4
+  skipped) / 6,900 passed / 5 snapshots / 0 unexpected console output;
+  OpenSpec `--all --strict` 51/51; all validators green.
+- Boundaries: 42-game six-way interaction expansion, crafted import via
+  the two-tap UI apply, mid/strong results, workout legs, soak, cold
+  boot = NOT VALIDATED (recorded); human TalkBack/VoiceOver, iOS,
+  physical/OEM, store signing, external CI/account policy = MANUAL /
+  EXTERNAL. Evidence: `docs/redesign/evidence/campaign067/`.
+
+### Post-067 hardening — 2026-09-21 (COMPLETE / `POST_067_HARDENING_COMPLETE`)
+
+- Scope: **PASS** — Pass A/B/C independent read-only critics. Repairs:
+  validator state gate (governance blocker), 42-screen deep-link exit
+  dead-end (device-proven on the hardening build), import `gameIds`
+  bounds, export heap amplification (token coalescing, byte-parity),
+  generator/SDK parity, prototype-pollution-safe canonicalize, typed
+  deep-nesting error, backup-list hygiene, `useDbData` key reset,
+  focus-sync throttle + in-flight dedupe, shared reduced-motion
+  subscription, settings persistence outside the updater, Progress
+  44 dp tabs (device-audited 0 violations), radio semantics, grid a11y,
+  audit-tool occlusion classification; 067 a11y claim and two-tap import
+  explanation corrected.
+- Repository gates: **PASS** — final matrix 598 suites (594 passed + 4
+  skipped) / 6,933 passed / 5 snapshots / 0 unexpected console output
+  (233.0 s); signal PASS; typecheck/lint 0; OpenSpec 51/51; repo-state
+  (program COMPLETE) + task-ownership; offline/secrets/provenance/
+  affected/runtime-QA/dependency/workflows green.
+- Device: hardening build `146F63BF…` (109,602,821 B): cold deep link →
+  game → pause → Quit lands on Games; fresh Progress capture audits 0
+  violations; launch 1,487 ms, 0 fatal/ANR. Zero open repository-owned
+  Critical/High/Medium. Evidence: `docs/hardening/post067/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

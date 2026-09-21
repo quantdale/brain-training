@@ -17,7 +17,6 @@
  */
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import {
   isDevBuild,
@@ -39,6 +38,7 @@ import {
   useGameSession,
 } from '@/components/game-host';
 import type { GameHostView } from '@/components/game-host';
+import { useSafeBack } from '@/components/ui';
 
 import { FeedbackPanel } from './components/feedback';
 import { NumberPad } from './components/number-pad';
@@ -86,7 +86,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
     xpHook = pipelineXpRatingHook,
   } = props;
   const theme = useTheme();
-  const router = useRouter();
+  const goBack = useSafeBack('/games');
   const [state, dispatch] = useReducer(mathGameReducer, undefined, createInitialMathState);
 
   const stateRef = useRef(state);
@@ -244,8 +244,8 @@ export default function MathScreen(props: MathScreenProps = {}) {
 
   const quitToLibrary = useCallback(() => {
     session.abandonIfActive();
-    router.back();
-  }, [session, router]);
+    goBack();
+  }, [session, goBack]);
 
   const handleDigit = useCallback(
     (digit: number) => {
