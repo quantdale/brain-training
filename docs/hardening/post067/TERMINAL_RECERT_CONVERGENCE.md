@@ -112,14 +112,18 @@ identical) + regenerated `registry.generated.ts` + affected-map rules/rows + 5 f
   `:app:assembleDebug` both exit 0 on this host (SDK 35.0.0, JDK 21).
   See FINAL_POST_HARDENING_CERTIFICATION.md.
 
-## Native/device lanes — BLOCKED (environment, evidenced)
+## Native/device lanes — PARTIAL (TCG device evidence; hard limits remain)
 
-Full detail in FINAL_POST_HARDENING_CERTIFICATION.md §Native. In short: final
-artifact `5FE03134…` built and provenance-bound (bundle `423A8718…`, 10/10 + 4
-new-tree markers, 8/8 permissions, debug-signed local release), but the sandbox
-host cannot run an Android guest — broken host-kernel KVM (`kvm_spurious_fault`
-BUG on every vCPU creation, 8 occurrences in `dmesg`), no GPU, no nested virt.
-Five boot attempts across `braintraining-qa35` and fresh `braintraining-ui35`
-(emulator 37.1.11, KVM, modern `-gpu swiftshader`) never reached adb. Native
-matrix, workout, SQLite, logs, provider UI paths, six-way pixels and device
-a11y on the final artifact are NOT VALIDATED (device-blocked, not product).
+Full detail in FINAL_POST_HARDENING_CERTIFICATION.md §Native. Final artifact
+`5FE03134…` built and provenance-bound. Host-kernel KVM is broken
+(`kvm_spurious_fault` BUG, no GPU/nested-virt; 5 failed KVM boots), so the
+session fell back to TCG software emulation on `braintraining-ui35` and
+collected valid device evidence on the exact artifact: clean install, cold +
+warm + force-stop launches, route-verified Home/Games/Detail/Data-Management,
+deep-link exit fix ×2 (Quit→Home warm, Back-to-games→Games cold), live
+gameplay + pause overlay, export written + listed (14,043 chars), retention
+across reboot/force-stop, 60,521-line log review (0 app FATALs; 1 TCG-induced
+app ANR disclosed). Still NOT VALIDATED: completion, workout, SQLite rows,
+import preview-apply, provider UI, offline/malformed probes, six-way pixels,
+device a11y (TCG system ANRs invalidate dialog-free/0-ANR requirements;
+~5–8 min/surface pace).

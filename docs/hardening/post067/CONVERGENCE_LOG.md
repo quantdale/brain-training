@@ -74,6 +74,26 @@ Per policy the lanes are recorded BLOCKED, never green. The only outstanding
 obligation is re-issuing the device matrix on `5FE03134…` from a working
 runtime; no source change is needed first.
 
+## Wave 3 — TCG device-evidence push (2026-09-21, still `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`)
+
+**Runtime:** TCG software emulation (`-accel off`) on `braintraining-ui35`
+(pixel_7, google_apis x86_64, modern `-gpu swiftshader`); first boot ~17 min,
+reboots ~5 min. All automation emulator-local; `study-maker-api35` untouched.
+
+**Validated on exact artifact `5FE03134…`:** clean install + cold launch (no
+Metro) + warm + force-stop/relaunch; Home ×3 / Games / Detail / Data-Management
+route-verified; deep-link exit fix ×2 (Quit→Home, cold Back-to-games→Games);
+live gameplay + pause overlay; export written + listed (14,043 chars);
+retention across reboot/force-stop; 60,521-line log review (0 app FATALs, 1
+disclosed TCG-induced app ANR). Raw dumps/captures (16, gitignored) under
+`qa-artifacts/terminal-recert/device-lanes/`.
+
+**Still NOT VALIDATED:** completion, workout, SQLite rows, import
+preview-apply, provider UI, offline/malformed probes, six-way pixels, device
+a11y — TCG system ANRs + instrumentation wedges make sustained interaction
+(~5–8 min/surface, ~20–30 min stability windows) certification-inviable for
+these lanes. Verdict unchanged: PARTIAL with a strictly stronger evidence base.
+
 ## Reassessment
 
 A convergence reassessment (source diff review + void scan of the new

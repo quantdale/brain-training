@@ -60,44 +60,73 @@ Critical/High/Medium defects. 10 bounded Low fixes landed with regression tests;
 remaining items are accepted Lows / time-bounded debt / disclosed product decisions
 (`TERMINAL_RECERT_CONVERGENCE.md`, `.agent/BACKLOG.md`).
 
-## Native lanes — BLOCKED (environment, evidenced, not product)
+## Native lanes — PARTIAL (device evidence collected under TCG; hard limits remain)
 
-Status: **NOT VALIDATED** — clean install/startup/lifecycle, routing/recovery,
-deep-link exit proof, core journeys, weak/mid/strong results, four-game workout,
-SQLite audit, log review, backup/import/export device paths, six-way pixel matrix
-(66/66), device a11y audits, perf/resource device sanity.
+Environment path actually executed: host-kernel KVM is broken (`kvm_spurious_fault`
+BUG on every vCPU creation, 8× in `dmesg`; no GPU; no nested virt), so after 5
+failed KVM boots across `braintraining-qa35` and fresh `braintraining-ui35`
+(emulator 37.1.11), the session fell back to software emulation (`-accel off`
+TCG) on `braintraining-ui35` (pixel_7, google_apis x86_64, `-gpu swiftshader`
+modern software GL — the obsolete `swiftshader_indirect` value was NOT used).
+First TCG boot ~17 min; later reboots ~5 min. `study-maker-api35` and any other
+runtime were never touched. All automation emulator-local (adb only).
 
-Blocker (fatal, host-level, reproduced 5× across two AVDs):
+### Validated on the exact final artifact `5FE03134…`
 
-- This Linux sandbox has no GPU (`/dev/dri` absent), no Android runtime of its own
-  (SDK/emulator/AVD provisioned during this session), and its kernel KVM is
-  broken: every guest start dies in `kernel BUG at arch/x86/kvm/x86.c:702
-  (kvm_spurious_fault)` on vCPU creation (`dmesg`, 8 occurrences). The box user
-  was granted `/dev/kvm` access and `emulator -accel-check` reports usable, but
-  vCPU creation always faults — nested virtualization is not functional here.
-- Attempts: pre-existing `braintraining-qa35` (3 boots: normal, adb-reset,
-  `-no-snapshot` cold) + freshly created `braintraining-ui35` (pixel_7,
-  google_apis x86_64, cold) on emulator 37.1.11 with KVM + `-gpu swiftshader`
-  (modern software GL; the obsolete `swiftshader_indirect` value was NOT used).
-  Every attempt stalls at 0.2–0.3% qemu CPU with the guest never registering on
-  adb. `study-maker-api35` and any other runtime were never touched.
-- Software-only fallback (`-accel off` TCG) was rejected: an API-35 boot would
-  take the better part of an hour and the interactive 66-capture + workout
-  matrix would be practically unusable and timing-invalid. Not attempted as
-  certification evidence.
+- Clean install (hash-verified `5FE03134…`, `Success`) + cold first launch to
+  foregrounded MainActivity with no Metro anywhere (port 8081 empty).
+- Warm launch `Status: ok`; force-stop → relaunch resumes MainActivity;
+  Home re-verified with `0/4` retention across reboot AND force-stop.
+- Route-verified Home ×3 (`BRAIN TRAINING`, `Today's Workout`, `0/4`);
+  Games library (`TRAIN YOUR BRAIN`, 150 nodes); Memory + Tap Rush Game Detail;
+  Data Management (honest copy, `Ready`, counts).
+- **Post-hardening deep-link exit fix proven twice:** warm deep link → game →
+  pause overlay (`Paused`/`Resume`/`Quit`) → Quit lands safely on Home; cold
+  deep link (empty stack) → intro `Back to games` lands on **Games**. No
+  dead-end, no strand. The shared intro exit (R3-F4 fix) is live on device.
+- Live gameplay observed (`Round 1/5`, `Score 0`, `Now repeat it`); pause
+  overlay correct.
+- **Export proven:** `Export to JSON` → `Full backup is 14043 characters` →
+  `brain-training-backup_2026-09-21_20-45-33.json` written AND listed with
+  Load/Share/Delete (write/list symmetry live).
+- Frames: real composited 1080×2400 throughout (1–4k unique colors; PIL-gated).
+- Logs: 60,521-line terminal pull — 4 FATALs, all `DeadSystemException` in
+  system processes (reboot fallout); 0 OOM/SIGSEGV/force-finish; 0 RedBox/JS/
+  SQLite-fatal markers. One observed `ANR in com.braintraining.app` during a
+  TCG cold start (app recovered and continued to full function; TCG-throughput
+  artifact, not a product defect — disclosed, not hidden).
+- Raw device evidence (16 dumps/captures, gitignored):
+  `qa-artifacts/terminal-recert/device-lanes/`.
 
-What this blocks: §§11–15 of the prompt on the final artifact. The prior
-067-certified (`B7AA4102…`) and hardening (`146F63BF…`) device evidence stands for
-its own historical scope; it is NOT re-issued onto `5FE03134…` here.
+### Still NOT VALIDATED (honest remainder)
 
-## Import/export hardening — repo lanes GREEN, device UI lanes BLOCKED
+Weak/mid/strong completion, four-game workout, SQLite row-level audit
+(release is not debuggable; export-content audit needs a completed session),
+import preview-apply confirmation, provider open/cancel, offline launch,
+malformed/oversized route probes, six-way pixel matrix, device a11y audits.
+
+Why: under TCG the system emits recurring systemui/launcher/process-system ANR
+dialogs (throughput artifacts) that invalidate the prompt's dialog-free-capture
+and 0-ANR requirements, and uiautomator/dumpsys wedge repeatedly (including
+`UiAutomation` connect-timeout FATALS in shell instrumentation, attributed,
+not the app). Sustained interaction (completion ≈ 1 h, workout ≈ 3–6 h,
+66-matrix ≈ 6+ h) is not certification-viable at ~5–8 min/surface with
+~20–30 min stability windows. These lanes stay NOT VALIDATED, never green.
+
+The prior 067-certified (`B7AA4102…`) and hardening (`146F63BF…`) device evidence
+stands for its own historical scope; completion/workout/pixel/a11y lanes are
+NOT re-issued onto `5FE03134…` here.
+
+## Import/export hardening — repo lanes GREEN, device lanes PARTIAL
 
 Exercised on the final tree without a device: export valid + round-trip through the
 supported import path, malformed/oversized/deep-nesting/prototype-pollution/bounds
 rejections, no-partial-apply, idempotent merge (adversarial + hardening + roundtrip
 suites, all green); picker pre-read byte gate + paste `maxLength` + busy guards by
-contract; the two-tap UI apply + system-provider open/cancel remain MANUAL/NOT
-VALIDATED (unchanged from the 067 ledger).
+contract. **On device: export + listing proven** (14,043-char backup written and
+listed with Load/Share/Delete); import preview-apply confirmation + two-tap UI
+apply + system-provider open/cancel remain MANUAL/NOT VALIDATED (unchanged from
+the 067 ledger).
 
 ## Boundaries (unchanged, explicit)
 
@@ -110,10 +139,13 @@ results, workout legs, soak, cold boot on the final artifact: NOT VALIDATED
 ## Next action
 
 The program is safe to leave closed on the repository side: convergence is proven,
-the final artifact is built and provenance-bound to the converged tree, and all
-runnable gates are green. The single outstanding obligation is mechanical, not
-investigative: **boot a working KVM/GPU Android runtime, install `5FE03134…`,
-and re-issue the 067 matrix (native + workout + SQLite + logs + six-way
-pixels/a11y + provider paths) on that exact artifact.** No source change is
-needed first — but if any executable source changes, invalidate `5FE03134…`,
-rebuild, and restart every artifact-dependent lane.
+the final artifact is built and provenance-bound to the converged tree, all
+runnable gates are green, and substantial device evidence now exists on the exact
+artifact (launches, routes, exit fix ×2, live gameplay, pause/quit, export +
+listing, retention, log review). The outstanding obligation is mechanical, not
+investigative: **on a working KVM/GPU Android runtime, install `5FE03134…` and
+re-issue the remainder (weak/mid/strong completion, four-game workout, SQLite
+row audit, import preview-apply, provider paths, offline/malformed probes,
+six-way pixels/a11y) on that exact artifact.** No source change is needed
+first — but if any executable source changes, invalidate `5FE03134…`, rebuild,
+and restart every artifact-dependent lane.

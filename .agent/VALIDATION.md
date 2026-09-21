@@ -295,13 +295,18 @@ unavailable checks into PASS.
   `com.braintraining.app` 0.1.0, debug-signed local release) built from the
   exact converged tree; bundle `423A8718…` (4,886,112 B) with 10/10 freshness
   markers + 4 new-tree markers; 8/8 permission-set match.
-- Native/artifact-dependent lanes: **BLOCKED (environment)** — host-kernel KVM
-  BUG (`kvm_spurious_fault` on every vCPU creation, 8× in `dmesg`), no GPU,
-  no nested virt; 5 failed boots across `braintraining-qa35` and fresh
-  `braintraining-ui35` (emulator 37.1.11, KVM, modern `-gpu swiftshader`);
-  guest never reached adb. Clean install/startup, routes, workout, SQLite,
-  logs, provider UI, six-way pixels, device a11y on the final artifact are
-  NOT VALIDATED, never green. `study-maker-api35` untouched.
+- Native/artifact-dependent lanes: **PARTIAL (TCG device evidence; Wave 3)** —
+  host-kernel KVM BUG (`kvm_spurious_fault`, no GPU/nested-virt; 5 failed KVM
+  boots) forced a TCG fallback on `braintraining-ui35` (emulator 37.1.11).
+  Validated on exact artifact `5FE03134…`: clean install + cold/warm/force-stop
+  launches, route-verified Home/Games/Detail/Data-Management, deep-link exit
+  fix ×2, live gameplay + pause overlay, export written + listed (14,043
+  chars), retention across reboot/force-stop, 60,521-line log review (0 app
+  FATALs; 1 disclosed TCG-induced app ANR). Still NOT VALIDATED: completion,
+  workout, SQLite rows, import preview-apply, provider UI, offline/malformed
+  probes, six-way pixels, device a11y (TCG system ANRs + pace). Raw dumps
+  (16, gitignored): `qa-artifacts/terminal-recert/device-lanes/`.
+  `study-maker-api35` untouched.
 - Boundaries: manual/platform/store/CI per program. Evidence:
   `docs/hardening/post067/FINAL_POST_HARDENING_CERTIFICATION.md`,
   `TERMINAL_RECERT_CONVERGENCE.md`.
