@@ -1,5 +1,7 @@
 // Jest globals imported explicitly (repo has no @types/jest).
 import { describe, expect, it } from '@jest/globals';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 import { canonicalClamp01, canonicalSeedToNumber } from '../index';
 
@@ -53,5 +55,55 @@ describe('canonicalClamp01', () => {
     expect(canonicalClamp01(Number.NaN)).toBe(0);
     expect(canonicalClamp01(Number.POSITIVE_INFINITY)).toBe(0);
     expect(canonicalClamp01(Number.NEGATIVE_INFINITY)).toBe(0);
+  });
+});
+
+/**
+ * Single-source tripwire (R2 residual): game modules must not define their
+ * own local `clamp01` / `seedToNumber` — the bare `Math.min/max` shape drops
+ * the canonical non-finite collapse and drifts silently while suites stay
+ * green. The one allowlisted wrapper delegates to the canonical helper.
+ */
+describe('canonical helper single-source guard', () => {
+  const allowlistedWrappers = new Map<string, string>([
+    [
+      join('games', 'math-number-line-estimation', 'components', 'number-line.tsx'),
+      'delegating wrapper: body must call canonicalClamp01',
+    ],
+  ]);
+
+  function collectSources(dir: string, out: string[]): void {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        if (entry === '__tests__' || entry === 'node_modules') continue;
+        collectSources(full, out);
+      } else if (/\.(ts|tsx)$/.test(entry)) {
+        out.push(full);
+      }
+    }
+  }
+
+  it('has no local clamp01/seedToNumber definitions outside the SDK', () => {
+    const srcRoot = resolve(__dirname, '..', '..');
+    const gamesRoot = join(srcRoot, 'games');
+    const files: string[] = [];
+    collectSources(gamesRoot, files);
+    expect(files.length).toBeGreaterThan(0);
+
+    const localDefinition = /function\s+(clamp01|seedToNumber)\s*\(|(?:const|let)\s+(clamp01|seedToNumber)\s*=/;
+    const offenders: string[] = [];
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      if (!localDefinition.test(source)) continue;
+      const relative = file.slice(srcRoot.length + 1);
+      if (allowlistedWrappers.has(relative)) {
+        // An allowlisted wrapper must genuinely delegate, not re-implement.
+        expect(source).toMatch(/return canonicalClamp01\(value\);/);
+        continue;
+      }
+      offenders.push(relative);
+    }
+    expect(offenders).toEqual([]);
   });
 });

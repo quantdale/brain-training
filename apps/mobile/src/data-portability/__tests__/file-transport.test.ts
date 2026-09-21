@@ -220,6 +220,17 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     await expect(t.deleteBackup('..')).rejects.toThrow(/file name inside/);
   });
 
+  it('rejects names the listing could never show (R1 write/list symmetry)', async () => {
+    const t = createFileBackupTransport();
+    // Dotfiles and `*.tmp` partials are hidden by listBackups; a successful
+    // write under such a name would be invisible in the restore list.
+    await expect(t.writeBackup('.hidden.json', '{}')).rejects.toThrow(/file name inside/);
+    await expect(t.writeBackup('run.tmp', '{}')).rejects.toThrow(/file name inside/);
+    await expect(t.readBackup('.hidden.json')).rejects.toThrow(/file name inside/);
+    await expect(t.deleteBackup('run.tmp')).rejects.toThrow(/file name inside/);
+    expect(await t.listBackups()).toEqual([]);
+  });
+
   it('listBackups orders newest-first (descending names)', async () => {
     const t = createFileBackupTransport();
     await t.writeBackup('brain-training-backup_2026-08-20_09-00-00.json', 'a');

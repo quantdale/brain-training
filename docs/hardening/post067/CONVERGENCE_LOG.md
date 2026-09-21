@@ -43,6 +43,37 @@ hardening tree (recorded as the next certification precondition).
 (repository-owned). Accepted debt and manual/external boundaries are
 listed in `PASS_A/B/C` and the 067 terminal ledger.
 
+## Wave 2 — terminal re-certification (2026-09-21, `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`)
+
+**Recon:** three independent whole-repo passes (R1 invariant attack, R2
+historical/test-blindness, R3 production/hostile) + fresh post-fix R4 pass,
+executed from the `e444ec3` prompt commit over the post-hardening tree.
+
+**Findings:** 0 Critical/High/Medium open across all four passes. 10 bounded
+Low fixes (canonical `clamp01` ×3 + tripwire, single-clock PB guard,
+backwards-clock floor, backup-name symmetry, preview-note qualification,
+`echoId` truncation ×11 + preview echoes, Score rounding ×6, affected-map
+coverage, GameHost intro exit) + `logic-order-path` generatorVersion 1.0.1
+(provenance contract) + regenerated registry + 5 fresh probe baselines.
+R4 verified 9/9 fixes SOUND with 0 regressions and 0 disposition challenges.
+
+**Verification:** clean full matrix 598 suites (594 passed + 4 skipped) /
+6,939 passed + 5 skips / 5 snapshots / 0 unexpected console output; signal
+PASS; typecheck/lint 0; Expo Doctor 21/21; OpenSpec 51/51; all validators
+green; probes 5/5; web export PASS; `:app:assembleRelease` + `:app:assembleDebug`
+exit 0. Final artifact `5FE03134…` (109,604,449 B, bundle `423A8718…`
+4,886,112 B, 10/10 + 4 new-tree markers, 8/8 permissions, debug-signed local
+release) built from the exact converged tree.
+
+**Residual after wave 2:** zero open repository-owned Critical/High/Medium.
+Device lanes on the final artifact (native matrix, workout, SQLite, logs,
+provider UI, six-way pixels, device a11y) are NOT VALIDATED — environment-
+blocked by a host-kernel KVM BUG (`kvm_spurious_fault` on every vCPU creation,
+no GPU/nested-virt; 5 failed boots across two AVDs, emulator 37.1.11).
+Per policy the lanes are recorded BLOCKED, never green. The only outstanding
+obligation is re-issuing the device matrix on `5FE03134…` from a working
+runtime; no source change is needed first.
+
 ## Reassessment
 
 A convergence reassessment (source diff review + void scan of the new

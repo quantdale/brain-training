@@ -375,7 +375,8 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
-      score={String(state.stats.score)}
+      // R4-N1: rounded to match the results StatRow (same residual class).
+      score={String(Math.round(state.stats.score))}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       qaPanel={<QaPanel onForceWin={qaHooks.forceWin} onForceLose={qaHooks.forceLose} />}
       tutorialOpen={state.tutorialOpen}
@@ -461,7 +462,9 @@ export default function OddOneOutScreen(props: OddOneOutScreenProps = {}) {
           onQuit={quitToLibrary}>
           <StatRow
             label="Score"
-            value={String(state.stats.score)}
+            // R2 residual: render the rounded integer — a float-valued future
+            // scoring change must not print raw decimals beside the focal band.
+            value={String(Math.round(state.stats.score))}
             testID={testId(GAME_ID, 'score')}
           />
           <StatRow

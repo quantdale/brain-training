@@ -8,7 +8,7 @@
 
 import type { AppDatabase } from '@/db';
 import { plural } from '@/analytics/format';
-import { parseAndValidateBackup } from './deserialize';
+import { echoId, parseAndValidateBackup } from './deserialize';
 import { applyData } from './apply';
 import { captureTriggers, dropTriggers, recreateTriggers } from './triggers';
 import { emptyCounters, type BackupMeta, type ImportPreview } from './report';
@@ -130,8 +130,10 @@ export async function previewImport(
     const targetProfile = await db.profile.get();
     if (targetProfile && targetProfile.displayName && parsed.data.profile.displayName !== targetProfile.displayName) {
       notes.push(
-        `Profile name differs: device "${targetProfile.displayName || '(none)'}" vs backup "${parsed.data.profile.displayName}". ` +
-          `Merge keeps the backup name; replace overwrites it.`,
+        `Profile name differs: device ${echoId(targetProfile.displayName || '(none)')} vs backup ${echoId(parsed.data.profile.displayName)}. ` +
+          // R1 residual: an empty backup name keeps the device name (apply.ts
+          // resolves `displayName || existing`), so qualify the merge claim.
+          `Merge keeps the backup name when it is non-empty (otherwise the device name is kept); replace overwrites it.`,
       );
     }
   }

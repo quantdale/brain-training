@@ -68,6 +68,21 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
+/**
+ * Bound attacker-controlled values echoed into validation messages (R3
+ * residual). A multi-MB hostile `id` must not amplify into UI text, toast
+ * detail, or logcat lines — truncate long renderings with an explicit
+ * length marker. Normal short ids render verbatim, so existing message
+ * contracts are unchanged.
+ */
+const MAX_ECHO_LENGTH = 80;
+export function echoId(value: unknown): string {
+  const rendered = JSON.stringify(value ?? '?');
+  return rendered.length > MAX_ECHO_LENGTH
+    ? `${rendered.slice(0, MAX_ECHO_LENGTH)}\u2026(${rendered.length} chars)`
+    : rendered;
+}
+
 function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean';
 }
@@ -110,7 +125,7 @@ function validateData(data: unknown): BackupData {
       !isNumber(s.durationMs) ||
       !Number.isSafeInteger(Math.round(s.durationMs))
     ) {
-      issues.push(`gameSessions entry ${JSON.stringify(s?.id ?? '?')} is missing/invalid fields`);
+      issues.push(`gameSessions entry ${echoId(s?.id)} is missing/invalid fields`);
       return false;
     }
     // Range checks mirror the DB's own CHECK constraints/triggers (schema.ts):
@@ -119,22 +134,22 @@ function validateData(data: unknown): BackupData {
     // constraint message after the clear has already run.
     if (s.normalizedResult < 0 || s.normalizedResult > 1) {
       issues.push(
-        `gameSessions entry ${JSON.stringify(s.id)} normalizedResult must be in [0, 1]`,
+        `gameSessions entry ${echoId(s.id)} normalizedResult must be in [0, 1]`,
       );
       return false;
     }
     if (s.xp < 0) {
-      issues.push(`gameSessions entry ${JSON.stringify(s.id)} xp must be nonnegative`);
+      issues.push(`gameSessions entry ${echoId(s.id)} xp must be nonnegative`);
       return false;
     }
     if (s.completedAt < s.startedAt) {
       issues.push(
-        `gameSessions entry ${JSON.stringify(s.id)} completedAt must not precede startedAt`,
+        `gameSessions entry ${echoId(s.id)} completedAt must not precede startedAt`,
       );
       return false;
     }
     if (s.durationMs < 0) {
-      issues.push(`gameSessions entry ${JSON.stringify(s.id)} durationMs must be nonnegative`);
+      issues.push(`gameSessions entry ${echoId(s.id)} durationMs must be nonnegative`);
       return false;
     }
     return true;
@@ -261,7 +276,7 @@ function validateData(data: unknown): BackupData {
     // first render after import. Reject before anything is persisted.
     if (r.gameIds.length > MAX_WORKOUT_GAME_IDS) {
       issues.push(
-        `workoutInstances entry ${JSON.stringify(r.date)} has ${r.gameIds.length} game ids (the maximum is ${MAX_WORKOUT_GAME_IDS})`,
+        `workoutInstances entry ${echoId(r.date)} has ${r.gameIds.length} game ids (the maximum is ${MAX_WORKOUT_GAME_IDS})`,
       );
       return false;
     }
@@ -272,7 +287,7 @@ function validateData(data: unknown): BackupData {
       r.seedVersion < 0 ||
       r.updatedAt < r.createdAt
     ) {
-      issues.push(`workoutInstances entry ${JSON.stringify(r.date)} has invalid progress metadata`);
+      issues.push(`workoutInstances entry ${echoId(r.date)} has invalid progress metadata`);
       return false;
     }
     // Optional Workout V3 metadata (engine 3+): must be object-or-null when
@@ -406,7 +421,7 @@ function validateData(data: unknown): BackupData {
   for (const h of ratingHistoryRaw) {
     if (isObject(h) && isString(h.sessionId) && !sessionIds.has(h.sessionId)) {
       issues.push(
-        `ratingHistory references unknown session ${JSON.stringify(h.sessionId)} (no matching gameSessions entry)`,
+        `ratingHistory references unknown session ${echoId(h.sessionId)} (no matching gameSessions entry)`,
       );
     }
   }
@@ -418,7 +433,7 @@ function validateData(data: unknown): BackupData {
       !sessionIds.has(e.sessionId)
     ) {
       issues.push(
-        `currencyLedger references unknown session ${JSON.stringify(e.sessionId)} (no matching gameSessions entry)`,
+        `currencyLedger references unknown session ${echoId(e.sessionId)} (no matching gameSessions entry)`,
       );
     }
   }
@@ -429,7 +444,7 @@ function validateData(data: unknown): BackupData {
   for (const p of questProgRaw) {
     if (isObject(p) && isString(p.questId) && !questIds.has(p.questId)) {
       issues.push(
-        `questProgress references unknown quest ${JSON.stringify(p.questId)} (no matching questDefinitions entry)`,
+        `questProgress references unknown quest ${echoId(p.questId)} (no matching questDefinitions entry)`,
       );
     }
   }
@@ -437,7 +452,7 @@ function validateData(data: unknown): BackupData {
   for (const u of achUnlocksRaw) {
     if (isObject(u) && isString(u.achievementId) && !achievementIds.has(u.achievementId)) {
       issues.push(
-        `achievementUnlocks references unknown achievement ${JSON.stringify(u.achievementId)} (no matching achievementDefinitions entry)`,
+        `achievementUnlocks references unknown achievement ${echoId(u.achievementId)} (no matching achievementDefinitions entry)`,
       );
     }
   }

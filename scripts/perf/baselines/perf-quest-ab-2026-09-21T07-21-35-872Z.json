@@ -1,0 +1,12 @@
+{
+  "platform": "linux node v22.23.2",
+  "measuredAt": "2026-09-21T07:21:47.615Z",
+  "activeQuests": 9,
+  "engineFirst_ms": 29.37074,
+  "partitionedAfterEngine_ms": 36.529026,
+  "partitionedFirst_ms": 33.655787,
+  "engineAfterPartitioned_ms": 28.620766,
+  "interleavedEngine_ms": 28.671998,
+  "interleavedPartitioned_ms": 29.933697,
+  "keysOnlySinglePass_ms": 8.112878
+}

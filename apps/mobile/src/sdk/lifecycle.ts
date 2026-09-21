@@ -92,21 +92,28 @@ export class SessionLifecycle {
    * terminal states. This is the authoritative "time spent playing".
    */
   elapsedMs(): number {
-    return (
+    // R1 residual: a backwards-moving (injectable/test) clock must not bank
+    // negative segments — production uses the monotonic system clock, but the
+    // seam accepts test clocks, and a negative elapsed time fails loudly at
+    // the persist boundary instead of degrading to 0.
+    return Math.max(
+      0,
       this.activeAccumMs +
-      (this.segmentKind === 'active' && this.segmentStartMs !== null
-        ? this.clock.now() - this.segmentStartMs
-        : 0)
+        (this.segmentKind === 'active' && this.segmentStartMs !== null
+          ? this.clock.now() - this.segmentStartMs
+          : 0),
     );
   }
 
   /** Accumulated paused time in ms (informational / diagnostics). */
   pausedDurationMs(): number {
-    return (
+    // Same backwards-clock floor as elapsedMs (R1 residual).
+    return Math.max(
+      0,
       this.pausedAccumMs +
-      (this.segmentKind === 'paused' && this.segmentStartMs !== null
-        ? this.clock.now() - this.segmentStartMs
-        : 0)
+        (this.segmentKind === 'paused' && this.segmentStartMs !== null
+          ? this.clock.now() - this.segmentStartMs
+          : 0),
     );
   }
 
@@ -121,9 +128,10 @@ export class SessionLifecycle {
       throw new IllegalTransitionError(from, to, method);
     }
 
-    // Close any open segment, banking its elapsed time.
+    // Close any open segment, banking its elapsed time (never negative —
+    // see elapsedMs; a backwards test clock must not decrement the bank).
     if (this.segmentKind !== null && this.segmentStartMs !== null) {
-      const segmentMs = this.clock.now() - this.segmentStartMs;
+      const segmentMs = Math.max(0, this.clock.now() - this.segmentStartMs);
       if (this.segmentKind === 'active') {
         this.activeAccumMs += segmentMs;
       } else {

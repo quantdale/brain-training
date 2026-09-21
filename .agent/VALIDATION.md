@@ -275,6 +275,37 @@ unavailable checks into PASS.
   violations; launch 1,487 ms, 0 fatal/ANR. Zero open repository-owned
   Critical/High/Medium. Evidence: `docs/hardening/post067/`.
 
+### Terminal re-certification — 2026-09-21 (PARTIAL / `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`)
+
+- Scope: **PASS (repository side)** — R1/R2/R3 whole-repo residual passes +
+  post-fix R4 (0 open repo-owned Crit/High/Medium); 10 bounded Low fixes with
+  regression tests (canonical `clamp01` ×3 + tripwire, single-clock PB guard,
+  backwards-clock floor, backup-name symmetry, preview-note qualification,
+  `echoId` truncation, Score rounding ×6, affected-map coverage, GameHost intro
+  exit) + `logic-order-path` generatorVersion 1.0.1 + regenerated registry.
+- Repository gates: **PASS** — clean full matrix 598 suites (594 passed + 4
+  skipped) / 6,939 passed / 5 classified opt-in skips / 5 snapshots / 0
+  unexpected console output (110.2 s); signal PASS; typecheck/lint 0; Expo
+  Doctor 21/21; OpenSpec `--all --strict` 51/51; repo-state + task-ownership;
+  affected sync OK (21 areas) + self-test 16/16; registry `--check`;
+  provenance no-drift + freshness; offline/secrets/workflows/dependency/
+  runtime-QA green; probes 5/5; web export; `:app:assembleRelease` +
+  `:app:assembleDebug` exit 0.
+- Artifact: **PASS (provenance)** — release APK `5FE03134…` (109,604,449 B,
+  `com.braintraining.app` 0.1.0, debug-signed local release) built from the
+  exact converged tree; bundle `423A8718…` (4,886,112 B) with 10/10 freshness
+  markers + 4 new-tree markers; 8/8 permission-set match.
+- Native/artifact-dependent lanes: **BLOCKED (environment)** — host-kernel KVM
+  BUG (`kvm_spurious_fault` on every vCPU creation, 8× in `dmesg`), no GPU,
+  no nested virt; 5 failed boots across `braintraining-qa35` and fresh
+  `braintraining-ui35` (emulator 37.1.11, KVM, modern `-gpu swiftshader`);
+  guest never reached adb. Clean install/startup, routes, workout, SQLite,
+  logs, provider UI, six-way pixels, device a11y on the final artifact are
+  NOT VALIDATED, never green. `study-maker-api35` untouched.
+- Boundaries: manual/platform/store/CI per program. Evidence:
+  `docs/hardening/post067/FINAL_POST_HARDENING_CERTIFICATION.md`,
+  `TERMINAL_RECERT_CONVERGENCE.md`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

@@ -1,4 +1,4 @@
-# ACTIVE — Overnight Program 056→067 (owner-authorized, NIGHT mode)
+# COMPLETE — Overnight Program 056→067 (owner-authorized, NIGHT mode)
 
 **Program id:** `056-067-overnight-autonomous-program` · **Status:** ACTIVE
 **Prompt:** `.agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md` (program SHA `428d293`)

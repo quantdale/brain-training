@@ -13,7 +13,7 @@
  * force actions only reshape state; the screen gates their entry points behind
  * `isDevBuild()` and the hooks call `assertDevOnly()` (see hooks.ts).
  */
-import { createRng, isDifficultyLevel } from "@/sdk";
+import { canonicalClamp01 as clamp01, createRng, isDifficultyLevel } from "@/sdk";
 
 import {
   adaptiveRoundParams,
@@ -35,10 +35,6 @@ import type {
 } from "./types";
 
 export { createInitialLogicDeductionState };
-
-function clamp01(value: number): number {
-  return Math.min(1, Math.max(0, value));
-}
 
 function answerRatio(answerMs: number, budgetMs: number): number {
   return budgetMs > 0 ? clamp01(answerMs / budgetMs) : 1;

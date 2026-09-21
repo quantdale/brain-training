@@ -58,3 +58,17 @@ physical/OEM, store signing, external CI/account policy.
 - The hardening build is the current verified executable; any future
   release certification must re-issue the 067 matrix on a build from the
   hardening tree.
+
+## Terminal re-certification update (2026-09-21, `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`)
+
+The terminal re-certification pass executed R1/R2/R3 whole-repo residual passes
+plus a post-fix R4 pass (0 open repo-owned Critical/High/Medium), landed 10
+bounded Low fixes with regression tests, re-ran the full repository matrix green
+(598 suites / 6,939 tests / OpenSpec 51/51), and built final artifact `5FE03134…`
+(109,604,449 B) from the converged tree with full bundle/provenance/permission/
+signing proof (`FINAL_POST_HARDENING_CERTIFICATION.md`,
+`TERMINAL_RECERT_CONVERGENCE.md`). What remains is mechanical, not investigative:
+the 067-style device matrix on `5FE03134…` is environment-blocked (host-kernel
+KVM BUG, no GPU) and recorded NOT VALIDATED rather than passed. If executable
+source changes after the final build, invalidate the artifact, rebuild, and
+restart every artifact-dependent lane.

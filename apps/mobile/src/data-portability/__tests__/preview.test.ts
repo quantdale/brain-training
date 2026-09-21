@@ -4,6 +4,7 @@ import {
   serializeBackup,
   previewImport,
 } from "../index";
+import { serializeEnvelopeWithChecksum } from "../serialize";
 import { makeDb, seedFixture, T0 } from "./helpers";
 
 describe("previewImport", () => {
@@ -95,5 +96,32 @@ describe("previewImport", () => {
     const preview = await previewImport(target, "{ nope", "merge");
     expect(preview.valid).toBe(false);
     expect(preview.counters.mode).toBe("merge");
+  });
+
+  it("qualifies the merge profile-name note when the backup name is empty (R1 residual)", async () => {
+    const src = await makeDb();
+    await seedFixture(src); // profile displayName 'Tester'
+    const original = JSON.parse(
+      serializeBackup(await exportLocalData(src, { now: () => T0 + 1 })),
+    ) as Record<string, unknown>;
+    // Empty the backup-side name, then re-sign so the checksum stays valid.
+    const data = original.data as Record<string, unknown>;
+    const profile = data.profile as Record<string, unknown>;
+    profile.displayName = "";
+    delete original.checksum;
+    const { text } = serializeEnvelopeWithChecksum(
+      original as unknown as Parameters<typeof serializeEnvelopeWithChecksum>[0],
+    );
+
+    const target = await makeDb();
+    await seedFixture(target); // device profile displayName 'Tester'
+    const preview = await previewImport(target, text, "merge");
+    expect(preview.valid).toBe(true);
+    const note = preview.notes.find((n) => n.includes("Profile name differs"));
+    expect(note).toBeDefined();
+    // apply.ts resolves `displayName || existing`, so the device name wins;
+    // the note must not claim the empty backup name is kept.
+    expect(note).toMatch(/non-empty/);
+    expect(note).toMatch(/device name is kept/);
   });
 });

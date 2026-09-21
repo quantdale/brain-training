@@ -224,6 +224,26 @@ const RULES = [
     ],
   },
   {
+    name: 'shared hooks / platform',
+    impact: 'shared hooks/platform',
+    match: ['apps/mobile/src/hooks/**', 'apps/mobile/src/platform/**'],
+    checks: [
+      'cd apps/mobile && npm run typecheck',
+      'cd apps/mobile && npm run test:ci -- src/hooks src/platform --no-coverage',
+      'App launch + navigation smoke (hooks feed every route; platform touch feeds targets)',
+    ],
+  },
+  {
+    name: 'accessibility / settings surfaces',
+    impact: 'accessibility/settings surfaces',
+    match: ['apps/mobile/src/components/a11y/**', 'apps/mobile/src/components/settings/**'],
+    checks: [
+      'cd apps/mobile && npm run typecheck',
+      'cd apps/mobile && npm run test:ci -- src/components/a11y src/components/settings --no-coverage',
+      'Accessibility audit + settings relaunch smoke for the touched surface',
+    ],
+  },
+  {
     name: 'package manifest / lockfile',
     impact: 'package manifest/lockfile',
     match: ['apps/mobile/package.json', 'apps/mobile/package-lock.json'],

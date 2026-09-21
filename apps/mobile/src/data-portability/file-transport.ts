@@ -32,19 +32,28 @@ import { MalformedBackupError } from "./types";
 /** Backups live in a dedicated folder so listing/deleting stays scoped. */
 export const BACKUP_DIRECTORY_NAME = "backups";
 
-/** Keep transport names inside the app-owned backup directory. */
+/**
+ * Keep transport names inside the app-owned backup directory.
+ *
+ * R1 residual: `listBackups` hides dotfiles and `*.tmp` atomic-write
+ * leftovers, so accepting a leading `.` or trailing `.tmp` name would write
+ * a backup the restore list can never show. Reject them up front so a
+ * successful write is always listable (write/list symmetry).
+ */
 function validateBackupName(name: string): void {
- if (
-  typeof name !== "string" ||
-  name.length === 0 ||
-  name === "." ||
-  name === ".." ||
-  name.includes("/") ||
-  name.includes("\\") ||
-  name.includes("\u0000")
- ) {
-  throw new Error("Backup name must be a non-empty file name inside the backups directory");
- }
+  if (
+    typeof name !== "string" ||
+    name.length === 0 ||
+    name === "." ||
+    name === ".." ||
+    name.includes("/") ||
+    name.includes("\\") ||
+    name.includes("\u0000") ||
+    name.startsWith(".") ||
+    name.endsWith(".tmp")
+  ) {
+    throw new Error("Backup name must be a non-empty file name inside the backups directory");
+  }
 }
 
 type FileSystemModule = typeof import("expo-file-system");

@@ -261,7 +261,7 @@ export const registry: readonly GameDefinition[] = [
     description: "Use the precedence clues to place every item in the one valid order. Each step has exactly one item that can go next.",
     sdkVersion: "0.1.0",
     gameVersion: "1.0.0",
-    generatorVersion: "1.0.0",
+    generatorVersion: "1.0.1",
     contentVersion: null,
     hasTutorial: true,
   },

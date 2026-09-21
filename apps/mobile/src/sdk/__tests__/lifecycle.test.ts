@@ -143,4 +143,20 @@ describe('SessionLifecycle timing', () => {
     expect(lifecycle.elapsedMs()).toBe(0);
     expect(lifecycle.pausedDurationMs()).toBe(0);
   });
+
+  it('never banks negative time on a backwards-moving clock (R1 residual)', () => {
+    const clock = createFakeClock(1000);
+    const lifecycle = new SessionLifecycle({ clock });
+    lifecycle.start();
+    clock.advance(500);
+    expect(lifecycle.elapsedMs()).toBe(500);
+    clock.advance(-800); // test-harness rollback: live reading floors at 0
+    expect(lifecycle.elapsedMs()).toBe(0);
+    lifecycle.pause(); // banked segment must not decrement the accumulator
+    expect(lifecycle.elapsedMs()).toBe(0);
+    clock.advance(200);
+    lifecycle.resume();
+    clock.advance(100);
+    expect(lifecycle.elapsedMs()).toBe(100);
+  });
 });

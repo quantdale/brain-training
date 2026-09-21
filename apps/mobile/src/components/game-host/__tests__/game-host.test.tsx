@@ -195,6 +195,18 @@ describe('GameHost chrome mounting', () => {
     expect(screen.queryByTestId(testId(GAME, 'pause-title'))).toBeNull();
   });
 
+  it('intro view offers its own exit through the standard quit path (R3 residual)', async () => {
+    // A cold deep link lands on the intro with an empty navigation stack:
+    // the intro must not strand the player — the exit routes through onQuit
+    // (the game screen's safe back to /games), never a bare router.back().
+    const props = hostProps({ view: 'intro', interceptBack: false });
+    await render(<GameHost {...props} />);
+    const back = screen.getByTestId(testId(GAME, 'intro-back'));
+    expect(back).toBeOnTheScreen();
+    fireEvent.press(back);
+    expect(props.onQuit).toHaveBeenCalledTimes(1);
+  });
+
   it('results view renders children verbatim without session chrome', async () => {
     await render(
       <GameHost {...hostProps({ paused: false, view: 'results' })}>

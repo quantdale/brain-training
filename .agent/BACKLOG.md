@@ -4,9 +4,9 @@ Historical phase list — superseded by implementation reality (42-game
 catalog, Workout V3 signal-ranked templates over the V2 template engine,
 full progression/portability shipped; see
 `docs/PARITY_MATRIX.md`). Campaign 031 (`031-golden-path-redesign`) is
-validated; the owner-authorized 056–067 overnight program is the active
-successor (see `.agent/GOVERNANCE.json` `activeProgram` and
-`.agent/OVERNIGHT_056_067_STATE.md`); durable current state lives in
+validated; the owner-authorized 056–067 overnight program is COMPLETE
+(historical completed object in `.agent/GOVERNANCE.json` `activeProgram`;
+ledger `.agent/OVERNIGHT_056_067_STATE.md`); durable current state lives in
 `.agent/STATE.md`. This file records durable work outside the terminal campaign
 plus historical follow-ups.
 
@@ -70,8 +70,25 @@ plus historical follow-ups.
   settle wait reproduces or clears it; otherwise keep as tooling-noted and
   prefer semantic retries in device lanes.
 - Jest-skip waivers (5 opt-in probes) now name `release-engineering
-  orchestrator` as renewal owner and expire 2027-03-31; review them at the next
-  campaign boundary (recorded by Change 066).
+  orchestrator` as renewal owner and expire 2027-03-31; review them at the next campaign boundary (recorded by Change 066).
+- Terminal-recert Low residuals (post-067 convergence, 2026-09-21; all with
+  focused regression tests where applicable):
+  - R1-F1 silent non-advance on reroll interleave — accepted Low debt:
+    when a paid reroll replaces the current leg between result load and the
+    advance commit, the session is safe but the leg needs a replay with no
+    error disclosure. Follow-up: recheck-after-advance disclosure reusing the
+    existing "Workout progress could not be saved" path, carefully excluding
+    the benign duplicate-surface `advanced:false` case.
+  - R2-F4 jest floor width — accepted buffer: `minTotalSuites 575` /
+    `minTotalTests 6840` sit ~23 suites / ~93 tests below the certified
+    counts; exact per-entry pinning (schema v4) covers the skip path. Tighten
+    only with the same reviewed-owner/expiry treatment as entries.
+  - R3-F7 paid-reroll lost-confirmation double-charge edge — accepted by
+    design (bounded to the reroll flow): optional follow-up is a
+    ledger-winner re-read before debiting a retried reroll.
+  - R3-F8 storage permissions without `maxSdkVersion` scoping — accepted Low
+    debt: neutered under scoped storage; scope or document when the aapt2
+    deny-by-default gate can be re-run against a fresh APK.
 
 ## Resolved
 

@@ -123,6 +123,23 @@ describe("rejection gates (corruption / malformation)", () => {
     );
   });
 
+  it("truncates attacker-controlled ids echoed into validation errors (R3 residual)", () => {
+    const data = emptyData();
+    data.gameSessions.push({ id: "x".repeat(5000) } as unknown as (typeof data.gameSessions)[number]);
+    const text = serializeBackup(buildEnvelope(data));
+    let message = "";
+    try {
+      parseAndValidateBackup(text);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    expect(message).toMatch(/missing\/invalid fields/);
+    // The 5 KB hostile id must not amplify into the surfaced message.
+    expect(message.length).toBeLessThan(500);
+    expect(message).toMatch(/chars\)/);
+    expect(message).not.toMatch(/x{100}/);
+  });
+
   it("rejects an unrecognized format", () => {
     const env = buildEnvelope(emptyData());
     const text = serializeBackup(env).replace(

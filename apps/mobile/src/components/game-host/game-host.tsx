@@ -239,6 +239,19 @@ export function GameHost({
                 </ThemedText>
               ) : null
             }>
+            {/* R3 residual: a cold deep link lands on the intro with an empty
+                navigation stack, so the intro needs its own exit. Routes
+                through the game's standard quit path (safe back to /games),
+                never a bare router.back(). */}
+            <Button
+              testID={testId(gameId, 'intro-back')}
+              label="Back to games"
+              variant="ghost"
+              size="sm"
+              fullWidth={false}
+              accessibilityHint="Leave this game and return to the games library"
+              onPress={onQuit}
+            />
             {workoutPosition !== null ? (
               <View
                 style={styles.workoutContext}

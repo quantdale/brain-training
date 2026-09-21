@@ -97,7 +97,11 @@ async function loadPersonalBest(
     // its own comparison universe. A future-dated (clock-skewed/imported)
     // completion would otherwise be excluded by the `toMs` clamp and any
     // single earlier at-or-above session would take the badge on its behalf.
-    if (session.completedAt > Date.now()) {
+    // R1 residual: read the clock once — a completion timestamp falling
+    // between two reads could flip the future-dated verdict vs the `toMs`
+    // clamp and lose (or grant) the badge on a microsecond boundary.
+    const now = Date.now();
+    if (session.completedAt > now) {
       return false;
     }
     // 057: clamp the comparison universe to the same `now` the recent list
@@ -105,7 +109,7 @@ async function loadPersonalBest(
     // against sessions that have not happened yet from the UI's perspective.
     const atOrAbove = await db.sessions.countSessions({
       gameIds: [session.gameId],
-      toMs: Math.min(session.completedAt, Date.now()),
+      toMs: Math.min(session.completedAt, now),
       minNormalized: session.normalizedResult,
     });
     // 065: exactly one eligible session — the session itself — is required.

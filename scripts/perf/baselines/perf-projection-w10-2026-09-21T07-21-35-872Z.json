@@ -1,0 +1,7 @@
+{
+  "sessions": 1000,
+  "listRecent_legacy_full_rows_ms": 6.198632,
+  "listProgressProjection_new_ms": 3.478489,
+  "projection_plus_mapping_ms": 3.698846,
+  "loadProgressSnapshot_ms": 4.642583
+}

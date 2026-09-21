@@ -25,16 +25,20 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 
-import { testId } from '@/sdk';
+import { canonicalClamp01, testId } from '@/sdk';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 import type { RoundOutcome } from '../types';
 
-/** Clamp a fraction into [0, 1]. */
+/**
+ * Clamp a fraction into [0, 1] — delegates to the canonical SDK helper so
+ * non-finite input collapses to 0 instead of propagating NaN (066
+ * single-source contract; R2 residual).
+ */
 export function clamp01(value: number): number {
-  return Math.min(1, Math.max(0, value));
+  return canonicalClamp01(value);
 }
 
 /** Map a value onto the [0, 1] fraction of the line it sits at. */

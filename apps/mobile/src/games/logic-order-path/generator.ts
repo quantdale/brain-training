@@ -23,6 +23,7 @@
  * All randomness is drawn from a per-round RNG fork. Near-duplicate
  * avoidance: consecutive rounds do not reuse the same item set / first step.
  */
+import { canonicalClamp01 as clamp01 } from '@/sdk';
 import type { Rng } from '@/sdk';
 
 import { isUniquelyOrdered, validateRound } from './solver';
@@ -144,11 +145,6 @@ function sparsifyEdges(
     }
   }
   return kept;
-}
-
-function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.min(1, Math.max(0, value));
 }
 
 /** Validate a generated round (used by tests and self-checks). */

@@ -1,0 +1,16 @@
+{
+  "platform": "linux node v22.23.2",
+  "measuredAt": "2026-09-21T07:21:37.507Z",
+  "scenarios": {
+    "listRecent_5000_full_rows_ms": 22.337594,
+    "listLightweight_5000_projection_ms": 3.412052,
+    "getDistinctActivityDates_5000_ms": 11.743255,
+    "loadProgressSnapshot_5000_ms": 25.863198,
+    "listRecent_20000_full_rows_ms": 121.744484,
+    "listLightweight_20000_projection_ms": 13.658806,
+    "getDistinctActivityDates_20000_ms": 52.225378,
+    "loadProgressSnapshot_20000_ms": 111.444203,
+    "exportLocalData_5000_incl_checksum_canonical_ms": 1018.289341,
+    "serializeBackup_5000_second_canonical_ms": 1282.277713
+  }
+}

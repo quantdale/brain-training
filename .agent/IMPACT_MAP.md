@@ -22,6 +22,8 @@ Executable rules live in `scripts/validate-affected.mjs` (`RULES`). This table i
 | `apps/mobile/src/scoring/**`, `apps/mobile/src/rating/**` — scoring/rating | normalization/rating unit tests; representative fixed-seed fixtures; regression samples |
 | `apps/mobile/src/currency/**`, `apps/mobile/src/progression/**`, `apps/mobile/src/ledger/**` — currency/progression | transaction-ledger/progression tests; persistence reload smoke |
 | `apps/mobile/src/components/ui/**`, `apps/mobile/src/constants/theme.ts`, `apps/mobile/src/design/**` — visual/design-system shared layer | typecheck; affected screenshots + representative canary screens |
+| `apps/mobile/src/hooks/**`, `apps/mobile/src/platform/**` — shared hooks/platform | typecheck; hooks/platform unit tests; app launch + navigation smoke |
+| `apps/mobile/src/components/a11y/**`, `apps/mobile/src/components/settings/**` — accessibility/settings surfaces | typecheck; a11y/settings unit tests; accessibility audit + settings relaunch smoke |
 | `apps/mobile/package.json`, `apps/mobile/package-lock.json` — package manifest/lockfile | clean dependency install; repository validator; available typecheck/build |
 
 Full catalog, stress, broad visual regression, failure injection, and deep performance profiling belong to explicit hardening campaigns unless a Critical/High issue requires targeted repair.
