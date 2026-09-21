@@ -94,6 +94,17 @@ a11y — TCG system ANRs + instrumentation wedges make sustained interaction
 (~5–8 min/surface, ~20–30 min stability windows) certification-inviable for
 these lanes. Verdict unchanged: PARTIAL with a strictly stronger evidence base.
 
+## Wave 4 — KVM retest (2026-09-21, verdict unchanged)
+
+Bounded retest on the same sandbox (`vmx` present in cpuinfo, kernel 6.12.94+,
+`braintraining-ui35`, emulator 37.1.11, KVM + modern `-gpu swiftshader`): after
+7 min qemu at 0.3% CPU with no adb registration, and `dmesg`
+`kvm_spurious_fault` count rose 8 → 10 (2 new host-kernel BUGs from this boot).
+The KVM blocker is current and deterministic, not stale. The remainder lanes
+still require a KVM/GPU-capable host or cloud device-lab credentials (owner
+decision: hardware/credentials are outside agent authority). No source change;
+APK freeze (`5FE03134…`) holds.
+
 ## Reassessment
 
 A convergence reassessment (source diff review + void scan of the new
