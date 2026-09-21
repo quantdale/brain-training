@@ -98,6 +98,9 @@ const styles = StyleSheet.create({
   field: {
     alignSelf: 'stretch',
     aspectRatio: 1,
+    // Campaign 065 touch-target guard: the square field sizes itself from the
+    // layout width, so declare the shared vertical floor explicitly.
+    minHeight: MinTouchTarget,
     maxWidth: '100%',
     borderRadius: Radii.large,
     borderWidth: 1.5,

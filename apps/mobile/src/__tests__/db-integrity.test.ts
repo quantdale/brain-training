@@ -102,10 +102,10 @@ describe('Database integrity — newer schema rejection (task 8.2)', () => {
 
   it('allows database with same schema version', async () => {
     const adapter = await createMigratedDb();
-    
-    // Run migrations again - should be a no-op
+
+    // Run migrations again — same-version reruns must be a no-op.
     await runMigrations(adapter);
-    // If it throws, the test fails
+    expect(await getSchemaVersion(adapter)).toBe(SCHEMA_VERSION);
   });
 
   it('allows database with older schema version', async () => {

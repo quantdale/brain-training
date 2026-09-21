@@ -13,6 +13,7 @@ import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
+import { MinTouchTarget } from '@/components/a11y/touch-target';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -100,12 +101,14 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   chip: {
+    // Campaign 065: chips previously rendered at 36 dp with no hit-slop,
+    // below the shared 44 dp contract; the floor now comes from the single
+    // source of truth.
+    ...MinTouchTarget,
     borderRadius: Radii.pill,
     borderWidth: 1.5,
     paddingVertical: Spacing.oneHalf,
     paddingHorizontal: Spacing.three,
-    minHeight: 36,
-    justifyContent: 'center',
     alignItems: 'center',
   },
 });

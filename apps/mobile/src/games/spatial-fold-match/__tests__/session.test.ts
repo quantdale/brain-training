@@ -2,6 +2,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { RNG_ALGORITHM_VERSION } from '@/sdk';
 import type { DifficultyProfile, GameRawResult } from '@/sdk';
+import { expectConsoleNoise } from '@/test-utils';
 
 import { DIFFICULTY_PARAMS, resolveSpatialFoldMatchDifficulty } from '../difficulty';
 import {
@@ -227,22 +228,25 @@ describe('persistSpatialFoldMatchSession', () => {
   });
 
   it('never crashes on persistence failure; reports the error instead', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const boom = new Error('db locked');
     const persister = {
       completeSession: jest.fn(async () => {
         throw boom;
       }),
     };
-    const outcome = await persistSpatialFoldMatchSession(
-      recordFor(),
-      persister as unknown as SessionPersistence,
+    await expectConsoleNoise(
+      /\[spatial-fold-match\] failed to persist completed session persist-1/,
+      async () => {
+        const outcome = await persistSpatialFoldMatchSession(
+          recordFor(),
+          persister as unknown as SessionPersistence,
+        );
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(outcome.error).toBe(boom);
+        }
+      },
     );
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(outcome.error).toBe(boom);
-    }
-    errorSpy.mockRestore();
   });
 
   it('defaults to the db-backed persister seam', () => {

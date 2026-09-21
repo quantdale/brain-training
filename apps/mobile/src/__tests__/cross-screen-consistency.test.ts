@@ -13,13 +13,26 @@ import { computeComposite } from '@/rating/composite';
 import { reconstructStreak, effectiveCurrent } from '@/streaks';
 import { localDateString } from '@/workout/today';
 import type { GameSessionRecord } from '@/db';
+import { seededFloats } from '@/test-utils';
 
 const T0 = 1_700_000_000_000;
 const KNOWN_DOMAINS = ['Memory', 'Attention', 'Speed', 'Math', 'Language', 'Logic & Problem Solving', 'Flexibility', 'Spatial'];
 
+/**
+ * Deterministic session ids from a seeded stream, consumed in call order.
+ * Replaces the former Math.random suffix so fixtures repeat byte-for-byte.
+ */
+const SESSION_ID_TOKENS = seededFloats('cross-screen-consistency/session-ids', 256);
+let sessionIdCursor = 0;
+function nextSessionId(prefix: string): string {
+  const token = SESSION_ID_TOKENS[sessionIdCursor];
+  sessionIdCursor += 1;
+  return `${prefix}-${token.toString(36).slice(2, 12)}`;
+}
+
 function makeSession(overrides: Partial<GameSessionRecord> = {}): GameSessionRecord {
   return {
-    id: `session-${Math.random().toString(36).slice(2, 8)}`,
+    id: nextSessionId('session'),
     gameId: 'memory',
     gameVersion: 1000000,
     generatorVersion: 1000000,

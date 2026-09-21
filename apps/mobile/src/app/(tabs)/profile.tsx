@@ -451,6 +451,14 @@ export default function ProfileScreen() {
   // validates balance inside its transaction; this keeps the UX single-shot).
   const buyInFlightRef = useRef<Set<StreakItemKind>>(new Set());
 
+  // 065: one stable economy operation key per user purchase intent. A
+  // rejection does not prove the transaction failed (the commit may have
+  // landed before a bridge/JS error), so the key survives the failure and the
+  // retry reuses it — the economy ledger then returns the original entry
+  // instead of debiting a second time. Cleared only on confirmed success, so
+  // the next purchase is a new intent with a fresh key.
+  const buyIntentRef = useRef<Map<StreakItemKind, string>>(new Map());
+
   const onBuyStreakItem = async (kind: StreakItemKind) => {
     if (buyInFlightRef.current.has(kind)) {
       return;
@@ -460,13 +468,21 @@ export default function ProfileScreen() {
       return;
     }
     buyInFlightRef.current.add(kind);
+    let operationId = buyIntentRef.current.get(kind);
+    if (operationId === undefined) {
+      operationId = `streak-item:${kind}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+      buyIntentRef.current.set(kind, operationId);
+    }
     try {
       await purchaseStreakItem(getDb(), {
         kind,
         cost,
-        operationId: `streak-item:${kind}:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+        operationId,
         reason: `streak-item-${kind}`,
       });
+      // Confirmed success: this intent is settled, so a later purchase starts
+      // a new one rather than replaying this key.
+      buyIntentRef.current.delete(kind);
       refresh();
       celebrateReward({
         title: `${kind} purchased`,
@@ -828,7 +844,12 @@ export default function ProfileScreen() {
                           new Date(),
                         )
                       }
-                      onPress={() => onBuyStreakItem(item.kind)}
+                      onPress={() => {
+                        // Fire-and-forget: the handler owns its async failure
+                        // surface, and returning the promise would make the
+                        // test harness adopt an in-flight purchase.
+                        void onBuyStreakItem(item.kind);
+                      }}
                     />
                   </View>
                 }

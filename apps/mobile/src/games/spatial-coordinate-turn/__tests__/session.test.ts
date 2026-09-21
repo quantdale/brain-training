@@ -3,6 +3,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { RNG_ALGORITHM_VERSION } from '@/sdk';
 import type { DifficultyProfile, GameRawResult } from '@/sdk';
 import type { CompleteSessionInput, GameSessionRecord } from '@/db';
+import { expectConsoleNoise } from '@/test-utils';
 
 import {
   buildSessionRecord,
@@ -231,18 +232,17 @@ describe('persistSpatialCoordinateTurnSession', () => {
   });
 
   it('reports failure without throwing (never crashes the game)', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const fail = makePersister(false);
-      const res = await persistSpatialCoordinateTurnSession(recordFor('id-2'), fail);
-      expect(res.ok).toBe(false);
-      if (!res.ok) {
-        expect(String(res.error)).toContain('boom');
-      }
-      expect(errorSpy).toHaveBeenCalled();
-    } finally {
-      errorSpy.mockRestore();
-    }
+    const fail = makePersister(false);
+    await expectConsoleNoise(
+      /\[spatial-coordinate-turn\] failed to persist completed session id-2/,
+      async () => {
+        const res = await persistSpatialCoordinateTurnSession(recordFor('id-2'), fail);
+        expect(res.ok).toBe(false);
+        if (!res.ok) {
+          expect(String(res.error)).toContain('boom');
+        }
+      },
+    );
   });
 
   it('defaults to the db-backed persister seam', () => {

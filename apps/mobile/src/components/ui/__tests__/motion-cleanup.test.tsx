@@ -76,6 +76,10 @@ describe("usePressFeedback drivers", () => {
     await fireEvent(node, "pressIn");
     await fireEvent(node, "pressOut");
     await fireEvent(node, "pressIn");
+    // The node survives the rapid cycles, and teardown actually unmounts it
+    // (which is where the driver-stop path runs).
+    expect(screen.getByTestId("press")).toBeOnTheScreen();
     await unmount();
+    expect(screen.queryByTestId("press")).toBeNull();
   });
 });

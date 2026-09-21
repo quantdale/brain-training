@@ -18,6 +18,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { MinTouchTarget } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { Card, ColorId, ShapeId } from '../types';
@@ -222,7 +223,7 @@ export const Stimulus = memo(function Stimulus({
       accessibilityState={{ disabled, selected: state === 'correct', busy: false }}
       disabled={disabled}
       onPress={onPress}
-      style={({ pressed }) => ({ opacity: pressed || disabled ? 0.6 : 1 })}
+      style={({ pressed }) => [styles.pressable, { opacity: pressed || disabled ? 0.6 : 1 }]}
     >
       {content}
     </Pressable>
@@ -230,6 +231,11 @@ export const Stimulus = memo(function Stimulus({
 });
 
 const styles = StyleSheet.create({
+  // Campaign 065 touch-target guard: the card visual is sized by its inner
+  // container, so the pressable declares the shared floor explicitly.
+  pressable: {
+    minHeight: MinTouchTarget,
+  },
   container: {
     position: 'relative',
     alignItems: 'center',

@@ -54,6 +54,22 @@ export interface RerollBaseline {
 }
 
 /**
+ * Raw row state observed by a repair read, used as the repair write's
+ * compare-and-swap predicate (065). `gameIdsJson` carries the exact stored
+ * bytes so the conditional write never rewrites a list that changed between
+ * observation and UPDATE/DELETE. `instance` is the parsed view of the very
+ * same row, used to compute the repair.
+ */
+export interface WorkoutRepairObservation {
+  readonly date: string;
+  /** Exact `game_ids_json` bytes read (raw, not canonicalised). */
+  readonly gameIdsJson: string;
+  readonly status: WorkoutStatus;
+  readonly currentIndex: number;
+  readonly instance: WorkoutInstance;
+}
+
+/**
  * Thrown when a workout write's compare-and-swap precondition fails: the
  * row changed under the caller (concurrent advance/reroll). Callers refresh
  * and surface honestly instead of silently overwriting (059).
@@ -387,54 +403,125 @@ export class WorkoutRepository {
   }
 
   /**
+   * Observe the raw persisted row a repair would rewrite (065). Split from
+   * {@link applyRepair} so the repair write can be compare-and-swapped
+   * against the exact state that was observed: a concurrent advance/reroll
+   * landing in between must not be overwritten or deleted.
+   */
+  async observeRepair(date: string): Promise<WorkoutRepairObservation | null> {
+    const row = await this.adapter.get<WorkoutRow>(
+      "SELECT * FROM workout_instances WHERE date = ?",
+      [date],
+    );
+    if (!row) {
+      return null;
+    }
+    return {
+      date: row.date,
+      gameIdsJson: row.game_ids_json,
+      status: row.status,
+      currentIndex: row.current_index,
+      instance: rowToInstance(row),
+    };
+  }
+
+  /**
+   * Apply the pure repair computed from `observation` under a
+   * compare-and-swap predicate (065). The UPDATE commits only while the row
+   * still carries the observed date/index/status and the exact raw
+   * `game_ids_json` bytes; the all-stale DELETE only while the same observed
+   * state is intact. A row that changed underneath (concurrent
+   * `advanceForSession` / `applyReroll`) is never overwritten or deleted —
+   * its fresh state is returned instead. Returns `null` only when every
+   * stored game is ineligible AND the observed row was actually deleted (the
+   * caller should generate a fresh selection).
+   */
+  async applyRepair(
+    observation: WorkoutRepairObservation,
+    eligibleIds: ReadonlySet<string> | readonly string[],
+  ): Promise<WorkoutInstance | null> {
+    const { instance, changed } = reconcileWorkout(
+      observation.instance,
+      eligibleIds,
+    );
+    if (!instance) {
+      // All stored games retired/ineligible: drop the stale row so a fresh
+      // selection can be generated (getOrCreate would otherwise return it).
+      // The conditional DELETE must lose to any row that moved underneath
+      // (an advance that played a retired leg still owns its progress).
+      const deleted = await this.adapter.run(
+        `DELETE FROM workout_instances
+         WHERE date = ? AND current_index = ? AND status = ? AND game_ids_json = ?`,
+        [
+          observation.date,
+          observation.currentIndex,
+          observation.status,
+          observation.gameIdsJson,
+        ],
+      );
+      if (deleted.changes > 0) {
+        return null;
+      }
+      // CAS lost: surface the row's fresh state, never a delete that did not
+      // happen.
+      return this.getByDate(observation.date);
+    }
+    if (!changed) {
+      return instance;
+    }
+    const committed = await this.persistRepaired(observation, instance);
+    return committed ? instance : this.getByDate(observation.date);
+  }
+
+  /**
    * Reconcile a persisted instance against the current eligible catalog
    * (Queue A: catalog changes / invalid game IDs / registry drift). Loads the
    * instance for `key`, drops any game ids no longer eligible, advances the
-   * resume index past invalidated games, and persists the repair when
-   * anything changed. Returns the repaired instance, or `null` when no stored
-   * game remains eligible (the caller should generate a fresh selection).
-   * Idempotent: a clean instance is returned unchanged without a write.
+   * resume index past invalidated games, and CAS-persists the repair when
+   * anything changed (see {@link applyRepair}). Returns the repaired
+   * instance, or `null` when no stored game remains eligible (the caller
+   * should generate a fresh selection). A conditional write that loses to a
+   * concurrent advance/reroll is not forced: the fresh persisted row is
+   * returned instead. Idempotent: a clean instance is returned unchanged
+   * without a write.
    */
   async reconcile(
     date: string,
     eligibleIds: ReadonlySet<string> | readonly string[],
   ): Promise<WorkoutInstance | null> {
-    const existing = await this.getByDate(date);
-    const { instance, changed } = reconcileWorkout(existing, eligibleIds);
-    if (!instance) {
-      // All stored games retired/ineligible: drop the stale row so a fresh
-      // selection can be generated (getOrCreate would otherwise return it).
-      if (existing) {
-        await this.adapter.run("DELETE FROM workout_instances WHERE date = ?", [
-          date,
-        ]);
-      }
+    const observation = await this.observeRepair(date);
+    if (!observation) {
       return null;
     }
-    if (changed) {
-      await this.persistRepaired(instance.date, instance);
-    }
-    return instance;
+    return this.applyRepair(observation, eligibleIds);
   }
 
-  /** Persist a repaired instance (shared by reconcile/reconcileActiveInstances). */
+  /**
+   * Conditionally persist a repaired instance (shared by reconcile/
+   * reconcileActiveInstances). Returns false when the CAS predicate matched
+   * no row — the observed state changed underneath and nothing was written.
+   */
   private async persistRepaired(
-    key: string,
+    observation: WorkoutRepairObservation,
     instance: WorkoutInstance,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const updatedAt = this.now();
-    await this.adapter.run(
+    const applied = await this.adapter.run(
       `UPDATE workout_instances
        SET game_ids_json = ?, current_index = ?, status = ?, updated_at = ?
-       WHERE date = ?`,
+       WHERE date = ? AND current_index = ? AND status = ? AND game_ids_json = ?`,
       [
         JSON.stringify(instance.gameIds),
         instance.currentIndex,
         instance.status,
         updatedAt,
-        key,
+        observation.date,
+        observation.currentIndex,
+        observation.status,
+        observation.gameIdsJson,
       ],
     );
+    return applied.changes > 0;
   }
 
   /**
@@ -459,10 +546,16 @@ export class WorkoutRepository {
     newAttempt: number,
     expected?: RerollBaseline,
   ): Promise<WorkoutInstance> {
-    const current = await this.getByDate(date);
-    if (!current) {
+    // Read the raw row (not just the parsed instance): the conditional UPDATE
+    // below predicates on the exact `game_ids_json` bytes read here (065).
+    const row = await this.adapter.get<WorkoutRow>(
+      "SELECT * FROM workout_instances WHERE date = ?",
+      [date],
+    );
+    if (!row) {
       throw new Error(`No workout instance for key ${date}`);
     }
+    const current = rowToInstance(row);
     if (current.gameIds.length === 0) {
       // Same corrupt-row guard as `advance`: rerolling an empty instance
       // would fabricate games onto a row that must regenerate instead (056).
@@ -481,9 +574,12 @@ export class WorkoutRepository {
     //
     // The list comparison uses canonical forms on both sides (059/i): a
     // hand-edited row may store non-canonical JSON (whitespace, filtered
-    // members) that still parses to the same playable list — predicating
-    // on raw bytes would fail such rows permanently with no converging
-    // retry. Real list moves (reconcile substitution) still mismatch.
+    // members) that still parses to the same playable list. That leniency
+    // is preserved for the CALLER baseline; the UPDATE additionally
+    // predicates on the raw bytes read in THIS call (065), closing the
+    // race where another writer rewrites the stored list between that read
+    // and the write. Bytes come from this call's own read, so a
+    // non-canonical row still commits its first reroll.
     const baseline = expected ?? current;
     if (
       JSON.stringify(baseline.gameIds) !== JSON.stringify(current.gameIds)
@@ -493,7 +589,7 @@ export class WorkoutRepository {
     const applied = await this.adapter.run(
       `UPDATE workout_instances
        SET game_ids_json = ?, reroll_attempt = ?, updated_at = ?
-       WHERE date = ? AND reroll_attempt = ? AND current_index = ?`,
+       WHERE date = ? AND reroll_attempt = ? AND current_index = ? AND game_ids_json = ?`,
       [
         JSON.stringify(merged),
         newAttempt,
@@ -501,6 +597,7 @@ export class WorkoutRepository {
         date,
         baseline.rerollAttempt,
         baseline.currentIndex,
+        row.game_ids_json,
       ],
     );
     if (applied.changes === 0) {
@@ -699,22 +796,18 @@ export class WorkoutRepository {
     const actives = await this.listActiveInstances(limit);
     const repaired: WorkoutInstance[] = [];
     for (const instance of actives) {
-      const { instance: fixed, changed } = reconcileWorkout(
-        instance,
-        eligibleIds,
-      );
-      if (!fixed) {
-        // Every stored game ineligible: drop so the owner regenerates.
-        await this.adapter.run(
-          "DELETE FROM workout_instances WHERE date = ?",
-          [instance.date],
-        );
+      // Re-observe each row's raw state and CAS the repair (065): a
+      // concurrent advance/reroll that lands between the list read above
+      // and this repair is never clobbered, and a skipped repair surfaces
+      // the row's fresh state instead of the stale repair shape.
+      const observation = await this.observeRepair(instance.date);
+      if (!observation) {
         continue;
       }
-      if (changed) {
-        await this.persistRepaired(fixed.date, fixed);
+      const fixed = await this.applyRepair(observation, eligibleIds);
+      if (fixed) {
+        repaired.push(fixed);
       }
-      repaired.push(fixed);
     }
     return repaired;
   }

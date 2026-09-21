@@ -55,6 +55,7 @@ const SELECT_ALL = `SELECT id, title, description, criteria_json, reward_xp, rew
 const INSERT_UNLOCK = 'INSERT OR IGNORE INTO achievement_unlocks (achievement_id, unlocked_at, claimed_at) VALUES (?, ?, ?)';
 const SELECT_UNLOCK = 'SELECT achievement_id, unlocked_at, claimed_at FROM achievement_unlocks WHERE achievement_id = ?';
 const SELECT_ALL_UNLOCKS = 'SELECT achievement_id, unlocked_at, claimed_at FROM achievement_unlocks ORDER BY unlocked_at';
+const SELECT_DEFINITION_COUNT = 'SELECT COUNT(*) AS count FROM achievements';
 const CLAIM_UNLOCK = 'UPDATE achievement_unlocks SET claimed_at = ? WHERE achievement_id = ? AND claimed_at IS NULL';
 
 export class AchievementRepository {
@@ -94,6 +95,16 @@ export class AchievementRepository {
       rewardCurrency: r.reward_currency,
       version: r.version,
     }));
+  }
+
+  /**
+   * Cheap existence probe (Change 065): the seeding fingerprint fast path
+   * only trusts a matching version when the catalog is actually populated.
+   * O(1) aggregate — never materializes definition rows.
+   */
+  async countDefinitions(): Promise<number> {
+    const row = await this.adapter.get<{ count: number }>(SELECT_DEFINITION_COUNT);
+    return row?.count ?? 0;
   }
 
   /**

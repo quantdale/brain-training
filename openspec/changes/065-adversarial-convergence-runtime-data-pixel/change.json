@@ -1,0 +1,22 @@
+{
+  "id": "065-adversarial-convergence-runtime-data-pixel",
+  "status": "VALIDATED",
+  "predecessor": "064-dependency-security-validation-gates",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["adversarial-convergence-runtime-data-pixel"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Tenth of Changes 056-067; first theme-065-066 adversarial convergence item.",
+  "baselineAuditCommit": "a9111c3",
+  "productBaselineCommit": "34c9b2d",
+  "certifiedArtifactCommit": "e627473",
+  "fullHardening": false,
+  "reviewConsumption": "Six independent read-only critic lanes attacked a9111c3; every accepted finding was re-verified against the code. 065 changes product source, so the 063 certified artifact (20e28c64 from e627473) remains the last certified executable; 067 builds and certifies the final artifact. The 065 verification APK 3A3C4CC5 was exercised only for the bounded probes recorded in DEVICE_065.md.",
+  "validatedAt": "2026-09-21",
+  "validationNote": "Terminal close after a six-lane adversarial sweep and a closure verification that found and repaired four residual items (future-dated PB admission, renamed-skip absorption, ledger/governance cursor drift, evidence wording). Repairs: replace-import fingerprint strip + catalog-presence seeding check (bootstrap-brick), expo transactions moved to the pragma'd connection with the pragma re-asserted before BEGIN (device FK enforcement), idempotent initDatabase + resetDatabaseForTests seam, workout repair CAS + applyReroll game_ids_json predicate, portability workout-changed emissions, stable streak-purchase intent key, MAX(updated_at), PB future-dated refusal + exactly-one-eligible, all-level console gate locked with 58 spy sites converted, live QA-gate suites, skip allowlist schema v4 exact full-name pinning + reviewed suite/test floors, seven test-hygiene fixes, catalog guards (duplicate score, pause wiring, touch targets fixing 7 game components, tutorial frame adoption migrating 2 games), in-session live-region announcements, ResultRow combined semantics, color-button minimums, pause-overlay wrap, governance activeProgram + ledger cursor cross-check, certifiedArtifactCommit fields, campaign-055 dated corrections, .gitignore residue. Matrix 588 suites (584 passed + 4 skipped) / 6,893 passed / 5 classified opt-in skips / 5 snapshots / 0 unexpected console output / exit 0 (214.4s); typecheck; lint; OpenSpec --all --strict 49/49; repo-state (program cursor enforced); task-ownership; validators offline 30, secrets PASS, provenance 13 + freshness, affected 16 + sync, runtime-QA 16, dependency-audit 41, workflows 44; catalog repeatability 7/7 identical; bounded device pass on 3A3C4CC5 (109,604,369 B): cold/warm Home, crafted fingerprint-injection recovered with re-seed, SQLite ok/v12/0-FK, 1,084 log lines 0 fatal/ANR.",
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": "CHANGE_065_COMPLETE"
+}

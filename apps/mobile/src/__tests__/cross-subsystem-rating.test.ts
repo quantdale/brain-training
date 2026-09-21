@@ -15,9 +15,22 @@ import { SessionRepository } from '@/db/sessions';
 import { RatingRepository } from '@/db/rating';
 import { createRatingPipeline, DIFFICULTY_XP_MULTIPLIER } from '@/rating/pipeline';
 import { createMigratedDb } from '@/db/__tests__/helpers';
+import { seededFloats } from '@/test-utils';
 
 const T0 = 1_700_000_000_000;
 const GAME_ID = 'memory';
+
+/**
+ * Deterministic session ids from a seeded stream, consumed in call order.
+ * Replaces the former Math.random suffix so fixtures repeat byte-for-byte.
+ */
+const SESSION_ID_TOKENS = seededFloats('cross-subsystem-rating/session-ids', 256);
+let sessionIdCursor = 0;
+function nextSessionId(prefix: string): string {
+  const token = SESSION_ID_TOKENS[sessionIdCursor];
+  sessionIdCursor += 1;
+  return `${prefix}-${token.toString(36).slice(2, 12)}`;
+}
 
 /** Domain mapping for the memory game: primary Memory, secondary Attention. */
 const getDomains = (gameId: string) =>
@@ -27,7 +40,7 @@ function makeSession(
   overrides: Partial<GameSessionRecord> = {},
 ): GameSessionRecord {
   return {
-    id: `session-${Math.random().toString(36).slice(2, 8)}`,
+    id: nextSessionId('session'),
     gameId: GAME_ID,
     gameVersion: 1000000,
     generatorVersion: 1000000,

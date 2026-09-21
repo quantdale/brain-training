@@ -5,7 +5,9 @@
  * the button matching the swatch color, not the text color), and a
  * completion screen. Completion marks the tutorial done via the tutorial
  * lifecycle; a dev-only skip button (rendered by the parent only in dev
- * builds) uses the QA skip path.
+ * builds) uses the QA skip path. The card shell is the shared
+ * `TutorialFrame` (campaign 065), so the surface matches every other game's
+ * tutorial.
  *
  * The demo is remounted with a new `key` on every replay attempt, which
  * resets its internal state without any setState-in-effect cascades.
@@ -15,8 +17,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { createRng, testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Radii, Spacing } from '@/constants/theme';
+import { TutorialFrame } from '@/components/game-ui';
+import { Spacing } from '@/constants/theme';
 
 import { generateTrials } from '../generator';
 import { GAME_ID, COLOR_PALETTE, COLOR_HEX } from '../types';
@@ -42,7 +44,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
   const [attempt, setAttempt] = useState(0);
 
   return (
-    <ThemedView type="surface" style={styles.card} testID={testId(GAME_ID, 'tutorial')}>
+    <TutorialFrame gameId={GAME_ID}>
       {step === 'intro' ? (
         <View style={styles.body}>
           <ThemedText type="headline">How to play</ThemedText>
@@ -91,7 +93,7 @@ export function Tutorial({ onComplete, onSkip }: TutorialProps) {
           />
         </View>
       ) : null}
-    </ThemedView>
+    </TutorialFrame>
   );
 }
 
@@ -185,10 +187,6 @@ function DemoTrial({ attempt, onWrong, onDone, onSkip }: DemoTrialProps) {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: Radii.large,
-    padding: Spacing.four,
-  },
   body: {
     gap: Spacing.three,
   },

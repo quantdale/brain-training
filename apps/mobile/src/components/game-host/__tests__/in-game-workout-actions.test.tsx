@@ -14,6 +14,7 @@ import { Text } from 'react-native';
 import { GameResults, type GameResultsWorkoutActions } from '../results';
 import { WorkoutSessionLaunchProvider } from '@/workout/session-launch-context';
 import { advanceWorkoutForSession } from '@/workout/session-advance';
+import { expectConsoleNoise } from '@/test-utils';
 import { router } from 'expo-router';
 
 jest.mock('expo-router', () => ({
@@ -129,19 +130,18 @@ describe('GameResults workout continuation', () => {
   });
 
   it('discloses a failed advance instead of silently dropping the leg', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockedAdvance.mockRejectedValue(new Error('advance boom'));
 
-    await renderResults();
+    // The deliberate advance-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[game-results\] workout advance failed/, async () => {
+      await renderResults();
+      await screen.findByTestId('memory.workout-advance-error');
+    });
 
-    expect(
-      await screen.findByTestId('memory.workout-advance-error'),
-    ).toHaveTextContent(/Workout progress could not be saved/);
-    expect(screen.queryByTestId('memory.next-game')).toBeNull();
-    expect(errorSpy).toHaveBeenCalledWith(
-      '[game-results] workout advance failed',
-      expect.any(Error),
+    expect(screen.getByTestId('memory.workout-advance-error')).toHaveTextContent(
+      /Workout progress could not be saved/,
     );
+    expect(screen.queryByTestId('memory.next-game')).toBeNull();
   });
 
   it('leaves standalone sessions untouched (no advance, no Next Game)', async () => {

@@ -161,13 +161,16 @@ export class RatingRepository {
       const sessions = (current?.sessions ?? 0) + 1;
 
       // Task 9.2: Use session event time for freshness, not processing time
-      // This ensures old evidence doesn't look fresh when processed later
+      // This ensures old evidence doesn't look fresh when processed later.
+      // 065: MAX keeps recency monotonic — an out-of-order completion
+      // (completedAt earlier than the stored updated_at) must not move the
+      // domain backwards and instantly mark it stale.
       await txn.run(
         `INSERT INTO domain_ratings (domain, rating, sessions, updated_at) VALUES (?, ?, ?, ?)
          ON CONFLICT (domain) DO UPDATE SET
            rating = excluded.rating,
            sessions = excluded.sessions,
-           updated_at = excluded.updated_at`,
+           updated_at = MAX(domain_ratings.updated_at, excluded.updated_at)`,
         [delta.domain, ratingAfter, sessions, eventAtMs],
       );
 

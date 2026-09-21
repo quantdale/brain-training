@@ -28,6 +28,7 @@ import {
   jest,
 } from '@jest/globals';
 import {
+  act,
   fireEvent,
   renderRouter,
   screen,
@@ -38,15 +39,19 @@ import ProfileScreen from '@/app/(tabs)/profile';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { ToastHost, resetToastQueueForTests } from '@/components/ui';
 import {
+  AppDatabase,
   InsufficientFundsError,
   purchaseStreakItem,
   type AchievementUnlock,
-  type AppDatabase,
   type QuestProgress,
+  type SQLiteAdapter,
 } from '@/db';
+import { createMigratedDb } from '@/db/__tests__/helpers';
 import { applyOwnedStreakItem } from '@/streaks';
+import { expectConsoleNoise } from '@/test-utils';
 
 const FREEZE_COST = 100;
+const T0 = 1_700_000_000_000;
 
 /** Test-controlled db surface served by the mocked `@/db` module. */
 const mockDbState: {
@@ -255,26 +260,22 @@ describe('profile streak-item purchase failure paths', () => {
 
   it('surfaces a generic repository rejection with a danger toast', async () => {
     mockDbState.balance = FREEZE_COST;
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockedPurchase.mockRejectedValue(new Error('db write boom'));
     await renderProfile();
 
     const buy = await findLoadedBuyButton(FREEZE_COST);
-    await fireEvent.press(buy);
-
-    await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[profile] streak item purchase failed',
-        expect.any(Error),
-      ),
+    await expectConsoleNoise(
+      /\[profile\] streak item purchase failed/,
+      async () => {
+        await fireEvent.press(buy);
+        await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(1));
+        // Campaign 027: the failure is user-visible now (toast), no
+        // celebration plays, and the inventory is unchanged.
+        expect(
+          await screen.findByTestId('toast', {}, { timeout: 5000 }),
+        ).toHaveTextContent(/Purchase failed/);
+      },
     );
-
-    // Campaign 027: the failure is user-visible now (toast), no celebration
-    // plays, and the inventory is unchanged.
-    expect(
-      await screen.findByTestId('toast', {}, { timeout: 5000 }),
-    ).toHaveTextContent(/Purchase failed/);
     expect(screen.queryByTestId('reward-celebration')).toBeNull();
     expect(screen.getByText('Freeze × 0')).toBeOnTheScreen();
   });
@@ -332,21 +333,15 @@ describe('profile ownership grouping (campaign 034)', () => {
 
   it('surfaces a theme persist rejection with a danger toast (sweep)', async () => {
     mockDbState.updateError = new Error('theme persist boom');
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderProfile();
 
-    await fireEvent.press(
-      await screen.findByTestId('profile-settings-theme-dark'),
-    );
-
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[profile] theme persist failed',
-        expect.any(Error),
-      ),
-    );
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
-    expect(toast).toHaveTextContent(/Couldn't save your theme/);
+    await expectConsoleNoise(/\[profile\] theme persist failed/, async () => {
+      await fireEvent.press(
+        await screen.findByTestId('profile-settings-theme-dark'),
+      );
+      const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+      expect(toast).toHaveTextContent(/Couldn't save your theme/);
+    });
   });
 });
 
@@ -368,5 +363,127 @@ describe('profile load failure honesty (frontier audit)', () => {
       await screen.findByTestId('profile-identity', {}, { timeout: 10_000 }),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('profile-error')).toBeNull();
+  });
+});
+
+describe('065: stable streak-item purchase intent key', () => {
+  it('reuses the same operationId when a failed purchase is retried', async () => {
+    mockDbState.balance = FREEZE_COST;
+    mockedPurchase
+      .mockRejectedValueOnce(new Error('post-commit bridge failure'))
+      .mockResolvedValueOnce(undefined as never);
+    await renderProfile();
+
+    const buy = await findLoadedBuyButton(FREEZE_COST);
+    await expectConsoleNoise(
+      /\[profile\] streak item purchase failed/,
+      async () => {
+        await fireEvent.press(buy);
+        // The rejection is user-visible before the retry: the intent key must
+        // survive the failure, not be regenerated.
+        await screen.findByTestId('toast', {}, { timeout: 5000 });
+        await fireEvent.press(buy);
+        await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(2));
+      },
+    );
+
+    const [first, second] = mockedPurchase.mock.calls.map(([, input]) => input);
+    expect(first.operationId).toEqual(expect.any(String));
+    expect(first.operationId).not.toBe('');
+    expect(second.operationId).toBe(first.operationId);
+  });
+
+  it('ignores a double-tap while in flight, then reuses the pending key on retry', async () => {
+    mockDbState.balance = FREEZE_COST;
+    let rejectFirstAttempt: ((error: Error) => void) | undefined;
+    mockedPurchase
+      .mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectFirstAttempt = reject;
+        }) as never,
+      )
+      .mockResolvedValueOnce(undefined as never);
+    await renderProfile();
+
+    const buy = await findLoadedBuyButton(FREEZE_COST);
+    await fireEvent.press(buy);
+    expect(mockedPurchase).toHaveBeenCalledTimes(1);
+
+    // A second tap while the first attempt is still pending must not open a
+    // second economy call with a fresh key.
+    await fireEvent.press(buy);
+    expect(mockedPurchase).toHaveBeenCalledTimes(1);
+
+    await expectConsoleNoise(
+      /\[profile\] streak item purchase failed/,
+      async () => {
+        await act(async () => {
+          rejectFirstAttempt?.(new Error('post-commit bridge failure'));
+        });
+        await screen.findByTestId('toast', {}, { timeout: 5000 });
+        // Retry the same intent through the real UI path.
+        await fireEvent.press(buy);
+        await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(2));
+      },
+    );
+
+    expect(mockedPurchase.mock.calls[1][1].operationId).toBe(
+      mockedPurchase.mock.calls[0][1].operationId,
+    );
+  });
+});
+
+describe('065: purchase retry is idempotent at the repository boundary', () => {
+  it('debits once when a committed purchase reports failure and the same key retries', async () => {
+    // Real economy function over a real migrated database: the first attempt
+    // commits its transaction but reports failure afterwards (the bridge/JS
+    // failure the UI cannot distinguish from a rollback). The retry must hit
+    // the same operation key and return the committed entry without a second
+    // debit or grant.
+    const adapter = await createMigratedDb();
+    const db = new AppDatabase(adapter, { now: () => T0 });
+    await db.profile.ensureExists();
+    await db.ledger.append({ amount: 100, reason: 'seed' });
+
+    let failNextCommitReport = true;
+    const flaky = new Proxy(db, {
+      get(target, property, receiver) {
+        if (property === 'transaction') {
+          return async (fn: (txn: SQLiteAdapter) => Promise<unknown>) => {
+            const result = await target.transaction(fn);
+            if (failNextCommitReport) {
+              failNextCommitReport = false;
+              throw new Error('post-commit bridge failure');
+            }
+            return result;
+          };
+        }
+        const value = Reflect.get(target, property, receiver) as unknown;
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    }) as AppDatabase;
+
+    const realPurchase = (
+      jest.requireActual('@/db') as { purchaseStreakItem: typeof purchaseStreakItem }
+    ).purchaseStreakItem;
+    const intent = {
+      kind: 'freeze' as const,
+      cost: 10,
+      operationId: 'streak-item:intent-1',
+      reason: 'streak-item-freeze',
+    };
+
+    await expect(realPurchase(flaky, intent)).rejects.toThrow(
+      /post-commit bridge failure/,
+    );
+    // The debit committed even though the caller saw a rejection.
+    expect(await db.ledger.getBalance()).toBe(90);
+
+    const retried = await realPurchase(db, intent);
+    expect(retried.inventory.freeze).toBe(1);
+    expect(await db.ledger.getBalance()).toBe(90);
+    expect(await db.ledger.list()).toHaveLength(2); // seed + exactly one debit
+
+    await adapter.close();
   });
 });

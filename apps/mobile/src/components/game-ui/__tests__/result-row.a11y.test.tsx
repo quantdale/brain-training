@@ -7,28 +7,31 @@
  * global `screen` singleton can otherwise leak a preceding tree into a
  * subsequent query.
  *
- * Guards: label and value render as separate, individually readable nodes, and
- * the value exposes an optional testID for assertions.
+ * Guards (065): each row is ONE accessible statement (`label: value`) so a
+ * screen reader does not read the two visual columns as unrelated facts. The
+ * two-column layout and the optional value testID survive unchanged.
  */
 import { describe, expect, it } from "@jest/globals";
-import { render } from "@testing-library/react-native";
+import { render, screen } from "@testing-library/react-native";
 
 import { ResultRow, StatRow } from "@/components/game-ui";
 
 describe("ResultRow / StatRow accessibility", () => {
-   it("renders label and value as separate, readable nodes", async () => {
-      const { getByText } = await render(
-         <ResultRow label="Accuracy" value="100%" />,
-      );
-      expect(getByText("Accuracy")).toBeTruthy();
-      expect(getByText("100%")).toBeTruthy();
+   it("presents label and value as one accessible statement", async () => {
+      await render(<ResultRow label="Accuracy" value="100%" />);
+
+      const row = screen.getByLabelText("Accuracy: 100%");
+      expect(row.props.accessible).toBe(true);
+      // Visual two-column layout is unchanged: both cells still render.
+      expect(screen.getByText("Accuracy")).toBeTruthy();
+      expect(screen.getByText("100%")).toBeTruthy();
    });
 
-   it("exposes an optional value testID for assertions", async () => {
-      const { getByTestId } = await render(
-         <StatRow label="Score" value="750" testID="r-score" />,
-      );
-      const value = getByTestId("r-score");
-      expect(value.props.children).toBe("750");
+   it("combines StatRow into one statement and keeps the value testID", async () => {
+      await render(<StatRow label="Score" value="750" testID="r-score" />);
+
+      const row = screen.getByLabelText("Score: 750");
+      expect(row.props.accessible).toBe(true);
+      expect(screen.getByTestId("r-score").props.children).toBe("750");
    });
 });

@@ -17,7 +17,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { getDb, initDatabase } from '@/db';
+import { getDb, initDatabase, resetDatabaseForTests } from '@/db';
 import type { DomainRating } from '@/workout/personalize';
 import { localDateString } from '@/workout/today';
 import { rotatedTemplateForDate } from '@/workout/rotation';
@@ -56,6 +56,7 @@ async function renderTemplates() {
 describe('useWorkoutTemplates (shipped schema v10)', () => {
   beforeEach(async () => {
     mockClock.today = '2026-08-20';
+    await resetDatabaseForTests();
     await initDatabase();
     registerGameDefinitions(registry);
   });
@@ -234,6 +235,7 @@ describe('useWorkoutTemplates (shipped schema v10)', () => {
 describe('useWorkoutTemplates (metadata round-trip on v10)', () => {
   beforeEach(async () => {
     mockClock.today = '2026-08-20';
+    await resetDatabaseForTests();
     await initDatabase();
     registerGameDefinitions(registry);
     // The column ships with schema v10 — no simulated migration needed.

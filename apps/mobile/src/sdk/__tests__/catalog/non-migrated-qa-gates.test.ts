@@ -1,32 +1,39 @@
 /**
- * Runtime QA-gate + tutorial contracts for NON-migrated games
- * (campaign 011 — W06; campaign 012 convergence).
+ * Runtime QA-gate + tutorial contracts for the shared game host and any
+ * NON-migrated games (campaign 011 — W06; campaigns 012/065 convergence).
  *
- * Games whose screen still carries its own lifecycle (no `@/components/game-host`
- * delegation) own their session/QA/tutorial wiring inline, so the production
- * safety properties are verified here AT RUNTIME instead of by text scan:
+ * Campaign 012 migrated the FULL catalog onto GameHost, so the production
+ * safety properties are verified here AT RUNTIME against the shared SDK
+ * surfaces every game host delegates to, UNCONDITIONALLY:
  *
- *   - each game's `create<X>QaForceStateHooks` returns hooks bound to its
- *     GAME_ID whose every method REFUSES to run outside a dev build
- *     (`assertDevOnly`) — flipping `__DEV__` off must make force-win/lose/state
- *     throw before touching dispatch — and dispatches a QA action in dev builds;
- *   - each game's tutorial lifecycle factory yields the SDK lifecycle over an
- *     in-memory store: shows on first play, clears on complete, and its
- *     QA-bypass (`skipForQa`) is likewise dev-only;
- *   - the tutorial and QA-panel components exist as callable components and
- *     are actually wired into the screen source.
+ *   - `createNoopQaForceStateHooks` (the SDK safe default behind every game's
+ *     `create<X>QaForceStateHooks`): every method REFUSES to run outside a dev
+ *     build (`assertDevOnly`) — flipping `__DEV__` off must make
+ *     force-win/lose/state throw before touching dispatch — and stays inert
+ *     inside a dev build;
+ *   - `createTutorialLifecycle(...)`: shows on first play, clears on complete,
+ *     and its QA-bypass (`skipForQa`) is likewise dev-only.
  *
- * Dangerous QA controls staying inert in production is constitution §29.
+ * Dangerous QA controls staying inert in production is constitution §29, so a
+ * zero-length non-migrated roster must never be able to switch these checks
+ * off (campaign 065: the claims used to be registered only while a roster
+ * existed, which made them dead code once the migration completed).
  *
- * Campaign 012 migrated the FULL catalog onto GameHost, so this roster is now
- * empty: only the count-pin test remains active, and the per-game gates below
- * are registered solely while a non-migrated roster exists (Jest forbids
- * `it.each([])` and hooks inside test-less describes). They reactivate
- * automatically if any screen ever drops GameHost delegation again.
+ * The per-game `it.each` rows below stay registered only while a non-migrated
+ * roster exists (Jest forbids `it.each([])` and hooks inside test-less
+ * describes); they reactivate automatically if any screen drops GameHost
+ * delegation, verifying that game's inline QA/tutorial wiring. The roster pin
+ * keeps asserting the campaign-012 target state (0).
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+import {
+  createInMemoryTutorialStore,
+  createNoopQaForceStateHooks,
+  createTutorialLifecycle,
+} from '@/sdk';
 
 const GAMES_ROOT = join(__dirname, '..', '..', '..', 'games');
 
@@ -81,6 +88,75 @@ function findExport(mod: Record<string, unknown>, pattern: RegExp): string {
 describe('non-migrated roster', () => {
   it('pins the count of screens awaiting GameHost migration', () => {
     expect(NON_MIGRATED).toHaveLength(EXPECTED_NON_MIGRATED_COUNT);
+  });
+});
+
+describe('shared-host QA force-state hooks refuse to run outside dev builds', () => {
+  let originalDev: boolean | undefined;
+
+  beforeEach(() => {
+    originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
+    setDevBuild(true);
+  });
+
+  afterEach(() => {
+    setDevBuild(originalDev ?? true);
+  });
+
+  it('every method throws /dev-only/i in production and stays inert in dev', () => {
+    const hooks = createNoopQaForceStateHooks('shared-host');
+    expect(hooks.gameId).toBe('shared-host');
+
+    // Production behavior: every method throws before touching anything.
+    setDevBuild(false);
+    expect(() => hooks.forceWin()).toThrow(/dev-only/i);
+    expect(() => hooks.forceLose()).toThrow(/dev-only/i);
+    expect(() => hooks.forceState?.({})).toThrow(/dev-only/i);
+
+    // Dev behavior: the safe default stays inert (it has no dispatch sink).
+    setDevBuild(true);
+    expect(() => hooks.forceWin()).not.toThrow();
+    expect(() => hooks.forceLose()).not.toThrow();
+    expect(() => hooks.forceState?.({})).not.toThrow();
+  });
+});
+
+describe('shared-host tutorial skipForQa is dev-only', () => {
+  let originalDev: boolean | undefined;
+
+  beforeEach(() => {
+    originalDev = (globalThis as { __DEV__?: boolean }).__DEV__;
+    setDevBuild(true);
+  });
+
+  afterEach(() => {
+    setDevBuild(originalDev ?? true);
+  });
+
+  it('shows on first play, completes, and refuses skipForQa outside dev builds', () => {
+    const gameId = 'shared-host';
+    const lifecycle = createTutorialLifecycle(createInMemoryTutorialStore(), 'shared-host-1.0.0');
+
+    expect(lifecycle.shouldShowTutorial(gameId)).toBe(true);
+    lifecycle.complete(gameId);
+    expect(lifecycle.shouldShowTutorial(gameId)).toBe(false);
+    expect(lifecycle.getState(gameId).completed).toBe(true);
+
+    // The QA bypass shares the production gate with force-state hooks and
+    // must not mutate tutorial state when it refuses.
+    setDevBuild(false);
+    expect(() => lifecycle.skipForQa(gameId)).toThrow(/dev-only/i);
+    expect(lifecycle.getState(gameId)).toEqual({
+      completed: true,
+      replayRequested: false,
+      version: 'shared-host-1.0.0',
+    });
+
+    setDevBuild(true);
+    lifecycle.requestReplay(gameId);
+    expect(lifecycle.shouldShowTutorial(gameId)).toBe(true);
+    lifecycle.skipForQa(gameId);
+    expect(lifecycle.shouldShowTutorial(gameId)).toBe(false);
   });
 });
 

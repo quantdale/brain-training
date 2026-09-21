@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-21
+goal: Close the residual cross-cutting gaps found by six independent adversarial critic lanes (source/runtime, tests, data/persistence, pixels/a11y, governance/artifact, reintro-guards/repeatability) — bootstrap progression integrity, device transaction FK enforcement, init idempotence, workout repair CAS, portability state coherence, economy retry keys, PB discipline, test-signal integrity (live QA gates, exact skip pinning, console-spy bypass, honest counters, suite floors), catalog reintroduction guards, in-session a11y, sizing fixes, and governance/evidence reconciliation — without adding product features.

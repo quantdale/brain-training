@@ -204,10 +204,11 @@ describe("/results hero anatomy (campaign 024)", () => {
     expect(feedback).not.toHaveBeenCalled();
   });
 
-  it("057: clamps the personal-best comparison to now for future-dated sessions", async () => {
-    // Clock skew: the session claims a completion a day in the future. The
-    // PB pushdown must compare within the displayed time universe, and an
-    // earlier stronger session must still win (no skewed best).
+  it("057/065: never judges a future-dated session, and clamps the bound for in-universe sessions", async () => {
+    // Clock skew: the session claims a completion a day in the future.
+    // 065 strengthened the 057 clamp: a session outside its own universe is
+    // rejected up front, so the PB pushdown is not queried at all (no
+    // earlier stronger session can win the badge on its behalf).
     const testStart = Date.now();
     const futureAt = testStart + 24 * 3_600_000;
     const session = {
@@ -216,8 +217,33 @@ describe("/results hero anatomy (campaign 024)", () => {
       completedAt: futureAt,
       normalizedResult: 0.7, // mid-band: passes the honesty gate on its own
     };
+    let countCalls = 0;
+    mockDbState.db = makeFakeDb(session, {
+      earlierAtOrAbove: 2,
+      onCountSessions: () => {
+        countCalls += 1;
+      },
+    });
+
+    await act(async () => {
+      renderRouter(
+        { index: () => null, results: ResultsScreen },
+        { initialUrl: `/results?id=${session.id}` },
+      );
+    });
+
+    await screen.findByTestId("results-score", {}, { timeout: 5000 });
+    await act(async () => {});
+    expect(countCalls).toBe(0);
+    // Outcome: no PB badge despite mid-band play and an earlier best.
+    expect(screen.queryByTestId("results-personal-best")).toBeNull();
+  });
+
+  it("057: clamps the PB comparison bound to now for an in-universe session", async () => {
+    // The pushdown bound stays min(completedAt, now); for a past completion
+    // that is the completion itself, inside the displayed universe.
+    const session = makeSession("hero-clamped-bound");
     let seenToMs: unknown = null;
-    // Two sessions reach 0.7 (self + a genuinely earlier best): not a best.
     mockDbState.db = makeFakeDb(session, {
       earlierAtOrAbove: 2,
       onCountSessions: (query) => {
@@ -234,13 +260,9 @@ describe("/results hero anatomy (campaign 024)", () => {
 
     await screen.findByTestId("results-score", {}, { timeout: 5000 });
     await act(async () => {});
-    // Bound is exactly min(completedAt, now): inside the test window, never
-    // the future timestamp.
     expect(typeof seenToMs).toBe("number");
-    expect(seenToMs as number).toBeGreaterThanOrEqual(testStart);
+    expect(seenToMs as number).toBe(COMPLETED_AT);
     expect(seenToMs as number).toBeLessThanOrEqual(Date.now());
-    expect(seenToMs as number).toBeLessThan(futureAt);
-    // Outcome: the earlier best wins, so no PB badge despite mid-band play.
     expect(screen.queryByTestId("results-personal-best")).toBeNull();
   });
 
@@ -278,5 +300,64 @@ describe("/results hero anatomy (campaign 024)", () => {
     ).toBeOnTheScreen();
     // The primary CTA is still play-again: exactly one primary per viewport.
     expect(screen.getByTestId("results-play-again")).toBeOnTheScreen();
+  });
+});
+
+describe("065: personal-best requires exactly one eligible session", () => {
+  it("awards no personal best when the comparison universe is empty", async () => {
+    // The COUNT pushdown clamps its bound to min(completedAt, now), so a
+    // future-dated session can fall outside its own universe (count 0). Zero
+    // matches means "no evidence", not "nothing beat it".
+    const session = makeSession("pb-empty-universe");
+    mockDbState.db = makeFakeDb(session, { earlierAtOrAbove: 0 });
+
+    await act(async () => {
+      renderRouter(
+        { index: () => null, results: ResultsScreen },
+        { initialUrl: `/results?id=${session.id}` },
+      );
+    });
+
+    await screen.findByTestId("results-score", {}, { timeout: 5000 });
+    await act(async () => {});
+    expect(screen.queryByTestId("results-personal-best")).toBeNull();
+  });
+
+  it("refuses the badge for a future-dated session even when an earlier at-or-above session exists", async () => {
+    // A session outside its own clamped universe must never collect the badge
+    // on the strength of an earlier session's result.
+    const session: GameSessionRecord = {
+      ...makeSession("pb-future-dated"),
+      completedAt: Date.now() + 3_600_000,
+    };
+    mockDbState.db = makeFakeDb(session, { earlierAtOrAbove: 1 });
+
+    await act(async () => {
+      renderRouter(
+        { index: () => null, results: ResultsScreen },
+        { initialUrl: `/results?id=${session.id}` },
+      );
+    });
+
+    await screen.findByTestId("results-score", {}, { timeout: 5000 });
+    await act(async () => {});
+    expect(screen.queryByTestId("results-personal-best")).toBeNull();
+  });
+
+  it("still awards a personal best to an in-universe first session", async () => {
+    // Exactly one eligible session (the session itself) is a personal best.
+    const session = makeSession("pb-first-session");
+    mockDbState.db = makeFakeDb(session, { earlierAtOrAbove: 1 });
+
+    await act(async () => {
+      renderRouter(
+        { index: () => null, results: ResultsScreen },
+        { initialUrl: `/results?id=${session.id}` },
+      );
+    });
+
+    expect(
+      await screen.findByTestId("results-personal-best", {}, { timeout: 5000 }),
+    ).toBeOnTheScreen();
   });
 });

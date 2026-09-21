@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-09-21
+goal: Close the static/architecture/contract and governance/OpenSpec/state gaps found by independent critic passes — with a flake/allowlist/debt audit and the residual census that seeds the post-067 hardening phase — without adding features. Full 066 recon will refine this draft; the initial scope is the program's 066 definition.

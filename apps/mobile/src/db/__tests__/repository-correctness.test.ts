@@ -300,7 +300,6 @@ describe('aggregate pushdown equals a JS reference on randomized fixtures', () =
         firstCompletedAt: matching.length ? Math.min(...matching.map((r) => r.completedAt)) : 0,
         lastCompletedAt: matching.length ? Math.max(...matching.map((r) => r.completedAt)) : 0,
       };
-      expect(`${c.name} count`).toBe(`${c.name} count`);
       expect(agg.count).toBe(expectedAgg.count);
       expect(agg.totalXp).toBe(expectedAgg.totalXp);
       expect(agg.bestNormalized).toBeCloseTo(expectedAgg.bestNormalized, 10);

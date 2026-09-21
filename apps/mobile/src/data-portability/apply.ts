@@ -29,6 +29,7 @@ import {
   runMigrations,
   type SQLiteAdapter,
 } from "@/db";
+import { PROGRESSION_SEED_VERSION_KEY } from "@/progression/seeding";
 import type { BackupData, ImportMode } from "./types";
 import {
   emptyCounters,
@@ -176,6 +177,30 @@ export function mergeProfileSettings(
     merged.cosmetics = out;
   }
   return merged;
+}
+
+/**
+ * Replace-import invariant (Change 065): a persisted seed fingerprint only
+ * asserts that the PRODUCING database seeded the catalogs it was written
+ * with. A replace import clears the local catalogs and may import a profile
+ * whose fingerprint matches the current app version while the backup carries
+ * NO definition rows; if that fingerprint survived, `ensureProgressionDefinitions`
+ * would skip seeding and the next progression sync would insert
+ * `quest_progress`/`achievement_unlocks` rows with no parent definition (FK
+ * failure -> BootstrapRecovery loop). Dropping the key forces the next seeding
+ * pass. Returns a copy — the parsed backup is never mutated. Merge mode is
+ * intentionally untouched: it keeps the local profile's merged settings and
+ * never clears the local catalogs.
+ */
+function stripImportedProgressionFingerprint(
+  profile: BackupData["profile"],
+): BackupData["profile"] {
+  if (!profile || !(PROGRESSION_SEED_VERSION_KEY in profile.settings)) {
+    return profile;
+  }
+  const settings = { ...profile.settings };
+  delete settings[PROGRESSION_SEED_VERSION_KEY];
+  return { ...profile, settings };
 }
 
 async function writeProfile(
@@ -797,7 +822,16 @@ export async function applyData(
     }
   }
 
-  await writeProfile(txn, data.profile, mode, c);
+  // A replace clears the definition tables, so an imported fingerprint must
+  // not claim the catalog was re-seeded (see
+  // `stripImportedProgressionFingerprint`). Merge keeps local settings and
+  // catalogs, so the imported value is left to normal merge semantics.
+  const sanitizedProfile =
+    mode === "replace"
+      ? stripImportedProgressionFingerprint(data.profile)
+      : data.profile;
+
+  await writeProfile(txn, sanitizedProfile, mode, c);
   await writeFavorites(txn, gameFavorites, mode, c);
   await writeDomainRatings(txn, domainRatings, mode, c);
   await writeSessions(txn, gameSessions, mode, c);

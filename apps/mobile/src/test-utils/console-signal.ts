@@ -54,12 +54,15 @@ interface ConsoleSignalState {
   expected: { pattern: RegExp; matches: number; max: number }[];
   violations: string[];
   active: boolean;
+  /** The wrappers installed by the guard, for replacement detection. */
+  installed: Partial<Record<(typeof GUARDED_CONSOLE_LEVELS)[number], (...args: unknown[]) => void>>;
 }
 
 const state: ConsoleSignalState = {
   expected: [],
   violations: [],
   active: false,
+  installed: {},
 };
 
 function messageOf(args: unknown[]): string {
@@ -103,7 +106,7 @@ export function installConsoleSignalGuard(): void {
 
   for (const level of GUARDED_CONSOLE_LEVELS) {
     const original = console[level].bind(console);
-    console[level] = (...args: unknown[]) => {
+    const wrapper = (...args: unknown[]) => {
       const message = messageOf(args);
       if (isExpected(message)) {
         // Expected output is classified, not muted: the probe markers and
@@ -115,6 +118,12 @@ export function installConsoleSignalGuard(): void {
       state.violations.push(`[console.${level}] ${message.slice(0, 400)}`);
       original(...args);
     };
+    console[level] = wrapper;
+    state.installed[level] = wrapper;
+    // Lock the property: a test-level `jest.spyOn(console, level)` would
+    // otherwise replace the gate with a swallowing mock and silently hide
+    // unexpected output. Deliberate output uses `expectConsoleNoise`.
+    Object.defineProperty(console, level, { configurable: false, writable: false });
   }
 }
 
@@ -147,6 +156,16 @@ export async function expectConsoleNoise(
 
 /** Throw when this test emitted console output outside an expected scope. */
 export function assertNoUnexpectedConsoleOutput(): void {
+  // Defense in depth: if anything re-defined a guarded method, the gate was
+  // bypassed for the duration. Report it before checking recorded violations.
+  for (const level of GUARDED_CONSOLE_LEVELS) {
+    const installed = state.installed[level];
+    if (installed && console[level] !== installed) {
+      state.violations.push(
+        `[console.${level}] guarded console method was replaced — deliberate output must use expectConsoleNoise()`,
+      );
+    }
+  }
   if (state.violations.length === 0) {
     return;
   }

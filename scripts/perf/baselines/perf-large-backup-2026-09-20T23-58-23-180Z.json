@@ -1,0 +1,12 @@
+{
+  "sessions": 20000,
+  "seedMs": 2712,
+  "exportMs": 5580,
+  "textUtf16Units": 15228503,
+  "approximateTextBytes": 15228503,
+  "chunkCount": 3520167,
+  "heapUsedDeltaMb": 305.2,
+  "rssDeltaMb": 411.4,
+  "postGcHeap": false,
+  "node": "v24.3.0"
+}

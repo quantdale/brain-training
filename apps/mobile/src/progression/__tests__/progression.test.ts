@@ -17,6 +17,7 @@ import {
   syncQuestProgress,
 } from '@/progression';
 import { QUEST_DEFINITIONS_V1, currentPeriodKey } from '@/quests';
+import { progressionSeedVersion } from '@/progression/seeding';
 import { collectClaimableRewards } from '@/rewards/inbox';
 import { wipeLocalData } from '@/data-portability';
 
@@ -80,6 +81,24 @@ describe('initializeProgression', () => {
     expect(achievementUpsert).toHaveBeenCalledTimes(
       ACHIEVEMENT_DEFINITIONS_V1.length,
     );
+  });
+
+  it('re-seeds when the fingerprint matches but the persisted catalogs are empty', async () => {
+    const db = await makeDb();
+    // Simulate the hostile post-replace-import state: the profile claims the
+    // current fingerprint while no definition rows exist.
+    await db.profile.update({
+      settings: { progressionSeedVersion: progressionSeedVersion() },
+    });
+    expect(await db.quests.listDefinitions()).toHaveLength(0);
+    expect(await db.achievements.listDefinitions()).toHaveLength(0);
+
+    // Without the catalog-existence safety net this throws the quest_progress
+    // FK error while recording progress for the in-code catalog.
+    await refreshProgression(db, SESSION_NOW);
+
+    expect((await db.quests.listDefinitions()).length).toBeGreaterThanOrEqual(4);
+    expect((await db.achievements.listDefinitions()).length).toBeGreaterThanOrEqual(4);
   });
 });
 

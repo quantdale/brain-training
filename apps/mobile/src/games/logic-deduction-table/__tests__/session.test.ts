@@ -1,7 +1,8 @@
 // Jest globals imported explicitly (repo has no @types/jest).
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 import { RNG_ALGORITHM_VERSION } from "@/sdk";
 import type { DifficultyProfile, GameRawResult } from "@/sdk";
+import { expectConsoleNoise } from "@/test-utils";
 
 import {
   LOGIC_DEDUCTION_DIFFICULTY_PARAMS,
@@ -140,10 +141,6 @@ describe("buildSessionRecord", () => {
 });
 
 describe("persistLogicDeductionSession", () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it("persists through the injected persister", async () => {
     const completeSession = jest.fn(async () => ({
       session: {} as never,
@@ -160,21 +157,22 @@ describe("persistLogicDeductionSession", () => {
   });
 
   it("reports (never throws) on persistence failure", async () => {
-    const errorSpy = jest
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
     const completeSession = jest.fn(async () => {
       throw new Error("db closed");
     });
     const persister = { completeSession } as unknown as SessionPersistence;
-    const outcome = await persistLogicDeductionSession(
-      { id: "sid" } as never,
-      persister,
+    await expectConsoleNoise(
+      /\[logic-deduction-table\] failed to persist completed session sid/,
+      async () => {
+        const outcome = await persistLogicDeductionSession(
+          { id: "sid" } as never,
+          persister,
+        );
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect((outcome.error as Error).message).toBe("db closed");
+        }
+      },
     );
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect((outcome.error as Error).message).toBe("db closed");
-    }
-    expect(errorSpy).toHaveBeenCalledTimes(1);
   });
 });

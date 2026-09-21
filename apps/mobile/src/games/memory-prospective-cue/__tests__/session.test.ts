@@ -3,7 +3,9 @@
 // Session result building, persistence seam, seed/version mapping, and the
 // normalization contract for the Cue Keeper game — including division guards,
 // hostile inputs, and the failure path of the atomic persister.
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
+
+import { expectConsoleNoise } from "@/test-utils";
 
 import { resolveProspectiveCueDifficulty } from "../difficulty";
 import {
@@ -314,42 +316,37 @@ describe("persistProspectiveCueSession", () => {
   });
 
   it("converts persistence failures into { ok:false } without throwing", async () => {
-    const errorSpy = jest
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-    try {
-      const boom = new Error("disk on fire");
-      const persister: SessionPersistence = {
-        completeSession: async () => {
-          throw boom;
-        },
-      };
-      const result = await persistProspectiveCueSession(makeRecord(), persister);
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.error).toBe(boom);
-      }
-      expect(errorSpy).toHaveBeenCalled();
-    } finally {
-      errorSpy.mockRestore();
-    }
+    const boom = new Error("disk on fire");
+    const persister: SessionPersistence = {
+      completeSession: async () => {
+        throw boom;
+      },
+    };
+    await expectConsoleNoise(
+      /\[memory-prospective-cue\] failed to persist completed session persist-me/,
+      async () => {
+        const result = await persistProspectiveCueSession(makeRecord(), persister);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+          expect(result.error).toBe(boom);
+        }
+      },
+    );
   });
 
   it("also survives synchronous throws from the persister", async () => {
-    const errorSpy = jest
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-    try {
-      const persister: SessionPersistence = {
-        completeSession: () => {
-          throw new Error("sync explosion");
-        },
-      };
-      const result = await persistProspectiveCueSession(makeRecord(), persister);
-      expect(result.ok).toBe(false);
-    } finally {
-      errorSpy.mockRestore();
-    }
+    const persister: SessionPersistence = {
+      completeSession: () => {
+        throw new Error("sync explosion");
+      },
+    };
+    await expectConsoleNoise(
+      /\[memory-prospective-cue\] failed to persist completed session persist-me/,
+      async () => {
+        const result = await persistProspectiveCueSession(makeRecord(), persister);
+        expect(result.ok).toBe(false);
+      },
+    );
   });
 });
 

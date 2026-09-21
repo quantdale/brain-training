@@ -197,3 +197,19 @@ interaction captures, the accessibility classification, the visual review, the
 runtime matrix (including the full four-game workout, SQLite audit and log
 review) and the adversarial review. `PIXEL_CERT_ENVIRONMENT.md` records the
 runtime recovery and the composited-frame proof.
+
+---
+
+## Campaign 065 correction (2026-09-21, adversarial convergence)
+
+The sentence in "Terminal result" claiming "Result duplication 42/42 —
+registry-derived inventory; the redundant `Score` fact row was removed
+in the 27 games that also render the focal `Final score` numeral; 15
+single-presentation games untouched" is corrected by the later evidence:
+the inventory method missed the unlabeled animated-numeral class, 10 of
+those "15 untouched" games were still duplicates until `53468e4`, and
+the true affected total is 37 of 42. See the correction appended to
+`RESULT_DUPLICATION_CLOSURE.md`. Change 065 added a catalog-wide
+runtime guard for testID-shaped score statements so the historical class
+cannot silently return (an untestID'd extra numeral remains outside that
+guard's scope).

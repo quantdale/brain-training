@@ -12,6 +12,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 import { computeXp } from '@/rating/pipeline';
+import { expectConsoleNoise } from '@/test-utils';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { DIFFICULTY_PARAMS } from '../difficulty';
@@ -419,26 +420,26 @@ describe('SpatialFoldMatchScreen', () => {
         throw new Error('db locked');
       }),
     } as unknown as SessionPersistence & { completeSession: jest.Mock };
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const clock = createFakeClock(0);
-      await render(
-        <SpatialFoldMatchScreen
-          clock={clock}
-          tutorialStore={completedStore()}
-          sessionSeed="persist-fail"
-          persistSession={failing}
-        />,
-      );
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
-      expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
-      await act(async () => {});
-      expect(failing.completeSession).toHaveBeenCalledTimes(1);
-      expect(screen.getByTestId(testId(GAME_ID, 'persist-error'))).toBeOnTheScreen();
-    } finally {
-      errorSpy.mockRestore();
-    }
+    await expectConsoleNoise(
+      /\[spatial-fold-match\] failed to persist completed session/,
+      async () => {
+        const clock = createFakeClock(0);
+        await render(
+          <SpatialFoldMatchScreen
+            clock={clock}
+            tutorialStore={completedStore()}
+            sessionSeed="persist-fail"
+            persistSession={failing}
+          />,
+        );
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+        expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
+        await act(async () => {});
+        expect(failing.completeSession).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId(testId(GAME_ID, 'persist-error'))).toBeOnTheScreen();
+      },
+    );
   });
 });

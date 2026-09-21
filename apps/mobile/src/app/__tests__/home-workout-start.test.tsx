@@ -14,7 +14,7 @@
  * throws. Mirrors the mocking pattern of results-workout-cta.test.tsx and
  * visual-baselines.test.tsx.
  */
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   fireEvent,
   renderRouter,
@@ -27,6 +27,7 @@ import { ToastHost, resetToastQueueForTests } from '@/components/ui';
 import type { AppDatabase, WorkoutInstance } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
 import { registry as generatedRegistry } from '@/registry/registry.generated';
+import { expectConsoleNoise } from '@/test-utils';
 
 /** Test-controlled db surface served by the mocked `@/db` module. */
 const mockDbState: {
@@ -119,10 +120,6 @@ beforeEach(() => {
   resetToastQueueForTests();
 });
 
-afterEach(() => {
-  jest.restoreAllMocks();
-});
-
 describe('home template-workout start failure path', () => {
   it('describes a starting set when there is no recorded session history', async () => {
     await renderHome();
@@ -144,7 +141,6 @@ describe('home template-workout start failure path', () => {
   });
 
   it('surfaces a failed start, stays on Home, and keeps the CTA retryable', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderHome();
 
     const start = await screen.findByTestId(
@@ -152,27 +148,26 @@ describe('home template-workout start failure path', () => {
       {},
       { timeout: 10_000 },
     );
-    await fireEvent.press(start);
-
-    await waitFor(() => expect(mockDbState.templateStartAttempts).toBe(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[home] template workout start failed',
-        expect.any(Error),
-      ),
-    );
+    // The deliberate start-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[home\] template workout start failed/, async () => {
+      await fireEvent.press(start);
+      await waitFor(() => expect(mockDbState.templateStartAttempts).toBe(1));
+      await screen.findByTestId('toast', {}, { timeout: 5000 });
+    });
 
     // Campaign 028: the rejection is user-visible now, and no instance was
     // created so nothing was changed.
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    const toast = screen.getByTestId('toast');
     expect(toast).toHaveTextContent(/Couldn't start the workout/);
     expect(screen.getByTestId('home-title')).toBeOnTheScreen();
 
     // Retryable: the `finally` reset re-enabled the CTA, so a second tap
-    // reaches the start seam again instead of being silently swallowed.
-    await fireEvent.press(
-      screen.getByTestId('home-workout-template-start'),
-    );
-    await waitFor(() => expect(mockDbState.templateStartAttempts).toBe(2));
+    // reaches the start seam again and re-exercises the deliberate diagnostic.
+    await expectConsoleNoise(/\[home\] template workout start failed/, async () => {
+      await fireEvent.press(
+        screen.getByTestId('home-workout-template-start'),
+      );
+      await waitFor(() => expect(mockDbState.templateStartAttempts).toBe(2));
+    });
   });
 });

@@ -76,6 +76,36 @@ describe('RatingRepository', () => {
     expect(await ratings.getHistory(100)).toHaveLength(2);
   });
 
+  it('065: keeps updated_at monotonic when an out-of-order session is applied', async () => {
+    const adapter = await createMigratedDb();
+    const ratings = new RatingRepository(adapter, () => T0);
+    await seedSession(adapter, 'session-newer');
+    await seedSession(adapter, 'session-older');
+
+    const t2 = T0 + 40 * 24 * 60 * 60 * 1000;
+    await adapter.transaction((txn) =>
+      ratings.applyDeltas(txn, 'session-newer', [{ domain: 'Memory', delta: 10 }], t2),
+    );
+
+    // A late-arriving completion whose own completedAt is older than the
+    // stored recency: the rating still accumulates, but updated_at must not
+    // move backwards (before the fix it regressed to t1 and the just-played
+    // domain read as stale immediately).
+    const t1 = t2 - 31 * 24 * 60 * 60 * 1000;
+    await adapter.transaction((txn) =>
+      ratings.applyDeltas(txn, 'session-older', [{ domain: 'Memory', delta: 5 }], t1),
+    );
+
+    const rating = await ratings.getRating('Memory');
+    expect(rating).toEqual({
+      domain: 'Memory',
+      rating: INITIAL_RATING + 15,
+      sessions: 2,
+      updatedAt: t2,
+    });
+    expect(isRatingStale(rating!.updatedAt, t2)).toBe(false);
+  });
+
   it('clamps ratings at MIN_RATING (never negative)', async () => {
     const adapter = await createMigratedDb();
     const ratings = new RatingRepository(adapter, () => T0);

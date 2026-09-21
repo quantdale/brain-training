@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 import { computeXp } from '@/rating/pipeline';
+import { expectConsoleNoise } from '@/test-utils';
 
 import { TUTORIAL_DEMO_SEED } from '../components/tutorial';
 import { flexibilityTaskSwitchParamsFromProfile, resolveFlexibilityTaskSwitchDifficulty } from '../difficulty';
@@ -346,19 +347,22 @@ describe('TaskSwitchScreen', () => {
   });
 
   it('surfaces persistence failures without crashing', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const failing = makePersister();
     failing.completeSession.mockImplementation(async () => {
       throw new Error('db down');
     });
-    await renderScreen({ seed: 'persist-fail', persister: failing });
+    await expectConsoleNoise(
+      /\[flexibility-task-switch\] failed to persist completed session/,
+      async () => {
+        await renderScreen({ seed: 'persist-fail', persister: failing });
 
-    await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
-    await pressToggleAndForce('force-win');
-    await act(async () => {});
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+        await pressToggleAndForce('force-win');
+        await act(async () => {});
 
-    expect(screen.getByTestId(testId(GAME_ID, 'persist-error'))).toHaveTextContent(/db down/);
-    errorSpy.mockRestore();
+        expect(screen.getByTestId(testId(GAME_ID, 'persist-error'))).toHaveTextContent(/db down/);
+      },
+    );
   });
 
   it('restarts a fresh session from results and quits back to the library', async () => {

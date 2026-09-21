@@ -7,7 +7,7 @@
  * Mirrors the per-primitive contracts in `game-ui/__tests__/*.a11y.test.tsx`.
  * RNTL v14 `render` is async — every render is awaited.
  */
-import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { AccessibilityInfo } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
@@ -18,6 +18,7 @@ import { TabButton } from '@/components/app-tabs.web';
 import { SensorySettingsCard } from '@/components/sensory/sensory-settings-card';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import StorageUnavailable from '@/app/storage-unavailable';
+import { expectConsoleNoise } from '@/test-utils';
 
 /** Resolve a Pressable's style prop (may be a fn of press state) to a flat list. */
 function resolvedStyle(style: unknown): unknown[] {
@@ -70,21 +71,21 @@ describe('ErrorBoundary accessibility', () => {
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(() => undefined as unknown as void);
     announceSpy.mockClear();
-    // React logs caught render errors by design; keep test output clean.
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
     announceSpy.mockRestore();
-    (console.error as ReturnType<typeof jest.spyOn>).mockRestore();
   });
 
   it('announces the default fallback to screen readers and offers a 44pt retry button', async () => {
-    await render(
-      <ErrorBoundary>
-        <Bomb />
-      </ErrorBoundary>,
-    );
+    // React logs the deliberately caught render error by design.
+    await expectConsoleNoise(/Caught error:/, async () => {
+      await render(
+        <ErrorBoundary>
+          <Bomb />
+        </ErrorBoundary>,
+      );
+    });
 
     expect(announceSpy).toHaveBeenCalledWith(expect.stringContaining('Something went wrong'));
     const retry = screen.getByTestId('error-boundary-retry');
@@ -93,11 +94,14 @@ describe('ErrorBoundary accessibility', () => {
   });
 
   it('does not announce when the consumer supplies its own fallback', async () => {
-    await render(
-      <ErrorBoundary fallback={<></>}>
-        <Bomb />
-      </ErrorBoundary>,
-    );
+    // React logs the deliberately caught render error by design.
+    await expectConsoleNoise(/Caught error:/, async () => {
+      await render(
+        <ErrorBoundary fallback={<></>}>
+          <Bomb />
+        </ErrorBoundary>,
+      );
+    });
     expect(announceSpy).not.toHaveBeenCalled();
   });
 });

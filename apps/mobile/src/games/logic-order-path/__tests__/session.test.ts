@@ -3,6 +3,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { RNG_ALGORITHM_VERSION } from '@/sdk';
 import type { DifficultyProfile, GameRawResult } from '@/sdk';
 import type { CompleteSessionInput, CompleteSessionResult } from '@/db';
+import { expectConsoleNoise } from '@/test-utils';
 
 import { resolveOrderPathDifficulty } from '../difficulty';
 import { INITIAL_STATS } from '../types';
@@ -169,29 +170,29 @@ describe('persistOrderPathSession', () => {
   });
 
   it('reports failures without throwing', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const completeSession = jest.fn(async () => {
-        throw new Error('db down');
-      });
-      const record = buildSessionRecord({
-        sessionId: 'sid',
-        rawResult: makeRaw(),
-        difficulty: resolveOrderPathDifficulty('normal'),
-        normalized: { value: 1, scale: '0..1' },
-        xp: 0,
-        startedAtMs: 0,
-        completedAtMs: 10,
-        activeDurationMs: 10,
-      });
-      const outcome = await persistOrderPathSession(record, { completeSession });
-      expect(outcome.ok).toBe(false);
-      if (!outcome.ok) {
-        expect(String(outcome.error)).toContain('db down');
-      }
-    } finally {
-      errorSpy.mockRestore();
-    }
+    const completeSession = jest.fn(async () => {
+      throw new Error('db down');
+    });
+    const record = buildSessionRecord({
+      sessionId: 'sid',
+      rawResult: makeRaw(),
+      difficulty: resolveOrderPathDifficulty('normal'),
+      normalized: { value: 1, scale: '0..1' },
+      xp: 0,
+      startedAtMs: 0,
+      completedAtMs: 10,
+      activeDurationMs: 10,
+    });
+    await expectConsoleNoise(
+      /\[logic-order-path\] failed to persist completed session sid/,
+      async () => {
+        const outcome = await persistOrderPathSession(record, { completeSession });
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(String(outcome.error)).toContain('db down');
+        }
+      },
+    );
   });
 });
 

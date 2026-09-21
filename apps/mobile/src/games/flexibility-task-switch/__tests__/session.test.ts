@@ -2,6 +2,7 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { RNG_ALGORITHM_VERSION } from '@/sdk';
 import type { DifficultyProfile, GameRawResult } from '@/sdk';
+import { expectConsoleNoise } from '@/test-utils';
 
 import {
   flexibilityTaskSwitchParamsFromProfile,
@@ -189,16 +190,18 @@ describe('persistFlexibilityTaskSwitchSession', () => {
   });
 
   it('logs and reports failures instead of throwing', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const boom = new Error('db unavailable');
     const persister = { completeSession: jest.fn(async () => { throw boom; }) };
-    const outcome = await persistFlexibilityTaskSwitchSession(
-      { id: 'sid' } as never,
-      persister as never,
+    await expectConsoleNoise(
+      /\[flexibility-task-switch\] failed to persist completed session sid/,
+      async () => {
+        const outcome = await persistFlexibilityTaskSwitchSession(
+          { id: 'sid' } as never,
+          persister as never,
+        );
+        expect(outcome).toEqual({ ok: false, error: boom });
+      },
     );
-    expect(outcome).toEqual({ ok: false, error: boom });
-    expect(errorSpy).toHaveBeenCalledTimes(1);
-    errorSpy.mockRestore();
   });
 
   it('defaults to the db-backed persister seam', () => {

@@ -1,0 +1,16 @@
+{
+  "platform": "win32 node v24.3.0",
+  "measuredAt": "2026-09-20T23:58:31.692Z",
+  "scenarios": {
+    "listRecent_5000_full_rows_ms": 35.9562,
+    "listLightweight_5000_projection_ms": 5.0779,
+    "getDistinctActivityDates_5000_ms": 3.2207,
+    "loadProgressSnapshot_5000_ms": 47.3514,
+    "listRecent_20000_full_rows_ms": 157.6305,
+    "listLightweight_20000_projection_ms": 15.9129,
+    "getDistinctActivityDates_20000_ms": 9.4049,
+    "loadProgressSnapshot_20000_ms": 152.4622,
+    "exportLocalData_5000_incl_checksum_canonical_ms": 5558.4987,
+    "serializeBackup_5000_second_canonical_ms": 1326.0209
+  }
+}

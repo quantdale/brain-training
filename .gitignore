@@ -40,6 +40,5 @@ qa-artifacts/
 test-results/
 playwright-report/
 lint-*.json
-m\[1\]\)  
 jest-summary.json
 .jest-cache/

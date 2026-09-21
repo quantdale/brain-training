@@ -1,3 +1,15 @@
+# ACTIVE — Overnight Program 056→067 (owner-authorized, NIGHT mode)
+
+**Program id:** `056-067-overnight-autonomous-program` · **Status:** ACTIVE
+**Prompt:** `.agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md` (program SHA `428d293`)
+**Living ledger:** `.agent/OVERNIGHT_056_067_STATE.md`
+**Current change:** `066-adversarial-convergence-static-governance` (IN PROGRESS; 056–065 VALIDATED)
+**Note:** the authoritative `**Campaign id:**` / `**Status:**` fields below belong to the terminal
+Campaign 055 record and are intentionally left intact; the active program is registered in
+`.agent/GOVERNANCE.json` (`activeProgram`) and reconciled by `node scripts/validate-repo-state.mjs`.
+
+---
+
 # Campaign 055 — Signal Arcade Desirability Pass
 
 **Status:** VALIDATED — `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`

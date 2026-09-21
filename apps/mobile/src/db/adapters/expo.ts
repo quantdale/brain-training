@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import type { SQLiteAdapter } from '../adapter';
+import { SQL } from '../schema';
 
 /**
  * expo-sqlite's async methods share native statement objects. Keeping several
@@ -67,20 +68,39 @@ export function createExpoSqliteAdapter(
       return queue.enqueue(() => db.getAllAsync(sql, ...params));
     },
 
-    // Exclusive so the transaction cannot be interleaved by other async
-    // queries (documented expo-sqlite behavior); all queries inside the
-    // callback must run on the transaction connection. The callback must
-    // return void, so the fn result is captured and returned after commit.
+    // 065 — FK enforcement inside transactions. SQLite enforces foreign keys
+    // per connection, defaults them OFF, and IGNORES `PRAGMA foreign_keys`
+    // while a transaction is pending. expo-sqlite's
+    // `withExclusiveTransactionAsync` runs the callback on a NEW native
+    // connection (`Transaction.createAsync` opens with `useNewConnection:
+    // true`) that never received the main connection's pragma, so every
+    // transactional write ran with FK checks off on device — invisible to the
+    // Node backend, which keeps one connection with the pragma set. The
+    // transaction therefore runs on the main connection (where
+    // `initializeConnection` applied the pragma) and re-asserts it through the
+    // transaction adapter BEFORE `BEGIN`, the only window SQLite honors it.
+    // Exclusivity is unchanged: the outer queue is held for the complete
+    // transaction and every statement inside routes to this same connection.
+    // All queries inside the callback must use the txn adapter; nesting is
+    // rejected by SQLite (`cannot start a transaction within a transaction`).
     async transaction<T>(fn: (txn: SQLiteAdapter) => Promise<T>): Promise<T> {
       return queue.enqueue(async () => {
-        let result: T;
-        await db.withExclusiveTransactionAsync(async (txn) => {
-          // The outer queue is held for the complete transaction. A separate
-          // queue keeps Promise.all inside the transaction safe without
-          // deadlocking against that held outer queue.
-          result = await fn(createExpoSqliteAdapter(txn, new AsyncOperationQueue()));
-        });
-        return result!;
+        // The outer queue is held for the complete transaction. A separate
+        // queue keeps Promise.all inside the transaction safe without
+        // deadlocking against that held outer queue.
+        const txn = createExpoSqliteAdapter(db, new AsyncOperationQueue());
+        await txn.exec(SQL.foreignKeysOn);
+        await db.execAsync('BEGIN');
+        try {
+          const result = await fn(txn);
+          await db.execAsync('COMMIT');
+          return result;
+        } catch (error) {
+          // Preserve the body's error even if ROLLBACK itself fails (a
+          // connection-level failure must not mask the original cause).
+          await db.execAsync('ROLLBACK').catch(() => {});
+          throw error;
+        }
       });
     },
 

@@ -3,6 +3,9 @@
  *
  * Used on per-game results screens and the global `/results` screen.
  * No game mechanics: just themed typography + layout.
+ *
+ * Each row is ONE accessible statement (`label: value`): the two visual
+ * columns are read as a single fact instead of two unrelated nodes (065).
  */
 import { StyleSheet, View } from 'react-native';
 
@@ -21,7 +24,10 @@ export interface ResultRowProps {
 export function ResultRow({ label, value, testID }: ResultRowProps) {
   const theme = useTheme();
   return (
-    <View style={[styles.row, styles.divider, { borderBottomColor: theme.border }]}>
+    <View
+      style={[styles.row, styles.divider, { borderBottomColor: theme.border }]}
+      accessible
+      accessibilityLabel={`${label}: ${value}`}>
       <ThemedText type="small" themeColor="textSecondary">
         {label}
       </ThemedText>
@@ -40,7 +46,10 @@ export function ResultRow({ label, value, testID }: ResultRowProps) {
 export function StatRow({ label, value, testID }: ResultRowProps) {
   const theme = useTheme();
   return (
-    <View style={[styles.statRow, styles.divider, { borderBottomColor: theme.border }]}>
+    <View
+      style={[styles.statRow, styles.divider, { borderBottomColor: theme.border }]}
+      accessible
+      accessibilityLabel={`${label}: ${value}`}>
       <ThemedText type="bodySmall" themeColor="textSecondary">
         {label}
       </ThemedText>

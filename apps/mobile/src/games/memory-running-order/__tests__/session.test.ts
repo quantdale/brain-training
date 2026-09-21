@@ -1,7 +1,8 @@
 // Jest globals imported explicitly (repo has no @types/jest).
-import { describe, expect, it, jest } from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
 import { RNG_ALGORITHM_VERSION } from "@/sdk";
 import type { DifficultyProfile, GameRawResult } from "@/sdk";
+import { expectConsoleNoise } from "@/test-utils";
 
 import { RUNNING_ORDER_DIFFICULTY_PARAMS, resolveRunningOrderDifficulty } from "../difficulty";
 import { INITIAL_STATS } from "../types";
@@ -201,19 +202,21 @@ describe("persistRunningOrderSession", () => {
   });
 
   it("reports failures without throwing and never crashes the game", async () => {
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     const boom = new Error("db locked");
     const failing: SessionPersistence = {
       completeSession: async () => {
         throw boom;
       },
     };
-    const outcome = await persistRunningOrderSession(recordFor(), failing);
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(outcome.error).toBe(boom);
-    }
-    expect(errorSpy).toHaveBeenCalled();
-    errorSpy.mockRestore();
+    await expectConsoleNoise(
+      /\[memory-running-order\] failed to persist completed session persist-1/,
+      async () => {
+        const outcome = await persistRunningOrderSession(recordFor(), failing);
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(outcome.error).toBe(boom);
+        }
+      },
+    );
   });
 });

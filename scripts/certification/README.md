@@ -51,7 +51,21 @@ deliberate and must not be read as CI parity:
 ## Jest skip allowlist
 
 `validate-jest-signal.mjs` classifies every pending/skipped Jest assertion
-against `jest-skip-allowlist.json` (schema v2, `reviewedAt` required). It fails
-closed when an entry's file is missing, its `enableWith` gate disappeared, or —
-since the frontier-audit hardening — the entry **matched zero pending tests**
-(orphan exemption). Self-test: `node scripts/certification/validate-jest-signal.mjs --self-test`.
+against `jest-skip-allowlist.json` (**schema v4**). Each entry carries review
+metadata (`reviewedAt`, `expires`), the `enableWith` gate that re-activates the
+skipped probe, and `expectedMatches` — the reviewed number of pending tests the
+entry may match in one run. The validator fails closed when:
+
+- a skip matches no entry (unclassified) or more than one entry (ambiguous);
+- an entry's matched pending count differs from its `expectedMatches` pin — so
+  a new `it.skip` whose name merely contains an allowlisted pattern cannot be
+  absorbed by an entry reviewed for a different test;
+- an entry's file is missing or its `enableWith` gate disappeared (stale);
+- an entry matched zero pending tests (orphan exemption);
+- an entry's `expires` date has passed (near-expiry entries warn 60 days out);
+- the run summary falls below the reviewed top-level `minTotalSuites` /
+  `minTotalTests` floors (intentional reductions require review).
+
+The machine-readable report contains only counters the Jest summary can
+actually populate; the always-zero warning fields were dropped in schema v4.
+Self-test: `node scripts/certification/validate-jest-signal.mjs --self-test`.

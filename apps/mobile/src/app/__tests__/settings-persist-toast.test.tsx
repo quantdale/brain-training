@@ -11,13 +11,13 @@
  * with a probe route that flips the sfx toggle; `profile.update` is injected to
  * reject.
  */
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { describe, expect, it, jest } from '@jest/globals';
+import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import { Pressable } from 'react-native';
 
 import RootLayout from '@/app/_layout';
 import { useSettings } from '@/components/settings/settings-provider';
-import { rootLayoutRoutes } from '@/test-utils';
+import { expectConsoleNoise, rootLayoutRoutes } from '@/test-utils';
 
 jest.mock('@/db', () => {
   const actual = jest.requireActual('@/db') as Record<string, unknown>;
@@ -58,13 +58,8 @@ function SettingsProbe() {
   );
 }
 
-afterEach(() => {
-  jest.restoreAllMocks();
-});
-
 describe('sensory settings persist failure', () => {
   it('discloses a failed sfx persist with a danger toast', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const result = renderRouter(
       { _layout: RootLayout, ...rootLayoutRoutes({ results: SettingsProbe }) },
       { initialUrl: '/results' },
@@ -76,15 +71,15 @@ describe('sensory settings persist failure', () => {
       {},
       { timeout: 10_000 },
     );
-    await fireEvent.press(toggle);
-
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[startup] failed to persist sensory settings',
-        expect.any(Error),
-      ),
+    // The deliberate persist-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(
+      /\[startup\] failed to persist sensory settings/,
+      async () => {
+        await fireEvent.press(toggle);
+        await screen.findByTestId('toast', {}, { timeout: 5000 });
+      },
     );
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    const toast = screen.getByTestId('toast');
     expect(toast).toHaveTextContent(/Couldn't save your settings/);
     expect(toast).toHaveTextContent(/may reset when you restart/);
   });

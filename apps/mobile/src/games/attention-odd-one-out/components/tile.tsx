@@ -14,6 +14,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { MinTouchTarget } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 import { renderSpecFor } from '../generator';
@@ -111,6 +112,9 @@ export const ItemTile = memo(function ItemTile({
 const styles = StyleSheet.create({
   tile: {
     aspectRatio: 1,
+    // Campaign 065 touch-target guard: the grid sizes tiles by aspect ratio,
+    // so declare the shared floor explicitly for compact boards.
+    minHeight: MinTouchTarget,
     borderRadius: Radii.medium,
     alignItems: 'center',
     justifyContent: 'center',

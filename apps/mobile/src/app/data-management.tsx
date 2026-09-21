@@ -57,6 +57,7 @@ import {
 import { getDb } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { refreshProgression } from "@/progression";
+import { emitWorkoutChanged } from "@/workout/events";
 // Imported directly rather than via the barrel: this module pulls in native
 // filesystem modules that Node-side engine tests must not load transitively.
 // The native requires inside are LAZY (campaign 011 fix), so importing this
@@ -349,6 +350,11 @@ export default function DataManagementScreen() {
         const parsed =
           previewResult.parsed ?? parseAndValidateBackup(importText);
         const result = await applyImport(getDb(), parsed, mode);
+        // 065: the import rewrote (replace) or added to (merge) persisted
+        // workout rows behind mounted consumers' backs. Emit the existing
+        // workout-changed signal so Home refetches instead of rendering a
+        // deleted instance (dead Reroll, standalone save).
+        emitWorkoutChanged();
         // A replace import erases definitions along with the rest of the data;
         // re-seed the singleton profile + catalogs in-process so the app is a
         // usable first-run product without a restart. Merges keep existing
@@ -393,6 +399,9 @@ export default function DataManagementScreen() {
     setMessage(null);
     try {
       await wipeLocalData(getDb());
+      // 065: every workout row is gone; mounted workout consumers must drop
+      // the deleted instance and render the durable (empty) state.
+      emitWorkoutChanged();
       // The wipe clears the profile and definition catalogs; restore the
       // singleton profile + versioned definitions in this same process so
       // Home/Profile/play stay usable without an app restart. Sessions, XP and

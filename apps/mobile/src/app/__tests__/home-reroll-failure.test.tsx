@@ -13,7 +13,7 @@
  * renders) and the free-reroll apply throws. Mirrors the mocking pattern of
  * home-workout-start.test.tsx.
  */
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   fireEvent,
   renderRouter,
@@ -26,6 +26,7 @@ import { ToastHost, resetToastQueueForTests } from '@/components/ui';
 import type { AppDatabase, WorkoutInstance } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
 import { registry as generatedRegistry } from '@/registry/registry.generated';
+import { expectConsoleNoise } from '@/test-utils';
 
 /** Test-controlled db surface served by the mocked `@/db` module. */
 const mockDbState: {
@@ -124,32 +125,27 @@ beforeEach(() => {
   resetToastQueueForTests();
 });
 
-afterEach(() => {
-  jest.restoreAllMocks();
-});
-
 describe('home workout reroll failure path', () => {
   it('surfaces the rejection, keeps the control retryable, and changes nothing', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderHome();
 
-    await fireEvent.press(screen.getByTestId('home-workout-reroll'));
+    // The deliberate reroll-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[home\] workout reroll failed/, async () => {
+      await fireEvent.press(screen.getByTestId('home-workout-reroll'));
+      await waitFor(() => expect(mockDbState.applyRerollCalls).toBe(1));
+      await screen.findByTestId('toast', {}, { timeout: 5000 });
+    });
 
-    await waitFor(() => expect(mockDbState.applyRerollCalls).toBe(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[home] workout reroll failed',
-        expect.any(Error),
-      ),
-    );
-
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    const toast = screen.getByTestId('toast');
     expect(toast).toHaveTextContent(/Couldn't reroll the workout/);
     expect(toast).toHaveTextContent(/coins were not spent/);
 
-    // Retryable: the in-flight guard reset, so a second tap reaches the seam.
-    await fireEvent.press(screen.getByTestId('home-workout-reroll'));
-    await waitFor(() => expect(mockDbState.applyRerollCalls).toBe(2));
+    // Retryable: the in-flight guard reset, so a second tap reaches the seam
+    // and re-exercises the same deliberate failure diagnostic.
+    await expectConsoleNoise(/\[home\] workout reroll failed/, async () => {
+      await fireEvent.press(screen.getByTestId('home-workout-reroll'));
+      await waitFor(() => expect(mockDbState.applyRerollCalls).toBe(2));
+    });
 
     // The failed reroll never removed the plan legs or spent coins (the free
     // first reroll would debit nothing even on success).
@@ -157,24 +153,26 @@ describe('home workout reroll failure path', () => {
   });
 
   it('does not present a failed workout load as "no games registered", and retry recovers', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
     mockDbState.loadFails = true;
     mockDbState.db = makeFakeDb();
-    await renderRouter(
-      {
-        index: () => (
-          <>
-            <ToastHost />
-            <HomeScreen />
-          </>
-        ),
-      },
-      { initialUrl: '/' },
-    );
-    jest.useRealTimers();
+    // The deliberate workout-load-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[workout\] load failed/, async () => {
+      await renderRouter(
+        {
+          index: () => (
+            <>
+              <ToastHost />
+              <HomeScreen />
+            </>
+          ),
+        },
+        { initialUrl: '/' },
+      );
+      jest.useRealTimers();
+      await screen.findByTestId('home-workout-error', {}, { timeout: 10_000 });
+    });
 
     // A failure must not use the empty-catalog copy.
-    await screen.findByTestId('home-workout-error', {}, { timeout: 10_000 });
     expect(screen.queryByTestId('home-workout-empty')).toBeNull();
     expect(screen.queryByTestId('home-workout-loading')).toBeNull();
 

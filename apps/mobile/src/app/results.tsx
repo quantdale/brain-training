@@ -80,7 +80,7 @@ interface ResultsData {
 /**
  * Personal-best check via the sessions COUNT pushdown: sessions matching
  * `{ gameIds, toMs: completedAt, minNormalized }` include the session
- * itself, so a count of ≤1 means nothing earlier beat or tied it. Uses an
+ * itself, so exactly one match means nothing earlier beat or tied it. Uses an
  * aggregate instead of paging rows, so long histories stay cheap.
  */
 async function loadPersonalBest(
@@ -93,6 +93,13 @@ async function loadPersonalBest(
     if (typeof db.sessions.countSessions !== "function") {
       return false;
     }
+    // 057/065: a session cannot claim a personal best unless it is inside
+    // its own comparison universe. A future-dated (clock-skewed/imported)
+    // completion would otherwise be excluded by the `toMs` clamp and any
+    // single earlier at-or-above session would take the badge on its behalf.
+    if (session.completedAt > Date.now()) {
+      return false;
+    }
     // 057: clamp the comparison universe to the same `now` the recent list
     // uses — a clock-skewed future-dated session must not judge itself
     // against sessions that have not happened yet from the UI's perspective.
@@ -101,7 +108,11 @@ async function loadPersonalBest(
       toMs: Math.min(session.completedAt, Date.now()),
       minNormalized: session.normalizedResult,
     });
-    return atOrAbove <= 1;
+    // 065: exactly one eligible session — the session itself — is required.
+    // A count of 0 means this session fell outside its own comparison
+    // universe (e.g. a future-dated completion clamped by `toMs`), and an
+    // empty universe must not claim a personal best.
+    return atOrAbove === 1;
   } catch {
     return false;
   }

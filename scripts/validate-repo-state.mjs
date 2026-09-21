@@ -247,6 +247,77 @@ if (!governanceHasActiveField) {
   errors.push('GOVERNANCE.activeCampaign must be a non-empty campaign id or null in an explicit terminal state');
 }
 
+// ——— Owner-authorized multi-change program (065) ———
+// A program runs several numbered OpenSpec changes sequentially on top of a
+// terminal campaign. Governance must name it, the prompt/ledger must exist,
+// the current change must be a real IN_PROGRESS change, and STATE.md must
+// mention the program so a fresh session cannot mistake the repository for
+// idle. A program and an active campaign are mutually exclusive.
+const activeProgram = governance?.activeProgram;
+if (activeProgram !== undefined) {
+  if (!activeProgram || typeof activeProgram !== 'object' || Array.isArray(activeProgram)) {
+    errors.push('GOVERNANCE.activeProgram must be an object when present');
+  } else {
+    const programId = typeof activeProgram.id === 'string' ? activeProgram.id.trim() : '';
+    if (!programId) {
+      errors.push('GOVERNANCE.activeProgram.id must be a non-empty string');
+    } else if (!stateRaw.includes(programId)) {
+      errors.push(`STATE.md does not mention the active program '${programId}'`);
+    }
+    for (const field of ['prompt', 'ledger']) {
+      const rel = activeProgram[field];
+      if (typeof rel !== 'string' || !rel.trim()) {
+        errors.push(`GOVERNANCE.activeProgram.${field} must be a non-empty string`);
+      } else if (!fs.existsSync(path.join(root, rel))) {
+        errors.push(`GOVERNANCE.activeProgram.${field} references missing path '${rel}'`);
+      }
+    }
+    if (typeof activeProgram.currentChange !== 'string' || !activeProgram.currentChange.trim()) {
+      errors.push('GOVERNANCE.activeProgram.currentChange must be a change id string');
+    }
+    if (typeof activeCampaign === 'string' && activeCampaign.trim()) {
+      errors.push('GOVERNANCE cannot declare both an activeCampaign and an activeProgram');
+    }
+    if (activeProgram.state !== 'ACTIVE') {
+      errors.push(`GOVERNANCE.activeProgram.state must be 'ACTIVE' while the program runs, got '${activeProgram.state ?? 'missing'}'`);
+    } else {
+      const currentChange =
+        typeof activeProgram.currentChange === 'string' ? activeProgram.currentChange.trim() : '';
+      // The ledger is the program's durable cursor; it must agree with the
+      // governance binding (campaign 065 closure: a stale ledger otherwise
+      // passes while the two sources drift).
+      if (typeof activeProgram.ledger === 'string' && fs.existsSync(path.join(root, activeProgram.ledger))) {
+        const ledgerRaw = fs.readFileSync(path.join(root, activeProgram.ledger), 'utf8');
+        const ledgerMatch = ledgerRaw.match(/^\*\*Current change:\*\*\s*`([^`]+)`/m);
+        const ledgerChange = ledgerMatch ? ledgerMatch[1].trim() : null;
+        if (!ledgerChange) {
+          errors.push(`active program ledger '${activeProgram.ledger}' is missing its machine-readable Current change field`);
+        } else if (currentChange && ledgerChange !== currentChange) {
+          errors.push(`active program ledger current change '${ledgerChange}' contradicts GOVERNANCE.activeProgram.currentChange '${currentChange}'`);
+        }
+      }
+      if (currentChange) {
+        const changeDir = path.join(root, 'openspec', 'changes', currentChange);
+        if (!fs.existsSync(changeDir)) {
+          errors.push(`GOVERNANCE.activeProgram.currentChange '${currentChange}' has no openspec/changes directory`);
+        } else {
+          try {
+            const meta = JSON.parse(fs.readFileSync(path.join(changeDir, 'change.json'), 'utf8'));
+            if (meta.id !== currentChange) {
+              errors.push('activeProgram.currentChange change.json id does not match the program binding');
+            }
+            if (!['IN_PROGRESS', 'ACTIVE'].includes(meta.status)) {
+              errors.push(`activeProgram.currentChange '${currentChange}' must be IN_PROGRESS while the program runs, got '${meta.status}'`);
+            }
+          } catch (error) {
+            errors.push(`cannot read activeProgram.currentChange change.json: ${error.message}`);
+          }
+        }
+      }
+    }
+  }
+}
+
 // Workflow-referenced script existence (campaign 028, task 4.4): every
 // repo-relative `node <script>` invocation in .github/workflows/** must point
 // at an existing file, so a rename cannot turn a CI gate into a silent no-op.
@@ -328,5 +399,8 @@ if (errors.length) {
 console.log('Repository state validation PASS');
 if (activeCampaign) console.log(`Active campaign: ${activeCampaign}`);
 else console.log(`No active campaign; last campaign: ${terminalCampaign} (${terminalStatus})`);
+if (activeProgram && typeof activeProgram === 'object') {
+  console.log(`Active program: ${activeProgram.id} — current change: ${activeProgram.currentChange}`);
+}
 console.log(`Default coder concurrency: ${governance.swarm.defaultMaxCoderAgents}`);
 console.log(`Default Android emulators: ${governance.runtimeQa.defaultAndroidEmulators}`);

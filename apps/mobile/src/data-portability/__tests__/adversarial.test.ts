@@ -39,6 +39,7 @@ import {
   type ImportMode,
 } from "../index";
 import { AppDatabase } from "@/db";
+import { seededFloats } from "@/test-utils";
 import { makeDb, seedFixture, T0 } from "./helpers";
 
 /** Build a fully-checksummed envelope from raw `data`. */
@@ -367,10 +368,17 @@ describe("imported timestamps and old schema versions", () => {
 });
 
 describe("ordering independence and canonical serialization", () => {
-  function shuffle<T>(arr: T[]): T[] {
+  /**
+   * Seeded Fisher-Yates: deterministically permutes records so the import
+   * order-independence check stays reproducible (no Math.random). Each call
+   * passes its own seed so the different sections do not share one index
+   * permutation.
+   */
+  function shuffle<T>(arr: T[], seed: string): T[] {
     const a = [...arr];
+    const draws = seededFloats(seed, Math.max(0, a.length - 1));
     for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(draws[a.length - 1 - i] * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
@@ -393,10 +401,10 @@ describe("ordering independence and canonical serialization", () => {
     const ordered = buildEnvelope(data);
     const reordered = buildEnvelope({
       ...data,
-      gameSessions: shuffle(data.gameSessions),
-      currencyLedger: shuffle(data.currencyLedger),
-      domainRatings: shuffle(data.domainRatings),
-      ratingHistory: shuffle(data.ratingHistory),
+      gameSessions: shuffle(data.gameSessions, "game-sessions"),
+      currencyLedger: shuffle(data.currencyLedger, "currency-ledger"),
+      domainRatings: shuffle(data.domainRatings, "domain-ratings"),
+      ratingHistory: shuffle(data.ratingHistory, "rating-history"),
     });
 
     const t1 = await makeDb();

@@ -24,6 +24,7 @@ import ResultsScreen from "@/app/results";
 import { ToastHost, resetToastQueueForTests } from "@/components/ui";
 import { registerGameDefinitions } from "@/registry/registry";
 import { registry as generatedRegistry } from "@/registry/registry.generated";
+import { expectConsoleNoise } from "@/test-utils";
 import { eligibleGameIds, reconcileWorkout } from "@/workout/reconcile";
 import { onWorkoutChanged } from "@/workout/events";
 
@@ -252,35 +253,34 @@ describe("/results workout CTA (Slot array-style crash regression)", () => {
       throw new Error("advance boom");
     });
     mockDbState.db = db;
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
-    await act(async () => {
-      renderRouter(
-        {
-          index: () => null,
-          results: () => (
-            <>
-              <ToastHost />
-              <ResultsScreen />
-            </>
-          ),
-        },
-        { initialUrl: `/results?id=${SESSION_ID}` },
-      );
+    // The deliberate advance-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[results\] workout advance failed/, async () => {
+      await act(async () => {
+        renderRouter(
+          {
+            index: () => null,
+            results: () => (
+              <>
+                <ToastHost />
+                <ResultsScreen />
+              </>
+            ),
+          },
+          { initialUrl: `/results?id=${SESSION_ID}` },
+        );
+      });
+      await screen.findByTestId("toast", {}, { timeout: 5000 });
     });
 
     // The session itself is already saved and the results stay up; the toast
     // is the only honest signal that the workout leg did not advance (before
     // Campaign 027 the rejection was console-only and the CTA silently
     // vanished).
-    expect(
-      await screen.findByTestId("toast", {}, { timeout: 5000 }),
-    ).toHaveTextContent(/Workout progress could not be saved/);
+    expect(screen.getByTestId("toast")).toHaveTextContent(
+      /Workout progress could not be saved/,
+    );
     expect(screen.getByTestId("results-score")).toBeOnTheScreen();
     expect(screen.queryByTestId("results-next-game")).toBeNull();
-    expect(errorSpy).toHaveBeenCalledWith(
-      "[results] workout advance failed",
-      expect.any(Error),
-    );
   });
 });

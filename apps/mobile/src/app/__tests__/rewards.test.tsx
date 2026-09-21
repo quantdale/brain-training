@@ -14,7 +14,7 @@
  * write failure, and `@/db` serves a fake repository surface. This mirrors the
  * mocking pattern of data-management.test.tsx / results-workout-cta.test.tsx.
  */
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   fireEvent,
   renderRouter,
@@ -35,6 +35,7 @@ import {
   purchaseCosmetic,
 } from '@/cosmetics';
 import { refreshProgression } from '@/progression';
+import { expectConsoleNoise } from '@/test-utils';
 import type { AchievementUnlock, AppDatabase } from '@/db';
 
 const ACH_FIRST = ACHIEVEMENT_DEFINITIONS_V1[0]; // ach-first
@@ -140,42 +141,32 @@ beforeEach(() => {
   mockDbState.settings = {};
 });
 
-afterEach(() => {
-  jest.restoreAllMocks();
-});
-
 describe('rewards claim failure paths', () => {
   it('surfaces a single claim write failure and leaves the item unclaimed', async () => {
     mockDbState.unlockRows = [
       { achievementId: ACH_FIRST.id, unlockedAt: 0, claimedAt: null },
     ];
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockedClaimAchievement.mockRejectedValue(new Error('claim write boom'));
 
     await renderRewards();
     const claimTestId = `reward-claim-${fragment(`achievement:${ACH_FIRST.id}`)}`;
     const itemTestId = `rewards-item-${fragment(`achievement:${ACH_FIRST.id}`)}`;
-    await fireEvent.press(await screen.findByTestId(claimTestId));
+    // The deliberate claim-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[rewards\] claim failed/, async () => {
+      await fireEvent.press(await screen.findByTestId(claimTestId));
+      await waitFor(() =>
+        expect(mockedClaimAchievement).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({ id: ACH_FIRST.id }),
+          expect.any(Date),
+        ),
+      );
+      await expectFailureToast("Couldn't claim that reward");
+    });
 
-    await waitFor(() =>
-      expect(mockedClaimAchievement).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({ id: ACH_FIRST.id }),
-        expect.any(Date),
-      ),
-    );
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[rewards] claim failed',
-        expect.any(Error),
-      ),
-    );
-
-    // Re-read rendered state: the item is still claimable after the failure,
-    // and the danger toast tells the player nothing was lost.
+    // Re-read rendered state: the item is still claimable after the failure.
     expect(screen.getByTestId(itemTestId)).toBeOnTheScreen();
     expect(screen.getByTestId(claimTestId)).toBeOnTheScreen();
-    await expectFailureToast("Couldn't claim that reward");
   });
 
   it('aborts claim-all on a mid-loop throw: first claim durable, failure surfaced', async () => {
@@ -184,7 +175,6 @@ describe('rewards claim failure paths', () => {
       { achievementId: ACH_SECOND.id, unlockedAt: 0, claimedAt: null },
     ];
     const claimed = new Set<string>();
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockedClaimAchievement.mockImplementation(
       async (_db, def): Promise<AchievementClaimResult> => {
         if (def.id === ACH_SECOND.id) {
@@ -196,33 +186,29 @@ describe('rewards claim failure paths', () => {
     );
 
     await renderRewards();
-    await fireEvent.press(await screen.findByTestId('rewards-claim-all'));
+    // The deliberate claim-all failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[rewards\] claim-all failed/, async () => {
+      await fireEvent.press(await screen.findByTestId('rewards-claim-all'));
 
-    // The pass reached both items in order: the first claim committed, the
-    // second threw and aborted claimAllRewards before it could report.
-    await waitFor(() => expect(mockedClaimAchievement).toHaveBeenCalledTimes(2));
-    expect(mockedClaimAchievement.mock.calls.map(([, def]) => def.id)).toEqual([
-      ACH_FIRST.id,
-      ACH_SECOND.id,
-    ]);
-    expect(claimed.has(ACH_FIRST.id)).toBe(true);
+      // The pass reached both items in order: the first claim committed, the
+      // second threw and aborted claimAllRewards before it could report.
+      await waitFor(() => expect(mockedClaimAchievement).toHaveBeenCalledTimes(2));
+      expect(mockedClaimAchievement.mock.calls.map(([, def]) => def.id)).toEqual([
+        ACH_FIRST.id,
+        ACH_SECOND.id,
+      ]);
+      expect(claimed.has(ACH_FIRST.id)).toBe(true);
+      await expectFailureToast("Couldn't claim rewards");
+    });
 
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[rewards] claim-all failed',
-        expect.any(Error),
-      ),
-    );
-
-    // The screen refreshes after the failure (durable claims resync) and the
-    // danger toast reports it; the failed pass is never presented as success.
+    // The screen refreshes after the failure (durable claims resync); the
+    // failed pass is never presented as success.
     expect(
       screen.getByTestId(`reward-claim-${fragment(`achievement:${ACH_FIRST.id}`)}`),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(`reward-claim-${fragment(`achievement:${ACH_SECOND.id}`)}`),
     ).toBeOnTheScreen();
-    await expectFailureToast("Couldn't claim rewards");
   });
 });
 
@@ -235,7 +221,6 @@ describe('rewards cosmetic action failure paths (campaign 028)', () => {
   it('surfaces a purchase rejection: danger toast, nothing bought or spent, retryable', async () => {
     const price = PURCHASEABLE.price ?? 0;
     mockDbState.balance = price;
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockedPurchase.mockRejectedValue(new Error('purchase boom'));
 
     await renderRewards();
@@ -246,18 +231,15 @@ describe('rewards cosmetic action failure paths (campaign 028)', () => {
         /Confirm purchase/,
       ),
     );
-    await fireEvent.press(screen.getByTestId(BUY_ID));
-
-    await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[rewards] purchase failed',
-        expect.any(Error),
-      ),
-    );
+    // The deliberate purchase-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[rewards\] purchase failed/, async () => {
+      await fireEvent.press(screen.getByTestId(BUY_ID));
+      await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(1));
+      await screen.findByTestId('toast', {}, { timeout: 5000 });
+    });
 
     // Campaign 028: the rejection is user-visible now, no celebration plays.
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    const toast = screen.getByTestId('toast');
     expect(toast).toHaveTextContent(/Couldn't purchase that/);
     expect(screen.queryByTestId('reward-celebration')).toBeNull();
 
@@ -268,30 +250,29 @@ describe('rewards cosmetic action failure paths (campaign 028)', () => {
     );
 
     // Retryable: the busy guard reset in `finally`, so a re-armed + confirmed
-    // attempt reaches the economy again.
-    await fireEvent.press(screen.getByTestId(BUY_ID));
-    await fireEvent.press(screen.getByTestId(BUY_ID));
-    await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(2));
+    // attempt reaches the economy again and re-exercises the same deliberate
+    // failure diagnostic.
+    await expectConsoleNoise(/\[rewards\] purchase failed/, async () => {
+      await fireEvent.press(screen.getByTestId(BUY_ID));
+      await fireEvent.press(screen.getByTestId(BUY_ID));
+      await waitFor(() => expect(mockedPurchase).toHaveBeenCalledTimes(2));
+    });
   });
 
   it('surfaces an equip rejection: danger toast and ownership/equip unchanged', async () => {
     mockDbState.settings = AZURE_OWNED_SETTINGS;
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockedEquip.mockRejectedValue(new Error('equip boom'));
 
     await renderRewards();
     const equipTestId = `cosmetic-equip-${PURCHASEABLE.id}`;
-    await fireEvent.press(await screen.findByTestId(equipTestId));
+    // The deliberate equip-failure diagnostic is scoped to this test.
+    await expectConsoleNoise(/\[rewards\] equip failed/, async () => {
+      await fireEvent.press(await screen.findByTestId(equipTestId));
+      await waitFor(() => expect(mockedEquip).toHaveBeenCalledTimes(1));
+      await screen.findByTestId('toast', {}, { timeout: 5000 });
+    });
 
-    await waitFor(() => expect(mockedEquip).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(errorSpy).toHaveBeenCalledWith(
-        '[rewards] equip failed',
-        expect.any(Error),
-      ),
-    );
-
-    const toast = await screen.findByTestId('toast', {}, { timeout: 5000 });
+    const toast = screen.getByTestId('toast');
     expect(toast).toHaveTextContent(/Couldn't equip that/);
     expect(screen.queryByTestId('reward-celebration')).toBeNull();
 

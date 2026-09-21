@@ -297,8 +297,14 @@ export function GameResults({
   return (
     <View style={styles.section} testID={testId(gameId, 'results')}>
       {/* One result artifact (campaign 055): the game world and the band
-          headline are the event. Facts, reward and actions support it. */}
-      <ArcadePanel padding="none" emphasis="focal" testID={testId(gameId, 'result-artifact')}>
+          headline are the event. Facts, reward and actions support it.
+          065: the artifact is a polite live region so the headline is
+          announced when the results appear (same pattern as /results). */}
+      <ArcadePanel
+        padding="none"
+        emphasis="focal"
+        testID={testId(gameId, 'result-artifact')}
+        accessibilityLiveRegion="polite">
         {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'result-world')} /> : null}
         <View style={styles.resultBody}>
           <ThemedText type="resultHeadline" testID={testId(gameId, 'result-headline')}>
@@ -312,7 +318,11 @@ export function GameResults({
       </View>
 
       {persistState === 'failed' ? (
-        <ThemedText type="small" themeColor="danger" testID={testId(gameId, 'persist-error')}>
+        <ThemedText
+          type="small"
+          themeColor="danger"
+          testID={testId(gameId, 'persist-error')}
+          accessibilityLiveRegion="polite">
           Your session could not be saved. {lastError ?? ''}
         </ThemedText>
       ) : null}
@@ -388,7 +398,8 @@ export function GameResults({
         <ThemedText
           type="small"
           themeColor="danger"
-          testID={testId(gameId, 'workout-advance-error')}>
+          testID={testId(gameId, 'workout-advance-error')}
+          accessibilityLiveRegion="polite">
           {advanceError}
         </ThemedText>
       ) : null}

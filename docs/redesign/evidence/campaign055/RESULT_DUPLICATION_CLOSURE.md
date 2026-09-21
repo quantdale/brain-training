@@ -97,3 +97,24 @@ the world art, the honest band headline and the game badge. Removing the
 game-owned focal numeral would have removed the only score on the surface, so
 the closure rule removed the lower-value fact row instead — the smallest
 possible change per game.
+
+---
+
+## Campaign 065 correction (2026-09-21, adversarial convergence)
+
+Re-verification at commit `a9111c3` found this document's inventory
+method detected only labeled `Final score` blocks and therefore could
+not see the unlabeled animated-numeral duplicate class. Consequences:
+
+- The per-game "None (single presentation)" rows for the ten games later
+  repaired in `53468e4` (e.g. `flexibility-card-sort`,
+  `logic-code-cracker`, `attention-symbol-tracker`) were wrong at this
+  document's own commit `8e29c85`.
+- The summary line "27 games had a real duplicate" undercounts: the
+  correct total after `53468e4` is 37 of 42 games.
+
+The current tree is clean (one score statement per game) and Change 065
+added a catalog-wide runtime guard (duplicate-score assertion in
+`components/game-host/__tests__/catalog-persistence-matrix.test.tsx`)
+so this class cannot return unobserved. This file is retained as the
+historical record with this correction appended rather than rewritten.

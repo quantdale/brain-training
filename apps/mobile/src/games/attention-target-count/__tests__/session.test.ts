@@ -1,7 +1,8 @@
 // Jest globals imported explicitly (repo has no @types/jest).
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { createDiagnosticMetadata } from '@/sdk';
 import type { GameSessionRecord } from '@/db';
+import { expectConsoleNoise } from '@/test-utils';
 
 import {
   buildTargetCountRawResult,
@@ -180,10 +181,6 @@ describe('persistTargetCountSession', () => {
     durationMs: 45_000,
   };
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('persists through the injected persister and reports the result', async () => {
     const completeSession = jest.fn(async () => ({
       session: record,
@@ -204,20 +201,20 @@ describe('persistTargetCountSession', () => {
   });
 
   it('logs and returns failure instead of throwing when the db fails', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const persister: SessionPersistence = {
-      completeSession: async () => {
-        throw new Error('disk full');
+    await expectConsoleNoise(
+      /\[attention-target-count\] failed to persist completed session attention-target-count-p1/,
+      async () => {
+        const persister: SessionPersistence = {
+          completeSession: async () => {
+            throw new Error('disk full');
+          },
+        };
+        const outcome = await persistTargetCountSession(record, persister);
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(outcome.error).toBeInstanceOf(Error);
+        }
       },
-    };
-    const outcome = await persistTargetCountSession(record, persister);
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(outcome.error).toBeInstanceOf(Error);
-    }
-    expect(errorSpy).toHaveBeenCalledWith(
-      '[attention-target-count] failed to persist completed session attention-target-count-p1',
-      expect.any(Error),
     );
   });
 });

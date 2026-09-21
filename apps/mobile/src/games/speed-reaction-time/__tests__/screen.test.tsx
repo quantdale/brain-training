@@ -10,6 +10,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 import { computeXp } from '@/rating/pipeline';
@@ -171,7 +172,11 @@ describe('SpeedScreen', () => {
     const store = createInMemoryTutorialStore();
     const { clock, result } = await renderScreen({ seed: 'tut', store });
 
-    expect(screen.getByTestId(testId(GAME_ID, 'tutorial'))).toBeOnTheScreen();
+    // Campaign 065: the tutorial renders through the shared TutorialFrame, so
+    // the frame's clipped card shell marks the adoption (the previous local
+    // ThemedView card had no overflow style).
+    const tutorialCard = screen.getByTestId(testId(GAME_ID, 'tutorial'));
+    expect(StyleSheet.flatten(tutorialCard.props.style)).toMatchObject({ overflow: 'hidden' });
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'tutorial-next')));
     expect(screen.getByTestId(testId(GAME_ID, 'tutorial-demo-status'))).toHaveTextContent(
       /Watch the button/,

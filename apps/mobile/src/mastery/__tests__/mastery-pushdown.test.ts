@@ -3,8 +3,21 @@ import { describe, expect, it } from "@jest/globals";
 import { createMigratedDb } from "../../db/__tests__/helpers";
 import { SessionRepository } from "../../db/sessions";
 import { computeMastery } from "../engine";
+import { seededFloats } from "@/test-utils";
 
 const T0 = 1_700_000_000_000;
+
+/**
+ * Deterministic session ids from a seeded stream, consumed in call order.
+ * Replaces the former Math.random suffix so fixtures repeat byte-for-byte.
+ */
+const SESSION_ID_TOKENS = seededFloats('mastery-pushdown/session-ids', 256);
+let sessionIdCursor = 0;
+function nextSessionId(prefix: string): string {
+  const token = SESSION_ID_TOKENS[sessionIdCursor];
+  sessionIdCursor += 1;
+  return `${prefix}-${token.toString(36).slice(2, 12)}`;
+}
 
 /** Insert a session row directly (bypasses the completion pipeline). */
 async function insertSession(
@@ -18,7 +31,7 @@ async function insertSession(
   }> = {},
 ): Promise<void> {
   const {
-    id = `s-${Math.random().toString(36).slice(2)}`,
+    id = nextSessionId('s'),
     gameId = "game-a",
     level = "normal",
     normalizedResult = 0.7,

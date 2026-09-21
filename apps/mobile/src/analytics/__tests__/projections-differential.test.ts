@@ -816,7 +816,6 @@ describe('aggregate pushdown differential (getSessionWindowAggregate / counts)',
       const agg = await db.sessions.getSessionWindowAggregate(query);
       const totalXp = ref.reduce((s, r) => s + r.xp, 0);
       const totalDuration = ref.reduce((s, r) => s + r.durationMs, 0);
-      expect(`trial=${trial} count`).toBe(`trial=${trial} count`); // stable label anchor
       expect(agg.count).toBe(ref.length);
       expect(agg.totalXp).toBe(totalXp);
       expect(agg.totalDurationMs).toBe(totalDuration);

@@ -162,6 +162,43 @@ unavailable checks into PASS.
   EXTERNAL. Evidence: `docs/redesign/evidence/campaign064/` +
   `openspec/changes/064-*/`.
 
+### Change 065 adversarial convergence (runtime/data/pixels) — 2026-09-21 (VALIDATED / CHANGE_065_COMPLETE)
+
+- Scope: **PASS** — six-lane adversarial sweep + closure verification;
+  24 bounded repairs/guards: progression-fingerprint bootstrap brick
+  (replace strip + catalog-presence seeding), device transaction FK
+  (pragma'd connection, pre-BEGIN assert), idempotent `initDatabase` +
+  test reset seam, workout repair CAS + `game_ids_json` reroll predicate,
+  portability workout-changed emissions, stable streak-purchase intent
+  key, `MAX(updated_at)`, PB future-dated refusal + exactly-one-eligible,
+  locked all-level console gate with 58 spy sites converted, live QA-gate
+  suites, skip allowlist v4 exact full-name pinning + reviewed suite/test
+  floors, catalog guards (duplicate score, pause wiring, touch targets
+  fixing 7 game components, tutorial adoption migrating 2 games),
+  in-session live regions, `ResultRow` combined semantics, color-button
+  minimums, pause-overlay wrap, governance `activeProgram` + ledger
+  cursor cross-check, `certifiedArtifactCommit` fields, campaign-055
+  dated corrections, `.gitignore` residue.
+- Repository gates: **PASS** — full gated Jest 588 suites (584 passed +
+  4 skipped), 6,893 passed / 5 classified opt-in skips, 5 snapshots, 0
+  unexpected console output, exit 0 (214.4 s); typecheck; lint; OpenSpec
+  `--all --strict` 49/49; repo-state (program cursor enforced);
+  task-ownership; offline 30/30 CLEAN; secrets PASS CLEAN; provenance
+  13/13 + freshness OK; affected 16/16 + sync OK; runtime-QA 16/16;
+  dependency-audit 41/41; workflows 44/44; catalog repeatability 7/7
+  identical.
+- Native/artifact: **PARTIAL (bounded)** — fresh verification APK
+  `3A3C4CC5…` (109,604,369 B): clean install, cold 5,455 ms + warm
+  4,378 ms Home, crafted fingerprint-injection recovered to Home with
+  re-seeded catalogs (the 065 fix proven on device), SQLite ok/v12/0-FK,
+  1,084 log lines 0 fatal/ANR. Full six-way pixel/a11y matrix stays with
+  067 on its final artifact; 063 (`20e28c64…`) remains the last certified
+  executable.
+- Boundaries: coverage thresholds, v12 repair semantics, backup fsync,
+  snapshot review debt, UI-driven import/wipe probes, landscape/RTL are
+  deferred with recorded rationale. Evidence:
+  `docs/redesign/evidence/campaign065/` + `openspec/changes/065-*/`.
+
 ### Campaign 055 Signal Arcade desirability pass — 2026-09-20 pixel certification (VALIDATED / COMPLETE)
 
 - Scope: **COMPLETE** — started at `0de77dc` (pixel-certification prompt

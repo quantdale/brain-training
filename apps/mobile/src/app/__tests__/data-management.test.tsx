@@ -23,6 +23,7 @@ import type { ImportPreview } from '@/data-portability';
 import { MAX_BACKUP_TEXT_LENGTH } from '@/data-portability/deserialize';
 import DataManagementScreen from '@/app/data-management';
 import { refreshProgression } from '@/progression';
+import { onWorkoutChanged } from '@/workout/events';
 
 import {
   applyImport,
@@ -565,5 +566,67 @@ describe('data-management UX contract', () => {
 
     await fireEvent.press(screen.getByTestId('data-preview-merge'));
     await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalledTimes(2));
+  });
+
+  it('065: emits workout-changed after replace and merge imports so mounted consumers refetch', async () => {
+    const listener = jest.fn();
+    const unsubscribe = onWorkoutChanged(listener);
+    try {
+      // Merge first (single tap).
+      mockedPreviewImport.mockResolvedValue(validPreview('merge'));
+      await renderScreen();
+      await typeImportJson();
+
+      await fireEvent.press(await screen.findByTestId('data-import-merge'));
+      await waitFor(() => expect(mockedApplyImport).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(listener).toHaveBeenCalledTimes(1));
+
+      // Replace (two-tap destructive confirm) emits again.
+      mockedPreviewImport.mockResolvedValue(validPreview('replace'));
+      await fireEvent.press(screen.getByTestId('data-import-replace'));
+      await screen.findByText(/Tap again to erase and restore/);
+      await fireEvent.press(screen.getByTestId('data-import-replace'));
+
+      await waitFor(() => expect(mockedApplyImport).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(listener).toHaveBeenCalledTimes(2));
+    } finally {
+      unsubscribe();
+    }
+  });
+
+  it('065: emits workout-changed only after a successful wipe', async () => {
+    const listener = jest.fn();
+    const unsubscribe = onWorkoutChanged(listener);
+    try {
+      await renderScreen();
+      await fireEvent.changeText(
+        await screen.findByTestId('data-wipe-confirm'),
+        'DELETE',
+      );
+      await waitFor(() => {
+        expect(screen.getByTestId('data-wipe-confirm').props.value).toBe(
+          'DELETE',
+        );
+      });
+
+      // A failed wipe must not tell mounted consumers their rows are gone.
+      jest
+        .mocked(wipeLocalData)
+        .mockRejectedValueOnce(new Error('disk I/O error while clearing'));
+      await fireEvent.press(screen.getByTestId('data-wipe-button'));
+      await waitFor(() =>
+        expect(jest.mocked(wipeLocalData)).toHaveBeenCalledTimes(1),
+      );
+      await screen.findByText(/Wipe failed: disk I\/O error while clearing/);
+      expect(listener).not.toHaveBeenCalled();
+
+      await fireEvent.press(screen.getByTestId('data-wipe-button'));
+      await waitFor(() =>
+        expect(jest.mocked(wipeLocalData)).toHaveBeenCalledTimes(2),
+      );
+      await waitFor(() => expect(listener).toHaveBeenCalledTimes(1));
+    } finally {
+      unsubscribe();
+    }
   });
 });

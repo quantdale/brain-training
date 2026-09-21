@@ -11,6 +11,7 @@
   "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Ninth of Changes 056-067; third theme-062-064 release-resilience item.",
   "baselineAuditCommit": "09043e1",
   "productBaselineCommit": "34c9b2d",
+  "certifiedArtifactCommit": "e627473",
   "fullHardening": false,
   "reviewConsumption": "063 certified the converged tree from e627473; 064 changes validation/CI/test-harness surfaces plus one test-runner-only guard in apps/mobile/src/sdk/perf.ts (suppresses the [perf] log line when JEST_WORKER_ID is set; device logging and the in-process ring buffer are unchanged), so the 063 artifact remains the certified product checkpoint.",
   "validatedAt": "2026-09-21",

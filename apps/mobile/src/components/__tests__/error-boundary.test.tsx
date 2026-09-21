@@ -14,10 +14,11 @@
  * Note: RNTL v14 `render`/`fireEvent` are async and must be awaited.
  */
 import { Component, type ReactNode } from 'react';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { ErrorBoundary } from '../error-boundary';
+import { expectConsoleNoise } from '@/test-utils';
 
 interface Tracker {
   instances: number;
@@ -46,27 +47,17 @@ class CrashOnMount extends Component<{ tracker: Tracker }, { crash: boolean }> {
 }
 
 describe('ErrorBoundary', () => {
-  let rendererErrorSpy: ReturnType<typeof jest.spyOn>;
-
-  beforeEach(() => {
-    rendererErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    const calls = rendererErrorSpy.mock.calls;
-    expect(calls.length).toBeGreaterThan(0);
-    expect(calls.every((call: unknown[]) => String(call[0]).startsWith('Caught error:'))).toBe(true);
-    rendererErrorSpy.mockRestore();
-  });
-
   it('captures diagnostics and renders retry on a crash', async () => {
     const onError = jest.fn();
     const tracker: Tracker = { instances: 0 };
-    await render(
-      <ErrorBoundary onError={onError}>
-        <CrashOnMount tracker={tracker} />
-      </ErrorBoundary>,
-    );
+    // React logs the deliberately caught render error by design.
+    await expectConsoleNoise(/Caught error:/, async () => {
+      await render(
+        <ErrorBoundary onError={onError}>
+          <CrashOnMount tracker={tracker} />
+        </ErrorBoundary>,
+      );
+    });
 
     expect(onError).toHaveBeenCalledTimes(1);
     expect(onError.mock.calls[0][0]).toBeInstanceOf(Error);
@@ -79,11 +70,14 @@ describe('ErrorBoundary', () => {
   it('retry remounts the crashed subtree with a fresh identity', async () => {
     const onError = jest.fn();
     const tracker: Tracker = { instances: 0 };
-    await render(
-      <ErrorBoundary onError={onError}>
-        <CrashOnMount tracker={tracker} />
-      </ErrorBoundary>,
-    );
+    // React logs the deliberately caught render error by design.
+    await expectConsoleNoise(/Caught error:/, async () => {
+      await render(
+        <ErrorBoundary onError={onError}>
+          <CrashOnMount tracker={tracker} />
+        </ErrorBoundary>,
+      );
+    });
 
     // At least one instance was created on the initial (crashing) render
     // (React may retry the errored render, so we compare relative growth).
@@ -93,8 +87,11 @@ describe('ErrorBoundary', () => {
     // Press retry: the reset-key bump MUST force a fresh mount of the subtree,
     // creating at least one NEW instance. Without the reset-key remount, React
     // would re-render the same instance and instances would NOT grow — so
-    // growth here is the discriminating signal for task 10.5.
-    await fireEvent.press(screen.getByTestId('error-boundary-retry'));
+    // growth here is the discriminating signal for task 10.5. The remounted
+    // still-crashing child faults again, so its caught error is logged too.
+    await expectConsoleNoise(/Caught error:/, async () => {
+      await fireEvent.press(screen.getByTestId('error-boundary-retry'));
+    });
     expect(tracker.instances).toBeGreaterThan(beforeRetry);
 
     // The remounted (still-crashing) child faults again, so the fallback with

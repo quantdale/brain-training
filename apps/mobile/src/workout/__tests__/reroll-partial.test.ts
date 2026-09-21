@@ -17,7 +17,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { getDb, initDatabase } from '@/db';
+import { getDb, initDatabase, resetDatabaseForTests } from '@/db';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions } from '@/registry/registry';
 import {
@@ -31,6 +31,7 @@ import { useWorkout } from '@/workout/use-workout';
 
 describe('reroll after partial completion keeps every fresh game', () => {
   beforeEach(async () => {
+    await resetDatabaseForTests();
     await initDatabase();
     registerGameDefinitions(registry);
     await getDb().ledger.append({ amount: 1_000, reason: 'seed' });

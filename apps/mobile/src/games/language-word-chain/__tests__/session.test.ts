@@ -2,6 +2,7 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { RNG_ALGORITHM_VERSION } from "@/sdk";
 import type { DifficultyProfile, GameRawResult } from "@/sdk";
+import { expectConsoleNoise } from "@/test-utils";
 
 import { resolveWordChainDifficulty } from "../difficulty";
 import {
@@ -191,21 +192,24 @@ describe("persistWordChainSession", () => {
   });
 
   it("reports failures without throwing", async () => {
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     const record = recordFor();
     const completeSession = jest.fn(async () => {
       throw new Error("db locked");
     });
-    const outcome = await persistWordChainSession(
-      record,
-      { completeSession } as unknown as Parameters<
-        typeof persistWordChainSession
-      >[1],
+    await expectConsoleNoise(
+      /\[language-word-chain\] failed to persist completed session sid/,
+      async () => {
+        const outcome = await persistWordChainSession(
+          record,
+          { completeSession } as unknown as Parameters<
+            typeof persistWordChainSession
+          >[1],
+        );
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(String(outcome.error)).toContain("db locked");
+        }
+      },
     );
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(String(outcome.error)).toContain("db locked");
-    }
-    errorSpy.mockRestore();
   });
 });

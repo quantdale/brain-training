@@ -1,0 +1,22 @@
+{
+  "id": "066-adversarial-convergence-static-governance",
+  "status": "IN_PROGRESS",
+  "predecessor": "065-adversarial-convergence-runtime-data-pixel",
+  "canonicalBranch": "main",
+  "entrypoint": "EXECUTION.md",
+  "proposal": "proposal.md",
+  "design": "design.md",
+  "tasks": "tasks.md",
+  "specOrder": ["adversarial-convergence-static-governance"],
+  "activationRule": "Owner NIGHT-mode directive via .agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md (program SHA 428d293). Eleventh of Changes 056-067; second theme-065-066 adversarial convergence item.",
+  "baselineAuditCommit": "eab173f",
+  "productBaselineCommit": "34c9b2d",
+  "certifiedArtifactCommit": "e627473",
+  "fullHardening": false,
+  "reviewConsumption": "065 closed with the matrix at 584/6893, a bounded device pass on 3A3C4CC5, and a closure verification; 066 attacks the static/architecture/contract and governance surfaces that runtime tests cannot see, and produces the residual census that seeds the post-067 hardening phase.",
+  "validatedAt": null,
+  "validationNote": null,
+  "partialVerdict": null,
+  "partialNote": null,
+  "verdict": null
+}

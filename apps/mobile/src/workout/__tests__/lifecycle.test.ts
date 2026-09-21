@@ -23,7 +23,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { getDb, initDatabase } from '@/db';
+import { getDb, initDatabase, resetDatabaseForTests } from '@/db';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions } from '@/registry/registry';
 import { nextWorkoutGameId, shouldAdvanceWorkout } from '@/workout/advance';
@@ -64,6 +64,7 @@ async function playLeg(gameId: string, instanceKey: string, legIndex: number) {
 describe('workout lifecycle (real db + real registry)', () => {
   beforeEach(async () => {
     mockClock.today = '2026-08-20';
+    await resetDatabaseForTests();
     await initDatabase();
     // The root layout normally registers the catalog during bootstrap; the
     // hook depends on it for selection, so register it here.
@@ -340,6 +341,7 @@ describe('workout lifecycle (real db + real registry)', () => {
 describe('date rollover (injected local date)', () => {
   beforeEach(async () => {
     mockClock.today = '2026-08-20';
+    await resetDatabaseForTests();
     await initDatabase();
     registerGameDefinitions(registry);
   });
@@ -403,6 +405,7 @@ describe('date rollover (injected local date)', () => {
 
 describe('repository-level rollover invariants', () => {
   beforeEach(async () => {
+    await resetDatabaseForTests();
     await initDatabase();
   });
 

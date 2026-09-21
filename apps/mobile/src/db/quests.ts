@@ -92,6 +92,7 @@ const SELECT_QUEST_PROGRESS =
   'SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress WHERE quest_id = ? ORDER BY period';
 const SELECT_ALL_PROGRESS =
   'SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress ORDER BY quest_id, period';
+const SELECT_DEFINITION_COUNT = 'SELECT COUNT(*) AS count FROM quests';
 
 export class QuestRepository {
   /**
@@ -149,6 +150,16 @@ export class QuestRepository {
       rewardCurrency: r.reward_currency,
       version: r.version,
     }));
+  }
+
+  /**
+   * Cheap existence probe (Change 065): the seeding fingerprint fast path
+   * only trusts a matching version when the catalog is actually populated.
+   * O(1) aggregate — never materializes definition rows.
+   */
+  async countDefinitions(): Promise<number> {
+    const row = await this.adapter.get<{ count: number }>(SELECT_DEFINITION_COUNT);
+    return row?.count ?? 0;
   }
 
   /**

@@ -89,3 +89,14 @@ changed, and no unsupported claim was introduced.
 The rewritten copy contains no IQ, brain-age, intelligence, medical or
 transfer-effect claim. The Progress surfaces remain records of training
 activity with the same evidence links as before.
+
+---
+
+## Campaign 065 correction (2026-09-21, adversarial convergence)
+
+The row stating Results (in-session) showed a single performance
+presentation, "asserted closed while 10 games still rendered it", was
+not true at the time of writing: the duplicate `Score` row remained in
+ten games until `53468e4` (see `RESULT_DUPLICATION_CLOSURE.md`'s appended
+correction). The current tree is clean and Change 065 added a
+catalog-wide guard against reintroduction.

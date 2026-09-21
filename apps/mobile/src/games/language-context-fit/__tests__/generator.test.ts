@@ -61,9 +61,10 @@ describe('selectRound', () => {
   });
 
   it('is bounded: generation always terminates deterministically (no infinite loop)', () => {
-    const start = Date.now();
-    selectSession('perf-seed', 8);
-    expect(Date.now() - start).toBeLessThan(1000);
+    // No wall-clock budget here (machine-relative assertions are not a gate):
+    // an infinite retry loop would hang and fail via the Jest test timeout.
+    const session = selectSession('perf-seed', 8);
+    expect(session).toHaveLength(8);
   });
 
   it('respects a filtered tier pool (t1 only)', () => {

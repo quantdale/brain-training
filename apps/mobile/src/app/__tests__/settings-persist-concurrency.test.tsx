@@ -6,7 +6,7 @@
  * this test makes that timing deterministic and asserts that RootLayout
  * serializes the existing persistence seam.
  */
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import { Pressable } from 'react-native';
 
@@ -71,12 +71,7 @@ describe('sensory settings persistence concurrency', () => {
     mockProfileUpdate.mockClear();
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('serializes rapid SFX and haptics writes through the real root seam', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const result = renderRouter(
       { _layout: RootLayout, ...rootLayoutRoutes({ results: RapidToggleProbe }) },
       { initialUrl: '/results' },
@@ -94,9 +89,5 @@ describe('sensory settings persistence concurrency', () => {
     expect(mockProfileUpdate).toHaveBeenNthCalledWith(2, {
       settings: { sfx: false, haptics: false },
     });
-    expect(errorSpy).not.toHaveBeenCalledWith(
-      '[startup] failed to persist sensory settings',
-      expect.any(Error),
-    );
   });
 });

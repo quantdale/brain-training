@@ -32,6 +32,7 @@ import { GAME_ID , INITIAL_STATS } from '../types';
 import type { CompleteSessionResult , GameSessionRecord } from '@/db';
 import type { VigilanceRawResult, VigilanceStats } from '../types';
 import { extractAccuracy, extractDifficultyRating, extractReactionMs, extractScore } from '@/analytics/metrics-map';
+import { expectConsoleNoise } from '@/test-utils';
 
 const NORMAL = VIGILANCE_DIFFICULTY_PARAMS.normal;
 
@@ -300,33 +301,31 @@ describe('persistVigilanceSession failure isolation', () => {
   });
 
   it('never crashes the game on persistence failure; reports and logs instead', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const raw = buildRaw({ ...INITIAL_STATS });
-      const record = buildSessionRecord({
-        sessionId: 'persist-fail',
-        rawResult: raw,
-        difficulty: resolveVigilanceDifficulty('normal'),
-        normalized: { value: 0, scale: '0..1' },
-        xp: 0,
-        startedAtMs: 0,
-        completedAtMs: 1,
-        activeDurationMs: 1,
-      });
-      const boom = new Error('disk full');
-      const persister = { completeSession: async () => {
-        throw boom;
-      } };
-      const outcome = await persistVigilanceSession(record, persister);
-      expect(outcome.ok).toBe(false);
-      if (!outcome.ok) {
-        expect(outcome.error).toBe(boom);
-      }
-      expect(errorSpy).toHaveBeenCalledTimes(1);
-      expect(String(errorSpy.mock.calls[0]?.[0])).toContain(GAME_ID);
-    } finally {
-      errorSpy.mockRestore();
-    }
+    await expectConsoleNoise(
+      /\[attention-sustained-vigilance\] failed to persist completed session persist-fail/,
+      async () => {
+        const raw = buildRaw({ ...INITIAL_STATS });
+        const record = buildSessionRecord({
+          sessionId: 'persist-fail',
+          rawResult: raw,
+          difficulty: resolveVigilanceDifficulty('normal'),
+          normalized: { value: 0, scale: '0..1' },
+          xp: 0,
+          startedAtMs: 0,
+          completedAtMs: 1,
+          activeDurationMs: 1,
+        });
+        const boom = new Error('disk full');
+        const persister = { completeSession: async () => {
+          throw boom;
+        } };
+        const outcome = await persistVigilanceSession(record, persister);
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(outcome.error).toBe(boom);
+        }
+      },
+    );
   });
 });
 

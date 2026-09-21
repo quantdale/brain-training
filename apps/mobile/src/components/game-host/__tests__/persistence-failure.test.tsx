@@ -23,7 +23,11 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
 import { createFakeClock, testId } from '@/sdk';
-import { makeCompletedTutorialStore, makeSessionPersister } from '@/test-utils';
+import {
+  expectConsoleNoise,
+  makeCompletedTutorialStore,
+  makeSessionPersister,
+} from '@/test-utils';
 import SpatialFoldMatchScreen from '@/games/spatial-fold-match/screen';
 import { GAME_ID } from '@/games/spatial-fold-match/types';
 
@@ -63,14 +67,10 @@ describe('GameResults persistence-failure seam', () => {
 describe('game-screen persistence-failure contract (representative: spatial-fold-match)', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    // The per-game persist wrapper logs the rejection by design; silence the
-    // expected noise so only unexpected errors surface.
-    jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterEach(() => {
     jest.useRealTimers();
-    jest.restoreAllMocks();
   });
 
   async function renderScreen(persister: ReturnType<typeof makeSessionPersister>) {
@@ -101,7 +101,11 @@ describe('game-screen persistence-failure contract (representative: spatial-fold
 
     await renderScreen(persister);
     await startFirstSession();
-    await forceWinCurrentSession();
+    // The per-game persist wrapper logs each rejected write by design; scope
+    // the expected diagnostic to the force-win that produced it.
+    await expectConsoleNoise(/failed to persist completed session/, async () => {
+      await forceWinCurrentSession();
+    });
 
     expect(screen.getByTestId(testId(GAME_ID, 'results'))).toBeOnTheScreen();
     expect(screen.getByTestId(testId(GAME_ID, 'persist-error'))).toHaveTextContent(
@@ -112,7 +116,9 @@ describe('game-screen persistence-failure contract (representative: spatial-fold
     // Play again after the failure: the new session attempts exactly one
     // write; the failed session is not retried behind the player's back.
     await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'restart')));
-    await forceWinCurrentSession();
+    await expectConsoleNoise(/failed to persist completed session/, async () => {
+      await forceWinCurrentSession();
+    });
 
     expect(persister.completeSession).toHaveBeenCalledTimes(2);
     expect(screen.getByTestId(testId(GAME_ID, 'persist-error'))).toHaveTextContent(
@@ -153,10 +159,13 @@ describe('game-screen persistence-failure contract (representative: spatial-fold
     expect(persister.completeSession).toHaveBeenCalledTimes(2);
 
     // The stale write now rejects: the shared isCurrentSession guard must drop
-    // it so the restarted session never shows a failure it did not have.
-    await act(async () => {
-      rejectFirst(new Error('db locked'));
-      await firstWrite.catch(() => {});
+    // it so the restarted session never shows a failure it did not have. The
+    // persist wrapper still logs the rejection by design, so scope it.
+    await expectConsoleNoise(/failed to persist completed session/, async () => {
+      await act(async () => {
+        rejectFirst(new Error('db locked'));
+        await firstWrite.catch(() => {});
+      });
     });
 
     expect(screen.queryByTestId(testId(GAME_ID, 'persist-error'))).toBeNull();

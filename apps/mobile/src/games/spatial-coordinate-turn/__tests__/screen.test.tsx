@@ -23,6 +23,7 @@ import {
 } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 import { computeXp } from '@/rating/pipeline';
+import { expectConsoleNoise } from '@/test-utils';
 
 import SpatialCoordinateTurnScreen from '../screen';
 import { generateSession } from '../generator';
@@ -422,28 +423,28 @@ describe('SpatialCoordinateTurnScreen', () => {
   });
 
   it('surfaces persistence failures without crashing', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    try {
-      const failing = makePersister();
-      failing.completeSession.mockImplementation(async () => {
-        throw new Error('boom');
-      });
-      await renderScreen({ seed: 'persist-fail', persister: failing });
+    const failing = makePersister();
+    failing.completeSession.mockImplementation(async () => {
+      throw new Error('boom');
+    });
+    await expectConsoleNoise(
+      /\[spatial-coordinate-turn\] failed to persist completed session/,
+      async () => {
+        await renderScreen({ seed: 'persist-fail', persister: failing });
 
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
-      await act(async () => {});
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'start')));
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'qa-toggle')));
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, 'force-win')));
+        await act(async () => {});
 
-      expect(
-        screen.getByTestId(testId(GAME_ID, 'persist-error')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(testId(GAME_ID, 'persist-error')),
-      ).toHaveTextContent(/boom/);
-    } finally {
-      errorSpy.mockRestore();
-    }
+        expect(
+          screen.getByTestId(testId(GAME_ID, 'persist-error')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(testId(GAME_ID, 'persist-error')),
+        ).toHaveTextContent(/boom/);
+      },
+    );
   });
 
   it('renders the authoritative completion outcome when the backend provides one', async () => {

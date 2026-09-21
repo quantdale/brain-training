@@ -9,7 +9,7 @@
  * separately in `src/analytics/__tests__/analytics.test.ts`.
  */
 
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import type { ComponentType } from 'react';
 import { StyleSheet } from 'react-native';
@@ -38,8 +38,19 @@ jest.mock('@/db', () => {
   };
 });
 
-const NOW = Date.now();
+// Frozen per test: the screens compare fixture timestamps against Date.now()
+// during render, so capturing the real clock at module import made recency and
+// staleness expectations boundary-sensitive (campaign 065 hygiene).
+const NOW = 1_700_000_000_000;
 const DAY = 24 * 60 * 60 * 1000;
+
+beforeEach(() => {
+  jest.spyOn(Date, 'now').mockReturnValue(NOW);
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 /** Render one screen as a bare route so no tab host / layout enters the tree. */
 function renderBare(Screen: ComponentType, initialUrl: string) {

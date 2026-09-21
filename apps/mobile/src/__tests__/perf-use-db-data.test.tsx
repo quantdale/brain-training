@@ -16,10 +16,11 @@
 import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
-import { initDatabase } from '@/db';
+import { initDatabase, resetDatabaseForTests } from '@/db';
 import { useDbData } from '@/hooks/use-db-data';
 
 beforeEach(async () => {
+  await resetDatabaseForTests();
   await initDatabase();
 });
 

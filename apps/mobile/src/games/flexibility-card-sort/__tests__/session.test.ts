@@ -1,7 +1,8 @@
 // Jest globals imported explicitly (repo has no @types/jest).
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { createDiagnosticMetadata } from '@/sdk';
 import type { GameSessionRecord } from '@/db';
+import { expectConsoleNoise } from '@/test-utils';
 
 import {
   buildFlexibilityRawResult,
@@ -184,10 +185,6 @@ describe('persistFlexibilitySession', () => {
     durationMs: 45_000,
   };
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('persists through the injected persister and reports the result', async () => {
     const completeSession = jest.fn(async () => ({
       session: record,
@@ -208,20 +205,20 @@ describe('persistFlexibilitySession', () => {
   });
 
   it('logs and returns failure instead of throwing when the db fails', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const persister: SessionPersistence = {
-      completeSession: async () => {
-        throw new Error('disk full');
+    await expectConsoleNoise(
+      /\[flexibility-card-sort\] failed to persist completed session flexibility-card-sort-p1/,
+      async () => {
+        const persister: SessionPersistence = {
+          completeSession: async () => {
+            throw new Error('disk full');
+          },
+        };
+        const outcome = await persistFlexibilitySession(record, persister);
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(outcome.error).toBeInstanceOf(Error);
+        }
       },
-    };
-    const outcome = await persistFlexibilitySession(record, persister);
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(outcome.error).toBeInstanceOf(Error);
-    }
-    expect(errorSpy).toHaveBeenCalledWith(
-      '[flexibility-card-sort] failed to persist completed session flexibility-card-sort-p1',
-      expect.any(Error),
     );
   });
 });

@@ -16,6 +16,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
+import { MinTouchTarget } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
@@ -140,6 +141,9 @@ const styles = StyleSheet.create({
   key: {
     flex: 1,
     aspectRatio: 1.6,
+    // Campaign 065 touch-target guard: aspect-ratio keys declare the shared
+    // vertical floor so a narrow pad can never shrink a key below 44 dp.
+    minHeight: MinTouchTarget,
     borderRadius: Radii.medium,
     borderWidth: 1.5,
     alignItems: 'center',

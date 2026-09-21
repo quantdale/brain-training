@@ -1,7 +1,8 @@
 // Jest globals imported explicitly (repo has no @types/jest).
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { createDiagnosticMetadata } from '@/sdk';
 import type { GameSessionRecord } from '@/db';
+import { expectConsoleNoise } from '@/test-utils';
 
 import {
   buildSessionRecord,
@@ -171,10 +172,6 @@ describe('persistSpatialSession', () => {
     durationMs: 45_000,
   };
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('persists through the injected persister and reports the result', async () => {
     const completeSession = jest.fn(async () => ({
       session: record,
@@ -195,20 +192,20 @@ describe('persistSpatialSession', () => {
   });
 
   it('logs and returns failure instead of throwing when the db fails', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    const persister: SessionPersistence = {
-      completeSession: async () => {
-        throw new Error('disk full');
+    await expectConsoleNoise(
+      /\[spatial-mental-rotation\] failed to persist completed session spatial-p1/,
+      async () => {
+        const persister: SessionPersistence = {
+          completeSession: async () => {
+            throw new Error('disk full');
+          },
+        };
+        const outcome = await persistSpatialSession(record, persister);
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(outcome.error).toBeInstanceOf(Error);
+        }
       },
-    };
-    const outcome = await persistSpatialSession(record, persister);
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(outcome.error).toBeInstanceOf(Error);
-    }
-    expect(errorSpy).toHaveBeenCalledWith(
-      '[spatial-mental-rotation] failed to persist completed session spatial-p1',
-      expect.any(Error),
     );
   });
 });

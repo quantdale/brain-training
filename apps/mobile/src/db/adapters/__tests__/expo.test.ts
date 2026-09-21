@@ -23,7 +23,6 @@ type FakeDatabase = {
   runAsync: jest.Mock;
   getFirstAsync: jest.Mock;
   getAllAsync: jest.Mock;
-  withExclusiveTransactionAsync: jest.Mock;
   closeAsync: jest.Mock;
   metrics: DatabaseMetrics;
 };
@@ -51,7 +50,6 @@ function createFakeDatabase(
     runAsync: nativeCall({ changes: 1, lastInsertRowId: 7 }),
     getFirstAsync: nativeCall({ id: 1 }),
     getAllAsync: nativeCall([{ id: 1 }]),
-    withExclusiveTransactionAsync: jest.fn(),
     closeAsync: nativeCall(undefined),
     metrics,
   };
@@ -88,26 +86,66 @@ describe('Expo SQLite adapter serialization', () => {
     expect(metrics.maxActive).toBe(1);
   });
 
-  it('serializes concurrent calls inside an exclusive transaction too', async () => {
+  it('serializes concurrent calls inside a transaction and outside it', async () => {
     const db = createFakeDatabase();
-    const txnDb = createFakeDatabase();
-    db.withExclusiveTransactionAsync.mockImplementation(async (...args: unknown[]) => {
-      const callback = args[0] as (txn: unknown) => Promise<void>;
-      return callback(txnDb as never);
-    });
     const adapter = createExpoSqliteAdapter(db as never);
 
-    const result = await adapter.transaction(async (txn) => {
-      const [row, write] = await Promise.all([
-        txn.get<{ id: number }>('SELECT id FROM sample'),
-        txn.run('UPDATE sample SET value = ?', [2]),
-      ]);
-      return { id: row?.id, changes: write.changes };
-    });
+    // The outside read starts first; the transaction (and the two concurrent
+    // calls inside it) must not overlap it or each other on the connection.
+    const [, result] = await Promise.all([
+      adapter.get<{ id: number }>('SELECT outside'),
+      adapter.transaction(async (txn) => {
+        const [row, write] = await Promise.all([
+          txn.get<{ id: number }>('SELECT id FROM sample'),
+          txn.run('UPDATE sample SET value = ?', [2]),
+        ]);
+        return { id: row?.id, changes: write.changes };
+      }),
+    ]);
 
     expect(result).toEqual({ id: 1, changes: 1 });
-    expect(txnDb.metrics.maxActive).toBe(1);
-    expect(db.metrics.maxActive).toBe(0);
+    expect(db.metrics.maxActive).toBe(1);
+  });
+
+  it('enforces foreign keys on the transaction connection before the body runs', async () => {
+    const db = createFakeDatabase();
+    const adapter = createExpoSqliteAdapter(db as never);
+
+    // 065 invariant: expo-sqlite's exclusive transaction used to run on a NEW
+    // native connection where FK enforcement defaulted off, and SQLite ignores
+    // `PRAGMA foreign_keys` once a transaction is pending — so the pragma must
+    // reach the connection BEFORE `BEGIN`, ahead of the callback body.
+    let statementsBeforeBody: string[] = [];
+    const result = await adapter.transaction(async (txn) => {
+      statementsBeforeBody = db.execAsync.mock.calls.map((call) => String(call[0]));
+      const row = await txn.get<{ id: number }>('SELECT id FROM sample');
+      return row?.id ?? -1;
+    });
+
+    expect(statementsBeforeBody).toEqual(['PRAGMA foreign_keys = ON', 'BEGIN']);
+    expect(db.execAsync.mock.calls.map((call) => String(call[0]))).toEqual([
+      'PRAGMA foreign_keys = ON',
+      'BEGIN',
+      'COMMIT',
+    ]);
+    expect(result).toBe(1);
+  });
+
+  it('rolls back and propagates the failure when the transaction body rejects', async () => {
+    const db = createFakeDatabase();
+    const adapter = createExpoSqliteAdapter(db as never);
+
+    await expect(
+      adapter.transaction(async () => {
+        throw new Error('transaction body failed');
+      }),
+    ).rejects.toThrow('transaction body failed');
+
+    expect(db.execAsync.mock.calls.map((call) => String(call[0]))).toEqual([
+      'PRAGMA foreign_keys = ON',
+      'BEGIN',
+      'ROLLBACK',
+    ]);
   });
 
   it('continues draining the queue after an operation rejects', async () => {

@@ -19,8 +19,12 @@ import {
 } from '@/quests';
 import { syncAchievements, syncQuestProgress } from './sync';
 
-/** Settings key holding the fingerprint of the last applied definition seed. */
-const PROGRESSION_SEED_VERSION_KEY = 'progressionSeedVersion';
+/**
+ * Settings key holding the fingerprint of the last applied definition seed.
+ * Exported so the replace-import boundary (`data-portability/apply.ts`) can
+ * drop an imported fingerprint without duplicating the literal.
+ */
+export const PROGRESSION_SEED_VERSION_KEY = 'progressionSeedVersion';
 
 /**
  * Deterministic fingerprint of the versioned definition catalogs. Bumping any
@@ -75,7 +79,26 @@ async function ensureProgressionDefinitions(db: AppDatabase): Promise<void> {
     // Fail-closed: an unreadable profile must not skip the seed pass.
     stored = undefined;
   }
-  if (stored !== target) {
+  // Safety net (Change 065): a matching fingerprint only proves the PRODUCER
+  // seeded this version — never that the catalogs exist in THIS database. A
+  // replace import can persist a profile fingerprint alongside empty
+  // definition tables (the backup carried no catalogs); trusting the
+  // fingerprint would skip seeding and the next sync would insert
+  // quest_progress/achievement_unlocks rows whose parent definitions are
+  // missing (FK failure -> BootstrapRecovery loop). Two O(1) count probes keep
+  // the steady-state fast path when the rows are actually present.
+  let catalogsPresent = false;
+  if (stored === target) {
+    try {
+      catalogsPresent =
+        (await db.quests.countDefinitions()) > 0 &&
+        (await db.achievements.countDefinitions()) > 0;
+    } catch {
+      // Fail-closed: an unreadable catalog must not skip the seed pass.
+      catalogsPresent = false;
+    }
+  }
+  if (stored !== target || !catalogsPresent) {
     for (const definition of QUEST_DEFINITIONS_V1) {
       await db.quests.upsertDefinition(toDbQuestDefinition(definition));
     }

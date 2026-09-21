@@ -176,25 +176,38 @@ export class AppDatabase {
 }
 
 let instance: AppDatabase | null = null;
+let instanceAdapter: SQLiteAdapter | null = null;
 let initializationPromise: Promise<AppDatabase> | null = null;
 
 /**
  * Open the app database, migrate it to SCHEMA_VERSION and ensure the
  * singleton profile exists. Call once at app startup (e.g. from the root
- * route layout before rendering). Concurrent startup calls share one pass so
- * React runtime remounts cannot initialize the same native file concurrently.
+ * route layout before rendering).
+ *
+ * Idempotent (065): once a pass has succeeded the live singleton is returned
+ * untouched. Concurrent startup calls share one in-flight pass so React
+ * runtime remounts cannot initialize the same native file concurrently, and a
+ * retry after a later bootstrap stage failed must never open a SECOND native
+ * connection — the first one is still open and owned by `instance`, so
+ * re-opening would leak it and split the write queue across two handles for
+ * the same file.
  */
 export async function initDatabase(options: AppDatabaseOptions = {}): Promise<AppDatabase> {
-  if (initializationPromise) {
-    return initializationPromise;
+  if (instance) {
+    return instance;
   }
 
-  initializationPromise = initializeDatabase(options);
-  try {
-    return await initializationPromise;
-  } finally {
-    initializationPromise = null;
+  if (!initializationPromise) {
+    initializationPromise = initializeDatabase(options).catch((error: unknown) => {
+      // Only a rejected pass is retryable: clear the in-flight promise so the
+      // next call opens a fresh adapter (the failed one is closed inside
+      // `initializeDatabase`). A fulfilled promise stays cached behind the
+      // `instance` guard above instead of being cleared.
+      initializationPromise = null;
+      throw error;
+    });
   }
+  return initializationPromise;
 }
 
 /** Perform one startup pass; concurrent callers are coalesced by initDatabase. */
@@ -216,6 +229,7 @@ async function initializeDatabase(options: AppDatabaseOptions): Promise<AppDatab
     const app = new AppDatabase(adapter, options);
     await app.profile.ensureExists(); // create-on-first-launch
     instance = app;
+    instanceAdapter = adapter;
     return app;
   } catch (error) {
     // A failed pass must not leak its native connection: bootstrap retry
@@ -223,6 +237,22 @@ async function initializeDatabase(options: AppDatabaseOptions): Promise<AppDatab
     // Best-effort — a half-opened handle may already be unusable.
     await adapter.close().catch(() => {});
     throw error;
+  }
+}
+
+/**
+ * Test-only reset: closes the singleton connection and clears module state so
+ * a suite can build a fresh database per test (the Node in-memory backend is
+ * discarded per test). Never call from product code; `initDatabase` is
+ * idempotent by design for the app runtime.
+ */
+export async function resetDatabaseForTests(): Promise<void> {
+  const adapter = instanceAdapter;
+  instance = null;
+  instanceAdapter = null;
+  initializationPromise = null;
+  if (adapter) {
+    await adapter.close().catch(() => {});
   }
 }
 

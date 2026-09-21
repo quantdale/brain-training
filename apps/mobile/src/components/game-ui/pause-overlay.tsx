@@ -92,7 +92,12 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   actions: {
+    // Wraps and centers instead of clipping Resume/Quit at a 2x system font
+    // scale or on a compact width (065).
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
     gap: Spacing.three,
     marginTop: Spacing.two,
   },

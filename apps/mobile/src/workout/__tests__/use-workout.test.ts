@@ -9,7 +9,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
-import { getDb, initDatabase, WorkoutWriteConflictError } from '@/db';
+import { getDb, initDatabase, resetDatabaseForTests, WorkoutWriteConflictError } from '@/db';
 import { registry } from '@/registry/registry.generated';
 import { registerGameDefinitions } from '@/registry/registry';
 import { localDateString } from '@/workout/today';
@@ -17,6 +17,7 @@ import { useWorkout } from '@/workout/use-workout';
 
 describe('useWorkout (task 6.2 / 6.5)', () => {
   beforeEach(async () => {
+    await resetDatabaseForTests();
     await initDatabase();
     // The root layout normally registers the catalog during bootstrap; the
     // hook depends on it for selection, so register it here.

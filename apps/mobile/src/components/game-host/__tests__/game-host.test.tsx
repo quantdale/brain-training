@@ -160,6 +160,32 @@ describe('GameHost chrome mounting', () => {
     expect(screen.getByTestId(testId(GAME, 'quit'))).toBeOnTheScreen();
   });
 
+  it('wires the pause control into the wrapping session-header strip', async () => {
+    await render(<GameHost {...hostProps({})} />);
+
+    // Walk up from the real pause control (not a stub) to the nearest wrapping
+    // container: the header strip is the button's `trailing` slot. Pinning the
+    // row+wrap style here keeps the Campaign 055P anti-clipping contract wired
+    // end to end, through GameHost → SessionHeader → GameButton.
+    type HostInstance = ReturnType<typeof screen.getByTestId>;
+    const pause = screen.getByTestId(testId(GAME, 'pause'));
+    const wrappingAncestors: HostInstance[] = [];
+    let current: HostInstance | null = pause.parent;
+    while (current !== null) {
+      const style = StyleSheet.flatten(current.props.style) as Record<string, unknown> | null;
+      if (style?.flexWrap === 'wrap') wrappingAncestors.push(current);
+      current = current.parent;
+    }
+
+    expect(wrappingAncestors).toHaveLength(1);
+    const stripStyle = StyleSheet.flatten(wrappingAncestors[0].props.style) as Record<
+      string,
+      unknown
+    >;
+    expect(stripStyle.flexDirection).toBe('row');
+    expect(stripStyle.flexWrap).toBe('wrap');
+  });
+
   it('non-session views never mount the overlay even when paused=true', async () => {
     await render(
       <GameHost {...hostProps({ paused: true, view: 'results' })}>

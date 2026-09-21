@@ -211,3 +211,28 @@ audits and the runtime matrix above were re-executed on the final artifact
 - **OpenSpec / governance:** set to terminal VALIDATED in this session.
 - **Non-target runtimes:** `emulator-5556` and every other runtime were never
   present or touched.
+
+---
+
+## Campaign 065 correction (2026-09-21, adversarial convergence)
+
+Two claims in this matrix are corrected:
+
+1. "decorative-art leaks (unlabelled `ImageView`/`ReactImageView` nodes
+   across all 108 dumps) | 0" and "empirically: zero unlabelled
+   ImageView nodes across all 108 hierarchy dumps" are not reproducible
+   with repository tooling: `scripts/qa/a11y-audit.mjs` classifies only
+   interactive nodes and has no decorative-art check. The source-level
+   verification recorded in `ACCESSIBILITY_RESPONSIVE_QA.md` remains the
+   honest evidence for that class; the "0 across 108 dumps" phrasing is
+   withdrawn.
+2. "42/42 interaction captures valid — gameplay shows the live
+   round/score HUD" reads catalog-wide but the active-gameplay surface is
+   one game (`memory`); the other captures are route-level. The
+   in-session capture coverage stays as recorded (one representative
+   game), and the remaining 41 games' gameplay at font-scale-2/compact
+   stay with the Change 067 six-way matrix.
+
+Change 065 additionally fixed in-session result/failure announcements and
+added a catalog-wide touch-target guard; the PauseOverlay wrap contract
+is now pinned.

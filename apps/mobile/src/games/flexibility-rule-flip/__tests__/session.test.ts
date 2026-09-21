@@ -3,6 +3,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { RNG_ALGORITHM_VERSION } from '@/sdk';
 import type { DifficultyProfile, GameRawResult } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
+import { expectConsoleNoise } from '@/test-utils';
 
 import {
   FLEXIBILITY_RULE_FLIP_DIFFICULTY_PARAMS,
@@ -163,19 +164,21 @@ describe('persistFlexibilityRuleFlipSession', () => {
   });
 
   it('never throws on persistence failure; logs and reports the error', async () => {
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const boom = new Error('db down');
-    const outcome = await persistFlexibilityRuleFlipSession({ id: 'x' } as never, {
-      completeSession: async () => {
-        throw boom;
+    await expectConsoleNoise(
+      /\[flexibility-rule-flip\] failed to persist completed session x/,
+      async () => {
+        const outcome = await persistFlexibilityRuleFlipSession({ id: 'x' } as never, {
+          completeSession: async () => {
+            throw boom;
+          },
+        });
+        expect(outcome.ok).toBe(false);
+        if (!outcome.ok) {
+          expect(outcome.error).toBe(boom);
+        }
       },
-    });
-    expect(outcome.ok).toBe(false);
-    if (!outcome.ok) {
-      expect(outcome.error).toBe(boom);
-    }
-    expect(errorSpy).toHaveBeenCalled();
-    errorSpy.mockRestore();
+    );
   });
 
   it('defaults to the db-backed persister seam', () => {

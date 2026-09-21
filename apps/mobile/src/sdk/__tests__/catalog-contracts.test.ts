@@ -16,8 +16,10 @@
  *     isDevBuild(), panel built on QaPanelShell
  *   - testID convention: every semantic id flows through `testId()` (no raw
  *     `testID="..."` literals outside __tests__ fixtures)
- *   - tutorial lifecycle: createTutorialLifecycle() wiring + stable
- *     `<gameId>.tutorial` testID
+ *   - tutorial lifecycle: createTutorialLifecycle() wiring + the shared
+ *     `TutorialFrame` shell (stable <gameId>.tutorial testID);
+ *     `TUTORIAL_FRAME_EXEMPTIONS` is the only escape hatch and must carry a
+ *     reason plus alternate evidence.
  *   - persistence: diagnostics metadata + dbSessionPersister seam +
  *     versions.ts provenance helpers
  *   - adaptive difficulty: every difficulty mapping handles 'adaptive'
@@ -104,6 +106,30 @@ function loadCatalog(): GameSource[] {
 }
 
 const CATALOG = loadCatalog();
+
+/**
+ * Explicit exemptions from the shared `TutorialFrame` shell. Every entry MUST
+ * name the game, explain why the frame cannot apply, and point at a
+ * deterministic alternate proof (e.g. a bespoke overlay harness test). The
+ * current catalog has no exemptions: campaign 065 migrated the last two
+ * speed-game tutorials onto the frame. The mechanism exists so a future game
+ * that genuinely cannot use the frame has an honest, reviewed path instead of
+ * silently bypassing the shared surface.
+ */
+export interface TutorialFrameExemption {
+  /** Game directory / registered id this exemption covers. */
+  readonly gameId: string;
+  /** Why the shared TutorialFrame cannot render this tutorial. */
+  readonly reason: string;
+  /** Deterministic alternate evidence for the tutorial surface. */
+  readonly alternateEvidence: string;
+}
+
+export const TUTORIAL_FRAME_EXEMPTIONS: readonly TutorialFrameExemption[] = [];
+
+const TUTORIAL_FRAME_EXEMPT_IDS = new Set(
+  TUTORIAL_FRAME_EXEMPTIONS.map((entry) => entry.gameId),
+);
 
 /** Every violation as `<file>: <problem>` so failures point at the fix. */
 function collectViolations(check: (game: GameSource) => string[]): void {
@@ -307,15 +333,31 @@ describe('QA hooks + tutorial lifecycle (hooks.ts)', () => {
 });
 
 describe('tutorial surface', () => {
-  it('exposes the stable <gameId>.tutorial testID (directly or via TutorialFrame)', () => {
+  it('renders every tutorial through the shared TutorialFrame (or an explicit exemption)', () => {
     collectViolations((game) => {
+      if (TUTORIAL_FRAME_EXEMPT_IDS.has(game.id)) {
+        return [];
+      }
       const tutorial = requireFile(game, 'components/tutorial.tsx');
-      const stableId = /testId\(\s*GAME_ID\s*,\s*['"]tutorial['"]\)/.test(tutorial);
-      if (!stableId && !/TutorialFrame/.test(tutorial)) {
-        return ['components/tutorial.tsx lacks the stable testId(GAME_ID, "tutorial") surface'];
+      if (!/<\s*TutorialFrame\b/.test(tutorial)) {
+        return [
+          'components/tutorial.tsx must render through the shared TutorialFrame; ' +
+            'if the frame cannot apply, add a named TUTORIAL_FRAME_EXEMPTIONS entry with a reason and alternate evidence',
+        ];
       }
       return [];
     });
+  });
+
+  it('requires every tutorial-frame exemption to name the game, a reason, and alternate evidence', () => {
+    const registered = new Set(CATALOG.map((game) => game.id));
+    for (const entry of TUTORIAL_FRAME_EXEMPTIONS) {
+      expect(registered.has(entry.gameId)).toBe(true);
+      expect(entry.reason.trim().length).toBeGreaterThan(0);
+      expect(entry.alternateEvidence.trim().length).toBeGreaterThan(0);
+    }
+    const ids = TUTORIAL_FRAME_EXEMPTIONS.map((entry) => entry.gameId);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
 

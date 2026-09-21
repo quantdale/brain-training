@@ -24,6 +24,7 @@ import {
 } from "@/sdk";
 import type { CompleteSessionInput } from "@/db";
 import { computeXp } from "@/rating/pipeline";
+import { expectConsoleNoise } from "@/test-utils";
 
 import { TUTORIAL_DEMO_PARAMS, TUTORIAL_DEMO_SEED } from "../components/tutorial";
 import { loadContentPack } from "../content-validation";
@@ -465,22 +466,22 @@ describe("WordChainScreen", () => {
         throw new Error("db locked");
       }),
     } as unknown as SessionPersistence & { completeSession: jest.Mock };
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    try {
-      await renderScreen({ seed: "persist-fail", persister: failing });
+    await expectConsoleNoise(
+      /\[language-word-chain\] failed to persist completed session/,
+      async () => {
+        await renderScreen({ seed: "persist-fail", persister: failing });
 
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));
-      await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-win")));
-      await act(async () => {});
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, "start")));
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, "qa-toggle")));
+        await fireEvent.press(screen.getByTestId(testId(GAME_ID, "force-win")));
+        await act(async () => {});
 
-      expect(
-        screen.getByTestId(testId(GAME_ID, "persist-error")),
-      ).toBeOnTheScreen();
-      expect(failing.completeSession).toHaveBeenCalledTimes(1);
-    } finally {
-      errorSpy.mockRestore();
-    }
+        expect(
+          screen.getByTestId(testId(GAME_ID, "persist-error")),
+        ).toBeOnTheScreen();
+        expect(failing.completeSession).toHaveBeenCalledTimes(1);
+      },
+    );
   });
   it('persists the final adaptive challenge rating in the session record', async () => {
     // Regression: the record difficulty kept the SDK adaptive baseline (0.5)

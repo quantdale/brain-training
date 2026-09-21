@@ -2,6 +2,15 @@
   "schemaVersion": 1,
   "canonicalBranch": "main",
   "activeCampaign": null,
+  "activeProgram": {
+    "id": "056-067-overnight-autonomous-program",
+    "mode": "night",
+    "startSha": "428d293",
+    "prompt": ".agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md",
+    "ledger": ".agent/OVERNIGHT_056_067_STATE.md",
+    "currentChange": "066-adversarial-convergence-static-governance",
+    "state": "ACTIVE"
+  },
   "lastCampaign": "055-signal-arcade-desirability",
   "lastCampaignStatus": "VALIDATED",
   "lastCampaignVerdict": "CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE",
