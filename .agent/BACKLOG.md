@@ -89,10 +89,9 @@ plus historical follow-ups.
   measured; navigation depth correctness (§4: classify every `router.push`
   call site, convert top-level destinations to the stack-replacing operation, add
   a Data Management back affordance, correct game detail's announced back
-  destination), the regression-guard widening (§5: `safe-back-catalog.test.ts`
+  destination) and the regression-guard widening (§5: `safe-back-catalog.test.ts`
   still scans only `src/games`, so a new route module outside that directory is
-  uncovered), and the Progress input-aware refresh (§6: the time-only 5-second
-  focus throttle can still hide a mutation) are NOT started. Owner:
+  uncovered) are NOT started. §1–§3 and §6 ARE done. Owner:
   release-engineering orchestrator.
 - Snapshot review debt (deferred by Change 065):
   `apps/mobile/src/app/__tests__/visual-baselines.test.tsx` holds the only

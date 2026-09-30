@@ -5256,3 +5256,23 @@ change is closed.**
 These three sections are the larger half of the change's user-visible work. They
 are recorded here so the next session resumes from a measured state rather than
 from a plan that assumed §1–3 were the whole job.
+- **§6 Progress input-aware refresh: also completed** (appended 2026-09-30, same
+  change). The focus throttle now consults the newest-session fingerprint via the
+  existing `progression/focus-sync` helpers, so a changed input always forces a
+  reload. **The original justification was wrong and is corrected here:** "sessions
+  take minutes, so a bounce inside this window cannot hide real data" covers a
+  session completed in the PAST, not one completed in this app seconds ago —
+  finish a workout, return inside the window, and the screen reports a
+  pre-workout state stamped with a CURRENT time, which reads as fresh. The
+  fingerprint is captured when a load completes, and a focus handler that cannot
+  read the db falls back to the pure-time window rather than throwing (a focus
+  handler that throws takes the route down — caught by the visual-baselines
+  suite the first time). 4 new cases; reverting the predicate to pure-time fails
+  2 of the 6. Full matrix after §6: **605 suites / 7,062 passed + 5 skipped
+  tests / 5 snapshots, 0 failures**; signal gate `pass: true`; typecheck and lint
+  clean; OpenSpec strict 59/59.
+
+**Change 072 status after this addition: sections 1, 2, 3 and 6 are done and
+measured. Sections 4 (navigation depth) and 5 (regression-guard widening) remain
+NOT DONE**, together with the device lane (7.4).
+

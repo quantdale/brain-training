@@ -27,7 +27,7 @@
  */
 
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import {
@@ -102,6 +102,11 @@ import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import type { AppDatabase, GameSessionRecord, WorkoutInstance } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
+import { getDb } from "@/db";
+import {
+  progressionInputFingerprint,
+  readNewestProgressionInput,
+} from "@/progression/focus-sync";
 import { useTheme } from '@/hooks/use-theme';
 import { GAME_CATEGORIES as DOMAINS } from '@/sdk';
 import { levelForXp, levelProgress, xpIntoLevel, xpForNextLevel } from '@/rating';
@@ -143,18 +148,32 @@ const EMPTY_DATA: ProgressData = {
 const OVERVIEW_CALENDAR_DAYS = 84; // ~12 weeks
 
 /**
- * Minimum age of the last snapshot load before a focus schedules another
- * (061). Sessions take minutes, so a bounce inside this window cannot hide
- * real data — it only skips re-materializing the full history.
+ * Pure focus-throttle decision (061, unit-tested; INPUT-AWARE from 072).
+ *
+ * The original predicate was a pure time window, and the comment defended it
+ * with "sessions take minutes, so a bounce inside this window cannot hide real
+ * data". That reasoning covers a session completed in the PAST — it does not
+ * cover one completed *in this app, seconds ago*: a player finishes a workout
+ * and returns to Progress inside the window, and the reload is skipped, so the
+ * screen reports a pre-workout state with a fresh timestamp. The timestamp is
+ * what makes it look current.
+ *
+ * So a changed input (the newest persisted session) always forces a reload,
+ * exactly as the shared progression gate already does. `lastFingerprint` is
+ * maintained by the screen, which is the only place that knows when a load
+ * actually completed.
  */
 const FOCUS_RELOAD_MIN_MS = 5000;
 
-/**
- * Pure focus-throttle decision (061, unit-tested): reload only when the
- * last scheduled load is older than the minimum interval. `nowMs` label
- * freshness is handled separately by the caller on every focus.
- */
-export function shouldScheduleFocusReload(lastLoadMs: number, nowMs: number): boolean {
+export function shouldScheduleFocusReload(
+  lastLoadMs: number,
+  nowMs: number,
+  fingerprint: string = '',
+  lastFingerprint: string | null = null,
+): boolean {
+  if (lastFingerprint !== null && lastFingerprint !== fingerprint) {
+    return true;
+  }
   return nowMs - lastLoadMs > FOCUS_RELOAD_MIN_MS;
 }
 
@@ -176,25 +195,62 @@ export default function ProgressScreen() {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
   const [nowMs, setNowMs] = useState(0);
-  // 061: throttle focus reloads — the snapshot materializes the whole
-  // history, and a session takes minutes, so a bounce within 5s of a load
-  // cannot hide real data. `nowMs` still updates per focus (labels stay
-  // fresh); explicit retry always reloads.
+  // 061/072: throttle focus reloads — the snapshot materializes the whole
+  // history, so a bounce within 5s of a load needlessly re-materializes it.
+  // The throttle is INPUT-AWARE: a changed newest-session fingerprint always
+  // forces a reload, so a session completed in-app is never hidden behind the
+  // window (the pure-time version could, and did).
   const lastLoadRef = useRef(0);
+  // The fingerprint of the newest session the last COMPLETED load observed. The
+  // focus handler cannot read it synchronously (it needs the db), so the gate
+  // works from the fingerprint captured when a load settles.
+  const lastFingerprintRef = useRef<string | null>(null);
   useFocusEffect(
     useCallback(() => {
       const now = Date.now();
       setNowMs(now);
-      if (shouldScheduleFocusReload(lastLoadRef.current, now)) {
-        lastLoadRef.current = now;
-        setRefreshKey((k) => k + 1);
-      }
+      void (async () => {
+        // The gate must never be the thing that breaks the screen: an
+        // uninitialized db makes `getDb()` throw, and a focus handler that
+        // throws takes the whole route with it. On any failure we fall back to
+        // the pure time window, which is the pre-072 behavior and always safe.
+        let fingerprint: string | null = null;
+        try {
+          const newest = await readNewestProgressionInput(getDb(), now);
+          fingerprint = progressionInputFingerprint(newest);
+        } catch {
+          fingerprint = null;
+        }
+        if (shouldScheduleFocusReload(lastLoadRef.current, now, fingerprint ?? '', lastFingerprintRef.current)) {
+          lastLoadRef.current = now;
+          setRefreshKey((k) => k + 1);
+        }
+      })();
     }, []),
   );
 
-  const { data, loaded, error } = useDbData(load, [refreshKey], EMPTY_DATA);
-  // Recovery action for the error state: bumping the key reruns the load.
-  const retry = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const { data, loaded, error } = useDbData(load, [refreshKey], EMPTY_DATA, {
+    label: 'progress',
+    isEmpty: (value) => value.sessions.length === 0,
+  });
+  // Record the fingerprint a COMPLETED load observed, so the next focus can
+  // tell "nothing changed" from "something changed while the window ran".
+  useEffect(() => {
+    if (!loaded || error) {
+      return;
+    }
+    lastFingerprintRef.current = progressionInputFingerprint({
+      id: data.sessions[0]?.id ?? '',
+      completedAt: data.sessions[0]?.completedAt ?? 0,
+    });
+  }, [loaded, error, data]);
+  // Recovery action for the error state: bumping the key reruns the load, and
+  // the fingerprint check must not throttle the retry.
+  const retry = useCallback(() => {
+    lastLoadRef.current = 0;
+    lastFingerprintRef.current = null;
+    setRefreshKey((k) => k + 1);
+  }, []);
   const [windowKey, setWindowKey] = useState<TimeWindowKey>('30d');
 
   const windowedSessions = useMemo(

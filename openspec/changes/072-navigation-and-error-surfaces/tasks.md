@@ -54,11 +54,21 @@
 
 ## 6. Progress refresh consistency
 
-- [ ] 6.1 Replace Progress's time-only 5-second focus throttle with the existing
-      input-aware gate in `apps/mobile/src/progression/focus-sync.ts`, so a
-      mutation is never hidden behind a time window.
-- [ ] 6.2 Add a test: a mutation performed immediately before a focus change is
-      visible on the next render rather than after the window elapses.
+- [x] 6.1 Progress's focus throttle now consults the newest-session fingerprint
+      from the existing `progression/focus-sync` helpers
+      (`progressionInputFingerprint` / `readNewestProgressionInput`), so a
+      changed input always forces a reload. The 5s window still suppresses
+      redundant re-materialization when nothing changed. The fingerprint is
+      captured when a load COMPLETES (the focus handler cannot read it
+      synchronously), and a focus handler that cannot read the db falls back to
+      the pure-time window rather than throwing — a focus handler that throws
+      takes the route down with it.
+- [x] 6.2 Added 4 cases to `progress-focus-throttle.test.ts`: a new session
+      inside the window forces a reload; an unchanged input still bounces
+      cheaply; a DISAPPEARED fingerprint counts as a change (a backup replace can
+      remove the newest session, and ignoring that would show a session the user
+      no longer has); and the first-load/post-window behavior is unchanged.
+      **Mutation proof:** reverting the predicate to pure-time fails 2 of the 6.
 
 ## 7. Verification
 
