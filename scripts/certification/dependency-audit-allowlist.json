@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "reviewedAt": "2026-09-13",
+  "reviewedAt": "2026-09-30",
   "policy": "Entries waive one package + one GHSA advisory id each. A new advisory on an allowlisted package is NOT inherited and fails the gate. build-dev-toolchain entries are accepted without an expiry only while the vulnerable code never ships; runtime-accepted-debt entries MUST carry a rationale, an expiry, and a tracked follow-up in .agent/KNOWN_ISSUES.md, and are the explicit escalation path when no compatible fix exists. Never silently waived.",
   "allowlist": [
     {
@@ -20,6 +20,27 @@
       "advisory": "GHSA-w5hq-g745-h8pq",
       "classification": "build-dev-toolchain",
       "rationale": "v3/v5/v6 buffer-bounds advisory for uuid < 11.1.1 reached only through xcode -> @expo/config-plugins -> Expo CLI/prebuild/config toolchain. The vulnerable call pattern (explicit buf argument) is not exercised by first-party code or the toolchain; not runtime-bundled."
+    },
+    {
+      "package": "brace-expansion",
+      "advisory": "GHSA-q2hr-2g5m-vwhr",
+      "classification": "build-dev-toolchain",
+      "rationale": "Quadratic-time expansion of the `{a},b}` rewrite (moderate). Reachability re-verified 2026-09-30 with `npm ls brace-expansion --omit=dev`: every path is expo-router@57.0.22 -> @testing-library/react-native@14.0.1 -> jest@29.7.0 -> @jest/core -> glob@7.2.3 -> minimatch@3.1.5 -> brace-expansion@1.1.18 (test/Metro glob expansion only), plus @expo/fingerprint@0.20.13 -> minimatch@10.2.6 -> brace-expansion@5.0.9 (Expo CLI fingerprint step). No first-party source imports glob/minimatch/brace-expansion; the vulnerable parser never ships in the app bundle. Accepted while `glob@7` / `minimatch@3` are pulled in transitively by the test harness.",
+      "tracking": ".agent/DEPENDENCY_AUDIT.md -> Campaign 069 brace-expansion toolchain review (reviewed 2026-09-30)"
+    },
+    {
+      "package": "brace-expansion",
+      "advisory": "GHSA-qhr7-859c-m2p7",
+      "classification": "build-dev-toolchain",
+      "rationale": "Uncontrolled recursion on nested brace groups causing stack exhaustion (high). Same toolchain-only reachability as GHSA-q2hr-2g5m-vwhr: jest/@jest/core -> glob@7.2.3 -> minimatch@3.1.5 -> brace-expansion@1.1.18, exercised only by Jest's own module/test glob expansion on the developer/CI machine. No runtime import path; not bundled. Accepted while `glob@7` / `minimatch@3` are transitive dependencies of the pinned Jest 29 toolchain.",
+      "tracking": ".agent/DEPENDENCY_AUDIT.md -> Campaign 069 brace-expansion toolchain review (reviewed 2026-09-30)"
+    },
+    {
+      "package": "brace-expansion",
+      "advisory": "GHSA-6j4f-fj2g-mc7p",
+      "classification": "build-dev-toolchain",
+      "rationale": "Uncontrolled recursion in parseCommaParts causing stack exhaustion (high). Same toolchain-only reachability as the two sibling brace-expansion advisories: brace-expansion@1.1.18 via jest/@jest/core -> glob@7.2.3 -> minimatch@3.1.5, and brace-expansion@5.0.9 via expo@57.0.24 -> @expo/fingerprint@0.20.13 -> minimatch@10.2.6 (Expo CLI fingerprinting). Neither parser is reachable from first-party runtime code; the vulnerable code never ships.",
+      "tracking": ".agent/DEPENDENCY_AUDIT.md -> Campaign 069 brace-expansion toolchain review (reviewed 2026-09-30)"
     },
     {
       "package": "decode-uri-component",

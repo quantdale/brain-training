@@ -1,11 +1,23 @@
 # COMPLETE — Overnight Program 056→067 (owner-authorized, NIGHT mode)
 
-**Program id:** `056-067-overnight-autonomous-program` · **Status:** ACTIVE
+**Program id:** `056-067-overnight-autonomous-program` · **Program status:** COMPLETE
+(`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`
+with its device remainder explicitly `NOT VALIDATED` and carried in
+`docs/hardening/post067/FINAL_POST_HARDENING_CERTIFICATION.md`)
+**Active campaign:** none. **Nothing in this program is in progress.**
 **Prompt:** `.agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md` (program SHA `428d293`)
 **Living ledger:** `.agent/OVERNIGHT_056_067_STATE.md`
-**Current change:** `067-terminal-whole-product-certification` (VALIDATED; post-067 hardening PHASE_2 active, evidence root `docs/hardening/post067/`)
+**Last change in program:** `067-terminal-whole-product-certification` — VALIDATED / `CHANGE_067_COMPLETE`;
+its post-067 hardening phase is **CLOSED** (evidence root `docs/hardening/post067/`), not active.
+**Corrected 2026-09-30 (Change 069):** this header previously read
+`**Status:** ACTIVE` and `post-067 hardening PHASE_2 active` while the same
+document's own title said COMPLETE and `GOVERNANCE.activeProgram.state` was
+`COMPLETE`. The register that governs is `COMPLETE`; work after it is
+owner-directed and is tracked by the OpenSpec changes in
+`openspec/changes/068-*`…`075-*` and by `docs/MASTER_PLAN.md`, not by
+reopening this program.
 **Note:** the authoritative `**Campaign id:**` / `**Status:**` fields below belong to the terminal
-Campaign 055 record and are intentionally left intact; the active program is registered in
+Campaign 055 record and are intentionally left intact; the terminal program is registered in
 `.agent/GOVERNANCE.json` (`activeProgram`) and reconciled by `node scripts/validate-repo-state.mjs`.
 
 ---

@@ -66,6 +66,7 @@ jobs:
         run: |
           node scripts/validate-offline.mjs --self-test
           node scripts/validate-dependency-audit.mjs --self-test
+          node scripts/validate-expo-alignment.mjs --self-test
           node scripts/certification/validate-jest-signal.mjs --self-test
           node scripts/validate-provenance.mjs --self-test
           node scripts/validate-affected.mjs --self-test
@@ -85,19 +86,125 @@ jobs:
       # exit 1 on an unallowlisted moderate+ advisory reachable from the
       # production tree; exit 2 (BLOCKED, never a silent pass) when npm
       # audit cannot run. Accepted build/dev-toolchain advisories and their
-      # rationales live in scripts/certification/dependency-audit-allowlist.json.
+      # rationales live in the reviewed allowlist under
+      # scripts/certification/.
       #
       # OWNERSHIP (campaign 064): this is the network-dependent gate's home.
       # App CI is hermetic by design and must not gain a network-dependent
       # audit step; `npm audit` runs here on push and on the weekly schedule,
       # and its BLOCKED status (exit 2) is an honest environment result, not
       # a product failure.
+      #
+      # BLOCKED vs FAILED (Change 069): a bare `run:` step cannot tell the two
+      # apart, so an environment outage was reported as an ordinary red step
+      # and any tolerance of it would report it as a pass. The exit code is
+      # now branched explicitly and the classification is published three
+      # ways: a `::error::` annotation, a distinct `classification=` step
+      # output, and a job-summary line. Both branches fail the job — a
+      # security gate that did not run must never be green — but the BLOCKED
+      # branch states that the security posture is UNVERIFIED for that run
+      # rather than implying a finding was detected.
       - name: Validate production dependency audit
-        run: node scripts/validate-dependency-audit.mjs
+        id: dep-audit
+        run: |
+          set -uo pipefail
+          note() { printf '%s\n' "$1" >> "$GITHUB_STEP_SUMMARY"; }
+          code=0
+          node scripts/validate-dependency-audit.mjs || code=$?
+          case "$code" in
+            0)
+              echo "classification=pass" >> "$GITHUB_OUTPUT"
+              note "Dependency audit PASS - no unallowlisted moderate+ \
+          production advisories."
+              ;;
+            1)
+              echo "classification=failed" >> "$GITHUB_OUTPUT"
+              note "Dependency audit FAILED - the gate RAN and found \
+          unallowlisted moderate+ production advisories (a real finding)."
+              echo "::error::Dependency audit FAILED (gate ran; found \
+          unallowlisted moderate+ advisories)."
+              exit 1
+              ;;
+            2)
+              echo "classification=blocked" >> "$GITHUB_OUTPUT"
+              note "Dependency audit BLOCKED - the gate DID NOT RUN (npm \
+          audit/registry unavailable, or the allowlist is unreadable). The \
+          production dependency security posture is UNVERIFIED for this \
+          run; this is NOT evidence of a clean tree."
+              echo "::error title=Dependency audit BLOCKED::The audit did \
+          not run. Security posture is UNVERIFIED for this run - do not \
+          read this as a pass. Exit 2 = could-not-run; exit 1 = \
+          ran-and-failed."
+              exit 1
+              ;;
+            *)
+              echo "classification=unknown-exit-$code" >> "$GITHUB_OUTPUT"
+              note "Dependency audit returned unexpected exit code $code; \
+          the gate result is UNKNOWN and treated as unverified."
+              echo "::error::Dependency audit exited $code (expected 0, 1 \
+          or 2); gate result is unknown."
+              exit 1
+              ;;
+          esac
+
+      # Scheduled upstream-drift observation (Change 069).
+      #
+      # `npx expo-doctor` is deliberately NOT an App CI step: it resolves its
+      # expected versions from https://api.expo.dev/v2/versions/latest, so it
+      # reports repository failures for upstream patch releases and the
+      # durable state then disagrees with CI. The hermetic replacement
+      # (`scripts/validate-expo-alignment.mjs`, run in app-ci on every push)
+      # answers the question that indicates a repository defect. This weekly
+      # run keeps the upstream signal visible without letting a network fetch
+      # flap the push path.
+      #
+      # The result is tolerated but never dropped: it is classified as UPSTREAM
+      # DRIFT (not a repository defect) in the job summary, and the drift
+      # classification step below enforces the tolerance by re-reading
+      # `steps.expo-doctor.outcome`. This is the same rationale the `npm audit`
+      # gate already uses for its network-dependent position.
+      - name: Expo doctor (upstream drift observation)
+        id: expo-doctor
+        if: github.event_name == 'schedule'
+        continue-on-error: true
+        run: npx expo-doctor
+
+      - name: Classify Expo upstream drift
+        if: always() && github.event_name == 'schedule'
+        run: |
+          set -uo pipefail
+          outcome="${{ steps.expo-doctor.outcome }}"
+          if [ "$outcome" = "success" ]; then
+            drift="none - the installed tree matches the latest published \
+          Expo expectations"
+          else
+            drift="DETECTED - expo-doctor reported a difference from \
+          api.expo.dev's latest published versions. This is UPSTREAM DRIFT, \
+          not a repository defect: the hermetic alignment gate \
+          (validate-expo-alignment.mjs) passed in App CI. Re-baseline the \
+          pins only after reviewing the upstream changelog."
+          fi
+          {
+            echo "### Expo upstream drift (weekly, advisory)"
+            echo ""
+            echo "- expo-doctor outcome: \`$outcome\`"
+            echo "- \`$drift\`"
+            echo ""
+            echo "App CI remains hermetic by design: no step in \
+          \`app-ci.yml\` resolves an expectation from a third-party service."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # OpenSpec change/spec validation. The CLI is pinned to an exact
       # version so CI validation is deterministic across runners; it runs
       # here (not app-ci) because it validates repository docs/specs and
       # needs no dependency install.
-      - name: OpenSpec validate
-        run: npx --yes @fission-ai/openspec@1.6.0 validate --all
+      #
+      # `--strict` (Change 069): the non-strict form only reports failures and
+      # leaves a malformed spec's requirement gaps unreported, so local and CI
+      # validation could disagree about whether a change is actually
+      # complete. The CLI is pinned to 1.9.0 — the version the repository's
+      # planning artifacts were authored and last validated against
+      # (`generatedBy: 1.9.0` in the openspec skills, and the version used for
+      # the recorded 59/59 strict result).
+      - name: OpenSpec validate (strict, pinned CLI 1.9.0)
+        run: npx --yes @fission-ai/openspec@1.9.0 validate --all --strict

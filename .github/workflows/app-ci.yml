@@ -156,5 +156,16 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Expo doctor
-        run: npx expo-doctor
+      # NOTE (Change 069): the network-dependent `npx expo-doctor` run was
+      # removed from this job. `expo-doctor` resolves its expected versions
+      # from https://api.expo.dev/v2/versions/latest, not from the repository,
+      # so it turns red with ZERO repository changes whenever Expo publishes a
+      # patch and every push reported a failure the repository could not fix.
+      # The hermetic alignment gate below answers the question that does
+      # indicate a repository defect — does the app declare the Expo-family
+      # versions its own installed SDK requires? — using the SDK's bundled
+      # `bundledNativeModules.json`, with no network access at all. Upstream
+      # drift is still observed, on the weekly Repository Integrity schedule.
+      - name: Expo alignment (hermetic, no network)
+        working-directory: ${{ github.workspace }}
+        run: node scripts/validate-expo-alignment.mjs

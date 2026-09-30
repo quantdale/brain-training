@@ -48,7 +48,44 @@
       "task-ownership-check",
       "repo-state-integrity"
     ],
-    "blockedException": "only when a required check is EXPECTED to fail (e.g. emulator/AVD gate unavailable in this environment) and the exception is recorded with rationale in the commit/PR and .agent/STATE.md"
+    "blockedException": "only when a required check is EXPECTED to fail (e.g. emulator/AVD gate unavailable in this environment) and the exception is recorded with rationale in the commit/PR and .agent/STATE.md",
+    "enforcedGateSet": {
+      "note": "Change 069. Every gate CI actually enforces is declared here, so an UNDECLARED red gate is a detectable contradiction rather than an invisible one. Two gates were red on main while this file named only `typecheck` and `test`; the declaration below is what makes that class of drift self-reporting. Keep in sync with .github/workflows/*.yml — `node scripts/validate-repo-state.mjs` reads this object.",
+      "hermeticPushPath": [
+        "repo-state-integrity (scripts/validate-repo-state.mjs)",
+        "registry-generated-check (scripts/generate-game-registry.mjs --check)",
+        "provenance-drift-check (scripts/validate-provenance.mjs --check)",
+        "task-ownership-check (scripts/validate-task-ownership.cjs)",
+        "offline-boundary-check (scripts/validate-offline.mjs --check)",
+        "runtime-qa-contract (scripts/qa/validate-runtime-qa-contract.mjs)",
+        "secret-boundary-check (scripts/validate-secrets.mjs --check)",
+        "workflow-shell-hygiene (scripts/validate-workflows.mjs)",
+        "affected-area-map-sync (scripts/validate-affected.mjs --check-sync)",
+        "expo-alignment (scripts/validate-expo-alignment.mjs)",
+        "typecheck (tsc --noEmit)",
+        "lint (expo lint)",
+        "test (jest, enforced via validate-jest-signal + explicit outcome gate)",
+        "web-export-smoke (npx expo export --platform web)",
+        "certify-clean-checkout-self-test (scripts/certification/certify-clean-checkout.mjs --self-test)",
+        "openspec-validate-strict (@fission-ai/openspec@1.9.0 validate --all --strict)"
+      ],
+      "networkDependentGates": [
+        "dependency-audit (scripts/validate-dependency-audit.mjs) — needs the npm advisory service; Repository Integrity only. Exit 2 is BLOCKED (did not run), never a pass, and is reported as classification=blocked with the security posture stated UNVERIFIED for that run.",
+        "expo-doctor-upstream-drift (npx expo-doctor) — needs https://api.expo.dev/v2/versions/latest; weekly schedule only, tolerated and classified as upstream drift. NOT a repository-defect signal; the hermetic expo-alignment gate is the push-path equivalent.",
+        "android-build-smoke / ios-build-smoke (expo prebuild + Gradle/Xcode) — build lanes, not content gates; they need the package registry and (iOS) a macOS host."
+      ],
+      "scheduledOnlyGates": [
+        "allowlist freshness (scripts/validate-provenance.mjs --check-allowlist, scripts/certification/validate-jest-signal.mjs --check-allowlist)",
+        "expo-doctor-upstream-drift"
+      ],
+      "advisoryOnlyGates": [
+        "expo-doctor-upstream-drift"
+      ],
+      "notACiGate": {
+        "expo-doctor-21/21": "Never record `Expo Doctor 21/21` as a push-path result. It is network-sourced and time-dependent: it reports upstream patch drift, not a repository state. Record scripts/validate-expo-alignment.mjs instead, with its commit and date.",
+        "local-perf-probes": "npm run perf:probe runs the 5 bounded perf probes locally; it is not wired into CI and must not be reported as a CI gate."
+      }
+    }
   },
   "modes": {
     "default": "day",

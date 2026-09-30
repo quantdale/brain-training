@@ -3,12 +3,49 @@
 **Plan version:** 2 (supersedes version 1, which described Campaigns 001–028 and is
 retained only for its historical phase-gate narrative)
 **Status:** canonical execution specification, derived from the 2026 repository-wide
-audit
+audit. **IN EXECUTION** — Phases 0–1 are complete; §6 is the live task list.
 **Authority:** subordinate to `docs/PROJECT_CONSTITUTION.md`; durable execution state
 remains in `.agent/GOVERNANCE.json` and `.agent/STATE.md`
 **Baseline audited:** `main` @ `2a765cc`; findings re-verified after rebase onto
 `89fc8b4`'s base `2c9b4e1` (see §Appendix B)
+**Execution baseline:** `main` @ `47fffee` (re-measured 2026-09-30 before Phase 1:
+typecheck clean; 594 passed + 4 skipped suites / 6,939 passed + 5 skipped tests /
+5 snapshots; `expo-doctor` **20/21 exit 1**; `validate-dependency-audit` **exit 1**;
+`validate-repo-state` PASS)
 **Audit working papers:** `docs/audits/2026-repo-audit/`
+
+## 0. Change index and execution status
+
+Campaigns 001–067 and the post-067 hardening phase are closed
+(`CHANGE_0NN_COMPLETE` / `POST_067_HARDENING_COMPLETE`). The audit findings in §4
+are being closed by the following OpenSpec changes, executed in the phase order of
+§6. Each change is validated on its own evidence in
+`.agent/VALIDATION.md`; the numbers in this plan are **findings and targets, not
+results** — results live in the per-change records.
+
+| Change | Title | Master-plan phase | Status |
+|---|---|---|---|
+| `069-dependency-gate-restoration` | Dependency gate restoration + claim integrity | Phase 1 | **VALIDATED** — audit gate PASS (7 accepted, 0 unallowlisted); hermetic `scripts/validate-expo-alignment.mjs` added and self-tested (54/54, real tree 22/22 aligned); network `expo-doctor` moved off the push path to the weekly schedule as classified upstream drift; audit BLOCKED distinguished from audit FAIL in CI; OpenSpec CI re-pinned to `1.9.0` + `--strict`; durable claims corrected at `47fffee`; assistant-tooling trees ignored |
+| `068-storage-adapter-runtime-parity` | Storage adapter re-entrancy guard, pragma convergence, engine parity contract | Phase 2 | PENDING |
+| `070-backup-transport-atomicity` | Rotation-based backup replacement, bounded diagnostics, honest durability claims | Phase 3 | PENDING |
+| `071-shared-ui-contract-integrity` | Shared UI kit single-definition contracts, dead code removal, `reanimated` dependency removal | Phase 4 | PENDING |
+| `072-navigation-and-error-surfaces` | Honest loading/error/empty states, push→replace, a11y destination | Phase 5 | PENDING |
+| `073-workout-lifecycle-durability` | Durable workout leg ownership, shared CAS, free skip, startup reconciliation | Phase 6 | PENDING |
+| `074-sdk-module-contract` | Registration-time SDK module validation, typed loader, per-game lifecycle gate | Phase 7 | PENDING |
+| `075-game-reducer-exhaustiveness` | Shared exhaustiveness helper across all 42 reducers | Phase 8 | PENDING |
+
+Phase 9 (optional hardening) and Phase 10 (final certification) follow. No new
+features are in scope: the feature set is complete and the objective is
+stabilization and claim integrity.
+
+**Closure numbers are recorded-at-closure.** Every count in this plan (test
+totals, suite totals, gate verdicts, file counts, package-version claims) is an
+observation at the commit named in the same sentence, not a statement about the
+present tree. `expo-doctor` is additionally *time-dependent*: its expectations
+come from `api.expo.dev`, so a `21/21` recorded at one commit says nothing about
+a later one. The push-path gate is now `scripts/validate-expo-alignment.mjs`;
+see `.agent/GOVERNANCE.json` → `greenMain.enforcedGateSet` for the full enforced
+set and `.agent/VALIDATION.md` for the current-state correction block.
 
 ---
 

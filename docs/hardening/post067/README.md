@@ -8,9 +8,17 @@ that follows the certified 056–067 program (program prompt §Phase 2).
 - `PASS_A_STATIC.md` — static/architecture/contracts/security/blind-spots
 - `PASS_B_RUNTIME.md` — runtime/lifecycle/persistence/recovery/perf
 - `PASS_C_RELEASE_UX.md` — release/UX/a11y/hostile-sequences/production gaps
-- `RESIDUAL_CENSUS.md` — running census and dispositions
 - `CONVERGENCE_LOG.md` — fix → validate → reassess waves until convergence
+- `TERMINAL_RECERT_CONVERGENCE.md` — post-hardening terminal re-certification
+  (Wave 1–4) and its `NOT VALIDATED` device boundaries
+- `FINAL_POST_HARDENING_CERTIFICATION.md` — terminal ledger: final matrix
+  totals, artifact identity, and the device-lane disposition
 - `HARDENING_CLOSURE.md` — terminal verdict for the phase
+
+There is **no** `RESIDUAL_CENSUS.md` in this directory: the Pass A/B/C census
+lives with its evidence under
+`docs/redesign/evidence/campaign066/RESIDUAL_CENSUS.md` (see *Seed material*
+below), and the phase's own convergence record is `CONVERGENCE_LOG.md`.
 
 ## Seed material
 

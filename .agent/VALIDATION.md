@@ -5,6 +5,79 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## CURRENT-STATE CORRECTION — 2026-09-30 (Change 069 / `47fffee`)
+
+This block corrects the record **without rewriting history**: every entry below
+was true at the commit it was recorded against, and the later entries in this
+file are not wrong about their own commit — they are wrong about the present.
+Read this block first; it supersedes the unqualified gate claims further down.
+
+### What was asserted vs. what the tree actually does
+
+| Gate | Asserted in this file (11+ places, unqualified) | Actual at `47fffee`, measured 2026-09-30 |
+|---|---|---|
+| `npx expo-doctor` | `PASS 21/21` | **exit 1 — 20/21**; six Expo packages behind the patch family. `app-ci.yml` ran it as its last step with no `continue-on-error`, so every push reported the workflow as failed. The expectations come from `https://api.expo.dev/v2/versions/latest` (network), not from the repository, so the gate can go red with zero repository changes. |
+| `node scripts/validate-dependency-audit.mjs` | clean / PASS | **exit 1** — 3 unallowlisted `brace-expansion` advisories (`ghsa-q2hr-2g5m-vwhr` moderate, `ghsa-qhr7-859c-m2p7` high, `ghsa-6j4f-fj2g-mc7p` high). Toolchain-only reachability; dispositioned 2026-09-30. |
+| `openspec validate` (CI) | strict totals quoted in entries below | CI ran `npx --yes @fission-ai/openspec@1.6.0 validate --all` — **non-strict** and a **different CLI version** than the 1.9.0 the entries below were validated with, so local and CI validation could disagree. Re-pinned to `1.9.0` + `--strict`. |
+
+### Correction 1 — the `Expo Doctor 21/21` claims
+
+Each `Expo Doctor 21/21` entry in this file records a **historical observation**,
+attributable to the commit that campaign ran on (e.g. `34c9b2d` for the 055–057
+product checkpoint, `5FE03134…` for the post-067 terminal recertification) and
+to the date in that entry's heading. None of them is a claim about the present.
+
+**As of `47fffee` / 2026-09-30 the gate is `20/21` (exit 1), and it is
+time-dependent, not a repository defect.** Change 069 removed the network
+doctor run from the hermetic push path and replaced it with
+`node scripts/validate-expo-alignment.mjs` (hermetic, offline, self-tested),
+which answers the question that does indicate a repository defect: does the app
+declare the Expo-family versions its own installed SDK
+(`node_modules/expo/bundledNativeModules.json`) requires? Measured at
+`47fffee`: **PASS — 22/22 Expo-family pins accept their bundled range, 1
+(`expo` itself) not covered by the bundled manifest by design, 0 findings.**
+`npx expo-doctor` now runs only on the weekly `Repository Integrity` schedule,
+tolerated and classified as **upstream drift** in the job summary.
+
+**Do not re-record `Expo Doctor 21/21` as a push-path gate.** Record the
+alignment validator instead.
+
+### Correction 2 — the dependency-audit claims
+
+Every "dependency audit clean" claim in this file is a **historical observation**
+at the commit recorded in the same entry. The three `brace-expansion` advisories
+were already present in the tree when the 2026-09-13 allowlist was last
+reviewed; they were simply unallowlisted, so the gate has been red on `main`
+while recorded green. Change 069 dispositioned all three as
+`build-dev-toolchain` with reproduced reachability evidence
+(`npm ls brace-expansion --omit=dev`: every path is
+`jest → glob@7.2.3 → minimatch@3.1.5 → brace-expansion@1.1.18` or
+`@expo/fingerprint → minimatch@10.2.6 → brace-expansion@5.0.9`; no first-party
+import). Re-measured 2026-09-30 at `47fffee`: **PASS — 7 accepted advisories,
+0 unallowlisted moderate+ production findings**; self-test 41/41.
+
+The exit-code contract is unchanged but is now **distinguishable in CI**: exit 1
+= ran and found something; exit 2 = **did not run** (registry unavailable /
+allowlist unreadable) and is reported as its own outcome, `classification=blocked`,
+with the job summary stating the security posture is **UNVERIFIED** for that
+run. A blocked gate is not a pass.
+
+### Correction 3 — the OpenSpec gate
+
+Re-measured 2026-09-30 with the CLI the artifacts were authored against
+(`@fission-ai/openspec@1.9.0`): `openspec validate --all --strict` → **59 passed,
+0 failed (59 items)**, exit 0. CI now runs the same command with the same
+pinned version, so the recorded totals and the enforced gate agree.
+
+### Correction 4 — the governance ACTIVE/COMPLETE contradiction
+
+At `47fffee`, `.agent/CURRENT_CAMPAIGN.md` opened with `**Program id:** …
+**Status:** ACTIVE` while the registered program
+(`056-067-overnight-autonomous-program`) is `COMPLETE` in
+`.agent/GOVERNANCE.json`, and `.agent/STATE.md` described Change 066 as both
+open and complete in adjacent lines. Reconciled in Change 069; the
+authoritative status is `COMPLETE` and no campaign is active.
+
 ### Change 056 workout lifecycle integrity — 2026-09-20 (VALIDATED / CHANGE_056_COMPLETE)
 
 - Scope: **PASS** — substitute-and-preserve drift repair, leg-index bound 5,
@@ -4642,3 +4715,98 @@ from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
   classes remain as recorded in `KNOWN_ISSUES.md`; the
   `attention-visual-search` 0-sentinel follow-up was added there as documented
   low-severity debt.
+
+### Change 069 dependency gate restoration & claim integrity — 2026-09-30 (VALIDATED / `CHANGE_069_COMPLETE`)
+
+- **Baseline (re-measured at `47fffee`, 2026-09-30, before any edit):** typecheck clean;
+  lint 0/0; full gated Jest **594 passed + 4 skipped suites / 6,939 passed + 5 skipped
+  tests / 5 snapshots, 0 failures** (exit 0, 135.8 s); `validate-repo-state` PASS;
+  `validate-secrets --check` CLEAN (2,786 tracked text files); `validate-workflows`
+  PASS (4 files); `validate-offline --check` CLEAN (985 files scanned);
+  `generate-game-registry --check` up to date. **Red on arrival:**
+  `npx expo-doctor` exit 1 (20/21) and `validate-dependency-audit.mjs` exit 1
+  (3 unallowlisted `brace-expansion` advisories).
+- §1 advisory disposition: **PASS** — 3 `build-dev-toolchain` entries
+  (`ghsa-q2hr-2g5m-vwhr`, `ghsa-qhr7-859c-m2p7`, `ghsa-6j4f-fj2g-mc7p`), each with
+  reproduced reachability (`npm ls brace-expansion --omit=dev`: all paths through
+  `jest → glob@7.2.3 → minimatch@3.1.5 → brace-expansion@1.1.18` or
+  `@expo/fingerprint → minimatch@10.2.6 → brace-expansion@5.0.9`; zero first-party
+  imports), `reviewedAt: 2026-09-30`, `tracking` pointers.
+  *Per-advisory scoping re-verified end-to-end, not just in the unit self-test:* deleting
+  one advisory id from the shipped allowlist turns the **real** gate red (exit 1), and an
+  injected non-reported id on the same package does not launder the other two.
+  Gate now: **PASS — 7 accepted, 0 unallowlisted moderate+ production findings**;
+  self-test 41/41.
+- §2 hermetic Expo alignment gate: **PASS** — new
+  `scripts/validate-expo-alignment.mjs`, dependency-free, offline. Implements the
+  subset predicate over npm range intervals (exact/`~`/`^`/`>=`-style; unions, hyphen
+  ranges, and protocols are rejected as `unsupported` → BLOCKED, never mis-evaluated).
+  Fail-closed on missing/unparseable manifest, missing bundled manifest, unparseable
+  range, and empty range. Self-test **54/54**. Real tree:
+  **22 Expo-family pins aligned, 1 (`expo` root) not covered by the bundled manifest by
+  design, 0 findings, exit 0.** *Fault-injection proof on the real tree:* declaring
+  `expo-sqlite: ~56.0.0` makes the gate exit 1 naming both ranges, and the self-test
+  prints the injected fault rather than reporting a clean self-test.
+- §3 scheduled drift observation: **PASS** — `npx expo-doctor` moved out of the hermetic
+  push path to the weekly `Repository Integrity` schedule, `continue-on-error: true`,
+  tolerated by a later `Classify Expo upstream drift` step that reads
+  `steps.expo-doctor.outcome` and writes an UPSTREAM DRIFT classification to the job
+  summary. Both shell blocks exercised locally in bash for the `success`/`failure`
+  outcomes.
+- §4 BLOCKED vs FAILED: **PASS** — the audit step branches on the exit code and publishes
+  three distinct signals: `classification=pass|failed|blocked|unknown-exit-N` as a step
+  output, a job-summary line, and a `::error::` annotation. All four branches
+  (0/1/2/42) exercised locally: exit 0 → pass; exit 1 → failed, job fails; exit 2 →
+  blocked, job fails with the explicit statement that the gate did not run and the
+  security posture is **UNVERIFIED for that run**; unknown → unknown + fails. No
+  `|| true` masking (workflow validator PASS).
+- §5 OpenSpec alignment: **PASS** — CI re-pinned from `@fission-ai/openspec@1.6.0
+  validate --all` (non-strict) to `@fission-ai/openspec@1.9.0 validate --all --strict`,
+  the CLI the artifacts were authored against. Re-measured locally:
+  **59 passed, 0 failed (59 items)**, exit 0.
+- §6 durable-claim integrity: **PASS** — current-state correction block added to the top
+  of `.agent/VALIDATION.md` and `.agent/STATE.md` (history preserved, not rewritten),
+  every gate claim stated with the commit and date it was observed at;
+  `CURRENT_CAMPAIGN.md` header reconciled (program **COMPLETE**, no active campaign,
+  post-067 phase closed) — the `**Status:** ACTIVE` / "PHASE_2 active" contradiction is
+  gone; `GOVERNANCE.json` gained `greenMain.enforcedGateSet`; `MASTER_PLAN.md` gained a
+  change index, an execution status line, and an explicit "closure numbers are
+  recorded-at-closure" statement; `docs/hardening/post067/README.md` no longer lists the
+  non-existent `RESIDUAL_CENSUS.md`; `docs/PARITY_MATRIX.md` offline file count
+  919 → **985** (re-verified).
+- §6.3 enforcement (beyond the ask, so the declaration is not prose): the new
+  `enforcedGateSet` is reconciled by `validate-repo-state.mjs` against the scripts the
+  workflows actually invoke, and a `hermeticPushPath` entry naming a network host is
+  rejected. *Negative test:* removing the `validate-secrets.mjs` declaration makes
+  `validate-repo-state.mjs` exit 1 naming the workflow line.
+- §7 repository hygiene: **PASS** — `.gitignore` covers the tool-owned assistant
+  configuration trees. `git status --porcelain` reports no tooling noise;
+  `git check-ignore` reports every one ignored; the six repository-owned agent files
+  (`.agents/skills/{continue-development,goal,harden}/SKILL.md`, `.claude/commands/goal.md`,
+  `.kimi-code/AGENTS.md`, `.opencode/commands/goal.md`) remain tracked and unaffected.
+- §8 hermeticity of the push path: **PASS (stated precisely).** No step in `app-ci.yml`
+  resolves an *expectation* from a third-party service: `grep` for
+  `expo-doctor|npm audit|@fission-ai/openspec|curl|wget|npx --yes|api.expo.dev` matches
+  only the explanatory comment. The network uses that remain are inherent CI
+  infrastructure — `actions/checkout`, `actions/setup-node`, and `npm ci` from the npm
+  registry — and are not gates. `npx expo export` resolves the local
+  `node_modules/expo/bin/cli`, not the registry.
+- Repository gates at closure: typecheck **PASS**; lint **PASS (0 errors, 0 warnings)**;
+  `validate-repo-state` **PASS**; `validate-secrets --check` **PASS**;
+  `validate-workflows` + `--self-test` (44/44) **PASS**; `validate-offline --check`
+  + `--self-test` (30/30) **PASS**; `validate-dependency-audit` **PASS** +
+  `--self-test` (41/41); `validate-expo-alignment` **PASS** + `--self-test` (54/54);
+  `generate-game-registry --check` **PASS**; OpenSpec `--all --strict` **59/59**.
+  Full Jest matrix re-run at closure: **594 passed + 4 skipped suites / 6,939 passed
+  + 5 skipped tests / 5 snapshots, 0 failures.**
+- Native/artifact: **NOT APPLICABLE** — no product code, no schema, no route, no UI, and
+  no dependency change; the last certified artifact `5FE03134…` is unaffected. Product
+  checkpoint unchanged (`34c9b2d`).
+- Boundaries: the weekly `expo-doctor` drift classification is **EXTERNAL** (it needs
+  `api.expo.dev` and the scheduled workflow, so it was not executed in this session);
+  GitHub Actions run-time behaviour of the new steps is **NOT VALIDATED** (the shell
+  logic was exercised locally in bash, not on a runner); the `npx
+  @fission-ai/openspec@1.9.0` fetch in CI is EXTERNAL. Nothing in this change is
+  allowed to be reported as a device or artifact result.
+- Evidence: `openspec/changes/069-dependency-gate-restoration/`,
+  `scripts/validate-expo-alignment.mjs`, `.agent/DEPENDENCY_AUDIT.md`.

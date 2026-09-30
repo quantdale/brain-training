@@ -18,6 +18,54 @@ function runValidator(cwd: string) {
   return { status: r.status ?? 1, stdout: r.stdout ?? '', stderr: r.stderr ?? '' };
 }
 
+/**
+ * Build a declared-gate-set document for the declared-gate-set guard (Change
+ * 069). The fixture workflow below invokes one gate script, so the valid form
+ * must declare exactly that script — which is what makes the 'undeclared'
+ * failure class reachable.
+ */
+const FIXTURE_GATE_SCRIPT = 'scripts/validate-fixture-gate.mjs';
+
+function buildEnforcedGateSet(spec: EnforcedGateSetSpec) {
+  if (spec.kind === 'absent') return null;
+  const declared: Record<string, unknown> = {
+    hermeticPushPath: [`${FIXTURE_GATE_SCRIPT} (fixture)`],
+    networkDependentGates: [],
+    scheduledOnlyGates: [],
+    advisoryOnlyGates: [],
+  };
+  if (spec.kind === 'undeclaredWorkflowScript') {
+    declared.hermeticPushPath = ['scripts/validate-some-other-gate.mjs (fixture)'];
+    return declared;
+  }
+  if (spec.kind === 'networkHostInPushPath') {
+    declared.hermeticPushPath = [spec.entry];
+    return declared;
+  }
+  if (spec.kind === 'emptyPushPath') {
+    declared.hermeticPushPath = [];
+    return declared;
+  }
+  if (spec.kind === 'nonArrayBucket') {
+    declared[spec.bucket] = 'not-an-array';
+    return declared;
+  }
+  return declared;
+}
+
+/**
+ * Declared-gate-set fixture variants for the Change 069 guard. The fixtures
+ * carry a valid `greenMain.enforcedGateSet` by default; these variants inject
+ * each failure class so the guard is mutation-visible like every other one here.
+ */
+type EnforcedGateSetSpec =
+  | { kind: 'valid' }
+  | { kind: 'absent' }
+  | { kind: 'undeclaredWorkflowScript' }
+  | { kind: 'networkHostInPushPath'; entry: string }
+  | { kind: 'emptyPushPath' }
+  | { kind: 'nonArrayBucket'; bucket: string };
+
 function makeFixture(overrides: {
   governanceActive?: string | null;
   terminalCampaign?: string;
@@ -33,6 +81,12 @@ function makeFixture(overrides: {
   removeExec?: boolean;
   historicalProseWithOtherId?: string | null;
   zeroByteRoot?: string | null;
+  /**
+   * Change 069 declared-gate-set guard. The fixtures carry a valid
+   * `greenMain.enforcedGateSet` by default; these overrides inject each
+   * failure class so the guard is mutation-visible like every other one here.
+   */
+  enforcedGateSet?: EnforcedGateSetSpec;
 } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-state-fixture-'));
   // Minimal required files for validator to reach campaign checks
@@ -50,6 +104,8 @@ function makeFixture(overrides: {
 
   // Governance
   fs.mkdirSync(path.join(dir, '.agent'), { recursive: true });
+  const gateSet = buildEnforcedGateSet(overrides.enforcedGateSet ?? { kind: 'valid' });
+  const greenMain = gateSet === null ? undefined : { greenMain: { enforcedGateSet: gateSet } };
   if (!terminal) {
     fs.writeFileSync(path.join(dir, '.agent/GOVERNANCE.json'), JSON.stringify({
       canonicalBranch: 'main',
@@ -58,6 +114,7 @@ function makeFixture(overrides: {
       runtimeQa: { defaultAndroidEmulators: 1, hostMouseKeyboardAutomationAllowed: false },
       git: { autonomousForcePushMainAllowed: false },
       hardening: { automaticFullHardening: false },
+      ...greenMain,
     }, null, 2));
   } else {
     fs.writeFileSync(path.join(dir, '.agent/GOVERNANCE.json'), JSON.stringify({
@@ -69,6 +126,7 @@ function makeFixture(overrides: {
       runtimeQa: { defaultAndroidEmulators: 1, hostMouseKeyboardAutomationAllowed: false },
       git: { autonomousForcePushMainAllowed: false },
       hardening: { automaticFullHardening: false },
+      ...greenMain,
     }, null, 2));
   }
   let stateContent = '# Durable Project State\n';
@@ -111,6 +169,17 @@ function makeFixture(overrides: {
   }
   if (overrides.zeroByteRoot) {
     fs.writeFileSync(path.join(dir, overrides.zeroByteRoot), '');
+  }
+  // A minimal one-step workflow so the declared-gate-set reconciliation has a
+  // real CI-invoked script to compare the declaration against.
+  if ((overrides.enforcedGateSet ?? { kind: 'valid' }).kind !== 'absent') {
+    fs.mkdirSync(path.join(dir, '.github/workflows'), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, '.github/workflows/fixture.yml'),
+      `name: Fixture\non: push\njobs:\n  g:\n    steps:\n      - run: node ${FIXTURE_GATE_SCRIPT}\n`,
+    );
+    fs.mkdirSync(path.join(dir, path.dirname(FIXTURE_GATE_SCRIPT)), { recursive: true });
+    fs.writeFileSync(path.join(dir, FIXTURE_GATE_SCRIPT), '// fixture gate\n');
   }
   return dir;
 }
@@ -215,5 +284,49 @@ describe('repo-state validator (015 1.3-1.5, 3.2-3.3, 4.2-4.3)', () => {
     fs.writeFileSync(path.join(dir, 'apps/mobile/src/foo/empty.fixture'), '');
     const r = runValidator(dir);
     expect(r.status).toBe(0);
+  });
+
+  // ——— Change 069 declared-gate-set guard (mutation-visible) ———
+  it('fails when GOVERNANCE declares no enforced gate set', () => {
+    const dir = makeFixture({ enforcedGateSet: { kind: 'absent' } });
+    const r = runValidator(dir);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/enforcedGateSet is missing/);
+  });
+
+  it('fails when a CI-invoked gate script is not declared', () => {
+    const dir = makeFixture({ enforcedGateSet: { kind: 'undeclaredWorkflowScript' } });
+    const r = runValidator(dir);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/does not declare CI-invoked gate script/);
+    expect(r.stderr).toContain(FIXTURE_GATE_SCRIPT);
+  });
+
+  it('fails when a push-path gate declares a network host (hermeticity inversion)', () => {
+    const dir = makeFixture({
+      enforcedGateSet: {
+        kind: 'networkHostInPushPath',
+        entry: `expo-doctor (${FIXTURE_GATE_SCRIPT}) expects https://api.expo.dev`,
+      },
+    });
+    const r = runValidator(dir);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/hermeticPushPath names a network host/);
+  });
+
+  it('fails when the hermetic push path is empty', () => {
+    const dir = makeFixture({ enforcedGateSet: { kind: 'emptyPushPath' } });
+    const r = runValidator(dir);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/hermeticPushPath must declare at least one gate/);
+  });
+
+  it('fails when a declared bucket is not an array', () => {
+    const dir = makeFixture({
+      enforcedGateSet: { kind: 'nonArrayBucket', bucket: 'networkDependentGates' },
+    });
+    const r = runValidator(dir);
+    expect(r.status).not.toBe(0);
+    expect(r.stderr).toMatch(/networkDependentGates must be an array/);
   });
 });

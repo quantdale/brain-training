@@ -362,6 +362,59 @@ for (const { file, line, ref } of workflowScriptRefs()) {
   }
 }
 
+// Declared-gate-set integrity (Change 069, task 6.3). The point of the
+// declaration is that an UNDECLARED red gate is detectable: two gates were red
+// on `main` while GOVERNANCE named only `typecheck` and `test`, so by
+// construction nothing could report the drift. A declaration that is not
+// checked against reality is just prose, so this gate reconciles the declared
+// set against the scripts the workflows actually invoke.
+//
+// Coverage rule: a gate script is "declared" when its repo-relative path (or
+// its bare `scripts/...` form) appears in any of the declared buckets. The
+// buckets are distinguished on purpose — a hermetic push-path gate that
+// quietly starts needing the network is a defect, and so is a network gate
+// that quietly moves onto the push path.
+const enforcedGateSet = governance?.greenMain?.enforcedGateSet;
+if (!enforcedGateSet || typeof enforcedGateSet !== 'object' || Array.isArray(enforcedGateSet)) {
+  errors.push('GOVERNANCE.greenMain.enforcedGateSet is missing — declare every gate CI enforces so an undeclared red gate is detectable');
+} else {
+  const buckets = ['hermeticPushPath', 'networkDependentGates', 'scheduledOnlyGates', 'advisoryOnlyGates'];
+  for (const bucket of buckets) {
+    if (!Array.isArray(enforcedGateSet[bucket])) {
+      errors.push(`GOVERNANCE.greenMain.enforcedGateSet.${bucket} must be an array`);
+    }
+  }
+  const declaredText = buckets
+    .filter((b) => Array.isArray(enforcedGateSet[b]))
+    .map((b) => enforcedGateSet[b].map((v) => String(v)).join('\n'))
+    .join('\n');
+  const undeclared = [];
+  const seen = new Set();
+  for (const { file, line, ref } of workflowScriptRefs()) {
+    if (!ref.startsWith('scripts/')) continue;
+    if (seen.has(ref)) continue;
+    seen.add(ref);
+    if (!declaredText.includes(ref)) undeclared.push(`${file}:${line} -> ${ref}`);
+  }
+  if (undeclared.length) {
+    errors.push(
+      'GOVERNANCE.greenMain.enforcedGateSet does not declare CI-invoked gate script(s): '
+        + undeclared.join(', '),
+    );
+  }
+  // A hermetic push-path declaration must not name a network host: that is the
+  // exact inversion that made `expo-doctor` unfixable on the push path.
+  const NETWORK_HOSTS = /api\.expo\.dev|registry\.npmjs|npmjs\.com|api\.github\.com/;
+  for (const entry of enforcedGateSet.hermeticPushPath ?? []) {
+    if (NETWORK_HOSTS.test(String(entry))) {
+      errors.push(`GOVERNANCE.greenMain.enforcedGateSet.hermeticPushPath names a network host in "${entry}" — a push-path gate must be hermetic`);
+    }
+  }
+  if (!Array.isArray(enforcedGateSet.hermeticPushPath) || enforcedGateSet.hermeticPushPath.length === 0) {
+    errors.push('GOVERNANCE.greenMain.enforcedGateSet.hermeticPushPath must declare at least one gate');
+  }
+}
+
 // Spec-driven campaign integrity. An active or terminal campaign must have a
 // matching OpenSpec change directory with a complete execution surface,
 // regardless of whether the directory happens to exist. No campaign special

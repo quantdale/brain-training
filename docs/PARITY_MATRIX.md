@@ -6,7 +6,7 @@ Legend: `DEFERRED`, `PLANNED`, `FOUNDATION`, `IMPLEMENTED`, `HARDENED`, `RETIRED
 
 | Area | Capability | Status | Notes |
 | --- | --- | ---: | --- |
-| Core | Offline-first gameplay | IMPLEMENTED | Offline-boundary suite + `scripts/validate-offline.mjs` (919 files clean) |
+| Core | Offline-first gameplay | IMPLEMENTED | Offline-boundary suite + `scripts/validate-offline.mjs` (985 files clean, re-verified 2026-09-30 at `47fffee`) |
 | Core | Optional account | DEFERRED | Local profile first |
 | Core | Cross-device sync | DEFERRED | Local-first future Supabase direction |
 | Training | Daily Workout | IMPLEMENTED | Deterministic 4-game daily + rerolls; **V3** signal-ranked selection (base set stays pinned-deterministic, ordering re-ranked by weighted signals: weak/undertrained/stale domain, novelty, trend, PB-proximity, difficulty-fit, overexposure) with truthful per-game reasons (metadata v2) |

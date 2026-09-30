@@ -1,12 +1,33 @@
 # Durable Project State
 
-**Last update:** 2026-09-21 — Overnight program 056→067 COMPLETE (terminal recertification closure in progress): Changes 056–067 terminally VALIDATED and pushed (`CHANGE_056_COMPLETE`–`CHANGE_067_COMPLETE`); post-067 hardening closed (`POST_067_HARDENING_COMPLETE`). Campaign 055 baseline unchanged and protected.
+**Last update:** 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
 **Canonical branch:** `main`
 **Active campaign:** none
-**Active program:** `056-067-overnight-autonomous-program` — **COMPLETE**: 056–067 VALIDATED, post-067 hardening closed (`POST_067_HARDENING_COMPLETE`). Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
+**Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
+**Active work:** OpenSpec changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
 **Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
 **Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
+
+## CURRENT-STATE CORRECTION — 2026-09-30, measured at `47fffee` (Change 069)
+
+History below is preserved and remains accurate **for the commit each entry
+names**. It is not accurate for the present, and this block is the
+authoritative present. Same correction is recorded in full in
+`.agent/VALIDATION.md`.
+
+| Gate | Asserted unqualified in this file (11+ places) | Measured at `47fffee` on 2026-09-30 | Disposition |
+|---|---|---|---|
+| `npx expo-doctor` | `PASS 21/21` | **exit 1 — 20/21** (six Expo packages behind). Network-sourced expectations from `api.expo.dev`, so time-dependent, not a repository defect; `app-ci.yml` ran it with no tolerance, so every push was red. | Removed from the hermetic push path. Replaced by `scripts/validate-expo-alignment.mjs` (hermetic, self-tested): **PASS — 22/22 Expo-family pins accept the installed SDK's bundled ranges, 1 not covered by design, 0 findings.** `npx expo-doctor` now runs only on the weekly schedule, classified as upstream drift. |
+| `node scripts/validate-dependency-audit.mjs` | clean | **exit 1** — 3 unallowlisted `brace-expansion` advisories (1 moderate, 2 high), toolchain-only reachability | Dispositioned as reviewed `build-dev-toolchain` entries with reproduced reachability evidence. Re-measured: **PASS — 7 accepted, 0 unallowlisted moderate+ findings**; self-test 41/41. |
+| OpenSpec validation | strict totals (40/40 … 51/51) | CI ran `validate --all` (**non-strict**) on pinned CLI `1.6.0` | CI re-pinned to `@fission-ai/openspec@1.9.0` + `--strict`. Re-measured locally: **59 passed, 0 failed (59 items)**, exit 0. |
+| Governance prose | program "ACTIVE" in `CURRENT_CAMPAIGN.md`; "COMPLETE" in `GOVERNANCE.json` | Direct contradiction, plus a title that said COMPLETE | `CURRENT_CAMPAIGN.md` header reconciled: program COMPLETE, no active campaign, hardening phase closed. |
+| Declared gate set | `GOVERNANCE.json` listed only `typecheck` + `test` as required | Two *undeclared* gates were red — by construction undetectable | `GOVERNANCE.json` now declares the full enforced set, so an undeclared red gate is a detectable contradiction. |
+
+**Unchanged and still true at `47fffee`:** typecheck clean; full Jest matrix
+**594 passed + 4 skipped suites / 6,939 passed + 5 skipped tests / 5 snapshots,
+0 failures**; `validate-repo-state`, `-secrets --check`, `-workflows`,
+`-offline --check` all PASS; `generate-game-registry --check` clean.
 
 ## Overnight program 056→067 (COMPLETE — certified and hardened)
 

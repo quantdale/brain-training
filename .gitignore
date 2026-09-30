@@ -21,6 +21,47 @@ android/local.properties
 .kimi-code/sessions/
 .kimi-code/logs/
 
+# Assistant-configuration trees owned by the LOCAL TOOL, not by the repository.
+#
+# These are machine-installed per-agent configuration (editor/CLI assistant
+# directories, tool-managed skill copies, and the OpenSpec CLI's own
+# `.openspec-target` pointer). Committing them makes `git status` an
+# unusable signal: every agent install dirties the tree with files nobody
+# authored, which is exactly how real work gets missed in a diff.
+#
+# Repository-OWNED agent content is deliberately NOT matched by these rules
+# and stays tracked: `.agents/skills/{continue-development,goal,harden}/`,
+# `.claude/commands/goal.md`, `.kimi-code/AGENTS.md`, and
+# `.opencode/commands/goal.md`. To add a new repository-owned agent file under
+# one of these trees, add it with `git add -f <path>` — a deliberate,
+# reviewable act, not an accident of a broad ignore rule. The
+# credential-bearing exclusions above (`.kimi-code/local.toml`, `*.pem`,
+# `*.key`, `.env*`) keep their explicit entries regardless of these rules.
+.cline/
+.clinerules/
+.commandcode/
+.cursor/
+.devin/
+.omp/
+.pi/
+.claude/skills/
+.claude/commands/opsx/
+.opencode/skills/
+.opencode/commands/opsx-apply.md
+.opencode/commands/opsx-archive.md
+.opencode/commands/opsx-explore.md
+.opencode/commands/opsx-propose.md
+.opencode/commands/opsx-sync.md
+.opencode/commands/opsx-update.md
+.kimi-code/skills/
+.agents/skills/.openspec-target
+.agents/skills/openspec-apply-change/
+.agents/skills/openspec-archive-change/
+.agents/skills/openspec-explore/
+.agents/skills/openspec-propose/
+.agents/skills/openspec-sync-specs/
+.agents/skills/openspec-update-change/
+
 # External assistant / IDE local state
 .workbuddy-ai/
 # Environment / secrets
