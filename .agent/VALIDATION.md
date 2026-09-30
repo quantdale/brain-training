@@ -5321,3 +5321,66 @@ three unchecked tasks are all device-lane items (7.3, 7.4, 7.5), which cannot
 be closed from the repository. `CHANGE_072_PARTIAL` is therefore accurate
 because of the device boundary alone, not because work is outstanding.**
 
+### Change 075 game-reducer exhaustiveness — 2026-09-30 (VALIDATED / `CHANGE_075_COMPLETE`)
+
+- **Baseline (re-measured at `5ae6c6b`, 2026-09-30, before any edit):** 602 passed +
+  4 skipped suites / 7,069 passed + 5 skipped tests / 5 snapshots, 0 failures;
+  typecheck and lint clean; all validators PASS; OpenSpec `--all --strict` 59/59.
+- §1 shared helper: **PASS** — `src/sdk/exhaustive.ts` exports
+  `assertExhaustive(action, context)`, re-exported from `@/sdk`. The docstring
+  states what it does **not** guarantee (a `case` that exists and is wrong still
+  type-checks), and why the runtime path throws rather than returning state.
+- §2 all 42 reducers converted: **PASS** — every `default: { return state; }`
+  (and the one bare `default:` form in `logic-deduction-table`) now calls
+  `assertExhaustive(action, '<game>')`. The 27 misleading
+  `// Exhaustiveness guard: every action is handled above.` comments are gone;
+  the replacement comment describes what the branch actually is — a runtime net
+  for input outside the declared union — and why it throws.
+  - **The assertion is proven on the real tree, not just asserted:** adding
+    `| { type: 'MUTATION_PROBE_UNHANDLED'; at: number }` to `TapRushAction`
+    made typecheck fail with
+    `TS2345: ... is not assignable to parameter of type 'never'`, naming the
+    member and pointing at the assertion. Reverted; typecheck clean.
+  - **One existing test had to change, and it is worth recording why.**
+    `math-missing-operator`'s suite had a case named *"leaves unknown actions
+    untouched (exhaustiveness guard)"* that asserted `toBe(state)` — the name
+    claimed exhaustiveness while the assertion pinned the exact opposite, the
+    silent no-op this change removes. It now asserts the throw, names the game
+    in the message, and a second case proves the fallback is unreachable for
+    declared actions. That test was itself evidence of the defect.
+- §3 catalog guard: **PASS** — `src/sdk/__tests__/reducer-exhaustiveness-catalog.test.ts`
+  (10 cases) asserts the catalog count, the assertion in every reducer, the
+  absence of a silent fallback, the absence of the misleading comment, and that
+  no reducer defines a LOCAL `assertExhaustive` (which would pass the shape check
+  while recreating the duplication).
+  - **The suite lives in the SDK's tests, not under `src/games/`** — the
+    existing catalog scanners treat every directory there as a game module, and
+    a new `__tests__` directory there is reported as a 43rd game with a missing
+    `game.json`. Caught by the full matrix, not by the suite itself.
+  - **The guard can fail, proven twice:** converting `speed-order-sweep` back to
+    the silent fallback fails 2 of its 10 cases naming that game; and the
+    detection logic has its own negative cases (a silent fallback, the
+    misleading comment, and an `assertExhaustive` call placed OUTSIDE the
+    `default` branch, which must not satisfy the guard).
+  - **Future-proofing is asserted directly** (task 3.4): the scan derives from
+    the filesystem, so a new game is covered without editing the file, and a
+    test pins that the 42 come from the directory scan rather than a list.
+- §4.1 typecheck: **PASS**, 0 errors. §4.2 lint: **PASS**, 0 errors / 0 warnings.
+- §4.2 full matrix: **PASS** — **603 passed + 4 skipped suites / 7,080 passed +
+  5 skipped tests / 5 snapshots, 0 failures**. Signal gate `pass: true`, 5
+  classified skips, 0 unclassified / ambiguous / mismatched, both floors met.
+  **No new skips.** The suite count rose by 1 (the catalog guard) and the test
+  count by 11.
+- §4.2 behavior: **PASS for declared input** — all 42 game modules' tests pass
+  unchanged (4,230 of 4,231 game tests, the one difference being the corrected
+  out-of-union case above). No transition, phase, timing or scoring change:
+  the only reachable difference is a throw for a value no well-typed caller can
+  produce.
+- §4.3 device lane: **NOT VALIDATED.** No AVD was exercised in this session, so
+  end-to-end play across the four domains is not claimed. The task is left
+  unchecked with the owed evidence spelled out.
+- §4.4 repo-state and registry: **PASS** — `validate-repo-state.mjs` PASS,
+  `generate-game-registry.mjs --check` PASS, OpenSpec `--all --strict` 59/59.
+- Evidence: `openspec/changes/075-game-reducer-exhaustiveness/`,
+  `src/sdk/exhaustive.ts`, `src/sdk/__tests__/reducer-exhaustiveness-catalog.test.ts`,
+  the 42 `src/games/*/reducer.ts` files.

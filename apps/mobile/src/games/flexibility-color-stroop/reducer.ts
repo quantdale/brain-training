@@ -4,7 +4,7 @@
  * Every transition is a pure function of `(state, action)` — no timers, no
  * side effects — so the whole loop is unit testable without a UI.
  */
-import { createRng, isDifficultyLevel } from '@/sdk';
+import { createRng, isDifficultyLevel, assertExhaustive } from '@/sdk';
 
 import {
   colorStroopParamsFromProfile,
@@ -310,7 +310,15 @@ export function colorStroopGameReducer(
     }
 
     default: {
-      return state;
+      // 075: the switch above has narrowed `action` to the members with
+      // no `case`, so passing it here IS the exhaustiveness ASSERTION —
+      // add a case and this stops compiling, naming the member. At
+      // runtime the branch is reachable only for a value outside the
+      // declared union, and it throws rather than silently returning the
+      // current state: a dropped transition with no symptom at all is
+      // worse than a loud construction bug.
+      return assertExhaustive(action, 'flexibility-color-stroop');
+
     }
   }
 }

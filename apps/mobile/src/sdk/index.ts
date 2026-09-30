@@ -105,3 +105,7 @@ export type {
   PerfMeasure,
   PerfEventContext,
 } from './perf';
+
+// 075: reducer exhaustiveness — the compile-time assertion plus the honest
+// runtime fallback, expressed once so 42 reducers do not each reinvent it.
+export { assertExhaustive } from './exhaustive';

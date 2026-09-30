@@ -10,7 +10,7 @@
  * points behind `isDevBuild()` and the hooks call `assertDevOnly()` (see
  * hooks.ts), so production builds never expose them.
  */
-import { createRng, isDifficultyLevel } from '@/sdk';
+import { createRng, isDifficultyLevel, assertExhaustive } from '@/sdk';
 
 import {
   nextIncongruentRatio,
@@ -364,7 +364,15 @@ export function speedColorMatchReducer(
     }
 
     default: {
-      return state;
+      // 075: the switch above has narrowed `action` to the members with
+      // no `case`, so passing it here IS the exhaustiveness ASSERTION —
+      // add a case and this stops compiling, naming the member. At
+      // runtime the branch is reachable only for a value outside the
+      // declared union, and it throws rather than silently returning the
+      // current state: a dropped transition with no symptom at all is
+      // worse than a loud construction bug.
+      return assertExhaustive(action, 'speed-color-match');
+
     }
   }
 }

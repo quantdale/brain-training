@@ -299,10 +299,37 @@ describe('mathMissingOperatorGameReducer', () => {
     expect(state.tutorialOpen).toBe(false);
   });
 
-  it('leaves unknown actions untouched (exhaustiveness guard)', () => {
+  it('THROWS on an action outside the declared union, naming the game', () => {
+    // 075: this test previously asserted `toBe(state)` and was named
+    // "exhaustiveness guard" while asserting the exact opposite — it pinned the
+    // silent no-op that made a dropped transition invisible. The contract is
+    // split in two:
+    //   - a DECLARED action with no case is a COMPILE error (assertExhaustive);
+    //   - a value OUTSIDE the union is unreachable for a well-typed caller and
+    //     throws here, because silently keeping the old state is worse than a
+    //     loud construction bug.
     const state = startedState();
     const unknown = { type: 'not-an-action' } as unknown as MathMissingOperatorAction;
-    expect(mathMissingOperatorGameReducer(state, unknown)).toBe(state);
+    expect(() => mathMissingOperatorGameReducer(state, unknown)).toThrow(
+      /Unknown action reached the reducer fallback in math-missing-operator/,
+    );
+    expect(() => mathMissingOperatorGameReducer(state, unknown)).toThrow(/not-an-action/);
+  });
+
+  it('never reaches the fallback for a DECLARED action', () => {
+    // The other half of the split, proven rather than assumed: actions in the
+    // union are handled by a case, so the throwing branch is genuinely dead for
+    // real input. A future member with no case would fail to compile.
+    const state = startedState();
+    for (const action of [
+      { type: 'qa/force-win' },
+      { type: 'qa/force-lose' },
+      { type: 'tutorial-open' },
+      { type: 'tutorial-close' },
+      { type: 'pause' },
+    ] as MathMissingOperatorAction[]) {
+      expect(() => mathMissingOperatorGameReducer(state, action)).not.toThrow();
+    }
   });
 });
 

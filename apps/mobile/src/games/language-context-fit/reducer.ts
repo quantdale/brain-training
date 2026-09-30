@@ -7,7 +7,7 @@
  * freezes and rebases the round deadline so answer times never include paused
  * time. QA force actions only reshape state; the screen gates their entry.
  */
-import { createRng, isDifficultyLevel } from '@/sdk';
+import { createRng, isDifficultyLevel, assertExhaustive } from '@/sdk';
 
 import { loadContentPack } from './content-validation';
 import {
@@ -346,7 +346,15 @@ export function contextFitGameReducer(
     }
 
     default: {
-      return state;
+      // 075: the switch above has narrowed `action` to the members with
+      // no `case`, so passing it here IS the exhaustiveness ASSERTION —
+      // add a case and this stops compiling, naming the member. At
+      // runtime the branch is reachable only for a value outside the
+      // declared union, and it throws rather than silently returning the
+      // current state: a dropped transition with no symptom at all is
+      // worse than a loud construction bug.
+      return assertExhaustive(action, 'language-context-fit');
+
     }
   }
 }
