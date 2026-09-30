@@ -17,6 +17,7 @@
  * no `Math.random()`) and must never be imported by product code.
  */
 export { advanceTime } from './clock';
+export { allowDbDataLoadLogs } from './console-signal';
 export { drawUniqueInts, seededFloats } from './rng';
 export { createMigratedDb } from './db';
 export { FIXED_TEST_NOW, makeSessionRecord } from './fixtures';

@@ -18,7 +18,7 @@ import { act, fireEvent, renderRouter, screen, within } from 'expo-router/testin
 
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
-import { withBootstrapContract } from '@/test-utils';
+import { withBootstrapContract , allowDbDataLoadLogs } from '@/test-utils';
 
 /** Test-only db state holder served by the mocked `@/db` module below. */
 const mockDbState: { db: AppDatabase | null } = { db: null };
@@ -73,6 +73,14 @@ function makeFakeDb(overrides: {
 }
 
 /** Register a single fabricated game so record rows render its name. */
+// 072: this suite deliberately exercises load-failure paths (db-unavailable
+// fallbacks, retries, partial mocks), and `useDbData` logs each one. Declared
+// per test, because the console gate clears its expectations between tests.
+// Anything else logged here still fails the gate.
+beforeEach(() => {
+  allowDbDataLoadLogs();
+});
+
 describe('progress detail screen', () => {
   beforeEach(() => {
     registerGameDefinitions([]);

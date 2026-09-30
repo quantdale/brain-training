@@ -19,14 +19,7 @@
  * the progression sync mocked so the loader is deterministic. Mirrors the
  * mocking pattern of data-management.test.tsx / visual-baselines.test.tsx.
  */
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   act,
   fireEvent,
@@ -49,7 +42,7 @@ import {
 import { createMigratedDb } from '@/db/__tests__/helpers';
 import { resetProgressionFocusSyncForTests } from '@/progression/focus-sync';
 import { applyOwnedStreakItem } from '@/streaks';
-import { expectConsoleNoise } from '@/test-utils';
+import { expectConsoleNoise , allowDbDataLoadLogs } from '@/test-utils';
 
 const FREEZE_COST = 100;
 const T0 = 1_700_000_000_000;
@@ -211,6 +204,14 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.restoreAllMocks();
+});
+
+// 072: this suite deliberately exercises load-failure paths (db-unavailable
+// fallbacks, retries, partial mocks), and `useDbData` logs each one. Declared
+// per test, because the console gate clears its expectations between tests.
+// Anything else logged here still fails the gate.
+beforeEach(() => {
+  allowDbDataLoadLogs();
 });
 
 describe('profile streak-item purchase failure paths', () => {

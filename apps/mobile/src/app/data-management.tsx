@@ -98,10 +98,14 @@ async function loadCounts(): Promise<LocalDataCounts> {
 export default function DataManagementScreen() {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
-  const { data: counts, loaded: countsLoaded } = useDbData(
+  // 072: the counts and the backup inventory are separate reads and BOTH can
+  // fail. Each carries its own status so a failed read can never be painted as
+  // "you have no backups" / "nothing to delete" — a claim the user would act on.
+  const { data: counts, status: countsStatus, retry: retryCounts } = useDbData(
     loadCounts,
     [refreshKey],
     EMPTY_COUNTS,
+    { label: 'data-management/counts' },
   );
   const refresh = useCallback(() => setRefreshKey((k) => k + 1), []);
   // The SQLite backend may be unable to report PRAGMA page metrics even when
@@ -142,18 +146,24 @@ export default function DataManagementScreen() {
   // hook so backups saved by earlier sessions are visible on arrival and the
   // inventory re-lists whenever `refreshKey` bumps (save/delete/load).
   const loadSavedBackups = useCallback(async () => {
-    try {
-      return await backupTransport.listBackups();
-    } catch {
-      // Transport failures must never take the management screen down.
-      return [];
-    }
+    // 072: the previous `catch { return [] }` was THE reason a failed read
+    // rendered as "you have no backups". The hook could not distinguish a real
+    // empty folder from a storage failure, because this handler converted one
+    // into the other before the hook ever saw it. The failure is re-thrown so
+    // the hook reports `status: 'error'` and the screen renders its failure
+    // state with a retry — which is where "must never take the screen down"
+    // is actually satisfied. Swallowing it here only moved the failure
+    // somewhere it could not be seen.
+    return backupTransport.listBackups();
   }, []);
-  const { data: savedBackups, loaded: backupsLoaded } = useDbData(
-    loadSavedBackups,
-    [refreshKey],
-    [],
-  );
+  const {
+    data: savedBackups,
+    status: backupsStatus,
+    retry: retryBackups,
+  } = useDbData(loadSavedBackups, [refreshKey], [], {
+    isEmpty: (names) => names.length === 0,
+    label: 'data-management/backups',
+  });
 
   // 070: files the transport hides but cannot safely delete. Either an
   // interrupted backup replacement that left only its rotation copy, or a
@@ -163,18 +173,17 @@ export default function DataManagementScreen() {
   // cleaned up silently, because the only remaining copy of a backup is not the
   // app's to destroy.
   const loadStrandedArtifacts = useCallback(async (): Promise<string[]> => {
+    // Same reasoning as `loadSavedBackups`: a failure here is reported, not
+    // converted into "there are no stranded files", which would tell a user
+    // whose backup is stuck that everything is fine.
     if (!backupTransport.listStrandedArtifacts) return [];
-    try {
-      return await backupTransport.listStrandedArtifacts();
-    } catch {
-      // Transport failures must never take the management screen down.
-      return [];
-    }
+    return backupTransport.listStrandedArtifacts();
   }, []);
   const { data: strandedArtifacts } = useDbData(
     loadStrandedArtifacts,
     [refreshKey],
     [],
+    { label: 'data-management/stranded' },
   );
   const onDeleteStranded = useCallback(
     async (name: string) => {
@@ -513,11 +522,33 @@ export default function DataManagementScreen() {
         </View>
       </Entrance>
 
-      {!countsLoaded ? (
+      {countsStatus === 'loading' ? (
         <Card testID="data-loading">
           <Skeleton height={32} />
           <Skeleton />
           <Skeleton width="60%" />
+        </Card>
+      ) : countsStatus === 'error' ? (
+        // 072: a failed count read must not render the storage hero and the
+        // Local Data table built from the zeroed fallback. "0 sessions / 0
+        // ledger entries" is a claim the user would act on.
+        <Card testID="data-counts-error">
+          <ThemedText type="body" themeColor="warning">
+            Could not read your local data.
+          </ThemedText>
+          <ThemedText type="caption" themeColor="textSecondary">
+            These numbers could not be loaded, so they are not shown. Your data
+            is untouched — retry to read it again.
+          </ThemedText>
+          <Button
+            label="Retry"
+            variant="secondary"
+            size="sm"
+            testID="data-counts-retry"
+            accessibilityLabel="Retry reading local data counts"
+            disabled={busy}
+            onPress={retryCounts}
+          />
         </Card>
       ) : (
         <>
@@ -670,9 +701,42 @@ export default function DataManagementScreen() {
             They survive restarts and are NOT removed by deleting your training
             data below. For real safety keep a copy outside the device (Share).
           </ThemedText>
-          {!backupsLoaded ? (
-            <Skeleton />
-          ) : savedBackups.length === 0 ? (
+          {/* 072: four distinct outcomes. The pre-fix ternary had no failure
+              branch, so a read that THREW rendered "No saved backups yet" —
+              telling a user who may have six backups on disk that they have
+              none. The empty state is now unreachable without a successful
+              read that returned nothing. */}
+          {backupsStatus === 'loading' ? (
+            // A named, announced loading block: an untitled skeleton cannot be
+            // asserted on and is invisible to a screen reader.
+            <View
+              testID="data-saved-backups-loading"
+              accessible
+              accessibilityLabel="Loading your saved backups"
+            >
+              <Skeleton />
+            </View>
+          ) : backupsStatus === 'error' ? (
+            <View testID="data-saved-backups-error" style={styles.rows}>
+              <ThemedText type="body" themeColor="warning">
+                Could not read your saved backups.
+              </ThemedText>
+              <ThemedText type="caption" themeColor="textSecondary">
+                This is a read failure, not an empty folder — your files may
+                still be there. Retry before exporting or deleting anything.
+              </ThemedText>
+              <Button
+                label="Retry"
+                variant="secondary"
+                size="sm"
+                fullWidth={false}
+                testID="data-saved-backups-retry"
+                accessibilityLabel="Retry reading saved backups"
+                disabled={busy}
+                onPress={retryBackups}
+              />
+            </View>
+          ) : backupsStatus === 'empty' ? (
             <EmptyState
               icon={<Spark size={22} color={theme.accent} />}
               title="No saved backups yet"

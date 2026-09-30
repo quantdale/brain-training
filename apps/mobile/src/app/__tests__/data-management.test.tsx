@@ -12,6 +12,15 @@
  * during static-import evaluation, before test-file bindings exist.
  */
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+import { act } from '@testing-library/react-native';
+import { expectConsoleNoise } from '@/test-utils';
+import { countLocalData ,
+  applyImport,
+  defaultBackupName,
+  exportLocalDataBundle,
+  previewImport,
+  wipeLocalData,
+} from '@/data-portability';
 import {
   fireEvent,
   renderRouter,
@@ -25,13 +34,7 @@ import DataManagementScreen from '@/app/data-management';
 import { refreshProgression } from '@/progression';
 import { onWorkoutChanged } from '@/workout/events';
 
-import {
-  applyImport,
-  defaultBackupName,
-  exportLocalDataBundle,
-  previewImport,
-  wipeLocalData,
-} from '@/data-portability';
+
 import {
   pickBackupFile,
   shareBackupFile,
@@ -57,7 +60,7 @@ jest.mock('@/data-portability/file-transport', () => {
       }
       return text;
     }),
-    listBackups: jest.fn(async () =>
+    listBackups: jest.fn(async (): Promise<string[]> =>
       [...store.keys()].sort((a, b) => b.localeCompare(a)),
     ),
     deleteBackup: jest.fn(async (name: string) => {
@@ -120,7 +123,9 @@ jest.mock('@/progression', () => ({
 interface MockTransport {
   writeBackup: jest.Mock;
   readBackup: jest.Mock;
-  listBackups: jest.Mock;
+  // Typed so the honest-state tests can drive the failure paths; a bare
+  // `jest.Mock` infers `never` parameters and rejects any argument.
+  listBackups: jest.Mock<() => Promise<string[]>>;
   deleteBackup: jest.Mock;
   __resetStore: () => void;
 }
@@ -705,5 +710,97 @@ describe('data-management UX contract', () => {
     } finally {
       unsubscribe();
     }
+  });
+});
+
+/**
+ * 072: Data Management must tell "no backups" apart from "could not read the
+ * backups".
+ *
+ * Before this, a read that THREW set `loaded: true` with the empty fallback,
+ * and the screen rendered "No saved backups yet" — telling a user who may have
+ * six backups on disk that they have none, and inviting them to export or
+ * delete on the strength of a failure. The empty state is now unreachable
+ * without a successful read that returned nothing.
+ */
+describe('data-management honest read states (072)', () => {
+  it('shows a loading skeleton, not the empty state, while the read is in flight', async () => {
+    let release!: (names: string[]) => void;
+    const gate = new Promise<string[]>((resolve) => {
+      release = resolve;
+    });
+    mockedFileTransport.createFileBackupTransport().listBackups.mockImplementation(() => gate);
+    await renderScreen();
+    await waitFor(() =>
+      expect(mockedFileTransport.createFileBackupTransport().listBackups).toHaveBeenCalled(),
+    );
+    expect(screen.getByTestId('data-saved-backups-loading')).toBeTruthy();
+    // The empty state must be unreachable while a read is in flight.
+    expect(screen.queryByTestId('data-saved-backups-empty')).toBeNull();
+    await act(async () => {
+      release([]);
+    });
+  });
+
+  it('shows a failure state with a retry, and never the empty state, when the read throws', async () => {
+    mockedFileTransport.createFileBackupTransport().listBackups.mockRejectedValue(new Error('storage unavailable'));
+    await expectConsoleNoise(/\[useDbData\].*load failed/, async () => {
+      await renderScreen();
+      await waitFor(() => expect(screen.getByTestId('data-saved-backups-error')).toBeTruthy());
+    });
+    // The critical assertion: the failure is NOT dressed as an empty folder.
+    expect(screen.queryByTestId('data-saved-backups-empty')).toBeNull();
+    expect(screen.queryByText(/No saved backups yet/)).toBeNull();
+    // ...and the user is told why, and given a way out.
+    expect(screen.getByText(/Could not read your saved backups/)).toBeTruthy();
+    expect(screen.getByText(/may still be there/)).toBeTruthy();
+    expect(screen.getByTestId('data-saved-backups-retry')).toBeTruthy();
+  });
+
+  it('re-runs the read when the retry control is pressed', async () => {
+    mockedFileTransport.createFileBackupTransport().listBackups.mockRejectedValueOnce(new Error('transient'));
+    await expectConsoleNoise(/\[useDbData\].*load failed/, async () => {
+      await renderScreen();
+      await waitFor(() => expect(screen.getByTestId('data-saved-backups-retry')).toBeTruthy());
+      const before = mockedFileTransport.createFileBackupTransport().listBackups.mock.calls.length;
+      mockedFileTransport
+        .createFileBackupTransport()
+        .listBackups.mockResolvedValue(['brain-training-backup_2026-09-30_09-00-00.json']);
+      await fireEvent.press(screen.getByTestId('data-saved-backups-retry'));
+      // A retry that does not re-run the read would leave the user tapping a
+      // button that does nothing. Compared against the count at press time
+      // rather than an absolute number, because the mock is file-scoped.
+      await waitFor(() =>
+        expect(
+          mockedFileTransport.createFileBackupTransport().listBackups.mock.calls.length,
+        ).toBeGreaterThan(before),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByTestId('data-backup-load-brain-training-backup_2026-09-30_09-00-00.json'),
+        ).toBeTruthy(),
+      );
+    });
+  });
+
+  it('shows the empty state only after a successful read that returned nothing', async () => {
+    mockedFileTransport.createFileBackupTransport().listBackups.mockResolvedValue([]);
+    await renderScreen();
+    await waitFor(() => expect(screen.getByTestId('data-saved-backups-empty')).toBeTruthy());
+    expect(screen.queryByTestId('data-saved-backups-error')).toBeNull();
+  });
+
+  it('hides the counts hero and shows a retry when the counts read fails', async () => {
+    mockedFileTransport.createFileBackupTransport().listBackups.mockResolvedValue([]);
+    jest.mocked(countLocalData).mockRejectedValueOnce(new Error('counts unavailable'));
+    await expectConsoleNoise(/\[useDbData\].*load failed/, async () => {
+      await renderScreen();
+      await waitFor(() => expect(screen.getByTestId('data-counts-error')).toBeTruthy());
+    });
+    // The storage hero is built from the zeroed fallback; showing it on a
+    // failure asserts "0 sessions" to a user who may have thousands.
+    expect(screen.queryByTestId('data-counts-hero')).toBeNull();
+    expect(screen.queryByTestId('data-counts')).toBeNull();
+    expect(screen.getByTestId('data-counts-retry')).toBeTruthy();
   });
 });

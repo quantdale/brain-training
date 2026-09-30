@@ -3,7 +3,9 @@
 **Plan version:** 2 (supersedes version 1, which described Campaigns 001–028 and is
 retained only for its historical phase-gate narrative)
 **Status:** canonical execution specification, derived from the 2026 repository-wide
-audit. **IN EXECUTION** — Phases 0–1 are complete; §6 is the live task list.
+audit. **IN EXECUTION** — Phases 0–4 complete (changes 069, 068, 070, 071); Phase 5
+started (072 PARTIAL: §1–3 landed, §4–6 remaining); Phases 6–8 remain. §6 is the live
+task list.
 **Authority:** subordinate to `docs/PROJECT_CONSTITUTION.md`; durable execution state
 remains in `.agent/GOVERNANCE.json` and `.agent/STATE.md`
 **Baseline audited:** `main` @ `2a765cc`; findings re-verified after rebase onto
@@ -26,10 +28,10 @@ results** — results live in the per-change records.
 | Change | Title | Master-plan phase | Status |
 |---|---|---|---|
 | `069-dependency-gate-restoration` | Dependency gate restoration + claim integrity | Phase 1 | **VALIDATED** — audit gate PASS (7 accepted, 0 unallowlisted); hermetic `scripts/validate-expo-alignment.mjs` added and self-tested (54/54, real tree 22/22 aligned); network `expo-doctor` moved off the push path to the weekly schedule as classified upstream drift; audit BLOCKED distinguished from audit FAIL in CI; OpenSpec CI re-pinned to `1.9.0` + `--strict`; durable claims corrected at `47fffee`; assistant-tooling trees ignored |
-| `068-storage-adapter-runtime-parity` | Storage adapter re-entrancy guard, pragma convergence, engine parity contract | Phase 2 | PENDING |
-| `070-backup-transport-atomicity` | Rotation-based backup replacement, bounded diagnostics, honest durability claims | Phase 3 | PENDING |
-| `071-shared-ui-contract-integrity` | Shared UI kit single-definition contracts, dead code removal, `reanimated` dependency removal | Phase 4 | PENDING |
-| `072-navigation-and-error-surfaces` | Honest loading/error/empty states, push→replace, a11y destination | Phase 5 | PENDING |
+| `068-storage-adapter-runtime-parity` | Storage adapter re-entrancy guard, pragma convergence, engine parity contract | Phase 2 | **VALIDATED** — shared `SQLiteReentrantTransactionError` on both backends, checked BEFORE enqueueing (the ordering that closes the device freeze); connection invariants applied and read back with a startup throw; engine-parity contract; stale `PASS_B_RUNTIME` claim corrected and severity raised Low → High. Device half of the parity contract **NOT VALIDATED** (no emulator run) |
+| `070-backup-transport-atomicity` | Rotation-based backup replacement, bounded diagnostics, honest durability claims | Phase 3 | **VALIDATED** — rotation-based replacement (write temp → rotate `.prev` → rename → verify read-back → delete) with 22 step-level fault-injection tests plus a mutation proof that the old single-move sequence fails the same safety assertion; bounded diagnostics budget; forward-compatibility signal; stranded-artifact surface. Device lane **NOT VALIDATED** |
+| `071-shared-ui-contract-integrity` | Shared UI kit single-definition contracts, dead code removal, `reanimated` dependency removal | Phase 4 | **VALIDATED** — `Tappable` owns its accessibility state (and the audit's stated symptom was measured to be the wrong direction, recorded); one canonical touch-target constant with 75 call sites migrated and both duplicates removed; unreachable kit surface deleted (two files kept — their exported helpers are live, deviation recorded per §9.3); `react-native-reanimated` removal **attempted, measured, reverted** (required `expo-router` peer); design-system doc corrected and made executable. §6 coverage gaps **NOT DONE** (owner debt); device lane **NOT VALIDATED** |
+| `072-navigation-and-error-surfaces` | Honest loading/error/empty states, push→replace, a11y destination | Phase 5 | **PARTIAL** — §1–3 done: `useDbData` reports a four-way status with retry and `hasData`; Data Management and Profile render honest loading/failure/empty/loaded states (and a screen-local `catch { return [] }` that was converting a storage failure into an empty list was removed, which was the actual root cause). A refresh-time regression was introduced and fixed via `hasData`. §4 navigation depth, §5 guard widening, and §6 Progress input-aware refresh are **NOT DONE**; device lane **NOT VALIDATED** |
 | `073-workout-lifecycle-durability` | Durable workout leg ownership, shared CAS, free skip, startup reconciliation | Phase 6 | PENDING |
 | `074-sdk-module-contract` | Registration-time SDK module validation, typed loader, per-game lifecycle gate | Phase 7 | PENDING |
 | `075-game-reducer-exhaustiveness` | Shared exhaustiveness helper across all 42 reducers | Phase 8 | PENDING |

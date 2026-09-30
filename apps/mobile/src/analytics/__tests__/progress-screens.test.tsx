@@ -28,6 +28,7 @@ import ProgressGameScreen from '@/app/progress-game';
 import ProgressDomainScreen from '@/app/progress-domain';
 import ProgressActivityScreen from '@/app/progress-activity';
 import { registerGameDefinitions } from '@/registry/registry';
+import { allowDbDataLoadLogs } from '@/test-utils';
 
 const mockDbState: { db: AppDatabase | null } = { db: null };
 
@@ -123,6 +124,14 @@ function makeFakeDb(over: {
     favorites: { isFavorite: async () => false },
   } as unknown as AppDatabase;
 }
+
+// 072: this suite renders the Progress screen against a partial db mock, so the
+// data read legitimately fails and `useDbData` logs each attempt. Declared per
+// test because the console gate clears its expectations between tests; anything
+// else logged here still fails.
+beforeEach(() => {
+  allowDbDataLoadLogs();
+});
 
 describe('Progress overview — W09 additions', () => {
   beforeEach(() => {

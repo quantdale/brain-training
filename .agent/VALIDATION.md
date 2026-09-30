@@ -5181,3 +5181,78 @@ from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
   `src/components/ui/__tests__/kit-contract-single-definition.test.tsx`,
   `src/components/__tests__/design-system-doc.test.ts`,
   `docs/DESIGN_SYSTEM.md`, `.agent/BACKLOG.md`, ADR 0001, `AGENTS.md`.
+
+### Change 072 (partial) navigation and error surfaces — 2026-09-30 (PARTIAL / `CHANGE_072_PARTIAL`)
+
+**Scope actually completed: sections 1–3 and 7.1–7.2. Sections 4, 5 and 6 are
+NOT DONE and are recorded as remaining work below — this entry does not claim the
+change is closed.**
+
+- **Baseline (re-measured at `5412e70`, 2026-09-30, before any edit):** 601 passed +
+  4 skipped suites / 7,047 passed + 5 skipped tests / 5 snapshots, 0 failures;
+  typecheck and lint clean; all validators PASS; OpenSpec `--all --strict` 59/59.
+- §1 data-access seam: **PASS** — `useDbData` now returns a four-way
+  `status: 'loading' | 'success' | 'empty' | 'error'` plus `failed`, a stable
+  `retry()`, and `hasData`. The return shape is additive, so existing consumers
+  are unaffected. The generation guard is preserved, and the new `attempt`
+  counter is what `retry()` bumps; the deps reset also clears the `empty` flag.
+  - The emptiness verdict is computed **once, when a load resolves, and stored**,
+    rather than evaluated during render. That was forced by the `react-hooks/refs`
+    rule: callers pass an inline `isEmpty` arrow, so it cannot be a render
+    dependency, and reading a ref during render is itself a violation. The first
+    implementation used a ref and failed lint.
+  - The load is now logged on failure (task 1.3) with the caller's `label`.
+    **The repo's console gate made this a real design constraint**, and the
+    resolution is worth recording: six screen suites exercise failure paths on
+    purpose (db-unavailable fallbacks, retries, partial mocks), so per-test
+    `expectConsoleNoise` would have meant ~28 mechanical wrap sites. Instead
+    `allowDbDataLoadLogs()` declares the expectation for a SUITE. It is a
+    declaration, not muting: it matches only that one diagnostic's message shape,
+    still emits to the real console, and any OTHER output in the same suite still
+    fails the gate.
+- §2 Data Management honest states: **PASS**, and the root cause was not where the
+  plan pointed. The screen's own loader had `catch { return [] }`, which
+  **converted a storage failure into an empty list before the hook ever saw it** —
+  so no amount of widening the hook could have produced a failure state. That
+  catch is removed and the failure is re-thrown, which is where "must never take
+  the screen down" is actually satisfied (the failure state IS the graceful
+  degradation). The screen now renders four distinct outcomes for the backup
+  inventory (named, announced loading block / failure + retry / empty / list) and
+  three for the counts (loading / failure + retry / data), with the storage hero
+  and the Local Data table withheld on a counts failure so a zeroed fallback is
+  never presented as real.
+- §3 Profile honest states: **PASS** — added a loading state reusing Home's shell
+  loading primitive, and moved the error action from the screen's own `refresh`
+  to the hook's `retry`.
+  - **A real regression was introduced here and caught before commit.** The first
+    version replaced the screen on every `loading` state, which includes every
+    REFRESH — and a purchase bumps `refreshKey`, so the celebration overlay the
+    test asserts on was torn down by its own refresh. The fix is `hasData` on
+    the result: the skeleton shows only when `status === 'loading' && !hasData`,
+    so a refresh keeps the screen (and its transient UI) intact. Caught by
+    `profile-purchases` and fixed at the hook, not by special-casing the screen.
+- §7.1 suites: **PASS** — `src/app` → 21 suites / 161 tests; `src/hooks` green.
+- §7.2 full matrix: **PASS** — **601 passed + 4 skipped suites / 7,058 passed +
+  5 skipped tests / 5 snapshots, 0 failures**. Signal gate `pass: true`, 5
+  classified skips, 0 unclassified / ambiguous / mismatched, both floors met.
+  **No new skips.**
+- §7.3 typecheck / lint: **PASS** — 0 errors; 0 errors, 0 warnings.
+- §7.4 device lane: **NOT VALIDATED.** No AVD was exercised in this session; the
+  task is left unchecked with the owed evidence spelled out.
+
+**NOT DONE — remaining work for this change (recorded, not claimed):**
+
+- §4 navigation depth correctness: not started. Every `router.push` call site
+  still needs classifying as top-level or nested, top-level destinations still
+  push instead of replacing, Data Management still has no back affordance, and
+  game detail's announced back destination is unchanged.
+- §5 regression-guard widening: not started. `safe-back-catalog.test.ts` still
+  scans only `src/games`, so a new route module outside that directory is
+  uncovered — which is exactly how the unguarded patterns this change is meant
+  to catch can reappear.
+- §6 Progress input-aware refresh: not started. Progress still uses the
+  time-only 5-second focus throttle, so a mutation can be hidden behind a window.
+
+These three sections are the larger half of the change's user-visible work. They
+are recorded here so the next session resumes from a measured state rather than
+from a plan that assumed §1–3 were the whole job.

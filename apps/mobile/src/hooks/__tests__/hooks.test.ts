@@ -21,6 +21,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { renderHook, waitFor } from '@testing-library/react-native';
 
 import { Colors } from '@/constants/theme';
+import { expectConsoleNoise } from '@/test-utils';
 import { getDb } from '@/db';
 import type { AppDatabase } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -131,25 +132,37 @@ describe('useDbData', () => {
       throw new Error('database unavailable');
     });
     const load = jest.fn(async (_db: AppDatabase) => 42);
-    const { result } = await renderHook(() => useDbData(load, [], -1));
 
-    await waitFor(() => expect(result.current.loaded).toBe(true));
-
-    expect(result.current.data).toBe(-1);
-    expect(result.current.error).toBeInstanceOf(Error);
-    expect(load).not.toHaveBeenCalled();
+    // 072: the seam now logs a failed load (task 1.3) because a failed read is
+    // otherwise invisible in production. The repo's console gate requires that
+    // output to be scoped explicitly, never muted.
+    await expectConsoleNoise(/\[useDbData\].*database unavailable/, async () => {
+      const { result } = await renderHook(() =>
+        useDbData(load, [], -1, { label: 'hooks-test' }),
+      );
+      await waitFor(() => expect(result.current.loaded).toBe(true));
+      expect(result.current.data).toBe(-1);
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(load).not.toHaveBeenCalled();
+    });
   });
 
   it('surfaces a load failure without discarding the fallback', async () => {
     const load = jest.fn(async (_db: AppDatabase) => {
       throw new Error('query failed');
     });
-    const { result } = await renderHook(() => useDbData(load, [], 7));
-
-    await waitFor(() => expect(result.current.loaded).toBe(true));
-
-    expect(result.current.data).toBe(7);
-    expect(result.current.error).toBeInstanceOf(Error);
+    await expectConsoleNoise(/\[useDbData\].*query failed/, async () => {
+      const { result } = await renderHook(() =>
+        useDbData(load, [], 7, { label: 'hooks-test' }),
+      );
+      await waitFor(() => expect(result.current.loaded).toBe(true));
+      expect(result.current.data).toBe(7);
+      expect(result.current.error).toBeInstanceOf(Error);
+      // 072: a failure is now distinguishable from an empty success, so a
+      // screen can render a failure state instead of "you have nothing".
+      expect(result.current.status).toBe('error');
+      expect(result.current.failed).toBe(true);
+    });
   });
 
   it('reloads when the caller-declared deps change', async () => {

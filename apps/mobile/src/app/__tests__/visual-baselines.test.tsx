@@ -25,7 +25,8 @@
  * snapshot here. A full pixel/seed baseline suite belongs to a hardening
  * campaign, not Phase 3.
  */
-import { describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { allowDbDataLoadLogs , expectConsoleNoise } from '@/test-utils';
 import { renderRouter, screen } from 'expo-router/testing-library';
 import type { ComponentType } from 'react';
 
@@ -36,7 +37,6 @@ import ProgressScreen from '@/app/(tabs)/progress';
 import AppTabs from '@/components/app-tabs';
 import { SettingsProvider } from '@/components/settings/settings-provider';
 import { registerGameDefinitions } from '@/registry/registry';
-import { expectConsoleNoise } from '@/test-utils';
 
 import { normalizeRouterTree } from './router-tree-normalizer';
 
@@ -64,6 +64,13 @@ function renderBare(Screen: ComponentType, initialUrl: string) {
     initialUrl,
   });
 }
+
+// 072: this suite renders the db-unavailable fallback states on purpose, and
+// `useDbData` now logs every failed load. Declared per test because the console
+// gate clears its expectations between tests; anything else logged still fails.
+beforeEach(() => {
+  allowDbDataLoadLogs();
+});
 
 describe('visual baselines (canary set)', () => {
   it('Home — first-run dashboard snapshot', async () => {

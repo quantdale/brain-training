@@ -26,6 +26,7 @@ import ProgressGameScreen from '@/app/progress-game';
 import ProgressDomainScreen from '@/app/progress-domain';
 import ProgressActivityScreen from '@/app/progress-activity';
 import { registerGameDefinitions } from '@/registry/registry';
+import { allowDbDataLoadLogs } from '@/test-utils';
 
 const mockDbState: { db: AppDatabase | null } = { db: null };
 
@@ -116,6 +117,14 @@ function makeFakeDb(over: {
     favorites: { isFavorite: async () => false },
   } as unknown as AppDatabase;
 }
+
+// 072: this suite deliberately exercises load-failure paths (db-unavailable
+// fallbacks, retries, partial mocks), and `useDbData` logs each one. Declared
+// per test, because the console gate clears its expectations between tests.
+// Anything else logged here still fails the gate.
+beforeEach(() => {
+  allowDbDataLoadLogs();
+});
 
 describe('Progress overview', () => {
   beforeEach(() => {

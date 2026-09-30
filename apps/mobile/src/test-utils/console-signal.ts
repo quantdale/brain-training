@@ -180,3 +180,34 @@ export function resetConsoleSignal(): void {
   state.violations.length = 0;
   state.expected.length = 0;
 }
+
+/**
+ * Declare that a whole suite deliberately exercises `useDbData` load failures.
+ *
+ * 072 added a production diagnostic for failed reads, and this repository's
+ * console gate fails on ANY unexpected output. The sanctioned per-test form,
+ * `expectConsoleNoise`, does not scale to a screen suite where every render
+ * runs two or three loads and several of them fail by design (db-unavailable
+ * fallbacks, retry paths, partial mocks) — that is ~28 wrap sites in five
+ * files, and wrapping them mechanically is exactly the kind of churn that
+ * makes a real failure harder to see later.
+ *
+ * This is DECLARATION, not muting, and the distinction is load-bearing:
+ * - it matches only the one diagnostic's own message shape, so any OTHER
+ *   console output in the same suite still fails the gate;
+ * - the output is still emitted to the real console (the gate's wrapper only
+ *   classifies, never suppresses);
+ * - the scope is bounded to a suite, so a regression that makes an unrelated
+ *   screen log does not slip through.
+ * Use it only in suites that genuinely exercise failure paths, and prefer
+ * `expectConsoleNoise` for a single deliberate message.
+ */
+export function allowDbDataLoadLogs(pattern?: RegExp): void {
+  state.expected.push({
+    pattern: pattern ?? /\[useDbData\].*load failed/,
+    matches: 0,
+    // Suite-scoped, so the bound is generous; the per-test form remains the
+    // strict default.
+    max: 10_000,
+  });
+}

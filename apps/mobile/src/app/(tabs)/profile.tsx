@@ -23,12 +23,9 @@ import { ThemedText } from "@/components/themed-text";
 import { StateCard } from "@/components/shell";
 import { ArcadePanel } from "@/components/ui/arcade-panel";
 import { Report, ReportRow } from "@/components/ui/report";
-import {
-  Radii,
-  Spacing,
-  type ThemeColor,
-} from "@/constants/theme";
+import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
 import { MIN_TOUCH_TARGET } from "@/components/a11y";
+import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 import { useTheme } from "@/hooks/use-theme";
 import {
   Badge,
@@ -424,11 +421,14 @@ export default function ProfileScreen() {
   const { themeId, setThemeId } = useSettings();
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
-  const { data, loaded, error } = useDbData(
-    loadProfile,
-    [refreshKey],
-    EMPTY_PROFILE,
-  );
+  // 072: `status` distinguishes a failure from "no data yet". The hook already
+  // carried `error`, but a screen that only checked `loaded` (and Profile did
+  // exactly that for the LOADING case) painted the zeroed fallback — a
+  // brand-new player with 0 XP and an empty inventory — while the real read was
+  // still in flight.
+  const { data, status, retry, hasData } = useDbData(loadProfile, [refreshKey], EMPTY_PROFILE, {
+    label: 'profile',
+  });
 
   // Re-sync progression each time the tab regains focus.
   useFocusEffect(
@@ -588,7 +588,7 @@ export default function ProfileScreen() {
 
   // A failed load must not present the zeroed fallback as a new-player profile:
   // show the recoverable error with a retry, matching Home/progress-detail.
-  if (loaded && error) {
+  if (status === 'error') {
     return (
       <ScreenShell>
         <ThemedText type="title" testID="profile-title">
@@ -599,8 +599,37 @@ export default function ProfileScreen() {
           title="Couldn't load your profile"
           message="Your profile data is unavailable right now."
           testID="profile-error"
-          action={{ label: "Try again", onPress: refresh }}
+          action={{ label: "Try again", onPress: retry }}
         />
+      </ScreenShell>
+    );
+  }
+
+  // 072: a LOADING state, reusing the shell loading primitive Home already
+  // uses. Before this, the first paint was the zeroed fallback — 0 XP, 0 coins,
+  // an empty inventory — which is indistinguishable from a genuine new player,
+  // so a slow read showed a confident and completely wrong account.
+  //
+  // `!hasData` is load-bearing: a REFRESH (focus, or a mutation bumping
+  // refreshKey) also reports `loading`, and replacing the screen on every
+  // refresh would tear down transient UI the refresh itself triggered — a
+  // celebration overlay, for instance, which is a regression this was caught
+  // introducing.
+  if (status === 'loading' && !hasData) {
+    return (
+      <ScreenShell>
+        <ThemedText type="title" testID="profile-title">
+          Profile
+        </ThemedText>
+        <View
+          style={styles.loadingBlock}
+          testID="profile-loading"
+          accessible
+          accessibilityLabel="Loading your profile"
+        >
+          <Skeleton height={Spacing.six * 2} />
+          <SkeletonText lines={2} />
+        </View>
       </ScreenShell>
     );
   }
@@ -1246,6 +1275,11 @@ function compactNumber(value: number): string {
 const styles = StyleSheet.create({
   headerText: {
     gap: Spacing.half,
+  },
+  // 072: spacing for the loading block, matching Home's shell loading
+  // primitive so both screens read identically while data settles.
+  loadingBlock: {
+    gap: Spacing.two,
   },
   identityRow: {
     flexDirection: "row",

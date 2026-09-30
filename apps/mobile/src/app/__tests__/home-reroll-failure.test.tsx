@@ -27,7 +27,7 @@ import type { AppDatabase, WorkoutInstance } from '@/db';
 import { registerGameDefinitions } from '@/registry/registry';
 import { registry as generatedRegistry } from '@/registry/registry.generated';
 import { resetProgressionFocusSyncForTests } from '@/progression/focus-sync';
-import { expectConsoleNoise } from '@/test-utils';
+import { expectConsoleNoise , allowDbDataLoadLogs } from '@/test-utils';
 
 /** Test-controlled db surface served by the mocked `@/db` module. */
 const mockDbState: {
@@ -139,6 +139,14 @@ beforeEach(() => {
   registerGameDefinitions(generatedRegistry);
   resetProgressionFocusSyncForTests();
   resetToastQueueForTests();
+});
+
+// 072: this suite deliberately exercises load-failure paths (db-unavailable
+// fallbacks, retries, partial mocks), and `useDbData` logs each one. Declared
+// per test, because the console gate clears its expectations between tests.
+// Anything else logged here still fails the gate.
+beforeEach(() => {
+  allowDbDataLoadLogs();
 });
 
 describe('home workout reroll failure path', () => {
