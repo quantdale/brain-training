@@ -788,7 +788,7 @@ export default function HomeScreen() {
                     testID="home-workout-continue"
                     accessibilityLabel="See today's progress"
                     accessibilityHint="Review your completed workout"
-                    onPress={() => router.push("/progress")}
+                    onPress={() => router.replace("/progress")}
                   />
                 ) : heroHref ? (
                   <Button
@@ -1114,14 +1114,14 @@ export default function HomeScreen() {
                 label="Browse games"
                 testID="home-quick-games"
                 accessibilityLabel="Browse all games"
-                onPress={() => router.push("/games")}
+                onPress={() => router.replace("/games")}
               />
               <Button
                 variant="secondary"
                 label="Progress"
                 testID="home-quick-progress"
                 accessibilityLabel="View your progress"
-                onPress={() => router.push("/progress")}
+                onPress={() => router.replace("/progress")}
               />
               <Button
                 variant="secondary"
@@ -1136,7 +1136,7 @@ export default function HomeScreen() {
                     ? `Open rewards, ${data.claimableRewards} ready to claim`
                     : "Open rewards"
                 }
-                onPress={() => router.push("/rewards")}
+                onPress={() => router.replace("/rewards")}
               />
             </SectionGrid>
           </View>
@@ -1164,7 +1164,7 @@ export default function HomeScreen() {
           actionAccessibilityLabel="Open full results history"
           onActionPress={
             data.recentSessions.length > 0
-              ? () => router.push("/results")
+              ? () => router.replace("/results")
               : undefined
           }
         />

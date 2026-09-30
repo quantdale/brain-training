@@ -76,7 +76,7 @@ export function MilestoneStrip({
         actionLabel="See all"
         actionTestID={`${testIDPrefix}s-all`}
         actionAccessibilityLabel="Browse all games"
-        onActionPress={() => router.push("/games")}
+        onActionPress={() => router.replace("/games")}
       />
       {sorted.map(({ gameId, name, summary }) => {
         const category = getGameDefinition(gameId)?.primaryCategory;

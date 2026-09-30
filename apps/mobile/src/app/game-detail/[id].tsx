@@ -45,7 +45,7 @@ import {
   Report,
   ReportRow,
   Spark,
-  useSafeBack,
+  useSafeBackAffordance,
 } from "@/components/ui";
 import { Spacing } from "@/constants/theme";
 import { getDb, type AppDatabase } from "@/db";
@@ -128,7 +128,13 @@ export default function GameDetailScreen() {
   // Hooks stay above the unknown-game early return so the hook count cannot
   // change across navigations between valid and invalid ids.
   // 058: cold deep links land with an empty stack — fall back to /games.
-  const goBack = useSafeBack('/games');
+  // 072 §4.4: this screen is reached from Games, Progress and Home, so a
+  // fixed "Back to Games" label is wrong on two of the three. The affordance
+  // names the fallback only when there IS no history to go back through.
+  const backAffordance = useSafeBackAffordance('/games', {
+    back: 'Back',
+    fallback: 'Games',
+  });
   const onToggleFavorite = useCallback(async () => {
     if (!game) return;
     try {
@@ -177,7 +183,12 @@ export default function GameDetailScreen() {
             </Link>
           </View>
         </Card>
-        <BackLink testID="game-detail-back" onPress={goBack} accessibilityLabel="Back to Games" />
+        <BackLink
+          testID="game-detail-back"
+          onPress={backAffordance.onPress}
+          label={backAffordance.label}
+          accessibilityLabel={backAffordance.accessibilityLabel}
+        />
       </ScreenShell>
     );
   }
@@ -203,7 +214,12 @@ export default function GameDetailScreen() {
 
   return (
     <ScreenShell>
-      <BackLink testID="game-detail-back" onPress={goBack} accessibilityLabel="Back to Games" />
+      <BackLink
+          testID="game-detail-back"
+          onPress={backAffordance.onPress}
+          label={backAffordance.label}
+          accessibilityLabel={backAffordance.accessibilityLabel}
+        />
 
       {/* Game-world first: GameStage leads with the world art and a compact
           identity plinth; records below are evidence, not the event. */}

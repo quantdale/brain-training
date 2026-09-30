@@ -28,29 +28,52 @@
 
 ## 4. Navigation depth correctness
 
-- [ ] 4.1 Audit every `router.push` call site and classify the destination as
-      top-level (tab/root) or nested (detail/flow).
-- [ ] 4.2 Convert top-level destinations to the stack-replacing operation;
-      leave nested destinations pushing.
-- [ ] 4.3 Add a back affordance to Data Management that lands on its owning
-      destination, consistent with the six sibling routes that already have one.
-- [ ] 4.4 Correct game detail's announced back destination so it names where
-      back actually goes on every entry path, instead of naming one destination
-      that only some paths reach.
-- [ ] 4.5 Add tests: repeated tab visits do not grow the stack; back from a tab
-      leaves the tab; back from a detail screen returns to its list; the guard
-      detects the unsafe pattern in a route module outside the previously
-      scanned directory.
+- [x] 4.1 Every `router.push`/`router.replace` call site audited and classified
+      against ONE shared set (`TOP_LEVEL_HREFS` in `components/navigation-depth.ts`)
+      rather than a per-screen judgement. Top-level = the five tabs plus `/`,
+      `/results` and `/data-management`. Nested = `game/[id]`, `game-detail/[id]`
+      and the four `progress-*` detail routes, which keep pushing.
+- [x] 4.2 14 top-level call sites converted to `router.replace` across 7 files
+      (`(tabs)/index`, `(tabs)/profile`, `(tabs)/progress`, `progress-activity`,
+      `progress-domain`, `results`, `mastery-card`), plus 2 found later by the new
+      guard (`results.tsx` push("/") and `rewards.tsx` push("/(tabs)/profile")).
+      Nested destinations still push. Zero top-level pushes remain.
+- [x] 4.3 Data Management gained `data-management-back`, a `BackLink` labelled
+      "Profile" and falling back to `/profile` — the screen's only owning
+      destination, and the right cold-deep-link landing.
+- [x] 4.4 `game-detail/[id]` is pushed from Games, Progress AND Home, yet its
+      affordance announced "Back to Games" on every path. New
+      `useSafeBackAffordance` resolves the label from the same fact the fallback
+      already depends on: with history it says "Back" (accurate on any entry
+      path), and without one it names the fallback it will actually use. The
+      42-screen `useSafeBack` call sites are untouched.
+- [x] 4.5 `navigation-contract.test.ts` (7 cases) pins the classification and
+      the two conversions as a source contract, including that a tap destination
+      pushed (not replaced) is an offence. **Mutation proof:** reverting the
+      `results.tsx` conversion fails the guard, and injecting a whitespace-
+      obfuscated `router . back ()` into a NEW file under `src/app` is caught —
+      the exact case the old `src/games`-only guard could not see.
+      Runtime stack-depth behaviour on device is §7.4 (NOT VALIDATED).
 
 ## 5. Widen the regression guard
 
-- [ ] 5.1 Extend `safe-back-catalog.test.ts` to scan every source location that
-      can perform navigation, not only `src/games`, so a new route module is
-      covered automatically.
-- [ ] 5.2 Make the negative pattern match bypass-resistant (a bare back call
-      written with different spacing or import form must still be detected).
-- [ ] 5.3 Fix everything the widened guard finds, or annotate deliberate
-      exceptions with a justifying comment.
+- [x] 5.1 Replaced with `navigation-contract.test.ts`, which scans EVERY `.ts`/`.tsx`
+      under `src` (606 files) rather than the 42 game screens, and additionally
+      enforces the §4 top-level-replacement rule. The original game-scoped guard
+      is retained inside it rather than deleted, with a self-test asserting the
+      42 screens are still covered — a scope change that accidentally dropped
+      `games/` would otherwise narrow coverage silently.
+- [x] 5.2 Four bypass-resistant patterns (`router . back (`, `router?.back(`,
+      `router['back'](`, `navigation.goBack()`, `useNavigation().goBack()`) plus
+      comment stripping, so the guard no longer fails on its own prose. The
+      bypass-resistance claim is itself tested against every spelling it claims
+      to catch.
+- [x] 5.3 The widened guard found 2 real violations on first run (both fixed) and
+      3 false positives, which were bugs IN the guard (a path-normalization
+      mismatch that defeated the allowlist, and two files failing on their own
+      documentation) — fixed in the guard rather than by adding exemptions. The
+      single remaining exemption is the `useSafeBack` implementation itself,
+      named in a `Set` with a comment explaining why it is the one legal site.
 
 ## 6. Progress refresh consistency
 
@@ -72,9 +95,11 @@
 
 ## 7. Verification
 
-- [ ] 7.1 `npx jest src/app src/hooks src/__tests__` green; the full matrix
-      green with no new skips; the jest signal validator passes.
-- [ ] 7.2 `npm run typecheck` and `npm run lint` clean.
+- [x] 7.1 `src/app`, `src/hooks`, `src/__tests__` green; full matrix **602
+      passed + 4 skipped suites / 7,069 passed + 5 skipped tests / 5 snapshots,
+      0 failures**; signal validator `pass: true` (5 classified skips, 0
+      unclassified/ambiguous/mismatched, both floors met). **No new skips.**
+- [x] 7.2 `npm run typecheck` clean; `npm run lint` clean (0 errors, 0 warnings).
 - [ ] 7.3 **NOT VALIDATED — device lane not available in this session.** On the
       dedicated AVD: force a failed read (for example by denying access) and
       confirm the failure state renders with retry on Data Management and

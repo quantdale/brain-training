@@ -809,7 +809,7 @@ export default function RewardsScreen() {
             fullWidth={false}
             testID="rewards-done"
             accessibilityLabel="Back to profile"
-            onPress={() => router.push("/(tabs)/profile")}
+            onPress={() => router.replace("/(tabs)/profile")}
             style={styles.doneButton}
           />
         </>

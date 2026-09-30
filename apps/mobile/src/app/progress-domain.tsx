@@ -220,7 +220,7 @@ export default function ProgressDomainScreen() {
         </ThemedText>
         <Tappable
           testID="progress-domain-back-link"
-          onPress={() => router.push('/progress')}
+          onPress={() => router.replace('/progress')}
           style={styles.textLinkRow}
           accessibilityLabel="Back to Progress">
           <ThemedText type="smallBold" themeColor="accent">
@@ -298,7 +298,7 @@ export default function ProgressDomainScreen() {
             title="Not trained yet"
             message={`No ${domain} sessions yet.`}
             actionLabel={`Find a ${domain} game`}
-            onAction={() => router.push('/games')}
+            onAction={() => router.replace('/games')}
             actionVariant="primary"
             testID="progress-domain-unseen"
           />

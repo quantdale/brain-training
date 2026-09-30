@@ -5272,7 +5272,52 @@ from a plan that assumed §1–3 were the whole job.
   tests / 5 snapshots, 0 failures**; signal gate `pass: true`; typecheck and lint
   clean; OpenSpec strict 59/59.
 
-**Change 072 status after this addition: sections 1, 2, 3 and 6 are done and
-measured. Sections 4 (navigation depth) and 5 (regression-guard widening) remain
-NOT DONE**, together with the device lane (7.4).
+- **§4 navigation depth and §5 guard widening: also completed** (appended
+  2026-09-30, same change).
+  - §4.1/§4.2: every `router.push`/`router.replace` site audited against ONE
+    shared set (`TOP_LEVEL_HREFS` in `components/navigation-depth.ts`) rather
+    than a per-screen judgement. **14 top-level call sites converted to
+    `router.replace` across 7 files**, plus 2 more found later by the new guard
+    (`results.tsx` push("/") and `rewards.tsx` push("/(tabs)/profile")). Nested
+    destinations — `game/[id]`, `game-detail/[id]`, the four `progress-*` detail
+    routes — still push, because a stack is what they are for. Zero top-level
+    pushes remain.
+  - §4.3: Data Management gained `data-management-back`, a `BackLink` labelled
+    "Profile" falling back to `/profile`.
+  - §4.4: **the announced destination was wrong on two of three entry paths.**
+    `game-detail/[id]` is pushed from Games, Progress AND Home, yet its
+    affordance announced "Back to Games" everywhere. New `useSafeBackAffordance`
+    resolves the label from the same fact the fallback already depends on: with
+    history it says "Back" (true on any path), without one it names the
+    fallback it will actually use. The 42 `useSafeBack` call sites are untouched.
+  - §5: the guard now scans **every `.ts`/`.tsx` under `src`** instead of the 42
+    game screens, with four bypass-resistant patterns and comment stripping. The
+    original game-scoped guard is retained inside it with a self-test asserting
+    the 42 screens are still covered, so a scope change cannot silently narrow
+    it.
+    - **The widened guard found 2 real violations on first run** (both fixed) and
+      **3 false positives that were bugs in the guard itself** — a path
+      normalization mismatch that defeated its own allowlist, and two files
+      failing on their own documentation. Those were fixed in the guard rather
+      than papered over with exemptions; the one remaining exemption is the
+      `useSafeBack` implementation itself, named in a `Set` with a reason.
+    - **Mutation proof:** reverting the `results.tsx` conversion fails the
+      guard, and injecting a whitespace-obfuscated `router . back ()` into a NEW
+      file under `src/app` is caught — precisely the case the old
+      `src/games`-only guard could not see.
+- §7.1/§7.2 after §4/§5: full matrix **602 passed + 4 skipped suites / 7,069
+  passed + 5 skipped tests / 5 snapshots, 0 failures**; signal gate
+  `pass: true` (5 classified skips, 0 unclassified/ambiguous/mismatched, floors
+  met); typecheck and lint clean; `validate-repo-state`,
+  `validate-offline --check`, `validate-workflows`,
+  `generate-game-registry --check` PASS; OpenSpec strict 59/59. **No new skips.**
+- §7.3/§7.4 device lane: **NOT VALIDATED** — no AVD exercised in this session;
+  left unchecked with the owed evidence spelled out. §7.5: **PARTIAL** — the §6
+  gate is unit-proven (reverting the predicate fails 2 of its 6 cases) but the
+  end-to-end journey was not run.
+
+**Change 072 status: every code section (§1–§6) is now done and measured. The
+three unchecked tasks are all device-lane items (7.3, 7.4, 7.5), which cannot
+be closed from the repository. `CHANGE_072_PARTIAL` is therefore accurate
+because of the device boundary alone, not because work is outstanding.**
 

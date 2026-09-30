@@ -10,7 +10,7 @@
  * the label vertically centred, a chevron, and an explicit accessible name.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 
@@ -51,6 +51,44 @@ export function useSafeBack(fallbackHref: Href): () => void {
       router.replace(fallbackHref);
     }
   }, [router, fallbackHref]);
+}
+
+/**
+ * A back affordance whose LABEL names where back actually goes (Change 072
+ * §4.4).
+ *
+ * The problem this solves is specific to a screen with several entry paths.
+ * `game-detail/[id]` is pushed from Games, from Progress and from Home. Its
+ * affordance said "Back to Games" unconditionally, so on a Progress or Home
+ * entry the control DID go back to Progress or Home while announcing — to a
+ * screen reader and to a sighted user scanning the label — that it returns to
+ * Games. A label that is confidently wrong is worse than no label: it is
+ * information the user will act on.
+ *
+ * The resolution is the same fact the fallback already depends on:
+ * - when the stack can go back, back is what happens, and back goes to wherever
+ *   the user came from — so the label is the honest, path-independent "Back";
+ * - when it cannot (a cold deep link), the fallback destination is used, and
+ *   the label NAMES it, because in that case it is knowable and true.
+ *
+ * `useSafeBack` is deliberately left alone: 42 game screens use it, and none of
+ * them has a multi-entry ambiguity to solve.
+ */
+export function useSafeBackAffordance(
+  fallbackHref: Href,
+  labels: { back: string; fallback: string },
+): { onPress: () => void; label: string; accessibilityLabel: string } {
+  const router = useRouter();
+  const canGoBack = router.canGoBack();
+  return useMemo(() => {
+    return {
+      onPress: canGoBack ? () => router.back() : () => router.replace(fallbackHref),
+      label: canGoBack ? labels.back : `${labels.back} to ${labels.fallback}`,
+      accessibilityLabel: canGoBack
+        ? `Go back`
+        : `Go back to ${labels.fallback}`,
+    };
+  }, [canGoBack, fallbackHref, labels.back, labels.fallback, router]);
 }
 
 export function BackLink({

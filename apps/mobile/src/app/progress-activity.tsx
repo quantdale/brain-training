@@ -132,7 +132,7 @@ export default function ProgressActivityScreen() {
               title="No sessions yet"
               message="Play a game to fill this calendar."
               actionLabel="Browse games"
-              onAction={() => router.push('/games')}
+              onAction={() => router.replace('/games')}
               actionVariant="primary"
               testID="progress-activity-empty"
             />

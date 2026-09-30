@@ -29,6 +29,7 @@ import { ConfirmButton } from "@/components/settings/confirm-button";
 import { ThemedText } from "@/components/themed-text";
 import { Radii, Spacing, Typography, type ThemeColor } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
+import { BackLink, useSafeBack } from "@/components/ui/back-link";
 import {
   Button,
   Card,
@@ -98,6 +99,9 @@ async function loadCounts(): Promise<LocalDataCounts> {
 export default function DataManagementScreen() {
   const theme = useTheme();
   const [refreshKey, setRefreshKey] = useState(0);
+  // 072: the shared empty-stack fallback, so a cold deep link into this
+  // screen lands on Profile instead of stranding the user.
+  const goBack = useSafeBack('/profile');
   // 072: the counts and the backup inventory are separate reads and BOTH can
   // fail. Each carries its own status so a failed read can never be painted as
   // "you have no backups" / "nothing to delete" — a claim the user would act on.
@@ -502,6 +506,16 @@ export default function DataManagementScreen() {
 
   return (
     <ScreenShell>
+      {/* 072: this screen had no back affordance, so a user who deep-linked
+          into it (or arrived from a cold start) had no way out but the tab
+          bar. Profile is its only owning destination, which is also the
+          fallback a cold deep-link landing needs. */}
+      <BackLink
+        testID="data-management-back"
+        label="Profile"
+        accessibilityLabel="Back to Profile"
+        onPress={goBack}
+      />
       <Entrance index={0}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>

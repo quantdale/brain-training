@@ -531,7 +531,7 @@ export default function ProgressScreen() {
               title="No sessions yet"
               message="Play a game to start building ratings."
               actionLabel="Browse games"
-              onAction={() => router.push('/games')}
+              onAction={() => router.replace('/games')}
               actionVariant="primary"
               testID="progress-empty"
             />

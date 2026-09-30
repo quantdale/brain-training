@@ -517,7 +517,7 @@ export default function ResultsScreen() {
                   sublabel="Back to Today"
                   testID="results-finish-workout"
                   accessibilityHint="Return to Today after finishing the workout"
-                  onPress={() => router.push("/")}
+                  onPress={() => router.replace("/")}
                 />
               ) : null}
               <Button
@@ -606,7 +606,7 @@ export default function ResultsScreen() {
           testID="results-empty"
           action={{
             label: "Browse games",
-            onPress: () => router.push("/games"),
+            onPress: () => router.replace("/games"),
             accessibilityLabel: "Browse the game library",
           }}
         />

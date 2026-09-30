@@ -84,15 +84,17 @@ plus historical follow-ups.
   behavior. These are real untested surfaces, not theoretical ones.
   Owner: release-engineering orchestrator; add the suites when the kit is next
   touched rather than as a standalone coverage push.
-- Change 072 remaining work (recorded 2026-09-30, `CHANGE_072_PARTIAL`): the
-  data-access seam and the Data Management / Profile honest states are DONE and
-  measured; navigation depth correctness (§4: classify every `router.push`
-  call site, convert top-level destinations to the stack-replacing operation, add
-  a Data Management back affordance, correct game detail's announced back
-  destination) and the regression-guard widening (§5: `safe-back-catalog.test.ts`
-  still scans only `src/games`, so a new route module outside that directory is
-  uncovered) are NOT started. §1–§3 and §6 ARE done. Owner:
-  release-engineering orchestrator.
+- Change 072 device-lane boundary (2026-09-30, `CHANGE_072_PARTIAL`): every code
+  section of the change (§1–§6) is DONE and measured. What remains is the
+  device lane only: confirm on the dedicated AVD that repeated tab visits enter
+  each destination once rather than stacking, that the new Data Management back
+  affordance lands on Profile and game detail's lands correctly, and that a
+  session completed on the results screen appears on Progress without waiting
+  for a focus window. The source contracts are enforced by
+  `apps/mobile/src/__tests__/navigation-contract.test.ts` and the
+  `progress-focus-throttle` suite; the on-device behaviour is not claimed.
+  Owner: release-engineering orchestrator.
+
 - Snapshot review debt (deferred by Change 065):
   `apps/mobile/src/app/__tests__/visual-baselines.test.tsx` holds the only
   snapshots (one ~304 KB file) with a history of wholesale `-u` regenerations;

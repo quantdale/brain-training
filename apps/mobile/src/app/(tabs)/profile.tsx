@@ -770,7 +770,7 @@ export default function ProfileScreen() {
           {data.equippedCosmetics.length > 0 ? (
             <Tappable
               testID="profile-equipped"
-              onPress={() => router.push("/rewards")}
+              onPress={() => router.replace("/rewards")}
               feedback="tap"
               accessibilityLabel={`Equipped cosmetics: ${data.equippedCosmetics
                 .map((item) => item.name)
@@ -1108,7 +1108,7 @@ export default function ProfileScreen() {
               metaTestID="profile-rewards-pending"
               icon={<Spark size={16} color={theme.currencyText} />}
               tone="currencySoft"
-              onPress={() => router.push("/rewards")}
+              onPress={() => router.replace("/rewards")}
               // Preserve the established automation seam while the row's
               // visible ownership language stays player-facing.
               testID="profile-cosmetics"
@@ -1135,7 +1135,7 @@ export default function ProfileScreen() {
                 <Spark size={16} color={theme.infoText} />
               </View>
             }
-            onPress={() => router.push("/data-management")}
+            onPress={() => router.replace("/data-management")}
             testID="profile-data-management"
           />
         </Report>
