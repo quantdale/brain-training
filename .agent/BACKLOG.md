@@ -34,12 +34,34 @@ plus historical follow-ups.
   Owner: release-engineering orchestrator; decide the infrastructure cost and
   thresholds in the post-067 hardening phase. The skip/floor/console gates are
   the current substitute.
-- Backup file rename durability (deferred by Change 065):
-  `data-portability/file-transport.ts` writes a temp file then renames with no
-  fsync, so a sudden power loss can lose the new backup after the old one was
-  replaced. Owner: release-engineering orchestrator; fix if expo-file-system
-  exposes fsync, otherwise rotate a `.prev` copy. Post-067 product/data
-  decision.
+- Backup physical durability — fsync (deferred by Change 065; **partly closed by
+  Change 070, 2026-09-30**): the recorded deferral described ONLY the missing
+  fsync, and recommended "otherwise rotate a `.prev` copy". That understated the
+  problem: the transport was also losing data through a pure ORDERING window, not
+  a physical one. `move(temp, dest, { overwrite: true })` is a
+  **delete-then-rename** in the installed `expo-file-system` Android native code
+  (sources and line references in
+  `apps/mobile/src/data-portability/replacement.ts`), so a crash mid-write left
+  the user with NO backup at that name, no error, and — because the listing rule
+  hides dotfiles — no indication one was lost.
+  - **Closed by Change 070:** the ordering window. Replacement is now
+    write-temp → rotate old to `.prev` → rename new into place → verify the new
+    content reads back → delete `.prev`. Every intermediate state leaves at
+    least one complete readable copy, and the only gap is between the rotation
+    and the rename, where the complete previous content is readable at `.prev`.
+    Proven by fault injection at every step
+    (`__tests__/replacement-crash-safety.test.ts`), including a mutation proof
+    that the previous single-move sequence fails the same safety assertion.
+    `.prev` leftovers are swept on the next write and on every listing pass, and
+    a leftover that is the only surviving copy is reported to the user rather
+    than deleted.
+  - **STILL OPEN (this is the remaining item):** physical durability — getting
+    the bytes onto storage needs an fsync, which `expo-file-system` does not
+    expose. The rotation bounds the residual: a power loss can lose the newest
+    backup's tail, but the previous complete backup survives to the next boot.
+    Owner: release-engineering orchestrator; fix if the dependency ever exposes
+    fsync, otherwise accept the documented bound explicitly. Post-067
+    product/data decision.
 - Snapshot review debt (deferred by Change 065):
   `apps/mobile/src/app/__tests__/visual-baselines.test.tsx` holds the only
   snapshots (one ~304 KB file) with a history of wholesale `-u` regenerations;

@@ -29,6 +29,32 @@ export interface BackupTransport {
   listBackups(): Promise<string[]>;
   /** Remove a backup by `name`. No-op if it does not exist. */
   deleteBackup(name: string): Promise<void>;
+  /**
+   * Files the transport is HIDING from `listBackups()` but cannot safely
+   * delete on its own (Change 070).
+   *
+   * Optional so the in-memory transport and any future transport need not
+   * implement it. Two cases land here:
+   * - a rotation leftover whose live counterpart is gone, so the leftover is
+   *   the ONLY surviving copy of that backup and deleting it would be the data
+   *   loss the rotation exists to prevent;
+   * - a file written under a name an EARLIER build accepted but the current
+   *   listing rule hides — a backup the app once reported as saved and can now
+   *   neither show nor restore.
+   *
+   * Both are the user's to resolve (restore under a visible name, or delete),
+   * so the transport reports them and the screen offers the choice rather than
+   * making it silently.
+   */
+  listStrandedArtifacts?(): Promise<string[]>;
+  /**
+   * Delete a stranded artifact by its raw on-disk name.
+   *
+   * Separate from `deleteBackup` because that one validates names against the
+   * listing rule — which is exactly the rule that HIDES a stranded artifact,
+   * so routing deletion through it would make the artifact undeletable.
+   */
+  deleteStrandedArtifact?(name: string): Promise<void>;
 }
 
 /** In-memory transport — used by tests and as a placeholder default in the UI. */

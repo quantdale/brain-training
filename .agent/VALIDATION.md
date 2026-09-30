@@ -4932,3 +4932,131 @@ from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
 - Evidence: `openspec/changes/068-storage-adapter-runtime-parity/`,
   `src/db/transaction-scope.ts`, the three new suites under `src/db/__tests__/`,
   `src/db/adapters/__tests__/expo.test.ts`, `.agent/KNOWN_ISSUES.md`.
+
+### Change 070 backup transport atomicity — 2026-09-30 (VALIDATED / `CHANGE_070_COMPLETE`)
+
+- **Baseline (re-measured at `5deb25e`, 2026-09-30, before any edit):** 597 passed +
+  4 skipped suites / 6,991 passed + 5 skipped tests / 5 snapshots, 0 failures;
+  typecheck and lint clean; all validators PASS; OpenSpec `--all --strict` 59/59.
+- §1 bounded diagnostics: **PASS** — new `diagnostics-budget.ts` with two tiers
+  (STRUCTURAL 20 / ROW 30), an always-incremented total, and an explicit
+  truncation notice naming the exact total plus per-class drop counts. The
+  validator's 27 `issues.push` call sites keep their shape through an
+  `IssueRecorder` (a minimal diff over validation logic every import depends on).
+  **What is bounded is stated precisely in the module header**: the retained set,
+  the joined report, and the rendered `Error.message`; the transient string per
+  problem is not, and is negligible next to the parsed row that produced it.
+  Ordering by tier guarantees the actionable class survives truncation.
+  16 new tests, including the case the old code failed: a size-legal 12,000-row
+  corrupt backup completes with ≤51 retained entries, a sub-8 KB message, and a
+  notice; a 10× larger corrupt file produces an **identical** report length.
+- §2 name validation aligned with the listing rule: **PASS** — one exported
+  predicate `isInternalBackupArtifact` is used by BOTH `listBackups()` and
+  `validateBackupName()`, which previously duplicated the intent. Structural
+  violations and reservation violations now get **distinct** messages (they send
+  a user to different fixes). Proved by a test that walks ten name classes and
+  asserts the write/list agreement invariant (`listed === accepted`), plus one
+  asserting no file is created at all for a rejected name.
+- §3 crash-safe replacement: **PASS** — the sequence is write-temp → rotate old
+  to `.prev` → rename new into place → **verify the new content reads back** →
+  delete `.prev`. `move` is never called with `overwrite: true`; a test asserts
+  the sequence never attempts an overwrite, because the platform's overwrite path
+  is precisely the delete-then-rename this exists to avoid.
+  - **22 new tests** in `__tests__/replacement-crash-safety.test.ts`, terminating
+    the replacement after EVERY step and asserting one invariant each time: the
+    name reads COMPLETE previous or COMPLETE new content — never empty, never
+    missing, never partial. Includes: the original error survives even when
+    recovery itself throws; the previous content is restored when the rename
+    fails; no `.tmp` litter survives any interruption; both copies are never
+    deleted; content is byte-identical for tricky payloads (unicode, U+2028/9,
+    empty string, 100 kB); five repeated overwrites accumulate no artifacts.
+  - **Mutation proof (the strongest evidence here):** the suite re-implements the
+    PREVIOUS sequence (single overwrite move) against a filesystem that models
+    the platform's real delete-then-rename, kills it *inside* the move, and
+    asserts the safety property is VIOLATED (no backup at that name at all). The
+    new sequence passes the identical interruption point. A test suite that
+    passed for both implementations would prove nothing about either.
+  - The dependency fact is recorded with source references in `replacement.ts`
+    (`FileSystemPath.kt:174-187`, `CopyMoveStrategy.kt:86-90` and `95-112`) so a
+    future change does not "simplify" the sequence back to one overwrite move.
+- §3.5 orphan cleanup: **PASS** — `sweepRotationLeftovers` runs on every
+  successful write and every listing pass, and is covered for the case that
+  matters most: a `.prev` with **no live counterpart is PROTECTED, not
+  deleted**, because it is the only surviving copy of that backup. Sweeping it as
+  "stale litter" would be the exact data loss the module prevents. A user dotfile
+  is never mistaken for a leftover, and the sweep is idempotent.
+- §4 unrecognized-content signal: **PASS** — new `forward-compat.ts` detects
+  unknown sections, envelope fields, profile fields, and a NEWER `schemaVersion`
+  (read from the real `SCHEMA_VERSION`, not a hardcoded copy that would go stale
+  silently on the next migration). The preview gains `forwardCompatibility`;
+  `applyImport` gains an `acknowledgedLossy` argument and the result carries a
+  `lossy` record.
+  - **A real trap found and fixed during implementation:** detection was first
+    wired against the VALIDATED `parsed.data`, which has by construction already
+    DISCARDED every unknown field — so it would have reported "nothing
+    unrecognized" for precisely the backups where the answer is "everything
+    unknown". `ParsedBackup` now carries `raw` (the pre-validation envelope), and
+    detection reads that. The test that caught this is the one asserting a
+    newer-format backup is actually flagged.
+  - **The reverse direction stays silent and is tested as such:** an older backup
+    read by a newer app is additive and already tolerated; a same-version and an
+    older backup produce no notice. A backup this build cannot parse at all keeps
+    its own typed rejection rather than being layered with a lossy warning.
+  - The screen surfaces the notice ahead of the reassuring counter line (a user
+    who sees "142 sessions would be added" and scrolls past a warning will import
+    anyway) AND inline with the preview via `data-preview-lossy-warning`, so the
+    consequences are in front of them when they decide. Proceeding is recorded,
+    not blocked. 2 new screen tests cover both directions.
+- §5 stranded hidden artifacts: **PASS** — `BackupTransport` gains optional
+  `listStrandedArtifacts()` / `deleteStrandedArtifact()`. Deletion uses its own
+  seam deliberately: `deleteBackup` validates against the listing rule, which is
+  the very rule that HIDES the artifact, so routing through it would make the
+  artifact permanently undeletable (a test pins that `deleteBackup` rejects it).
+  The screen lists stranded files with a two-tap confirm delete. 5 new transport
+  tests cover the rotation-copy case, the legacy-hidden-name case, the seam
+  separation, the refusal to route a visible name through the hidden seam, and
+  that pure litter is reclaimed rather than reported.
+- §6 documentation: **PASS** — the transport docstring no longer claims "a
+  same-directory rename is atomic … leaves the previous complete backup"; it
+  states the rotation guarantee and points at `replacement.ts`. `.agent/BACKLOG.md`
+  and `docs/DEFERRED_DECISIONS.md` are corrected: the recorded deferral described
+  ONLY the missing fsync and recommended "otherwise rotate a `.prev` copy", which
+  understated the problem — an ORDERING window was also present. Both now record
+  that the ordering window is closed and that the **physical** fsync window
+  remains the open owner decision, bounded by the rotation.
+- §7.1 targeted suites: **PASS** — `src/data-portability` → 19 passed + 1
+  opt-in skipped suites / 213 passed + 1 skipped tests, including the byte-parity
+  round-trip suites and the large-backup suite. `src/app` (data-management UX
+  contract) also green.
+- §7.2 full matrix: **PASS** — **600 passed + 4 skipped suites / 7,051 passed +
+  5 skipped tests / 5 snapshots, 0 failures** (235.994 s). Suite count
+  601→604 and test count 6,991→7,051 reflect the three new suites
+  (replacement-crash-safety, diagnostics-budget, forward-compat) and 60 new
+  tests. **No new skips** — the signal gate reports `pass: true`,
+  `classifiedSkipCount: 5`, `unclassifiedSkipCount: 0`,
+  `ambiguousSkipCount: 0`, `countMismatchCount: 0`, with both floors met
+  (minTotalSuites 575 vs 604; minTotalTests 6,840 vs 7,056).
+- §7.3 typecheck / lint: **PASS** — 0 errors; 0 errors, 0 warnings.
+- §7.4 device lane: **NOT VALIDATED.** No AVD was exercised in this session; no
+  emulator was launched. The task is left **unchecked** in the change's task list
+  rather than reported as done, with the owed evidence spelled out (two backups
+  under one name, kill mid-replacement, relaunch, confirm the name reads
+  complete previous or complete new content, confirm no hidden artifact is listed
+  and no user-visible temp remains). The sequence is proven by step-level fault
+  injection against a double that models the real platform move, but a fault
+  injection is not a device.
+- §7.5 large-backup probe: **PASS (no regression) / timing NOT VALIDATED as a
+  signal.** All 5 probes ran and passed. The content-shape fields are IDENTICAL
+  to the previous baseline (`textUtf16Units` 15,228,503 and `chunkCount` 966),
+  which is the meaningful evidence that the export still produces
+  byte-identical output — rotation is an ordering change and must not alter
+  content. Time/heap (`exportMs` 1,452; `heapUsedDeltaMb` 97.2) sit inside the
+  host-noise band measured in Change 068, so no timing claim is made from them.
+- Repository gates at closure: `validate-repo-state` PASS;
+  `validate-secrets --check` PASS; `validate-offline --check` PASS;
+  `validate-workflows` PASS; `generate-game-registry --check` PASS;
+  `docs/DEFERRED_DECISIONS.md` and `.agent/BACKLOG.md` updated; OpenSpec
+  `--all --strict` 59/59.
+- Evidence: `openspec/changes/070-backup-transport-atomicity/`,
+  `src/data-portability/{replacement,diagnostics-budget,forward-compat}.ts`,
+  the three new suites, `src/app/data-management.tsx`.

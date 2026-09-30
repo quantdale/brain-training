@@ -5,6 +5,7 @@
  */
 
 import type { ParsedBackup } from './deserialize';
+import type { ForwardCompatibilityReport } from './forward-compat';
 import type { ImportMode } from './types';
 
 /** Per-section counters produced by an import. */
@@ -76,6 +77,27 @@ export interface BackupMeta {
 export interface ImportResult extends ImportCounters {
   /** Total entities written (added/updated) — the meaningful "did something" number. */
   totalWritten: number;
+  /**
+   * Set when the imported backup contained content this build does not
+   * understand, and the user chose to proceed anyway (Change 070).
+   *
+   * Recorded rather than merely shown, because the loss is permanent and silent
+   * otherwise: the next export writes the file back without those fields and
+   * nothing anywhere says they ever existed. Carrying the verdict on the RESULT
+   * (not only in the preview) is what lets the screen state after the fact that
+   * this import was knowingly lossy.
+   */
+  lossy?: LossyImportRecord;
+}
+
+/** What a knowingly-lossy import did not understand. */
+export interface LossyImportRecord {
+  /** How many distinct things were not understood. */
+  count: number;
+  /** The bounded, user-facing description shown at preview time. */
+  summary: string;
+  /** Dotted paths, for diagnostics. Bounded by the detector. */
+  paths: string[];
 }
 
 /** A dry-run preview: validation status + what the import would do. */
@@ -91,6 +113,13 @@ export interface ImportPreview {
   };
   /** Would-be counters (same shape as a real import result's counters). */
   counters: ImportCounters;
+  /**
+   * Present when the backup contains content this build does not understand
+   * (Change 070). The preview is still `valid: true` — the user may deliberately
+   * proceed — but the caller must surface this and let them cancel, because a
+   * proceeding import is permanently lossy.
+   */
+  forwardCompatibility?: ForwardCompatibilityReport;
   /** Human-readable notes, e.g. destructive replace warning. */
   notes: string[];
   /**

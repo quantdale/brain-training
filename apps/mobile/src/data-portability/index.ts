@@ -25,6 +25,34 @@ export {
   mergeProfileSettings,
 } from './apply';
 export { previewImport } from './preview';
+// 070: the crash-safe replacement sequence, the forward-compatibility detector
+// and the diagnostics budget are exported so the transport seam, the validator
+// and the data-management screen all use the SAME implementations the tests
+// pin, rather than each keeping a private copy that can drift.
+export {
+  isPreviousBackupName,
+  previousBackupName,
+  replaceWithRotation,
+  sweepRotationLeftovers,
+  type ReplacementHooks,
+  type ReplacementStep,
+  type RotationFileSystem,
+} from './replacement';
+export {
+  detectUnrecognizedContent,
+  KNOWN_DATA_SECTIONS,
+  KNOWN_ENVELOPE_FIELDS,
+  type ForwardCompatibilityReport,
+  type UnrecognizedItem,
+  type UnrecognizedKind,
+} from './forward-compat';
+export {
+  DEFAULT_TIER_LIMITS,
+  DiagnosticsBudget,
+  IssueRecorder,
+  type DiagnosticTier,
+  type RetainedDiagnostic,
+} from './diagnostics-budget';
 export { wipeLocalData, countLocalData, type LocalDataCounts } from './wipe';
 export {
   createMemoryTransport,

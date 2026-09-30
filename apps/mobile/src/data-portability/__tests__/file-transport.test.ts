@@ -19,6 +19,7 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 
 import {
   createFileBackupTransport,
+  isInternalBackupArtifact,
   pickBackupFile,
   shareBackupFile,
 } from '../file-transport';
@@ -224,11 +225,155 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     const t = createFileBackupTransport();
     // Dotfiles and `*.tmp` partials are hidden by listBackups; a successful
     // write under such a name would be invisible in the restore list.
-    await expect(t.writeBackup('.hidden.json', '{}')).rejects.toThrow(/file name inside/);
-    await expect(t.writeBackup('run.tmp', '{}')).rejects.toThrow(/file name inside/);
-    await expect(t.readBackup('.hidden.json')).rejects.toThrow(/file name inside/);
-    await expect(t.deleteBackup('run.tmp')).rejects.toThrow(/file name inside/);
+    //
+    // 070: the two failure classes now have DISTINCT messages. "Not a file
+    // name" and "structurally fine but unlistable" send a user to different
+    // fixes, and collapsing them into one message is how a reserved name ends
+    // up being retried forever.
+    await expect(t.writeBackup('.hidden.json', '{}')).rejects.toThrow(/reserved for internal backup files/);
+    await expect(t.writeBackup('run.tmp', '{}')).rejects.toThrow(/reserved for internal backup files/);
+    await expect(t.readBackup('.hidden.json')).rejects.toThrow(/reserved for internal backup files/);
+    await expect(t.deleteBackup('run.tmp')).rejects.toThrow(/reserved for internal backup files/);
+    // The name in the message is what lets the user work out which of their
+    // own filenames was the problem.
+    await expect(t.writeBackup('.hidden.json', '{}')).rejects.toThrow(/".hidden.json"/);
     expect(await t.listBackups()).toEqual([]);
+  });
+
+  it('rejects structurally invalid names with the structural message', async () => {
+    const t = createFileBackupTransport();
+    for (const bad of ['', '.', '..', 'a/b', 'a\\b', 'a\u0000b']) {
+      await expect(t.writeBackup(bad, '{}')).rejects.toThrow(/file name inside/);
+    }
+    expect(await t.listBackups()).toEqual([]);
+  });
+
+  it('the write-time validator and the listing predicate agree on every class', async () => {
+    // The two rules used to be written separately with the same intent, so they
+    // could drift: a name the writer accepted but the lister hid was a backup
+    // the app reported as saved and could never show. One predicate is used by
+    // both; this proves the agreement across the classes that matter, rather
+    // than trusting they were written from the same list.
+    const t = createFileBackupTransport();
+    const candidates = [
+      'normal.json',
+      'with space.json',
+      'UPPER.JSON',
+      'dots.in.the.middle.json',
+      '.hidden.json',
+      '..double.json',
+      'trailing.tmp',
+      '.tmp',
+      'a.tmp.json',
+      'name.tmp.tmp',
+    ];
+    for (const name of candidates) {
+      const accepted = await t.writeBackup(name, '{"probe":true}').then(
+        () => true,
+        () => false,
+      );
+      const listed = (await t.listBackups()).includes(name);
+      // THE invariant, and the one that protects the user: a successful write
+      // is always listable, and a rejected name is never written at all.
+      expect(listed).toBe(accepted);
+      // Reserved names are rejected for exactly the reason they would be
+      // hidden — the reservation rule and the visibility rule are one rule.
+      expect(accepted).toBe(!isInternalBackupArtifact(name));
+    }
+    // Every name that was accepted is visible; none of the reserved ones is.
+    expect((await t.listBackups()).sort()).toEqual(
+      ['UPPER.JSON', 'a.tmp.json', 'dots.in.the.middle.json', 'normal.json', 'with space.json'].sort(),
+    );
+  });
+
+  it('writes no file at all for a rejected name', async () => {
+    // A rejected name must not leave a partial or hidden artifact behind: the
+    // whole point of rejecting is that the user ends up with nothing rather
+    // than something they cannot see.
+    const t = createFileBackupTransport();
+    for (const bad of ['', '.', '..', '.hidden.json', 'run.tmp', 'a/b', 'a\\b', 'a\u0000b']) {
+      await expect(t.writeBackup(bad, '{}')).rejects.toThrow();
+    }
+    expect(await t.listBackups()).toEqual([]);
+  });
+
+  /**
+   * Plant a raw file in the mocked backup directory. The mock store is keyed by
+   * URI, and the directory entry is the first key written by
+   * `ensureBackupDirectory`, so its parent gives the document root.
+   */
+  function plantHiddenFile(fileName: string, content: string): void {
+    const dirKey = [...mockStore.keys()].find((k) => k.endsWith('/backups'));
+    if (!dirKey) throw new Error('backup directory was never created');
+    mockStore.set(`${dirKey}/${fileName}`, { kind: 'file', content });
+  }
+
+  it('070: reports a stranded rotation copy and lets the user delete it', async () => {
+    const t = createFileBackupTransport();
+    await t.writeBackup('unrelated.json', '{}');
+
+    // An interrupted replacement: the old content survives ONLY at the rotation
+    // sibling, because the process died between the rotation and the rename and
+    // the live name is therefore absent. This is the one case the sweep must
+    // NOT reclaim — deleting it would destroy the last copy of a backup.
+    const rotationName = '.interrupted.json.prev';
+    plantHiddenFile(rotationName, 'PREVIOUS-ONLY-COPY');
+
+    const stranded = await t.listStrandedArtifacts?.();
+    expect(stranded).toEqual([rotationName]);
+    // Reported, never hidden, and the content is still there.
+    expect(await t.readBackup('unrelated.json')).toBe('{}');
+    expect([...mockStore.values()].some((e) => e.content === 'PREVIOUS-ONLY-COPY')).toBe(true);
+
+    await t.deleteStrandedArtifact?.(rotationName);
+    expect(await t.listStrandedArtifacts?.()).toEqual([]);
+  });
+
+  it('070: reports a file an earlier build saved under a now-hidden name', async () => {
+    const t = createFileBackupTransport();
+    await t.writeBackup('unrelated.json', '{}');
+    // A dotfile under the current rule, written by a build that accepted it.
+    // The app once reported it as saved and can now neither show nor restore
+    // it, so it must be surfaced rather than quietly swept.
+    const legacy = '.legacy-backup.json';
+    plantHiddenFile(legacy, '{}');
+
+    expect(await t.listStrandedArtifacts?.()).toContain(legacy);
+    expect(await t.listBackups()).not.toContain(legacy);
+  });
+
+  it('070: deletion of a stranded artifact goes through its own seam', async () => {
+    // `deleteBackup` validates against the listing rule — the very rule that
+    // hid the file — so routing deletion through it would make the artifact
+    // permanently undeletable. Hence a separate method.
+    const t = createFileBackupTransport();
+    await expect(t.deleteBackup('.hidden.json')).rejects.toThrow(
+      /reserved for internal backup files/,
+    );
+    await expect(t.deleteStrandedArtifact?.('.hidden.json')).resolves.toBeUndefined();
+  });
+
+  it('070: stranded-artifact deletion refuses a visible backup name', async () => {
+    // The seam is for hidden files only; a visible name must go through the
+    // normal (two-tap, confirm-guarded) delete control.
+    const t = createFileBackupTransport();
+    await t.writeBackup('visible.json', '{}');
+    await expect(t.deleteStrandedArtifact?.('visible.json')).rejects.toThrow(
+      /not a hidden backup artifact/,
+    );
+    expect(await t.listBackups()).toContain('visible.json');
+  });
+
+  it('070: a pure-litter leftover is reclaimed, not reported', async () => {
+    const t = createFileBackupTransport();
+    await t.writeBackup('live.json', 'NEW');
+    // A `.prev` whose live counterpart EXISTS is stale litter, not a stranded
+    // copy of anything — the sweep reclaims it instead of asking the user.
+    plantHiddenFile('.live.json.prev', 'OLD');
+
+    expect(await t.listStrandedArtifacts?.()).toEqual([]);
+    // ...and it is actually gone, not merely unreported.
+    expect([...mockStore.values()].filter((e) => e.content === 'OLD')).toHaveLength(0);
   });
 
   it('listBackups orders newest-first (descending names)', async () => {

@@ -187,6 +187,13 @@ function validPreview(mode: 'merge' | 'replace'): ImportPreview {
       warnings: [],
     },
     notes: [],
+    // 070: a fully-understood backup is the default the whole suite assumes;
+    // the lossy cases build their own preview explicitly.
+    forwardCompatibility: {
+      lossy: false,
+      items: [],
+      summary: 'This backup uses only data this version of the app understands.',
+    },
     parsed: { marker: 'parsed-backup' } as unknown as ImportPreview['parsed'],
   };
 }
@@ -323,12 +330,79 @@ describe('data-management UX contract', () => {
         expect.anything(),
         expect.anything(),
         'replace',
+        undefined,
       ),
     );
     const message = await screen.findByTestId('data-message');
     expect(message).toHaveTextContent(/Replace complete/);
     // Replace erases the seeded catalog: the call site must restore it.
     expect(mockedRefreshProgression).toHaveBeenCalled();
+  });
+
+  it('070: warns in the preview and records the lossy import when the user proceeds', async () => {
+    // The whole point of the signal: a NEWER backup read by an OLDER build
+    // silently drops unknown content and the next export writes it back
+    // missing. The user must SEE that before committing, and the applied result
+    // must carry the record so the loss is not invisible afterwards.
+    const lossy = validPreview('merge');
+    const verdict: NonNullable<ImportPreview['forwardCompatibility']> = {
+      lossy: true,
+      // Sorted, as the real detector emits them, so this test asserts the
+      // screen preserves the detector's order rather than a fixture quirk.
+      items: [
+        { kind: 'data-field', path: 'data.profile.streakFreezes' },
+        { kind: 'section', path: 'data.streakFreezeInventory' },
+      ],
+      summary:
+        'This backup was written by a newer version of the app: 2 items ' +
+        '(data.profile.streakFreezes, data.streakFreezeInventory) cannot be ' +
+        'restored by this version and will be lost.',
+    };
+    lossy.forwardCompatibility = verdict;
+    mockedPreviewImport.mockResolvedValue(lossy);
+    await renderScreen();
+    await typeImportJson();
+
+    await fireEvent.press(await screen.findByTestId('data-preview-merge'));
+
+    // (a) The notice leads the message rather than the reassuring counter.
+    const message = await screen.findByTestId('data-message');
+    await waitFor(() => expect(message).toHaveTextContent(/NEWER version/));
+    expect(message).not.toHaveTextContent(/would be added/);
+    // (b) It is rendered inline with the preview, not only in the transient
+    // message, so the consequences are in front of the user when they decide.
+    expect(await screen.findByTestId('data-preview-lossy-warning')).toHaveTextContent(
+      /cannot be restored by this version/,
+    );
+    // (c) Cancelling is possible without importing.
+    expect(mockedApplyImport).not.toHaveBeenCalled();
+
+    // (d) Proceeding is allowed, and the acknowledgement is recorded.
+    await fireEvent.press(await screen.findByTestId('data-import-merge'));
+    await waitFor(() =>
+      expect(mockedApplyImport).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        'merge',
+        {
+          count: 2,
+          summary: verdict.summary,
+          paths: ['data.profile.streakFreezes', 'data.streakFreezeInventory'],
+        },
+      ),
+    );
+    // The import itself still completes normally: a lossy import is a choice,
+    // not a failure state.
+    expect(await screen.findByTestId('data-message')).toHaveTextContent(/Merge complete/);
+  });
+
+  it('070: a fully-understood backup shows no lossy warning', async () => {
+    mockedPreviewImport.mockResolvedValue(validPreview('merge'));
+    await renderScreen();
+    await typeImportJson();
+    await fireEvent.press(await screen.findByTestId('data-preview-merge'));
+    await waitFor(() => expect(mockedPreviewImport).toHaveBeenCalled());
+    expect(screen.queryByTestId('data-preview-lossy-warning')).toBeNull();
   });
 
   it('disarms Replace when the input is cleared', async () => {
@@ -363,6 +437,9 @@ describe('data-management UX contract', () => {
         expect.anything(),
         expect.anything(),
         'merge',
+        // 070: no forward-compat verdict, because this backup was fully
+        // understood — `undefined` rather than a lossy record.
+        undefined,
       ),
     );
     const message = await screen.findByTestId('data-message');

@@ -155,6 +155,46 @@ export default function DataManagementScreen() {
     [],
   );
 
+  // 070: files the transport hides but cannot safely delete. Either an
+  // interrupted backup replacement that left only its rotation copy, or a
+  // backup an EARLIER build saved under a name the current listing rule hides —
+  // in both cases a file the app once reported as saved and can now neither
+  // show nor restore. Reported with an explicit delete control rather than
+  // cleaned up silently, because the only remaining copy of a backup is not the
+  // app's to destroy.
+  const loadStrandedArtifacts = useCallback(async (): Promise<string[]> => {
+    if (!backupTransport.listStrandedArtifacts) return [];
+    try {
+      return await backupTransport.listStrandedArtifacts();
+    } catch {
+      // Transport failures must never take the management screen down.
+      return [];
+    }
+  }, []);
+  const { data: strandedArtifacts } = useDbData(
+    loadStrandedArtifacts,
+    [refreshKey],
+    [],
+  );
+  const onDeleteStranded = useCallback(
+    async (name: string) => {
+      if (busy) return;
+      setBusy(true);
+      setMessage(null);
+      try {
+        await backupTransport.deleteStrandedArtifact?.(name);
+        setMessage(
+          `Removed hidden file "${name}". Its backup content is gone; export a new backup if you need one.`,
+        );
+      } catch (e) {
+        setMessage(`Could not remove "${name}": ${(e as Error).message}`);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy],
+  );
+
   const onExport = useCallback(async () => {
     if (busy) {
       return;
@@ -302,6 +342,16 @@ export default function DataManagementScreen() {
           setMessage(
             `Preview rejected (${result.error?.kind}): ${result.error?.message}`,
           );
+        } else if (result.forwardCompatibility?.lossy) {
+          // 070: the lossy notice LEADS, not the counter line. A user who sees
+          // "142 sessions would be added" and scrolls past a warning will
+          // import anyway; the number is what makes proceeding feel safe. The
+          // warning is the thing that makes it not.
+          setMessage(
+            `Preview ${mode}: this backup was written by a NEWER version of the app. ` +
+              `${result.forwardCompatibility.summary} ` +
+              `You can cancel by clearing the backup text.`,
+          );
         } else {
           setMessage(
             `Preview ${mode}: ${result.counters.sessionsAdded} sessions would be added, ${result.counters.sessionsSkipped} skipped. ${result.notes[0] ?? ""}`,
@@ -349,7 +399,18 @@ export default function DataManagementScreen() {
         // re-parsing large backups doubled the synchronous work per import.
         const parsed =
           previewResult.parsed ?? parseAndValidateBackup(importText);
-        const result = await applyImport(getDb(), parsed, mode);
+        // 070: pass the forward-compat verdict the user was SHOWN, so the
+        // result records exactly what was accepted rather than a second,
+        // independently computed opinion. A lossy import is the user's choice,
+        // not a failure — merge/replace proceed unchanged.
+        const acknowledgedLossy = previewResult.forwardCompatibility?.lossy
+          ? {
+              count: previewResult.forwardCompatibility.items.length,
+              summary: previewResult.forwardCompatibility.summary,
+              paths: previewResult.forwardCompatibility.items.map((i) => i.path),
+            }
+          : undefined;
+        const result = await applyImport(getDb(), parsed, mode, acknowledgedLossy);
         // 065: the import rewrote (replace) or added to (merge) persisted
         // workout rows behind mounted consumers' backs. Emit the existing
         // workout-changed signal so Home refetches instead of rendering a
@@ -668,6 +729,45 @@ export default function DataManagementScreen() {
               ))}
             </View>
           )}
+          {strandedArtifacts.length > 0 ? (
+            <View
+              style={styles.rows}
+              testID="data-stranded-artifacts"
+              accessibilityLiveRegion="polite"
+            >
+              <ThemedText type="caption" themeColor="warning">
+                {strandedArtifacts.length === 1
+                  ? "1 hidden backup file was found that this list cannot show. "
+                  : `${strandedArtifacts.length} hidden backup files were found that this list cannot show. `}
+                It may be the only remaining copy of a backup whose replacement
+                was interrupted. Recover it by exporting again, or delete it.
+              </ThemedText>
+              {strandedArtifacts.map((name) => (
+                <View key={name} style={styles.backupRow}>
+                  <View style={styles.backupName}>
+                    <ListRow
+                      title={name}
+                      icon={<Spark size={14} color={theme.warningText} />}
+                      tone="warningSoft"
+                      showChevron={false}
+                    />
+                  </View>
+                  {/* Destructive and irreversible — the shared two-tap
+                      confirm, same as deleting a visible backup. */}
+                  <ConfirmButton
+                    testID={`data-stranded-delete-${name}`}
+                    label="Delete"
+                    confirmLabel="Tap to confirm"
+                    accessibilityLabel={`Delete hidden backup file ${name}`}
+                    variant="danger"
+                    size="small"
+                    disabled={busy}
+                    onConfirm={() => void onDeleteStranded(name)}
+                  />
+                </View>
+              ))}
+            </View>
+          ) : null}
         </Card>
       </Entrance>
 
@@ -772,6 +872,21 @@ export default function DataManagementScreen() {
                 <ThemedText type="caption" themeColor="warning">
                   Replace erases everything currently on this phone before
                   restoring the backup.
+                </ThemedText>
+              )}
+              {preview.valid && preview.forwardCompatibility?.lossy && (
+                // Rendered inline with the counters, not only in the transient
+                // message above: that message is gone the moment the user
+                // interacts, and this is a decision they must make with the
+                // consequences in front of them.
+                <ThemedText
+                  type="caption"
+                  themeColor="warning"
+                  testID="data-preview-lossy-warning"
+                  accessibilityLiveRegion="polite"
+                >
+                  {preview.forwardCompatibility.summary} Clear the backup text
+                  above to cancel.
                 </ThemedText>
               )}
               {preview.notes.map((n, i) => (

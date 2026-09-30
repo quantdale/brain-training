@@ -35,6 +35,7 @@ import {
   emptyCounters,
   type ImportCounters,
   type ImportResult,
+  type LossyImportRecord,
 } from "./report";
 import type { ParsedBackup } from "./deserialize";
 import { captureTriggers, dropTriggers, recreateTriggers } from "./triggers";
@@ -873,6 +874,16 @@ export async function applyImport(
   db: AppDatabase,
   parsed: ParsedBackup,
   mode: ImportMode,
+  /**
+   * The preview's forward-compatibility verdict, when the user chose to proceed
+   * with a backup this build does not fully understand (Change 070).
+   *
+   * Passed in rather than recomputed so the RECORD on the result is the same
+   * verdict the user was shown and accepted. Recomputing here would create a
+   * second chance for the two to disagree, and a result that says "nothing lost"
+   * after the user was warned about specific fields is worse than no signal.
+   */
+  acknowledgedLossy?: LossyImportRecord,
 ): Promise<ImportResult> {
   const c = emptyCounters(mode);
   if (mode === "replace") {
@@ -895,7 +906,15 @@ export async function applyImport(
       await applyData(txn, parsed.data, mode, c);
     });
   }
-  return { ...c, totalWritten: summarizeWritten(c) };
+  return {
+    ...c,
+    totalWritten: summarizeWritten(c),
+    // Present only when the user knowingly proceeded past a forward-compat
+    // warning. Its absence means either the backup was fully understood or the
+    // caller did not supply a verdict — the two are distinguished by whether
+    // the caller had a preview to pass, not by guessing here.
+    ...(acknowledgedLossy ? { lossy: acknowledgedLossy } : {}),
+  };
 }
 
 /**

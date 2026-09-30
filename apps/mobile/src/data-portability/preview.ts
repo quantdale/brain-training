@@ -12,6 +12,7 @@ import { echoId, parseAndValidateBackup } from './deserialize';
 import { applyData } from './apply';
 import { captureTriggers, dropTriggers, recreateTriggers } from './triggers';
 import { emptyCounters, type BackupMeta, type ImportPreview } from './report';
+import { detectUnrecognizedContent } from './forward-compat';
 import type { ImportMode } from './types';
 
 class PreviewRollback extends Error {
@@ -138,7 +139,21 @@ export async function previewImport(
     }
   }
 
-  return { valid: true, mode, meta, counters: c, notes, parsed };
+  // 070 — forward compatibility. Detected against the RAW envelope
+  // (`parsed.raw`), never against the validated `data`: the validated shape has
+  // already discarded every section this build does not understand, so
+  // inspecting it would report "nothing unrecognized" for precisely the
+  // backups where the answer is "everything unknown". Detected after the
+  // dry-run succeeds, so a backup this build cannot read at all still reports
+  // its own typed rejection rather than a lossy warning layered on top. The
+  // preview stays `valid: true`: the user may be moving to a new device
+  // deliberately, so this is a decision they get to make, not a gate.
+  const forwardCompatibility = detectUnrecognizedContent(parsed.raw);
+  if (forwardCompatibility.lossy) {
+    notes.push(forwardCompatibility.summary);
+  }
+
+  return { valid: true, mode, meta, counters: c, notes, parsed, forwardCompatibility };
 }
 
 function reject(

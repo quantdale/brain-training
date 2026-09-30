@@ -17,6 +17,7 @@ import { MAX_WORKOUT_GAME_IDS } from '@/workout/templates';
 
 import { canonicalString } from './canonical-json';
 import { CHECKSUM_ALGORITHM, computeChecksum } from './checksum';
+import { DiagnosticsBudget, IssueRecorder } from './diagnostics-budget';
 import {
   BACKUP_FORMAT,
   BACKUP_FORMAT_VERSION,
@@ -32,6 +33,18 @@ import {
 export interface ParsedBackup {
   envelope: BackupEnvelope;
   data: BackupData;
+  /**
+   * The envelope and data EXACTLY as they appeared in the file, before
+   * `validateData` narrowed them to this build's known shape (Change 070).
+   *
+   * This exists because of a real trap that is easy to walk into: the
+   * validated `data` has, by construction, already DISCARDED every section and
+   * field this build does not understand. Running forward-compatibility
+   * detection on `data` therefore always reports "nothing unrecognized" —
+   * it would be inspecting the post-loss state and reporting success. Detection
+   * must run against the pre-validation input, which is what this carries.
+   */
+  raw: { envelope: Record<string, unknown>; data: Record<string, unknown> };
 }
 
 /**
@@ -87,9 +100,27 @@ function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean';
 }
 
-/** Validate the data sections. Collects every problem rather than failing on the first. */
+/**
+ * Validate the data sections. Collects every problem rather than failing on the
+ * first, under a BOUNDED budget (Change 070).
+ *
+ * The previous implementation grew an unbounded `string[]`, so a size-legal
+ * (64 MB) but corrupt backup with hundreds of thousands of invalid rows built a
+ * message per row and then joined them all into one `Error.message`. That turns
+ * a validation failure into an out-of-memory failure, and the user sees an OOM
+ * instead of the reason their backup was rejected. `IssueRecorder` bounds the
+ * retained set, keeps counting the rest, and makes the truncation explicit
+ * (see `diagnostics-budget.ts`).
+ *
+ * Two classes, because they are not equally useful to a user:
+ * - ROW (`push`) — a problem with one entry. Unbounded, repetitive, dropped
+ *   first.
+ * - STRUCTURAL (`pushStructural`) — a problem with the shape of a whole
+ *   section. Bounded by the schema, and the thing a user can actually act on,
+ *   so it must survive truncation.
+ */
 function validateData(data: unknown): BackupData {
-  const issues: string[] = [];
+  const issues = new IssueRecorder(new DiagnosticsBudget());
   if (!isObject(data)) {
     throw new BackupDataValidationError(['`data` must be an object']);
   }
@@ -97,7 +128,7 @@ function validateData(data: unknown): BackupData {
   const requireArray = (key: string): unknown[] => {
     const v = data[key];
     if (!Array.isArray(v)) {
-      issues.push(`data.${key} must be an array`);
+      issues.pushStructural(`data.${key} must be an array`);
       return [];
     }
     return v;
@@ -399,7 +430,7 @@ function validateData(data: unknown): BackupData {
       !isSafeInteger(profileRaw.createdAt) ||
       !isSafeInteger(profileRaw.updatedAt)
     ) {
-      issues.push('profile is present but invalid');
+      issues.pushStructural('profile is present but invalid');
     } else {
       profile = {
         id: profileRaw.id,
@@ -457,8 +488,8 @@ function validateData(data: unknown): BackupData {
     }
   }
 
-  if (issues.length > 0) {
-    throw new BackupDataValidationError(issues);
+  if (issues.hasProblems) {
+    throw new BackupDataValidationError(issues.report());
   }
 
   return {
@@ -581,6 +612,16 @@ export function parseAndValidateBackup(text: string): ParsedBackup {
 
   const data = validateData(parsed.data);
 
+  // Captured AFTER the integrity and version gates (so only a backup this build
+  // would actually import reaches it) but BEFORE `validateData` narrows the
+  // shape — this is the "what did the file actually contain" view that
+  // forward-compatibility detection needs. `parsed` is the live
+  // `JSON.parse` result and is not mutated by validation.
+  const raw = {
+    envelope: parsed as Record<string, unknown>,
+    data: isObject(parsed.data) ? parsed.data : {},
+  };
+
   const envelope: BackupEnvelope = {
     format: BACKUP_FORMAT,
     version: parsed.version,
@@ -594,5 +635,5 @@ export function parseAndValidateBackup(text: string): ParsedBackup {
     data,
   };
 
-  return { envelope, data };
+  return { envelope, data, raw };
 }

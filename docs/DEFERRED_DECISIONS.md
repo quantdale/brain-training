@@ -32,6 +32,19 @@ These are intentionally unresolved. Their absence is not permission for an agent
   decision — passphrase UX, KDF parameters, format/versioning, recovery
   semantics — and must not be invented during unrelated work; revisit only
   with an owner-authorized decision.
+- Backup physical durability (fsync): **still deferred** (Change 070,
+  2026-09-30). Recorded here so the deferral is not re-derived as "backup
+  durability is handled". It is only *partly* handled: Change 070 closed the
+  ORDERING window — the installed `expo-file-system` Android move is a
+  delete-then-rename, so the previous single `move(temp, dest, { overwrite:
+  true })` could leave the user with no backup at that name and no indication of
+  the loss. Replacement now rotates through a `.prev` sibling and verifies the
+  new content before discarding the old one, so at least one complete readable
+  copy exists at every instant. The **PHYSICAL** window — bytes written but not
+  yet on storage, which needs an fsync the dependency does not expose — remains
+  open, bounded by the rotation: a power loss can lose the newest backup's tail
+  while the previous complete backup survives to the next boot. Owner:
+  release-engineering orchestrator.
 
 ## Product decisions deferred
 
