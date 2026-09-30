@@ -19,13 +19,14 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
 import { Motion } from '@/theme/tokens';
 
 import { GAME_ID } from '../types';
 import type { CompareVerdict } from '../types';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export interface VerdictCueProps {
   /** Reducer verdict of the just-resolved round; null while the round is live. */
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.two,
     minWidth: 200,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingHorizontal: Spacing.three,
     borderRadius: Radii.pill,
     borderWidth: 2,

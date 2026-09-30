@@ -9,7 +9,15 @@ The product targets Android+iOS, Android-first autonomous development, a large m
 
 ## Decision
 
-Prefer React Native + Expo + TypeScript, SQLite for canonical local persistence, Reanimated for motion/interactions, and Skia only where specific game rendering benefits justify it.
+Prefer React Native + Expo + TypeScript, SQLite for canonical local persistence, and Skia only where specific game rendering benefits justify it.
+
+**Amended 2026-09-30 (Change 071).** This ADR originally listed Reanimated for
+motion/interactions. The shipped app does not use it: animation goes through
+React Native's `Animated` via the shared `usePressFeedback` hook, and
+`react-native-reanimated` has zero first-party imports. It remains in the tree
+only because it is a **required peer dependency of `expo-router`**. The
+preference is retained for a future migration, not as a description of the
+present.
 
 Native Swift/Kotlin modules require demonstrated need; no wholesale native rewrite is planned.
 

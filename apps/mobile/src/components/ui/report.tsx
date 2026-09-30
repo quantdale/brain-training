@@ -17,7 +17,8 @@ import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget, Radii, Spacing, Typography, type ThemeColor, type TypographyName } from '@/theme/tokens';
+import { Radii, Spacing, Typography, type ThemeColor, type TypographyName } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { Tappable } from './tappable';
 import { HAIRLINE } from './radius';
 
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
     borderTopWidth: HAIRLINE,
   },
   row: {
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,

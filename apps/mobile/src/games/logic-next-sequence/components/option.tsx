@@ -17,10 +17,11 @@ import { Pressable, StyleSheet } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export type OptionVisualState = 'idle' | 'correct' | 'wrong' | 'dim';
 
@@ -132,7 +133,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Spacing.two,
     minWidth: 120,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.four,
     borderRadius: Radii.medium,

@@ -20,12 +20,13 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { testId } from '@/sdk';
 
 import { OPERATOR_GLYPHS, GAME_ID } from '../types';
 import type { Operator } from '../types';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export interface OperatorButtonProps {
   operator: Operator;
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     // Explicit touch-target floor; the row layout sizes buttons above it on
     // every tier, and real size (not hitSlop) is used so adjacent buttons
     // never overlap.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: Radii.medium,
     borderWidth: 2,
     paddingVertical: Spacing.three,

@@ -13,10 +13,18 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 
-import { CONFIRM_ARM_MS, ConfirmButton } from '@/components/settings/confirm-button';
+import { ConfirmButton } from '@/components/settings/confirm-button';
 
-/** Real-ms upper bound for one arm cycle plus scheduler slack. */
-const ARM_WINDOW_MS = CONFIRM_ARM_MS + 1500;
+/**
+ * Real-ms upper bound for one arm cycle plus scheduler slack.
+ *
+ * 071: this used to read the component's exported `CONFIRM_ARM_MS`. That
+ * export is gone (the constant is module-private, since nothing outside the
+ * component needs it), so the window is spelled out here instead. Keeping the
+ * literal in the test rather than re-exporting the constant is deliberate: a
+ * test that imports the value it is testing cannot detect the value changing.
+ */
+const ARM_WINDOW_MS = 4000 + 1500;
 
 describe('ConfirmButton', () => {
 

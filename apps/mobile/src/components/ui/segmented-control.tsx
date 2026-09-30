@@ -12,7 +12,8 @@ import { Animated, Easing, StyleSheet, View, type LayoutChangeEvent } from 'reac
 import { usePrefersReducedMotion } from '@/components/a11y/reduced-motion';
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget, Motion, Radii, Spacing } from '@/theme/tokens';
+import { Motion, Radii, Spacing } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { RADIUS_CAP } from './radius';
 import { Tappable } from './tappable';
 
@@ -152,13 +153,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingHorizontal: Spacing.two,
     borderRadius: RADIUS_CAP,
   },
   optionCompact: {
     // The compact variant shrinks type and padding, never the target.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingHorizontal: Spacing.one,
     borderRadius: Radii.medium,
   },

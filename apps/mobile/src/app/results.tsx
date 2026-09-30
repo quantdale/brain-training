@@ -50,7 +50,7 @@ import {
   showToast,
   useSafeBack,
 } from '@/components/ui';
-import { MinTouchTarget, Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing } from '@/constants/theme';
 import type { AppDatabase, GameSessionRecord } from "@/db";
 import { useDbData } from "@/hooks/use-db-data";
 import { useTheme } from "@/hooks/use-theme";
@@ -58,6 +58,7 @@ import { getGameDefinition } from "@/registry/registry";
 import { DIFFICULTY_LABELS, liveAudioHaptics } from "@/sdk";
 import { useWorkoutResultAdvance } from "@/workout/use-workout-result-advance";
 import { gameHref } from "@/workout/routing";
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 interface ResultsData {
   session: GameSessionRecord | null;
@@ -672,7 +673,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.two,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.two,
     borderRadius: Radii.small,
   },

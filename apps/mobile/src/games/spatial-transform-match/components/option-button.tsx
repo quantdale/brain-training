@@ -10,7 +10,8 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
-import { MinTouchTarget, Radii, Spacing } from "@/theme/tokens";
+import { Radii, Spacing } from "@/theme/tokens";
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from "@/hooks/use-theme";
 
 import { GAME_ID } from "../types";
@@ -128,8 +129,8 @@ const styles = StyleSheet.create({
     container: {
         borderRadius: Radii.medium,
         padding: Spacing.one,
-        minWidth: MinTouchTarget,
-        minHeight: MinTouchTarget,
+        minWidth: MIN_TOUCH_TARGET,
+        minHeight: MIN_TOUCH_TARGET,
     },
     verdict: {
         position: "absolute",

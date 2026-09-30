@@ -3615,7 +3615,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           {
                             "busy": undefined,
                             "checked": undefined,
-                            "disabled": undefined,
+                            "disabled": false,
                             "expanded": undefined,
                             "selected": false,
                           }
@@ -3688,7 +3688,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           {
                             "busy": undefined,
                             "checked": undefined,
-                            "disabled": undefined,
+                            "disabled": false,
                             "expanded": undefined,
                             "selected": true,
                           }
@@ -3761,7 +3761,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           {
                             "busy": undefined,
                             "checked": undefined,
-                            "disabled": undefined,
+                            "disabled": false,
                             "expanded": undefined,
                             "selected": false,
                           }
@@ -3834,7 +3834,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           {
                             "busy": undefined,
                             "checked": undefined,
-                            "disabled": undefined,
+                            "disabled": false,
                             "expanded": undefined,
                             "selected": false,
                           }
@@ -7687,7 +7687,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": false,
                   }
@@ -7760,7 +7760,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": true,
                   }
@@ -7833,7 +7833,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": false,
                   }
@@ -7906,7 +7906,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   {
                     "busy": undefined,
                     "checked": undefined,
-                    "disabled": undefined,
+                    "disabled": false,
                     "expanded": undefined,
                     "selected": false,
                   }

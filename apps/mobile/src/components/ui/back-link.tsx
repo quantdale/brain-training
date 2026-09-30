@@ -15,7 +15,8 @@ import { StyleSheet } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Spacing } from '@/theme/tokens';
+import { Spacing } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { Tappable } from './tappable';
 
 /** Props accepted by {@link BackLink}. */
@@ -76,7 +77,7 @@ export function BackLink({
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     alignSelf: 'flex-start',
     paddingRight: Spacing.three,

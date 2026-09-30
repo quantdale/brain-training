@@ -14,7 +14,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { Radii } from '@/constants/theme';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     // Campaign 065 touch-target guard: the square field sizes itself from the
     // layout width, so declare the shared vertical floor explicitly.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     maxWidth: '100%',
     borderRadius: Radii.large,
     borderWidth: 1.5,
@@ -113,8 +113,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     aspectRatio: 1,
     borderRadius: Radii.pill,
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     transform: [{ translateX: '-50%' }, { translateY: '-50%' }],
   },
 });

@@ -19,7 +19,8 @@ import {
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { Fonts, MinTouchTarget, Radii, Spacing, Typography } from '@/theme/tokens';
+import { Fonts, Radii, Spacing, Typography } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { HAIRLINE } from './radius';
 import { Tappable } from './tappable';
 
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // minHeight (not height) so a 2x system font scale grows the box
     // instead of clipping the input.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingHorizontal: Spacing.three,
     borderWidth: HAIRLINE,
     borderRadius: Radii.medium,
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     flex: 1,
     // The measured interactive node is the input itself, so it carries the
     // 44 dp target rather than inheriting it from the surrounding box.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.two,
     fontFamily: Fonts.sans,
     fontSize: Typography.body.size,
@@ -143,8 +144,8 @@ const styles = StyleSheet.create({
     fontWeight: Typography.body.weight,
   },
   clear: {
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     alignItems: 'center',
     justifyContent: 'center',
   },

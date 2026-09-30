@@ -18,8 +18,9 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export interface OptionButtonProps {
   /** Option text (same label the prompt asks the player to choose). */
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
   option: {
     flexGrow: 1,
     minWidth: 120,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: Radii.medium,
     paddingVertical: Spacing.twoHalf,
     paddingHorizontal: Spacing.three,

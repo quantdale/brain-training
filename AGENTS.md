@@ -202,7 +202,11 @@ Dangerous QA controls must be disabled/unavailable in production builds.
 - React Native + Expo + TypeScript is the preferred stack unless a documented ADR demonstrates a serious blocker.
 - SQLite is canonical local persistence.
 - Core app is offline-first.
-- Reanimated is preferred for polished motion; Skia is allowed where a game benefits from richer rendering.
+- Motion uses React Native's `Animated` through the shared `usePressFeedback`
+  hook. `react-native-reanimated` is present in the tree only as a required
+  `expo-router` peer dependency (Change 071 measured this; it is not a first-party
+  dependency and has zero imports). Skia is allowed where a game benefits from
+  richer rendering.
 - Do not introduce Swift/Kotlin native modules without demonstrated need and an ADR for substantial native architecture.
 - Each game is a self-contained module plugging into a shared mandatory Game SDK.
 - Maximize independently editable modules and minimize shared-file hotspots to support swarm development.

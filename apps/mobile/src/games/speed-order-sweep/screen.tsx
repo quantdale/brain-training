@@ -35,7 +35,8 @@ import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget, Motion } from '@/theme/tokens';
+import { Motion } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import {
   GameHost,
   GameResults,
@@ -726,7 +727,7 @@ const styles = StyleSheet.create({
   },
   cue: {
     minWidth: 104,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: Radii.pill,
     borderWidth: 1.5,
     flexDirection: 'row',

@@ -21,11 +21,12 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { GameButton } from '@/components/game-ui';
 
 import { GAME_ID } from '../types';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export type SymbolOptionVisual = 'idle' | 'correct' | 'wrong' | 'dim';
 
@@ -114,8 +115,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.three,
     borderRadius: Radii.medium,

@@ -24,7 +24,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 import { symbolById, type RunningOrderSymbol } from '../symbols';
 
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
     // palette and tutorial demo symbols are the game's tappable board cells
     // and must present at least 44×44 dp. The grid layout sizes glyphs well
     // above this, so the floor only guards degenerate widths.
-    minHeight: MinTouchTarget,
-    minWidth: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
   },
   pressed: {
     opacity: 0.6,

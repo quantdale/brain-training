@@ -28,7 +28,8 @@ import { AnimatedNumber, useSafeBack } from '@/components/ui';
 import { Countdown, GameButton, StatRow } from '@/components/game-ui';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget, Motion } from '@/theme/tokens';
+import { Motion } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import {
   GameHost,
   GameResults,
@@ -568,8 +569,8 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   cue: {
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: Radii.pill,
     alignItems: 'center',
     justifyContent: 'center',

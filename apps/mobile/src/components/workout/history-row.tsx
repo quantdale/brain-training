@@ -16,7 +16,8 @@ import { StyleSheet, View } from 'react-native';
 import { formatRelativeDay } from '@/components/shell/format';
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing, MinTouchTarget, type ThemeColor } from '@/theme/tokens';
+import { Spacing, type ThemeColor } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { parseInstanceKey } from '@/workout/metadata';
 import type { WorkoutCompletionSummary } from '@/workout/summary';
 import { getWorkoutTemplate, WORKOUT_LENGTHS } from '@/workout/templates';
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing.twoHalf,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
   },
   mark: {
     width: 32,

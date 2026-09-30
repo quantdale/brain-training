@@ -23,10 +23,11 @@ import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
 import { GameButton } from '@/components/game-ui';
 import type { GameButtonProps } from '@/components/game-ui';
-import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID, type RoundKind } from '../types';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 /** Verdict presentation of an answer button on the round result. */
 export type AnswerVerdict = 'correct' | 'wrong' | 'neutral';
 
@@ -117,8 +118,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     borderWidth: 3,
     borderRadius: Radii.medium,
     paddingHorizontal: Spacing.three,

@@ -15,7 +15,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react-n
 import { StyleSheet } from 'react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 import { adaptiveGridSize, paramsFromProfile, resolvePatternTapBackDifficulty } from '../difficulty';
 import { generateRoundSequence } from '../generator';
@@ -178,8 +178,8 @@ describe('PatternTapBackScreen verdict cues', () => {
 
     // Distinct fills + verdict-thick boundaries back the glyphs (never colour-alone).
     expect(flatStyle(wrongEl).backgroundColor).not.toBe(flatStyle(expectedEl).backgroundColor);
-    expect(flatStyle(wrongEl)).toMatchObject({ borderWidth: 3, minHeight: MinTouchTarget });
-    expect(flatStyle(expectedEl)).toMatchObject({ borderWidth: 3, minHeight: MinTouchTarget });
+    expect(flatStyle(wrongEl)).toMatchObject({ borderWidth: 3, minHeight: MIN_TOUCH_TARGET });
+    expect(flatStyle(expectedEl)).toMatchObject({ borderWidth: 3, minHeight: MIN_TOUCH_TARGET });
 
     // Untouched tiles stay neutral — only the two verdicts exist on the board.
     for (let tile = 0; tile < PARAMS.gridSize; tile += 1) {

@@ -21,7 +21,7 @@ import type { StyleProp, ViewStyle } from "react-native";
 import { Button, type ButtonVariant } from "@/components/ui";
 
 /** How long an armed confirmation stays valid (matches rewards purchases). */
-export const CONFIRM_ARM_MS = 4000;
+const CONFIRM_ARM_MS = 4000;
 
 /** Handle for the arm-expiry timer owned by this module. */
 type ArmTimer = ReturnType<typeof setTimeout>;

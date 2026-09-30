@@ -9,6 +9,4 @@ export { StateCard, type StateCardVariant, type StateCardAction } from './state-
 export { SectionHeader } from './section-header';
 export { ProgressTrack } from './progress-track';
 export { FeedbackCard, type FeedbackCardTone, type FeedbackCardProps } from './feedback-card';
-export { StreakCard, type StreakCardProps } from './streak-card';
-export { LevelCard, type LevelCardProps } from './level-card';
 export { formatRelativeDay, performanceBand, type PerformanceBand } from './format';

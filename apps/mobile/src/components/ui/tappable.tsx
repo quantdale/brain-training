@@ -25,7 +25,7 @@ import {
 
 import { hitSlopToTouchTarget } from '@/platform/touch';
 import { liveAudioHaptics, type FeedbackEvent } from '@/sdk';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { PRESS_SCALE, usePressFeedback } from './motion';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -66,13 +66,14 @@ export const Tappable = forwardRef<React.ComponentRef<typeof Pressable>, Tappabl
     pressedStyle,
     pressedScale = PRESS_SCALE.surface,
     feedback = 'tap',
-    minTarget = MinTouchTarget,
+    minTarget = MIN_TOUCH_TARGET,
     hitSlop,
     renderedSize,
     onPressIn,
     onPressOut,
     disabled,
     accessibilityRole = 'button',
+    accessibilityState,
     ...rest
   },
   ref,
@@ -87,12 +88,51 @@ export const Tappable = forwardRef<React.ComponentRef<typeof Pressable>, Tappabl
   // Prefer the explicit slop; otherwise expand the surface to `minTarget`.
   const resolvedHitSlop = hitSlop ?? hitSlopToTouchTarget(renderedSize ?? minTarget) ?? undefined;
 
+  // 071 — WHY THIS IS DESTRUCTURED AND MERGED EXPLICITLY.
+  //
+  // The previous code computed the state here and then spread `{...rest}`
+  // AFTER it. Because `accessibilityState` was still inside `rest`, that spread
+  // replaced the computed value with the caller's RAW state, so the merge line
+  // above it was dead code — the result depended on prop ORDER rather than on
+  // the intent.
+  //
+  // MEASURED behaviour of each shape (2026-09-30, `Tappable` under test):
+  //   caller `{ disabled: true }` on an ENABLED control
+  //     before: { disabled: true }   <- announced as unpressable; WRONG
+  //     after:  { disabled: false }  <- the component's own state wins
+  //   caller `{ selected: true }` on a DISABLED control
+  //     before: { selected: true, disabled: true }
+  //     after:  { selected: true, disabled: true }  (identical)
+  //
+  // The second case is worth recording precisely: the audit reported that a
+  // caller's state could ERASE `disabled`, and measurement shows it could not —
+  // react-native's `Pressable` re-derives `accessibilityState.disabled` from its
+  // own `disabled` prop, which masked that direction. The direction that was
+  // genuinely broken is the one above: a caller could mark a pressable control
+  // as disabled to the screen reader. Relying on that masking is a worse
+  // position than owning the merge, so the merge is now explicit either way.
+  //
+  // Two rules make the ordering unrepeatable:
+  // 1. `accessibilityState` is destructured OUT, so the rest-spread physically
+  //    cannot contain it.
+  // 2. The rest-spread comes FIRST, so any prop a future edit forgets to
+  //    destructure loses to the explicit ones rather than silently winning.
+  //
+  // `disabled` is applied AFTER the caller's state and cannot be overridden: a
+  // component's own accessibility truth is not the caller's to erase. A caller
+  // that needs a different `disabled` must change `disabled`.
+  const mergedAccessibilityState = {
+    ...accessibilityState,
+    disabled: disabled === true,
+  };
+
   return (
     <AnimatedPressable
+      {...rest}
       ref={ref}
       disabled={disabled}
       accessibilityRole={accessibilityRole}
-      accessibilityState={{ disabled: disabled === true, ...(rest.accessibilityState ?? {}) }}
+      accessibilityState={mergedAccessibilityState}
       hitSlop={resolvedHitSlop}
       onPressIn={() => {
         if (disabled) return;
@@ -102,8 +142,7 @@ export const Tappable = forwardRef<React.ComponentRef<typeof Pressable>, Tappabl
         handlePressIn();
       }}
       onPressOut={handlePressOut}
-      style={[style, pressed && pressedStyle, animatedStyle]}
-      {...rest}>
+      style={[style, pressed && pressedStyle, animatedStyle]}>
       {children}
     </AnimatedPressable>
   );

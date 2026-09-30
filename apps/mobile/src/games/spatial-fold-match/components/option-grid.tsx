@@ -18,12 +18,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
 import type { ReadonlyGrid } from '../generator';
 import { GridView } from './grid-view';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export interface OptionGridProps {
   /** 0-based option index; used for the testID. */
@@ -124,8 +125,8 @@ const styles = StyleSheet.create({
   container: {
     borderRadius: Radii.medium,
     padding: Spacing.one,
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
   },
   verdict: {
     position: 'absolute',

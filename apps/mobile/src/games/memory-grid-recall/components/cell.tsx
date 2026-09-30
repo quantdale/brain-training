@@ -25,7 +25,8 @@ import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
 import { Radii } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
-import { MinTouchTarget, Spacing } from "@/theme/tokens";
+import { Spacing } from "@/theme/tokens";
+import { MIN_TOUCH_TARGET } from "@/components/a11y";
 
 import { GAME_ID } from "../types";
 
@@ -112,8 +113,8 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     // Explicit touch-target floor; the grid layout sizes cells well above it
     // on every tier, so this only guards degenerate widths.
-    minHeight: MinTouchTarget,
-    minWidth: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     borderRadius: Radii.medium,
     borderWidth: 1.5,
   },

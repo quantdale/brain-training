@@ -24,11 +24,11 @@ import { StateCard } from "@/components/shell";
 import { ArcadePanel } from "@/components/ui/arcade-panel";
 import { Report, ReportRow } from "@/components/ui/report";
 import {
-  MinTouchTarget,
   Radii,
   Spacing,
   type ThemeColor,
 } from "@/constants/theme";
+import { MIN_TOUCH_TARGET } from "@/components/a11y";
 import { useTheme } from "@/hooks/use-theme";
 import {
   Badge,
@@ -1302,7 +1302,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexWrap: "wrap",
     gap: Spacing.oneHalf,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
   },
   chip: {
     flexDirection: "row",
@@ -1336,7 +1336,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.three,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.two,
   },
   recordText: {

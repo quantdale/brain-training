@@ -25,7 +25,7 @@ import { ThemedText } from '@/components/themed-text';
 
 import { testId } from '@/sdk';
 import { Spacing } from '@/constants/theme';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
 
 import { GAME_ID } from '../types';
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     // Campaign 065 touch-target guard: width is a percentage of the grid, so
     // declare the shared vertical floor for narrow viewports.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',

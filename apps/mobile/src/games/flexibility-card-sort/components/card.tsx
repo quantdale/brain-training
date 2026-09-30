@@ -10,7 +10,8 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { MinTouchTarget, Radii, Spacing } from '@/theme/tokens';
+import { Radii, Spacing } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { Card, ColorId, ShapeId } from '../types';
@@ -125,8 +126,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: Spacing.two,
     gap: Spacing.half,
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
   },
   verdict: {
     position: 'absolute',

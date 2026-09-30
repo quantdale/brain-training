@@ -34,7 +34,8 @@ import {
 } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { Fonts, MinTouchTarget, Radii, Spacing, Typography, type ColorTheme, type ThemeColor, Depth } from '@/theme/tokens';
+import { Fonts, Radii, Spacing, Typography, type ColorTheme, type ThemeColor, Depth } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
 import { Tappable } from './tappable';
 import { PRESS_SCALE } from './motion';
@@ -80,7 +81,7 @@ export type ButtonComponentProps = ButtonProps &
 
 // Every size is a real 44 dp target: the compact size exists to be denser
 // (smaller text and padding), not to be harder to hit.
-const HEIGHT: Record<ButtonSize, number> = { sm: MinTouchTarget, md: 48, lg: 56 };
+const HEIGHT: Record<ButtonSize, number> = { sm: MIN_TOUCH_TARGET, md: 48, lg: 56 };
 const LABEL_TYPE: Record<ButtonSize, 'bodySmall' | 'body' | 'bodyLarge'> = {
   sm: 'bodySmall',
   md: 'body',
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.two,
     paddingHorizontal: Spacing.three,
-    minWidth: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
   },
   fullWidth: {
     alignSelf: 'stretch',

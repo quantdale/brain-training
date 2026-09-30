@@ -8,6 +8,7 @@
  * under reduced motion (animation off, action still immediate).
  */
 
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
@@ -15,7 +16,7 @@ import { Text } from 'react-native';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tappable } from '@/components/ui/tappable';
-import { MinTouchTarget } from '@/theme/tokens';
+import { } from '@/theme/tokens';
 
 // `mock`-prefixed name: jest.mock factories are hoisted and may only close
 // over variables whose name starts with `mock`.
@@ -71,7 +72,7 @@ describe('Button', () => {
       const { style, hitSlop } = screen.getByTestId(testID).props;
       const flattened = Array.isArray(style) ? Object.assign({}, ...style.flat().filter(Boolean)) : style;
       const slop = typeof hitSlop === 'number' ? hitSlop : hitSlop?.top ?? 0;
-      expect(flattened.minHeight + 2 * slop).toBeGreaterThanOrEqual(MinTouchTarget);
+      expect(flattened.minHeight + 2 * slop).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
     }
   });
 
@@ -109,8 +110,8 @@ describe('Tappable', () => {
     const hitSlop = screen.getByTestId('chip').props.hitSlop;
     const vertical = typeof hitSlop === 'number' ? hitSlop * 2 : hitSlop.top + hitSlop.bottom;
     const horizontal = typeof hitSlop === 'number' ? hitSlop * 2 : hitSlop.left + hitSlop.right;
-    expect(28 + vertical).toBeGreaterThanOrEqual(MinTouchTarget);
-    expect(28 + horizontal).toBeGreaterThanOrEqual(MinTouchTarget);
+    expect(28 + vertical).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+    expect(28 + horizontal).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
   });
 
   it('does not call onPress when disabled', async () => {

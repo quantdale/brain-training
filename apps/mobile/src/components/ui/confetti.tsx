@@ -23,7 +23,7 @@ import { DomainColors, Families, Motion, Radii } from '@/theme/tokens';
  * pop on both themes. Bright light-scheme bases read as celebration on the
  * dark canvas too, which is exactly what a confetti burst needs.
  */
-export const CONFETTI_COLORS = [
+const CONFETTI_COLORS = [
   Families.light.accent.base,
   Families.light.warning.base, // volt
   Families.light.xp.base, // violet

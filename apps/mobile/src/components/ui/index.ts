@@ -27,10 +27,9 @@ export { Badge, type BadgeProps, type BadgeSize } from './badge';
 export { ListRow, type ListRowProps } from './list-row';
 export { EmptyState, type EmptyStateProps } from './empty-state';
 export { Skeleton, SkeletonText, type SkeletonProps } from './skeleton';
-export { Avatar, type AvatarProps, type AvatarSize } from './avatar';
 export { TextField, type TextFieldProps } from './text-field';
 export { Spark, type SparkProps } from './spark';
-export { Confetti, CONFETTI_COLORS, type ConfettiProps } from './confetti';
+export { Confetti, type ConfettiProps } from './confetti';
 export { StreakStrip, type StreakStripProps } from './streak-strip';
 export {
   ToastHost,
@@ -44,7 +43,6 @@ export { ProgressBar, type ProgressBarProps } from './progress-bar';
 export { ProgressRing, type ProgressRingProps } from './progress-ring';
 export { AnimatedNumber, type AnimatedNumberProps } from './animated-number';
 export { StatBlock, type StatBlockProps } from './stat-block';
-export { ScreenHeader, type ScreenHeaderProps } from './screen-header';
 export { SegmentedControl, type SegmentOption, type SegmentedControlProps } from './segmented-control';
 
 // Motion helpers shared by screens that need bespoke animation

@@ -17,7 +17,7 @@ import { StyleSheet } from 'react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { FakeClock } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 import { RUNNING_ORDER_DIFFICULTY_PARAMS } from '../difficulty';
 import { generateStream, streamTarget } from '../generator';
@@ -214,8 +214,8 @@ describe('RunningOrderScreen verdict cues', () => {
       expect(within(option).queryByText('✕', { includeHiddenElements: true })).toBeNull();
       // R6: every tappable palette symbol meets the touch-target floor.
       expect(flatStyle(option)).toMatchObject({
-        minHeight: MinTouchTarget,
-        minWidth: MinTouchTarget,
+        minHeight: MIN_TOUCH_TARGET,
+        minWidth: MIN_TOUCH_TARGET,
       });
     }
   });

@@ -5060,3 +5060,124 @@ from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
 - Evidence: `openspec/changes/070-backup-transport-atomicity/`,
   `src/data-portability/{replacement,diagnostics-budget,forward-compat}.ts`,
   the three new suites, `src/app/data-management.tsx`.
+
+### Change 071 shared UI contract integrity — 2026-09-30 (VALIDATED / `CHANGE_071_COMPLETE`)
+
+- **Baseline (re-measured at `4394f9e`, 2026-09-30, before any edit):** 600 passed +
+  4 skipped suites / 7,051 passed + 5 skipped tests / 5 snapshots, 0 failures;
+  typecheck and lint clean; all validators PASS; OpenSpec `--all --strict` 59/59.
+- §1 accessibility-state composition: **PASS** — `accessibilityState` is
+  destructured out of the rest-spread and the rest-spread now comes FIRST, so a
+  component's own accessibility truth cannot be replaced by a caller's raw
+  state. The merge applies `disabled` AFTER the caller's state.
+  - **The audit's stated symptom was measured and found to be the wrong
+    direction, and that is recorded rather than papered over.** Measured both
+    shapes under test: (a) caller `{ disabled: true }` on an ENABLED control →
+    **before `{disabled: true}` (announced unpressable — WRONG), after
+    `{disabled: false}`**; (b) caller `{ selected: true }` on a DISABLED control
+    → identical before and after, because react-native's `Pressable` re-derives
+    `accessibilityState.disabled` from its own `disabled` prop and masked it.
+    So the defect that existed was "a caller could mark a pressable control as
+    disabled", not "a caller could erase `disabled`". The fix makes the
+    component own the flag in both directions rather than relying on RN's
+    internal merge. Both the code comment and the test header state the
+    measured truth, including the masked direction.
+  - **Mutation proof:** restoring the pre-fix prop order fails 2 of the 10
+    contract tests, including the real regression.
+- §2 one touch-target contract: **PASS** — the audit counted ~17 numeric call
+  sites; the measured number was **75 usages across 48 files**. All migrated in
+  one pass to the canonical `MIN_TOUCH_TARGET` from `@/components/a11y`, and the
+  duplicates are gone: the theme's `MinTouchTarget = 44` and the **third**
+  literal in `platform/touch.ts` (`MIN_TOUCH_TARGET_SIZE = 44`, which the plan
+  did not mention) both removed. The platform helper now DERIVES from the
+  canonical constant, so it cannot compute hit-slop against a different target
+  than the styles enforce.
+  - New `kit-contract-single-definition.test.ts` scans **all of `src`** and
+    asserts the value is declared in exactly one place, the canonical module —
+    a named allowlist rather than a blanket exclusion, so a third copy anywhere
+    (including a game module) is still a failure. It also asserts the barrel
+    re-exports rather than re-derives.
+- §3 unreachable kit surface removed: **PASS**, with one plan deviation recorded
+  per MASTER_PLAN §9.3. Deleted `ui/avatar.tsx`, `ui/screen-header.tsx`,
+  `shell/level-card.tsx`, `shell/streak-card.tsx`, `a11y/dialog.tsx`, and the
+  `LiveRegion` component.
+  - **`discovery/game-card.tsx` and `game-ui/result-row.tsx` were NOT deleted as
+    files.** The importer census showed their exported helpers are LIVE
+    (`masteryTierLabel` / `domainKeyFor` / `useDomainHue` by `game-detail/[id]`,
+    `game-poster-tile`, `game-stage`; `StatRow` is the twin every result surface
+    renders). Deleting the files as written would have deleted working code, so
+    only the dead `GameCard` and `ResultRow` components inside them were
+    removed. The deviation is recorded in the change's own task list.
+  - Dead auxiliary EXPORTS removed where the value is still used internally
+    (`CONFETTI_COLORS`, `CONFIRM_ARM_MS`): the `export` keyword went, the
+    constant stayed. The confirm-button test used to import the constant and
+    compared against it; it now spells out the window explicitly, because a test
+    that imports the value it is testing cannot detect the value changing.
+  - Barrel re-exports removed in the same change; `shell-a11y`/`app-shell` still
+    import the web `TabButton`/`CustomTabList`, so those stayed.
+- §4 `react-native-reanimated`: **NOT REMOVED — the premise is wrong and the step
+  was not forced.** The zero-import sweep was re-run and confirmed (no
+  first-party source, web path, plugin, or config). But it is a **peer
+  dependency of `expo-router`** (`peerDependencies["react-native-reanimated"] ===
+  "*"`) and a transitive dependency of `react-native-drawer-layout`, so it
+  installs either way; dropping our declaration would leave a peer unsatisfied
+  and change no runtime behaviour. Campaign 012's dependency audit had already
+  recorded the same conclusion (`.agent/_tasks/campaign012/W15.md:127`, "Zero
+  direct imports but NOT removable"). **The removal was attempted, measured,
+  and reverted**, and the finding is recorded in `.agent/BACKLOG.md` so nobody
+  re-attempts it on the strength of the audit's wording. §4.2 documentation is
+  still corrected: `AGENTS.md` and ADR 0001 described a Reanimated preference as
+  if the app used it, and now state what the code does (`Animated` via
+  `usePressFeedback`) and that Reanimated is present only as a router peer.
+- §5 documentation truth: **PASS** — `docs/DESIGN_SYSTEM.md` had genuinely
+  diverged from the shipped tokens, and the new
+  `design-system-doc.test.ts` is what found it: the documented radii
+  (extraSmall 8 · small 10 · medium 16 · large 22 · extraLarge 30) were the
+  **v3 generation**; the shipped tokens are **4 · 8 · 12 · 16 · 22 · pill 999**.
+  The palette hexes were also stale (doc `#FFF8EF`/`#14102A`/`#D6402A` vs shipped
+  `#F4F1E8`/`#0E1922`/`#C74632` light, `#FF806D` dark). All corrected, the
+  title lineage updated to "Signal Arcade", the removed components moved to a
+  changelog (§10) so the kit section lists only live surface, and the 44 dp
+  floor now names its single canonical constant.
+  - The suite asserts documented values **against the token source** (radii,
+    every numeric motion token, the background/text/accent hexes for both
+    schemes, the touch floor) so the next token change fails loudly instead of
+    quietly re-diverging — which is the point of §5.2. `components/a11y.ts` no
+    longer names the non-existent `result-feedback` module or the removed
+    `A11yDialog`, and states the real font-scale cap source.
+- §6 coverage gaps: **NOT DONE, recorded as owner debt.** No suites were added
+  for `Confetti`, `StateCard`, `SectionGrid`, and no toast-overflow test was
+  added. This is genuine remaining work in the change, not a partial pass: the
+  three primitives ship and are untested, and the toast queue still drops its
+  oldest message silently. Recorded here and in `.agent/BACKLOG.md` rather than
+  claimed complete.
+- §7.1 suites: **PASS** — `src/components` + `src/a11y` → 48 passed suites / 379
+  passed tests.
+- §7.2 full matrix: **PASS** — **601 passed + 4 skipped suites / 7,047 passed +
+  5 skipped tests / 5 snapshots, 0 failures**. Signal gate `pass: true`,
+  5 classified skips, 0 unclassified, 0 ambiguous, 0 mismatches, both floors met.
+  **No new skips.**
+  - **The two snapshot failures on the first run were the correct consequence of
+    the §1 fix, not a regression, and the snapshots were justified rather than
+    the fix reverted** (task 1.4). The delta is **8 lines, all identical**:
+    `"disabled": undefined` → `"disabled": false` on tab-role nodes. The old
+    snapshot recorded the pre-fix shape, where a `Tappable` that passed no
+    caller state emitted an ABSENT `disabled` key; the component now always
+    emits the explicit boolean. No other snapshot byte changed.
+- §7.3 typecheck / lint: **PASS** — 0 errors; 0 errors, 0 warnings.
+- §7.4 device lane: **NOT VALIDATED.** No AVD was exercised in this session. Owed:
+  a disabled segmented option announced as disabled, and tab/list controls
+  meeting the 44 dp target at the default and large font scale. The unit
+  contract now pins the announcement; the rendered-target check is still owed.
+- §7.5 accessibility audit script: **NOT VALIDATED.** Not re-run in this
+  session; the removal of unreachable components cannot change the shipped
+  surfaces, but the claim is not made without running it.
+- Completeness (§3.6): **PASS** — `npm run typecheck` clean, `npm run lint`
+  clean, and a repo-wide grep shows zero dangling references to any removed
+  symbol. The only surviving textual matches are user-facing copy
+  ("Avatar Frames" cosmetics label), the `BACKLOG`/changelog notes that must
+  name the removals, and the now-private constants' internal uses.
+- Evidence: `openspec/changes/071-shared-ui-contract-integrity/`,
+  `src/components/ui/__tests__/kit-contract-single-definition.test.tsx`,
+  `src/components/__tests__/design-system-doc.test.ts`,
+  `docs/DESIGN_SYSTEM.md`, `.agent/BACKLOG.md`, ADR 0001, `AGENTS.md`.

@@ -62,6 +62,28 @@ plus historical follow-ups.
     Owner: release-engineering orchestrator; fix if the dependency ever exposes
     fsync, otherwise accept the documented bound explicitly. Post-067
     product/data decision.
+- `react-native-reanimated` is imported by no first-party source — **NOT removable**
+  (Change 071 reconciled the audit's premise, 2026-09-30). The audit listed it as
+  an "unused native runtime dependency" to be deleted from `apps/mobile/package.json`.
+  Measured before acting on that: it is a **peer dependency of `expo-router`**
+  (`peerDependencies["react-native-reanimated"] === "*"`, read from
+  `node_modules/expo-router/package.json`) and a transitive dependency of
+  `react-native-drawer-layout`, and Campaign 012's dependency audit
+  (`.agent/_tasks/campaign012/W15.md:127`) had already reached the same
+  conclusion: "Zero direct imports but NOT removable: … (router peers + native
+  autolinking + babel-preset-expo auto-plugin — verified zero src references via
+  rg exit-1 sweep)". Deleting the direct declaration would leave a peer
+  unsatisfied at the manifest level and change no runtime behavior, because the
+  package still installs transitively. Per MASTER_PLAN §9.3 the plan step was
+  not forced: the premise was wrong, so the change is **reverted and the finding
+  recorded** instead. Owner decision needed only if a future Expo release drops
+  the peer requirement; there is nothing to fix while it holds.
+- Shared-kit coverage gaps (recorded by Change 071, 2026-09-30): `Confetti`,
+  `StateCard` and `SectionGrid` ship with no dedicated suite, and the toast
+  queue still drops its oldest message silently with no test pinning that
+  behavior. These are real untested surfaces, not theoretical ones.
+  Owner: release-engineering orchestrator; add the suites when the kit is next
+  touched rather than as a standalone coverage push.
 - Snapshot review debt (deferred by Change 065):
   `apps/mobile/src/app/__tests__/visual-baselines.test.tsx` holds the only
   snapshots (one ~304 KB file) with a history of wholesale `-u` regenerations;

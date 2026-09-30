@@ -581,9 +581,14 @@ export const MediumLayoutMaxWidth = Breakpoints.medium;
 
 /**
  * Minimum interactive target (dp) — WCAG 2.5.5 / platform guidance.
- * Mirrors `@/platform/touch` so style-only callers can reference it.
+ *
+ * 071: this numeric duplicate is GONE. The canonical definition is
+ * `MIN_TOUCH_TARGET` in `@/components/a11y/touch-target`, which also owns the
+ * matching style fragment. Two exported names for one number is how a migration
+ * ends up half-applied, and a half-applied accessibility constant is worse than
+ * either version alone: a reader cannot tell which one a given file is
+ * asserting. `kit-contract.test.ts` fails if a second definition returns.
  */
-export const MinTouchTarget = 44;
 
 /**
  * Reference height of the iOS home-indicator / Android gesture-navigation

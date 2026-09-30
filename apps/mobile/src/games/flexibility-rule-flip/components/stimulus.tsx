@@ -18,7 +18,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { useTheme } from '@/hooks/use-theme';
 
 import type { Card, ColorId, ShapeId } from '../types';
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   // Campaign 065 touch-target guard: the card visual is sized by its inner
   // container, so the pressable declares the shared floor explicitly.
   pressable: {
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
   },
   container: {
     position: 'relative',

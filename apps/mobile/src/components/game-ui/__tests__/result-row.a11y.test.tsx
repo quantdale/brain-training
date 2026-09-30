@@ -1,5 +1,5 @@
 /**
- * ResultRow / StatRow accessibility — shared primitive contract (task 08).
+ * StatRow accessibility — shared primitive contract (task 08).
  *
  * These are pure presentational rows with no theme/interaction dependency, so
  * they live in their own file to stay isolated from the interactive
@@ -14,11 +14,11 @@
 import { describe, expect, it } from "@jest/globals";
 import { render, screen } from "@testing-library/react-native";
 
-import { ResultRow, StatRow } from "@/components/game-ui";
+import { StatRow } from '@/components/game-ui';
 
-describe("ResultRow / StatRow accessibility", () => {
+describe("StatRow accessibility", () => {
    it("presents label and value as one accessible statement", async () => {
-      await render(<ResultRow label="Accuracy" value="100%" />);
+      await render(<StatRow label="Accuracy" value="100%" />);
 
       const row = screen.getByLabelText("Accuracy: 100%");
       expect(row.props.accessible).toBe(true);

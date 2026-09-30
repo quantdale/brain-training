@@ -21,12 +21,13 @@ import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { testId } from "@/sdk";
-import { MinTouchTarget, Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from "@/hooks/use-theme";
 
 import { responseById, stimulusById } from "../pairs";
 import { GAME_ID } from "../types";
 import type { PairRecallRound } from "../types";
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 /** Reducer-authoritative outcome of the cue currently being replayed. */
 export interface CueVerdict {
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
     // Explicit touch-target floor; the palette wraps well above it on every
     // tier, and real size (not hitSlop) is used so adjacent options never
     // overlap.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     alignItems: "center",
     justifyContent: "center",
     borderRadius: Radii.medium,

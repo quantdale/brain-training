@@ -11,7 +11,7 @@ import { StyleSheet } from 'react-native';
 import { createFakeClock, createInMemoryTutorialStore, createRng, testId } from '@/sdk';
 import type { CompleteSessionInput } from '@/db';
 import type { FakeClock } from '@/sdk';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 import SymbolTrackerScreen from '../screen';
 import { EMPTY, generateRound } from '../generator';
@@ -136,6 +136,6 @@ describe('SymbolTrackerScreen verdict cue', () => {
     expect(screen.getByTestId(testId(GAME_ID, 'score-live'))).toBeOnTheScreen();
 
     // Board cells meet the touch-target floor.
-    expect(flatStyle(wrongCellEl)).toMatchObject({ minHeight: MinTouchTarget });
+    expect(flatStyle(wrongCellEl)).toMatchObject({ minHeight: MIN_TOUCH_TARGET });
   });
 });

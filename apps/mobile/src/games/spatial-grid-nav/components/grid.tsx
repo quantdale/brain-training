@@ -11,11 +11,12 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { testId } from "@/sdk";
 import { ThemedText } from "@/components/themed-text";
-import { MinTouchTarget, Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from "@/hooks/use-theme";
 
 import { GAME_ID } from "../types";
 import type { Cell, Command, Dir } from "../types";
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 /** Unicode arrow glyphs per facing direction. */
 export const DIR_ARROW: Readonly<Record<Dir, string>> = {
@@ -295,8 +296,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 8,
     padding: Spacing.one,
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
   },
   verdict: {
     position: "absolute",

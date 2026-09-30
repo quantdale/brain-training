@@ -8,9 +8,20 @@
  */
 
 import type { Insets } from 'react-native';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
-/** Minimum comfortable touch-target edge in dp (iOS HIG and Material both cite 44–48). */
-export const MIN_TOUCH_TARGET_SIZE = 44;
+/**
+ * Minimum comfortable touch-target edge in dp (iOS HIG and Material both cite
+ * 44–48).
+ *
+ * 071: this used to be a third literal `44`, independent of both the
+ * accessibility constant and the theme export. Three copies of one
+ * accessibility number is precisely the drift the audit flagged — nothing
+ * connected them, so lowering or raising one would silently leave the others
+ * asserting a different target. It now DERIVES from the canonical constant, so
+ * it cannot disagree with the rest of the app by construction.
+ */
+export const MIN_TOUCH_TARGET_SIZE: number = MIN_TOUCH_TARGET;
 
 /**
  * Hit slop that expands a control's tappable area to `MIN_TOUCH_TARGET_SIZE`

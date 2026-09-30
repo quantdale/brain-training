@@ -8,6 +8,7 @@
  * colour, exact tab selection, and activation blocking on icon controls.
  */
 
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet, Text } from 'react-native';
@@ -16,10 +17,10 @@ import { AnimatedNumber } from '@/components/ui/animated-number';
 import { IconButton } from '@/components/ui/icon-button';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { ProgressRing } from '@/components/ui/progress-ring';
-import { ScreenHeader } from '@/components/ui/screen-header';
+
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { StatBlock } from '@/components/ui/stat-block';
-import { Colors, METRIC_COLOR_KEYS, MinTouchTarget } from '@/theme/tokens';
+import { Colors, METRIC_COLOR_KEYS, } from '@/theme/tokens';
 
 // `mock`-prefixed name: jest.mock factories are hoisted and may only close
 // over variables whose name starts with `mock`.
@@ -159,7 +160,7 @@ describe('SegmentedControl', () => {
     );
     for (const id of ['compact-option-7d', 'compact-option-30d']) {
       expect(flatten(screen.getByTestId(id).props.style).minHeight).toBeGreaterThanOrEqual(
-        MinTouchTarget,
+        MIN_TOUCH_TARGET,
       );
     }
   });
@@ -187,20 +188,3 @@ describe('IconButton', () => {
   });
 });
 
-describe('ScreenHeader', () => {
-  it('renders a labelled 44 dp back control that fires onBack', async () => {
-    const onBack = jest.fn();
-    await render(<ScreenHeader title="Memory" onBack={onBack} testID="header" />);
-    const back = screen.getByTestId('header-back');
-    expect(back.props.accessibilityRole).toBe('button');
-    expect(back.props.accessibilityLabel).toBe('Back');
-    expect(flatten(back.props.style).height).toBeGreaterThanOrEqual(MinTouchTarget);
-    await fireEvent.press(back);
-    expect(onBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('omits the back control without onBack', async () => {
-    await render(<ScreenHeader title="Memory" />);
-    expect(screen.queryByTestId('screen-header-back')).toBeNull();
-  });
-});

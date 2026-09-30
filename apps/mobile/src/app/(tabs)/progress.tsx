@@ -98,7 +98,7 @@ import {
   Tappable,
 } from '@/components/ui';
 import { DomainColors, Radii, Spacing, type DomainName } from '@/constants/theme';
-import { MinTouchTarget } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import type { AppDatabase, GameSessionRecord, WorkoutInstance } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
@@ -1444,7 +1444,7 @@ const styles = StyleSheet.create({
   },
   // 058: text-only links meet the 44dp floor by style, not by accident.
   textLinkRow: {
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     alignSelf: 'flex-start',
   },

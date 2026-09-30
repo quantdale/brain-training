@@ -12,7 +12,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget, Radii, Spacing, type ThemeColor } from '@/theme/tokens';
+import { Radii, Spacing, type ThemeColor } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { Tappable } from './tappable';
 
 /** Props accepted by {@link ListRow}. */
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.twoHalf,
     // minHeight (not height) so wrapped subtitles grow the row.
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.two,
   },
   icon: {

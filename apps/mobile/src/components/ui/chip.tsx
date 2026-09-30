@@ -12,7 +12,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
-import { MinTouchTarget, Spacing } from '@/theme/tokens';
+import { Spacing } from '@/theme/tokens';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { HAIRLINE, RADIUS_CAP } from './radius';
 import { Tappable } from './tappable';
 
@@ -31,7 +32,7 @@ export interface ChipProps {
 // The chip is a real 44 dp target rather than a small pill with invisible
 // slop: the hierarchy audit measures laid-out bounds, and a filter row of
 // 34 dp pills is genuinely harder to hit on a phone.
-const CHIP_HEIGHT = MinTouchTarget;
+const CHIP_HEIGHT = MIN_TOUCH_TARGET;
 
 export function Chip({
   label,
@@ -96,8 +97,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: RADIUS_CAP,
-    minWidth: MinTouchTarget,
-    minHeight: MinTouchTarget,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
   },
   disabled: {

@@ -21,8 +21,8 @@ export type { TutorialFrameProps } from './tutorial-frame';
 export { QaPanelShell } from './qa-panel-shell';
 export type { QaPanelShellProps } from './qa-panel-shell';
 
-export { ResultRow, StatRow } from './result-row';
-export type { ResultRowProps } from './result-row';
+export { StatRow } from './result-row';
+export type { StatRowProps } from './result-row';
 
 export { SessionHeader } from './session-header';
 export type { SessionHeaderProps } from './session-header';

@@ -9,10 +9,11 @@
  * `EmptyState` fires its single action exactly once.
  */
 
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
-import { Avatar } from '@/components/ui/avatar';
+
 import { Badge } from '@/components/ui/badge';
 import { Chip } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -20,7 +21,7 @@ import { ListRow } from '@/components/ui/list-row';
 import { Skeleton, SkeletonText } from '@/components/ui/skeleton';
 import { TextField } from '@/components/ui/text-field';
 import { ToastHost, resetToastQueueForTests, showToast, toastQueueTitlesForTests } from '@/components/ui/toast';
-import { MinTouchTarget, Motion } from '@/theme/tokens';
+import { Motion } from '@/theme/tokens';
 
 // `mock`-prefixed name: jest.mock factories are hoisted and may only close
 // over variables whose name starts with `mock`.
@@ -105,7 +106,7 @@ describe('Chip', () => {
       minHeight?: number;
     }[];
     const minHeight = flat.reduce((acc, entry) => Math.max(acc, entry.minHeight ?? 0), 0);
-    expect(minHeight).toBeGreaterThanOrEqual(MinTouchTarget);
+    expect(minHeight).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
   });
 });
 
@@ -235,18 +236,5 @@ describe('Toast', () => {
     await render(<ToastHost testID="host" />);
     expect(screen.getByTestId('host').props.pointerEvents).toBe('none');
     expect(screen.getByTestId('toast').props.accessibilityLiveRegion).toBe('polite');
-  });
-});
-
-describe('Avatar', () => {
-  it('renders the label at the default 44 dp size when no emoji is given', async () => {
-    await render(<Avatar label="Ada" testID="avatar" />);
-    expect(screen.getByText('Ada')).toBeTruthy();
-    const style = screen.getByTestId('avatar').props.style;
-    const flattened = (Array.isArray(style)
-      ? Object.assign({}, ...style.flat().filter(Boolean))
-      : style) as { width: number; height: number };
-    expect(flattened.width).toBe(MinTouchTarget);
-    expect(flattened.height).toBe(MinTouchTarget);
   });
 });

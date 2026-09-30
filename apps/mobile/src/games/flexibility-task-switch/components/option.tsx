@@ -20,8 +20,9 @@ import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { MinTouchTarget, Radii, Spacing } from "@/constants/theme";
+import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from "@/hooks/use-theme";
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 
 export type OptionVisualState = "idle" | "correct" | "wrong" | "dim";
 
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.two,
-    minHeight: MinTouchTarget,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.four,
     borderRadius: Radii.medium,

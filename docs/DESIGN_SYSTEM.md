@@ -1,8 +1,16 @@
-# Design System — "Neon Arcade" (v3, Campaign 026)
+# Design System — "Signal Arcade"
 
-This document describes the visual language shipped by Campaign 026. It
-supersedes the Campaign 024 "Playful Precision" system (calm blue-indigo on
-near-white), which the owner rejected as visually generic. Tokens live in
+This document describes the visual language the app **currently ships**. Its
+concrete values — radii, motion durations, and the palette hexes — are not a
+prose summary: `apps/mobile/src/components/__tests__/design-system-doc.test.ts`
+asserts every value stated below against the token source, so a token change
+fails that suite until this document is updated with it. If a number here and a
+number in `theme/tokens.ts` ever disagree, the tokens win and this file is
+stale.
+
+Lineage: Campaign 026 established the arcade direction (superseding Campaign
+024's "Playful Precision"), and Campaigns 051–055 rebuilt the surface into the
+current "Signal Arcade" palette below. Tokens live in
 `apps/mobile/src/theme/tokens.ts`; the palette is contrast-verified by
 `theme/__tests__/contrast.test.ts`.
 
@@ -29,12 +37,15 @@ identities are flattened into the theme key space (e.g. `theme.memory`,
 | `softText` | text drawn on `soft` | 4.5:1 |
 | `on` | text/glyph drawn on `base` | 4.5:1 |
 
-- **Light "paper arcade":** cream background `#FFF8EF`, white cards, warm
-  borders, near-black ink text.
-- **Dark "ink arcade":** deep plum `#14102A`, raised surfaces `#1E1838`/`#251E44`,
-  warm off-white text, luminous family fills with dark `on` colours.
-- **Primary action:** vermillion (`#D6402A` light / `#FF8A73` dark) — CTAs,
-  links, active tab lozenge. Pressed state uses `accentStrong`.
+- **Light "paper arcade":** warm paper background `#F4F1E8`, card surface
+  `#FFFDF7`, cool-teal borders `#C9D6D3`, deep teal ink `#10232D`, secondary
+  ink `#4C5D63`.
+- **Dark "ink arcade":** deep teal-ink background `#0E1922`, raised surface
+  `#152733`, border `#2C4752`, warm off-white text `#F6F1E7`, secondary
+  `#B9C7C8`, luminous family fills with dark `on` colours.
+- **Primary action:** vermillion (`#C74632` light / `#FF806D` dark) — CTAs,
+  links, active tab lozenge. Pressed state uses `accentStrong`
+  (`#A63829` light / `#FF9D8C` dark).
 - **Metric identities (fixed, never reassigned):** XP violet, streak orange,
   currency amber, time blue, accuracy green, score accent.
 - **Domain identities (8):** attention orange, flexibility violet, language
@@ -51,7 +62,7 @@ numeral styles are tabular so counters never reflow.
 
 ## 4. Geometry, elevation and the button lip
 
-Radii: extraSmall 8 · small 10 · medium 16 · large 22 · extraLarge 30 · pill.
+Radii: extraSmall 4 · small 8 · medium 12 · large 16 · extraLarge 22 · pill 999.
 Cards carry a 1.5–2 px border in light mode; separation in dark mode comes from
 value, not shadow. Filled buttons carry a darker 4 dp bottom lip so the primary
 action reads as a physical key; the press spring compresses it. Elevation stays
@@ -60,8 +71,7 @@ light mode.
 
 ## 5. Motion
 
-`Motion`: press 90 · quick 140 · base 220 · entrance 280 · hero 340 ·
-celebration 700 · stagger 60 · travel 14. Springs: `press` snappy, `progress`
+`Motion`: press 90 · quick 140 · base 220 · entrance 280 · hero 340 · celebration 700 · stagger 60 · travel 14. Springs: `press` snappy, `progress`
 settling, `hero` soft. Entrance transitions stagger by index. Every decorative
 animation collapses under reduced motion (`usePrefersReducedMotion`), including
 confetti, which renders no pieces when motion is reduced.
@@ -70,12 +80,13 @@ confetti, which renders no pieces when motion is reduced.
 
 `Tappable`, `Button` (lip), `IconButton`, `Card` (plain/outlined/raised/hero,
 family `tone`), `SectionGrid`, `BackLink`, `Entrance`, `Chip`, `Badge`,
-`ListRow`, `EmptyState`, `Skeleton`, `Avatar`, `TextField`, `ToastHost`,
-`ProgressBar`, `ProgressRing`, `AnimatedNumber`, `StatBlock`, `ScreenHeader`,
-`SegmentedControl`, plus identity primitives `Spark` (mark), `Confetti`
-(deterministic, margins-only, reduced-motion aware) and `StreakStrip` (day dots
-+ count pill). The kit owns press feedback, haptics, 44 dp floors, token
-discipline and accessibility defaults.
+`ListRow`, `EmptyState`, `Skeleton`, `TextField`, `ToastHost`, `ProgressBar`,
+`ProgressRing`, `AnimatedNumber`, `StatBlock`, `SegmentedControl`, plus
+identity primitives `Spark` (mark), `Confetti` (deterministic, margins-only,
+reduced-motion aware) and `StreakStrip` (day dots + count pill). The kit owns
+press feedback, haptics, 44 dp floors, token discipline and accessibility
+defaults.
+
 
 ## 7. Composition rules
 
@@ -94,7 +105,8 @@ discipline and accessibility defaults.
 ## 8. Accessibility
 
 Contrast: WCAG AA (4.5:1 body, 3:1 large/UI) asserted for every semantic and
-domain pairing in both schemes. Interactive targets ≥ 44×44 dp. Reduced motion
+domain pairing in both schemes. Interactive targets ≥ 44 dp (`MIN_TOUCH_TARGET`, the single canonical constant
+in `@/components/a11y`; a second definition of it fails the kit contract test). Reduced motion
 and font-scale-2 remain first-class and are exercised by the kit contract tests
 and native capture profiles.
 
@@ -105,3 +117,19 @@ contrast test, and compose screens from kit primitives + tokens only —
 hardcoded colours or one-off controls are defects. Gameplay, scoring,
 generators, persistence and every existing testID are outside the design
 system's ownership: restyle the skin, never the mechanics.
+
+## 10. Changelog
+
+- **Change 071 (2026-09-30).** Removed as unreachable: `Avatar`,
+  `ScreenHeader`, `LevelCard`, `StreakCard` and `ResultRow` (the last superseded
+  by `StatRow`, which shares its file). The two "game card" shapes were
+  superseded by `GamePosterTile`. Recoverable from git history at the removing
+  commit; re-add only with a real caller, because a documented-but-absent
+  component sends the next author looking for an import that does not exist.
+- **Change 071 (2026-09-30).** This document's concrete values are now asserted
+  against `theme/tokens.ts` by
+  `apps/mobile/src/components/__tests__/design-system-doc.test.ts`, and the
+  palette/radii/motion values above were corrected to the shipped tokens. The
+  44 dp floor has a single canonical constant (`MIN_TOUCH_TARGET` in
+  `@/components/a11y`); the duplicate theme export and the platform literal were
+  removed.
