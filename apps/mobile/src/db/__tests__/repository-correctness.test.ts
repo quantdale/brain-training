@@ -25,6 +25,10 @@ import { SessionRepository } from '../sessions';
 import type { WindowedSessionAggregate } from '../sessions';
 import { executeBatch } from '../batch';
 import { SQL_VARIABLE_CHUNK } from '../query';
+import {
+  REENTRANT_SQLITE_ERROR_NAME,
+  isReentrantTransactionError,
+} from '../transaction-scope';
 import { createMigratedDb } from './helpers';
 
 const T0 = 1_700_000_000_000;
@@ -227,19 +231,46 @@ describe('executeBatch (real database)', () => {
   it('rejects nesting inside an open transaction and leaves the outer work rolled back', async () => {
     // Pins the adapter contract ("Transactions do not nest", adapter.ts) for
     // batch callers: executeBatch must be given the ROOT adapter OUTSIDE any
-    // transaction. On the node backend the inner BEGIN IMMEDIATE throws, the
-    // error propagates, and the outer transaction rolls back entirely. The
-    // expo backend (withExclusiveTransactionAsync) fails equivalently.
+    // transaction.
+    //
+    // 068 — this assertion previously claimed the node backend "fails
+    // equivalently" via `withExclusiveTransactionAsync` on the expo backend.
+    // That was wrong twice over: the expo adapter stopped using
+    // `withExclusiveTransactionAsync` in Change 065 (it runs BEGIN/COMMIT on
+    // the MAIN connection so the foreign-key pragma applies), and on the expo
+    // backend the original symptom was not an error at all — it was a
+    // permanent, silent freeze, because the nested call waited on the very
+    // queue slot its own transaction was holding. Both backends now reject with
+    // the SAME explicit `SQLiteReentrantTransactionError` before reaching
+    // `BEGIN`, so the assertion is the real contract and not an accident of one
+    // engine's error text. See `__tests__/storage-parity.test.ts` for the
+    // cross-backend proof and the per-backend suites for the fake-native-handle
+    // evidence.
     const adapter = await createMigratedDb();
-    await expect(
-      adapter.transaction(async () => {
+    // Assert the typed identity explicitly rather than matching message text:
+    // jest's `toThrow(fn)` treats a function as an error CONSTRUCTOR, not a
+    // predicate, and matching the message would keep this pinned to wording
+    // rather than to the contract both backends now share.
+    let caught: unknown;
+    try {
+      await adapter.transaction(async () => {
         await executeBatch(adapter, [
           { sql: "INSERT INTO game_favorites (game_id, created_at) VALUES ('n1', 1)" },
         ]);
-      }),
-    ).rejects.toThrow(/within a transaction/i);
+      });
+    } catch (error) {
+      caught = error;
+    }
+    expect(isReentrantTransactionError(caught)).toBe(true);
+    expect((caught as Error).message).toMatch(/SQLite re-entrancy/);
+    expect((caught as Error).name).toBe(REENTRANT_SQLITE_ERROR_NAME);
 
     expect(await adapter.all('SELECT * FROM game_favorites')).toHaveLength(0);
+
+    // The rejection is a programming error, not a corrupted connection: a later
+    // independent statement on the same adapter still completes.
+    await expect(adapter.run("INSERT INTO game_favorites (game_id, created_at) VALUES ('n2', 1)")).resolves.toMatchObject({ changes: 1 });
+    expect(await adapter.all('SELECT * FROM game_favorites')).toHaveLength(1);
     await adapter.close();
   });
 });

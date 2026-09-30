@@ -1,5 +1,67 @@
 # Known Issues / Blockers
 
+## Storage-seam latent exposure — SQLite adapter re-entrancy (2026-09-30, Change 068)
+
+**Severity: High (latent, unrecoverable if triggered). Owner: storage/runtime
+owner (release-engineering orchestrator). Status: guarded; residual exposure
+accepted and bounded.**
+
+- **What was wrong.** `docs/hardening/post067/PASS_B_RUNTIME.md` recorded "the
+  adapter … verified it fails loudly at `BEGIN`". That was measured on the Node
+  test backend only. On the device backend, a nested `transaction()` — or a
+  connection-level `exec()` — reached through the outer adapter was enqueued
+  behind the single per-native-handle queue slot its own transaction was
+  holding. It never reached `BEGIN`, never rejected, and never resolved: a
+  permanent, error-free application freeze with no log line and no recovery
+  short of killing the process.
+- **What changed.** Re-entrancy is now rejected BEFORE enqueueing on both
+  backends with one shared `SQLiteReentrantTransactionError`
+  (`src/db/transaction-scope.ts`), keyed on the native handle (Expo) / driver
+  handle (Node) so two JS wrappers over one native database are one transaction
+  scope. `AppDatabase.rawExec()` inherits the same guard.
+- **Remaining latent exposure (accepted, not fixed):** a *future* call site
+  that forgets to thread `txn` is no longer a freeze, but it is now a thrown
+  error on a user-visible path, which would surface as a failed session
+  completion, claim, or reroll. The guard converts an unrecoverable silent
+  failure into a loud, diagnosable one; it does not make the mistake
+  impossible.
+  - **Current exposure measured 2026-09-30: zero.** All 31 non-test
+    `transaction(` call sites thread `txn`, and no production code wraps
+    `transaction()` in a `Promise.all` against one adapter.
+  - **Narrowing accepted deliberately:** because the guard is a property of the
+    connection rather than of the call stack, an independent caller that opens a
+    transaction *while another transaction's body is awaiting* is rejected
+    instead of being queued behind it. Both are correct serializations; the
+    rejection cannot deadlock. Zero current call sites rely on the queued form.
+  - **Bounded by:** `src/db/adapters/__tests__/expo.test.ts` (device half, with
+    a jest timeout as a hang backstop) and
+    `src/db/__tests__/transaction-reentrancy.test.ts` (Node half, 13 cases).
+- **Device-lane requirement (NOT VALIDATED):** the device half is proven against
+    a fake native handle, not a real `expo-sqlite` connection. The on-device
+    `PRAGMA foreign_keys / busy_timeout / journal_mode / synchronous` and
+    `sqlite_version()` snapshot is still owed on the dedicated AVD — see the
+    Change 068 validation record in `.agent/VALIDATION.md`.
+
+## Connection-invariant device confirmation — WAL sidecars (2026-09-30, Change 068)
+
+**Severity: Medium (operational, not a defect). Owner: release-engineering
+orchestrator. Status: decided, device confirmation owed.**
+
+- `journal_mode = WAL` is now applied and asserted on every connection. It is a
+  **persistent property of the database file** and creates `-wal` / `-shm`
+  sidecars (measured: the `-wal` file appears on the first write and is
+  checkpointed away on close). A reader that cannot create those sidecars sees
+  an unreadable database.
+- **Consequences already handled:** the backup path exports through the logical
+  backup API rather than copying the file, so the exported envelope is
+  unaffected. `synchronous = NORMAL` is documented as trading power-loss
+  durability for commit latency, which is the right trade for a local
+  offline-first single-device product but is a decision, not a free win.
+- **Owed:** the certification ledger's on-device SQLite audit must expect the
+  sidecars, and a device-lane check must confirm that an existing install
+  (created before this change, in rollback-journal mode) transitions to WAL on
+  next open without data loss.
+
 ## Campaign 055 disposition — DESIRABILITY PASS (2026-09-20, VALIDATED / COMPLETE)
 
 Verdict `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`. All RETHINK/REFINE surfaces

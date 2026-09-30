@@ -1,0 +1,12 @@
+{
+  "platform": "win32 node v24.3.0",
+  "measuredAt": "2026-09-30T14:56:19.940Z",
+  "activeQuests": 9,
+  "engineFirst_ms": 92.3672,
+  "partitionedAfterEngine_ms": 94.0665,
+  "partitionedFirst_ms": 82.4557,
+  "engineAfterPartitioned_ms": 79.7138,
+  "interleavedEngine_ms": 47.9023,
+  "interleavedPartitioned_ms": 48.4976,
+  "keysOnlySinglePass_ms": 19.8201
+}

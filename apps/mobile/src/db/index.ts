@@ -153,9 +153,11 @@ export class AppDatabase {
   /**
    * Run `fn` inside a single write transaction (task 7.1–7.4). `fn` receives the
    * transaction connection, which every economy/claim repository call must use
-   * so all steps commit together or roll back as one. The adapter forbids
-   * nesting, so callers must pass `txn` into repositories rather than opening a
-   * nested transaction.
+   * so all steps commit together or roll back as one. Transactions do not nest:
+   * calling this while a transaction is open throws a typed
+   * `SQLiteReentrantTransactionError` on BOTH backends (Change 068) rather than
+   * hanging the app on device or silently joining the outer transaction in
+   * tests. The guard is a precondition on the connection, not on this method.
    */
   transaction<T>(fn: (txn: SQLiteAdapter) => Promise<T>): Promise<T> {
     return this.adapter.transaction(fn);
@@ -169,6 +171,15 @@ export class AppDatabase {
    * replace path uses this seam to drop append-only DELETE triggers before its
    * wipe transaction and recreates the exact captured definitions afterward.
    * Added as an isolated, intentional core-DB API convenience.
+   *
+   * 068 — this is a CONNECTION-level entry point, so reaching it from inside
+   * an open transaction body is precisely the defect class that used to hang
+   * the app on device (the statement waits on the queue slot its own
+   * transaction is holding) and silently join the transaction in tests. It now
+   * inherits the adapters' explicit re-entrancy rejection on both backends, so
+   * the mistake is a typed programming error rather than a freeze or a silent
+   * rollback. The three data-portability callers all run outside a transaction
+   * by construction, so no legitimate call changes.
    */
   rawExec(sql: string): Promise<void> {
     return this.adapter.exec(sql);

@@ -1,5 +1,12 @@
 import type { SQLiteAdapter } from './adapter';
-import { CANONICAL_TRIGGER_DDL, MIGRATIONS, SCHEMA_VERSION, SQL, type Migration } from './schema';
+import {
+  CANONICAL_TRIGGER_DDL,
+  MIGRATIONS,
+  REQUIRED_JOURNAL_MODE,
+  SCHEMA_VERSION,
+  SQL,
+  type Migration,
+} from './schema';
 
 /**
  * Migration runner driven by `PRAGMA user_version`.
@@ -116,7 +123,209 @@ export async function ensureSchemaGuards(adapter: SQLiteAdapter): Promise<void> 
   }
 }
 
-/** Connection-level pragmas every database needs before migrations run. */
+/** One connection invariant and the value the app requires it to hold. */
+export interface ConnectionInvariant {
+  name: string;
+  apply: string;
+  probe: string;
+  /** Value the invariant must hold; `null` means "must be a number > 0". */
+  equals: number | string | null;
+  /**
+   * Additional values that are correct for a purely in-memory database, where
+   * the setting has no file to apply to. Empty for invariants that behave
+   * identically either way.
+   */
+  inMemoryAccepts: readonly string[];
+  describe: (value: unknown) => string;
+}
+
+/**
+ * The connection-level invariants every backend must satisfy, in apply order
+ * (Change 068).
+ *
+ * These are asserted rather than assumed. The audit found the device running
+ * with `busy_timeout = 0` and an implicit rollback journal because no pragma
+ * was ever issued for them, and the test backend could not see the difference
+ * because it inherits a different driver default. A setting that is applied but
+ * never read back is the same defect with an extra line of code, so
+ * `initializeConnection` fails startup rather than proceeding on an assumption.
+ */
+export const CONNECTION_INVARIANTS: readonly ConnectionInvariant[] = [
+  {
+    name: 'foreign_keys',
+    apply: SQL.foreignKeysOn,
+    probe: SQL.foreignKeysProbe,
+    equals: 1,
+    inMemoryAccepts: [],
+    describe: (v) => String(v),
+  },
+  {
+    name: 'busy_timeout',
+    apply: SQL.busyTimeout,
+    probe: SQL.busyTimeoutProbe,
+    // `null` = "must be a number greater than zero". A timeout of 0 means
+    // "fail instantly", which is the device's inherited default and the exact
+    // divergence being closed, so a hardcoded expectation would be a weaker
+    // check than "the app's stated requirement is in force".
+    equals: null,
+    inMemoryAccepts: [],
+    describe: (v) => String(v),
+  },
+  {
+    name: 'journal_mode',
+    apply: SQL.journalModeWal,
+    probe: SQL.journalModeProbe,
+    equals: REQUIRED_JOURNAL_MODE,
+    // A `:memory:` database has no file, so SQLite has nowhere to put a WAL and
+    // `memory` is the only value it can possibly report. Treating that as a
+    // violation would mean the invariant could not be asserted at all for the
+    // entire test suite — the assertion is the point, so the exception is
+    // explicit and narrow instead of the check being disabled.
+    inMemoryAccepts: ['memory'],
+    describe: (v) => String(v),
+  },
+  {
+    name: 'synchronous',
+    apply: SQL.synchronousNormal,
+    probe: SQL.synchronousProbe,
+    // 1 = NORMAL. `FULL` (2) is SQLite's default and forces an fsync on every
+    // commit; with WAL already providing crash-atomicity, NORMAL is the
+    // standard companion and is asserted rather than assumed. Reported as the
+    // integer SQLite's probe returns, so the expectation is the engine's own
+    // encoding rather than a name it may not echo back.
+    equals: 1,
+    inMemoryAccepts: [],
+    describe: (v) => String(v),
+  },
+] as const;
+
+/** One invariant whose effective value did not meet the requirement. */
+export interface ConnectionInvariantViolation {
+  invariant: string;
+  expected: string;
+  actual: string;
+}
+
+/** Normalize a probed pragma value for comparison and reporting. */
+function normalizeInvariantValue(value: unknown): string {
+  if (typeof value === 'string') return value.trim().toLowerCase();
+  if (typeof value === 'number' || typeof value === 'bigint') return String(value);
+  if (value === null || value === undefined) return 'null';
+  // Drivers disagree on pragma row shape (column name and numeric type), so
+  // read the first value in the row: the comparison must depend on the
+  // engine's answer, not on which driver produced it.
+  if (typeof value === 'object') {
+    const first = Object.values(value as Record<string, unknown>)[0];
+    return normalizeInvariantValue(first);
+  }
+  return String(value);
+}
+
+/**
+ * True when the `main` database has no backing file.
+ *
+ * `PRAGMA database_list` reports an empty `file` column for a `:memory:`
+ * database and a path for a file-backed one. This is the engine's own answer
+ * rather than an assumption about how the adapter was constructed, so a future
+ * backend that opens a different kind of store is classified correctly.
+ */
+export async function isInMemoryDatabase(adapter: SQLiteAdapter): Promise<boolean> {
+  const rows = await adapter.all<{ name: string; file: string | null }>('PRAGMA database_list');
+  const main = rows.find((r) => r.name === 'main') ?? rows[0];
+  if (!main) return false;
+  return main.file === null || main.file === undefined || main.file === '';
+}
+
+/** Read one invariant's effective value; null when the probe returns no row. */
+async function probeInvariant(
+  adapter: SQLiteAdapter,
+  invariant: ConnectionInvariant,
+): Promise<string | null> {
+  const row = await adapter.get<Record<string, unknown>>(invariant.probe);
+  if (row === null) return null;
+  return normalizeInvariantValue(row);
+}
+
+/**
+ * True when `actual` (already normalized) satisfies `invariant`.
+ *
+ * `inMemory` widens only the explicitly declared `inMemoryAccepts` values; it
+ * never relaxes `foreign_keys` or `busy_timeout`, which the app needs in both
+ * modes.
+ */
+export function invariantSatisfied(
+  invariant: ConnectionInvariant,
+  actual: string,
+  inMemory = false,
+): boolean {
+  if (invariant.equals === null) {
+    const numeric = Number(actual);
+    return Number.isFinite(numeric) && numeric > 0;
+  }
+  if (inMemory && invariant.inMemoryAccepts.includes(actual)) return true;
+  return actual === normalizeInvariantValue(invariant.equals);
+}
+
+/**
+ * Connection-level pragmas every database needs before migrations run, plus a
+ * read-back assertion (Change 068).
+ *
+ * Applying a pragma is not evidence that it took effect: an open transaction, a
+ * busy database, or a runtime that does not implement the setting can all turn
+ * `PRAGMA journal_mode = WAL` into a silently ignored statement. The read-back
+ * is what makes the invariant real, and the throw is deliberate — continuing on
+ * a connection that silently lost foreign-key enforcement or lock tolerance
+ * would trade a loud startup failure for a quiet data-integrity bug later.
+ */
 export async function initializeConnection(adapter: SQLiteAdapter): Promise<void> {
-  await adapter.exec(SQL.foreignKeysOn);
+  const violations: ConnectionInvariantViolation[] = [];
+  // Resolved once from the engine itself, before the loop, so a probe failure
+  // cannot leave different invariants judged against different notions of what
+  // kind of database this is.
+  const inMemory = await isInMemoryDatabase(adapter);
+
+  for (const invariant of CONNECTION_INVARIANTS) {
+    try {
+      await adapter.exec(invariant.apply);
+    } catch (error) {
+      violations.push({
+        invariant: invariant.name,
+        expected: `the statement to apply (${invariant.apply})`,
+        actual: `it threw: ${error instanceof Error ? error.message : String(error)}`,
+      });
+      continue;
+    }
+    // `journal_mode` answers with the mode the engine actually chose, so the
+    // probe — not the statement we sent — is the authoritative read.
+    const actual = await probeInvariant(adapter, invariant);
+    if (actual === null) {
+      violations.push({
+        invariant: invariant.name,
+        expected: 'a probeable effective value',
+        actual: 'the probe returned no row',
+      });
+      continue;
+    }
+    if (!invariantSatisfied(invariant, actual, inMemory)) {
+      violations.push({
+        invariant: invariant.name,
+        expected:
+          invariant.equals === null
+            ? 'a value greater than zero'
+            : normalizeInvariantValue(invariant.equals),
+        actual: invariant.describe(actual),
+      });
+    }
+  }
+
+  if (violations.length > 0) {
+    const details = violations
+      .map((v) => `  - ${v.invariant}: expected ${v.expected}, got ${v.actual}`)
+      .join('\n');
+    throw new Error(
+      'Database connection invariants not satisfied. The app relies on these ' +
+        'connection-level settings, so it refuses to start rather than run on an ' +
+        `unverified connection:\n${details}`,
+    );
+  }
 }

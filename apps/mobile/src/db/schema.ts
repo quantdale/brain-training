@@ -11,6 +11,30 @@ import type { SQLiteAdapter } from "./adapter";
 
 export const SCHEMA_VERSION = 12;
 
+/**
+ * Connection-level invariant: how long a statement waits for a lock held by
+ * another connection before failing.
+ *
+ * 068 — `expo-sqlite` opens with `busy_timeout = 0` (fail instantly) and
+ * `better-sqlite3` with 5000 ms. The application depends on *not* failing
+ * instantly, and the test backend could not have detected the difference, so
+ * both backends are set to this value explicitly and the effective value is
+ * read back at startup. The in-app per-connection operation queue already
+ * serializes this app's own writers, so this is defense against an EXTERNAL
+ * writer rather than a load-bearing mechanism — which is why a modest value is
+ * correct and a long one would only hide real contention.
+ */
+export const REQUIRED_BUSY_TIMEOUT_MS = 5000;
+
+/** Connection-level invariant: journal mode, applied and asserted on open. */
+export const REQUIRED_JOURNAL_MODE = 'wal';
+
+/**
+ * Connection-level invariant: `synchronous` mode, applied and asserted on open.
+ * `1` is SQLite's `NORMAL`.
+ */
+export const REQUIRED_SYNCHRONOUS = 1;
+
 /** A single ordered schema migration. `version` must be unique and > 0. */
 export interface Migration {
   version: number;
@@ -24,8 +48,63 @@ export interface Migration {
 
 /** SQL statement chunks shared by migrations and the runner. */
 export const SQL = {
-  /** Enforce foreign keys on every connection (SQLite defaults them off). */
+  /**
+   * Enforce foreign keys on every connection (SQLite defaults them off).
+   *
+   * 068 — the four settings below are no longer best effort. They are the
+   * connection-level invariants the persistence layer actually depends on, and
+   * `initializeConnection` reads each one back and fails startup if it did not
+   * take effect. Declaring a pragma without asserting it is precisely how the
+   * device ended up running with `busy_timeout = 0` and a journal mode nothing
+   * in the repository had ever checked.
+   */
   foreignKeysOn: "PRAGMA foreign_keys = ON",
+
+  /**
+   * Wait instead of failing instantly when another connection holds a lock.
+   * Set identically on both backends so the EFFECTIVE value is comparable
+   * rather than inherited from two different driver defaults.
+   */
+  busyTimeout: `PRAGMA busy_timeout = ${REQUIRED_BUSY_TIMEOUT_MS}`,
+
+  /**
+   * Explicit journal mode.
+   *
+   * MEASURED 2026-09-30: the rollback journal (`delete`) was SQLite's default on
+   * BOTH backends, so WAL is a NEW decision this makes explicit — not a
+   * convergence with something a driver already did. It is chosen because this
+   * app's writes are short, single-connection transactions over a local file
+   * with no concurrent reader process, where WAL removes the whole-file
+   * rollback-journal write from every commit and that write dominates per-commit
+   * I/O.
+   *
+   * FILE-FORMAT CONSEQUENCE: WAL is a persistent property of the database file
+   * and creates `-wal` / `-shm` sidecars (measured: the `-wal` file appears on
+   * the first write and is checkpointed away on close). A reader that cannot
+   * create those sidecars sees an unreadable database. Consequences recorded
+   * here so the next reader of this file is not surprised:
+   * - the backup path exports through the logical backup API rather than
+   *   copying the file, so the exported envelope is unaffected;
+   * - the on-device SQLite audit in the certification ledger must expect the
+   *   sidecars, and a "just the .db file" copy of a live database is invalid.
+   */
+  journalModeWal: 'PRAGMA journal_mode = WAL',
+
+  /**
+   * `NORMAL` (rather than SQLite's `FULL` default) is the standard companion
+   * to WAL: WAL already makes commits atomic and durable against process
+   * crash, and `NORMAL` only relaxes durability against an OS/power failure.
+   * The app is a local, single-device, offline-first product, so trading
+   * power-loss durability for commit latency is the right trade — and it is
+   * asserted rather than assumed, so a runtime that refuses it is caught.
+   */
+  synchronousNormal: `PRAGMA synchronous = ${REQUIRED_SYNCHRONOUS}`,
+
+  /** Probes used to read the effective values back after initialization. */
+  foreignKeysProbe: 'PRAGMA foreign_keys',
+  busyTimeoutProbe: 'PRAGMA busy_timeout',
+  journalModeProbe: 'PRAGMA journal_mode',
+  synchronousProbe: 'PRAGMA synchronous',
 
   /**
    * Singleton local profile (constitution §6: "One persistent local profile
