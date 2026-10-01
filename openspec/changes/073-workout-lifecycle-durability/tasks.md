@@ -2,13 +2,24 @@
 
 ## 1. One compare-and-set for workout position writes
 
-- [ ] 1.1 Extract the advance path's compare-and-set preconditions
-      (`status='active'`, current index, updated-at, reroll attempt, seed
-      version, stored leg-list shape and bounds) into one shared helper in
-      `apps/mobile/src/db/workout.ts`.
-- [ ] 1.2 Migrate `advanceForSession` onto the helper with no behavior change.
-- [ ] 1.3 Migrate `applyReroll` onto the helper, closing its missing
-      `status='active'` condition and missing shape/bound validation.
+- [x] 1.1 New `apps/mobile/src/db/workout-cas.ts`: `WORKOUT_POSITION_CAS_WHERE`
+      (status='active', current index, updated-at, reroll attempt, seed version,
+      and the EXACT stored `game_ids_json` bytes), `workoutPositionCasParams`
+      (the bindings, in order, so a writer cannot forget a field),
+      `workoutCasApplied`, and `applyWorkoutPositionCas`. The SET clause is a
+      CLOSED SET (`WORKOUT_POSITION_CAS_SET`) rather than a free string — a
+      caller-supplied clause would be an injection surface in the one module
+      whose purpose is to be the trusted place a write is composed.
+- [x] 1.2 `advanceForSession` migrated; behavior unchanged (its statement already
+      carried every predicate the helper now supplies).
+- [x] 1.3 `applyReroll` migrated, which is what closes the missing
+      `status='active'` condition AND pulls in `updated_at` / `seed_version`
+      (its old statement predated them, so it was weaker than the advance in
+      three ways, not one). **PARTIAL:** the malformed/over-bound stored
+      leg-list VALIDATION is not implemented — the shared CAS predicates on the
+      stored bytes, which detects a concurrent rewrite, but it does not reject an
+      already-corrupt row before writing. That remains open and is recorded in
+      `.agent/BACKLOG.md`.
 - [x] 1.4 **Partially done and proven:** a reroll against a completed workout is
       rejected and leaves the row byte-identical (asserted). Mutation-verified —
       removing the `status = 'active'` predicate from the reroll CAS fails this

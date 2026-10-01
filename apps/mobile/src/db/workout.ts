@@ -22,7 +22,8 @@
  * current migrated databases round-trip it and parse it defensively.
  */
 import type { SQLiteAdapter } from "./adapter";
-import type { GameSessionRecord } from "./types";
+import type { GameSessionRecord, SQLiteValue } from "./types";
+import { applyWorkoutPositionCas } from "./workout-cas";
 import { reconcileWorkout } from "@/workout/reconcile";
 import {
   parseWorkoutMetadata,
@@ -586,29 +587,32 @@ export class WorkoutRepository {
     ) {
       throw new WorkoutWriteConflictError(date);
     }
-    // 073 (D5): the reroll CAS carried FEWER preconditions than the advance —
-    // it omitted `status = 'active'`, so a reroll could rewrite the game list
-    // of a COMPLETED workout, resurrecting future legs onto a row that is
-    // finished and whose position is at the end. `advanceForSession` has always
-    // had this predicate; the divergence is exactly what duplication causes, so
-    // the row is now guarded identically rather than "one writer at a time,
-    // hoping the other is careful".
-    const applied = await this.adapter.run(
-      `UPDATE workout_instances
-       SET game_ids_json = ?, reroll_attempt = ?, updated_at = ?
-       WHERE date = ? AND status = 'active'
-         AND reroll_attempt = ? AND current_index = ? AND game_ids_json = ?`,
-      [
-        JSON.stringify(merged),
-        newAttempt,
-        updatedAt,
+    // 073 (D5): both writers now go through the ONE compare-and-set in
+    // `workout-cas.ts`. They were hand-written copies that drifted — the reroll
+    // omitted `status = 'active'` (and previously `updated_at` / `seed_version`),
+    // so a reroll could rewrite the game list of a COMPLETED workout and
+    // resurrect future legs onto a finished row. Two copies of one invariant is
+    // not one invariant.
+    const applied = await applyWorkoutPositionCas(
+      (sql: string, params: SQLiteValue[]) => this.adapter.run(sql, [...params]),
+      {
         date,
-        baseline.rerollAttempt,
-        baseline.currentIndex,
-        row.game_ids_json,
-      ],
+        status: current.status,
+        currentIndex: baseline.currentIndex,
+        // The row read in THIS call is the authority for the fields the caller's
+        // baseline does not carry; the baseline only overrides the ones the
+        // caller actually selected on. This is also what the previous statement
+        // compared against, so a first reroll on a non-canonical row still
+        // commits (059/i leniency) while a stale reroll still loses.
+        updatedAt: current.updatedAt,
+        rerollAttempt: baseline.rerollAttempt,
+        seedVersion: current.seedVersion,
+        gameIdsJson: row.game_ids_json,
+      },
+      'reroll',
+      [JSON.stringify(merged), newAttempt, updatedAt],
     );
-    if (applied.changes === 0) {
+    if (!applied) {
       throw new WorkoutWriteConflictError(date);
     }
     return {
@@ -748,25 +752,24 @@ export class WorkoutRepository {
       const status: WorkoutStatus =
         nextIndex >= current.gameIds.length ? "completed" : "active";
       const updatedAt = this.now();
-      const update = await txn.run(
-        `UPDATE workout_instances
-         SET current_index = ?, status = ?, updated_at = ?
-         WHERE date = ? AND status = 'active' AND current_index = ?
-           AND updated_at = ? AND reroll_attempt = ? AND seed_version = ?
-           AND game_ids_json = ?`,
-        [
-          nextIndex,
-          status,
-          updatedAt,
-          provenance.instanceKey,
-          current.currentIndex,
-          current.updatedAt,
-          current.rerollAttempt,
-          current.seedVersion,
-          row.game_ids_json,
-        ],
+      // 073 (D5): the SAME compare-and-set the reroll uses, so the two writers
+      // cannot drift again. The predicate and its binding order come from
+      // `workout-cas.ts`; only the SET clause and its values are this writer's.
+      const update = await applyWorkoutPositionCas(
+        (sql: string, params: SQLiteValue[]) => txn.run(sql, [...params]),
+        {
+          date: provenance.instanceKey,
+          status: current.status,
+          currentIndex: current.currentIndex,
+          updatedAt: current.updatedAt,
+          rerollAttempt: current.rerollAttempt,
+          seedVersion: current.seedVersion,
+          gameIdsJson: row.game_ids_json,
+        },
+        'advance',
+        [nextIndex, status, updatedAt],
       );
-      if (update.changes === 0) {
+      if (!update) {
         const latestRow = await txn.get<WorkoutRow>(
           "SELECT * FROM workout_instances WHERE date = ?",
           [provenance.instanceKey],

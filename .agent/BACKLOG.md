@@ -84,6 +84,16 @@ plus historical follow-ups.
   behavior. These are real untested surfaces, not theoretical ones.
   Owner: release-engineering orchestrator; add the suites when the kit is next
   touched rather than as a standalone coverage push.
+- Change 073 remaining work (recorded 2026-09-30, `CHANGE_073_PARTIAL`): §1
+  (one compare-and-set for workout position writes) is DONE and proven — both the
+  session advance and the reroll now go through `db/workout-cas.ts`, which closed
+  the reroll's missing `status='active'`, `updated_at` and `seed_version`
+  predicates. NOT DONE: the malformed/over-bound stored leg-list VALIDATION
+  (1.3's remaining half — the shared CAS detects a CONCURRENT rewrite via the
+  stored bytes but does not reject an already-corrupt row before writing), §2
+  durable leg ownership, §3 the skip/abandon transition and its migration, §4 the
+  honest "Up next" launch, §5 startup reconciliation, and the §6.3–6.5 device
+  lane. Owner: release-engineering orchestrator.
 - Change 074 device lane (recorded 2026-09-30, `CHANGE_074_PARTIAL`): §1–§6 are
   DONE and measured. Remaining: §3 per-game lifecycle verification (the contract test
   still satisfies itself from shared host sources rather than scanning the 42

@@ -9,6 +9,9 @@
  */
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
+import { readCode } from '@/test-utils/source-scan';
+import { resolve } from 'node:path';
+
 import { createMigratedDb } from './helpers';
 import { WorkoutRepository, WorkoutWriteConflictError } from '../workout';
 
@@ -167,5 +170,43 @@ describe('reroll refuses a non-active workout (073 D5)', () => {
       expect(applied.gameIds).toEqual(['memory', 'speed-tap-rush']);
       expect(applied.rerollAttempt).toBe(1);
     })();
+  });
+});
+
+/**
+ * 073 (D5 follow-up): the two position writers must keep using the ONE
+ * compare-and-set.
+ *
+ * The original defect was drift between two hand-written copies of the same
+ * conditional UPDATE — the reroll's copy silently lost `status = 'active'`.
+ * Fixing the predicate without removing the duplication would leave the next
+ * drift one edit away, so this asserts the STRUCTURE: `workout.ts` contains no
+ * hand-written `UPDATE workout_instances` statement of its own, and both writers
+ * select a SET clause from the shared closed set.
+ */
+describe('workout position writes share one compare-and-set (073 D5)', () => {
+  const workoutSource = readCode(resolve(__dirname, '..', 'workout.ts'));
+
+  it('the two POSITION writers have no hand-written UPDATE of their own', () => {
+    // Scoped honestly. `workout.ts` still contains two OTHER
+    // `UPDATE workout_instances` statements — `applyRepair` and `reconcile` —
+    // which are different writes (a repair applies an already-computed
+    // replacement; a reconcile rewrites a generated list) with their own
+    // preconditions, and folding them into the position CAS would be wrong.
+    // What must not come back is a third POSITION writer written by hand, so
+    // this asserts the delegation count instead of pretending the file has no
+    // hand-written statements at all.
+    expect(workoutSource.match(/UPDATE\s+workout_instances/gi) ?? []).toHaveLength(2);
+    // Comments are stripped by `readCode`, so a comment that QUOTES the old
+    // position statement is not mistaken for a statement.
+  });
+
+  it('routes both writers through the shared helper', () => {
+    // One call per writer: the advance and the reroll.
+    expect(workoutSource.match(/applyWorkoutPositionCas\(/g) ?? []).toHaveLength(2);
+    // ...and both select from the CLOSED SET of SET clauses, so neither can
+    // invent its own predicate.
+    expect(workoutSource.match(/'advance'/g) ?? []).toHaveLength(1);
+    expect(workoutSource.match(/'reroll'/g) ?? []).toHaveLength(1);
   });
 });

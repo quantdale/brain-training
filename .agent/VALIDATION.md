@@ -5621,3 +5621,59 @@ in the change's task list; nothing in them is claimed as done.**
 **Change 074 status: §1–§6 are all done and measured. The single remaining
 task is §7.4, the device lane, which is NOT VALIDATED — no AVD was exercised in
 this session.**
+
+### Change 073 workout lifecycle durability (partial) — 2026-09-30 (PARTIAL / `CHANGE_073_PARTIAL`)
+
+**Scope completed: §1 (one compare-and-set) with the §1.4 regression test.
+§1.3's leg-list validation, §2, §3, §4, §5 and the device lane are NOT DONE —
+recorded below and in `.agent/BACKLOG.md`, not claimed.**
+
+- **Baseline (re-measured at `2a836c5`):** 612 passed + 4 skipped suites /
+  7,137 passed + 5 skipped tests / 5 snapshots, 0 failures; typecheck and lint
+  clean; all validators PASS; OpenSpec `--all --strict` 59/59.
+- **The defect this fixed is a real data-corruption path, not a hardening nit.**
+  `workout_instances` is written from two places — the session advance and the
+  reroll — and both used hand-written conditional UPDATEs. **They had drifted:**
+  the reroll statement omitted `status = 'active'` (and previously
+  `updated_at` and `seed_version`), so a reroll could rewrite the game list of a
+  **COMPLETED** workout, resurrecting future legs onto a finished row whose
+  position was already at the end. Two hand-written copies of one invariant is
+  not one invariant.
+- **§1.1 the shared compare-and-set** — new `apps/mobile/src/db/workout-cas.ts`:
+  `WORKOUT_POSITION_CAS_WHERE` (status, current index, updated-at, reroll attempt,
+  seed version, and the **exact stored `game_ids_json` bytes**),
+  `workoutPositionCasParams` (the bindings in order, so a writer cannot forget a
+  field), `workoutCasApplied`, and `applyWorkoutPositionCas`. The SET clause is a
+  **closed set** rather than a free string: a caller-supplied clause would be an
+  injection surface in the one module whose purpose is to be the trusted place a
+  write is composed, and the linter flagged exactly that.
+  - The stored-byte predicate is deliberate: a non-canonical but
+    canonically-equal row must still commit its **first** write, and must lose
+    every write after another writer normalizes it. Comparing a re-serialized
+    list would get that backwards.
+- **§1.2/§1.3 both writers migrated.** The advance's behavior is unchanged (its
+  statement already carried every predicate the helper supplies). The reroll
+  gains all three missing conditions at once, so it is no longer weaker than the
+  advance in any dimension.
+- **§1.4 tests, mutation-verified.** A reroll against a completed workout throws
+  `WorkoutWriteConflictError` and the row is **byte-identical afterwards** — a
+  rejected write that still changed something would be worse than no guard at
+  all. A reroll on an active workout still works and still preserves the played
+  prefix. Removing the `status` predicate from the reroll CAS fails the test.
+  A structural guard then asserts there is no third hand-written **position**
+  writer: `workout.ts` contains exactly two `UPDATE workout_instances`
+  statements, both belonging to `applyRepair` and `reconcile`, which are
+  different writes with their own preconditions and are deliberately NOT folded
+  into the position CAS; and both position writers select their SET clause from
+  the shared closed set.
+- **Verification:** `src/db` + `src/workout` 484 passed; full matrix **612
+  suites / 7,141 passed + 5 skipped tests / 5 snapshots, 0 failures**; signal
+  gate `pass: true` (5 classified skips, 0 unclassified / ambiguous / mismatched,
+  both floors met); typecheck and lint clean; `validate-repo-state` PASS;
+  OpenSpec `--all --strict` 59/59. **No new skips.**
+
+**NOT DONE:** §1.3's remaining half (the malformed/over-bound stored leg-list
+**validation** — the shared CAS detects a concurrent rewrite but does not reject
+an already-corrupt row before writing); §2 durable leg ownership; §3 the
+skip/abandon transition and its migration; §4 the honest "Up next" launch; §5
+startup reconciliation; and §6.3–6.5 device lane.
