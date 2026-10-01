@@ -5677,3 +5677,60 @@ recorded below and in `.agent/BACKLOG.md`, not claimed.**
 an already-corrupt row before writing); §2 durable leg ownership; §3 the
 skip/abandon transition and its migration; §4 the honest "Up next" launch; §5
 startup reconciliation; and §6.3–6.5 device lane.
+
+### Terminal certification — master plan Phases 0–8 execution (2026-09-30)
+
+The plan's own Phase 10 requires re-running everything and producing one terminal
+record with each finding's disposition. This is that record, scoped honestly to
+what a repository-only pass can prove.
+
+**Final measured state at `0b775b8` (2026-09-30):**
+
+| Gate | Result |
+|---|---|
+| `npm run typecheck` | PASS — 0 errors |
+| `npm run lint` | PASS — 0 errors, 0 warnings |
+| Full Jest matrix | **612 passed + 4 skipped suites / 7,141 passed + 5 skipped tests / 5 snapshots, 0 failures** |
+| Jest signal validator | `pass: true` — 5 classified skips, 0 unclassified / ambiguous / mismatched; floors met (612 ≥ 575 suites, 7,146 ≥ 6,840 tests) |
+| 9 repository validators | ALL PASS (`repo-state`, `secrets --check`, `offline --check`, `workflows`, `dependency-audit`, `registry --check`, `affected --check-sync`, `provenance --check-allowlist`, the new `expo-alignment`) |
+| 7 validator self-tests | ALL PASS |
+| Runtime-QA contract | PASS |
+| `openspec validate --all --strict` | **59 passed, 0 failed (59 items)** |
+| `generate-game-registry.mjs --check` | clean (no hand-edited generated output) |
+
+**Session delta:** 6,933 → **7,141** passing tests (+208), 594 → **612** suites
+(+18), 5 classified skips before and after (**no new skips**), and **0** failures
+throughout.
+
+**Per-finding disposition against MASTER_PLAN §4 (the audit's P0/P1 register):**
+
+| Finding | Disposition |
+|---|---|
+| `F-01` expo-doctor red, time-dependent gate | **CLOSED.** Replaced on the push path by the hermetic `validate-expo-alignment` (54/54 self-test, 22/22 pins aligned, self-verifying with an injected mismatch). Doctor moved to the weekly schedule, classified as upstream drift, never tolerated silently. |
+| `F-42` dependency-audit red | **CLOSED.** 3 advisories dispositioned with reproduced reachability; gate PASS (7 accepted, 0 unallowlisted). |
+| `F-02` adapter re-entrancy freezes the app | **CLOSED.** One typed error on both backends, checked before enqueueing. |
+| `F-03` test backend hides device-only defects | **ADDRESSED.** Connection invariants applied and read back with a startup throw; engine-parity contract records the residual deltas by name. |
+| `F-46` stale master plan / unreconciled state | **CLOSED.** Plan refreshed with a change index, an execution-status line, and per-change results. |
+| `F-08` `Tappable` a11y-state composition | **CLOSED**, and the recorded symptom was **corrected**: the real defect was the inverse direction. Both measured and pinned. |
+| `F-11` duplicate `MinTouchTarget` | **CLOSED** — 75 call sites migrated, both duplicates removed, a whole-`src` single-definition guard added. |
+| `F-06`/`F-22` failed reads render as "you have nothing" | **CLOSED for Data Management and Profile** (§1–§3, §6 of 072), including the screen-local `catch` that was the actual root cause. |
+| `F-14` workout completion not durable across process death | **PARTIAL.** The reroll/advance precondition drift is closed and can no longer corrupt a completed row (§1 of 073). Durable leg ownership, the skip transition, the honest "Up next" launch and **startup reconciliation** — the part that actually closes F-14 — are NOT DONE. |
+| vacuous per-game lifecycle contract | **CLOSED.** Replaced with a guard that scans the 42 modules and is proven able to fail three ways. |
+| misleading design-system doc | **CLOSED**, and made executable so it cannot re-diverge. |
+
+**Contradictions found and recorded rather than forced through** (MASTER_PLAN §9.3):
+`react-native-reanimated` is a required `expo-router` peer (removal attempted,
+measured, reverted); the `Tappable` defect was the inverse of the recorded one;
+two "delete these files" steps would have deleted live helper exports; the
+`docs/DESIGN_SYSTEM.md` radii were the v3 generation, not the shipped tokens.
+
+**The one boundary this pass cannot cross.** Every change that touches
+persistence-atomicity, navigation, or accessibility semantics carries a device
+lane, and **no AVD was exercised in this session**. Changes 068, 070, 071, 072,
+073 and 074 each retain an explicit `NOT VALIDATED` device task with the owed
+evidence spelled out. Additionally, the **perf probes cannot serve as a
+regression signal on this host**: two consecutive runs of the identical tree 8
+minutes apart differ by −77 % to +451 % per scenario, so the journal-mode change
+was verified structurally (all five probes use `:memory:`, where a journal cannot
+exist) rather than statistically, and the device lane is where WAL is actually
+measured. **No device or artifact claim is made anywhere in this record.**
