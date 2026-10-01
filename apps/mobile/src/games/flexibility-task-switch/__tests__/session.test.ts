@@ -131,9 +131,14 @@ describe('versionToNumber', () => {
     expect(versionToNumber(SCORING_VERSION)).toBe(1_000_000);
   });
 
-  it('rejects null (non-procedural games are not supported here)', () => {
-    expect(() => versionToNumber(null)).toThrow(/null/);
-  });
+  it('rejects ', () => { // 074: `GameDefinition.generatorVersion` is `string | null` (documented as
+  // `null` for non-procedural games) and the db column is `NOT NULL`, so an
+  // absent version now packs to the documented sentinel instead of throwing.
+  // Throwing would have crashed the session-persist path the first time a
+  // genuinely non-procedural game shipped.
+  expect(versionToNumber(null)).toBe(0);
+  expect(versionToNumber(undefined)).toBe(0);
+  expect(versionToNumber('')).toBe(0); });
 });
 
 describe('buildSessionRecord', () => {

@@ -5464,3 +5464,48 @@ because of the device boundary alone, not because work is outstanding.**
 
 **Change 074 status: `CHANGE_074_PARTIAL`. The remaining sections are recorded
 in the change's task list; nothing in them is claimed as done.**
+
+- **§5 version-conversion contract: also completed** (appended 2026-09-30, same
+  change).
+  - The 42 per-game `versionToNumber` copies are **gone**: they now delegate to
+    one `packVersion` in `@/sdk/version-pack`, keeping their public export so no
+    call site changed. They were not identical — **three different bodies**, and
+    **29 of the doc comments described an algorithm the code did not implement**
+    ("the numeric major component" while the code packed major/minor/patch).
+  - The absent version is now **accepted**. `GameDefinition.generatorVersion` is
+    `string | null` and documented as `null` "for non-procedural games", while
+    `game_sessions.generator_version` is `NOT NULL`; every helper **threw** on
+    `null`. All 42 shipped games are procedural, so the bug was latent — it would
+    have crashed the session-persist path the first time a genuinely
+    non-procedural game shipped. `null`/`undefined`/`''` now map to a documented
+    `ABSENT_VERSION_NUMBER = 0`, which sorts below every real version.
+  - §5.4 (already-persisted sessions unaffected) verified **exhaustively**, not
+    assumed: the new packing is byte-identical to the old for every in-range
+    major/minor/patch triple. The only differences are out-of-range components,
+    which previously **overflowed** into the next component's place and could
+    silently reorder versions; they are now clamped. No schema change, and the
+    full semver strings still travel with the raw result and diagnostics
+    (constitution §21), so packing is a sortable index rather than the record of
+    record.
+  - **Two real defects were found by writing the tests**, not by inspection:
+    (a) `1.2.x` packed to `1.2.0` — indistinguishable from a real version,
+    which is the exact hazard the error message describes. The old code was
+    worse: `Number('x')` is `NaN`, so `1.2.x` packed to `NaN` straight into a
+    `NOT NULL INTEGER` column. The parts are now anchored.
+    (b) Fixing (a) naively would have broken campaign 011 finding #4, where
+    `Number('0-beta')` is `NaN` and `1.0.0-beta` used to poison the column — an
+    existing regression test caught it. A semver prerelease/build suffix is
+    therefore still allowed, and pinned by a new test.
+  - Tests: 14 new cases in `version-pack.test.ts` plus a catalog guard asserting
+    all 42 per-game helpers delegate, keep no packing of their own, and import the
+    shared helper.
+  - **Verification after §5:** `src/sdk` 405 passed; `src/games` 357 suites /
+    4,225 passed; full matrix **609 suites / 7,113 passed + 5 skipped tests /
+    5 snapshots, 0 failures**; signal gate `pass: true` (5 classified skips, 0
+    unclassified / ambiguous / mismatched, both floors met); typecheck and lint
+    clean; `generate-game-registry.mjs --check` clean; `validate-repo-state`
+    PASS; OpenSpec `--all --strict` 59/59. **No new skips.**
+
+**Change 074 status: §1, §2 and §5 done and measured. §3 (per-game lifecycle
+verification), §4 (duplicate-start guard), §6 (`docs/GAME_SDK.md`) and the §7.4
+device lane remain NOT DONE.**

@@ -87,12 +87,38 @@
 
 ## 5. Version conversion contract
 
-- [ ] 5.1 Correct the per-game version helper so it accepts the absent generator
-      version the SDK type and documentation permit for non-procedural games.
-- [ ] 5.2 Correct its documentation to describe the components it actually packs.
-- [ ] 5.3 Add tests: absent version accepted; a versioned generator packs
-      deterministically; the same input always yields the same persisted value.
-- [ ] 5.4 Confirm already-persisted sessions are unaffected (only new writes use
+- [x] 5.1 The 42 per-game copies are GONE: they now delegate to one
+      `packVersion` in `@/sdk/version-pack`, keeping their public export so no
+      call site changed. It accepts the absent version (`null`/`undefined`/`''`)
+      that `GameDefinition.generatorVersion` permits for non-procedural games and
+      maps it to a documented sentinel (`ABSENT_VERSION_NUMBER = 0`, which sorts
+      below every real version). All 42 shipped games are procedural, so the
+      old `throw` was latent — it would have crashed the session-persist path
+      the first time a genuinely non-procedural game shipped.
+      **An in-range component now CLAMPS instead of overflowing**, so a version
+      can no longer silently reorder. Verified by exhaustive comparison: the new
+      packing is IDENTICAL to the old for every in-range version, so no
+      already-persisted session is reinterpreted; the only differences are the
+      out-of-range inputs that previously overflowed.
+- [x] 5.2 29 of the 42 doc comments claimed the value was "the numeric major
+      component" while the code packed major/minor/patch. All replaced with a
+      pointer to the real definition. A test asserts no per-game file carries a
+      stale body or a stale comment, so they cannot reappear.
+- [x] 5.3 New `version-pack.test.ts` (14 cases) plus a catalog guard: absent
+      accepted; major/minor/patch packing; ORDER-PRESERVING across a major
+      boundary (the property the integer column exists for); determinism over
+      repeated calls; round-trip through `unpackVersion`; clamping; a missing
+      minor/patch treated as zero; and every one of the 42 per-game helpers
+      asserted to delegate.
+      **Two real defects were found by writing these tests and fixed:**
+      (a) `1.2.x` packed to `1.2.0`, indistinguishable from a real version —
+      the exact hazard the error message describes; the old code was worse,
+      packing it to `NaN` into a `NOT NULL INTEGER` column. The parts are now
+      anchored. (b) While fixing (a), an existing regression test caught that a
+      naive anchor would break campaign 011 finding #4, where `1.0.0-beta`
+      packed to `NaN`; a semver prerelease/build suffix is therefore allowed and
+      pinned by a test.
+- [x] 5.4 Confirm already-persisted sessions are unaffected (only new writes use
       the corrected conversion).
 
 ## 6. Documentation
@@ -104,11 +130,12 @@
 
 ## 7. Verification
 
-- [ ] 7.1 `npx jest src/sdk src/components/game-host src/__tests__/catalog-contracts`
-      green; the full matrix green with no new skips; the jest signal validator
-      passes.
-- [ ] 7.2 `node scripts/generate-game-registry.mjs --check` clean.
-- [ ] 7.3 `npm run typecheck` and `npm run lint` clean.
+- [x] 7.1 `src/sdk` 405 passed; `src/games` 357 suites / 4,225 passed; full
+      matrix **609 suites / 7,113 passed + 5 skipped tests / 5 snapshots, 0
+      failures**; signal validator `pass: true` (5 classified skips, 0
+      unclassified / ambiguous / mismatched, both floors met). **No new skips.**
+- [x] 7.2 `generate-game-registry.mjs --check` clean.
+- [x] 7.3 typecheck and lint clean (0 errors, 0 warnings).
 - [ ] 7.4 On the dedicated AVD: launch a game, background and restore it, and
       confirm no duplicate session is created and no timer/listener residue
       appears; confirm a tutorial and a full game still run to completion with

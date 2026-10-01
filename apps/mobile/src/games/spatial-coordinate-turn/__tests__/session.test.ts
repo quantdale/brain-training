@@ -139,9 +139,20 @@ describe('versionToNumber', () => {
     expect(versionToNumber('2.3.7')).toBe(2_003_007);
   });
 
-  it('rejects versions without a numeric major component', () => {
-    expect(() => versionToNumber(null)).toThrow();
-    expect(() => versionToNumber('abc')).toThrow();
+  it('packs an absent version to the documented sentinel', () => {
+    // 074: `GameDefinition.generatorVersion` is `string | null` (documented as
+    // `null` for non-procedural games) and the db column is `NOT NULL`, so an
+    // absent version packs to the sentinel rather than throwing. Throwing would
+    // have crashed the session-persist path the first time a genuinely
+    // non-procedural game shipped.
+    expect(versionToNumber(null)).toBe(0);
+    expect(versionToNumber(undefined)).toBe(0);
+  });
+
+  it('rejects a string that is not a version at all', () => {
+    // A silently-defaulted version would pack to a number indistinguishable
+    // from another version, which defeats the reason the column exists.
+    expect(() => versionToNumber('abc')).toThrow(/is not a version of the form/);
   });
 });
 
