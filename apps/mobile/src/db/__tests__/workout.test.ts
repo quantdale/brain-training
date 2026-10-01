@@ -10,7 +10,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { SQLiteAdapter } from '../adapter';
 import { createMigratedDb } from './helpers';
-import { WorkoutRepository } from '../workout';
+import { WorkoutRepository, WorkoutWriteConflictError } from '../workout';
 
 const GAMES = ['g1', 'g2', 'g3', 'g4'];
 
@@ -113,5 +113,59 @@ describe('WorkoutRepository — durable reroll economics (tasks 6.5, 6.6)', () =
   it('throws when applying a reroll to a missing instance', async () => {
     const workouts = new WorkoutRepository(await createMigratedDb(), () => 5000);
     await expect(workouts.applyReroll('2026-08-17', GAMES, 1)).rejects.toThrow(/No workout instance/);
+  });
+});
+
+/**
+ * 073 (D5): the reroll compare-and-set must enforce the SAME preconditions as
+ * the advance.
+ *
+ * The reroll statement omitted `status = 'active'` while the advance carried
+ * it, so a reroll could rewrite the game list of a COMPLETED workout —
+ * resurrecting future legs onto a finished row whose position is already at
+ * the end. The two statements being hand-written copies of each other is the
+ * defect; this pins the equality that duplication broke.
+ */
+describe('reroll refuses a non-active workout (073 D5)', () => {
+  let workouts: WorkoutRepository;
+
+  beforeEach(async () => {
+    workouts = new WorkoutRepository(await createMigratedDb(), () => 1000);
+  });
+
+  it('rejects a reroll once the workout is completed', async () => {
+    const date = '2026-08-17';
+    await workouts.getOrCreate(date, { gameIds: GAMES, seedVersion: 3 });
+    // Play it out: a 4-game workout completes on the FOURTH advance (index
+    // 0 -> 1 -> 2 -> 3 -> 4, and the status flips at the end).
+    for (let leg = 0; leg < GAMES.length - 1; leg++) {
+      const mid = await workouts.advance(date);
+      expect(mid.status).toBe('active');
+    }
+    const finished = await workouts.advance(date);
+    expect(finished.status).toBe('completed');
+    expect(finished.currentIndex).toBe(GAMES.length);
+
+    const before = (await workouts.getByDate(date))?.gameIds;
+    // The reroll must lose loudly rather than quietly rewriting a finished row.
+    await expect(workouts.applyReroll(date, ['x', 'y'], 1)).rejects.toBeInstanceOf(
+      WorkoutWriteConflictError,
+    );
+    // ...and the completed row is byte-identical afterwards: a rejected write
+    // that still changed something would be worse than no guard at all.
+    expect((await workouts.getByDate(date))?.gameIds).toEqual(before);
+  });
+
+  it('still accepts a reroll on an active workout', () => {
+    // The guard must not be so broad that it breaks the feature it protects.
+    return (async () => {
+      const date = '2026-08-18';
+      await workouts.getOrCreate(date, { gameIds: ['memory', 'attention-odd-one-out'], seedVersion: 1 });
+      const applied = await workouts.applyReroll(date, ['memory', 'speed-tap-rush'], 1);
+      expect(applied.status).toBe('active');
+      // The played prefix is preserved; only the future legs are replaced.
+      expect(applied.gameIds).toEqual(['memory', 'speed-tap-rush']);
+      expect(applied.rerollAttempt).toBe(1);
+    })();
   });
 });

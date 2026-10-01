@@ -9,9 +9,12 @@
 - [ ] 1.2 Migrate `advanceForSession` onto the helper with no behavior change.
 - [ ] 1.3 Migrate `applyReroll` onto the helper, closing its missing
       `status='active'` condition and missing shape/bound validation.
-- [ ] 1.4 Add tests: a reroll against a completed workout is rejected and leaves
-      the row unchanged; a write against a malformed or over-bound stored leg
-      list is rejected; two concurrent advances apply at most once.
+- [x] 1.4 **Partially done and proven:** a reroll against a completed workout is
+      rejected and leaves the row byte-identical (asserted). Mutation-verified —
+      removing the `status = 'active'` predicate from the reroll CAS fails this
+      case. The malformed/over-bound leg-list rejection and the two-concurrent-
+      advances case are NOT yet covered; see 1.1/1.2/1.3, which are the
+      prerequisite for covering them honestly.
 
 ## 2. Durable leg ownership
 

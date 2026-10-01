@@ -586,10 +586,18 @@ export class WorkoutRepository {
     ) {
       throw new WorkoutWriteConflictError(date);
     }
+    // 073 (D5): the reroll CAS carried FEWER preconditions than the advance —
+    // it omitted `status = 'active'`, so a reroll could rewrite the game list
+    // of a COMPLETED workout, resurrecting future legs onto a row that is
+    // finished and whose position is at the end. `advanceForSession` has always
+    // had this predicate; the divergence is exactly what duplication causes, so
+    // the row is now guarded identically rather than "one writer at a time,
+    // hoping the other is careful".
     const applied = await this.adapter.run(
       `UPDATE workout_instances
        SET game_ids_json = ?, reroll_attempt = ?, updated_at = ?
-       WHERE date = ? AND reroll_attempt = ? AND current_index = ? AND game_ids_json = ?`,
+       WHERE date = ? AND status = 'active'
+         AND reroll_attempt = ? AND current_index = ? AND game_ids_json = ?`,
       [
         JSON.stringify(merged),
         newAttempt,
