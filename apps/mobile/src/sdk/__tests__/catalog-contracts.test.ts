@@ -177,9 +177,11 @@ function contractSource(game: GameSource): string {
 
 describe('catalog sanity', () => {
   it('discovers the full game catalog (guards against vacuous scans)', () => {
-    // The catalog ships 36 games; a floor well below that catches a broken
-    // GAMES_ROOT resolution or an accidental scan of an empty tree.
-    expect(CATALOG.length).toBeGreaterThanOrEqual(30);
+    // 074: this comment said "36 games" and the assertion used a floor of 30.
+    // The catalog ships 42. A stale number in a comment is how a floor quietly
+    // stops protecting anything, so the exact count is asserted instead and the
+    // comment names the real number.
+    expect(CATALOG).toHaveLength(42);
   });
 });
 

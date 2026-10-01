@@ -5594,5 +5594,30 @@ in the change's task list; nothing in them is claimed as done.**
     typecheck and lint clean; `validate-repo-state` PASS; OpenSpec
     `--all --strict` 59/59. **No new skips.**
 
-**Change 074 status: §1, §2, §3, §4 and §5 done and measured. §6
-(`docs/GAME_SDK.md`) and the §7.4 device lane remain NOT DONE.**
+- **§6 documentation: also completed** (appended 2026-09-30).
+  - `docs/GAME_SDK.md`'s module map listed **13 modules while the SDK ships 19**.
+    Added the five genuinely missing — `version-pack.ts`, `numeric.ts`,
+    `exhaustive.ts`, `module-surface.ts`, `perf.ts` — plus a first-class row for
+    `audio-haptics-real.ts` (previously only mentioned inline inside the
+    `audio-haptics.ts` row). The `lifecycle.ts` and `types/game-definition.ts`
+    rows now include their new exports.
+  - The Reproducibility rule now states the **real** version contract: the
+    integer columns are a SORTABLE INDEX produced by `packVersion`
+    (`major*1e6 + minor*1e3 + patch`, each component clamped to 0–999 so an
+    overflow cannot reorder), the full strings always travel with the raw
+    result, and an ABSENT version packs to `0` rather than throwing.
+  - §6.2: the stale comment in `catalog-contracts.test.ts` said "the catalog
+    ships 36 games" behind a floor of 30; the catalog ships 42. A stale number in
+    a comment is how a floor quietly stops protecting anything, so the exact
+    count is now asserted and the comment names the real number.
+  - **The map is now executable.** `game-sdk-doc.test.ts` (6 cases) asserts it
+    against the filesystem, so a module added without documentation fails here
+    instead of being re-implemented by the next contributor. It also asserts the
+    map documents no module that does not ship, the catalog size is the real
+    one, and the version-packing description is accurate — including asserting
+    the old "numeric major component" claim is ABSENT, since that false claim is
+    what this section is correcting.
+
+**Change 074 status: §1–§6 are all done and measured. The single remaining
+task is §7.4, the device lane, which is NOT VALIDATED — no AVD was exercised in
+this session.**

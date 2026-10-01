@@ -163,10 +163,27 @@
 
 ## 6. Documentation
 
-- [ ] 6.1 Update `docs/GAME_SDK.md`: include `sdk/numeric.ts` and `sdk/perf.ts`
-      in the module map, correct the catalog size, and correct the version
-      contract description.
-- [ ] 6.2 Remove the stale catalog-size comment in the contract test.
+- [x] 6.1 The module map listed 13 modules while the SDK shipped 19. Added the
+      five missing — `version-pack.ts`, `numeric.ts`, `exhaustive.ts`,
+      `module-surface.ts`, `perf.ts`, plus a first-class row for
+      `audio-haptics-real.ts` (previously only mentioned inline) — and updated
+      the `lifecycle.ts` and `types/game-definition.ts` rows for the new exports.
+      The Reproducibility rule now states the real version contract: the integer
+      columns are a SORTABLE INDEX produced by `packVersion`
+      (major*1e6 + minor*1e3 + patch, each component clamped so an overflow
+      cannot reorder), the full strings always travel with the raw result, and
+      an ABSENT version packs to 0 rather than throwing.
+      **The map is now executable**: `game-sdk-doc.test.ts` asserts it against
+      the filesystem, so a module added without documentation fails here
+      instead of being re-implemented by the next contributor. It also asserts
+      the map documents no module that does not ship, the catalog size is the
+      real one, and the version-packing description is accurate (the old
+      per-game comments' false "numeric major component" claim is asserted
+      absent).
+- [x] 6.2 The stale comment in `catalog-contracts.test.ts` said "the catalog
+      ships 36 games" behind a floor of 30; the catalog ships 42. A stale number
+      in a comment is how a floor quietly stops protecting anything, so the exact
+      count is now asserted and the comment names the real number.
 
 ## 7. Verification
 

@@ -84,9 +84,8 @@ plus historical follow-ups.
   behavior. These are real untested surfaces, not theoretical ones.
   Owner: release-engineering orchestrator; add the suites when the kit is next
   touched rather than as a standalone coverage push.
-- Change 074 remaining work (recorded 2026-09-30, `CHANGE_074_PARTIAL`): §1
-  (module-surface validation) and §2 (typed loader boundary) are DONE and
-  measured. Not started: §3 per-game lifecycle verification (the contract test
+- Change 074 device lane (recorded 2026-09-30, `CHANGE_074_PARTIAL`): §1–§6 are
+  DONE and measured. Remaining: §3 per-game lifecycle verification (the contract test
   still satisfies itself from shared host sources rather than scanning the 42
   module directories), §4 the duplicate-start guard in `useGameSession.begin()`,
   §6 the `docs/GAME_SDK.md` module map and the stale catalog-size comment, and
