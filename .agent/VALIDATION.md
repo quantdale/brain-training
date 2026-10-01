@@ -5506,6 +5506,47 @@ in the change's task list; nothing in them is claimed as done.**
     clean; `generate-game-registry.mjs --check` clean; `validate-repo-state`
     PASS; OpenSpec `--all --strict` 59/59. **No new skips.**
 
-**Change 074 status: §1, §2 and §5 done and measured. §3 (per-game lifecycle
-verification), §4 (duplicate-start guard), §6 (`docs/GAME_SDK.md`) and the §7.4
-device lane remain NOT DONE.**
+- **§4 duplicate-start guard: also completed** (appended 2026-09-30, same change).
+  - `begin()` used to **replace** `lifecycleRef.current` without stopping the
+    previous lifecycle. A second call — a double-tap on a start control, a
+    remount racing the first mount, a QA hook firing twice — therefore silently
+    abandoned a LIVE session: its timer kept running, the new session was
+    persisted, and the abandoned one's completion was dropped, with no error
+    anywhere.
+  - The two cases are handled differently on purpose. A **non-terminal** previous
+    session means the caller is about to discard live state, so `begin()` now
+    throws `DuplicateSessionStartError` (game id + current status in the
+    message) and leaves everything untouched — silently replacing it was the bug,
+    and auto-abandoning it would hide a real caller error and lose a session the
+    user may still be playing. A **terminal** previous session is a legitimate
+    restart (end of game → replay); its timer is already frozen by the terminal
+    transition, so nothing needs releasing. `paused` is correctly treated as
+    non-terminal — a pause overlay left mounted during a remount is exactly the
+    race this guards.
+  - `begin()` is now **exception-safe**: the new lifecycle is published to the
+    ref *before* any work that can throw, and a failure abandons it, clears the
+    ref, and rethrows. Without that, a failed start would leave a running timer
+    owned by nobody AND make the next start a duplicate refusal against debris
+    the failed call created.
+  - 9 new cases in `duplicate-start-guard.test.tsx` plus one in the existing hook
+    suite: duplicate refused while `active` and `paused`; the refused start leaves
+    the running session completable and current; starts after `completed` and
+    `abandoned` succeed; **a host remount does not trip the guard** (a fresh
+    instance has no previous session — a guard that survived a remount would
+    refuse the first start after any navigation, which would be worse than the
+    bug); repeated start/complete cycles accumulate no guard state; and
+    `isTerminalSessionStatus` recognises exactly the two terminal statuses.
+  - **Two existing tests were adapted rather than deleted**, and the reason is
+    recorded: they proved the finalize guard re-arms by calling `begin()` twice
+    with no completion between — precisely the duplicate pattern now refused.
+    Their intent (the finalize guard) is unchanged; the session is now completed
+    before the second begin, which is what a real caller does. A new case in the
+    same file pins the refusal itself.
+  - **Verification after §4:** `src/components/game-host` 200 passed; full matrix
+    **610 suites / 7,123 passed + 5 skipped tests / 5 snapshots, 0 failures**;
+    signal gate `pass: true` (5 classified skips, 0 unclassified / ambiguous /
+    mismatched, both floors met); typecheck and lint clean; `validate-repo-state`
+    PASS; OpenSpec `--all --strict` 59/59. **No new skips.**
+
+**Change 074 status: §1, §2, §4 and §5 done and measured. §3 (per-game lifecycle
+verification), §6 (`docs/GAME_SDK.md`) and the §7.4 device lane remain NOT DONE.**

@@ -14,7 +14,12 @@ export type { Rng } from './rng';
 export { canonicalClamp01 } from './numeric';
 export { systemClock, createFakeClock, createMonotonicClock, Stopwatch } from './timing';
 export type { Clock, FakeClock } from './timing';
-export { SessionLifecycle, IllegalTransitionError } from './lifecycle';
+export {
+  SessionLifecycle,
+  IllegalTransitionError,
+  DuplicateSessionStartError,
+  isTerminalSessionStatus,
+} from './lifecycle';
 export type { SessionStatus, SessionLifecycleOptions } from './lifecycle';
 export { createPauseOverlaySpec } from './pause';
 export type { PauseOverlaySpec } from './pause';

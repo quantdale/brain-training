@@ -151,3 +151,41 @@ export class SessionLifecycle {
     this.onStatusChange?.(to, from);
   }
 }
+
+/**
+ * Is this status terminal — the session can no longer make progress?
+ *
+ * Exported (Change 074) because "can this session be discarded and replaced?"
+ * is a question several call sites need to answer, and answering it by
+ * re-listing `'completed' | 'abandoned'` at each site is how a fourth status
+ * would be added to one place and missed in another.
+ */
+export function isTerminalSessionStatus(status: SessionStatus): boolean {
+  return status === 'completed' || status === 'abandoned';
+}
+
+/**
+ * A second session was started while a non-terminal one was still running
+ * (Change 074).
+ *
+ * A named error rather than a silent replacement, because the two possible
+ * responses — discard the live session, or keep it — both lose something, and
+ * which one is correct depends on intent the host does not have. Before this,
+ * the host always discarded it silently.
+ */
+export class DuplicateSessionStartError extends Error {
+  readonly gameId: string;
+  readonly currentStatus: SessionStatus;
+
+  constructor(gameId: string, currentStatus: SessionStatus) {
+    super(
+      `Duplicate session start for "${gameId}": a session is still ${currentStatus}. ` +
+        `Starting again would abandon live play (its timer keeps running and its ` +
+        `completion is dropped). Complete or abandon the running session first, ` +
+        `or ignore this error if the second call was spurious.`,
+    );
+    this.name = 'DuplicateSessionStartError';
+    this.gameId = gameId;
+    this.currentStatus = currentStatus;
+  }
+}

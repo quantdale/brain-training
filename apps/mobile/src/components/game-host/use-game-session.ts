@@ -21,7 +21,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 
-import { SessionLifecycle, systemClock } from '@/sdk';
+import { DuplicateSessionStartError, SessionLifecycle, isTerminalSessionStatus, systemClock } from '@/sdk';
 import type { Clock, SessionStatus } from '@/sdk';
 
 import { markGameSessionStart } from '@/sdk/perf';
@@ -151,24 +151,61 @@ export function useGameSession(options: UseGameSessionOptions): GameSessionContr
   }, [requestPause]);
 
   return {
+    // 074: guarded against a DUPLICATE start, and made exception-safe.
+    //
+    // `begin()` used to REPLACE `lifecycleRef.current` without stopping the
+    // previous lifecycle. A second call — a double-tap on a start control, a
+    // remount racing the first mount, a QA hook firing twice — therefore
+    // silently abandoned a live session: its timer kept running, the new
+    // session was persisted, and the abandoned one's completion was dropped with
+    // no error anywhere.
+    //
+    // Two distinct cases, handled differently on purpose:
+    //   - a NON-TERMINAL previous session means the caller is about to discard
+    //     live state, so this THROWS and leaves everything untouched. Silently
+    //     replacing it is the bug; auto-abandoning it would hide a real caller
+    //     error and lose a session the user may still be playing.
+    //   - a TERMINAL previous session (completed/abandoned) is a legitimate
+    //     restart — the normal end of a game followed by a replay. Its timer is
+    //     already frozen by the terminal transition, so there is nothing to
+    //     release and nothing to warn about.
     begin: useCallback((): SessionStartIdentity => {
-      finalizedRef.current = false;
+      const previous = lifecycleRef.current;
+      if (previous !== null && !isTerminalSessionStatus(previous.status)) {
+        throw new DuplicateSessionStartError(gameId, previous.status);
+      }
+
       const lifecycle = new SessionLifecycle({ clock });
       lifecycle.start();
+      // Publish the new lifecycle BEFORE any work that can throw, so a failure
+      // below can find and release it rather than orphaning a running timer.
       lifecycleRef.current = lifecycle;
-      // Perf mark (dev-only no-op in release): opens the game-start→first-
-      // interaction latency window that <GameHost>'s session-body touch
-      // observer closes (campaign 010, debt D4).
-      markGameSessionStart(gameId);
-      const sessionId = createSessionId(gameId);
-      currentSessionIdRef.current = sessionId;
-      // Query parameters are untrusted input. The route parser already
-      // validates their shape; the game-id check here prevents a tampered
-      // launch tuple from claiming a different game's completion.
-      if (workoutLaunch?.gameId === gameId) {
-        registerWorkoutSessionLaunch(sessionId, workoutLaunch);
+      try {
+        finalizedRef.current = false;
+        // Perf mark (dev-only no-op in release): opens the game-start→first-
+        // interaction latency window that <GameHost>'s session-body touch
+        // observer closes (campaign 010, debt D4).
+        markGameSessionStart(gameId);
+        const sessionId = createSessionId(gameId);
+        currentSessionIdRef.current = sessionId;
+        // Query parameters are untrusted input. The route parser already
+        // validates their shape; the game-id check here prevents a tampered
+        // launch tuple from claiming a different game's completion.
+        if (workoutLaunch?.gameId === gameId) {
+          registerWorkoutSessionLaunch(sessionId, workoutLaunch);
+        }
+        return { sessionId, startedAtMs: Date.now() };
+      } catch (error) {
+        // A start that fails after the lifecycle is running must not leave a
+        // live timer nobody owns. `abandon()` is the terminal transition, which
+        // freezes the timer; the ref is cleared so the next `begin()` is a
+        // clean first start rather than a duplicate-start refusal against
+        // debris this call created.
+        lifecycle.abandon();
+        lifecycleRef.current = null;
+        currentSessionIdRef.current = null;
+        throw error;
       }
-      return { sessionId, startedAtMs: Date.now() };
     }, [clock, gameId, workoutLaunch]),
 
     requestPause,

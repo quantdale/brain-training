@@ -73,17 +73,28 @@
 
 ## 4. Duplicate-start guard
 
-- [ ] 4.1 Add a guard to `useGameSession.begin()` that refuses to start while a
+- [x] 4.1 Add a guard to `useGameSession.begin()` that refuses to start while a
       previous session for the same scope is non-terminal, with an error
       distinguishable from a successful start.
-- [ ] 4.2 Ensure the refused start leaves the previous session's state, timers,
+- [x] 4.2 Ensure the refused start leaves the previous session's state, timers,
       and persistence untouched.
-- [ ] 4.3 Ensure a start that fails after partial initialization cleans up any
+- [x] 4.3 Ensure a start that fails after partial initialization cleans up any
       timer, listener, or subscription it created, so it cannot block or leak
       into a later start.
-- [ ] 4.4 Add tests: duplicate start refused; start after terminal phase
-      succeeds; partial-failure cleanup leaves no residue; a host remount does
-      not trip the guard.
+- [x] 4.4 9 new cases in `duplicate-start-guard.test.tsx` plus a new case in the
+      existing hook suite: a duplicate while `active` and while `paused` is
+      refused with a typed error naming the game and status; the refused start
+      leaves the running session completable and current; a start after
+      `completed` and after `abandoned` succeeds; a host REMOUNT does not trip
+      the guard (a fresh instance has no previous session — a guard that
+      survived a remount would refuse the first start after any navigation);
+      repeated start/complete cycles never accumulate guard state; and
+      `isTerminalSessionStatus` recognises exactly the two terminal statuses.
+      **Two existing tests were adapted, and the change is worth recording:**
+      they proved the finalize guard re-arms by calling `begin()` twice with no
+      completion between — precisely the duplicate pattern now refused. Their
+      intent (the finalize guard) is unchanged; the session is now completed
+      before the second begin, which is what a real caller does.
 
 ## 5. Version conversion contract
 

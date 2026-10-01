@@ -90,7 +90,8 @@ plus historical follow-ups.
   still satisfies itself from shared host sources rather than scanning the 42
   module directories), §4 the duplicate-start guard in `useGameSession.begin()`,
   §6 the `docs/GAME_SDK.md` module map and the stale catalog-size comment, and
-  the §7.4 device lane. §5 (the version-conversion contract) is also DONE.
+  the §7.4 device lane. §4 (the duplicate-start guard) and §5 (the
+  version-conversion contract) are also DONE.
   Owner: release-engineering orchestrator.
 - Change 072 device-lane boundary (2026-09-30, `CHANGE_072_PARTIAL`): every code
   section of the change (§1–§6) is DONE and measured. What remains is the

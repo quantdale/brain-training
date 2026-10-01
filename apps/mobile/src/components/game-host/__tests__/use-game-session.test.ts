@@ -88,10 +88,26 @@ describe('useGameSession', () => {
     const first = controller.begin();
     expect(controller.isCurrentSession(first.sessionId)).toBe(true);
 
+    // 074: the first session is COMPLETED before the second begin. Calling
+    // `begin()` on a live session is now a typed `DuplicateSessionStartError`
+    // rather than a silent replacement, so a test that needs a new session has
+    // to reach a terminal phase first — which is what a real caller does.
+    controller.completeIfActive();
     const second = controller.begin();
     expect(controller.isCurrentSession(first.sessionId)).toBe(false);
     expect(controller.isCurrentSession(second.sessionId)).toBe(true);
     expect(controller.isCurrentSession(null)).toBe(false);
+  });
+
+  it('refuses a duplicate begin while a session is still active (074)', async () => {
+    const { controller } = await makeHook();
+    const first = controller.begin();
+    // The pre-074 behavior replaced the live lifecycle and abandoned the
+    // running session silently. It is now a named, diagnosable error.
+    expect(() => controller.begin()).toThrow(/Duplicate session start/);
+    // ...and the running session is untouched: it can still complete.
+    expect(() => controller.completeIfActive()).not.toThrow();
+    expect(controller.isCurrentSession(first.sessionId)).toBe(true);
   });
 
   it('registers exact workout launch ownership under the generated session id', async () => {
@@ -130,7 +146,10 @@ describe('useGameSession', () => {
     // Double-submission within the same session is refused.
     expect(controller.claimFinalize()).toBe(false);
 
-    // A new session re-arms the guard exactly once.
+    // A new session re-arms the guard exactly once. 074: the current session is
+    // completed first, because `begin()` on a live session is now a typed
+    // duplicate-start error rather than a silent replacement.
+    controller.completeIfActive();
     controller.begin();
     expect(controller.claimFinalize()).toBe(true);
     expect(controller.claimFinalize()).toBe(false);
