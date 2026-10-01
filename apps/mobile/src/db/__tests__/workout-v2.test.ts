@@ -387,9 +387,12 @@ describe('corrupt persisted rows never crash reads or writes', () => {
     await expect(workouts.advance('2026-08-20')).rejects.toThrow(
       /empty workout instance/,
     );
+    // 073 §1.3: the reroll path now refuses the RAW corruption itself rather
+    // than relying on the filtered-empty view — a more precise refusal for the
+    // same contract (no write against a row whose stored list is unusable).
     await expect(
       workouts.applyReroll('2026-08-20', ['a', 'b'], 1),
-    ).rejects.toThrow(/empty workout instance/);
+    ).rejects.toThrow(/corrupt game_ids_json/);
     const repaired = await workouts.reconcile('2026-08-20', new Set(['a', 'b']));
     expect(repaired).toBeNull();
     expect(await workouts.getByDate('2026-08-20')).toBeNull();

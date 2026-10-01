@@ -214,32 +214,35 @@ export function GameHost({
   // would report a failure for a state that is normal here. The asserted index
   // stays the documented fallback while the row loads or when no store is
   // available; the advance path re-reads the store regardless.
-  const [storedPosition, setStoredPosition] = useState<number | null>(null);
+  // The row key is stored WITH the position so a launch change makes the old
+  // value stale by derivation instead of by a state reset inside the effect
+  // (a synchronous `setState` in an effect body cascades renders).
+  const [stored, setStored] = useState<{ key: string; index: number } | null>(null);
   const launchKey = workoutLaunch?.instanceKey ?? null;
   useEffect(() => {
     if (launchKey === null) {
-      setStoredPosition(null);
       return;
     }
     let cancelled = false;
     (async () => {
       try {
         const instance = await getDb().workouts.getByDate(launchKey);
-        if (!cancelled) {
-          setStoredPosition(instance ? instance.currentIndex : null);
+        if (!cancelled && instance) {
+          setStored({ key: launchKey, index: instance.currentIndex });
         }
       } catch {
         // Store unavailable (recovery, bare harness): keep the asserted-index
         // fallback. Presentational only — nothing durable depends on this.
-        if (!cancelled) {
-          setStoredPosition(null);
-        }
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [launchKey]);
+  const storedPosition =
+    stored !== null && launchKey !== null && stored.key === launchKey
+      ? stored.index
+      : null;
   const workoutPosition =
     workoutLaunch?.gameId === gameId
       ? (storedPosition ?? workoutLaunch.legIndex) + 1

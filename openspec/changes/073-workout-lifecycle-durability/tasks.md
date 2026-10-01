@@ -15,19 +15,22 @@
 - [x] 1.3 `applyReroll` migrated, which is what closes the missing
       `status='active'` condition AND pulls in `updated_at` / `seed_version`
       (its old statement predated them, so it was weaker than the advance in
-      three ways, not one). **PARTIAL:** the malformed/over-bound stored
-      leg-list VALIDATION is not implemented — the shared CAS predicates on the
-      stored bytes, which detects a concurrent rewrite, but it does not reject an
-      already-corrupt row before writing. That remains open and is recorded in
-      `.agent/BACKLOG.md`.
-- [x] 1.4 **Partially done and proven:** a reroll against a completed workout is
-      rejected and leaves the row byte-identical (asserted). Mutation-verified —
-      removing the `status = 'active'` predicate from the reroll CAS fails this
-      case. The malformed/over-bound leg-list rejection and the two-concurrent-
-      advances case are NOT yet covered; see 1.1/1.2/1.3, which are the
-      prerequisite for covering them honestly. A structural guard now asserts
-      every POSITION writer (advance, reroll, skip/jump, boot reconciliation)
-      routes through the shared helper with a closed-set clause.
+      three ways, not one). The malformed/over-bound leg-list VALIDATION also
+      landed: `requireValidLegList` rejects an empty, non-string, or
+      over-`MAX_WORKOUT_GAME_IDS` list, and `storedLegList` validates the RAW
+      stored bytes strictly — `rowToInstance` filters corrupt entries so
+      history stays readable, but a WRITE aimed at that row must see the
+      corruption instead of laundering a shorter list through the conditional
+      update. Applied to BOTH position writers (`applyReroll`, `skipToLeg`).
+- [x] 1.4 Complete and proven: a reroll against a completed workout is
+      rejected and leaves the row byte-identical (mutation-verified — removing
+      the `status = 'active'` predicate fails it); malformed/over-bound
+      incoming and stored leg lists are refused with nothing written; and two
+      concurrent advances for one leg apply AT MOST one move (the loser is
+      refused by the connection's transaction scope or loses the CAS). A
+      structural guard asserts every POSITION writer (advance, reroll,
+      skip/jump, boot reconciliation) routes through the shared helper with a
+      closed-set clause.
 
 ## 2. Durable leg ownership
 

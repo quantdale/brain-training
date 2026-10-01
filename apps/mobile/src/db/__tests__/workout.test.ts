@@ -14,6 +14,7 @@ import { resolve } from 'node:path';
 
 import { createMigratedDb } from './helpers';
 import { WorkoutRepository, WorkoutWriteConflictError } from '../workout';
+import { MAX_WORKOUT_GAME_IDS } from '@/workout/templates';
 
 const GAMES = ['g1', 'g2', 'g3', 'g4'];
 
@@ -216,5 +217,92 @@ describe('workout position writes share one compare-and-set (073 D5)', () => {
     expect(workoutSource.match(/'advance'/g) ?? []).toHaveLength(2);
     expect(workoutSource.match(/'reroll'/g) ?? []).toHaveLength(1);
     expect(workoutSource.match(/'skipTo'/g) ?? []).toHaveLength(1);
+  });
+});
+
+describe('leg-list validation on position writes (073 §1.3)', () => {
+  let adapter: SQLiteAdapter;
+  let workouts: WorkoutRepository;
+
+  beforeEach(async () => {
+    adapter = await createMigratedDb();
+    workouts = new WorkoutRepository(adapter, () => 1000);
+  });
+
+  it('refuses a reroll aimed at a row whose stored leg list is corrupt', async () => {
+    await workouts.getOrCreate('2026-08-17', { gameIds: GAMES });
+    // `rowToInstance` deliberately FILTERS corrupt JSON so history stays
+    // readable; a WRITE aimed at that row must see the corruption and refuse
+    // instead of laundering a shorter list through the conditional update.
+    await adapter.run('UPDATE workout_instances SET game_ids_json = ? WHERE date = ?', [
+      '{not json',
+      '2026-08-17',
+    ]);
+    await expect(workouts.applyReroll('2026-08-17', GAMES, 1)).rejects.toThrow(
+      /corrupt game_ids_json/,
+    );
+    expect((await workouts.getByDate('2026-08-17'))?.rerollAttempt).toBe(0);
+  });
+
+  it('refuses a reroll aimed at an over-bound stored leg list', async () => {
+    await workouts.getOrCreate('2026-08-17', { gameIds: GAMES });
+    const tooMany = Array.from({ length: MAX_WORKOUT_GAME_IDS + 1 }, (_, i) => `g${i}`);
+    await adapter.run('UPDATE workout_instances SET game_ids_json = ? WHERE date = ?', [
+      JSON.stringify(tooMany),
+      '2026-08-17',
+    ]);
+    await expect(workouts.applyReroll('2026-08-17', GAMES, 1)).rejects.toThrow(/maximum is/);
+  });
+
+  it('refuses a malformed or over-bound INCOMING leg list', async () => {
+    await workouts.getOrCreate('2026-08-17', { gameIds: GAMES });
+    await expect(workouts.applyReroll('2026-08-17', [], 1)).rejects.toThrow(/non-empty array/);
+    await expect(workouts.applyReroll('2026-08-17', ['ok', ''], 1)).rejects.toThrow(
+      /non-empty game id strings/,
+    );
+    const tooMany = Array.from({ length: MAX_WORKOUT_GAME_IDS + 1 }, (_, i) => `g${i}`);
+    await expect(workouts.applyReroll('2026-08-17', tooMany, 1)).rejects.toThrow(/maximum is/);
+    // No rejected attempt wrote anything.
+    const after = await workouts.getByDate('2026-08-17');
+    expect(after?.rerollAttempt).toBe(0);
+    expect(after?.currentIndex).toBe(0);
+    expect(after?.gameIds).toEqual(GAMES);
+  });
+
+  it('refuses a skip on a row whose stored leg list is not a list', async () => {
+    await workouts.getOrCreate('2026-08-17', { gameIds: GAMES });
+    await adapter.run('UPDATE workout_instances SET game_ids_json = ? WHERE date = ?', [
+      'null',
+      '2026-08-17',
+    ]);
+    await expect(workouts.skipToLeg('2026-08-17', 1)).rejects.toThrow(/game list/);
+    // The row is untouched: no position move, no skip recorded.
+    const after = await workouts.getByDate('2026-08-17');
+    expect(after?.currentIndex).toBe(0);
+    expect(after?.skippedIndices).toEqual([]);
+  });
+});
+
+describe('concurrent position writes (073 §1.4)', () => {
+  it('applies at most one of two concurrent advances for the same leg', async () => {
+    const adapter = await createMigratedDb();
+    const workouts = new WorkoutRepository(adapter, () => 1000);
+    await workouts.getOrCreate('2026-08-17', { gameIds: GAMES });
+    const provenance = { instanceKey: '2026-08-17', legIndex: 0, gameId: GAMES[0] };
+
+    const results = await Promise.allSettled([
+      workouts.advanceForSession({ gameId: GAMES[0], workoutProvenance: provenance }),
+      workouts.advanceForSession({ gameId: GAMES[0], workoutProvenance: provenance }),
+    ]);
+
+    const advances = results.filter(
+      (result) => result.status === 'fulfilled' && result.value.advanced,
+    ).length;
+    // The loser is either refused by the connection's transaction scope (068's
+    // documented contention narrowing) or loses the compare-and-set — it never
+    // stacks a second move on top of the first.
+    expect(advances).toBeLessThanOrEqual(1);
+    const after = await workouts.getByDate('2026-08-17');
+    expect(after?.currentIndex).toBe(advances === 1 ? 1 : 0);
   });
 });

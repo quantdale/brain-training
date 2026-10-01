@@ -34,6 +34,9 @@ import {
   type WorkoutCompletionSummary,
   type WorkoutSessionRef,
 } from "@/workout/summary";
+import {
+  MAX_WORKOUT_GAME_IDS,
+} from "@/workout/templates";
 import type { WorkoutSelectionReason } from "@/workout/personalize";
 import { nextDate } from "@/workout/today";
 import {
@@ -357,6 +360,49 @@ async function loadPlayedLegs(
   } catch {
     return null;
   }
+}
+
+/**
+ * Reject a malformed or over-bound leg list before it can be persisted
+ * (Change 073 §1.3).
+ *
+ * The shared compare-and-set predicates on the stored BYTES, which detects a
+ * concurrent rewrite — but a write aimed at an already-corrupt row (or carrying
+ * a corrupt list) must be refused outright rather than laundered into a
+ * conditional update. Bound mirrors the import validator's
+ * `MAX_WORKOUT_GAME_IDS` so in-app writes and backup restores cannot disagree
+ * about what a legal leg list is.
+ */
+function requireValidLegList(gameIds: unknown, field: string): string[] {
+  if (!Array.isArray(gameIds) || gameIds.length === 0) {
+    throw new Error(`${field} must be a non-empty array of game ids`);
+  }
+  if (gameIds.length > MAX_WORKOUT_GAME_IDS) {
+    throw new Error(
+      `${field} has ${gameIds.length} game ids (the maximum is ${MAX_WORKOUT_GAME_IDS})`,
+    );
+  }
+  for (const gameId of gameIds) {
+    if (typeof gameId !== "string" || gameId.trim() === "") {
+      throw new Error(`${field} must contain only non-empty game id strings`);
+    }
+  }
+  return gameIds as string[];
+}
+
+/**
+ * The stored leg list, validated strictly. `rowToInstance` deliberately
+ * FILTERS corrupt entries so history stays readable; a WRITE aimed at that row
+ * must see the corruption instead of silently rewriting a shorter list.
+ */
+function storedLegList(row: WorkoutRow): string[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(row.game_ids_json);
+  } catch {
+    throw new Error(`workout instance ${row.date} has corrupt game_ids_json`);
+  }
+  return requireValidLegList(parsed, `workout instance ${row.date} game list`);
 }
 
 /** Exact ownership predicate shared by lookup and the conditional write path. */
@@ -721,13 +767,19 @@ export class WorkoutRepository {
       throw new Error(`No workout instance for key ${date}`);
     }
     const current = rowToInstance(row);
+    // 073 §1.3: validate the STORED list strictly and the incoming one too.
+    // `rowToInstance` filters corrupt entries so history stays readable; a
+    // write aimed at that row must see the corruption and refuse instead of
+    // laundering a shorter or over-bound list through the conditional update.
+    const storedList = storedLegList(row);
+    const incoming = requireValidLegList(newGameIds, 'applyReroll newGameIds');
     if (current.gameIds.length === 0) {
       // Same corrupt-row guard as `advance`: rerolling an empty instance
       // would fabricate games onto a row that must regenerate instead (056).
       throw new Error(`Cannot reroll an empty workout instance for key ${date}`);
     }
-    const completedPrefix = current.gameIds.slice(0, current.currentIndex);
-    const future = newGameIds.slice(current.currentIndex);
+    const completedPrefix = storedList.slice(0, current.currentIndex);
+    const future = incoming.slice(current.currentIndex);
     const merged = [...completedPrefix, ...future];
     const updatedAt = this.now();
     // Compare-and-swap on the caller's read snapshot when provided (the
@@ -986,7 +1038,10 @@ export class WorkoutRepository {
         // re-decided as skipped after the fact.
         return current;
       }
-      const legCount = current.gameIds.length;
+      // 073 §1.3: a write aimed at a row whose stored leg list is corrupt or
+      // over-bound must refuse rather than record skips against a list the
+      // reader cannot trust.
+      const legCount = storedLegList(row).length;
       if (
         !Number.isSafeInteger(targetIndex) ||
         targetIndex <= current.currentIndex ||
