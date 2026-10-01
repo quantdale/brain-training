@@ -5548,5 +5548,51 @@ in the change's task list; nothing in them is claimed as done.**
     mismatched, both floors met); typecheck and lint clean; `validate-repo-state`
     PASS; OpenSpec `--all --strict` 59/59. **No new skips.**
 
-**Change 074 status: §1, §2, §4 and §5 done and measured. §3 (per-game lifecycle
-verification), §6 (`docs/GAME_SDK.md`) and the §7.4 device lane remain NOT DONE.**
+- **§3 per-game lifecycle verification: also completed** (appended 2026-09-30).
+  - **The existing check was vacuous and is REPLACED, not patched.** It built
+    each game's "contract source" by appending the shared host sources whenever
+    the screen delegated to `<GameHost>`:
+    `return delegatesToGameHost(screen) ? \`${screen}\n${GAME_HOST_SOURCES}\` : screen;`
+    Every assertion in that block — "screen lacks AppState auto-pause", "screen
+    never abandons the lifecycle", "screen lacks a finalizedRef guard" — was
+    therefore satisfied by the **host** text rather than by the game. It passed
+    for every game regardless of what the game did. It read as coverage and
+    could not fail, which is the worst combination.
+  - The replacement (`src/sdk/__tests__/game-lifecycle-contract.test.ts`,
+    8 cases) scans **only the 42 game module directories** and asserts the
+    invariant from the other side: the HOST owns the session lifecycle, so a
+    game must not reach around it. Per module, naming the offender: no
+    `new SessionLifecycle`, no direct `AppState.addEventListener`, no
+    SDK-lifecycle import, and the session reached only through the shared
+    `useGameSession` hook.
+  - **The task's wording was narrowed deliberately, and the reason recorded:** a
+    blanket "a game must not construct its own timers, intervals, or event
+    subscriptions" would have flagged `memory-prospective-cue`, whose per-item
+    `setInterval` is **correct** — created in an effect, cleared on cleanup, and
+    gated on `state.paused` / `tutorialOpen` in its dependencies. Failing
+    working code would have taught the next author the guard is arbitrary. What
+    is gated instead is the universally-enforceable part: **a timer a game
+    creates must be cleared**. A leaked interval keeps firing against a
+    component that is gone, and that is the failure mode worth gating.
+  - **Comment stripping turned out to be required, not cosmetic.** The first
+    version of the SDK-import assertion failed on `math-missing-operator/reducer.ts`
+    — a doc comment that *mentions* the SDK `SessionLifecycle` in prose. A guard
+    that fails on the file explaining the contract gets deleted rather than
+    fixed, so `stripComments` / `scanModuleSources` are now shared helpers in
+    `@/test-utils/source-scan`, used by BOTH this guard and the navigation guard
+    (which had grown its own copy).
+  - **Proven able to fail, three ways, each reverted:** a game constructing its
+    own `SessionLifecycle`; a game calling `AppState.addEventListener('change', …)`;
+    and a game creating an uncleared `setInterval` (fails both timer-hygiene
+    assertions). Each failure named the offending module and file.
+  - The scan derives from `game.json` discovery, so a new game is covered the
+    moment it ships a manifest; a test asserts the discovery is non-empty and
+    duplicate-free so the suite cannot pass by scanning nothing.
+  - **Verification after §3:** full matrix **611 suites / 7,131 passed + 5
+    skipped tests / 5 snapshots, 0 failures**; signal gate `pass: true` (5
+    classified skips, 0 unclassified / ambiguous / mismatched, both floors met);
+    typecheck and lint clean; `validate-repo-state` PASS; OpenSpec
+    `--all --strict` 59/59. **No new skips.**
+
+**Change 074 status: §1, §2, §3, §4 and §5 done and measured. §6
+(`docs/GAME_SDK.md`) and the §7.4 device lane remain NOT DONE.**

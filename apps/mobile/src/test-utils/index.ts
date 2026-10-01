@@ -18,6 +18,14 @@
  */
 export { advanceTime } from './clock';
 export { allowDbDataLoadLogs } from './console-signal';
+export {
+  readCode,
+  relOf,
+  scanModuleSources,
+  stripComments,
+  type ModuleSource,
+  type ScanOptions,
+} from './source-scan';
 export { drawUniqueInts, seededFloats } from './rng';
 export { createMigratedDb } from './db';
 export { FIXED_TEST_NOW, makeSessionRecord } from './fixtures';

@@ -62,14 +62,43 @@
 
 ## 3. Per-game lifecycle verification
 
-- [ ] 3.1 Rewrite the session-lifecycle contract test to scan only the 42 game
-      module directories, excluding the shared host sources that currently
-      satisfy it.
-- [ ] 3.2 Assert, per module, that the module does not construct its own timers,
-      intervals, or event subscriptions, and name the module on failure.
-- [ ] 3.3 Prove the gate can fail: temporarily introduce a non-conforming
-      construct in one module, confirm the gate fails naming it, then revert.
-- [ ] 3.4 Confirm a newly added game module is covered automatically.
+- [x] 3.1 The existing check was **vacuous and is replaced**, not patched. It
+      built each game's "contract source" by appending the shared host sources
+      whenever the screen delegated to `<GameHost>`, so every assertion in the
+      block ("screen lacks AppState auto-pause", "screen never abandons the
+      lifecycle", "screen lacks a finalizedRef guard") was satisfied by the HOST
+      text rather than by the game. It passed for every game regardless of what
+      the game did — it read as coverage but could not fail. The replacement
+      (`src/sdk/__tests__/game-lifecycle-contract.test.ts`) scans only the 42
+      game module directories and asserts the invariant from the other side: the
+      HOST owns the session lifecycle, so a game must not reach around it.
+- [x] 3.2 Per module, naming the offender: no `new SessionLifecycle`, no direct
+      `AppState.addEventListener`, no SDK-lifecycle import, and the session is
+      reached only through the shared `useGameSession` hook. **The task's
+      wording ("no own timers, intervals, or event subscriptions") was narrowed
+      deliberately and is recorded:** a blanket ban would have flagged
+      `memory-prospective-cue`, whose per-item `setInterval` is correct — created
+      in an effect, cleared on cleanup, and gated on `state.paused` /
+      `tutorialOpen` in its dependencies. What is gated instead is the
+      universally-enforceable part: a timer a game creates must be CLEARED. A
+      blanket ban would have failed working code and taught the next author the
+      guard is arbitrary.
+- [x] 3.2a **Comment stripping is required, and the shared scanner proves why.**
+      The first version of the SDK-import assertion failed on
+      `math-missing-operator/reducer.ts` — a doc comment that *mentions* the SDK
+      `SessionLifecycle` in prose. A guard that fails on the file explaining the
+      contract gets deleted rather than fixed, so `stripComments` /
+      `scanModuleSources` are now shared helpers in `@/test-utils/source-scan`
+      and used by BOTH the navigation guard and this one.
+- [x] 3.3 Proven three ways, each reverted: a game constructing its own
+      `SessionLifecycle` fails the import/construct assertion naming
+      `speed-tap-rush/screen.tsx`; a game calling
+      `AppState.addEventListener('change', …)` fails the subscription assertion
+      naming the same file; and a game creating an uncleared `setInterval` fails
+      BOTH timer-hygiene assertions. Restored to green after each.
+- [x] 3.4 The scan is derived from `game.json` discovery, so a new game is
+      covered the moment it ships a manifest. A test asserts the discovery is
+      non-empty and duplicate-free, so the suite cannot pass by scanning nothing.
 
 ## 4. Duplicate-start guard
 
