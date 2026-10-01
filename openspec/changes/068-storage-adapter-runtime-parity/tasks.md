@@ -107,3 +107,25 @@
       `-wal`/`-shm` sidecars are present. No emulator was launched; the task is
       left unchecked rather than reported as done. Tracked in
       `.agent/KNOWN_ISSUES.md` (Change 068) and `.agent/VALIDATION.md`.
+
+## 8. Post-review refinement wave (gap closure)
+
+- [x] 8.1 Guard the entry points a forgotten `txn` actually reaches: root
+      `run` rejects alongside `exec`/`transaction` (a DML write that silently
+      joins another transaction and vanishes on its rollback is data loss),
+      pinned on both backends by `transaction-reentrancy.test.ts` and
+      `adapters/__tests__/expo.test.ts`.
+- [x] 8.2 Let `get`/`all` PARTICIPATE in the connection's current transaction
+      instead of rejecting; the transaction body no longer holds the
+      statement-serialization slot, so a read can never queue behind a slot
+      its own transaction occupies. Closing the earlier over-broad rejection
+      also restored exactly-once claim totals under contention
+      (`claim-all-attacks.test.ts`, which reproduced 25-of-45 before the fix)
+      and added per-item resilience to `claimAllRewards`.
+- [x] 8.3 Re-run the full repository matrix on the refined semantics: 611
+      suites / 7,172 passed / 5 classified skips / 0 failed; typecheck 0; lint
+      0; jest-signal floors met; all validators PASS; OpenSpec strict 59/59.
+- [ ] 8.4 **NOT VALIDATED — device lane not available.** The on-device
+      confirmation that concurrent reads during a transaction behave as
+      specified (and the §7.5 pragma snapshot) remains owed to the dedicated
+      AVD, unchanged from §7.5.

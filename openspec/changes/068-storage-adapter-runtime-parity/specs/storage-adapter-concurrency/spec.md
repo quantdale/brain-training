@@ -12,16 +12,26 @@ harness reports as green.
 
 ### Requirement: Re-entering a transaction from inside a transaction body is rejected, never queued
 
-When a call made from inside a transaction body is routed to the adapter that
-owns that transaction — that is, the caller did not thread the transaction
-adapter through to the repository call — the adapter SHALL reject the call with
-a descriptive error. It SHALL NOT block waiting for the outer transaction, and
-it SHALL NOT silently execute the call outside the transaction.
+A **state-changing** call made from inside a transaction body that is routed to
+the adapter owning that transaction — beginning a nested transaction, executing
+a connection-level statement (for example DDL or a `PRAGMA`), or performing a
+DML write — SHALL be rejected with a descriptive error. It SHALL NOT block
+waiting for the outer transaction, and it SHALL NOT silently execute outside the
+transaction or silently join it (a write that quietly becomes part of another
+transaction and vanishes on its rollback is silent data loss).
 
-The same rejection SHALL apply to every adapter entry point that re-enters the
-owning connection: beginning a nested transaction, and executing a
-connection-level statement (for example a DDL or `PRAGMA` call) from inside a
-transaction body.
+**Reads participate.** A `get`/`all` issued while a transaction is open executes
+as part of that connection's current transaction instead of being rejected or
+queued: reads have no side effects, a body reading through the owning adapter
+sees exactly its own uncommitted view, and an independent concurrent reader is
+advisory because every claim path re-validates inside its own transaction.
+Refusing reads is not permitted — it stranded legitimate concurrent work (a
+claim-all racing a single claim lost every remaining reward behind one refused
+read).
+
+No entry point may block indefinitely: the transaction body SHALL NOT hold the
+statement-serialization slot, so nothing can queue behind a slot its own
+transaction occupies.
 
 #### Scenario: Nested transaction through the owning adapter
 
@@ -33,14 +43,23 @@ transaction body.
   completely, with no statement from the rejected call applied
 - **AND** subsequent independent statements on that connection still complete
 
-#### Scenario: Non-transactional statement through the owning adapter during a transaction
+#### Scenario: Non-transactional state change through the owning adapter during a transaction
 
 - **GIVEN** an open transaction on a connection
 - **WHEN** code inside the transaction body executes a connection-level
-  statement through the adapter that owns the open transaction
+  statement or a DML write through the adapter that owns the open transaction
 - **THEN** the call is rejected with a descriptive error rather than queued
   behind the transaction
 - **AND** the outer transaction remains completable
+
+#### Scenario: Reads participate in the open transaction
+
+- **GIVEN** an open transaction on a connection
+- **WHEN** a `get`/`all` is issued through the owning adapter — by the body or
+  by an independent caller
+- **THEN** the read executes as part of the connection's current transaction
+- **AND** it is neither rejected nor blocked behind the transaction
+- **AND** after commit or rollback, ordinary reads still work
 
 #### Scenario: Transaction-scoped calls still work
 
