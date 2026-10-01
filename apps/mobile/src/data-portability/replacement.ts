@@ -188,7 +188,7 @@ export async function replaceWithRotation(
       fs.delete(previous);
     }
   } catch (error) {
-    await recover(fs, { name, previous, temporary, rotated: fs.exists(previous) });
+    await recover(fs, { name, previous, temporary }, contents);
     throw error;
   }
 }
@@ -198,78 +198,177 @@ interface RecoveryState {
   name: string;
   previous: string;
   temporary: string;
-  /** Is a complete old copy sitting at the rotation sibling? */
-  rotated: boolean;
 }
 
 /**
  * Best-effort restoration after a failed replacement. Never throws: a failure
  * here must not replace the error the caller is about to see.
+ *
+ * One rule covers every failure shape: whenever the live name does not hold
+ * the EXPECTED content and a complete previous copy exists, promote the
+ * previous copy. That includes the three real cases — the name is missing
+ * (interrupted between rotation and rename), the name is unreadable, and the
+ * name exists but holds DIFFERENT bytes (a rename that landed short of the
+ * expected content). The first version only handled "name missing", so a
+ * content-mismatch failure left the corrupt file as the user's visible backup
+ * and the good copy hidden — precisely inverted from what the caller needs.
+ * A stale backup is strictly better than a corrupt one.
  */
 async function recover(
   fs: RotationFileSystem,
   state: RecoveryState,
+  expected: string,
 ): Promise<void> {
-  const { name, previous, temporary, rotated } = state;
+  const { name, previous, temporary } = state;
   // The temp is never a valid backup (the listing rule hides it and the user
   // cannot restore it), so removing it is always safe.
   try {
     if (fs.exists(temporary)) fs.delete(temporary);
   } catch {
-    // Left behind as a dotfile; swept by the next successful write.
+    // Left behind as an internal artifact; the sweep reclaims it once the
+    // live name is healthy again.
   }
 
-  // If the old content is at the rotation sibling and the name is missing or
-  // unusable, put it back. Restoring a stale backup beats leaving the user with
-  // no backup at this name at all.
   try {
-    if (rotated && !fs.exists(name)) {
-      await fs.move(previous, name);
-      return;
+    if (fs.exists(previous) && !(await holdsContent(fs, name, expected))) {
+      await restorePrevious(fs, name, previous);
     }
   } catch {
-    // Nothing further to try; `.prev` survives for a later recovery step.
+    // Nothing further to try; `.prev` survives and the next sweep promotes it.
   }
+}
 
-  // The new content may already be in place (a failure in `verify` or
-  // `delete-previous`). In that case the old copy at `.prev` is redundant.
+/** True when a readable file at `name` holds exactly `expected`. */
+async function holdsContent(
+  fs: RotationFileSystem,
+  name: string,
+  expected: string,
+): Promise<boolean> {
+  if (!fs.exists(name)) return false;
   try {
-    if (!rotated && fs.exists(previous)) {
-      fs.delete(previous);
-    }
+    return (await fs.read(name)) === expected;
   } catch {
-    // Inert leftover.
+    return false;
+  }
+}
+
+/**
+ * Is the live file at `name` a usable backup?
+ *
+ * Empty and unreadable files are not: an empty file cannot be a backup
+ * envelope and an unreadable one cannot be restored from. The sweep uses this
+ * to tell a stale rotation sibling (live name healthy — litter) from the only
+ * real copy (live name missing or empty — must be promoted).
+ */
+async function liveIsUsable(fs: RotationFileSystem, name: string): Promise<boolean> {
+  if (!fs.exists(name)) return false;
+  try {
+    return (await fs.read(name)).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Put the rotation sibling back under the live name.
+ *
+ * Best-effort and never throws: the caller is either reporting an error or
+ * sweeping, and a failure here must not replace the error the caller is about
+ * to see. Returns whether the live name now exists.
+ */
+async function restorePrevious(
+  fs: RotationFileSystem,
+  name: string,
+  previous: string,
+): Promise<boolean> {
+  try {
+    if (fs.exists(name)) fs.delete(name);
+    await fs.move(previous, name);
+    return fs.exists(name);
+  } catch {
+    return false;
   }
 }
 
 /**
  * Remove rotation leftovers from an interrupted earlier replacement.
  *
- * Called on every successful write and on every listing pass, so an
- * interrupted rotation cannot accumulate across app launches. It is a sweep,
- * not a recovery: a `.prev` is only removed when its live counterpart exists,
- * because a `.prev` with no counterpart is the ONLY surviving copy of a backup
- * and deleting it would be the data loss this module exists to prevent.
+ * Called on every write, listing, and read, so an interrupted rotation is
+ * repaired by the next access rather than by a manual step. The ordering rule:
  *
- * Returns the names that were protected rather than deleted, so a caller can
- * surface them instead of silently keeping an artifact the user cannot see.
+ * - a `.prev` whose live name is missing or unusable is the ONLY complete copy
+ *   of that backup, so it is PROMOTED back to the live name. A banner asking
+ *   the user to notice a hidden file is not a fix: the contract is that a read
+ *   of the name yields complete previous or complete new content, and a name
+ *   that is missing fails that contract outright.
+ * - a `.prev` whose live name is healthy is the stale sibling of a crash after
+ *   the rename landed — pure litter, reclaimed.
+ * - a writer temp is reclaimed only once its owner's live name is healthy,
+ *   because until then the temp may be the only complete copy of a write that
+ *   never finished. Foreign dotfiles are never touched: only the exact temp
+ *   shapes the writer creates are recognized.
+ *
+ * Returns the names that could not be reclaimed (restoration failed), so a
+ * caller can surface them instead of silently keeping an artifact the user
+ * cannot see.
  */
-export function sweepRotationLeftovers(fs: RotationFileSystem): string[] {
-  const protectedLeftovers: string[] = [];
-  for (const fileName of fs.listNames()) {
+export async function sweepRotationLeftovers(fs: RotationFileSystem): Promise<string[]> {
+  const unreclaimed: string[] = [];
+  // Pass 1: rotation siblings.
+  for (const fileName of [...fs.listNames()]) {
     if (!isPreviousBackupName(fileName)) continue;
     // `.foo.prev` belongs to the backup named `foo`.
     const owner = fileName.slice(1, -'.prev'.length);
-    if (fs.exists(owner)) {
-      try {
+    try {
+      if (await liveIsUsable(fs, owner)) {
         fs.delete(fileName);
-      } catch {
-        // Inert; the next pass tries again.
+        continue;
       }
-      continue;
+      if (await restorePrevious(fs, owner, fileName)) continue;
+      unreclaimed.push(fileName);
+    } catch {
+      unreclaimed.push(fileName);
     }
-    // The counterpart is gone: this is the only copy left of that backup.
-    protectedLeftovers.push(fileName);
   }
-  return protectedLeftovers;
+  // Pass 2: writer temps. Runs after pass 1 so a promoted sibling makes its
+  // owner healthy before the owner's temp is considered. (Writes are
+  // sequential in the UI — a temp belonging to an in-flight write cannot be
+  // present during another write's sweep.)
+  for (const fileName of [...fs.listNames()]) {
+    const owner = temporaryArtifactOwner(fileName);
+    if (owner === null) continue;
+    try {
+      if (await liveIsUsable(fs, owner)) {
+        fs.delete(fileName);
+      }
+    } catch {
+      // Inert; the next sweep tries again.
+    }
+  }
+  return unreclaimed;
+}
+
+/**
+ * The owner of a writer-created temp, or null for anything else.
+ *
+ * The writer creates exactly two shapes: `.{owner}.pending` (the sequence's
+ * default) and `.{owner}.{nonce}.tmp` (the transport's nonce form, whose nonce
+ * is base36 + '-' + base36 and therefore contains no dot). Anything that does
+ * not match one of those shapes is left alone — a foreign dotfile must never be
+ * swept.
+ */
+function temporaryArtifactOwner(fileName: string): string | null {
+  if (!fileName.startsWith('.')) return null;
+  if (fileName.endsWith('.pending')) {
+    const owner = fileName.slice(1, -'.pending'.length);
+    return owner.length > 0 ? owner : null;
+  }
+  if (fileName.endsWith('.tmp')) {
+    const stem = fileName.slice(1, -'.tmp'.length);
+    const dot = stem.lastIndexOf('.');
+    if (dot <= 0) return null;
+    const nonce = stem.slice(dot + 1);
+    return nonce.length > 0 ? stem.slice(0, dot) : null;
+  }
+  return null;
 }

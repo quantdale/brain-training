@@ -78,6 +78,8 @@ function makeWorkout(
     seedVersion: 1,
     createdAt: COMPLETED_AT - 3_600_000,
     updatedAt: COMPLETED_AT - 120_000,
+    // 073: a fresh fixture has played and skipped nothing.
+    skippedIndices: [],
     ...overrides,
   };
 }
@@ -99,6 +101,21 @@ function makeFakeDb(workout: WorkoutInstance | null): AppDatabase {
     sessions: {
       getById: async (id: string) => (id === SESSION_ID ? session : null),
       listRecent: async () => [session],
+      // 073 §2: the advance requires the STORED ownership proof — a session
+      // whose persisted raw result carries exactly the asserted tuple.
+      findSessionOwningWorkoutProvenance: async (provenance: {
+        instanceKey: string;
+        legIndex: number;
+        gameId: string;
+      }) => {
+        const stored = session.workoutProvenance;
+        return stored &&
+          stored.instanceKey === provenance.instanceKey &&
+          stored.legIndex === provenance.legIndex &&
+          stored.gameId === provenance.gameId
+          ? session
+          : null;
+      },
     },
     ratings: { getHistoryForSession: async () => [] },
     workouts: {

@@ -14,6 +14,7 @@
  * pass simply finds nothing (or reports `already-claimed` per item).
  */
 import type { AppDatabase } from '@/db';
+import { isReentrantTransactionError } from '@/db/transaction-scope';
 import {
   ACHIEVEMENT_DEFINITIONS_V1,
   claimAchievementReward,
@@ -259,11 +260,23 @@ export async function claimAllRewards(
   let totalXp = 0;
   let totalCoins = 0;
   for (const item of items) {
-    const outcome = await claimReward(db, item, now);
-    if (outcome.status === 'claimed') {
-      claimedCount += 1;
-      totalXp += outcome.xp;
-      totalCoins += outcome.coins;
+    try {
+      const outcome = await claimReward(db, item, now);
+      if (outcome.status === 'claimed') {
+        claimedCount += 1;
+        totalXp += outcome.xp;
+        totalCoins += outcome.coins;
+      }
+    } catch (error) {
+      // A concurrent writer holds the connection (another claim in flight),
+      // so THIS item is not ours to award in this pass. The batch must keep
+      // going: 060's exactly-once contract is that a racing claim leaves the
+      // totals untouched either way, and aborting here would strand every
+      // remaining reward behind one refused item. Any other failure is real
+      // and propagates.
+      if (!isReentrantTransactionError(error)) {
+        throw error;
+      }
     }
   }
   return { attempted: items.length, claimedCount, totalXp, totalCoins };

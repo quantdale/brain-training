@@ -103,6 +103,14 @@ export const WORKOUT_POSITION_CAS_SET = {
   advance: 'current_index = ?, status = ?, updated_at = ?',
   /** The reroll: replace the leg list and attempt counter, stamp the write. */
   reroll: 'game_ids_json = ?, reroll_attempt = ?, updated_at = ?',
+  /**
+   * A skip (or an explicit jump, which skips the prefix): record the skipped
+   * legs and move the position in ONE conditional write (073 D4/D6). Splitting
+   * "mark skipped" and "advance" into two writes would reopen the exact gap
+   * this module exists to close — a crash between them loses the skip record
+   * and the resume position drifts past legs the player never played.
+   */
+  skipTo: 'current_index = ?, status = ?, skipped_indices_json = ?, updated_at = ?',
 } as const;
 
 export type WorkoutPositionCasSet = keyof typeof WORKOUT_POSITION_CAS_SET;

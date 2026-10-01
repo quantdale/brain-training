@@ -73,6 +73,21 @@ function makeFakeDb(
     sessions: {
       getById: async (id: string) => (id === session.id ? session : null),
       listRecent: async () => [session],
+      // 073 §2: the advance requires the STORED ownership proof — a session
+      // whose persisted raw result carries exactly the asserted tuple.
+      findSessionOwningWorkoutProvenance: async (provenance: {
+        instanceKey: string;
+        legIndex: number;
+        gameId: string;
+      }) => {
+        const stored = session.workoutProvenance;
+        return stored &&
+          stored.instanceKey === provenance.instanceKey &&
+          stored.legIndex === provenance.legIndex &&
+          stored.gameId === provenance.gameId
+          ? session
+          : null;
+      },
       countSessions: async (query: Record<string, unknown>) => {
         onCountSessions?.(query);
         return earlierAtOrAbove;
@@ -277,6 +292,8 @@ describe("/results hero anatomy (campaign 024)", () => {
       seedVersion: 1,
       createdAt: COMPLETED_AT - 3_600_000,
       updatedAt: COMPLETED_AT - 120_000,
+      // 073: a fresh fixture has played and skipped nothing.
+      skippedIndices: [],
     };
     const withProvenance = {
       ...session,

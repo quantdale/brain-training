@@ -71,6 +71,8 @@ function makeDailyWorkout(key: string): WorkoutInstance {
     seedVersion: 3,
     createdAt: 0,
     updatedAt: 0,
+    // 073: a fresh fixture has played and skipped nothing.
+    skippedIndices: [],
   };
 }
 

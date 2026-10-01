@@ -645,6 +645,98 @@ export default function HomeScreen() {
     }
   }, [rerollInProgress, workoutFlow]);
 
+  // 073 §3 — skip is user-triggered and can reject (the repository re-checks
+  // the allowance against the FRESH row, so a stale render cannot skip the
+  // final leg). Failure is surfaced like the reroll's rather than swallowed.
+  const [skipInProgress, setSkipInProgress] = useState(false);
+  const onSkip = useCallback(async () => {
+    if (skipInProgress) {
+      return;
+    }
+    setSkipInProgress(true);
+    try {
+      await workoutFlow.skipCurrentLeg();
+      showToast({ title: "Game skipped", detail: "Your plan moved to the next game." });
+    } catch (error) {
+      console.error("[home] workout skip failed", error);
+      showToast({
+        title: "Couldn't skip this game",
+        detail: "Your plan is unchanged — try again.",
+        tone: "danger",
+      });
+    } finally {
+      setSkipInProgress(false);
+    }
+  }, [skipInProgress, workoutFlow]);
+
+  // The allowance and the boundary reason are ON the control (task 3.4):
+  // nothing about skipping is discovered by tapping.
+  const skipLabel = workoutFlow.canSkip
+    ? "Skip this game (free)"
+    : "Skip unavailable";
+  const skipHint =
+    workoutFlow.skipUnavailableReason ??
+    (workoutFlow.skipsRemaining === 1
+      ? "1 skip left in this plan — the last game must be played."
+      : `${workoutFlow.skipsRemaining} skips left in this plan — the last game must be played.`);
+
+  // 073 §4 — a leg tap must never hand the game a false ownership tuple.
+  // Three honest launches: the current leg (tuple true by construction), a
+  // later leg (an EXPLICIT jump that records the skipped prefix first, so the
+  // tuple is then true against the durable row), and an already-settled leg
+  // (a practice replay with NO tuple — its session must not claim a leg the
+  // plan already settled).
+  const [jumpInProgress, setJumpInProgress] = useState(false);
+  const onJumpToLeg = useCallback(
+    async (gameId: string, index: number) => {
+      const instance = workoutFlow.instance;
+      if (!instance) {
+        router.push(gameHref(gameId, null));
+        return;
+      }
+      if (workoutStatus !== "active" || index < workoutIndex) {
+        router.push(gameHref(gameId, null));
+        return;
+      }
+      if (index === workoutIndex) {
+        router.push(
+          gameHref(gameId, {
+            instanceKey: instance.date,
+            legIndex: index,
+            gameId,
+          }),
+        );
+        return;
+      }
+      if (jumpInProgress) {
+        return;
+      }
+      setJumpInProgress(true);
+      try {
+        await workoutFlow.jumpToLeg(index);
+        // The tuple is built AFTER the jump lands, from the position the
+        // durable row now holds — never from the row index of a stale render.
+        router.push(
+          gameHref(gameId, {
+            instanceKey: instance.date,
+            legIndex: index,
+            gameId,
+          }),
+        );
+      } catch (error) {
+        console.error("[home] workout jump failed", error);
+        showToast({
+          title: "Couldn't open that game",
+          detail: "Your plan is unchanged — try again.",
+          tone: "danger",
+        });
+      } finally {
+        setJumpInProgress(false);
+      }
+    },
+    [jumpInProgress, workoutFlow, workoutStatus, workoutIndex],
+  );
+
   const rerollLabel =
     workoutStatus === "completed"
       ? "Workout complete"
@@ -840,11 +932,21 @@ export default function HomeScreen() {
         {workout.length > 0 ? (
           <Report title="Today's plan" testID="home-workout-list" style={styles.planReport}>
             {workout.map((game, index) => {
+              // 073 — a skipped leg is its OWN outcome: it must never render
+              // as "Done" (the player did not play it and it earned nothing).
+              const isSkipped =
+                workoutFlow.instance?.skippedIndices?.includes(index) ?? false;
               const isCompleted =
-                workoutStatus === "completed" || index < workoutIndex;
+                !isSkipped && (workoutStatus === "completed" || index < workoutIndex);
               const isCurrent =
                 workoutStatus === "active" && index === workoutIndex;
-              const status = isCompleted ? "Done" : isCurrent ? "Now" : "Up next";
+              const status = isSkipped
+                ? "Skipped"
+                : isCompleted
+                  ? "Done"
+                  : isCurrent
+                    ? "Now"
+                    : "Up next";
               return (
                 <ReportRow
                   key={`${game.id}-${index}`}
@@ -862,22 +964,15 @@ export default function HomeScreen() {
                   divider={index < workout.length - 1}
                   testID={`home-workout-game-${game.id}`}
                   accessibilityLabel={`${game.name}, ${game.primaryCategory}, ${
-                    isCompleted ? "done" : isCurrent ? "up now" : "up next"
+                    isSkipped
+                      ? "skipped"
+                      : isCompleted
+                        ? "done"
+                        : isCurrent
+                          ? "up now"
+                          : "up next"
                   }`}
-                  onPress={() =>
-                    router.push(
-                      gameHref(
-                        game.id,
-                        workoutFlow.instance
-                          ? {
-                              instanceKey: workoutFlow.instance.date,
-                              legIndex: index,
-                              gameId: game.id,
-                            }
-                          : null,
-                      ),
-                    )
-                  }
+                  onPress={() => void onJumpToLeg(game.id, index)}
                 />
               );
             })}
@@ -1013,6 +1108,27 @@ export default function HomeScreen() {
                   }
                   onPress={onReroll}
                 />
+                {/* 073 §3 — the free exit the plan never had. Rerolls were the
+                    only way past an unwanted leg and they cost coins and cap
+                    per day; the allowance and its boundary reason live on the
+                    control so nothing about skipping is discovered by tapping. */}
+                <Button
+                  variant="ghost"
+                  label={skipLabel}
+                  testID="home-workout-skip"
+                  accessibilityHint={skipHint}
+                  disabled={!workoutFlow.canSkip || skipInProgress}
+                  onPress={onSkip}
+                />
+                {workoutStatus === "active" ? (
+                  <ThemedText
+                    type="caption"
+                    themeColor="textSecondary"
+                    testID="home-workout-skip-hint"
+                  >
+                    {skipHint}
+                  </ThemedText>
+                ) : null}
                 {workoutStatus === "active" ? (
                   <ThemedText
                     type="caption"

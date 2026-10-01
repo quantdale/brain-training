@@ -19,6 +19,8 @@ function makeInstance(
     seedVersion: 1,
     createdAt: 1000,
     updatedAt: 1000,
+    // 073: a fresh fixture has played and skipped nothing.
+    skippedIndices: [],
     ...overrides,
   };
 }

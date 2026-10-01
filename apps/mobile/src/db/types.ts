@@ -23,6 +23,22 @@ export interface Profile {
 }
 
 /**
+ * The parsed shape of an opaque JSON document column.
+ *
+ * Named at the parse boundary rather than `unknown`: the DB layer never
+ * interprets these payloads (games own their shape), but a JSON parse still
+ * yields structured JSON values — never functions or undefined — and naming
+ * that keeps the boundary honest without pretending to know the contents.
+ */
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+/**
  * A completed game session as persisted. All timestamps are Unix epoch
  * milliseconds; `difficulty` and `rawResult` are opaque JSON payloads owned by
  * the game/generator (this layer never interprets their contents).

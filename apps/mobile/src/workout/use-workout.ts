@@ -34,6 +34,11 @@ import {
   orderDailyBySignals,
 } from "./v3";
 import { eligibleGameIds, eligibleGames } from "@/workout/reconcile";
+import {
+  canSkipLeg,
+  skipsRemaining as countSkipsRemaining,
+  skipUnavailableReason,
+} from "@/workout/skip";
 import { localDateString } from "@/workout/today";
 import {
   canAffordReroll,
@@ -56,6 +61,25 @@ export interface UseWorkoutResult {
   rerollExhausted: boolean;
   /** Apply a reroll (persisted + currency-debited when paid). */
   reroll: () => Promise<void>;
+  /**
+   * Skip the current leg (free, persisted as `skipped`, no rewards). Refuses
+   * when the allowance is exhausted or the last leg is current — see
+   * `workout/skip.ts` for the rule and `skipUnavailableReason` for the copy.
+   */
+  skipCurrentLeg: () => Promise<void>;
+  /**
+   * Jump to a later leg (073 §4): records the unplayed prefix as `skipped`
+   * and moves the resume position in one write, so the launch tuple handed to
+   * the game is true against the durable row instead of claiming a leg the
+   * row does not own.
+   */
+  jumpToLeg: (targetIndex: number) => Promise<void>;
+  /** Skips still available in this workout (the final leg is never skippable). */
+  skipsRemaining: number;
+  /** True when `skipCurrentLeg` is currently allowed. */
+  canSkip: boolean;
+  /** Player-facing reason skip is unavailable, or null when it is available. */
+  skipUnavailableReason: string | null;
   /** Re-read the persisted instance (call when the screen regains focus). */
   refresh: () => void;
   /** Re-run the failed load-or-create pass. */
@@ -221,6 +245,44 @@ export function useWorkout(args: {
   const canReroll =
     !rerollExhausted && canAffordReroll(args.balance, rerollAttempt);
 
+  // 073 §3 — skip is free and bounded by `workout/skip.ts`. The allowance is
+  // derived from the same persisted instance the screen renders, so the
+  // control and the rule can never disagree.
+  const skipsRemaining = instance ? countSkipsRemaining(instance) : 0;
+  const canSkip = instance ? canSkipLeg(instance) : false;
+  const skipUnavailable = instance ? skipUnavailableReason(instance) : null;
+
+  const skipCurrentLeg = useCallback(async () => {
+    const db = getDb();
+    const current = await db.workouts.getByDate(date);
+    // Defense in depth beyond the Home screen's disabled control: the rule is
+    // re-checked against the FRESH row here, so a stale render can never skip
+    // the final leg (which would let a workout complete with zero play).
+    if (!current || !canSkipLeg(current)) {
+      throw new Error(
+        (current && skipUnavailableReason(current)) ||
+          "This workout game cannot be skipped",
+      );
+    }
+    const targetIndex = current.currentIndex + 1;
+    const updated = await db.workouts.skipToLeg(date, targetIndex);
+    if (updated) setInstance(updated);
+    emitWorkoutChanged();
+  }, [date]);
+
+  const jumpToLeg = useCallback(
+    async (targetIndex: number) => {
+      const db = getDb();
+      // The repository validates the target against the FRESH row (a jump may
+      // never consume the final leg or move backwards) and records the skipped
+      // prefix in the same conditional write as the position move.
+      const updated = await db.workouts.skipToLeg(date, targetIndex);
+      if (updated) setInstance(updated);
+      emitWorkoutChanged();
+    },
+    [date],
+  );
+
   const reroll = useCallback(async () => {
     const db = getDb();
     const { domainRatings, recentGameIds } = argsRef.current;
@@ -347,6 +409,11 @@ export function useWorkout(args: {
     canReroll,
     rerollExhausted,
     reroll,
+    skipCurrentLeg,
+    jumpToLeg,
+    skipsRemaining,
+    canSkip,
+    skipUnavailableReason: skipUnavailable,
     refresh,
     retry,
   };

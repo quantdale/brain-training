@@ -18,7 +18,7 @@ import { RatingRepository } from './rating';
 import { SessionRepository } from './sessions';
 import { TutorialRepository } from './tutorial';
 import type { RatingService } from './types';
-import { WorkoutRepository, deleteEmptyWorkoutInstances } from './workout';
+import { WorkoutRepository, deleteEmptyWorkoutInstances, reconcileWorkoutPositions } from './workout';
 import { XpAwardsRepository } from './xp-awards';
 
 export type { SQLiteAdapter, SQLiteRunResult } from './adapter';
@@ -57,7 +57,12 @@ export type { XpAward } from './xp-awards';
 export { SessionRepository } from './sessions';
 export { TutorialRepository } from './tutorial';
 export type { CompleteSessionResult, GameAggregate } from './sessions';
-export { WorkoutRepository, WorkoutWriteConflictError, deleteEmptyWorkoutInstances } from './workout';
+export {
+  WorkoutRepository,
+  WorkoutWriteConflictError,
+  deleteEmptyWorkoutInstances,
+  reconcileWorkoutPositions,
+} from './workout';
 export type { RerollBaseline, WorkoutAdvanceResult, WorkoutInstance, WorkoutStatus } from './workout';
 export { createExpoSqliteAdapter, openExpoDatabase } from './adapters/expo';
 export {
@@ -237,6 +242,12 @@ async function initializeDatabase(options: AppDatabaseOptions): Promise<AppDatab
     // `countCompleted` can never include them (059; closes the 056-F8
     // residual). No-op on healthy DBs; healthy rows are never touched.
     await deleteEmptyWorkoutInstances(adapter);
+    // 073 §5 — repair a resume position left behind by a process death
+    // between a session commit and its one-shot leg advance. Walk-forward
+    // only over legs a persisted session or an explicit skip proves are
+    // settled, so it can never skip past work the player owes. Idempotent,
+    // reward-free, and a no-op on healthy rows.
+    await reconcileWorkoutPositions(adapter);
     const app = new AppDatabase(adapter, options);
     await app.profile.ensureExists(); // create-on-first-launch
     instance = app;

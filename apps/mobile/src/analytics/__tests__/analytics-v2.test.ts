@@ -52,6 +52,8 @@ function workout(date: string, status: 'active' | 'completed', games = 4, done =
     seedVersion: 1,
     createdAt: T0,
     updatedAt: T0,
+    // 073: a fresh fixture has played and skipped nothing.
+    skippedIndices: [],
   };
 }
 

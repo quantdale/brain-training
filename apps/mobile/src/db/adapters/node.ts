@@ -66,6 +66,11 @@ export function createNodeSqliteAdapter(filename = ':memory:'): SQLiteAdapter {
     db.pragma(`journal_mode = ${REQUIRED_JOURNAL_MODE.toUpperCase()}`);
   }
 
+  // Unguarded executors. The ROOT adapter wraps each with the re-entrancy
+  // precondition; the scope-local adapter receives these directly, so a
+  // transaction body can read and write normally while root-adapter calls are
+  // rejected. Keeping ONE implementation and two front ends is what stops the
+  // backends from drifting into different behaviors again.
   const run = async (sql: string, params: SQLiteValue[] = []): Promise<SQLiteRunResult> => {
     const info = db.prepare(sql).run(...params);
     return {
@@ -74,28 +79,58 @@ export function createNodeSqliteAdapter(filename = ':memory:'): SQLiteAdapter {
     };
   };
 
+  const get = async <T>(sql: string, params: SQLiteValue[] = []): Promise<T | null> => {
+    const row = db.prepare(sql).get(...params);
+    return row === undefined ? null : (row as T);
+  };
+
+  const all = async <T>(sql: string, params: SQLiteValue[] = []): Promise<T[]> => {
+    return db.prepare(sql).all(...params) as T[];
+  };
+
+  // The precondition, checked at the CALL SITE before anything touches the
+  // driver. `run`/`get`/`all` are included for the same reason the device
+  // backend includes them: a forgotten `txn` argument reaches the outer
+  // adapter through these far more often than through `exec`, and on this
+  // backend that mistake silently joins the outer transaction instead of
+  // hanging — so the guard is what makes the two backends observably identical.
+  const rejectIfInTransaction = (entryPoint: 'exec' | 'run' | 'get' | 'all'): void => {
+    if (scopes.isOpen(key)) {
+      throw reentrantTransactionError(entryPoint);
+    }
+  };
+
   const adapter: SQLiteAdapter = {
     // Connection-level `exec` reached through the ROOT adapter while a
     // transaction is open: on this backend the statements would silently join
     // that transaction and be rolled back with it — the precise class of
     // defect the device backend now rejects outright. Threading `txn` keeps
-    // the two backends observably identical.
+    // the two backends observably identical. DML (`run`) is rejected for the
+    // same reason: a write that quietly becomes part of someone else's
+    // transaction and vanishes on its rollback is silent data loss.
     async exec(sql) {
-      if (scopes.isOpen(key)) {
-        throw reentrantTransactionError('exec');
-      }
+      rejectIfInTransaction('exec');
       db.exec(sql);
     },
 
-    run,
+    async run(sql, params = []) {
+      rejectIfInTransaction('run');
+      return run(sql, params);
+    },
 
+    // Reads PARTICIPATE in the connection's current transaction rather than
+    // rejecting: they have no side effects, a transaction body reading through
+    // the root adapter sees exactly the view it wants (its own uncommitted
+    // state), and an independent concurrent reader is advisory (every claim
+    // path re-validates inside its own transaction). Rejecting reads instead
+    // broke legitimate concurrent readers — a claim-all racing a single claim
+    // lost every reward behind one refused read.
     async get<T>(sql: string, params: SQLiteValue[] = []) {
-      const row = db.prepare(sql).get(...params);
-      return row === undefined ? null : (row as T);
+      return get<T>(sql, params);
     },
 
     async all<T>(sql: string, params: SQLiteValue[] = []) {
-      return db.prepare(sql).all(...params) as T[];
+      return all<T>(sql, params);
     },
 
     // BEGIN IMMEDIATE takes the write lock up front so no other connection
@@ -135,9 +170,18 @@ export function createNodeSqliteAdapter(filename = ':memory:'): SQLiteAdapter {
 
   const scopeAdapter: SQLiteAdapter = {
     ...adapter,
+    // The body's adapter: the same driver handle with the precondition
+    // bypassed for ordinary statements, which is what lets a body use
+    // `txn.run(...)`/`txn.get(...)`/`txn.all(...)`/`txn.exec(...)` normally
+    // while the ROOT adapter rejects each of them. `transaction` is NOT
+    // overridden: a nested `txn.transaction(...)` must still be rejected, and
+    // the spread keeps the guarded form.
     exec: async (sql: string) => {
       db.exec(sql);
     },
+    run,
+    get,
+    all,
   };
 
   return adapter;

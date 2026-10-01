@@ -11,7 +11,7 @@
  * interception, dev-only QA panel placement, tutorial overlay anchoring, and
  * every `testId(gameId, …)` the automation harness depends on.
  */
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 
 import { isDevBuild, testId } from '@/sdk';
@@ -34,6 +34,7 @@ import { getGameDefinition } from '@/registry/registry';
 import { Spacing, type DomainName } from '@/constants/theme';
 import type { ThemeColor } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
+import { getDb } from '@/db';
 import { useWorkoutSessionLaunch } from '@/workout/session-launch-context';
 
 /** Which chrome the host renders around the game's content. */
@@ -201,8 +202,48 @@ export function GameHost({
     };
   const identity = getGameIdentity(stageGame);
   const workoutLaunch = useWorkoutSessionLaunch();
+  // 073 §4.2 — the "Game N of M" indicator describes the PLAN's real
+  // position, which comes from the stored workout row, not from the launch
+  // tuple. The tuple is caller-supplied input (deep-link parameters are
+  // validated for shape, not for truth), so a stale or forged leg index must
+  // never be presented as the plan's position.
+  //
+  // A launch-gated effect rather than `useDbData`: that hook resolves the
+  // store unconditionally, and GameHost is rendered by every game screen —
+  // including bare harnesses where no store exists — so an unconditional read
+  // would report a failure for a state that is normal here. The asserted index
+  // stays the documented fallback while the row loads or when no store is
+  // available; the advance path re-reads the store regardless.
+  const [storedPosition, setStoredPosition] = useState<number | null>(null);
+  const launchKey = workoutLaunch?.instanceKey ?? null;
+  useEffect(() => {
+    if (launchKey === null) {
+      setStoredPosition(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const instance = await getDb().workouts.getByDate(launchKey);
+        if (!cancelled) {
+          setStoredPosition(instance ? instance.currentIndex : null);
+        }
+      } catch {
+        // Store unavailable (recovery, bare harness): keep the asserted-index
+        // fallback. Presentational only — nothing durable depends on this.
+        if (!cancelled) {
+          setStoredPosition(null);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [launchKey]);
   const workoutPosition =
-    workoutLaunch?.gameId === gameId ? workoutLaunch.legIndex + 1 : null;
+    workoutLaunch?.gameId === gameId
+      ? (storedPosition ?? workoutLaunch.legIndex) + 1
+      : null;
   // A tutorial is a modal learning surface. Keep the intro mounted behind it
   // for a smooth dismissal, but remove its controls from the accessibility
   // tree while the tutorial owns focus; otherwise a clipped Start button can

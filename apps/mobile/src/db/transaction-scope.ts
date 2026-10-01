@@ -40,16 +40,6 @@ import type { SQLiteAdapter } from './adapter';
  * unaffected — that runs on the private scope queue and is the supported
  * pattern.
  *
- * KNOWN, DOCUMENTED NARROWING. Because the body window is a property of the
- * connection rather than of the call stack, an independent caller that opens a
- * transaction *while another transaction's body is awaiting* is now rejected
- * instead of being queued behind it. Both are correct serializations; the
- * rejection is louder and cannot deadlock. Verified that no production call
- * site issues concurrent transactions on one adapter (31 `transaction(` sites,
- * all sequential, all threading `txn`). `Promise.all` INSIDE a body is
- * unaffected — that runs on the private scope queue and is the supported
- * pattern.
- *
  * Kept in its own module so BOTH backends raise the identical error and the
  * Node test backend cannot drift back into a different (silent) behavior — the
  * divergence this change exists to remove.
@@ -80,8 +70,17 @@ export function connectionKeyOf(connection: unknown): ConnectionIdentity {
  */
 export const REENTRANT_SQLITE_ERROR_NAME = 'SQLiteReentrantTransactionError';
 
-/** Which entry point was reached from inside a transaction. */
-export type ReentrantEntryPoint = 'transaction' | 'exec';
+/**
+ * Which entry point was reached from inside a transaction.
+ *
+ * Every connection-level entry point is listed: `run`/`get`/`all` were the gap
+ * that left the original freeze reachable. They were unguarded because the
+ * first pass only closed `transaction()` and `exec()`, but a forgotten `txn`
+ * argument reaches the outer adapter through exactly these three — so a guard
+ * that does not cover them does not close the defect. The body's own adapter
+ * is scope-local and bypasses this check; the ROOT adapter never does.
+ */
+export type ReentrantEntryPoint = 'transaction' | 'exec' | 'run' | 'get' | 'all';
 
 /**
  * Build the one error both backends throw when a statement or a second

@@ -308,25 +308,24 @@ describe('createFileBackupTransport (mocked expo-file-system)', () => {
     mockStore.set(`${dirKey}/${fileName}`, { kind: 'file', content });
   }
 
-  it('070: reports a stranded rotation copy and lets the user delete it', async () => {
+  it('070: repairs an interrupted replacement by promoting the rotation copy', async () => {
     const t = createFileBackupTransport();
     await t.writeBackup('unrelated.json', '{}');
 
     // An interrupted replacement: the old content survives ONLY at the rotation
     // sibling, because the process died between the rotation and the rename and
-    // the live name is therefore absent. This is the one case the sweep must
-    // NOT reclaim — deleting it would destroy the last copy of a backup.
+    // the live name is therefore absent. A banner is not a fix here — the
+    // contract is that a read of the NAME yields complete content — so the
+    // sweep promotes the sibling back to the live name on the next access.
     const rotationName = '.interrupted.json.prev';
     plantHiddenFile(rotationName, 'PREVIOUS-ONLY-COPY');
 
-    const stranded = await t.listStrandedArtifacts?.();
-    expect(stranded).toEqual([rotationName]);
-    // Reported, never hidden, and the content is still there.
-    expect(await t.readBackup('unrelated.json')).toBe('{}');
-    expect([...mockStore.values()].some((e) => e.content === 'PREVIOUS-ONLY-COPY')).toBe(true);
-
-    await t.deleteStrandedArtifact?.(rotationName);
     expect(await t.listStrandedArtifacts?.()).toEqual([]);
+    // The user's backup is back under the name they saved it as.
+    expect(await t.readBackup('interrupted.json')).toBe('PREVIOUS-ONLY-COPY');
+    expect(await t.listBackups()).toContain('interrupted.json');
+    // The hidden sibling is gone: promoted, not duplicated.
+    expect([...mockStore.values()].filter((e) => e.content === 'PREVIOUS-ONLY-COPY')).toHaveLength(1);
   });
 
   it('070: reports a file an earlier build saved under a now-hidden name', async () => {

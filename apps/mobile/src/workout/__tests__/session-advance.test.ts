@@ -46,6 +46,40 @@ function ownership(legIndex: number): WorkoutSessionProvenance {
   return { instanceKey: KEY, legIndex, gameId: GAMES[legIndex] };
 }
 
+/**
+ * Persist the completed session whose STORED provenance owns the given leg.
+ *
+ * 073 §2: a leg may only advance on durable evidence — the ownership tuple is
+ * read back from the session's raw result, never trusted from the caller. A
+ * test that wants an advance must therefore produce the same evidence a real
+ * gameplay flow produces (`completeSession` persists the launch tuple with
+ * the session).
+ */
+async function persistOwnedSession(
+  db: AppDatabase,
+  provenance: WorkoutSessionProvenance,
+  sessionId = `session-${provenance.instanceKey}-${provenance.legIndex}`,
+): Promise<void> {
+  await db.sessions.completeSession({
+    session: {
+      id: sessionId,
+      gameId: provenance.gameId,
+      gameVersion: 1,
+      generatorVersion: 1,
+      scoringVersion: 1,
+      seed: 1,
+      difficulty: { level: 'normal' },
+      rawResult: { probe: true },
+      normalizedResult: 0.5,
+      xp: 0,
+      startedAt: T0,
+      completedAt: T0 + 1,
+      durationMs: 1,
+      workoutProvenance: provenance,
+    },
+  });
+}
+
 async function makeDb(): Promise<AppDatabase> {
   const adapter = await createMigratedDb();
   return new AppDatabase(adapter, { now: () => T0 });
@@ -65,6 +99,7 @@ describe('advanceWorkoutForSession', () => {
     await db.workouts.getOrCreate(KEY, { gameIds: GAMES, seedVersion: 1 });
 
     const signal = { gameId: GAMES[0], workoutProvenance: ownership(0) };
+    await persistOwnedSession(db, ownership(0));
     const first = await advanceWorkoutForSession(signal);
 
     expect(first.advanced).toBe(true);
@@ -90,6 +125,7 @@ describe('advanceWorkoutForSession', () => {
     await db.workouts.advanceForSession({ gameId: GAMES[1], workoutProvenance: ownership(1) });
     await db.workouts.advanceForSession({ gameId: GAMES[2], workoutProvenance: ownership(2) });
 
+    await persistOwnedSession(db, ownership(3));
     const result = await advanceWorkoutForSession({
       gameId: GAMES[3],
       workoutProvenance: ownership(3),
@@ -100,6 +136,35 @@ describe('advanceWorkoutForSession', () => {
     expect(result.nextGameId).toBeNull();
     expect(result.nextProvenance).toBeNull();
     expect((await db.workouts.getByDate(KEY))?.status).toBe('completed');
+  });
+
+  it('never advances on an asserted tuple no persisted session owns', async () => {
+    // 073 §2/§2.3: the launch context is IN-PROCESS state. When its tuple
+    // reaches the advance but no session carries it in its stored raw result
+    // (an evicted launch map, a forged deep link, or a session written
+    // standalone during a workout), ownership is not derivable and the leg
+    // must stay current — the player plays it again with real evidence
+    // rather than the workout silently skipping work.
+    const db = await makeDb();
+    mockDbState.db = db;
+    await db.workouts.getOrCreate(KEY, { gameIds: GAMES, seedVersion: 1 });
+
+    const result = await advanceWorkoutForSession({
+      gameId: GAMES[0],
+      workoutProvenance: ownership(0),
+    });
+    expect(result.advanced).toBe(false);
+    expect((await db.workouts.getByDate(KEY))?.currentIndex).toBe(0);
+
+    // With the evidence in place the SAME signal advances: the assertion is
+    // about durable ownership, not about the caller.
+    await persistOwnedSession(db, ownership(0));
+    const proven = await advanceWorkoutForSession({
+      gameId: GAMES[0],
+      workoutProvenance: ownership(0),
+    });
+    expect(proven.advanced).toBe(true);
+    expect((await db.workouts.getByDate(KEY))?.currentIndex).toBe(1);
   });
 
   it('never advances a standalone (provenance-less) session', async () => {
@@ -120,6 +185,7 @@ describe('advanceWorkoutForSession', () => {
     mockDbState.db = db;
     await db.workouts.getOrCreate(KEY, { gameIds: GAMES, seedVersion: 1 });
 
+    await persistOwnedSession(db, ownership(0));
     const result = await advanceWorkoutForSession({
       gameId: GAMES[0],
       workoutProvenance: ownership(0),
@@ -176,6 +242,7 @@ describe('advanceWorkoutForSession', () => {
       seedVersion: 1,
     });
 
+    await persistOwnedSession(db, ownership(0));
     const result = await advanceWorkoutForSession({
       gameId: GAMES[0],
       workoutProvenance: ownership(0),

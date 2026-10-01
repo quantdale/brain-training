@@ -14,15 +14,17 @@ import {
   normalizeOffset,
   requireFiniteNumber,
 } from "./query";
-import type { SQLiteValue ,
+import type {
   AppliedRatingDelta,
   CompleteSessionInput,
   CompletionOutcome,
   GameSessionRecord,
+  JsonValue,
   LedgerEntry,
   RatingDelta,
   RatingOutcome,
   RatingService,
+  SQLiteValue,
 } from "./types";
 import {
   attachWorkoutProvenance,
@@ -30,6 +32,7 @@ import {
   extractWorkoutProvenance,
   isWorkoutSessionProvenance,
   peekWorkoutSessionLaunch,
+  type WorkoutSessionProvenance,
 } from "@/workout/session-provenance";
 
 /**
@@ -150,7 +153,7 @@ function toJson(value: unknown): string {
   return JSON.stringify(value === undefined ? null : value);
 }
 
-function fromJson(raw: string): unknown {
+function fromJson(raw: string): JsonValue {
   try {
     return JSON.parse(raw);
   } catch {
@@ -571,6 +574,63 @@ export class SessionRepository {
   async getById(id: string): Promise<GameSessionRecord | null> {
     const row = await this.adapter.get<SessionRow>(SELECT_SESSION_BY_ID, [id]);
     return row ? mapRow(row) : null;
+  }
+
+  /**
+   * The persisted session that PROVES a workout ownership tuple (073 §2).
+   *
+   * Workout leg ownership is decided by the provenance stored in the session's
+   * raw result — the durable record written by `completeSession` — never by
+   * the in-process launch map alone. The map is a fast path for attaching that
+   * provenance at write time; it is not evidence. A caller asserting a tuple
+   * (the in-game results chrome holds one from the launch context) may only
+   * advance a leg when the store agrees a session actually carries it, which
+   * is exactly what this returns.
+   *
+   * The lookup is exact: instance key, leg index and game id must all match,
+   * mirroring `ownsCurrentLeg` on the workout side. A mismatch — an evicted
+   * launch, a standalone session played during a workout, a forged deep-link
+   * tuple — resolves to null and the leg is not advanced.
+   */
+  async findSessionOwningWorkoutProvenance(
+    provenance: WorkoutSessionProvenance,
+  ): Promise<GameSessionRecord | null> {
+    if (!isWorkoutSessionProvenance(provenance)) {
+      return null;
+    }
+    let rows: SessionRow[];
+    try {
+      rows = await this.adapter.all<SessionRow>(
+        `SELECT * FROM game_sessions
+          WHERE game_id = ?
+            AND json_extract(raw_result_json, '$.workoutProvenance.instanceKey') = ?
+            AND json_extract(raw_result_json, '$.workoutProvenance.legIndex') = ?
+          ORDER BY completed_at DESC
+          LIMIT 5`,
+        [provenance.gameId, provenance.instanceKey, provenance.legIndex],
+      );
+    } catch {
+      // JSON1-less engine: fall back to a bounded scan + JS verification so
+      // the ownership proof is available on any engine rather than silently
+      // unfindable. Provenance-bearing sessions are rare (workout launches),
+      // so the scan is small in practice.
+      rows = await this.adapter.all<SessionRow>(
+        "SELECT * FROM game_sessions WHERE game_id = ? ORDER BY completed_at DESC LIMIT 50",
+        [provenance.gameId],
+      );
+    }
+    for (const row of rows) {
+      const stored = mapRow(row).workoutProvenance;
+      if (
+        isWorkoutSessionProvenance(stored) &&
+        stored.instanceKey === provenance.instanceKey &&
+        stored.legIndex === provenance.legIndex &&
+        stored.gameId === provenance.gameId
+      ) {
+        return mapRow(row);
+      }
+    }
+    return null;
   }
 
   /** Most recent sessions for one game, newest first. */

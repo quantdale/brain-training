@@ -92,6 +92,8 @@ function mkWorkout(
     seedVersion: 1,
     createdAt: T0,
     updatedAt: T0,
+    // 073: a fresh fixture has played and skipped nothing.
+    skippedIndices: [],
   };
 }
 

@@ -99,6 +99,12 @@ export interface WorkoutInstance {
   updatedAt: number;
   /** Versioned V3 metadata; undefined on legacy rows / legacy schemas. */
   metadata?: WorkoutMetadata;
+  /**
+   * Leg indices the player deliberately skipped (073). Distinct from
+   * "completed": a skipped leg has no session, no reward, and must never be
+   * shown as Done. Legacy rows (and legacy schemas) read as an empty list.
+   */
+  skippedIndices: number[];
 }
 
 /** Result of the ownership-checked, one-shot workout transition. */
@@ -120,6 +126,8 @@ interface WorkoutRow {
   updated_at: number;
   /** Present on current schema rows; optional for legacy adapter fixtures. */
   metadata_json?: string | null;
+  /** v13+: JSON array of skipped leg indices; optional for legacy fixtures. */
+  skipped_indices_json?: string | null;
 }
 
 function rowToInstance(row: WorkoutRow): WorkoutInstance {
@@ -149,8 +157,42 @@ function rowToInstance(row: WorkoutRow): WorkoutInstance {
     seedVersion: row.seed_version,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    skippedIndices: parseSkippedIndices(row.skipped_indices_json, gameIds.length),
     ...(metadata ? { metadata } : {}),
   };
+}
+
+/**
+ * Parse the durable skip record defensively (073).
+ *
+ * Out-of-range and non-integer entries are dropped rather than trusted: the
+ * column is JSON written by app code but read across backup round-trips, so a
+ * malformed entry must degrade to "not skipped" instead of fabricating a skip
+ * for a leg the player played.
+ */
+function parseSkippedIndices(
+  raw: string | null | undefined,
+  legCount: number,
+): number[] {
+  if (typeof raw !== "string") {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    const indices = parsed.filter(
+      (value): value is number =>
+        typeof value === "number" &&
+        Number.isSafeInteger(value) &&
+        value >= 0 &&
+        value < legCount,
+    );
+    return [...new Set(indices)].sort((a, b) => a - b);
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -195,6 +237,126 @@ export async function deleteEmptyWorkoutInstances(
     }
   });
   return emptyDates.length;
+}
+
+/**
+ * Boot reconciliation for lagged workout positions (073 §5).
+ *
+ * A completed leg whose durable advance never landed — process death between
+ * the session commit and the one-shot UI advance — leaves the resume position
+ * BEHIND the persisted evidence. Nothing scanned for that: the provenance
+ * bridge is in-process and the advance is a ref-guarded effect, so the
+ * mismatch survived relaunches and the player was asked to replay a leg they
+ * had already played.
+ *
+ * Walk-forward rule (task 5.3): the position moves only over legs that are
+ * PROVABLY settled — a persisted session carrying that leg's exact ownership
+ * (instance key, leg index, AND game id), or an explicit skip record. The
+ * first leg that is neither is unfinished work and stays current, so this
+ * repair can never skip past work the player owes.
+ *
+ * Idempotent and reward-free by construction: it only moves the resume
+ * position through the same compare-and-set every other position write uses,
+ * and never touches sessions, XP, or the currency ledger. Bounded: ten active
+ * instances, five hundred provenance rows each.
+ *
+ * Returns the number of positions repaired (evidence for the boot log/tests).
+ */
+export async function reconcileWorkoutPositions(
+  adapter: SQLiteAdapter,
+  now: () => number = () => Date.now(),
+): Promise<number> {
+  const rows = await adapter.all<WorkoutRow>(
+    "SELECT * FROM workout_instances WHERE status = 'active' " +
+      "ORDER BY updated_at DESC LIMIT 10",
+  );
+  let repaired = 0;
+  for (const row of rows) {
+    const instance = rowToInstance(row);
+    const legCount = instance.gameIds.length;
+    if (legCount === 0) {
+      continue;
+    }
+    const played = await loadPlayedLegs(adapter, instance.date, instance.gameIds);
+    if (played === null) {
+      // The provenance scan is unavailable on this engine. Reconciliation is
+      // a repair, never a requirement: leave every row exactly as it is.
+      return repaired;
+    }
+    const settled = new Set<number>(played);
+    for (const skipped of instance.skippedIndices) {
+      settled.add(skipped);
+    }
+    let position = instance.currentIndex;
+    while (position < legCount && settled.has(position)) {
+      position += 1;
+    }
+    if (position === instance.currentIndex) {
+      continue;
+    }
+    const status: WorkoutStatus = position >= legCount ? "completed" : "active";
+    const updatedAt = now();
+    const applied = await applyWorkoutPositionCas(
+      (sql: string, params: SQLiteValue[]) => adapter.run(sql, params),
+      {
+        date: instance.date,
+        status: instance.status,
+        currentIndex: instance.currentIndex,
+        updatedAt: instance.updatedAt,
+        rerollAttempt: instance.rerollAttempt,
+        seedVersion: instance.seedVersion,
+        gameIdsJson: row.game_ids_json,
+      },
+      'advance',
+      [position, status, updatedAt],
+    );
+    if (applied) {
+      repaired += 1;
+    }
+  }
+  return repaired;
+}
+
+/**
+ * Leg indices of `instanceKey` that a PERSISTED session proves were played.
+ *
+ * Ownership is read from the stored raw result (the durable record), never
+ * from the in-process launch map. The game id is part of the proof: a session
+ * for a leg whose game no longer sits at that position does not settle it.
+ * Returns null when the scan cannot run (JSON1-less engine) — the caller must
+ * then repair nothing rather than guess.
+ */
+async function loadPlayedLegs(
+  adapter: SQLiteAdapter,
+  instanceKey: string,
+  gameIds: readonly string[],
+): Promise<Set<number> | null> {
+  try {
+    const rows = await adapter.all<{ leg_index: unknown; game_id: unknown }>(
+      `SELECT json_extract(raw_result_json, '$.workoutProvenance.legIndex') AS leg_index,
+              json_extract(raw_result_json, '$.workoutProvenance.gameId') AS game_id
+         FROM game_sessions
+        WHERE json_extract(raw_result_json, '$.workoutProvenance.instanceKey') = ?
+        LIMIT 500`,
+      [instanceKey],
+    );
+    const legs = new Set<number>();
+    for (const row of rows) {
+      const leg = row.leg_index;
+      if (
+        typeof leg === "number" &&
+        Number.isSafeInteger(leg) &&
+        leg >= 0 &&
+        leg < gameIds.length &&
+        row.game_id === gameIds[leg]
+      ) {
+        legs.add(leg);
+      }
+    }
+    return legs;
+  } catch {
+    return null;
+  }
 }
 
 /** Exact ownership predicate shared by lookup and the conditional write path. */
@@ -366,6 +528,8 @@ export class WorkoutRepository {
       seedVersion,
       createdAt: now,
       updatedAt: now,
+      // A fresh instance has played and skipped nothing.
+      skippedIndices: [],
       ...(metadata ? { metadata } : {}),
     };
   }
@@ -787,6 +951,99 @@ export class WorkoutRepository {
           status,
           updatedAt,
         },
+      };
+    });
+  }
+
+  /**
+   * Record the unplayed legs before `targetIndex` as SKIPPED and move the
+   * resume position there, in ONE conditional write (073 D4).
+   *
+   * Serves both transitions the design folds into one:
+   * - a single skip (`targetIndex = currentIndex + 1`), and
+   * - an explicit jump to a later leg from Home, whose prefix the player
+   *   chose to leave — the jump must record that, or the app would claim the
+   *   prefix as completed work it never did.
+   *
+   * Bounds are validated before the write: the target must be a real future
+   * leg inside the list, and the FINAL leg cannot be consumed by a skip —
+   * a completed workout must always contain at least one played leg, which is
+   * what keeps the `workout-completions` achievements from being farmed with
+   * zero play. The caller-facing allowance copy lives in `workout/skip.ts`.
+   */
+  async skipToLeg(date: string, targetIndex: number): Promise<WorkoutInstance | null> {
+    return this.adapter.transaction(async (txn) => {
+      const row = await txn.get<WorkoutRow>(
+        "SELECT * FROM workout_instances WHERE date = ?",
+        [date],
+      );
+      const current = row ? rowToInstance(row) : null;
+      if (!row || !current) {
+        return null;
+      }
+      if (current.status !== "active") {
+        // A completed workout is historical record; its legs are never
+        // re-decided as skipped after the fact.
+        return current;
+      }
+      const legCount = current.gameIds.length;
+      if (
+        !Number.isSafeInteger(targetIndex) ||
+        targetIndex <= current.currentIndex ||
+        targetIndex > legCount - 1
+      ) {
+        throw new Error(
+          `skipToLeg: target ${targetIndex} is not a skippable leg of "${date}" ` +
+            `(position ${current.currentIndex}, ${legCount} legs)`,
+        );
+      }
+      const skipped = new Set(current.skippedIndices);
+      // A leg is recorded as skipped only when the player did NOT play it:
+      // in the kill window (session committed, advance never ran) the
+      // position lags the evidence, and a jump over such a leg must not
+      // rewrite played work as "skipped". The played set is read from the
+      // sessions' STORED provenance (the same proof the advance requires).
+      const played =
+        (await loadPlayedLegs(txn, date, current.gameIds)) ?? new Set<number>();
+      for (let index = current.currentIndex; index < targetIndex; index += 1) {
+        if (!played.has(index)) {
+          skipped.add(index);
+        }
+      }
+      const skippedJson = JSON.stringify([...skipped].sort((a, b) => a - b));
+      const status: WorkoutStatus =
+        targetIndex >= legCount ? "completed" : "active";
+      const updatedAt = this.now();
+      // The SAME compare-and-set as every other position write (073 D5), with
+      // the skip SET clause: recording the skips and moving the position are
+      // one write, so a crash between them cannot lose the skip record.
+      const update = await applyWorkoutPositionCas(
+        (sql: string, params: SQLiteValue[]) => txn.run(sql, [...params]),
+        {
+          date,
+          status: current.status,
+          currentIndex: current.currentIndex,
+          updatedAt: current.updatedAt,
+          rerollAttempt: current.rerollAttempt,
+          seedVersion: current.seedVersion,
+          gameIdsJson: row.game_ids_json,
+        },
+        'skipTo',
+        [targetIndex, status, skippedJson, updatedAt],
+      );
+      if (!update) {
+        const latestRow = await txn.get<WorkoutRow>(
+          "SELECT * FROM workout_instances WHERE date = ?",
+          [date],
+        );
+        return latestRow ? rowToInstance(latestRow) : null;
+      }
+      return {
+        ...current,
+        currentIndex: targetIndex,
+        status,
+        skippedIndices: [...skipped].sort((a, b) => a - b),
+        updatedAt,
       };
     });
   }

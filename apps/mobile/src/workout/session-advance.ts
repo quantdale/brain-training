@@ -93,13 +93,30 @@ export async function advanceWorkoutForSession(
   const db = getDb();
   const loaded = await db.workouts.findActiveInstanceForSession(signal);
 
+  // 073 §2 — ownership requires PERSISTED provenance. The caller's tuple is
+  // an ASSERTION: the in-game results chrome holds one from the launch
+  // context, which is in-process state populated at session start and cleared
+  // after the write. Only the store can prove the session actually carries
+  // the tuple (an evicted launch, a standalone session played during a
+  // workout, or a forged deep link all assert tuples no session owns). A
+  // tuple with no persisted evidence cannot advance a leg — the leg stays
+  // current and the player plays it again with real evidence. The check sits
+  // inside the advance gate (not before it) so the non-advancing repair below
+  // still runs for every caller.
+  const ownsCurrent = shouldAdvanceWorkout(signal, loaded);
+  const evidence = ownsCurrent
+    ? await db.sessions.findSessionOwningWorkoutProvenance(
+        signal.workoutProvenance as WorkoutSessionProvenance,
+      )
+    : null;
+
   // Not the owning current leg: already advanced/completed/standalone. Repair
   // the durable row before navigating: since 056 the pure repair can
   // substitute a retired leg, and navigation computed from an unrepaired row
   // would point Next at a game the durable row does not own (standalone
   // save, no advance). `reconcile` persists only when the repair changed
   // anything, so this stays a read in the common no-drift case.
-  if (!shouldAdvanceWorkout(signal, loaded)) {
+  if (!ownsCurrent || !evidence) {
     const current = await readCurrentInstance(signal);
     if (current) {
       try {

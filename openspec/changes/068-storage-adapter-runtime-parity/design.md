@@ -132,3 +132,32 @@ would not have caught any finding in this change.
 
 None. Every choice above is settled by repository evidence; the residual
 device-parity boundary is a validation task, not a design decision.
+
+## Post-review refinement (gap closure wave)
+
+The first pass guarded **every** root entry point (`transaction`/`exec`/`run`/
+`get`/`all`) with pre-enqueue rejection. That closed the freeze but broke
+legitimate **independent concurrency**: a claim-all racing a single claim lost
+every remaining reward when its advisory read was refused, and screen loads
+could fail transiently while a write transaction was open. Re-entrancy and
+concurrency are the same call shape on a single connection, and the app's
+runtime (Hermes) has no async-context primitive to tell them apart.
+
+Final semantics, pinned by `transaction-reentrancy.test.ts` /
+`adapters/__tests__/expo.test.ts` / `rewards/__tests__/claim-all-attacks.test.ts`:
+
+- **`transaction()` and connection-level `exec()` reject** while a scope is
+  open — the two cases the requirement enumerates (nested transaction; DDL /
+  `PRAGMA`). A DML `run` is also rejected: a write that silently becomes part of
+  another transaction and vanishes on its rollback is silent data loss.
+- **`get`/`all` participate** in the connection's current transaction instead
+  of rejecting: side-effect-free, a body's own root reads return exactly the
+  view it wants, and independent concurrent readers are advisory (every claim
+  path re-validates inside its own transaction).
+- **The transaction body no longer holds the statement queue.** Statements
+  serialize one at a time (preserving the `ERR_USING_RELEASED_SHARED_OBJECT`
+  contract), so nothing can queue behind a slot its own transaction occupies —
+  the freeze is now structurally impossible for reads, not merely guarded.
+- The claim batch driver (`rewards/inbox.ts`) additionally continues past a
+  refused item, so one pass still claims everything claimable under contention
+  (the 060 exactly-once totals hold in every interleaving).

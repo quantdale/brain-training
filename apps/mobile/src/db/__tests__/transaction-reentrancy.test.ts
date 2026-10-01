@@ -113,6 +113,68 @@ describe('Node adapter re-entrancy contract (Change 068)', () => {
     await adapter.close();
   });
 
+  it('rejects a root-adapter run() reached through the outer adapter', async () => {
+    // The gap the first pass left open: a forgotten `txn` reaches the outer
+    // adapter through `run` far more often than through `exec`, and on this
+    // backend that mistake SILENTLY joins the outer transaction — so before
+    // the guard the same write was rolled back with the body and looked green.
+    const adapter = await createMigrated();
+    const error = await rejection(
+      adapter.transaction(async () => {
+        await adapter.run('INSERT INTO game_favorites (game_id, created_at) VALUES (?, ?)', [
+          'root-run',
+          1,
+        ]);
+      }),
+    );
+    expect(isReentrantTransactionError(error)).toBe(true);
+    expect((error as Error).message).toMatch(/run\(\) was called/);
+    // The rejection is pre-issuance: nothing was written, and the body's
+    // rollback left the table empty rather than half-written.
+    expect(await adapter.all('SELECT game_id FROM game_favorites')).toEqual([]);
+    await adapter.close();
+  });
+
+  it('lets root-adapter get()/all() PARTICIPATE in the open transaction', async () => {
+    // Reads must not be rejected and must not block: a forgotten `txn.get()`
+    // returns the transaction's own view (exactly what a body wants), and an
+    // independent concurrent reader is advisory — every claim path
+    // re-validates inside its own transaction. Rejecting reads instead is
+    // what stranded a claim-all racing a single claim: one refused read lost
+    // every remaining reward.
+    const adapter = await createMigrated();
+    await adapter.transaction(async (txn) => {
+      await txn.run('INSERT INTO game_favorites (game_id, created_at) VALUES (?, ?)', ['participate', 1]);
+      // Root-adapter read DURING the body: sees the uncommitted row.
+      const rows = await adapter.all('SELECT game_id FROM game_favorites');
+      expect(rows).toEqual([{ game_id: 'participate' }]);
+      const row = await adapter.get<{ game_id: string }>('SELECT game_id FROM game_favorites');
+      expect(row?.game_id).toBe('participate');
+    });
+    // The scope was released with the commit: ordinary reads still work.
+    expect(await adapter.all('SELECT 1 AS one')).toEqual([{ one: 1 }]);
+    await adapter.close();
+  });
+
+  it('still allows run/get/all through the transaction adapter', async () => {
+    // The companion case: the guard must reject the ROOT adapter while
+    // leaving the body's own adapter fully usable, or the fix would break the
+    // legitimate `txn ? write(txn) : transaction(write)` pattern it protects.
+    const adapter = await createMigrated();
+    await adapter.transaction(async (txn) => {
+      await txn.run('INSERT INTO game_favorites (game_id, created_at) VALUES (?, ?)', ['txn-run', 1]);
+      const row = await txn.get<{ game_id: string }>(
+        'SELECT game_id FROM game_favorites WHERE game_id = ?',
+        ['txn-run'],
+      );
+      expect(row?.game_id).toBe('txn-run');
+      const rows = await txn.all<{ game_id: string }>('SELECT game_id FROM game_favorites');
+      expect(rows).toEqual([{ game_id: 'txn-run' }]);
+    });
+    expect(await adapter.all('SELECT game_id FROM game_favorites')).toEqual([{ game_id: 'txn-run' }]);
+    await adapter.close();
+  });
+
   it('releases the scope after COMMIT so a later transaction succeeds', async () => {
     const adapter = await createMigrated();
     await writeThroughTxn(adapter, 'after-commit');

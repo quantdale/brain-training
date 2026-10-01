@@ -236,6 +236,37 @@ describe('crash-safety: interrupted at every step', () => {
     expect(h.visible()).toEqual(['backup.json']);
   });
 
+  it('restores the previous content when the rename lands with the WRONG bytes', async () => {
+    // The case the first version of `recover` missed: verify fails because the
+    // file EXISTS but does not hold the expected content. Recovery only looked
+    // for a missing name, so it left the corrupt file as the user's visible
+    // backup with the good copy hidden — precisely inverted from what the
+    // caller needs. The tests threw from `beforeStep('verify')`, which fires
+    // before the read-back, so this path was never exercised.
+    const h = createHarness({ 'backup.json': OLD_CONTENT });
+    const corrupted: RotationFileSystem = {
+      ...h.fs,
+      move: async (from, to) => {
+        if (from.endsWith('.pending') && to === 'backup.json') {
+          // The platform's copy fallback landed short: the destination exists
+          // but holds different bytes than the source.
+          h.fs.write(to, 'TRUNCATED-NEW');
+          h.fs.delete(from);
+          return;
+        }
+        await h.fs.move(from, to);
+      },
+    };
+    await expect(
+      replaceWithRotation(corrupted, 'backup.json', NEW_CONTENT, {
+        temporaryNameFor: () => '.backup.json.pending',
+      }),
+    ).rejects.toThrow(/did not produce the expected content/);
+    // The visible backup is the complete PREVIOUS content, not the corrupt one.
+    expect(h.read('backup.json')).toBe(OLD_CONTENT);
+    expect(h.visible()).toEqual(['backup.json']);
+  });
+
   it('leaves no temp file behind after any interruption', async () => {
     for (const step of steps) {
       const h = createHarness({ 'backup.json': OLD_CONTENT }, faultAt(step, `killed at ${step}`));
@@ -389,44 +420,67 @@ describe('successful replacement', () => {
 describe('rotation leftover sweep', () => {
   it('removes a leftover whose live counterpart exists', async () => {
     const h = createHarness({ 'backup.json': NEW_CONTENT, '.backup.json.prev': OLD_CONTENT });
-    const protectedLeftovers = sweepRotationLeftovers(h.fs);
-    expect(protectedLeftovers).toEqual([]);
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
     expect(h.names()).toEqual(['backup.json']);
   });
 
-  it('PROTECTS a leftover that is the only surviving copy', async () => {
-    // This is the data-loss trap the sweep could easily walk into: a `.prev`
-    // with no counterpart is the ONLY copy of that backup, and deleting it as
-    // "stale litter" would destroy the last thing the user has.
+  it('PROMOTES a leftover that is the only surviving copy back to the live name', async () => {
+    // Process death between the rotation and the rename leaves the live name
+    // missing and the complete old content at a hidden sibling. The first
+    // version only surfaced this in a banner, which is not a fix: the contract
+    // is that a read of the NAME yields complete content, and a missing name
+    // fails that outright. The sweep now promotes it — so the user sees their
+    // backup again with no manual step.
     const h = createHarness({ '.backup.json.prev': OLD_CONTENT });
-    const protectedLeftovers = sweepRotationLeftovers(h.fs);
-    expect(protectedLeftovers).toEqual(['.backup.json.prev']);
-    expect(h.read('.backup.json.prev')).toBe(OLD_CONTENT);
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
+    expect(h.read('backup.json')).toBe(OLD_CONTENT);
+    expect(h.names()).toEqual(['backup.json']);
+  });
+
+  it('promotes the sibling over an EMPTY live file', async () => {
+    // An empty file cannot be a backup envelope: it is the truncated tail of a
+    // write, and the sibling is the only complete copy.
+    const h = createHarness({ 'backup.json': '', '.backup.json.prev': OLD_CONTENT });
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
+    expect(h.read('backup.json')).toBe(OLD_CONTENT);
   });
 
   it('is idempotent and leaves non-leftover files alone', async () => {
     const h = createHarness({ 'a.json': NEW_CONTENT, 'b.json': NEW_CONTENT });
-    expect(sweepRotationLeftovers(h.fs)).toEqual([]);
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
     expect(h.names()).toEqual(['a.json', 'b.json']);
-    expect(sweepRotationLeftovers(h.fs)).toEqual([]);
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
     expect(h.names()).toEqual(['a.json', 'b.json']);
   });
 
   it('does not mistake a user dotfile for a rotation leftover', async () => {
     // The sweep must only ever act on the exact shape it owns.
     const h = createHarness({ 'backup.json': NEW_CONTENT, '.user-notes': 'mine' });
-    expect(sweepRotationLeftovers(h.fs)).toEqual([]);
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
     expect(h.has('.user-notes')).toBe(true);
   });
 
-  it('a protected leftover does not block a later successful write', async () => {
-    // The stranded case must remain recoverable: writing the backup again
-    // restores a live copy, and the NEXT sweep then reclaims the leftover.
+  it('reclaims a stale write temp only once its owner is healthy', async () => {
+    // A temp left by an interrupted write is litter once the owner's live name
+    // holds content — and is the only trace of an unfinished write while the
+    // owner is still unusable.
+    const healthy = createHarness({ 'backup.json': NEW_CONTENT, '.backup.json.abc-123.tmp': 'stale' });
+    expect(await sweepRotationLeftovers(healthy.fs)).toEqual([]);
+    expect(healthy.names()).toEqual(['backup.json']);
+
+    const unfinished = createHarness({ '.other.json.pending': 'never-landed' });
+    expect(await sweepRotationLeftovers(unfinished.fs)).toEqual([]);
+    expect(unfinished.has('.other.json.pending')).toBe(true);
+  });
+
+  it('a promoted leftover does not block a later successful write', async () => {
+    // The promoted case must remain ordinary input to the next replacement:
+    // writing the backup again replaces it normally and leaves nothing behind.
     const h = createHarness({ '.backup.json.prev': OLD_CONTENT });
-    expect(sweepRotationLeftovers(h.fs)).toEqual(['.backup.json.prev']);
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
     await h.run('backup.json', NEW_CONTENT);
     expect(h.read('backup.json')).toBe(NEW_CONTENT);
-    expect(sweepRotationLeftovers(h.fs)).toEqual([]);
+    expect(await sweepRotationLeftovers(h.fs)).toEqual([]);
     expect(h.names()).toEqual(['backup.json']);
   });
 });

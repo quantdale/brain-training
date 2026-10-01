@@ -168,7 +168,11 @@ describe('v9 -> v10 preserves user rows exactly', () => {
       created_at: number;
       updated_at: number;
       metadata_json: string | null;
+      skipped_indices_json: string | null;
     }>('SELECT * FROM workout_instances ORDER BY date ASC');
+    // Byte-intact for every v10 field; the later additive columns (073's
+    // `skipped_indices_json`) land as NULL on migrated rows, exactly like
+    // `metadata_json` did — an existing row's meaning is never rewritten.
     expect(rows).toEqual([
       {
         date: '2026-08-23',
@@ -180,6 +184,7 @@ describe('v9 -> v10 preserves user rows exactly', () => {
         created_at: T0,
         updated_at: T0 + 1000,
         metadata_json: null,
+        skipped_indices_json: null,
       },
       {
         date: '2026-08-23::focus-memory::extended',
@@ -191,6 +196,7 @@ describe('v9 -> v10 preserves user rows exactly', () => {
         created_at: T0,
         updated_at: T0 + 1000,
         metadata_json: null,
+        skipped_indices_json: null,
       },
     ]);
     // The repository still reads both legacy rows, metadata undefined.
@@ -293,7 +299,7 @@ describe('repeated full initialization is a no-op', () => {
 });
 
 describe('metadata_json column shape', () => {
-  it('is a nullable TEXT column with no default, appended last', async () => {
+  it('is a nullable TEXT column with no default, appended at its v10 position', async () => {
     const adapter = createNodeSqliteAdapter(':memory:');
     await runMigrations(adapter);
 
@@ -311,7 +317,15 @@ describe('metadata_json column shape', () => {
     expect(meta!.notnull).toBe(0); // nullable — legacy rows stay NULL
     expect(meta!.dflt_value).toBeNull(); // no DEFAULT clause
     expect(meta!.pk).toBe(0);
-    expect(meta!.cid).toBe(cols.length - 1); // additive: appended last
+    // Additive columns are APPENDED and never reordered: `metadata_json` keeps
+    // its v10 position, and 073's `skipped_indices_json` lands after it. The
+    // invariant under test is append-only ordering, not "last forever".
+    expect(meta!.cid).toBe(8);
+    const skipped = cols.find((c) => c.name === 'skipped_indices_json');
+    expect(skipped).toBeDefined();
+    expect(skipped!.cid).toBe(cols.length - 1); // additive: appended last
+    expect(skipped!.type.toUpperCase()).toBe('TEXT');
+    expect(skipped!.notnull).toBe(0);
     await adapter.close();
   });
 

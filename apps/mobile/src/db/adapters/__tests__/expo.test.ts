@@ -255,6 +255,73 @@ describe('Expo SQLite adapter serialization', () => {
     );
 
     it(
+      'rejects root-adapter run() from inside a transaction body',
+      async () => {
+        // A forgotten `txn` reaches the outer adapter through `run` far more
+        // often than through `exec`, and a write that silently becomes part of
+        // someone else's transaction vanishes on its rollback — silent data
+        // loss. The rejection is pre-enqueue, so the failure is loud instead
+        // of a freeze or a phantom write.
+        const db = createFakeDatabase();
+        const adapter = createExpoSqliteAdapter(db as never);
+
+        const error = await rejection(
+          adapter.transaction(async () => adapter.run('INSERT INTO t VALUES (1)')),
+        );
+        expect(isReentrantTransactionError(error)).toBe(true);
+        expect((error as Error).message).toContain('run() was called');
+        // The write never reached the native handle.
+        expect(db.runAsync).not.toHaveBeenCalled();
+      },
+      HANG_BACKSTOP_MS,
+    );
+
+    it(
+      'lets root-adapter get()/all() PARTICIPATE instead of blocking or rejecting',
+      async () => {
+        // Reads must never freeze and must never be refused: a body reading
+        // through the root adapter wants its OWN uncommitted view, and an
+        // independent concurrent reader is advisory. Refusing reads is what
+        // stranded a claim-all racing a single claim (one refused read lost
+        // every remaining reward). The hang backstop below is the real
+        // assertion — before the queue stopped holding the body's slot, these
+        // calls enqueued behind the transaction and never settled.
+        const db = createFakeDatabase();
+        const adapter = createExpoSqliteAdapter(db as never);
+
+        await expect(
+          adapter.transaction(async () => {
+            await adapter.get('SELECT 1');
+            await adapter.all('SELECT 1');
+          }),
+        ).resolves.toBeUndefined();
+        expect(db.getFirstAsync).toHaveBeenCalledTimes(1);
+        expect(db.getAllAsync).toHaveBeenCalledTimes(1);
+      },
+      HANG_BACKSTOP_MS,
+    );
+
+    it(
+      'keeps the transaction adapter usable for run/get/all inside a body',
+      async () => {
+        const db = createFakeDatabase();
+        const adapter = createExpoSqliteAdapter(db as never);
+
+        await expect(
+          adapter.transaction(async (txn) => {
+            await txn.run('INSERT INTO t VALUES (1)');
+            await txn.get('SELECT 1');
+            await txn.all('SELECT 1');
+          }),
+        ).resolves.toBeUndefined();
+        expect(db.runAsync).toHaveBeenCalledTimes(1);
+        expect(db.getFirstAsync).toHaveBeenCalledTimes(1);
+        expect(db.getAllAsync).toHaveBeenCalledTimes(1);
+      },
+      HANG_BACKSTOP_MS,
+    );
+
+    it(
       'keeps the transaction adapter usable for exec inside a body',
       async () => {
         const db = createFakeDatabase();

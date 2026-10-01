@@ -15,6 +15,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { previewImport } from '../preview';
+import { SCHEMA_VERSION } from '@/db';
 import {
   detectUnrecognizedContent,
   KNOWN_DATA_SECTIONS,
@@ -91,7 +92,9 @@ describe('detection', () => {
     expect(newer.items[0].kind).toBe('schema-version');
     // The message must name BOTH versions so a user can act on it.
     expect(newer.items[0].path).toMatch(/99/);
-    expect(newer.items[0].path).toMatch(/supports 12/);
+    // Derived from the live schema version rather than a hardcoded number:
+    // the message names whatever THIS build supports, which moves with v13+.
+    expect(newer.items[0].path).toContain(`supports ${SCHEMA_VERSION}`);
   });
 
   it('reports the same content only once', () => {

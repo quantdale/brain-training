@@ -149,6 +149,8 @@ describe("catalog growth 36 → 40 (Queue E: no hardcoded ids/count assumptions)
         seedVersion: 1,
         createdAt: 1000,
         updatedAt: 1000,
+        // 073: a fresh fixture has played and skipped nothing.
+        skippedIndices: [],
       };
       const { instance, changed } = reconcileWorkout(
         inst,

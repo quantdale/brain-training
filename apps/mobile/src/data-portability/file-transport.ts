@@ -27,6 +27,7 @@
 
 import { MAX_BACKUP_TEXT_LENGTH } from "./deserialize";
 import {
+  previousBackupName,
   replaceWithRotation,
   sweepRotationLeftovers,
   type RotationFileSystem,
@@ -228,9 +229,10 @@ export function createFileBackupTransport(): BackupTransport {
    const dir = ensureBackupDirectory();
    const rotationFs = rotationFsFor(fs, dir);
 
-   // Sweep first: an interrupted earlier rotation must not leave a `.prev`
+   // Sweep first: an interrupted earlier rotation is repaired here (an orphan
+   // sibling is promoted back to its live name), and must not leave a `.prev`
    // that this write would then have to compete with.
-   sweepRotationLeftovers(rotationFs);
+   await sweepRotationLeftovers(rotationFs);
 
    // A nonce keeps two concurrent writers from colliding on the temp path. The
    // temp name is a dotfile, so it is never listed even mid-write.
@@ -243,7 +245,13 @@ export function createFileBackupTransport(): BackupTransport {
   async readBackup(name) {
    validateBackupName(name);
    const fs = fileSystem();
-   const file = new fs.File(ensureBackupDirectory(), name);
+   const dir = ensureBackupDirectory();
+   // Repair an interrupted replacement first: a read is exactly when the
+   // guarantee matters, and the contract is that a read of the name yields
+   // complete previous or complete new content — never "no such file" while a
+   // complete copy sits in a hidden rotation sibling.
+   await sweepRotationLeftovers(rotationFsFor(fs, dir));
+   const file = new fs.File(dir, name);
    if (!file.exists) {
     throw new Error(`No backup named "${name}" found in app backups`);
    }
@@ -253,11 +261,11 @@ export function createFileBackupTransport(): BackupTransport {
   async listBackups() {
    const fs = fileSystem();
    const dir = ensureBackupDirectory();
-   // Sweep before listing so an interrupted rotation does not accumulate
-   // across launches. A `.prev` whose live counterpart is gone is the only
-   // remaining copy of that backup and is deliberately NOT deleted — it is
-   // reported through `listStrandedArtifacts` instead.
-   sweepRotationLeftovers(rotationFsFor(fs, dir));
+   // Sweep before listing so an interrupted rotation is repaired before the
+   // user sees the inventory: an orphaned rotation sibling is promoted to its
+   // live name (so the backup APPEARS), while a sibling whose live name is
+   // healthy is reclaimed as litter.
+   await sweepRotationLeftovers(rotationFsFor(fs, dir));
    return dir
     .list()
     .filter((entry): entry is FsFile => entry instanceof fs.File)
@@ -270,23 +278,35 @@ export function createFileBackupTransport(): BackupTransport {
   async deleteBackup(name) {
    validateBackupName(name);
    const fs = fileSystem();
-   const file = new fs.File(ensureBackupDirectory(), name);
+   const dir = ensureBackupDirectory();
+   const file = new fs.File(dir, name);
    // Contract: no-op when the name does not exist.
    if (file.exists) {
     file.delete();
+   }
+   // The rotation sibling is part of the SAME backup: leaving it would let the
+   // next sweep promote a backup the user just deleted back into existence.
+   const previous = new fs.File(dir, previousBackupName(name));
+   if (previous.exists) {
+    previous.delete();
    }
   },
 
   /**
    * Hidden files that need the user's decision (Change 070, task 5.1).
    *
-   * Two shapes, both real:
-   * 1. a rotation leftover whose live counterpart is gone — the only remaining
-   *    copy of a backup whose replacement was interrupted;
-   * 2. any other file the listing rule hides, e.g. one an EARLIER build wrote
-   *    under a name it accepted but the current rule does not. That is a
-   *    backup the app once reported as saved and can now neither show nor
-   *    restore, and deleting it on the user's behalf would be destructive.
+   * The sweep already ran, so everything restorable has been restored: an
+   * orphaned rotation sibling is promoted to its live name automatically, and
+   * a sibling whose live name is healthy is reclaimed. What survives here is
+   * therefore only what the app cannot decide on its own:
+   *
+   * 1. a leftover whose restoration FAILED — still the only complete copy of a
+   *    backup, and now genuinely the user's to resolve;
+   * 2. a file written under a name an EARLIER build accepted but the current
+   *    rule hides (e.g. a leading dot) — a backup the app once reported as
+   *    saved and can now neither show nor restore;
+   * 3. a writer temp whose live name never became healthy — the remains of a
+   *    write that never completed.
    *
    * Reported rather than acted on: the user chooses to recover or delete. The
    * sweep is a no-op here by design (it already ran in `listBackups`), so a
@@ -296,16 +316,11 @@ export function createFileBackupTransport(): BackupTransport {
    const fs = fileSystem();
    const dir = ensureBackupDirectory();
    const rotationFs = rotationFsFor(fs, dir);
-   // A leftover whose live counterpart exists is pure litter and is reclaimed
-   // here; what survives is what the user must decide on.
-   const protectedLeftovers = sweepRotationLeftovers(rotationFs);
-   const others = rotationFs
+   await sweepRotationLeftovers(rotationFs);
+   return rotationFs
     .listNames()
-    .filter(
-     (fileName) =>
-      isInternalBackupArtifact(fileName) && !protectedLeftovers.includes(fileName),
-    );
-   return [...new Set([...protectedLeftovers, ...others])].sort();
+    .filter((fileName) => isInternalBackupArtifact(fileName))
+    .sort();
   },
 
   async deleteStrandedArtifact(name) {

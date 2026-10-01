@@ -52,8 +52,33 @@ jest.mock('@/workout/today', () => {
 /**
  * 056: play a leg through the production ownership path (persisted-signal →
  * conditional advance) instead of the removed hook-level `advance()` bypass.
+ *
+ * 073 §2: the advance now requires DURABLE evidence — the ownership tuple is
+ * read back from the session's stored raw result, never trusted from the
+ * caller. So a leg is played the way gameplay plays it: the session (carrying
+ * its launch tuple) is persisted first, and only then does the advance run.
  */
+let playCounter = 0;
 async function playLeg(gameId: string, instanceKey: string, legIndex: number) {
+  playCounter += 1;
+  await getDb().sessions.completeSession({
+    session: {
+      id: `play-${playCounter}-${gameId}`,
+      gameId,
+      gameVersion: 1,
+      generatorVersion: 1,
+      scoringVersion: 1,
+      seed: 1,
+      difficulty: { level: 'normal' },
+      rawResult: { probe: true },
+      normalizedResult: 0.5,
+      xp: 0,
+      startedAt: 1_700_000_000_000,
+      completedAt: 1_700_000_000_001,
+      durationMs: 1,
+      workoutProvenance: { instanceKey, legIndex, gameId },
+    },
+  });
   const result = await advanceWorkoutForSession({
     gameId,
     workoutProvenance: { instanceKey, legIndex, gameId },

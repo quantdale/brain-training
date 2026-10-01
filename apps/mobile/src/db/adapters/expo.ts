@@ -118,8 +118,9 @@ export function createExpoSqliteAdapter(
     // a transaction body. A connection-level statement issued through the
     // OUTER adapter while a transaction holds the queue slot would block
     // forever, exactly like a nested `transaction()` does, so it is rejected
-    // by the same guard. The scope-local adapter is a different object, so DDL
-    // inside a body keeps working.
+    // by the same guard — as are `run`/`get`/`all`, which are the entry points
+    // a forgotten `txn` argument actually reaches. The scope-local adapter is
+    // a different object, so DDL and reads inside a body keep working.
     // Reject BEFORE enqueueing. Enqueueing first would be the original defect:
     // the nested call would sit behind the very queue slot its own transaction
     // is holding and never settle.
@@ -131,11 +132,22 @@ export function createExpoSqliteAdapter(
     },
 
     async run(sql, params = []) {
+      // Same pre-enqueue rejection as `exec`/`transaction`: a forgotten `txn`
+      // reaches the outer adapter through `run` far more often than through
+      // `exec`, and enqueueing here is already the permanent freeze.
+      if (!isScopeLocal && transactionScopes.isOpen(nativeKey(db))) {
+        throw reentrantTransactionError('run');
+      }
       const result = await queue.enqueue(() => db.runAsync(sql, ...params));
       return { changes: result.changes, lastInsertRowId: result.lastInsertRowId };
     },
 
     async get(sql, params = []) {
+      // Reads PARTICIPATE in the connection's current transaction instead of
+      // rejecting (see the node backend's note): no side effects, the body's
+      // own root reads return the view it wants, and independent concurrent
+      // readers are advisory. Rejecting reads broke a claim-all racing a
+      // single claim — every reward behind one refused read was stranded.
       return queue.enqueue(() => db.getFirstAsync(sql, ...params));
     },
 
@@ -170,28 +182,34 @@ export function createExpoSqliteAdapter(
       if (transactionScopes.isOpen(nativeKey(db))) {
         throw reentrantTransactionError('transaction');
       }
-      return queue.enqueue(async () => {
-        // A separate queue keeps Promise.all inside the transaction safe
-        // without deadlocking against the held outer queue.
-        const txn = createExpoSqliteAdapter(db, new AsyncOperationQueue(), { scopeLocal: true });
-        return runInTransactionScope(
-          transactionScopes,
-          nativeKey(db),
-          txn,
-          async () => {
-            // Re-assert FK enforcement through the scope adapter BEFORE
-            // BEGIN: SQLite ignores `PRAGMA foreign_keys` while a transaction
-            // is pending, so this is the only window in which it applies.
-            await txn.exec(SQL.foreignKeysOn);
-            await db.execAsync('BEGIN');
+      // The body does NOT hold the statement queue (Change 068 refinement):
+      // statements serialize one at a time, so a read issued while the
+      // transaction is open — by the body through the root adapter or by an
+      // independent task — executes instead of queueing behind a slot the
+      // transaction itself occupies (the permanent freeze). Writes and DDL
+      // through the root adapter still reject above, and `txn` shares this
+      // same queue, so no two native statements ever overlap (the
+      // `ERR_USING_RELEASED_SHARED_OBJECT` contract this queue exists for).
+      const txn = createExpoSqliteAdapter(db, queue, { scopeLocal: true });
+      return runInTransactionScope(
+        transactionScopes,
+        nativeKey(db),
+        txn,
+        async () => {
+          // Re-assert FK enforcement through the scope adapter BEFORE
+          // BEGIN: SQLite ignores `PRAGMA foreign_keys` while a transaction
+          // is pending, so this is the only window in which it applies.
+          await txn.exec(SQL.foreignKeysOn);
+          await txn.exec('BEGIN');
+        },
+        fn,
+        {
+          commit: () => txn.exec('COMMIT'),
+          rollback: async () => {
+            await txn.exec('ROLLBACK').catch(() => {});
           },
-          fn,
-          {
-            commit: () => db.execAsync('COMMIT'),
-            rollback: () => db.execAsync('ROLLBACK'),
-          },
-        );
-      });
+        },
+      );
     },
 
     async close() {

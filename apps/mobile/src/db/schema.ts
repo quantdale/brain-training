@@ -9,7 +9,7 @@
 
 import type { SQLiteAdapter } from "./adapter";
 
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 
 /**
  * Connection-level invariant: how long a statement waits for a lock held by
@@ -426,6 +426,19 @@ export const SQL = {
   `,
 
   /**
+   * Change 073 (task 3.1) — SCHEMA CHANGE v13. Additive per-leg skip record:
+   * the JSON array of leg indices the player deliberately skipped. Nullable
+   * and tolerant like v10's `metadata_json`: legacy rows read as "no skipped
+   * legs" and every existing row is left unchanged. Skip is a distinct leg
+   * outcome from completion — it must never be displayed as "Done" and must
+   * never award the leg's completion reward — so it needs its own durable
+   * record rather than being inferred from the resume position.
+   */
+  addWorkoutSkippedIndicesColumn: `
+    ALTER TABLE workout_instances ADD COLUMN skipped_indices_json TEXT;
+  `,
+
+  /**
    * Backfill a stable idempotency key onto legacy gameplay currency rows that
    * predate v8 (task A/idempotency). Newer rows already carry
    * `gameplay:<sessionId>` from `completeSession`. Two guards keep the
@@ -827,6 +840,28 @@ export const MIGRATIONS: readonly Migration[] = [
       }
       await txn.exec(SQL.createRatingHistorySessionDomainIndex);
       await txn.exec(SQL.createRatingHistoryNoDeleteTrigger);
+    },
+  },
+  {
+    version: 13,
+    up: async (txn) => {
+      // 073 task 3.1 — additive per-leg skip record. Nullable, so every
+      // existing row keeps its exact meaning ("no skipped legs") and the
+      // migration cannot fail on historical data. Readers tolerate its
+      // absence on legacy adapter fixtures the same way v10 metadata does.
+      //
+      // Replay-safe: the column is added only when absent. A migration is
+      // re-applied whenever a database's recorded version lags its real
+      // shape (the db-integrity "older schema" case replays the last step by
+      // rewinding `user_version`), and SQLite has no `ADD COLUMN IF NOT
+      // EXISTS`, so the guard lives here — the same idempotency contract
+      // `ensureSchemaGuards` enforces for triggers and indexes.
+      const columns = await txn.all<{ name: string }>(
+        "PRAGMA table_info(workout_instances)",
+      );
+      if (!columns.some((column) => column.name === "skipped_indices_json")) {
+        await txn.exec(SQL.addWorkoutSkippedIndicesColumn);
+      }
     },
   },
 ];

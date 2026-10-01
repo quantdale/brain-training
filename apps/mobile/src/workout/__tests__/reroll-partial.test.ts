@@ -51,10 +51,36 @@ describe('reroll after partial completion keeps every fresh game', () => {
 
       // Complete the first k games durably through the ownership path (056:
       // the hook no longer exposes the unconditional `advance()` bypass).
+      // 073 §2: the advance requires the session's STORED ownership, so each
+      // leg is played the way gameplay plays it — session first, advance after.
       const playKey = result.current.instance!.date;
       const playIds = result.current.instance!.gameIds;
+      let playCounter = 0;
       for (let i = 0; i < completionsBeforeReroll; i += 1) {
         await act(async () => {
+          playCounter += 1;
+          await getDb().sessions.completeSession({
+            session: {
+              id: `reroll-partial-${playCounter}-${playIds[i]!}`,
+              gameId: playIds[i]!,
+              gameVersion: 1,
+              generatorVersion: 1,
+              scoringVersion: 1,
+              seed: 1,
+              difficulty: { level: 'normal' },
+              rawResult: { probe: true },
+              normalizedResult: 0.5,
+              xp: 0,
+              startedAt: 1_700_000_000_000,
+              completedAt: 1_700_000_000_001,
+              durationMs: 1,
+              workoutProvenance: {
+                instanceKey: playKey,
+                legIndex: i,
+                gameId: playIds[i]!,
+              },
+            },
+          });
           const played = await advanceWorkoutForSession({
             gameId: playIds[i]!,
             workoutProvenance: {
