@@ -31,18 +31,28 @@ import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Radii, Spacing } from "@/constants/theme";
-import { getGameDefinition } from "@/registry/registry";
+import { getGameDefinition, getValidatedGameModule } from "@/registry/registry";
 import { gameScreenLoaders } from "@/registry/registry.generated";
 import { usePersistentTutorialStore } from "@/hooks/use-persistent-tutorial-store";
 import { parseCanonicalGameId } from "@/routing/route-params";
-import type { TutorialStore } from "@/sdk";
+import type { GameScreenProps } from "@/sdk";
 import { WorkoutSessionLaunchProvider } from "@/workout/session-launch-context";
 import { parseWorkoutLaunchProvenance } from "@/workout/session-provenance";
 
-/** Cache lazy-loaded game components to prevent unnecessary remounts */
-const lazyComponentCache = new Map<string, React.ComponentType>();
+/**
+ * Cache lazy-loaded game components to prevent unnecessary remounts.
+ *
+ * 074: every loader is wrapped so the module passes the SDK surface contract
+ * (`default` must be a component, `gameDefinition` must be present) BEFORE its
+ * component is used. A module that fails throws a named
+ * `GameModuleSurfaceError` out of the lazy import, which React renders as the
+ * error boundary's recoverable state instead of a blank screen — the guarantee
+ * that matters is "a non-conforming module is never made available for
+ * rendering", not "the shell looks healthy".
+ */
+const lazyComponentCache = new Map<string, ComponentType<GameScreenProps>>();
 
-function getLazyGameComponent(gameId: string): React.ComponentType | undefined {
+function getLazyGameComponent(gameId: string): ComponentType<GameScreenProps> | undefined {
   if (lazyComponentCache.has(gameId)) {
     return lazyComponentCache.get(gameId);
   }
@@ -52,7 +62,12 @@ function getLazyGameComponent(gameId: string): React.ComponentType | undefined {
     return undefined;
   }
 
-  const LazyComponent = lazy(loader);
+  // The registry already owns the validating loader; reuse it rather than
+  // duplicating the check here, so there is exactly one contract.
+  const LazyComponent = lazy(async () => {
+    const moduleSurface = await getValidatedGameModule(gameId);
+    return { default: moduleSurface.default as ComponentType<GameScreenProps> };
+  });
   lazyComponentCache.set(gameId, LazyComponent);
   return LazyComponent;
 }
@@ -82,6 +97,17 @@ export default function GameScreen() {
   // Deps include `game` itself: getLazyGameComponent is a pure id-keyed cache
   // lookup, so recomputing on a new registry object is behavior-neutral while
   // keeping the hook dependency contract honest.
+  // 074: the cast this line used to need is GONE — the generated loader map is
+  // typed with `GameScreenProps`, so the screen's prop contract survives the
+  // boundary. The previous `as ComponentType<{tutorialStore?: TutorialStore}>`
+  // was unchecked, and it also had a side effect the linter could not see: a
+  // type assertion makes the binding opaque, which suppressed the
+  // `static-components` rule below. Now that the type is precise, the rule
+  // fires — correctly in spirit, wrong in fact, because the identity IS stable:
+  // `getLazyGameComponent` memoizes the `lazy()` result in a module-level Map
+  // keyed by game id, so a re-render returns the identical component object and
+  // cannot reset game state. The suppression is deliberate and narrow; if the
+  // cache is ever removed, remove this too.
   const GameScreenComponent = useMemo(
     () => (game ? getLazyGameComponent(game.id) : undefined),
     [game],
@@ -90,15 +116,15 @@ export default function GameScreen() {
   // Hydrate the persisted tutorial state before the screen mounts; a mounted
   // screen reads the store during render, so hydrating later would flash the
   // first-play tutorial and then hide it. Unknown/unimplemented games skip it.
+  // Screens all accept an optional `tutorialStore` injection seam. 074: that
+  // seam is now a DECLARED prop (`GameScreenProps`) carried by the generated
+  // loader map, so the cast this line used to need is gone. It was unchecked:
+  // nothing verified that any game actually accepted the prop, so a screen
+  // that renamed or dropped it would have compiled and then been handed an
+  // object it did not understand.
   const tutorialStore = usePersistentTutorialStore(
     GameScreenComponent === undefined ? undefined : game?.id,
   );
-  // Screens all accept an optional `tutorialStore` injection seam; the shared
-  // loader type is the bare ComponentType, so widen it here once. Rendering is
-  // guarded by the `GameScreenComponent` branch below.
-  const InjectableGameComponent = GameScreenComponent as ComponentType<{
-    tutorialStore?: TutorialStore;
-  }>;
 
   if (!game) {
     return (
@@ -157,7 +183,11 @@ export default function GameScreen() {
           >
             <Suspense fallback={<GameNotReady variant="loading" />}>
               <WorkoutSessionLaunchProvider provenance={workoutProvenance}>
-                <InjectableGameComponent tutorialStore={tutorialStore} />
+                {/* eslint-disable-next-line react-hooks/static-components --
+                    Identity is stable: `lazyComponentCache` is module-level and
+                    keyed by game id, so this returns the same component object
+                    on every render. See the note at the lookup above. */}
+                <GameScreenComponent tutorialStore={tutorialStore} />
               </WorkoutSessionLaunchProvider>
             </Suspense>
           </ErrorBoundary>

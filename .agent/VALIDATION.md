@@ -5384,3 +5384,83 @@ because of the device boundary alone, not because work is outstanding.**
 - Evidence: `openspec/changes/075-game-reducer-exhaustiveness/`,
   `src/sdk/exhaustive.ts`, `src/sdk/__tests__/reducer-exhaustiveness-catalog.test.ts`,
   the 42 `src/games/*/reducer.ts` files.
+
+### Change 074 sections 1–2 (partial) SDK module contract — 2026-09-30 (PARTIAL / `CHANGE_074_PARTIAL`)
+
+**Scope completed: §1 (module-surface validation) and §2 (typed loader boundary).
+§3, §4, §5, §6 and the device lane are NOT DONE — recorded below, not claimed.**
+
+- **Baseline (re-measured at `38ead6a`):** 603 passed + 4 skipped suites / 7,080
+  passed + 5 skipped tests / 5 snapshots, 0 failures; typecheck and lint clean;
+  all validators PASS; OpenSpec `--all --strict` 59/59.
+- §1 module-surface validation: **PASS** — new `src/sdk/module-surface.ts` with
+  `inspectGameModuleSurface` (pure, returns failures) and
+  `assertGameModuleSurface` (throws a typed `GameModuleSurfaceError` naming the
+  game and every missing member). The route resolves modules through
+  `getValidatedGameModule`, so a non-conforming module is **never handed to a
+  render**.
+  - **The contract was measured, not guessed, and the first draft was wrong.**
+    It initially required `gameDefinition` as well as `default`. A repo-wide
+    search showed nothing outside `src/games/` ever reads a module's
+    `gameDefinition` — the catalog comes from `game.json` via the generated
+    registry. Requiring it would have rejected every game over an export nobody
+    uses, which is the exact failure the module's own docstring warns about. The
+    contract is now `default` (must be a component), with `gameDefinition`
+    checked only when present and only for id agreement.
+  - **A design error was found and fixed by the tests:** the first implementation
+    cached IMPORT failures as surface rejections. A transient chunk load would
+    then permanently exclude a working game for the process lifetime and be
+    reported as a contract breach that does not exist. Import failures are now
+    wrapped with the game id, thrown to the route's error boundary, and left
+    **uncached** so the next open retries; only a static surface breach is cached
+    and recorded. A test proves a flaky loader succeeds on the second attempt.
+  - **Plan deviation, recorded rather than hidden:** the plan called for
+    validating all 42 modules during the `catalog-registry` bootstrap stage.
+    That requires awaiting 42 dynamic imports before the shell renders, which
+    evaluates the whole game graph on every cold start — a measurable regression
+    in a repository that has already invested in startup cost (Home loading
+    skeleton, focus-sync throttle, the startup soak). Validation is therefore
+    LAZY and blocking-on-use with a cached verdict. `preflightGameModules()`
+    exists as an explicit diagnostic but is **not** wired into startup: under
+    Jest every generated dynamic import fails, so an automatic preflight emitted
+    one error per game on every shell mount — 42 errors of noise in an
+    environment where the failure says nothing about any game. That was observed
+    and removed rather than suppressed.
+- §1.3 catalog result: **42 checked, 42 conforming, 0 fixed, validator NOT
+  relaxed.** The runtime preflight cannot run under Jest (the generated loaders
+  use `import()` and this setup has no `--experimental-vm-modules`), so the
+  catalog-wide check is static: every module entry point re-exports a `default`,
+  and every registered game has a loader. Both counts are asserted so a scan that
+  found nothing cannot pass.
+- §2 typed loader boundary: **PASS** — `GameScreenProps` is declared in the SDK
+  and the generator emits
+  `Record<string, () => Promise<{ default: ComponentType<GameScreenProps> }>>`;
+  regenerated, `--check` clean, **no hand-edited generated output**. The unchecked
+  `as ComponentType<{ tutorialStore?: TutorialStore }>` cast at the route is
+  **gone**: nothing verified that any game accepted the prop, so a screen that
+  renamed or dropped it would have compiled and then been handed an object it
+  did not understand.
+  - **A latent lint finding was revealed, not hidden:** removing the cast also
+    un-suppressed `react-hooks/static-components`, because a type assertion had
+    made the binding opaque. The rule fires and is suppressed explicitly at the
+    site, with the reason recorded — the `lazy()` result is memoized in a
+    module-level `Map` keyed by game id, so the identity is stable and the rule's
+    concern (state reset by a fresh component each render) does not apply. The
+    comment says to remove the suppression if the cache is ever removed.
+- Verification after §1–§2: **604 passed + 4 skipped suites / 7,099 passed +
+  5 skipped tests / 5 snapshots, 0 failures**; signal gate `pass: true` (5
+  classified skips, 0 unclassified / ambiguous / mismatched, both floors met);
+  typecheck and lint clean; `generate-game-registry.mjs --check` clean;
+  `validate-repo-state` PASS; OpenSpec `--all --strict` 59/59. **No new skips.**
+
+**NOT DONE — remaining for this change:**
+
+- §3 per-game lifecycle verification (the contract test still satisfies itself
+  from shared host sources rather than scanning the 42 module directories).
+- §4 duplicate-start guard in `useGameSession.begin()`.
+- §5 version-conversion contract correction.
+- §6 `docs/GAME_SDK.md` module map and the stale catalog-size comment.
+- §7.4 device lane.
+
+**Change 074 status: `CHANGE_074_PARTIAL`. The remaining sections are recorded
+in the change's task list; nothing in them is claimed as done.**

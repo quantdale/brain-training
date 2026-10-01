@@ -6,7 +6,7 @@
  * Generator version: 1. Deterministic output.
  */
 import type { ComponentType } from 'react';
-import type { GameDefinition } from '@/sdk';
+import type { GameDefinition, GameScreenProps } from '@/sdk';
 
 export const registry: readonly GameDefinition[] = [
   {
@@ -594,8 +594,17 @@ export const registry: readonly GameDefinition[] = [
  * Lazy loaders from game id to the module that exports the game screen as
  * its default export. The `app/game/[id].tsx` route resolves the screen
  * through this map; games never hand-edit this file.
+ *
+ * The loader is typed with `GameScreenProps` (Change 074) rather than a bare
+ * `ComponentType`, which is `ComponentType<{}>` and therefore erases the props
+ * a game screen actually accepts. Carrying the real type here means a screen
+ * that stops accepting `tutorialStore` fails to type-check at the boundary
+ * instead of being handed a prop it silently ignores.
  */
-export const gameScreenLoaders: Record<string, () => Promise<{ default: ComponentType }>> = {
+export const gameScreenLoaders: Record<
+  string,
+  () => Promise<{ default: ComponentType<GameScreenProps> }>
+> = {
   'attention-odd-one-out': () => import('@/games/attention-odd-one-out'),
   'attention-sustained-vigilance': () => import('@/games/attention-sustained-vigilance'),
   'attention-symbol-tracker': () => import('@/games/attention-symbol-tracker'),

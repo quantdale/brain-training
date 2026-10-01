@@ -59,7 +59,7 @@ export {
   parseGameDefinitionJson,
   CURRENT_SDK_VERSION,
 } from './types/game-definition';
-export type { GameCategory, GameDefinition } from './types/game-definition';
+export type { GameCategory, GameDefinition, GameScreenProps } from './types/game-definition';
 export {
   DIFFICULTY_LEVELS,
   isDifficultyLevel,
@@ -109,3 +109,15 @@ export type {
 // 075: reducer exhaustiveness — the compile-time assertion plus the honest
 // runtime fallback, expressed once so 42 reducers do not each reinvent it.
 export { assertExhaustive } from './exhaustive';
+// 074: the runtime module-surface contract the host depends on. The
+// GameDefinition (game.json) contract is validated at import; this guards the
+// module the generated loader actually renders, which no type check can see.
+export {
+  assertGameModuleSurface,
+  inspectGameModuleSurface,
+  GameModuleSurfaceError,
+  GAME_MODULE_SURFACE_ERROR,
+  REQUIRED_MODULE_MEMBERS,
+  type GameModuleSurface,
+  type ValidatedScreenProps,
+} from './module-surface';

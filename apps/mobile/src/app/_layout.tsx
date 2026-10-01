@@ -31,7 +31,7 @@ import { createRatingPipeline } from "@/rating";
 import { initDatabase , getDb } from "@/db";
 import { initializeProgression } from "@/progression";
 import { startPerfMeasure } from "@/sdk/perf";
-import { registry } from "@/registry/registry.generated";
+import { registry, gameScreenLoaders } from "@/registry/registry.generated";
 import {
   registerGameDefinitions,
   getGameDefinition,
@@ -153,7 +153,13 @@ export default function RootLayout() {
         }
       },
       registerCatalog: () => {
-        registerGameDefinitions(registry);
+        // 074: the loader map is passed so the registry can validate each
+        // module's RUNTIME surface (a missing or non-component `default` export
+        // is invisible to `tsc` and breaks only when a player opens the game).
+        // Validation is lazy -- see the note in `registry.ts` for why all 42
+        // modules are not awaited before the shell renders; see the note in
+        // `registry.ts` for the measured reason.
+        registerGameDefinitions(registry, { loaders: gameScreenLoaders });
       },
       initializeProgression: async (now) => {
         const progressionMeasure = startPerfMeasure("bootstrap-progression");

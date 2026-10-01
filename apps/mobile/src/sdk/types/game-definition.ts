@@ -7,6 +7,7 @@
  * must not hand-edit any shared registry.
  */
 import { SDK_VERSION } from '../version';
+import type { TutorialStore } from '../tutorial';
 
 /** Primary browse categories (constitution §8). */
 export const GAME_CATEGORIES = [
@@ -188,3 +189,34 @@ export function parseGameDefinitionJson(json: unknown): GameDefinition {
  * Games should prefer recording the version they actually declared.
  */
 export const CURRENT_SDK_VERSION: string = SDK_VERSION;
+
+/**
+ * The props the host injects into a game screen (Change 074 §2).
+ *
+ * WHY THIS EXISTS RATHER THAN A CAST AT THE LOADER
+ * ------------------------------------------------
+ * The generated loader map was typed as
+ * `() => Promise<{ default: ComponentType }>`, and `ComponentType` with no type
+ * argument is `ComponentType<{}>` — so a game screen's real prop contract was
+ * erased at the boundary, and the route recovered it with
+ * `as ComponentType<{ tutorialStore?: TutorialStore }>`. That conversion was
+ * unchecked: nothing verified that any game actually accepted the prop, and a
+ * game that renamed or dropped it would have compiled and then been handed an
+ * object it did not understand.
+ *
+ * Declaring the surface here makes the generated registry carry the real type,
+ * so a game whose screen stops accepting `tutorialStore` fails to type-check
+ * where the mismatch is, instead of silently receiving a prop it ignores.
+ *
+ * Every field is OPTIONAL on purpose: a game with no tutorial, and a game
+ * rendered in an isolated unit test that passes no store, must both keep
+ * working. The default in-memory store in `sdk/tutorial.ts` covers that.
+ */
+export interface GameScreenProps {
+  /**
+   * Durable tutorial completion for this game. The host injects the persisted
+   * store so first-play completion survives process death; omit it and the
+   * screen falls back to the in-memory default (isolated tests).
+   */
+  tutorialStore?: TutorialStore;
+}

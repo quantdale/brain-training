@@ -14,6 +14,7 @@ import GameScreen from '@/app/game/[id]';
 import type { GameDefinition, TutorialState, TutorialStore, WriteThroughTutorialStore } from '@/sdk';
 import { createTutorialLifecycle } from '@/sdk';
 import { registerGameDefinitions } from '@/registry/registry';
+import { gameScreenLoaders } from '@/registry/registry.generated';
 
 /** Durable rows served by the mocked `getDb().tutorials`. */
 const mockTutorialRows = new Map<string, TutorialState>();
@@ -68,7 +69,12 @@ async function renderGameRoute() {
 beforeEach(() => {
   mockTutorialRows.clear();
   mockInjectedStore = null;
-  registerGameDefinitions([MEMORY_DEFINITION]);
+  // 074: the route resolves a game module through the registry, which
+  // validates its runtime surface. Register the mocked loaders with it,
+  // otherwise the route has no loader map and cannot resolve the screen.
+  registerGameDefinitions([MEMORY_DEFINITION], {
+    loaders: gameScreenLoaders as unknown as Record<string, () => Promise<unknown>>,
+  });
 });
 
 describe('game route tutorial injection', () => {
