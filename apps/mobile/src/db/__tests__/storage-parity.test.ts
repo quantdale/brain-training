@@ -89,7 +89,12 @@ function tempDbPath(): { file: string; cleanup: () => void } {
  * overwrites them at open time, so asking the adapter would report the
  * override, not the default being overridden.
  */
-function rawDriverDefaults(): { journal_mode: string; busy_timeout: string; foreign_keys: string } {
+function rawDriverDefaults(): {
+  journal_mode: string;
+  busy_timeout: string;
+  foreign_keys: string;
+  defensive: string;
+} {
   const { file, cleanup } = tempDbPath();
   try {
     const raw = new Database(file);
@@ -98,10 +103,22 @@ function rawDriverDefaults(): { journal_mode: string; busy_timeout: string; fore
         const row = raw.pragma(pragma, { simple: true });
         return String(row).toLowerCase();
       };
+      // Defensive mode (SQLITE_DBCONFIG_DEFENSIVE) has no read-back pragma, so
+      // it is measured behaviorally: block on shadow-table writes is exactly
+      // what it enforces. A driver with it on refuses the write; one without
+      // applies it. Either way this is a measurement, never a hardcoded claim.
+      let defensive: string;
+      try {
+        raw.exec("UPDATE sqlite_master SET name = name");
+        defensive = 'off';
+      } catch {
+        defensive = 'on';
+      }
       return {
         journal_mode: read('journal_mode'),
         busy_timeout: read('busy_timeout'),
         foreign_keys: read('foreign_keys'),
+        defensive,
       };
     } finally {
       raw.close();
@@ -114,6 +131,9 @@ function rawDriverDefaults(): { journal_mode: string; busy_timeout: string; fore
 describe('engine facts: effective connection settings', () => {
   it('reports the values the app actually runs with, on a file-backed database', async () => {
     const { file, cleanup } = tempDbPath();
+    // Measured below the adapter: the informational facts must record what the
+    // DRIVER does on its own, never a hardcoded claim.
+    const defaults = rawDriverDefaults();
     try {
       const adapter = createNodeSqliteAdapter(file);
       await initializeConnection(adapter);
@@ -153,26 +173,26 @@ describe('engine facts: effective connection settings', () => {
         {
           name: 'defensive_mode',
           classification: 'informational',
-          why: 'KNOWN DELTA: better-sqlite3 enables SQLITE_DBCONFIG_DEFENSIVE; expo-sqlite does not. Defensive mode blocks schema corruption via writes to shadow tables such as sqlite_master. The app never writes to shadow tables (all DDL goes through its own DDL statements), so the difference is a capability, not a defect.',
-          observed: 'on (better-sqlite3 13.0.3 driver default)',
+          why: 'KNOWN DELTA: better-sqlite3 enables SQLITE_DBCONFIG_DEFENSIVE; expo-sqlite does not. Defensive mode blocks schema corruption via writes to shadow tables such as sqlite_master. The app never writes to shadow tables (all DDL goes through its own DDL statements), so the difference is a capability, not a defect. The observed value is MEASURED behaviorally (a shadow-table write attempt), not asserted.',
+          observed: `${defaults.defensive} (measured: shadow-table write attempt)`,
           required: 'unpinned — the app does not depend on it',
-          satisfied: true,
+          satisfied: defaults.defensive === 'on' || defaults.defensive === 'off',
         },
         {
           name: 'foreign_keys_default_without_explicit_pragmas',
           classification: 'informational',
-          why: 'MEASURED 2026-09-30: better-sqlite3 13.0.3 turns foreign keys ON by default, while SQLite itself defaults them OFF and expo-sqlite does not enable them. The test backend therefore looked correct for a reason that has nothing to do with the app setting the pragma — which is why the explicit PRAGMA is load-bearing rather than redundant.',
-          observed: '1 (driver default on this backend only)',
+          why: 'MEASURED: better-sqlite3 turns foreign keys ON by default, while SQLite itself defaults them OFF and expo-sqlite does not enable them. The test backend therefore looked correct for a reason that has nothing to do with the app setting the pragma — which is why the explicit PRAGMA is load-bearing rather than redundant. The observed value is MEASURED on a raw handle below the adapter, not asserted.',
+          observed: `${defaults.foreign_keys} (driver default on this backend only)`,
           required: 'unpinned — recorded so the apparent agreement is not mistaken for parity',
-          satisfied: true,
+          satisfied: defaults.foreign_keys === '1' || defaults.foreign_keys === '0',
         },
         {
           name: 'journal_mode_default_without_explicit_pragmas',
           classification: 'informational',
-          why: 'MEASURED 2026-09-30: the rollback journal (`delete`) is the default on BOTH backends, so WAL is a new decision this change makes explicit rather than a convergence. Recorded so the WAL claim is never justified as "what the driver already did".',
-          observed: 'delete (engine default on both backends)',
+          why: 'MEASURED: the rollback journal (`delete`) is the default on BOTH backends, so WAL is a new decision this change makes explicit rather than a convergence. Recorded so the WAL claim is never justified as "what the driver already did". The observed value is MEASURED on a raw handle below the adapter, not asserted.',
+          observed: `${defaults.journal_mode} (engine default on both backends)`,
           required: 'unpinned — recorded for traceability',
-          satisfied: true,
+          satisfied: defaults.journal_mode === 'delete' || defaults.journal_mode === 'wal',
         },
       ];
 
