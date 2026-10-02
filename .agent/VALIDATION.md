@@ -5919,3 +5919,62 @@ Journeys: clean install + first/warm/force-stop launches; Color Stroop full 15-t
 | R9 | Runtime dependency advisory `decode-uri-component` (ReDoS via deep-link query) | MEDIUM (accepted debt) | release-engineering orchestrator | No compatible fix inside the Expo SDK 57 envelope; bounded by `route-params.ts`; waiver expires 2027-03-31 | Drop the waiver at the next Expo SDK upgrade | NO |
 
 No hidden repository-owned Critical/High/Medium correctness gaps are known at closure: every finding from the campaign's two independent adversarial audits (4 real code defects, 3 test vacuities/weak pins, 11 doc-vs-code contradictions) was reproduced against code, fixed or honestly recorded, pinned with regression tests, and verified on the final artifact where runtime-reachable.
+
+### SHA-IDENTITY & REMOTE-CI CLOSURE RECORD — 2026-10-02 (supersedes present-state wording of the TERMINAL CLOSURE RECORD above)
+
+Narrow follow-up closure pass over the record above. Verified against the
+GitHub API and git on 2026-10-02; no product source was changed by this pass.
+
+**Four SHA identities (never conflate these evidence classes)**
+
+| Identity | SHA | Meaning |
+|---|---|---|
+| Repository HEAD | `068f446fbf5023306a1cc7e710edbcf4efd87420` | Current canonical `main` (`origin/main`). `2de6a7d..068f446` is docs-only (`.agent/VALIDATION.md`, 87 insertions — `git diff --name-status` verified) |
+| Certified Code SHA | `2de6a7d298608c32847e1409b1fd471e280783e6` | The exact source tree the full local matrix, audits, and device certification were executed against. A docs-only commit does not invalidate it |
+| Artifact Source SHA | `2de6a7d298608c32847e1409b1fd471e280783e6` | The APK was built from this tree; no artifact-affecting source changed after it, so the artifact stands |
+| Latest GitHub-hosted CI Proof SHA | `efd4447b480feb78ee16ecdd24748c99a188d57a` | The most recent SHA where all four workflows genuinely EXECUTED and passed. `efd4447..2de6a7d` DOES touch app source (23 `apps/mobile/src` files), so this is proof of that tree only — **not** automatic CI proof for `2de6a7d` or `068f446` |
+| Earlier Android CI Proof SHA | `8020cbac39dc0a420cdab2f547f8b2baba6cc7b8` | First end-to-end Android Build Smoke proof after the SDK-setup repair (run `36954226412`). The TERMINAL record's phrase "last executed proof `8020cba`" is **corrected by this block**: `efd4447` is later and also green |
+
+**Remote CI evidence at the latest GitHub-hosted proof SHA `efd4447` (all executed 2026-10-02, real runners, non-zero steps)**
+
+| Workflow | Run ID | Runner allocated | Steps | Conclusion | Key evidence |
+|---|---|---|---|---|---|
+| App CI | `36963236374` | yes (`GitHub Actions 1000010688`) | 24 | PASS | Full chain incl. typecheck/lint/Jest/Jest-signal/web-export; **611 passed + 4 skipped suites / 7,175 passed + 5 skipped tests / 5 snapshots, 0 failures** |
+| Repository Integrity | `36963236370` | yes (`…687`) | 16 | PASS | Durable-state, secrets, workflow, affected-sync, allowlist/dependency governance, strict OpenSpec (59/59 at that SHA) |
+| Android Build Smoke | `36963236391` | yes (`…689`) | 18 | PASS | checkout → Node → Java → SDK setup → pinned install + postcondition → npm ci → repo checks → **clean prebuild → Gradle release build (`BUILD SUCCESSFUL in 16m 16s`) → APK verify + permission gate → upload**. CI APK 48,758,644 B |
+| iOS Build Smoke | `36963236372` | yes (`…690`) | 15 | PASS | macOS runner allocated; Simulator compile smoke (iOS runtime intentionally out of scope) |
+
+**Remote CI at Repository HEAD `068f446`: BLOCKED (external) — never claimed as pass**
+
+Runs `36980539563` (iOS), `36980539569` (App CI), `36980539614` (Android),
+`36980539896` (Integrity) at `068f446`, and the fresh dispatch `36983472579`
+(08:20 today, current): every job `steps: 0`, `runner_id: 0`, `runner_name: ""`.
+Check annotation on every job: **"The job was not started because recent
+account payments have failed or your spending limit needs to be increased.
+Please check the 'Billing & plans' section in your settings."** Classification:
+`JOB NEVER STARTED / NO RUNNER ALLOCATED` (account-level billing) — **not** a
+workflow failure inside the repository. Repository-side Actions is enabled
+(`actions/permissions.enabled: true`, `allowed_actions: all`), so no
+repository setting is involved; the token's scopes (`gist, read:org, repo,
+workflow`) carry no billing/admin right and the billing API is unreachable
+(404), so this cannot be corrected from the current environment.
+
+**R1 remains OPEN (owner action required):**
+1. Sign in as the account owner of `quantdale`.
+2. GitHub → **Settings → Billing & plans** (the exact path GitHub names in the
+   annotation) → resolve the failed payment and/or raise the Actions spending
+   limit. Do not purchase unrelated products or raise limits beyond need.
+3. Then re-run the four workflows at Repository HEAD (`068f446`) — or simply
+   push any commit; `push` triggers all four. Acceptance: each job allocates a
+   runner, executes non-zero steps, and passes its real chain (Gradle + APK
+   verification for Android, Simulator compile for iOS). When that evidence
+   exists, append a dated record closing R1; **do not erase the historical
+   billing incident recorded above.**
+
+**Artifact provenance (unchanged by this pass):** the certified APK
+(`a2af9746…`, 48,759,280 B, built from Artifact Source SHA `2de6a7d`) remains
+the final artifact: this pass changed no application code, native config,
+dependencies, Expo config, or build configuration, so no rebuild and no repeat
+device certification were performed or claimed. Local/device evidence in the
+TERMINAL CLOSURE RECORD above refers to runs actually performed in the prior
+campaign and is not restated as fresh here.
