@@ -5768,3 +5768,67 @@ map) were **disproved against code** — all landed in `7bceb90`/`a0d6dd1`/the
 claimed "Both backends reject identically" for `run`/`get`/`all`; the refined
 semantics (`7bceb90`, spec-aligned in `1565c2b`) make `get`/`all` **participate**
 in the open transaction and reject only state-changing re-entry — row corrected.
+
+### Device + artifact certification evidence (2026-10-02, campaign continuation)
+
+**Device identity:** dedicated AVD `braintraining-qa36` (emulator-5554, Android
+API 35 aosp_atd x86_64, emulator 37.1.11, swiftshader_indirect, headless).
+Host note: this emulator intermittently segfaults at boot (documented in
+`scripts/android/avd.sh`); boots succeeded on retry. **Host-level capture
+pathology found and classified:** every `screencap` frame returns an identical
+10,195-byte image regardless of app state (same MD5 across 5 distinct UI
+states), so pixel/screenshot evidence is INVALID on this host — recorded as
+`NOT VALIDATED (capture path)` rather than faked. All semantic evidence below
+comes from live uiautomator hierarchy dumps (14–36 KB, content verified per
+state), which are truthful.
+
+**Runtime journeys exercised (release APK, real interactions via emulator-local
+adb input):**
+
+| Journey | Result | Evidence |
+|---|---|---|
+| Clean install + first launch | PASS | `pm install` success; Home renders real content (`home-workout-cta`, Today's Workout, 4-leg plan) |
+| Warm launch + force-stop/relaunch | PASS | state intact across relaunch (`3 of 4 games done`, skipped legs labelled) |
+| Workout leg 1 (Color Stroop) full completion | PASS | played 15 trials through real taps; results screen `Score 132`, `XP: 12`, `Reward +12 XP · +2 coins`, `Progress saved` |
+| Honest launch semantics (073 §4) | PASS | `Game 1 · your next game`, `Game 2 · ready when you are`, `Game 4 · your next game`; results `UP NEXT: Word Scramble · Game 2 of 4` |
+| Skip transition (073 §3) | PASS | UI `Word Scramble, Language, skipped` → `Fold Match, Spatial, up now`; SQLite `skipped_indices_json="[1]"`, `current_index=2` (single CAS write) |
+| Skip reward neutrality | PASS | currency_ledger holds exactly 1 entry (+2 coins, gameplay, keyed `…-muqcyo04-1-loxn13`); coins unchanged after skip |
+| Skip limit (`length − 1` rule) | PASS | after second skip (`[1,2]`, `current_index=3` = final leg) control reports **`Skip unavailable`** with boundary reason |
+| Process-death recovery / boot reconciliation | PASS | force-stop mid-workout + relaunch → `2 of 4 complete`, skips preserved, `Fold Match` up now (position consistent) |
+| Invalid route recovery (072) | PASS | deep link `braintraining://game/nonexistent` → `Game not found` + `Back to library` |
+| Tab-stack depth (072 §4) | PASS | 12 repeated tab visits across 4 tabs; single BACK from Games lands on Home (no stack accumulation) |
+| Data Management back destination (072 §5) | PASS | `Back to Profile` affordance announces and lands on Profile |
+| Results → Progress freshness (072 §6) | PASS | Progress shows `1 session across 1 active day`, `3 of 8 domains trained` immediately |
+| Backup export (070) | PASS | artifact `brain-training-backup_2026-10-02_04-43-49.json` (18,133 B) in app backups dir; export UI reports `Ready` |
+| Backup payload fidelity (070/073 fix verified live) | PASS | `skippedIndices: [1,2]` present in device-produced JSON (skip record survives export); envelope keys fully recognized → forward-compat `lossy=false` (F1 fix verified against the real artifact) |
+| SQLite persistence inspection | PASS | `integrity_check: ok`, `user_version: 13` (v13 skip schema), `journal_mode: wal` (068 pragma live on device), `foreign_keys: 1`; session row carries versioned provenance (game/generator/scoring versions, seeded RNG); workout row matches UI exactly; exactly-once ledger (1 row / 1 played session) |
+| Log review (final APK window) | PASS | 1,768 lines: **0** FATAL / ANR / SIGSEGV / SIGABRT / SQLiteException / RedBox / unhandled JS / OOM / malformed-db |
+| Accessibility machine audit | PASS | 13 surfaces (light + dark: home, games, game-detail, progress, profile, results, data-management): 84/84 interactive nodes labelled, 0 undersized, 0 unlabelled; 8 occluded nodes correctly excluded as unmeasurable (tab-bar/screen-edge overlay, per Campaign 067 rule) |
+
+**Final release artifact (built from exact final source tree `efd4447` + the
+certification fixes, short-path tree synchronized and diff-verified):**
+
+- SHA-256: `1754f3194b5f0a91c76f746414c29dc1ddf7a33dbaf58242cf76730b60b17d6c`
+- Size: 48,758,648 bytes
+- Package: `com.braintraining.app`, versionCode 1000, versionName 0.1.0, minSdk 24, targetSdk 36
+- Architecture: x86_64 (per CI-equivalent `-PreactNativeArchitectures=x86_64`)
+- Permissions: 7/7 match `scripts/android/expected-apk-permissions.txt` (deny-by-default gate); RECORD_AUDIO / SYSTEM_ALERT_WINDOW absent
+- Signing: **debug-key local release build** (CN=Android Debug) — same classification as every prior certified local artifact; no release keystore exists in this repo
+- Embedded bundle: `assets/index.android.bundle` present
+- Build path: `expo prebuild --clean --no-install` + `gradlew :app:assembleRelease`, 495/495 tasks, `BUILD SUCCESSFUL`
+
+**GitHub Actions evidence (run 36954226412 at `8020cba`):** Android Build Smoke
+GREEN end-to-end — `Setup Android SDK` → pinned package install (fail-closed
+postcondition) → `npm ci` → repo validation → registry/provenance → clean
+prebuild → **Gradle release build** → APK verify (permission gate) → artifact
+upload. CI APK: SHA-256 `976a7903…` (48,757,256 bytes). The pre-repair failure
+(run 36833264411 at `1565c2b`) is root-caused: `android-actions/setup-android`
+default `packages: tools platform-tools` requests the removed legacy `tools`
+package → exit 1 in SDK setup → every later step SKIPPED (never a build failure).
+
+**Local-build host pathology (NOT a repository defect):** the deep worktree
+path `C:\Users\palac\.capy\worktrees\jam_…` exceeds CMake's 250-char object
+path ceiling (measured: `CMAKE_OBJECT_PATH_MAX` warning at 250), so
+`react-native-screens`/`react-native-worklets` native builds fail with ninja
+"manifest still dirty". Routed around via a short-path tree (`C:\btm`); CI
+builds at `/home/runner/work/…` and is unaffected.
