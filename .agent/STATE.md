@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
+**Last update:** 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
@@ -8,6 +8,30 @@
 **Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
 **Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
+
+## CURRENT-STATE CORRECTION — 2026-10-02, measured at `1565c2b` (post-068–075 convergence campaign)
+
+History below is preserved and remains accurate **for the commit each entry
+names**. The 2026-09-30 correction block beneath this one remains accurate for
+`47fffee`. This block is the authoritative present for `1565c2b` and the
+convergence campaign's own commits.
+
+| Claim in this file / BACKLOG (2026-09-30 era) | Measured at `1565c2b` on 2026-10-02 | Disposition |
+|---|---|---|
+| BACKLOG: Change 073 §1.3 leg-list validation, §2 durable ownership, §3 skip, §4 honest launches, §5 boot reconciliation "NOT DONE" | All five exist and are pinned by tests: `requireValidLegList`/`storedLegList` (db/workout.ts), `findSessionOwningWorkoutProvenance` (db/sessions.ts), `skipToLeg` + schema v13 `skipped_indices_json`, honest launch map, `reconcileWorkoutPositions` at `initializeDatabase` | **Superseded in `.agent/BACKLOG.md`** with dated markers; history preserved. Remaining: device lane §6.3–6.5 only |
+| BACKLOG: Change 074 §3 lifecycle scanning, §4 duplicate-start guard, §6 SDK module map "remaining" | All three exist: `game-lifecycle-contract.test.ts` scans 42 modules, `duplicate-start-guard.test.tsx` pins `begin()` refusal, `game-sdk-doc.test.ts` makes the module map executable | **Superseded in `.agent/BACKLOG.md`**; remaining: device lane §7.4 only |
+| MASTER_PLAN 068 row: "the guard now covers `run`/`get`/`all`… Both backends reject identically" | False after the `7bceb90`/`1565c2b` refinement: `get`/`all` **participate** in the open transaction; only nested `transaction()`, connection-level `exec()`, and root DML `run` reject | **Row corrected in `docs/MASTER_PLAN.md`** (2026-10-02) to match spec + code |
+| Android Build Smoke FAIL was suspected to be an application build problem | Reproduced from run `36833264411`: failure is in `Setup Android SDK` before any application step — `android-actions/setup-android@v3` default `packages: tools platform-tools` requests the removed legacy `tools` package (`Failed to find package 'tools'`, exit 1). Every later step was **skipped**, never executed | **Workflow repaired** (explicit `packages: platform-tools`; pinned packages remain fail-closed in the next step). Application build reproduced locally through Gradle in this campaign |
+| Dependency audit "clean" (7 accepted) | New upstream advisory since the last gate run: `node-forge GHSA-86w9-cpqp-85rv` (high, all versions) via `@expo/cli`. Reachability reproduced: toolchain-only (no first-party import, absent from exported bundles, `expo-updates` not installed) | **Dispositioned** as `build-dev-toolchain` in `dependency-audit-allowlist.json` with rationale + tracking (2026-10-02) |
+
+**Unchanged and still true at `1565c2b` (re-measured 2026-10-02):** typecheck 0
+errors; lint 0 errors/0 warnings; full Jest matrix **611 passed + 4 skipped
+suites / 7,172 passed + 5 skipped tests / 5 snapshots, 0 failures**; jest-signal
+validator `pass: true` (5 classified skips, floors met); all 9 repository
+validators PASS; validator self-tests PASS (workflows 44/44, secrets, offline
+30/30, provenance 13, expo-alignment 54/54, dependency-audit 41/41,
+jest-signal, certify-clean-checkout 6/6); runtime-QA contract PASS; OpenSpec
+strict **59 passed / 0 failed**; web export smoke PASS.
 
 ## CURRENT-STATE CORRECTION — 2026-09-30, measured at `47fffee` (Change 069)
 

@@ -44,6 +44,15 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
+        # Override the action default `packages: tools platform-tools`. The
+        # legacy `tools` package no longer exists in the SDK repository, so the
+        # default request fails with `Failed to find package 'tools'` and the
+        # job dies before npm ci / validation / prebuild / Gradle (run
+        # 36833264411, and every android-build-smoke run back through 36803822788).
+        # Everything this build needs is installed explicitly and fail-closed
+        # by the pinned step below; here we ask for nothing obsolete.
+        with:
+          packages: platform-tools
 
       - name: Install pinned Android build dependencies
         shell: bash

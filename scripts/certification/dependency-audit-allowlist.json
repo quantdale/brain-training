@@ -1,8 +1,15 @@
 {
   "version": 1,
-  "reviewedAt": "2026-09-30",
+  "reviewedAt": "2026-10-02",
   "policy": "Entries waive one package + one GHSA advisory id each. A new advisory on an allowlisted package is NOT inherited and fails the gate. build-dev-toolchain entries are accepted without an expiry only while the vulnerable code never ships; runtime-accepted-debt entries MUST carry a rationale, an expiry, and a tracked follow-up in .agent/KNOWN_ISSUES.md, and are the explicit escalation path when no compatible fix exists. Never silently waived.",
   "allowlist": [
+    {
+      "package": "node-forge",
+      "advisory": "GHSA-86w9-cpqp-85rv",
+      "classification": "build-dev-toolchain",
+      "rationale": "RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements (high, CWE-347; advisory range is every node-forge release, so no in-range patch exists and npm audit only offers an expo@44 major downgrade). Reachability re-verified 2026-10-02: the only path is expo@57.0.24 -> @expo/cli@57.0.26 -> node-forge@1.4.0 and @expo/code-signing-certificates@0.0.6 (Expo CLI update code-signing certificate parsing, a prebuild/CLI step on the developer/CI machine). Zero first-party imports of node-forge in apps/mobile/src; zero node-forge/pki/pkcs signatures in the exported web bundle (the only 'forge' substring in dist is a word-game distractor list); expo-updates is not a dependency, so no runtime manifest signature verification exists in the shipped app. The vulnerable verification code never ships.",
+      "tracking": ".agent/DEPENDENCY_AUDIT.md -> 2026-10-02 node-forge toolchain review (post-067 terminal certification campaign)"
+    },
     {
       "package": "image-size",
       "advisory": "GHSA-w3rx-r6r6-pgpr",

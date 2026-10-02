@@ -5734,3 +5734,37 @@ minutes apart differ by −77 % to +451 % per scenario, so the journal-mode chan
 was verified structurally (all five probes use `:memory:`, where a journal cannot
 exist) rather than statistically, and the device lane is where WAL is actually
 measured. **No device or artifact claim is made anywhere in this record.**
+
+### Post-068–075 final convergence & certification campaign (2026-10-02, base `1565c2b`)
+
+This is the campaign's own current-HEAD record, superseding the present-state
+claims of the 2026-09-30 "Terminal certification — master plan Phases 0–8"
+block above (which measured `0b775b8`, before the final 073/068 refinements in
+`7bceb90`…`1565c2b`). History above is preserved unchanged.
+
+**Repository matrix re-measured at `1565c2b` on 2026-10-02 (not reused from any
+previous record):**
+
+| Gate | Result |
+|---|---|
+| `npm run typecheck` | PASS — 0 errors |
+| `npm run lint` | PASS — 0 errors, 0 warnings |
+| Full Jest matrix | **611 passed + 4 skipped suites / 7,172 passed + 5 skipped tests / 5 snapshots, 0 failures** (run twice: plain `test:ci` and `--json` summary runs agree) |
+| Jest signal validator | `pass: true` — 5 classified skips, floors met |
+| 9 repository validators | ALL PASS (`repo-state`, `secrets --check`, `offline --check`, `workflows`, `registry --check`, `provenance --check`, `affected --check-sync`, `expo-alignment`, `runtime-qa-contract`) |
+| Validator self-tests | ALL PASS (workflows 44/44, secrets, offline 30/30, provenance 13, expo-alignment 54/54, dependency-audit 41/41, jest-signal, certify-clean-checkout 6/6) |
+| Dependency audit | PASS after a **new upstream advisory** (`node-forge GHSA-86w9-cpqp-85rv`, high, all versions, published after the last gate run) was reproduced for reachability and dispositioned `build-dev-toolchain` in `dependency-audit-allowlist.json` (2026-10-02): zero first-party imports, absent from exported web bundle, `expo-updates` not installed, only reachability is `@expo/cli`'s update code-signing parsing on the build machine |
+| `openspec validate --all --strict` | **59 passed, 0 failed (59 items)** |
+| Web export smoke | PASS (`npx expo export --platform web`) |
+| Android Build Smoke (GitHub Actions) | **FAIL at `1565c2b`** — reproduced from run `36833264411`: `Setup Android SDK` requests the removed legacy `tools` package via `android-actions/setup-android@v3`'s default `packages: tools platform-tools`; `sdkmanager tools` → `Failed to find package 'tools'` → exit 1; **every later step (npm ci, validation, prebuild, Gradle, APK verify) was SKIPPED**, so no application build problem is implicated. Repair: explicit `packages: platform-tools` override (smallest reliable repair; pinned packages remain fail-closed in the following step with a `--list_installed` postcondition). |
+
+**Stale durable-state corrections applied 2026-10-02** (history preserved,
+dated supersede markers added):
+`.agent/BACKLOG.md`'s Change 073 "NOT DONE" list (§1.3 leg-list validation,
+§2 ownership, §3 skip, §4 honest launches, §5 boot reconciliation) and Change
+074 "remaining" list (§3 lifecycle scan, §4 duplicate-start guard, §6 module
+map) were **disproved against code** — all landed in `7bceb90`/`a0d6dd1`/the
+074 waves; only the device lanes remain. `docs/MASTER_PLAN.md`'s 068 row
+claimed "Both backends reject identically" for `run`/`get`/`all`; the refined
+semantics (`7bceb90`, spec-aligned in `1565c2b`) make `get`/`all` **participate**
+in the open transaction and reject only state-changing re-entry — row corrected.

@@ -84,6 +84,18 @@ plus historical follow-ups.
   behavior. These are real untested surfaces, not theoretical ones.
   Owner: release-engineering orchestrator; add the suites when the kit is next
   touched rather than as a standalone coverage push.
+- **SUPERSEDED 2026-10-02 (post-068–075 certification campaign, verified at
+  `1565c2b` and later).** The entry below this marker was accurate when written
+  (2026-09-30, `CHANGE_073_PARTIAL`) and is false now. Measured against the
+  code in this campaign: §1.3's malformed/over-bound leg-list validation exists
+  (`apps/mobile/src/db/workout.ts` `requireValidLegList`/`storedLegList`, enforced
+  at `skipToLeg`), §2 durable ownership exists
+  (`findSessionOwningWorkoutProvenance`), §3 skip exists (`skipToLeg` +
+  schema v13 `skipped_indices_json`), §4 honest launches and §5 boot
+  reconciliation exist (`reconcileWorkoutPositions` run at `initializeDatabase`).
+  The only remaining item is the §6.3–6.5 device lane, which is owed evidence
+  rather than implementation and is tracked in `.agent/VALIDATION.md`.
+  The historical record follows unchanged.
 - Change 073 remaining work (recorded 2026-09-30, `CHANGE_073_PARTIAL`): §1
   (one compare-and-set for workout position writes) is DONE and proven — both the
   session advance and the reroll now go through `db/workout-cas.ts`, which closed
@@ -94,6 +106,15 @@ plus historical follow-ups.
   durable leg ownership, §3 the skip/abandon transition and its migration, §4 the
   honest "Up next" launch, §5 startup reconciliation, and the §6.3–6.5 device
   lane. Owner: release-engineering orchestrator.
+- **SUPERSEDED 2026-10-02 (post-068–075 certification campaign, verified at
+  `1565c2b` and later).** The entry below was accurate when written and is false
+  now: every listed "Remaining" item has landed. Measured in this campaign: §3
+  per-game lifecycle verification scans the 42 game modules
+  (`apps/mobile/src/sdk/__tests__/game-lifecycle-contract.test.ts`, `module-surface.ts`),
+  §4's duplicate-start guard exists (`use-game-session.ts`,
+  `duplicate-start-guard.test.tsx`), and §6's SDK module map is executable
+  (`game-sdk-doc.test.ts`). The only remaining item is the §7.4 device lane —
+  owed evidence, not implementation. The historical record follows unchanged.
 - Change 074 device lane (recorded 2026-09-30, `CHANGE_074_PARTIAL`): §1–§6 are
   DONE and measured. Remaining: §3 per-game lifecycle verification (the contract test
   still satisfies itself from shared host sources rather than scanning the 42
@@ -102,6 +123,12 @@ plus historical follow-ups.
   the §7.4 device lane. §4 (the duplicate-start guard) and §5 (the
   version-conversion contract) are also DONE.
   Owner: release-engineering orchestrator.
+- **SUPERSEDED 2026-10-02 (post-068–075 certification campaign).** The entry
+  below is unchanged and still accurate: the code sections of Change 072 are
+  done and the device lane (tab-stack depth, Data Management/Game Detail back
+  destinations, Results → Progress freshness) remains owed evidence on the
+  dedicated AVD. This marker records that the entry was re-verified in this
+  campaign and is not stale. Historical record follows unchanged.
 - Change 072 device-lane boundary (2026-09-30, `CHANGE_072_PARTIAL`): every code
   section of the change (§1–§6) is DONE and measured. What remains is the
   device lane only: confirm on the dedicated AVD that repeated tab visits enter
