@@ -109,6 +109,14 @@ export interface BackupWorkoutInstance {
   createdAt: number;
   updatedAt: number;
   /**
+   * Durable skip record (073 §3, schema v13 `skipped_indices_json`). Optional
+   * BOTH ways: exports written before the skip transition lack it and older
+   * rows carry null. A backup round-trip must NOT erase the skip record — an
+   * import that drops it desynchronizes the workout position from the legs the
+   * player actually played (a skipped leg would reappear as playable).
+   */
+  skippedIndices?: number[];
+  /**
    * Versioned Workout V3 instance metadata (kind/templateId/length/focus +
    * generation inputs + recorded selection reasons), parsed from the row's
    * `metadata_json` cell. Optional BOTH ways: pre-v10-schema exports lack it

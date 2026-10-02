@@ -3,7 +3,7 @@ import { AppDatabase } from '@/db';
 import { exportLocalData, serializeBackup, parseAndValidateBackup, applyImport } from '../index';
 import { canonicalString } from '../canonical-json';
 import { computeChecksum } from '../checksum';
-import { makeDb, seedFixture, T0 } from './helpers';
+import { makeDb, seedFixture, buildEnvelope, T0 } from './helpers';
 
 async function exportCanonical(db: AppDatabase): Promise<string> {
   const env = await exportLocalData(db, { now: () => T0 + 1, appVersion: 'test-1.0.0' });
@@ -96,6 +96,52 @@ describe('export → import round trip', () => {
     expect((await target.sessions.getById('owned-session'))?.workoutProvenance).toEqual(
       provenance,
     );
+  });
+
+  it('round-trips the durable skip record (073 §3) through export and import', async () => {
+    // Reproduced on device 2026-10-02: the export schema dropped
+    // skipped_indices_json entirely, so a backup → restore silently erased the
+    // skip record and desynced the workout position from the legs actually
+    // played. This pins the full round trip.
+    const src = await makeDb();
+    await seedFixture(src);
+
+    const env = await exportLocalData(src, { now: () => T0 + 1 });
+    const parsed = parseAndValidateBackup(serializeBackup(env));
+    const row = parsed.data.workoutInstances.find((w) => w.date === '2026-08-20')!;
+    expect(row.skippedIndices).toEqual([0]);
+    expect(serializeBackup(env)).toContain('skippedIndices');
+
+    const target = await makeDb();
+    await applyImport(target, parsed, 'replace');
+    const restored = await target.workouts.getByDate('2026-08-20');
+    expect(restored?.skippedIndices).toEqual([0]);
+    expect(restored?.currentIndex).toBe(1);
+
+    // A pre-skip backup (no skippedIndices key) imports as "no skips", never
+    // as a fabricated empty-row distinction or a thrown error.
+    const legacy = await makeDb();
+    await seedFixture(legacy);
+    const legacyEnv = await exportLocalData(legacy, { now: () => T0 + 1 });
+    const legacyParsed = parseAndValidateBackup(serializeBackup(legacyEnv));
+    for (const w of legacyParsed.data.workoutInstances) {
+      delete (w as Record<string, unknown>).skippedIndices;
+    }
+    const legacyTarget = await makeDb();
+    await applyImport(legacyTarget, legacyParsed, 'replace');
+    expect((await legacyTarget.workouts.getByDate('2026-08-20'))?.skippedIndices).toEqual([]);
+  });
+
+  it('rejects a backup whose skip record references a leg that does not exist', async () => {
+    const src = await makeDb();
+    await seedFixture(src);
+    const env = await exportLocalData(src, { now: () => T0 + 1 });
+    const parsed = parseAndValidateBackup(serializeBackup(env));
+    const row = parsed.data.workoutInstances.find((w) => w.date === '2026-08-20')!;
+    (row as Record<string, unknown>).skippedIndices = [9];
+    // Re-checksum so validation actually reaches the skip guard instead of
+    // failing earlier on the checksum mismatch.
+    expect(() => parseAndValidateBackup(serializeBackup(buildEnvelope(parsed.data)))).toThrow();
   });
 
   it('round-trips workout instance metadata (Workout V2 reasons/provenance) through export + replace import', async () => {

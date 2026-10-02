@@ -301,7 +301,27 @@ function validateData(data: unknown): BackupData {
       issues.push('workoutInstances contains an invalid entry');
       return false;
     }
-    // Bound the list at the template engine's maximum (workout/templates.ts).
+    // Optional durable skip record (073 §3, engine 4+): must be an array of
+    // in-range leg indices when present; absent (pre-skip backups) is fine and
+    // means "no skips". Reject out-of-range or non-integer entries outright —
+    // silently dropping one here would let a hostile backup record a skip for
+    // a leg index that does not exist, or desync the position from the list.
+    if (r.skippedIndices !== undefined) {
+      if (!Array.isArray(r.skippedIndices)) {
+        issues.push('workoutInstances contains an invalid entry');
+        return false;
+      }
+      const legCount = r.gameIds.length;
+      const valid = r.skippedIndices.every(
+        (i: unknown) => isSafeInteger(i) && i >= 0 && i < legCount,
+      );
+      if (!valid) {
+        issues.push(
+          `workoutInstances entry ${echoId(r.date)} has skipped indices outside the leg list`,
+        );
+        return false;
+      }
+    }
     // A valid checksum proves integrity, not sane size: Home renders one row
     // per leg, so a hostile backup with 100k ids would freeze the app on the
     // first render after import. Reject before anything is persisted.

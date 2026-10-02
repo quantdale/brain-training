@@ -58,7 +58,7 @@ const RAW_SELECT = {
   favorites: `SELECT game_id, created_at FROM game_favorites ORDER BY created_at ASC, game_id ASC`,
   xpAwards: `SELECT amount, reason, source, created_at FROM xp_awards ORDER BY id ASC`,
   tutorial: `SELECT game_id, completed, replay_requested, version, updated_at FROM tutorial_state ORDER BY game_id ASC`,
-  workouts: `SELECT date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at, metadata_json FROM workout_instances ORDER BY date ASC`,
+  workouts: `SELECT date, game_ids_json, status, current_index, skipped_indices_json, reroll_attempt, seed_version, created_at, updated_at, metadata_json FROM workout_instances ORDER BY date ASC`,
   quests: `SELECT id, kind, title, description, criteria_json, reward_xp, reward_currency, version FROM quests ORDER BY id ASC`,
   questProgress: `SELECT quest_id, period, progress, completed_at, claimed_at FROM quest_progress ORDER BY quest_id ASC, period ASC`,
   achievements: `SELECT id, title, description, criteria_json, reward_xp, reward_currency, version FROM achievements ORDER BY id ASC`,
@@ -82,6 +82,24 @@ function parseGameIds(text: string | null): string[] {
     return parsed.filter((g): g is string => typeof g === 'string');
   }
   return [];
+}
+
+/**
+ * Durable skip record (073 §3). Mirrors db/workout.ts's `parseSkippedIndices`:
+ * out-of-range and non-integer entries are dropped, duplicates collapsed, and
+ * a malformed cell degrades to "no skips" instead of fabricating a skip for a
+ * leg the player played. Bound against the leg count so a corrupt cell can
+ * never round-trip an over-bound index back into a fresh install.
+ */
+function parseSkippedIndices(text: string | null | undefined): number[] {
+  const parsed = parseJson(text, null);
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+  const indices = parsed.filter(
+    (value): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0,
+  );
+  return [...new Set(indices)].sort((a, b) => a - b);
 }
 
 interface RawProfileRow {
@@ -224,6 +242,7 @@ export async function readSnapshot(db: AppDatabase): Promise<BackupData> {
         game_ids_json: string;
         status: string;
         current_index: number;
+        skipped_indices_json: string | null;
         reroll_attempt: number;
         seed_version: number;
         created_at: number;
@@ -245,6 +264,10 @@ export async function readSnapshot(db: AppDatabase): Promise<BackupData> {
         gameIds: parseGameIds(r.game_ids_json),
         status: r.status,
         currentIndex: r.current_index,
+        // 073 §3 durable skip record (schema v13). Parsed defensively exactly
+        // like the db reader: a malformed cell degrades to "no skips" rather
+        // than fabricating a skip for a leg the player played.
+        skippedIndices: parseSkippedIndices(r.skipped_indices_json),
         rerollAttempt: r.reroll_attempt,
         seedVersion: r.seed_version,
         createdAt: r.created_at,

@@ -558,6 +558,10 @@ async function writeWorkouts(
   // writes a null cell so an imported legacy row never fabricates provenance.
   const metadataJson = (w: BackupData["workoutInstances"][number]) =>
     w.metadata == null ? null : JSON.stringify(w.metadata);
+  // 073 §3 durable skip record (schema v13). Absent (pre-skip backups) writes
+  // a null cell — "no skips" — never a fabricated empty array row distinction.
+  const skippedJson = (w: BackupData["workoutInstances"][number]) =>
+    w.skippedIndices == null ? null : JSON.stringify(w.skippedIndices);
   for (const w of workouts) {
     const json = JSON.stringify(w.gameIds);
     if (mode === "merge") {
@@ -570,11 +574,12 @@ async function writeWorkouts(
           continue; // keep the newer/equal existing instance
         }
         await txn.run(
-          "UPDATE workout_instances SET game_ids_json = ?, status = ?, current_index = ?, reroll_attempt = ?, seed_version = ?, updated_at = ?, metadata_json = ? WHERE date = ?",
+          "UPDATE workout_instances SET game_ids_json = ?, status = ?, current_index = ?, skipped_indices_json = ?, reroll_attempt = ?, seed_version = ?, updated_at = ?, metadata_json = ? WHERE date = ?",
           [
             json,
             w.status,
             w.currentIndex,
+            skippedJson(w),
             w.rerollAttempt,
             w.seedVersion,
             w.updatedAt,
@@ -587,12 +592,13 @@ async function writeWorkouts(
       }
     }
     await txn.run(
-      "INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO workout_instances (date, game_ids_json, status, current_index, skipped_indices_json, reroll_attempt, seed_version, created_at, updated_at, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       [
         w.date,
         json,
         w.status,
         w.currentIndex,
+        skippedJson(w),
         w.rerollAttempt,
         w.seedVersion,
         w.createdAt,

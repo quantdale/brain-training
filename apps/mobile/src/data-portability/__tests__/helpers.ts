@@ -84,8 +84,8 @@ export async function seedFixture(db: AppDatabase, opts: SeedOptions = {}): Prom
     );
 
     await txn.run(
-      "INSERT INTO workout_instances (date, game_ids_json, status, current_index, reroll_attempt, seed_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      ['2026-08-20', JSON.stringify(['memory', 'speed-tap-rush']), 'active', 1, 0, 1, T0, T0],
+      "INSERT INTO workout_instances (date, game_ids_json, status, current_index, skipped_indices_json, reroll_attempt, seed_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      ['2026-08-20', JSON.stringify(['memory', 'speed-tap-rush']), 'active', 1, '[0]', 0, 1, T0, T0],
     );
 
     await txn.run(
