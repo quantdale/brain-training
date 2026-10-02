@@ -21,8 +21,13 @@
 ## 2. Re-entrancy guard (Node backend parity)
 
 - [x] 2.1 Add the equivalent precondition to
-      `apps/mobile/src/db/adapters/node.ts` using the driver's own
-      in-transaction state, raising the same descriptive error class.
+      `apps/mobile/src/db/adapters/node.ts`, raising the same descriptive error
+      class. **Corrected 2026-10-02:** the task text said "using the driver's
+      own in-transaction state", but the implementation deliberately uses the
+      SHARED `transaction-scope` claim before `BEGIN` instead — the device
+      backend has no driver-level check to reach, so depending on one would be
+      the divergence this change removes (see `node.ts`'s note). The claim is
+      identical on both backends.
 - [x] 2.2 Confirm the legitimate pattern `txn ? write(txn) : transaction(write)`
       (`apps/mobile/src/db/profile.ts`) still resolves without tripping either
       guard; add a test for it.

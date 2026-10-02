@@ -32,8 +32,12 @@ export function masteryTierLabel(tier: MasteryTier): string {
  * Registry category → domain identity key. The registry spells categories
  * `Memory`-style while the palette keys are lowercase, so the lookup folds
  * case instead of assuming they already match.
+ *
+ * Module-private (D5, audit 2026-10-02): this was exported but had ZERO
+ * importers — every consumer carries its own local copy. Kept private so the
+ * dead surface cannot drift back into the census.
  */
-export function domainKeyFor(category: string): DomainName | null {
+function domainKeyFor(category: string): DomainName | null {
   const key = category.toLowerCase() as DomainName;
   return key in DomainColors.light ? key : null;
 }

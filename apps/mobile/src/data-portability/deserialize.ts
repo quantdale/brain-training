@@ -302,10 +302,13 @@ function validateData(data: unknown): BackupData {
       return false;
     }
     // Optional durable skip record (073 §3, engine 4+): must be an array of
-    // in-range leg indices when present; absent (pre-skip backups) is fine and
-    // means "no skips". Reject out-of-range or non-integer entries outright —
+    // leg indices when present; absent (pre-skip backups) is fine and means
+    // "no skips". Reject out-of-range or non-integer entries outright —
     // silently dropping one here would let a hostile backup record a skip for
     // a leg index that does not exist, or desync the position from the list.
+    // The FINAL leg is refused for the same reason `skipToLeg` refuses it: a
+    // workout must always contain at least one played leg, so a completed row
+    // can never be farmed into the completion achievement with zero play.
     if (r.skippedIndices !== undefined) {
       if (!Array.isArray(r.skippedIndices)) {
         issues.push('workoutInstances contains an invalid entry');
@@ -313,11 +316,11 @@ function validateData(data: unknown): BackupData {
       }
       const legCount = r.gameIds.length;
       const valid = r.skippedIndices.every(
-        (i: unknown) => isSafeInteger(i) && i >= 0 && i < legCount,
+        (i: unknown) => isSafeInteger(i) && i >= 0 && i < legCount - 1,
       );
       if (!valid) {
         issues.push(
-          `workoutInstances entry ${echoId(r.date)} has skipped indices outside the leg list`,
+          `workoutInstances entry ${echoId(r.date)} has skipped indices outside the skippable legs`,
         );
         return false;
       }

@@ -172,6 +172,13 @@ function rowToInstance(row: WorkoutRow): WorkoutInstance {
  * column is JSON written by app code but read across backup round-trips, so a
  * malformed entry must degrade to "not skipped" instead of fabricating a skip
  * for a leg the player played.
+ *
+ * The FINAL leg is dropped too. The writer enforces `length − 1` (the final
+ * leg must be played, keeping `workout-completions` unfarmable) but a backup
+ * row can carry a record the writer never would: without this read-side rule
+ * a crafted `skipped_indices_json` naming the final leg makes boot
+ * reconciliation complete a workout with ZERO played legs, and `countCompleted`
+ * counts it toward the completion achievement.
  */
 function parseSkippedIndices(
   raw: string | null | undefined,
@@ -190,7 +197,8 @@ function parseSkippedIndices(
         typeof value === "number" &&
         Number.isSafeInteger(value) &&
         value >= 0 &&
-        value < legCount,
+        // Strictly before the final leg: the same bound skipToLeg enforces.
+        value < legCount - 1,
     );
     return [...new Set(indices)].sort((a, b) => a - b);
   } catch {
@@ -278,6 +286,14 @@ export async function reconcileWorkoutPositions(
     const instance = rowToInstance(row);
     const legCount = instance.gameIds.length;
     if (legCount === 0) {
+      continue;
+    }
+    // 073 §1.3: the walk advances position through the shared CAS, so it is a
+    // position writer too — a row whose stored leg list is corrupt must be
+    // left for the repair path, never walked forward over the filtered view.
+    try {
+      storedLegList(row);
+    } catch {
       continue;
     }
     const played = await loadPlayedLegs(adapter, instance.date, instance.gameIds);
@@ -591,6 +607,13 @@ export class WorkoutRepository {
     const current = await this.getByDate(date);
     if (!current) {
       throw new Error(`No workout instance for key ${date}`);
+    }
+    // 073: a completed workout is historical record — advancing it is a
+    // TERMINAL no-op (the row is returned unchanged, never written), so the
+    // manual writer cannot stamp `updated_at` on a completed row like the CAS
+    // writers cannot.
+    if (current.status === 'completed') {
+      return current;
     }
     if (current.gameIds.length === 0) {
       // A corrupt/empty row must heal through reconcile → regenerate, never
@@ -960,6 +983,11 @@ export class WorkoutRepository {
       if (!ownsCurrentLeg(current, provenance)) {
         return { advanced: false, instance: current };
       }
+      // 073 §1.3: refuse a write aimed at a row whose stored leg list is
+      // corrupt or over-bound. `rowToInstance` FILTERS corrupt entries so
+      // history stays readable — advancing off that filtered view would
+      // launder the corruption into a shorter rewritten list.
+      storedLegList(row);
 
       const nextIndex = Math.min(
         current.currentIndex + 1,

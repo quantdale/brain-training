@@ -58,9 +58,20 @@ export const TOP_LEVEL_HREFS: readonly string[] = [
  *
  * Exported and unit-tested on its own so the classification is a decision with
  * a test, not a `startsWith` buried in a press handler.
+ *
+ * One deliberate query exception: `/results` is dual-purpose. Bare, it is the
+ * post-completion SUMMARY — a place, entered with `replace`. With `?id=…` it is
+ * one past session's RECORD — a drill-down from a history list, where `push`
+ * is the correct stack behaviour and replacing would destroy the list behind
+ * it. Every call site already follows this split (bare: `replace`; `?id=`:
+ * push/Link), so the predicate encodes the behaviour that exists.
  */
 export function isTopLevelHref(href: string): boolean {
-  const path = String(href).split(/[?#]/)[0].replace(/\/+$/, '') || '/';
+  const raw = String(href);
+  const path = raw.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
+  if (path === '/results') {
+    return !/[?#]id=/.test(raw);
+  }
   return TOP_LEVEL_HREFS.includes(path);
 }
 

@@ -66,6 +66,9 @@ jest.mock('@/data-portability/file-transport', () => {
     deleteBackup: jest.fn(async (name: string) => {
       store.delete(name);
     }),
+    // 070 stranded-artifact seam (optional on the real transport).
+    listStrandedArtifacts: jest.fn(async (): Promise<string[]> => []),
+    deleteStrandedArtifact: jest.fn(async (_name: string) => {}),
     __resetStore: () => store.clear(),
   };
   return {
@@ -127,6 +130,9 @@ interface MockTransport {
   // `jest.Mock` infers `never` parameters and rejects any argument.
   listBackups: jest.Mock<() => Promise<string[]>>;
   deleteBackup: jest.Mock;
+  // 070 stranded-artifact seam (optional on the real transport).
+  listStrandedArtifacts: jest.Mock<() => Promise<string[]>>;
+  deleteStrandedArtifact: jest.Mock<(name: string) => Promise<void>>;
   __resetStore: () => void;
 }
 
@@ -788,6 +794,28 @@ describe('data-management honest read states (072)', () => {
     await renderScreen();
     await waitFor(() => expect(screen.getByTestId('data-saved-backups-empty')).toBeTruthy());
     expect(screen.queryByTestId('data-saved-backups-error')).toBeNull();
+  });
+
+  it('a stranded-artifact read FAILURE is reported, never shown as none found', async () => {
+    // D10 (audit 2026-10-02): the stranded consumer discarded status/error, so
+    // a failed read rendered identically to "no stranded files" — the exact
+    // dishonesty the rest of the screen removes. A user whose only backup copy
+    // is stuck must see the failure and get a retry.
+    mockedFileTransport.createFileBackupTransport().listBackups.mockResolvedValue([]);
+    const transport = mockedFileTransport.createFileBackupTransport();
+    transport.listStrandedArtifacts.mockRejectedValue(
+      new Error('stranded scan unavailable'),
+    );
+    await expectConsoleNoise(/\[useDbData\].*load failed/, async () => {
+      await renderScreen();
+      await waitFor(() => expect(screen.getByTestId('data-stranded-error')).toBeTruthy());
+    });
+    expect(screen.queryByTestId('data-stranded-artifacts')).toBeNull();
+    expect(screen.getByTestId('data-stranded-retry')).toBeTruthy();
+    // Recovery: the retry re-runs the scan and the banner reflects real data.
+    transport.listStrandedArtifacts.mockResolvedValue(['.orphan.prev']);
+    await fireEvent.press(screen.getByTestId('data-stranded-retry'));
+    await waitFor(() => expect(screen.getByTestId('data-stranded-artifacts')).toBeTruthy());
   });
 
   it('hides the counts hero and shows a retry when the counts read fails', async () => {

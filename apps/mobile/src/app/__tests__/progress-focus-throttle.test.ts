@@ -6,6 +6,7 @@
 import { describe, expect, it } from "@jest/globals";
 
 import { shouldScheduleFocusReload } from "@/app/(tabs)/progress";
+import { progressionInputFingerprint } from "@/progression/focus-sync";
 
 describe("shouldScheduleFocusReload (061)", () => {
   it("loads on first focus and after the window settles", () => {
@@ -54,5 +55,23 @@ describe("shouldScheduleFocusReload is input-aware (072)", () => {
     expect(shouldScheduleFocusReload(0, 1_700_000_000_000, "s1@1", null)).toBe(true);
     expect(shouldScheduleFocusReload(LAST_LOAD, 6_001, "s1@1", null)).toBe(true);
     expect(shouldScheduleFocusReload(LAST_LOAD, 3_000, "s1@1", null)).toBe(false);
+  });
+
+  it("an EMPTY account does not force a reload on every focus (encoding parity)", () => {
+    // Wiring regression: the completed-load capture used to synthesize an
+    // `@0` placeholder for an absent newest session while the focus side
+    // encoded the same absence as `''`, so an empty account compared
+    // `'' ≠ "@0"` on every focus and permanently defeated the throttle.
+    // Both sides must call progressionInputFingerprint with null/undefined
+    // for the empty case — this pin is the behavior that wiring must produce.
+    const empty = progressionInputFingerprint(null);
+    expect(shouldScheduleFocusReload(LAST_LOAD, NOW, empty, empty)).toBe(false);
+    // And the real completion still forces a reload inside the window.
+    expect(
+      shouldScheduleFocusReload(LAST_LOAD, NOW, progressionInputFingerprint({
+        id: "s1",
+        completedAt: 100,
+      }), empty),
+    ).toBe(true);
   });
 });

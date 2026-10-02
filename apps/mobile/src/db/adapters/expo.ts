@@ -118,9 +118,10 @@ export function createExpoSqliteAdapter(
     // a transaction body. A connection-level statement issued through the
     // OUTER adapter while a transaction holds the queue slot would block
     // forever, exactly like a nested `transaction()` does, so it is rejected
-    // by the same guard — as are `run`/`get`/`all`, which are the entry points
-    // a forgotten `txn` argument actually reaches. The scope-local adapter is
-    // a different object, so DDL and reads inside a body keep working.
+    // by the same guard. Root DML `run` rejects too (a write that silently
+    // joins another transaction and vanishes on its rollback is data loss);
+    // `get`/`all` PARTICIPATE instead (see their notes below). The scope-local
+    // adapter is a different object, so DDL and reads inside a body keep working.
     // Reject BEFORE enqueueing. Enqueueing first would be the original defect:
     // the nested call would sit behind the very queue slot its own transaction
     // is holding and never settle.

@@ -193,6 +193,37 @@ describe('skipToLeg (073 §3/§4)', () => {
     // moved the position past it.
     expect(updated?.skippedIndices).not.toContain(0);
   });
+
+  it('073: a crafted skip record naming the final leg cannot complete a workout with zero play', async () => {
+    // Regression for the achievement-farm path: the writer enforces
+    // `length − 1`, but a backup row can carry a record the writer never
+    // would. Without the reader-side rule, boot reconciliation settles over
+    // the whole list (all legs "skipped"), flips status to completed, and
+    // countCompleted counts it toward the workout-completion achievement with
+    // no session at all.
+    const db = await makeDb();
+    await db.workouts.getOrCreate(KEY, { gameIds: GAMES, seedVersion: 1 });
+    await db.transaction(async (txn) => {
+      await txn.run(
+        "UPDATE workout_instances SET skipped_indices_json = ?, current_index = ? WHERE date = ?",
+        // The attack shape: every leg (final included) marked skipped and the
+        // resume point left on the final leg, so the boot walk would settle the
+        // whole list and flip the row to completed with zero sessions.
+        [JSON.stringify([0, 1, 2, 3]), 3, KEY],
+      );
+    });
+
+    // The reader drops the final-leg entry: legs 0-2 are skipped, leg 3 is
+    // still owed, so the workout cannot complete without playing it.
+    await reconcileWorkoutPositions(
+      (db as unknown as { adapter: Parameters<typeof reconcileWorkoutPositions>[0] }).adapter,
+    );
+    const row = await db.workouts.getByDate(KEY);
+    expect(row?.skippedIndices).toEqual([0, 1, 2]);
+    expect(row?.status).toBe('active');
+    expect(row?.currentIndex).toBe(3);
+    expect(await db.workouts.countCompleted()).toBe(0);
+  });
 });
 
 describe('reconcileWorkoutPositions (073 §5)', () => {

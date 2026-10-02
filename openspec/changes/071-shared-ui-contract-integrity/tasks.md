@@ -39,9 +39,12 @@
       §9.3 ("do not trust the plan over the code"):** `discovery/game-card.tsx`
       and `game-ui/result-row.tsx` were NOT deleted as files, because the
       importer census showed their exported HELPERS are live
-      (`masteryTierLabel`, `domainKeyFor`, `useDomainHue` are imported by
-      `game-detail/[id].tsx`, `game-poster-tile.tsx` and `game-stage.tsx`;
-      `StatRow` is the live twin every result surface renders). Deleting the
+      (`masteryTierLabel`, `useDomainHue` are imported by
+      `game-detail/[id].tsx`, `game-poster-tile.tsx`, `game-stage.tsx` and
+      `suggested-next.tsx`; `StatRow` is the live twin every result surface
+      renders). **Census correction 2026-10-02:** `domainKeyFor` was named as
+      live here but had ZERO importers (every consumer carries its own local
+      copy) — it is now module-private rather than exported. Deleting the
       files as written would have deleted working code; only the dead
       components inside them were removed.
 - [x] 3.2 Delete the dead auxiliary exports (`CONFETTI_COLORS`,
@@ -97,10 +100,16 @@
 
 ## 6. Close documented coverage gaps
 
-- [x] 6.1 Add suites for the shipped primitives that have none: `Confetti`,
-      `StateCard`, `SectionGrid`.
+- [ ] 6.1 Add suites for the shipped primitives that have none: `Confetti`,
+      `StateCard`, `SectionGrid`. **NOT DONE — corrected 2026-10-02:** the box
+      was checked but no suite renders those primitives (only
+      `design-system-doc.test.ts` names them as doc strings). Tracked as open
+      shared-kit debt in `.agent/BACKLOG.md`.
 - [x] 6.2 Add a test for toast queue overflow behavior (currently the oldest
-      message is dropped silently).
+      message is dropped silently). **Narrowed 2026-10-02:** the behavior is
+      pinned by `kit-inputs.test.tsx` "061: bounds the pre-mount queue,
+      dropping oldest first" (pre-existing, since Change 061); no NEW test was
+      added here.
 - [x] 6.3 Narrow any documentation claim not backed by a test that would fail on
       regression.
 
@@ -109,8 +118,13 @@
 - [x] 7.1 `npx jest src/components` green; the matrix green with no new skips;
       the jest signal validator passes.
 - [x] 7.2 `npm run typecheck` and `npm run lint` clean.
-- [x] 7.3 Device check on the dedicated AVD: a disabled segmented option is
+- [ ] 7.3 Device check on the dedicated AVD: a disabled segmented option is
       announced as disabled; tab and list controls still meet the 44 dp target
-      at the default and large font scale.
-- [x] 7.4 Re-run the accessibility audit script and confirm the unlabelled-node
-      and undersized-target counts are unchanged or improved.
+      at the default and large font scale. **NOT VALIDATED in this change —
+      corrected 2026-10-02:** the box was checked with no AVD run. (A later
+      campaign's device lane covered touch targets and labels generically;
+      the segmented-option announcement specifically was never exercised.)
+- [ ] 7.4 Re-run the accessibility audit script and confirm the unlabelled-node
+      and undersized-target counts are unchanged or improved. **NOT VALIDATED
+      in this change — corrected 2026-10-02:** the box was checked with no
+      audit run recorded here.

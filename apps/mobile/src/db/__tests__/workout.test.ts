@@ -13,7 +13,7 @@ import { readCode } from '@/test-utils/source-scan';
 import { resolve } from 'node:path';
 
 import { createMigratedDb } from './helpers';
-import { WorkoutRepository, WorkoutWriteConflictError } from '../workout';
+import { WorkoutRepository, WorkoutWriteConflictError, reconcileWorkoutPositions } from '../workout';
 import { MAX_WORKOUT_GAME_IDS } from '@/workout/templates';
 
 const GAMES = ['g1', 'g2', 'g3', 'g4'];
@@ -280,6 +280,48 @@ describe('leg-list validation on position writes (073 §1.3)', () => {
     const after = await workouts.getByDate('2026-08-17');
     expect(after?.currentIndex).toBe(0);
     expect(after?.skippedIndices).toEqual([]);
+  });
+
+  it('refuses an advanceForSession aimed at a corrupt stored leg list', async () => {
+    // The two remaining position writers must enforce §1.3 too: an advance off
+    // `rowToInstance`'s FILTERED view would launder the corruption into a
+    // shorter rewritten list.
+    await workouts.getOrCreate('2026-08-17', { gameIds: GAMES });
+    await adapter.run('UPDATE workout_instances SET game_ids_json = ? WHERE date = ?', [
+      '["g0", 5, "g1"]',
+      '2026-08-17',
+    ]);
+    const result = await workouts.advanceForSession({
+      gameId: GAMES[0],
+      workoutProvenance: { instanceKey: '2026-08-17', legIndex: 0, gameId: GAMES[0] },
+    });
+    expect(result.advanced).toBe(false);
+  });
+
+  it('refuses to walk a corrupt stored leg list forward in reconciliation', async () => {
+    await workouts.getOrCreate('2026-08-17', { gameIds: GAMES });
+    await adapter.run('UPDATE workout_instances SET game_ids_json = ? WHERE date = ?', [
+      '["g0", 5, "g1"]',
+      '2026-08-17',
+    ]);
+    await reconcileWorkoutPositions(adapter, () => 2000);
+    const after = await workouts.getByDate('2026-08-17');
+    expect(after?.currentIndex).toBe(0);
+    expect(after?.updatedAt).toBe(1000);
+  });
+
+  it('the manual advance is a terminal no-op on a completed workout (never stamps the row)', async () => {
+    // D3: `advance()` used to hand-write an unconditional UPDATE that stamped
+    // `updated_at` on a COMPLETED row — violating completed-row immutability
+    // that every CAS writer enforces.
+    await workouts.getOrCreate('2026-08-17', { gameIds: ['g0'] });
+    await adapter.run(
+      "UPDATE workout_instances SET status = 'completed', current_index = 1, updated_at = ? WHERE date = ?",
+      [777, '2026-08-17'],
+    );
+    const result = await workouts.advance('2026-08-17');
+    expect(result.status).toBe('completed');
+    expect(result.updatedAt).toBe(777);
   });
 });
 

@@ -15,6 +15,7 @@
  */
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { Colors, Depth, Radii, Spacing } from '@/theme/tokens';
 
 export interface RecoveryScreenProps {
@@ -161,7 +162,7 @@ function makeStyles(theme: (typeof Colors)[keyof typeof Colors]) {
     },
     retry: {
       // Explicit floor: padding arithmetic alone does not guarantee it.
-      minHeight: 44,
+      minHeight: MIN_TOUCH_TARGET,
       justifyContent: 'center' as const,
       paddingVertical: Spacing.twoHalf,
       paddingHorizontal: Spacing.five,

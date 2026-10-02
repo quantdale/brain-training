@@ -61,6 +61,7 @@ function makeSummary(
     metadata: null,
     totalGames: 2,
     completedGames: 2,
+    skippedGames: 0,
     completionRatio: 1,
     totalXp: 90,
     avgNormalized: 0.86,
@@ -77,6 +78,7 @@ function makeOutcome(overrides: Partial<WorkoutGameOutcome> = {}): WorkoutGameOu
     gameId: "memory-match",
     position: 0,
     played: true,
+    skipped: false,
     session: {
       gameId: "memory-match",
       normalizedResult: 0.92,

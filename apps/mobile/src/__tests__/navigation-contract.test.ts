@@ -56,9 +56,26 @@ const BARE_BACK_PATTERNS: { re: RegExp; why: string }[] = [
   { re: /useNavigation\(\)[\s\S]{0,80}?\.\s*goBack\s*\(/, why: 'useNavigation().goBack()' },
 ];
 
-/** A top-level destination pushed rather than replaced. */
-const TOP_LEVEL_PUSH =
+/**
+ * A top-level destination pushed rather than replaced.
+ *
+ * Handles both spellings: a plain literal (`push('/games')`) and a template
+ * with interpolation (`push(`/results?id=${s.id}`)`). The second form was
+ * invisible to the original literal-only regex — a `router.push(`/games`)`
+ * would pass the guard while `router.push('/games')` failed it. The classifier
+ * (`isTopLevelHref`) is what decides "top-level", so the guard feeds it the
+ * PATH prefix of any push target it can read.
+ */
+const LITERAL_TOP_LEVEL_PUSH =
   /router\s*\.\s*push\s*\(\s*['"`]([^'"`$]*)['"`]\s*\)/g;
+const TEMPLATE_TOP_LEVEL_PUSH =
+  /router\s*\.\s*push\s*\(\s*`([^`]*)`\s*\)/g;
+
+/** Extract the static path prefix of a push target, template or literal. */
+function pushPathPrefix(target: string): string {
+  // Cut at the first interpolation so `/results?id=${s.id}` yields `/results`.
+  return target.split('${')[0];
+}
 
 describe('navigation contract: no bare back outside the shared helper', () => {
   it('finds a bare back nowhere in src', () => {
@@ -119,9 +136,18 @@ describe('navigation contract: top-level destinations are replaced, not pushed',
     const offenders: string[] = [];
     for (const { rel, code } of scanModuleSources(SRC)) {
       if (rel === CLASSIFICATION_MODULE) continue;
-      for (const match of code.matchAll(TOP_LEVEL_PUSH)) {
+      // Both spellings: a plain literal and a template with interpolation.
+      // The template form is classified on its static path prefix, so a
+      // `push(`/games/${id}`)` cannot slip through the old literal-only gap.
+      for (const match of code.matchAll(LITERAL_TOP_LEVEL_PUSH)) {
         if (isTopLevelHref(match[1])) {
           offenders.push(`${rel}: push("${match[1]}") — a top-level destination must be replaced`);
+        }
+      }
+      for (const match of code.matchAll(TEMPLATE_TOP_LEVEL_PUSH)) {
+        const prefix = pushPathPrefix(match[1]);
+        if (isTopLevelHref(prefix)) {
+          offenders.push(`${rel}: push(\`${match[1]}\`) — a top-level destination must be replaced`);
         }
       }
     }
@@ -144,6 +170,11 @@ describe('navigation contract: top-level destinations are replaced, not pushed',
     ]) {
       expect(isTopLevelHref(href)).toBe(false);
     }
+    // `/results` is dual-purpose (see the predicate's note): bare it is the
+    // post-completion summary — a place, replaced onto the stack; with `?id=`
+    // it is one past session's record — a drill-down pushed off a history list.
+    expect(isTopLevelHref('/results?id=s-1')).toBe(false);
+    expect(isTopLevelHref('/results')).toBe(true);
     // Query strings and trailing slashes must not change the classification,
     // or a href built at runtime would slip past the guard.
     expect(isTopLevelHref('/progress?x=1')).toBe(true);

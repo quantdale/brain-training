@@ -42,8 +42,10 @@ export interface WorkoutGameOutcome {
   gameId: string;
   /** 0-based slot in the workout. */
   position: number;
-  /** True when the durable resume point moved past this position. */
+  /** True when the durable resume point moved past this position AND the leg was not skipped. */
   played: boolean;
+  /** True when the player deliberately skipped this leg (073). */
+  skipped: boolean;
   /** The matched completion record, or null when unplayed/unmatched. */
   session: WorkoutSessionRef | null;
 }
@@ -58,7 +60,10 @@ export interface WorkoutCompletionSummary {
   /** Versioned metadata when known (absent on legacy rows). */
   metadata: WorkoutMetadata | null;
   totalGames: number;
+  /** PLAYED legs past the resume point; skipped legs are excluded (073 §3). */
   completedGames: number;
+  /** Legs the player deliberately skipped. */
+  skippedGames: number;
   /** completedGames / totalGames in [0, 1] (0 when the workout is empty). */
   completionRatio: number;
   /** XP summed over matched sessions. */
@@ -97,6 +102,11 @@ export function buildWorkoutSummary(
     Math.max(Math.trunc(instance.currentIndex), 0),
     totalGames,
   );
+  // 073 §3: the resume index advances for a SKIP as well as a session, so
+  // "position < currentIndex" alone over-reports: a skipped leg would read as
+  // played/completed with no session behind it. The skip record is the only
+  // evidence that distinguishes the two.
+  const skipped = new Set(instance.skippedIndices ?? []);
 
   // Latest matching session per played position (see module comment).
   const byPosition = new Map<number, WorkoutSessionRef>();
@@ -105,6 +115,9 @@ export function buildWorkoutSummary(
       continue;
     }
     for (let position = 0; position < completedGames; position += 1) {
+      if (skipped.has(position)) {
+        continue;
+      }
       if (instance.gameIds[position] !== session.gameId) {
         continue;
       }
@@ -119,12 +132,19 @@ export function buildWorkoutSummary(
     (gameId, position) => ({
       gameId,
       position,
-      played: position < completedGames,
+      skipped: skipped.has(position),
+      played: position < completedGames && !skipped.has(position),
       session: byPosition.get(position) ?? null,
     }),
   );
 
   const matched = [...byPosition.values()];
+  // A settled leg is "completed" only when it was PLAYED: a skipped leg is
+  // past the resume point but has no session and no reward, and must never
+  // inflate the completed count or the completion ratio (073 §3 contract:
+  // "skipped must never read as completed").
+  const playedGames = outcomes.filter((outcome) => outcome.played).length;
+  const skippedGames = skipped.size;
   const totalXp = matched.reduce((sum, session) => sum + session.xp, 0);
   const totalDurationMs = matched.reduce(
     (sum, session) => sum + session.durationMs,
@@ -143,8 +163,9 @@ export function buildWorkoutSummary(
     status: instance.status,
     metadata: instance.metadata ?? null,
     totalGames,
-    completedGames,
-    completionRatio: totalGames === 0 ? 0 : completedGames / totalGames,
+    completedGames: playedGames,
+    skippedGames,
+    completionRatio: totalGames === 0 ? 0 : playedGames / totalGames,
     totalXp,
     avgNormalized:
       matched.length === 0

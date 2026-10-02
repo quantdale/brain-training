@@ -13,6 +13,7 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { testId } from '@/sdk';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -311,8 +312,8 @@ const styles = StyleSheet.create({
   option: {
     width: 72,
     height: 72,
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     borderRadius: Radii.pill,
     borderWidth: 2,
     alignItems: 'center',
@@ -320,8 +321,8 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
   },
   optionCoord: {
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: MIN_TOUCH_TARGET,
+    minHeight: MIN_TOUCH_TARGET,
     paddingHorizontal: Spacing.three,
     borderRadius: Radii.medium,
     borderWidth: 2,

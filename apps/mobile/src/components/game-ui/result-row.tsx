@@ -14,6 +14,7 @@
  */
 import { StyleSheet, View } from 'react-native';
 
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { ThemedText } from '@/components/themed-text';
 import { useTheme } from '@/hooks/use-theme';
 import { HAIRLINE } from '@/components/ui/radius';
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   statRow: {
-    minHeight: 44,
+    minHeight: MIN_TOUCH_TARGET,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

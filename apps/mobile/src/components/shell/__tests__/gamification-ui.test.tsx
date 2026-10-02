@@ -1,6 +1,7 @@
 /**
- * Campaign 023 gamification surfaces: StreakCard, LevelCard, FeedbackCard,
- * and the ProgressTrack tone contract. Presentational tests only — data
+ * Campaign 023 gamification surfaces: FeedbackCard and the ProgressTrack tone
+ * contract (header corrected 2026-10-02: StreakCard and LevelCard were deleted
+ * by Change 071 and their cases with them). Presentational tests only — data
  * authority stays with the callers and is covered by the module tests.
  */
 import { describe, expect, it } from '@jest/globals';

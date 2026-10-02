@@ -235,14 +235,18 @@ export default function ProgressScreen() {
   });
   // Record the fingerprint a COMPLETED load observed, so the next focus can
   // tell "nothing changed" from "something changed while the window ran".
+  // The EMPTY case must encode exactly like the focus side
+  // (`progressionInputFingerprint(null) === ''`): synthesizing an
+  // `@0` placeholder here made an empty account compare `'' ≠ "@0"` on every
+  // focus, permanently defeating the throttle's "nothing changed" branch.
   useEffect(() => {
     if (!loaded || error) {
       return;
     }
-    lastFingerprintRef.current = progressionInputFingerprint({
-      id: data.sessions[0]?.id ?? '',
-      completedAt: data.sessions[0]?.completedAt ?? 0,
-    });
+    const newest = data.sessions[0];
+    lastFingerprintRef.current = progressionInputFingerprint(
+      newest ? { id: newest.id, completedAt: newest.completedAt } : null,
+    );
   }, [loaded, error, data]);
   // Recovery action for the error state: bumping the key reruns the load, and
   // the fingerprint check must not throttle the retry.

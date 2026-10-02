@@ -72,15 +72,17 @@ export const REENTRANT_SQLITE_ERROR_NAME = 'SQLiteReentrantTransactionError';
 
 /**
  * Which entry point was reached from inside a transaction.
- *
- * Every connection-level entry point is listed: `run`/`get`/`all` were the gap
- * that left the original freeze reachable. They were unguarded because the
+ * Every STATE-CHANGING connection-level entry point is listed: `run` was the
+ * gap that left the original freeze reachable — it was unguarded because the
  * first pass only closed `transaction()` and `exec()`, but a forgotten `txn`
- * argument reaches the outer adapter through exactly these three — so a guard
- * that does not cover them does not close the defect. The body's own adapter
- * is scope-local and bypasses this check; the ROOT adapter never does.
+ * argument reaches the outer adapter through it too, and a DML write that
+ * silently joins another transaction and vanishes on its rollback is silent
+ * data loss. Reads (`get`/`all`) are deliberately NOT here: they PARTICIPATE
+ * in the connection's current transaction instead of rejecting (refusing reads
+ * stranded a claim-all racing a single claim). The body's own adapter is
+ * scope-local and bypasses this check; the ROOT adapter never does.
  */
-export type ReentrantEntryPoint = 'transaction' | 'exec' | 'run' | 'get' | 'all';
+export type ReentrantEntryPoint = 'transaction' | 'exec' | 'run';
 
 /**
  * Build the one error both backends throw when a statement or a second

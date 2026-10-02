@@ -27,6 +27,7 @@ import {
   buildRollingAverageSeries,
   explainMetric,
 } from '@/analytics';
+import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import { ScreenShell } from '@/components/screen-shell';
 import { StateCard } from '@/components/shell';
 import { ThemedText } from '@/components/themed-text';
@@ -495,7 +496,7 @@ const styles = StyleSheet.create({
     // reachable in the same vertical rhythm as interactive ListRow controls.
     // Keep the campaign-033 minimum target explicit instead of relying on
     // whichever text style happens to render tallest in a given font scale.
-    minHeight: 44,
+    minHeight: MIN_TOUCH_TARGET,
   },
   domainBlock: {
     gap: Spacing.two,

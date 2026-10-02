@@ -78,12 +78,14 @@ plus historical follow-ups.
   not forced: the premise was wrong, so the change is **reverted and the finding
   recorded** instead. Owner decision needed only if a future Expo release drops
   the peer requirement; there is nothing to fix while it holds.
-- Shared-kit coverage gaps (recorded by Change 071, 2026-09-30): `Confetti`,
-  `StateCard` and `SectionGrid` ship with no dedicated suite, and the toast
-  queue still drops its oldest message silently with no test pinning that
-  behavior. These are real untested surfaces, not theoretical ones.
-  Owner: release-engineering orchestrator; add the suites when the kit is next
-  touched rather than as a standalone coverage push.
+- Shared-kit coverage gaps (recorded by Change 071, 2026-09-30; partially
+  corrected 2026-10-02): `Confetti`, `StateCard` and `SectionGrid` ship with no
+  dedicated suite — that part is real untested surface. **Corrected:** the
+  toast-queue claim ("drops its oldest message silently with no test pinning
+  that behavior") was false — `kit-inputs.test.tsx` "061: bounds the pre-mount
+  queue, dropping oldest first" has pinned it since Change 061. Owner:
+  release-engineering orchestrator; add the three primitive suites when the kit
+  is next touched rather than as a standalone coverage push.
 - **SUPERSEDED 2026-10-02 (post-068–075 certification campaign, verified at
   `1565c2b` and later).** The entry below this marker was accurate when written
   (2026-09-30, `CHANGE_073_PARTIAL`) and is false now. Measured against the
@@ -160,6 +162,19 @@ plus historical follow-ups.
   (Change 066 recon F1): runtime graph is acyclic; the remaining edges are
   intentional type imports. Owner: release-engineering orchestrator; break via
   leaf type modules only if a module extraction is planned.
+- **CORRECTED 2026-10-02 (post-068–075 certification campaign).** The entry
+  below (Change 066 recon F10) is stale: Change 071 (`5412e70`) deleted
+  `Avatar`, `ScreenHeader`, `LevelCard`, `StreakCard`, the dead `GameCard`
+  component, the dead `ResultRow` component, and the `A11yDialog`/`LiveRegion`
+  exports. `StatRow` is live product surface (42 game screens import it).
+  The historical entry follows unchanged; nothing in it is pending work.
+- Removed-kit recoverability record (071 task 3.5, written 2026-10-02 — the
+  checkbox was checked in 2026-09-30 but no record was ever filed here):
+  `A11yDialog` and `LiveRegion` were deleted from `src/components/a11y` by
+  Change 071 commit `5412e70`; `Avatar`, `ScreenHeader` (ui), `LevelCard`,
+  `StreakCard` (shell), and the dead `GameCard`/`ResultRow` components by the
+  same commit. All six are recoverable from that commit's history if a future
+  screen needs the pre-built primitives.
 - Test-only UI components (`Avatar`, `ScreenHeader`, `LevelCard`, `StreakCard`,
   `ResultRow`/`StatRow`, `LiveRegion`) have no product importers (Change 066
   recon F10). Owner: product/release-engineering; adopt or drop in the post-067

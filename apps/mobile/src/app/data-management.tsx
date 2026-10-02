@@ -183,7 +183,11 @@ export default function DataManagementScreen() {
     if (!backupTransport.listStrandedArtifacts) return [];
     return backupTransport.listStrandedArtifacts();
   }, []);
-  const { data: strandedArtifacts } = useDbData(
+  const {
+    data: strandedArtifacts,
+    status: strandedStatus,
+    retry: retryStranded,
+  } = useDbData(
     loadStrandedArtifacts,
     [refreshKey],
     [],
@@ -807,7 +811,29 @@ export default function DataManagementScreen() {
               ))}
             </View>
           )}
-          {strandedArtifacts.length > 0 ? (
+          {strandedStatus === 'error' ? (
+            // Same honesty contract as the backups list above: a failed read
+            // must never render identically to "none found", or a user whose
+            // only backup copy is stuck sees nothing at all.
+            <View testID="data-stranded-error" style={styles.rows}>
+              <ThemedText type="body" themeColor="warning">
+                Could not check for hidden backup files.
+              </ThemedText>
+              <ThemedText type="caption" themeColor="textSecondary">
+                This is a read failure, not proof that none exist.
+              </ThemedText>
+              <Button
+                label="Retry"
+                variant="secondary"
+                size="sm"
+                fullWidth={false}
+                testID="data-stranded-retry"
+                accessibilityLabel="Retry checking for hidden backup files"
+                disabled={busy}
+                onPress={retryStranded}
+              />
+            </View>
+          ) : strandedArtifacts.length > 0 ? (
             <View
               style={styles.rows}
               testID="data-stranded-artifacts"

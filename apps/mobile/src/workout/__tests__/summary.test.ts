@@ -161,4 +161,32 @@ describe('buildWorkoutSummary — matching rules', () => {
     expect(summary.reasons).toEqual(reasons);
     expect(summary.reasons).not.toBe(reasons);
   });
+
+  it('073: a skipped leg never reads as played (session matching, counts, ratio)', () => {
+    // Regression for the 073 summary-semantics defect: skipToLeg advances the
+    // resume position WITHOUT a session, so "position < currentIndex" alone
+    // reported a skipped leg as played/completed with no session behind it.
+    const summary = buildWorkoutSummary(
+      makeInstance({ gameIds: ['a', 'b', 'c'], currentIndex: 2, skippedIndices: [1] }),
+      [session({ gameId: 'a', xp: 10 })],
+    );
+    expect(summary.outcomes.map((o) => [o.played, o.skipped, o.session !== null])).toEqual([
+      [true, false, true],
+      [false, true, false],
+      [false, false, false],
+    ]);
+    expect(summary.completedGames).toBe(1);
+    expect(summary.skippedGames).toBe(1);
+    expect(summary.completionRatio).toBeCloseTo(1 / 3);
+    expect(summary.totalXp).toBe(10);
+  });
+
+  it('073: a session for a skipped leg is never attached to it', () => {
+    const summary = buildWorkoutSummary(
+      makeInstance({ gameIds: ['a', 'b'], currentIndex: 2, skippedIndices: [1] }),
+      [session({ gameId: 'a', xp: 10 }), session({ gameId: 'b', xp: 50 })],
+    );
+    expect(summary.outcomes[1].session).toBeNull();
+    expect(summary.totalXp).toBe(10);
+  });
 });

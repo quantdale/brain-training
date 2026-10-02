@@ -89,12 +89,14 @@ export function createNodeSqliteAdapter(filename = ':memory:'): SQLiteAdapter {
   };
 
   // The precondition, checked at the CALL SITE before anything touches the
-  // driver. `run`/`get`/`all` are included for the same reason the device
-  // backend includes them: a forgotten `txn` argument reaches the outer
-  // adapter through these far more often than through `exec`, and on this
-  // backend that mistake silently joins the outer transaction instead of
-  // hanging — so the guard is what makes the two backends observably identical.
-  const rejectIfInTransaction = (entryPoint: 'exec' | 'run' | 'get' | 'all'): void => {
+  // driver. Root DML `run` is included for the same reason the device backend
+  // includes it: a forgotten `txn` argument reaches the outer adapter through
+  // it far more often than through `exec`, and on this backend that mistake
+  // silently joins the outer transaction instead of hanging — so the guard is
+  // what makes the two backends observably identical. Reads (`get`/`all`)
+  // PARTICIPATE in the connection's current transaction rather than rejecting
+  // (see their notes below), matching the device backend exactly.
+  const rejectIfInTransaction = (entryPoint: 'exec' | 'run'): void => {
     if (scopes.isOpen(key)) {
       throw reentrantTransactionError(entryPoint);
     }

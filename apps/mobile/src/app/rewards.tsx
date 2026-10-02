@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
 
+import { MIN_TOUCH_TARGET } from "@/components/a11y";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/shell";
 import { ThemedText } from "@/components/themed-text";
@@ -860,7 +861,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.three,
-    minHeight: 44,
+    minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.two,
   },
   itemIcon: {
@@ -901,7 +902,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   tileAction: {
-    minHeight: 44,
+    minHeight: MIN_TOUCH_TARGET,
     justifyContent: "center",
   },
   doneButton: {

@@ -175,6 +175,27 @@ describe('touch target: exactly one definition (Change 071 §2)', () => {
     expect(declarations).toEqual(['components/a11y/touch-target.ts']);
   });
 
+  it('no style object hardcodes the touch-target floor as a raw 44', () => {
+    // Guard blind spot (audit 2026-10-02): the declaration scan above matches
+    // NAMED constants only, so a `minHeight: 44` style literal — the exact
+    // drift §2 exists to prevent — was invisible to it, and seven interactive
+    // styles had drifted back to raw literals. A raw FLOOR must reference
+    // MIN_TOUCH_TARGET (or the derived MIN_TOUCH_TARGET_SIZE) instead. Only
+    // the floor axes are checked: a `width: 44` / `height: 44` VISUAL size is
+    // game art, not a touch target, and stays legitimate.
+    const offenders: string[] = [];
+    for (const file of kitSources(SRC_ROOT)) {
+      const lines = readFileSync(file, 'utf8').split('\n');
+      lines.forEach((line) => {
+        if (/MIN_TOUCH_TARGET/.test(line)) return;
+        if (/\b(minHeight|minWidth)\s*:\s*44\b/.test(line)) {
+          offenders.push(path.relative(SRC_ROOT, file).split(path.sep).join('/'));
+        }
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+
   it('re-exports the canonical constant rather than a second value', () => {
     // A barrel may re-export; it may not re-derive. A re-export keeps one
     // definition reachable from several import paths without duplicating it.
