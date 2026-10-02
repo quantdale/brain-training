@@ -5832,3 +5832,90 @@ path ceiling (measured: `CMAKE_OBJECT_PATH_MAX` warning at 250), so
 `react-native-screens`/`react-native-worklets` native builds fail with ninja
 "manifest still dirty". Routed around via a short-path tree (`C:\btm`); CI
 builds at `/home/runner/work/…` and is unaffected.
+
+### TERMINAL CLOSURE RECORD — post-068–075 convergence & certification campaign (2026-10-02)
+
+This record supersedes prior present-state claims for the current HEAD while
+preserving every historical entry above. Produced by the campaign's final pass
+after two independent adversarial audits and their repair wave.
+
+**Repository identity**
+
+| Field | Value |
+|---|---|
+| Final SHA | `2de6a7d298608c32847e1409b1fd471e280783e6` |
+| Branch | `main` (== `origin/main`) |
+| Tree | clean at freeze (untracked generated summaries removed) |
+| Starting SHA | `1565c2b08df4555667a983671d2b31ae48aecb3f` |
+| Commits created | `8020cba`, `290df52`, `3232c7e`, `efd4447`, `37fbf06`, `2de6a7d` (all pushed to `origin/main`) |
+
+**Change status 068–075 (implementation / regression tests / device / remaining boundary)**
+
+| Change | Implementation | Regression tests | Device validation | Remaining boundary |
+|---|---|---|---|---|
+| 068 storage parity | DONE | PASS (reentrancy, parity, connection invariants; audits mutation-checked) | PASS — `journal_mode: wal`, `foreign_keys: 1`, `user_version: 13` measured live on device | Backend `BEGIN` vs `BEGIN IMMEDIATE` asymmetry documented, moot on the single device connection |
+| 069 gate restoration | DONE | PASS (expo-alignment self-test 54/54, dependency audit 41/41) | N/A | None |
+| 070 backup atomicity | DONE + **audit wave**: skip-fidelity round trip, forward-compat envelope parity (F1), stranded honesty, `.prev` guard, bounded echo | PASS (roundtrip 13/13 incl. 3 new pins; crash-safety 22 fault injections) | PASS — export/import payload verified live (`skippedIndices` present, envelope lossy=false on real artifact) | Physical fsync durability unobtainable (`expo-file-system` has no fsync) — bounded by rotation; owner decision recorded in BACKLOG |
+| 071 shared UI | DONE | PASS (kit contracts 11/11 incl. new raw-44 guard) | PASS — 13-surface a11y matrix, 84/84 labelled, 0 violations | `Confetti`/`StateCard`/`SectionGrid` dedicated suites still owed (open debt, BACKLOG); human TalkBack MANUAL |
+| 072 navigation/errors | DONE + **audit wave**: guard extended to template pushes, `/results?id=` dual-purpose rule encoded | PASS (navigation-contract 8/8) | PASS — tab-stack depth, back destinations, Results→Progress freshness all exercised | None |
+| 073 workout durability | DONE + **audit wave**: final-leg skip record rejected at reader AND import (achievement-farm path closed), summary skip semantics repaired, leg-list validation extended to all 4 writers, legacy `advance()` completed-row immutability | PASS (workout 22 suites, 264 tests incl. 5 new pins) | PASS — full journey: 2 plays, 2 skips, skip-limit `length − 1` enforced live, force-stop/relaunch recovery, boot reconciliation, SQLite state matches UI exactly | `skipToLeg` degrades played-evidence to empty on JSON1-less engine scan failure (hypothetical engine here) — noted, low |
+| 074 SDK module contract | DONE + **audit wave**: vacuous lifecycle block replaced (host asserts once, delegation per screen, inline escape hatch) | PASS (catalog-contracts 18/18) | PASS — start/pause/complete/force-stop/replay lifecycle exercised on device | `begin()` exception-safety catch path untested (T1 test debt) |
+| 075 reducer exhaustiveness | DONE | PASS (42/42 `assertExhaustive`, mutation-proven catalog guard) | N/A (compile-time contract) | Runtime-throw path pinned for 1 of 42 games; uniform by shared helper |
+
+**Gate table (all at final HEAD `2de6a7d`, 2026-10-02)**
+
+| Gate | Result | Count |
+|---|---|---|
+| `tsc --noEmit` | PASS | 0 errors |
+| `expo lint` | PASS | 0 errors, 0 warnings |
+| Full Jest matrix | PASS | **611 passed + 4 skipped suites / 7,184 passed + 5 skipped tests / 5 snapshots, 0 failures** |
+| Jest signal validator | PASS (`pass: true`) | 5 classified skips, floors met |
+| 10 repository validators | ALL PASS | repo-state, registry `--check`, provenance `--check`, task-ownership, offline `--check`, secrets `--check`, workflows, affected `--check-sync`, expo-alignment, runtime-qa-contract |
+| 8 validator self-tests | ALL PASS | workflows 44/44, secrets, offline 30/30, provenance 13, expo-alignment 54/54, dependency-audit 41/41, jest-signal, certify-clean-checkout 6/6 |
+| OpenSpec `validate --all --strict` | PASS | **59 passed / 0 failed** |
+| Web export smoke | PASS | `npx expo export --platform web` |
+| Dependency audit | PASS | 8 accepted advisories incl. the new `node-forge` toolchain disposition |
+| Local clean release build | PASS | 495/495 Gradle tasks, `BUILD SUCCESSFUL` |
+| GitHub App CI / Repository Integrity / iOS Build Smoke / Android Build Smoke | **EXTERNAL / BLOCKED (billing)** — see below | GitHub: "job was not started because recent account payments have failed or your spending limit needs to be increased" (check annotation on `2de6a7d`); 0 steps, no runner allocated on all four workflows |
+| GitHub Android Build Smoke (last executed proof) | PASS at `8020cba` (run `36954226412`) | Full chain green: SDK setup → pinned install → npm ci → validation → clean prebuild → **Gradle release build** → APK verify (permission gate) → upload. CI APK `976a7903…` (48,757,256 B) |
+| Device/runtime certification | PASS (honest scope) | see runtime evidence below |
+
+**Artifact identity (built from the exact final HEAD `2de6a7d`)**
+
+| Field | Value |
+|---|---|
+| SHA-256 | `a2af974644bff7f451b07779ba95b1c64f855c15e584e3c3e7ea6ca7b0011d0b` |
+| Size | 48,759,280 bytes |
+| Package / version | `com.braintraining.app`, versionCode 1000, versionName 0.1.0 |
+| SDKs | minSdk 24, targetSdk 36, compileSdk 36 |
+| Permissions | 7/7 match `scripts/android/expected-apk-permissions.txt` (deny-by-default gate); RECORD_AUDIO / SYSTEM_ALERT_WINDOW absent |
+| Architecture | x86_64 (CI-equivalent `-PreactNativeArchitectures=x86_64`) |
+| Signing | debug-key local release (CN=Android Debug) — no release keystore exists in this repo; same classification as every prior certified local artifact |
+| Embedded bundle | `assets/index.android.bundle` present |
+| Build path | `expo prebuild --clean --no-install` + `gradlew :app:assembleRelease`, clean native tree |
+
+**Runtime evidence (final APK, dedicated AVD `braintraining-qa36` / emulator-5554, API 35 aosp_atd x86_64)**
+
+Journeys: clean install + first/warm/force-stop launches; Color Stroop full 15-trial completion through real taps (score 132, +12 XP, +2 coins, "Progress saved"); honest launch labels (`Game N · your next game` / `ready when you are`); skip transition ×2 (UI "skipped" + SQLite `skipped_indices_json: [1,2]` in one CAS write); **skip limit enforced live** (`Skip unavailable` on the final leg — the `length − 1` rule); skip reward neutrality (ledger unchanged by skips); force-stop/relaunch mid-workout recovery; invalid deep-link → `Game not found` + `Back to library`; 12 repeated tab visits → one BACK exits to Home (no stack growth); Data Management back → Profile; Results → Progress freshness (1 session, 3/8 domains immediately); backup export + payload inspection. SQLite: `integrity_check: ok`, `user_version: 13`, `journal_mode: wal`, `foreign_keys: 1`, workout row matches UI exactly, 1 session / 1 ledger entry (exactly-once). Logs (final-APK window, 789 lines + earlier 1,768): **0** FATAL / ANR / SIGSEGV / SIGABRT / SQLite / RedBox / unhandled-JS / OOM / malformed-db events. Accessibility: 13 surfaces light+dark, 84/84 interactive nodes labelled, 0 undersized, 0 unlabelled.
+
+**Known host limitations (NOT repository defects, classified honestly)**
+
+1. **Screenshot capture frozen on this host**: every `screencap` frame is byte-identical (10,195 B, same MD5 across 5 distinct UI states). Pixel evidence is `NOT VALIDATED (capture path)`; semantic hierarchy evidence (live uiautomator XML, 14–36 KB, content verified per state) is the authority used.
+2. **CMake path-length ceiling**: the deep `.capy/worktrees` path exceeds `CMAKE_OBJECT_PATH_MAX` (250 chars), so native module builds fail under ninja there. Routed around with a short-path tree (`C:\btm`); CI builds at `/home/runner/work/…` and is unaffected. Affects any future local build from this checkout — use a short path.
+3. **Emulator 37.1.x intermittent segfault** (documented in `scripts/android/avd.sh`): boots succeeded on retry; not a repository issue.
+
+**Residuals (every remaining item, enumerated)**
+
+| # | Item | Severity | Owner | Reason | Closure condition | Release-blocking? |
+|---|---|---|---|---|---|---|
+| R1 | GitHub Actions billing failure stops all CI jobs (0 steps, no runner allocated) | HIGH (process, not product) | Repository owner | GitHub check annotation: "recent account payments have failed or your spending limit needs to be increased" | Fix billing / raise spending limit in GitHub Settings → Billing & plans, then re-run the four workflows at HEAD | NO — repository-owned code is locally certified; Android Build Smoke proven green end-to-end at `8020cba` |
+| R2 | `Confetti`/`StateCard`/`SectionGrid` have no dedicated suites | LOW | release-engineering orchestrator | Shared-kit coverage gap (071 §6.1, checkbox corrected 2026-10-02) | Add the three suites when the kit is next touched | NO |
+| R3 | Backup physical-fsync durability unobtainable | LOW | release-engineering orchestrator | `expo-file-system` exposes no fsync; the rotation bounds the residual (the previous complete backup survives a power loss) | Accept the bound explicitly in product docs, or act if the dependency ever exposes fsync | NO |
+| R4 | `useGameSession.begin()` exception-safety catch path untested (074 T1) | LOW | release-engineering orchestrator | The catch (abandon + ref cleanup on a mid-start throw) looks correct but no test forces those calls to throw | Add a forced-throw test over the begin() path | NO |
+| R5 | `skipToLeg` degrades played-evidence to empty when the provenance scan fails (JSON1-less engine) | LOW | release-engineering orchestrator | Opposite conservatism from `reconcileWorkoutPositions` for the same failure; engine class is hypothetical here | Record in KNOWN_ISSUES if a JSON1-less engine is ever adopted | NO |
+| R6 | Human TalkBack accessibility pass | MANUAL | Product owner | Cannot be honestly performed by automation | Manual device pass by a person | NO |
+| R7 | Device pixel-level responsive matrix (font scales × themes at the screenshot level) | NOT VALIDATED (capture path) | release-engineering orchestrator | Host screencap framebuffer frozen (see host limitation 1); semantic hierarchy audits passed 13 surfaces | Re-run capture tooling on a host with a working framebuffer | NO |
+| R8 | iOS runtime behavior | NOT APPLICABLE / EXTERNAL | — | No iOS runtime in scope; iOS *compile* smoke proven green at `8020cba` | macOS host + simulator if iOS runtime certification is ever required | NO |
+| R9 | Runtime dependency advisory `decode-uri-component` (ReDoS via deep-link query) | MEDIUM (accepted debt) | release-engineering orchestrator | No compatible fix inside the Expo SDK 57 envelope; bounded by `route-params.ts`; waiver expires 2027-03-31 | Drop the waiver at the next Expo SDK upgrade | NO |
+
+No hidden repository-owned Critical/High/Medium correctness gaps are known at closure: every finding from the campaign's two independent adversarial audits (4 real code defects, 3 test vacuities/weak pins, 11 doc-vs-code contradictions) was reproduced against code, fixed or honestly recorded, pinned with regression tests, and verified on the final artifact where runtime-reachable.
