@@ -82,7 +82,16 @@ export const KNOWN_DATA_SECTIONS: readonly string[] = [
   'achievementUnlocks',
 ];
 
-/** Envelope keys this build understands. */
+/**
+ * Envelope keys this build understands.
+ *
+ * Every key `buildExportPayload` emits MUST be listed here: this set is what
+ * the forward-compatibility detector compares a backup's envelope against, and
+ * an omitted self-emitted key makes every backup the app writes look like it
+ * came from a newer version (a false data-loss warning on every restore).
+ * `appVersion`, `engineVersion` and `manifest` are provenance/summary the
+ * import never consumes, so their presence is recognized, not lossy.
+ */
 export const KNOWN_ENVELOPE_FIELDS: readonly string[] = [
   'format',
   'version',
@@ -91,6 +100,9 @@ export const KNOWN_ENVELOPE_FIELDS: readonly string[] = [
   'checksumAlgorithm',
   'checksum',
   'data',
+  'appVersion',
+  'engineVersion',
+  'manifest',
 ];
 
 /**

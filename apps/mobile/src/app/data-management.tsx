@@ -818,7 +818,9 @@ export default function DataManagementScreen() {
                   ? "1 hidden backup file was found that this list cannot show. "
                   : `${strandedArtifacts.length} hidden backup files were found that this list cannot show. `}
                 It may be the only remaining copy of a backup whose replacement
-                was interrupted. Recover it by exporting again, or delete it.
+                was interrupted. This list can only delete it — if you want to
+                keep what it holds, export a fresh backup now (from the current
+                data) and then delete this file.
               </ThemedText>
               {strandedArtifacts.map((name) => (
                 <View key={name} style={styles.backupRow}>

@@ -200,7 +200,7 @@ function validateData(data: unknown): BackupData {
     }
     // Mirrors the DB's `rating >= 0` insert/update triggers.
     if (r.rating < 0 || r.sessions < 0) {
-      issues.push(`domainRatings entry "${r.domain}" rating/sessions must be nonnegative`);
+      issues.push(`domainRatings entry ${echoId(r.domain)} rating/sessions must be nonnegative`);
       return false;
     }
     return true;

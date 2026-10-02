@@ -111,7 +111,6 @@ describe('export → import round trip', () => {
     const row = parsed.data.workoutInstances.find((w) => w.date === '2026-08-20')!;
     expect(row.skippedIndices).toEqual([0]);
     expect(serializeBackup(env)).toContain('skippedIndices');
-
     const target = await makeDb();
     await applyImport(target, parsed, 'replace');
     const restored = await target.workouts.getByDate('2026-08-20');
@@ -125,7 +124,7 @@ describe('export → import round trip', () => {
     const legacyEnv = await exportLocalData(legacy, { now: () => T0 + 1 });
     const legacyParsed = parseAndValidateBackup(serializeBackup(legacyEnv));
     for (const w of legacyParsed.data.workoutInstances) {
-      delete (w as Record<string, unknown>).skippedIndices;
+      delete (w as unknown as Record<string, unknown>).skippedIndices;
     }
     const legacyTarget = await makeDb();
     await applyImport(legacyTarget, legacyParsed, 'replace');
@@ -138,7 +137,7 @@ describe('export → import round trip', () => {
     const env = await exportLocalData(src, { now: () => T0 + 1 });
     const parsed = parseAndValidateBackup(serializeBackup(env));
     const row = parsed.data.workoutInstances.find((w) => w.date === '2026-08-20')!;
-    (row as Record<string, unknown>).skippedIndices = [9];
+    (row as unknown as Record<string, unknown>).skippedIndices = [9];
     // Re-checksum so validation actually reaches the skip guard instead of
     // failing earlier on the checksum mismatch.
     expect(() => parseAndValidateBackup(serializeBackup(buildEnvelope(parsed.data)))).toThrow();

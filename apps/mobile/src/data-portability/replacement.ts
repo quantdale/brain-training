@@ -317,8 +317,15 @@ export async function sweepRotationLeftovers(fs: RotationFileSystem): Promise<st
   // Pass 1: rotation siblings.
   for (const fileName of [...fs.listNames()]) {
     if (!isPreviousBackupName(fileName)) continue;
-    // `.foo.prev` belongs to the backup named `foo`.
+    // `.foo.prev` belongs to the backup named `foo`. A file literally named
+    // `.prev` derives an empty owner and would be "promoted" to the empty
+    // name — guard like `temporaryArtifactOwner` does so a foreign dotfile is
+    // never moved, only reported.
     const owner = fileName.slice(1, -'.prev'.length);
+    if (owner.length === 0) {
+      unreclaimed.push(fileName);
+      continue;
+    }
     try {
       if (await liveIsUsable(fs, owner)) {
         fs.delete(fileName);

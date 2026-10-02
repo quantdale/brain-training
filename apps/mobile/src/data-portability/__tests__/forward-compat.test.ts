@@ -15,13 +15,14 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { previewImport } from '../preview';
+import { exportLocalData, parseAndValidateBackup, serializeBackup } from '../index';
 import { SCHEMA_VERSION } from '@/db';
 import {
   detectUnrecognizedContent,
   KNOWN_DATA_SECTIONS,
   KNOWN_ENVELOPE_FIELDS,
 } from '../forward-compat';
-import { buildEnvelope, emptyData, makeDb } from './helpers';
+import { buildEnvelope, emptyData, makeDb, seedFixture, T0 } from './helpers';
 
 /**
  * The tests deliberately add sections this build does not know, so the data
@@ -42,6 +43,28 @@ describe('detection', () => {
     expect(report.lossy).toBe(false);
     expect(report.items).toEqual([]);
     expect(report.summary).toMatch(/only data this version of the app understands/);
+  });
+
+  it('never flags the app\'s own exports as lossy (envelope self-parity)', async () => {
+    // Regression: buildExportPayload emits appVersion/engineVersion/manifest,
+    // which KNOWN_ENVELOPE_FIELDS omitted, so EVERY backup the app wrote was
+    // reported as "written by a newer version … will be lost" on preview.
+    // The failing test before the fix builds a REAL export (not the test
+    // helper's minimal envelope, which never exercised this axis).
+    const src = await makeDb();
+    await seedFixture(src);
+    const env = await exportLocalData(src, { now: () => T0 + 1, appVersion: 'test-1.0.0' });
+    const text = serializeBackup(env);
+    const parsed = parseAndValidateBackup(text);
+    // `parsed.raw` IS the { envelope, data } view the detector takes — pass it
+    // through, not its `.envelope` nested as a fake envelope.
+    const report = detectUnrecognizedContent(parsed.raw);
+    expect(report.lossy).toBe(false);
+    expect(report.items).toEqual([]);
+
+    const preview = await previewImport(src, text, 'replace');
+    expect(preview.forwardCompatibility?.lossy).toBe(false);
+    expect(preview.notes.join(' ')).not.toMatch(/newer version/i);
   });
 
   it('detects an unknown data SECTION', () => {
