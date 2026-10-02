@@ -5988,3 +5988,175 @@ mechanically at any time: `git diff --name-status 2de6a7d..HEAD` must list
 only `.agent/VALIDATION.md` — if any other path appears, Certified Code SHA
 and Artifact Source SHA have both changed, and the matrix, artifact, and
 device certification must be redone against the new tree.
+
+# PUBLIC-REPO FINAL RECERTIFICATION — TERMINAL CLOSURE (2026-10-02)
+
+Campaign: Public-Repo Final Re-Certification and Closure (owner directive,
+2026-10-02). This is the dated record closing R1 that the section above
+prescribes; the "R1 remains OPEN" text above is historical as of its date and
+is retained unchanged, billing incident included.
+
+**FINAL CERTIFICATION: COMPLETE**
+
+## Certification identity (mechanical)
+
+| Field | Value |
+|---|---|
+| Repository HEAD (final code-bearing) | `d37508db3cf006839d1724cb7a182f9c6692a0e9` |
+| Certified Code SHA | `2de6a7d298608c32847e1409b1fd471e280783e6` (unchanged) |
+| Artifact Source SHA | `2de6a7d298608c32847e1409b1fd471e280783e6` (unchanged) |
+| GitHub CI Proof SHA | `d37508db3cf006839d1724cb7a182f9c6692a0e9` (four workflows green on real runners) |
+| Identity justification | `git diff --name-status 2de6a7d..d37508db3` lists only `.agent/VALIDATION.md`; this campaign's own commits add only documentation paths. No application code, dependency manifest, lockfile, Expo/native/build config, bundled asset, runtime config, or workflow file changed since `2de6a7d` |
+
+**Mechanical identity rule (amended 2026-10-02).** The single-file rule stated
+above held exactly for `2de6a7d..d37508db3`. Durable-state reconciliation now
+necessarily touches `.agent/STATE.md` and `.agent/KNOWN_ISSUES.md`, so the
+self-validating rule generalizes: `git diff --name-status 2de6a7d..HEAD` must
+list **only documentation paths** (`.agent/**`, `docs/**`). If any other path
+appears, Certified Code SHA and Artifact Source SHA have both changed and the
+matrix, artifact, and device certification must be redone against the new
+tree. This record's own commit is covered by that rule; its push runs a fresh
+four-workflow round at the record SHA, observable in the Actions history as
+the final confirmation of the same rule (documentation-only movement, §17
+allowance).
+
+## R1 — CLOSED
+
+**R1: CLOSED.**
+**Reason:** the repository is now **PUBLIC** and the current account state
+permits runner allocation. A fresh attempt after the public transition, at the
+very same SHA whose pre-transition runs failed before runner allocation
+(`d37508db3`), allocated real runners and passed all four workflows.
+**Closure proof:** final SHA `d37508db3cf006839d1724cb7a182f9c6692a0e9` +
+runs `36995040040` (App CI), `36995044116` (Repository Integrity),
+`36995048524` (Android Build Smoke), `36995052530` (iOS Build Smoke) — all
+event `workflow_dispatch`, attempt 1, conclusion `success`, allocated runners,
+non-zero executed steps.
+**Historical billing incident retained unchanged.**
+
+## Fresh GitHub-hosted evidence (2026-10-02, all at `d37508db3`, `workflow_dispatch`, attempt 1)
+
+| Workflow | Run ID | Job ID | Runner | Steps (executed / skipped-by-design / lifecycle) | Conclusion | Window (UTC) |
+|---|---|---|---|---|---|---|
+| App CI | `36995040040` | `110799728936` | `GitHub Actions 1000010727` | 19 / 1 (failure-only upload) / 4 | **PASS** | 10:21:48 → 10:27:03 |
+| Repository Integrity | `36995044116` | `110799737091` | `GitHub Actions 1000010728` | 11 / 2 (scheduled-only expo-doctor lane) / 3 | **PASS** | 10:21:49 → 10:22:03 |
+| Android Build Smoke | `36995048524` | `110799750160` | `GitHub Actions 1000010729` | 13 / 1 (failure-only logs upload) / 4 | **PASS** | 10:22:03 → 10:34:50 |
+| iOS Build Smoke | `36995052530` | `110799762381` | `GitHub Actions 1000010730` (macos-latest) | 11 / 1 (failure-only logs upload) / 3 | **PASS** | 10:21:59 → 10:40:13 |
+
+Chain completeness:
+- **App CI (24 steps):** checkout → Node → repo-state → registry → provenance →
+  task-ownership → offline → runtime-QA-contract → `npm ci` → `tsc --noEmit` →
+  `expo lint` → Jest CI → jest-signal validate → **explicit Jest outcome gate** →
+  web export smoke → hermetic expo-alignment. Full chain green.
+- **Repository Integrity (16 steps):** repo-state → secret boundary → workflow
+  hygiene → affected-map sync → validator self-tests → allowlist freshness →
+  production dependency audit → OpenSpec strict (pinned CLI 1.9.0). The
+  expo-doctor/its classification steps are the governed scheduled-only lane and
+  were skipped by design on a dispatch run — not counted as executed.
+- **Android Build Smoke (18 steps, real build chain):** checkout → Node → Java →
+  Android SDK setup → **explicit pinned SDK/package install + postcondition** →
+  `npm ci` → repo-state + registry/provenance → clean Expo prebuild
+  (`--clean --no-install`) → **Gradle `./gradlew :app:assembleRelease
+  --no-daemon --stacktrace -PreactNativeArchitectures=x86_64`
+  `BUILD SUCCESSFUL in 11m 32s`** → APK existence + deny-by-default permission
+  gate → artifact upload.
+- **iOS Build Smoke (15 steps, Simulator compile smoke):** checkout → Node →
+  `npm ci` → repo-state → registry/provenance → typecheck → clean iOS prebuild →
+  CocoaPods install → workspace/scheme discovery → `** BUILD SUCCEEDED **`
+  (iOS Simulator target). Classified **iOS Simulator compile smoke — NOT iOS
+  runtime certification**.
+
+**Android CI artifact identity (run `36995048524`, built from `d37508db3`):**
+`app-release.apk`, **48,759,276 bytes**, SHA-256
+`458278adace400b095d17e67dde02fb1bec4d0dd7ed402ba422b0da407fcbc67`;
+packaged permission set 7/7 matches `scripts/android/expected-apk-permissions.txt`
+(deny-by-default diff empty); RECORD_AUDIO and SYSTEM_ALERT_WINDOW absent;
+artifact `android-release-apk-36995048524` (id `11221667108`, 29,279,493 B
+compressed) uploaded. This is a distinct build of the doc-identical source
+tree and is never conflated with the locally/device-certified artifact below.
+
+**Pre-transition contrast (historical, retained unchanged):** the same SHA
+`d37508db3` at 09:28 UTC — runs `36989990047` (App CI), `36989990069`
+(Repository Integrity), `36989990058` (Android), `36989990197` (iOS) — every
+job `runner_id: 0`, `runner_name: ""`, **0 executed steps**, 2–7 s wall, check
+annotation: "The job was not started because recent account payments have
+failed or your spending limit needs to be increased. Please check the
+'Billing & plans' section in your settings." The same annotation stands on
+`36983472579` (08:20, `068f446`) and the 07:48/08:25 rounds. That is the
+historical classification `JOB NEVER STARTED / NO RUNNER ALLOCATED`. The
+public transition is the only difference between those runs and the 10:21
+round, so the fresh conclusion is that **the external billing blocker has
+disappeared**; it is not reused as current truth.
+
+## Local certification matrix (2026-10-02, host Nayeon_16, tree = `d37508db3`, Node v24.3.0 / npm 11.4.2)
+
+| Gate | Result | Count |
+|---|---|---|
+| `npm ci` (dependency install integrity) | PASS | clean install from lockfile |
+| `tsc --noEmit` | PASS | 0 errors |
+| `expo lint` | PASS | 0 errors, 0 warnings |
+| Full Jest matrix (`jest --ci --maxWorkers=2 --json`) | PASS | **611 passed + 4 skipped suites (615 total) / 7,184 passed + 5 skipped tests (7,189 total) / 5 snapshots passed, 0 failures** |
+| Jest signal governance (`validate-jest-signal`) | PASS | `pass: true`; 5 governed skips (allowlist-owned), floors met; **no unclassified skips** |
+| 10 repository validators | ALL PASS | repo-state; registry `--check` up to date; provenance `--check` (no changed files); task-ownership; offline `--check` CLEAN (991 files); runtime-QA-contract; secrets `--check` CLEAN (2,825 tracked text files); workflows (4 files); affected `--check-sync` OK (21 areas / 55 patterns); expo-alignment |
+| Dependency/advisory governance | PASS | **8 accepted advisories, 0 unallowlisted** moderate+ findings |
+| Validator self-tests | ALL PASS | workflows 44/44, offline 30/30, dependency-audit 41/41, expo-alignment 54/54, affected 16/16, provenance 13 checks, runtime-QA-contract 16 checks, certify-clean-checkout 6/6, secrets PASS, jest-signal PASS |
+| OpenSpec `validate --all --strict` (CLI pinned `1.9.0`) | PASS | **59 passed / 0 failed (59 items)** |
+| Web export smoke (`npx expo export --platform web`) | PASS | `dist` exported |
+
+## Public-repo exposure review (fresh, 2026-10-02)
+
+- Repository visibility **PUBLIC** (`gh repo view`: `visibility: public`);
+  Actions enabled, `allowed_actions: all`.
+- `validate-secrets.mjs --check`: CLEAN over 2,825 tracked text files.
+- Credential-pattern scan (private-key blocks, classic/PAT GitHub tokens, AWS
+  key ids, common API-token shapes) over the **current tree**: 0 matches
+  outside validator/test fixtures (product file `secret-reveal.tsx` is a
+  name-only false positive); over **full git history additions**: 0 matches.
+- GitHub secret-scanning alerts API: empty (0 alerts).
+- No tracked `.env`, `.pem`, `.p12`, `.keystore`, or credential files; working
+  tree clean at campaign end.
+- No secret discovered → no rotation obligation raised.
+
+## Device/runtime and artifact evidence — inherited by mechanical identity
+
+The 068–075 device certification, artifact identity, SQLite/schema evidence
+(`integrity_check: ok`, `user_version: 13`, `journal_mode: wal`,
+`foreign_keys: 1`), and runtime-hygiene log review (0 FATAL/ANR/SQLite/RedBox/
+unhandled-JS/OOM events across the certified windows) remain the certified
+record at **Artifact Source SHA `2de6a7d`** — APK `a2af9746…`,
+48,759,280 bytes, `com.braintraining.app` versionCode 1000 / versionName
+0.1.0, x86_64, 7/7 permissions, debug-key local release. They were **not**
+re-performed this campaign and are not restated as fresh: the identity rule
+above proves no artifact-affecting file changed, so source identity carries
+them (campaign §7/§8). One fresh artifact DID come from CI
+(`458278ad…` above) as an independent build of the same source.
+
+## Residual register (still applicable, unchanged classifications)
+
+1. Screenshot capture frozen on this host (`screencap` byte-identical across
+   states): pixel evidence `NOT VALIDATED (capture path)`; semantic hierarchy
+   evidence is the authority. Evidence debt, not a release gate.
+2. Local native builds under the deep `.capy/worktrees` path exceed
+   `CMAKE_OBJECT_PATH_MAX`; route around with a short-path tree. CI unaffected.
+3. Emulator 37.1.x intermittent segfault (documented in `scripts/android/avd.sh`).
+4. Human/manual lanes remain `MANUAL_PLATFORM_PENDING`: TalkBack/VoiceOver
+   quality, physical/OEM devices, iOS real-runtime UX, store signing.
+5. 5 governed Jest skips with owners and closure criteria (allowlist).
+6. 8 dependency advisories under dated accepted dispositions; upstream
+   `decode-uri-component` follow-up at the next Expo SDK upgrade
+   (`.agent/KNOWN_ISSUES.md`).
+7. `main` branch protection not configured (owner-side recommendation,
+   requires explicit owner authorization).
+8. R1-F1 silent non-advance on reroll interleave (accepted Low, BACKLOG);
+   `memory-sequence-memory` round chip (intentional, HUD R2); full-catalog
+   `--mode certify` gate environment-blocked (needs exactly one attached
+   device).
+
+## Terminal fields (campaign §22 identity)
+
+- Starting HEAD: `d37508db3cf006839d1724cb7a182f9c6692a0e9` (= `origin/main`)
+- Ending repository HEAD: this documentation commit (covered by the
+  documentation-only identity rule above)
+- Commits created: 1 (docs-only durable-state closure)
+- R1 final state: **CLOSED**
+- Final certification classification: **FINAL CERTIFICATION: COMPLETE**

@@ -1,5 +1,15 @@
 # Known Issues / Blockers
 
+## R1 CLOSED — GitHub Actions runner allocation restored (2026-10-02)
+
+**R1: CLOSED.** The billing-era blocker (jobs never started, `runner_id: 0`,
+0 steps, provider billing annotation) is historical: after the repository
+became public, a fresh four-workflow round at `d37508db3` allocated real
+runners and passed all four lanes (runs `36995040040`, `36995044116`,
+`36995048524`, `36995052530`). Historical billing incident retained
+unchanged in `.agent/VALIDATION.md`. Current open residuals are enumerated in
+the residual register of the PUBLIC-REPO FINAL RECERTIFICATION block there.
+
 ## Storage-seam latent exposure — SQLite adapter re-entrancy (2026-09-30, Change 068)
 
 **Severity: High (latent, unrecoverable if triggered). Owner: storage/runtime
@@ -136,6 +146,11 @@ repository-owned Critical/High/Medium correctness gaps**. Highlights:
   `MANUAL_PLATFORM_PENDING`.
 - External CI: `EXTERNAL_BLOCKER_VERIFIED` / `ACCOUNT_OR_POLICY` (current runs
   zero-step with the provider billing annotation; no workflow edited).
+  **SUPERSEDED 2026-10-02:** this classification is historical as of Campaign
+  054. The repository is now public and all four workflows execute on real
+  GitHub-hosted runners (R1 CLOSED — see the PUBLIC-REPO FINAL RECERTIFICATION
+  block in `.agent/VALIDATION.md` and the FINAL CLOSURE block in
+  `.agent/STATE.md`). The billing incident record itself is retained unchanged.
 - Dependencies: `js-yaml` GHSA-2883-xcg3-v3hh remediated in-range; remaining
   advisories keep time-bounded accepted dispositions (see
   `DEPENDENCY_AUDIT.md`).

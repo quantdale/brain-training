@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
+**Last update:** 2026-10-02 — **PUBLIC-REPO FINAL RECERTIFICATION COMPLETE (R1 CLOSED)**; see FINAL CLOSURE block below. Previous update: 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
@@ -8,6 +8,32 @@
 **Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
 **Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
+
+## FINAL CLOSURE — PUBLIC-REPO FINAL RECERTIFICATION (2026-10-02)
+
+**FINAL CERTIFICATION: COMPLETE.** R1 (GitHub Actions billing failure, no
+runner allocation) is **CLOSED**: the repository is now public and a fresh
+four-workflow `workflow_dispatch` round at the final code-bearing SHA
+`d37508db3` allocated real GitHub-hosted runners and passed all four lanes —
+App CI `36995040040` (24 steps), Repository Integrity `36995044116` (16),
+Android Build Smoke `36995048524` (18, Gradle release `BUILD SUCCESSFUL in
+11m 32s`, APK 48,759,276 B, deny-by-default permission gate clean), iOS Build
+Smoke `36995052530` (15, macOS Simulator compile `BUILD SUCCEEDED`). The
+historical billing incident at the very same SHA (09:28 UTC runs,
+`runner_id: 0`, 0 steps) is retained unchanged; the public transition is the
+only difference. Local matrix re-measured clean: typecheck 0 errors; lint
+0/0; Jest **611+4 suites / 7,184+5 tests / 5 snapshots, 0 failures**;
+jest-signal `pass: true` (5 governed skips); 10 validators + all self-tests
+PASS; dependency audit 8 accepted / 0 unallowlisted; OpenSpec strict
+**59/59**; web export smoke PASS; secrets/history exposure review 0 findings.
+Certified Code SHA and Artifact Source SHA stay `2de6a7d` (mechanical rule:
+`git diff --name-status 2de6a7d..HEAD` lists documentation paths only —
+generalized from the single-file rule in `.agent/VALIDATION.md`); the
+device/runtime certification and the local artifact `a2af9746…` are inherited
+by that identity, not restated. Full evidence: the PUBLIC-REPO FINAL
+RECERTIFICATION block in `.agent/VALIDATION.md`. Residuals (capture-path
+evidence debt, host limits, manual lanes, governed skips, accepted advisory
+dispositions) remain accurately classified there and in `.agent/KNOWN_ISSUES.md`.
 
 ## CURRENT-STATE CORRECTION — 2026-10-02, measured at `1565c2b` (post-068–075 convergence campaign)
 
