@@ -5978,3 +5978,13 @@ dependencies, Expo config, or build configuration, so no rebuild and no repeat
 device certification were performed or claimed. Local/device evidence in the
 TERMINAL CLOSURE RECORD above refers to runs actually performed in the prior
 campaign and is not restated as fresh here.
+
+**HEAD-tracking rule (self-validating — added as a docs-only amendment):**
+Repository HEAD moves with every commit, so this record names evidence SHAs,
+not a live HEAD snapshot. At the closure record's freeze HEAD was `068f446`;
+every commit after it (through `2517244` and beyond, including this
+amendment) is documentation-only in `.agent/VALIDATION.md`. Verify
+mechanically at any time: `git diff --name-status 2de6a7d..HEAD` must list
+only `.agent/VALIDATION.md` — if any other path appears, Certified Code SHA
+and Artifact Source SHA have both changed, and the matrix, artifact, and
+device certification must be redone against the new tree.
