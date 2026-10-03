@@ -102,16 +102,25 @@
       pinned by an executable assertion. Evidence: `.agent/VALIDATION.md`, Change
       068 §7.3.
 - [x] 7.4 `npm run typecheck` and `npm run lint` clean.
-- [ ] 7.5 **NOT VALIDATED — device lane not available in this session.** On the
-      dedicated AVD, run the three transactional journeys (complete a game, claim
-      a reward, reroll a workout) and record the on-device
-      `PRAGMA foreign_keys / busy_timeout / journal_mode / synchronous` and
-      `sqlite_version()` snapshot as the device half of the parity contract, plus
-      confirmation that an existing install (created in rollback-journal mode)
-      transitions to WAL on next open without data loss and that the
-      `-wal`/`-shm` sidecars are present. No emulator was launched; the task is
-      left unchecked rather than reported as done. Tracked in
-      `.agent/KNOWN_ISSUES.md` (Change 068) and `.agent/VALIDATION.md`.
+- [x] 7.5 **PASS (device lane executed 2026-10-03).** On the dedicated AVD
+      (`braintraining-ui35`, Android 15, debug APK from `096aefc`, headless):
+      the three transactional journeys were driven emulator-locally (reroll a
+      workout, claim a reward, complete a game) and the device half of the
+      parity contract was recorded — a genuine pre-Change-068 install
+      (rollback journal, header `writeVer/readVer = 1/1`, schema v12, no
+      sidecars) transitioned to **WAL** on next open with the v12→v13 migration
+      applied and **zero data loss**; `-wal`/`-shm` sidecars were observed on
+      device; the live file answered `PRAGMA journal_mode = wal` from the
+      on-device `sqlite3`; the four connection invariants
+      (`foreign_keys=1`, `busy_timeout=5000`, `journal_mode=wal`,
+      `synchronous=NORMAL`) were satisfied by the read-back gate on the real
+      expo-sqlite connection (`bootstrap-db-init` outcome success), and the
+      app's bundled engine is SQLite **3.50.3** (`libexpo-sqlite.so`). Evidence:
+      `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`.
+      The ARTEMIS Flash trace for the journey was **BLOCKED** at the client
+      boundary (`LLMPermanentError: MissingSessionID`), so the game journey ran
+      on the direct emulator-local ADB lane per the Campaign 030B/031 precedent;
+      no other provider or model was substituted.
 
 ## 8. Post-review refinement wave (gap closure)
 
@@ -130,7 +139,13 @@
 - [x] 8.3 Re-run the full repository matrix on the refined semantics: 611
       suites / 7,172 passed / 5 classified skips / 0 failed; typecheck 0; lint
       0; jest-signal floors met; all validators PASS; OpenSpec strict 59/59.
-- [ ] 8.4 **NOT VALIDATED — device lane not available.** The on-device
-      confirmation that concurrent reads during a transaction behave as
-      specified (and the §7.5 pragma snapshot) remains owed to the dedicated
-      AVD, unchanged from §7.5.
+- [x] 8.4 **PASS (device lane executed 2026-10-03).** The three device journeys
+      above are real transactional paths that read inside their transactions
+      (claim, session completion, reroll compare-and-set); each committed with
+      the expected durable effect and the whole device run produced **0**
+      `SQLiteReentrantTransactionError`, 0 invariant failures, and 0
+      `FATAL EXCEPTION` lines. Boundary: the exact reject/participate matrix
+      remains proven by the two repository suites against the real adapter
+      objects (fake native handle + hang backstop); the device run confirms no
+      spurious rejection in the actual journeys. Evidence:
+      `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`.

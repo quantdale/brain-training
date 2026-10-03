@@ -46,16 +46,26 @@ accepted and bounded.**
   - **Bounded by:** `src/db/adapters/__tests__/expo.test.ts` (device half, with
     a jest timeout as a hang backstop) and
     `src/db/__tests__/transaction-reentrancy.test.ts` (Node half, 13 cases).
-- **Device-lane requirement (NOT VALIDATED):** the device half is proven against
-    a fake native handle, not a real `expo-sqlite` connection. The on-device
-    `PRAGMA foreign_keys / busy_timeout / journal_mode / synchronous` and
-    `sqlite_version()` snapshot is still owed on the dedicated AVD — see the
-    Change 068 validation record in `.agent/VALIDATION.md`.
+- **Device-lane requirement — CLOSED 2026-10-03 (device-confirmed).** The device
+    half previously proven only against a fake native handle is now confirmed on a
+    real `expo-sqlite` connection on the dedicated AVD
+    (`braintraining-ui35` / `emulator-5554`, Android 15, debug APK from `096aefc`):
+    the four connection invariants are verified by the apply-and-read-back gate
+    (`initializeConnection`), which succeeded at boot
+    (`bootstrap-db-init` outcome success) — `foreign_keys=1`, `busy_timeout=5000`,
+    `journal_mode=wal` (also measured on the live file by the on-device `sqlite3`),
+    `synchronous=NORMAL`; the app's bundled engine is SQLite **3.50.3**
+    (`libexpo-sqlite.so`). An existing pre-Change-068 install (rollback journal,
+    header `1/1`, schema v12) transitioned to WAL on first open with the v12→v13
+    migration and zero data loss, and `-wal`/`-shm` sidecars were observed. All
+    three measured exposure statements in this entry remain true; only the
+    "device half not yet exercised" gap is closed. Evidence:
+    `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`.
 
 ## Connection-invariant device confirmation — WAL sidecars (2026-09-30, Change 068)
 
 **Severity: Medium (operational, not a defect). Owner: release-engineering
-orchestrator. Status: decided, device confirmation owed.**
+orchestrator. Status: decided; device confirmation recorded 2026-10-03.**
 
 - `journal_mode = WAL` is now applied and asserted on every connection. It is a
   **persistent property of the database file** and creates `-wal` / `-shm`
@@ -67,10 +77,15 @@ orchestrator. Status: decided, device confirmation owed.**
   unaffected. `synchronous = NORMAL` is documented as trading power-loss
   durability for commit latency, which is the right trade for a local
   offline-first single-device product but is a decision, not a free win.
-- **Owed:** the certification ledger's on-device SQLite audit must expect the
-  sidecars, and a device-lane check must confirm that an existing install
-  (created before this change, in rollback-journal mode) transitions to WAL on
-  next open without data loss.
+- **Device-confirmed 2026-10-03:** the sidecars are present on the dedicated AVD
+  while the app runs (`brain-training.db-wal` + `-shm` beside the main file), the
+  live file answers `journal_mode = wal`, and a force-stop leaves the WAL
+  **uncheckpointed** (measured: 177 KB `-wal` survived the kill) with recovery on
+  the next open verified (bootstrap success, all rows retained). The
+  certification ledger's on-device SQLite audit must therefore expect sidecars
+  for a running app and for a force-stopped one — not just a clean close — and
+  must not treat their presence as corruption. Evidence:
+  `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`.
 
 ## Campaign 055 disposition — DESIRABILITY PASS (2026-09-20, VALIDATED / COMPLETE)
 

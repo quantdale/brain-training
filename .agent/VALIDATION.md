@@ -4868,9 +4868,10 @@ from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
     `SQLITE_DBCONFIG_DEFENSIVE` is ON in `better-sqlite3` and OFF under `expo-sqlite`
     (informational — the app never writes shadow tables); SQLite 3.53.4 vs 3.50.3
     (informational — no version-gated feature is used); and the **device half of the
-    parity contract is NOT VALIDATED** — every fact above was measured on the Node
-    backend, and the on-device `PRAGMA foreign_keys / busy_timeout / journal_mode /
-    synchronous` + `sqlite_version()` snapshot is still owed on the dedicated AVD.
+    parity contract was the open item — now CONFIRMED 2026-10-03** (separate
+    device-lane entry below), where the four connection invariants, the WAL
+    transition without data loss, and the sidecars were all verified on the real
+    expo-sqlite connection.
 - §6 documentation: **PASS** — `docs/hardening/post067/PASS_B_RUNTIME.md` keeps its
   original row verbatim and adds a dated correction that states the recorded
   "fails loudly at `BEGIN`" claim was measured on the Node backend only, why it does
@@ -4906,17 +4907,35 @@ from synchronized `f1ed5331dd2f2cec69bab01e2404ca4b7831d424`.
   adapter never attempts a journal-mode change — pinned by a new executable assertion
   (`connection-invariants.test.ts` → "leaves an in-memory database on its own journal
   mode at open time"). WAL is only actually exercised on the device, which is the
-  §7.5 lane, recorded NOT VALIDATED. No perf claim is made from these numbers.
+  §7.5 lane — **device-confirmed 2026-10-03** (below). No perf claim is made from these numbers.
 - §7.4 typecheck / lint: **PASS** — 0 errors; 0 errors, 0 warnings.
-- §7.5 device lane: **NOT VALIDATED.** No AVD was exercised in this session; no
-  emulator run was performed. Owed: the three transactional journeys (complete a game,
-  claim a reward, reroll a workout) and the on-device `PRAGMA foreign_keys /
-  busy_timeout / journal_mode / synchronous` + `sqlite_version()` snapshot as the
-  device half of the parity contract, plus confirmation that an existing install
-  (created in rollback-journal mode) transitions to WAL on next open without data
-  loss and that the `-wal` / `-shm` sidecars are present. This is the one deliverable
-  of Change 068 that cannot be closed from the repository, and it is recorded as such
-  in `.agent/KNOWN_ISSUES.md` and in the change's own task list.
+- §7.5/§8.4 device lane: **PASS (executed 2026-10-03 on the dedicated AVD).**
+  `braintraining-ui35` / `emulator-5554`, Android 15, headless `-gpu host`, debug
+  APK built from `096aefc` (Metro dev lane; the Metro-less first launch failed to
+  load JS and is excluded). Upgraded with `adb install -r` over a genuine
+  pre-Change-068 install (2026-09-21, header `writeVer/readVer = 1/1` rollback
+  journal, schema v12, no sidecars), which then **transitioned to WAL on first
+  open**: header `2/2`, `-wal`/`-shm` sidecars present, on-device `sqlite3`
+  answering `journal_mode = wal`, and the v12→v13 migration applied — all
+  pre-upgrade rows retained (session, ledger, ratings, unclaimed achievement,
+  profile), no data loss. Connection invariants: the apply-and-read-back gate
+  (`initializeConnection`) succeeded on the real expo-sqlite connection
+  (`bootstrap-db-init` outcome success), which is the device proof for
+  `foreign_keys=1 / busy_timeout=5000 / journal_mode=wal / synchronous=NORMAL`;
+  the app's bundled engine is SQLite **3.50.3** (`libexpo-sqlite.so`). The three
+  transactional journeys were driven emulator-locally: reroll (`reroll_attempt`
+  0→1, new plan, no free-reroll debit), claim (`claimed_at` set, exactly-once
+  `achievement:ach-first` +25 ledger row), and a completed in-workout game
+  (`game_sessions` +1 with versioned metadata, workout `current_index` 0→1,
+  `rating_history` +3, `domain_ratings` updated, `xp_awards` +1, ledger +1).
+  Force-stop leaves the WAL uncheckpointed by design; cold relaunch recovered it
+  and retained all state. Whole-run scan: 0 `SQLiteReentrantTransactionError`,
+  0 invariant failures, 0 `FATAL EXCEPTION` lines. **ARTEMIS Flash trace for the
+  journey: BLOCKED** (`LLMPermanentError: MissingSessionID`, the Campaign 031
+  client-side OpenCode Go routing failure; no provider/model substituted) — the
+  journey ran on the direct emulator-local ADB lane per the Campaign 030B/031
+  precedent, and the blocked trace is not claimed as evidence. Evidence:
+  `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`.
 - Repository gates at closure: `validate-repo-state` PASS; `validate-secrets --check`
   PASS; `validate-workflows` PASS; `validate-offline --check` PASS;
   `generate-game-registry --check` PASS; OpenSpec `--all --strict` 59/59.
