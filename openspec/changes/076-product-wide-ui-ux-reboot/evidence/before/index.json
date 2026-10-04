@@ -1,0 +1,111 @@
+{
+  "sourceSha": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+  "apkSha256": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+  "apkBytes": 109647329,
+  "device": "emulator-5554 / braintraining-ui35",
+  "resolutionPixels": "1080x2400",
+  "package": "com.braintraining.app",
+  "notes": "Captured by scripts/qa/ui-capture.mjs. Original root manifest was overwritten by the last font-scale-2 pass; verify route from image and original ignored XML where needed. Only the font-scale-2/light pass retains original routeVerified values. These 20 images are not the requested complete state matrix.",
+  "images": [
+    {
+      "file": "default/dark/data-management.png",
+      "bytes": 310100,
+      "sha256": "1abfaeb63e26b4534523effc22bdccedd817042054cc943fb14da1af0aaeb51d"
+    },
+    {
+      "file": "default/dark/game-detail.png",
+      "bytes": 169423,
+      "sha256": "34b61383fb9a872eb8551cd8653b70e2f10d37962b4f8d0ab58f4446300def85"
+    },
+    {
+      "file": "default/dark/game-intro.png",
+      "bytes": 160300,
+      "sha256": "d3cce98c39c84a0699f996eb5429475ac676b67cb89dc7c77d07d438aabfa222"
+    },
+    {
+      "file": "default/dark/games.png",
+      "bytes": 192381,
+      "sha256": "3c742f7a32876dabf010610f612427afb238b8973d24ae91519cdacb2aaa65f9"
+    },
+    {
+      "file": "default/dark/home.png",
+      "bytes": 177061,
+      "sha256": "1bee85c80ebad2b33fff50dc7923b12efe99f64570f1a9f0ec76a97cccca4fb7"
+    },
+    {
+      "file": "default/dark/profile.png",
+      "bytes": 246131,
+      "sha256": "5ae0c60bcf6b2a3709484926cc68f091629d2bc93530b3384cc063d1d810daa6"
+    },
+    {
+      "file": "default/dark/progress.png",
+      "bytes": 233598,
+      "sha256": "a6c539de6254649eaf2c61b63b9902bf8dd178667716f4099e881702e3311d96"
+    },
+    {
+      "file": "default/dark/rewards.png",
+      "bytes": 309242,
+      "sha256": "2fc418149f95da5d04a8fadd8d4b7f9d8e0ce85d10a19693dc2f633b1e5b4106"
+    },
+    {
+      "file": "default/light/data-management.png",
+      "bytes": 317893,
+      "sha256": "52a6f8001bc465239971b82ff90c152eeb900f07d5f823ee09c01cdb85cd3696"
+    },
+    {
+      "file": "default/light/game-detail.png",
+      "bytes": 169031,
+      "sha256": "d30f9a7cec0313cd93f4bae06abd24b84a768582b43e195a8bf47676d67ae3dd"
+    },
+    {
+      "file": "default/light/game-intro.png",
+      "bytes": 160103,
+      "sha256": "dc0666eb7eebe9199bba34edc7bc3f605f4fb2f6d43eb356408eab1cecca19c6"
+    },
+    {
+      "file": "default/light/games.png",
+      "bytes": 190673,
+      "sha256": "60a3f1fa3ed71c825537eed1da872bc2a547b7566b1ddcf7b11495ae5d1ed2c8"
+    },
+    {
+      "file": "default/light/home.png",
+      "bytes": 181657,
+      "sha256": "4944f2d5c80dd7c38f048490169705fcb163fb63acf5e310663a0139eabfddd7"
+    },
+    {
+      "file": "default/light/profile.png",
+      "bytes": 248136,
+      "sha256": "128f7d34fa3485e732079c38e1b5113a4cce4af1d6e04115e2f7cdedff78b46c"
+    },
+    {
+      "file": "default/light/progress.png",
+      "bytes": 237853,
+      "sha256": "5067bd0fb8623437709188fffe5d1a44e2430c67b2cba4378b9da14ce2921af8"
+    },
+    {
+      "file": "default/light/rewards.png",
+      "bytes": 313238,
+      "sha256": "e0f11cb2e52ede1607c410235496afac7ab38391a9997de589ad6bb7086837cb"
+    },
+    {
+      "file": "font-scale-2/light/game-intro.png",
+      "bytes": 200911,
+      "sha256": "42705e59ce3c7d549870ab4bc02966b51e0f1ce23dfcdd65168f1cb95cd62291"
+    },
+    {
+      "file": "font-scale-2/light/home.png",
+      "bytes": 202165,
+      "sha256": "8c209a643e89539ca0ec8af58c53e4c6bed8b20f44b9e83569cde8a689f24253"
+    },
+    {
+      "file": "font-scale-2/light/profile.png",
+      "bytes": 261911,
+      "sha256": "a654f9374c4ea603f41f34801ab91ccdf2a7ef8f35dfaea95c58afdeeacf867d"
+    },
+    {
+      "file": "font-scale-2/light/progress.png",
+      "bytes": 240205,
+      "sha256": "c172042bcb586a1a2ae91c82f0cd8346d45aa39d461764bf3d1016a1e6890e6d"
+    }
+  ]
+}
