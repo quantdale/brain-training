@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:ci": "jest --ci --maxWorkers=2",
-    "perf:probe": "node ../../scripts/perf/run-probes.mjs"
+    "perf:probe": "node ../../scripts/perf/run-probes.mjs",
+    "test:coverage": "jest --coverage --testTimeout=90000"
   },
   "dependencies": {
     "expo": "~57.0.24",
@@ -59,12 +60,54 @@
     "setupFilesAfterEnv": [
       "<rootDir>/jest/setup.js"
     ],
-  "testMatch": [
-    "**/__tests__/**/*.test.ts",
-    "**/__tests__/**/*.test.tsx",
-    "**/__tests__/**/*.spec.ts",
-    "**/__tests__/**/*.spec.tsx"
-  ],
-    "testTimeout": 15000
+    "testMatch": [
+      "**/__tests__/**/*.test.ts",
+      "**/__tests__/**/*.test.tsx",
+      "**/__tests__/**/*.spec.ts",
+      "**/__tests__/**/*.spec.tsx"
+    ],
+    "testTimeout": 15000,
+    "collectCoverageFrom": [
+      "src/{db,data-portability,workout,rating,quests}/**/*.{ts,tsx}",
+      "!src/**/__tests__/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 91,
+        "branches": 83,
+        "functions": 90,
+        "lines": 91
+      },
+      "./src/db/": {
+        "statements": 91,
+        "branches": 84,
+        "functions": 93,
+        "lines": 91
+      },
+      "./src/data-portability/": {
+        "statements": 92,
+        "branches": 85,
+        "functions": 98,
+        "lines": 92
+      },
+      "./src/workout/": {
+        "statements": 91,
+        "branches": 87,
+        "functions": 94,
+        "lines": 91
+      },
+      "./src/rating/": {
+        "statements": 94,
+        "branches": 91,
+        "functions": 99,
+        "lines": 94
+      },
+      "./src/quests/": {
+        "statements": 96,
+        "branches": 83,
+        "functions": 99,
+        "lines": 96
+      }
+    }
   }
 }

@@ -1,6 +1,6 @@
 # Durable Project State
 
-**Last update:** 2026-10-04 — **device-lane closure for changes 070/072/073/074**:
+**Last update:** 2026-10-04 (wave 2) — **071 fully closed + Phase 9 coverage floors**: the three primitive suites (Confetti/StateCard/SectionGrid, 19 tests) closed 071 §6.1; the 071 device checks (§7.3 disabled-option announcement `enabled="false"`, §7.4 a11y audit **0 violations at default AND font-scale 2.0** over home/games/progress/profile) closed §7.3–§7.4; Phase 9's coverage-thresholds/per-module-floors item landed as `coverageThreshold` (global + per-tree over db/data-portability/workout/rating/quests, one point below measured baselines) enforced by `npm run test:coverage` (measured **PASS: 614 suites / 7,203 tests / 5 snapshots, 0 failures**) and a weekly scheduled `coverage-floors` CI job (`GOVERNANCE.greenMain.scheduledOnlyGates`); the remaining Phase 9 items are dispositioned optional-not-executed in `docs/MASTER_PLAN.md` §9. Previous update (wave 1, same day) — **device-lane closure for changes 070/072/073/074**:
 the four OpenSpec tasks recorded as "NOT VALIDATED — device lane not available"
 (070 §7.4 backup transport atomicity; 072 §7.3–§7.5 failed-read/push→replace/
 Progress reflection; 073 §6.3–§6.5 crafted mid-window reconciliation, complete→

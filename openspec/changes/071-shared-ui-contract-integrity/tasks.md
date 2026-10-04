@@ -100,11 +100,17 @@
 
 ## 6. Close documented coverage gaps
 
-- [ ] 6.1 Add suites for the shipped primitives that have none: `Confetti`,
-      `StateCard`, `SectionGrid`. **NOT DONE — corrected 2026-10-02:** the box
-      was checked but no suite renders those primitives (only
-      `design-system-doc.test.ts` names them as doc strings). Tracked as open
-      shared-kit debt in `.agent/BACKLOG.md`.
+- [x] 6.1 Add suites for the shipped primitives that have none: `Confetti`,
+      `StateCard`, `SectionGrid`. **DONE 2026-10-04:** three dedicated contract
+      suites added — `ui/__tests__/confetti.test.tsx` (8 tests: seeded
+      deterministic layout, margin confinement, non-interactive +
+      a11y-hidden host, bounded height, fixed palette, reduced-motion and
+      `enabled=false` settled-null), `shell/__tests__/state-card.test.tsx`
+      (5 tests: loading skeleton, error dangerText + action, exactly-once
+      action with label override, polite live region, no-action case),
+      `ui/__tests__/section-grid.test.tsx` (6 tests: stacked-on-phone,
+      split-on-wide with per-child `flexBasis`, custom basis, single-child
+      wrapper, both-axis gap, grow/shrink cells). 19 tests, all green;
 - [x] 6.2 Add a test for toast queue overflow behavior (currently the oldest
       message is dropped silently). **Narrowed 2026-10-02:** the behavior is
       pinned by `kit-inputs.test.tsx` "061: bounds the pre-mount queue,
@@ -118,13 +124,18 @@
 - [x] 7.1 `npx jest src/components` green; the matrix green with no new skips;
       the jest signal validator passes.
 - [x] 7.2 `npm run typecheck` and `npm run lint` clean.
-- [ ] 7.3 Device check on the dedicated AVD: a disabled segmented option is
-      announced as disabled; tab and list controls still meet the 44 dp target
-      at the default and large font scale. **NOT VALIDATED in this change —
-      corrected 2026-10-02:** the box was checked with no AVD run. (A later
-      campaign's device lane covered touch targets and labels generically;
-      the segmented-option announcement specifically was never exercised.)
-- [ ] 7.4 Re-run the accessibility audit script and confirm the unlabelled-node
-      and undersized-target counts are unchanged or improved. **NOT VALIDATED
-      in this change — corrected 2026-10-02:** the box was checked with no
-      audit run recorded here.
+- [x] 7.3 **Device check closed 2026-10-04 — PASS.** On the dedicated AVD
+      (`braintraining-ui35`): the workout-completed Home renders
+      `home-workout-reroll` disabled and the uiautomator hierarchy exposes it
+      as `enabled="false"` (announced unpressable — the Tappable-owned
+      accessibility-state contract, live). The a11y audit at default AND
+      font-scale 2.0 over home/games/progress/profile reports **0 undersized / 0
+      unlabelled** interactive nodes (the Progress window tabs pass via the
+      shared Tappable hit-slop contract); occluded rows are classified
+      unmeasurable per the Campaign 026/067 rule, not violations.
+      Captures + audits: `qa-artifacts/change071-device/`.
+- [x] 7.4 **Re-run closed 2026-10-04 — PASS (unchanged at zero).**
+      `node scripts/qa/a11y-audit.mjs` over the fresh default-scale and
+      font-scale-2.0 captures: **0 violations across 4 surfaces in both
+      matrices** (0 unlabelled, 0 undersized; 3 occluded exclusions, honestly
+      classified). Unchanged-or-improved criterion met at zero in both scales.

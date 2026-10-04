@@ -85,7 +85,10 @@
         "expo-doctor-21/21": "Never record `Expo Doctor 21/21` as a push-path result. It is network-sourced and time-dependent: it reports upstream patch drift, not a repository state. Record scripts/validate-expo-alignment.mjs instead, with its commit and date.",
         "local-perf-probes": "npm run perf:probe runs the 5 bounded perf probes locally; it is not wired into CI and must not be reported as a CI gate."
       }
-    }
+    },
+    "scheduledOnlyGates": [
+      "coverage-floors (apps/mobile npm run test:coverage; jest coverageThreshold over db/data-portability/workout/rating/quests) - weekly Repository Integrity job, scheduled-only by decision; floors live in the jest config so any local coverage run enforces them; measurement uses --testTimeout=90000, the push-path matrix keeps 15s"
+    ]
   },
   "modes": {
     "default": "day",

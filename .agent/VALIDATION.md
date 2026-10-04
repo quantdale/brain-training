@@ -15,6 +15,18 @@ emulator-local input only) against the debug APK from `096aefc`
 documentation paths only, so the artifact is code-identical to the working
 tree).
 
+- **071 §6.1 + §7.3/§7.4 — also closed 2026-10-04** (same session): three
+  primitive contract suites (Confetti/StateCard/SectionGrid, 19 tests) landed;
+  the disabled `home-workout-reroll` is announced `enabled="false"` on device;
+  the a11y audit reports **0 violations at default AND font-scale 2.0** over
+  home/games/progress/profile. Coverage floors (Phase 9) landed the same day:
+  `coverageThreshold` global + per-tree over the five critical trees, one point
+  below measured baselines; `npm run test:coverage` measured **PASS — 614
+  suites / 7,203 tests / 5 snapshots, 0 failures, no threshold breaches**;
+  weekly scheduled `coverage-floors` CI job registered in
+  `GOVERNANCE.greenMain.scheduledOnlyGates`. Captures:
+  `qa-artifacts/change071-device/`.
+
 - **070 §7.4 — PASS.** Same-name replacement ×2 through the real rotation left
   no temp and no `.prev` and listed the single name; the crafted
   interrupted-replacement state (orphan `.journey-g-backup.prev` holding the

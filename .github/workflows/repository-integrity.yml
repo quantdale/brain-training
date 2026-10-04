@@ -208,3 +208,34 @@ jobs:
       # the recorded 59/59 strict result).
       - name: OpenSpec validate (strict, pinned CLI 1.9.0)
         run: npx --yes @fission-ai/openspec@1.9.0 validate --all --strict
+
+  coverage-floors:
+    # Phase 9 coverage floors (post-068-075 successor campaign, 2026-10-04).
+    # Weekly and scheduled-only by decision: the floors live in the jest
+    # config (`coverageThreshold`), so ANY coverage run enforces them locally
+    # (`npm run test:coverage`), and this weekly lane catches drift on the
+    # main branch without paying the instrumentation cost on every push.
+    # Instrumented runs are slower than the plain matrix, so this job raises
+    # the per-test timeout for the measurement only (`test:coverage` passes
+    # --testTimeout=90000); the push-path matrix keeps the 15s default.
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: apps/mobile
+
+      - name: Coverage floors (jest coverageThreshold over the critical trees)
+        working-directory: apps/mobile
+        run: npm run test:coverage

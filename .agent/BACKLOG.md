@@ -28,12 +28,21 @@ plus historical follow-ups.
   external ARTEMIS does not replace explicit/manual consent review.
 - Deferred product decisions (see `docs/DEFERRED_DECISIONS.md`) stay untouched
   until the owner decides.
-- Coverage thresholds (deferred by Change 065, 2026-09-21): the Jest pipeline
-  has no `collectCoverage`/`coverageThreshold`; critical trees (`db`,
-  `data-portability`, `workout`, `rating`, `quests`) have no per-module floor.
-  Owner: release-engineering orchestrator; decide the infrastructure cost and
-  thresholds in the post-067 hardening phase. The skip/floor/console gates are
-  the current substitute.
+- **CLOSED 2026-10-04 (post-068–075 successor campaign) — Coverage thresholds:**
+  the Jest config now carries `collectCoverageFrom` over the five critical trees
+  (`db`, `data-portability`, `workout`, `rating`, `quests`) and a
+  `coverageThreshold` block with global + per-tree floors set one point below the
+  2026-10-04 measured baselines (data-portability 93.57/86.1/99.1/93.87,
+  db 92.55/85.23/94.4/92.89 incl. adapters, workout 92.09/88.22/95.67/92.41,
+  rating 95.57/92.18/100/95.53, quests 97.36/84.28/100/97.01). `npm run
+  test:coverage` enforces them on every run (measured **PASS**: 614 suites /
+  7,203 tests / 5 snapshots, 0 failures, no threshold breaches; the instrumented
+  run raises testTimeout to 90 s — measurement-only tolerance, the push-path
+  matrix keeps 15 s). A weekly scheduled `coverage-floors` job in Repository
+  Integrity catches drift on `main`; registered in
+  `GOVERNANCE.greenMain.scheduledOnlyGates`. Full-matrix floors (the deferred
+  "per-module" ask) are deliberately per-TREE: per-file floors on 300+ modules
+  would churn on every refactor without adding a meaningful invariant.
 - Backup physical durability — fsync (deferred by Change 065; **partly closed by
   Change 070, 2026-09-30**): the recorded deferral described ONLY the missing
   fsync, and recommended "otherwise rotate a `.prev` copy". That understated the
@@ -78,14 +87,12 @@ plus historical follow-ups.
   not forced: the premise was wrong, so the change is **reverted and the finding
   recorded** instead. Owner decision needed only if a future Expo release drops
   the peer requirement; there is nothing to fix while it holds.
-- Shared-kit coverage gaps (recorded by Change 071, 2026-09-30; partially
-  corrected 2026-10-02): `Confetti`, `StateCard` and `SectionGrid` ship with no
-  dedicated suite — that part is real untested surface. **Corrected:** the
-  toast-queue claim ("drops its oldest message silently with no test pinning
-  that behavior") was false — `kit-inputs.test.tsx` "061: bounds the pre-mount
-  queue, dropping oldest first" has pinned it since Change 061. Owner:
-  release-engineering orchestrator; add the three primitive suites when the kit
-  is next touched rather than as a standalone coverage push.
+- **CLOSED 2026-10-04 (071 §6.1 executed) — Shared-kit coverage gaps:**
+  `Confetti`, `StateCard` and `SectionGrid` now have dedicated contract suites
+  (19 tests: seeded deterministic confetti layout + margin/a11y/motion rules;
+  StateCard loading/error/empty + exactly-once action + live region; SectionGrid
+  stacked/split/basis/gap/cell contracts). Historical context: the toast-queue
+  claim was already corrected 2026-10-02 (`kit-inputs.test.tsx` pins it).
 - **SUPERSEDED 2026-10-02 (post-068–075 certification campaign, verified at
   `1565c2b` and later).** The entry below this marker was accurate when written
   (2026-09-30, `CHANGE_073_PARTIAL`) and is false now. Measured against the
