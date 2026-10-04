@@ -10,7 +10,10 @@ confirmations are now closed: 068 (§7.5/§8.4) on 2026-10-03 and 070 §7.4 /
 (`docs/redesign/evidence/change068-device/`,
 `docs/redesign/evidence/change070-074-device/`), with 072 §7.3's Profile half
 honestly PARTIAL (device) and 071's §6 coverage gaps remaining owner debt.
-Phase 9 (optional hardening) and Phase 10 (final certification) remain. §6 is the
+Phase 9 is dispositioned (§9) and Phase 10 is COMPLETE — the terminal
+certification ledger is
+`docs/redesign/evidence/phase10-terminal-certification/TERMINAL_CERTIFICATION.md`
+(2026-10-04, `f813e6a`: all 46 audit findings dispositioned, 0 open). §6 is the
 live task list.
 **Authority:** subordinate to `docs/PROJECT_CONSTITUTION.md`; durable execution state
 remains in `.agent/GOVERNANCE.json` and `.agent/STATE.md`
@@ -42,9 +45,10 @@ results** — results live in the per-change records.
 | `074-sdk-module-contract` | Registration-time SDK module validation, typed loader, per-game lifecycle gate | Phase 7 | **PARTIAL — §1–§6 done, device lane owed.** §1 validates the game module's RUNTIME surface (`default` must be a component), so a non-conforming module is never rendered; the contract was narrowed after measuring that nothing outside `games/` reads a module's `gameDefinition`. §2 types the loader boundary via `GameScreenProps`, removing the unchecked cast. §3 replaces a VACUOUS lifecycle contract (it satisfied itself from the host sources) with one that scans the 42 modules and can fail. §4 makes `useGameSession.begin()` refuse a duplicate start and exception-safe. §5 collapses 42 copies of the version-packing helper into one that accepts the absent version the SDK type permits. §6 makes the SDK module map executable. Device lane §7.4 **closed 2026-10-04 — PASS** (background/restore mid-session resumed auto-paused and completed; exactly one new session; 3 first-play tutorials rendered; 5 real completions persisted; campaign logcat 18,442 lines with 0 FATAL/ANR/SQLite/reentrancy/RedBox; `docs/redesign/evidence/change070-074-device/`) |
 | `075-game-reducer-exhaustiveness` | Shared exhaustiveness helper across all 42 reducers | Phase 8 | **COMPLETE** — `assertExhaustive` in every reducer's `default`, so an action added to the union without a handler is a COMPILE error naming the member; the 27 misleading "Exhaustiveness guard" comments removed; the runtime fallback throws for out-of-union input instead of silently dropping transitions; catalog-wide test pins the shape and fails on a reintroduced silent fallback |
 
-Phase 9 (optional hardening) and Phase 10 (final certification) follow. No new
-features are in scope: the feature set is complete and the objective is
-stabilization and claim integrity.
+Phase 9 is dispositioned and Phase 10 is COMPLETE (terminal ledger:
+`docs/redesign/evidence/phase10-terminal-certification/`). No new features are
+in scope: the feature set is complete and the objective is stabilization and
+claim integrity.
 
 **Closure numbers are recorded-at-closure.** Every count in this plan (test
 totals, suite totals, gate verdicts, file counts, package-version claims) is an

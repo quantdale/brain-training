@@ -78,6 +78,31 @@ tree).
   (`DEVICE_LANE_CLOSURE.md`); raw artifacts under
   `qa-artifacts/change070-074-device/`.
 
+### Same-day wave 2+3 — 071 closure, Phase 9 coverage floors, Phase 10 terminal certification
+
+- **071 §6.1/§7.3/§7.4 — PASS.** Three primitive contract suites
+  (Confetti/StateCard/SectionGrid, 19 tests); disabled `home-workout-reroll`
+  announced `enabled="false"` on device; a11y audit **0 violations at default
+  AND font-scale 2.0** over home/games/progress/profile. Captures:
+  `qa-artifacts/change071-device/`.
+- **Phase 9 coverage floors — DONE.** `coverageThreshold` global + per-tree
+  over the five critical trees, one point below the measured baselines
+  (data-portability 93.57/86.1/99.1/93.87; db 92.55/85.23/94.4/92.89;
+  workout 92.09/88.22/95.67/92.41; rating 95.57/92.18/100/95.53;
+  quests 97.36/84.28/100/97.01). `npm run test:coverage` measured **PASS —
+  614 suites / 7,203 tests / 5 snapshots, 0 failures, no threshold breaches**
+  (instrumented runs raise testTimeout to 90 s; the push-path matrix keeps
+  15 s). Weekly scheduled `coverage-floors` CI job registered in
+  `GOVERNANCE.greenMain.scheduledOnlyGates`. Remaining Phase 9 items
+  (F-09/F-25/F-27 surfaces) dispositioned optional-not-executed in
+  MASTER_PLAN §9.
+- **Phase 10 — COMPLETE.** Opt-in probes 5/5 PASS (10 baseline files,
+  two same-day runs preserved per the consecutive-run-noise precedent);
+  the terminal certification ledger dispositioned all 46 audit findings
+  (43 closed, 16 with device confirmations; 3 optional-not-executed; 0 open):
+  `docs/redesign/evidence/phase10-terminal-certification/TERMINAL_CERTIFICATION.md`
+  (tree `f813e6a`).
+
 ## CURRENT-STATE CORRECTION — 2026-09-30 (Change 069 / `47fffee`)
 
 This block corrects the record **without rewriting history**: every entry below

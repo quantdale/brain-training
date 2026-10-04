@@ -1,0 +1,30 @@
+{
+  "platform": "win32 node v24.3.0",
+  "measuredAt": "2026-10-04T06:26:47.180Z",
+  "scenarios": {
+    "buildQuestSamples_100_ms": 0.0898,
+    "evaluateQuests_100_inmemory_ms": 0.6839,
+    "syncQuestProgress_100_total_ms": 1.352,
+    "buildAchievementSnapshot_100_ms": 0.4591,
+    "syncAchievements_100_total_ms": 0.5695,
+    "getDistinctActivityDates_100_ms": 0.0374,
+    "buildQuestSamples_1000_ms": 0.3665,
+    "evaluateQuests_1000_inmemory_ms": 4.2546,
+    "syncQuestProgress_1000_total_ms": 5.6501,
+    "buildAchievementSnapshot_1000_ms": 1.0686,
+    "syncAchievements_1000_total_ms": 1.2161,
+    "getDistinctActivityDates_1000_ms": 0.2047,
+    "buildQuestSamples_5000_ms": 2.1481,
+    "evaluateQuests_5000_inmemory_ms": 23.7084,
+    "syncQuestProgress_5000_total_ms": 27.4555,
+    "buildAchievementSnapshot_5000_ms": 4.9717,
+    "syncAchievements_5000_total_ms": 5.0154,
+    "getDistinctActivityDates_5000_ms": 0.9589,
+    "buildQuestSamples_20000_ms": 1.8147,
+    "evaluateQuests_20000_inmemory_ms": 22.4346,
+    "syncQuestProgress_20000_total_ms": 28.2388,
+    "buildAchievementSnapshot_20000_ms": 21.9174,
+    "syncAchievements_20000_total_ms": 22.0694,
+    "getDistinctActivityDates_20000_ms": 4.2015
+  }
+}
