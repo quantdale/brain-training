@@ -1,17 +1,7 @@
 {
   "schemaVersion": 1,
   "canonicalBranch": "main",
-  "activeCampaign": null,
-  "activeProgram": {
-    "id": "056-067-overnight-autonomous-program",
-    "mode": "night",
-    "startSha": "428d293",
-    "prompt": ".agent/CAMPAIGN056_067_OVERNIGHT_AUTONOMOUS_PROGRAM_PROMPT.md",
-    "ledger": ".agent/OVERNIGHT_056_067_STATE.md",
-    "currentChange": "067-terminal-whole-product-certification",
-    "state": "COMPLETE",
-    "hardeningEvidenceRoot": "docs/hardening/post067"
-  },
+  "activeCampaign": "076-product-wide-ui-ux-reboot",
   "lastCampaign": "055-signal-arcade-desirability",
   "lastCampaignStatus": "VALIDATED",
   "lastCampaignVerdict": "CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE",
@@ -50,7 +40,7 @@
     ],
     "blockedException": "only when a required check is EXPECTED to fail (e.g. emulator/AVD gate unavailable in this environment) and the exception is recorded with rationale in the commit/PR and .agent/STATE.md",
     "enforcedGateSet": {
-      "note": "Change 069. Every gate CI actually enforces is declared here, so an UNDECLARED red gate is a detectable contradiction rather than an invisible one. Two gates were red on main while this file named only `typecheck` and `test`; the declaration below is what makes that class of drift self-reporting. Keep in sync with .github/workflows/*.yml — `node scripts/validate-repo-state.mjs` reads this object.",
+      "note": "Change 069. Every gate CI actually enforces is declared here, so an UNDECLARED red gate is a detectable contradiction rather than an invisible one. Two gates were red on main while this file named only `typecheck` and `test`; the declaration below is what makes that class of drift self-reporting. Keep in sync with .github/workflows/*.yml \u2014 `node scripts/validate-repo-state.mjs` reads this object.",
       "hermeticPushPath": [
         "repo-state-integrity (scripts/validate-repo-state.mjs)",
         "registry-generated-check (scripts/generate-game-registry.mjs --check)",
@@ -70,9 +60,9 @@
         "openspec-validate-strict (@fission-ai/openspec@1.9.0 validate --all --strict)"
       ],
       "networkDependentGates": [
-        "dependency-audit (scripts/validate-dependency-audit.mjs) — needs the npm advisory service; Repository Integrity only. Exit 2 is BLOCKED (did not run), never a pass, and is reported as classification=blocked with the security posture stated UNVERIFIED for that run.",
-        "expo-doctor-upstream-drift (npx expo-doctor) — needs https://api.expo.dev/v2/versions/latest; weekly schedule only, tolerated and classified as upstream drift. NOT a repository-defect signal; the hermetic expo-alignment gate is the push-path equivalent.",
-        "android-build-smoke / ios-build-smoke (expo prebuild + Gradle/Xcode) — build lanes, not content gates; they need the package registry and (iOS) a macOS host."
+        "dependency-audit (scripts/validate-dependency-audit.mjs) \u2014 needs the npm advisory service; Repository Integrity only. Exit 2 is BLOCKED (did not run), never a pass, and is reported as classification=blocked with the security posture stated UNVERIFIED for that run.",
+        "expo-doctor-upstream-drift (npx expo-doctor) \u2014 needs https://api.expo.dev/v2/versions/latest; weekly schedule only, tolerated and classified as upstream drift. NOT a repository-defect signal; the hermetic expo-alignment gate is the push-path equivalent.",
+        "android-build-smoke / ios-build-smoke (expo prebuild + Gradle/Xcode) \u2014 build lanes, not content gates; they need the package registry and (iOS) a macOS host."
       ],
       "scheduledOnlyGates": [
         "allowlist freshness (scripts/validate-provenance.mjs --check-allowlist, scripts/certification/validate-jest-signal.mjs --check-allowlist)",

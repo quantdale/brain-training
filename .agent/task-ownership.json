@@ -1,10 +1,8 @@
 {
   "schemaVersion": 1,
-  "lifecycleStatus": "COMPLETED",
-  "change": "055-signal-arcade-desirability",
-  "activeProgram": "056-067-overnight-autonomous-program",
-  "programCurrentChange": "067-terminal-whole-product-certification",
-  "description": "Campaign 055 Signal Arcade desirability pass (VALIDATED, verdict CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE). The orchestrator owned the refinement lock, shared visual-system roles, surface refinements, mandatory critique passes, native before/after evidence, the pixel-certification matrix, the full repository matrix, and durable state. The owner-authorized 056–067 overnight program (NIGHT mode) is active on top of the terminal campaign: each numbered change is specced under openspec/changes/<id> and validated sequentially; governance tracks it through GOVERNANCE.activeProgram and .agent/OVERNIGHT_056_067_STATE.md. No parallel coder packets remain bound here.",
+  "lifecycleStatus": "IN_PROGRESS",
+  "change": "076-product-wide-ui-ux-reboot",
+  "description": "Campaign 076 product-wide UI/UX reboot (openspec apply, owner goal directive). The orchestrator owns the campaign registration, device evidence (one emulator), ARTEMIS journeys, the baseline capture program, the prototype reference lock, shared compositional hotspots (theme tokens, ui primitives, game-host/game-ui contracts, app-tabs, screen-shell), convergence and durable state. Coder packets own only their listed disjoint surfaces; visual-only edits must not alter scoring/persistence/economy/offline semantics or generated registries.",
   "orchestratorOnlySurfaces": [
     "openspec/**",
     ".agent/**",
@@ -23,6 +21,11 @@
     "apps/mobile/src/registry/**",
     "apps/mobile/src/theme/**",
     "apps/mobile/src/components/ui/**",
+    "apps/mobile/src/components/app-tabs.tsx",
+    "apps/mobile/src/components/app-tabs.web.tsx",
+    "apps/mobile/src/components/screen-shell.tsx",
+    "apps/mobile/src/components/game-host/**",
+    "apps/mobile/src/components/game-ui/**",
     "apps/mobile/src/components/discovery/game-identity.tsx"
   ],
   "generatedFilePatterns": [
@@ -34,7 +37,6 @@
     "apps/mobile/src/db/schema.ts",
     "apps/mobile/src/db/migrate.ts",
     "apps/mobile/src/data-portability/types.ts",
-    "apps/mobile/src/games/**",
     "apps/mobile/src/rating/**",
     "apps/mobile/src/progression/sync.ts",
     "apps/mobile/src/cosmetics/registry.ts",

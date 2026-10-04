@@ -26,9 +26,9 @@ verified durable; ARTEMIS Flash remained BLOCKED (`MissingSessionID`) and the
 journey ran on the direct emulator-local ADB lane. Evidence:
 `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`. Previous update: 2026-10-02 — **PUBLIC-REPO FINAL RECERTIFICATION COMPLETE (R1 CLOSED)**; see FINAL CLOSURE block below. Previous update: 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
 **Canonical branch:** `main`
-**Active campaign:** none
+**Active campaign:** 076-product-wide-ui-ux-reboot
 **Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
-**Active work:** OpenSpec changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
+**Active work:** OpenSpec change `076-product-wide-ui-ux-reboot` — openspec apply in progress (owner goal directive); executed per its tasks.md waves. Completed program: changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
 **Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
 **Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
