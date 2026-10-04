@@ -125,13 +125,30 @@
       repository matrix green with no new skips; jest signal validator passes
       (floors met, 5 classified opt-in skips unchanged).
 - [x] 6.2 `npm run typecheck` and `npm run lint` clean.
-- [ ] 6.3 **NOT VALIDATED — device lane not available in this environment**
-      (adb present but no attached AVD). On the dedicated AVD: force-stop the
-      app in the window between session commit and leg advance, relaunch, and
-      confirm the workout position is reconciled and the leg is not replayed.
-- [ ] 6.4 **NOT VALIDATED — device lane not available.** On the dedicated AVD:
-      complete a workout leg, skip the next, and finish; confirm the summary
-      matches the stored state and the skipped leg awarded nothing.
-- [ ] 6.5 **NOT VALIDATED — device lane not available.** On the dedicated AVD:
-      confirm standalone sessions still never claim a workout leg, and that
-      exactly-once advance still holds under a repeated relaunch.
+- [x] 6.3 **Device lane closed 2026-10-04 — PASS**
+      (`docs/redesign/evidence/change070-074-device/DEVICE_LANE_CLOSURE.md`).
+      The commit→advance window cannot be hit externally; per the Campaign 065
+      crafted-recovery precedent the exact post-commit/pre-advance durable shape
+      was crafted on the dedicated AVD (device `sqlite3` under `run-as`:
+      2026-10-03 `current_index` 1→0 while its leg-0 session proves the leg
+      settled). One relaunch reconciled the position forward to 1; the leg was
+      NOT replayed (still exactly one session); the ledger is byte-identical
+      (reward-free); a second relaunch changed nothing (`current_index` AND
+      `updated_at` identical — idempotent). integrity `ok`, 0 FK violations
+      throughout.
+- [x] 6.4 **Device lane closed 2026-10-04 — PASS.** On the dedicated AVD the
+      real UI ran the full lifecycle: leg 1 played (first-play tutorial
+      rendered + QA skip), leg 2 skipped via `home-workout-skip` (status
+      "Skipped", allowance hint 3→2 skips, "the last game must be played"),
+      leg 3 launched as "game 3" (honest stored-position launch), leg 4
+      finished into the `workout-complete` result panel ("4/4 games complete")
+      and Home's completion card ("4/4 games saved"). Durable audit:
+      `status='completed'`, `current_index=4`, `skipped_indices_json=[1]`; the
+      skipped leg has NO session row and NO ledger/xp entry; the three played
+      legs have exactly-once gameplay credits.
+- [x] 6.5 **Device lane closed 2026-10-04 — PASS.** A standalone game played
+      end-to-end from Games created its session and exactly-once ledger entry
+      while ALL workout rows stayed untouched (today's `current_index` stayed 0);
+      two launch→force-stop cycles produced no phantom advance; and the §6.3
+      crafted-reconciliation relaunch idempotence (identical `updated_at` on a
+      repeated relaunch) closes the exactly-once-advance-under-relaunch half.

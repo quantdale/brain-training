@@ -193,7 +193,13 @@
       unclassified / ambiguous / mismatched, both floors met). **No new skips.**
 - [x] 7.2 `generate-game-registry.mjs --check` clean.
 - [x] 7.3 typecheck and lint clean (0 errors, 0 warnings).
-- [ ] 7.4 On the dedicated AVD: launch a game, background and restore it, and
-      confirm no duplicate session is created and no timer/listener residue
-      appears; confirm a tutorial and a full game still run to completion with
-      persistence.
+- [x] 7.4 **Device lane closed 2026-10-04 — PASS**
+      (`docs/redesign/evidence/change070-074-device/DEVICE_LANE_CLOSURE.md`).
+      On the dedicated AVD: a live standalone session (Trial 1/15) was
+      backgrounded with HOME and restored — it resumed auto-paused behind the
+      pause overlay with trial/score/rule intact, then completed normally. The
+      final durable audit shows exactly one new session for that run (7 total,
+      all-distinct ids) and an exactly-once ledger entry; three genuine
+      first-play tutorials rendered during the campaign (QA skip working) and
+      five real completions persisted; the whole-campaign logcat (18,442 lines)
+      has 0 FATAL / 0 reentrancy errors / 0 SQLite errors / 0 ANR / 0 RedBox.

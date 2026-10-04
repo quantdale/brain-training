@@ -100,14 +100,29 @@
       0 failures**; signal validator `pass: true` (5 classified skips, 0
       unclassified/ambiguous/mismatched, both floors met). **No new skips.**
 - [x] 7.2 `npm run typecheck` clean; `npm run lint` clean (0 errors, 0 warnings).
-- [ ] 7.3 **NOT VALIDATED — device lane not available in this session.** On the
-      dedicated AVD: force a failed read (for example by denying access) and
-      confirm the failure state renders with retry on Data Management and
-      Profile; confirm the empty state no longer appears for a failure. The four
-      states are pinned by unit/screen tests; the on-device confirmation is not
-      made.
-- [ ] 7.4 On the dedicated AVD: visit Home → detail → Home three times, press
-      back, and confirm the user leaves Home rather than re-entering the detail
-      screen.
-- [ ] 7.5 Confirm a mutation made on the results screen is reflected on the
-      Progress tab without waiting for a time window.
+- [x] 7.3 **Device lane closed 2026-10-04 — PASS (Data Management) /
+      PARTIAL (Profile),** evidence
+      `docs/redesign/evidence/change070-074-device/DEVICE_LANE_CLOSURE.md`.
+      On the dedicated AVD, a genuinely-throwing backups read (directory
+      replaced by a file) rendered `data-saved-backups-error` ("Could not read
+      your saved backups.") WITH a retry control, the stranded section's own
+      failure + retry, and NO empty state; counts stayed loaded (per-section
+      isolation); tapping Retry after restoring the directory recovered the
+      listing live. Measured boundary: POSIX chmod-000 denial is swallowed by
+      the platform library (`listAsRecords` → empty, not a throw), so the
+      deny-access example yields the truthful-as-known empty state on this
+      stack. **Profile half PARTIAL (device):** Profile's read chain shares the
+      db with the foundational bootstrap progression stage, so no device fault
+      fails Profile's read while keeping the normal shell; its failure-state
+      rendering remains unit-pinned, the shared seam's failure/retry mechanics
+      were device-proven on Data Management.
+- [x] 7.4 **Device lane closed 2026-10-04 — PASS.** Three Home → game-detail →
+      Home cycles on the dedicated AVD (each verified by hierarchy), then the
+      system back gesture from Home moved focus to the launcher — the user
+      leaves Home; refocus lands on Home, never re-entering the detail screen.
+      Evidence: `DEVICE_LANE_CLOSURE.md` §072 §7.4.
+- [x] 7.5 **Device lane closed 2026-10-04 — PASS.** After a standalone game's
+      result surface persisted, the Progress tab rendered the new session on
+      first focus ("3 sessions across 3 active days"; pre-journey 2) — the
+      input-aware focus gate refreshed instead of serving the stale window.
+      Evidence: `DEVICE_LANE_CLOSURE.md` §072 §7.5.

@@ -1,6 +1,30 @@
 # Durable Project State
 
-**Last update:** 2026-10-03 — Change 068 device-lane confirmation (§7.5/§8.4) **closed on the dedicated AVD**: a pre-Change-068 install (rollback journal, schema v12) transitioned to WAL on first open with the v12→v13 migration and zero data loss, `-wal`/`-shm` sidecars observed, connection invariants satisfied by the read-back gate on the real expo-sqlite connection (bundled engine SQLite 3.50.3), and the three transactional journeys (reroll / claim / completed in-workout game) verified durable; ARTEMIS Flash remained BLOCKED (`MissingSessionID`) and the journey ran on the direct emulator-local ADB lane. Evidence: `docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`. Previous update: 2026-10-02 — **PUBLIC-REPO FINAL RECERTIFICATION COMPLETE (R1 CLOSED)**; see FINAL CLOSURE block below. Previous update: 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
+**Last update:** 2026-10-04 — **device-lane closure for changes 070/072/073/074**:
+the four OpenSpec tasks recorded as "NOT VALIDATED — device lane not available"
+(070 §7.4 backup transport atomicity; 072 §7.3–§7.5 failed-read/push→replace/
+Progress reflection; 073 §6.3–§6.5 crafted mid-window reconciliation, complete→
+skip→finish with the skipped leg awarding nothing, standalone/exactly-once; 074
+§7.4 background/restore + no duplicate session + no residue) were executed on the
+dedicated AVD (`braintraining-ui35`, debug APK from `096aefc`, code-identical to
+`a295476`) and closed **PASS**, with 072 §7.3's Profile half honestly
+`PARTIAL (device)` (its read chain shares the db with the foundational bootstrap
+stage; failure rendering stays unit-pinned) and the ARTEMIS lane BLOCKED (not
+exercised; direct emulator-local ADB lane used per precedent). Final durable
+audit: integrity ok, 0 FK violations, schema v13, 7 all-distinct sessions,
+2026-10-04 workout `completed` with `skipped_indices_json=[1]` and no reward for
+the skipped leg, ledger 8 exactly-once rows, logcat 18,442 lines with 0
+FATAL/ANR/SQLite/reentrancy/RedBox. Evidence:
+`docs/redesign/evidence/change070-074-device/DEVICE_LANE_CLOSURE.md`. Previous
+update: 2026-10-03 — Change 068 device-lane confirmation (§7.5/§8.4) **closed on
+the dedicated AVD**: a pre-Change-068 install (rollback journal, schema v12)
+transitioned to WAL on first open with the v12→v13 migration and zero data loss,
+`-wal`/`-shm` sidecars observed, connection invariants satisfied by the read-back
+gate on the real expo-sqlite connection (bundled engine SQLite 3.50.3), and the
+three transactional journeys (reroll / claim / completed in-workout game)
+verified durable; ARTEMIS Flash remained BLOCKED (`MissingSessionID`) and the
+journey ran on the direct emulator-local ADB lane. Evidence:
+`docs/redesign/evidence/change068-device/DEVICE_SQLITE_CONFIRMATION.md`. Previous update: 2026-10-02 — **PUBLIC-REPO FINAL RECERTIFICATION COMPLETE (R1 CLOSED)**; see FINAL CLOSURE block below. Previous update: 2026-10-02 — post-068–075 final convergence/certification campaign, measured at `1565c2b`+ (see CURRENT-STATE CORRECTION 2026-10-02 below). Previous update: 2026-09-30 — Change 069 (`069-dependency-gate-restoration`) applying the 2026 repository audit (`docs/audits/2026-repo-audit/`, plan `docs/MASTER_PLAN.md`, baseline `47fffee`). Two declared CI gates that this file previously reported green were measured red and are now either fixed or honestly re-scoped; see the correction block below.
 **Canonical branch:** `main`
 **Active campaign:** none
 **Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`

@@ -84,15 +84,17 @@
       large-backup suites.
 - [x] 7.2 Full matrix green with no new skips; the jest signal validator passes.
 - [x] 7.3 `npm run typecheck` and `npm run lint` clean.
-- [ ] 7.4 **NOT VALIDATED — device lane not available in this session.** On the
-      dedicated AVD: save two backups under the same name, kill the app
-      mid-replacement, relaunch, and confirm the name reads complete previous or
-      complete new content; confirm no hidden artifact is listed and no
-      user-visible temp remains. The sequence is proven by step-level fault
-      injection against a filesystem double that models the platform's real
-      delete-then-rename move, and the stranded-artifact surface is covered in
-      the transport and screen suites, but no emulator was launched here. The
-      task is left unchecked rather than reported as done.
+- [x] 7.4 **Device lane closed 2026-10-04 — PASS**
+      (`docs/redesign/evidence/change070-074-device/DEVICE_LANE_CLOSURE.md`).
+      On the dedicated AVD (`braintraining-ui35`, debug APK from `096aefc`;
+      code-identical to `a295476`): two exports under the same name completed
+      through the real rotation with **no temp and no `.prev` left** and the
+      single name listed; the interrupted-replacement state (live name removed,
+      orphan `.journey-g-backup.prev` holding the only copy) was **repaired
+      automatically by the next listing read**, the name reappearing with
+      sha256-identical content to the pre-craft bytes. The step-level
+      fault-injection suites remain the sequence proof; this closes the
+      on-device confirmation.
 - [x] 7.5 Re-run the opt-in large-backup probe and compare against the committed
       baseline to confirm the bounded diagnostics and rotation did not regress
       export memory or time. **Executed 2026-09-30:** all 5 probes passed. The

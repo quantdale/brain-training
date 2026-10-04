@@ -5,6 +5,67 @@ date/time, commit or working-state reference, changed subsystem, checks
 actually run, PASS/FAIL/NOT VALIDATED, and important artifacts. Never convert
 unavailable checks into PASS.
 
+## DEVICE-LANE CLOSURE — 2026-10-04 (changes 070/072/073/074)
+
+The four OpenSpec device-lane debts recorded as "NOT VALIDATED — device lane
+not available" were closed on the dedicated AVD (`braintraining-ui35` /
+`emulator-5554`, Android 15, headless `-gpu host`, Metro dev lane,
+emulator-local input only) against the debug APK from `096aefc`
+(sha256 `171ba82d…bcdccd`; `git diff --name-status 096aefc..a295476` lists
+documentation paths only, so the artifact is code-identical to the working
+tree).
+
+- **070 §7.4 — PASS.** Same-name replacement ×2 through the real rotation left
+  no temp and no `.prev` and listed the single name; the crafted
+  interrupted-replacement state (orphan `.journey-g-backup.prev` holding the
+  only copy) was repaired automatically by the next listing read, the name
+  reappearing with sha256-identical content
+  (`35894eca…3491a5a` pre and post).
+- **072 §7.3 — PASS (Data Management) / PARTIAL (Profile).** A genuinely
+  throwing backups read (directory replaced by a file) rendered
+  `data-saved-backups-error` + retry with NO empty state and per-section
+  isolation; Retry recovered the listing live. Measured boundary: POSIX
+  chmod-000 denial is swallowed by `expo-file-system`'s `listAsRecords()`
+  (empty, not a throw). Profile half PARTIAL (device): its read chain shares
+  the db with the foundational bootstrap progression stage, so no device fault
+  fails Profile's read while keeping the normal shell; failure rendering stays
+  unit-pinned.
+- **072 §7.4 — PASS.** Three Home → game-detail → Home cycles; system back
+  from Home then moved focus to the launcher (leaves Home), refocus landed on
+  Home, never re-entering the detail screen.
+- **072 §7.5 — PASS.** After a standalone result persisted, the Progress tab
+  rendered the new session on first focus (3 sessions across 3 active days;
+  pre-journey 2) — no stale-window wait.
+- **073 §6.3 — PASS (crafted mid-window state).** `workout_instances`
+  [2026-10-03] rewound to 0 while its leg-0 session proves the leg settled;
+  one relaunch reconciled the position forward to 1, reward-free (ledger
+  byte-identical), the leg not replayed; a second relaunch changed nothing
+  (`current_index` AND `updated_at` identical — idempotent).
+- **073 §6.4 — PASS.** Real-UI lifecycle: leg 1 played (first-play tutorial
+  rendered, QA skip), leg 2 skipped via `home-workout-skip` ("Skipped",
+  allowance 3→2, "the last game must be played"), leg 3 launched as "game 3"
+  (honest stored-position launch), leg 4 finished into the `workout-complete`
+  panel ("4/4 games complete") and Home's "4/4 games saved" card. Durable:
+  `status='completed'`, `current_index=4`, `skipped_indices_json=[1]`; the
+  skipped leg has NO session and NO ledger/xp row; played legs exactly-once.
+- **073 §6.5 — PASS.** A standalone session created its session + exactly-once
+  ledger entry with ALL workout rows untouched; two launch→force-stop cycles
+  produced no phantom advance.
+- **074 §7.4 — PASS.** Background (HOME) mid-session → restore resumed
+  auto-paused behind the pause overlay with trial/score/rule intact, then the
+  session completed normally; exactly one new session (7 total, all-distinct
+  ids); 3 genuine first-play tutorials rendered; 5 real completions persisted;
+  whole-campaign logcat 18,442 lines with 0 FATAL / 0 reentrancy errors /
+  0 SQLite errors / 0 ANR / 0 RedBox.
+- Final durable audit: integrity `ok`, 0 FK violations, schema v13, ledger 8
+  rows with unique operation ids, workout rows in their designed terminal
+  states.
+- **ARTEMIS lane: BLOCKED (external, not exercised)** — journeys ran on the
+  direct emulator-local ADB lane per the Campaign 030B/031/068 precedent.
+- Full evidence: `docs/redesign/evidence/change070-074-device/`
+  (`DEVICE_LANE_CLOSURE.md`); raw artifacts under
+  `qa-artifacts/change070-074-device/`.
+
 ## CURRENT-STATE CORRECTION — 2026-09-30 (Change 069 / `47fffee`)
 
 This block corrects the record **without rewriting history**: every entry below
