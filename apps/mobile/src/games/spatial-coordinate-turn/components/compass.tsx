@@ -97,12 +97,12 @@ export function CompassView({ heading, testID, size = 96 }: CompassViewProps) {
         <View
           style={[
             styles.needle,
-            { height: size * 0.42, backgroundColor: theme.accent, transform: [{ rotate: `${angle}deg` }] },
+            { height: size * 0.42, backgroundColor: theme.spatial, transform: [{ rotate: `${angle}deg` }] },
           ]}
         />
       </View>
       <View style={styles.glyphWrap}>
-        <ThemedText type="title" style={{ color: theme.accent }}>
+        <ThemedText type="title" style={{ color: theme.spatial }}>
           {DIR_ARROW[heading]}
         </ThemedText>
       </View>

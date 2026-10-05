@@ -32,11 +32,11 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
   const theme = useTheme();
   const backgroundColor =
     visual === 'target'
-      ? theme.accent
+      ? theme.attention
       : visual === 'error'
         ? theme.danger
         : visual === 'selected'
-          ? theme.accentSoft
+          ? theme.attentionSoft
           : theme.surface;
   // Verdicts change fill AND icon/shape, never colour alone: a correctly
   // tapped target keeps its fill plus a ✓ badge; a wrong tap keeps its

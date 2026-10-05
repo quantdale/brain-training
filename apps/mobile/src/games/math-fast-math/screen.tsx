@@ -346,7 +346,7 @@ export default function MathScreen(props: MathScreenProps = {}) {
       header={
         <ThemedText
           type="subtitle"
-          testID={testId(GAME_ID, 'problem-label', String(state.problemIndex + 1))}>
+          testID={testId(GAME_ID, 'problem-label', String(state.problemIndex + 1))} themeColor="stageInk">
           Problem {state.problemIndex + 1}/{rounds}
         </ThemedText>
       }
@@ -481,7 +481,8 @@ function TimerBar({
       <View
         style={[
           styles.timerFill,
-          { width: `${Math.round(fraction * 100)}%`, backgroundColor: theme.accent },
+          // Change 076: time instrument (metric identity) instead of the CTA red.
+          { width: `${Math.round(fraction * 100)}%`, backgroundColor: theme.info },
         ]}
       />
     </View>

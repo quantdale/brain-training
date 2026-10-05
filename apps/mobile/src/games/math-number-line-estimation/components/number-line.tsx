@@ -178,7 +178,7 @@ export function NumberLine({
         <View
           pointerEvents="none"
           testID={testId(GAME_ID, 'line-flag')}
-          style={[styles.flag, { left: `${flagFraction * 100}%`, backgroundColor: theme.accent }]}
+          style={[styles.flag, { left: `${flagFraction * 100}%`, backgroundColor: theme.math }]}
         />
         {resolved && estimateFraction !== null && markerFill !== null && markerOn !== null && markerGlyph !== null ? (
           <View

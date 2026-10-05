@@ -85,7 +85,7 @@ export const Playfield = memo(function Playfield({
               left: `${target.x * 100}%`,
               top: `${target.y * 100}%`,
               width: `${2 * radius * 100}%`,
-              backgroundColor: theme.accent,
+              backgroundColor: theme.speed,
             },
           ]}
         />

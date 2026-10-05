@@ -2,7 +2,7 @@
  * GridView — responsive boolean grid renderer.
  *
  * Renders a `boolean[][]` (rows × cols) as fixed-size square cells. Filled
- * cells use the theme accent; empty cells use the surface color. No Skia — it
+ * cells use the domain hue; empty cells use the surface color. No Skia — it
  * is plain `View`s so it renders reliably across RN targets.
  *
  * Accessibility: each cell is labeled only by its position and whether it is
@@ -63,7 +63,7 @@ export const GridView = memo(function GridView({
                   width: cellSize,
                   height: cellSize,
                   borderRadius: radius,
-                  backgroundColor: filled ? theme.accent : theme.surface,
+                  backgroundColor: filled ? theme.spatial : theme.surface,
                   borderColor: theme.border,
                 },
                 reducedMotion ? null : styles.cellTransition,

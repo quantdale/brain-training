@@ -220,7 +220,7 @@ export function OptionCell({
       ? `Option ${index + 1}, cell row ${cell.row + 1} column ${cell.col + 1}, wrong pick`
       : `Option ${index + 1}, cell row ${cell.row + 1} column ${cell.col + 1}`;
 
-  const markers: GridMarker[] = [{ cell, color: theme.accent }];
+  const markers: GridMarker[] = [{ cell, color: theme.spatial }];
 
   return (
     <Pressable

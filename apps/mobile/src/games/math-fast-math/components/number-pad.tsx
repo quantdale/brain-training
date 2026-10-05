@@ -119,7 +119,7 @@ export const Key = memo(function Key({
       onPress={handlePress}
       style={({ pressed }) => [
         styles.key,
-        { backgroundColor: accent ? theme.accent : theme.surface, borderColor: theme.border },
+        { backgroundColor: accent ? theme.math : theme.surface, borderColor: theme.border },
         pressed && styles.pressed,
       ]}>
       <ThemedText type="headline" style={{ color: accent ? '#FFFFFF' : theme.text }}>

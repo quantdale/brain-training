@@ -62,13 +62,13 @@ export const Cell = memo(function Cell({
   const symbol = trackerSymbolById(symbolId);
   const backgroundColor =
     visual === 'target'
-      ? theme.accent
+      ? theme.attention
       : visual === 'error'
         ? theme.dangerSoft
         : visual === 'correct'
           ? theme.successSoft
           : visual === 'selected'
-            ? theme.accentSoft
+            ? theme.attentionSoft
             : theme.surface;
   const borderColor =
     visual === 'error'

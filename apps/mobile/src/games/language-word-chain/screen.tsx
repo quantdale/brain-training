@@ -401,7 +401,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
         <ThemedText
           type="subtitle"
           testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}
-        >
+         themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
@@ -436,7 +436,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
                     styles.chipWrap,
                     { borderColor: theme.border },
                     isActiveBlank && state.phase === 'question'
-                      ? { borderColor: theme.accent }
+                      ? { borderColor: theme.language }
                       : null,
                   ]}
                   testID={testId(GAME_ID, 'chain-word', String(index))}
@@ -485,7 +485,7 @@ export default function WordChainScreen(props: WordChainScreenProps = {}) {
                       {
                         backgroundColor:
                           i < state.currentStepIndex
-                            ? theme.accent
+                            ? theme.language
                             : theme.border,
                       },
                     ]}

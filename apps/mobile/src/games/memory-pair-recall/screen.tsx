@@ -415,7 +415,7 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
         <ThemedText
           type="subtitle"
           testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
-        >
+         themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
@@ -480,7 +480,7 @@ export default function PairRecallScreen(props: PairRecallScreenProps = {}) {
                         styles.dot,
                         {
                           backgroundColor:
-                            i < state.cueIndex ? theme.accent : theme.border,
+                            i < state.cueIndex ? theme.memory : theme.border,
                         },
                       ]}
                     />

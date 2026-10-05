@@ -473,7 +473,7 @@ export default function SpeedColorMatchScreen(props: SpeedColorMatchScreenProps 
       interceptBack={inSession}
       roundProgress={{ value: state.stats.trialsPlayed, total: totalTrials }}
       header={
-        <ThemedText type="subtitle" testID={testId(GAME_ID, 'trial', String(state.trialIndex + 1))}>
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'trial', String(state.trialIndex + 1))} themeColor="stageInk">
           Trial {state.trialIndex + 1}/{totalTrials}
         </ThemedText>
       }

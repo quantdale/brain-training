@@ -45,7 +45,9 @@ export function RoundWindow({ deadlineMs, windowMs, clock, testID }: RoundWindow
 
   const fraction = windowMs > 0 ? Math.min(1, remaining / windowMs) : 0;
   // The bar turns warning-colored once less than a third remains.
-  const fillColor = fraction < 1 / 3 ? theme.warning : theme.accent;
+  // Change 076: the window bar is the time instrument (metric identity), not
+  // the CTA red.
+  const fillColor = fraction < 1 / 3 ? theme.warning : theme.info;
 
   return (
     <View

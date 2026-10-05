@@ -398,7 +398,7 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
                       key={i}
                       style={[
                         styles.dot,
-                        { backgroundColor: i < state.inputIndex ? theme.accent : theme.border },
+                        { backgroundColor: i < state.inputIndex ? theme.memory : theme.border },
                       ]}
                     />
                   ))}

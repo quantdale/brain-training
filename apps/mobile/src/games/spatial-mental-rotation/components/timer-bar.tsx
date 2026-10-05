@@ -21,7 +21,8 @@ export function TimerBar({ remainingMs, budgetMs, testID }: TimerBarProps) {
   const theme = useTheme();
   const fraction = budgetMs > 0 ? Math.min(1, Math.max(0, remainingMs / budgetMs)) : 0;
   const color =
-    fraction > 0.5 ? theme.accent : fraction > 0.25 ? theme.warning : theme.danger;
+    // Change 076: time instrument (metric identity) instead of the CTA red.
+    fraction > 0.5 ? theme.info : fraction > 0.25 ? theme.warning : theme.danger;
 
   return (
     <View

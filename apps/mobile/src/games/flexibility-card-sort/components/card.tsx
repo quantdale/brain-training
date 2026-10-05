@@ -65,7 +65,7 @@ export const CardView = memo(function CardView({
       : visual === 'error'
         ? theme.danger
         : visual === 'selected'
-          ? theme.accent
+          ? theme.flexibility
           : theme.border;
   const background =
     visual === 'correct'
@@ -73,7 +73,7 @@ export const CardView = memo(function CardView({
       : visual === 'error'
         ? theme.dangerSoft
         : visual === 'selected'
-          ? theme.accentSoft
+          ? theme.flexibilitySoft
           : theme.surface;
   const verdictGlyph = visual === 'correct' ? '✓' : visual === 'error' ? '✕' : null;
   const verdictFill = visual === 'correct' ? theme.success : visual === 'error' ? theme.danger : null;

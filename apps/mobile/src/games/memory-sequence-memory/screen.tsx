@@ -434,7 +434,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
         <>
           <ThemedText
             type="subtitle"
-            testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+            testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))} themeColor="stageInk">
             Sequence {state.roundIndex + 1}
           </ThemedText>
           <ThemedText
@@ -510,7 +510,7 @@ export default function SequenceMemoryScreen(props: SequenceMemoryScreenProps = 
                     key={i}
                     style={[
                       styles.dot,
-                      { backgroundColor: i < matchedCount ? theme.accent : theme.border },
+                      { backgroundColor: i < matchedCount ? theme.memory : theme.border },
                     ]}
                   />
                 ))}

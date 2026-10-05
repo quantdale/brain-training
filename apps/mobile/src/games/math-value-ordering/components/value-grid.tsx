@@ -142,7 +142,7 @@ export function ValueGrid({
                 pointerEvents="none"
                 style={[
                   styles.rankBadge,
-                  { backgroundColor: isCorrectPick ? theme.success : theme.accent },
+                  { backgroundColor: isCorrectPick ? theme.success : theme.math },
                 ]}
                 testID={testId(GAME_ID, 'tile-rank', String(rank))}>
                 <Text style={styles.rankText}>{rank}</Text>

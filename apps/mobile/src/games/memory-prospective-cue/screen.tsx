@@ -512,7 +512,7 @@ export default function SignalWatchScreen(
         <ThemedText
           type="subtitle"
           testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
-        >
+         themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
@@ -577,7 +577,7 @@ export default function SignalWatchScreen(
                         styles.dot,
                         {
                           backgroundColor:
-                            i < state.itemIndex ? theme.accent : theme.border,
+                            i < state.itemIndex ? theme.memory : theme.border,
                         },
                       ]}
                     />

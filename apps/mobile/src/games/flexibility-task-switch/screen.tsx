@@ -412,7 +412,7 @@ export default function TaskSwitchScreen(
         <ThemedText
           type="subtitle"
           testID={testId(GAME_ID, "round", String(state.roundIndex + 1))}
-        >
+         themeColor="stageInk">
           Trial {state.roundIndex + 1}/{state.rounds}
         </ThemedText>
       }

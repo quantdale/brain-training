@@ -39,7 +39,7 @@ export function EquationDisplay({
       accessible>
       <ThemedText type="headline">{equation.a}</ThemedText>
       <View
-        style={[styles.slot, { borderColor: reveal !== null ? theme.accent : theme.border }]}>
+        style={[styles.slot, { borderColor: reveal !== null ? theme.math : theme.border }]}>
         <ThemedText
           type="headline"
           themeColor={reveal !== null ? 'accent' : 'textSecondary'}

@@ -519,7 +519,7 @@ export default function OrderSweepScreen(props: OrderSweepScreenProps = {}) {
       interceptBack={inSession}
       roundProgress={{ value: state.stats.roundsPlayed, total: rounds }}
       header={
-        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))} themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }

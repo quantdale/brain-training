@@ -60,7 +60,7 @@ export function StreamView({
           style={[
             styles.windowFill,
             {
-              backgroundColor: disabled ? theme.border : theme.accent,
+              backgroundColor: disabled ? theme.border : theme.memory,
               width: `${Math.round(clamped * 100)}%`,
             },
           ]}

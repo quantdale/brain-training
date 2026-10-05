@@ -44,13 +44,13 @@ export const Tile = memo(function Tile({ index, visual, disabled = false, onPres
   const theme = useTheme();
   const backgroundColor =
     visual === 'observed'
-      ? theme.accent
+      ? theme.memory
       : visual === 'error'
         ? theme.dangerSoft
         : visual === 'correct'
           ? theme.successSoft
           : visual === 'selected'
-            ? theme.accentSoft
+            ? theme.memorySoft
             : theme.surface;
   const borderColor =
     visual === 'error'

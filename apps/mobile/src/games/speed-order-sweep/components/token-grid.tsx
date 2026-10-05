@@ -62,12 +62,12 @@ export function TokenGrid({ round, clearedCount, disabled, onTap, testID }: Toke
           styles.cell,
           styles.token,
           {
-            backgroundColor: cleared ? theme.accentSoft : theme.surface,
-            borderColor: cleared ? theme.accentSoft : theme.border,
+            backgroundColor: cleared ? theme.speedSoft : theme.surface,
+            borderColor: cleared ? theme.speedSoft : theme.border,
             opacity: disabled || cleared ? 0.55 : pressed ? 0.8 : 1,
           },
         ]}>
-        <ThemedText type="subtitle" style={{ color: cleared ? theme.accent : theme.text }}>
+        <ThemedText type="subtitle" style={{ color: cleared ? theme.speedText : theme.text }}>
           {token.value}
         </ThemedText>
       </Pressable>,

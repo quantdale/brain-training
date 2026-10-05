@@ -54,8 +54,8 @@ const WordChip = memo(function WordChip({
       style={({ pressed }) => [
         styles.chip,
         {
-          backgroundColor: isTapped ? theme.border : theme.accent,
-          borderColor: isTapped ? theme.border : theme.accent,
+          backgroundColor: isTapped ? theme.border : theme.language,
+          borderColor: isTapped ? theme.border : theme.language,
           opacity: pressed ? 0.7 : isTapped ? 0.4 : 1,
         },
       ]}>

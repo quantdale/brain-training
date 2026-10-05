@@ -319,7 +319,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
       interceptBack={inSession}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
-        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))} themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
@@ -364,7 +364,7 @@ export default function RunningOrderScreen(props: RunningOrderScreenProps = {}) 
                     key={i}
                     style={[
                       styles.dot,
-                      { backgroundColor: i <= state.revealedIndex ? theme.accent : theme.border },
+                      { backgroundColor: i <= state.revealedIndex ? theme.memory : theme.border },
                     ]}
                   />
                 ))}

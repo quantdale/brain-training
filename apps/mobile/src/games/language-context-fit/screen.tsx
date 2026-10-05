@@ -314,7 +314,7 @@ export default function ContextFitScreen(props: ContextFitScreenProps = {}) {
       header={
         <ThemedText
           type="subtitle"
-          testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+          testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))} themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }

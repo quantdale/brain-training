@@ -41,11 +41,13 @@ export const TriggerButton = memo(function TriggerButton({
   // Stimulus class drives the whole visual: neutral wait → green GO → red HOLD.
   const isGo = active && !hold;
   const isHold = active && hold;
-  const fillColor = isGo ? theme.accent : isHold ? theme.danger : theme.surface;
-  const borderColor = isGo ? theme.accent : isHold ? theme.danger : theme.border;
+  // Change 076: GO is the success stimulus (green "tap now"), HOLD danger
+  // (red "wait") — two reds would be indistinguishable at reaction speed.
+  const fillColor = isGo ? theme.success : isHold ? theme.danger : theme.surface;
+  const borderColor = isGo ? theme.success : isHold ? theme.danger : theme.border;
   // Label/glyph drawn ON the fill: the `on` slot keeps GO/HOLD legible in
   // both themes (Campaign 026 colour sweep — never a raw white literal).
-  const onFill = isGo ? theme.accentOn : theme.dangerOn;
+  const onFill = isGo ? theme.successOn : theme.dangerOn;
 
   return (
     <Pressable

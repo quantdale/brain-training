@@ -410,7 +410,7 @@ export default function ColorStroopScreen(props: ColorStroopScreenProps = {}) {
           <ThemedText
             type="subtitle"
             testID={testId(GAME_ID, "trial", String(state.trialIndex + 1))}
-          >
+           themeColor="stageInk">
             Trial {state.trialIndex + 1}/{totalTrials}
           </ThemedText>
           <ThemedText

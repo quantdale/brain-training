@@ -37,7 +37,7 @@ export function SequenceChips({ terms, nextValue, testID }: SequenceChipsProps) 
         </View>
       ))}
       <View
-        style={[styles.chip, { backgroundColor: theme.accentSoft, borderColor: theme.accent }]}
+        style={[styles.chip, { backgroundColor: theme.logicSoft, borderColor: theme.logic }]}
         testID={testId(GAME_ID, 'sequence', 'next')}>
         <ThemedText
           type="bodyLarge"

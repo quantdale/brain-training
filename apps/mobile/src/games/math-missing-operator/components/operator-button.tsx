@@ -55,7 +55,7 @@ export const OperatorButton = memo(function OperatorButton({
   const borderColor =
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.border;
   const foregroundColor =
-    highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.accent;
+    highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : theme.math;
   const verdictGlyph = highlight === 'correct' ? '✓' : highlight === 'wrong' ? '✕' : null;
   const verdictFill =
     highlight === 'correct' ? theme.success : highlight === 'wrong' ? theme.danger : null;

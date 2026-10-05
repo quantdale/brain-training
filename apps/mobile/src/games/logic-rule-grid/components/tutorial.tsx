@@ -123,7 +123,7 @@ function DemoGrid({
           style={[
             styles.cell,
             { borderColor: theme.border, backgroundColor: theme.surface },
-            isAnswer && { backgroundColor: theme.accent },
+            isAnswer && { backgroundColor: theme.logic },
           ]}>
           <ThemedText type="bodyLarge" themeColor="text">
             {isBlank ? String(answer + 1) : String(square[r][c] + 1)}

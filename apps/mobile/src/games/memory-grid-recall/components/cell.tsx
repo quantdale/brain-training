@@ -55,13 +55,13 @@ export const Cell = memo(function Cell({
   const theme = useTheme();
   const backgroundColor =
     visual === "target"
-      ? theme.accent
+      ? theme.memory
       : visual === "error"
         ? theme.dangerSoft
         : visual === "correct"
           ? theme.successSoft
           : visual === "selected"
-            ? theme.accentSoft
+            ? theme.memorySoft
             : theme.surface;
   const borderColor =
     visual === "error"

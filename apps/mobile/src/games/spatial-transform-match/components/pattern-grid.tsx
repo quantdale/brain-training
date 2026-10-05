@@ -2,7 +2,7 @@
  * PatternGrid — responsive square grid rendering a filled/unfilled pattern.
  *
  * The grid is always square (`gridSize` cells, side = sqrt(gridSize)); filled
- * cells are highlighted with the theme accent color.
+ * cells are highlighted with the domain hue.
  *
  * Accessibility: each cell is labeled only by its position and whether it is
  * "filled"/"empty" ('Row r column c filled/empty', mirroring fold-match's
@@ -60,7 +60,7 @@ export const PatternGrid = memo(function PatternGrid({
               style={[
                 styles.tile,
                 {
-                  backgroundColor: filledSet.has(index) ? theme.accent : theme.surface,
+                  backgroundColor: filledSet.has(index) ? theme.spatial : theme.surface,
                   borderColor: theme.border,
                 },
               ]}

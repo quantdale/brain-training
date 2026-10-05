@@ -392,7 +392,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
       header={
         <ThemedText
           type="subtitle"
-          testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+          testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))} themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
@@ -452,7 +452,7 @@ export default function PatternTapBackScreen(props: PatternTapBackScreenProps = 
                       key={i}
                       style={[
                         styles.dot,
-                        { backgroundColor: i < state.inputIndex ? theme.accent : theme.border },
+                        { backgroundColor: i < state.inputIndex ? theme.memory : theme.border },
                       ]}
                     />
                   ))}

@@ -340,7 +340,7 @@ export default function LogicScreen(props: LogicScreenProps = {}) {
       onQuit={quitToLibrary}
       interceptBack={inSession}
       header={
-        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
+        <ThemedText type="subtitle" testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))} themeColor="stageInk">
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>
       }
