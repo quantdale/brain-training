@@ -11,6 +11,13 @@
  * All economy behaviour is untouched: streak item purchase/apply still flows
  * through the idempotent repositories, rewards stay owned by `/rewards`, and
  * every existing testID/accessibility seam is preserved.
+ *
+ * Change 076 (Training-Studio lock, REFERENCE_LOCK.md): the player card is the
+ * screen's one focal object and moves onto the immersive stage panel — white
+ * instrument numerals, translucent stage wells. Quests/achievements/cosmetics
+ * become numbered hairline fact rows (lock §8); theme/settings become quiet
+ * bordered rows. Red appears only as identity tones, never an action fill
+ * (this screen has no primary action). Semantics and data flow are unchanged.
  */
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState, type ReactNode } from "react";
@@ -21,7 +28,6 @@ import { useSettings } from "@/components/settings/settings-provider";
 import { SensorySettingsCard } from "@/components/sensory/sensory-settings-card";
 import { ThemedText } from "@/components/themed-text";
 import { StateCard } from "@/components/shell";
-import { ArcadePanel } from "@/components/ui/arcade-panel";
 import { Report, ReportRow } from "@/components/ui/report";
 import { Radii, Spacing, type ThemeColor } from "@/constants/theme";
 import { MIN_TOUCH_TARGET } from "@/components/a11y";
@@ -30,6 +36,7 @@ import { useTheme } from "@/hooks/use-theme";
 import {
   Badge,
   Button,
+  Card,
   Entrance,
   HAIRLINE,
   ListRow,
@@ -99,6 +106,12 @@ import {
   type ThemeOption,
 } from "@/theme/registry";
 import { localDateString } from "@/workout/today";
+
+/** Stage-panel surface language (REFERENCE_LOCK §7): the same translucent
+ *  white ramp the shared stage chrome (SessionHeader) uses, so screen-local
+ *  stage content never invents a new opacity step. */
+const STAGE_WELL = "rgba(255, 255, 255, 0.08)";
+const STAGE_LINE = "rgba(255, 255, 255, 0.28)";
 
 const STREAK_ITEMS: { kind: StreakItemKind; label: string; caption: string }[] =
   [
@@ -650,20 +663,18 @@ export default function ProfileScreen() {
         </View>
       </Entrance>
 
-      {/* The screen's one focal object: the player card. Level/XP/streak read
-          as identity attributes here, not four equal stat tiles. */}
+      {/* The screen's one focal object: the player card on the immersive stage
+          (REFERENCE_LOCK §1/§7) — white instrument numerals, translucent stage
+          wells. Level/XP/streak read as identity attributes here, not four
+          equal stat tiles. */}
       <Entrance index={1}>
-        <ArcadePanel
-          emphasis="focal"
-          padding="lg"
-          testID="profile-identity"
-        >
+        <Card variant="stage" padding="lg" testID="profile-identity">
           <View style={styles.identityRow}>
             <View
               style={[
                 styles.monogram,
                 {
-                  backgroundColor: theme.surfaceSunken,
+                  backgroundColor: STAGE_WELL,
                   borderColor: frameColor,
                 },
               ]}
@@ -672,7 +683,7 @@ export default function ProfileScreen() {
             >
               <ThemedText
                 type="headline"
-                themeColor="text"
+                themeColor="stageInk"
                 allowFontScaling={false}
                 aria-hidden
               >
@@ -682,12 +693,17 @@ export default function ProfileScreen() {
             <View style={styles.identityText}>
               <ThemedText
                 type="headline"
+                themeColor="stageInk"
                 numberOfLines={1}
                 testID="profile-name"
               >
                 {data.displayName}
               </ThemedText>
-              <ThemedText type="caption" themeColor="textSecondary">
+              <ThemedText
+                type="caption"
+                themeColor="stageInk"
+                style={styles.stageCaption}
+              >
                 Your training record is saved on this device.
               </ThemedText>
             </View>
@@ -711,37 +727,40 @@ export default function ProfileScreen() {
                   accessibilityLabel={`Level ${level} progress: ${xpIntoLevel(data.totalXp)} of ${xpForNextLevel(data.totalXp)} XP`}
                 />
               ) : (
-                <ThemedText type="caption" themeColor="textSecondary">
+                <ThemedText
+                  type="caption"
+                  themeColor="stageInk"
+                  style={styles.stageCaption}
+                >
                   No XP yet — play a game to start your level.
                 </ThemedText>
               )}
             </View>
           </View>
 
+          {/* Instrument row (lock §1): white tabular numerals over translucent
+              stage separators — the metric strip IS the identity instrument. */}
           <View style={styles.metricStrip}>
             <Metric
               testID="profile-metric-xp"
               value={compactNumber(data.totalXp)}
               label="Total XP"
-              valueColor="xp"
             />
             <View
-              style={[styles.metricDivider, { backgroundColor: theme.border }]}
+              style={[styles.metricDivider, { backgroundColor: STAGE_LINE }]}
             />
             <Metric
               testID="profile-metric-streak"
               value={`${data.currentStreak}`}
               label="Day streak"
-              valueColor="streak"
             />
             <View
-              style={[styles.metricDivider, { backgroundColor: theme.border }]}
+              style={[styles.metricDivider, { backgroundColor: STAGE_LINE }]}
             />
             <Metric
               testID="profile-metric-coins"
               value={compactNumber(data.balance)}
               label="Coins"
-              valueColor="currency"
             />
           </View>
 
@@ -757,14 +776,17 @@ export default function ProfileScreen() {
           </View>
 
           {data.atRisk ? (
-            <ThemedText
-              type="caption"
-              themeColor="warning"
+            /* Feedback band (lock §6): warning soft fill carries the tone with
+               text + glyph, legible on the stage in both schemes. */
+            <View
+              style={[styles.atRiskBand, { backgroundColor: theme.warningSoft }]}
               testID="profile-streak-at-risk"
               accessibilityLiveRegion="polite"
             >
-              Your streak is at risk — play today to keep it alive.
-            </ThemedText>
+              <ThemedText type="caption" themeColor="warningSoftText">
+                ⚠ Your streak is at risk — play today to keep it alive.
+              </ThemedText>
+            </View>
           ) : null}
 
           {data.equippedCosmetics.length > 0 ? (
@@ -777,8 +799,11 @@ export default function ProfileScreen() {
                 .join(", ")}. Opens Rewards`}
               accessibilityHint="Opens Rewards to change your cosmetics"
               style={styles.equippedRow}
-              pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
-              <ThemedText type="caption" themeColor="textMuted">
+              pressedStyle={{ backgroundColor: STAGE_WELL }}>
+              <ThemedText
+                type="caption"
+                themeColor="stageInk"
+                style={styles.stageCaption}>
                 Equipped
               </ThemedText>
               {data.equippedCosmetics.map((item) => (
@@ -787,8 +812,8 @@ export default function ProfileScreen() {
                   style={[
                     styles.chip,
                     {
-                      backgroundColor: theme.surfaceSunken,
-                      borderColor: theme.border,
+                      backgroundColor: STAGE_WELL,
+                      borderColor: STAGE_LINE,
                     },
                   ]}
                 >
@@ -798,17 +823,22 @@ export default function ProfileScreen() {
                       { backgroundColor: item.color ?? theme.accent },
                     ]}
                   />
-                  <ThemedText type="caption" themeColor="textSecondary">
+                  <ThemedText type="caption" themeColor="stageInk">
                     {item.name}
                   </ThemedText>
                 </View>
               ))}
-              <ThemedText type="body" themeColor="textMuted" aria-hidden>
+              <ThemedText
+                type="body"
+                themeColor="stageInk"
+                style={styles.stageCaption}
+                aria-hidden
+              >
                 {"›"}
               </ThemedText>
             </Tappable>
           ) : null}
-        </ArcadePanel>
+        </Card>
       </Entrance>
 
       {/* Streak protection: the controls that use coins and inventory. The
@@ -923,6 +953,7 @@ export default function ProfileScreen() {
               <RecordRow
                 key={milestone.id}
                 testID={`profile-milestone-${milestone.id}`}
+                index={index}
                 title={milestone.label}
                 meter={
                   <ProgressBar
@@ -999,6 +1030,7 @@ export default function ProfileScreen() {
                 <RecordRow
                   key={evaluation.questId}
                   testID={`profile-quest-${evaluation.questId}`}
+                  index={index}
                   title={definition?.title ?? evaluation.questId}
                   meter={
                     <ProgressBar
@@ -1056,6 +1088,7 @@ export default function ProfileScreen() {
               <RecordRow
                 key={definition.id}
                 testID={`profile-achievement-${definition.id}`}
+                index={index}
                 title={`${!unlocked ? "🔒 " : ""}${definition.title}`}
                 titleTone={unlocked || claimed ? "text" : "textMuted"}
                 meter={
@@ -1119,58 +1152,61 @@ export default function ProfileScreen() {
         </Report>
       </Entrance>
 
-      {/* Data portability — export / import / wipe (Session 05). */}
+      {/* Data portability — export / import / wipe (Session 05). A quiet
+          entry row: the destination speaks for itself, no identity chrome. */}
       <Entrance index={7}>
         <Report title="Your data">
           <ReportRow
             label="Data Management"
             hint="Backup, restore, and delete your local training data"
-            icon={
-              <View
-                style={[
-                  styles.itemIcon,
-                  { backgroundColor: theme.infoSoft },
-                ]}
-              >
-                <Spark size={16} color={theme.infoText} />
-              </View>
-            }
             onPress={() => router.replace("/data-management")}
             testID="profile-data-management"
           />
         </Report>
       </Entrance>
 
-      {/* Theme selection (theme registry seam). */}
+      {/* Theme selection (theme registry seam) — quiet bordered settings card
+          (lock §5 secondary): hairline-separated rows inside one border, no
+          elevation, no identity chrome. */}
       <Entrance index={8}>
-        <Report title="Theme" testID="theme-card">
-          {THEME_OPTIONS.map((option, index) => {
-            const selected = option.id === themeId;
-            return (
-              <View key={option.id} testID={`theme-option-${option.id}`}>
-                <ReportRow
-                  label={option.label}
-                  hint={selected ? "Active" : option.mode}
-                  icon={
-                    <Spark
-                      size={14}
-                      color={selected ? theme.accentOn : theme.textMuted}
-                    />
-                  }
-                  trailing={
-                    selected ? (
-                      <Badge tone="success" label="✓ Active" size="sm" />
-                    ) : undefined
-                  }
-                  onPress={() => onSelectTheme(option)}
-                  testID={`profile-settings-theme-${option.id}`}
-                  accessibilityLabel={`Theme ${option.label}${selected ? ", active" : ""}`}
-                  divider={index < THEME_OPTIONS.length - 1}
-                />
-              </View>
-            );
-          })}
-        </Report>
+        <Card
+          variant="outlined"
+          padding="lg"
+          testID="theme-card"
+          style={styles.settingsCard}
+        >
+          <ThemedText type="eyebrow" themeColor="textMuted">
+            THEME
+          </ThemedText>
+          <View>
+            {THEME_OPTIONS.map((option, index) => {
+              const selected = option.id === themeId;
+              return (
+                <View key={option.id} testID={`theme-option-${option.id}`}>
+                  <ReportRow
+                    label={option.label}
+                    hint={selected ? "Active" : option.mode}
+                    icon={
+                      <Spark
+                        size={14}
+                        color={selected ? theme.accentOn : theme.textMuted}
+                      />
+                    }
+                    trailing={
+                      selected ? (
+                        <Badge tone="success" label="✓ Active" size="sm" />
+                      ) : undefined
+                    }
+                    onPress={() => onSelectTheme(option)}
+                    testID={`profile-settings-theme-${option.id}`}
+                    accessibilityLabel={`Theme ${option.label}${selected ? ", active" : ""}`}
+                    divider={index < THEME_OPTIONS.length - 1}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        </Card>
       </Entrance>
 
       {/* Sensory toggles live in the shared sensory card (owned outside this
@@ -1185,26 +1221,29 @@ export default function ProfileScreen() {
 }
 
 /**
- * One quiet identity attribute (value over label) in the player card strip.
- * No surface of its own: the metric is ink, not a tile (lock §2.7).
+ * One identity attribute in the player card's instrument strip (lock §1):
+ * white tabular numeral over a tracked uppercase metric label, separated by
+ * translucent stage hairlines — an instrument reading, not a tile.
  */
 function Metric({
   value,
   label,
-  valueColor,
   testID,
 }: {
   value: string;
   label: string;
-  valueColor?: ThemeColor;
   testID?: string;
 }) {
   return (
     <View testID={testID} style={styles.metric}>
-      <ThemedText type="numeral" themeColor={valueColor ?? "text"}>
+      <ThemedText type="numeral" themeColor="stageInk">
         {value}
       </ThemedText>
-      <ThemedText type="caption" themeColor="textSecondary">
+      <ThemedText
+        type="caption"
+        themeColor="stageInk"
+        style={styles.metricLabel}
+      >
         {label}
       </ThemedText>
     </View>
@@ -1214,10 +1253,13 @@ function Metric({
 /**
  * One progress record inside a Report. `ReportRow` has no meter slot, so the
  * meterized rows (milestones, quests, achievements) share this local row that
- * keeps the same hairline grammar and 44 dp floor.
+ * keeps the same hairline grammar and 44 dp floor. When `index` is given the
+ * row carries the lock §8 numbered marker (`01`, `02`…) — quiet, credible
+ * ordering for secondary reports.
  */
 function RecordRow({
   testID,
+  index,
   title,
   titleTone = "text",
   meter,
@@ -1226,6 +1268,7 @@ function RecordRow({
   divider = false,
 }: {
   testID: string;
+  index?: number;
   title: string;
   titleTone?: ThemeColor;
   meter?: ReactNode;
@@ -1244,6 +1287,15 @@ function RecordRow({
           : null,
       ]}
     >
+      {index !== undefined ? (
+        <ThemedText
+          type="caption"
+          themeColor="textMuted"
+          style={styles.recordIndex}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </ThemedText>
+      ) : null}
       <View style={styles.recordText}>
         <ThemedText type="bodySmall" themeColor={titleTone}>
           {title}
@@ -1320,6 +1372,24 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
     alignItems: "flex-start",
   },
+  // Metric label language (lock §2): uppercase + tracking, dimmed on stage.
+  // The text content itself keeps its original casing (test contract reads
+  // e.g. "50Coins"); the transform is purely visual.
+  metricLabel: {
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    opacity: 0.68,
+  },
+  // Secondary copy on the stage panel: stage ink dimmed instead of a second
+  // grey (lock §7 — the stage reads in white type).
+  stageCaption: {
+    opacity: 0.68,
+  },
+  atRiskBand: {
+    borderRadius: Radii.small,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.oneHalf,
+  },
   metricDivider: {
     width: HAIRLINE,
     alignSelf: "stretch",
@@ -1366,12 +1436,20 @@ const styles = StyleSheet.create({
   readyLine: {
     paddingVertical: Spacing.one,
   },
+  settingsCard: {
+    gap: Spacing.two,
+  },
   recordRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.three,
     minHeight: MIN_TOUCH_TARGET,
     paddingVertical: Spacing.two,
+  },
+  // Lock §8 numbered marker: fixed-width so values align down the column.
+  recordIndex: {
+    minWidth: 22,
+    fontVariant: ["tabular-nums"],
   },
   recordText: {
     flex: 1,

@@ -173,7 +173,7 @@ describe("Game Detail — Campaign 032 identity-first contract", () => {
     expectBefore(ids, "game-detail-play", "game-detail-recent");
   }, 30_000);
 
-  it("keeps the hero neutral while retaining the domain identity cue", async () => {
+  it("hosts the hero on the immersive stage while retaining the domain identity cue", async () => {
     mockDbState.db = makeFakeDb();
 
     await renderDetail(MEMORY_GAME.id);
@@ -181,11 +181,11 @@ describe("Game Detail — Campaign 032 identity-first contract", () => {
     const heroStyle = StyleSheet.flatten(
       screen.getByTestId("game-detail-mastery").props.style,
     );
-    // Campaign 055: the hero is a GameStage/ArcadePanel now. The legacy Card
-    // hero was raised and borderless; the Stage is the neutral paper surface
-    // with a hairline border. The neutral intent (no domain hue on the hero
-    // surface) is unchanged, so the assertion tracks the new shape role.
-    expect([Colors.light.surface, Colors.dark.surface]).toContain(
+    // Change 076 (REFERENCE_LOCK §1): the detail hero is the immersive stage
+    // card — charcoal in BOTH schemes, hairline `border` outline instead of a
+    // shadow. The neutral intent (no domain hue on the hero surface) is
+    // unchanged, so the assertion tracks the stage surface role.
+    expect([Colors.light.stage, Colors.dark.stage]).toContain(
       heroStyle.backgroundColor,
     );
     expect([Colors.light.border, Colors.dark.border]).toContain(

@@ -19,7 +19,12 @@
 
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import {
   buildAccuracyTrend,
   buildNormalizedBestHistory,
@@ -38,14 +43,16 @@ import {
   Card,
   EmptyState,
   Entrance,
-  ListRow,
+  HAIRLINE,
+  ArcadePanel,
   SectionGrid,
   Skeleton,
   SkeletonText,
   Spark,
+  Tappable,
   useSafeBack,
 } from '@/components/ui';
-import { DomainColors, Radii, Spacing, type DomainName } from '@/constants/theme';
+import { DomainColors, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
 import type { AppDatabase, GameAggregate, GameSessionRecord, RatingHistoryEntry } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useDbData } from '@/hooks/use-db-data';
@@ -161,7 +168,9 @@ export default function ProgressDetailScreen() {
 
       {bestHistory.current !== null ? (
         <Entrance index={0}>
-          <Card variant="hero" testID="progress-detail-pb">
+          {/* The screen's one focal panel (lock §5): the personal-best numeral
+              in reading ink, its raising events as numbered hairline rows. */}
+          <ArcadePanel emphasis="focal" testID="progress-detail-pb">
             <View style={styles.cardHeader}>
               <ThemedText type="eyebrow" themeColor="textSecondary">
                 Recent personal best
@@ -173,7 +182,7 @@ export default function ProgressDetailScreen() {
               />
             </View>
             <View style={styles.heroRow}>
-              <ThemedText type="numeralXl" themeColor="accent">
+              <ThemedText type="numeralXl">
                 {formatPercent(bestHistory.current.value)}
               </ThemedText>
               <ThemedText type="caption" themeColor="textSecondary">
@@ -186,14 +195,15 @@ export default function ProgressDetailScreen() {
                 hero verbatim). */}
             {bestHistory.events.length > 1 ? (
               <View style={styles.rows}>
-                {bestHistory.events.slice(-5).map((event) => (
-                  <View
+                {bestHistory.events.slice(-5).map((event, index) => (
+                  <FactRow
                     key={`${event.t}-${event.value}`}
-                    style={styles.row}
-                    testID={`progress-detail-pb-${event.t}`}>
-                    <ThemedText type="small">{formatDayLabel(event.t)}</ThemedText>
-                    <ThemedText type="smallBold">{formatPercent(event.value)}</ThemedText>
-                  </View>
+                    marker={String(index + 1).padStart(2, '0')}
+                    label={formatDayLabel(event.t)}
+                    value={formatPercent(event.value)}
+                    divider={index < Math.min(bestHistory.events.length, 5) - 1}
+                    testID={`progress-detail-pb-${event.t}`}
+                  />
                 ))}
               </View>
             ) : null}
@@ -204,7 +214,7 @@ export default function ProgressDetailScreen() {
                 ? 'for less than a day'
                 : `for ${bestHistory.standingDays ?? 0}d`}. {explainMetric('personal-best-history')}
             </ThemedText>
-          </Card>
+          </ArcadePanel>
         </Entrance>
       ) : null}
 
@@ -316,14 +326,16 @@ export default function ProgressDetailScreen() {
           <ThemedText type="subtitle">Game records</ThemedText>
           {data.aggregates.length > 0 ? (
             <View style={styles.rows}>
-              {data.aggregates.map((a) => (
-                <ListRow
+              {data.aggregates.map((a, index) => (
+                <LinkRow
                   key={a.gameId}
-                  title={getGameDefinition(a.gameId)?.name ?? a.gameId}
-                  subtitle={`Last played ${formatDayLabel(a.lastCompletedAt)}`}
-                  meta={`${a.count}× · best ${Math.round(a.bestNormalized * 100)}%`}
+                  marker={String(index + 1).padStart(2, '0')}
+                  label={getGameDefinition(a.gameId)?.name ?? a.gameId}
+                  hint={`Last played ${formatDayLabel(a.lastCompletedAt)}`}
+                  value={`${a.count}× · best ${Math.round(a.bestNormalized * 100)}%`}
                   onPress={() => router.push(`/game-detail/${a.gameId}`)}
                   accessibilityHint="Open game details"
+                  divider={index < data.aggregates.length - 1}
                   testID={`progress-detail-game-${a.gameId}`}
                 />
               ))}
@@ -344,13 +356,15 @@ export default function ProgressDetailScreen() {
           <ThemedText type="subtitle">Recent sessions</ThemedText>
           {data.recent.length > 0 ? (
             <View style={styles.rows}>
-              {data.recent.slice(0, RECENT_LIMIT).map((session) => (
-                <ListRow
+              {data.recent.slice(0, RECENT_LIMIT).map((session, index) => (
+                <LinkRow
                   key={session.id}
-                  title={`${getGameDefinition(session.gameId)?.name ?? session.gameId} · ${formatDayLabel(session.completedAt)}`}
-                  meta={`${Math.round(session.normalizedResult * 100)}%`}
+                  marker={String(index + 1).padStart(2, '0')}
+                  label={`${getGameDefinition(session.gameId)?.name ?? session.gameId} · ${formatDayLabel(session.completedAt)}`}
+                  value={`${Math.round(session.normalizedResult * 100)}%`}
                   onPress={() => router.push(`/results?id=${session.id}`)}
                   accessibilityHint="Open session results"
+                  divider={index < Math.min(data.recent.length, RECENT_LIMIT) - 1}
                   testID={`progress-detail-session-${session.id}`}
                 />
               ))}
@@ -396,6 +410,128 @@ function sparsePointLabels(points: readonly { t: number }[]): string[] {
 }
 
 /**
+ * Numbered hairline fact row — the lock's secondary-report grammar
+ * (REFERENCE_LOCK §8): quiet `01`-style marker, tracked uppercase label left,
+ * medium value right, hairline separators. Local to this route so shared
+ * kit surfaces stay untouched (a shared primitive is an integrator call).
+ */
+function FactRow({
+  marker,
+  label,
+  value,
+  hint,
+  valueTone = 'text',
+  divider = true,
+  testID,
+  style,
+}: {
+  marker?: string;
+  label: string;
+  value: string;
+  hint?: string;
+  valueTone?: ThemeColor;
+  divider?: boolean;
+  testID?: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useTheme();
+  return (
+    <View
+      testID={testID}
+      style={[
+        styles.factRow,
+        divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
+        style,
+      ]}>
+      {marker ? (
+        <ThemedText type="label" themeColor="textMuted" style={styles.factMarker}>
+          {marker}
+        </ThemedText>
+      ) : null}
+      <View style={styles.factLabels}>
+        <ThemedText type="eyebrow" themeColor="textMuted" style={styles.factLabel}>
+          {label.toUpperCase()}
+        </ThemedText>
+        {hint ? (
+          <ThemedText type="caption" themeColor="textMuted">
+            {hint}
+          </ThemedText>
+        ) : null}
+      </View>
+      {value !== '' ? (
+        <ThemedText type="bodySmall" themeColor={valueTone} style={styles.factValue}>
+          {value}
+        </ThemedText>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * Numbered hairline drill-down link (lock §8 on a §5-quiet row): marker,
+ * body-ink label, optional right-aligned value and a quiet chevron. Keeps the
+ * 44 dp touch floor by style (058 contract for text-only navigation rows).
+ */
+function LinkRow({
+  marker,
+  label,
+  hint,
+  value,
+  onPress,
+  testID,
+  accessibilityHint,
+  divider = false,
+}: {
+  marker?: string;
+  label: string;
+  hint?: string;
+  value?: string;
+  onPress: () => void;
+  testID?: string;
+  accessibilityHint?: string;
+  divider?: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <Tappable
+      testID={testID}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
+      style={[
+        styles.factRow,
+        divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
+      ]}
+      pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+      {marker ? (
+        <ThemedText type="label" themeColor="textMuted" style={styles.factMarker}>
+          {marker}
+        </ThemedText>
+      ) : null}
+      <View style={styles.factLabels}>
+        <ThemedText type="bodySmall" themeColor="text">
+          {label}
+        </ThemedText>
+        {hint ? (
+          <ThemedText type="caption" themeColor="textMuted">
+            {hint}
+          </ThemedText>
+        ) : null}
+      </View>
+      {value ? (
+        <ThemedText type="label" themeColor="textSecondary" style={styles.factValue}>
+          {value}
+        </ThemedText>
+      ) : null}
+      <ThemedText type="body" themeColor="textMuted" aria-hidden>
+        ›
+      </ThemedText>
+    </Tappable>
+  );
+}
+
+/**
  * One domain's rating trend as an identity block: dot + domain-hued name,
  * latest movement and chronological entries. `entries` arrive newest first
  * from the repo; only the newest `PER_DOMAIN_SHOWN` are rendered, with an
@@ -422,8 +558,11 @@ function DomainHistory({
       style={[
         styles.domainBlock,
         {
-          backgroundColor: family ? family.soft : theme.surfaceSunken,
-          borderColor: family ? family.base : theme.border,
+          // Neutral bordered surface (lock §3): the domain hue stays in the
+          // identity dot only — never a full card fill (change 076 role
+          // discipline).
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
         },
       ]}
       testID={`progress-detail-domain-${slug}`}>
@@ -432,9 +571,7 @@ function DomainHistory({
           <View
             style={[styles.domainDot, { backgroundColor: family ? family.base : theme.borderStrong }]}
           />
-          <ThemedText type="smallBold" style={family ? { color: family.softText } : undefined}>
-            {domain}
-          </ThemedText>
+          <ThemedText type="smallBold">{domain}</ThemedText>
         </View>
         {latest ? (
           <ThemedText
@@ -451,15 +588,21 @@ function DomainHistory({
           +{hiddenCount} earlier update{hiddenCount === 1 ? '' : 's'} not shown.
         </ThemedText>
       ) : null}
-      {shown.map((entry) => (
+      {shown.map((entry, index) => (
         <View
           key={entry.id}
-          style={styles.row}
+          style={[
+            styles.row,
+            styles.entryRow,
+            index < shown.length - 1
+              ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border }
+              : null,
+          ]}
           testID={`progress-detail-domain-entry-${entry.id}`}>
-          <ThemedText type="caption" themeColor="textSecondary">
+          <ThemedText type="caption" themeColor="textMuted">
             {formatDayLabel(entry.createdAt)}
           </ThemedText>
-          <ThemedText type="smallBold">
+          <ThemedText type="label">
             {entry.ratingAfter} ({entry.delta >= 0 ? '+' : ''}
             {entry.delta})
           </ThemedText>
@@ -472,6 +615,30 @@ function DomainHistory({
 const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
+  },
+  // Numbered hairline fact-row grammar (lock §8); static rows keep the 44 dp
+  // rhythm (campaign-033 minimum target) so lists read at a constant cadence.
+  factRow: {
+    minHeight: MIN_TOUCH_TARGET,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.one,
+  },
+  factMarker: {
+    minWidth: Spacing.three,
+    fontVariant: ['tabular-nums'],
+  },
+  factLabels: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  // Tracked uppercase label at emphasis weight — a label, not a shout.
+  factLabel: {
+    fontWeight: '600',
+  },
+  factValue: {
+    flexShrink: 0,
   },
   heroRow: {
     flexDirection: 'row',
@@ -498,9 +665,13 @@ const styles = StyleSheet.create({
     // whichever text style happens to render tallest in a given font scale.
     minHeight: MIN_TOUCH_TARGET,
   },
+  // Fact-row padding between hairline-separated history entries (lock §8).
+  entryRow: {
+    paddingVertical: Spacing.one,
+  },
   domainBlock: {
     gap: Spacing.two,
-    borderWidth: 2,
+    borderWidth: HAIRLINE,
     borderRadius: Radii.medium,
     padding: Spacing.twoHalf,
   },

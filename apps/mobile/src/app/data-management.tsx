@@ -764,7 +764,12 @@ export default function DataManagementScreen() {
           ) : (
             <View style={styles.rows}>
               {savedBackups.map((name) => (
-                <View key={name} style={styles.backupRow}>
+                <View
+                  key={name}
+                  style={[
+                    styles.backupRow,
+                    { borderBottomColor: theme.border },
+                  ]}>
                   <View style={styles.backupName}>
                     <ListRow
                       title={name}
@@ -849,7 +854,12 @@ export default function DataManagementScreen() {
                 data) and then delete this file.
               </ThemedText>
               {strandedArtifacts.map((name) => (
-                <View key={name} style={styles.backupRow}>
+                <View
+                  key={name}
+                  style={[
+                    styles.backupRow,
+                    { borderBottomColor: theme.border },
+                  ]}>
                   <View style={styles.backupName}>
                     <ListRow
                       title={name}
@@ -1149,6 +1159,9 @@ function CardHeader({
       <View style={[styles.cardHeaderMark, { backgroundColor: theme[soft] }]}>
         <Spark size={14} color={theme[ink]} />
       </View>
+      <ThemedText type="eyebrow" themeColor="textMuted">
+        SECTION
+      </ThemedText>
       <ThemedText type="headline">{title}</ThemedText>
     </View>
   );
@@ -1215,6 +1228,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: Spacing.two,
+    paddingBottom: Spacing.twoHalf,
+    marginBottom: Spacing.twoHalf,
+    borderBottomWidth: HAIRLINE,
   },
   backupName: {
     flex: 1,

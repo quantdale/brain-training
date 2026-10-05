@@ -1,22 +1,25 @@
 /**
- * Results — `/results`.
+ * Results — `/results` (change 076 UI/UX reboot, task 4.5).
  *
  * Session result surface (WP-2H + W13 UX wave; constitution §16: headline
  * plus meaningful metrics — score, accuracy, reaction, difficulty, rating
  * movement, XP, personal records). Shows one session (by `?id=` search param,
  * else the most recent) plus rating movement from the append-only history,
- * and a list of recent sessions to switch between. Adds an explicit loading
- * state and a performance-band headline over the raw percentage.
+ * and a list of recent sessions to switch between.
  *
- * Presentation (campaign 026/031, design-language v3 "Neon Arcade"):
- * outcome headline + hero metric (ring + numeralXl), four equal `StatBlock`
- * columns, bounded persisted reward, then one context-appropriate primary
- * action. Workout-owned results make Next game or Finish workout primary;
- * standalone results retain Play again. Rating movement and recent sessions
- * remain quiet outlined sections, never stacked uniform cards. A personal-best
- * session still renders the celebration treatment exactly once
- * (sensory-gated success feedback + badge, never blocking); routine
- * completions stay quiet.
+ * Presentation (change 076, REFERENCE_LOCK): the result is a staged artifact —
+ * the played game's board still and the band headline in `stageInk` on the
+ * charcoal stage card, with the score ring as its instrument. Metrics render
+ * as numbered hairline fact rows (lock §8), the reward is its own quiet
+ * outlined card, and UP NEXT / workout completion stay quiet context cards.
+ * Exactly ONE red primary action per viewport, chosen by workout state:
+ * Next game → Finish workout → Play again. A failed workout-advance write
+ * (the only persistence failure this route can observe — the session itself
+ * is already saved when it appears here) is surfaced inline as an errorSoft
+ * band beside the danger toast. Empty/loading/error states keep the lock's
+ * recoverable-state cards. A personal-best session still renders the
+ * celebration treatment exactly once (sensory-gated success feedback + badge,
+ * never blocking); weak outcomes stay honest and quiet.
  */
 
 import {
@@ -28,25 +31,23 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { ScreenShell } from "@/components/screen-shell";
-import { useLayoutTier } from "@/platform/layout";
 import { parseCanonicalSessionId } from "@/routing/route-params";
 import { StateCard } from "@/components/shell";
 import { formatRelativeDay, performanceBand } from "@/components/shell/format";
 import { formatDayLabel } from "@/analytics/format";
 import { ThemedText } from "@/components/themed-text";
 import { GameWorldArt } from "@/components/discovery/game-identity";
-import { ArcadePanel } from "@/components/ui/arcade-panel";
-import { Report, ReportRow } from "@/components/ui/report";
 import {
   AnimatedNumber,
   BackLink,
   Badge,
   Button,
+  Card,
   Confetti,
   Entrance,
+  HAIRLINE,
   ProgressRing,
   Spark,
-  StatBlock,
   showToast,
   useSafeBack,
 } from '@/components/ui';
@@ -59,6 +60,12 @@ import { DIFFICULTY_LABELS, liveAudioHaptics } from "@/sdk";
 import { useWorkoutResultAdvance } from "@/workout/use-workout-result-advance";
 import { gameHref } from "@/workout/routing";
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
+
+/**
+ * Translucent white on the charcoal stage (REFERENCE_LOCK §7: the stage is
+ * charcoal in BOTH schemes, so these do not need theme variants).
+ */
+const STAGE_INK_MUTED = "rgba(255, 255, 255, 0.72)";
 
 interface ResultsData {
   session: GameSessionRecord | null;
@@ -167,13 +174,13 @@ export default function ResultsScreen() {
   // instead of querying for it.
   const sessionId = parseCanonicalSessionId(id) ?? undefined;
   const theme = useTheme();
-  const compactMetrics = useLayoutTier() === "compact";
   const { fontScale } = useWindowDimensions();
-  // At the OS 2x text setting, the results hero legitimately grows with the
-  // user's copy, but its original desktop-density rhythm pushed the primary
-  // replay action into the initial viewport edge. Keep the same hierarchy and
-  // content while tightening only this local hero's padding/gap at large text
-  // sizes so the first actionable handoff remains fully visible.
+  // At the OS 2x text setting, the results artifact legitimately grows with
+  // the user's copy, but its original desktop-density rhythm pushed the
+  // primary replay action into the initial viewport edge. Keep the same
+  // hierarchy and content while tightening only this local artifact's
+  // padding/gap at large text sizes so the first actionable handoff remains
+  // fully visible.
   const largeTextHero = fontScale >= 1.5;
 
   // Reload whenever the screen regains focus (a session may have just landed).
@@ -313,16 +320,17 @@ export default function ResultsScreen() {
         />
       ) : session ? (
         <>
-          {/* One result artifact (campaign 055): the game world and the band
-              headline are the event; the score ring is its evidence. */}
+          {/* The staged artifact (change 076, REFERENCE_LOCK §1/§4): the played
+              game's board still and the band headline on the charcoal stage —
+              continuity of artifact from the play session. The score ring is
+              its instrument. 065: the artifact is a polite live region so the
+              headline is announced when the results appear. */}
           <Entrance index={0}>
-            <ArcadePanel
+            <Card
+              variant="stage"
               padding="none"
-              emphasis="focal"
               testID="results-summary"
-              accessibilityLiveRegion="polite"
-              style={[styles.hero, largeTextHero && styles.heroLargeText]}
-            >
+              accessibilityLiveRegion="polite">
               {celebrate ? (
                 <Confetti
                   seed={`results-${session.id}`}
@@ -330,8 +338,8 @@ export default function ResultsScreen() {
                   height={300}
                 />
               ) : null}
-              {game ? <GameWorldArt game={game} size="stage" testID="results-world" /> : null}
-              <View style={styles.heroBody}>
+              {game ? <GameWorldArt game={game} size="hero" testID="results-world" /> : null}
+              <View style={[styles.stageBody, largeTextHero && styles.stageBodyLargeText]}>
                 {showPersonalBest ? (
                   <Badge
                     label="New personal best"
@@ -341,122 +349,130 @@ export default function ResultsScreen() {
                   />
                 ) : null}
                 {/* Performance band headline (constitution §16): an encouraging,
-                    non-clinical read of the normalized score above the ring. */}
+                    non-clinical read of the normalized score. On the stage it
+                    reads in `stageInk` — a weak outcome stays honest through
+                    the band language, never through borrowed success colour. */}
                 <ThemedText
                   type="resultHeadline"
-                  themeColor={band.tone}
+                  themeColor="stageInk"
                   testID="results-band"
                   style={styles.headline}
                 >
                   {band.label}
                 </ThemedText>
-                <ProgressRing
-                  value={session.normalizedResult}
-                  tone="accent"
-                  testID="results-ring"
-                >
-                  <AnimatedNumber
-                    value={scorePercent}
-                    format={(n) => `${Math.round(n)}%`}
-                    type="numeralXl"
-                    themeColor="accent"
-                    testID="results-score"
-                  />
-                </ProgressRing>
-                <ThemedText
-                  type="eyebrow"
-                  themeColor="textSecondary"
-                  testID="results-game"
-                >
-                  {game?.name ?? session.gameId}
-                </ThemedText>
-                {/* The session date is metadata, not part of the reward: glued
-                    to the XP it read as "+50 XP Yesterday" (Campaign 026
-                    visual-QA). Its own caption row keeps both facts legible. */}
-                <ThemedText
-                  type="caption"
-                  themeColor="textSecondary"
-                  testID="results-timestamp"
-                >
-                  Played {formatRelativeDay(session.completedAt, mountedAt)}
-                </ThemedText>
+                <View style={styles.scoreRow}>
+                  <ProgressRing
+                    value={session.normalizedResult}
+                    tone="accent"
+                    testID="results-ring"
+                  >
+                    <AnimatedNumber
+                      value={scorePercent}
+                      format={(n) => `${Math.round(n)}%`}
+                      type="numeralXl"
+                      themeColor="stageInk"
+                      testID="results-score"
+                    />
+                  </ProgressRing>
+                  <View style={styles.scoreMeta}>
+                    <ThemedText
+                      type="eyebrow"
+                      style={styles.stageMuted}
+                      testID="results-game"
+                    >
+                      {game?.name ?? session.gameId}
+                    </ThemedText>
+                    {/* The session date is metadata, not part of the reward: glued
+                        to the XP it read as "+50 XP Yesterday" (Campaign 026
+                        visual-QA). Its own caption row keeps both facts legible. */}
+                    <ThemedText
+                      type="caption"
+                      style={styles.stageMuted}
+                      testID="results-timestamp"
+                    >
+                      Played {formatRelativeDay(session.completedAt, mountedAt)}
+                    </ThemedText>
+                  </View>
+                </View>
               </View>
-            </ArcadePanel>
+            </Card>
           </Entrance>
 
-          {/* Metrics as four equal columns in ONE row (kit StatBlock); each
-              value keeps its metric identity colour. */}
+          {/* Metrics as numbered hairline fact rows (REFERENCE_LOCK §8) —
+              instrument-like evidence, never competing cards. Each row keeps
+              its legacy `-value` testID on the value node. */}
           <Entrance index={1}>
-            <View style={[styles.metricRow, compactMetrics && styles.metricRowCompact]}>
-              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
-                <StatBlock
-                  label="Score"
-                  value={rawScore !== null ? String(Math.round(rawScore)) : "—"}
-                  metric="score"
-                  valueType="numeral"
-                  testID="results-metric-score"
-                />
-              </View>
-              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
-                <StatBlock
-                  label="Accuracy"
-                  value={
-                    rawAccuracy !== null
-                      ? `${Math.round(rawAccuracy * 100)}%`
-                      : "—"
-                  }
-                  metric="accuracy"
-                  valueType="numeral"
-                  testID="results-metric-accuracy"
-                />
-              </View>
-              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
-                <StatBlock
-                  label="Time"
-                  value={`${Math.round(session.durationMs / 1000)}s`}
-                  metric="time"
-                  valueType="numeral"
-                  testID="results-metric-time"
-                />
-              </View>
-              <View style={[styles.metric, compactMetrics && styles.metricCompact]}>
-                <StatBlock
-                  label="Difficulty"
-                  value={difficultyLevel}
-                  valueType="numeral"
-                  testID="results-metric-difficulty"
-                />
-              </View>
+            <View>
+              <FactRow
+                marker="01"
+                label="Score"
+                value={rawScore !== null ? String(Math.round(rawScore)) : "—"}
+                testID="results-metric-score"
+                valueTestID="results-metric-score-value"
+              />
+              <FactRow
+                marker="02"
+                label="Accuracy"
+                value={
+                  rawAccuracy !== null
+                    ? `${Math.round(rawAccuracy * 100)}%`
+                    : "—"
+                }
+                testID="results-metric-accuracy"
+                valueTestID="results-metric-accuracy-value"
+              />
+              <FactRow
+                marker="03"
+                label="Time"
+                value={`${Math.round(session.durationMs / 1000)}s`}
+                testID="results-metric-time"
+                valueTestID="results-metric-time-value"
+              />
+              <FactRow
+                marker="04"
+                label="Difficulty"
+                value={difficultyLevel}
+                testID="results-metric-difficulty"
+                valueTestID="results-metric-difficulty-value"
+                divider={false}
+              />
             </View>
           </Entrance>
 
-          {/* The outcome is understood before the progression reward. The
-              reward is a factual row, not a competing panel. */}
+          {/* The outcome is understood before the progression reward: the
+              reward is its own quiet outlined card, not a competing panel. */}
           <Entrance index={2}>
-            <Report testID="results-reward" accessibilityLiveRegion="polite">
-              <ReportRow
-                label="Reward"
-                hint="Saved on this device"
-                trailing={
-                  <View style={styles.rewardValue}>
-                    <Spark size={16} color={theme.xp} />
-                    <AnimatedNumber
-                      value={session.xp}
-                      format={(n) => `+${Math.round(n)} XP`}
-                      type="numeral"
-                      themeColor="xp"
-                      testID="results-xp"
-                    />
-                  </View>
-                }
-              />
-            </Report>
+            <Card
+              variant="outlined"
+              testID="results-reward"
+              accessibilityLiveRegion="polite">
+              <ThemedText type="eyebrow" themeColor="textMuted">
+                REWARD
+              </ThemedText>
+              <View style={styles.rewardRow}>
+                <Spark size={16} color={theme.xp} />
+                <AnimatedNumber
+                  value={session.xp}
+                  format={(n) => `+${Math.round(n)} XP`}
+                  type="numeral"
+                  themeColor="xp"
+                  testID="results-xp"
+                />
+                <ThemedText type="caption" themeColor="textMuted">
+                  Saved on this device
+                </ThemedText>
+              </View>
+            </Card>
           </Entrance>
 
           {/* Workout progress (006R hardening): completion is explicit and the
               next leg is a single, clear handoff. */}
           {workoutCompleted ? (
-            <ArcadePanel tone="successSoft" testID="results-workout-complete">
+            <Card
+              variant="outlined"
+              tone="successSoft"
+              testID="results-workout-complete"
+              accessibilityLiveRegion="polite">
               <View style={styles.completeRow}>
                 <Spark size={20} color={theme.successSoftText} />
                 <View style={styles.completeText}>
@@ -475,11 +491,11 @@ export default function ResultsScreen() {
                   ) : null}
                 </View>
               </View>
-            </ArcadePanel>
+            </Card>
           ) : null}
 
           {nextGameId && !workoutCompleted ? (
-            <ArcadePanel testID="results-next-context">
+            <Card variant="outlined" testID="results-next-context">
               <ThemedText type="eyebrow" themeColor="textMuted">
                 UP NEXT
               </ThemedText>
@@ -491,7 +507,27 @@ export default function ResultsScreen() {
                   ? `Game ${nextProvenance.legIndex + 1} of ${workoutInstance.gameIds.length} · progress saved`
                   : "Your workout progress is saved."}
               </ThemedText>
-            </ArcadePanel>
+            </Card>
+          ) : null}
+
+          {/* Persistence honesty (change 076): the only write this route can
+              observe failing is the durable workout advance (the session
+              itself is already saved when it appears here). Beside the danger
+              toast, the failure stays visible as an errorSoft band — error is
+              text + shape on `errorSoft`, never a red fill (lock §1). */}
+          {workoutAdvanceError ? (
+            <Card
+              variant="outlined"
+              tone="dangerSoft"
+              testID="results-persist-error"
+              accessibilityLiveRegion="polite">
+              <ThemedText type="label" themeColor="dangerSoftText">
+                ✕ {workoutAdvanceError}
+              </ThemedText>
+              <ThemedText type="caption" themeColor="dangerSoftText">
+                Your session is safe — reopen the workout to continue.
+              </ThemedText>
+            </Card>
           ) : null}
 
           {/* One primary CTA: continue the workout when a next leg exists,
@@ -532,31 +568,32 @@ export default function ResultsScreen() {
           </Entrance>
 
           <Entrance index={4}>
-            <Report title="Rating movement" testID="results-rating">
+            <FactSection title="Rating movement" testID="results-rating">
               {ratingHistory.length > 0 ? (
                 ratingHistory.map((h, index) => (
-                  <ReportRow
+                  <FactRow
                     key={h.domain}
                     label={h.domain}
-                    divider={index < ratingHistory.length - 1}
                     value={`${h.delta >= 0 ? "+" : ""}${h.delta} → ${h.ratingAfter}`}
                     valueTone={h.delta > 0 ? "success" : h.delta < 0 ? "danger" : "textSecondary"}
+                    divider={index < ratingHistory.length - 1}
                     testID={`results-rating-delta-${h.domain
                       .replace(/[^a-z]/gi, "")
                       .toLowerCase()}`}
                   />
                 ))
               ) : (
-                <ReportRow
+                <FactRow
                   label="No rating movement recorded for this session"
                   hint="Ratings update as you play more sessions"
+                  divider={false}
                 />
               )}
-            </Report>
+            </FactSection>
           </Entrance>
 
-          <Entrance index={4}>
-            <Report title="Recent sessions" testID="results-recent-sessions">
+          <Entrance index={5}>
+            <FactSection title="Recent sessions" testID="results-recent-sessions">
               {recent.slice(0, 10).map((s, index) => {
                 const active = s.id === session.id;
                 return (
@@ -595,7 +632,7 @@ export default function ResultsScreen() {
                   </Link>
                 );
               })}
-            </Report>
+            </FactSection>
           </Entrance>
         </>
       ) : (
@@ -615,46 +652,125 @@ export default function ResultsScreen() {
   );
 }
 
+/**
+ * Numbered secondary section (REFERENCE_LOCK §8): an uppercase tracked title
+ * over hairline fact rows — quiet, credible, never competing with the staged
+ * artifact above.
+ */
+function FactSection({
+  title,
+  testID,
+  children,
+}: {
+  title: string;
+  testID?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View testID={testID}>
+      <ThemedText type="eyebrow" themeColor="textSecondary" style={styles.sectionTitle}>
+        {title}
+      </ThemedText>
+      <View>{children}</View>
+    </View>
+  );
+}
+
+/**
+ * One hairline fact row (REFERENCE_LOCK §8): tracked uppercase muted label
+ * left, medium value right, hairline separator below.
+ */
+function FactRow({
+  marker,
+  label,
+  value,
+  hint,
+  valueTone = "text",
+  valueTestID,
+  testID,
+  divider = true,
+}: {
+  marker?: string;
+  label: string;
+  value?: string;
+  hint?: string;
+  valueTone?: "text" | "success" | "danger" | "textSecondary";
+  valueTestID?: string;
+  testID?: string;
+  divider?: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <View
+      testID={testID}
+      style={[
+        styles.factRow,
+        divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
+      ]}>
+      {marker ? (
+        <ThemedText type="label" themeColor="textMuted" style={styles.factMarker}>
+          {marker}
+        </ThemedText>
+      ) : null}
+      <View style={styles.factLabels}>
+        <ThemedText type="eyebrow" themeColor="textMuted" style={styles.factLabel}>
+          {label.toUpperCase()}
+        </ThemedText>
+        {hint ? (
+          <ThemedText type="caption" themeColor="textMuted" numberOfLines={2}>
+            {hint}
+          </ThemedText>
+        ) : null}
+      </View>
+      {value !== undefined ? (
+        <ThemedText
+          type="bodySmall"
+          themeColor={valueTone}
+          style={styles.factValue}
+          testID={valueTestID}
+          numberOfLines={1}>
+          {value}
+        </ThemedText>
+      ) : null}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  // The artifact owns the world art; its body stacks the band headline and
-  // the score ring on one centered axis.
-  hero: {
-    alignItems: "center",
-  },
-  heroLargeText: {
-    padding: 0,
-  },
-  heroBody: {
-    alignItems: "center",
-    gap: Spacing.three,
+  // The staged artifact owns the world still; its body stacks the band
+  // headline and the score ring on one instrument row.
+  stageBody: {
     padding: Spacing.four,
+    gap: Spacing.three,
     alignSelf: "stretch",
+  },
+  // At OS 2x text the artifact tightens its own rhythm so the first
+  // actionable handoff stays in the initial viewport (unchanged intent from
+  // the pre-reboot hero).
+  stageBodyLargeText: {
+    padding: Spacing.three,
+    gap: Spacing.two,
   },
   headline: {
     textAlign: "center",
   },
-  rewardValue: {
+  scoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.four,
+  },
+  scoreMeta: {
+    flexShrink: 1,
+    gap: Spacing.one,
+  },
+  stageMuted: {
+    color: STAGE_INK_MUTED,
+  },
+  rewardRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.two,
-  },
-  // Four equal columns, one row — never stacked cards.
-  metricRow: {
-    flexDirection: "row",
-    alignSelf: "stretch",
-    gap: Spacing.three,
-  },
-  metricRowCompact: {
-    flexWrap: "wrap",
-    gap: Spacing.two,
-  },
-  metric: {
-    flex: 1,
-    minWidth: 0,
-  },
-  metricCompact: {
-    flex: 0,
-    width: "47%",
   },
   completeRow: {
     flexDirection: "row",
@@ -667,6 +783,33 @@ const styles = StyleSheet.create({
   },
   ctaBlock: {
     gap: Spacing.two,
+  },
+  sectionTitle: {
+    marginBottom: Spacing.one,
+  },
+  factRow: {
+    minHeight: MIN_TOUCH_TARGET,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+    paddingVertical: Spacing.one,
+  },
+  factMarker: {
+    minWidth: Spacing.three,
+    fontVariant: ["tabular-nums"],
+  },
+  factLabels: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  // Fact labels use the tracked uppercase eyebrow at emphasis weight — a
+  // label, not a shout (lock §2 reserves 800 for headers/CTA).
+  factLabel: {
+    fontWeight: "600",
+  },
+  factValue: {
+    flexShrink: 0,
+    fontWeight: "500",
   },
   recentRow: {
     flexDirection: "row",

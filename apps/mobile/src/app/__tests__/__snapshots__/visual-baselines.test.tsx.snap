@@ -444,10 +444,10 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "overflow": "hidden",
                             },
                             {
-                              "backgroundColor": "#FFFFFF",
+                              "backgroundColor": "#1F2124",
                               "borderColor": "#D8D5CE",
-                              "borderRadius": 12,
-                              "borderWidth": 0.5,
+                              "borderRadius": 22,
+                              "borderWidth": 1.5,
                               "boxShadow": "0 10px 28px rgba(12, 13, 15, 0.14)",
                               "elevation": 4,
                               "padding": 0,
@@ -563,7 +563,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 style={
                                   [
                                     {
-                                      "color": "#D6293A",
+                                      "color": "#FFFFFF",
                                     },
                                     {
                                       "fontSize": 11.5,
@@ -587,7 +587,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#17181A",
+                                    "color": "#FFFFFF",
                                   },
                                   {
                                     "fontSize": 24,
@@ -610,7 +610,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#4A4B4E",
+                                    "color": "#FFFFFF",
                                   },
                                   {
                                     "fontSize": 12,
@@ -3573,332 +3573,373 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       </Text>
                     </View>
                     <View
-                      accessibilityRole="tablist"
-                      onLayout={[Function]}
                       style={
                         [
                           {
-                            "alignItems": "stretch",
-                            "borderRadius": 999,
-                            "flexDirection": "row",
-                            "padding": 2,
+                            "borderBottomWidth": 0.5,
+                            "borderTopWidth": 0.5,
+                            "gap": 8,
+                            "paddingVertical": 8,
                           },
                           {
-                            "borderRadius": 12,
-                          },
-                          {
-                            "backgroundColor": "#ECEAE5",
+                            "borderBottomColor": "#D8D5CE",
+                            "borderTopColor": "#D8D5CE",
                           },
                         ]
                       }
-                      testID="progress-window-selector"
+                      testID="progress-window-selector-row"
                     >
-                      <View
-                        collapsable={false}
+                      <Text
+                        maxFontSizeMultiplier={2}
                         style={
-                          {
-                            "backgroundColor": "#FFFFFF",
-                            "borderRadius": 999,
-                            "bottom": 2,
-                            "left": 2,
-                            "position": "absolute",
-                            "top": 2,
-                            "width": 0,
-                          }
+                          [
+                            {
+                              "color": "#6E6E68",
+                            },
+                            {
+                              "fontSize": 11.5,
+                              "fontWeight": "800",
+                              "letterSpacing": 1.8,
+                              "lineHeight": 14,
+                            },
+                            false,
+                            false,
+                            false,
+                            false,
+                            undefined,
+                          ]
                         }
-                        testID="progress-window-selector-indicator"
-                      />
-                      <View
-                        accessibilityLabel="7d"
-                        accessibilityRole="tab"
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": false,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "borderRadius": 12,
-                            "flex": 1,
-                            "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 4,
-                            "transform": [
-                              {
-                                "scale": 1,
-                              },
-                            ],
-                          }
-                        }
-                        testID="progress-window-7d"
                       >
-                        <Text
-                          maxFontSizeMultiplier={2}
-                          numberOfLines={1}
-                          style={
-                            [
-                              {
-                                "color": "#4A4B4E",
-                              },
-                              {
-                                "fontSize": 12,
-                                "fontWeight": "500",
-                                "lineHeight": 16,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
-                          }
-                        >
-                          7d
-                        </Text>
-                      </View>
+                        WINDOW
+                      </Text>
                       <View
-                        accessibilityLabel="30d"
-                        accessibilityRole="tab"
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": true,
-                          }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
-                          }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
+                        accessibilityRole="tablist"
+                        onLayout={[Function]}
                         style={
-                          {
-                            "alignItems": "center",
-                            "borderRadius": 12,
-                            "flex": 1,
-                            "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 4,
-                            "transform": [
-                              {
-                                "scale": 1,
-                              },
-                            ],
-                          }
+                          [
+                            {
+                              "alignItems": "stretch",
+                              "borderRadius": 999,
+                              "flexDirection": "row",
+                              "padding": 2,
+                            },
+                            {
+                              "borderRadius": 12,
+                            },
+                            {
+                              "backgroundColor": "#ECEAE5",
+                            },
+                          ]
                         }
-                        testID="progress-window-30d"
+                        testID="progress-window-selector"
                       >
-                        <Text
-                          maxFontSizeMultiplier={2}
-                          numberOfLines={1}
+                        <View
+                          collapsable={false}
                           style={
-                            [
-                              {
-                                "color": "#17181A",
-                              },
-                              {
-                                "fontSize": 12,
-                                "fontWeight": "500",
-                                "lineHeight": 16,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
+                            {
+                              "backgroundColor": "#FFFFFF",
+                              "borderRadius": 999,
+                              "bottom": 2,
+                              "left": 2,
+                              "position": "absolute",
+                              "top": 2,
+                              "width": 0,
+                            }
                           }
-                        >
-                          30d
-                        </Text>
-                      </View>
-                      <View
-                        accessibilityLabel="90d"
-                        accessibilityRole="tab"
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": false,
+                          testID="progress-window-selector-indicator"
+                        />
+                        <View
+                          accessibilityLabel="7d"
+                          accessibilityRole="tab"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": false,
+                            }
                           }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
                           }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "borderRadius": 12,
-                            "flex": 1,
-                            "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 4,
-                            "transform": [
-                              {
-                                "scale": 1,
-                              },
-                            ],
-                          }
-                        }
-                        testID="progress-window-90d"
-                      >
-                        <Text
-                          maxFontSizeMultiplier={2}
-                          numberOfLines={1}
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
-                            [
-                              {
-                                "color": "#4A4B4E",
-                              },
-                              {
-                                "fontSize": 12,
-                                "fontWeight": "500",
-                                "lineHeight": 16,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
+                            {
+                              "alignItems": "center",
+                              "borderRadius": 12,
+                              "flex": 1,
+                              "justifyContent": "center",
+                              "minHeight": 44,
+                              "paddingHorizontal": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            }
                           }
+                          testID="progress-window-7d"
                         >
-                          90d
-                        </Text>
-                      </View>
-                      <View
-                        accessibilityLabel="All"
-                        accessibilityRole="tab"
-                        accessibilityState={
-                          {
-                            "busy": undefined,
-                            "checked": undefined,
-                            "disabled": false,
-                            "expanded": undefined,
-                            "selected": false,
+                          <Text
+                            maxFontSizeMultiplier={2}
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#4A4B4E",
+                                },
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            7d
+                          </Text>
+                        </View>
+                        <View
+                          accessibilityLabel="30d"
+                          accessibilityRole="tab"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": true,
+                            }
                           }
-                        }
-                        accessibilityValue={
-                          {
-                            "max": undefined,
-                            "min": undefined,
-                            "now": undefined,
-                            "text": undefined,
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
                           }
-                        }
-                        accessible={true}
-                        collapsable={false}
-                        focusable={true}
-                        onBlur={[Function]}
-                        onClick={[Function]}
-                        onFocus={[Function]}
-                        onResponderGrant={[Function]}
-                        onResponderMove={[Function]}
-                        onResponderRelease={[Function]}
-                        onResponderTerminate={[Function]}
-                        onResponderTerminationRequest={[Function]}
-                        onStartShouldSetResponder={[Function]}
-                        style={
-                          {
-                            "alignItems": "center",
-                            "borderRadius": 12,
-                            "flex": 1,
-                            "justifyContent": "center",
-                            "minHeight": 44,
-                            "paddingHorizontal": 4,
-                            "transform": [
-                              {
-                                "scale": 1,
-                              },
-                            ],
-                          }
-                        }
-                        testID="progress-window-all"
-                      >
-                        <Text
-                          maxFontSizeMultiplier={2}
-                          numberOfLines={1}
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
-                            [
-                              {
-                                "color": "#4A4B4E",
-                              },
-                              {
-                                "fontSize": 12,
-                                "fontWeight": "500",
-                                "lineHeight": 16,
-                              },
-                              false,
-                              false,
-                              false,
-                              false,
-                              undefined,
-                            ]
+                            {
+                              "alignItems": "center",
+                              "borderRadius": 12,
+                              "flex": 1,
+                              "justifyContent": "center",
+                              "minHeight": 44,
+                              "paddingHorizontal": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            }
                           }
+                          testID="progress-window-30d"
                         >
-                          All
-                        </Text>
+                          <Text
+                            maxFontSizeMultiplier={2}
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#17181A",
+                                },
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            30d
+                          </Text>
+                        </View>
+                        <View
+                          accessibilityLabel="90d"
+                          accessibilityRole="tab"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": false,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "borderRadius": 12,
+                              "flex": 1,
+                              "justifyContent": "center",
+                              "minHeight": 44,
+                              "paddingHorizontal": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            }
+                          }
+                          testID="progress-window-90d"
+                        >
+                          <Text
+                            maxFontSizeMultiplier={2}
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#4A4B4E",
+                                },
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            90d
+                          </Text>
+                        </View>
+                        <View
+                          accessibilityLabel="All"
+                          accessibilityRole="tab"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": false,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
+                          accessible={true}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "borderRadius": 12,
+                              "flex": 1,
+                              "justifyContent": "center",
+                              "minHeight": 44,
+                              "paddingHorizontal": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            }
+                          }
+                          testID="progress-window-all"
+                        >
+                          <Text
+                            maxFontSizeMultiplier={2}
+                            numberOfLines={1}
+                            style={
+                              [
+                                {
+                                  "color": "#4A4B4E",
+                                },
+                                {
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "lineHeight": 16,
+                                },
+                                false,
+                                false,
+                                false,
+                                false,
+                                undefined,
+                              ]
+                            }
+                          >
+                            All
+                          </Text>
+                        </View>
                       </View>
                     </View>
                     <View
@@ -4000,8 +4041,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#FBE3E5",
-                            "borderColor": "transparent",
+                            "backgroundColor": "#ECEAE5",
+                            "borderColor": "#D8D5CE",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "gap": 8,
@@ -4033,7 +4074,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               [
                                 {
-                                  "color": "#8F1622",
+                                  "color": "#17181A",
                                 },
                                 {
                                   "fontSize": 14,
@@ -4517,8 +4558,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#FBE3E5",
-                            "borderColor": "transparent",
+                            "backgroundColor": "#ECEAE5",
+                            "borderColor": "#D8D5CE",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "gap": 8,
@@ -4550,7 +4591,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               [
                                 {
-                                  "color": "#8F1622",
+                                  "color": "#17181A",
                                 },
                                 {
                                   "fontSize": 14,
@@ -5045,10 +5086,10 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       "overflow": "hidden",
                     },
                     {
-                      "backgroundColor": "#FFFFFF",
+                      "backgroundColor": "#1F2124",
                       "borderColor": "#D8D5CE",
-                      "borderRadius": 12,
-                      "borderWidth": 0.5,
+                      "borderRadius": 22,
+                      "borderWidth": 1.5,
                       "boxShadow": "0 10px 28px rgba(12, 13, 15, 0.14)",
                       "elevation": 4,
                       "padding": 0,
@@ -5164,7 +5205,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         style={
                           [
                             {
-                              "color": "#D6293A",
+                              "color": "#FFFFFF",
                             },
                             {
                               "fontSize": 11.5,
@@ -5188,7 +5229,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#17181A",
+                            "color": "#FFFFFF",
                           },
                           {
                             "fontSize": 24,
@@ -5211,7 +5252,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#4A4B4E",
+                            "color": "#FFFFFF",
                           },
                           {
                             "fontSize": 12,
@@ -7419,8 +7460,8 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FBE3E5",
-                    "borderColor": "transparent",
+                    "backgroundColor": "#ECEAE5",
+                    "borderColor": "#D8D5CE",
                     "borderRadius": 12,
                     "flexDirection": "row",
                     "gap": 8,
@@ -7452,7 +7493,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     style={
                       [
                         {
-                          "color": "#8F1622",
+                          "color": "#17181A",
                         },
                         {
                           "fontSize": 14,
@@ -7645,332 +7686,373 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
               </Text>
             </View>
             <View
-              accessibilityRole="tablist"
-              onLayout={[Function]}
               style={
                 [
                   {
-                    "alignItems": "stretch",
-                    "borderRadius": 999,
-                    "flexDirection": "row",
-                    "padding": 2,
+                    "borderBottomWidth": 0.5,
+                    "borderTopWidth": 0.5,
+                    "gap": 8,
+                    "paddingVertical": 8,
                   },
                   {
-                    "borderRadius": 12,
-                  },
-                  {
-                    "backgroundColor": "#ECEAE5",
+                    "borderBottomColor": "#D8D5CE",
+                    "borderTopColor": "#D8D5CE",
                   },
                 ]
               }
-              testID="progress-window-selector"
+              testID="progress-window-selector-row"
             >
-              <View
-                collapsable={false}
+              <Text
+                maxFontSizeMultiplier={2}
                 style={
-                  {
-                    "backgroundColor": "#FFFFFF",
-                    "borderRadius": 999,
-                    "bottom": 2,
-                    "left": 2,
-                    "position": "absolute",
-                    "top": 2,
-                    "width": 0,
-                  }
+                  [
+                    {
+                      "color": "#6E6E68",
+                    },
+                    {
+                      "fontSize": 11.5,
+                      "fontWeight": "800",
+                      "letterSpacing": 1.8,
+                      "lineHeight": 14,
+                    },
+                    false,
+                    false,
+                    false,
+                    false,
+                    undefined,
+                  ]
                 }
-                testID="progress-window-selector-indicator"
-              />
-              <View
-                accessibilityLabel="7d"
-                accessibilityRole="tab"
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": false,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 12,
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  }
-                }
-                testID="progress-window-7d"
               >
-                <Text
-                  maxFontSizeMultiplier={2}
-                  numberOfLines={1}
-                  style={
-                    [
-                      {
-                        "color": "#4A4B4E",
-                      },
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "lineHeight": 16,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
-                  }
-                >
-                  7d
-                </Text>
-              </View>
+                WINDOW
+              </Text>
               <View
-                accessibilityLabel="30d"
-                accessibilityRole="tab"
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": true,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
+                accessibilityRole="tablist"
+                onLayout={[Function]}
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 12,
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  }
+                  [
+                    {
+                      "alignItems": "stretch",
+                      "borderRadius": 999,
+                      "flexDirection": "row",
+                      "padding": 2,
+                    },
+                    {
+                      "borderRadius": 12,
+                    },
+                    {
+                      "backgroundColor": "#ECEAE5",
+                    },
+                  ]
                 }
-                testID="progress-window-30d"
+                testID="progress-window-selector"
               >
-                <Text
-                  maxFontSizeMultiplier={2}
-                  numberOfLines={1}
+                <View
+                  collapsable={false}
                   style={
-                    [
-                      {
-                        "color": "#17181A",
-                      },
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "lineHeight": 16,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
+                    {
+                      "backgroundColor": "#FFFFFF",
+                      "borderRadius": 999,
+                      "bottom": 2,
+                      "left": 2,
+                      "position": "absolute",
+                      "top": 2,
+                      "width": 0,
+                    }
                   }
-                >
-                  30d
-                </Text>
-              </View>
-              <View
-                accessibilityLabel="90d"
-                accessibilityRole="tab"
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": false,
+                  testID="progress-window-selector-indicator"
+                />
+                <View
+                  accessibilityLabel="7d"
+                  accessibilityRole="tab"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": false,
+                    }
                   }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
                   }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 12,
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  }
-                }
-                testID="progress-window-90d"
-              >
-                <Text
-                  maxFontSizeMultiplier={2}
-                  numberOfLines={1}
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "color": "#4A4B4E",
-                      },
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "lineHeight": 16,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 12,
+                      "flex": 1,
+                      "justifyContent": "center",
+                      "minHeight": 44,
+                      "paddingHorizontal": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    }
                   }
+                  testID="progress-window-7d"
                 >
-                  90d
-                </Text>
-              </View>
-              <View
-                accessibilityLabel="All"
-                accessibilityRole="tab"
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": false,
+                  <Text
+                    maxFontSizeMultiplier={2}
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#4A4B4E",
+                        },
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    7d
+                  </Text>
+                </View>
+                <View
+                  accessibilityLabel="30d"
+                  accessibilityRole="tab"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": true,
+                    }
                   }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
                   }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 12,
-                    "flex": 1,
-                    "justifyContent": "center",
-                    "minHeight": 44,
-                    "paddingHorizontal": 4,
-                    "transform": [
-                      {
-                        "scale": 1,
-                      },
-                    ],
-                  }
-                }
-                testID="progress-window-all"
-              >
-                <Text
-                  maxFontSizeMultiplier={2}
-                  numberOfLines={1}
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
-                    [
-                      {
-                        "color": "#4A4B4E",
-                      },
-                      {
-                        "fontSize": 12,
-                        "fontWeight": "500",
-                        "lineHeight": 16,
-                      },
-                      false,
-                      false,
-                      false,
-                      false,
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 12,
+                      "flex": 1,
+                      "justifyContent": "center",
+                      "minHeight": 44,
+                      "paddingHorizontal": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    }
                   }
+                  testID="progress-window-30d"
                 >
-                  All
-                </Text>
+                  <Text
+                    maxFontSizeMultiplier={2}
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#17181A",
+                        },
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    30d
+                  </Text>
+                </View>
+                <View
+                  accessibilityLabel="90d"
+                  accessibilityRole="tab"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": false,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 12,
+                      "flex": 1,
+                      "justifyContent": "center",
+                      "minHeight": 44,
+                      "paddingHorizontal": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    }
+                  }
+                  testID="progress-window-90d"
+                >
+                  <Text
+                    maxFontSizeMultiplier={2}
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#4A4B4E",
+                        },
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    90d
+                  </Text>
+                </View>
+                <View
+                  accessibilityLabel="All"
+                  accessibilityRole="tab"
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": false,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 12,
+                      "flex": 1,
+                      "justifyContent": "center",
+                      "minHeight": 44,
+                      "paddingHorizontal": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    }
+                  }
+                  testID="progress-window-all"
+                >
+                  <Text
+                    maxFontSizeMultiplier={2}
+                    numberOfLines={1}
+                    style={
+                      [
+                        {
+                          "color": "#4A4B4E",
+                        },
+                        {
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "lineHeight": 16,
+                        },
+                        false,
+                        false,
+                        false,
+                        false,
+                        undefined,
+                      ]
+                    }
+                  >
+                    All
+                  </Text>
+                </View>
               </View>
             </View>
             <View
@@ -8072,8 +8154,8 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FBE3E5",
-                    "borderColor": "transparent",
+                    "backgroundColor": "#ECEAE5",
+                    "borderColor": "#D8D5CE",
                     "borderRadius": 12,
                     "flexDirection": "row",
                     "gap": 8,
@@ -8105,7 +8187,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     style={
                       [
                         {
-                          "color": "#8F1622",
+                          "color": "#17181A",
                         },
                         {
                           "fontSize": 14,

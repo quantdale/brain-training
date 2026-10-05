@@ -7,11 +7,13 @@
  * filters intentionally hide the suggestion so an intentional lookup never
  * competes with a recommendation.
  *
- * Campaign 055 composition: the default view leads with the featured
- * `GameStage` moment, and the library below is a dense poster grid of
- * `GamePosterTile`s — identity (world art) before metadata, no repeated
- * banner→badge→title→description card grammar. Routing, search matching,
- * favourites and mastery semantics are unchanged.
+ * Campaign 055 composition, compacted by change 076: search and the filter
+ * rail sit directly under the title so an intentional lookup is always at
+ * the top of the screen; the recommendation is a quiet bordered row (never a
+ * decorative hero pushing the tools down); the library below is a dense
+ * poster grid of `GamePosterTile`s — identity (board-still world art) before
+ * metadata. Routing, search matching, favourites and mastery semantics are
+ * unchanged.
  */
 
 import { useMemo, useState } from 'react';
@@ -149,8 +151,8 @@ export default function GamesScreen() {
         />
       ) : (
         <>
-          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
-
+          {/* Search + filters first (change 076): the tools are reachable at
+              the top of the screen; the quiet suggestion row follows. */}
           <View style={styles.searchRow}>
             <View style={styles.searchField}>
               <TextField
@@ -175,6 +177,8 @@ export default function GamesScreen() {
               />
             ) : null}
           </View>
+
+          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
 
           <View style={styles.browseBlock} testID="games-browse-all">
             <SectionHeader title="Browse all games" />

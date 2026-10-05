@@ -1,16 +1,21 @@
 /**
- * Game detail — `/game-detail/[id]` (Campaign 024 UX wave; Campaign 026
- * identity rebuild).
+ * Game detail — `/game-detail/[id]` (change 076 UI/UX reboot, task 4.4).
  *
- * One resume path: the game-world Stage carries the domain identity cue, the
- * game title, its interaction line, the mastery ring with the concrete
- * next-milestone line, and the screen's single primary Play CTA. The favourite
- * toggle is a quiet secondary action below the stage; records and recent
- * sessions render as Report hairline rows into `/results`.
+ * Identity-first header on the immersive stage (REFERENCE_LOCK §1/§4): a
+ * compact board still, the game title and its domain tag, the mechanic line,
+ * and the screen's single red Play CTA — all inside the first viewport.
+ * Mastery, records and recent sessions render BELOW the fold as numbered
+ * hairline fact rows (lock §8): quiet evidence, never competing with the
+ * identity artifact.
  *
- * Reloads persisted data on focus (a played session pops back here), keeps
- * hooks above the unknown-game early return, and never invents records for an
- * unplayed game. Every `game-detail-*` testID is preserved.
+ * Accepted deviation (orchestrator decision (a)): NO difficulty selector on
+ * this screen — difficulty remains an in-game intro choice.
+ *
+ * The favourite toggle is unchanged (same control, labels and semantics);
+ * records and recent sessions drill into `/results`. Reloads persisted data
+ * on focus, keeps hooks above the unknown-game early return, and never
+ * invents records for an unplayed game. Every `game-detail-*` testID is
+ * preserved.
  */
 
 import {
@@ -22,16 +27,16 @@ import {
 import { memo, useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { MinTouchTarget } from "@/components/a11y";
+import { MinTouchTarget, MIN_TOUCH_TARGET } from "@/components/a11y";
 import {
   masteryTierLabel,
   useDomainHue,
 } from "@/components/discovery/game-card";
 import {
+  GameWorldArt,
+  IdentityMark,
   getGameIdentity,
-  identityFamilyLabel,
 } from "@/components/discovery/game-identity";
-import { GameStage } from "@/components/discovery/game-stage";
 import { ScreenShell } from "@/components/screen-shell";
 import { StateCard } from "@/components/shell";
 import { formatRelativeDay } from "@/components/shell/format";
@@ -41,10 +46,10 @@ import {
   Button,
   Card,
   EmptyState,
+  HAIRLINE,
   ProgressRing,
-  Report,
-  ReportRow,
   Spark,
+  Tappable,
   useSafeBackAffordance,
 } from "@/components/ui";
 import { Spacing } from "@/constants/theme";
@@ -54,6 +59,14 @@ import { useTheme } from "@/hooks/use-theme";
 import { computeMastery, MASTERY_TIERS, type MasteryInput } from "@/mastery";
 import { getGameDefinition } from "@/registry/registry";
 import { parseCanonicalGameId } from "@/routing/route-params";
+
+/**
+ * Translucent white on the charcoal stage (REFERENCE_LOCK §7: dark is
+ * designed, not inverted — the stage is charcoal in BOTH schemes, so these
+ * do not need theme variants).
+ */
+const STAGE_INK_MUTED = "rgba(255, 255, 255, 0.72)";
+const STAGE_LINE = "rgba(255, 255, 255, 0.28)";
 
 interface DetailData {
   /** Load-time clock for relative-day formatting (set outside render). */
@@ -194,7 +207,7 @@ export default function GameDetailScreen() {
   }
 
   const nowMs = data.nowMs;
-  // Unplayed evidence reads as the bottom tier, so the hero is honest before
+  // Unplayed evidence reads as the bottom tier, so the page is honest before
   // the first session and before the load settles.
   const summary = computeMastery(
     data.masteryInput ?? {
@@ -209,88 +222,82 @@ export default function GameDetailScreen() {
   );
   const tierName = masteryTierLabel(summary.tier);
   const tierMax = MASTERY_TIERS.length - 1;
-  const eyebrowColor = hue ? hue.softText : theme.accentText;
   const identity = getGameIdentity(game);
 
   return (
     <ScreenShell>
       <BackLink
-          testID="game-detail-back"
-          onPress={backAffordance.onPress}
-          label={backAffordance.label}
-          accessibilityLabel={backAffordance.accessibilityLabel}
-        />
+        testID="game-detail-back"
+        onPress={backAffordance.onPress}
+        label={backAffordance.label}
+        accessibilityLabel={backAffordance.accessibilityLabel}
+      />
 
-      {/* Game-world first: GameStage leads with the world art and a compact
-          identity plinth; records below are evidence, not the event. */}
-      <View testID="game-detail-description">
-        <GameStage
-          game={game}
-          size="stage"
-          showInteraction
-          testID="game-detail-mastery"
-          artTestID="game-detail-world"
-          identityTestID="game-detail-identity-mark"
-          titleTestID="game-detail-title"
-          describeTestID="game-detail-mechanic"
-          kicker={identityFamilyLabel(identity.family)}
-          meta={
-            <View style={styles.stageMeta} testID="game-detail-identity">
-              <ThemedText
-                type="eyebrow"
-                style={{ color: eyebrowColor }}
-                testID="game-detail-identity-verb">
-                {identity.verb}
-              </ThemedText>
-              {/* The trailing tag names the category — unless the game IS the
-                  category (e.g. "Memory"/Memory), where it would parrot the
-                  title (Campaign 026 visual-QA edge case). */}
-              {game.primaryCategory !== game.name ? (
-                <ThemedText
-                  type="caption"
-                  themeColor="textSecondary"
-                  testID="game-detail-category">
+      {/* Identity-first stage artifact (REFERENCE_LOCK §1/§4): the board still
+          and the title are the event; the Play CTA completes the first
+          viewport. Historical testID note: `game-detail-mastery` predates the
+          reboot and names this hero card. */}
+      <Card variant="stage" padding="none" testID="game-detail-mastery">
+        <GameWorldArt game={game} size="hero" testID="game-detail-world" />
+        <View style={styles.stageBody}>
+          <View style={styles.identityRow} testID="game-detail-identity">
+            <IdentityMark
+              family={identity.family}
+              size={26}
+              color={hue?.base ?? theme.stageInk}
+              testID="game-detail-identity-mark"
+            />
+            <ThemedText
+              type="eyebrow"
+              themeColor="stageInk"
+              style={styles.identityVerb}
+              numberOfLines={1}
+              testID="game-detail-identity-verb">
+              {identity.verb}
+            </ThemedText>
+            {/* The trailing tag names the category — unless the game IS the
+                category (e.g. "Memory"/Memory), where it would parrot the
+                title (Campaign 026 visual-QA edge case). */}
+            {game.primaryCategory !== game.name ? (
+              <View style={styles.domainTag} testID="game-detail-category">
+                <ThemedText type="caption" themeColor="stageInk">
                   {game.primaryCategory}
                 </ThemedText>
-              ) : null}
-            </View>
-          }>
+              </View>
+            ) : null}
+          </View>
+          <ThemedText
+            type="gameTitle"
+            themeColor="stageInk"
+            testID="game-detail-title"
+            numberOfLines={2}>
+            {game.name}
+          </ThemedText>
+          {identity.interaction ? (
+            <ThemedText
+              type="bodyRead"
+              style={styles.stageMuted}
+              testID="game-detail-mechanic">
+              {identity.interaction}
+            </ThemedText>
+          ) : null}
           {game.hasTutorial ? (
-            <ThemedText type="caption" themeColor="textSecondary">
+            <ThemedText type="caption" style={styles.stageMuted}>
               Includes a short guided tutorial on first play.
             </ThemedText>
           ) : null}
 
-          <View style={styles.masteryRow}>
-            <ProgressRing
-              value={tierMax > 0 ? summary.rank / tierMax : 0}
-              tone="xp"
-              label={`Mastery ${summary.rank} of ${tierMax}, ${tierName}`}
-              testID="game-detail-mastery-ring">
-              <ThemedText type="numeralLg">{String(summary.rank)}</ThemedText>
-            </ProgressRing>
-            <View style={styles.masteryTexts}>
-              <ThemedText type="eyebrow" themeColor="textSecondary">
-                MASTERY
-              </ThemedText>
-              <ThemedText type="headline">{tierName}</ThemedText>
-              <ThemedText type="bodySmall" themeColor="textSecondary">
-                {summary.nextMilestone ?? "Mastered — the top tier."}
-              </ThemedText>
-            </View>
-          </View>
-
-          {/* The screen's one primary action. */}
+          {/* The screen's one red primary action (lock §5). */}
           <Button
             label={`Play ${game.name}`}
             size="lg"
             testID="game-detail-play"
             onPress={() => router.push(`/game/${game.id}`)}
           />
-        </GameStage>
-      </View>
+        </View>
+      </Card>
 
-      {/* Quiet secondary action: favourite toggle. */}
+      {/* Quiet secondary action: favourite toggle (unchanged semantics). */}
       <Button
         variant="secondary"
         fullWidth={false}
@@ -333,35 +340,54 @@ export default function GameDetailScreen() {
         />
       ) : (
         <>
-          {/* Records are evidence: Report/ReportRow hairline grammar, no card. */}
-          <Report title="Records" testID="game-detail-records">
+          {/* Below the fold, evidence speaks in numbered hairline fact rows
+              (REFERENCE_LOCK §8) — quiet, credible, never competing with the
+              identity artifact above. */}
+          <FactSection marker="01" title="Mastery">
+            <View style={styles.masteryRow}>
+              <ProgressRing
+                value={tierMax > 0 ? summary.rank / tierMax : 0}
+                size={64}
+                tone="xp"
+                label={`Mastery ${summary.rank} of ${tierMax}, ${tierName}`}
+                testID="game-detail-mastery-ring">
+                <ThemedText type="numeral">{String(summary.rank)}</ThemedText>
+              </ProgressRing>
+              <View style={styles.masteryTexts}>
+                <ThemedText type="bodyLarge">{tierName}</ThemedText>
+                <ThemedText type="bodySmall" themeColor="textSecondary">
+                  {summary.nextMilestone ?? "Mastered — the top tier."}
+                </ThemedText>
+              </View>
+            </View>
+          </FactSection>
+
+          <FactSection marker="02" title="Records" testID="game-detail-records">
             {data.aggregate ? (
               <>
-                <ReportRow
+                <FactRow
                   label="Sessions"
                   value={String(data.aggregate.count)}
                   hint={`Last played ${formatRelativeDay(data.aggregate.lastCompletedAt, nowMs)}`}
                   testID="game-detail-stat-sessions"
-                  divider
                 />
-                <ReportRow
+                <FactRow
                   label="Best"
                   value={`${Math.round(data.aggregate.bestNormalized * 100)}%`}
                   testID="game-detail-stat-best"
-                  divider
                 />
-                <ReportRow
+                <FactRow
                   label="Average"
                   value={`${Math.round(data.aggregate.avgNormalized * 100)}%`}
                   testID="game-detail-stat-average"
-                  divider
                 />
                 {/* Drill-down: per-game trends live on the analytics screen. */}
-                <ReportRow
+                <FactRow
                   label="View detailed trends"
                   testID="game-detail-stats-link"
                   accessibilityLabel="View detailed trends for this game"
                   onPress={() => router.push(`/progress-game?gameId=${game.id}`)}
+                  divider={false}
                 />
               </>
             ) : (
@@ -369,15 +395,19 @@ export default function GameDetailScreen() {
                 No sessions yet — play once to see records.
               </ThemedText>
             )}
-          </Report>
+          </FactSection>
 
-          <Report title="Recent sessions" testID="game-detail-recent">
+          <FactSection
+            marker="03"
+            title="Recent sessions"
+            testID="game-detail-recent">
             {data.recent.length > 0 ? (
-              data.recent.map((session) => (
+              data.recent.map((session, index) => (
                 <SessionRow
                   key={(session as { id: string }).id}
                   session={session}
                   nowMs={nowMs}
+                  divider={index < data.recent.length - 1}
                 />
               ))
             ) : (
@@ -385,7 +415,7 @@ export default function GameDetailScreen() {
                 Nothing here yet.
               </ThemedText>
             )}
-          </Report>
+          </FactSection>
         </>
       )}
 
@@ -403,12 +433,115 @@ export default function GameDetailScreen() {
   );
 }
 
+/**
+ * Numbered secondary section (REFERENCE_LOCK §8): a quiet `01`-style marker
+ * beside an uppercase tracked title, with hairline fact rows underneath.
+ */
+function FactSection({
+  marker,
+  title,
+  testID,
+  children,
+}: {
+  marker: string;
+  title: string;
+  testID?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View testID={testID}>
+      <View style={styles.sectionTitleRow}>
+        <ThemedText type="label" themeColor="textMuted" style={styles.sectionMarker}>
+          {marker}
+        </ThemedText>
+        <ThemedText type="eyebrow" themeColor="textSecondary">
+          {title}
+        </ThemedText>
+      </View>
+      <View>{children}</View>
+    </View>
+  );
+}
+
+/**
+ * One hairline fact row (REFERENCE_LOCK §8): tracked uppercase muted label
+ * left, medium value right. Interactive rows are Tappables that keep the
+ * 44 dp touch floor through the row style itself.
+ */
+function FactRow({
+  label,
+  value,
+  hint,
+  onPress,
+  testID,
+  accessibilityLabel,
+  divider = true,
+}: {
+  label: string;
+  value?: string;
+  hint?: string;
+  onPress?: () => void;
+  testID?: string;
+  accessibilityLabel?: string;
+  divider?: boolean;
+}) {
+  const theme = useTheme();
+  const rowStyle = [
+    styles.factRow,
+    divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
+  ];
+  const content = (
+    <>
+      <View style={styles.factLabels}>
+        <ThemedText type="eyebrow" themeColor="textMuted" style={styles.factLabel}>
+          {label.toUpperCase()}
+        </ThemedText>
+        {hint ? (
+          <ThemedText type="caption" themeColor="textMuted" numberOfLines={2}>
+            {hint}
+          </ThemedText>
+        ) : null}
+      </View>
+      {value !== undefined ? (
+        <ThemedText type="bodySmall" style={styles.factValue} numberOfLines={1}>
+          {value}
+        </ThemedText>
+      ) : null}
+      {onPress ? (
+        <ThemedText type="body" themeColor="textMuted" aria-hidden>
+          {'›'}
+        </ThemedText>
+      ) : null}
+    </>
+  );
+  if (onPress) {
+    return (
+      <Tappable
+        testID={testID}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        style={rowStyle}
+        pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+        {content}
+      </Tappable>
+    );
+  }
+  return (
+    <View testID={testID} style={rowStyle}>
+      {content}
+    </View>
+  );
+}
+
 const SessionRow = memo(function SessionRow({
   session,
   nowMs,
+  divider,
 }: {
   session: unknown;
   nowMs: number;
+  divider: boolean;
 }) {
   const s = session as {
     id: string;
@@ -420,25 +553,75 @@ const SessionRow = memo(function SessionRow({
   const day = formatRelativeDay(s.completedAt, nowMs);
   const percent = Math.round(s.normalizedResult * 100);
   return (
-    <ReportRow
+    <FactRow
       testID={`game-detail-session-${s.id}`}
       label={`${day} · ${s.difficulty?.level ?? "?"}`}
       value={`${percent}% · +${s.xp} XP`}
       onPress={() => router.push(`/results?id=${s.id}`)}
       accessibilityLabel={`Open result from ${day}, ${percent} percent`}
+      divider={divider}
     />
   );
 });
 
 const styles = StyleSheet.create({
-  stageMeta: {
-    alignItems: "flex-end",
+  stageBody: {
+    padding: Spacing.three,
+    gap: Spacing.two,
+  },
+  identityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+  },
+  identityVerb: {
+    flex: 1,
+  },
+  domainTag: {
+    borderWidth: 1,
+    borderColor: STAGE_LINE,
+    borderRadius: Spacing.one,
+    paddingHorizontal: Spacing.oneHalf,
+    paddingVertical: Spacing.half,
+  },
+  stageMuted: {
+    color: STAGE_INK_MUTED,
+  },
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+    marginBottom: Spacing.one,
+  },
+  sectionMarker: {
+    minWidth: Spacing.three,
+    fontVariant: ["tabular-nums"],
+  },
+  factRow: {
+    minHeight: MIN_TOUCH_TARGET,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.two,
+    paddingVertical: Spacing.one,
+  },
+  factLabels: {
+    flex: 1,
     gap: Spacing.half,
+  },
+  // Fact labels use the tracked uppercase eyebrow at emphasis weight — a
+  // label, not a shout (lock §2 reserves 800 for headers/CTA).
+  factLabel: {
+    fontWeight: "600",
+  },
+  factValue: {
+    flexShrink: 0,
+    fontWeight: "500",
   },
   masteryRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.four,
+    gap: Spacing.three,
+    paddingVertical: Spacing.one,
   },
   masteryTexts: {
     flex: 1,

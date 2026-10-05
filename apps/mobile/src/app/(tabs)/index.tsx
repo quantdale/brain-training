@@ -38,7 +38,6 @@ import { StyleSheet, View } from "react-native";
 import { SectionHeader } from "@/components/shell";
 import { GameWorldArt } from "@/components/discovery/game-identity";
 import {
-  ArcadePanel,
   Button,
   Card,
   EmptyState,
@@ -795,7 +794,9 @@ export default function HomeScreen() {
           progress and the one primary key, and the per-game legs move to a
           quiet Report directly below. */}
       <Entrance index={0}>
-        <ArcadePanel padding="none" emphasis="focal" testID="home-workout-cta">
+        {/* Change 076 (lock section 1): the focal workout object is the
+            immersive stage card — charcoal in both schemes, stageInk type. */}
+        <Card variant="stage" padding="none" testID="home-workout-cta">
           {consoleGame ? (
             <View testID="home-training-console">
               <GameWorldArt
@@ -809,22 +810,22 @@ export default function HomeScreen() {
             <View style={styles.heroTitle}>
               <View style={styles.heroEyebrowRow}>
                 <Spark size={14} color={theme.accent} />
-                <ThemedText type="eyebrow" themeColor="accent">
+                <ThemedText type="eyebrow" themeColor="stageInk">
                   TODAY
                 </ThemedText>
               </View>
-              <ThemedText type="headline">Today&apos;s Workout</ThemedText>
+              <ThemedText type="headline" themeColor="stageInk">Today&apos;s Workout</ThemedText>
               {heroPlanLine ? (
                 <ThemedText
                   type="bodySmall"
-                  themeColor="textSecondary"
+                  themeColor="stageInk"
                   testID="home-workout-plan">
                   {heroPlanLine}
                 </ThemedText>
               ) : null}
               <ThemedText
                 type="caption"
-                themeColor="textSecondary"
+                themeColor="stageInk"
                 testID="home-local-trust">
                 Your training is ready on this device and works offline.
               </ThemedText>
@@ -849,11 +850,11 @@ export default function HomeScreen() {
                   {`${workoutIndex}/${workout.length}`}
                 </ThemedText>
                 <View style={styles.progressCopy}>
-                  <ThemedText type="label" themeColor="textSecondary">
+                  <ThemedText type="label" themeColor="stageInk">
                     {`${workoutIndex} of ${workout.length} complete`}
                   </ThemedText>
                   {currentGame ? (
-                    <ThemedText type="caption" themeColor="textSecondary">
+                    <ThemedText type="caption" themeColor="stageInk">
                       {`Next: ${currentGame.name}`}
                     </ThemedText>
                   ) : null}
@@ -925,7 +926,7 @@ export default function HomeScreen() {
               />
             )}
           </View>
-        </ArcadePanel>
+        </Card>
 
         {/* The leg list is evidence of the plan, not part of the decision
             surface — it leaves the artifact for a quiet Report below. */}

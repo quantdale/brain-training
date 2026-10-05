@@ -27,8 +27,15 @@
  */
 
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import {
   buildActivityCalendar,
@@ -86,6 +93,7 @@ import {
   Card,
   EmptyState,
   Entrance,
+  HAIRLINE,
   ProgressBar,
   ProgressRing,
   Report,
@@ -97,7 +105,7 @@ import {
   Spark,
   Tappable,
 } from '@/components/ui';
-import { DomainColors, Radii, Spacing, type DomainName } from '@/constants/theme';
+import { DomainColors, Radii, Spacing, type DomainName, type ThemeColor } from '@/constants/theme';
 import { MIN_TOUCH_TARGET } from '@/components/a11y';
 import type { AppDatabase, GameSessionRecord, WorkoutInstance } from '@/db';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -497,17 +505,26 @@ export default function ProgressScreen() {
         </ThemedText>
       </View>
 
-      <SegmentedControl
-        testID="progress-window-selector"
-        value={windowKey}
-        onChange={(next) => setWindowKey(next as TimeWindowKey)}
-        compact
-        options={WINDOW_ORDER.map((k) => ({
-          value: k,
-          label: WINDOW_LABELS[k],
-          testID: `progress-window-${k}`,
-        }))}
-      />
+      {/* Quiet window row (lock §5/§8): a tracked kicker over the segmented
+          control, framed by hairline rules — a selector, never a card. */}
+      <View
+        style={[styles.windowRow, { borderTopColor: theme.border, borderBottomColor: theme.border }]}
+        testID="progress-window-selector-row">
+        <ThemedText type="eyebrow" themeColor="textMuted">
+          WINDOW
+        </ThemedText>
+        <SegmentedControl
+          testID="progress-window-selector"
+          value={windowKey}
+          onChange={(next) => setWindowKey(next as TimeWindowKey)}
+          compact
+          options={WINDOW_ORDER.map((k) => ({
+            value: k,
+            label: WINDOW_LABELS[k],
+            testID: `progress-window-${k}`,
+          }))}
+        />
+      </View>
 
       {!loaded ? (
         <>
@@ -597,12 +614,16 @@ export default function ProgressScreen() {
           testID="progress-summary"
           title="Summary"
           action={<Badge label={WINDOW_LABELS[windowKey]} tone="info" size="sm" />}>
-          <View style={styles.reportBody}>
-            <ReportRow label="Level" value={String(level)} valueTone="xp" divider />
-            <ReportRow label="XP" value={String(data.totalXp)} valueTone="xp" divider />
-            <ReportRow label="Sessions" value={String(windowedSessions.length)} divider />
-            <ReportRow label="Coins" value={String(data.balance)} divider />
-            <ProgressBar
+            <View style={styles.reportBody}>
+              <FactRow marker="01" label="Level" value={String(level)} />
+              <FactRow marker="02" label="XP" value={String(data.totalXp)} />
+              <FactRow
+                marker="03"
+                label={`Sessions (${WINDOW_LABELS[windowKey]})`}
+                value={String(windowedSessions.length)}
+              />
+              <FactRow marker="04" label="Coins" value={String(data.balance)} divider={false} />
+              <ProgressBar
               value={levelProgress(data.totalXp)}
               tone="xp"
               label={`Level ${level}`}
@@ -703,22 +724,8 @@ export default function ProgressScreen() {
         </Entrance>
       ) : null}
 
-      <Entrance index={isNewPlayer ? 4 : 6}>
-        <Report
-          testID="progress-activity"
-          title="Activity"
-          action={
-            <Tappable
-              testID="progress-activity-link"
-              onPress={() => router.push('/progress-activity')}
-              style={styles.textLinkRow}
-              accessibilityLabel="Open the full activity calendar"
-              accessibilityHint="Shows every training day in this view">
-              <ThemedText type="smallBold" themeColor="accent">
-                Full calendar ›
-              </ThemedText>
-            </Tappable>
-          }>
+        <Entrance index={isNewPlayer ? 4 : 6}>
+        <Report testID="progress-activity" title="Activity">
           <View style={styles.reportBody}>
             <ThemedText type="caption" themeColor="textSecondary">
               Your training rhythm, one cell per day.
@@ -732,6 +739,16 @@ export default function ProgressScreen() {
               {calendar.activeDays} active days · {calendar.totalSessions} sessions in this
               view
             </ThemedText>
+            {/* Drill-down as a numbered hairline row (lock §8) — the signature
+                treatment for navigation into deeper evidence. */}
+            <LinkRow
+              marker="01"
+              label="Full activity calendar"
+              onPress={() => router.push('/progress-activity')}
+              testID="progress-activity-link"
+              accessibilityLabel="Open the full activity calendar"
+              accessibilityHint="Shows every training day in this view"
+            />
           </View>
         </Report>
       </Entrance>
@@ -791,22 +808,31 @@ export default function ProgressScreen() {
       {!isNewPlayer && bestHistory.current !== null ? (
         <Report testID="progress-personal-best" title="Personal best">
           <View style={styles.reportBody}>
-            <ReportRow
+            <FactRow
+              marker="01"
               label="Best session"
               value={formatPercent(bestHistory.current.value)}
-              divider
             />
-            <ReportRow label="Set" value={formatDayLabel(bestHistory.current.t)} divider />
-            <ReportRow
+            <FactRow
+              marker="02"
+              label="Set"
+              value={formatDayLabel(bestHistory.current.t)}
+            />
+            <FactRow
+              marker="03"
               label="Standing"
               value={
                 bestHistory.standingDays === 0
                   ? 'Today'
                   : `${bestHistory.standingDays ?? 0}d`
               }
-              divider
             />
-            <ReportRow label="Times raised" value={String(bestHistory.timesBeaten)} divider />
+            <FactRow
+              marker="04"
+              label="Times raised"
+              value={String(bestHistory.timesBeaten)}
+              divider={false}
+            />
             <ThemedText type="caption" themeColor="textSecondary">
               {explainMetric('personal-best-history')}
             </ThemedText>
@@ -817,26 +843,31 @@ export default function ProgressScreen() {
       {hasWorkoutData ? (
         <Report testID="progress-workouts" title="Workout completion">
           <View style={styles.reportBody}>
-            <ReportRow
+            <FactRow
+              marker="01"
               label={`Done (last ${WORKOUT_RECENT_LIMIT})`}
               value={`${workoutAnalytics.completedInstances}/${workoutAnalytics.loadedInstances}`}
-              divider
             />
-            <ReportRow
+            <FactRow
+              marker="02"
               label="Rate"
               value={
                 workoutAnalytics.completionRate === null
                   ? '—'
                   : formatPercent(workoutAnalytics.completionRate)
               }
-              divider
             />
-            <ReportRow
+            <FactRow
+              marker="03"
               label="Current run"
               value={`${workoutAnalytics.currentCompletedRun}d`}
-              divider
             />
-            <ReportRow label="All-time" value={String(workoutAnalytics.lifetimeCompleted)} divider />
+            <FactRow
+              marker="04"
+              label="All-time"
+              value={String(workoutAnalytics.lifetimeCompleted)}
+              divider={false}
+            />
             <ThemedText type="caption" themeColor="textSecondary" testID="progress-workouts-games">
               Games finished inside workouts: {workoutAnalytics.gamesCompleted} of{' '}
               {workoutAnalytics.gamesAssigned} assigned · longest completed run{' '}
@@ -879,9 +910,10 @@ export default function ProgressScreen() {
         <Report testID="progress-cooccurrence" title="Training breadth & results">
           <View style={styles.reportBody}>
             {breadth.groups.map((group, index) => (
-              <ReportRow
+              <FactRow
                 key={group.breadth}
                 testID={`progress-cooccurrence-breadth-${group.breadth}`}
+                marker={String(index + 1).padStart(2, '0')}
                 label={`${group.breadth} domain${group.breadth === 1 ? '' : 's'} / day`}
                 value={`${group.days} day${group.days === 1 ? '' : 's'} · ${
                   group.avgNormalized === null ? '—' : formatPercent(group.avgNormalized)
@@ -900,7 +932,8 @@ export default function ProgressScreen() {
 
       <Entrance index={isNewPlayer ? 8 : 10}>
         <Report testID="progress-detail">
-          <ReportRow
+          {/* The one deep drill-down as a quiet hairline row (lock §8). */}
+          <LinkRow
             label="Full history"
             hint="Per-domain trends, game records and recent sessions."
             onPress={() => router.push('/progress-detail')}
@@ -1044,11 +1077,24 @@ function ConsistencyRail({
             No sessions in this window yet.
           </ThemedText>
         ) : (
-          <ThemedText type="bodyRead" themeColor="textSecondary">
-            {plural(consistency.sessions, 'session')} across{' '}
-            {plural(consistency.activeDays, 'active day')} ·{' '}
-            {consistency.averagePerActiveDay.toFixed(1)} per active day.
-          </ThemedText>
+          <>
+            <FactRow
+              marker="01"
+              label="Sessions"
+              value={plural(consistency.sessions, 'session')}
+            />
+            <FactRow
+              marker="02"
+              label="Active days"
+              value={plural(consistency.activeDays, 'active day')}
+            />
+            <FactRow
+              marker="03"
+              label="Per active day"
+              value={consistency.averagePerActiveDay.toFixed(1)}
+              divider={false}
+            />
+          </>
         )}
       </View>
     </Report>
@@ -1064,7 +1110,6 @@ function ConsistencyRail({
 function ProgressNarrative({
   movement,
   nextConsideration,
-  windowLabel,
 }: {
   movement: ProgressMovement;
   nextConsideration: NextConsideration | null;
@@ -1119,7 +1164,7 @@ function ProgressNarrative({
                 </ThemedText>
               </View>
             </View>
-            <ThemedText type="headline" themeColor="accentText">
+            <ThemedText type="headline" themeColor="textMuted">
               ›
             </ThemedText>
           </Tappable>
@@ -1180,6 +1225,127 @@ function domainKeyFor(domain: string): DomainName | null {
 /** testID slug for a domain (`Logic & Problem Solving` → `logicproblemsolving`). */
 function domainSlug(domain: string): string {
   return domain.replace(/[^a-z]/gi, '').toLowerCase();
+}
+
+/**
+ * Numbered hairline fact row — the lock's secondary-report grammar
+ * (REFERENCE_LOCK §8): a quiet `01`-style marker, a tracked uppercase label
+ * left and a medium value right, separated by hairlines. Scalar evidence
+ * rows use this so they never compete with the focal metric.
+ */
+function FactRow({
+  marker,
+  label,
+  value,
+  hint,
+  valueTone = 'text',
+  trailing,
+  divider = true,
+  testID,
+  style,
+}: {
+  marker?: string;
+  label: string;
+  value: string;
+  hint?: string;
+  valueTone?: ThemeColor;
+  trailing?: ReactNode;
+  divider?: boolean;
+  testID?: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const theme = useTheme();
+  return (
+    <View
+      testID={testID}
+      style={[
+        styles.factRow,
+        divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
+        style,
+      ]}>
+      {marker ? (
+        <ThemedText type="label" themeColor="textMuted" style={styles.factMarker}>
+          {marker}
+        </ThemedText>
+      ) : null}
+      <View style={styles.factLabels}>
+        <ThemedText type="eyebrow" themeColor="textMuted" style={styles.factLabel}>
+          {label.toUpperCase()}
+        </ThemedText>
+        {hint ? (
+          <ThemedText type="caption" themeColor="textMuted">
+            {hint}
+          </ThemedText>
+        ) : null}
+      </View>
+      {value !== '' ? (
+        <ThemedText type="bodySmall" themeColor={valueTone} style={styles.factValue}>
+          {value}
+        </ThemedText>
+      ) : null}
+      {trailing}
+    </View>
+  );
+}
+
+/**
+ * Numbered hairline drill-down link (lock §8 on a §5-quiet row): the marker
+ * numbers its list, the label stays body ink and the chevron is quiet — a
+ * navigation row, never a competing button fill. Meets the 44 dp touch floor
+ * by style so text-only links stay reachable (058 contract).
+ */
+function LinkRow({
+  marker,
+  label,
+  hint,
+  onPress,
+  testID,
+  accessibilityLabel,
+  accessibilityHint,
+  divider = false,
+}: {
+  marker?: string;
+  label: string;
+  hint?: string;
+  onPress: () => void;
+  testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  divider?: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <Tappable
+      testID={testID}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      style={[
+        styles.factRow,
+        divider ? { borderBottomWidth: HAIRLINE, borderBottomColor: theme.border } : null,
+      ]}
+      pressedStyle={{ backgroundColor: theme.backgroundSelected }}>
+      {marker ? (
+        <ThemedText type="label" themeColor="textMuted" style={styles.factMarker}>
+          {marker}
+        </ThemedText>
+      ) : null}
+      <View style={styles.factLabels}>
+        <ThemedText type="bodySmall" themeColor="text">
+          {label}
+        </ThemedText>
+        {hint ? (
+          <ThemedText type="caption" themeColor="textMuted">
+            {hint}
+          </ThemedText>
+        ) : null}
+      </View>
+      <ThemedText type="body" themeColor="textMuted" aria-hidden>
+        ›
+      </ThemedText>
+    </Tappable>
+  );
 }
 
 /** Identity dot for a domain — colour is never the only signal (text sits beside it). */
@@ -1351,7 +1517,6 @@ export function CompositeCard({
             </ThemedText>
             <ThemedText
               type="numeralXl"
-              themeColor="accent"
               style={styles.heroText}
               testID={testID ? `${testID}-value` : undefined}
               accessibilityLabel={`Overall rating ${composite.composite}`}>
@@ -1366,9 +1531,27 @@ export function CompositeCard({
                 {trend.text}
               </ThemedText>
             ) : null}
-            <ThemedText type="caption" themeColor="textSecondary" style={styles.heroText}>
-              {trained} trained · {composite.unseenDomains} untrained · {composite.staleDomains} stale
-            </ThemedText>
+            {/* Coverage facts as numbered hairline rows (lock §8) — the
+                composite numeral stays the only focal element. */}
+            <FactRow
+              marker="01"
+              label="Trained domains"
+              value={String(trained)}
+              style={styles.heroFact}
+            />
+            <FactRow
+              marker="02"
+              label="Untrained"
+              value={String(composite.unseenDomains)}
+              style={styles.heroFact}
+            />
+            <FactRow
+              marker="03"
+              label="Stale · half weight"
+              value={String(composite.staleDomains)}
+              divider={false}
+              style={styles.heroFact}
+            />
           </View>
         </View>
         <ThemedText type="caption" themeColor="textSecondary">
@@ -1440,7 +1623,7 @@ export function RecentVsLifetimeCard({
         <ThemedText type="caption" themeColor="textSecondary">
           This window compared with all time.
         </ThemedText>
-        <ReportRow
+        <FactRow
           label="Average"
           hint={`${windowLabel} vs all time`}
           value={`${hasRecent ? formatPercent(avg ?? 0) : '—'} · ${formatPercent(rvl.lifetimeAvgNormalized)}`}
@@ -1451,7 +1634,6 @@ export function RecentVsLifetimeCard({
               </ThemedText>
             )
           }
-          divider
         />
         {rollingLatest !== null ? (
           <ThemedText type="caption" themeColor="textSecondary" testID={`${testID}-rolling`}>
@@ -1460,7 +1642,7 @@ export function RecentVsLifetimeCard({
           </ThemedText>
         ) : null}
         {rvl.lifetimeAvgAccuracy !== null ? (
-          <ReportRow
+          <FactRow
             label="Accuracy"
             hint={`${windowLabel} vs all time`}
             value={`${rvl.recentAvgAccuracy === null ? '—' : formatPercent(rvl.recentAvgAccuracy)} · ${formatPercent(rvl.lifetimeAvgAccuracy)}`}
@@ -1471,11 +1653,10 @@ export function RecentVsLifetimeCard({
                 </ThemedText>
               )
             }
-            divider
           />
         ) : null}
         {rvl.lifetimeAvgReactionMs !== null ? (
-          <ReportRow
+          <FactRow
             label="Reaction"
             hint={`${windowLabel} vs all time · lower is better`}
             value={`${rvl.recentAvgReactionMs === null ? '—' : formatMs(rvl.recentAvgReactionMs)} · ${formatMs(rvl.lifetimeAvgReactionMs)}`}
@@ -1486,6 +1667,7 @@ export function RecentVsLifetimeCard({
                 </ThemedText>
               )
             }
+            divider={false}
           />
         ) : null}
         {!hasRecent ? (
@@ -1502,11 +1684,43 @@ const styles = StyleSheet.create({
   header: {
     gap: Spacing.one,
   },
-  // 058: text-only links meet the 44dp floor by style, not by accident.
-  textLinkRow: {
+  // Quiet window-selector row (lock §5/§8): hairline rules above and below,
+  // colours supplied inline from the theme in both schemes.
+  windowRow: {
+    gap: Spacing.two,
+    borderTopWidth: HAIRLINE,
+    borderBottomWidth: HAIRLINE,
+    paddingVertical: Spacing.two,
+  },
+  // Numbered hairline fact-row grammar (lock §8). Static evidence rows keep
+  // the 44 dp rhythm so lists read at a constant cadence.
+  factRow: {
     minHeight: MIN_TOUCH_TARGET,
-    justifyContent: 'center',
-    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.one,
+  },
+  factMarker: {
+    minWidth: Spacing.three,
+    fontVariant: ['tabular-nums'],
+  },
+  factLabels: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  // Fact labels use the tracked uppercase eyebrow slot at emphasis weight —
+  // a label, not a shout (lock §2 reserves 800 for headers/CTA).
+  factLabel: {
+    fontWeight: '600',
+  },
+  factValue: {
+    flexShrink: 0,
+  },
+  // Hero fact rows sit inside the focal panel: inset from the panel edges so
+  // the numbered rows read as the panel's own evidence lines.
+  heroFact: {
+    paddingHorizontal: Spacing.one,
   },
   cardHeader: {
     flexDirection: 'row',

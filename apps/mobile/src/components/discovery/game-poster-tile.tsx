@@ -94,13 +94,15 @@ export const GamePosterTile = memo(function GamePosterTile({
 const styles = StyleSheet.create({
   tile: {
     flex: 1,
-    borderRadius: Radii.small,
+    // Lock §3: 12dp standard radius outside stage cards.
+    borderRadius: Radii.medium,
     borderWidth: HAIRLINE,
     overflow: 'hidden',
   },
   art: {
     // Poster art is the tile's headline; the plinth carries the name.
-    height: 104,
+    // Matches the `GameWorldArt` card height so the board still is never clipped.
+    height: 112,
   },
   plinth: {
     padding: Spacing.two,

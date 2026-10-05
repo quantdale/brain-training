@@ -16,8 +16,18 @@
  */
 
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import {
   buildAccuracyTrend,
   buildActivityCalendar,
@@ -45,6 +55,7 @@ import {
   Badge,
   Card,
   EmptyState,
+ 
   ListRow,
   SectionGrid,
   SegmentedControl,
@@ -234,7 +245,6 @@ export default function ProgressDomainScreen() {
   const unseen = insight?.status === 'unseen';
   const key = domainKeyFor(domain);
   const family = key ? DomainColors[scheme][key] : null;
-  const identityText = family ? family.softText : theme.textSecondary;
 
   return (
     <ScreenShell>
@@ -254,16 +264,26 @@ export default function ProgressDomainScreen() {
         </ThemedText>
       </View>
 
-      <SegmentedControl
-        testID="progress-domain-window"
-        value={windowKey}
-        onChange={(next) => setWindowKey(next as TimeWindowKey)}
-        options={WINDOW_ORDER.map((k) => ({
-          value: k,
-          label: WINDOW_LABELS[k],
-          testID: `progress-domain-window-${k}`,
-        }))}
-      />
+      {/* Quiet window row (lock §5/§8): tracked kicker + segmented control
+          between hairline rules — the same grammar as the Progress tab. */}
+      <View
+        style={[styles.windowRow, { borderTopColor: theme.border, borderBottomColor: theme.border }]}
+        testID="progress-domain-window-row">
+        <ThemedText type="eyebrow" themeColor="textMuted">
+          WINDOW
+        </ThemedText>
+        <SegmentedControl
+          testID="progress-domain-window"
+          value={windowKey}
+          onChange={(next) => setWindowKey(next as TimeWindowKey)}
+          compact
+          options={WINDOW_ORDER.map((k) => ({
+            value: k,
+            label: WINDOW_LABELS[k],
+            testID: `progress-domain-window-${k}`,
+          }))}
+        />
+      </View>
 
       {!loaded ? (
         <>
@@ -281,12 +301,7 @@ export default function ProgressDomainScreen() {
       ) : (
         <>
       {unseen ? (
-        <Card
-          variant="outlined"
-          style={{
-            backgroundColor: family ? family.soft : theme.surfaceSunken,
-            borderColor: family ? family.base : theme.border,
-          }}>
+        <Card variant="outlined">
           <EmptyState
             icon={
               <Spark
@@ -302,21 +317,15 @@ export default function ProgressDomainScreen() {
             actionVariant="primary"
             testID="progress-domain-unseen"
           />
-          <ThemedText type="caption" style={{ color: identityText }}>
+          <ThemedText type="caption" themeColor="textSecondary">
             This domain contributes the starting rating ({insight?.rating ?? 1000}) to
             your overall composite until you train it.
           </ThemedText>
         </Card>
       ) : (
-        <Card
-          testID="progress-domain-summary"
-          variant="outlined"
-          style={{
-            backgroundColor: family ? family.soft : theme.surface,
-            borderColor: family ? family.base : theme.border,
-          }}>
+        <Card testID="progress-domain-summary" variant="outlined">
           <View style={styles.cardHeader}>
-            <ThemedText type="eyebrow" style={{ color: identityText }}>
+            <ThemedText type="eyebrow" themeColor="textSecondary">
               Current rating
             </ThemedText>
             <Badge
@@ -326,9 +335,7 @@ export default function ProgressDomainScreen() {
             />
           </View>
           <View style={styles.ratingRow}>
-            <ThemedText
-              type="numeralXl"
-              style={{ color: family ? family.softText : theme.accent }}>
+            <ThemedText type="numeralXl">
               {insight?.rating ?? '—'}
             </ThemedText>
             {insight && insight.windowMovement !== 0 ? (
@@ -339,7 +346,7 @@ export default function ProgressDomainScreen() {
               </ThemedText>
             ) : null}
           </View>
-          <ThemedText type="caption" style={{ color: identityText }}>
+          <ThemedText type="caption" themeColor="textSecondary">
             {insight?.status === 'stale'
               ? `Stale — last trained ${insight.daysSinceUpdate} days ago.`
               : `Fresh — trained ${insight?.daysSinceUpdate} days ago.`}{' '}
@@ -348,24 +355,28 @@ export default function ProgressDomainScreen() {
           {insight?.bestRating !== null ? (
             <ThemedText
               type="caption"
-              style={{ color: identityText }}
+              themeColor="textSecondary"
               testID="progress-domain-best">
               Personal best {insight.bestRating}
               {insight.bestRatingAt !== null ? ` · set ${formatDayLabel(insight.bestRatingAt)}` : ''}
             </ThemedText>
           ) : null}
-          <View style={styles.summaryRow} testID="progress-domain-stats">
-            <DomainStat
+          <View testID="progress-domain-stats">
+            <FactRow
+              marker="01"
               label={`Sessions (${WINDOW_LABELS[windowKey]})`}
               value={String(windowedDomainSessions.length)}
             />
-            <DomainStat
+            <FactRow
+              marker="02"
               label={`Avg (${WINDOW_LABELS[windowKey]})`}
               value={windowAvg === null ? '—' : formatPercent(windowAvg)}
             />
-            <DomainStat
+            <FactRow
+              marker="03"
               label="Best ever"
               value={lifetimeBest === null ? '—' : formatPercent(lifetimeBest)}
+              divider={false}
             />
           </View>
         </Card>
@@ -404,9 +415,14 @@ export default function ProgressDomainScreen() {
               </ThemedText>
             ) : null}
           </View>
-          <View style={styles.summaryRow}>
-            <DomainStat label="Updates in series" value={String(trendSummary.count)} />
-            <DomainStat
+          <View>
+            <FactRow
+              marker="01"
+              label="Updates in series"
+              value={String(trendSummary.count)}
+            />
+            <FactRow
+              marker="02"
               label="Consistency"
               value={
                 trendSummary.consistency === null
@@ -414,13 +430,15 @@ export default function ProgressDomainScreen() {
                   : formatPercent(trendSummary.consistency)
               }
             />
-            <DomainStat
+            <FactRow
+              marker="03"
               label="Slope / day"
               value={
                 trendSummary.slopePerDay === null
                   ? '—'
                   : `${formatSigned(Math.round(trendSummary.slopePerDay * 1000) / 10)}`
               }
+              divider={false}
             />
           </View>
           <ThemedText type="caption" themeColor="textSecondary">
@@ -627,11 +645,38 @@ function DomainHeading({ label, family }: { label: string; family: ColorFamily |
   );
 }
 
-/** Small labeled stat used in the domain summary row. */
-function DomainStat({ label, value }: { label: string; value: string }) {
+/** Change 076 (lock section 8): numbered hairline fact row for domain stats. */
+function FactRow({
+  marker,
+  label,
+  value,
+  divider = true,
+}: {
+  marker: string;
+  label: string;
+  value: string;
+  divider?: boolean;
+}) {
+  const theme = useTheme();
   return (
-    <View style={styles.stat}>
-      <StatBlock label={label} value={value} valueType="numeral" />
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.three,
+        paddingVertical: Spacing.twoHalf,
+        borderBottomWidth: divider ? 1 : 0,
+        borderBottomColor: theme.border,
+      }}>
+      <ThemedText type="caption" themeColor="textMuted" style={{ minWidth: 24 }}>
+        {marker}
+      </ThemedText>
+      <ThemedText type="bodySmall" themeColor="text" style={{ flex: 1 }}>
+        {label}
+      </ThemedText>
+      <ThemedText type="label" themeColor="text">
+        {value}
+      </ThemedText>
     </View>
   );
 }
@@ -645,6 +690,15 @@ const styles = StyleSheet.create({
     minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     alignSelf: 'flex-start',
+  },
+  windowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+    paddingVertical: Spacing.two,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
   },
   titleRow: {
     flexDirection: 'row',
