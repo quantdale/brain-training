@@ -778,7 +778,9 @@ export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps)
   const theme = useTheme();
   const colors = worldColors(theme, game.primaryCategory);
   const identity = getGameIdentity(game);
-  const height = size === 'stage' ? 220 : size === 'hero' ? 164 : 112;
+  // Change 076 (lock section 4): instruction-first intros — the intro art is
+  // a compact board still, not a decorative stage. Detail keeps a larger art.
+  const height = size === 'stage' ? 180 : size === 'hero' ? 120 : 112;
   const scale = height / 112;
   const variant = variantFor(game.id);
 

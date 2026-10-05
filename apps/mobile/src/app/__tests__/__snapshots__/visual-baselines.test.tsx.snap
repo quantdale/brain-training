@@ -46,7 +46,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
       tabBarControllerMode="automatic"
     >
       <RNSTabsScreenIOS
-        backgroundColor="#FFFDF7"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -54,14 +54,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
             "sf": "house.fill",
           }
         }
-        iconColor="#4C5D63"
+        iconColor="#4A4B4E"
         iconResourceName="house.fill"
         iconType="sfSymbol"
-        indicatorColor="#C74632"
+        indicatorColor="#D6293A"
         isTitleUndefined={false}
         labelStyle={
           {
-            "color": "#4C5D63",
+            "color": "#4A4B4E",
             "fontSize": 9,
           }
         }
@@ -85,21 +85,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -114,21 +114,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -143,21 +143,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -171,7 +171,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedIconResourceName="house.fill"
         selectedLabelStyle={
           {
-            "color": "#B23828",
+            "color": "#B8202F",
             "fontSize": 9,
           }
         }
@@ -195,21 +195,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -224,21 +224,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -253,26 +253,26 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294966775,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -334,7 +334,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     "flex": 1,
                   },
                   {
-                    "backgroundColor": "#F4F1E8",
+                    "backgroundColor": "#F7F6F3",
                   },
                 ]
               }
@@ -381,12 +381,12 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       style={
                         [
                           {
-                            "color": "#B23828",
+                            "color": "#B8202F",
                           },
                           {
-                            "fontSize": 11,
+                            "fontSize": 11.5,
                             "fontWeight": "800",
-                            "letterSpacing": 1.4,
+                            "letterSpacing": 1.8,
                             "lineHeight": 14,
                           },
                           false,
@@ -405,13 +405,13 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       style={
                         [
                           {
-                            "color": "#10232D",
+                            "color": "#17181A",
                           },
                           {
-                            "fontSize": 32,
-                            "fontWeight": "900",
-                            "letterSpacing": -0.8,
-                            "lineHeight": 37,
+                            "fontSize": 30,
+                            "fontWeight": "800",
+                            "letterSpacing": -0.4,
+                            "lineHeight": 34,
                           },
                           false,
                           false,
@@ -444,12 +444,12 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "overflow": "hidden",
                             },
                             {
-                              "backgroundColor": "#FFFDF7",
-                              "borderColor": "#C9D6D3",
+                              "backgroundColor": "#FFFFFF",
+                              "borderColor": "#D8D5CE",
                               "borderRadius": 12,
                               "borderWidth": 0.5,
-                              "boxShadow": "0 3px 0 rgba(16, 35, 45, 0.14), 0 8px 20px rgba(16, 35, 45, 0.10)",
-                              "elevation": 5,
+                              "boxShadow": "0 10px 28px rgba(12, 13, 15, 0.14)",
+                              "elevation": 4,
                               "padding": 0,
                             },
                             undefined,
@@ -506,7 +506,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                         "position": "absolute",
                                       },
                                       {
-                                        "backgroundColor": "#C74632",
+                                        "backgroundColor": "#D6293A",
                                         "height": 3,
                                         "width": 14,
                                       },
@@ -528,7 +528,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                         "position": "absolute",
                                       },
                                       {
-                                        "backgroundColor": "#C74632",
+                                        "backgroundColor": "#D6293A",
                                         "height": 3,
                                         "width": 14,
                                       },
@@ -563,12 +563,12 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 style={
                                   [
                                     {
-                                      "color": "#C74632",
+                                      "color": "#D6293A",
                                     },
                                     {
-                                      "fontSize": 11,
+                                      "fontSize": 11.5,
                                       "fontWeight": "800",
-                                      "letterSpacing": 1.4,
+                                      "letterSpacing": 1.8,
                                       "lineHeight": 14,
                                     },
                                     false,
@@ -587,7 +587,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#10232D",
+                                    "color": "#17181A",
                                   },
                                   {
                                     "fontSize": 24,
@@ -610,7 +610,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#4C5D63",
+                                    "color": "#4A4B4E",
                                   },
                                   {
                                     "fontSize": 12,
@@ -666,7 +666,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "position": "absolute",
                                     },
                                     {
-                                      "backgroundColor": "#C74632",
+                                      "backgroundColor": "#D6293A",
                                       "height": 7,
                                       "width": 32,
                                     },
@@ -688,7 +688,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "position": "absolute",
                                     },
                                     {
-                                      "backgroundColor": "#C74632",
+                                      "backgroundColor": "#D6293A",
                                       "height": 7,
                                       "width": 32,
                                     },
@@ -723,7 +723,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#10232D",
+                                    "color": "#17181A",
                                   },
                                   {
                                     "fontSize": 24,
@@ -748,7 +748,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#4C5D63",
+                                    "color": "#4A4B4E",
                                   },
                                   {
                                     "fontSize": 14,
@@ -796,12 +796,12 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           style={
                             [
                               {
-                                "color": "#4C5D63",
+                                "color": "#4A4B4E",
                               },
                               {
-                                "fontSize": 11,
+                                "fontSize": 11.5,
                                 "fontWeight": "800",
-                                "letterSpacing": 1.4,
+                                "letterSpacing": 1.8,
                                 "lineHeight": 14,
                               },
                               false,
@@ -824,7 +824,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               "borderTopWidth": 0.5,
                             },
                             {
-                              "borderTopColor": "#C9D6D3",
+                              "borderTopColor": "#D8D5CE",
                             },
                           ]
                         }
@@ -838,7 +838,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "paddingVertical": 8,
                               },
                               {
-                                "borderBottomColor": "#C9D6D3",
+                                "borderBottomColor": "#D8D5CE",
                               },
                             ]
                           }
@@ -859,7 +859,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#4C5D63",
+                                    "color": "#4A4B4E",
                                   },
                                   {
                                     "fontSize": 14,
@@ -881,16 +881,16 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#10232D",
+                                    "color": "#17181A",
                                   },
                                   {
-                                    "fontSize": 44,
+                                    "fontSize": 54,
                                     "fontVariant": [
                                       "tabular-nums",
                                     ],
-                                    "fontWeight": "900",
-                                    "letterSpacing": -1.2,
-                                    "lineHeight": 48,
+                                    "fontWeight": "800",
+                                    "letterSpacing": -1.5,
+                                    "lineHeight": 58,
                                   },
                                   false,
                                   false,
@@ -935,7 +935,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "width": 22,
                                     },
                                     {
-                                      "backgroundColor": "#E8ECEA",
+                                      "backgroundColor": "#ECEAE5",
                                       "borderColor": "#A94318",
                                       "borderWidth": 2,
                                     },
@@ -951,8 +951,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "width": 22,
                                     },
                                     {
-                                      "backgroundColor": "#E8ECEA",
-                                      "borderColor": "#C9D6D3",
+                                      "backgroundColor": "#ECEAE5",
+                                      "borderColor": "#D8D5CE",
                                       "borderWidth": 1,
                                     },
                                   ]
@@ -967,8 +967,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "width": 22,
                                     },
                                     {
-                                      "backgroundColor": "#E8ECEA",
-                                      "borderColor": "#C9D6D3",
+                                      "backgroundColor": "#ECEAE5",
+                                      "borderColor": "#D8D5CE",
                                       "borderWidth": 1,
                                     },
                                   ]
@@ -983,8 +983,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "width": 22,
                                     },
                                     {
-                                      "backgroundColor": "#E8ECEA",
-                                      "borderColor": "#C9D6D3",
+                                      "backgroundColor": "#ECEAE5",
+                                      "borderColor": "#D8D5CE",
                                       "borderWidth": 1,
                                     },
                                   ]
@@ -999,8 +999,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "width": 22,
                                     },
                                     {
-                                      "backgroundColor": "#E8ECEA",
-                                      "borderColor": "#C9D6D3",
+                                      "backgroundColor": "#ECEAE5",
+                                      "borderColor": "#D8D5CE",
                                       "borderWidth": 1,
                                     },
                                   ]
@@ -1015,8 +1015,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "width": 22,
                                     },
                                     {
-                                      "backgroundColor": "#E8ECEA",
-                                      "borderColor": "#C9D6D3",
+                                      "backgroundColor": "#ECEAE5",
+                                      "borderColor": "#D8D5CE",
                                       "borderWidth": 1,
                                     },
                                   ]
@@ -1031,8 +1031,8 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                       "width": 22,
                                     },
                                     {
-                                      "backgroundColor": "#E8ECEA",
-                                      "borderColor": "#C9D6D3",
+                                      "backgroundColor": "#ECEAE5",
+                                      "borderColor": "#D8D5CE",
                                       "borderWidth": 1,
                                     },
                                   ]
@@ -1064,7 +1064,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 style={
                                   [
                                     {
-                                      "color": "#10232D",
+                                      "color": "#17181A",
                                     },
                                     {
                                       "fontSize": 13,
@@ -1092,7 +1092,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               [
                                 {
-                                  "color": "#4C5D63",
+                                  "color": "#4A4B4E",
                                 },
                                 {
                                   "fontSize": 12,
@@ -1156,7 +1156,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1178,7 +1178,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1200,7 +1200,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1222,7 +1222,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1244,7 +1244,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1266,7 +1266,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1288,7 +1288,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1310,7 +1310,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1332,7 +1332,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1354,7 +1354,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1376,7 +1376,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1398,7 +1398,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1420,7 +1420,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1442,7 +1442,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1464,7 +1464,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1486,7 +1486,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1508,7 +1508,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1530,7 +1530,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1552,7 +1552,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1574,7 +1574,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1596,7 +1596,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1618,7 +1618,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1640,7 +1640,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1662,7 +1662,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1684,7 +1684,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1706,7 +1706,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1728,7 +1728,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1750,7 +1750,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1772,7 +1772,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1794,7 +1794,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1816,7 +1816,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1838,7 +1838,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1860,7 +1860,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1882,7 +1882,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1904,7 +1904,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1926,7 +1926,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1948,7 +1948,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1970,7 +1970,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -1992,7 +1992,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2014,7 +2014,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2036,7 +2036,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2058,7 +2058,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2080,7 +2080,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2102,7 +2102,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2124,7 +2124,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2146,7 +2146,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2168,7 +2168,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2190,7 +2190,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2212,7 +2212,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2234,7 +2234,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2256,7 +2256,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2278,7 +2278,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2300,7 +2300,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2322,7 +2322,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2344,7 +2344,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2366,7 +2366,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#C9D6D3",
+                                    "backgroundColor": "#D8D5CE",
                                     "borderRadius": 2,
                                     "height": 12,
                                     "left": 22,
@@ -2414,7 +2414,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                         "fontVariant": [
                                           "tabular-nums",
                                         ],
-                                        "fontWeight": "900",
+                                        "fontWeight": "800",
                                         "letterSpacing": -0.6,
                                         "lineHeight": 34,
                                       },
@@ -2447,7 +2447,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#4C5D63",
+                                    "color": "#4A4B4E",
                                   },
                                   {
                                     "fontSize": 14,
@@ -2470,7 +2470,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                               style={
                                 [
                                   {
-                                    "color": "#5B6B70",
+                                    "color": "#6E6E68",
                                   },
                                   {
                                     "fontSize": 12,
@@ -2494,7 +2494,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               [
                                 {
-                                  "color": "#10232D",
+                                  "color": "#17181A",
                                 },
                                 {
                                   "fontSize": 13,
@@ -2524,7 +2524,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "overflow": "hidden",
                           },
                           {
-                            "backgroundColor": "#FFFDF7",
+                            "backgroundColor": "#FFFFFF",
                             "borderRadius": 12,
                             "boxShadow": "none",
                             "elevation": 0,
@@ -2560,7 +2560,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               [
                                 {
-                                  "color": "#10232D",
+                                  "color": "#17181A",
                                 },
                                 {
                                   "fontSize": 24,
@@ -2585,7 +2585,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#4C5D63",
+                              "color": "#4A4B4E",
                             },
                             {
                               "fontSize": 14,
@@ -2611,7 +2611,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         </RNCSafeAreaProvider>
       </RNSTabsScreenIOS>
       <RNSTabsScreenIOS
-        backgroundColor="#FFFDF7"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -2619,14 +2619,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
             "sf": "gamecontroller.fill",
           }
         }
-        iconColor="#4C5D63"
+        iconColor="#4A4B4E"
         iconResourceName="gamecontroller.fill"
         iconType="sfSymbol"
-        indicatorColor="#C74632"
+        indicatorColor="#D6293A"
         isTitleUndefined={false}
         labelStyle={
           {
-            "color": "#4C5D63",
+            "color": "#4A4B4E",
             "fontSize": 9,
           }
         }
@@ -2650,21 +2650,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -2679,21 +2679,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -2708,21 +2708,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -2736,7 +2736,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedIconResourceName="gamecontroller.fill"
         selectedLabelStyle={
           {
-            "color": "#B23828",
+            "color": "#B8202F",
             "fontSize": 9,
           }
         }
@@ -2760,21 +2760,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -2789,21 +2789,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -2818,26 +2818,26 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294966775,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -2899,7 +2899,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     "flex": 1,
                   },
                   {
-                    "backgroundColor": "#F4F1E8",
+                    "backgroundColor": "#F7F6F3",
                   },
                 ]
               }
@@ -2953,12 +2953,12 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#B23828",
+                              "color": "#B8202F",
                             },
                             {
-                              "fontSize": 11,
+                              "fontSize": 11.5,
                               "fontWeight": "800",
-                              "letterSpacing": 1.4,
+                              "letterSpacing": 1.8,
                               "lineHeight": 14,
                             },
                             false,
@@ -2976,13 +2976,13 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#10232D",
+                              "color": "#17181A",
                             },
                             {
-                              "fontSize": 32,
-                              "fontWeight": "900",
-                              "letterSpacing": -0.8,
-                              "lineHeight": 37,
+                              "fontSize": 30,
+                              "fontWeight": "800",
+                              "letterSpacing": -0.4,
+                              "lineHeight": 34,
                             },
                             false,
                             false,
@@ -3000,7 +3000,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#4C5D63",
+                              "color": "#4A4B4E",
                             },
                             {
                               "fontSize": 14,
@@ -3055,7 +3055,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "position": "absolute",
                               },
                               {
-                                "backgroundColor": "#C74632",
+                                "backgroundColor": "#D6293A",
                                 "height": 9,
                                 "width": 40,
                               },
@@ -3077,7 +3077,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                                 "position": "absolute",
                               },
                               {
-                                "backgroundColor": "#C74632",
+                                "backgroundColor": "#D6293A",
                                 "height": 9,
                                 "width": 40,
                               },
@@ -3112,7 +3112,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#10232D",
+                              "color": "#17181A",
                             },
                             {
                               "fontSize": 24,
@@ -3137,7 +3137,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#4C5D63",
+                              "color": "#4A4B4E",
                             },
                             {
                               "fontSize": 14,
@@ -3165,7 +3165,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         </RNCSafeAreaProvider>
       </RNSTabsScreenIOS>
       <RNSTabsScreenIOS
-        backgroundColor="#FFFDF7"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -3173,14 +3173,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
             "sf": "chart.bar.fill",
           }
         }
-        iconColor="#4C5D63"
+        iconColor="#4A4B4E"
         iconResourceName="chart.bar.fill"
         iconType="sfSymbol"
-        indicatorColor="#C74632"
+        indicatorColor="#D6293A"
         isTitleUndefined={false}
         labelStyle={
           {
-            "color": "#4C5D63",
+            "color": "#4A4B4E",
             "fontSize": 9,
           }
         }
@@ -3204,21 +3204,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -3233,21 +3233,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -3262,21 +3262,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -3290,7 +3290,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedIconResourceName="chart.bar.fill"
         selectedLabelStyle={
           {
-            "color": "#B23828",
+            "color": "#B8202F",
             "fontSize": 9,
           }
         }
@@ -3314,21 +3314,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -3343,21 +3343,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -3372,26 +3372,26 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294966775,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -3453,7 +3453,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     "flex": 1,
                   },
                   {
-                    "backgroundColor": "#F4F1E8",
+                    "backgroundColor": "#F7F6F3",
                   },
                 ]
               }
@@ -3507,12 +3507,12 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#B23828",
+                              "color": "#B8202F",
                             },
                             {
-                              "fontSize": 11,
+                              "fontSize": 11.5,
                               "fontWeight": "800",
-                              "letterSpacing": 1.4,
+                              "letterSpacing": 1.8,
                               "lineHeight": 14,
                             },
                             false,
@@ -3530,13 +3530,13 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#10232D",
+                              "color": "#17181A",
                             },
                             {
-                              "fontSize": 32,
-                              "fontWeight": "900",
-                              "letterSpacing": -0.8,
-                              "lineHeight": 37,
+                              "fontSize": 30,
+                              "fontWeight": "800",
+                              "letterSpacing": -0.4,
+                              "lineHeight": 34,
                             },
                             false,
                             false,
@@ -3554,7 +3554,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#4C5D63",
+                              "color": "#4A4B4E",
                             },
                             {
                               "fontSize": 14,
@@ -3587,7 +3587,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "borderRadius": 12,
                           },
                           {
-                            "backgroundColor": "#E8ECEA",
+                            "backgroundColor": "#ECEAE5",
                           },
                         ]
                       }
@@ -3597,7 +3597,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         collapsable={false}
                         style={
                           {
-                            "backgroundColor": "#FFFDF7",
+                            "backgroundColor": "#FFFFFF",
                             "borderRadius": 999,
                             "bottom": 2,
                             "left": 2,
@@ -3663,7 +3663,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           style={
                             [
                               {
-                                "color": "#4C5D63",
+                                "color": "#4A4B4E",
                               },
                               {
                                 "fontSize": 12,
@@ -3736,7 +3736,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           style={
                             [
                               {
-                                "color": "#10232D",
+                                "color": "#17181A",
                               },
                               {
                                 "fontSize": 12,
@@ -3809,7 +3809,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           style={
                             [
                               {
-                                "color": "#4C5D63",
+                                "color": "#4A4B4E",
                               },
                               {
                                 "fontSize": 12,
@@ -3882,7 +3882,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                           style={
                             [
                               {
-                                "color": "#4C5D63",
+                                "color": "#4A4B4E",
                               },
                               {
                                 "fontSize": 12,
@@ -3909,7 +3909,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "overflow": "hidden",
                           },
                           {
-                            "backgroundColor": "#FFFDF7",
+                            "backgroundColor": "#FFFFFF",
                             "borderRadius": 12,
                             "boxShadow": "none",
                             "elevation": 0,
@@ -3925,7 +3925,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#A3211B",
+                              "color": "#931C11",
                             },
                             {
                               "fontSize": 24,
@@ -3948,7 +3948,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#4C5D63",
+                              "color": "#4A4B4E",
                             },
                             {
                               "fontSize": 14,
@@ -4000,7 +4000,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#FFE1D8",
+                            "backgroundColor": "#FBE3E5",
                             "borderColor": "transparent",
                             "borderRadius": 12,
                             "flexDirection": "row",
@@ -4033,7 +4033,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               [
                                 {
-                                  "color": "#8D2B20",
+                                  "color": "#8F1622",
                                 },
                                 {
                                   "fontSize": 14,
@@ -4064,7 +4064,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         </RNCSafeAreaProvider>
       </RNSTabsScreenIOS>
       <RNSTabsScreenIOS
-        backgroundColor="#FFFDF7"
+        backgroundColor="#FFFFFF"
         collapsable={false}
         hidden={false}
         icon={
@@ -4072,14 +4072,14 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
             "sf": "person.fill",
           }
         }
-        iconColor="#4C5D63"
+        iconColor="#4A4B4E"
         iconResourceName="person.fill"
         iconType="sfSymbol"
-        indicatorColor="#C74632"
+        indicatorColor="#D6293A"
         isTitleUndefined={false}
         labelStyle={
           {
-            "color": "#4C5D63",
+            "color": "#4A4B4E",
             "fontSize": 9,
           }
         }
@@ -4103,21 +4103,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -4132,21 +4132,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -4161,21 +4161,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -4189,7 +4189,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
         selectedIconResourceName="person.fill"
         selectedLabelStyle={
           {
-            "color": "#B23828",
+            "color": "#B8202F",
             "fontSize": 9,
           }
         }
@@ -4213,21 +4213,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -4242,21 +4242,21 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
@@ -4271,26 +4271,26 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
               "focused": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "normal": {
                 "tabBarItemBadgeBackgroundColor": undefined,
-                "tabBarItemIconColor": 4283194723,
-                "tabBarItemTitleFontColor": 4283194723,
+                "tabBarItemIconColor": 4283059022,
+                "tabBarItemTitleFontColor": 4283059022,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
               "selected": {
                 "tabBarItemBadgeBackgroundColor": undefined,
                 "tabBarItemIconColor": 4294967295,
-                "tabBarItemTitleFontColor": 4289869864,
+                "tabBarItemTitleFontColor": 4290256943,
                 "tabBarItemTitleFontSize": 9,
                 "tabBarItemTitleFontWeight": undefined,
               },
             },
-            "tabBarBackgroundColor": 4294966775,
+            "tabBarBackgroundColor": 4294967295,
             "tabBarBlurEffect": undefined,
             "tabBarShadowColor": undefined,
           }
@@ -4352,7 +4352,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                     "flex": 1,
                   },
                   {
-                    "backgroundColor": "#F4F1E8",
+                    "backgroundColor": "#F7F6F3",
                   },
                 ]
               }
@@ -4399,13 +4399,13 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                       style={
                         [
                           {
-                            "color": "#10232D",
+                            "color": "#17181A",
                           },
                           {
-                            "fontSize": 32,
-                            "fontWeight": "900",
-                            "letterSpacing": -0.8,
-                            "lineHeight": 37,
+                            "fontSize": 30,
+                            "fontWeight": "800",
+                            "letterSpacing": -0.4,
+                            "lineHeight": 34,
                           },
                           false,
                           false,
@@ -4426,7 +4426,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             "overflow": "hidden",
                           },
                           {
-                            "backgroundColor": "#FFFDF7",
+                            "backgroundColor": "#FFFFFF",
                             "borderRadius": 12,
                             "boxShadow": "none",
                             "elevation": 0,
@@ -4442,7 +4442,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#A3211B",
+                              "color": "#931C11",
                             },
                             {
                               "fontSize": 24,
@@ -4465,7 +4465,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           [
                             {
-                              "color": "#4C5D63",
+                              "color": "#4A4B4E",
                             },
                             {
                               "fontSize": 14,
@@ -4517,7 +4517,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                         style={
                           {
                             "alignItems": "center",
-                            "backgroundColor": "#FFE1D8",
+                            "backgroundColor": "#FBE3E5",
                             "borderColor": "transparent",
                             "borderRadius": 12,
                             "flexDirection": "row",
@@ -4550,7 +4550,7 @@ exports[`visual baselines (canary set) (tabs) shell — integrated NativeTabs na
                             style={
                               [
                                 {
-                                  "color": "#8D2B20",
+                                  "color": "#8F1622",
                                 },
                                 {
                                   "fontSize": 14,
@@ -4627,7 +4627,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
             "flex": 1,
           },
           {
-            "backgroundColor": "#F4F1E8",
+            "backgroundColor": "#F7F6F3",
           },
         ]
       }
@@ -4681,12 +4681,12 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#B23828",
+                      "color": "#B8202F",
                     },
                     {
-                      "fontSize": 11,
+                      "fontSize": 11.5,
                       "fontWeight": "800",
-                      "letterSpacing": 1.4,
+                      "letterSpacing": 1.8,
                       "lineHeight": 14,
                     },
                     false,
@@ -4704,13 +4704,13 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#10232D",
+                      "color": "#17181A",
                     },
                     {
-                      "fontSize": 32,
-                      "fontWeight": "900",
-                      "letterSpacing": -0.8,
-                      "lineHeight": 37,
+                      "fontSize": 30,
+                      "fontWeight": "800",
+                      "letterSpacing": -0.4,
+                      "lineHeight": 34,
                     },
                     false,
                     false,
@@ -4728,7 +4728,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#4C5D63",
+                      "color": "#4A4B4E",
                     },
                     {
                       "fontSize": 14,
@@ -4783,7 +4783,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                         "position": "absolute",
                       },
                       {
-                        "backgroundColor": "#C74632",
+                        "backgroundColor": "#D6293A",
                         "height": 9,
                         "width": 40,
                       },
@@ -4805,7 +4805,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                         "position": "absolute",
                       },
                       {
-                        "backgroundColor": "#C74632",
+                        "backgroundColor": "#D6293A",
                         "height": 9,
                         "width": 40,
                       },
@@ -4840,7 +4840,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#10232D",
+                      "color": "#17181A",
                     },
                     {
                       "fontSize": 24,
@@ -4865,7 +4865,7 @@ exports[`visual baselines (canary set) Games — empty catalog snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#4C5D63",
+                      "color": "#4A4B4E",
                     },
                     {
                       "fontSize": 14,
@@ -4935,7 +4935,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
             "flex": 1,
           },
           {
-            "backgroundColor": "#F4F1E8",
+            "backgroundColor": "#F7F6F3",
           },
         ]
       }
@@ -4982,12 +4982,12 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               style={
                 [
                   {
-                    "color": "#B23828",
+                    "color": "#B8202F",
                   },
                   {
-                    "fontSize": 11,
+                    "fontSize": 11.5,
                     "fontWeight": "800",
-                    "letterSpacing": 1.4,
+                    "letterSpacing": 1.8,
                     "lineHeight": 14,
                   },
                   false,
@@ -5006,13 +5006,13 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
               style={
                 [
                   {
-                    "color": "#10232D",
+                    "color": "#17181A",
                   },
                   {
-                    "fontSize": 32,
-                    "fontWeight": "900",
-                    "letterSpacing": -0.8,
-                    "lineHeight": 37,
+                    "fontSize": 30,
+                    "fontWeight": "800",
+                    "letterSpacing": -0.4,
+                    "lineHeight": 34,
                   },
                   false,
                   false,
@@ -5045,12 +5045,12 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       "overflow": "hidden",
                     },
                     {
-                      "backgroundColor": "#FFFDF7",
-                      "borderColor": "#C9D6D3",
+                      "backgroundColor": "#FFFFFF",
+                      "borderColor": "#D8D5CE",
                       "borderRadius": 12,
                       "borderWidth": 0.5,
-                      "boxShadow": "0 3px 0 rgba(16, 35, 45, 0.14), 0 8px 20px rgba(16, 35, 45, 0.10)",
-                      "elevation": 5,
+                      "boxShadow": "0 10px 28px rgba(12, 13, 15, 0.14)",
+                      "elevation": 4,
                       "padding": 0,
                     },
                     undefined,
@@ -5107,7 +5107,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                                 "position": "absolute",
                               },
                               {
-                                "backgroundColor": "#C74632",
+                                "backgroundColor": "#D6293A",
                                 "height": 3,
                                 "width": 14,
                               },
@@ -5129,7 +5129,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                                 "position": "absolute",
                               },
                               {
-                                "backgroundColor": "#C74632",
+                                "backgroundColor": "#D6293A",
                                 "height": 3,
                                 "width": 14,
                               },
@@ -5164,12 +5164,12 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         style={
                           [
                             {
-                              "color": "#C74632",
+                              "color": "#D6293A",
                             },
                             {
-                              "fontSize": 11,
+                              "fontSize": 11.5,
                               "fontWeight": "800",
-                              "letterSpacing": 1.4,
+                              "letterSpacing": 1.8,
                               "lineHeight": 14,
                             },
                             false,
@@ -5188,7 +5188,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#10232D",
+                            "color": "#17181A",
                           },
                           {
                             "fontSize": 24,
@@ -5211,7 +5211,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#4C5D63",
+                            "color": "#4A4B4E",
                           },
                           {
                             "fontSize": 12,
@@ -5267,7 +5267,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "position": "absolute",
                             },
                             {
-                              "backgroundColor": "#C74632",
+                              "backgroundColor": "#D6293A",
                               "height": 7,
                               "width": 32,
                             },
@@ -5289,7 +5289,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "position": "absolute",
                             },
                             {
-                              "backgroundColor": "#C74632",
+                              "backgroundColor": "#D6293A",
                               "height": 7,
                               "width": 32,
                             },
@@ -5324,7 +5324,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#10232D",
+                            "color": "#17181A",
                           },
                           {
                             "fontSize": 24,
@@ -5349,7 +5349,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#4C5D63",
+                            "color": "#4A4B4E",
                           },
                           {
                             "fontSize": 14,
@@ -5397,12 +5397,12 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                   style={
                     [
                       {
-                        "color": "#4C5D63",
+                        "color": "#4A4B4E",
                       },
                       {
-                        "fontSize": 11,
+                        "fontSize": 11.5,
                         "fontWeight": "800",
-                        "letterSpacing": 1.4,
+                        "letterSpacing": 1.8,
                         "lineHeight": 14,
                       },
                       false,
@@ -5425,7 +5425,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       "borderTopWidth": 0.5,
                     },
                     {
-                      "borderTopColor": "#C9D6D3",
+                      "borderTopColor": "#D8D5CE",
                     },
                   ]
                 }
@@ -5439,7 +5439,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         "paddingVertical": 8,
                       },
                       {
-                        "borderBottomColor": "#C9D6D3",
+                        "borderBottomColor": "#D8D5CE",
                       },
                     ]
                   }
@@ -5460,7 +5460,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#4C5D63",
+                            "color": "#4A4B4E",
                           },
                           {
                             "fontSize": 14,
@@ -5482,16 +5482,16 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#10232D",
+                            "color": "#17181A",
                           },
                           {
-                            "fontSize": 44,
+                            "fontSize": 54,
                             "fontVariant": [
                               "tabular-nums",
                             ],
-                            "fontWeight": "900",
-                            "letterSpacing": -1.2,
-                            "lineHeight": 48,
+                            "fontWeight": "800",
+                            "letterSpacing": -1.5,
+                            "lineHeight": 58,
                           },
                           false,
                           false,
@@ -5536,7 +5536,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "width": 22,
                             },
                             {
-                              "backgroundColor": "#E8ECEA",
+                              "backgroundColor": "#ECEAE5",
                               "borderColor": "#A94318",
                               "borderWidth": 2,
                             },
@@ -5552,8 +5552,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "width": 22,
                             },
                             {
-                              "backgroundColor": "#E8ECEA",
-                              "borderColor": "#C9D6D3",
+                              "backgroundColor": "#ECEAE5",
+                              "borderColor": "#D8D5CE",
                               "borderWidth": 1,
                             },
                           ]
@@ -5568,8 +5568,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "width": 22,
                             },
                             {
-                              "backgroundColor": "#E8ECEA",
-                              "borderColor": "#C9D6D3",
+                              "backgroundColor": "#ECEAE5",
+                              "borderColor": "#D8D5CE",
                               "borderWidth": 1,
                             },
                           ]
@@ -5584,8 +5584,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "width": 22,
                             },
                             {
-                              "backgroundColor": "#E8ECEA",
-                              "borderColor": "#C9D6D3",
+                              "backgroundColor": "#ECEAE5",
+                              "borderColor": "#D8D5CE",
                               "borderWidth": 1,
                             },
                           ]
@@ -5600,8 +5600,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "width": 22,
                             },
                             {
-                              "backgroundColor": "#E8ECEA",
-                              "borderColor": "#C9D6D3",
+                              "backgroundColor": "#ECEAE5",
+                              "borderColor": "#D8D5CE",
                               "borderWidth": 1,
                             },
                           ]
@@ -5616,8 +5616,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "width": 22,
                             },
                             {
-                              "backgroundColor": "#E8ECEA",
-                              "borderColor": "#C9D6D3",
+                              "backgroundColor": "#ECEAE5",
+                              "borderColor": "#D8D5CE",
                               "borderWidth": 1,
                             },
                           ]
@@ -5632,8 +5632,8 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                               "width": 22,
                             },
                             {
-                              "backgroundColor": "#E8ECEA",
-                              "borderColor": "#C9D6D3",
+                              "backgroundColor": "#ECEAE5",
+                              "borderColor": "#D8D5CE",
                               "borderWidth": 1,
                             },
                           ]
@@ -5665,7 +5665,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                         style={
                           [
                             {
-                              "color": "#10232D",
+                              "color": "#17181A",
                             },
                             {
                               "fontSize": 13,
@@ -5693,7 +5693,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     style={
                       [
                         {
-                          "color": "#4C5D63",
+                          "color": "#4A4B4E",
                         },
                         {
                           "fontSize": 12,
@@ -5757,7 +5757,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5779,7 +5779,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5801,7 +5801,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5823,7 +5823,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5845,7 +5845,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5867,7 +5867,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5889,7 +5889,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5911,7 +5911,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5933,7 +5933,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5955,7 +5955,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5977,7 +5977,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -5999,7 +5999,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6021,7 +6021,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6043,7 +6043,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6065,7 +6065,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6087,7 +6087,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6109,7 +6109,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6131,7 +6131,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6153,7 +6153,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6175,7 +6175,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6197,7 +6197,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6219,7 +6219,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6241,7 +6241,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6263,7 +6263,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6285,7 +6285,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6307,7 +6307,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6329,7 +6329,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6351,7 +6351,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6373,7 +6373,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6395,7 +6395,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6417,7 +6417,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6439,7 +6439,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6461,7 +6461,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6483,7 +6483,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6505,7 +6505,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6527,7 +6527,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6549,7 +6549,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6571,7 +6571,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6593,7 +6593,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6615,7 +6615,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6637,7 +6637,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6659,7 +6659,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6681,7 +6681,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6703,7 +6703,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6725,7 +6725,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6747,7 +6747,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6769,7 +6769,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6791,7 +6791,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6813,7 +6813,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6835,7 +6835,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6857,7 +6857,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6879,7 +6879,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6901,7 +6901,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6923,7 +6923,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6945,7 +6945,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -6967,7 +6967,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       <View
                         style={
                           {
-                            "backgroundColor": "#C9D6D3",
+                            "backgroundColor": "#D8D5CE",
                             "borderRadius": 2,
                             "height": 12,
                             "left": 22,
@@ -7015,7 +7015,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                                 "fontVariant": [
                                   "tabular-nums",
                                 ],
-                                "fontWeight": "900",
+                                "fontWeight": "800",
                                 "letterSpacing": -0.6,
                                 "lineHeight": 34,
                               },
@@ -7048,7 +7048,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#4C5D63",
+                            "color": "#4A4B4E",
                           },
                           {
                             "fontSize": 14,
@@ -7071,7 +7071,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                       style={
                         [
                           {
-                            "color": "#5B6B70",
+                            "color": "#6E6E68",
                           },
                           {
                             "fontSize": 12,
@@ -7095,7 +7095,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     style={
                       [
                         {
-                          "color": "#10232D",
+                          "color": "#17181A",
                         },
                         {
                           "fontSize": 13,
@@ -7125,7 +7125,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     "overflow": "hidden",
                   },
                   {
-                    "backgroundColor": "#FFFDF7",
+                    "backgroundColor": "#FFFFFF",
                     "borderRadius": 12,
                     "boxShadow": "none",
                     "elevation": 0,
@@ -7161,7 +7161,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                     style={
                       [
                         {
-                          "color": "#10232D",
+                          "color": "#17181A",
                         },
                         {
                           "fontSize": 24,
@@ -7186,7 +7186,7 @@ exports[`visual baselines (canary set) Home — first-run dashboard snapshot 1`]
                 style={
                   [
                     {
-                      "color": "#4C5D63",
+                      "color": "#4A4B4E",
                     },
                     {
                       "fontSize": 14,
@@ -7254,7 +7254,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
             "flex": 1,
           },
           {
-            "backgroundColor": "#F4F1E8",
+            "backgroundColor": "#F7F6F3",
           },
         ]
       }
@@ -7301,13 +7301,13 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
               style={
                 [
                   {
-                    "color": "#10232D",
+                    "color": "#17181A",
                   },
                   {
-                    "fontSize": 32,
-                    "fontWeight": "900",
-                    "letterSpacing": -0.8,
-                    "lineHeight": 37,
+                    "fontSize": 30,
+                    "fontWeight": "800",
+                    "letterSpacing": -0.4,
+                    "lineHeight": 34,
                   },
                   false,
                   false,
@@ -7328,7 +7328,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     "overflow": "hidden",
                   },
                   {
-                    "backgroundColor": "#FFFDF7",
+                    "backgroundColor": "#FFFFFF",
                     "borderRadius": 12,
                     "boxShadow": "none",
                     "elevation": 0,
@@ -7344,7 +7344,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 style={
                   [
                     {
-                      "color": "#A3211B",
+                      "color": "#931C11",
                     },
                     {
                       "fontSize": 24,
@@ -7367,7 +7367,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 style={
                   [
                     {
-                      "color": "#4C5D63",
+                      "color": "#4A4B4E",
                     },
                     {
                       "fontSize": 14,
@@ -7419,7 +7419,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFE1D8",
+                    "backgroundColor": "#FBE3E5",
                     "borderColor": "transparent",
                     "borderRadius": 12,
                     "flexDirection": "row",
@@ -7452,7 +7452,7 @@ exports[`visual baselines (canary set) Profile — db-unavailable fallback snaps
                     style={
                       [
                         {
-                          "color": "#8D2B20",
+                          "color": "#8F1622",
                         },
                         {
                           "fontSize": 14,
@@ -7525,7 +7525,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
             "flex": 1,
           },
           {
-            "backgroundColor": "#F4F1E8",
+            "backgroundColor": "#F7F6F3",
           },
         ]
       }
@@ -7579,12 +7579,12 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   [
                     {
-                      "color": "#B23828",
+                      "color": "#B8202F",
                     },
                     {
-                      "fontSize": 11,
+                      "fontSize": 11.5,
                       "fontWeight": "800",
-                      "letterSpacing": 1.4,
+                      "letterSpacing": 1.8,
                       "lineHeight": 14,
                     },
                     false,
@@ -7602,13 +7602,13 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   [
                     {
-                      "color": "#10232D",
+                      "color": "#17181A",
                     },
                     {
-                      "fontSize": 32,
-                      "fontWeight": "900",
-                      "letterSpacing": -0.8,
-                      "lineHeight": 37,
+                      "fontSize": 30,
+                      "fontWeight": "800",
+                      "letterSpacing": -0.4,
+                      "lineHeight": 34,
                     },
                     false,
                     false,
@@ -7626,7 +7626,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   [
                     {
-                      "color": "#4C5D63",
+                      "color": "#4A4B4E",
                     },
                     {
                       "fontSize": 14,
@@ -7659,7 +7659,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     "borderRadius": 12,
                   },
                   {
-                    "backgroundColor": "#E8ECEA",
+                    "backgroundColor": "#ECEAE5",
                   },
                 ]
               }
@@ -7669,7 +7669,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 collapsable={false}
                 style={
                   {
-                    "backgroundColor": "#FFFDF7",
+                    "backgroundColor": "#FFFFFF",
                     "borderRadius": 999,
                     "bottom": 2,
                     "left": 2,
@@ -7735,7 +7735,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   style={
                     [
                       {
-                        "color": "#4C5D63",
+                        "color": "#4A4B4E",
                       },
                       {
                         "fontSize": 12,
@@ -7808,7 +7808,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   style={
                     [
                       {
-                        "color": "#10232D",
+                        "color": "#17181A",
                       },
                       {
                         "fontSize": 12,
@@ -7881,7 +7881,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   style={
                     [
                       {
-                        "color": "#4C5D63",
+                        "color": "#4A4B4E",
                       },
                       {
                         "fontSize": 12,
@@ -7954,7 +7954,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                   style={
                     [
                       {
-                        "color": "#4C5D63",
+                        "color": "#4A4B4E",
                       },
                       {
                         "fontSize": 12,
@@ -7981,7 +7981,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     "overflow": "hidden",
                   },
                   {
-                    "backgroundColor": "#FFFDF7",
+                    "backgroundColor": "#FFFFFF",
                     "borderRadius": 12,
                     "boxShadow": "none",
                     "elevation": 0,
@@ -7997,7 +7997,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   [
                     {
-                      "color": "#A3211B",
+                      "color": "#931C11",
                     },
                     {
                       "fontSize": 24,
@@ -8020,7 +8020,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   [
                     {
-                      "color": "#4C5D63",
+                      "color": "#4A4B4E",
                     },
                     {
                       "fontSize": 14,
@@ -8072,7 +8072,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFE1D8",
+                    "backgroundColor": "#FBE3E5",
                     "borderColor": "transparent",
                     "borderRadius": 12,
                     "flexDirection": "row",
@@ -8105,7 +8105,7 @@ exports[`visual baselines (canary set) Progress — db-unavailable fallback snap
                     style={
                       [
                         {
-                          "color": "#8D2B20",
+                          "color": "#8F1622",
                         },
                         {
                           "fontSize": 14,

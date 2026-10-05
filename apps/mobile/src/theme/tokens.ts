@@ -5,11 +5,12 @@
  * comes from this file. Screens and components must not hardcode magic colours
  * or sizes; add a token here instead of inventing a one-off value.
  *
- * Design language v4 (campaign 051) — "Signal Arcade":
- *   ink navy + warm paper, signal coral, electric cyan, voltage yellow and
- *   mint, with poster/block geometry and a tactile console-key action language.
- *   The palette is expressive where the player makes a decision and quiet
- *   where the product reports evidence.
+ * Design language v5 (change 076) — "Training Studio" (REFERENCE_LOCK.md):
+ *   studio paper + charcoal stage, one red primary action, white reading type,
+ *   instrument-like metrics and mechanic-first play stages. Red is the CTA
+ *   role ONLY; success/error always carry text+icon/shape beyond color. The
+ *   palette is quiet where the product reports evidence and immersive where
+ *   the player plays.
  *
  * Colour contract: every family exposes five slots so callers pick the right
  * one instead of guessing contrast:
@@ -74,22 +75,23 @@ export type DomainName =
  */
 export const Families = {
   light: {
-    accent: { base: '#C74632', text: '#B23828', soft: '#FFE1D8', softText: '#8D2B20', on: '#FFFFFF' },
-    success: { base: '#176B46', text: '#176B46', soft: '#DDF4E8', softText: '#0F5135', on: '#FFFFFF' },
+    // CTA red — the ONE primary action fill (REFERENCE_LOCK section 1); never error.
+    accent: { base: '#D6293A', text: '#B8202F', soft: '#FBE3E5', softText: '#8F1622', on: '#FFFFFF' },
+    success: { base: '#157A46', text: '#116939', soft: '#DFF2E7', softText: '#0F5230', on: '#FFFFFF' },
     warning: { base: '#8C5A00', text: '#795000', soft: '#FFF0C8', softText: '#604000', on: '#FFFFFF' },
-    danger: { base: '#B3261E', text: '#A3211B', soft: '#FDE3E1', softText: '#7A1B17', on: '#FFFFFF' },
+    danger: { base: '#A32014', text: '#931C11', soft: '#F9E2DE', softText: '#7C180E', on: '#FFFFFF' },
     info: { base: '#0D628C', text: '#0B587D', soft: '#D9F1FA', softText: '#084764', on: '#FFFFFF' },
     streak: { base: '#A94318', text: '#963A14', soft: '#FFE3D4', softText: '#72300F', on: '#FFFFFF' },
     xp: { base: '#633BAF', text: '#58339D', soft: '#EDE4FA', softText: '#482A7E', on: '#FFFFFF' },
     currency: { base: '#705900', text: '#624D00', soft: '#F8EEC7', softText: '#4E3D00', on: '#FFFFFF' },
   },
   dark: {
-    // Dark-mode fills are luminous with dark ink on them (`on`), while the
-    // canvas is a blue-black instrument surface rather than pure black.
-    accent: { base: '#FF806D', text: '#FF9D8C', soft: '#3A2428', softText: '#FFC0B2', on: '#25100D' },
-    success: { base: '#5DD69A', text: '#7BE6AF', soft: '#17382A', softText: '#9AF1C2', on: '#062719' },
+    // Dark-mode fills are luminous with dark ink on them (`on`); the canvas is
+    // a near-black studio surface and the CTA red brightens for dark ground.
+    accent: { base: '#FF4A57', text: '#FF6E79', soft: '#3A1418', softText: '#FFB3BA', on: '#2B0508' },
+    success: { base: '#4CC98A', text: '#6FD8A4', soft: '#12301F', softText: '#9AE8C0', on: '#06281A' },
     warning: { base: '#FFD166', text: '#FFDB82', soft: '#3C321A', softText: '#FFE6A3', on: '#332400' },
-    danger: { base: '#FF8179', text: '#FFAAA4', soft: '#3C2025', softText: '#FFC0BB', on: '#340B0A' },
+    danger: { base: '#FF7B67', text: '#FF9A89', soft: '#3A1410', softText: '#FFC0B5', on: '#340B07' },
     info: { base: '#69C9F0', text: '#8ADAF7', soft: '#143545', softText: '#A9E6FB', on: '#08212D' },
     streak: { base: '#FF9D5C', text: '#FFB77E', soft: '#3B281A', softText: '#FFD0A5', on: '#321506' },
     xp: { base: '#B99AFF', text: '#CBB3FF', soft: '#2A2248', softText: '#DFD0FF', on: '#1A1030' },
@@ -174,40 +176,40 @@ interface NeutralTheme {
 
 const NEUTRALS = {
   light: {
-    text: '#10232D',
-    textSecondary: '#4C5D63',
-    textMuted: '#5B6B70',
-    background: '#F4F1E8',
-    backgroundElement: '#E8ECEA',
-    backgroundSelected: '#DCE7E5',
-    surface: '#FFFDF7',
-    surfaceRaised: '#FFFDF7',
-    surfaceSunken: '#E8ECEA',
-    border: '#C9D6D3',
-    borderStrong: '#4A6267',
-    accentStrong: '#A63829',
-    scrim: 'rgba(10, 22, 30, 0.58)',
-    overlaySurface: 'rgba(13, 27, 36, 0.94)',
+    text: '#17181A',
+    textSecondary: '#4A4B4E',
+    textMuted: '#6E6E68',
+    background: '#F7F6F3',
+    backgroundElement: '#ECEAE5',
+    backgroundSelected: '#E2E0DA',
+    surface: '#FFFFFF',
+    surfaceRaised: '#FFFFFF',
+    surfaceSunken: '#ECEAE5',
+    border: '#D8D5CE',
+    borderStrong: '#4A4B4E',
+    accentStrong: '#B01E2E',
+    scrim: 'rgba(12, 13, 15, 0.58)',
+    overlaySurface: 'rgba(16, 17, 19, 0.94)',
     overlayText: '#FFFFFF',
-    overlayTextMuted: '#D9DCE8',
+    overlayTextMuted: '#D9D9D6',
   },
   dark: {
-    text: '#F6F1E7',
-    textSecondary: '#B9C7C8',
-    textMuted: '#94A8AB',
-    background: '#0E1922',
-    backgroundElement: '#0A1219',
-    backgroundSelected: '#213742',
-    surface: '#152733',
-    surfaceRaised: '#1D323E',
-    surfaceSunken: '#0A141C',
-    border: '#2C4752',
-    borderStrong: '#86A4A9',
-    accentStrong: '#FF9D8C',
-    scrim: 'rgba(4, 12, 18, 0.72)',
-    overlaySurface: 'rgba(9, 20, 28, 0.95)',
+    text: '#F2F2F0',
+    textSecondary: '#B9BABC',
+    textMuted: '#9A9A94',
+    background: '#101114',
+    backgroundElement: '#17181B',
+    backgroundSelected: '#26282C',
+    surface: '#1B1D21',
+    surfaceRaised: '#232629',
+    surfaceSunken: '#0C0D0F',
+    border: '#34363B',
+    borderStrong: '#A2A3A6',
+    accentStrong: '#FF6E79',
+    scrim: 'rgba(5, 6, 8, 0.72)',
+    overlaySurface: 'rgba(10, 11, 13, 0.95)',
     overlayText: '#FFFFFF',
-    overlayTextMuted: '#D9DCE8',
+    overlayTextMuted: '#D9D9D6',
   },
 } as const satisfies { light: NeutralTheme; dark: NeutralTheme };
 
@@ -279,24 +281,24 @@ export const Colors: { readonly light: ColorTheme; readonly dark: ColorTheme } =
  */
 export const ArcadePalette = {
   light: {
-    ink: '#10232D',
-    paper: '#F4F1E8',
-    paperBright: '#FFFDF7',
-    coral: '#F0644F',
-    cyan: '#1CB8D0',
-    yellow: '#F3C744',
-    mint: '#4EBE9E',
-    violet: '#8064C8',
+    ink: '#17181A',
+    paper: '#F7F6F3',
+    paperBright: '#FFFFFF',
+    coral: '#D6293A',
+    cyan: '#167E9E',
+    yellow: '#D9A514',
+    mint: '#2E8B6A',
+    violet: '#633BAF',
   },
   dark: {
-    ink: '#08131A',
-    paper: '#F6F1E7',
-    paperBright: '#E4F0ED',
-    coral: '#FF806D',
-    cyan: '#55D4E8',
-    yellow: '#FFD45A',
-    mint: '#67D4B1',
-    violet: '#B59AFF',
+    ink: '#0B0C0D',
+    paper: '#101114',
+    paperBright: '#1B1D21',
+    coral: '#FF4A57',
+    cyan: '#58B8D8',
+    yellow: '#E8B93E',
+    mint: '#4CC98A',
+    violet: '#B99AFF',
   },
 } as const;
 
@@ -417,7 +419,7 @@ export const Typography: Record<
   TypographyToken
 > = {
   /** Uppercase section eyebrow above a title. */
-  eyebrow: { size: 11, lineHeight: 14, weight: '800', tracking: 1.4 },
+  eyebrow: { size: 11.5, lineHeight: 14, weight: '800', tracking: 1.8 },
   /** Small labels, captions, metadata. */
   caption: { size: 12, lineHeight: 16, weight: '500' },
   /** Form/detail labels that pair with a value. */
@@ -437,23 +439,23 @@ export const Typography: Record<
   /** Section headers. */
   headline: { size: 24, lineHeight: 30, weight: '800', tracking: -0.4 },
   /** Screen titles. */
-  title: { size: 32, lineHeight: 37, weight: '900', tracking: -0.8 },
+  title: { size: 30, lineHeight: 34, weight: '800', tracking: -0.4 },
   /** Hero/dashboard display. */
-  display: { size: 42, lineHeight: 46, weight: '900', tracking: -1.2 },
+  display: { size: 40, lineHeight: 44, weight: '800', tracking: -1.0 },
   /** Game names on stages, panels, tiles and detail (campaign 055 voice). */
-  gameTitle: { size: 26, lineHeight: 30, weight: '900', tracking: -0.4 },
+  gameTitle: { size: 22, lineHeight: 26, weight: '800', tracking: -0.3 },
   /**
    * The single result band headline on Results. Deliberately heavier and
    * larger than `headline` so the emotional peak outranks surrounding
    * report copy (campaign 055).
    */
-  resultHeadline: { size: 34, lineHeight: 38, weight: '900', tracking: -0.8 },
+  resultHeadline: { size: 30, lineHeight: 34, weight: '800', tracking: -0.6 },
   /** Inline metric (rows, chips). */
   numeral: { size: 20, lineHeight: 24, weight: '800', tabular: true },
   /** Card-level metric. */
-  numeralLg: { size: 30, lineHeight: 34, weight: '900', tabular: true, tracking: -0.6 },
+  numeralLg: { size: 30, lineHeight: 34, weight: '800', tabular: true, tracking: -0.6 },
   /** Hero metric (rings, results headline). */
-  numeralXl: { size: 44, lineHeight: 48, weight: '900', tabular: true, tracking: -1.2 },
+  numeralXl: { size: 54, lineHeight: 58, weight: '800', tabular: true, tracking: -1.5 },
 };
 
 /** Typography token name accepted by themed text. */
@@ -487,14 +489,14 @@ export const Elevation: Record<'none' | 'flat' | 'card' | 'raised' | 'hero' | 'o
   none: { boxShadow: 'none', elevation: 0 },
   /** Recessed/grouped content that must not compete. */
   flat: { boxShadow: 'none', elevation: 0 },
-  /** Default card lift above the page background. */
+  /** Default card: hairline border instead of shadow (lock section 3). */
   card: { boxShadow: 'none', elevation: 0 },
-  /** Raised surfaces: reward/completion cards and primary CTAs. */
-  raised: { boxShadow: '0 3px 0 rgba(16, 35, 45, 0.14), 0 8px 20px rgba(16, 35, 45, 0.10)', elevation: 5 },
+  /** Raised surfaces: the immersive stage card and primary CTAs. */
+  raised: { boxShadow: '0 10px 28px rgba(12, 13, 15, 0.14)', elevation: 4 },
   /** The hero surface of a screen. */
-  hero: { boxShadow: '0 4px 0 rgba(16, 35, 45, 0.16), 0 16px 36px rgba(16, 35, 45, 0.16)', elevation: 8 },
+  hero: { boxShadow: '0 14px 36px rgba(12, 13, 15, 0.18)', elevation: 6 },
   /** Overlays/modals above everything. */
-  overlay: { boxShadow: '0 24px 56px rgba(26, 12, 4, 0.34)', elevation: 16 },
+  overlay: { boxShadow: '0 24px 56px rgba(5, 6, 8, 0.34)', elevation: 16 },
 };
 
 /** Elevation level name. */

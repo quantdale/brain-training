@@ -1,4 +1,4 @@
-# Design System — "Signal Arcade"
+# Design System — "Training Studio" (change 076)
 
 This document describes the visual language the app **currently ships**. Its
 concrete values — radii, motion durations, and the palette hexes — are not a
@@ -8,19 +8,22 @@ fails that suite until this document is updated with it. If a number here and a
 number in `theme/tokens.ts` ever disagree, the tokens win and this file is
 stale.
 
-Lineage: Campaign 026 established the arcade direction (superseding Campaign
-024's "Playful Precision"), and Campaigns 051–055 rebuilt the surface into the
-current "Signal Arcade" palette below. Tokens live in
-`apps/mobile/src/theme/tokens.ts`; the palette is contrast-verified by
-`theme/__tests__/contrast.test.ts`.
+Lineage: Campaign 026 established the arcade direction; Campaigns 051-055
+shipped "Signal Arcade"; change 076 selected the "Training Studio" system from
+three on-device prototypes and re-authored the token values in place (same
+token shape, new values; see
+`openspec/changes/076-product-wide-ui-ux-reboot/evidence/REFERENCE_LOCK.md`).
+Tokens live in `apps/mobile/src/theme/tokens.ts`; the palette is
+contrast-verified by `theme/__tests__/contrast.test.ts` and the lock values
+are pinned by `theme/__tests__/reference-lock.test.ts`.
 
 ## 1. Visual thesis
 
-**Playful precision.** A candy-bright arcade shell — warm paper in light mode,
-deep plum ink in dark mode — wrapped around calm, high-contrast focus boards.
-The shell is loud and generous (vermillion actions, volt rewards, violet
-progression, chunky radii, heavy display type); the play surface stays quiet so
-stimuli and verdicts own the screen. Celebration is physical and staged, never
+**Quiet studio, immersive play.** A calm studio shell — warm paper in light
+mode, near-black in dark mode — wrapped around an immersive charcoal stage
+where the mechanic owns the screen. ONE red primary action per viewport;
+success/error always carry text + icon/shape beyond color; reports read as
+instruments, never dashboards. Celebration is staged and bounded, never
 decorative noise.
 
 ## 2. Colour
@@ -37,15 +40,18 @@ identities are flattened into the theme key space (e.g. `theme.memory`,
 | `softText` | text drawn on `soft` | 4.5:1 |
 | `on` | text/glyph drawn on `base` | 4.5:1 |
 
-- **Light "paper arcade":** warm paper background `#F4F1E8`, card surface
-  `#FFFDF7`, cool-teal borders `#C9D6D3`, deep teal ink `#10232D`, secondary
-  ink `#4C5D63`.
-- **Dark "ink arcade":** deep teal-ink background `#0E1922`, raised surface
-  `#152733`, border `#2C4752`, warm off-white text `#F6F1E7`, secondary
-  `#B9C7C8`, luminous family fills with dark `on` colours.
-- **Primary action:** vermillion (`#C74632` light / `#FF806D` dark) — CTAs,
-  links, active tab lozenge. Pressed state uses `accentStrong`
-  (`#A63829` light / `#FF9D8C` dark).
+- **Light "studio paper":** warm paper background `#F7F6F3`, white card
+  surface `#FFFFFF`, warm-gray borders `#D8D5CE`, ink `#17181A`, secondary
+  ink `#4A4B4E`, muted `#6E6E68`.
+- **Dark "studio stage":** near-black background `#101114`, charcoal stage
+  surface `#1B1D21` (raised `#232629`), border `#34363B`, off-white text
+  `#F2F2F0`, secondary `#B9BABC`, luminous family fills with dark `on`
+  colours.
+- **Primary action:** CTA red (`#D6293A` light / `#FF4A57` dark) - the ONE
+  primary action fill per viewport. Pressed state uses `accentStrong`
+  (`#B01E2E` light / `#FF6E79` dark). Red is never the error family and
+  never a generic accent: success (`#157A46`/`#4CC98A`) and error
+  (`#A32014`/`#FF7B67`) carry text+icon/shape on their soft grounds.
 - **Metric identities (fixed, never reassigned):** XP violet, streak orange,
   currency amber, time blue, accuracy green, score accent.
 - **Domain identities (8):** attention orange, flexibility violet, language
@@ -54,20 +60,21 @@ identities are flattened into the theme key space (e.g. `theme.memory`,
 
 ## 3. Typography
 
-System stack with heavier display weights and tabular numerals for every
-metric. Scale: eyebrow 11 (uppercase, tracking 1) · caption 12 · label 13/700 ·
-bodySmall 14 · body 16 · bodyLarge 17/600 · headline 24/800 · title 30/800 ·
-display 38/900 · numeral 20/800 · numeralLg 30/900 · numeralXl 44/900. All
-numeral styles are tabular so counters never reflow.
+System stack, hierarchy capped at weight 800, tabular numerals for every
+metric. Scale: eyebrow 11.5 (uppercase, tracking 1.8) - caption 12 - label
+13/700 - bodySmall 14 - body 16 - bodyLarge 17/600 - headline 24/800 - title
+30/800 - display 40/800 - numeral 20/800 - numeralLg 30/800 - numeralXl
+54/800 (result score). All numeral styles are tabular so counters never
+reflow.
 
 ## 4. Geometry, elevation and the button lip
 
 Radii: extraSmall 4 · small 8 · medium 12 · large 16 · extraLarge 22 · pill 999.
-Cards carry a 1.5–2 px border in light mode; separation in dark mode comes from
-value, not shadow. Filled buttons carry a darker 4 dp bottom lip so the primary
-action reads as a physical key; the press spring compresses it. Elevation stays
-a monotonic ramp (`flat → card → raised → hero → overlay`) with warm shadows in
-light mode.
+pill 999. Pills are reserved for chips. Cards carry a 1.5 px hairline border;
+separation in dark
+mode comes from value, not shadow. Elevation is a quiet monotonic ramp
+(`flat - card - raised - hero - overlay`): cards are flat (border only),
+only the stage card and primary CTA lift (`raised`), overlays stay highest.
 
 ## 5. Motion
 
