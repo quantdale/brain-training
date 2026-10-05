@@ -42,10 +42,25 @@ contracts.
 
 ## Progress log
 
+- 2026-10-05: **waves 0-3 complete (22/82 tasks)**. Wave 1: route/state
+  inventory manifest; ARTEMIS doctor READY (evidence task-1-2-artemis.md);
+  old-build device baseline COMPLETE — 42/42 games (tutorial/active/pause/
+  feedback/result) + route/interaction/recovery captures (272 images, hashed)
+  against APK `d631ab9a…`. Wave 2: three dev-only prototype systems built,
+  captured (66 images light/dark/fs2) and scored on device — **Training Studio
+  selected**, REFERENCE_LOCK.md published (borrowings: board-still identity
+  tiles + numbered fact rows; rejected traits recorded). Wave 3: tokens
+  re-authored to the lock (contrast + lock tests green; design-system doc
+  synced; snapshots regenerated), Card `stage` variant, session stage panel +
+  stage-presented instrument strip + staged result artifact, canary boards
+  device-verified (Memory domain-hue flash; Equation Builder neutral tokens +
+  timeout state), full workout journey completed on the new build with SQLite
+  audit PASS (integrity ok, schema v13, 0 FK violations, 51/51 exactly-once
+  ledger, 0 duplicate ratings, 0 FATAL/ANR). Builds: wave-3 release APK
+  `9e61db2e…`. Next: wave 4 (route redesigns 4.1-4.5), wave 5 (5.1-5.5),
+  game-domain packets 6-13, convergence/certification 14.
 - 2026-10-04: campaign registered (GOVERNANCE/STATE/EXECUTION_PROMPT/
-  task-ownership); baseline typecheck clean; jest baseline 612 passed suites +
-  2 governance suites failing only on the mid-registration campaign fields
-  (expected; re-run after registration completes); ARTEMIS doctor READY on
+  task-ownership); baseline typecheck clean; ARTEMIS doctor READY on
   `emulator-5554`; old build `d631ab9a…` confirmed installed and launching.
 
 ## Terminal records preserved

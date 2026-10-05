@@ -28,7 +28,7 @@ journey ran on the direct emulator-local ADB lane. Evidence:
 **Canonical branch:** `main`
 **Active campaign:** 076-product-wide-ui-ux-reboot
 **Active program:** `056-067-overnight-autonomous-program` — **COMPLETE** (`POST_067_HARDENING_COMPLETE`; terminal re-certification `POST_067_TERMINAL_RECERTIFICATION_PARTIAL`). Not in progress. Evidence: `docs/redesign/evidence/campaign067/`, `docs/hardening/post067/`; ledger `.agent/OVERNIGHT_056_067_STATE.md`
-**Active work:** OpenSpec change `076-product-wide-ui-ux-reboot` — openspec apply in progress (owner goal directive); executed per its tasks.md waves. Completed program: changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
+**Active work:** OpenSpec change `076-product-wide-ui-ux-reboot` — openspec apply in progress (owner goal directive); waves 0-3 complete (baseline evidence, prototype selection + reference lock, shared contract + canaries; 22/82 tasks), evidence in the change's evidence/ dir. Completed program: changes `068`–`075`, executed in the phase order of `docs/MASTER_PLAN.md` §6
 **Last campaign:** `055-signal-arcade-desirability`
 **Last campaign status:** VALIDATED
 **Last campaign verdict:** `CAMPAIGN_055_DESIRABILITY_PASS_COMPLETE`
