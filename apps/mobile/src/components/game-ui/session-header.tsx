@@ -33,7 +33,12 @@ export interface SessionProgress {
   total: number;
 }
 
+/** Change 076 (lock section 1): when the strip sits on the immersive stage
+ *  panel it reads in `stageInk` with translucent white separators instead of
+ *  the paper instrument styling. */
 export interface SessionHeaderProps {
+  /** Render the strip in stage (charcoal) presentation. */
+  onStage?: boolean;
   /** Custom leading content (round chip, exit control). Wins over `round`. */
   children?: React.ReactNode;
   /** Plain round label, e.g. `Round 3 of 12`. */
@@ -56,6 +61,7 @@ export interface SessionHeaderProps {
  * progress bar carry position without shouting.
  */
 export function SessionHeader({
+  onStage = false,
   children,
   round,
   progress,
@@ -68,12 +74,19 @@ export function SessionHeader({
     <View
       style={[
         styles.strip,
-        { backgroundColor: theme.surface, borderColor: theme.border },
+        {
+          backgroundColor: onStage ? 'rgba(255, 255, 255, 0.06)' : theme.surface,
+          borderColor: onStage ? 'rgba(255, 255, 255, 0.28)' : theme.border,
+        },
       ]}>
       {children !== undefined ? (
         children
       ) : round !== undefined ? (
-        <ThemedText type="label" themeColor="textSecondary" numberOfLines={1} style={styles.round}>
+        <ThemedText
+          type="label"
+          themeColor={onStage ? 'stageInk' : 'textSecondary'}
+          numberOfLines={1}
+          style={styles.round}>
           {round}
         </ThemedText>
       ) : null}
@@ -90,7 +103,11 @@ export function SessionHeader({
       ) : null}
 
       {score !== undefined ? (
-        <ThemedText type="numeral" themeColor="text" numberOfLines={1} testID={scoreTestID}>
+        <ThemedText
+          type="numeral"
+          themeColor={onStage ? 'stageInk' : 'text'}
+          numberOfLines={1}
+          testID={scoreTestID}>
           {score}
         </ThemedText>
       ) : null}

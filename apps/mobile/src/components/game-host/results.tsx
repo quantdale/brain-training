@@ -25,12 +25,11 @@ import { ThemedText } from '@/components/themed-text';
 import { GameWorldArt } from '@/components/discovery/game-identity';
 import { FeedbackCard } from '@/components/shell';
 import { performanceBand } from '@/components/shell/format';
-import { ArcadePanel } from '@/components/ui/arcade-panel';
 import { Card, Confetti, Spark } from '@/components/ui';
 import { launchAnimation } from '@/components/ui/motion';
 import { GameButton } from '@/components/game-ui';
 import { usePrefersReducedMotion } from '@/components/game-ui/use-reduced-motion';
-import { Motion, Spacing } from '@/constants/theme';
+import { Motion, Radii, Spacing } from '@/constants/theme';
 import { getGameDefinition } from '@/registry/registry';
 import { useTheme } from '@/hooks/use-theme';
 import {
@@ -300,19 +299,23 @@ export function GameResults({
           headline are the event. Facts, reward and actions support it.
           065: the artifact is a polite live region so the headline is
           announced when the results appear (same pattern as /results). */}
-      <ArcadePanel
-        padding="none"
-        emphasis="focal"
+      {/* Change 076 (lock section 1): the artifact is the immersive stage —
+          charcoal panel, white type, the played board as the still. */}
+      <View
+        style={[styles.stageArtifact, { backgroundColor: theme.stage }]}
         testID={testId(gameId, 'result-artifact')}
         accessibilityLiveRegion="polite">
         {definition ? <GameWorldArt game={definition} size="hero" testID={testId(gameId, 'result-world')} /> : null}
         <View style={styles.resultBody}>
-          <ThemedText type="resultHeadline" testID={testId(gameId, 'result-headline')}>
+          <ThemedText
+            type="resultHeadline"
+            themeColor="stageInk"
+            testID={testId(gameId, 'result-headline')}>
             {headline}
           </ThemedText>
           {badge}
         </View>
-      </ArcadePanel>
+      </View>
       <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
         {children}
       </View>
@@ -445,6 +448,12 @@ export function GameResults({
 const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
+  },
+  stageArtifact: {
+    borderRadius: Radii.large,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.24)',
   },
   resultBody: {
     padding: Spacing.three,

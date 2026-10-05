@@ -31,7 +31,7 @@ import {
 } from '@/components/game-ui';
 import { Button } from '@/components/ui';
 import { getGameDefinition } from '@/registry/registry';
-import { Spacing, type DomainName } from '@/constants/theme';
+import { Radii, Spacing, type DomainName } from '@/constants/theme';
 import type { ThemeColor } from '@/theme/tokens';
 import { useTheme } from '@/hooks/use-theme';
 import { getDb } from '@/db';
@@ -368,8 +368,15 @@ export function GameHost({
         ) : null}
 
         {view === 'session' ? (
-          <View style={styles.section} onTouchStart={handleSessionTouchStart}>
+          // Change 076 (lock section 1): the session lives on the immersive
+          // stage panel — charcoal in both schemes — with the instrument strip
+          // in stage presentation and the game's own board on its light
+          // surface inside. Mechanic first; chrome recedes.
+          <View
+            style={[styles.stagePanel, { backgroundColor: theme.stage }]}
+            onTouchStart={handleSessionTouchStart}>
             <SessionHeader
+              onStage
               round={typeof header === 'string' ? header : undefined}
               score={score === undefined ? undefined : `Score ${score}`}
               scoreTestID={testId(gameId, 'score')}
@@ -391,7 +398,7 @@ export function GameHost({
             {isDevBuild() && qaPanelPosition === 'above' ? qaPanel : null}
 
             <View
-              style={[styles.mechanicStage, { backgroundColor: theme.surfaceSunken, borderColor: theme.border }]}
+              style={[styles.mechanicStage, { backgroundColor: theme.surface, borderColor: theme.border }]}
               testID={testId(gameId, 'stage')}>
               {children}
             </View>
@@ -445,6 +452,12 @@ const styles = StyleSheet.create({
     padding: Spacing.twoHalf,
     borderWidth: 1,
     borderRadius: Spacing.two,
+  },
+  stagePanel: {
+    flex: 1,
+    borderRadius: Radii.large,
+    padding: Spacing.two,
+    gap: Spacing.two,
   },
   workoutContext: {
     gap: Spacing.half,
