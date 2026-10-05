@@ -42,5 +42,102 @@
     "apps/mobile/src/cosmetics/registry.ts",
     "apps/mobile/src/rewards/inbox.ts"
   ],
-  "parallelPackets": []
+  "parallelPackets": [
+    {
+      "id": "r1-home-workout",
+      "description": "Tasks 4.1+4.2: Home first-run/resume hierarchy + workout presentation on the Training-Studio lock",
+      "writeSurfaces": [
+        "apps/mobile/src/app/(tabs)/index.tsx",
+        "apps/mobile/src/components/workout/**",
+        "apps/mobile/src/app/__tests__/home-*.test.tsx"
+      ],
+      "prohibited": [
+        "apps/mobile/src/components/ui/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/components/game-host/**",
+        "apps/mobile/src/components/discovery/**",
+        "apps/mobile/src/app/(tabs)/games.tsx"
+      ],
+      "validation": "npx tsc --noEmit && npx jest src/app/__tests__/home-workout-start.test.tsx src/app/__tests__/home-reroll-failure.test.tsx src/app/__tests__/home-skip-copy.test.tsx src/components/workout --silent",
+      "completionCriteria": "Typecheck clean; the packet validation command passes; no shared-surface edits; visual language follows openspec/changes/076-product-wide-ui-ux-reboot/evidence/REFERENCE_LOCK.md (stage cards, ONE red CTA per viewport, instrument metrics, hairline fact rows); all existing testIDs preserved; no scoring/persistence/economy changes."
+    },
+    {
+      "id": "r2-games-discovery",
+      "description": "Task 4.3: Games storefront (recommendation, grid, search/filters/favorites/empty) on the lock",
+      "writeSurfaces": [
+        "apps/mobile/src/app/(tabs)/games.tsx",
+        "apps/mobile/src/components/discovery/game-card.tsx",
+        "apps/mobile/src/components/discovery/game-poster-tile.tsx",
+        "apps/mobile/src/components/discovery/suggested-next.tsx",
+        "apps/mobile/src/components/discovery/discovery-data.ts",
+        "apps/mobile/src/app/__tests__/games-library.test.tsx"
+      ],
+      "prohibited": [
+        "apps/mobile/src/components/ui/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/components/discovery/game-identity.tsx",
+        "apps/mobile/src/components/discovery/game-stage.tsx"
+      ],
+      "validation": "npx tsc --noEmit && npx jest src/app/__tests__/games-library.test.tsx src/components/discovery --silent",
+      "completionCriteria": "Typecheck clean; the packet validation command passes; no shared-surface edits; visual language follows openspec/changes/076-product-wide-ui-ux-reboot/evidence/REFERENCE_LOCK.md (stage cards, ONE red CTA per viewport, instrument metrics, hairline fact rows); all existing testIDs preserved; no scoring/persistence/economy changes."
+    },
+    {
+      "id": "r3-detail-results",
+      "description": "Tasks 4.4+4.5: game-detail preview/launch + standalone Results outcomes on the lock",
+      "writeSurfaces": [
+        "apps/mobile/src/app/game-detail/[id].tsx",
+        "apps/mobile/src/app/results.tsx",
+        "apps/mobile/src/app/__tests__/game-detail.test.tsx",
+        "apps/mobile/src/app/__tests__/results-*.test.tsx"
+      ],
+      "prohibited": [
+        "apps/mobile/src/components/ui/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/components/game-host/**",
+        "apps/mobile/src/components/discovery/**"
+      ],
+      "validation": "npx tsc --noEmit && npx jest src/app/__tests__/game-detail.test.tsx src/app/__tests__/results-hero.test.tsx src/app/__tests__/results-workout-cta.test.tsx --silent",
+      "completionCriteria": "Typecheck clean; the packet validation command passes; no shared-surface edits; visual language follows openspec/changes/076-product-wide-ui-ux-reboot/evidence/REFERENCE_LOCK.md (stage cards, ONE red CTA per viewport, instrument metrics, hairline fact rows); all existing testIDs preserved; no scoring/persistence/economy changes."
+    },
+    {
+      "id": "r4-progress-rewards",
+      "description": "Tasks 5.1+5.2: Progress drill-downs + Rewards presentation on the lock",
+      "writeSurfaces": [
+        "apps/mobile/src/app/(tabs)/progress.tsx",
+        "apps/mobile/src/app/progress-activity.tsx",
+        "apps/mobile/src/app/progress-detail.tsx",
+        "apps/mobile/src/app/progress-domain.tsx",
+        "apps/mobile/src/app/progress-game.tsx",
+        "apps/mobile/src/app/rewards.tsx",
+        "apps/mobile/src/app/__tests__/progress-*.test.tsx",
+        "apps/mobile/src/app/__tests__/rewards.test.tsx"
+      ],
+      "prohibited": [
+        "apps/mobile/src/components/ui/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/analytics/**"
+      ],
+      "validation": "npx tsc --noEmit && npx jest src/app/__tests__/progress-detail.test.tsx src/app/__tests__/progress-insights.test.tsx src/app/__tests__/rewards.test.tsx --silent",
+      "completionCriteria": "Typecheck clean; the packet validation command passes; no shared-surface edits; visual language follows openspec/changes/076-product-wide-ui-ux-reboot/evidence/REFERENCE_LOCK.md (stage cards, ONE red CTA per viewport, instrument metrics, hairline fact rows); all existing testIDs preserved; no scoring/persistence/economy changes."
+    },
+    {
+      "id": "r5-profile-data",
+      "description": "Tasks 5.3+5.4+5.5: Profile/settings + data-management + recovery states on the lock",
+      "writeSurfaces": [
+        "apps/mobile/src/app/(tabs)/profile.tsx",
+        "apps/mobile/src/app/data-management.tsx",
+        "apps/mobile/src/app/__tests__/profile-*.test.tsx",
+        "apps/mobile/src/app/__tests__/data-management.test.tsx",
+        "apps/mobile/src/app/__tests__/settings-*.test.tsx"
+      ],
+      "prohibited": [
+        "apps/mobile/src/components/ui/**",
+        "apps/mobile/src/theme/**",
+        "apps/mobile/src/data-portability/**",
+        "apps/mobile/src/db/**"
+      ],
+      "validation": "npx tsc --noEmit && npx jest src/app/__tests__/profile-purchases.test.tsx src/app/__tests__/data-management.test.tsx src/app/__tests__/settings-persist-concurrency.test.tsx src/app/__tests__/settings-persist-toast.test.tsx --silent",
+      "completionCriteria": "Typecheck clean; the packet validation command passes; no shared-surface edits; visual language follows openspec/changes/076-product-wide-ui-ux-reboot/evidence/REFERENCE_LOCK.md (stage cards, ONE red CTA per viewport, instrument metrics, hairline fact rows); all existing testIDs preserved; no scoring/persistence/economy changes."
+    }
+  ]
 }
