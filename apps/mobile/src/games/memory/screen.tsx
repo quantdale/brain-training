@@ -331,8 +331,11 @@ export default function MemoryScreen(props: MemoryScreenProps = {}) {
       onQuit={quitToLibrary}
       interceptBack={inSession}
       header={
+        // Change 076: the chip rides the stage instrument strip, so it reads
+        // in stageInk (the host strip is charcoal in both schemes).
         <ThemedText
           type="subtitle"
+          themeColor="stageInk"
           testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
           Round {state.roundIndex + 1}/{rounds}
         </ThemedText>

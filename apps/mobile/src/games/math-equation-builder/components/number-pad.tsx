@@ -67,7 +67,9 @@ export const NumberKey = memo(function NumberKey({
     <GameButton
       testID={testId(GAME_ID, 'number', String(index))}
       label={String(num)}
-      variant={isUsed ? 'secondary' : 'primary'}
+      // Change 076 (task 3.4): number keys are board tokens, not primary
+      // actions - the red CTA role belongs to Submit alone (lock section 5).
+      variant="secondary"
       disabled={disabled || isUsed}
       onPress={() => onNumberPress?.(index)}
     />

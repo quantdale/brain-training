@@ -94,7 +94,9 @@ function resolveVariant(variant: ButtonVariant, theme: ColorTheme) {
     case 'primary':
       return { background: theme.accent, border: 'transparent', label: 'accentOn' as ThemeColor };
     case 'secondary':
-      return { background: theme.accentSoft, border: 'transparent', label: 'accentSoftText' as ThemeColor };
+      // Change 076 (lock section 5): secondary = bordered neutral action. The
+      // red-tinted fill would read as CTA-adjacent on the stage chrome.
+      return { background: theme.backgroundElement, border: theme.border, label: 'text' as ThemeColor };
     case 'ghost':
       return { background: 'transparent', border: theme.border, label: 'accentText' as ThemeColor };
     case 'danger':

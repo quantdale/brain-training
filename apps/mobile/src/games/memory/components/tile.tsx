@@ -33,13 +33,16 @@ export interface TileProps {
 export const Tile = memo(function Tile({ index, visual, disabled = false, onPressTile }: TileProps) {
   const theme = useTheme();
   const tileTestID = testId(GAME_ID, 'tile', String(index));
+  // Change 076 (task 3.4): the memory mechanic speaks in its DOMAIN hue, not
+  // the CTA red — a red flash during recall reads as an error under the
+  // Training-Studio lock, where red is the action role only.
   const backgroundColor =
     visual === 'revealed'
-      ? theme.accent
+      ? theme.memory
       : visual === 'error'
         ? theme.danger
         : visual === 'selected'
-          ? theme.accentSoft
+          ? theme.memorySoft
           : theme.surface;
   const verdictGlyph = visual === 'selected' ? '✓' : visual === 'error' ? '✕' : null;
   const verdictFill = visual === 'selected' ? theme.success : visual === 'error' ? theme.danger : null;

@@ -376,27 +376,32 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
       score={String(state.stats.score)}
       roundProgress={{ value: state.roundIndex + 1, total: rounds }}
       header={
+        // Change 076: the chip rides the stage instrument strip (charcoal in
+        // both schemes), so its copy reads in stageInk; the urgent-timer
+        // danger tint stays for the last-ten-seconds state.
         <>
           <ThemedText
             type="subtitle"
+            themeColor="stageInk"
             testID={testId(GAME_ID, 'round', String(state.roundIndex + 1))}>
             Round {state.roundIndex + 1}/{rounds}
           </ThemedText>
           <View
             style={styles.scoreRow}
             accessibilityLabel={`Score ${state.stats.score}`}>
-            <ThemedText type="small" themeColor="textSecondary">
+            <ThemedText type="small" themeColor="stageInk">
               Score
             </ThemedText>
             <AnimatedNumber
               value={state.stats.score}
               type="numeral"
+              themeColor="stageInk"
               testID={testId(GAME_ID, 'score-live')}
             />
           </View>
           <ThemedText
             type="small"
-            themeColor={state.timeRemainingMs < 10_000 ? 'danger' : 'textSecondary'}
+            themeColor={state.timeRemainingMs < 10_000 ? 'danger' : 'stageInk'}
             testID={testId(GAME_ID, 'timer')}>
             {Math.max(0, Math.ceil(state.timeRemainingMs / 1000))}s
           </ThemedText>

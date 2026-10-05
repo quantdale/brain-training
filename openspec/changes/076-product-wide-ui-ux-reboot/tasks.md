@@ -23,11 +23,11 @@
 
 ## 3. Shared compositional contract and canary journey
 
-- [ ] 3.1 Implement chosen semantic typography, accessible color-role pairs, layout tiers and motion/reduced-motion tokens without changing persistence/scoring rules; add focused tests.
-- [ ] 3.2 Implement reusable page shell, action placement, feedback/result and progress primitives with semantic labels/test IDs and 48dp Android/44pt iOS target checks.
-- [ ] 3.3 Redesign shared game intro/tutorial, session header, pause/quit, error and in-game results chrome while preserving SDK/session/workout ownership and authoritative save behavior.
-- [ ] 3.4 Make the Memory and Equation Builder canary boards mechanic-specific, usable at compact/2× sizes, and exercise correct/incorrect/timeout/result states on device.
-- [ ] 3.5 Validate the complete Home → discovery → detail → tutorial → game → feedback → persisted result → workout-next journey on old vs new build; fix any Critical/High regressions before expanding.
+- [x] 3.1 Implement chosen semantic typography, accessible color-role pairs, layout tiers and motion/reduced-motion tokens without changing persistence/scoring rules; add focused tests.
+- [x] 3.2 Implement reusable page shell, action placement, feedback/result and progress primitives with semantic labels/test IDs and 48dp Android/44pt iOS target checks.
+- [x] 3.3 Redesign shared game intro/tutorial, session header, pause/quit, error and in-game results chrome while preserving SDK/session/workout ownership and authoritative save behavior.
+- [x] 3.4 Make the Memory and Equation Builder canary boards mechanic-specific, usable at compact/2× sizes, and exercise correct/incorrect/timeout/result states on device.
+- [x] 3.5 Validate the complete Home → discovery → detail → tutorial → game → feedback → persisted result → workout-next journey on old vs new build; fix any Critical/High regressions before expanding.
 
 ## 4. Core navigation, discovery and workout
 
