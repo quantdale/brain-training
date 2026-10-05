@@ -1,17 +1,17 @@
 ## 1. Old-build baseline and state inventory (must precede presentation edits)
 
-- [ ] 1.1 Inventory every player-facing route and its empty/loading/success/error/settings states; record owner, entry path and current viewport problem in a coverage manifest.
-- [ ] 1.2 Verify the dedicated AVD and external ARTEMIS `doctor`/supported Codex MCP; establish Flash smoke and Pro stateful journeys without host-input automation, or record the exact BLOCKED condition.
-- [ ] 1.3 Preserve old-release first-run, workout start/resume/completion, browse/search/filters/favorites, detail/tutorial, standalone Results, Progress, Rewards, Profile, data/restore and recovery captures with old SHA, APK hash, theme, route/state and device metadata; do not replace the existing 20 partial images.
-- [ ] 1.4 Capture old-build active board, feedback and result (plus pause/timeout/error when applicable) for the five Attention games in `design.md` before editing their modules.
-- [ ] 1.5 Capture the same old-build states for the five Flexibility games before editing them.
-- [ ] 1.6 Capture the same old-build states for the five Language games before editing them.
-- [ ] 1.7 Capture the same old-build states for the five Logic games before editing them.
-- [ ] 1.8 Capture the same old-build states for the five Math games before editing them.
-- [ ] 1.9 Capture the same old-build states for the seven Memory games before editing them.
-- [ ] 1.10 Capture the same old-build states for the five Spatial games before editing them.
-- [ ] 1.11 Capture the same old-build states for the five Speed games before editing them.
-- [ ] 1.12 Add old-build compact/large layout, dark 2× text and reduced-motion/accessibility samples; publish a before-state manifest with honest NOT VALIDATED entries for anything unreachable.
+- [x] 1.1 Inventory every player-facing route and its empty/loading/success/error/settings states; record owner, entry path and current viewport problem in a coverage manifest.
+- [x] 1.2 Verify the dedicated AVD and external ARTEMIS `doctor`/supported Codex MCP; establish Flash smoke and Pro stateful journeys without host-input automation, or record the exact BLOCKED condition.
+- [x] 1.3 Preserve old-release first-run, workout start/resume/completion, browse/search/filters/favorites, detail/tutorial, standalone Results, Progress, Rewards, Profile, data/restore and recovery captures with old SHA, APK hash, theme, route/state and device metadata; do not replace the existing 20 partial images.
+- [x] 1.4 Capture old-build active board, feedback and result (plus pause/timeout/error when applicable) for the five Attention games in `design.md` before editing their modules.
+- [x] 1.5 Capture the same old-build states for the five Flexibility games before editing them.
+- [x] 1.6 Capture the same old-build states for the five Language games before editing them.
+- [x] 1.7 Capture the same old-build states for the five Logic games before editing them.
+- [x] 1.8 Capture the same old-build states for the five Math games before editing them.
+- [x] 1.9 Capture the same old-build states for the seven Memory games before editing them.
+- [x] 1.10 Capture the same old-build states for the five Spatial games before editing them.
+- [x] 1.11 Capture the same old-build states for the five Speed games before editing them.
+- [x] 1.12 Add old-build compact/large layout, dark 2× text and reduced-motion/accessibility samples; publish a before-state manifest with honest NOT VALIDATED entries for anything unreachable.
 
 ## 2. Three real design directions and decision
 

@@ -1,0 +1,1370 @@
+{
+  "sourceSha": "d3d0b9926a44c039d7fd0d29e1376586afaa897b",
+  "apkSha256": "d631ab9a410f9950f3c5cd989fe23b26d00178ecf98bafc439e86e85f20950a9",
+  "device": "emulator-5554 / braintraining-ui35 (1080x2400 @ 420dpi, Android 15)",
+  "captured": "2026-10-04/05",
+  "method": "scripts/qa/ui-capture.mjs (canonical routes) + qa-artifacts/076-ui-reboot driver scripts (emulator-local adb input; no host input)",
+  "count": 272,
+  "images": [
+    {
+      "file": "attention-odd-one-out-tutorial.png",
+      "bytes": 187872,
+      "sha256": "c7937bda3d5d1525937f20266325d08f99ab8cb8ffa8484f1941808d67aa9389"
+    },
+    {
+      "file": "attention-sustained-vigilance-tutorial.png",
+      "bytes": 214083,
+      "sha256": "1b4f5f050fb77e2857c2da47ca0850a0e1552445e32b365075f23bc72e39f99e"
+    },
+    {
+      "file": "attention-symbol-tracker-tutorial-solved.png",
+      "bytes": 94464,
+      "sha256": "00f49aff6fa5e39f1f1ffae3451f15fe1f1e563e58c3c31eec853db160b8aeb7"
+    },
+    {
+      "file": "attention-symbol-tracker-tutorial-stuck.png",
+      "bytes": 112079,
+      "sha256": "2e2d0095fa050d4d1d3a9d2968e15f5b9a02b2ce39cf4dd29cb7d37b97423446"
+    },
+    {
+      "file": "attention-symbol-tracker-tutorial.png",
+      "bytes": 195948,
+      "sha256": "4a5472a71f8984aba0a4905577b086fd911d84bdb3c24a54952bbb47d5a2370e"
+    },
+    {
+      "file": "attention-target-count-tutorial.png",
+      "bytes": 186094,
+      "sha256": "a24502a020aa5a239b71208ca49ba61fb41e4dcf6f44097ebfd7626af241241b"
+    },
+    {
+      "file": "attention-visual-search-tutorial.png",
+      "bytes": 173482,
+      "sha256": "ab52d4a50b2894804f28ce9ec7225c65d27ef90323d1d50596342a73c71b3b06"
+    },
+    {
+      "file": "base-attention-odd-one-out-active.png",
+      "bytes": 71682,
+      "sha256": "e54d33b3c0b7175450bbbe4664f067f06edd7682fa5c0ffec19b524387c19b43"
+    },
+    {
+      "file": "base-attention-odd-one-out-pause.png",
+      "bytes": 55719,
+      "sha256": "bba637c55b0e6e4fc699eb5baf91f5f223579d10cbb0f5e18e783c75e071eb5e"
+    },
+    {
+      "file": "base-attention-odd-one-out-result.png",
+      "bytes": 138313,
+      "sha256": "e5a566395eb3dae7763923e6ad6938a0957d4a04a8548a09e7df4eb1dabefb40"
+    },
+    {
+      "file": "base-attention-sustained-vigilance-active.png",
+      "bytes": 68107,
+      "sha256": "1c0948e7937e34b05559a6457b4c9095ff56542524a7f30877425bd759ff2694"
+    },
+    {
+      "file": "base-attention-sustained-vigilance-result.png",
+      "bytes": 143382,
+      "sha256": "4d1d5308e32e2ee13572f8d065a5b72ecb7fd3d4af72cc0411b30bafafa6f980"
+    },
+    {
+      "file": "base-attention-symbol-tracker-active.png",
+      "bytes": 93320,
+      "sha256": "2cc225b06a575d9cb7963c66611b0cd074643e8d1ac86230a4a229ee0e4db874"
+    },
+    {
+      "file": "base-attention-symbol-tracker-feedback.png",
+      "bytes": 93323,
+      "sha256": "b2c11cdd9f4378428a1a65afa9dd9c2e2e1978436f21f242897d81e54982dd3a"
+    },
+    {
+      "file": "base-attention-symbol-tracker-pause.png",
+      "bytes": 56127,
+      "sha256": "5d918b776f9178dd744b2b017410fa69372a2860aa0c3a459a6d2b4e0edaece8"
+    },
+    {
+      "file": "base-attention-symbol-tracker-result.png",
+      "bytes": 132494,
+      "sha256": "e32e165e2c9f9d25725b447dbd6ba49b56afeba05726b73930c7934b05e9872f"
+    },
+    {
+      "file": "base-attention-target-count-active.png",
+      "bytes": 95257,
+      "sha256": "e209b071e846ff31e849581746c6e54d632694be019ed13bf5728e15ac312ed7"
+    },
+    {
+      "file": "base-attention-target-count-pause.png",
+      "bytes": 56741,
+      "sha256": "adfeaba35368b1fbdbf22e74009ae3be3fd6af91bc0c2d997f96e2dfa5cd82eb"
+    },
+    {
+      "file": "base-attention-target-count-result.png",
+      "bytes": 127819,
+      "sha256": "8353b968c64c52b1a1ff587c619b93453effaab0af35382293ad702bc1c054da"
+    },
+    {
+      "file": "base-attention-visual-search-active.png",
+      "bytes": 62978,
+      "sha256": "8ca2bedcae7a69af1111c3e0002c4b75357c73c06926d6b4fec0b56b53e75ba4"
+    },
+    {
+      "file": "base-attention-visual-search-pause.png",
+      "bytes": 56489,
+      "sha256": "451fcd628aa8474d0dab3bae5ad2a4e107724c574154e0eb670feb19ac4ebecf"
+    },
+    {
+      "file": "base-attention-visual-search-result.png",
+      "bytes": 143344,
+      "sha256": "b8a64adc9a8a8d775a6e6bb7de095595946a93037d467468f50484e8de5b9714"
+    },
+    {
+      "file": "base-flexibility-color-stroop-active.png",
+      "bytes": 81960,
+      "sha256": "146d4235d8dff0fe21fdb27eaf53e621c4251ce927445ea4d3bdd0f3434935d7"
+    },
+    {
+      "file": "base-flexibility-color-stroop-feedback.png",
+      "bytes": 87133,
+      "sha256": "8be61f8d7433642054336f139014abb7746b7ef941e51f5832a4ebfc00a5e891"
+    },
+    {
+      "file": "base-flexibility-color-stroop-pause.png",
+      "bytes": 56393,
+      "sha256": "b05a09a41836d401048e578789ddf7995435eebfd6107a726c634da68374e93d"
+    },
+    {
+      "file": "base-flexibility-color-stroop-result.png",
+      "bytes": 120818,
+      "sha256": "b268995e2425cd701b767e1352ee1cff644f1211da6beecb6813e58db4c7b5bc"
+    },
+    {
+      "file": "base-flexibility-cue-shift-active.png",
+      "bytes": 93460,
+      "sha256": "70dbc993b31f06d0470c0d8c34aab05925b10c475e95ef68db869b3005e0da03"
+    },
+    {
+      "file": "base-flexibility-cue-shift-feedback.png",
+      "bytes": 120524,
+      "sha256": "62720c684382dd0da88607a3b7e2c308a685b40b2be4baeaae5295588a2cebc8"
+    },
+    {
+      "file": "base-flexibility-cue-shift-pause.png",
+      "bytes": 56371,
+      "sha256": "e74c002b17061a3fbdf9156e6bad1035dd507b18b7401339e6a38fdad56735c3"
+    },
+    {
+      "file": "base-flexibility-cue-shift-result.png",
+      "bytes": 135734,
+      "sha256": "d63c968c7fb61a0351f1e309390f8ba8e3db6f2d1991da9e3a706df234ffdf8a"
+    },
+    {
+      "file": "base-flexibility-rule-flip-active.png",
+      "bytes": 89337,
+      "sha256": "d6e486671f1abd76b47e1c6e44a17bc3e1b87e5ba1434039c377ea2a0c209d07"
+    },
+    {
+      "file": "base-flexibility-rule-flip-feedback.png",
+      "bytes": 102588,
+      "sha256": "72738e410dfca97b6b7dddbcddf534034dc7a15e2c47b9624606da9600d1c202"
+    },
+    {
+      "file": "base-flexibility-rule-flip-pause.png",
+      "bytes": 57106,
+      "sha256": "07d7b2ac7b3139d4acbe73211eb9cf8e29d4d1d27d46192ef5a02c48ab371578"
+    },
+    {
+      "file": "base-flexibility-rule-flip-result.png",
+      "bytes": 148450,
+      "sha256": "934ad08ecd2642ce0e2e131b5148667140a4e55040892d34b90ab1827b2ecc37"
+    },
+    {
+      "file": "base-language-context-fit-active.png",
+      "bytes": 113749,
+      "sha256": "3488d6ddb2794392f4010a2c4e8103420049fe168c933418260dd98e910ec496"
+    },
+    {
+      "file": "base-language-context-fit-result.png",
+      "bytes": 133502,
+      "sha256": "075b2a7f2f79da238c6c9dc06ddb0ca184a2146587da2d0a4fe6680c4e683baa"
+    },
+    {
+      "file": "base-language-sentence-builder-active.png",
+      "bytes": 91705,
+      "sha256": "87c9dc510a1f31abc222c8bd5ec6bcc2581079f03c4d583ed0384a2da7d74ba4"
+    },
+    {
+      "file": "base-language-sentence-builder-feedback.png",
+      "bytes": 135835,
+      "sha256": "3a5d972434d7be8c0c23663a551d77e55287459a473e92feff6d03af69dc0551"
+    },
+    {
+      "file": "base-language-sentence-builder-pause.png",
+      "bytes": 57161,
+      "sha256": "8615a6372f72d0744fe87af1115b5f61c47930971b6dc093138e2b74bfa721e2"
+    },
+    {
+      "file": "base-language-sentence-builder-result.png",
+      "bytes": 135191,
+      "sha256": "eff1b28a75ece55313f1588adb10f5537f0797c71984c8522e92fe85d1e93a7c"
+    },
+    {
+      "file": "base-language-word-chain-active.png",
+      "bytes": 95537,
+      "sha256": "37a710a41804e9a359d7e0f7866c3af093e22888c458a25f14113c7705f8b9fc"
+    },
+    {
+      "file": "base-language-word-chain-feedback.png",
+      "bytes": 132966,
+      "sha256": "02091ef3f805633a7724b8dc7be928e49eb7411dfa768e2e6125cc4fb927d4fd"
+    },
+    {
+      "file": "base-language-word-chain-pause.png",
+      "bytes": 55870,
+      "sha256": "ed92520e41c62b1a25620e8e438406455671ea7b4e284be66f92ef42ddfb71e5"
+    },
+    {
+      "file": "base-language-word-chain-result.png",
+      "bytes": 135369,
+      "sha256": "3cc2f761fa0a8b879ec4e0a53f603a46dc7df7af534b2984d41fbf6be3d2c0f5"
+    },
+    {
+      "file": "base-language-word-match-active.png",
+      "bytes": 88973,
+      "sha256": "5e09ee2034622b7f13e94d8c277c174d6ac8072f178f265469e7b6d1bd4d14f7"
+    },
+    {
+      "file": "base-language-word-match-result.png",
+      "bytes": 131708,
+      "sha256": "fd0c8b0873ca06fe38bcc6eb47abe9c3b0e7954141374bd47fccccdf2377359c"
+    },
+    {
+      "file": "base-language-word-scramble-active.png",
+      "bytes": 94972,
+      "sha256": "94174d1fdd911d92156da21ca69866c0a5bfedcc06f4046d7395bbddcb2dcfe1"
+    },
+    {
+      "file": "base-language-word-scramble-feedback.png",
+      "bytes": 98064,
+      "sha256": "714bb656dddc4378b9cde87e1ac85c4ecaa241c80005531c3fb1be9c78c9b362"
+    },
+    {
+      "file": "base-language-word-scramble-pause.png",
+      "bytes": 56705,
+      "sha256": "e170070206f8f8ffa3cf0abeca03c8b08bb05221de39078915bdbec9731d2784"
+    },
+    {
+      "file": "base-language-word-scramble-result.png",
+      "bytes": 130723,
+      "sha256": "d26dd0f65a7fd8de54f4a5c3dafc1c01761311f86acbfb1f3830e8cb1ea0e3e7"
+    },
+    {
+      "file": "base-logic-code-cracker-active.png",
+      "bytes": 64526,
+      "sha256": "b9fb877f077c0ea648db7750c436d510b0669358a1f81eca127e00be25d42944"
+    },
+    {
+      "file": "base-logic-code-cracker-feedback.png",
+      "bytes": 99578,
+      "sha256": "e7d5325bc9623bf7d239f376bb223ede935264c3ec7a562ec1527e97d4a1bf9a"
+    },
+    {
+      "file": "base-logic-code-cracker-pause.png",
+      "bytes": 54908,
+      "sha256": "0ab55fadef09a30880f1b3de4723c0c2d607d7edb3675e9452c7d8491f1d3b8e"
+    },
+    {
+      "file": "base-logic-code-cracker-stuck.png",
+      "bytes": 158175,
+      "sha256": "226bbd04025b7e63dcf41cdeca0600f5d782434824a72e9011fc4e7da53b872f"
+    },
+    {
+      "file": "base-logic-deduction-table-active.png",
+      "bytes": 156264,
+      "sha256": "916c7b4fbdfe8cecf0c465d63edf5f1ba0fc85040285685e6ee5d5c8b5a082a7"
+    },
+    {
+      "file": "base-logic-deduction-table-feedback.png",
+      "bytes": 124123,
+      "sha256": "94b9bc31ae9bfaa85765bea023f7f895129b567c1846244d5ac05a09a67f838b"
+    },
+    {
+      "file": "base-logic-deduction-table-pause.png",
+      "bytes": 55892,
+      "sha256": "f85ba57242cefdb9e804537bb431989569eda7081ff6fb61cbb7492193de1c9b"
+    },
+    {
+      "file": "base-logic-deduction-table-result.png",
+      "bytes": 128561,
+      "sha256": "44560311f2cbd38094705f5e8175d48979b189f9f27e583836c4dd042b35842f"
+    },
+    {
+      "file": "base-logic-next-sequence-active.png",
+      "bytes": 87031,
+      "sha256": "25e905c9a97cb278ed04d62255e0489a956f5418b06612ebee2273dc18cc3ff3"
+    },
+    {
+      "file": "base-logic-next-sequence-feedback.png",
+      "bytes": 95951,
+      "sha256": "86321641142a3e504f2b1ed95ca70c790b527734a81b332d78d8b00789a8df52"
+    },
+    {
+      "file": "base-logic-next-sequence-pause.png",
+      "bytes": 57009,
+      "sha256": "45df83c8e96fdcb06db2994e315e54dc662c620c5b50ab7a2817abf0e2921743"
+    },
+    {
+      "file": "base-logic-next-sequence-result.png",
+      "bytes": 135033,
+      "sha256": "b94d62cbdf19e08dee5d8699a6d72ff10a54433cad7dadf64b9de1178e25ae82"
+    },
+    {
+      "file": "base-logic-order-path-active.png",
+      "bytes": 113016,
+      "sha256": "9a34bc423af14bd5f39a719784a66e55d6b9d8d073ec9f587903597fbe119286"
+    },
+    {
+      "file": "base-logic-order-path-feedback.png",
+      "bytes": 112998,
+      "sha256": "2d6f799be36d0f2498571cc22d948243193f1fd30572fe952dc50a8d8a8dedd3"
+    },
+    {
+      "file": "base-logic-order-path-pause.png",
+      "bytes": 57273,
+      "sha256": "c2232e779771d18d1dd6badfd30d2c909bbb9b01d919c73d94551e5d2564ce8d"
+    },
+    {
+      "file": "base-logic-order-path-result.png",
+      "bytes": 118108,
+      "sha256": "89dc59ccf8595315575850b98a97c230c11b5cda4486e5bbb8b6de9ee95e8e8b"
+    },
+    {
+      "file": "base-logic-rule-grid-active.png",
+      "bytes": 116648,
+      "sha256": "df165c229ba1593f5abae15aca9251954f1971590fbc18f5d22ad2f6220a5408"
+    },
+    {
+      "file": "base-logic-rule-grid-feedback.png",
+      "bytes": 142418,
+      "sha256": "d96fdf64a16a08aa5631ebbee9fd7d1e79307a93619197ece102c85f47119fd5"
+    },
+    {
+      "file": "base-logic-rule-grid-pause.png",
+      "bytes": 57382,
+      "sha256": "f201db775c044149ce24fad5eebcbeea731032501ae4ce74ad234753302ed428"
+    },
+    {
+      "file": "base-logic-rule-grid-result.png",
+      "bytes": 118289,
+      "sha256": "161ca7e50fe4264049fa4d3057b402371cbe6e6ce72be005c4803605d414a8be"
+    },
+    {
+      "file": "base-math-equation-builder-active.png",
+      "bytes": 85895,
+      "sha256": "1fc72591362a023d8eba340157eaf0888ae015791fa18c194fdf768854244d26"
+    },
+    {
+      "file": "base-math-equation-builder-result.png",
+      "bytes": 118579,
+      "sha256": "29dedbe342d076ce369a7c8fbcb47c70f2b4e856b8108a1483391c7db77617cc"
+    },
+    {
+      "file": "base-math-fast-math-active.png",
+      "bytes": 87140,
+      "sha256": "03529b44a36b4a6303b91966d11195778564e0c274809aa16c43905d9c44956d"
+    },
+    {
+      "file": "base-math-fast-math-feedback.png",
+      "bytes": 77373,
+      "sha256": "80123e7b80d5341427b00aeb431955a8c4ff749cabcfa1abf2d8cd39c88778ca"
+    },
+    {
+      "file": "base-math-fast-math-pause.png",
+      "bytes": 54454,
+      "sha256": "abda68e0c93bf125201a39b01e28f849d4f8c15c9c8a1a44a55527606440be5c"
+    },
+    {
+      "file": "base-math-fast-math-result.png",
+      "bytes": 121062,
+      "sha256": "f526b436a66b76d45f399be68e64270c1ce727667791a3f491ddad832900f8dc"
+    },
+    {
+      "file": "base-math-missing-operator-active.png",
+      "bytes": 75059,
+      "sha256": "b6044cf9df1a5a2b231ddeb1972ab519ce0aa4793cad763e1227f4cec27ff7b0"
+    },
+    {
+      "file": "base-math-missing-operator-pause.png",
+      "bytes": 56500,
+      "sha256": "c80c730adb6867fae2683645039d031710cd751f51c40a1be255bf009bf4d01f"
+    },
+    {
+      "file": "base-math-missing-operator-result.png",
+      "bytes": 134911,
+      "sha256": "bc6e4e34f5eb6d717fa49c17e4a7e958554890832a42223c66eadce856356e74"
+    },
+    {
+      "file": "base-math-number-line-estimation-active.png",
+      "bytes": 66242,
+      "sha256": "5a68a23f0ac47ced93a62e0e60186b03e110ad76080c2286d2f70eb48b25bd0a"
+    },
+    {
+      "file": "base-math-number-line-estimation-pause.png",
+      "bytes": 56375,
+      "sha256": "71bae2b6464b75dace11306a8f9477c5a0fbdb6be14721716dac4b97196f0472"
+    },
+    {
+      "file": "base-math-number-line-estimation-result.png",
+      "bytes": 119039,
+      "sha256": "a0f9839c836b2483fcc8e786137dd1af68026463247bacb467af853aaf2bf5e8"
+    },
+    {
+      "file": "base-math-value-ordering-active.png",
+      "bytes": 80603,
+      "sha256": "0f3e2e7cdb1cf65d685bb8f5a2c177624b5c62a8740d3d7498d913f4eb060d54"
+    },
+    {
+      "file": "base-math-value-ordering-pause.png",
+      "bytes": 56342,
+      "sha256": "a288ba7ffd75d1cc0d55d7524c1fdc78bad103bbf213e0c08b606281d24c4980"
+    },
+    {
+      "file": "base-math-value-ordering-result.png",
+      "bytes": 120801,
+      "sha256": "5f715599f1cf5bfc6be79a573901714167d8f7737a7db94f0e9781d40358bdd9"
+    },
+    {
+      "file": "base-memory-active.png",
+      "bytes": 72107,
+      "sha256": "b90663b0290891dfa016de919e32f98ab9c7950ba163725183a56477da7dbef1"
+    },
+    {
+      "file": "base-memory-feedback.png",
+      "bytes": 68839,
+      "sha256": "63859ca7e67e3a5d3d86375f72cc1e7589830cf727d5f8c9da4015b4e83df9d8"
+    },
+    {
+      "file": "base-memory-grid-recall-active.png",
+      "bytes": 76722,
+      "sha256": "a27700dd7b03f65c0c39d8051d125fa1c85be5626e6a4b767b2949d2f2f472ee"
+    },
+    {
+      "file": "base-memory-grid-recall-feedback.png",
+      "bytes": 100126,
+      "sha256": "f993d57bddb50952c3a1431c28f49c7c946531d730fe5988503476c4a9824860"
+    },
+    {
+      "file": "base-memory-grid-recall-pause.png",
+      "bytes": 56272,
+      "sha256": "f9f86297412e6f6369da4f0d142719b57204432c6c22525a3befe16ce82852b0"
+    },
+    {
+      "file": "base-memory-grid-recall-result.png",
+      "bytes": 124743,
+      "sha256": "1cca19e23ca86a34cf9856b38f7eecbb2e15744fe3255ceb830b93e254497622"
+    },
+    {
+      "file": "base-memory-pair-recall-active.png",
+      "bytes": 77904,
+      "sha256": "41bab213666cf966564bf14cb8953410e2425b7966e2c305b41c5ca02252bfa8"
+    },
+    {
+      "file": "base-memory-pair-recall-feedback.png",
+      "bytes": 116357,
+      "sha256": "f5d4dfdf724ebb5a068a7ac28ef9682f16dd885eefdb3a43b8e4be17b5b76eb3"
+    },
+    {
+      "file": "base-memory-pair-recall-pause.png",
+      "bytes": 55678,
+      "sha256": "e478e4912602ef2915efafd99e10b666ca988488b5077728a0c42b4a736c029d"
+    },
+    {
+      "file": "base-memory-pair-recall-stuck.png",
+      "bytes": 116772,
+      "sha256": "bdb5e3fc6f683e1fda6ce858d8807bd4280a2eda55777245b7fb9d40ed9ea82f"
+    },
+    {
+      "file": "base-memory-pattern-tap-back-active.png",
+      "bytes": 67522,
+      "sha256": "e031fc694eccd1179fbfdd1f2d3c975da3dc038c20abf2659753cd55aeff0ce9"
+    },
+    {
+      "file": "base-memory-pattern-tap-back-feedback.png",
+      "bytes": 98035,
+      "sha256": "e036834d80456a0344a36e767fafcfe3d2e81c26b780b7aca6754a097d97e3fd"
+    },
+    {
+      "file": "base-memory-pattern-tap-back-pause.png",
+      "bytes": 55574,
+      "sha256": "72609cec2426464fdf73d998624826342e3c29d3dc3a21b8d28cde95908b4541"
+    },
+    {
+      "file": "base-memory-pattern-tap-back-result.png",
+      "bytes": 126722,
+      "sha256": "83b7bea2831d573144894247af1f6db18dccdfcec7b6d8e32eeef851c83572e9"
+    },
+    {
+      "file": "base-memory-pause.png",
+      "bytes": 55369,
+      "sha256": "091b14579181ecaa9e3b457fd33208bcf23d88885ecbcc9a1e0825b31d2b4dfb"
+    },
+    {
+      "file": "base-memory-prospective-cue-active.png",
+      "bytes": 105750,
+      "sha256": "e05c1f56e7006937fa434edfd1860ff71428e90442fc03a60e56486152ffce5e"
+    },
+    {
+      "file": "base-memory-prospective-cue-feedback.png",
+      "bytes": 103476,
+      "sha256": "bff7a24f1b1d087ae23879e43ac466ac81c59da74565ae341171c6c0bd2d6f3b"
+    },
+    {
+      "file": "base-memory-prospective-cue-pause.png",
+      "bytes": 56587,
+      "sha256": "33bb8239e7759990d92f89466f9d6f7f47f9edc44b61a19e06134d52cc139603"
+    },
+    {
+      "file": "base-memory-prospective-cue-result.png",
+      "bytes": 135346,
+      "sha256": "7d2cc346e36c05ebe910ac7d815f73d299b2e64ed040b44582f9f0ecde1138fe"
+    },
+    {
+      "file": "base-memory-result.png",
+      "bytes": 126983,
+      "sha256": "2a08f9a6d5d8a9bb1519bef5d7806ab8d537ad7b48d87f05da150947c954c6b3"
+    },
+    {
+      "file": "base-memory-sequence-memory-active.png",
+      "bytes": 69229,
+      "sha256": "0adb5042495d87e62f89c2f93dda632d3764d46422345149b087254d6f0a698f"
+    },
+    {
+      "file": "base-memory-sequence-memory-feedback.png",
+      "bytes": 103967,
+      "sha256": "b8710e81f9cc6c7fcd310cb7f21fe768e3679063a761ac98f6c471028ef47b63"
+    },
+    {
+      "file": "base-memory-sequence-memory-result.png",
+      "bytes": 124963,
+      "sha256": "00e31490098bbe019263432ded795d3663e43fa125e94895f080a3d6fd0488fb"
+    },
+    {
+      "file": "base-spatial-coordinate-turn-active.png",
+      "bytes": 97527,
+      "sha256": "567d6e8c62013cdd77ab1b9495f622ba4d649ce4bdc55aec77a4932a725b3d7f"
+    },
+    {
+      "file": "base-spatial-coordinate-turn-pause.png",
+      "bytes": 55984,
+      "sha256": "95325ffdaaa72bb2a87ee5f7106bd4be0ff0e94695a03eb4f5f35c19ced51990"
+    },
+    {
+      "file": "base-spatial-coordinate-turn-result.png",
+      "bytes": 138263,
+      "sha256": "398948a44c6e115145e8d3fa6fa67571c71164d6ef8c3fdf6f2adee59ce09a21"
+    },
+    {
+      "file": "base-spatial-fold-match-active.png",
+      "bytes": 74755,
+      "sha256": "b8173a450ac8e92bee74d7a68374b8ad4f2a2576ebf7d96a2cfb15f30de71495"
+    },
+    {
+      "file": "base-spatial-fold-match-feedback.png",
+      "bytes": 127668,
+      "sha256": "55f78eb578637872ccee747fcc23d0c150e566070a77bce49144ad45f5e67284"
+    },
+    {
+      "file": "base-spatial-fold-match-pause.png",
+      "bytes": 55411,
+      "sha256": "6d958ea5805245fc7f69c634c102aac741d1dd52d5a43f044595187cb4e24fa8"
+    },
+    {
+      "file": "base-spatial-fold-match-result.png",
+      "bytes": 136725,
+      "sha256": "21047330acfe645ece6cb3b06f372fb934fb1202eb8a5c070f7a5b4b765bc0df"
+    },
+    {
+      "file": "base-spatial-mental-rotation-active.png",
+      "bytes": 93826,
+      "sha256": "5950513ca0013d65f764a815aca81c885458ad44c6a4ca9d221d3ea408d196d2"
+    },
+    {
+      "file": "base-spatial-mental-rotation-feedback.png",
+      "bytes": 120374,
+      "sha256": "ee3c6e26f33fbd2dff27115a76c9d7306f9757924d88a0383cdd95773b0e8227"
+    },
+    {
+      "file": "base-spatial-mental-rotation-pause.png",
+      "bytes": 56248,
+      "sha256": "14dbc48b0f3e27b8f05813fc8f91efb723b2c467001e30bfae88e136e3f88b4d"
+    },
+    {
+      "file": "base-spatial-mental-rotation-result.png",
+      "bytes": 148007,
+      "sha256": "f5b38b1bbf67e91c073985a77ae7ebe60e5df685bb05fb2022623385b1ddce58"
+    },
+    {
+      "file": "base-spatial-transform-match-active.png",
+      "bytes": 100673,
+      "sha256": "82e38360e8c51879b2d5d62d6d08e55da4a57628a574d1e42eaed5b7183c01fc"
+    },
+    {
+      "file": "base-spatial-transform-match-feedback.png",
+      "bytes": 94469,
+      "sha256": "8094feceae06935a2e62ec584a7c63c5c11fa0a693342ce3205c6c1323da7bb9"
+    },
+    {
+      "file": "base-spatial-transform-match-pause.png",
+      "bytes": 54766,
+      "sha256": "5a2b3ee6e55e882ab6e2c3a99ec424a2d2402058dabfdddcf1775518991c3be9"
+    },
+    {
+      "file": "base-spatial-transform-match-result.png",
+      "bytes": 132616,
+      "sha256": "0d1071a515a562b042f1a7a1b20fe2b754aa2d54177f15c3ae5d4bb34f55b075"
+    },
+    {
+      "file": "base-speed-color-match-active.png",
+      "bytes": 86853,
+      "sha256": "65e12aa46d70182da3fe9ba1ab7254fee4d527da34a93b9f01af533a3c467a80"
+    },
+    {
+      "file": "base-speed-color-match-feedback.png",
+      "bytes": 87925,
+      "sha256": "7d94166cb8683f67cdf842c58b1cae8f9b8c6941e7e068a24e886e301429baa1"
+    },
+    {
+      "file": "base-speed-color-match-pause.png",
+      "bytes": 56019,
+      "sha256": "9162d499579258c24e18698a4b1e3e6812b6f79e9d8529e5a8428959bc91bb6f"
+    },
+    {
+      "file": "base-speed-color-match-result.png",
+      "bytes": 135484,
+      "sha256": "b28307ead2ff5c4925a1da597f5ac4efa085f04dedf3500736924d2e3830fa27"
+    },
+    {
+      "file": "base-speed-order-sweep-active.png",
+      "bytes": 92506,
+      "sha256": "3b69556fbb9ac7a9df5a308b6d8c517b8e499968e61cc0beee962d185ca29672"
+    },
+    {
+      "file": "base-speed-order-sweep-pause.png",
+      "bytes": 55821,
+      "sha256": "890dfa89ab07b990041cf86c0a564d524aea2a863aa6701c181f2442a6946f7b"
+    },
+    {
+      "file": "base-speed-order-sweep-result.png",
+      "bytes": 141408,
+      "sha256": "c28be4bc2a738ed071129767f320900c467c9313aec81c100d8b67d2f0459119"
+    },
+    {
+      "file": "base-speed-quick-compare-active.png",
+      "bytes": 111642,
+      "sha256": "bf126addb865b3d478a7fc81bd926ab9959fdeea9cd362dfc5977b4e2bc33756"
+    },
+    {
+      "file": "base-speed-quick-compare-pause.png",
+      "bytes": 53926,
+      "sha256": "3dab035414341517ded0c9fae245828f5c07899fbb27ae057c50195efe568c8d"
+    },
+    {
+      "file": "base-speed-quick-compare-result.png",
+      "bytes": 124693,
+      "sha256": "31dabe35f302793d907c007eb91143f8d01b129c5d1c7ca22eb6486c81842072"
+    },
+    {
+      "file": "base-speed-reaction-time-active.png",
+      "bytes": 94843,
+      "sha256": "9e20f7221fbc97d3c1802c65a0e21b65fb80edfa396f8ee510e506eb71e1fb1d"
+    },
+    {
+      "file": "base-speed-reaction-time-pause.png",
+      "bytes": 54772,
+      "sha256": "9a108f6563641cf4b753b655dbb5cb03e973c08c074830f1b3f126a799b69398"
+    },
+    {
+      "file": "base-speed-reaction-time-result.png",
+      "bytes": 152485,
+      "sha256": "839dc2f570020dd3f2a53abc3fe7b07550aa11b444b56899c564f8ef24a37a32"
+    },
+    {
+      "file": "base-speed-tap-rush-active.png",
+      "bytes": 70104,
+      "sha256": "4bb09129c1bb31d8f84f1d6751fe32e1642e5b49327b097ae08ba83f674458e4"
+    },
+    {
+      "file": "base-speed-tap-rush-pause.png",
+      "bytes": 54762,
+      "sha256": "084abf86c8e9798703939b3850c862601e1367dc37199937c2656c3c99f36f9a"
+    },
+    {
+      "file": "base-speed-tap-rush-result.png",
+      "bytes": 135040,
+      "sha256": "919d46c57ce51383d136f302b0174ab2eb5610354d5ab2f39b995829ea73ca34"
+    },
+    {
+      "file": "data-export-output.png",
+      "bytes": 466166,
+      "sha256": "3f85bf8e6c9f58689f76a5c8579007eda65f3192f63501b74a03a8141cf86811"
+    },
+    {
+      "file": "data-import-card.png",
+      "bytes": 283032,
+      "sha256": "3c53711309b8013024f80f52aa59c4dbbbee2086a00e4180b539006c2b9f544d"
+    },
+    {
+      "file": "data-import-preview-error.png",
+      "bytes": 286549,
+      "sha256": "290f95db61d64ea358a20221c48bcde6912b9072b826009b34bfda0261da9e76"
+    },
+    {
+      "file": "data-management-populated.png",
+      "bytes": 465803,
+      "sha256": "a457997c6788684d151d4d3a9725da1ddc78dfbc17ffca39b9ff9fcae9e5c83b"
+    },
+    {
+      "file": "data-wipe-armed.png",
+      "bytes": 291810,
+      "sha256": "951d3ab7494d94785362dd6458cfe5bf57105c4bba7b24d1ef045ecd85439d2b"
+    },
+    {
+      "file": "data-wipe-completed-toast.png",
+      "bytes": 313459,
+      "sha256": "e885ad5692d3defc62e19ba5a518a80c4a6957d4bf2863c12eb6ca0920268e56"
+    },
+    {
+      "file": "data-wipe-confirm.png",
+      "bytes": 280184,
+      "sha256": "954717283ce149ebcdac5750723cecc08ead9479e0edd0f92c3637092b3934b6"
+    },
+    {
+      "file": "flexibility-card-sort-tutorial.png",
+      "bytes": 75747,
+      "sha256": "e162318e14d605805b750195160e5bbc0db257cf32a97986330463fc9b3a5657"
+    },
+    {
+      "file": "flexibility-color-stroop-tutorial.png",
+      "bytes": 161505,
+      "sha256": "aafe095437267353dd1f731bfe813dee0a56439f730df37de251f8baf62ed320"
+    },
+    {
+      "file": "flexibility-cue-shift-tutorial.png",
+      "bytes": 173573,
+      "sha256": "df4542dc291e8667f23250713906d6bc81e1a43b4b996b1ee2d52c5b807503ad"
+    },
+    {
+      "file": "flexibility-rule-flip-tutorial.png",
+      "bytes": 235118,
+      "sha256": "49ab982448b5c4606d3d92be3eda5b1d196699bfc66c5963bd9bf7b6f347a400"
+    },
+    {
+      "file": "flexibility-task-switch-tutorial.png",
+      "bytes": 137190,
+      "sha256": "742598bd66cfca5dbda018a5f0429deed6c1ad14813559276e369cab91649d83"
+    },
+    {
+      "file": "game-detail-memory-favorited.png",
+      "bytes": 164112,
+      "sha256": "00c5b98dcaaaf60985cd4fb1d19da5ff012d58ceb62d18339990edf5e370eb9c"
+    },
+    {
+      "file": "game-detail-memory-populated.png",
+      "bytes": 167968,
+      "sha256": "a64ffb9c1caa77097987cdefd8a9330eef86cc08763525aab07a2ef4ceac4e76"
+    },
+    {
+      "file": "games-favorites-empty.png",
+      "bytes": 159842,
+      "sha256": "3cecb6fa2107f54c72efa94aef12c752e78873cefdcc8a00d06c3de252076f8c"
+    },
+    {
+      "file": "games-favorites-populated-dark.png",
+      "bytes": 141257,
+      "sha256": "5f54b8f19518d86be3e7ac0b08d23d8a2ae0a6603e8d02b9f3c31b22d9fa5c89"
+    },
+    {
+      "file": "games-favorites-populated.png",
+      "bytes": 140131,
+      "sha256": "ba69208fb0c1350612e6be4751563ef3a9c0511de5ebb6d2a9fb9797a785b25a"
+    },
+    {
+      "file": "games-filter-category.png",
+      "bytes": 183916,
+      "sha256": "296a82ac6664a8ed52b34a5c56d2e3730023843095e6125009c637434d1a873c"
+    },
+    {
+      "file": "games-populated-light.png",
+      "bytes": 190585,
+      "sha256": "5f9aaf433eb84b01fa22f09193a1213a30092ffad3d08d2bc2e21b7542d79d22"
+    },
+    {
+      "file": "games-populated.png",
+      "bytes": 205538,
+      "sha256": "0eec9c40c7befc298bc709dfc1f52edb1aa65fbf3335038e0e7f66c770eedab3"
+    },
+    {
+      "file": "games-scrolled-library-light.png",
+      "bytes": 200459,
+      "sha256": "1e31337e7e7df92bb823d50e0601e9ebf118c46c2211ddd23f52b8794fdd7df9"
+    },
+    {
+      "file": "games-scrolled-library.png",
+      "bytes": 196035,
+      "sha256": "966daff8165073bb0921a4e33b861daa7893cadfae67a123762aff88cd3eca0f"
+    },
+    {
+      "file": "games-search-cleared.png",
+      "bytes": 205490,
+      "sha256": "e650e6c891b8942136dabfbee6151aa237333a6bdb6a8801ede731bf2d5f1649"
+    },
+    {
+      "file": "games-search-empty.png",
+      "bytes": 204403,
+      "sha256": "e661e9fc6ef8ea720e49da04f589cfb933c164990bfc92ba10545b860e319604"
+    },
+    {
+      "file": "games-search-memory.png",
+      "bytes": 201543,
+      "sha256": "0af8864cf7575f3975d3742d1ccd1fa80fa2c59e63811a67b4e67e910c1c4a61"
+    },
+    {
+      "file": "home-after-wipe.png",
+      "bytes": 168523,
+      "sha256": "fa713d2ab89c6dc9004db7cff37b83c6cceb4551f05bf02524d436d2b4bb7df7"
+    },
+    {
+      "file": "home-workout-complete.png",
+      "bytes": 181811,
+      "sha256": "f7249a004b6841578da42db982ee441482698729dde8813e9222c565f7a3ad18"
+    },
+    {
+      "file": "language-context-fit-tutorial.png",
+      "bytes": 172440,
+      "sha256": "b20478eb52d7a0bb6f03cf2d20f425fb307ed79a1d2c2d86ea65ef76b1bd2c5e"
+    },
+    {
+      "file": "language-sentence-builder-tutorial.png",
+      "bytes": 179392,
+      "sha256": "29769c0a36b47bdfb4835dcfd68642336713b3d8ba6f5c8040b3592377e846cc"
+    },
+    {
+      "file": "language-word-chain-tutorial.png",
+      "bytes": 178324,
+      "sha256": "efc8279ed256ba4d0b483307058c0f393cf7c64f96718c7d5896bdf767a84e0d"
+    },
+    {
+      "file": "language-word-match-tutorial.png",
+      "bytes": 170790,
+      "sha256": "9a08340eaf8312dc083658ba75604e20d85a1731f8f23d5e8b1f1897060aca6d"
+    },
+    {
+      "file": "language-word-scramble-tutorial.png",
+      "bytes": 183744,
+      "sha256": "78354c28ee5ed5a6e6a24008614bd37950a916fb0e14446912ecaf990f89ae57"
+    },
+    {
+      "file": "logic-code-cracker-active-refresh.png",
+      "bytes": 65086,
+      "sha256": "d3ffbd9b1f28f5c0f84cfbeb7ebedbd0afcb6f3d46d54029ffe119881e60d0df"
+    },
+    {
+      "file": "logic-code-cracker-feedback-refresh.png",
+      "bytes": 132200,
+      "sha256": "bdb936570d465a59b0adbd456a719e7f8df14b219a49f04ccb4f99cd20b56739"
+    },
+    {
+      "file": "logic-code-cracker-result.png",
+      "bytes": 127894,
+      "sha256": "9a37ce0782b3fad8e1c47d0f0ff77eee729c84f696a3f142ba54d5eceb05e349"
+    },
+    {
+      "file": "logic-code-cracker-stuck-final.png",
+      "bytes": 65492,
+      "sha256": "08d85112f35fabec2bbf6b76b3a0ba0a252613c9d108311cd04a0c0d527627a2"
+    },
+    {
+      "file": "logic-code-cracker-tutorial.png",
+      "bytes": 189474,
+      "sha256": "b967e56f00c5278cb916e45a1faf829b1050dbb8f9257d1f27d489a57b696ab0"
+    },
+    {
+      "file": "logic-deduction-table-tutorial-solved.png",
+      "bytes": 139479,
+      "sha256": "f64f241ca3359efb7c3bc7140e784bcad56e559600730cf2022a3baaa675701e"
+    },
+    {
+      "file": "logic-deduction-table-tutorial-stuck.png",
+      "bytes": 120069,
+      "sha256": "18fb83c34a9d41ff2a54b068687f08805a0d71573694de1ec646c3400942bb72"
+    },
+    {
+      "file": "logic-deduction-table-tutorial.png",
+      "bytes": 179973,
+      "sha256": "40b884389c6a40a3321ec7cb3b73eac003483b0221231829554bb34f82de7a22"
+    },
+    {
+      "file": "logic-next-sequence-tutorial.png",
+      "bytes": 169031,
+      "sha256": "322891e41e1a1e45f9cae55f6ba9ccc9897fe745cd12207ed0e6346a42bd7aa7"
+    },
+    {
+      "file": "logic-order-path-tutorial.png",
+      "bytes": 174886,
+      "sha256": "4dde69437034356719703b66444d618074f634ea5eb58ab2e25d5dc096b1ea97"
+    },
+    {
+      "file": "logic-rule-grid-tutorial.png",
+      "bytes": 192312,
+      "sha256": "5af54f562b2dfca4f9a164c3f1f742a62e51979f8917b5354413f1594003e36b"
+    },
+    {
+      "file": "math-equation-builder-tutorial-solved.png",
+      "bytes": 92507,
+      "sha256": "54fbb683e5190bce7b2891139313259a37b7b6bae92e0620426569a75cc3bd69"
+    },
+    {
+      "file": "math-equation-builder-tutorial-stuck.png",
+      "bytes": 95899,
+      "sha256": "a472c9b702f607228ab0440988efe2d3e6055c2f91f9ffa8b983955dfb2696bd"
+    },
+    {
+      "file": "math-equation-builder-tutorial.png",
+      "bytes": 202562,
+      "sha256": "b8bae672ffe1759b0f6a15ec405470e7834482438f4db009827ae0b29da93c60"
+    },
+    {
+      "file": "math-fast-math-tutorial-solved.png",
+      "bytes": 135054,
+      "sha256": "c3db773a4eebaf4c9ebf93815dec3471a46b4a6a7a85b4c58b11cf475a7fc417"
+    },
+    {
+      "file": "math-fast-math-tutorial-stuck.png",
+      "bytes": 111943,
+      "sha256": "b7d122fad82db71865ed5b0a0c23ce6f84ca90d31654d2a0bcec6e81cdc66b2b"
+    },
+    {
+      "file": "math-fast-math-tutorial.png",
+      "bytes": 184262,
+      "sha256": "f8cb1f52a25f39edf098750fa059c909f853fbf7f11f28816e28c1d30f5415cb"
+    },
+    {
+      "file": "math-missing-operator-tutorial.png",
+      "bytes": 167711,
+      "sha256": "c6edd29ce6abd7db9d444864efbac38146768e4a8ed6081b9cf690343828aa62"
+    },
+    {
+      "file": "math-number-line-estimation-tutorial.png",
+      "bytes": 193178,
+      "sha256": "b73b2be445ce4d533505ce194e3978f1dffdfd6e3393a78460348472eeb88d3d"
+    },
+    {
+      "file": "math-value-ordering-tutorial.png",
+      "bytes": 191227,
+      "sha256": "1249676c9caccc2748ed14a344a1b1557c896d21ce8d6bfce00a216180b17f4c"
+    },
+    {
+      "file": "memory-grid-recall-tutorial-solved.png",
+      "bytes": 126287,
+      "sha256": "ea1072a31473442ecfa9dd31557735a5d527a8d995adf5f0436268cd1caf5753"
+    },
+    {
+      "file": "memory-grid-recall-tutorial-stuck.png",
+      "bytes": 99277,
+      "sha256": "f8279b0c4ca70b3a776828f8e37763eb712f6a2ebc1daff13770dbf755628720"
+    },
+    {
+      "file": "memory-grid-recall-tutorial.png",
+      "bytes": 172031,
+      "sha256": "4cac7eaba162f666ccb0bcac806511c6c9e35490d0429be71a593535047868e5"
+    },
+    {
+      "file": "memory-pair-recall-active-refresh.png",
+      "bytes": 76705,
+      "sha256": "0858ed0408ed2b46f8954978c667864d961064bc06710e983a74bb8593c946e1"
+    },
+    {
+      "file": "memory-pair-recall-feedback-refresh.png",
+      "bytes": 71085,
+      "sha256": "8874a4634e6522ebfec2a7a680986ccca2b55dc3d997b4c14803ee6a2d9fac9c"
+    },
+    {
+      "file": "memory-pair-recall-result.png",
+      "bytes": 124605,
+      "sha256": "3d60e8094457b658a6b92b280906e21aed7db9d5ca951072a2d8cf4185417d9e"
+    },
+    {
+      "file": "memory-pair-recall-stuck-final.png",
+      "bytes": 78490,
+      "sha256": "a0d0a3989d266e103314c1f3610b51aae54cff9935d7c379e5413247a32fcc68"
+    },
+    {
+      "file": "memory-pair-recall-tutorial.png",
+      "bytes": 183586,
+      "sha256": "71401174c4c30f47e3dc0f3954b24e49eedb6b576dab15863a1d6e5eb49e3f0c"
+    },
+    {
+      "file": "memory-pattern-tap-back-tutorial-solved.png",
+      "bytes": 125172,
+      "sha256": "f7546af448855fa1e0bf0aa1c6e472a3e7a0615228af8f7a254cfebea5475761"
+    },
+    {
+      "file": "memory-pattern-tap-back-tutorial-stuck.png",
+      "bytes": 97217,
+      "sha256": "099c5b9fbfd803a8e4b48c82df0a842cd3960a12a8280dda97bf35a36ccb7754"
+    },
+    {
+      "file": "memory-pattern-tap-back-tutorial.png",
+      "bytes": 179278,
+      "sha256": "b10d06cc066b44a6ba7db2f36c68e9bfb29506da8e339e67714c8617d301b13c"
+    },
+    {
+      "file": "memory-prospective-cue-tutorial.png",
+      "bytes": 209187,
+      "sha256": "c1add492cab15202cfb3932e0787e859b4d12cd51f6020841212ffbf75d87403"
+    },
+    {
+      "file": "memory-running-order-tutorial.png",
+      "bytes": 134861,
+      "sha256": "4b6435572af41b7063f5f6ecdc462d47d5b0aab469bb634f1281e4313f732697"
+    },
+    {
+      "file": "memory-sequence-memory-tutorial-solved.png",
+      "bytes": 137662,
+      "sha256": "30c80a1170b4623082b05dda013751d00a963f898f77a2291cc6cadd255f4bf7"
+    },
+    {
+      "file": "memory-sequence-memory-tutorial-stuck.png",
+      "bytes": 106384,
+      "sha256": "c0834e296966973dc4bac8c8c3014f32df869da7f9f76ac678dae8184db530e6"
+    },
+    {
+      "file": "memory-sequence-memory-tutorial.png",
+      "bytes": 200662,
+      "sha256": "c741a202da5d829d25ad3e2bc971d143119a1642c96ea2448e9d3fa1e30fa85e"
+    },
+    {
+      "file": "memory-tutorial-solved.png",
+      "bytes": 119626,
+      "sha256": "436b6e947bfcdd060462d70cc09d0acf8278566248dcca06e8a1186fd6f38f8f"
+    },
+    {
+      "file": "memory-tutorial-stuck.png",
+      "bytes": 91759,
+      "sha256": "906483935374dcb560d18f3be7cab7cd732d382db507d5d5d3faf606973beae7"
+    },
+    {
+      "file": "memory-tutorial.png",
+      "bytes": 160637,
+      "sha256": "af3293783bc9f708571de4a083b06e9d04fd398b7187de1faa13288c67ffea06"
+    },
+    {
+      "file": "progress-populated.png",
+      "bytes": 235615,
+      "sha256": "afe1df6701c229d5698f1c7b1b277643031edbb9eaf26711ad8ee8238560f619"
+    },
+    {
+      "file": "recovery-bootstrap.png",
+      "bytes": 1386071,
+      "sha256": "982ec715c669568c28cbfbae16fe3ce8ab26c2648d951e7a8a559d32065b427d"
+    },
+    {
+      "file": "recovery-game-detail-invalid.png",
+      "bytes": 89518,
+      "sha256": "758acb000ff9baaa2043070d584c0a022974b5819a06fd3f54846d2f0c854f45"
+    },
+    {
+      "file": "recovery-game-invalid-id.png",
+      "bytes": 68621,
+      "sha256": "55c6082b0eef54ba5cface16854c994c1973f4e75555128ceb431c3189589e87"
+    },
+    {
+      "file": "recovery-progress-domain-invalid.png",
+      "bytes": 136895,
+      "sha256": "3aa6f7082bd0bd8bb22d0e944774a90aa016821d48c06651031317cfffee7ed0"
+    },
+    {
+      "file": "recovery-progress-game-invalid.png",
+      "bytes": 134529,
+      "sha256": "287fcfb9e6aa9e6f70f98a5ca7a28abbac0d43bae2774a29539d64219d442e7c"
+    },
+    {
+      "file": "recovery-results-invalid-id.png",
+      "bytes": 67373,
+      "sha256": "0653d736128fe97883ed398b1aac31386a340d63dc869a1d0ecb3e989ac4038b"
+    },
+    {
+      "file": "recovery-storage-unavailable.png",
+      "bytes": 122990,
+      "sha256": "5ac43fa8c6a6889959890e9c83c2783edfec57ed9a281b9c7e6b713b6893149e"
+    },
+    {
+      "file": "results-route-default.png",
+      "bytes": 152931,
+      "sha256": "836b1958119ef13cc947b9cc6836ef7d3cef113f4be801887e3105ee717780c1"
+    },
+    {
+      "file": "results-route-latest-probe.png",
+      "bytes": 66810,
+      "sha256": "7fc1fa1a46ca642350176c822a83a47de576a975c284724152ac3eb3c770cc5d"
+    },
+    {
+      "file": "rewards-claimed-inbox.png",
+      "bytes": 172793,
+      "sha256": "9aacd03f7a4121f592cf5ed13bc1a443a879bc835d4363c13b7d401490abb332"
+    },
+    {
+      "file": "rewards-claiming-celebration.png",
+      "bytes": 241253,
+      "sha256": "cb3c141ff7b2824dd3324264b1e9a897b4ff953117c74f8845cd880ea6731ed5"
+    },
+    {
+      "file": "rewards-inbox-claimable.png",
+      "bytes": 312495,
+      "sha256": "2bb4d1628a22c38fb13ee80ba4982c4797595b8141119daccf619dd21a0df102"
+    },
+    {
+      "file": "spatial-coordinate-turn-tutorial.png",
+      "bytes": 193772,
+      "sha256": "5db634fbb7061e7120bdc97bd708d20737a0285da646491327e95b4803d25f34"
+    },
+    {
+      "file": "spatial-fold-match-tutorial.png",
+      "bytes": 176091,
+      "sha256": "e9f878d6e40b656cfcff4dbd0306532cb91e9d6f28e3011b9d2006430cc8578c"
+    },
+    {
+      "file": "spatial-grid-nav-tutorial.png",
+      "bytes": 94584,
+      "sha256": "0fc21e3b734b6fd76c3f8d197708060a921b58dc219a0324cd8ac6f428b20914"
+    },
+    {
+      "file": "spatial-mental-rotation-tutorial.png",
+      "bytes": 208655,
+      "sha256": "45dc3810099de06c68225aa166a48d17a8d88c59ec6e40019a6ae3375acf324e"
+    },
+    {
+      "file": "spatial-transform-match-tutorial.png",
+      "bytes": 192852,
+      "sha256": "5f321b793c267f335787660d576f7a724b252e056606ecd72b91a1526dfeb143"
+    },
+    {
+      "file": "speed-color-match-tutorial-solved.png",
+      "bytes": 135068,
+      "sha256": "583db0892a57582271b0ac47d951e62f35598841c5184b08680bc7d78c6e1b13"
+    },
+    {
+      "file": "speed-color-match-tutorial-stuck.png",
+      "bytes": 131623,
+      "sha256": "01141e2f8fce0d37aa70a550b7dce8e1f9b5b906c2d91cf78be131260e8a2b00"
+    },
+    {
+      "file": "speed-color-match-tutorial.png",
+      "bytes": 179764,
+      "sha256": "05c6efa274d0a5909665fcf4ccd05b62a37cf59d61d892d4c97837d8f56e3d27"
+    },
+    {
+      "file": "speed-order-sweep-tutorial.png",
+      "bytes": 188640,
+      "sha256": "0e9bf5080fefdcd931fd6bff0c865783192d488ace388c1fc6eccc70ee6f525d"
+    },
+    {
+      "file": "speed-quick-compare-tutorial.png",
+      "bytes": 213186,
+      "sha256": "7067789a1b6c40cc0b3fff5f2c186f8aea3a17ca67658a93e2d000339c5e62e8"
+    },
+    {
+      "file": "speed-reaction-time-tutorial.png",
+      "bytes": 218754,
+      "sha256": "a25d597f51e8a9564be360bf63a64068b965cfcb133adb6bb6bd6cb720ec7dfa"
+    },
+    {
+      "file": "speed-tap-rush-tutorial-solved.png",
+      "bytes": 90148,
+      "sha256": "aa85fc9ec00adb62d80cdd75f6fc86859dba4a6e4e2ea3724855d267b3b099e8"
+    },
+    {
+      "file": "speed-tap-rush-tutorial-stuck.png",
+      "bytes": 89696,
+      "sha256": "9f69e5f30eb1add3c343813e1564e12aa56d0f0d30c77f7f240824c428d62f8e"
+    },
+    {
+      "file": "speed-tap-rush-tutorial.png",
+      "bytes": 170079,
+      "sha256": "bcbb6b3106c7dd9f493d3e118a205ca517d8b7538c793ae9aa00dd3d8b705eb0"
+    },
+    {
+      "file": "state-probe.png",
+      "bytes": 315201,
+      "sha256": "7062e18f217843d6ebf79f46e5eb30c8a5aae565a29a25be326415e027901207"
+    },
+    {
+      "file": "workout-leg1-flexibility-card-sort-active.png",
+      "bytes": 89644,
+      "sha256": "3beb98212861e416f6b07ca61b4a17443624b74488d6dfbb2ba703ac122b0b4c"
+    },
+    {
+      "file": "workout-leg1-flexibility-card-sort-feedback.png",
+      "bytes": 107305,
+      "sha256": "dc1cc62b604dc912ea42639b7978a9e3b00dff003f5bb5bc4ba1ecaebb289891"
+    },
+    {
+      "file": "workout-leg1-flexibility-card-sort-feedback2.png",
+      "bytes": 107317,
+      "sha256": "e4122e517c0ade2bba1a60b596df662c07e661f0c487dd5f3f7778b3685eff3d"
+    },
+    {
+      "file": "workout-leg1-flexibility-card-sort-pause.png",
+      "bytes": 55868,
+      "sha256": "934f6223b97c99aa4babbd8f222441761009a7f42dd6d0d2ce5e6bac79aaa90a"
+    },
+    {
+      "file": "workout-leg1-flexibility-card-sort-result.png",
+      "bytes": 156163,
+      "sha256": "1a71efc4e1949a21777503602b77c6d0348449a4e402bb3b69b6e25916135e87"
+    },
+    {
+      "file": "workout-leg1-flexibility-card-sort-stuck.png",
+      "bytes": 107674,
+      "sha256": "54e5d99fe6f91b88b17876dd2ad356a4bee5957faf61f7a15e16d9825b333da7"
+    },
+    {
+      "file": "workout-leg1-intro.png",
+      "bytes": 210076,
+      "sha256": "3b010c9729f7bc2b21b96746009f27af75f79a36004d4bc4d4e71e3c3b20bab7"
+    },
+    {
+      "file": "workout-leg1-tutorial-demo.png",
+      "bytes": 76420,
+      "sha256": "c877d0b7e8498d372f21b4f9177f216a67a09efceed0ac057d1a905da03daaf3"
+    },
+    {
+      "file": "workout-leg1-tutorial.png",
+      "bytes": 210528,
+      "sha256": "f3e6d7a17d88186bf377452a43d34107ab6161c5ed0392f1324a4c063fed6412"
+    },
+    {
+      "file": "workout-leg2-intro.png",
+      "bytes": 201879,
+      "sha256": "44e72bfc2040fb54ac6763914bb23ff07121fa50d123e0995e7bd54d68ba3a68"
+    },
+    {
+      "file": "workout-leg2-spatial-grid-nav-active.png",
+      "bytes": 84717,
+      "sha256": "58d3df67b05a92dfdbdfd66ea4b94a55764c3be8145c3414f7fc63fd814fbe47"
+    },
+    {
+      "file": "workout-leg2-spatial-grid-nav-feedback.png",
+      "bytes": 89128,
+      "sha256": "19bc94361cf95047cf41225cb9eb6fcc5a91617b52aea9de92de87d7d8f5230f"
+    },
+    {
+      "file": "workout-leg2-spatial-grid-nav-pause.png",
+      "bytes": 56382,
+      "sha256": "b472bbc94b2ca5c6e2d6c419ec8f224463c88cd2f18e1f75d89e4500eef3aab4"
+    },
+    {
+      "file": "workout-leg2-spatial-grid-nav-result.png",
+      "bytes": 169410,
+      "sha256": "e1116087bb2bc9d0eda0304d6e06d6a4d5397ea672295edf00eb4a5ae5bf5391"
+    },
+    {
+      "file": "workout-leg2-spatial-grid-nav-stuck.png",
+      "bytes": 89862,
+      "sha256": "4b1b71022737c5e39edbd5b00f63fad08ea4a734ac15c98d33aff4e35fbdde0d"
+    },
+    {
+      "file": "workout-leg2-spatial-grid-nav-stuck2.png",
+      "bytes": 61249,
+      "sha256": "6c5a92cfc9d2a86369645c4f4391ba06162293a2feccdfc168d4315a8a70b66e"
+    },
+    {
+      "file": "workout-leg2-tutorial-stuck.png",
+      "bytes": 96436,
+      "sha256": "c16ad85164159ab6caea39f4973163f8b98ca3a23ba38bdfbc6186a926e85a1e"
+    },
+    {
+      "file": "workout-leg3-intro.png",
+      "bytes": 178450,
+      "sha256": "401d71a5d274186827e890a8dd7023eafa5978e9f9e01c52139bd1a0488d42bb"
+    },
+    {
+      "file": "workout-leg3-memory-running-order-active.png",
+      "bytes": 94190,
+      "sha256": "81368a99c4c1a3ff4af9e9adb24016e02c0837394f93b6acc03a0bda91be4d63"
+    },
+    {
+      "file": "workout-leg3-memory-running-order-feedback.png",
+      "bytes": 94078,
+      "sha256": "6567fcadc8b1ef3265749810d37204def374a0f4bd9dda549989d08b702f5d64"
+    },
+    {
+      "file": "workout-leg3-memory-running-order-pause.png",
+      "bytes": 56526,
+      "sha256": "25d854c63db5b2faa055c896fb8096286594202c2a2ef2a29f361566ee49714f"
+    },
+    {
+      "file": "workout-leg3-memory-running-order-result.png",
+      "bytes": 157763,
+      "sha256": "1a515c2206aad204f03faaac62886bc178de4b7c464bc8c1c8a22f8c7c5079d4"
+    },
+    {
+      "file": "workout-leg3-memory-running-order-stuck.png",
+      "bytes": 96102,
+      "sha256": "e430f213c5e1c585cdf232e9c56b43464642af9dd4b27db69472b1b6cda7593e"
+    },
+    {
+      "file": "workout-leg3-tutorial-stuck.png",
+      "bytes": 135742,
+      "sha256": "fe7c4db4e4f0babf401d78a8480ea969ac483ce4e88ce505264eeb39c28afb1b"
+    },
+    {
+      "file": "workout-leg4-flexibility-task-switch-active.png",
+      "bytes": 81857,
+      "sha256": "5f2b6bf44499c044036eefe482a4ca97674cfb87e020c79fa5af3de7522dafd8"
+    },
+    {
+      "file": "workout-leg4-flexibility-task-switch-feedback.png",
+      "bytes": 82110,
+      "sha256": "ba5f848a38cc64cf395760ecf6ac1a756c73420c0b31c61914ada7b0835b76d8"
+    },
+    {
+      "file": "workout-leg4-flexibility-task-switch-pause.png",
+      "bytes": 57062,
+      "sha256": "75afce55ae1e5d497b302243a0f9a954779e3b5161e1aad74acd33d9d2ce6f18"
+    },
+    {
+      "file": "workout-leg4-flexibility-task-switch-result.png",
+      "bytes": 166001,
+      "sha256": "b17c584ecc869e2759897120d82aa4556ef0ef028d8629461a5dbd9d76fe3886"
+    },
+    {
+      "file": "workout-leg4-flexibility-task-switch-stuck.png",
+      "bytes": 118620,
+      "sha256": "60f0863faba8935640764e9223c1492e88afa6baac457e015db0d80a398d2eb0"
+    },
+    {
+      "file": "workout-leg4-intro.png",
+      "bytes": 197686,
+      "sha256": "c29d5af8c6e17c7d398ed9ebb4c1d1ef5e84993349b09f6217e1fae0a68c372f"
+    },
+    {
+      "file": "workout-leg4-tutorial-stuck.png",
+      "bytes": 137781,
+      "sha256": "98cd04ac6b874c575951a49f8e0c6fce211a3ab3bcec93c5784aeb3c606ecef7"
+    },
+    {
+      "file": "workout-resume-before-stop.png",
+      "bytes": 142954,
+      "sha256": "ed622bbb0c03c12095aa9d2b14618eeb9da46a46d2b73cc6c00c6b5293d0ca76"
+    },
+    {
+      "file": "workout-resume-home.png",
+      "bytes": 171044,
+      "sha256": "81f2124d90e88c11699fc2d9caca8cb57c3a72fef267db1d468bfd43d89bb104"
+    },
+    {
+      "file": "workout-resumed-leg.png",
+      "bytes": 152679,
+      "sha256": "37eb6fb328bb7442f16bc58fc6beb129900b4dafb18985d285a6d0412f2b12ad"
+    }
+  ]
+}

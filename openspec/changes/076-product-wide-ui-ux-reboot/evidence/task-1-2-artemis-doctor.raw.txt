@@ -1,0 +1,61 @@
+ℹ Activated local ADB server endpoint 127.0.0.1:5037
+
+┌──────────────────────────────────────────┐
+│ ☕ Artemis System & Environment Doctor   │
+│ Platform: Windows (AMD64) | PAL: windows │
+└──────────────────────────────────────────┘
+┌───────────────────────────────┬──────────────┬──────────────────────────────┐
+│ Component                     │ Status       │ Details & Recommendations    │
+├───────────────────────────────┼──────────────┼──────────────────────────────┤
+│ Python Runtime Environment    │ ✔ OK         │ Python 3.12.11 (AMD64,       │
+│                               │              │ 64-bit) detected at          │
+│                               │              │ D:\Tools\artemis\.venv\Scrip │
+│                               │              │ ts\python.exe. Satisfies     │
+│                               │              │ requirement (>= 3.12).       │
+│ Artemis System Configuration  │ ✔ OK         │ System configuration loaded  │
+│                               │              │ and validated (Planner       │
+│                               │              │ model: gemini-3.8-flash).    │
+│ MCP / IDE Integration Host    │ ✔ OK         │ MCP server runs on           │
+│                               │              │ D:\Tools\artemis\.venv\Scrip │
+│                               │              │ ts\python.exe; runner uses   │
+│                               │              │ D:\Tools\artemis\.venv\Scrip │
+│                               │              │ ts\python.exe. Traces at     │
+│                               │              │ D:\Tools\artemis\traces.     │
+│                               │              │ Daemon will auto-start on    │
+│                               │              │ the first task.              │
+│ Multimodal LLM API Key        │ ✔ OK         │ Gemini multimodal API        │
+│                               │              │ credential is active         │
+│                               │              │ (AQ.Ab8...A-UA) and ready    │
+│                               │              │ for vision and reasoning.    │
+│ Device / Emulator Connected   │ ✔ OK         │ ADB connected to sdk         │
+│                               │              │ gphone64 x86 64 (1080x2400). │
+│                               │              │ Ready for perception and     │
+│                               │              │ touch automation.            │
+│ Video Recording Toolchain     │ ✔ OK         │ FFmpeg                       │
+│                               │              │ (C:\ProgramData\chocolatey\b │
+│                               │              │ in\ffmpeg.exe) and scrcpy    │
+│                               │              │ (C:\Users\palac\bin\scrcpy.c │
+│                               │              │ md) are available. Live      │
+│                               │              │ stream and high-speed video  │
+│                               │              │ replays are active.          │
+│ Vision OCR API Key (Optional) │ ✔ OK         │ OCR_API_KEY is not set.      │
+│                               │              │ Perception uses the UI XML   │
+│                               │              │ hierarchy without OCR.       │
+│ Node.js / npm                 │ ✔ Installed  │ C:\Program                   │
+│                               │              │ Files\nodejs\npm.CMD (Ready  │
+│                               │              │ to build Showcase UI)        │
+│ Showcase UI                   │ ✔ Compiled   │ D:\Tools\artemis\artemis\res │
+│                               │              │ ources\showcase_ui (Angular  │
+│                               │              │ ready)                       │
+│ Artemis Accessibility Helper  │ ✔ Ready      │ Remove any time with:        │
+│                               │              │ artemis helper uninstall     │
+│                               │              │ --serial emulator-5554       │
+└───────────────────────────────┴──────────────┴──────────────────────────────┘
+
+┌──────────────────── Status: Ready ────────────────────┐
+│ 🎉 All system checks passed!                          │
+│                                                       │
+│ Run your first automation task now:                   │
+│   artemis run "Open Settings and check Battery level" │
+└───────────────────────────────────────────────────────┘
+
