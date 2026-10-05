@@ -1,0 +1,337 @@
+{
+  "captured": "2026-10-05",
+  "device": "emulator-5554 / braintraining-ui35",
+  "count": 66,
+  "images": [
+    {
+      "file": "proto-pocket-console-detail-dark.png",
+      "bytes": 184114,
+      "sha256": "455e085b08adcc748e56bdaf1a8ebf511874c29db02375babc9bd1e41a6ad513"
+    },
+    {
+      "file": "proto-pocket-console-detail-light.png",
+      "bytes": 186630,
+      "sha256": "47036b5c7edd61abe443244b1f19c01217b8b89097956c373359c23f0bbb1047"
+    },
+    {
+      "file": "proto-pocket-console-equation-correct.png",
+      "bytes": 173302,
+      "sha256": "4ac839b2ba21f923ff848a33bb768690d6793f43111fde390540c019c3586b96"
+    },
+    {
+      "file": "proto-pocket-console-equation-dark.png",
+      "bytes": 175137,
+      "sha256": "ceb03e1950132fc43a770f6764e4c50d6441ac82f7da846398b1a7d1024f3324"
+    },
+    {
+      "file": "proto-pocket-console-equation-fs2.png",
+      "bytes": 252904,
+      "sha256": "fe072e507c5328116e64c5ae82c4e14e0870194d914abdefb5aee33f7501acc9"
+    },
+    {
+      "file": "proto-pocket-console-equation-incorrect.png",
+      "bytes": 178329,
+      "sha256": "180827e47a913d4d5bc93a924cbb73c5f752f8d539904aa5f9e7566020df09fd"
+    },
+    {
+      "file": "proto-pocket-console-equation-light.png",
+      "bytes": 177094,
+      "sha256": "f1c192e35ce6698ac33bb52622ceb3da046b7cc3a7010b7918d0216cf6412f35"
+    },
+    {
+      "file": "proto-pocket-console-games-dark.png",
+      "bytes": 199910,
+      "sha256": "c6fd4cfe2a4ef4bf2fa1f76e9aaf4f521641156ccc146a0f643ffddb2e808e1d"
+    },
+    {
+      "file": "proto-pocket-console-games-light.png",
+      "bytes": 201251,
+      "sha256": "a99d1d4a541ae4d9e490ed6adfbbc61ec732a8b9cc7aefc0672ae8c8705a12c2"
+    },
+    {
+      "file": "proto-pocket-console-home-dark.png",
+      "bytes": 156518,
+      "sha256": "8d295bef53f9c2396e7e42d9d301c2ada1f3e6184d9a41f9de64598f24f68e88"
+    },
+    {
+      "file": "proto-pocket-console-home-fs2.png",
+      "bytes": 239620,
+      "sha256": "801dc25a43c4a46200af6fdec1a1e897a98d5f124d5a92957d9accce5b982aaf"
+    },
+    {
+      "file": "proto-pocket-console-home-light.png",
+      "bytes": 230075,
+      "sha256": "4b858c301bc9b89e4a414a200819e3809285397d497988984cd426d2c17ef738"
+    },
+    {
+      "file": "proto-pocket-console-memory-correct.png",
+      "bytes": 187584,
+      "sha256": "1a5c1327225050f9084c07e7df1c901f5ca4ca17515e884e83d522958b3a1e9a"
+    },
+    {
+      "file": "proto-pocket-console-memory-dark.png",
+      "bytes": 183285,
+      "sha256": "edcbfc2f6e48b5b75afecb4ab324c7a6f7cdd7c3c62dc31d43a96e6901e3dd88"
+    },
+    {
+      "file": "proto-pocket-console-memory-fs2.png",
+      "bytes": 255284,
+      "sha256": "6eebb764ada24deae88baec1255f1d14ca8ea7f71a1c71183065c2ff1d359a30"
+    },
+    {
+      "file": "proto-pocket-console-memory-incorrect.png",
+      "bytes": 197031,
+      "sha256": "ca3144ca4fe9a49e8dcfbde056f8a1a04286d84e6a5c1290c005920c9127d4da"
+    },
+    {
+      "file": "proto-pocket-console-memory-light.png",
+      "bytes": 179411,
+      "sha256": "ec33a13826cb59e7fac9464a3091fee5c5a4853b4f08269a9ac71484ce303a00"
+    },
+    {
+      "file": "proto-pocket-console-memory-watch.png",
+      "bytes": 173485,
+      "sha256": "e0dac1066c07378ab375be75226916e49d94e973ae31008594ef9ad14e141d40"
+    },
+    {
+      "file": "proto-pocket-console-progress-dark.png",
+      "bytes": 182748,
+      "sha256": "c47ea774261dfd43d7d6272b4f825f91e2942ca268fbb7ce6dfa4b7dd99ac5f0"
+    },
+    {
+      "file": "proto-pocket-console-progress-light.png",
+      "bytes": 187431,
+      "sha256": "d53fe3b5a7d95b109c59fb4540e6d1a440e44da6f48671f515af66054ce75e71"
+    },
+    {
+      "file": "proto-pocket-console-result-dark.png",
+      "bytes": 204806,
+      "sha256": "ee6df44c158a253275a203b562534e92ed04c20af163e39795de1d4debae55f9"
+    },
+    {
+      "file": "proto-pocket-console-result-light.png",
+      "bytes": 208849,
+      "sha256": "d65fd919f15e76e6dabd496b9327676549b00f59a28104276987dcc86933df63"
+    },
+    {
+      "file": "proto-puzzle-index-detail-dark.png",
+      "bytes": 156257,
+      "sha256": "afe3000a8bff8ec75642338ef2d62752a085ad25b8d186669635ee4be26b80d1"
+    },
+    {
+      "file": "proto-puzzle-index-detail-light.png",
+      "bytes": 159090,
+      "sha256": "c0be46ce6233378be8476ac42355b98555f3ad839c4412a326595b7eb750ea22"
+    },
+    {
+      "file": "proto-puzzle-index-equation-correct.png",
+      "bytes": 149285,
+      "sha256": "7fa05d3a017a421b4261a31413dd2dbdbe7d02819937134defeb0fb0c020e261"
+    },
+    {
+      "file": "proto-puzzle-index-equation-dark.png",
+      "bytes": 150487,
+      "sha256": "257a658f26672d528c877c99452ff7b467bd5461de423d49e6babb094696029f"
+    },
+    {
+      "file": "proto-puzzle-index-equation-fs2.png",
+      "bytes": 18993,
+      "sha256": "0b8bd913809c6d98c7a920bee879a630289d23334f6934d5d6ab6bf4984371bf"
+    },
+    {
+      "file": "proto-puzzle-index-equation-incorrect.png",
+      "bytes": 154721,
+      "sha256": "c2fd3d2c21cb51fb32cf55c5da71595cc568903cc7fbfe38f14e6a64abebb163"
+    },
+    {
+      "file": "proto-puzzle-index-equation-light.png",
+      "bytes": 152799,
+      "sha256": "9ba7bb7e0eef6051ba6613420590411d4310071cbb57495984b524d8fbf37a91"
+    },
+    {
+      "file": "proto-puzzle-index-games-dark.png",
+      "bytes": 158635,
+      "sha256": "5d7455aad00610b9fc507a5487c88dbf30875d70b4567b64adffd0f6e9fc655f"
+    },
+    {
+      "file": "proto-puzzle-index-games-light.png",
+      "bytes": 161161,
+      "sha256": "34fcd68c70f1191a3cbc0a2b79e7f87e26bb0b2ccda8843baa90fcdd9badf3da"
+    },
+    {
+      "file": "proto-puzzle-index-home-dark.png",
+      "bytes": 174778,
+      "sha256": "3c4c5f4176cc5a5197341a1e027b7abc65d46131d1c13b14a5c3c2081478b52b"
+    },
+    {
+      "file": "proto-puzzle-index-home-fs2.png",
+      "bytes": 220385,
+      "sha256": "97774ab9e2d45a40b89711215db139dda2ac6075b4ae914ee2caacb2dc812bd1"
+    },
+    {
+      "file": "proto-puzzle-index-home-light.png",
+      "bytes": 176525,
+      "sha256": "c8c0f16287ba9b7205332005d9df7193d1b7c5f2846632bbfde215465a9dacd0"
+    },
+    {
+      "file": "proto-puzzle-index-memory-correct.png",
+      "bytes": 128961,
+      "sha256": "4fc9ccdf93a401bb5d696c17275b2f994918250554ddf24ca71ce943ad2de54e"
+    },
+    {
+      "file": "proto-puzzle-index-memory-dark.png",
+      "bytes": 131570,
+      "sha256": "dbef31d4e549cc86be265f5dedfd48178d65fdc08697beb81fe3242a68a3b358"
+    },
+    {
+      "file": "proto-puzzle-index-memory-fs2.png",
+      "bytes": 230600,
+      "sha256": "c51825858a376a949f692f9dd1fe1e2d64a39d550916086e6b32c494fefe4855"
+    },
+    {
+      "file": "proto-puzzle-index-memory-incorrect.png",
+      "bytes": 130146,
+      "sha256": "1368b33644f727ecbe0171e9494e075f89132831bcf8b18642d1ce5417cb7ae6"
+    },
+    {
+      "file": "proto-puzzle-index-memory-light.png",
+      "bytes": 135333,
+      "sha256": "2373b475becda37157fd107ada894ed5fc157ac2c95d49bd17e991c3667db1cc"
+    },
+    {
+      "file": "proto-puzzle-index-memory-watch.png",
+      "bytes": 130183,
+      "sha256": "84a18560cf06ba4e5f3cb5e9adc807bde4601f6f05681bb73ec0321cf0624e0d"
+    },
+    {
+      "file": "proto-puzzle-index-progress-dark.png",
+      "bytes": 158909,
+      "sha256": "55a72da2c2b2c28c4e1d5b3bed588996571be7863a153bcfa7663c5e1b2a5342"
+    },
+    {
+      "file": "proto-puzzle-index-progress-light.png",
+      "bytes": 161219,
+      "sha256": "451eab34bf789871ea9f3474124e924d0c440921d6dd9da3df586c855ee6d004"
+    },
+    {
+      "file": "proto-puzzle-index-result-dark.png",
+      "bytes": 185889,
+      "sha256": "887b8f4ba399c531280531e7a2ae1362b512fe33f5d911f74b9d4939061fa9d0"
+    },
+    {
+      "file": "proto-puzzle-index-result-light.png",
+      "bytes": 187537,
+      "sha256": "3996248955562d03881d70fe97cc08c551399d0e763fdfd66755f39fbed1b8f8"
+    },
+    {
+      "file": "proto-training-studio-detail-dark.png",
+      "bytes": 160258,
+      "sha256": "ef91037e0df1ee8b0b99659a8beef0880a615647effba1e8e9072064427a1a1c"
+    },
+    {
+      "file": "proto-training-studio-detail-light.png",
+      "bytes": 164924,
+      "sha256": "a624baa8a2464c7b09c9fdfb3a683f6154c5cf4b2471b4ae0ac6cbf7d2a6222e"
+    },
+    {
+      "file": "proto-training-studio-equation-correct.png",
+      "bytes": 160499,
+      "sha256": "601495b42f8cd3363522720a9d47ab3f2db63c9a0a5df7e29932f52869f68da7"
+    },
+    {
+      "file": "proto-training-studio-equation-dark.png",
+      "bytes": 166431,
+      "sha256": "67744cac4d6c4ced10c10ea25316ff4a3023c42b1be98b496dfd9614b97c9010"
+    },
+    {
+      "file": "proto-training-studio-equation-fs2.png",
+      "bytes": 253596,
+      "sha256": "6f44e2e930f879f5f71a49ebc11de7d4255a65b7202ae7797493c92be96e9339"
+    },
+    {
+      "file": "proto-training-studio-equation-incorrect.png",
+      "bytes": 170741,
+      "sha256": "fbd2dc286e8453c399eae41790323150c3c3be0f0eba64c00b9247cc5c236d38"
+    },
+    {
+      "file": "proto-training-studio-equation-light.png",
+      "bytes": 169638,
+      "sha256": "91622c20f93610d3394b6b1460c184879e2ad5e52b04fd75800e61c1ce5b39c8"
+    },
+    {
+      "file": "proto-training-studio-games-dark.png",
+      "bytes": 224880,
+      "sha256": "7c9c94f2c61c24608d0e5af5e88a7b4f5aa192b55b426819775c1be82b4c3e9f"
+    },
+    {
+      "file": "proto-training-studio-games-light.png",
+      "bytes": 231342,
+      "sha256": "4e302685a2b5827bf617c623535dfa21c4b0b85eed399a738e6f24a03db23af1"
+    },
+    {
+      "file": "proto-training-studio-home-dark.png",
+      "bytes": 201590,
+      "sha256": "c4c525a78f254c4cc09d2d9725ade69ba9f841bc98ee357c375510cd5d670373"
+    },
+    {
+      "file": "proto-training-studio-home-fs2.png",
+      "bytes": 241032,
+      "sha256": "19baa4b08875563c724c6ec2a42b6f40198de5f33f236fd30ee2b56c75f027d4"
+    },
+    {
+      "file": "proto-training-studio-home-light.png",
+      "bytes": 206273,
+      "sha256": "4041ae3aa4552c096796c79692e8adcd02c056ac82f67febe36d55e01a99b029"
+    },
+    {
+      "file": "proto-training-studio-memory-correct.png",
+      "bytes": 146141,
+      "sha256": "20b554078f84c076e25b32f612126609a6c6798c64d924052a554f7b833c1a09"
+    },
+    {
+      "file": "proto-training-studio-memory-dark.png",
+      "bytes": 149424,
+      "sha256": "62f9f791721f18013f902bbb75bff938852b281ddf8b50eb205ead5c593e0a9e"
+    },
+    {
+      "file": "proto-training-studio-memory-fs2.png",
+      "bytes": 242159,
+      "sha256": "882196903e4ad904c4e69d48af53d1c106bc0eb180a31ed9ee2877e438efc182"
+    },
+    {
+      "file": "proto-training-studio-memory-incorrect.png",
+      "bytes": 155560,
+      "sha256": "e17c5f6f4fcb6666e63f0344ce333d67118b701777f078cde238413a0f46dddb"
+    },
+    {
+      "file": "proto-training-studio-memory-light.png",
+      "bytes": 153024,
+      "sha256": "1824129add11322717bb8364ca3ef01f4edfc44112004f69713bf40f86a554ef"
+    },
+    {
+      "file": "proto-training-studio-memory-watch.png",
+      "bytes": 148329,
+      "sha256": "25ec43fdb7578ba1d7b91dea135c0afa77f458aaebb3f3b2cf6964cbdfc226f5"
+    },
+    {
+      "file": "proto-training-studio-progress-dark.png",
+      "bytes": 170426,
+      "sha256": "32a4d1dabd6551ce9c1966968193c3a0faa6b019e0dae3860524cf371de60087"
+    },
+    {
+      "file": "proto-training-studio-progress-light.png",
+      "bytes": 174457,
+      "sha256": "2c6d58e8e07b3dae5d502a4be6d254c27505039df3326c93d4b887d8775b6880"
+    },
+    {
+      "file": "proto-training-studio-result-dark.png",
+      "bytes": 191022,
+      "sha256": "620b1f0266ac1d2bd5b466ad7a84fff40c4943391c71707d668f1a4fbef969fb"
+    },
+    {
+      "file": "proto-training-studio-result-light.png",
+      "bytes": 194176,
+      "sha256": "be5448890d7d3e3fd474116034a095b12e5571971027162bdded4a9fe4a9b7fe"
+    }
+  ]
+}

@@ -15,11 +15,11 @@
 
 ## 2. Three real design directions and decision
 
-- [ ] 2.1 Build a dev-only, on-device Pocket Console prototype of the shared seeded journey and Memory/Equation Builder boards with light/dark/large-text captures; preserve Playdate yellow-brand/violet-CTA roles.
-- [ ] 2.2 Build the identical dev-only Training Studio journey and board prototypes with matched captures; keep Peloton red for primary actions, not generic error color.
-- [ ] 2.3 Build the identical dev-only Puzzle Index journey and boards with matched captures; retain V–A–C monochrome, grid and square surface constraints while testing action clarity.
-- [ ] 2.4 Inspect all three prototypes on the emulator, complete the weighted usability/accessibility/distinctiveness scorecard, record rejected traits, and repeat a candidate if none passes.
-- [ ] 2.5 Publish the chosen reference lock with product-owned type, role-based color, surfaces, spacing, board media, action hierarchy, motion and light/dark rules; remove or dev-gate unused prototypes before shipping.
+- [x] 2.1 Build a dev-only, on-device Pocket Console prototype of the shared seeded journey and Memory/Equation Builder boards with light/dark/large-text captures; preserve Playdate yellow-brand/violet-CTA roles.
+- [x] 2.2 Build the identical dev-only Training Studio journey and board prototypes with matched captures; keep Peloton red for primary actions, not generic error color.
+- [x] 2.3 Build the identical dev-only Puzzle Index journey and boards with matched captures; retain V–A–C monochrome, grid and square surface constraints while testing action clarity.
+- [x] 2.4 Inspect all three prototypes on the emulator, complete the weighted usability/accessibility/distinctiveness scorecard, record rejected traits, and repeat a candidate if none passes.
+- [x] 2.5 Publish the chosen reference lock with product-owned type, role-based color, surfaces, spacing, board media, action hierarchy, motion and light/dark rules; remove or dev-gate unused prototypes before shipping.
 
 ## 3. Shared compositional contract and canary journey
 
