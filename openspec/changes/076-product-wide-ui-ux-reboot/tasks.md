@@ -31,19 +31,19 @@
 
 ## 4. Core navigation, discovery and workout
 
-- [ ] 4.1 Redesign Home's first-run, today's workout and resume hierarchy with a visible primary action, readable stats and a compact-large-text path; capture matched after images.
-- [ ] 4.2 Redesign workout selection, detail, in-progress leg and completion presentation; verify persisted leg, XP and currency remain correct after background/return.
-- [ ] 4.3 Redesign Games' recommendation, complete library grid, search, filters, favorites and empty/reset states; confirm all 42 remain discoverable.
-- [ ] 4.4 Redesign game-detail preview, difficulty/launch and tutorial handoff with actual game media or intentional placeholders and a reachable Start action.
-- [ ] 4.5 Redesign standalone Results for weak/strong outcomes, persisted rewards, replay, workout next/completion and saving errors; exercise valid navigation.
+- [x] 4.1 Redesign Home's first-run, today's workout and resume hierarchy with a visible primary action, readable stats and a compact-large-text path; capture matched after images.
+- [x] 4.2 Redesign workout selection, detail, in-progress leg and completion presentation; verify persisted leg, XP and currency remain correct after background/return.
+- [x] 4.3 Redesign Games' recommendation, complete library grid, search, filters, favorites and empty/reset states; confirm all 42 remain discoverable.
+- [x] 4.4 Redesign game-detail preview, difficulty/launch and tutorial handoff with actual game media or intentional placeholders and a reachable Start action.
+- [x] 4.5 Redesign standalone Results for weak/strong outcomes, persisted rewards, replay, workout next/completion and saving errors; exercise valid navigation.
 
 ## 5. Supporting routes and recovery
 
-- [ ] 5.1 Redesign Progress overview and detail/insight routes (empty, loading, populated and errors) and inspect the same data before/after.
-- [ ] 5.2 Redesign Rewards inbox, claimable/claimed/empty states and celebration; verify economy ledger outcomes are unchanged.
-- [ ] 5.3 Redesign Profile, settings and accessibility/sensory controls; verify state, restore and focus/large-text behavior.
-- [ ] 5.4 Redesign data management, backup/restore, storage unavailable, diagnostic and bootstrap recovery states without masking data-loss risk or changing data format.
-- [ ] 5.5 Inspect every other registered player-facing route/modal/confirmation and add matched before/after evidence; no unreviewed route silently passes.
+- [x] 5.1 Redesign Progress overview and detail/insight routes (empty, loading, populated and errors) and inspect the same data before/after.
+- [x] 5.2 Redesign Rewards inbox, claimable/claimed/empty states and celebration; verify economy ledger outcomes are unchanged.
+- [x] 5.3 Redesign Profile, settings and accessibility/sensory controls; verify state, restore and focus/large-text behavior.
+- [x] 5.4 Redesign data management, backup/restore, storage unavailable, diagnostic and bootstrap recovery states without masking data-loss risk or changing data format.
+- [x] 5.5 Inspect every other registered player-facing route/modal/confirmation and add matched before/after evidence; no unreviewed route silently passes.
 
 ## 6. Attention game modules (own only each named game's directory)
 

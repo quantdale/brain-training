@@ -1,0 +1,86 @@
+{
+  "build": "release APK 8ddaebe89ff2cf79 (wave-4/5 converged tree)",
+  "count": 20,
+  "images": [
+    {
+      "file": "after45-bootstrap-recovery-light.png",
+      "sha256": "387f85647889b2153df7461f6cd18933ef040666918cf0612b55d843719e6e14"
+    },
+    {
+      "file": "after45-data-management-dark.png",
+      "sha256": "67d954a269c9ce26ebfc01cdffd8e447721df66bc0e9413b2a5bbfa7746d8191"
+    },
+    {
+      "file": "after45-data-management-light.png",
+      "sha256": "632b4f0c9fd5bad0976171ec504a3abe57b392a4344b229ec5a70ee1204966d0"
+    },
+    {
+      "file": "after45-game-detail-dark.png",
+      "sha256": "fae0953532fc6f0c9d4a21085d28e641eb583063af94bd6150e837e1409f3fc5"
+    },
+    {
+      "file": "after45-game-detail-light.png",
+      "sha256": "2207843f1a342e5d63949200c23c431f7536928617767cf3abaa6378212ac642"
+    },
+    {
+      "file": "after45-games-dark.png",
+      "sha256": "64bb0fa2213148bb6999ff91e1691c096723a7510a1b26f502274443c909de46"
+    },
+    {
+      "file": "after45-games-light.png",
+      "sha256": "2d58c6282729c497605043d2e22857cb6b3c30b5cef57291bc17c1539e8b175c"
+    },
+    {
+      "file": "after45-home-dark.png",
+      "sha256": "513443eee966e3fb1c444c7923b07126cb3102551d7173d0c22435997198a157"
+    },
+    {
+      "file": "after45-home-light.png",
+      "sha256": "cba15a157dd942316338f0d57f7ed34868c1efd537afa14a2c1ea3038c59c049"
+    },
+    {
+      "file": "after45-profile-dark.png",
+      "sha256": "e256027b8764c0c99c1fcf0832a570d858ad48ecd51fe4f577eada5f295d6ec0"
+    },
+    {
+      "file": "after45-profile-light.png",
+      "sha256": "439bbb0f23f9f7d39db378640702ede6fa97175e29d525b842d504aef97f1857"
+    },
+    {
+      "file": "after45-progress-dark.png",
+      "sha256": "2e748a9f91752d0117c220561af720ac67a1186261ba0f783ecc0091744e22f4"
+    },
+    {
+      "file": "after45-progress-domain-dark.png",
+      "sha256": "713234716f8c5cf67550201185fb6b790200991f40a341983abfd5b51dbbf1e1"
+    },
+    {
+      "file": "after45-progress-domain-light.png",
+      "sha256": "f8bce3e1b1d63db6e2549d608ab4bca68eaa12d2486dca51d9b8cf1be002f786"
+    },
+    {
+      "file": "after45-progress-light.png",
+      "sha256": "cee24d267f9bcb38b9d4f523d4296e93b2e3141458bc5b9e090c252dfd57948d"
+    },
+    {
+      "file": "after45-results-dark.png",
+      "sha256": "a119f04a2b936f69008451879265032b7f645a6fc1af14516aae28f277f2a522"
+    },
+    {
+      "file": "after45-results-light.png",
+      "sha256": "af14d9309b324fe3f4ed823f8f2d2c60a5a90ba25553aea8374aeeb46ad5c3cb"
+    },
+    {
+      "file": "after45-rewards-dark.png",
+      "sha256": "92ca1cd320ac5a7430aff6f696cf977a5fce98a97d5094d047075cb4bc0b486c"
+    },
+    {
+      "file": "after45-rewards-light.png",
+      "sha256": "1f98608fbf6ed21ad6ca03743b1677efd78cbbd1a26b0c5c6b5404e36efb1559"
+    },
+    {
+      "file": "after45-storage-unavailable-light.png",
+      "sha256": "f13075f73632825b07197cd89c40091f48e4ba1f0a21e680646ec6aa1af4efb1"
+    }
+  ]
+}
