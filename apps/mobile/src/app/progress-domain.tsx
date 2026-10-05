@@ -20,13 +20,10 @@ import {
   useCallback,
   useMemo,
   useState,
-  type ReactNode,
 } from 'react';
 import {
   StyleSheet,
   View,
-  type StyleProp,
-  type ViewStyle,
 } from 'react-native';
 import {
   buildAccuracyTrend,
@@ -62,7 +59,6 @@ import {
   Skeleton,
   SkeletonText,
   Spark,
-  StatBlock,
   Tappable,
   useSafeBack,
 } from '@/components/ui';
