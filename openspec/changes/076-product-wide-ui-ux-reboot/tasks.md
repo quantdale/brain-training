@@ -47,35 +47,35 @@
 
 ## 6. Attention game modules (own only each named game's directory)
 
-- [ ] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
-- [ ] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
-- [ ] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
-- [ ] 6.4 Redesign and individually play/capture `attention-target-count` states; retain its counting mechanic.
-- [ ] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
+- [x] 6.1 Redesign and individually play/capture `attention-odd-one-out` active, feedback, pause/end states; retain its selection mechanic.
+- [x] 6.2 Redesign and individually play/capture `attention-sustained-vigilance` states; retain its sustained-timing mechanic.
+- [x] 6.3 Redesign and individually play/capture `attention-symbol-tracker` states; retain its tracking mechanic.
+- [x] 6.4 Redesign and individually play/capture `attention-target-count` states; retain its counting mechanic.
+- [x] 6.5 Redesign and individually play/capture `attention-visual-search` states; retain its search mechanic.
 
 ## 7. Flexibility game modules
 
-- [ ] 7.1 Redesign and individually play/capture `flexibility-card-sort` active, feedback, pause/end states.
-- [ ] 7.2 Redesign and individually play/capture `flexibility-color-stroop` states.
-- [ ] 7.3 Redesign and individually play/capture `flexibility-cue-shift` states.
-- [ ] 7.4 Redesign and individually play/capture `flexibility-rule-flip` states.
-- [ ] 7.5 Redesign and individually play/capture `flexibility-task-switch` states.
+- [x] 7.1 Redesign and individually play/capture `flexibility-card-sort` active, feedback, pause/end states.
+- [x] 7.2 Redesign and individually play/capture `flexibility-color-stroop` states.
+- [x] 7.3 Redesign and individually play/capture `flexibility-cue-shift` states.
+- [x] 7.4 Redesign and individually play/capture `flexibility-rule-flip` states.
+- [x] 7.5 Redesign and individually play/capture `flexibility-task-switch` states.
 
 ## 8. Language game modules
 
-- [ ] 8.1 Redesign and individually play/capture `language-context-fit` active, feedback, pause/end states.
-- [ ] 8.2 Redesign and individually play/capture `language-sentence-builder` states.
-- [ ] 8.3 Redesign and individually play/capture `language-word-chain` states.
-- [ ] 8.4 Redesign and individually play/capture `language-word-match` states.
-- [ ] 8.5 Redesign and individually play/capture `language-word-scramble` states.
+- [x] 8.1 Redesign and individually play/capture `language-context-fit` active, feedback, pause/end states.
+- [x] 8.2 Redesign and individually play/capture `language-sentence-builder` states.
+- [x] 8.3 Redesign and individually play/capture `language-word-chain` states.
+- [x] 8.4 Redesign and individually play/capture `language-word-match` states.
+- [x] 8.5 Redesign and individually play/capture `language-word-scramble` states.
 
 ## 9. Logic game modules
 
-- [ ] 9.1 Redesign and individually play/capture `logic-code-cracker` active, feedback, pause/end states.
-- [ ] 9.2 Redesign and individually play/capture `logic-deduction-table` states.
-- [ ] 9.3 Redesign and individually play/capture `logic-next-sequence` states.
-- [ ] 9.4 Redesign and individually play/capture `logic-order-path` states.
-- [ ] 9.5 Redesign and individually play/capture `logic-rule-grid` states.
+- [x] 9.1 Redesign and individually play/capture `logic-code-cracker` active, feedback, pause/end states.
+- [x] 9.2 Redesign and individually play/capture `logic-deduction-table` states.
+- [x] 9.3 Redesign and individually play/capture `logic-next-sequence` states.
+- [x] 9.4 Redesign and individually play/capture `logic-order-path` states.
+- [x] 9.5 Redesign and individually play/capture `logic-rule-grid` states.
 
 ## 10. Math game modules
 
@@ -97,19 +97,19 @@
 
 ## 12. Spatial game modules
 
-- [ ] 12.1 Redesign and individually play/capture `spatial-coordinate-turn` active, feedback, pause/end states.
-- [ ] 12.2 Redesign and individually play/capture `spatial-fold-match` states.
-- [ ] 12.3 Redesign and individually play/capture `spatial-grid-nav` states.
-- [ ] 12.4 Redesign and individually play/capture `spatial-mental-rotation` states.
-- [ ] 12.5 Redesign and individually play/capture `spatial-transform-match` states.
+- [x] 12.1 Redesign and individually play/capture `spatial-coordinate-turn` active, feedback, pause/end states.
+- [x] 12.2 Redesign and individually play/capture `spatial-fold-match` states.
+- [x] 12.3 Redesign and individually play/capture `spatial-grid-nav` states.
+- [x] 12.4 Redesign and individually play/capture `spatial-mental-rotation` states.
+- [x] 12.5 Redesign and individually play/capture `spatial-transform-match` states.
 
 ## 13. Speed game modules
 
-- [ ] 13.1 Redesign and individually play/capture `speed-color-match` active, feedback, pause/end states.
-- [ ] 13.2 Redesign and individually play/capture `speed-order-sweep` states.
-- [ ] 13.3 Redesign and individually play/capture `speed-quick-compare` states.
-- [ ] 13.4 Redesign and individually play/capture `speed-reaction-time` states.
-- [ ] 13.5 Redesign and individually play/capture `speed-tap-rush` states.
+- [x] 13.1 Redesign and individually play/capture `speed-color-match` active, feedback, pause/end states.
+- [x] 13.2 Redesign and individually play/capture `speed-order-sweep` states.
+- [x] 13.3 Redesign and individually play/capture `speed-quick-compare` states.
+- [x] 13.4 Redesign and individually play/capture `speed-reaction-time` states.
+- [x] 13.5 Redesign and individually play/capture `speed-tap-rush` states.
 
 ## 14. Convergence, device certification and release
 
