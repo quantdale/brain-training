@@ -18,10 +18,13 @@ describe('reference lock (Training Studio, 076 REFERENCE_LOCK.md)', () => {
     expect(Colors.light.surface).toBe('#FFFFFF');
     expect(Colors.light.text).toBe('#17181A');
     expect(Colors.light.textMuted).toBe('#6E6E68');
+    expect(Colors.light.stage).toBe('#1F2124');
+    expect(Colors.light.stageInk).toBe('#FFFFFF');
     expect(Colors.dark.background).toBe('#101114');
     expect(Colors.dark.surface).toBe('#1B1D21');
     expect(Colors.dark.text).toBe('#F2F2F0');
     expect(Colors.dark.textMuted).toBe('#9A9A94');
+    expect(Colors.dark.stage).toBe('#1B1D21');
   });
 
   it('keeps the CTA red as the action role with its locked values', () => {

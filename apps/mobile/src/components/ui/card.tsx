@@ -20,8 +20,11 @@ import { Tappable } from './tappable';
 import { HAIRLINE } from './radius';
 import type { FeedbackEvent } from '@/sdk';
 
-/** Visual role of a card. */
-export type CardVariant = 'plain' | 'outlined' | 'raised' | 'hero';
+/** Visual role of a card.
+ *  Change 076 adds `stage`: the immersive charcoal panel of the Training-Studio
+ *  lock (REFERENCE_LOCK.md) — white reading type, borders instead of shadows,
+ *  the surface that hosts a mechanic or a result artifact. */
+export type CardVariant = 'plain' | 'outlined' | 'raised' | 'hero' | 'stage';
 
 /** Geometry language for the surface. `poster` is reserved for game worlds. */
 export type CardShape = 'block' | 'soft' | 'poster';
@@ -63,6 +66,7 @@ const ELEVATION_BY_VARIANT: Record<CardVariant, ElevationName> = {
   outlined: 'none',
   raised: 'raised',
   hero: 'hero',
+  stage: 'raised',
 };
 
 /**
@@ -72,7 +76,7 @@ const ELEVATION_BY_VARIANT: Record<CardVariant, ElevationName> = {
 export function Card({
   children,
   variant = 'plain',
-  shape = variant === 'hero' ? 'soft' : 'block',
+  shape = variant === 'hero' || variant === 'stage' ? 'soft' : 'block',
   tone = null,
   padding = 'md',
   onPress,
@@ -85,7 +89,13 @@ export function Card({
 }: CardProps) {
   const theme = useTheme();
   const surface: ViewStyle = {
-    backgroundColor: tone ? theme[tone] : variant === 'hero' ? theme.surfaceRaised : theme.surface,
+    backgroundColor: tone
+      ? theme[tone]
+      : variant === 'stage'
+        ? theme.stage
+        : variant === 'hero'
+          ? theme.surfaceRaised
+          : theme.surface,
     borderRadius:
       shape === 'poster'
         ? Radii.small
@@ -96,7 +106,9 @@ export function Card({
     ...Elevation[ELEVATION_BY_VARIANT[variant]],
     ...(variant === 'outlined' || shape === 'poster'
       ? { borderWidth: shape === 'poster' ? 2 : HAIRLINE, borderColor: theme.border }
-      : null),
+      : variant === 'stage'
+        ? { borderWidth: 1.5, borderColor: theme.border }
+        : null),
   };
 
   if (onPress) {
@@ -108,7 +120,7 @@ export function Card({
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
         style={[styles.card, surface, style]}
-        pressedStyle={{ backgroundColor: tone ? theme[tone] : theme.backgroundSelected, opacity: 0.94 }}
+        pressedStyle={{ backgroundColor: tone ? theme[tone] : variant === 'stage' ? theme.surfaceRaised : theme.backgroundSelected, opacity: 0.94 }}
         {...rest}>
         {children}
       </Tappable>

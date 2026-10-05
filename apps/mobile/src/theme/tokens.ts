@@ -154,6 +154,11 @@ interface NeutralTheme {
   backgroundSelected: string;
   /** Card/sheet surface above the page background. */
   surface: string;
+  /** Immersive play/result stage panel (change 076 lock section 1): charcoal
+   *  in both schemes, always paired with {@link stageInk} copy. */
+  stage: string;
+  /** Reading type drawn on the stage panel. */
+  stageInk: string;
   /** Surface for the hero/elevated card of a screen. */
   surfaceRaised: string;
   /** Recessed surface for wells, tracks and inline code. */
@@ -185,6 +190,8 @@ const NEUTRALS = {
     surface: '#FFFFFF',
     surfaceRaised: '#FFFFFF',
     surfaceSunken: '#ECEAE5',
+    stage: '#1F2124',
+    stageInk: '#FFFFFF',
     border: '#D8D5CE',
     borderStrong: '#4A4B4E',
     accentStrong: '#B01E2E',
@@ -203,6 +210,8 @@ const NEUTRALS = {
     surface: '#1B1D21',
     surfaceRaised: '#232629',
     surfaceSunken: '#0C0D0F',
+    stage: '#1B1D21',
+    stageInk: '#FFFFFF',
     border: '#34363B',
     borderStrong: '#A2A3A6',
     accentStrong: '#FF6E79',
