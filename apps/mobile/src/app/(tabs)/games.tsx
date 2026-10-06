@@ -178,8 +178,6 @@ export default function GamesScreen() {
             ) : null}
           </View>
 
-          {isDefaultView ? <SuggestedNext data={discovery} /> : null}
-
           <View style={styles.browseBlock} testID="games-browse-all">
             <SectionHeader title="Browse all games" />
             {/* One scrollable rail instead of a wrapping pill cloud
@@ -223,7 +221,8 @@ export default function GamesScreen() {
                   onPress={clearFilters}
                 />
               ) : null}
-            </ScrollView>
+              {isDefaultView ? <SuggestedNext data={discovery} /> : null}
+        </ScrollView>
           </View>
 
           {/* Live result count so filtering feedback is explicit. */}

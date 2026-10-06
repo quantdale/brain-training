@@ -29,7 +29,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..', '..');
@@ -85,6 +85,30 @@ const SURFACES = [
     route: '/game/memory',
     settleMs: 3000,
     expects: ['memory.intro', 'memory.screen', 'game-not-ready-loading'],
+  },
+  {
+    id: 'progress-domain',
+    route: '/progress-domain?domain=Memory',
+    settleMs: 3000,
+    expects: ['progress-domain-title', 'progress-domain-loading', 'progress-domain-error'],
+  },
+  {
+    id: 'progress-game',
+    route: '/progress-game?gameId=memory',
+    settleMs: 3000,
+    expects: ['progress-game-title', 'progress-game-loading', 'progress-game-error'],
+  },
+  {
+    id: 'storage-unavailable',
+    route: '/storage-unavailable',
+    settleMs: 2000,
+    expects: [],
+  },
+  {
+    id: 'bootstrap-recovery',
+    route: '/bootstrap-recovery',
+    settleMs: 2000,
+    expects: [],
   },
 ];
 
@@ -458,7 +482,11 @@ async function main() {
         // A uniform screen is the failure mode this harness exists to detect:
         // a blank frame, a lost app surface, or the storage-error boundary all
         // mean "this evidence is invalid", never "this looks fine".
-        const renderedErrorBoundary = /Storage Unavailable/.test(xml);
+        // Exception (076 review fix): on the dedicated recovery routes the
+        // recovery screen IS the expected content, not a masked shell.
+        const recoverySurface =
+          surface.id === 'storage-unavailable' || surface.id === 'bootstrap-recovery';
+        const renderedErrorBoundary = /Storage Unavailable/.test(xml) && !recoverySurface;
         const blank = uniform || renderedErrorBoundary || (bytes < 40_000 && xmlBytes === 0);
         const entry = {
           surface: surface.id,
@@ -478,8 +506,14 @@ async function main() {
           ...(renderedErrorBoundary ? { blankReason: 'storage-error-boundary' } : null),
         };
         manifest.surfaces.push(entry);
+        const statusLabel = blank
+          ? 'BLANK '
+          : 'ok    ';
+        const routeNote = routeVerified
+          ? ''
+          : ' WRONG (route not verified)';
         console.log(
-          `${blank ? 'BLANK ' : !routeVerified ? 'WRONG ' : 'ok    '} ${profileName}/${theme}/${surface.id} (${bytes} B, ${xmlBytes} B xml)`,
+          `${statusLabel}${routeNote} ${profileName}/${theme}/${surface.id} (${bytes} B, ${xmlBytes} B xml)`,
         );
       }
     }

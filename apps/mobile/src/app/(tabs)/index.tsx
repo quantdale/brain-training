@@ -865,6 +865,7 @@ export default function HomeScreen() {
               <>
                 <ProgressBar
                   value={workoutIndex / workout.length}
+                  tone="success"
                   testID="home-workout-progress-bar"
                   accessibilityLabel={
                     workoutStatus === "completed"

@@ -536,7 +536,7 @@ export default function SpeedScreen(props: SpeedScreenProps = {}) {
             state.stats.falseStartAborted ? (
               <ThemedText
                 type="small"
-                themeColor="warning"
+                themeColor="stageWarn"
                 testID={testId(GAME_ID, 'aborted-badge')}>
                 Too many false starts
               </ThemedText>

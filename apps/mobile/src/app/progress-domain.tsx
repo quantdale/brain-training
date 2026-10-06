@@ -268,17 +268,21 @@ export default function ProgressDomainScreen() {
         <ThemedText type="eyebrow" themeColor="textMuted">
           WINDOW
         </ThemedText>
-        <SegmentedControl
-          testID="progress-domain-window"
-          value={windowKey}
-          onChange={(next) => setWindowKey(next as TimeWindowKey)}
-          compact
-          options={WINDOW_ORDER.map((k) => ({
-            value: k,
-            label: WINDOW_LABELS[k],
-            testID: `progress-domain-window-${k}`,
-          }))}
-        />
+        {/* Review fix: constrain the control to the remaining row width so
+            the options cannot lay out past the screen edge at compact. */}
+        <View style={styles.windowControlSlot}>
+          <SegmentedControl
+            testID="progress-domain-window"
+            value={windowKey}
+            onChange={(next) => setWindowKey(next as TimeWindowKey)}
+            compact
+            options={WINDOW_ORDER.map((k) => ({
+              value: k,
+              label: WINDOW_LABELS[k],
+              testID: `progress-domain-window-${k}`,
+            }))}
+          />
+        </View>
       </View>
 
       {!loaded ? (
@@ -691,10 +695,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
     gap: Spacing.two,
     paddingVertical: Spacing.two,
     borderTopWidth: 1,
     borderBottomWidth: 1,
+  },
+  windowControlSlot: {
+    flex: 1,
+    minWidth: 0,
   },
   titleRow: {
     flexDirection: 'row',

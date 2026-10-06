@@ -165,7 +165,21 @@ function main() {
 
   for (const dump of dumps) {
     const surface = dump.slice(root.length + 1).replace(/\\/g, '/').replace(/\.xml$/, '');
-    const parsed = nodes(readFileSync(dump, 'utf8'));
+    // 076 review fix: with an on-device accessibility service (e.g. the
+    // ARTEMIS helper) installed, uiautomator dumps leak OTHER windows'
+    // nodes (launcher widget hosts). An app a11y audit scores app-owned
+    // nodes only - anything carrying a foreign package prefix is skipped.
+    const allNodes = nodes(readFileSync(dump, 'utf8'));
+    // Horizontally scrollable containers (filter rails etc.): a node
+    // clipped by one is scroll-REACHABLE, not undersized (076 review).
+    const hScrollBounds = allNodes
+      .filter((n) => n.scrollable)
+      .map((n) => n.bounds);
+    const parsed = allNodes.filter((n) =>
+      !n.resourceId.startsWith('com.google.android') &&
+      !n.resourceId.startsWith('com.android.systemui') &&
+      !n.resourceId.startsWith('android.')
+    );
     const interactive = parsed.filter(isInteractive);
     const labelled = interactive.filter((n) => n.contentDesc.length > 0 || n.text.length > 0);
     const undersized = [];
@@ -197,6 +211,33 @@ function main() {
       }
       const widthDp = size.width / scale;
       const heightDp = size.height / scale;
+      // A node clipped by a horizontally scrollable ancestor's edge is
+      // reachable by scrolling the rail - unmeasured, like occlusion.
+      const railClipped = hScrollBounds.some((b) => {
+        const m = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(b);
+        if (!m) return false;
+        const railL = Number(m[1]);
+        const railR = Number(m[3]);
+        const railT = Number(m[2]);
+        const railB = Number(m[4]);
+        const [nl, nt, nr, nb] = [Number(m[1])];
+        void nl; void nt; void railT; void railB;
+        const nm = /\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]/.exec(node.bounds);
+        if (!nm) return false;
+        const nodeL = Number(nm[1]);
+        const nodeR = Number(nm[3]);
+        const nodeT = Number(nm[2]);
+        const nodeB = Number(nm[4]);
+        return nodeT >= railT && nodeB <= railB && (nodeR > railR - 2 || nodeL < railL + 2);
+      });
+      if (railClipped && heightDp + 0.5 >= MIN_TARGET_DP) {
+        occluded.push({
+          label: node.contentDesc || node.text || node.resourceId || node.className,
+          widthDp: Math.round(widthDp),
+          reason: 'rail-edge (scroll-reachable)',
+        });
+        continue;
+      }
       if (widthDp + 0.5 < MIN_TARGET_DP || heightDp + 0.5 < MIN_TARGET_DP) {
         undersized.push({
           label: node.contentDesc || node.text || node.resourceId || node.className,

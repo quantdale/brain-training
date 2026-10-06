@@ -401,7 +401,9 @@ export default function MathEquationBuilderScreen(props: MathEquationBuilderScre
           </View>
           <ThemedText
             type="small"
-            themeColor={state.timeRemainingMs < 10_000 ? 'danger' : 'stageInk'}
+            // Review fix: urgent state on the charcoal stage uses the
+            // contrast-verified stageWarn pairing (danger measured 2.13:1).
+            themeColor={state.timeRemainingMs < 10_000 ? 'stageWarn' : 'stageInk'}
             testID={testId(GAME_ID, 'timer')}>
             {Math.max(0, Math.ceil(state.timeRemainingMs / 1000))}s
           </ThemedText>

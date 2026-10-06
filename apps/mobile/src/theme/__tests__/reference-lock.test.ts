@@ -10,6 +10,8 @@
 
 import { describe, expect, it } from '@jest/globals';
 
+import { contrastRatio } from '@/theme/contrast';
+
 import { Colors, Elevation, Families, Typography } from '@/theme/tokens';
 
 describe('reference lock (Training Studio, 076 REFERENCE_LOCK.md)', () => {
@@ -58,5 +60,33 @@ describe('reference lock (Training Studio, 076 REFERENCE_LOCK.md)', () => {
     expect(Elevation.card.elevation).toBe(0);
     expect(Elevation.raised.elevation).toBeGreaterThan(0);
     expect(Elevation.hero.elevation).toBeGreaterThan(Elevation.raised.elevation);
+  });
+});
+
+describe('stage pairings (076 review fix: text on the charcoal stage)', () => {
+  const STAGE_TEXT_MIN = 4.5;
+
+  it('verifies every stage text role against the stage panel in both schemes', () => {
+    const violations: string[] = [];
+    for (const scheme of ['light', 'dark'] as const) {
+      const stage = Colors[scheme].stage;
+      for (const role of ['stageInk', 'stageWarn', 'stageError', 'stageMuted'] as const) {
+        const ratio = contrastRatio(Colors[scheme][role], stage);
+        if (ratio < STAGE_TEXT_MIN) {
+          violations.push(
+            `${scheme} ${role} on stage: ${Colors[scheme][role]} = ${ratio.toFixed(2)}:1 (min ${STAGE_TEXT_MIN})`,
+          );
+        }
+      }
+    }
+    expect(violations).toEqual([]);
+  });
+
+  it('keeps the light-scheme semantic families OFF the stage (they fail on charcoal)', () => {
+    // Regression pin for the review finding: light danger (2.13:1) and light
+    // warning (2.28:1) must not be used as text on the stage panel — the
+    // stageWarn/stageError pairings exist for that.
+    expect(contrastRatio(Colors.light.danger, Colors.light.stage)).toBeLessThan(4.5);
+    expect(contrastRatio(Colors.light.warning, Colors.light.stage)).toBeLessThan(4.5);
   });
 });

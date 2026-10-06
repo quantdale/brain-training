@@ -316,11 +316,9 @@ export function GameResults({
           {badge}
         </View>
       </View>
-      <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
-        {children}
-      </View>
-
       {persistState === 'failed' ? (
+        // Review fix: the save-failure notice precedes the facts so an XP
+        // row can never read as persisted above its own failure message.
         <ThemedText
           type="small"
           themeColor="danger"
@@ -329,6 +327,9 @@ export function GameResults({
           Your session could not be saved. {lastError ?? ''}
         </ThemedText>
       ) : null}
+      <View style={styles.facts} testID={testId(gameId, 'result-facts')}>
+        {children}
+      </View>
       {forced ? (
         <ThemedText type="caption" themeColor="warning" testID={testId(gameId, 'forced-badge')}>
           QA-forced session

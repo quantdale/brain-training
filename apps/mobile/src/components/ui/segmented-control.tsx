@@ -158,8 +158,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS_CAP,
   },
   optionCompact: {
-    // The compact variant shrinks type and padding, never the target.
+    // The compact variant shrinks type and padding, never the target. The
+    // minimum WIDTH keeps the shortest label (e.g. "All") at the 44dp square
+    // touch contract, not just the height (076 review fix).
     minHeight: MIN_TOUCH_TARGET,
+    minWidth: MIN_TOUCH_TARGET,
     paddingHorizontal: Spacing.one,
     borderRadius: Radii.medium,
   },

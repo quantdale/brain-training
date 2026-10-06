@@ -159,6 +159,16 @@ interface NeutralTheme {
   stage: string;
   /** Reading type drawn on the stage panel. */
   stageInk: string;
+  /** Urgent/warning text ON the stage panel (review fix: the light-scheme
+   *  warning/danger families measure <4.5:1 on charcoal; these stage pairs
+   *  are contrast-verified against `stage` in both schemes). */
+  stageWarn: string;
+  /** Error text ON the stage panel. */
+  stageError: string;
+  /** Secondary/muted text ON the stage panel. */
+  stageMuted: string;
+  /** Hairline border ON the stage panel. */
+  stageBorder: string;
   /** Surface for the hero/elevated card of a screen. */
   surfaceRaised: string;
   /** Recessed surface for wells, tracks and inline code. */
@@ -192,6 +202,10 @@ const NEUTRALS = {
     surfaceSunken: '#ECEAE5',
     stage: '#1F2124',
     stageInk: '#FFFFFF',
+    stageWarn: '#FFD166',
+    stageError: '#FF8179',
+    stageMuted: '#B9BABC',
+    stageBorder: 'rgba(255, 255, 255, 0.28)',
     border: '#D8D5CE',
     borderStrong: '#4A4B4E',
     accentStrong: '#B01E2E',
@@ -212,6 +226,10 @@ const NEUTRALS = {
     surfaceSunken: '#0C0D0F',
     stage: '#1B1D21',
     stageInk: '#FFFFFF',
+    stageWarn: '#FFD166',
+    stageError: '#FF8179',
+    stageMuted: '#B9BABC',
+    stageBorder: 'rgba(255, 255, 255, 0.28)',
     border: '#34363B',
     borderStrong: '#A2A3A6',
     accentStrong: '#FF6E79',

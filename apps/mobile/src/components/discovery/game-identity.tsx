@@ -611,6 +611,7 @@ function worldColors(theme: ColorTheme, category: string) {
     on: record[`${key}On`] ?? theme.accentOn,
     ink: theme.text,
     secondary: ArcadePalette.light[staticKey],
+    surface: theme.surface,
   };
 }
 
@@ -774,6 +775,10 @@ function WorldMotif({
  * bounded: a domain world supplies the palette, while the stable mechanic
  * family supplies the shape grammar. Text beside it remains authoritative.
  */
+// Change 076 review fix: genuine per-game board stills (lock section 4) —
+// the still now mirrors the game's actual board grammar, not a family motif.
+import { GameBoardStill } from './board-stills';
+
 export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps) {
   const theme = useTheme();
   const colors = worldColors(theme, game.primaryCategory);
@@ -792,7 +797,9 @@ export function GameWorldArt({ game, size = 'card', testID }: GameWorldArtProps)
       style={[styles.world, { height, backgroundColor: colors.soft, borderColor: colors.base }]}>
       <View style={[styles.worldCorner, { backgroundColor: colors.base }]} />
       <View style={[styles.worldCornerSecondary, { backgroundColor: colors.secondary }]} />
-      <WorldMotif family={identity.family} colors={colors} variant={variant} scale={scale} />
+      {GameBoardStill({ gameId: game.id, colors, variant, scale }) ?? (
+        <WorldMotif family={identity.family} colors={colors} variant={variant} scale={scale} />
+      )}
       <View style={[styles.worldBadge, { backgroundColor: colors.base }]}>
         <IdentityMark family={identity.family} size={Math.round(22 * Math.min(scale, 1.5))} color={colors.on} />
       </View>
