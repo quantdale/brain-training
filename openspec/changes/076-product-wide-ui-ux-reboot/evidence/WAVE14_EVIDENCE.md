@@ -52,9 +52,9 @@ to single actions.
   (`✅ Automation ... is success ✅`; trace-step compilation was degraded by
   transient Google 503s during step summarization — the automation itself
   succeeded).
-- **Pro stateful journeys: BLOCKED (LLM provider capacity).** Eight attempts
+- **Pro stateful journeys: BLOCKED (LLM provider capacity).** Nine attempts
   across 2026-10-05/06 (`076-pro-first-run-workout`, `-retry`, `-retry2`,
-  `-attempt4` … `-attempt8`, including 10–30-minute provider cool-downs before
+  `-attempt4` … `-attempt9`, including 10–30-minute provider cool-downs before
   retries 5–7) each failed inside the ARTEMIS operator on provider grounds —
   dominated by 429 Too Many Requests (30+ events in the final attempt alone),
   503 UNAVAILABLE, and `TimeoutError: LLM call timed out after 180 seconds`.
